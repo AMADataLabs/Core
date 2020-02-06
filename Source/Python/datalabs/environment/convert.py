@@ -19,33 +19,33 @@ class CondaEnvironmentConverter(ABC):
         converted_dependencies = None
 
         try:
-            conda_dependencies = self.read_conda_dependencies(self._conda_package_list_filename)
+            conda_dependencies = self._read_conda_dependencies(self._conda_package_list_filename)
         except FileNotFoundError as fnfe:
             logger.exception(f'Unable to find conda package list file {self._conda_package_list_filename}.')
 
         try:
-            template = self.read_template(self._template_filename)
+            template = self._read_template(self._template_filename)
         except FileNotFoundError as fnfe:
             logger.exception(f'Unable to find template file {self._template_filename}.')
 
         if conda_dependencies and pipfile_template:
-            converted_dependencies = self.render_template(template, conda_dependencies)
+            converted_dependencies = self._render_template(template, conda_dependencies)
 
         return converted_dependencies
 
-    def read_conda_dependencies(cls, conda_package_list_filename):
+    def _read_conda_dependencies(cls, conda_package_list_filename):
         dependencies = {}
 
         with open(conda_package_list_filename) as file:
             for line in file:
-                variable, value = cls.parse_conda_dependency(line)
+                variable, value = cls._parse_conda_dependency(line)
 
                 if variable:
                     dependencies[variable] = value
 
         return dependencies
 
-    def read_pipfile_template(cls, template_filename):
+    def _read_pipfile_template(cls, template_filename):
         template = None
 
         with open(template_filename) as file:
@@ -53,7 +53,7 @@ class CondaEnvironmentConverter(ABC):
 
         return template
 
-    def parse_conda_dependency(cls, dependency):
+    def _parse_conda_dependency(cls, dependency):
         variable = None
         value = None
 
@@ -63,11 +63,11 @@ class CondaEnvironmentConverter(ABC):
         return variable, value
 
     @abstractmethod
-    def render_template(template: jinja2.Template, conda_dependencies: dict) -> str:
+    def _render_template(template: jinja2.Template, conda_dependencies: dict) -> str:
         pass
 
 class Conda2PipenvEnvrionmentConverter(CondaEnvironmentConverter):
-    def render_template(template, conda_dependencies):
+    def _render_template(template, conda_dependencies):
     names = sorted(conda_dependencies.keys())
     pipfile_dependencies = []
     python_version
