@@ -28,7 +28,7 @@ def main(args):
 
 
 def write_pipfile(pipfile_filename, pipfile):
-	with open(pipfile_filename, '>') as file:
+	with open(pipfile_filename, 'w') as file:
 		file.write(pipfile)
 
 
@@ -38,7 +38,10 @@ if __name__ == '__main__':
 	ap.add_argument('-i', '--in', required=True, help='Path to the Conda package list file.')
 	ap.add_argument('-o', '--out', required=True, help='Path to the Pipenv package list file (Pipfile).')
 	ap.add_argument('-t', '--template', required=True, help='Path to the Pipfile template.')
+	ap.add_argument('-w', '--whitelist', required=True, help='Path to the whitelist file.')
 
 	args = vars(ap.parse_args())
 
-	return main(args)
+	return_code = main(args)
+
+	exit(return_code)

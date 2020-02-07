@@ -9,11 +9,20 @@ logger.setLevel(logging.DEBUG)
 
 
 def test_dependency_dict_matches_conda_package_list(conda_package_list_filename, expected_conda_packages):
-    converter = Conda2PipenvEnvrionmentConverter(None, None)
+    converter = Conda2PipenvEnvrionmentConverter(conda_package_list_filename, None)
 
-    dependencies = converter._read_conda_dependencies(conda_package_list_filename)
+    dependencies = converter._read_conda_dependencies()
 
     assert expected_conda_packages == dependencies
+
+
+def test_dependency_dict_matches_whitelist(conda_package_list_filename, expected_conda_packages, whitelist_filename, expected_whitelist):
+    converter = Conda2PipenvEnvrionmentConverter(conda_package_list_filename, None, whitelist_filename=whitelist_filename)
+    whitelisted_conda_packages = {k:v for k,v in expected_conda_packages.items() if k in expected_whitelist}
+
+    dependencies = converter._read_conda_dependencies()
+
+    assert whitelisted_conda_packages == dependencies
 
 
 def test_dependency_lines_are_parsed_correctly(pipfile_template_filename):
@@ -25,10 +34,20 @@ def test_dependency_lines_are_parsed_correctly(pipfile_template_filename):
     assert value == '4.8.2'
 
 
-def test_read_template_succeeds(pipfile_template_filename):
-    converter = Conda2PipenvEnvrionmentConverter(None, None)
+def test_read_whitelist_returns_correct_package_list(whitelist_filename):
+    converter = Conda2PipenvEnvrionmentConverter(None, pipfile_template_filename, whitelist_filename=whitelist_filename)
 
-    template = converter._read_template(pipfile_template_filename)
+    whitelist = converter._read_whitelist()
+
+    assert len(whitelist) == 2
+    assert 'numpy' in whitelist
+    assert 'scipy' in whitelist
+
+
+def test_read_template_succeeds(pipfile_template_filename):
+    converter = Conda2PipenvEnvrionmentConverter(None, pipfile_template_filename)
+
+    template = converter._read_template()
 
 
 def test_dependency_lines_are_parsed_correctly(pipfile_template_filename):
@@ -41,8 +60,8 @@ def test_dependency_lines_are_parsed_correctly(pipfile_template_filename):
 
 
 def test_pipfile_template_renders_correctly(pipfile_template_filename, expected_conda_packages, expected_rendered_template):
-    converter = Conda2PipenvEnvrionmentConverter(None, None)
-    template = converter._read_template(pipfile_template_filename)
+    converter = Conda2PipenvEnvrionmentConverter(None, pipfile_template_filename)
+    template = converter._read_template()
 
     rendered_template = converter._render_template(template, expected_conda_packages)
 
@@ -68,6 +87,16 @@ def pipfile_template_filename():
 
 
 @pytest.fixture
+def whitelist_filename():
+    return 'Test/Python/datalabs/test/environment/package_selection.csv'
+
+
+@pytest.fixture
+def expected_whitelist():
+    return ['numpy', 'scipy']
+
+
+@pytest.fixture
 def expected_conda_packages():
     return dict(
         conda='4.8.2',
@@ -80,4 +109,4 @@ def expected_conda_packages():
 
 @pytest.fixture
 def expected_rendered_template():
-    return '[[source]]\nname = "pypi"\nurl = "https://pypi.org/simple"\nverify_ssl = true\n\n[dev-packages]\n\n[packages]\n\nnumpy = \'==1.18.1\'\n\npandas = \'==1.0.0\'\n\nscipy = \'==1.3.2\'\n\n\n[requires]\npython_version = "3.7.6"'
+    return '[[source]]\nname = "pypi"\nurl = "https://pypi.org/simple"\nverify_ssl = true\n\n[dev-packages]\n\n[packages]\n\nnumpy = \'==1.18.1\'\npandas = \'==1.0.0\'\nscipy = \'==1.3.2\'\n\n[requires]\npython_version = "3.7.6"'
