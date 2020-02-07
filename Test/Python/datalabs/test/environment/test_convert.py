@@ -1,23 +1,25 @@
 import logging
+import os
 import pytest
+import tempfile
 
-from   datalabs.environment.convert import Conda2PipenvEnvrionmentConverter
+from   datalabs.environment.convert import Conda2PipenvEnvrionmentConverter, ConversionFilenames
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-def test_dependency_dict_matches_conda_package_list(conda_package_list_filename, expected_conda_packages):
-    converter = Conda2PipenvEnvrionmentConverter(conda_package_list_filename, None)
+def test_dependency_dict_matches_conda_package_list(filenames, expected_conda_packages):
+    converter = Conda2PipenvEnvrionmentConverter(filenames)
 
     dependencies = converter._read_conda_dependencies()
 
     assert expected_conda_packages == dependencies
 
 
-def test_dependency_dict_matches_whitelist(conda_package_list_filename, expected_conda_packages, whitelist_filename, expected_whitelist):
-    converter = Conda2PipenvEnvrionmentConverter(conda_package_list_filename, None, whitelist_filename=whitelist_filename)
+def test_dependency_dict_matches_whitelist(whitelisting_filenames, expected_conda_packages, expected_whitelist):
+    converter = Conda2PipenvEnvrionmentConverter(whitelisting_filenames)
     whitelisted_conda_packages = {k:v for k,v in expected_conda_packages.items() if k in expected_whitelist}
 
     dependencies = converter._read_conda_dependencies()
@@ -25,8 +27,8 @@ def test_dependency_dict_matches_whitelist(conda_package_list_filename, expected
     assert whitelisted_conda_packages == dependencies
 
 
-def test_dependency_lines_are_parsed_correctly(pipfile_template_filename):
-    converter = Conda2PipenvEnvrionmentConverter(None, None)
+def test_dependency_lines_are_parsed_correctly(filenames):
+    converter = Conda2PipenvEnvrionmentConverter(filenames)
 
     variable, value = converter._parse_conda_dependency('conda=4.8.2=py37_0')
 
@@ -34,8 +36,8 @@ def test_dependency_lines_are_parsed_correctly(pipfile_template_filename):
     assert value == '4.8.2'
 
 
-def test_read_whitelist_returns_correct_package_list(whitelist_filename):
-    converter = Conda2PipenvEnvrionmentConverter(None, pipfile_template_filename, whitelist_filename=whitelist_filename)
+def test_read_whitelist_returns_correct_package_list(whitelisting_filenames):
+    converter = Conda2PipenvEnvrionmentConverter(whitelisting_filenames)
 
     whitelist = converter._read_whitelist()
 
@@ -44,14 +46,14 @@ def test_read_whitelist_returns_correct_package_list(whitelist_filename):
     assert 'scipy' in whitelist
 
 
-def test_read_template_succeeds(pipfile_template_filename):
-    converter = Conda2PipenvEnvrionmentConverter(None, pipfile_template_filename)
+def test_read_template_succeeds(filenames):
+    converter = Conda2PipenvEnvrionmentConverter(filenames)
 
     template = converter._read_template()
 
 
-def test_dependency_lines_are_parsed_correctly(pipfile_template_filename):
-    converter = Conda2PipenvEnvrionmentConverter(None, None)
+def test_dependency_lines_are_parsed_correctly(filenames):
+    converter = Conda2PipenvEnvrionmentConverter(filenames)
 
     variable, value = converter._parse_conda_dependency('conda=4.8.2=py37_0')
 
@@ -59,8 +61,8 @@ def test_dependency_lines_are_parsed_correctly(pipfile_template_filename):
     assert value == '4.8.2'
 
 
-def test_pipfile_template_renders_correctly(pipfile_template_filename, expected_conda_packages, expected_rendered_template):
-    converter = Conda2PipenvEnvrionmentConverter(None, pipfile_template_filename)
+def test_pipfile_template_renders_correctly(filenames, expected_conda_packages, expected_rendered_template):
+    converter = Conda2PipenvEnvrionmentConverter(filenames)
     template = converter._read_template()
 
     rendered_template = converter._render_template(template, expected_conda_packages)
@@ -68,27 +70,39 @@ def test_pipfile_template_renders_correctly(pipfile_template_filename, expected_
     assert expected_rendered_template == rendered_template
 
 
-def test_conda_environment_correctly_converted_to_pipenv(conda_package_list_filename, pipfile_template_filename, expected_rendered_template):
-    converter = Conda2PipenvEnvrionmentConverter(conda_package_list_filename, pipfile_template_filename)
+def test_conda_environment_correctly_converted_to_pipenv(filenames, expected_rendered_template):
+    converter = Conda2PipenvEnvrionmentConverter(filenames)
 
-    rendered_template = converter.convert()
+    converter.convert()
+
+    rendered_template = None
+    with open(filenames.converted_dependencies) as file:
+        rendered_template = file.read()
 
     assert expected_rendered_template == rendered_template
 
 
 @pytest.fixture
-def conda_package_list_filename():
-    return 'Test/Python/datalabs/test/environment/conda_package_list.txt'
+def filenames():
+    converted_dependencies_file = tempfile.NamedTemporaryFile()
+    converted_dependencies_file.close()
+
+    yield ConversionFilenames(
+        conda_package_list='Test/Python/datalabs/test/environment/conda_package_list.txt',
+        template='Test/Python/datalabs/test/environment/Pipfile_template.txt',
+        converted_dependencies=converted_dependencies_file.name,
+        whitelist=None
+    )
 
 
 @pytest.fixture
-def pipfile_template_filename():
-    return 'Test/Python/datalabs/test/environment/Pipfile_template.txt'
-
-
-@pytest.fixture
-def whitelist_filename():
-    return 'Test/Python/datalabs/test/environment/package_selection.csv'
+def whitelisting_filenames(filenames):
+    yield ConversionFilenames(
+        conda_package_list=filenames.conda_package_list,
+        template=filenames.template,
+        converted_dependencies=filenames.converted_dependencies,
+        whitelist = 'Test/Python/datalabs/test/environment/package_selection.csv',
+    )
 
 
 @pytest.fixture

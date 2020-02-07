@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections import namedtuple
 import logging
 
 import jinja2
@@ -8,37 +9,35 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+ConversionFilenames = namedtuple(
+    'ConversionFilenames',
+    'conda_package_list template whitelist converted_dependencies'
+)
+
+
 class CondaEnvironmentConverter(ABC):
-    def __init__(self, conda_package_list_filename: str, template_filename: str, whitelist_filename: str=None) -> str:
-        self._conda_package_list_filename = conda_package_list_filename
-        self._template_filename = template_filename
-        self._whitelist_filename = whitelist_filename
+    def __init__(self, filenames: ConversionFilenames) -> str:
+        self._filenames = filenames
 
     def convert(self) -> str:
         conda_dependencies = None
         template = None
         converted_dependencies = None
 
-        try:
-            conda_dependencies = self._read_conda_dependencies()
-        except FileNotFoundError as fnfe:
-            logger.exception(f'Unable to find conda package list file {self._conda_package_list_filename}.')
+        conda_dependencies = self._read_conda_dependencies()
 
-        try:
-            template = self._read_template()
-        except FileNotFoundError as fnfe:
-            logger.exception(f'Unable to find template file {self._template_filename}.')
+        template = self._read_template()
 
         if conda_dependencies and template:
             converted_dependencies = self._render_template(template, conda_dependencies)
 
-        return converted_dependencies
+            self._write_converted_dependencies(converted_dependencies)
 
     def _read_conda_dependencies(self):
         dependencies = {}
         whitelist = self._read_whitelist()
 
-        with open(self._conda_package_list_filename) as file:
+        with open(self._filenames.conda_package_list) as file:
             for line in file:
                 variable, value = self._parse_conda_dependency(line)
 
@@ -50,7 +49,7 @@ class CondaEnvironmentConverter(ABC):
     def _read_template(self):
         template = None
 
-        with open(self._template_filename) as file:
+        with open(self._filenames.template) as file:
             template = jinja2.Template(file.read())
 
         return template
@@ -58,9 +57,9 @@ class CondaEnvironmentConverter(ABC):
     def _read_whitelist(self):
         whitelist = None
 
-        if self._whitelist_filename:
-            logger.debug(f'Whitelist Filename: {self._whitelist_filename}')
-            with open(self._whitelist_filename) as file:
+        if self._filenames.whitelist:
+            logger.debug(f'Whitelist Filename: {self._filenames.whitelist}')
+            with open(self._filenames.whitelist) as file:
                 whitelist_line = file.readline().strip()
 
             whitelist = whitelist_line.split(',')
@@ -81,6 +80,11 @@ class CondaEnvironmentConverter(ABC):
     @abstractmethod
     def _render_template(cls, template: jinja2.Template, conda_dependencies: dict) -> str:
         pass
+
+    def _write_converted_dependencies(self, converted_dependencies):
+        with open(self._filenames.converted_dependencies, 'w') as file:
+            file.write(converted_dependencies)
+            file.flush()
 
 class Conda2PipenvEnvrionmentConverter(CondaEnvironmentConverter):
     @classmethod
