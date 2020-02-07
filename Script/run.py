@@ -1,12 +1,17 @@
+import os
 from   pathlib import Path
 import subprocess
 import sys
 
 
 if __name__ == '__main__':
+    environment = os.environ.copy()
     path = Path('Source/Python')
-    sys.path.append(path)
-
     args = sys.argv[1:]
 
-    subprocess.call(args)
+    if environment.get('PYTHONPATH'):
+        environment['PYTHONPATH'] += ';' + str(path)
+    else:
+        environment['PYTHONPATH'] = str(path)
+
+    subprocess.call(args, env=environment)

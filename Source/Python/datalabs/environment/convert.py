@@ -28,11 +28,12 @@ class CondaEnvironmentConverter(ABC):
         except FileNotFoundError as fnfe:
             logger.exception(f'Unable to find template file {self._template_filename}.')
 
-        if conda_dependencies and pipfile_template:
+        if conda_dependencies and template:
             converted_dependencies = self._render_template(template, conda_dependencies)
 
         return converted_dependencies
 
+    @classmethod
     def _read_conda_dependencies(cls, conda_package_list_filename):
         dependencies = {}
 
@@ -45,7 +46,8 @@ class CondaEnvironmentConverter(ABC):
 
         return dependencies
 
-    def _read_pipfile_template(cls, template_filename):
+    @classmethod
+    def _read_template(cls, template_filename):
         template = None
 
         with open(template_filename) as file:
@@ -53,6 +55,7 @@ class CondaEnvironmentConverter(ABC):
 
         return template
 
+    @classmethod
     def _parse_conda_dependency(cls, dependency):
         variable = None
         value = None
@@ -62,15 +65,17 @@ class CondaEnvironmentConverter(ABC):
 
         return variable, value
 
+    @classmethod
     @abstractmethod
-    def _render_template(template: jinja2.Template, conda_dependencies: dict) -> str:
+    def _render_template(cls, template: jinja2.Template, conda_dependencies: dict) -> str:
         pass
 
 class Conda2PipenvEnvrionmentConverter(CondaEnvironmentConverter):
-    def _render_template(template, conda_dependencies):
+    @classmethod
+    def _render_template(cls, template, conda_dependencies):
         names = sorted(conda_dependencies.keys())
         pipfile_dependencies = []
-        python_version
+        python_version = None
 
         for name in names:
             if name == 'python':
@@ -78,6 +83,6 @@ class Conda2PipenvEnvrionmentConverter(CondaEnvironmentConverter):
             elif name == 'conda':
                 pass
             else:
-                pipfile_dependencies.append(f"name = '=={conda_dependencies[name]}'")
+                pipfile_dependencies.append(f"{name} = '=={conda_dependencies[name]}'")
 
-        return pipfile_template.render(packages=pipfile_dependencies, python_version=python_version)
+        return template.render(packages=pipfile_dependencies, python_version=python_version)
