@@ -11,7 +11,7 @@ logger.setLevel(logging.DEBUG)
 class CondaEnvironmentConverter(ABC):
     def __init__(self, conda_package_list_filename, template_filename):
         self._conda_package_list_filename = conda_package_list_filename
-        self._template_filename
+        self._template_filename = template_filename
 
     def convert(self) -> str:
         conda_dependencies = None
@@ -68,16 +68,16 @@ class CondaEnvironmentConverter(ABC):
 
 class Conda2PipenvEnvrionmentConverter(CondaEnvironmentConverter):
     def _render_template(template, conda_dependencies):
-    names = sorted(conda_dependencies.keys())
-    pipfile_dependencies = []
-    python_version
+        names = sorted(conda_dependencies.keys())
+        pipfile_dependencies = []
+        python_version
 
-    for name in names:
-        if name == 'python':
-            python_version = conda_dependencies[name]
-        elif name == 'conda':
-            pass
-        else:
-            pipfile_dependencies.append(f"name = '=={conda_dependencies[name]}'")
+        for name in names:
+            if name == 'python':
+                python_version = conda_dependencies[name]
+            elif name == 'conda':
+                pass
+            else:
+                pipfile_dependencies.append(f"name = '=={conda_dependencies[name]}'")
 
-    return pipfile_template.render(packages=pipfile_dependencies, python_version=python_version)
+        return pipfile_template.render(packages=pipfile_dependencies, python_version=python_version)

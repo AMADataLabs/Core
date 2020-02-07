@@ -2,6 +2,7 @@
 # $ conda create --name <env> --file <this file>
 # platform: win-64
 conda=4.8.2=py37_0
+doit=0.31.1=py37_0
 ipython=7.12.0=py37h5ca1d4c_0
 jinja2=2.11.1=py_0
 jupyter=1.0.0=py37_7
