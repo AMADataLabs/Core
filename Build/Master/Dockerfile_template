@@ -1,0 +1,18 @@
+FROM python:{{ python_version }} AS Base
+WORKDIR /{{ project_name }}
+
+# Needed for AMA local development builds
+COPY ./Build/Master/rootca.pem .
+RUN pip config set global.cert rootca.pem
+
+RUN pip install pipenv
+
+FROM Base as PythonDependencies
+WORKDIR /{{ python_version }}
+COPY ./Environment/{{ python_version }}/Pipfile .
+RUN pipenv install
+
+FROM PythonDependencies as Code
+WORKDIR /{{ project_name }}
+COPY {{ repo_directory }}/Source/ .
+COPY {{ repo_directory }}/Test/ .
