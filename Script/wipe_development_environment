@@ -1,0 +1,69 @@
+#!/bin/bash
+
+
+main() {
+    check_user
+
+    check_os_version
+
+    # remove_base_virtual_environments
+
+    remove_pipenv
+
+    remove_venv
+
+    configure_default_python3
+
+    remove_python3_7
+}
+
+check_user() {
+    user=$(whoami)
+
+    if [[ $user != 'root' ]]; then
+        echo This script must be run as the root user
+        exit 1
+    fi
+}
+
+check_os_version() {
+    . /etc/os-release
+    echo Running $PRETTY_NAME
+
+    if [[ $NAME != 'Ubuntu' ]]; then
+        echo Unsupported OS $NAME
+        exit 2
+    elif [[ $VERSION_ID != '18.04' ]]; then
+        echo Unsupported OS version $VERSION_ID
+        exit 2
+    fi
+}
+
+remove_base_virtual_environments() {
+    rm -rf /home/lane/Development/Python3.6
+    rm -rf /home/lane/Development/Python3.7
+}
+
+remove_pipenv() {
+    python3 -m pip uninstall -y pipenv
+}
+
+remove_venv() {
+    apt remove -y python3.6-venv
+    apt remove -y python3.7-venv
+}
+
+configure_default_python3() {
+    update-alternatives --set python3 /usr/bin/python3.6
+}
+
+remove_python3_7() {
+    apt remove -y python3.7
+    apt -y autoremove
+
+    add-apt-repository -r -y ppa:deadsnakes/ppa
+
+    apt remove -y software-properties-common
+}
+
+main

@@ -14,4 +14,6 @@ if __name__ == '__main__':
     else:
         environment['PYTHONPATH'] = str(path)
 
-    subprocess.call(args, env=environment)
+    return_code = subprocess.call(args, env=environment)
+
+    exit(return_code)
