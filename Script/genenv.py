@@ -11,6 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 
 ENVIRONMENT_GENERATORS = {
+    'pip': generate.PipEnvironmentGenerator,
     'pipenv': generate.PipenvEnvironmentGenerator,
     'conda': generate.CondaEnvironmentGenerator,
 }

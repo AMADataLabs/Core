@@ -88,11 +88,21 @@ class EnvironmentGenerator(ABC):
             file.flush()
 
 
+class PipEnvironmentGenerator(EnvironmentGenerator):
+    def _render_template(self, template, dependencies):
+        names = sorted(dependencies.keys())
+        pipfile_dependencies = []
+
+        for name in names:
+            pipfile_dependencies.append(f"{name}=={dependencies[name]}'")
+
+        return template.render(packages=pipfile_dependencies, python_version=self._python_version)
+
+
 class PipenvEnvironmentGenerator(EnvironmentGenerator):
     def _render_template(self, template, dependencies):
         names = sorted(dependencies.keys())
         pipfile_dependencies = []
-        python_version = None
 
         for name in names:
             pipfile_dependencies.append(f"{name} = '=={dependencies[name]}'")

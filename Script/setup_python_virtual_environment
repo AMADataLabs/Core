@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+SCRIPT=`realpath $0`
+SCRIPT_PATH=`dirname $SCRIPT`
+ENVIRONMENT_PATH=${SCRIPT_PATH}/../$1
+. ${SCRIPT_PATH}/../Source/Bash/datalabs/environment/generate.sh
+
+setup_python_virtual_environment ${ENVIRONMENT_PATH}

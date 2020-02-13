@@ -1,7 +1,11 @@
 #!/bin/bash
 
+SCRIPT=`realpath $0`
+SCRIPT_PATH=`dirname $SCRIPT`
 
-DEVELOPMENT_PATH=/home/lane/Development
+# import Bash function:  setup_python_virtual_environment
+. ${SCRIPT_PATH}/../Source/Bash/datalabs/environment/generate.sh
+
 
 main() {
     check_user
@@ -76,9 +80,9 @@ install_python() {
 
     install_venv
 
-    install_pipenv
+    # install_pipenv
 
-    # create_base_virtual_environments
+    create_base_virtual_environment
 }
 
 install_node() {
@@ -93,6 +97,8 @@ install_node() {
 
 install_pip() {
     apt install -y python3-pip
+
+    python3 -m pip install --upgrade pip
 }
 
 install_python3_7() {
@@ -117,23 +123,8 @@ install_pipenv() {
     python3 -m pip install pipenv
 }
 
-create_base_virtual_environments() {
-    # create_python_virtual_environment 3.6
-
-    create_python_virtual_environment 3.7
-}
-
-create_python_virtual_environment() {
-    version=$1
-
-    cd $DEVELOPMENT_PATH
-    python${version} -m venv Python${version}
-
-    cd ${DEVELOPMENT_PATH}/Python${version}
-    . ./bin/activate
-    pipenv install --python ${version}
-    deactivate
-    cd 
+create_base_virtual_environment() {
+    setup_python_virtual_environment Environment/Master
 }
 
 main

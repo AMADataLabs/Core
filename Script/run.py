@@ -6,7 +6,7 @@ import sys
 
 if __name__ == '__main__':
     environment = os.environ.copy()
-    path = Path('Source/Python')
+    path = Path('Source/Python').absolute()
     args = sys.argv[1:]
 
     if environment.get('PYTHONPATH'):
