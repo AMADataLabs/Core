@@ -4,7 +4,7 @@ SCRIPT=`realpath $0`
 SCRIPT_PATH=`dirname $SCRIPT`
 
 # import Bash function:  setup_python_virtual_environment
-. ${SCRIPT_PATH}/../Source/Bash/datalabs/environment/generate.sh
+. ${SCRIPT_PATH}/../Source/Bash/datalabs/environment/setup.sh
 
 
 main() {

@@ -3,7 +3,7 @@ import logging
 
 import jinja2
 
-import datalabs.environment.generate as generate
+import datalabs.environment.setup as setup
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -11,9 +11,9 @@ logger.setLevel(logging.DEBUG)
 
 
 ENVIRONMENT_GENERATORS = {
-    'pip': generate.PipEnvironmentGenerator,
-    'pipenv': generate.PipenvEnvironmentGenerator,
-    'conda': generate.CondaEnvironmentGenerator,
+    'pip': setup.PipEnvironmentGenerator,
+    'pipenv': setup.PipenvEnvironmentGenerator,
+    'conda': setup.CondaEnvironmentGenerator,
 }
 
 
@@ -34,7 +34,7 @@ def validate_args(args):
 
 def create_generator(args):
     environment = args['env']
-    filenames = generate.GeneratorFilenames(
+    filenames = setup.GeneratorFilenames(
         package_list=args['in'],
         template=args['template'],
         configuration=args['out'],

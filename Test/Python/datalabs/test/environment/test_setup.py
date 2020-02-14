@@ -3,7 +3,7 @@ import os
 import pytest
 import tempfile
 
-from   datalabs.environment.generate import PipenvEnvironmentGenerator, GeneratorFilenames
+from   datalabs.environment.setup import PipenvEnvironmentGenerator, GeneratorFilenames
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
