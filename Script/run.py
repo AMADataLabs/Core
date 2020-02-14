@@ -6,7 +6,7 @@ import sys
 
 if __name__ == '__main__':
     environment = os.environ.copy()
-    path = Path('Source/Python')
+    path = Path('Source/Python').absolute()
     args = sys.argv[1:]
 
     if environment.get('PYTHONPATH'):
@@ -14,4 +14,6 @@ if __name__ == '__main__':
     else:
         environment['PYTHONPATH'] = str(path)
 
-    subprocess.call(args, env=environment)
+    return_code = subprocess.call(args, env=environment)
+
+    exit(return_code)

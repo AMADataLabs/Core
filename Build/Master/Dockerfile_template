@@ -8,8 +8,8 @@ RUN pip config set global.cert rootca.pem
 RUN pip install pipenv
 
 FROM Base as PythonDependencies
-WORKDIR /{{ python_version }}
-COPY ./Environment/{{ python_version }}/Pipfile .
+WORKDIR /{{ project_name }}
+COPY ./Environment/{{ project_name }}/Pipfile .
 RUN pipenv install
 
 FROM PythonDependencies as Code

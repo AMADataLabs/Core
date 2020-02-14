@@ -1,0 +1,130 @@
+#!/bin/bash
+
+SCRIPT=`realpath $0`
+SCRIPT_PATH=`dirname $SCRIPT`
+
+# import Bash function:  setup_python_virtual_environment
+. ${SCRIPT_PATH}/../Source/Bash/datalabs/environment/setup.sh
+
+
+main() {
+    check_user
+
+    check_os_version
+
+    # create_development_directory
+
+    install_tools
+
+    # set_ownership
+
+    clean_up
+}
+
+check_user() {
+    user=$(whoami)
+
+    if [[ $user != 'root' ]]; then
+        echo This script must be run as the root user
+        exit 1
+    fi
+}
+
+check_os_version() {
+    . /etc/os-release
+    echo Running $PRETTY_NAME
+
+    if [[ $NAME != 'Ubuntu' ]]; then
+        echo Unsupported OS $NAME
+        exit 2
+    elif [[ $VERSION_ID != '18.04' ]]; then
+        echo Unsupported OS version $VERSION_ID
+        exit 2
+    fi
+}
+
+create_development_directory() {
+    mkdir -p $DEVELOPMENT_PATH
+}
+
+install_tools() {
+    install_dependencies
+
+    install_python
+
+    # install_node
+}
+
+set_ownership() {
+    chown -R lane:lane $DEVELOPMENT_PATH
+}
+
+clean_up() {
+    apt autoremove -y
+}
+
+install_dependencies() {
+    apt update
+
+    echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections
+
+    apt install -y software-properties-common build-essential curl
+}
+
+install_python() {
+    install_pip
+
+    install_python3_7
+
+    configure_default_python3
+
+    install_venv
+
+    # install_pipenv
+
+    create_base_virtual_environment
+}
+
+install_node() {
+    curl -sL https://deb.nodesource.com/setup_10.x -o /tmp/nodesource_setup.sh
+
+    bash /tmp/nodesource_setup.sh
+
+    rm /tmp/nodesource_setup.sh
+
+    apt install -y nodejs
+}
+
+install_pip() {
+    apt install -y python3-pip
+
+    python3 -m pip install --upgrade pip
+}
+
+install_python3_7() {
+    add-apt-repository -y ppa:deadsnakes/ppa
+
+    apt install -y python3.7
+}
+
+configure_default_python3() {
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 0
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1
+
+    update-alternatives --set python3 /usr/bin/python3.7
+}
+
+install_venv() {
+    apt install -y python3.6-venv
+    apt install -y python3.7-venv
+}
+
+install_pipenv() {
+    python3 -m pip install pipenv
+}
+
+create_base_virtual_environment() {
+    setup_python_virtual_environment Environment/Master
+}
+
+main
