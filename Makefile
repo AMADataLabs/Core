@@ -16,5 +16,8 @@ clean-master:
 test:
 	${RUN} python -m pytest
 
+lint:
+	${RUN} pylint ${CWD}/Source/Python/*
+
 pythonpath:
 	${RUN} printenv PYTHONPATH
