@@ -1,39 +1,25 @@
-from abc import ABC, abstractmethod
-from collections import namedtuple
+from   abc import ABC, abstractmethod
+import bisect
+from   collections import namedtuple
+from   dataclasses import dataclass
 import logging
 
 import jinja2
+
+import datalabs.common.setup as setup
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-GeneratorFilenames = namedtuple(
-    'GeneratorFilenames',
-    'package_list template whitelist configuration'
-)
+@dataclass
+class EnvironmentFilenames(setup.FileGeneratorFilenames):
+    package_list: str
+    whitelist: str
 
 
-class EnvironmentGenerator(ABC):
-    def __init__(self, filenames: GeneratorFilenames, python_version) -> str:
-        self._filenames = filenames
-        self._python_version = python_version
-
-    def generate(self) -> str:
-        dependencies = None
-        template = None
-        converted_dependencies = None
-
-        dependencies = self._read_dependencies()
-
-        template = self._read_template()
-
-        if dependencies and template:
-            converted_dependencies = self._render_template(template, dependencies)
-
-            self._write_converted_dependencies(converted_dependencies)
-
+class EnvironmentGenerator(setup.TemplatedFileGenerator):
     def _read_dependencies(self):
         dependencies = {}
         whitelist = self._read_whitelist()
@@ -46,14 +32,6 @@ class EnvironmentGenerator(ABC):
                     dependencies[variable] = value
 
         return dependencies
-
-    def _read_template(self):
-        template = None
-
-        with open(self._filenames.template) as file:
-            template = jinja2.Template(file.read())
-
-        return template
 
     def _read_whitelist(self):
         whitelist = None
@@ -77,49 +55,45 @@ class EnvironmentGenerator(ABC):
 
         return variable, value
 
-    @classmethod
-    @abstractmethod
-    def _render_template(cls, template: jinja2.Template, dependencies: dict) -> str:
-        pass
-
-    def _write_converted_dependencies(self, converted_dependencies):
-        with open(self._filenames.configuration, 'w') as file:
-            file.write(converted_dependencies)
-            file.flush()
-
 
 class PipEnvironmentGenerator(EnvironmentGenerator):
-    def _render_template(self, template, dependencies):
+    def _generate_template_parameters(self):
+        dependencies = self._read_dependencies()
+
+        sorted_dependencies = self._sort_dependencies()
+
+        return self._generate_template_parameter_dictionary(sorted_dependencies)
+
+    @classmethod
+    def _sort_dependencies(cls, dependencies):
         names = sorted(dependencies.keys())
-        pipfile_dependencies = []
+        sorted_dependencies = []
 
         for name in names:
-            pipfile_dependencies.append(f"{name}=={dependencies[name]}'")
+            sorted_dependencies.append((name, dependencies[name]))
 
-        return template.render(packages=pipfile_dependencies, python_version=self._python_version)
+        return sorted_dependencies
 
-
-class PipenvEnvironmentGenerator(EnvironmentGenerator):
-    def _render_template(self, template, dependencies):
-        names = sorted(dependencies.keys())
-        pipfile_dependencies = []
-
-        for name in names:
-            pipfile_dependencies.append(f"{name} = '=={dependencies[name]}'")
-
-        return template.render(packages=pipfile_dependencies, python_version=self._python_version)
+    def _generate_template_parameter_dictionary(self, sorted_dependencies):
+        return dict(package_versions=sorted_dependencies)
 
 
-class CondaEnvironmentGenerator(EnvironmentGenerator):
-    def _render_template(self, template, dependencies):
-        names = sorted(dependencies.keys())
-        pipfile_dependencies = []
-        python_version = None
+class PipenvEnvironmentGenerator(PipEnvironmentGenerator):
+    def _generate_template_parameter_dictionary(self, sorted_dependencies):
+        return dict(package_versions=sorted_dependencies, python_version=self._parameters['python_version'])
 
-        pipfile_dependencies.append(f"python={self._python_version}")
 
-        for name in names:
-            if name != 'python':
-                pipfile_dependencies.append(f"{name}={dependencies[name]}")
+class CondaEnvironmentGenerator(PipEnvironmentGenerator):
+    def _generate_template_parameters(self):
+        dependencies = self._read_dependencies()
 
-        return template.render(packages=pipfile_dependencies)
+        sorted_dependencies = self._sort_dependencies()
+
+        sorted_dependencies = self._insert_python_dependency()
+
+        return _generate_template_parameter_dictionary(sorted_dependencies)
+
+    def _insert_python_dependency(self, template, dependencies):
+        python_dependency = ('python', self._parameters['python_version'])
+
+        return bisect.insort(dependencies, python_dependency)

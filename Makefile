@@ -1,6 +1,7 @@
 CWD=$(shell realpath .)
 RUN=. ${CWD}/Environment/Master/bin/activate; python ${CWD}/Script/run.py
 FILES_MASTER=$(shell ls --color=never -1 ${CWD}/Environment/Master | grep -v -e Pipfile -e Pipfile_template.txt -e conda_package_list.txt -e package_list_template.txt -e requirements.txt | tr '\n' ' ')
+TEMPLATE_FILES=${CWD}/Environment/Master/requirements_template.txt ${CWD}/Environment/Master/Pipfile_template.txt ${CWD}/Environment/Master/conda_requirements_template.txt
 
 .PHONY: test
 
@@ -13,7 +14,8 @@ env-master:
 clean-master:
 	cd ${CWD}/Environment/Master; rm -rf ${FILES_MASTER}
 
-test:
+test: ${TEMPLATE_FILES}
+	cp ${TEMPLATE_FILES} ${CWD}/Test/Python/datalabs/test/environment/
 	${RUN} python -m pytest
 
 lint:

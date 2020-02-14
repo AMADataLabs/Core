@@ -3,7 +3,7 @@ import os
 import pytest
 import tempfile
 
-from   datalabs.environment.setup import PipenvEnvironmentGenerator, GeneratorFilenames
+from   datalabs.environment.setup import PipenvEnvironmentGenerator, EnvironmentFilenames
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -11,7 +11,7 @@ logger.setLevel(logging.DEBUG)
 
 
 def test_dependency_dict_matches_package_list(filenames, python_version, expected_packages):
-    generator = PipenvEnvironmentGenerator(filenames, python_version)
+    generator = PipenvEnvironmentGenerator(filenames, python_version=python_version)
 
     dependencies = generator._read_dependencies()
 
@@ -19,7 +19,7 @@ def test_dependency_dict_matches_package_list(filenames, python_version, expecte
 
 
 def test_dependency_dict_matches_whitelist(whitelisting_filenames, python_version, expected_packages, expected_whitelist):
-    generator = PipenvEnvironmentGenerator(whitelisting_filenames, python_version)
+    generator = PipenvEnvironmentGenerator(whitelisting_filenames, python_version=python_version)
     whitelisted_packages = {k:v for k,v in expected_packages.items() if k in expected_whitelist}
 
     dependencies = generator._read_dependencies()
@@ -28,7 +28,7 @@ def test_dependency_dict_matches_whitelist(whitelisting_filenames, python_versio
 
 
 def test_dependency_lines_are_parsed_correctly(filenames, python_version):
-    generator = PipenvEnvironmentGenerator(filenames, python_version)
+    generator = PipenvEnvironmentGenerator(filenames, python_version=python_version)
 
     variable, value = generator._parse_dependency('conda==4.8.2')
 
@@ -37,7 +37,7 @@ def test_dependency_lines_are_parsed_correctly(filenames, python_version):
 
 
 def test_read_whitelist_returns_correct_package_list(whitelisting_filenames, python_version):
-    generator = PipenvEnvironmentGenerator(whitelisting_filenames, python_version)
+    generator = PipenvEnvironmentGenerator(whitelisting_filenames, python_version=python_version)
 
     whitelist = generator._read_whitelist()
 
@@ -47,13 +47,13 @@ def test_read_whitelist_returns_correct_package_list(whitelisting_filenames, pyt
 
 
 def test_read_template_succeeds(filenames, python_version):
-    generator = PipenvEnvironmentGenerator(filenames, python_version)
+    generator = PipenvEnvironmentGenerator(filenames, python_version=python_version)
 
     template = generator._read_template()
 
 
 def test_pipfile_template_renders_correctly(filenames, python_version, expected_packages, expected_rendered_pipfile_template):
-    generator = PipenvEnvironmentGenerator(filenames, python_version)
+    generator = PipenvEnvironmentGenerator(filenames, python_version=python_version)
     template = generator._read_template()
 
     rendered_template = generator._render_template(template, expected_packages)
@@ -62,7 +62,7 @@ def test_pipfile_template_renders_correctly(filenames, python_version, expected_
 
 
 def test_environment_correctly_converted_to_pipenv(filenames, python_version, expected_rendered_pipfile_template):
-    generator = PipenvEnvironmentGenerator(filenames, python_version)
+    generator = PipenvEnvironmentGenerator(filenames, python_version=python_version)
 
     generator.generate()
 
@@ -76,23 +76,23 @@ def test_environment_correctly_converted_to_pipenv(filenames, python_version, ex
 
 @pytest.fixture
 def filenames():
-    configuration_file = tempfile.NamedTemporaryFile()
-    configuration_file.close()
+    output_file = tempfile.NamedTemporaryFile()
+    output_file.close()
 
-    yield GeneratorFilenames(
+    yield EnvironmentFilenames(
         package_list='Test/Python/datalabs/test/environment/requirements.txt',
         template='Test/Python/datalabs/test/environment/Pipfile_template.txt',
-        configuration=configuration_file.name,
+        output=output_file.name,
         whitelist=None
     )
 
 
 @pytest.fixture
 def whitelisting_filenames(filenames):
-    yield GeneratorFilenames(
+    yield EnvironmentFilenames(
         package_list=filenames.package_list,
         template=filenames.template,
-        configuration=filenames.configuration,
+        output=filenames.output,
         whitelist = 'Test/Python/datalabs/test/environment/package_selection.csv',
     )
 

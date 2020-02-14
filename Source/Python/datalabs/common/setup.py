@@ -13,9 +13,9 @@ class FileGeneratorFilenames:
 
 
 class TemplatedFileGenerator(ABC):
-    def __init__(self, filenames: GeneratorFilenames, **parameters):
+    def __init__(self, filenames: FileGeneratorFilenames, **parameters):
         self._filenames = filenames
-        self._parameters = kwargs
+        self._parameters = parameters
 
     def generate(self) -> str:
         template = self._read_template()
