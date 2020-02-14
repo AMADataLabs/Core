@@ -1,16 +1,14 @@
-from   abc import ABC, abstractmethod
+""" Project environment setup. """
+
 import bisect
-from   collections import namedtuple
 from   dataclasses import dataclass
 import logging
-
-import jinja2
 
 import datalabs.common.setup as setup
 
 logging.basicConfig()
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @dataclass
@@ -19,6 +17,7 @@ class EnvironmentFilenames(setup.FileGeneratorFilenames):
     whitelist: str
 
 
+# pylint: disable=abstract-method
 class EnvironmentGenerator(setup.TemplatedFileGenerator):
     def _read_dependencies(self):
         dependencies = {}
@@ -37,7 +36,7 @@ class EnvironmentGenerator(setup.TemplatedFileGenerator):
         whitelist = None
 
         if self._filenames.whitelist:
-            logger.debug(f'Whitelist Filename: {self._filenames.whitelist}')
+            LOGGER.debug('Whitelist Filename: %s', self._filenames.whitelist)
             with open(self._filenames.whitelist) as file:
                 whitelist_line = file.readline().strip()
 
@@ -74,6 +73,7 @@ class PipEnvironmentGenerator(EnvironmentGenerator):
 
         return sorted_dependencies
 
+    # pylint: disable=no-self-use
     def _generate_template_parameter_dictionary(self, sorted_dependencies):
         return dict(package_versions=sorted_dependencies)
 

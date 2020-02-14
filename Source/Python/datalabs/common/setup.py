@@ -1,7 +1,7 @@
+""" Common classes for doing project setup tasks. """
+
 from   abc import ABC, abstractmethod
-from   collections import namedtuple
 from   dataclasses import dataclass
-import logging
 
 from   jinja2 import Template
 
