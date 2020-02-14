@@ -60,7 +60,7 @@ class PipEnvironmentGenerator(EnvironmentGenerator):
     def _generate_template_parameters(self):
         dependencies = self._read_dependencies()
 
-        sorted_dependencies = self._sort_dependencies()
+        sorted_dependencies = self._sort_dependencies(dependencies)
 
         return self._generate_template_parameter_dictionary(sorted_dependencies)
 
@@ -87,13 +87,15 @@ class CondaEnvironmentGenerator(PipEnvironmentGenerator):
     def _generate_template_parameters(self):
         dependencies = self._read_dependencies()
 
-        sorted_dependencies = self._sort_dependencies()
+        sorted_dependencies = self._sort_dependencies(dependencies)
 
-        sorted_dependencies = self._insert_python_dependency()
+        sorted_dependencies = self._insert_python_dependency(sorted_dependencies)
 
-        return _generate_template_parameter_dictionary(sorted_dependencies)
+        return self._generate_template_parameter_dictionary(sorted_dependencies)
 
-    def _insert_python_dependency(self, template, dependencies):
+    def _insert_python_dependency(self, dependencies):
         python_dependency = ('python', self._parameters['python_version'])
 
-        return bisect.insort(dependencies, python_dependency)
+        bisect.insort(dependencies, python_dependency)
+
+        return dependencies

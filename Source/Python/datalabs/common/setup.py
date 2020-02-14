@@ -40,7 +40,7 @@ class TemplatedFileGenerator(ABC):
 
     @classmethod
     def _render_template(cls, template: Template, template_paratameters: dict) -> str:
-        return template.render(**dict)
+        return template.render(**template_paratameters)
 
     def _write_output(self, output):
         with open(self._filenames.output, 'w') as file:
