@@ -21,7 +21,7 @@ install_python_virtual_environment_dependencies() {
 
     pip install --trusted-host pypi.org --upgrade pip
 
-    pip install --trusted-host pypi.org -r $environment_path/requirements.txt
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r $environment_path/requirements.txt
 
     deactivate
 }

@@ -6,4 +6,10 @@ SCRIPT_PATH=`dirname $SCRIPT`
 ENVIRONMENT_PATH=${SCRIPT_PATH}/../$1
 . ${SCRIPT_PATH}/../Source/Bash/datalabs/environment/setup.sh
 
-setup_python_virtual_environment ${ENVIRONMENT_PATH}
+
+main() {
+    setup_python_virtual_environment ${ENVIRONMENT_PATH}
+}
+
+
+main

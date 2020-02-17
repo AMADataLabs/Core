@@ -19,6 +19,27 @@ class EnvironmentFilenames(setup.FileGeneratorFilenames):
 
 # pylint: disable=abstract-method
 class EnvironmentGenerator(setup.TemplatedFileGenerator):
+    @classmethod
+    def create(cls, args):
+        validated_args = cls._validate_args(args)
+        environment = validated_args['env']
+        filenames = setup.GeneratorFilenames(
+            package_list=validated_args['in'],
+            template=validated_args['template'],
+            configuration=validated_args['out'],
+            whitelist=validated_args.get('whitelist')
+        )
+        python_version = validated_args['python']
+
+        return ENVIRONMENT_GENERATORS[environment](filenames, python_version)
+
+    @classmethod
+    def _validate_args(cls, args):
+        if args['env'] not in ENVIRONMENT_GENERATORS:
+            raise ValueError(f'Unsupported environment "{args["env"]}"')
+
+        return args
+
     def _read_dependencies(self):
         dependencies = {}
         whitelist = self._read_whitelist()
@@ -99,3 +120,10 @@ class CondaEnvironmentGenerator(PipEnvironmentGenerator):
         bisect.insort(dependencies, python_dependency)
 
         return dependencies
+
+
+ENVIRONMENT_GENERATORS = {
+    'pip': PipEnvironmentGenerator,
+    'pipenv': PipenvEnvironmentGenerator,
+    'conda': CondaEnvironmentGenerator,
+}

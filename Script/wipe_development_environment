@@ -17,6 +17,7 @@ main() {
     remove_python3_7
 }
 
+
 check_user() {
     user=$(whoami)
 
@@ -25,6 +26,7 @@ check_user() {
         exit 1
     fi
 }
+
 
 check_os_version() {
     . /etc/os-release
@@ -39,23 +41,28 @@ check_os_version() {
     fi
 }
 
+
 remove_base_virtual_environments() {
     rm -rf /home/lane/Development/Python3.6
     rm -rf /home/lane/Development/Python3.7
 }
 
+
 remove_pipenv() {
     python3 -m pip uninstall -y pipenv
 }
+
 
 remove_venv() {
     apt remove -y python3.6-venv
     apt remove -y python3.7-venv
 }
 
+
 configure_default_python3() {
     update-alternatives --set python3 /usr/bin/python3.6
 }
+
 
 remove_python3_7() {
     apt remove -y python3.7
@@ -65,5 +72,6 @@ remove_python3_7() {
 
     apt remove -y software-properties-common
 }
+
 
 main
