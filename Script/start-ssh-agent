@@ -1,0 +1,65 @@
+#!/bin/bash
+
+
+main() {
+  env_script=~/.ssh/agent-env.sh
+  bashrc=~/.bashrc
+
+  create_files_if_missing $env_script $bashrc
+
+  start_ssh_agent $env_script
+
+  update_bashrc $bashrc $env_script
+}
+
+
+create_files_if_missing() {
+  for file in "$@"; do
+    create_file_if_missing $file
+  done
+}
+
+
+start_ssh_agent() {
+  env_script=$1
+
+  killall ssh-agent
+
+  ssh-agent > $env_script
+  . $env_script
+
+  ssh-add
+}
+
+
+update_bashrc() {
+  bashrc=$1
+  env_script=$2
+  source_line=". $env_script"
+
+  cat ~/.bashrc | grep -e "^$source_line$" >> /dev/null
+  if [[ $? > 0 ]]; then
+    echo $source_line >> $bashrc
+  fi
+}
+
+
+create_file_if_missing() {
+  file=$1
+
+  if [[ ! -f "$file" ]]; then
+    touch $file
+  fi
+}
+
+killall() {
+  if [[ -f /usr/bin/killall ]]; then
+    /usr/bin/killall ssh-agent
+  else
+    ps | grep ssh-agent | awk '{print $1}' | xargs -r kill
+  fi
+}
+
+
+
+main

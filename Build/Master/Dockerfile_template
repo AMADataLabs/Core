@@ -5,12 +5,14 @@ WORKDIR /{{ project_name }}
 COPY ./Build/Master/rootca.pem .
 RUN pip config set global.cert rootca.pem
 
-RUN pip install pipenv
+RUN pip install python{{ python_version }}-dev unixodbc-dev pipenv
+
 
 FROM Base as PythonDependencies
 WORKDIR /{{ project_name }}
 COPY ./Environment/{{ project_name }}/Pipfile .
 RUN pipenv install
+
 
 FROM PythonDependencies as Code
 WORKDIR /{{ project_name }}

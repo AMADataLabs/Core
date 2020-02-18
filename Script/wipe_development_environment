@@ -6,15 +6,9 @@ main() {
 
     check_os_version
 
-    # remove_base_virtual_environments
+    remove_tools
 
-    remove_pipenv
-
-    remove_venv
-
-    configure_default_python3
-
-    remove_python3_7
+    # remove_drivers
 }
 
 
@@ -42,9 +36,60 @@ check_os_version() {
 }
 
 
+remove_tools() {
+    # remove_node
+
+    remove_python_tools
+
+    remove_core_dependencies
+}
+
+
+remove_drivers() {
+    remove_msodbcsql17_driver
+}
+
+
+remove_python_tools() {
+    # remove_base_virtual_environments
+
+    remove_dev_libraries
+
+    # remove_pipenv
+
+    remove_venv
+
+    configure_default_python3
+
+    remove_python3_7
+
+    remove_pip
+}
+
+
+remove_core_dependencies() {
+    apt remove -y software-properties-common build-essential curl
+}
+
+
+remove_msodbcsql17_driver() {
+    apt remove -y msodbcsql17
+
+    rm /etc/apt/sources.list.d/mssql-release.list
+
+    keyid=$(apt-key list | grep -B 1 'Microsoft (Release signing) <gpgsecurity@microsoft.com>' | grep -v uid)
+    apt-key del $keyid
+}
+
+
 remove_base_virtual_environments() {
     rm -rf /home/lane/Development/Python3.6
     rm -rf /home/lane/Development/Python3.7
+}
+
+
+remove_dev_libraries() {
+    apt remove -y python3.7-dev unixodbc-dev
 }
 
 
@@ -71,6 +116,11 @@ remove_python3_7() {
     add-apt-repository -r -y ppa:deadsnakes/ppa
 
     apt remove -y software-properties-common
+}
+
+
+remove_pip() {
+    apt remove -y python3-pip
 }
 
 
