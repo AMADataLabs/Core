@@ -50,11 +50,16 @@ install_drivers() {
 
 
 install_tools() {
+    echo "### Installing core dependencies ###"
     install_core_dependencies
 
+    echo "### Installing Python tools ###"
     install_python_tools
 
     # install_node
+
+    echo "### Installing AWS tools ###"
+    install_aws_tools
 }
 
 
@@ -109,15 +114,22 @@ install_node() {
 }
 
 
+install_aws_tools() {
+    install_aws_cli
+
+    install_terraform
+}
+
+
 install_pip() {
     apt install -y python3-pip
 
-    python3 -m pip install --trusted-host pypi.org --upgrade pip
+    python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
 }
 
 
 install_python3_7() {
-    add-apt-repository -y ppa:deadsnakes/ppa
+    echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
 
     apt install -y python3.7
 }
@@ -143,12 +155,30 @@ install_pipenv() {
 
 
 install_dev_libraries() {
+    echo "### Installing development libraries ###"
     apt install -y python3.7-dev unixodbc-dev
 }
 
 
 create_base_virtual_environment() {
+    echo "### Setting up master Python virtual environment ###"
     setup_python_virtual_environment Environment/Master
+}
+
+
+install_aws_cli() {
+    echo "### Installing AWS CLI ###"
+    apt install -y awscli
+}
+
+
+install_terraform() {
+    echo "### Installing Terraform ###"
+    curl https://tjend.github.io/repo_terraform/repo_terraform.key | sudo apt-key add -
+    echo 'deb [arch=amd64] https://tjend.github.io/repo_terraform stable main' > /etc/apt/sources.list.d/terraform.list
+    apt update
+
+    apt install -y terraform
 }
 
 
