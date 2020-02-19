@@ -11,5 +11,5 @@ def key_finder(json_input, lookup_key):
                 yield from key_finder(value, lookup_key)
     elif isinstance(json_input, list):
         for item in json_input:
-            yield from key_finer(value, lookup_key)
+            yield from key_finder(value, lookup_key)
 
