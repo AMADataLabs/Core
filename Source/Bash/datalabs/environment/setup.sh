@@ -21,8 +21,6 @@ install_python_virtual_environment_dependencies() {
 
     . $environment_path/bin/activate
 
-    which pip
-
     echo "--- Upgrading pip ---"
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
 
