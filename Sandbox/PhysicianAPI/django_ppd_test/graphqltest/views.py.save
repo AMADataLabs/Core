@@ -1,0 +1,12 @@
+from django.shortcuts import render
+from django_ppd_test.graphqltest.models import DjangoTest
+from django_ppd_test.graphqltest.serializers import PhysicianSerializer
+from rest_framework import generics
+
+class PhysicianList(generics.ListCreateAPIView):
+    queryset = DjangoTest.objects.all()
+    serializer_class = UserSerializer
+
+
+
+# Create your views here.
