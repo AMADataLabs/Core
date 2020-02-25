@@ -16,7 +16,7 @@ In general, each project has its own set of Python dependencies. These dependenc
 
 ## Sandbox
 
-As imiplied above, *Sandbox/* is used to put unshared code for a project that is a work in progress. Ideally, reusable code will be transfered to the *Source/* folder so that other projects can benefit from revious work. In addition, code that will be employed in a production application must first be transitioned to *Source/*.
+As imiplied above, *Sandbox/* is used to put unshared code for a project that is a work in progress. Ideally, reusable code will be transfered to the *Source/* folder so that other projects can benefit from previous work. In addition, code that will be employed in a production application must first be transitioned to *Source/*.
 
 ## Script
 
