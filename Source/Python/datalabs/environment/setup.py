@@ -23,15 +23,15 @@ class EnvironmentGenerator(setup.TemplatedFileGenerator):
     def create(cls, args):
         validated_args = cls._validate_args(args)
         environment = validated_args['env']
-        filenames = setup.GeneratorFilenames(
+        filenames = EnvironmentFilenames(
             package_list=validated_args['in'],
             template=validated_args['template'],
-            configuration=validated_args['out'],
+            output=validated_args['out'],
             whitelist=validated_args.get('whitelist')
         )
         python_version = validated_args['python']
 
-        return ENVIRONMENT_GENERATORS[environment](filenames, python_version)
+        return ENVIRONMENT_GENERATORS[environment](filenames, python_version=python_version)
 
     @classmethod
     def _validate_args(cls, args):

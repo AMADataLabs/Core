@@ -20,7 +20,7 @@ if __name__ == '__main__':
     return_code = 0
 
     ap = argparse.ArgumentParser()
-    ap.add_argument('-e', '--env', required=True, help='Environment to generate (pipenv, conda).')
+    ap.add_argument('-e', '--env', required=True, help='Environment to generate (pip, pipenv, conda).')
     ap.add_argument('-i', '--in', required=True, help='Path to the package list.')
     ap.add_argument('-o', '--out', required=True, help='Path to the virtual environment config.')
     ap.add_argument('-t', '--template', required=True, help='Path to the virtual environment config template.')

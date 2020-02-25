@@ -1,0 +1,94 @@
+#!/bin/bash
+
+
+SCRIPT=`realpath $0`
+SCRIPT_PATH=`dirname $SCRIPT`
+PROJECT_NAME=$1
+DEPENDENCY_LIST=$2
+
+
+main() {
+    verify_project_name
+
+    create_project_directories
+
+    create_dependency_whitelist
+
+    generate_configuration_files
+
+    # create_virtual_environment
+}
+
+
+verify_project_name() {
+    if [[ "$PROJECT_NAME" == "" ]]; then
+        echo "Error: The name of the project to create was not specified."
+        exit 1
+    fi
+}
+
+
+create_project_directories() {
+    create_directory Build ${PROJECT_NAME}
+
+    create_directory Environment ${PROJECT_NAME}
+}
+
+
+create_dependency_whitelist() {
+    PROJECT_ENV_PATH=${SCRIPT_PATH}/../Environment/${PROJECT_NAME}
+    WHITELIST_PATH=${PROJECT_ENV_PATH}/whitelist.txt
+
+    if [[ "$DEPENDENCY_LIST" != "" ]]; then
+        echo $DEPENDENCY_LIST > ${WHITELIST_PATH}
+        echo Created dependency whitelist file `realpath ${WHITELIST_PATH}`
+    fi
+}
+
+
+generate_configuration_files() {
+    # generate_dockerfile
+
+    generate_requirements
+}
+
+
+create_directory() {
+    DIRECTORY_NAME=$1
+    PROJECT_NAME=$2
+    DIRECTORY_PATH=${SCRIPT_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}
+
+    if [[  -d $DIRECTORY_PATH ]]; then
+        real_directory_path=`realpath ${DIRECTORY_PATH}`
+        echo "Error: Project directory ${real_directory_path} already exists."
+        exit 2
+    fi
+
+    echo "Creating directory ${DIRECTORY_PATH}"
+    mkdir ${DIRECTORY_PATH}
+}
+
+
+generate_dockerfile() {
+    echo "Not Implemented"
+}
+
+
+generate_requirements() {
+    GENENV="python ${SCRIPT_PATH}/run.py python ${SCRIPT_PATH}/genenv.py"
+    MASTER_ENV_PATH=${SCRIPT_PATH}/../Environment/Master
+    PROJECT_ENV_PATH=${SCRIPT_PATH}/../Environment/${PROJECT_NAME}
+
+    ARGUMENTS="--env pip --in ${MASTER_ENV_PATH}/requirements.txt --out ${PROJECT_ENV_PATH}/requirements.txt \
+        --template ${MASTER_ENV_PATH}/requirements_template.txt "
+
+    if [[ "$DEPENDENCY_LIST" != "" ]]; then
+        ARGUMENTS=${ARGUMENTS} --whitelist ${PROJECT_ENV_PATH}/whitelist.txt
+    fi
+
+    echo "Generating requirements.txt for project ${PROJECT_NAME}"
+    $GENENV $ARGUMENTS
+}
+
+
+main
