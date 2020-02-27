@@ -4,13 +4,10 @@ from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
-from pyspark.sql.functions import udf, monotonically_increasing_id
+from pyspark.sql.functions import udf, monotonically_increasing_id, lit, col
 from pyspark.sql.types import StringType
 from datetime import datetime
 from functools import reduce
-from pyspark.sql.functions import lit
-from pyspark.sql.functions import col
-
 
 glueContext = GlueContext(SparkContext.getOrCreate())
 
