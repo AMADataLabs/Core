@@ -8,6 +8,7 @@ df_a = pandas.DataFrame(aapa)
 df_b = pandas.DataFrame(state)
 
 indexer = recordlinkage.Index()
+#exact match on license
 indexer.block('license')
 candidate_links = indexer.index(df_a, df_b)
 
@@ -32,6 +33,7 @@ print(compare_vectors)
 compare_vectors.to_csv('encoded.csv') #this file stores scores
 
 '''Creating a Data frame based on the scores to better understand the match.'''
+
 result = pandas.DataFrame()
 for index, row in compare_vectors.iterrows():
     s = df_a.iloc[index[0]].to_frame().T
