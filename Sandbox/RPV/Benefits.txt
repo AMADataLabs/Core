@@ -1,0 +1,22 @@
+Overcomes:
+	Knoweldge Silos
+	Rewritten Duplicated Query Code
+	Lack of Version Controlled SQL
+	Lack of Quality Assurances of views created by SQL
+	Lack of Documentation
+	Lack of Modularity and Flexibility
+	Lack of Standardized Repeatable Queries
+	
+Encourages:
+	Tests
+	Modularity
+	Writing of Documentation
+	Version Control
+
+
+Snowflake Downsides:
+	Deployment infrastructure is not maintained by us:
+		Fully depend on Snowflake to react, can't do data mitigation or recovery
+	Metadata(including encryption keys) 
+	Shared Cloud Services: Cloud Services layer shared across multiple customers except VPS
+	

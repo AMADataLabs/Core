@@ -1,0 +1,11 @@
+%ds2csv(data=aimsprod.entity_comm_at, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_Entity_Comm_AT.csv');
+%ds2csv(data=aimsprod.entity_comm_usg_at, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_Entity_Comm_USG_AT.csv');
+%ds2csv(data=aimsprod.license_lt, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_License_LT.csv');
+%ds2csv(data=aimsprod.entity_key_et, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_Entity_Key_ET.csv');
+%ds2csv(data=aimsprod.post_addr_at, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_Post_Addr_AT.csv');
+%ds2csv(data=aimsprod.phone_at, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_Phone_AT.csv');
+%ds2csv(data=aimsprod.entity_cat_ct, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_Entity_Cat_CT.csv');
+%ds2csv(data=aimsprod.present_emp_pr, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_Present_Employment_PR.csv');
+%ds2csv(data=aimsprod.spec_pr, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_Spec_PR.csv');
+%ds2csv(data=edw.fone_zr, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_EDW_Fone_ZR.csv');
+%ds2csv(data=aimsprod.email_at, runmode=b, csvfile='C:\Users\vigrose\Data-Science\Data\AIMS_EDW_Data\2019-11-22_Email_AT.csv');

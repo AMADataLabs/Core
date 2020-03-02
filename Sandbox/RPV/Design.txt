@@ -1,0 +1,68 @@
+A group practice/hospital table for each hospital- That's around 10000 tables....
+Or we have an event table.
+
+
+EventID(SERIAL) Source(TEXT) Person(Name)(TEXT) Credentials(MD/DO/PhD...)(TEXT) GroupPracticeID(INT/SERIAL) TimeStamp VersionID(INT) ADDITIONAL_INFO(JSON)
+
+	
+
+Event table with reference hospital tables:
+hospital id -> references a table in another db.... with a roster
+
+
+
+Tradeoffs:
+Double write
+Redundant data storage
+Anomalies are more likely over time.
+
+
+Benefits:
+Speed of lookup and audit history cleaner.
+Can Index on Name and find locations where a physician is relatively easily.
+
+
+
+10,000 roster approach.
+
+
+Tradeoffs:
+Harder to maintain history -> 10,000 histories
+No single source of truth for a physician. Finding a physician will require a scan in 10,000 tables
+
+Benefits:
+No redundancy
+No double write
+
+
+
+Event table with hospital reference table(SCD)
+
+Tradeoffs: 
+Viewing Roster History will require creating views. We create a single view for each point in time we are interested in(COMPUTE TIME)
+	-Benefits would not be there for 10,000 roster approach either -> Still have to compare tables for each point in time we are interested in.
+
+
+Benefits:
+No Double Write
+Can Index on Name and find locations where a physician is relatively easily.
+Anomalies are not as likely.
+
+
+
+We can also do two seperate things:
+
+
+An OLTP database and a OLAP database.
+
+When a scrape happens:
+UPDATE OLTP database goes to a particular source -> Hospital/Group Roster Table (Trigger on Physicians) -> This is clean data. Writes are frequent, reads are less frequent. We want to tie back current data to a physician.
+UPDATE OLAP database -> EventID(SERIAL) Source(TEXT) Person(Name)(TEXT) Credentials(MD/DO/PhD...)(TEXT) GroupPracticeID(INT/SERIAL) TimeStamp VersionID(INT) ADDITIONAL_INFO(JSON). Reads are very frequent -> Analysis
+
+
+
+
+
+
+
+
