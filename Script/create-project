@@ -3,12 +3,12 @@
 
 SCRIPT=`realpath $0`
 SCRIPT_PATH=`dirname $SCRIPT`
-PROJECT_NAME=$1
-DEPENDENCY_LIST=$2
+PROJECT_NAME=
+DEPENDENCY_LIST=
 
 
 main() {
-    verify_project_name
+    process_arguments $*
 
     create_project_directories
 
@@ -20,7 +20,30 @@ main() {
 }
 
 
-verify_project_name() {
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -d|--dependencies)
+            DEPENDENCY_LIST=$2
+            shift
+            shift
+            ;;
+        -l|--list-deps)
+            print_master_dependencies
+            exit 0
+            shift
+            ;;
+        *)
+            PROJECT_NAME=$1
+            shift
+            ;;
+      esac
+    done
+
     if [[ "$PROJECT_NAME" == "" ]]; then
         echo "Error: The name of the project to create was not specified."
         exit 1
@@ -50,6 +73,16 @@ generate_configuration_files() {
     # generate_dockerfile
 
     generate_requirements
+}
+
+
+print_usage() {
+    echo "Usage: create-project <project name> [-h|--help] [-l|--list-deps] [-d|--dependencies dep1[,dep2[...]]]"
+}
+
+
+print_master_dependencies() {
+    cat ${SCRIPT_PATH}/../Environment/Master/requirements.txt | sed 's/==.*//'
 }
 
 
@@ -91,4 +124,4 @@ generate_requirements() {
 }
 
 
-main
+main $*
