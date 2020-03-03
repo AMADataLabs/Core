@@ -130,6 +130,7 @@ install_pip() {
 
 install_python3_7() {
     echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
+    apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
 
     apt install -y python3.7
 }
@@ -140,7 +141,7 @@ configure_default_python3() {
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 0
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1
 
-    update-alternatives --set python3 /usr/bin/python3.7
+    # update-alternatives --set python3 /usr/bin/python3.7
 }
 
 
