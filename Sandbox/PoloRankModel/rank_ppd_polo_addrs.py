@@ -3,11 +3,20 @@
 #
 #############################################################################
 import datetime
+import logging
 import os
 import pickle
 import sys
+import warnings
 
 import pandas as pd
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+
+
+LOGGER.debug(f'PYTHONPATH: {os.environ["PYTHONPATH"]}')
 
 ### Import from Sandbox/CommonCode ###
 # from get_ppd import get_latest_ppd_data
@@ -18,9 +27,9 @@ from score_polo_addr_ppd_data import score_polo_ppd_data
 from class_model_creation import get_prob_info, get_pred_info
 from create_addr_model_input_data import create_ppd_scoring_data
 
-import warnings
 
 warnings.filterwarnings("ignore")
+
 
 # Get model file needed
 # model_file = filedialog.askopenfilename(initialdir="U:\\Source Files\\Data Analytics\\Data-Science\\Data\\Polo_Rank_Model\\",

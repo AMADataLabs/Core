@@ -11,7 +11,7 @@ if __name__ == '__main__':
     args = sys.argv[1:]
 
     if environment.get('PYTHONPATH'):
-        environment['PYTHONPATH'] += ';' + str(path)
+        environment['PYTHONPATH'] = str(path) + ':' + environment['PYTHONPATH']
     else:
         environment['PYTHONPATH'] = str(path)
 
