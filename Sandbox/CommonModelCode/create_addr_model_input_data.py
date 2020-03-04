@@ -12,13 +12,13 @@ import os
 curr_path = os.path.abspath(__file__)
 slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
 base_path = curr_path[:slash_ndx[-2] + 1]
-gen_path = base_path + 'Common_Code\\'
+gen_path = base_path + 'CommonCode\\'
 sys.path.insert(0, gen_path)
 
 from capitalize_df_contents import capitalize_df_contents
 from get_wslive_res_init_ppd_info import match_wslive_result_to_sample, create_wslive_ppd_data
 
-gen_path = base_path + 'Common_Model_Code\\'
+gen_path = base_path + 'CommonModelCode\\'
 sys.path.insert(0, gen_path)
 
 from rename_model_cols import rename_ppd_columns
@@ -174,6 +174,8 @@ def get_valid_ppd_ent_data(ent_ppd_df, date_var):
 
 def get_valid_ppd_usg_data(usg_df, date_var):
     print('GET_VALID_PPD_USG_DATA')
+    print('date_var:', date_var)
+    print('date:', usg_df[date_var])
     usg_df = set_entity_dates(usg_df, 'usg_begin_dt', 'usg_end_dt')
     assert len(usg_df) > 0
     usg_date_df = usg_df[(usg_df['usg_begin_dt'] <= usg_df[date_var]) &

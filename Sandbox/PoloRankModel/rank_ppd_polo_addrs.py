@@ -15,13 +15,13 @@ import os
 curr_path = os.path.abspath(__file__)
 slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
 base_path = curr_path[:slash_ndx[-2] + 1]
-gen_path = base_path + 'Common_Code\\'
+gen_path = base_path + 'CommonCode\\'
 sys.path.insert(0, gen_path)
 
 # from get_ppd import get_latest_ppd_data
 from capitalize_column_names import capitalize_column_names
 
-gen_path = base_path + 'Common_Model_Code\\'
+gen_path = base_path + 'CommonModelCode\\'
 sys.path.insert(0, gen_path)
 
 from score_polo_addr_ppd_data import score_polo_ppd_data
