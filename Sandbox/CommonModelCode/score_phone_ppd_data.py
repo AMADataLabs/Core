@@ -12,7 +12,7 @@ import os
 curr_path = os.path.abspath(__file__)
 slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
 base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Model_Code\\'
+gen_path = base_path + 'CommonModelCode\\'
 #gen_path = 'C:\\Data-Science\\Code-Library\\Common_Model_Code\\'
 sys.path.insert(0, gen_path)
 
