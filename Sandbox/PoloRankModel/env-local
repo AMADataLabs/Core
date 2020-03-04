@@ -1,0 +1,15 @@
+DATALABS_PATH=`realpath ../../Source/Python`
+COMMON_CODE_PATH=`realpath ../CommonCode`
+COMMON_MODEL_CODE_PATH=`realpath ../CommonModelCode`
+export PYTHONPATH="${DATALABS_PATH}:${COMMON_CODE_PATH}:${COMMON_MODEL_CODE_PATH}"
+
+export MODEL_FILE='U:\Source Files\Data Analytics\Data-Science\Data\Polo_Rank_Model\Address_POLO_Rank_Class_Model.sav'
+export MODEL_VAR_FILE='U:\\Source Files\\Data Analytics\\Data-Science\Data\\Polo_Rank_Model\\Address_POLO_Rank_Class_Model_FeatureList.sav'
+export PPD_FILE='C:\\Users\\glappe\\Documents\\udrive\\Data\PPD\\ppd_data_20200222.csv'
+export PPD_SCORE_OUT_DIR='C:\\Users\\glappe\\Documents\\udrive\\Data\\Polo_Rank_Model\\'
+export ENTITY_COMM_AT_FILE='C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_entity_comm_at.csv'
+export ENTITY_COMM_USG_FILE='C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_entity_comm_usg_at.csv'
+export POST_ADDR_AT_FILE='C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_post_addr_at.csv'
+export LICENSE_LT_FILE='C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_license_lt.csv'
+export ENTITY_KEY_ET_FILE='C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_entity_key_et.csv'
+export MODEL_PREDICTIONS_FILE='U:\\Source Files\\Data Analytics\\Data-Science\\Data\\Polo_Rank_Model\\Data\\model_pred_df.csv'
