@@ -47,15 +47,15 @@ def clean_date(text):
     if not isinstance(text, str):
         return text
 
+    if 'null' in text or text == '.':
+        return datetime.datetime.now()
+
     invalids = '[]().,'
     result = []
     for c in text:
         if c not in invalids:
             result.append(c)
     result = ''.join(result)
-
-    if '(null)' in result or result == '.':
-        return datetime.datetime.now()
 
     try:
         result = pd.to_datetime(result)  # might throw error
@@ -75,7 +75,7 @@ def create_ent_comm_dates(orig_data, date_var):
     ###orig_data[date_var] = orig_data[date_var].apply(lambda x: pd.to_datetime(x, format = '%Y-%m-%d') \
     ###         if x.find('-') > 0 else pd.to_datetime(x, format = '%d%b%Y'))
     ###return orig_data
-    print('cleaning date')
+    print('cleaning date - {}'.format(date_var))
     orig_data[date_var] = orig_data[date_var].apply(lambda x: clean_date(x))
     print('done cleaning date')
     assert len(orig_data) > 0
