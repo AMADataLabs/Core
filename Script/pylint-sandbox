@@ -1,0 +1,14 @@
+#!/bin/bash
+
+
+SCRIPT=`realpath $0`
+SCRIPT_PATH=`dirname $SCRIPT`
+PROJECT_NAME=$1
+
+
+main() {
+  run="python ${SCRIPT_PATH}/run.py"
+	${run} pylint ${SCRIPT_PATH}/../Sandbox/${PROJECT_NAME}/*
+}
+
+main

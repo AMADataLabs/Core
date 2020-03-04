@@ -2,8 +2,8 @@
 # Kari Palmier    8/14/19    Updated to work with more generic get_sample
 #
 #############################################################################
-import tkinter as tk
-from tkinter import filedialog
+# import tkinter as tk
+# from tkinter import filedialog
 import pickle
 import datetime
 import pandas as pd
@@ -54,10 +54,13 @@ model_var_file = 'U:\\Source Files\\Data Analytics\\Data-Science\Data\\Polo_Rank
 #    # Get model file needed
 #    ppd_file = filedialog.askopenfilename(initialdir="U:\\Source Files\\Data Analytics\\Data-Science\\Data\\PPD\\",
 #                                          title="Choose the PPD file desired...")
+
+# U:\Source Files\Data Analytics\Data-Science\Data\PPD\ppd_data_20200222.csv
 ppd_file = 'C:\\Users\\glappe\\Documents\\udrive\\Data\PPD\\ppd_data_20200222.csv'
 
-init_save_dir = 'C:\\Users\\glappe\\Documents\\udrive\\Data\\Polo_Rank_Model\\'
 # init_save_dir = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\Polo_Rank_Model\\'
+init_save_dir = 'C:\\Users\\glappe\\Documents\\udrive\\Data\\Polo_Rank_Model\\'
+
 # ppd_score_out_dir = filedialog.askdirectory(initialdir = init_save_dir,
 #                                            title="Choose directory to save the scored PPD in...")
 # ppd_score_out_dir = ppd_score_out_dir.replace("/", "\\")
@@ -104,6 +107,8 @@ ppd_date = datetime.datetime.strptime(ppd_date_str, '%Y%m%d')
 # Load entity data
 print('Loading entity data')
 # ent_comm_df = pd.read_csv(ent_comm_file, delimiter=",", index_col=None, header=0, dtype=str)
+
+# Cleaned, Aqua Data Studio version of U:\Source Files\Data Analytics\Data-Science\Data\entity_data\2020-02-25\entity_comm_at.csv
 ent_comm_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_entity_comm_at.csv',
                           dtype=str, na_values=['', '(null)'])
 
@@ -111,21 +116,30 @@ ent_comm_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_da
 # ent_comm_df = ent_comm_df[ent_comm_df['comm_cat'] == 'A']
 assert len(ent_comm_df) > 0
 # ent_comm_usg_df = pd.read_csv(ent_comm_usg_file, delimiter=",", index_col = None, header=0, dtype=str)
+
+# Cleaned, Aqua Data Studio version of U:\Source Files\Data Analytics\Data-Science\Data\entity_data\2020-02-25\entity_comm_usg_at.csv
 ent_comm_usg_df = pd.read_csv(
     'C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_entity_comm_usg_at.csv',
     dtype=str, na_values=['', '(null)'])
+
 # ent_comm_usg_df['comm_cat'] = ent_comm_usg_df['comm_cat'].apply(str.strip)
 # ent_comm_usg_df = ent_comm_usg_df[ent_comm_usg_df['comm_cat'] == 'A']
 assert len(ent_comm_usg_df) > 0
-# post_addr_df = pd.read_csv(post_addr_file, delimiter=",", index_col=None, header=0, dtype=str)
+
+# Cleaned, Aqua Data Studio version of U:\Source Files\Data Analytics\Data-Science\Data\entity_data\2020-02-25\post_addr_at.csv
 post_addr_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_post_addr_at.csv',
                            dtype=str, na_values=['', '(null)'])
-# license_df = pd.read_csv(license_file, delimiter=",", index_col=None, header=0, dtype=str)
+# post_addr_df = pd.read_csv(post_addr_file, delimiter=",", index_col=None, header=0, dtype=str)
+
+# Cleaned, Aqua Data Studio version of U:\Source Files\Data Analytics\Data-Science\Data\entity_data\2020-02-25\license_lt.csv
 license_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_license_lt.csv',
                          dtype=str, na_values=['', '(null)'])
-# ent_key_df = pd.read_csv(ent_key_file, delimiter=",", index_col=None, header=0, dtype=str)
+# license_df = pd.read_csv(license_file, delimiter=",", index_col=None, header=0, dtype=str)
+
+# Cleaned, Aqua Data Studio version of U:\Source Files\Data Analytics\Data-Science\Data\entity_data\2020-02-25\entity_key_et.csv
 ent_key_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_entity_key_et.csv',
                          dtype=str, na_values=['', '(null)'])
+# ent_key_df = pd.read_csv(ent_key_file, delimiter=",", index_col=None, header=0, dtype=str)
 
 # Get latest model and variables
 print('Loading model and variables')
