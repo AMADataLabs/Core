@@ -76,7 +76,9 @@ def create_ent_comm_dates(orig_data, date_var):
     ###         if x.find('-') > 0 else pd.to_datetime(x, format = '%d%b%Y'))
     ###return orig_data
     print('cleaning date - {}'.format(date_var))
-    orig_data[date_var] = orig_data[date_var].apply(lambda x: clean_date(x))
+    #orig_data[date_var] = orig_data[date_var].apply(lambda x: cleannnnnnnnn_date(x))
+    orig_data[date_var].fillna(datetime.datetime.now(), inplace=True)
+    orig_data[date_var] = pd.to_datetime(orig_data[date_var])
     print('done cleaning date')
     assert len(orig_data) > 0
     return orig_data
@@ -86,13 +88,17 @@ def set_entity_dates(ent_data_df, begin_var, end_var):
     print('SET_ENTITY_DATES')
     assert len(ent_data_df) > 0
     print(begin_var)
-    ent_data_df = create_ent_comm_dates(ent_data_df, begin_var)
+    #ent_data_df = create_ent_comm_dates(ent_data_df, begin_var)
+    ent_data_df[begin_var] = pd.to_datetime(ent_data_df[begin_var])
 
-    ent_no_end_ndx = ent_data_df[end_var].isna()
-    ent_data_df.loc[ent_no_end_ndx, end_var] = datetime.datetime.now()
+    #ent_no_end_ndx = ent_data_df[end_var].isna()
+    #ent_data_df.loc[ent_no_end_ndx, end_var] = datetime.datetime.now()
+
+    ent_data_df[end_var].fillna(datetime.datetime.now(), inplace=True)
 
     print(end_var)
-    ent_data_df = create_ent_comm_dates(ent_data_df, end_var)
+    #ent_data_df = create_ent_comm_dates(ent_data_df, end_var)
+    ent_data_df[end_var] = pd.to_datetime(ent_data_df[end_var])
     print('END SET_ENTITY_DATES')
     return ent_data_df
 

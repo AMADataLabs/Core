@@ -14,7 +14,7 @@ import os
 curr_path = os.path.abspath(__file__)
 slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
 base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
+gen_path = base_path + 'CommonCode\\'
 sys.path.insert(0, gen_path)
 
 from exclude_phone_samples import exclude_phone_samples
@@ -25,7 +25,7 @@ from select_files import select_files
 from capitalize_column_names import capitalize_column_names
 from get_aims_db_tables import get_no_contacts, get_entity_me_key, get_aims_connection
 
-gen_path = base_path + 'Common_Model_Code\\'
+gen_path = base_path + 'CommonModelCode\\'
 sys.path.insert(0, gen_path)
 
 from create_model_sample import get_uniq_entries
@@ -38,25 +38,25 @@ root = tk.Tk()
 root.withdraw()
 
 # Get files needed
-ddb_info_file = filedialog.askopenfilename(initialdir = "C:\\",
-                                         title = "Choose txt file with database login information...")
+ddb_info_file = filedialog.askopenfilename(initialdir="C:\\",
+                                           title="Choose txt file with database login information...")
 
 # Get model file needed
-ppd_file = filedialog.askopenfilename(initialdir = "U:\\Source Files\\Data Analytics\\Data-Science\\Data\\PPD\\",
-                                         title = "Choose the latest PPD file...")
+ppd_file = filedialog.askopenfilename(initialdir="U:\\Source Files\\Data Analytics\\Data-Science\\Data\\PPD\\",
+                                      title="Choose the latest PPD file...")
 
-dhc_file = filedialog.askopenfilename(initialdir = "U:\\Source Files\\Data Analytics\\Data-Science\\Data\\DHC\\",
-                                         title = "Choose combined DHC csv file...")
+dhc_file = filedialog.askopenfilename(initialdir="U:\\Source Files\\Data Analytics\\Data-Science\\Data\\DHC\\",
+                                      title="Choose combined DHC csv file...")
 
 init_anlys_dir = 'U:\\Source Files\\Data Analytics\\'
-anlys_out_dir = filedialog.askdirectory(initialdir = init_anlys_dir,
-                                         title = "Choose directory to save analysis output...")
+anlys_out_dir = filedialog.askdirectory(initialdir=init_anlys_dir,
+                                        title="Choose directory to save analysis output...")
 anlys_out_dir = anlys_out_dir.replace("/", "\\")
 anlys_out_dir += "\\"
 
 init_save_dir = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\Survey_Samples\\DHC\\'
-sample_out_dir = filedialog.askdirectory(initialdir = init_save_dir,
-                                         title = "Choose directory to save sample in...")
+sample_out_dir = filedialog.askdirectory(initialdir=init_save_dir,
+                                         title="Choose directory to save sample in...")
 sample_out_dir = sample_out_dir.replace("/", "\\")
 sample_out_dir += "\\"
 
@@ -111,16 +111,16 @@ no_contact_df = get_no_contacts(AIMS_conn)
 AIMS_conn.close()
    
 # Load PPD csv file
-ppd_df =  pd.read_csv(ppd_file, delimiter = ",", index_col = None, header = 0, dtype = str)
+ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
 ppd_df = capitalize_column_names(ppd_df)
 
-ppd_ent_key_df = ppd_df.merge(entity_key_df, how = 'inner', left_on = 'ME', right_on = 'me')
+ppd_ent_key_df = ppd_df.merge(entity_key_df, how='inner', left_on='ME', right_on='me')
 
 ppd_contact_df = ppd_ent_key_df[~ppd_ent_key_df['entity_id'].isin(no_contact_df['entity_id'])]
 
 
 # Load DHC csv file
-dhc_df = pd.read_csv(dhc_file, delimiter = ",", index_col = None, header = 0, dtype = str)
+dhc_df = pd.read_csv(dhc_file, delimiter=",", index_col=None, header=0, dtype=str)
 
 # Convert query return ME and NPI colums to be compatible with other tables
 #npi_me_df['ME'] = npi_me_df['ME'].astype('str')
@@ -133,7 +133,7 @@ print('-------------------------------------------')
 print('\n')
 
 # Join the query results and the PPD data (will add NPI and party ID to PPD data)
-ppd_npi_df = npi_me_df.merge(ppd_contact_df, how = 'inner', on = 'ME')
+ppd_npi_df = npi_me_df.merge(ppd_contact_df, how='inner', on='ME')
 
 # Extract only DHC entries that are not registered in the Do Not Call Registry
 dhc_ok_df = dhc_df[dhc_df['Do Not Call Registry'] != 'Registered']
@@ -155,7 +155,7 @@ print('Number DHC entries missing from PPD: {}'.format(dhc_only_df.shape[0]))
 
 ###### Get entries in PPD that are not in DHC
 
-ppd_dhc_null_df = dhc_ok_df.merge(ppd_npi_df, how = 'right', right_on= 'NPI_NBR' , left_on = 'NPI')
+ppd_dhc_null_df = dhc_ok_df.merge(ppd_npi_df, how='right', right_on='NPI_NBR', left_on='NPI')
 ppd_only_df = ppd_dhc_null_df[ppd_dhc_null_df['NPI'].isna()]
 
 print('Number PPD entries missing from DHC: {}'.format(ppd_only_df.shape[0]))
@@ -165,7 +165,7 @@ print('\n')
 
 #npi_match_df = pd.merge(right = ppd_npi_df, left = dhc_ok_df, right_on= 'NPI_NBR_NUM' , left_on = 'NPI', how = 'inner')
 
-npi_match_df = dhc_ok_df.merge(ppd_npi_df, how = 'inner', left_on = 'NPI', right_on = 'NPI_NBR')
+npi_match_df = dhc_ok_df.merge(ppd_npi_df, how='inner', left_on='NPI', right_on='NPI_NBR')
 print('Number PPD and DHC entries with matching NPI numbers: {}'.format(npi_match_df.shape[0]))
 print('\n')
 
@@ -232,11 +232,11 @@ print('\n')
 
 match_dhc_phone_df['PHONE NUMBER'] = match_dhc_phone_df['PHONE NUMBER'].apply(lambda x: x.replace('.', ''))
 
-match_dhc_phone_df = match_dhc_phone_df.rename(columns = orig_rename_dict)
+match_dhc_phone_df = match_dhc_phone_df.rename(columns=orig_rename_dict)
 
-match_dhc_phone_df = match_dhc_phone_df.rename(columns = new_rename_dict)
+match_dhc_phone_df = match_dhc_phone_df.rename(columns=new_rename_dict)
     
-match_dhc_phone_df = match_dhc_phone_df.drop(['me'], axis = 1)
+match_dhc_phone_df = match_dhc_phone_df.drop(['me'], axis=1)
 
 
 phone_var_name = 'TELEPHONE_NUMBER'
@@ -260,8 +260,8 @@ out_sample_vars = ['NPI', 'ME', 'FIRST_NAME', 'MIDDLE_NAME', 'LAST_NAME', 'SUFFI
 sample_out_df = sample_df[out_sample_vars]
 
 save_file = sample_out_dir + start_time_str + '_DHC_Sample.xlsx'
-writer = pd.ExcelWriter(save_file, engine = 'xlsxwriter')
-sample_out_df.to_excel(writer, index = None, header = True)
+writer = pd.ExcelWriter(save_file, engine='xlsxwriter')
+sample_out_df.to_excel(writer, index=None, header=True)
 writer.save()
 
 int_sample_vars = ['NPI', 'ME', 'FIRST_NAME', 'MIDDLE_NAME', 'LAST_NAME', 'SUFFIX', 'POLO_MAILING_LINE_2', 
@@ -272,8 +272,8 @@ int_sample_vars = ['NPI', 'ME', 'FIRST_NAME', 'MIDDLE_NAME', 'LAST_NAME', 'SUFFI
 sample_int_df = sample_df[int_sample_vars]
 
 int_save_file = sample_out_dir + start_time_str + '_DHC_Sample_Internal.xlsx'
-writer = pd.ExcelWriter(int_save_file, engine = 'xlsxwriter')
-sample_int_df.to_excel(writer, index = None, header = True)
+writer = pd.ExcelWriter(int_save_file, engine='xlsxwriter')
+sample_int_df.to_excel(writer, index=None, header=True)
 writer.save()
 
 # change logging back to console and close log file

@@ -22,6 +22,8 @@ gen_path = base_path + 'CommonModelCode\\'
 sys.path.insert(0, gen_path)
 
 from rename_model_cols import rename_ppd_columns
+from rename_entity_cols import rename_comm_cols
+
 from get_entity_ppd_info import set_entity_dates, assign_lic_end_dates, create_general_key
 from get_entity_ppd_info import clean_ent_comm_data, clean_addr_data, clean_ent_usg_data
 from get_entity_ppd_info import create_ent_me_data
@@ -171,6 +173,7 @@ def get_valid_ppd_ent_data(ent_ppd_df, date_var):
 
     return ent_date_df
 
+import pandas as pd
 
 def get_valid_ppd_usg_data(usg_df, date_var):
     print('GET_VALID_PPD_USG_DATA')
@@ -178,6 +181,13 @@ def get_valid_ppd_usg_data(usg_df, date_var):
     print('date:', usg_df[date_var])
     usg_df = set_entity_dates(usg_df, 'usg_begin_dt', 'usg_end_dt')
     assert len(usg_df) > 0
+    print(usg_df['usg_begin_dt'].values[:5])
+    print(usg_df['usg_end_dt'].values[:5])
+
+    usg_df['usg_begin_dt'] = pd.to_datetime(usg_df['usg_begin_dt'])
+    usg_df['usg_end_dt'] = pd.to_datetime(usg_df['usg_end_dt'])
+    usg_df[date_var] = pd.to_datetime(usg_df[date_var])
+
     usg_date_df = usg_df[(usg_df['usg_begin_dt'] <= usg_df[date_var]) &
                          (usg_df['usg_end_dt'] >= usg_df[date_var])]
     assert len(usg_date_df) > 0
@@ -304,6 +314,7 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
     entity_addr_df = entity_addr_df.merge(date_df, how='inner', left_on='ent_me', right_on=date_me_var)
 
     entity_addr_df = get_valid_ppd_ent_data(entity_addr_df, date_var)
+    assert 'ent_comm_begin_dt' in entity_addr_df.columns.values
 
     curr_ent_id_addr_count_df, curr_ent_all_addr_count_df = get_ent_counts(entity_addr_df,
                                                                            'curr_ent_id_addr_count',
@@ -426,8 +437,9 @@ def create_ppd_scoring_data(ppd_df, ppd_date, ent_comm_df, ent_comm_usg_df, post
     ent_ppd_df = ppd_df.merge(entity_df, how='inner', left_on='ME', right_on='ent_me')
     assert len(ent_ppd_df) > 0
     ppd_final_df = rename_ppd_columns(ent_ppd_df)
+    ppd_final_df = rename_comm_cols(ppd_final_df)
     assert len(ppd_final_df) > 0
-
+    assert 'ent_comm_begin_dt' in ppd_final_df.columns.values
     return ppd_final_df
 
 

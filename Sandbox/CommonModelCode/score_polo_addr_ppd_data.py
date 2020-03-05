@@ -35,8 +35,10 @@ def fill_nan_model_vars(data_df):
 def score_polo_addr_data(ppd_scoring_df, model, model_vars, init_model_vars, info_vars):
     print('SCORE_POLO_ADDR_DATA')
     assert len(ppd_scoring_df) > 0
-
+    print(ppd_scoring_df.dtypes)
+    print('#'*80)
     # Convert data types to expected
+    assert 'ent_comm_begin_dt' in ppd_scoring_df.columns.values
     ppd_scoring_converted_df = convert_data_types(ppd_scoring_df)
 
     # Create new model variables
@@ -92,7 +94,7 @@ def score_polo_ppd_data(ppd_scoring_df, model, model_vars):
                  'post_addr_line1', 'post_addr_line2', 'post_city_cd', 'post_state_cd',
                  'post_zip', 'ent_comm_comm_type', 'ent_comm_begin_dt', 'ent_comm_end_dt',
                  'ent_comm_comm_id', 'ent_comm_entity_id']
-
+    assert 'ent_comm_begin_dt' in ppd_scoring_df
     model_pred_df, model_data_pruned = score_polo_addr_data(ppd_scoring_df, model,
                                                             model_vars, init_model_vars, info_vars)
 
