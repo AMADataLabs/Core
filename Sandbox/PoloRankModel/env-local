@@ -1,7 +1,3 @@
-COMMON_CODE_PATH=`realpath ~/Development/hsg-data-labs/Sandbox/CommonCode`
-COMMON_MODEL_CODE_PATH=`realpath ~/Development/hsg-data-labs/Sandbox/CommonModelCode`
-export PYTHONPATH="${COMMON_CODE_PATH}:${COMMON_MODEL_CODE_PATH}"
-
 export PPD_SCORE_OUT_DIR='/mnt/u/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/'
 export MODEL_FILE='/mnt/u/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model.sav'
 export MODEL_VAR_FILE='/mnt/u/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model_FeatureList.sav'
