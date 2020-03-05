@@ -1,0 +1,15 @@
+#!/bin/bash
+
+
+SCRIPT=`realpath $0`
+SCRIPT_PATH=`dirname $SCRIPT`
+ENVIRONMENT_PATH=${SCRIPT_PATH}/../Environment/$1
+. ${SCRIPT_PATH}/../Source/Bash/datalabs/environment/setup.sh
+
+
+main() {
+    bash --rcfile <(echo ". ~/.bashrc; . ${ENVIRONMENT_PATH}/bin/activate")
+}
+
+
+main
