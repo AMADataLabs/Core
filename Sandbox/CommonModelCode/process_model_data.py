@@ -41,6 +41,8 @@ def convert_int_to_cat(data_df):
 def convert_data_types(orig_data):
     print('CONVERT_DATA_TYPES')
     assert len(orig_data) > 0
+    assert 'ent_comm_begin_dt' in orig_data
+    print(orig_data.dtypes)
     orig_data = create_ent_comm_dates(orig_data, 'ent_comm_begin_dt')
 
     ent_no_end_ndx = orig_data['ent_comm_end_dt'].isna()
