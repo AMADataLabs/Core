@@ -1,3 +1,7 @@
+# Project Settings
+PROJECT_NAME='PoloRankModel'
+
+
 # PPD Input Data
 PPD_FILE='/mnt/u/Source Files/Data Analytics/Data-Science/Data/PPD/ppd_data_20200222.csv'
 
