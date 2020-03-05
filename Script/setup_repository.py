@@ -7,7 +7,7 @@ import sys
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 def main(args):
@@ -25,7 +25,6 @@ def set_pythonpath(script_base_path):
     datalabs_pythonpath = generate_datalabs_pythonpath(script_base_path)
 
     for path in datalabs_pythonpath[::-1]:
-        LOGGER.debug(f'Inserting {path} into sys.path.')
         sys.path.insert(0, path)
 
     return os.pathsep.join(datalabs_pythonpath)
@@ -64,9 +63,8 @@ def generate_dotenv_file_from_template(dotenv_template, pythonpath):
     from datalabs.common.setup import FileGeneratorFilenames, SimpleFileGenerator
 
     dotenv_path = Path(dotenv_template.parent, '.env')
+    LOGGER.info(f'Generating dotenv file {str(dotenv_path)}')
     filenames = FileGeneratorFilenames(template=dotenv_template, output=dotenv_path)
-    LOGGER.debug(f'Filenames: {filenames}')
-
 
     dotenv_generator = SimpleFileGenerator(filenames, pythonpath=pythonpath)
     dotenv_generator.generate()

@@ -1,8 +1,13 @@
 #!/bin/bash
 
 
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+. ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup.sh
+
+
 main() {
-    python3 setup_repository.py
+    python3 ${SCRIPT_BASE_PATH}/setup_repository.py
 }
 
 
