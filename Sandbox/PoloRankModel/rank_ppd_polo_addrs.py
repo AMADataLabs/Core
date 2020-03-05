@@ -2,21 +2,15 @@
 # Kari Palmier    8/14/19    Updated to work with more generic get_sample
 #
 #############################################################################
-import tkinter as tk
-from tkinter import filedialog
-import pickle
 import datetime
+import os
+import sys
+
+import dotenv
 import pandas as pd
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2] + 1]
-gen_path = base_path + 'CommonCode\\'
-sys.path.insert(0, gen_path)
+dotenv.load_dotenv()
+[sys.path.insert(0, p) for p in os.environ.get('DATALABS_PYTHONPATH', '').split(':')[::-1]]
 
 # from get_ppd import get_latest_ppd_data
 from capitalize_column_names import capitalize_column_names
