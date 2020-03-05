@@ -167,4 +167,3 @@ model_pred_df.to_csv(archived_output_file, sep=',', header=True, index=True)
 
 model_input_file = ppd_archive_dir + start_time_str + '_PPD_' + ppd_date_str + '_Polo_Addr_Rank_Input_Data.csv'
 model_data_pruned.to_csv(model_input_file, sep=',', header=True, index=True)
-

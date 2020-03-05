@@ -5,8 +5,9 @@ import sys
 
 
 if __name__ == '__main__':
+    script_path = Path(sys.argv[0])
     environment = os.environ.copy()
-    path = Path('Source/Python').absolute()
+    path = script_path.parent.joinpath('../Source/Python').resolve()
     args = sys.argv[1:]
 
     if environment.get('PYTHONPATH'):

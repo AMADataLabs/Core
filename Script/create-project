@@ -5,6 +5,7 @@ SCRIPT=`realpath $0`
 SCRIPT_PATH=`dirname $SCRIPT`
 PROJECT_NAME=
 DEPENDENCY_LIST=
+FORCE_OVERWRITE=false
 
 
 main() {
@@ -27,14 +28,18 @@ process_arguments() {
             print_usage
             exit 0
             ;;
+        -l|--list-deps)
+            print_master_dependencies
+            exit 0
+            shift
+            ;;
         -d|--dependencies)
             DEPENDENCY_LIST=$2
             shift
             shift
             ;;
-        -l|--list-deps)
-            print_master_dependencies
-            exit 0
+        -f|--force)
+            FORCE_OVERWRITE=true
             shift
             ;;
         *)
@@ -52,7 +57,7 @@ process_arguments() {
 
 
 create_project_directories() {
-    create_directory Build ${PROJECT_NAME}
+    # create_directory Build ${PROJECT_NAME}
 
     create_directory Environment ${PROJECT_NAME}
 }
@@ -91,14 +96,14 @@ create_directory() {
     PROJECT_NAME=$2
     DIRECTORY_PATH=${SCRIPT_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}
 
-    if [[  -d $DIRECTORY_PATH ]]; then
+    if [[ "$FORCE_OVERWRITE" == false && -d $DIRECTORY_PATH ]]; then
         real_directory_path=`realpath ${DIRECTORY_PATH}`
         echo "Error: Project directory ${real_directory_path} already exists."
         exit 2
     fi
 
     echo "Creating directory ${DIRECTORY_PATH}"
-    mkdir ${DIRECTORY_PATH}
+    mkdir -p ${DIRECTORY_PATH}
 }
 
 
@@ -116,7 +121,7 @@ generate_requirements() {
         --template ${MASTER_ENV_PATH}/requirements_template.txt "
 
     if [[ "$DEPENDENCY_LIST" != "" ]]; then
-        ARGUMENTS=${ARGUMENTS} --whitelist ${PROJECT_ENV_PATH}/whitelist.txt
+        ARGUMENTS="${ARGUMENTS} --whitelist ${PROJECT_ENV_PATH}/whitelist.txt"
     fi
 
     echo "Generating requirements.txt for project ${PROJECT_NAME}"
