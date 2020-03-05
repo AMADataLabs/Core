@@ -104,7 +104,7 @@ ppd_date = datetime.datetime.strptime(ppd_date_str, '%Y%m%d')
 # Load entity data
 print('Loading entity data')
 # ent_comm_df = pd.read_csv(ent_comm_file, delimiter=",", index_col=None, header=0, dtype=str)
-ent_comm_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_entity_comm_at.csv',
+ent_comm_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_clean_entity_comm_at.csv',
                           dtype=str, na_values=['', '(null)'])
 
 # ent_comm_df['comm_cat'] = ent_comm_df['comm_cat'].apply(str.strip)
@@ -112,19 +112,19 @@ ent_comm_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_da
 assert len(ent_comm_df) > 0
 # ent_comm_usg_df = pd.read_csv(ent_comm_usg_file, delimiter=",", index_col = None, header=0, dtype=str)
 ent_comm_usg_df = pd.read_csv(
-    'C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_entity_comm_usg_at.csv',
+    'C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_clean_entity_comm_usg_at.csv',
     dtype=str, na_values=['', '(null)'])
 # ent_comm_usg_df['comm_cat'] = ent_comm_usg_df['comm_cat'].apply(str.strip)
 # ent_comm_usg_df = ent_comm_usg_df[ent_comm_usg_df['comm_cat'] == 'A']
 assert len(ent_comm_usg_df) > 0
 # post_addr_df = pd.read_csv(post_addr_file, delimiter=",", index_col=None, header=0, dtype=str)
-post_addr_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_post_addr_at.csv',
+post_addr_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_clean_post_addr_at.csv',
                            dtype=str, na_values=['', '(null)'])
 # license_df = pd.read_csv(license_file, delimiter=",", index_col=None, header=0, dtype=str)
-license_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_license_lt.csv',
+license_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_clean_license_lt.csv',
                          dtype=str, na_values=['', '(null)'])
 # ent_key_df = pd.read_csv(ent_key_file, delimiter=",", index_col=None, header=0, dtype=str)
-ent_key_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_entity_key_et.csv',
+ent_key_df = pd.read_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\entity_data\\2020-02-25\\str_clean_entity_key_et.csv',
                          dtype=str, na_values=['', '(null)'])
 
 # Get latest model and variables
@@ -135,6 +135,7 @@ model = pickle.load(open(model_file, 'rb'))
 print('Creating scoring data')
 ppd_scoring_df = create_ppd_scoring_data(ppd_df, ppd_date, ent_comm_df, ent_comm_usg_df, post_addr_df,
                                          license_df, ent_key_df)
+assert 'ent_comm_begin_dt' in ppd_scoring_df.columns.values
 print(len(ppd_scoring_df))
 ppd_entity_file = ppd_archive_dir + start_time_str + '_PPD_' + ppd_date_str + '_Polo_Addr_Rank_PPD_Entity_Data.csv'
 print('\tsaving scoring data to {}'.format(ppd_entity_file))
