@@ -1,6 +1,6 @@
 # Project Settings
 PROJECT_NAME='PoloRankModel'
-
+DATALABS_PYTHONPATH='{{ pythonpath }}'
 
 # PPD Input Data
 PPD_FILE='/mnt/u/Source Files/Data Analytics/Data-Science/Data/PPD/ppd_data_20200222.csv'
