@@ -13,8 +13,6 @@ main() {
 
     create_project_directories
 
-    create_dependency_whitelist
-
     generate_configuration_files
 
     # create_virtual_environment
@@ -63,21 +61,12 @@ create_project_directories() {
 }
 
 
-create_dependency_whitelist() {
-    PROJECT_ENV_PATH=${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
-    WHITELIST_PATH=${PROJECT_ENV_PATH}/whitelist.txt
-
-    if [[ "$DEPENDENCY_LIST" != "" ]]; then
-        echo $DEPENDENCY_LIST > ${WHITELIST_PATH}
-        echo Created dependency whitelist file `realpath ${WHITELIST_PATH}`
-    fi
-}
-
-
 generate_configuration_files() {
-    # generate_dockerfile
+    generate_dependency_whitelist
 
     generate_requirements
+
+    # generate_dockerfile
 }
 
 
@@ -107,8 +96,14 @@ create_directory() {
 }
 
 
-generate_dockerfile() {
-    echo "Not Implemented"
+generate_dependency_whitelist() {
+    PROJECT_ENV_PATH=${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+    WHITELIST_PATH=${PROJECT_ENV_PATH}/whitelist.txt
+
+    if [[ "$DEPENDENCY_LIST" != "" ]]; then
+        echo $DEPENDENCY_LIST > ${WHITELIST_PATH}
+        echo Created dependency whitelist file `realpath ${WHITELIST_PATH}`
+    fi
 }
 
 
@@ -126,6 +121,11 @@ generate_requirements() {
 
     echo "Generating requirements.txt for project ${PROJECT_NAME}"
     $GENENV $ARGUMENTS
+}
+
+
+generate_dockerfile() {
+    echo "Not Implemented"
 }
 
 
