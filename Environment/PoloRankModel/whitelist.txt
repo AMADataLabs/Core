@@ -1,1 +1,1 @@
-matplotlib,numpy,pandas,pylint,pytest,python-dotenv,scikit-learn,seaborn,xgboost
+ipython,matplotlib,numpy,pandas,pylint,pytest,scikit-learn,seaborn,xgboost
