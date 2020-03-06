@@ -102,8 +102,8 @@ def get_input_data():
 
     return InputData(
         ppd=ppd_data,
-        data=ppd+date,
-        entity_data
+        date=ppd_date,
+        entity=entity_data
     )
 
 

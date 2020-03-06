@@ -12,11 +12,11 @@ warnings.filterwarnings("ignore")
 import sys
 import os
 
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2] + 1]
-gen_path = base_path + 'CommonModelCode\\'
-sys.path.insert(0, gen_path)
+# curr_path = os.path.abspath(__file__)
+# slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
+# base_path = curr_path[:slash_ndx[-2] + 1]
+# gen_path = base_path + 'CommonModelCode\\'
+# sys.path.insert(0, gen_path)
 
 from rename_entity_cols import rename_post_cols, rename_comm_cols, rename_usg_cols
 from rename_entity_cols import rename_phn_cols, rename_fone_zr_cols

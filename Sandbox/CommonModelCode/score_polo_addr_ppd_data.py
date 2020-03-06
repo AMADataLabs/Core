@@ -11,12 +11,13 @@ warnings.filterwarnings("ignore")
 import sys
 import os
 
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2] + 1]
-gen_path = base_path + 'CommonModelCode\\'
-# gen_path = 'C:\\Data-Science\\Code-Library\\Common_Model_Code\\'
-sys.path.insert(0, gen_path)
+# curr_path = os.path.abspath(__file__)
+# print(curr_path)
+# slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
+# base_path = curr_path[:slash_ndx[-2] + 1]
+# gen_path = base_path + 'CommonModelCode\\'
+# # gen_path = 'C:\\Data-Science\\Code-Library\\Common_Model_Code\\'
+# sys.path.insert(0, gen_path)
 
 from process_model_data import convert_data_types, create_new_addr_vars, clean_model_data, convert_int_to_cat
 from class_model_creation import get_class_predictions

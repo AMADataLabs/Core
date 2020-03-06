@@ -1,1 +1,1 @@
-ipython,matplotlib,numpy,pandas,pylint,pytest,scikit-learn,seaborn,xgboost,jinja2
+ipython,matplotlib,numpy,pandas,pylint,pytest,scikit-learn,seaborn,xgboost,jinja2,imbalanced-learn

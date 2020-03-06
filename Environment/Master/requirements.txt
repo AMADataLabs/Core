@@ -1,5 +1,6 @@
 setuptools==41.0.0
 doit==0.31.1
+imbalanced-learn==0.6.2
 ipython==7.12.0
 jinja2==2.11.1
 json5==0.8.5
