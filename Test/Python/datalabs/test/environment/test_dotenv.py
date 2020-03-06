@@ -36,6 +36,15 @@ def test_dotenv_finds_configuration_file(temp_directory, dotenv_file, environmen
     assert test_variable == 'Howdy, Partner!'
 
 
+def test_dotenv_finds_configuration_file(temp_directory, dotenv_file, environment):
+    # The argument to load_dotenv in conjunction with temp_directory and dotenv_file
+    # simulates passing no arguments with a .env in the script directory.
+    dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
+
+    test_variable = os.environ.get('DATALABS_TEST_VARIABLE_BOOLEAN_BOLERO')
+    assert test_variable == True
+
+
 @pytest.fixture
 def temp_directory():
     current_directory = os.getcwd()
@@ -61,6 +70,9 @@ def dotenv_file(temp_directory):
     filename = pathlib.Path(temp_directory, '.env')
 
     with open(filename, 'w') as file:
-        file.write("DATALABS_TEST_VARIABLE_OMICRON_OMEGA='Howdy, Partner!'\n")
+        file.write(
+            "DATALABS_TEST_VARIABLE_OMICRON_OMEGA='Howdy, Partner!'\n"
+            "DATALABS_TEST_VARIABLE_BOOLEAN_BOLERO=True\n"
+        )
 
     yield str(filename)
