@@ -91,6 +91,9 @@ def create_addr_key(data_df, addr_var, zip_var, st_num_var, addr_key_var):
 
 
 def get_ent_addr_counts(ent_data, group_var_lst, count_var_name):
+    # ent_data = entity_addr_df
+    # group_var_lst = [ent_id_var, addr_key_var]    OR    [addr_key_var]
+    # count_var_name = id_addr_var
     ent_count_df = ent_data.groupby(group_var_lst).size().reset_index()
     ent_count_df = ent_count_df.rename(columns={0: count_var_name})
     keep_vars = group_var_lst
@@ -106,8 +109,6 @@ def create_combined_addr_ent_data(ent_df, post_addr_df, ent_join_var, st_num_var
                                   how='inner', left_on=ent_join_var,
                                   right_on='post_comm_id')
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
-    print('############################################################### begin_dt', 'begin_dt in ent_df' in ent_df.columns.values)
-    print('############################################################### ent_comm_begin_dt', 'ent_comm_begin_dt in entity_addr_df' in entity_addr_df.columns.values)
     entity_addr_df = create_addr_key(entity_addr_df, 'post_addr_line2', 'post_zip',
                                      st_num_var, addr_key_var)
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
@@ -117,6 +118,11 @@ def create_combined_addr_ent_data(ent_df, post_addr_df, ent_join_var, st_num_var
 
 
 def get_ent_counts(entity_addr_df, id_addr_var, all_addr_var, ent_id_var, addr_key_var):
+    # id_addr_var = 'curr_usg_id_addr_count',
+    # all_addr_var = 'curr_usg_all_addr_count',
+    # ent_id_var = 'usg_entity_id',
+    # addr_key_var = 'usg_addr_key'
+
     ent_id_addr_count_df = get_ent_addr_counts(entity_addr_df, [ent_id_var, addr_key_var], id_addr_var)
     ent_all_addr_count_df = get_ent_addr_counts(entity_addr_df, [addr_key_var], all_addr_var)
 
@@ -133,6 +139,8 @@ def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
     entity_addr_df = get_polo_eligible(entity_addr_df, addr_var_list)
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
     assert 'ent_comm_begin_dt' in entity_addr_df.columns.values or 'begin_dt' in entity_addr_df.columns.values
+    #entity_addr_df.to_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\Polo_Rank_Model\\_Archived\\entity_addr_df.csv')
+    #quit()
     hist_ent_id_addr_count_df, hist_ent_all_addr_count_df = get_ent_counts(entity_addr_df,
                                                                            'hist_ent_id_addr_count',
                                                                            'hist_ent_all_addr_count',
@@ -173,22 +181,30 @@ def get_valid_ppd_ent_data(ent_ppd_df, date_var):
     return ent_date_df
 
 import pandas as pd
+import datetime
 
 def get_valid_ppd_usg_data(usg_df, date_var):
     print('GET_VALID_PPD_USG_DATA')
     print('date_var:', date_var)
     print('date:', usg_df[date_var])
+    print('a. usg_df:', len(usg_df))
     usg_df = set_entity_dates(usg_df, 'usg_begin_dt', 'usg_end_dt')
+    print('b. usg_df:', len(usg_df))
+
     assert len(usg_df) > 0
-    print(usg_df['usg_begin_dt'].values[:5])
-    print(usg_df['usg_end_dt'].values[:5])
 
     usg_df['usg_begin_dt'] = pd.to_datetime(usg_df['usg_begin_dt'])
-    usg_df['usg_end_dt'] = pd.to_datetime(usg_df['usg_end_dt'])
+    usg_df['usg_end_dt'] = pd.to_datetime(usg_df['usg_end_dt']).fillna(datetime.datetime.now())
     usg_df[date_var] = pd.to_datetime(usg_df[date_var])
 
+    print(usg_df['usg_begin_dt'].values[:5])
+    print(usg_df['usg_end_dt'].values[:5])
+    print(usg_df[date_var].values[:5])
+
+    print('c. usg_df:', len(usg_df))
     usg_date_df = usg_df[(usg_df['usg_begin_dt'] <= usg_df[date_var]) &
                          (usg_df['usg_end_dt'] >= usg_df[date_var])]
+    print('d. usg_df:', len(usg_df))
     assert len(usg_date_df) > 0
     return usg_date_df
 
@@ -272,7 +288,7 @@ def get_ent_lic_data(ent_date_df, license_df, date_var):
 def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_df, ent_key_df, date_df, date_var,
                             date_me_var):
     print('CREATE_ADDR_ENTITY_DATA')
-
+    print('0. ent_comm_usg_df:', len(ent_comm_usg_df))
     assert len(ent_comm_df) > 0
     assert len(post_addr_df) > 0
     assert len(ent_comm_usg_df) > 0
@@ -302,7 +318,7 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
 
     entity_usg_addr_df, hist_usg_id_addr_count_df, hist_usg_all_addr_count_df = \
         create_ent_usg_data(ent_comm_usg_df, post_addr_df, ent_key_df)
-
+    print('1. entity_usg_addr_df:', len(entity_usg_addr_df))
     assert len(entity_usg_addr_df) > 0
     assert len(hist_usg_id_addr_count_df) > 0
     assert len(hist_usg_all_addr_count_df) > 0
@@ -325,9 +341,11 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
                                                                            'ent_addr_key')
 
     entity_usg_addr_df = entity_usg_addr_df.merge(date_df, how='inner', left_on='ent_me', right_on=date_me_var)
-
+    print('2. entity_usg_addr_df:', len(entity_usg_addr_df))
     entity_usg_addr_df = get_valid_ppd_usg_data(entity_usg_addr_df, date_var)
-
+    print('3. entity_usg_addr_df:', len(entity_usg_addr_df))
+    # entity_usg_addr_df.to_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\Polo_Rank_Model\\_Archived\\entity_usg_addr_df.csv')
+    # quit()
     curr_usg_id_addr_count_df, curr_all_usg_addr_count_df = get_ent_counts(entity_usg_addr_df,
                                                                            'curr_usg_id_addr_count',
                                                                            'curr_usg_all_addr_count',
