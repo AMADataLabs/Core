@@ -81,7 +81,6 @@ def create_addr_key(data_df, addr_var, zip_var, st_num_var, addr_key_var):
     data_df = data_df[data_df[zip_var].notnull()]
     assert len(data_df) > 0
     data_df[zip_var] = data_df[zip_var].astype(str)
-    assert 'ent_comm_begin_dt' in data_df
     data_df[st_num_var] = data_df[addr_var].apply(
         lambda x: x[0:(x.find(' '))] if x[0:(x.find(' '))].isnumeric() else '')
     data_df = data_df[data_df[st_num_var] != '']
@@ -107,7 +106,7 @@ def create_combined_addr_ent_data(ent_df, post_addr_df, ent_join_var, st_num_var
                                   how='inner', left_on=ent_join_var,
                                   right_on='post_comm_id')
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
-    print('############################################################### begin_dt', 'ent_comm_begin_dt in ent_df' in ent_df.columns.values)
+    print('############################################################### begin_dt', 'begin_dt in ent_df' in ent_df.columns.values)
     print('############################################################### ent_comm_begin_dt', 'ent_comm_begin_dt in entity_addr_df' in entity_addr_df.columns.values)
     entity_addr_df = create_addr_key(entity_addr_df, 'post_addr_line2', 'post_zip',
                                      st_num_var, addr_key_var)
@@ -128,12 +127,12 @@ def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
     print("CREATE_ENT_COMM_DATA")
     entity_addr_df = create_combined_addr_ent_data(ent_comm_df, post_addr_df, 'ent_comm_comm_id',
                                                    'ent_st_num', 'ent_addr_key')
-    assert 'ent_comm_begin_dt' in entity_addr_df or 'begin_dt' in entity_addr_df
+    assert 'ent_comm_begin_dt' in entity_addr_df.columns.values or 'begin_dt' in entity_addr_df.columns.values
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
     addr_var_list = ['post_addr_line0', 'post_addr_line1', 'post_addr_line2']
     entity_addr_df = get_polo_eligible(entity_addr_df, addr_var_list)
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
-
+    assert 'ent_comm_begin_dt' in entity_addr_df.columns.values or 'begin_dt' in entity_addr_df.columns.values
     hist_ent_id_addr_count_df, hist_ent_all_addr_count_df = get_ent_counts(entity_addr_df,
                                                                            'hist_ent_id_addr_count',
                                                                            'hist_ent_all_addr_count',
@@ -142,7 +141,7 @@ def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
 
     entity_addr_df = entity_addr_df.merge(ent_key_df, how='inner', left_on='ent_comm_entity_id',
                                           right_on='entity_id')
-
+    assert 'ent_comm_begin_dt' in entity_addr_df.columns.values or 'begin_dt' in entity_addr_df.columns.values
     return entity_addr_df, hist_ent_id_addr_count_df, hist_ent_all_addr_count_df
 
 
@@ -298,6 +297,7 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
 
     entity_addr_df, hist_ent_id_addr_count_df, hist_ent_all_addr_count_df = \
         create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df)
+    assert 'ent_comm_begin_dt' in entity_addr_df.columns.values
     assert len(entity_addr_df) > 0
 
     entity_usg_addr_df, hist_usg_id_addr_count_df, hist_usg_all_addr_count_df = \
@@ -448,10 +448,16 @@ def create_ppd_scoring_data(ppd_df, ppd_date, ent_comm_df, ent_comm_usg_df, post
     ppd_df = create_addr_key(ppd_df, 'POLO_MAILING_LINE_2', 'POLO_ZIP',
                              'PPD_ST_NUM', 'PPD_ADDR_KEY')
 
-    entity_df = entity_df['ent_me'].astype(str)
+    entity_df['ent_me'] = entity_df['ent_me'].astype(str)  #### was "entity_df = entity_df['ent_me'].astype(str)"
     assert len(entity_df) > 0
+
+    assert 'ent_comm_begin_dt' in entity_df.columns.values
+
     ent_ppd_df = ppd_df.merge(entity_df, how='inner', left_on='ME', right_on='ent_me')
     assert len(ent_ppd_df) > 0
+
+    assert 'ent_comm_begin_dt' in ent_ppd_df.columns.values
+
     ppd_final_df = rename_ppd_columns(ent_ppd_df)
     #ppd_final_df = rename_comm_cols(ppd_final_df)
     assert len(ppd_final_df) > 0
