@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from   abc import ABC, abstractmethod
+from   collections impor namedtuple
 import gc
 
 import pandas as pd
@@ -8,120 +9,82 @@ import pandas as pd
 import settings
 
 
-class EntityTableCleaner():
+class EntityTableCleaner(ABC):
     def __init__(self, input_path, output_path):
         self._input_path = input_path
         self._output_path = output_path
 
     def clean(self):
+        gc.collect()
+
         table = pd.read_csv(intput_path, dtype=str)
 
-        self._clean_table(table)
+        clean_table = self._clean_table(table)
 
-        
+        clean_table.to_feather(output_path)
 
-gc.collect()
+        del table
+        gc.collect()
 
-print('Reading')
-entity_comm_at = pd.read_csv('entity_comm_at.csv', dtype=str)
+    @abstractmethod
+    def _clean_table(self, table: pd.DataFrame) -> pd.DataFrame:
+        table = self._trim_table(table)
 
-print('Trimming')
-# trim to only get addr
-entity_comm_at['comm_cat'] = entity_comm_at['comm_cat'].apply(str.strip)
-entity_comm_at = entity_comm_at[entity_comm_at['comm_cat']=='A']
+        table = self._strip_table(table)
 
-print('Stripping')
-# strip all cols
-for col in entity_comm_at.columns.values:
-    entity_comm_at[col] = entity_comm_at[col].apply(str.strip)
+class EntityTableTrimmerMixin():
+    @classmethod
+    def _trim_table(cls, table):
+        table['comm_cat'] = table['comm_cat'].apply(str.strip)
+        table = table[table['comm_cat']=='A']
 
-print('Saving')
-entity_comm_at.to_csv('str_entity_comm_at.csv', index=False)
-del entity_comm_at
-gc.collect()
+        return table
 
-del entity_comm_at
-gc.collect()
+class EntityTableStripperMixin():
+    @classmethod
+    def _strip_table(cls, table):
+        for col in table.columns.values:
+            table[col] = table[col].apply(str.strip)
 
-
-# In[6]:
-
-
-print('Reading')
-entity_comm_usg_at = pd.read_csv('entity_comm_usg_at.csv', dtype=str)
-
-print('Trimming')
-entity_comm_usg_at['comm_cat'] = entity_comm_usg_at['comm_cat'].apply(str.strip)
-entity_comm_usg_at = entity_comm_usg_at[entity_comm_usg_at['comm_cat'] == 'A']
-
-print('Stripping')
-for col in entity_comm_usg_at.columns.values:
-    entity_comm_usg_at[col] = entity_comm_usg_at[col].apply(str.strip)
-    
-print('Saving')
-entity_comm_usg_at.to_csv('str_entity_comm_usg_at.csv', index=False)
-
-print('Releasing')
-del entity_comm_usg_at
-gc.collect()
+        return table
 
 
-# In[7]:
+class EntityCommAtCleaner(EntityTableCleaner, EntityTableTrimmerMixin, EntityTableStripperMixin):
+    pass
 
 
-print('Reading')
-entity_key_et = pd.read_csv('entity_key_et.csv', dtype=str)
-
-print('Stripping')
-for col in entity_key_et.columns.values:
-    entity_key_et[col] = entity_key_et[col].apply(str.strip)
-
-print('Saving')
-entity_key_et.to_csv('str_entity_key_et.csv', index=False)
-
-print('Releasing')
-del entity_key_et
-gc.collect()
+class EntityCommUsgCleaner(EntityTableCleaner, EntityTableTrimmerMixin, EntityTableStripperMixin):
+    pass
 
 
-# In[8]:
+class PostAddrAtCleaner(EntityTableCleaner, EntityTableStripperMixin):
+    pass
 
 
-print('Reading')
-license_lt = pd.read_csv('license_lt.csv', dtype=str)
-
-print('Stripping')
-for col in license_lt.columns.values:
-    license_lt[col] = license_lt[col].apply(str.strip)
-    
-print('Saving')
-license_lt.to_csv('str_license_lt.csv', index=False)
-
-print('Releasing')
-del license_lt
-gc.collect()
+class LicenseLtCleaner(EntityTableCleaner, EntityTableStripperMixin):
+    pass
 
 
-# In[9]:
+class EntityKeyEtCleaner(EntityTableCleaner, EntityTableStripperMixin):
+    pass
 
 
-print('Reading')
-post_addr_at = pd.read_csv('post_addr_at.csv', dtype=str)
-
-print('Stripping')
-for col in post_addr_at.columns.values:
-    post_addr_at[col] = post_addr_at[col].apply(str.strip)
-    
-print('Saving')
-post_addr_at.to_csv('str_post_addr_at.csv', index=False)
-
-print('Releasing')
-del post_addr_at
-gc.collect()
+Parameters = namedtuple('Parameters', 'input output cleaner')
 
 
-# In[ ]:
+def main():
+    parameter_set = [
+        Parameters(input='ENTITY_COMM_AT_FILE_RAW', output='ENTITY_COMM_AT_FILE', cleaner=EntityCommAtCleaner),
+        Parameters(input='ENTITY_COMM_USG_FILE_RAW', output='ENTITY_COMM_USG_FILE', cleaner=EntityCommUsgCleaner),
+        Parameters(input='POST_ADDR_AT_FILE_RAW', output='POST_ADDR_AT_FILE', cleaner=PostAddrAtCleaner),
+        Parameters(input='LICENSE_LT_FILE_RAW', output='LICENSE_LT_FILE', cleaner=LicenseLtCleaner),
+        Parameters(input='ENTITY_KEY_ET_FILE_RAW', output='ENTITY_KEY_ET_FILE', cleaner=EntityKeyEtCleaner),
+    ]
+
+    for parameters in parameter_set:
+        parameters.cleaner(parameters.input, parameters.output).clean()
 
 
-
+if __name__ == '__main__':
+    main()
 
