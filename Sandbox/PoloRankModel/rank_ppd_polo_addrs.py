@@ -14,13 +14,10 @@ import re
 import sys
 import warnings
 
-import dotenv
 import pandas as pd
 
-dotenv.load_dotenv()
-PYTHONPATH = [sys.path.insert(0, p) for p in os.environ.get('DATALABS_PYTHONPATH', '').split(':')[::-1]]
-
-from capitalize_column_names import capitalize_column_names  # pylint: disable=wrong-import-position
+import settings
+from capitalize_column_names import capitalize_column_names
 from score_polo_addr_ppd_data import score_polo_ppd_data  # pylint: disable=wrong-import-position
 from class_model_creation import get_prob_info, get_pred_info  # pylint: disable=wrong-import-position
 from create_addr_model_input_data import create_ppd_scoring_data  # pylint: disable=wrong-import-position

@@ -8,7 +8,14 @@ DATALABS_PYTHONPATH='{{ repository_dir }}/Source/Python:{{ repository_dir }}/San
 # PPD Input Data
 PPD_FILE='C:/Users/glappe/Documents/udrive/Data/PPD/ppd_data_20200222.csv'
 
-# Masterfile Input Data
+# Masterfile Raw Data
+ENTITY_COMM_AT_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/entity_comm_at.csv'
+ENTITY_COMM_USG_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/entity_comm_usg_at.csv'
+POST_ADDR_AT_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25post_addr_at.csv'
+LICENSE_LT_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/license_lt.csv'
+ENTITY_KEY_ET_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/entity_key_et.csv'
+
+# Masterfile Clean Input Data
 ENTITY_COMM_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_entity_comm_at.csv'
 ENTITY_COMM_USG_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_entity_comm_usg_at.csv'
 POST_ADDR_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_post_addr_at.csv'
