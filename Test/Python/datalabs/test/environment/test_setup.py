@@ -74,6 +74,7 @@ def test_environment_correctly_converted_to_pipenv(pipenv_filenames, python_vers
     rendered_template = None
     with open(pipenv_filenames.output) as file:
         rendered_template = file.read()
+    LOGGER.debug(f'Expected Pipfile: {expected_rendered_pipfile_template}')
     LOGGER.debug(f'Rendered Pipfile: {rendered_template}')
 
     assert expected_rendered_pipfile_template == rendered_template
@@ -100,6 +101,7 @@ def test_environment_correctly_converted_to_conda(conda_filenames, python_versio
     rendered_template = None
     with open(conda_filenames.output) as file:
         rendered_template = file.read()
+    LOGGER.debug(f'Expected Conda Requirements: {expected_rendered_conda_requirements_template}')
     LOGGER.debug(f'Rendered Conda Requirements: {rendered_template}')
 
     assert expected_rendered_conda_requirements_template == rendered_template
@@ -175,14 +177,14 @@ def expected_packages():
 
 @pytest.fixture
 def expected_rendered_pipfile_template():
-    return '[[source]]\nname = "pypi"\nurl = "https://pypi.org/simple"\nverify_ssl = true\n\n[dev-packages]\n\n[packages]\n\nnumpy = \'==1.18.1\'\npandas = \'==1.0.0\'\nscipy = \'==1.3.2\'\n\n[requires]\npython_version = "3.7"'
+    return '[[source]]\nname = "pypi"\nurl = "https://pypi.org/simple"\nverify_ssl = true\n\n[dev-packages]\n\n[packages]\nnumpy = \'==1.18.1\'\npandas = \'==1.0.0\'\nscipy = \'==1.3.2\'\n\n[requires]\npython_version = "3.7"\n'
 
 
 @pytest.fixture
 def expected_rendered_requirements_template():
-    return '\nnumpy==1.18.1\npandas==1.0.0\nscipy==1.3.2'
+    return 'numpy==1.18.1\npandas==1.0.0\nscipy==1.3.2\n'
 
 
 @pytest.fixture
 def expected_rendered_conda_requirements_template():
-    return '\nnumpy=1.18.1\npandas=1.0.0\npython=3.7\nscipy=1.3.2'
+    return 'numpy=1.18.1\npandas=1.0.0\npython=3.7\nscipy=1.3.2\n'

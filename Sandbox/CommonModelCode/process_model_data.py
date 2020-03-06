@@ -10,11 +10,11 @@ import datetime
 import sys
 import os
 
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2] + 1]
-gen_path = base_path + 'CommonModelCode\\'
-sys.path.insert(0, gen_path)
+# curr_path = os.path.abspath(__file__)
+# slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
+# base_path = curr_path[:slash_ndx[-2] + 1]
+# gen_path = base_path + 'CommonModelCode\\'
+# sys.path.insert(0, gen_path)
 
 from get_entity_ppd_info import create_ent_comm_dates
 

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-SCRIPT=`realpath $0`
-SCRIPT_PATH=`dirname $SCRIPT`
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 PROJECT_NAME=
 DEPENDENCY_LIST=
 FORCE_OVERWRITE=false
@@ -76,14 +76,14 @@ print_usage() {
 
 
 print_master_dependencies() {
-    cat ${SCRIPT_PATH}/../Environment/Master/requirements.txt | sed 's/==.*//'
+    cat ${SCRIPT_BASE_PATH}/../Environment/Master/requirements.txt | sed 's/==.*//'
 }
 
 
 create_directory() {
     DIRECTORY_NAME=$1
     PROJECT_NAME=$2
-    DIRECTORY_PATH=${SCRIPT_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}
+    DIRECTORY_PATH=${SCRIPT_BASE_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}
 
     if [[ "$FORCE_OVERWRITE" == false && -d $DIRECTORY_PATH ]]; then
         real_directory_path=`realpath ${DIRECTORY_PATH}`
@@ -108,9 +108,9 @@ generate_dependency_whitelist() {
 
 
 generate_requirements() {
-    GENENV="python ${SCRIPT_PATH}/run.py python ${SCRIPT_PATH}/genenv.py"
-    MASTER_ENV_PATH=${SCRIPT_PATH}/../Environment/Master
-    PROJECT_ENV_PATH=${SCRIPT_PATH}/../Environment/${PROJECT_NAME}
+    GENENV="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/genenv.py"
+    MASTER_ENV_PATH=${SCRIPT_BASE_PATH}/../Environment/Master
+    PROJECT_ENV_PATH=${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
 
     ARGUMENTS="--env pip --in ${MASTER_ENV_PATH}/requirements.txt --out ${PROJECT_ENV_PATH}/requirements.txt \
         --template ${MASTER_ENV_PATH}/requirements_template.txt "
