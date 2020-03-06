@@ -8,6 +8,7 @@ from   collections import namedtuple
 import datetime
 import logging
 import os
+from   pathlib import Path
 import pickle
 import re
 import sys
@@ -19,7 +20,6 @@ import pandas as pd
 dotenv.load_dotenv()
 map(lambda p: sys.path.insert(0, p), os.environ.get('DATALABS_PYTHONPATH', '').split(':')[::-1])
 
-# from get_ppd import get_latest_ppd_data
 from capitalize_column_names import capitalize_column_names  # pylint: disable=wrong-import-position
 from score_polo_addr_ppd_data import score_polo_ppd_data  # pylint: disable=wrong-import-position
 from class_model_creation import get_prob_info, get_pred_info  # pylint: disable=wrong-import-position
@@ -34,7 +34,7 @@ warnings.filterwarnings("ignore")
 
 InputData = namedtuple('InputData', 'ppd entity')
 EntityData = namedtuple('EntityData', 'entity_comm_at entity_comm_usg post_addr_at license_lt entity_key_et')
-ModelData = namedtuple('ModelData', 'model variables')
+ModelData = namedtuple('ModelData', 'model variables predictions scored_predictions')
 
 
 class InvalidDataException(Exception):
@@ -43,17 +43,31 @@ class InvalidDataException(Exception):
 
 class PoloRankModel():
     def __init__(self):
+        entity_files = EntityData(
+            entity_comm_at=os.environ.get('ENTITY_COMM_AT_FILE'),
+            entity_comm_usg=os.environ.get('ENTITY_COMM_USG_FILE'),
+            post_addr_at=os.environ.get('POST_ADDR_AT_FILE'),
+            license_lt=os.environ.get('LICENSE_LT_FILE'),
+            entity_key_et=os.environ.get('ENTITY_KEY_ET_FILE')
+        )
+
+        self._input_files = InputData(
+            ppd=os.environ.get('PPD_FILE'),
+            entity=entity_files
+        )
+        self._model_files = ModelData(
+            model=os.environ.get('MODEL_FILE'),
+            variables=os.environ.get('MODEL_VAR_FILE'),
+            predictions=os.environ.get('MODEL_PREDICTIONS_FILE'),
+            scored_predictions=os.environ.get('MODEL_SCORED_PREDICTIONS_FILE')
+        )
+        self._archive_dir = os.environ.get('MODEL_ARCHIVE_DIR')
         self._start_time = datetime.datetime.now()
-        self._ppd_score_out_dir = os.environ.get('PPD_SCORE_OUT_DIR')
-        self._ppd_archive_dir = self._ppd_score_out_dir + '_Archived'
-        self._model_file = os.environ.get('MODEL_FILE')
-        self._model_var_file = os.environ.get('MODEL_VAR_FILE')
-        self._model_predictions_path = os.environ.get('MODEL_PREDICTIONS_FILE')
         self._ppd_datestamp = None
 
 
-        if not os.path.exists(self._ppd_archive_dir):
-            os.mkdir(self._ppd_archive_dir)
+        if not os.path.exists(self._archive_dir):
+            os.mkdir(self._archive_dir)
 
     @property
     def start_time(self):
@@ -82,7 +96,7 @@ class PoloRankModel():
 
         model_predictions = self._run_model(model_parameters, model_input_data)
 
-        self._score_predictions(model_predictions)
+        self._score_model_predictions(model_predictions)
 
 
     def _get_input_data(self):
@@ -103,8 +117,8 @@ class PoloRankModel():
         LOGGER.info('-- Loading Model Parameters --')
 
         return ModelData(
-            model=pickle.load(open(self._model_file, 'rb')),
-            variables=pickle.load(open(self._model_var_file, 'rb'))
+            model=pickle.load(open(self._model_files.model, 'rb')),
+            variables=pickle.load(open(self._model_files.variables, 'rb'))
         )
 
 
@@ -115,11 +129,11 @@ class PoloRankModel():
             input_data.ppd, input_data.date,
             input_data.entity.ent_comm_at, input_data.entity.ent_comm_usg,
             input_data.entity.post_addr_at, input_data.entity.license_lt, input_data.entity.ent_key_et)
-        LOGGER.debug(f'Model input data length: {len(model_input_data)}')
+        LOGGER.debug('Model input data length: %s', len(model_input_data))
 
         assert 'ent_comm_begin_dt' in model_input_data.columns.values
 
-        self._archive_model_input_data(model_input_data, input_data.date)
+        self._archive_model_input_data(model_input_data)
 
         return model_input_data
 
@@ -128,7 +142,7 @@ class PoloRankModel():
         model_predictions, pruned_model_input_data = score_polo_ppd_data(
             input_data, parameters.model, parameters.variables
         )
-        LOGGER.debug(f'Model predictions length: {len(model_predictions)}')
+        LOGGER.debug('Model predictions length: %s', len(model_predictions))
 
         model_predictions = capitalize_column_names(model_predictions)
 
@@ -143,30 +157,23 @@ class PoloRankModel():
         zero_ndx = model_predictions['RANK_ROUND'] == 0
         model_predictions.loc[zero_ndx, 'RANK_ROUND'] = 1
 
-        LOGGER.debug('Length of model_predictions: {}'.format(len(model_predictions)))
+        LOGGER.debug('Length of model_predictions: %s', len(model_predictions))
 
         get_prob_info(model_predictions['PRED_PROBABILITY'])
         get_pred_info(model_predictions['PRED_CLASS'])
 
-        self._save_scored_model_predictions(scored_model_predictions)
+        self._save_scored_model_predictions(model_predictions)
 
-        self._archive_model_predictions(scored_model_predictions)
+        self._archive_scored_model_predictions(model_predictions)
 
         return model_predictions
 
     def _get_ppd_data(self):
-        ppd_file = os.environ.get('PPD_FILE')
-        require_latest_ppd_data = True if os.environ.get('REQUIRE_LATEST_PPD_DATA').lower() == 'true' else False
-        ppd_data = None
-
         LOGGER.info('--- Loading PPD Data ---')
 
-        if require_latest_ppd_data:
-            ppd_data, ppd_datestamp = get_latest_ppd_data_and_datestamp()
-        else:
-            ppd_data, ppd_datestamp = self._extract_ppd_data_and_datestamp_from_file(ppd_file)
+        ppd_data = pd.read_csv(self._input_files.ppd, dtype=str)
 
-        self._ppd_datestamp
+        self._ppd_datestamp = self._extract_ppd_date_from_filename(self._input_files.ppd)
 
         return ppd_data
 
@@ -174,74 +181,63 @@ class PoloRankModel():
         LOGGER.info('--- Loading Entity Data ---')
 
         return EntityData(
-            entity_comm_at=extract_entity_data_from_file(os.environ.get('ENTITY_COMM_AT_FILE')),
-            entity_comm_usg=extract_entity_data_from_file(os.environ.get('ENTITY_COMM_USG_FILE')),
-            post_addr_at=extract_entity_data_from_file(os.environ.get('POST_ADDR_AT_FILE')),
-            license_lt=extract_entity_data_from_file(os.environ.get('LICENSE_LT_FILE')),
-            entity_key_et=extract_entity_data_from_file(os.environ.get('ENTITY_KEY_ET_FILE')),
+            entity_comm_at=self._extract_entity_data_from_file(self._input_files.entity.entity_comm_at_file),
+            entity_comm_usg=self._extract_entity_data_from_file(self._input_files.entity.entity_comm_usg_file),
+            post_addr_at=self._extract_entity_data_from_file(self._input_files.entity.post_addr_at_file),
+            license_lt=self._extract_entity_data_from_file(self._input_files.entity.license_lt_file),
+            entity_key_et=self._extract_entity_data_from_file(self._input_files.entity.entity_key_et_file),
         )
 
     def _archive_model_input_data(self, model_input_data):
         ppd_entity_filename = '{}_PPD_{}_Polo_Addr_Rank_PPD_Entity_Data.csv'.format(
             self.start_datestamp, self.ppd_datestamp
         )
-        ppd_entity_path = Path(self._ppd_archive_dir, ppd_entity_filename)
+        ppd_entity_path = Path(self._archive_dir, ppd_entity_filename)
 
-        LOGGER.info('-- Archiving scoring data to {} --'.format(ppd_entity_path))
-        model_input_data.to_csv(ppd_entity_file, sep=',', header=True, index=True)
+        LOGGER.info('Archiving scoring data to %s', ppd_entity_path)
+        model_input_data.to_csv(ppd_entity_path, sep=',', header=True, index=True)
 
     def _save_model_predictions(self, model_predictions):
-        LOGGER.info(f'-- Writing Model Predictions to {self._model_predictions_path} --')
-        model_predictions.to_csv(self._model_predictions_path, index=False)
+        LOGGER.info('Writing model predictions to %s', self._model_files.predictions)
+        model_predictions.to_csv(self._model_files.predictions, index=False)
 
     def _archive_pruned_model_input_data(self, pruned_model_input_data):
         model_input_filename = '{}_PPD_{}_Polo_Addr_Rank_Input_Data.csv'.format(
-            self.start_timestamp, self.ppd_datestamp
+            self.start_datestamp, self.ppd_datestamp
         )
-        model_input_path = Path(self._ppd_archive_dir, model_input_filename)
+        model_input_path = Path(self._archive_dir, model_input_filename)
 
-        LOGGER.info('-- Archiving pruned model input data to {} --'.format(ppd_entity_path))
+        LOGGER.info('Archiving pruned model input data to %s', model_input_path)
         pruned_model_input_data.to_csv(model_input_path, sep=',', header=True, index=True)
 
     def _save_scored_model_predictions(self, scored_model_predictions):
-        scored_predictions_path = self._ppd_score_out_dir + 'Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'
-        print('\tsaving predictions to {}'.format(ppd_score_out_dir))
-        scored_model_predictions.to_csv(scored_predictions_path, sep=',', header=True, index=True)
+        LOGGER.info('Saving scored predictions to %s', self._model_files.scored_predictions)
+        scored_model_predictions.to_csv(self._model_files.scored_predictions, sep=',', header=True, index=True)
 
     def _archive_scored_model_predictions(self, scored_model_predictions):
-        scored_predictions_filename =  '{}_PPD_{}_Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'.format(
-            self.start_timestamp, ppd_date_str
+        scored_predictions_filename = '{}_PPD_{}_Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'.format(
+            self.start_datestamp, self.ppd_datestamp
         )
-        scored_predictions_path = Path(self._ppd_archive_dir, scored_predictions_filename)
+        scored_predictions_path = Path(self._archive_dir, scored_predictions_filename)
 
         scored_model_predictions.to_csv(scored_predictions_path, sep=',', header=True, index=True)
 
-
-    def _get_latest_ppd_data_and_datestamp(self):
-        ppd_data, ppd_datestamp = get_latest_ppd_data()
-
-        return ppd_data, ppd_datestamp
-
-    def _extract_ppd_data_and_datestamp_from_file(self, ppd_file):
-        ppd_data = pd.read_csv(ppd_file, dtype=str)
-
-        ppd_datestamp = extract_ppd_date_from_filename(ppd_file)
-
-        return ppd_data, ppd_datestamp
-
-    def _extract_entity_data_from_file(self, filename):
+    @classmethod
+    def _extract_entity_data_from_file(cls, filename):
         return pd.read_csv(filename, dtype=str, na_values=['', '(null)'])
 
-    def _extract_ppd_date_from_filename(self, ppd_file):
+    @classmethod
+    def _extract_ppd_date_from_filename(cls, ppd_file):
         """ Extract the timestamp from a PPD data file path of the form '.../ppd_data_YYYYMMDD.csv'. """
         ppd_filename = Path(ppd_file).name
 
-        match = re.match(r'ppd_data_([0-9]+)\.csv', path.name)
+        match = re.match(r'ppd_data_([0-9]+)\.csv', ppd_filename)
 
         return match.group(1)
 
 
-    def _convert_timestamp_to_datetime(self, ppd_timestamp):
+    @classmethod
+    def _convert_timestamp_to_datetime(cls, ppd_timestamp):
         return datetime.datetime.strptime(ppd_timestamp, '%Y%m%d')
 
 
