@@ -10,11 +10,11 @@ warnings.filterwarnings("ignore")
 # Get path of general (common) code and add it to the python path variable
 import sys
 import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
+# curr_path = os.path.abspath(__file__)
+# slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
+# base_path = curr_path[:slash_ndx[-2]+1]
+# gen_path = base_path + 'Common_Code\\'
+# sys.path.insert(0, gen_path)
 
 #from get_aims_db_tables get_aims_connection, import get_no_contacts, get_pe_description
 from capitalize_column_names import capitalize_column_names

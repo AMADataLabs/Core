@@ -42,7 +42,7 @@ class InvalidDataException(Exception):
 def main():
     ppd_score_out_dir = os.environ.get('PPD_SCORE_OUT_DIR')
 
-    ppd_archive_dir = ppd_score_out_dir + '_Archived\\'
+    ppd_archive_dir = ppd_score_out_dir + '_Archived'
     if not os.path.exists(ppd_archive_dir):
         os.mkdir(ppd_archive_dir)
 
