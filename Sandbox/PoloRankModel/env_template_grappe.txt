@@ -7,6 +7,7 @@ DATALABS_PYTHONPATH='{{ repository_dir }}/Source/Python:{{ repository_dir }}/San
 
 # PPD Input Data
 PPD_FILE='C:/Users/glappe/Documents/udrive/Data/PPD/ppd_data_20200222.csv'
+REQUIRE_LATEST_PPD_DATA=False
 
 # Masterfile Input Data
 ENTITY_COMM_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_entity_comm_at.csv'
