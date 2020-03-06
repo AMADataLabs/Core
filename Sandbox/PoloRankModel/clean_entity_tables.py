@@ -1,26 +1,26 @@
 #!/usr/bin/env python
-# coding: utf-8
 
-# In[1]:
-
+from   abc import ABC, abstractmethod
+import gc
 
 import pandas as pd
 
-
-# In[2]:
-
-
-import gc
+import settings
 
 
-# In[3]:
+class EntityTableCleaner():
+    def __init__(self, input_path, output_path):
+        self._input_path = input_path
+        self._output_path = output_path
 
+    def clean(self):
+        table = pd.read_csv(intput_path, dtype=str)
+
+        self._clean_table(table)
+
+        
 
 gc.collect()
-
-
-# In[4]:
-
 
 print('Reading')
 entity_comm_at = pd.read_csv('entity_comm_at.csv', dtype=str)
@@ -39,10 +39,6 @@ print('Saving')
 entity_comm_at.to_csv('str_entity_comm_at.csv', index=False)
 del entity_comm_at
 gc.collect()
-
-
-# In[5]:
-
 
 del entity_comm_at
 gc.collect()
