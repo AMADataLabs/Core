@@ -81,7 +81,7 @@ def create_addr_key(data_df, addr_var, zip_var, st_num_var, addr_key_var):
     data_df = data_df[data_df[zip_var].notnull()]
     assert len(data_df) > 0
     data_df[zip_var] = data_df[zip_var].astype(str)
-
+    assert 'ent_comm_begin_dt' in data_df
     data_df[st_num_var] = data_df[addr_var].apply(
         lambda x: x[0:(x.find(' '))] if x[0:(x.find(' '))].isnumeric() else '')
     data_df = data_df[data_df[st_num_var] != '']
@@ -107,8 +107,8 @@ def create_combined_addr_ent_data(ent_df, post_addr_df, ent_join_var, st_num_var
                                   how='inner', left_on=ent_join_var,
                                   right_on='post_comm_id')
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
-    assert len(entity_addr_df) > 0
-
+    print('############################################################### begin_dt', 'ent_comm_begin_dt in ent_df' in ent_df.columns.values)
+    print('############################################################### ent_comm_begin_dt', 'ent_comm_begin_dt in entity_addr_df' in entity_addr_df.columns.values)
     entity_addr_df = create_addr_key(entity_addr_df, 'post_addr_line2', 'post_zip',
                                      st_num_var, addr_key_var)
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
@@ -128,7 +128,7 @@ def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
     print("CREATE_ENT_COMM_DATA")
     entity_addr_df = create_combined_addr_ent_data(ent_comm_df, post_addr_df, 'ent_comm_comm_id',
                                                    'ent_st_num', 'ent_addr_key')
-
+    assert 'ent_comm_begin_dt' in entity_addr_df or 'begin_dt' in entity_addr_df
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
     addr_var_list = ['post_addr_line0', 'post_addr_line1', 'post_addr_line2']
     entity_addr_df = get_polo_eligible(entity_addr_df, addr_var_list)
@@ -265,6 +265,8 @@ def get_ent_lic_data(ent_date_df, license_df, date_var):
     lic_ndx = wslive_ent_lic_df['ent_post_lic_key'].isin(lic_filter_df['act_lic_key'])
     wslive_ent_lic_df.loc[lic_ndx, 'lic_match'] = 'Y'
     assert len(wslive_ent_lic_df) > 0
+    assert 'ent_comm_begin_dt' in ent_date_df
+    assert 'ent_comm_begin_dt' in wslive_ent_lic_df
     return wslive_ent_lic_df
 
 
@@ -354,6 +356,7 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
     assert len(entity_addr_df) > 0
 
     entity_addr_df = get_ent_lic_data(entity_addr_df, license_df, date_var)
+    assert 'ent_comm_begin_dt' in entity_addr_df.columns.values
     assert len(entity_addr_df) > 0
     entity_addr_df = entity_addr_df.drop([date_var, date_me_var], axis=1)
     assert len(entity_addr_df) > 0
@@ -425,9 +428,22 @@ def create_ppd_scoring_data(ppd_df, ppd_date, ent_comm_df, ent_comm_usg_df, post
     date_df = ppd_df[['ME', 'ppd_date']]
 
     print('creating addr_entity_data')
+    print('#######################################################')
+    print('begin_dt ent_comm_begin_dt in...')
+    print('ent_comm_df')
+    print('\tent_comm_begin_dt', 'ent_comm_begin_dt' in ent_comm_df.columns.values)
+    print('\tbegin_dt', 'begin_dt' in ent_comm_df.columns.values)
+    #print('ent_comm_usg_df')
+    #print('\tent_comm_begin_dt', 'ent_comm_begin_dt' in ent_comm_usg_df.columns.values)
+    #print('\tbegin_dt', 'begin_dt' in ent_comm_usg_df.columns.values)
+
     entity_df = create_addr_entity_data(ent_comm_df, ent_comm_usg_df,
                                         post_addr_df, license_df, ent_key_df,
                                         date_df, 'ppd_date', 'ME')
+    print('entity_df')
+    print('\tent_comm_begin_dt', 'ent_comm_begin_dt' in entity_df.columns.values)
+    print('\tbegin_dt', 'begin_dt' in entity_df.columns.values)
+    assert any(['begin_dt' in entity_df.columns.values, 'ent_comm_begin_dt' in entity_df.columns.values])
     assert len(entity_df) > 0
     ppd_df = create_addr_key(ppd_df, 'POLO_MAILING_LINE_2', 'POLO_ZIP',
                              'PPD_ST_NUM', 'PPD_ADDR_KEY')
@@ -437,8 +453,13 @@ def create_ppd_scoring_data(ppd_df, ppd_date, ent_comm_df, ent_comm_usg_df, post
     ent_ppd_df = ppd_df.merge(entity_df, how='inner', left_on='ME', right_on='ent_me')
     assert len(ent_ppd_df) > 0
     ppd_final_df = rename_ppd_columns(ent_ppd_df)
-    ppd_final_df = rename_comm_cols(ppd_final_df)
+    #ppd_final_df = rename_comm_cols(ppd_final_df)
     assert len(ppd_final_df) > 0
+    for col in ppd_final_df.columns.values:
+        print(col)
+    print('ent_comm_begin_dt:', 'ent_comm_begin_dt' in ppd_final_df.columns.values)
+    print('begin_dt:', 'begin_dt' in ppd_final_df.columns.values)
+
     assert 'ent_comm_begin_dt' in ppd_final_df.columns.values
     return ppd_final_df
 
