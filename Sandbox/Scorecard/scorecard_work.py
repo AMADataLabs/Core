@@ -3,7 +3,23 @@ import pandas as pd
 import numpy as np
 import openpyxl
 from openpyxl import load_workbook
+import tkinter as tk
+from tkinter import filedialog
+from datetime import date
 
+
+#Set today
+today = str(date.today())
+
+#Set file locations
+ppd_file = filedialog.askopenfilename(initialdir="F:\\",
+                                               title="Choose the ppd file to use...")
+wslive_file = filedialog.askopenfilename(initialdir="F:\\",
+                                               title="Choose the wslive file to use...")
+old_scorecard = filedialog.askopenfilename(initialdir="F:\\",
+                                               title="Choose the old scorecard..")
+out_directory = filedialog.askdirectory(initialdir="F:\\",
+                                             title="Choose the folder to save results to..")
 
 def read_ppd(ppd_file_location):
     ppd = pd.read_csv(ppd_file_location)
@@ -13,10 +29,10 @@ def read_ppd(ppd_file_location):
     ppd['PRESUMED_DEAD_FLAG_2']=ppd['PRESUMED_DEAD_FLAG'].fillna('None')
 
     #Everybody gotta be alive
-    ppd=ppd[ppd['PRESUMED_DEAD_FLAG_2']=='None']
+    ppd = ppd[ppd['PRESUMED_DEAD_FLAG_2'] == 'None']
 
     #Define subset of DOs
-    sub_ppd=ppd[ppd['TOP_CD']=='020']
+    sub_ppd = ppd[ppd.TOP_CD == 20]
 
     #Address Type Table
     # address_type = all_deliverable.groupby('ADDRESS_TYPE').count()[0:1]
@@ -26,7 +42,7 @@ def read_ppd(ppd_file_location):
 def get_total_table(ppd_df):
     all_deliverable = ppd_df[ppd_df['ADDRESS_UNDELIVERABLE_FLAG_2']=='None']
     counts = ppd_df.count()
-    fax_count = counts['FAXNUMBER']
+    fax_count = counts['FAX_NUMBER']
     polo_count = counts['POLO_MAILING_LINE_2']
     telephone_count = counts['TELEPHONE_NUMBER']
     no_delivery_count = counts['ADDRESS_UNDELIVERABLE_FLAG']
@@ -54,7 +70,7 @@ def get_total_table(ppd_df):
 
 def get_wslive_results(wslive_file_location):
 
-    wslive_table = pd.read_excel('y-WSLive-Results-20200106.xlsm', sheet_name = 'Summary Percentage', header=3).dropna()
+    wslive_table = pd.read_excel(wslive_file_location, sheet_name = 'Summary Percentage', header=3).dropna()
     
     values = list(wslive_table[wslive_table['POLO Address Status']=='Confirmed'].iloc[:,-1])
     values.remove(1)
@@ -70,24 +86,25 @@ def get_wslive_results(wslive_file_location):
     return(wslive_df)
 
 
-def update_history_notes(history_worksheet):
-    history_list =[]
-    for row in history_worksheet.iter_rows(min_row=1, min_col = 3, max_col=5, max_row=20, values_only=True):
-        history_list.append(row)
-    row_num=1
-    for row in history_list:
-        history_worksheet['B'+str(row_num)]=row[0]
-        history_worksheet['C'+str(row_num)]=row[1]
-        history_worksheet['D'+str(row_num)]=row[2]
-        row_num+=1
-    return(history_worksheet)
+# def update_history_notes(history_worksheet):
+#     history_list =[]
+#     for row in history_worksheet.iter_rows(min_row=1, min_col = 3, max_col=5, max_row=20, values_only=True):
+#         history_list.append(row)
+#     row_num=1
+#     for row in history_list:
+#         history_worksheet['B'+str(row_num)]=row[0]
+#         history_worksheet['C'+str(row_num)]=row[1]
+#         history_worksheet['D'+str(row_num)]=row[2]
+#         row_num+=1
+#     return(history_worksheet)
 
-def update_notes(notes_worksheet):
+# def update_notes(notes_worksheet):
     
 
 def read_old_scorecard(old_scorecard_location):
-    wb = load_workbook(old_scorecard_location)
-    notes_worksheet = wb['Notes']
-    history_workhseet = wb['Notes_2']
+    notes = pd.read_excel(old_scorecard_location, sheet_name = 'Notes')
+    notes_2 = pd.read_excel(old_scorecard_location, sheet_name = 'Notes_2')
+    notes_3 = pd.read_excel(old_scorecard_location, sheet_name = 'Notes_3')
 
-    return(notes_worksheet, history_worksheet)
+
+    return(notes, notes_2,notes_3)

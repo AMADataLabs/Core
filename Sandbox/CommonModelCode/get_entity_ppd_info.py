@@ -42,26 +42,26 @@ def assign_lic_end_dates(license_df):
     return lic_notnull_df
 
 
-# made by Garrett, attempting to simplify date cleaning process (commented block of code in create_ent_comm_dates below)
-def clean_date(text):
-    if not isinstance(text, str):
-        return text
-
-    if 'null' in text or text == '.':
-        return datetime.datetime.now()
-
-    invalids = '[]().,'
-    result = []
-    for c in text:
-        if c not in invalids:
-            result.append(c)
-    result = ''.join(result)
-
-    try:
-        result = pd.to_datetime(result)  # might throw error
-        return result
-    except:
-        return datetime.datetime.now()
+#### made by Garrett, attempting to simplify date cleaning process (commented block of code in create_ent_comm_dates below)
+###def clean_date(text):
+###    if not isinstance(text, str):
+###        return text
+###
+###    if 'null' in text or text == '.':
+###        return datetime.datetime.now()
+###
+###    invalids = '[]().,'
+###    result = []
+###    for c in text:
+###        if c not in invalids:
+###            result.append(c)
+###    result = ''.join(result)
+###
+###    try:
+###        result = pd.to_datetime(result)  # might throw error
+###        return result
+###    except:
+###        return datetime.datetime.now()
 
 
 def create_ent_comm_dates(orig_data, date_var):
@@ -139,7 +139,7 @@ def clean_addr_data(post_addr_df):
                                 (post_addr_df['post_city_cd'].notnull()) &
                                 (post_addr_df['post_state_cd'].notnull()) &
                                 (post_addr_df['post_zip'].notnull())]
-
+    assert len(post_addr_df) > 0
     return post_addr_df
 
 
@@ -147,7 +147,6 @@ def clean_ent_comm_data(ent_comm_df):
     ent_comm_cols = ['entity_id', 'comm_type', 'begin_dt', 'comm_id', 'end_dt', 'src_cat_code']
     ent_comm_df = ent_comm_df[ent_comm_cols]
     ent_comm_df = rename_comm_cols(ent_comm_df)
-
     return ent_comm_df
 
 
