@@ -18,7 +18,7 @@ import dotenv
 import pandas as pd
 
 dotenv.load_dotenv()
-map(lambda p: sys.path.insert(0, p), os.environ.get('DATALABS_PYTHONPATH', '').split(':')[::-1])
+PYTHONPATH = [sys.path.insert(0, p) for p in os.environ.get('DATALABS_PYTHONPATH', '').split(':')[::-1]]
 
 from capitalize_column_names import capitalize_column_names  # pylint: disable=wrong-import-position
 from score_polo_addr_ppd_data import score_polo_ppd_data  # pylint: disable=wrong-import-position
@@ -181,11 +181,11 @@ class PoloRankModel():
         LOGGER.info('--- Loading Entity Data ---')
 
         return EntityData(
-            entity_comm_at=self._extract_entity_data_from_file(self._input_files.entity.entity_comm_at_file),
-            entity_comm_usg=self._extract_entity_data_from_file(self._input_files.entity.entity_comm_usg_file),
-            post_addr_at=self._extract_entity_data_from_file(self._input_files.entity.post_addr_at_file),
-            license_lt=self._extract_entity_data_from_file(self._input_files.entity.license_lt_file),
-            entity_key_et=self._extract_entity_data_from_file(self._input_files.entity.entity_key_et_file),
+            entity_comm_at=self._extract_entity_data_from_file(self._input_files.entity.entity_comm_at),
+            entity_comm_usg=self._extract_entity_data_from_file(self._input_files.entity.entity_comm_usg),
+            post_addr_at=self._extract_entity_data_from_file(self._input_files.entity.post_addr_at),
+            license_lt=self._extract_entity_data_from_file(self._input_files.entity.license_lt),
+            entity_key_et=self._extract_entity_data_from_file(self._input_files.entity.entity_key_et),
         )
 
     def _archive_model_input_data(self, model_input_data):
