@@ -9,17 +9,17 @@ warnings.filterwarnings("ignore")
 import sys
 import os
 
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2] + 1]
-gen_path = base_path + 'CommonCode\\'
-sys.path.insert(0, gen_path)
+# curr_path = os.path.abspath(__file__)
+# slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
+# base_path = curr_path[:slash_ndx[-2] + 1]
+# gen_path = base_path + 'CommonCode\\'
+# sys.path.insert(0, gen_path)
 
 from capitalize_df_contents import capitalize_df_contents
 from get_wslive_res_init_ppd_info import match_wslive_result_to_sample, create_wslive_ppd_data
 
-gen_path = base_path + 'CommonModelCode\\'
-sys.path.insert(0, gen_path)
+# gen_path = base_path + 'CommonModelCode\\'
+# sys.path.insert(0, gen_path)
 
 from rename_model_cols import rename_ppd_columns
 from rename_entity_cols import rename_comm_cols

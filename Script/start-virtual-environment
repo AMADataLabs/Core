@@ -1,15 +1,43 @@
 #!/bin/bash
 
 
-SCRIPT=`realpath $0`
-SCRIPT_PATH=`dirname $SCRIPT`
-ENVIRONMENT_PATH=${SCRIPT_PATH}/../Environment/$1
-. ${SCRIPT_PATH}/../Source/Bash/datalabs/environment/setup.sh
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+. ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup.sh
+PROJECT_NAME=
 
 
 main() {
-    bash --rcfile <(echo ". ~/.bashrc; . ${ENVIRONMENT_PATH}/bin/activate")
+    process_arguments $*
+
+    bash --rcfile <(echo ". ~/.bashrc; . ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}/bin/activate")
 }
 
 
-main
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        *)
+            PROJECT_NAME=$1
+            shift
+            ;;
+      esac
+    done
+
+    if [[ "$PROJECT_NAME" == "" ]]; then
+        echo "Error: The name of the project to create was not specified."
+        exit 1
+    fi
+}
+
+
+print_usage() {
+    echo "Usage: start-virtual-environment <project name> [-h|--help]"
+}
+
+
+main $*

@@ -8,6 +8,6 @@ verify_ssl = true
 [packages]
 {% for package,version in package_versions %}{{ package }} = '=={{ version }}'
 {% endfor %}
-
 [requires]
 python_version = "{{ python_version }}"
+
