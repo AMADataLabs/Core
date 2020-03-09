@@ -1,0 +1,24 @@
+#!/bin/bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="python ${SCRIPT_BASE_PATH}/../run.py python"
+
+
+main() {
+    polo_rank_model_path="${SCRIPT_BASE_PATH}/../../Sandbox/PoloRankModel"
+
+    setup_environment ${polo_rank_model_path}
+
+    ${RUN} ${polo_rank_model_path}/rank_ppd_polo_addrs.py
+}
+
+
+setup_environment() {
+    polo_rank_model_path=$1
+
+    . ${polo_rank_model_path}/env-local
+}
+
+main
