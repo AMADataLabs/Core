@@ -91,9 +91,6 @@ def create_addr_key(data_df, addr_var, zip_var, st_num_var, addr_key_var):
 
 
 def get_ent_addr_counts(ent_data, group_var_lst, count_var_name):
-    # ent_data = entity_addr_df
-    # group_var_lst = [ent_id_var, addr_key_var]    OR    [addr_key_var]
-    # count_var_name = id_addr_var
     ent_count_df = ent_data.groupby(group_var_lst).size().reset_index()
     ent_count_df = ent_count_df.rename(columns={0: count_var_name})
     keep_vars = group_var_lst
@@ -118,11 +115,6 @@ def create_combined_addr_ent_data(ent_df, post_addr_df, ent_join_var, st_num_var
 
 
 def get_ent_counts(entity_addr_df, id_addr_var, all_addr_var, ent_id_var, addr_key_var):
-    # id_addr_var = 'curr_usg_id_addr_count',
-    # all_addr_var = 'curr_usg_all_addr_count',
-    # ent_id_var = 'usg_entity_id',
-    # addr_key_var = 'usg_addr_key'
-
     ent_id_addr_count_df = get_ent_addr_counts(entity_addr_df, [ent_id_var, addr_key_var], id_addr_var)
     ent_all_addr_count_df = get_ent_addr_counts(entity_addr_df, [addr_key_var], all_addr_var)
 
@@ -139,8 +131,7 @@ def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
     entity_addr_df = get_polo_eligible(entity_addr_df, addr_var_list)
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
     assert 'ent_comm_begin_dt' in entity_addr_df.columns.values or 'begin_dt' in entity_addr_df.columns.values
-    #entity_addr_df.to_csv('C:\\Users\\glappe\\Documents\\udrive\\Data\\Polo_Rank_Model\\_Archived\\entity_addr_df.csv')
-    #quit()
+
     hist_ent_id_addr_count_df, hist_ent_all_addr_count_df = get_ent_counts(entity_addr_df,
                                                                            'hist_ent_id_addr_count',
                                                                            'hist_ent_all_addr_count',
