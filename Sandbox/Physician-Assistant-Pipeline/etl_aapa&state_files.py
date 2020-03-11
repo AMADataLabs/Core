@@ -36,12 +36,15 @@ def load_aapa_files():
 
 def load_state_files():
     tn = glue_context.create_dynamic_frame.from_catalog(database="pa_data_crawler_output", table_name="tn_pa_list_csv")
-    state_files.tn_df = tn.toDF()
+    tn_df = tn.toDF()
 
     co = glue_context.create_dynamic_frame.from_catalog(database="pa_data_crawler_output", table_name="co_pa_list_csv")
-    state_files.co_df = co.toDF()
+    co_df = co.toDF()
 
-    return (state_files)
+    return StateFiles(
+        tn_df = tn.toDF(),
+        co_df=co.toDF()
+    )
 
 def aapa_pre_processing(aapa_files):
     aapa_files.license_df = aapa_files.license_df.withColumnRenamed("id", "idx")
