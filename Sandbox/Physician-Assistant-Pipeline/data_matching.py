@@ -4,13 +4,13 @@ import pandas
 aapa = pandas.read_csv('aapa_indexed.csv',index_col='idx' )
 state = pandas.read_csv('state_indexed.csv',index_col='idy' )
 
-df_a = pandas.DataFrame(aapa)
-df_b = pandas.DataFrame(state)
+df_aapa = pandas.DataFrame(aapa)
+df_state = pandas.DataFrame(state)
 
 indexer = recordlinkage.Index()
 #exact match on license
 indexer.block('license')
-candidate_links = indexer.index(df_a, df_b)
+candidate_links = indexer.index(df_aapa, df_state)
 
 #get possible number of pairs
 print(len(candidate_links))
@@ -24,7 +24,7 @@ compare.string('wal1', 'wal1', method='damerau_levenshtein', label='wal1', thres
 
 
 # The comparison vectors
-compare_vectors = compare.compute(candidate_links, df_a, df_b)
+compare_vectors = compare.compute(candidate_links, df_aapa, df_state)
 
 print(compare_vectors)
 
@@ -36,8 +36,8 @@ compare_vectors.to_csv('encoded.csv') #this file stores scores
 
 result = pandas.DataFrame()
 for index, row in compare_vectors.iterrows():
-    s = df_a.iloc[index[0]].to_frame().T
-    ss = df_b.iloc[index[1]].to_frame().T
+    s = df_aapa.iloc[index[0]].to_frame().T
+    ss = df_state.iloc[index[1]].to_frame().T
     resulty = pandas.concat([s, ss], sort=True)
     result = pandas.concat([result, resulty], sort=True)
 
