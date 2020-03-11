@@ -1,15 +1,22 @@
 #!/usr/bin/env python
 
 from   abc import ABC, abstractmethod
-from   collections impor namedtuple
+from   collections import namedtuple
 import gc
+import logging
+import os
 
 import pandas as pd
 
 import settings
 
 
-class EntityTableCleaner(ABC):
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
+
+class EntityTableCleaner():
     def __init__(self, input_path, output_path):
         self._input_path = input_path
         self._output_path = output_path
@@ -17,20 +24,30 @@ class EntityTableCleaner(ABC):
     def clean(self):
         gc.collect()
 
-        table = pd.read_csv(intput_path, dtype=str)
+        table = pd.read_csv(self._input_path, dtype=str)
 
         clean_table = self._clean_table(table)
 
-        clean_table.to_feather(output_path)
+        clean_table.to_feather(self._output_path)
 
         del table
         gc.collect()
 
-    @abstractmethod
     def _clean_table(self, table: pd.DataFrame) -> pd.DataFrame:
         table = self._trim_table(table)
 
         table = self._strip_table(table)
+
+        return table
+
+    @classmethod
+    def _trim_table(cls, table: pd.DataFrame) -> pd.DataFrame:
+        return table
+
+    @classmethod
+    def _strip_table(cls, table: pd.DataFrame) -> pd.DataFrame:
+        return table
+
 
 class EntityTableTrimmerMixin():
     @classmethod
@@ -82,7 +99,10 @@ def main():
     ]
 
     for parameters in parameter_set:
-        parameters.cleaner(parameters.input, parameters.output).clean()
+        input_file = os.environ.get(parameters.input)
+        output_file = os.environ.get(parameters.output)
+        LOGGER.info('%s -> %s', input_file, output_file)
+        parameters.cleaner(input_file, output_file).clean()
 
 
 if __name__ == '__main__':
