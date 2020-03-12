@@ -3,17 +3,15 @@ This script grabs group entity subset of NPI file
 '''
 #Import dependencies
 from datetime import date
-from tkinter import filedialog
+import os
 import pandas as pd
 
 #Set today
 today = str(date.today())
 
 #Set file locations
-npi_file_location = filedialog.askopenfilename(initialdir="F:\\",
-                                               title="Choose the npi file to use...")
-npi_results_folder = filedialog.askdirectory(initialdir="F:\\",
-                                             title="Choose the folder to save results to..")
+npi_file_location = os.get_env('NPI_FILE_RAW')
+npi_results_folder = os.get_env('NPI_FILTERED_FOLDER')
 
 #Make empty df
 group_npi_df = pd.DataFrame([{}])
