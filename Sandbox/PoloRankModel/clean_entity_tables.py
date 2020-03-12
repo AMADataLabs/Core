@@ -9,6 +9,10 @@ import pandas as pd
 import settings
 import datalabs.model.polo.rank.data.entity as entity
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
 
 Parameters = namedtuple('Parameters', 'input output cleaner')
 

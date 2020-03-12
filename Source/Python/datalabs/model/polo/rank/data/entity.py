@@ -11,10 +11,9 @@ import pandas as pd
 
 import settings
 
-
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class DataFileFormat(Enum):
@@ -25,26 +24,22 @@ class DataFileFormat(Enum):
 class EntityTableCleaner():
     def __init__(
         self, input_path: str, output_path: str,
-        row_filters=None: dict, column_filters=None: dict, types=None: dict
+        row_filters: dict=None, column_filters: dict=None, types: dict=None
     ):
         self._input_path = input_path
         self._output_path = output_path
-        self._input_format = input_format or DataFileFormat.CSV
-        self._output_format = output_format or DataFileFormat.Feather
         self._row_filters = row_filters or {}
         self._column_filters = column_filters or {}
-        self._types = types if types or {}
+        self._types = types or {}
 
     def clean(self):
         gc.collect()
 
-        LOGGER.info('Reading CSV file %s', self._input_path)
         table = self._read_table_from_file(self._input_path)
 
         LOGGER.info('Cleaning data')
         clean_table = self._clean_table(table)
 
-        LOGGER.info('Writing Feather file %s', self._output_path)
         self._write_table_to_file(table, self._output_path)
 
         del table
@@ -52,12 +47,15 @@ class EntityTableCleaner():
 
     @classmethod
     def _read_table_from_file(cls, filename):
-        extension = filename.rstrip('.')[-1]
+        extension = filename.rsplit('.')[-1]
+        LOGGER.debug(f'File extension: {extension}')
         table = None
 
         if extension == DataFileFormat.CSV.value:
+            LOGGER.info('Reading CSV file %s', filename)
             table = pd.read_csv(filename, dtype=str, na_values=['', '(null)'])
         elif extension == DataFileFormat.Feather.value:
+            LOGGER.info('Reading Feather file %s', filename)
             table = pd.read_feather(filename)
         else:
             raise ValueError(f"Unsupported input data file extension '{extension}'")
@@ -83,8 +81,10 @@ class EntityTableCleaner():
         table = None
 
         if extension == DataFileFormat.CSV.value:
+            LOGGER.info('Writing CSV file %s', filename)
             table.to_csv(filename)
         elif extension == DataFileFormat.Feather.value:
+            LOGGER.info('Writing Feather file %s', filename)
             table.to_feather(filename)
         else:
             raise ValueError(f"Unsupported input data file extension '{extension}'")
@@ -137,7 +137,7 @@ class EntityCommAtCleaner(EntityTableCleaner):
         )
 
 
-class EntityCommUsgCleaner(EntityTableCleaner, EntityTableTrimmerMixin, EntityTableStripperMixin):
+class EntityCommUsgCleaner(EntityTableCleaner):
     def __init__(self, input_path, output_path):
         column_names = ['entity_id', 'comm_type', 'comm_usage', 'usg_begin_dt', 'comm_id', 'comm_type',
                         'end_dt', 'src_cat_code']
