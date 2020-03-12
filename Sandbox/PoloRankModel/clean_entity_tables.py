@@ -24,10 +24,13 @@ class EntityTableCleaner():
     def clean(self):
         gc.collect()
 
+        LOGGER.info('Reading CSV file %s', self._input_path)
         table = pd.read_csv(self._input_path, dtype=str)
 
+        LOGGER.info('Cleaning data')
         clean_table = self._clean_table(table)
 
+        LOGGER.info('Writing Feather file %s', self._output_path)
         clean_table.to_feather(self._output_path)
 
         del table
@@ -101,7 +104,7 @@ def main():
     for parameters in parameter_set:
         input_file = os.environ.get(parameters.input)
         output_file = os.environ.get(parameters.output)
-        LOGGER.info('%s -> %s', input_file, output_file)
+        LOGGER.info('--------------------------------')
         parameters.cleaner(input_file, output_file).clean()
 
 
