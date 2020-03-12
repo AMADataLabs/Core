@@ -115,7 +115,9 @@ class PoloRankModel():
 
         return ModelData(
             model=pickle.load(open(self._model_files.model, 'rb')),
-            variables=pickle.load(open(self._model_files.variables, 'rb'))
+            variables=pickle.load(open(self._model_files.variables, 'rb')),
+            predictions=None,
+            scored_predictions=None
         )
 
 
@@ -123,9 +125,9 @@ class PoloRankModel():
         LOGGER.info('-- Creating Scoring Model Input Data --')
 
         model_input_data = create_ppd_scoring_data(
-            input_data.ppd, input_data.date,
-            input_data.entity.ent_comm_at, input_data.entity.ent_comm_usg,
-            input_data.entity.post_addr_at, input_data.entity.license_lt, input_data.entity.ent_key_et)
+            input_data.ppd, pd.to_datetime('2020-02-22'),
+            input_data.entity.entity_comm_at, input_data.entity.entity_comm_usg,
+            input_data.entity.post_addr_at, input_data.entity.license_lt, input_data.entity.entity_key_et)
         LOGGER.debug('Model input data length: %s', len(model_input_data))
 
         assert 'ent_comm_begin_dt' in model_input_data.columns.values

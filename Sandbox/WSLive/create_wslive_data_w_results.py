@@ -11,7 +11,7 @@ import os
 curr_path = os.path.abspath(__file__)
 slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
 base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
+gen_path = base_path + 'CommonCode\\'
 sys.path.insert(0, gen_path)
 
 from get_input_date_range import get_input_date_range
@@ -30,16 +30,16 @@ if source_type.find('2') < 0:
     source_type = '1'
 
 # WHY DO THIS WHEN THERE"S ONLY ONE FILE COME ON
-#init_wslive_out_dir = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\WSLive\\'
-#if source_type == '1':
-#    init_sas_dir = 'U:\\Source Files\\Data Analytics\\Derek\\SAS_DATA\SURVEY\\'
-#    sas_result_file = filedialog.askopenfilename(initialdir=init_sas_dir,
-#                                                 title="Choose latest wslive_results.sas7bdat ...")
-#else:
-#    wslive_result_file = filedialog.askopenfilename(initialdir=init_wslive_out_dir,
-#                                                    title="Choose the CSV or Excel WSLive result file...")
+init_wslive_out_dir = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\WSLive\\'
+if source_type == '1':
+    init_sas_dir = 'U:\\Source Files\\Data Analytics\\Derek\\SAS_DATA\SURVEY\\'
+    sas_result_file = filedialog.askopenfilename(initialdir=init_sas_dir,
+                                                 title="Choose latest wslive_results.sas7bdat ...")
+else:
+    wslive_result_file = filedialog.askopenfilename(initialdir=init_wslive_out_dir,
+                                                    title="Choose the CSV or Excel WSLive result file...")
 # fixed for ya
-sas_result_file = 'U:\\Source Files\\Data Analytics\\Derek\\SAS_DATA\SURVEY\\wslive_results.sas7bdat'
+# sas_result_file = 'U:\\Source Files\\Data Analytics\\Derek\\SAS_DATA\SURVEY\\wslive_results.sas7bdat'
 
 init_wslive_out_dir = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\WSLive\\'
 wslive_out_dir = filedialog.askdirectory(initialdir=init_wslive_out_dir,

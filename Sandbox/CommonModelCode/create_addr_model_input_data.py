@@ -48,22 +48,23 @@ def get_polo_eligible(entity_data_df, addr_var_list):
     assert len(entity_data_df) > 0
 
     eligible_comm_types = ['OF', 'HO', 'GROUP']
-    eligible_comm_srcs = ['AMC', 'GROUP', 'MBSHP-WEB', 'PHONE-CALL', '	PPA', 'WHITE-MAIL', 'E-MAIL',
-                          'MBSHP-MAIL', 'OLDCC', 'PHNSURV', 'USC-OUTBND', 'CME-REG', '	LOCK_BOX',
+    eligible_comm_srcs = ['AMC', 'GROUP', 'MBSHP-WEB', 'PHONE-CALL', 'PPA', 'WHITE-MAIL', 'E-MAIL',
+                          'MBSHP-MAIL', 'OLDCC', 'PHNSURV', 'USC-OUTBND', 'CME-REG', 'LOCK_BOX',
                           'MBSHP-PHON', 'MBSHP-PURL', 'OUTREACH', 'REQ-CARDS', 'RES-TIPON',
-                          'WEBSURV', '	BATCH', 'YELLOW', '	DEA', 'NPI', 'ACS', 'ACXIOMNCOA', '	LIST-HOUSE',
-                          'NCOA', '	OTHER', 'POLO', 'PPMA', 'PRFSOL', 'MFLOAD', 'OBSOLETE', 'ADDR-VER',
+                          'WEBSURV', 'BATCH', 'YELLOW', 'DEA', 'NPI', 'ACS', 'ACXIOMNCOA', 'LIST-HOUSE',
+                          'NCOA', 'OTHER', 'POLO', 'PPMA', 'PRFSOL', 'MFLOAD', 'OBSOLETE', 'ADDR-VER',
                           'FAST-TRACK', 'PUBS', 'RETURNED', 'WEB', 'ACXIOM', 'ACXIOMLODE', 'ACXIOMPLUS',
                           'ADMIT-HOS', 'ADVR', 'AFFIL-GRP', 'AMA-ORG', 'CGMT', 'CGMT-EXC', 'COA-PS',
                           'ECF-CNVRSN', 'ECI', 'FEDERATION', 'GME', 'INTERACT', 'INTERNET', 'MBSHP-',
                           'MBSHP-OTHR', 'MRKT-RSRCH', 'PER', 'PPS', 'ROSTER', 'SCHL-HOSP', 'STU-MATRIC',
                           'UNKNOWN', '	MEDEC', 'ACXIOM-DSF']
-
+    eligible_comm_srcs = [x.strip() for x in eligible_comm_srcs]
     # entity_data_df['ent_comm_comm_type'] = entity_data_df['ent_comm_comm_type'].apply(str.strip)
     # entity_data_df['ent_comm_src_cat_code'] = entity_data_df['ent_comm_src_cat_code'].apply(str.strip)
 
     entity_data_polo_df = entity_data_df[entity_data_df['ent_comm_comm_type'].isin(eligible_comm_types) & \
                                          entity_data_df['ent_comm_src_cat_code'].isin(eligible_comm_srcs)]
+    assert 'DEA' in entity_data_df['ent_comm_src_cat_code'].values
     assert len(entity_data_polo_df) > 0
 
     entity_data_polo_df = get_non_po_box(entity_data_polo_df, addr_var_list)
@@ -128,6 +129,7 @@ def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
     assert 'ent_comm_begin_dt' in entity_addr_df.columns.values or 'begin_dt' in entity_addr_df.columns.values
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
     addr_var_list = ['post_addr_line0', 'post_addr_line1', 'post_addr_line2']
+    assert 'DEA' in entity_addr_df['ent_comm_src_cat_code'].values
     entity_addr_df = get_polo_eligible(entity_addr_df, addr_var_list)
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
     assert 'ent_comm_begin_dt' in entity_addr_df.columns.values or 'begin_dt' in entity_addr_df.columns.values
@@ -141,6 +143,7 @@ def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
     entity_addr_df = entity_addr_df.merge(ent_key_df, how='inner', left_on='ent_comm_entity_id',
                                           right_on='entity_id')
     assert 'ent_comm_begin_dt' in entity_addr_df.columns.values or 'begin_dt' in entity_addr_df.columns.values
+    print
     return entity_addr_df, hist_ent_id_addr_count_df, hist_ent_all_addr_count_df
 
 

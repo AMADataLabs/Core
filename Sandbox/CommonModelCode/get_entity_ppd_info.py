@@ -145,6 +145,12 @@ def clean_addr_data(post_addr_df):
 
 def clean_ent_comm_data(ent_comm_df):
     ent_comm_cols = ['entity_id', 'comm_type', 'begin_dt', 'comm_id', 'end_dt', 'src_cat_code']
+    print(ent_comm_df['src_cat_code'].value_counts())
+    for v in ent_comm_df['src_cat_code'].dropna().values:
+        if 'DEA' in v:
+            print('"{}"'.format(v))
+            break
+    assert 'DEA' in ent_comm_df['src_cat_code'].values
     ent_comm_df = ent_comm_df[ent_comm_cols]
     ent_comm_df = rename_comm_cols(ent_comm_df)
     return ent_comm_df
@@ -161,6 +167,7 @@ def clean_email_data(ent_comm_df):
 def clean_ent_usg_data(ent_usg_df):
     ent_usg_cols = ['entity_id', 'comm_type', 'comm_usage', 'usg_begin_dt', 'comm_id', 'comm_type',
                     'end_dt', 'src_cat_code']
+    assert 'DEA' in ent_usg_df['src_cat_code'].values
     ent_usg_df = ent_usg_df[ent_usg_cols]
     ent_usg_df = rename_usg_cols(ent_usg_df)
 
