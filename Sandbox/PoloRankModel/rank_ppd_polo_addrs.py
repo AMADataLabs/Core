@@ -221,7 +221,19 @@ class PoloRankModel():
 
     @classmethod
     def _extract_entity_data_from_file(cls, filename):
-        return pd.read_csv(filename, dtype=str, na_values=['', '(null)'])
+        extension = filename.rsplit('.')[-1]
+        data = None
+
+        if extension == 'csv':
+            LOGGER.info('Reading CSV file %s', filename)
+            data = pd.read_csv(filename, dtype=str)
+        elif extension == 'feather':
+            LOGGER.info('Reading Feather file %s', filename)
+            data = pd.read_feather(filename)
+        else:
+            raise ValueError(f"unknown file extension '{extension}'")
+
+        return data
 
     @classmethod
     def _extract_ppd_date_from_filename(cls, ppd_file):
