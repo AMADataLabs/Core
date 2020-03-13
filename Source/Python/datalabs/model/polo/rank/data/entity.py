@@ -158,6 +158,9 @@ class EntityTableCleaner():
 
     @classmethod
     def _set_column_types(cls, table: pandas.DataFrame, types: dict) -> pandas.DataFrame:
+        for column_name,type_name in types.items():
+            table[column_name] = table[column_name].astype(type_name)
+
         return table
 
     @classmethod
@@ -185,14 +188,6 @@ class EntityCommCleaner(EntityTableCleaner):
         table = self._standardize_datestamps(table, self._datestamp_columns)
         table = self._strip_values(table)
         table = self._datestamp_to_datetime(table, self._datestamp_columns)
-
-        return table
-
-    @classmethod
-    def _set_column_types(cls, table: pandas.DataFrame, types: dict) -> pandas.DataFrame:
-        for column_name,type_name in types.items():
-            table[column_name] = table['entity_id'].astype(type_name)
-            table[column_name] = table['comm_id'].astype(type_name)
 
         return table
 
@@ -235,7 +230,7 @@ class EntityCommAtCleaner(EntityCommCleaner):
             output_path,
             row_filters={'comm_cat': 'A '},
             column_filters=column_filters,
-            types={'entity_id': 'uint32'},
+            types={'entity_id': 'uint32', 'comm_id': 'uint32'},
             datestamp_columns=['begin_dt', 'end_dt']
         )
 
@@ -269,33 +264,18 @@ class PostAddrAtCleaner(EntityTableCleaner):
             types={'comm_id': 'uint32'}
         )
 
-    @classmethod
-    def _set_column_types(cls, table: pandas.DataFrame, types: dict) -> pandas.DataFrame:
-        for column_name,type_name in types.items():
-            table[column_name] = table['comm_id'].astype(type_name)
-
-        return table
-
 
 class LicenseLtCleaner(EntityTableCleaner):
     def __init__(self, input_path, output_path):
         super().__init__(
             input_path,
             output_path,
-            types={'entity_id': 'uint32'}
+            types={'entity_id': 'uint32', 'comm_id': 'uint32'}
         )
 
     def _clean_values(self, table):
         table = self._strip_values(table)
         table = self._insert_default_comm_id(table)
-
-        return table
-
-    @classmethod
-    def _set_column_types(cls, table: pandas.DataFrame, types: dict) -> pandas.DataFrame:
-        for column_name,type_name in types.items():
-            table[column_name] = table['entity_id'].astype(type_name)
-            table[column_name] = table['comm_id'].astype(type_name)
 
         return table
 
@@ -313,10 +293,3 @@ class EntityKeyEtCleaner(EntityTableCleaner):
             output_path,
             types={'entity_id': 'uint32'}
         )
-
-    @classmethod
-    def _set_column_types(cls, table: pandas.DataFrame, types: dict) -> pandas.DataFrame:
-        for column_name,type_name in types.items():
-            table[column_name] = table['entity_id'].astype(type_name)
-
-        return table

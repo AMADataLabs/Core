@@ -9,6 +9,8 @@ warnings.filterwarnings("ignore")
 import sys
 import os
 
+from   datalabs.model.exception import BadDataFrameMerge
+
 # curr_path = os.path.abspath(__file__)
 # slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
 # base_path = curr_path[:slash_ndx[-2] + 1]
@@ -105,14 +107,19 @@ def get_ent_addr_counts(ent_data, group_var_lst, count_var_name):
 
 def create_combined_addr_ent_data(ent_df, post_addr_df, ent_join_var, st_num_var, addr_key_var):
     print('CREATE_COMBINED_ADDR_ENT_DATA')
+    print('len ent_df:\t\t{}'.format(len(ent_df)))
+    print(ent_df)
+    print('len post_addr_df:\t\t{}'.format(len(post_addr_df)))
+    print(post_addr_df)
     entity_addr_df = ent_df.merge(post_addr_df,
                                   how='inner', left_on=ent_join_var,
                                   right_on='post_comm_id')
+    if entity_addr_df.empty:
+        raise BadDataFrameMerge(f"No results returned from merge on variables '{ent_join_var}' and 'post_comm_id'.")
+
     print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
     entity_addr_df = create_addr_key(entity_addr_df, 'post_addr_line2', 'post_zip',
                                      st_num_var, addr_key_var)
-    print('len entity_addr_df:\t\t{}'.format(len(entity_addr_df)))
-    assert len(entity_addr_df) > 0
     print('END CREATE_COMBINED_ADDR_ENT_DATA')
     return entity_addr_df
 
@@ -295,9 +302,9 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
     assert len(ent_key_df) > 0
     assert len(date_df) > 0
     print('\tCLEANING')
-    ent_comm_df = clean_ent_comm_data(ent_comm_df)
-    post_addr_df = clean_addr_data(post_addr_df)
-    ent_comm_usg_df = clean_ent_usg_data(ent_comm_usg_df)
+    # ent_comm_df = clean_ent_comm_data(ent_comm_df)
+    # post_addr_df = clean_addr_data(post_addr_df)
+    # ent_comm_usg_df = clean_ent_usg_data(ent_comm_usg_df)
 
     # ent_key_df['key_type'] = ent_key_df['key_type'].apply(str.strip)
     ent_key_df = create_ent_me_data(ent_key_df)
