@@ -1,13 +1,10 @@
 # Kari Palmier    9/20/19    Created
 #
 #############################################################################
-import warnings
-
-warnings.filterwarnings("ignore")
-
-# Get path of general (common) code and add it to the python path variable
-import sys
+import logging
 import os
+import sys
+import warnings
 
 from   datalabs.model.exception import BadDataFrameMerge
 
@@ -29,6 +26,12 @@ from rename_entity_cols import rename_comm_cols
 from get_entity_ppd_info import set_entity_dates, assign_lic_end_dates, create_general_key
 from get_entity_ppd_info import clean_ent_comm_data, clean_addr_data, clean_ent_usg_data
 from get_entity_ppd_info import create_ent_me_data
+
+warnings.filterwarnings("ignore")
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 # returns df of records without addresses with PO box
@@ -111,6 +114,7 @@ def create_combined_addr_ent_data(ent_df, post_addr_df, ent_join_var, st_num_var
     print(ent_df)
     print('len post_addr_df:\t\t{}'.format(len(post_addr_df)))
     print(post_addr_df)
+    LOGGER.debug("Attempting to merge on variables '%s' and 'post_comm_id'.", ent_join_var)
     entity_addr_df = ent_df.merge(post_addr_df,
                                   how='inner', left_on=ent_join_var,
                                   right_on='post_comm_id')

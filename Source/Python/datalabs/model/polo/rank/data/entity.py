@@ -8,6 +8,7 @@ import gc
 import logging
 import os
 import re
+import sys
 
 import pandas
 
@@ -15,7 +16,7 @@ import settings
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class DataFileFormat(Enum):
@@ -70,9 +71,11 @@ class EntityTableCleaner():
 
         for chunk in table_chunks:
             cleaned_chunk = self._clean_table(chunk)
+            sys.stdout.write('.'); sys.stdout.flush()
             LOGGER.debug('Cleaned chunk: %s', cleaned_chunk)
 
             cleaned_table_chunks.append(cleaned_chunk)
+        sys.stdout.write('\n'); sys.stdout.flush()
 
         cleaned_table = pandas.concat(cleaned_table_chunks)
         cleaned_table.reset_index(inplace=True)
@@ -95,7 +98,7 @@ class EntityTableCleaner():
 
     @classmethod
     def _read_csv_file_in_chunks(cls, filename):
-        return pandas.read_csv(filename, dtype=str, na_values=['', '(null)'], chunksize=10000)
+        return pandas.read_csv(filename, dtype=str, na_values=['', '(null)'], chunksize=100000)
 
     @classmethod
     def _read_feather_file_in_chunks(cls, filename):
@@ -151,7 +154,7 @@ class EntityTableCleaner():
             try:
                 table[col] = table[col].apply(str.strip)
             except Exception as e:
-                LOGGER.warn('Bad column %s:\n%s', col, table[table[col].isna()][col])
+                LOGGER.debug('Bad column %s:\n%s', col, table[table[col].isna()][col])
                 # raise e
 
         return table
@@ -218,78 +221,3 @@ class EntityCommCleaner(EntityTableCleaner):
             parsable_timestamp = '{} {}'.format(match.group('date'), match.group('time'))
 
         return parsable_timestamp
-
-
-class EntityCommAtCleaner(EntityCommCleaner):
-    def __init__(self, input_path, output_path):
-        column_names = 'entity_id', 'comm_type', 'begin_dt', 'comm_id', 'end_dt', 'src_cat_code'
-        column_filters = {name:'ent_comm_'+name for name in column_names}
-
-        super().__init__(
-            input_path,
-            output_path,
-            row_filters={'comm_cat': 'A '},
-            column_filters=column_filters,
-            types={'entity_id': 'uint32', 'comm_id': 'uint32'},
-            datestamp_columns=['begin_dt', 'end_dt']
-        )
-
-
-class EntityCommUsgCleaner(EntityCommCleaner):
-    def __init__(self, input_path, output_path):
-        column_names = ['entity_id', 'comm_type', 'comm_usage', 'usg_begin_dt', 'comm_id', 'comm_type',
-                        'end_dt', 'src_cat_code']
-        column_filters = {name:'usg_'+name for name in column_names}
-
-        super().__init__(
-            input_path,
-            output_path,
-            row_filters={'comm_cat': 'A '},
-            column_filters=column_filters,
-            types={'entity_id': 'uint32'},
-            datestamp_columns=['usg_begin_dt', 'end_dt']
-        )
-
-
-class PostAddrAtCleaner(EntityTableCleaner):
-    def __init__(self, input_path, output_path):
-        column_names = ['comm_id', 'addr_line2', 'addr_line1', 'addr_line0', 'city_cd',
-                        'state_cd', 'zip', 'plus4']
-        column_filters = {name:'post_'+name for name in column_names}
-
-        super().__init__(
-            input_path,
-            output_path,
-            column_filters=column_filters,
-            types={'comm_id': 'uint32'}
-        )
-
-
-class LicenseLtCleaner(EntityTableCleaner):
-    def __init__(self, input_path, output_path):
-        super().__init__(
-            input_path,
-            output_path,
-            types={'entity_id': 'uint32', 'comm_id': 'uint32'}
-        )
-
-    def _clean_values(self, table):
-        table = self._strip_values(table)
-        table = self._insert_default_comm_id(table)
-
-        return table
-
-    @classmethod
-    def _insert_default_comm_id(cls, table):
-        table['comm_id'].fillna('0', inplace=True)
-
-        return table
-
-
-class EntityKeyEtCleaner(EntityTableCleaner):
-    def __init__(self, input_path, output_path):
-        super().__init__(
-            input_path,
-            output_path,
-            types={'entity_id': 'uint32'}
-        )

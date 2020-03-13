@@ -7,7 +7,7 @@ import os
 import pandas as pd
 
 import settings
-import datalabs.model.polo.rank.data.entity as entity
+import datalabs.model.polo.rank.data.ppd as ppd_data
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -22,27 +22,27 @@ def main():
         Parameters(
             input='ENTITY_COMM_AT_FILE_RAW',
             output='ENTITY_COMM_AT_FILE',
-            cleaner=entity.EntityCommAtCleaner
+            cleaner=ppd_data.EntityCommAtCleaner
         ),
         Parameters(
             input='ENTITY_COMM_USG_FILE_RAW',
             output='ENTITY_COMM_USG_FILE',
-            cleaner=entity.EntityCommUsgCleaner
+            cleaner=ppd_data.EntityCommUsgCleaner
         ),
         Parameters(
             input='POST_ADDR_AT_FILE_RAW',
             output='POST_ADDR_AT_FILE',
-            cleaner=entity.PostAddrAtCleaner
+            cleaner=ppd_data.PostAddrAtCleaner
         ),
         Parameters(
             input='LICENSE_LT_FILE_RAW',
             output='LICENSE_LT_FILE',
-            cleaner=entity.LicenseLtCleaner
+            cleaner=ppd_data.LicenseLtCleaner
         ),
         Parameters(
             input='ENTITY_KEY_ET_FILE_RAW',
             output='ENTITY_KEY_ET_FILE',
-            cleaner=entity.EntityKeyEtCleaner
+            cleaner=ppd_data.EntityKeyEtCleaner
         ),
     ]
 
