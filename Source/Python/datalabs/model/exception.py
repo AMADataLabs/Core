@@ -1,0 +1,2 @@
+class BadDataFrameMerge(Exception):
+    pass
