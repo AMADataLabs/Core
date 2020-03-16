@@ -79,15 +79,15 @@ def load_state_files():
     )
 
 def aapa_pre_processing(aapa_files):
-    aapa_files.license_df = aapa_files.license_df.withColumnRenamed("id", "idx")
-    aapa_files.paprograms_education_df = aapa_files.paprograms_education_df.withColumnRenamed("id", "idy")
-    aapa_files.primary_speciality_df = aapa_files.primary_speciality_df.withColumnRenamed("id", "idz")
+    license_df = aapa_files.license_df.withColumnRenamed("id", "idx")
+    paprograms_education_df = aapa_files.paprograms_education_df.withColumnRenamed("id", "idy")
+    primary_speciality_df = aapa_files.primary_speciality_df.withColumnRenamed("id", "idz")
 
     return AAPAFiles(
-        master_file_df=AAPAFiles.master_file_df,
-        license_df=aapa_files.license_df,
-        paprograms_education_df=aapa_files.paprograms_education_df,
-        primary_speciality_df=aapa_files.primary_speciality_df
+        master_file_df=aapa_files.master_file_df,
+        license_df=license_df,
+        paprograms_education_df=paprograms_education_df,
+        primary_speciality_df=primary_speciality_df
     )
 
 
@@ -118,7 +118,7 @@ def joined_aapa_files_transformation(master_license_programs_speciality_joined):
 
 
 def state_pre_processing(state_files):
-    state_files.tn_df = state_files.tn_df.select(
+    tn_df = state_files.tn_df.select(
         'FirstName', 'MiddleName', 'LastName', 'Title', 'PracticeName', 'PracticeAddress', 'PracticeAddress2', \
         'PracticeCity', 'PracticeState', 'PracticeZIP', 'EducationProvider', 'ExpirationDate', 'LicenseNumber'
     ) \
@@ -136,7 +136,7 @@ def state_pre_processing(state_files):
         .withColumnRenamed('PracticeZIP', 'wzip') \
         .withColumnRenamed('EducationProvider', 'prog')
 
-    state_files.co_df = state_files.co_df.select(
+    co_df = state_files.co_df.select(
         'First Name', 'Middle Name', 'Last Name', 'Suffix', 'Attention', 'Address Line 1', \
         'Address Line 2', 'City', 'State', 'Mail Zip Code', 'Specialty', 'License Expiration Date', \
         'License Number', 'License Type'
@@ -156,7 +156,10 @@ def state_pre_processing(state_files):
         .withColumnRenamed('License Number', 'license') \
         .withColumnRenamed('License Type', 'type')
 
-    return (state_files)
+    return StateFiles(
+        tn_df = tn_df,
+        co_df=co_df
+    )
 
 
 def merge_all_files(master_license_programs_speciality_joined, state_files):
