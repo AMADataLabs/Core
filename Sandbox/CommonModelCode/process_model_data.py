@@ -43,11 +43,11 @@ def convert_data_types(orig_data):
     assert len(orig_data) > 0
     assert 'ent_comm_begin_dt' in orig_data
     print(orig_data.dtypes)
-    orig_data = create_ent_comm_dates(orig_data, 'ent_comm_begin_dt')
+    # orig_data = create_ent_comm_dates(orig_data, 'ent_comm_begin_dt')
 
-    ent_no_end_ndx = orig_data['ent_comm_end_dt'].isna()
-    orig_data.loc[ent_no_end_ndx, 'ent_comm_end_dt'] = datetime.datetime.now()
-    orig_data = create_ent_comm_dates(orig_data, 'ent_comm_end_dt')
+    # ent_no_end_ndx = orig_data['ent_comm_end_dt'].isna()
+    # orig_data.loc[ent_no_end_ndx, 'ent_comm_end_dt'] = datetime.datetime.now()
+    # orig_data = create_ent_comm_dates(orig_data, 'ent_comm_end_dt')
 
     orig_data['ppd_medschool_grad_year'] = pd.to_datetime(orig_data['ppd_medschool_grad_year'], format='%Y')
     orig_data['ppd_birth_year'] = pd.to_datetime(orig_data['ppd_birth_year'], format='%Y')

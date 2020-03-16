@@ -25,15 +25,18 @@ class DataFileFormat(Enum):
 
 
 class EntityTableCleaner():
+    TIMESTAMP_REGEX = re.compile('(?P<date>[0-9]{4}/[0-9]{2}/[0-9]{2}):(?P<time>[0-9]{2}:[0-9]{2}:[0-9]{2})')
+
     def __init__(
         self, input_path: str, output_path: str,
-        row_filters: dict=None, column_filters: dict=None, types: dict=None
+        row_filters: dict=None, column_filters: dict=None, types: dict=None, datestamp_columns: list=None
     ):
         self._input_path = input_path
         self._output_path = output_path
         self._row_filters = row_filters or {}
         self._column_filters = column_filters or {}
         self._types = types or {}
+        self._datestamp_columns = datestamp_columns
 
     def clean(self):
         gc.collect()
@@ -97,8 +100,8 @@ class EntityTableCleaner():
             raise ValueError(f"Unsupported input data file extension '{extension}'")
 
     @classmethod
-    def _read_csv_file_in_chunks(cls, filename):
-        return pandas.read_csv(filename, dtype=str, na_values=['', '(null)'], chunksize=100000)
+    def _read_csv_file_in_chunks(cls, filename, chunksize=100000):
+        return pandas.read_csv(filename, dtype=str, na_values=['', '(null)'], chunksize=chunksize)
 
     @classmethod
     def _read_feather_file_in_chunks(cls, filename):
@@ -106,9 +109,12 @@ class EntityTableCleaner():
 
     def _clean_table(self, table: pandas.DataFrame) -> pandas.DataFrame:
         table = self._filter_table(table)
+        LOGGER.debug('Filtered Table: %s', table)
 
         if not table.empty:
+            LOGGER.debug('Table before cleaning: %s', table)
             table = self._clean_values(table)
+            LOGGER.debug('Table after cleaning: %s', table)
 
         table = self._refactor_columns(table)
 
@@ -122,7 +128,11 @@ class EntityTableCleaner():
         return table
 
     def _clean_values(self, table):
+        LOGGER.debug('Table before datestamp standardization: %s', table)
+        table = self._standardize_datestamps(table, self._datestamp_columns)
+        LOGGER.debug('Table after datestamp standardization: %s', table)
         table = self._strip_values(table)
+        table = self._datestamp_to_datetime(table, self._datestamp_columns)
 
         return table
 
@@ -149,13 +159,31 @@ class EntityTableCleaner():
         return table
 
     @classmethod
+    def _standardize_datestamps(cls, table, column_names):
+        for column_name in column_names:
+            table[column_name] = cls._standardize_datestamps_in_column(table[column_name])
+
+        LOGGER.debug('Table: %s', table[column_names])
+
+        return table
+
+    @classmethod
     def _strip_values(cls, table):
-        for col in table.columns.values:
+        for column_name in table.columns.values:
+            column = table[column_name]
+
             try:
-                table[col] = table[col].apply(str.strip)
+                column[~column.isna()] = column[~column.isna()].apply(str.strip)
             except Exception as e:
-                LOGGER.debug('Bad column %s:\n%s', col, table[table[col].isna()][col])
-                # raise e
+                LOGGER.debug('Bad column %s:\n%s', column_name, column[~column.isna()])
+                raise e
+
+        return table
+
+    @classmethod
+    def _datestamp_to_datetime(cls, table, columns):
+        for column in columns:
+            table[column] = pandas.to_datetime(table[column], errors='coerce')
 
         return table
 
@@ -172,45 +200,18 @@ class EntityTableCleaner():
 
         return table
 
-
-class EntityCommCleaner(EntityTableCleaner):
-    TIMESTAMP_REGEX = re.compile('(?P<date>[0-9]{4}/[0-9]{2}/[0-9]{2}):(?P<time>[0-9]{2}:[0-9]{2}:[0-9]{2})')
-
-    def __init__(
-        self, input_path: str, output_path: str,
-        row_filters: dict=None, column_filters: dict=None, types: dict=None, datestamp_columns: list=None
-    ):
-        super().__init__(
-            input_path, output_path,
-            row_filters=row_filters, column_filters=column_filters, types=types
-        )
-
-        self._datestamp_columns = datestamp_columns
-
-    def _clean_values(self, table):
-        table = self._standardize_datestamps(table, self._datestamp_columns)
-        table = self._strip_values(table)
-        table = self._datestamp_to_datetime(table, self._datestamp_columns)
-
-        return table
-
     @classmethod
-    def _standardize_datestamps(cls, table, columns):
-        for column in columns:
-            table[column].fillna(datetime.now().strftime('%Y/%m/%d'), inplace=True)
-            table[column] = table[column].str.replace('[', '')
-            table[column] = table[column].str.replace(']', '')
-            table[column] = table[column].apply(cls._make_parsable_timestamp)
-            LOGGER.debug('Column: %s', table[column])
+    def _standardize_datestamps_in_column(cls, column):
+        string_values = column[~column.isna()]
 
-        return table
+        string_values = string_values.str.replace('[', '')
+        string_values = string_values.str.replace(']', '')
+        string_values = string_values.apply(cls._make_parsable_timestamp)
 
-    @classmethod
-    def _datestamp_to_datetime(cls, table, columns):
-        for column in columns:
-            table[column] = pandas.to_datetime(table[column])
+        column[~column.isna()] = string_values
+        LOGGER.debug('Column: %s', column)
 
-        return table
+        return column
 
     @classmethod
     def _make_parsable_timestamp(cls, timestamp):
