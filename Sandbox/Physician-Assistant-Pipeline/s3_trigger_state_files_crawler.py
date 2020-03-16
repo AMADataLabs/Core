@@ -7,6 +7,7 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+glue_client = boto3.client('glue')
 
 def lambda_handler(event, context):
     """ trigger the glue crawler that creates a data catalog from state physician assistant license files """
@@ -30,8 +31,6 @@ def start_glue_crawler_if_ready(crawler_name):
 
 
 def get_glue_crawler_state(crawler_name):
-    glue_client = boto3.client('glue')
-
     crawler_metadata = glue_client.get_crawler(Name=crawler_name)
 
     return crawler_metadata.get('Crawler').get('State')

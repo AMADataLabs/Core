@@ -12,8 +12,40 @@ from collections import namedtuple
 
 glue_context = GlueContext(SparkContext.getOrCreate())
 
-AAPAFiles= namedtuple('AAPAFiles', 'master_file_df license_df paprograms_education_df primary_speciality_df')
+AAPAFiles = namedtuple('AAPAFiles', 'master_file_df license_df paprograms_education_df primary_speciality_df')
 StateFiles = namedtuple('StateFiles', 'tn_df co_df')
+
+'''
+def load_aapa_files():
+    master_file = glue_context.create_dynamic_frame.from_catalog(database="pa_data_crawler_output",
+                                                                 table_name="master_csv")
+    # dynamic frames do not suport left join so convert to spark dataframes
+    aapa_files.master_file_df = master_file.toDF()
+
+    license = glue_context.create_dynamic_frame.from_catalog(database="pa_data_crawler_output",
+                                                             table_name="license_csv")
+    aapa_files.license_df = license.toDF()
+
+    paprograms = glue_context.create_dynamic_frame.from_catalog(database="pa_data_crawler_output",
+                                                                table_name="paprograms_csv")
+    aapa_files.paprograms_education_df = paprograms.toDF()
+
+    primary_speciality = glue_context.create_dynamic_frame.from_catalog(database="pa_data_crawler_output",
+                                                                        table_name="primary_csv")
+    aapa_files.primary_speciality_df = primary_speciality.toDF()
+
+    return (aapa_files)
+
+
+def load_state_files():
+    tn = glue_context.create_dynamic_frame.from_catalog(database="pa_data_crawler_output", table_name="tn_pa_list_csv")
+    state_files.tn_df = tn.toDF()
+
+    co = glue_context.create_dynamic_frame.from_catalog(database="pa_data_crawler_output", table_name="co_pa_list_csv")
+    state_files.co_df = co.toDF()
+
+    return (state_files)
+'''
 
 def load_aapa_files():
     master_file = glue_context.create_dynamic_frame.from_catalog(database="pa_data_crawler_output",
@@ -51,7 +83,13 @@ def aapa_pre_processing(aapa_files):
     aapa_files.paprograms_education_df = aapa_files.paprograms_education_df.withColumnRenamed("id", "idy")
     aapa_files.primary_speciality_df = aapa_files.primary_speciality_df.withColumnRenamed("id", "idz")
 
-    return (aapa_files)
+    return AAPAFiles(
+        master_file_df=AAPAFiles.master_file_df,
+        license_df=aapa_files.license_df,
+        paprograms_education_df=aapa_files.paprograms_education_df,
+        primary_speciality_df=aapa_files.primary_speciality_df
+    )
+
 
 def join_aapa_files(aapa_files):
     master_license_joined = aapa_files.master_file_df.join(aapa_files.license_df,
@@ -66,6 +104,7 @@ def join_aapa_files(aapa_files):
 
     return (master_license_programs_speciality_joined)
 
+
 def joined_aapa_files_transformation(master_license_programs_speciality_joined):
     master_license_programs_speciality_joined = master_license_programs_speciality_joined.drop('fill1', 'fill2', 'idx',
                                                                                                'idy', 'idz', 'prog',
@@ -76,6 +115,7 @@ def joined_aapa_files_transformation(master_license_programs_speciality_joined):
         "PA Program Name", "prog")
 
     return (master_license_programs_speciality_joined)
+
 
 def state_pre_processing(state_files):
     state_files.tn_df = state_files.tn_df.select(
@@ -118,6 +158,7 @@ def state_pre_processing(state_files):
 
     return (state_files)
 
+
 def merge_all_files(master_license_programs_speciality_joined, state_files):
     dfs = [master_license_programs_speciality_joined, state_files.co_df, state_files.tn_df]
 
@@ -139,6 +180,7 @@ def merge_all_files(master_license_programs_speciality_joined, state_files):
 
     return (merged_df)
 
+
 def transform_merged_file_for_matching(merged_df):
     df_added_pkey = merged_df.select("*").withColumn("pkey", monotonically_increasing_id())
 
@@ -157,6 +199,7 @@ def transform_merged_file_for_matching(merged_df):
     df_transformed.show(20)
     return (df_transformed)
 
+
 def write_file_to_s3(df_transformed):
     df_transformed \
         .repartition(1) \
@@ -166,6 +209,7 @@ def write_file_to_s3(df_transformed):
         .option("nullValue", "") \
         .option("quote", "") \
         .csv("s3://pa-data-output-file-csv/merged")
+
 
 # .replace('', None)
 # .option("nullValue", "") \
@@ -187,6 +231,7 @@ def main():
     final_file = transform_merged_file_for_matching(merged_file)
 
     write_file_to_s3(final_file)
+
 
 #if __name__ == "__main__":
 main()

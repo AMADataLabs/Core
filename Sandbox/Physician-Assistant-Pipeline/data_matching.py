@@ -29,7 +29,7 @@ def set_matching_rules(candidate_links, df_aapa, df_state):
     compare_vectors = compare.compute(candidate_links, df_aapa, df_state)
 
     print(compare_vectors)
-    # compare_vectors = compare_vectors[:3000] # just to select a subset
+    #compare_vectors = compare_vectors[:100] # just to select a subset
     compare_vectors.to_csv('encoded.csv')  # this file stores scores
 
     return (compare_vectors)
@@ -37,7 +37,7 @@ def set_matching_rules(candidate_links, df_aapa, df_state):
 
 def link_vectors_to_data(compare_vectors, df_aapa, df_state):
     '''Creating a Data frame based on the scores to better understand the match.'''
-
+    print('hi')
     result = pandas.DataFrame()
     for index, row in compare_vectors.iterrows():
         aapa_data_slice = df_aapa.iloc[index[0]].to_frame().T
