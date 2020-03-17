@@ -8,6 +8,8 @@ import warnings
 
 import pandas as pd
 
+from   datalabs.analysis.exception import InvalidDataException
+
 warnings.filterwarnings("ignore")
 
 logging.basicConfig()
@@ -83,6 +85,11 @@ def score_polo_addr_data(ppd_scoring_df, model, model_vars, init_model_vars, inf
     model_vars = list(model_vars)
     LOGGER.debug('Model Variables: %s', model_vars)
     LOGGER.debug('Model Data Column Names: %s', list(model_data_all.columns.values))
+
+    missing_variables = [var for var in model_vars if var not in model_data_all.columns.values]
+    if missing_variables:
+        raise InvalidDataException(f'Model input data is missing the following columns: {missing_variables}')
+
     model_data_pruned = model_data_all.loc[:, model_vars]
     model_data_pruned = fill_nan_model_vars(model_data_pruned)
 
