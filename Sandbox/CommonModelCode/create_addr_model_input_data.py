@@ -223,9 +223,9 @@ def get_valid_ppd_usg_data(usg_df, date_var):
 def join_ent_comm_count_data(ent_date_df, ent_id_addr_count_df, ent_all_addr_count_df, id_addr_var, all_addr_var):
     print('JOIN_ENT_COMM_COUNT_DATA')
     match_cols = ['ent_comm_entity_id', 'ent_addr_key']
-    for c in match_cols:
-        ent_date_df[c] = ent_date_df[c].astype(str)
-        ent_id_addr_count_df[c] = ent_id_addr_count_df[c].astype(str)
+    # for c in match_cols:
+    #     ent_date_df[c] = ent_date_df[c].astype(str)
+    #     ent_id_addr_count_df[c] = ent_id_addr_count_df[c].astype(str)
     assert len(ent_date_df) > 0
     ent_date_df = ent_date_df.merge(ent_id_addr_count_df,
                                     how='left',
@@ -245,11 +245,11 @@ def join_ent_usg_count_data(ent_date_df, ent_id_addr_count_df, ent_all_addr_coun
                             id_addr_var, all_addr_var):
     print('JOIN_ENT_USG_COUNT_DATA')
     left_cols = ['ent_comm_entity_id', 'ent_addr_key']
-    for c in left_cols:
-        ent_date_df[c] = ent_date_df[c].astype(str)
+    # for c in left_cols:
+    #     ent_date_df[c] = ent_date_df[c].astype(str)
     right_cols = ['usg_entity_id', 'usg_addr_key']
-    for c in right_cols:
-        ent_id_addr_count_df[c] = ent_id_addr_count_df[c].astype(str)
+    # for c in right_cols:
+    #     ent_id_addr_count_df[c] = ent_id_addr_count_df[c].astype(str)
 
     ent_date_df = ent_date_df.merge(ent_id_addr_count_df,
                                     how='left',
@@ -278,7 +278,9 @@ def get_ent_lic_data(ent_date_df, license_df, date_var):
                                          how='inner',
                                          left_on='entity_id',
                                          right_on='ent_comm_entity_id')
-    assert len(lic_ent_dt_df) > 0
+    if lic_ent_dt_df.empty:
+        raise BadDataFrameMerge(f"No results returned from merge on variables 'entity_id' and 'ent_comm_entity_id'.")
+
     license_date_df = lic_ent_dt_df[(lic_ent_dt_df['lic_issue_dt'] <= lic_ent_dt_df[date_var]) & \
                                     (lic_ent_dt_df['anlys_end_dt'] >= lic_ent_dt_df[date_var])]
     assert len(license_date_df) > 0

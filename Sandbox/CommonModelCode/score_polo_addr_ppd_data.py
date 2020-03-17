@@ -1,15 +1,21 @@
 # Kari Palmier    8/16/19    Created
 #
 #############################################################################
-import pandas as pd
-
+import logging
+import os
+import sys
 import warnings
+
+import pandas as pd
 
 warnings.filterwarnings("ignore")
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+
+
 # Get path of general (common) code and add it to the python path variable
-import sys
-import os
 
 # curr_path = os.path.abspath(__file__)
 # print(curr_path)
@@ -40,31 +46,49 @@ def score_polo_addr_data(ppd_scoring_df, model, model_vars, init_model_vars, inf
     print('#'*80)
     # Convert data types to expected
     assert 'ent_comm_begin_dt' in ppd_scoring_df.columns.values
+    MISSING_VARIABLES = [
+        'lic_state_match_0', 'ent_comm_src_cat_code_ADMIT-HOS', 'ent_comm_src_cat_code_ECF-CNVRSN',
+        'ent_comm_src_cat_code_GROUP', 'ent_comm_src_cat_code_PHNSURV', 'ent_comm_src_cat_code_SCHL-HOSP',
+        'ent_comm_comm_type_GROUP', 'ppd_pe_cd_11', 'ppd_pe_cd_110',
+    ]
+
     ppd_scoring_converted_df = convert_data_types(ppd_scoring_df)
+    missing_variables = [var for var in MISSING_VARIABLES if var not in ppd_scoring_converted_df.columns.values]
+    LOGGER.debug('PPD Scoring Converted missing variables: %s', missing_variables)
 
     # Create new model variables
     ppd_scoring_new_df = create_new_addr_vars(ppd_scoring_converted_df)
+    LOGGER.debug('PPD Scoring New has all variables? %s', any(var in ppd_scoring_new_df.columns.values for var in MISSING_VARIABLES))
+    # LOGGER.debug('PPD Scoring New Column Names: %s', ppd_scoring_new_df.columns.values)
 
     # Get data wtih just model variables
     model_df = ppd_scoring_new_df.loc[:, init_model_vars]
+    LOGGER.debug('Model has all variables? %s', any(var in model_df.columns.values for var in MISSING_VARIABLES))
+    # LOGGER.debug('Model Column Names: %s', model_df.columns.values)
 
     # Deal with any NaN or invalid entries
     model_clean_df, ppd_scoring_clean_df = clean_model_data(model_df, ppd_scoring_new_df)
+    LOGGER.debug('Model Clean has all variables? %s', any(var in model_clean_df.columns.values for var in MISSING_VARIABLES))
+    # LOGGER.debug('Model Clean Column Names: %s', model_clean_df.columns.values)
 
     # Convert int variables to integer from float
     model_convert_df = convert_int_to_cat(model_clean_df)
+    LOGGER.debug('Model Convert has all variables? %s', any(var in model_convert_df.columns.values for var in MISSING_VARIABLES))
 
     # Convert categorical variables to dummy variables
     model_data_all = pd.get_dummies(model_convert_df)
+    LOGGER.debug('Model Data All has all variables? %s', any(var in model_data_all.columns.values for var in MISSING_VARIABLES))
 
     # Keep only variable required for the model
     model_vars = list(model_vars)
+    LOGGER.debug('Model Variables: %s', model_vars)
+    LOGGER.debug('Model Data Column Names: %s', list(model_data_all.columns.values))
     model_data_pruned = model_data_all.loc[:, model_vars]
     model_data_pruned = fill_nan_model_vars(model_data_pruned)
 
-    outpath = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\Polo_Rank_Model\\Data\\2020-01-30_Model_Data.csv'
-    print('Writing processed data to {}'.format(outpath))
-    model_data_pruned.to_csv(outpath, index=False)
+    # outpath = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\Polo_Rank_Model\\Data\\2020-01-30_Model_Data.csv'
+    # print('Writing processed data to {}'.format(outpath))
+    # model_data_pruned.to_csv(outpath, index=False)
     # get model class probabilites and predictions
     preds, probs = get_class_predictions(model, model_data_pruned, 0.5, False)
 
