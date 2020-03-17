@@ -3,15 +3,15 @@ Run the POLO address rank scoring model using PPD and AIMS data.
 
 Kari Palmier    7/31/19    Created
 Kari Palmier    8/14/19    Updated to work with more generic get_sample
-Peter Lane      3/17/2020  Refactored ranking code to datalabs.model.polo.rank.model module
+Peter Lane      3/17/2020  Refactored ranking code to datalabs.analysis.polo.rank.model module
 '''
 import os
 from   pathlib import Path
 import re
 
 import settings
-import datalabs.model.polo.rank.model as model
-import datalabs.model.polo.rank.data.ppd as data
+import datalabs.analysis.polo.rank.model as model
+import datalabs.analysis.polo.rank.data.ppd as data
 
 
 class PoloPPDRankModelApp():

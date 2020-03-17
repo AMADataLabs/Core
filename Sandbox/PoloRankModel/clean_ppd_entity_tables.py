@@ -7,7 +7,7 @@ import os
 import pandas as pd
 
 import settings
-import datalabs.model.polo.rank.data.ppd as ppd_data
+import datalabs.analysis.polo.rank.data.ppd as ppd_data
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

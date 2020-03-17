@@ -6,7 +6,7 @@ import os
 import sys
 import warnings
 
-from   datalabs.model.exception import BadDataFrameMerge
+from   datalabs.analysis.exception import BadDataFrameMerge
 
 # curr_path = os.path.abspath(__file__)
 # slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]

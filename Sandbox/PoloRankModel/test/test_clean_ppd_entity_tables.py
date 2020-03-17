@@ -4,8 +4,8 @@ from   pathlib import Path
 import pytest
 import sys
 
-import datalabs.model.polo.rank.data.entity as entity_data
-import datalabs.model.polo.rank.data.ppd as ppd_data
+import datalabs.analysis.polo.rank.data.entity as entity_data
+import datalabs.analysis.polo.rank.data.ppd as ppd_data
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

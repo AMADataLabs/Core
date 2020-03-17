@@ -10,7 +10,7 @@ from   capitalize_column_names import capitalize_column_names
 from   score_polo_addr_ppd_data import score_polo_ppd_data  # pylint: disable=wrong-import-position
 from   class_model_creation import get_prob_info, get_pred_info  # pylint: disable=wrong-import-position
 from   create_addr_model_input_data import create_ppd_scoring_data  # pylint: disable=wrong-import-position
-from   datalabs.model.exception import InvalidDataException
+from   datalabs.analysis.exception import InvalidDataException
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

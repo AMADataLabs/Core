@@ -5,7 +5,7 @@ import pickle
 
 import pandas as pd
 
-from   datalabs.model.polo.rank.data.entity import EntityTableCleaner
+from   datalabs.analysis.polo.rank.data.entity import EntityTableCleaner
 
 
 ModelInputData = namedtuple('ModelInputData', 'model ppd entity date')
