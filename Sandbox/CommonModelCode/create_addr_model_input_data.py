@@ -156,7 +156,6 @@ def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
 
 def create_ent_usg_data(ent_comm_usg_df, post_addr_df, ent_key_df):
     LOGGER.debug('CREATE_ENT_USG_DATA')
-    create_combined_
     entity_usg_addr_df = create_combined_addr_ent_data(ent_df=ent_comm_usg_df,
                                                        post_addr_df=post_addr_df,
                                                        ent_join_var='usg_comm_id',
@@ -300,9 +299,9 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
     assert len(ent_key_df) > 0
     assert len(date_df) > 0
 
-    ent_comm_df = clean_ent_comm_data(ent_comm_df)
-    post_addr_df = clean_addr_data(post_addr_df)
-    ent_comm_usg_df = clean_ent_usg_data(ent_comm_usg_df)
+    # ent_comm_df = clean_ent_comm_data(ent_comm_df)
+    # post_addr_df = clean_addr_data(post_addr_df)
+    # ent_comm_usg_df = clean_ent_usg_data(ent_comm_usg_df)
 
     ent_key_df = create_ent_me_data(ent_key_df)
 
@@ -406,8 +405,8 @@ def create_model_initial_data(wslive_uniq_me_res_df, init_sample_file_lst, ppd_f
                                         license_df=license_df,
                                         ent_key_df=ent_key_df,
                                         date_df=date_df,
-                                        'INIT_SAMPLE_DATE',
-                                        'ME')
+                                        date_var='INIT_SAMPLE_DATE',
+                                        date_me_var='ME')
 
     wslive_ppd_df = create_addr_key(data_df=wslive_ppd_df,
                                     addr_var='INIT_POLO_MAILING_LINE_2',

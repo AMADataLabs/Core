@@ -55,36 +55,24 @@ def score_polo_addr_data(ppd_scoring_df, model, model_vars, init_model_vars, inf
     ]
 
     ppd_scoring_converted_df = convert_data_types(ppd_scoring_df)
-    missing_variables = [var for var in MISSING_VARIABLES if var not in ppd_scoring_converted_df.columns.values]
-    LOGGER.debug('PPD Scoring Converted missing variables: %s', missing_variables)
 
     # Create new model variables
     ppd_scoring_new_df = create_new_addr_vars(ppd_scoring_converted_df)
-    LOGGER.debug('PPD Scoring New has all variables? %s', any(var in ppd_scoring_new_df.columns.values for var in MISSING_VARIABLES))
-    # LOGGER.debug('PPD Scoring New Column Names: %s', ppd_scoring_new_df.columns.values)
 
-    # Get data wtih just model variables
+    # Get data with just model variables
     model_df = ppd_scoring_new_df.loc[:, init_model_vars]
-    LOGGER.debug('Model has all variables? %s', any(var in model_df.columns.values for var in MISSING_VARIABLES))
-    # LOGGER.debug('Model Column Names: %s', model_df.columns.values)
 
     # Deal with any NaN or invalid entries
     model_clean_df, ppd_scoring_clean_df = clean_model_data(model_df, ppd_scoring_new_df)
-    LOGGER.debug('Model Clean has all variables? %s', any(var in model_clean_df.columns.values for var in MISSING_VARIABLES))
-    # LOGGER.debug('Model Clean Column Names: %s', model_clean_df.columns.values)
 
     # Convert int variables to integer from float
     model_convert_df = convert_int_to_cat(model_clean_df)
-    LOGGER.debug('Model Convert has all variables? %s', any(var in model_convert_df.columns.values for var in MISSING_VARIABLES))
 
     # Convert categorical variables to dummy variables
     model_data_all = pd.get_dummies(model_convert_df)
-    LOGGER.debug('Model Data All has all variables? %s', any(var in model_data_all.columns.values for var in MISSING_VARIABLES))
 
     # Keep only variable required for the model
     model_vars = list(model_vars)
-    LOGGER.debug('Model Variables: %s', model_vars)
-    LOGGER.debug('Model Data Column Names: %s', list(model_data_all.columns.values))
 
     missing_variables = [var for var in model_vars if var not in model_data_all.columns.values]
     if missing_variables:

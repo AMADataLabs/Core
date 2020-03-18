@@ -1,3 +1,4 @@
+from   collections import namedtuple
 import datetime
 import logging
 import os
@@ -17,6 +18,13 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 warnings.filterwarnings("ignore")
+
+
+ModelInputData = namedtuple('ModelInputData', 'model ppd entity date')
+ModelOutputData = namedtuple('ModelOutputData', 'predictions ranked_predictions')
+EntityData = namedtuple('EntityData', 'entity_comm_at entity_comm_usg post_addr_at license_lt entity_key_et')
+ModelParameters = namedtuple('ModelParameters', 'meta variables')
+
 
 class PoloRankModel():
     '''POLO address rank scoring model'''
@@ -45,7 +53,7 @@ class PoloRankModel():
     def ppd_date(self):
         return datetime.datetime.strptime(self._ppd_datestamp, '%Y%m%d')
 
-    def apply(self, input_data):
+    def apply(self, input_data: ModelInputData) -> ModelOutputData:
         '''Apply the POLO address rank scoring model to PPD and AIMS data.'''
         self._ppd_datestamp = input_data.date
 

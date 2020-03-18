@@ -24,4 +24,4 @@ MODEL_ARCHIVE_DIR='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Mo
 MODEL_FILE='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model.sav'
 MODEL_VAR_FILE='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model_FeatureList.sav'
 MODEL_PREDICTIONS_FILE='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Data/model_pred_df.csv'
-MODEL_SCORED_PREDICTIONS_FILE='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'
+MODEL_RANKED_PREDICTIONS_FILE='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'

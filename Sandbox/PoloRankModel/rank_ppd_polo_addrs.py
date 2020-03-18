@@ -19,19 +19,35 @@ class PoloPPDRankModelApp():
         model_input_files = self._get_input_files()
         model_output_files = self._get_output_files()
         archive_dir = os.environ.get('MODEL_ARCHIVE_DIR')
+        expected_df_lengths = self._get_expected_df_lengths()
 
-        input_data = data.InputDataLoader().load(model_input_files)
+        input_data = data.InputDataLoader(expected_df_lengths).load(model_input_files)
 
         model_output_data = model.PoloRankModel(archive_dir).apply(input_data)
 
         self._save_model_predictions(model_output_data, model_output_files)
 
     @classmethod
+    def _get_expected_df_lengths(cls):
+        return model.ModelInputData(
+            model=None,
+            ppd=1.3e6,
+            entity=dict(
+                entity_comm_at=33e6,
+                entity_comm_usg=15e6,
+                post_addr_at=16e6,
+                license_lt=4e6,
+                entity_key_et=14e6
+            ),
+            date=None
+        )
+
+    @classmethod
     def _get_input_files(cls):
         ppd_file = os.environ.get('PPD_FILE')
         ppd_date = cls._extract_ppd_date_from_filename(ppd_file)
 
-        entity_files = data.EntityData(
+        entity_files = model.EntityData(
             entity_comm_at=os.environ.get('ENTITY_COMM_AT_FILE'),
             entity_comm_usg=os.environ.get('ENTITY_COMM_USG_FILE'),
             post_addr_at=os.environ.get('POST_ADDR_AT_FILE'),
@@ -39,13 +55,13 @@ class PoloPPDRankModelApp():
             entity_key_et=os.environ.get('ENTITY_KEY_ET_FILE')
         )
 
-        model = data.ModelParameters(
+        model_parameters = model.ModelParameters(
             meta=os.environ.get('MODEL_FILE'),
             variables=os.environ.get('MODEL_VAR_FILE'),
         )
 
-        return data.ModelInputData(
-            model=model,
+        return model.ModelInputData(
+            model=model_parameters,
             ppd=ppd_file,
             entity=entity_files,
             date=ppd_date
@@ -54,7 +70,7 @@ class PoloPPDRankModelApp():
 
     @classmethod
     def _get_output_files(cls):
-        return data.ModelOutputData(
+        return model.ModelOutputData(
             predictions=os.environ.get('MODEL_PREDICTIONS_FILE'),
             ranked_predictions=os.environ.get('MODEL_RANKED_PREDICTIONS_FILE')
         )
