@@ -29,14 +29,16 @@ class EntityTableCleaner():
 
     def __init__(
         self, input_path: str, output_path: str,
-        row_filters: dict=None, column_filters: dict=None, types: dict=None, datestamp_columns: list=None
+        row_filters: dict=None, column_filters: dict=None, types: dict=None, defaults: dict=None,
+        datestamp_columns: list=None
     ):
         self._input_path = input_path
         self._output_path = output_path
         self._row_filters = row_filters or {}
         self._column_filters = column_filters or {}
         self._types = types or {}
-        self._datestamp_columns = datestamp_columns
+        self._defaults = defaults or {}
+        self._datestamp_columns = datestamp_columns or {}
 
     def clean(self):
         gc.collect()
@@ -131,7 +133,11 @@ class EntityTableCleaner():
         LOGGER.debug('Table before datestamp standardization: %s', table)
         table = self._standardize_datestamps(table, self._datestamp_columns)
         LOGGER.debug('Table after datestamp standardization: %s', table)
+
         table = self._strip_values(table)
+
+        table = self._insert_defaults(table, self._defaults)
+
         table = self._datestamp_to_datetime(table, self._datestamp_columns)
 
         return table
@@ -173,10 +179,20 @@ class EntityTableCleaner():
             column = table[column_name]
 
             try:
-                column[~column.isna()] = column[~column.isna()].apply(str.strip)
+                # column[~column.isna()] = column[~column.isna()].apply(str.strip)
+                table.loc[~column.isna(), column_name] = column[~column.isna()].apply(str.strip)
+            except TypeError as te:
+                LOGGER.warn("Non-string type '%s' for column '%s'", table[column_name].dtype, column_name)
             except Exception as e:
                 LOGGER.debug('Bad column %s:\n%s', column_name, column[~column.isna()])
                 raise e
+
+        return table
+
+    @classmethod
+    def _insert_defaults(cls, table, defaults):
+        for column_name,default_value in defaults.items():
+            table[column_name].fillna(default_value, inplace=True)
 
         return table
 

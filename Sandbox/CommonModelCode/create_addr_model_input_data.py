@@ -51,31 +51,25 @@ def get_non_po_box(data_df, addr_var_list):
 def get_polo_eligible(entity_data_df, addr_var_list):
     print('GET_POLO_ELIGIBLE')
     assert len(entity_data_df) > 0
-
     eligible_comm_types = ['OF', 'HO', 'GROUP']
-    eligible_comm_srcs = ['AMC', 'GROUP', 'MBSHP-WEB', 'PHONE-CALL', '	PPA', 'WHITE-MAIL', 'E-MAIL',
-                          'MBSHP-MAIL', 'OLDCC', 'PHNSURV', 'USC-OUTBND', 'CME-REG', '	LOCK_BOX',
+    eligible_comm_srcs = ['AMC', 'GROUP', 'MBSHP-WEB', 'PHONE-CALL', 'PPA', 'WHITE-MAIL', 'E-MAIL',
+                          'MBSHP-MAIL', 'OLDCC', 'PHNSURV', 'USC-OUTBND', 'CME-REG', 'LOCK_BOX',
                           'MBSHP-PHON', 'MBSHP-PURL', 'OUTREACH', 'REQ-CARDS', 'RES-TIPON',
-                          'WEBSURV', '	BATCH', 'YELLOW', '	DEA', 'NPI', 'ACS', 'ACXIOMNCOA', '	LIST-HOUSE',
-                          'NCOA', '	OTHER', 'POLO', 'PPMA', 'PRFSOL', 'MFLOAD', 'OBSOLETE', 'ADDR-VER',
+                          'WEBSURV', 'BATCH', 'YELLOW', 'DEA', 'NPI', 'ACS', 'ACXIOMNCOA', 'LIST-HOUSE',
+                          'NCOA', 'OTHER', 'POLO', 'PPMA', 'PRFSOL', 'MFLOAD', 'OBSOLETE', 'ADDR-VER',
                           'FAST-TRACK', 'PUBS', 'RETURNED', 'WEB', 'ACXIOM', 'ACXIOMLODE', 'ACXIOMPLUS',
                           'ADMIT-HOS', 'ADVR', 'AFFIL-GRP', 'AMA-ORG', 'CGMT', 'CGMT-EXC', 'COA-PS',
                           'ECF-CNVRSN', 'ECI', 'FEDERATION', 'GME', 'INTERACT', 'INTERNET', 'MBSHP-',
                           'MBSHP-OTHR', 'MRKT-RSRCH', 'PER', 'PPS', 'ROSTER', 'SCHL-HOSP', 'STU-MATRIC',
-                          'UNKNOWN', '	MEDEC', 'ACXIOM-DSF']
-
-    # entity_data_df['ent_comm_comm_type'] = entity_data_df['ent_comm_comm_type'].apply(str.strip)
-    # entity_data_df['ent_comm_src_cat_code'] = entity_data_df['ent_comm_src_cat_code'].apply(str.strip)
-
-    entity_data_polo_df = entity_data_df[entity_data_df['ent_comm_comm_type'].isin(eligible_comm_types) & \
+                          'UNKNOWN', ' MEDEC', 'ACXIOM-DSF']
+    eligible_comm_srcs = [x.strip() for x in eligible_comm_srcs]  # in case I missed cleaning up any whitespace above
+    entity_data_polo_df = entity_data_df[entity_data_df['ent_comm_comm_type'].isin(eligible_comm_types) &
                                          entity_data_df['ent_comm_src_cat_code'].isin(eligible_comm_srcs)]
+    assert 'DEA' in entity_data_df['ent_comm_src_cat_code'].values
     assert len(entity_data_polo_df) > 0
-
     entity_data_polo_df = get_non_po_box(entity_data_polo_df, addr_var_list)
     assert len(entity_data_polo_df) > 0
-
     return entity_data_polo_df
-
 
 def create_addr_key(data_df, addr_var, zip_var, st_num_var, addr_key_var):
     print('CREATE_ADDR_KEY')
@@ -223,9 +217,9 @@ def get_valid_ppd_usg_data(usg_df, date_var):
 def join_ent_comm_count_data(ent_date_df, ent_id_addr_count_df, ent_all_addr_count_df, id_addr_var, all_addr_var):
     print('JOIN_ENT_COMM_COUNT_DATA')
     match_cols = ['ent_comm_entity_id', 'ent_addr_key']
-    # for c in match_cols:
-    #     ent_date_df[c] = ent_date_df[c].astype(str)
-    #     ent_id_addr_count_df[c] = ent_id_addr_count_df[c].astype(str)
+    for c in match_cols:
+        ent_date_df[c] = ent_date_df[c].astype(str)
+        ent_id_addr_count_df[c] = ent_id_addr_count_df[c].astype(str)
     assert len(ent_date_df) > 0
     ent_date_df = ent_date_df.merge(ent_id_addr_count_df,
                                     how='left',
@@ -245,11 +239,11 @@ def join_ent_usg_count_data(ent_date_df, ent_id_addr_count_df, ent_all_addr_coun
                             id_addr_var, all_addr_var):
     print('JOIN_ENT_USG_COUNT_DATA')
     left_cols = ['ent_comm_entity_id', 'ent_addr_key']
-    # for c in left_cols:
-    #     ent_date_df[c] = ent_date_df[c].astype(str)
+    for c in left_cols:
+        ent_date_df[c] = ent_date_df[c].astype(str)
     right_cols = ['usg_entity_id', 'usg_addr_key']
-    # for c in right_cols:
-    #     ent_id_addr_count_df[c] = ent_id_addr_count_df[c].astype(str)
+    for c in right_cols:
+        ent_id_addr_count_df[c] = ent_id_addr_count_df[c].astype(str)
 
     ent_date_df = ent_date_df.merge(ent_id_addr_count_df,
                                     how='left',
