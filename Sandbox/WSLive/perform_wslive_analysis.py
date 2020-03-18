@@ -198,7 +198,8 @@ else:
 
             
 # Loop over source types and compile results for each
-status_types = ['PHONE_STATUS', 'ADDR_STATUS', 'FAX_STATUS', 'PE_STATUS', 'SPEC_STATUS', 'NEW_METRIC']    
+status_types = ['PHONE_STATUS', 'ADDR_STATUS', 'FAX_STATUS', 'PE_STATUS', 'SPEC_STATUS', 'NEW_METRIC']
+kb_uniq_comb_batch_df = pd.DataFrame()
 for i in range(len(survey_sources)):
     
     source_code = survey_sources[i]

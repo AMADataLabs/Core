@@ -16,18 +16,17 @@ import os
 # gen_path = base_path + 'CommonModelCode\\'
 # sys.path.insert(0, gen_path)
 
-from get_entity_ppd_info import create_ent_comm_dates
+# from get_entity_ppd_info import create_ent_comm_dates  # no longer exists
 
 import warnings
 
 warnings.filterwarnings("ignore")
 
 
-def convert_int_to_cat(data_df):
-    cols_to_convert = ['ppd_top_cd', 'ppd_pe_cd', 'ppd_gender', 'ppd_region', 'ppd_division', 'ppd_group',
-                       'ppd_micro_metro_ind', 'ppd_address_type', 'ppd_md_do_code', 'dpc', 'res', 'pcp',
-                       'polo_ind', 'lic_state_match']
-
+# Converts numeric columns in cols_to_convert to categorical
+def convert_int_to_cat(data_df, cols_to_convert=['ppd_top_cd', 'ppd_pe_cd', 'ppd_gender', 'ppd_region', 'ppd_division',
+                                                 'ppd_group', 'ppd_micro_metro_ind', 'ppd_address_type',
+                                                 'ppd_md_do_code', 'dpc', 'res', 'pcp', 'polo_ind', 'lic_state_match']):
     for name in cols_to_convert:
         if name in list(data_df.columns.values):
             if sum(data_df[name].notnull()) > 0:
@@ -38,16 +37,19 @@ def convert_int_to_cat(data_df):
     return data_df
 
 
+# Mostly does some datetime casting, also upper-cases string values
 def convert_data_types(orig_data):
     print('CONVERT_DATA_TYPES')
     assert len(orig_data) > 0
     assert 'ent_comm_begin_dt' in orig_data
     print(orig_data.dtypes)
-    orig_data = create_ent_comm_dates(orig_data, 'ent_comm_begin_dt')
+    # orig_data = create_ent_comm_dates(orig_data, 'ent_comm_begin_dt')
+    orig_data['ent_comm_begin_dt'] = pd.to_datetime(orig_data['ent_comm_begin_dt'])
 
     ent_no_end_ndx = orig_data['ent_comm_end_dt'].isna()
     orig_data.loc[ent_no_end_ndx, 'ent_comm_end_dt'] = datetime.datetime.now()
-    orig_data = create_ent_comm_dates(orig_data, 'ent_comm_end_dt')
+    # orig_data = create_ent_comm_dates(orig_data, 'ent_comm_end_dt')
+    orig_data['ent_comm_end_dt'] = pd.to_datetime(orig_data['ent_comm_end_dt']).fillna(datetime.datetime.now())
 
     orig_data['ppd_medschool_grad_year'] = pd.to_datetime(orig_data['ppd_medschool_grad_year'], format='%Y')
     orig_data['ppd_birth_year'] = pd.to_datetime(orig_data['ppd_birth_year'], format='%Y')
@@ -88,7 +90,7 @@ def clean_model_data(model_data, orig_data):
             model_data.drop(model_data[na_ndx].index, axis=0, inplace=True)
             orig_data.drop(orig_data[na_ndx].index, axis=0, inplace=True)
         elif str(model_data[name].dtype) == 'int64' or str(orig_data[name].dtype) == 'float64':
-            if not (len(model_data[name].unique()) < 3 and \
+            if not (len(model_data[name].unique()) < 3 and
                     ((0 in list(model_data[name].unique())) and (1 in list(model_data[name].unique())))):
                 model_data[name] = model_data[name].astype('float64')
                 model_data[name].fillna(model_data[name].mean(), inplace=True)
@@ -237,41 +239,18 @@ def create_new_phone_vars(orig_data):
 
 def create_new_addr_vars(orig_data):
     ###### Create new independent variable with 1 if license state matches PPD data state, 0 otherwise
-    # lic_state_match = np.zeros((orig_data.shape[0], 1))
-    # lic_ndx = orig_data['lic_match'] == 'Y'
-    # lic_state_match[lic_ndx] = 1
-    # orig_data['lic_state_match'] = lic_state_match
 
-    # wtf is this above? was giving me an error on joins. "data must be 1-dimensional". WHY MAKE AN INDEX TO OVERWRITE
-    # ZEROS, JUST DO IT LIKE THIS. Also, the create_new_phone_vars will also probably have the same error.
-    orig_data['lic_state_match'] = orig_data['lic_match'].apply(lambda x: 1 if x == 'Y' else 0)  # fixed by Garrett
+    orig_data['lic_state_match'] = orig_data['lic_match'].apply(lambda x: 1 if x == 'Y' else 0)
 
-    ###### Create new independent variable with 1 if PPD type of practice ppd_top_cd is 020
-    # (direct patient care DPC), otherwise 0
-    # dpc = np.zeros((orig_data.shape[0], 1))
-    # dpc_ndx = (orig_data['ppd_top_cd'] == '20') | (orig_data['ppd_top_cd'] == '020') | \
-    #    (orig_data['ppd_top_cd'] == 20)
-    # dpc[dpc_ndx] = 1
-    # orig_data['dpc'] = dpc
+    ###### Create new independent variable with 1 if PPD type of practice ppd_top_cd is 020, 0 otherwise
 
-    orig_data['dpc'] = orig_data['ppd_top_cd'].apply(lambda x: 1 if x in ['20', '020', 20] else 0)  # fixed by Garrett
+    orig_data['dpc'] = orig_data['ppd_top_cd'].apply(lambda x: 1 if x in ['20', '020', 20] else 0)
 
-    ###### Create new independent variable with 1 if PPD type of practice ppd_top_cd is 012 (resident),
-    # otherwise 0
-    # res = np.zeros((orig_data.shape[0], 1))
-    # res_ndx = (orig_data['ppd_top_cd'] == '12') | (orig_data['ppd_top_cd'] == '012') | \
-    #    (orig_data['ppd_top_cd'] == 12)
-    # res[res_ndx] = 1
-    # orig_data['res'] = res
+    ###### Create new independent variable with 1 if PPD type of practice ppd_top_cd is 012 (resident), 0 otherwise
 
     orig_data['res'] = orig_data['ppd_top_cd'].apply(lambda x: 1 if x in ['12', '012', 12] else 0)
 
     ###### Create new independent variable with 1 if specialty is type of primary care, 0 otherwise
-    # prim_care_types = ["ADL", "AMF", "AMI", "FM", "FP", "GP", "GYN", "IM", "OBG", "OBS", "PD"]
-    # pcp = np.zeros((orig_data.shape[0], 1))
-    # pcp_ndx = orig_data['ppd_prim_spec_cd'].isin(prim_care_types)
-    # pcp[pcp_ndx] = 1
-    # orig_data['pcp'] = pcp
 
     orig_data['pcp'] = orig_data['ppd_prim_spec_cd'].apply(lambda x: 1 if x in ["ADL", "AMF", "AMI", "FM", "FP", "GP",
                                                                                 "GYN", "IM", "OBG", "OBS", "PD"] else 0)
