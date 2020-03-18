@@ -42,62 +42,9 @@ def assign_lic_end_dates(license_df):
     return lic_notnull_df
 
 
-#### made by Garrett, attempting to simplify date cleaning process (commented block of code in create_ent_comm_dates below)
-###def clean_date(text):
-###    if not isinstance(text, str):
-###        return text
-###
-###    if 'null' in text or text == '.':
-###        return datetime.datetime.now()
-###
-###    invalids = '[]().,'
-###    result = []
-###    for c in text:
-###        if c not in invalids:
-###            result.append(c)
-###    result = ''.join(result)
-###
-###    try:
-###        result = pd.to_datetime(result)  # might throw error
-###        return result
-###    except:
-###        return datetime.datetime.now()
-
-
-def create_ent_comm_dates(orig_data, date_var):
-    print('CREATE_ENT_COMM_DATES')
-    ###assert len(orig_data) > 0
-    ###orig_data[date_var] = orig_data[date_var].replace('.', datetime.datetime.now())
-    ###orig_data[date_var] = orig_data[date_var].astype('str')
-    ###orig_data[date_var] = orig_data[date_var].apply(lambda x: x[0:10] \
-    ###         if x.find('-') > 0 else x[0:9])
-    ###
-    ###orig_data[date_var] = orig_data[date_var].apply(lambda x: pd.to_datetime(x, format = '%Y-%m-%d') \
-    ###         if x.find('-') > 0 else pd.to_datetime(x, format = '%d%b%Y'))
-    ###return orig_data
-    print('cleaning date - {}'.format(date_var))
-    #orig_data[date_var] = orig_data[date_var].apply(lambda x: cleannnnnnnnn_date(x))
-    orig_data[date_var].fillna(datetime.datetime.now(), inplace=True)
-    orig_data[date_var] = pd.to_datetime(orig_data[date_var])
-    print('done cleaning date')
-    assert len(orig_data) > 0
-    return orig_data
-
-
 def set_entity_dates(ent_data_df, begin_var, end_var):
-    print('SET_ENTITY_DATES')
-    assert len(ent_data_df) > 0
-    print(begin_var)
-    #ent_data_df = create_ent_comm_dates(ent_data_df, begin_var)
     ent_data_df[begin_var] = pd.to_datetime(ent_data_df[begin_var])
-
-    #ent_no_end_ndx = ent_data_df[end_var].isna()
-    #ent_data_df.loc[ent_no_end_ndx, end_var] = datetime.datetime.now()
-
     ent_data_df[end_var].fillna(datetime.datetime.now(), inplace=True)
-
-    print(end_var)
-    #ent_data_df = create_ent_comm_dates(ent_data_df, end_var)
     ent_data_df[end_var] = pd.to_datetime(ent_data_df[end_var])
     print('END SET_ENTITY_DATES')
     return ent_data_df
@@ -145,6 +92,8 @@ def clean_addr_data(post_addr_df):
 
 def clean_ent_comm_data(ent_comm_df):
     ent_comm_cols = ['entity_id', 'comm_type', 'begin_dt', 'comm_id', 'end_dt', 'src_cat_code']
+    print(ent_comm_df['src_cat_code'].value_counts())
+    assert 'DEA' in ent_comm_df['src_cat_code'].values
     ent_comm_df = ent_comm_df[ent_comm_cols]
     ent_comm_df = rename_comm_cols(ent_comm_df)
     return ent_comm_df
@@ -161,6 +110,7 @@ def clean_email_data(ent_comm_df):
 def clean_ent_usg_data(ent_usg_df):
     ent_usg_cols = ['entity_id', 'comm_type', 'comm_usage', 'usg_begin_dt', 'comm_id', 'comm_type',
                     'end_dt', 'src_cat_code']
+    assert 'DEA' in ent_usg_df['src_cat_code'].values
     ent_usg_df = ent_usg_df[ent_usg_cols]
     ent_usg_df = rename_usg_cols(ent_usg_df)
 

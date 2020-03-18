@@ -13,7 +13,7 @@ import os
 curr_path = os.path.abspath(__file__)
 slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
 base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
+gen_path = base_path + 'CommonCode\\'
 sys.path.insert(0, gen_path)
 
 from create_batch_loads import create_phone_delete, combine_batches
@@ -198,7 +198,8 @@ else:
 
             
 # Loop over source types and compile results for each
-status_types = ['PHONE_STATUS', 'ADDR_STATUS', 'FAX_STATUS', 'PE_STATUS', 'SPEC_STATUS', 'NEW_METRIC']    
+status_types = ['PHONE_STATUS', 'ADDR_STATUS', 'FAX_STATUS', 'PE_STATUS', 'SPEC_STATUS', 'NEW_METRIC']
+kb_uniq_comb_batch_df = pd.DataFrame()
 for i in range(len(survey_sources)):
     
     source_code = survey_sources[i]

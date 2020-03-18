@@ -16,11 +16,11 @@ LICENSE_LT_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-2
 ENTITY_KEY_ET_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/entity_key_et.csv'
 
 # Masterfile Clean Input Data
-ENTITY_COMM_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_entity_comm_at.csv'
-ENTITY_COMM_USG_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_entity_comm_usg_at.csv'
-POST_ADDR_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_post_addr_at.csv'
-LICENSE_LT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_license_lt.csv'
-ENTITY_KEY_ET_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_entity_key_et.csv'
+ENTITY_COMM_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_entity_comm_at.csv'
+ENTITY_COMM_USG_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_entity_comm_usg_at.csv'
+POST_ADDR_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_post_addr_at.csv'
+LICENSE_LT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_license_lt.csv'
+ENTITY_KEY_ET_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_entity_key_et.csv'
 
 # Model Output Data
 MODEL_ARCHIVE_DIR='C:/Users/glappe/Documents/udrive/Data/Polo_Rank_Model_Archived/'
