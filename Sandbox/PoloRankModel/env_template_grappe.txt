@@ -11,7 +11,7 @@ PPD_FILE='C:/Users/glappe/Documents/udrive/Data/PPD/ppd_data_20200222.csv'
 # Masterfile Raw Data
 ENTITY_COMM_AT_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/entity_comm_at.csv'
 ENTITY_COMM_USG_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/entity_comm_usg_at.csv'
-POST_ADDR_AT_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25post_addr_at.csv'
+POST_ADDR_AT_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/post_addr_at.csv'
 LICENSE_LT_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/license_lt.csv'
 ENTITY_KEY_ET_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/entity_key_et.csv'
 
@@ -27,4 +27,4 @@ MODEL_ARCHIVE_DIR='C:/Users/glappe/Documents/udrive/Data/Polo_Rank_Model_Archive
 MODEL_FILE='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model.sav'
 MODEL_VAR_FILE='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model_FeatureList.sav'
 MODEL_PREDICTIONS_FILE='C:/Users/glappe/Documents/udrive/Data/Polo_Rank_Model/Data/model_pred_df.csv'
-MODEL_SCORED_PREDICTIONS_FILE='C:/Users/glappe/Documents/udrive/Data/Polo_Rank_Model/Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'
+MODEL_RANKED_PREDICTIONS_FILE='C:/Users/glappe/Documents/udrive/Data/Polo_Rank_Model/Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'

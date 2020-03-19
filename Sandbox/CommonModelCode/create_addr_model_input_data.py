@@ -1,13 +1,12 @@
 # Kari Palmier    9/20/19    Created
 #
 #############################################################################
+import logging
+import os
+import sys
 import warnings
 
-warnings.filterwarnings("ignore")
-
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
+from   datalabs.analysis.exception import BadDataFrameMerge
 
 # curr_path = os.path.abspath(__file__)
 # slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
@@ -28,6 +27,12 @@ from get_entity_ppd_info import set_entity_dates, assign_lic_end_dates, create_g
 from get_entity_ppd_info import clean_ent_comm_data, clean_addr_data, clean_ent_usg_data
 from get_entity_ppd_info import create_ent_me_data
 
+warnings.filterwarnings("ignore")
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
 
 # returns df of records without addresses with PO box
 def get_non_po_box(data_df, addr_var_list):
@@ -44,9 +49,8 @@ def get_non_po_box(data_df, addr_var_list):
 
 # returns df of records with POLO eligible addresses
 def get_polo_eligible(entity_data_df, addr_var_list):
-    print('GET_POLO_ELIGIBLE')
+    LOGGER.debug('GET_POLO_ELIGIBLE')
     assert len(entity_data_df) > 0
-
     eligible_comm_types = ['OF', 'HO', 'GROUP']
     eligible_comm_srcs = ['AMC', 'GROUP', 'MBSHP-WEB', 'PHONE-CALL', 'PPA', 'WHITE-MAIL', 'E-MAIL',
                           'MBSHP-MAIL', 'OLDCC', 'PHNSURV', 'USC-OUTBND', 'CME-REG', 'LOCK_BOX',
@@ -57,24 +61,21 @@ def get_polo_eligible(entity_data_df, addr_var_list):
                           'ADMIT-HOS', 'ADVR', 'AFFIL-GRP', 'AMA-ORG', 'CGMT', 'CGMT-EXC', 'COA-PS',
                           'ECF-CNVRSN', 'ECI', 'FEDERATION', 'GME', 'INTERACT', 'INTERNET', 'MBSHP-',
                           'MBSHP-OTHR', 'MRKT-RSRCH', 'PER', 'PPS', 'ROSTER', 'SCHL-HOSP', 'STU-MATRIC',
-                          'UNKNOWN', '	MEDEC', 'ACXIOM-DSF']
+                          'UNKNOWN', ' MEDEC', 'ACXIOM-DSF']
     eligible_comm_srcs = [x.strip() for x in eligible_comm_srcs]  # in case I missed cleaning up any whitespace above
-
     entity_data_polo_df = entity_data_df[entity_data_df['ent_comm_comm_type'].isin(eligible_comm_types) &
                                          entity_data_df['ent_comm_src_cat_code'].isin(eligible_comm_srcs)]
     assert 'DEA' in entity_data_df['ent_comm_src_cat_code'].values
     assert len(entity_data_polo_df) > 0
-
     entity_data_polo_df = get_non_po_box(entity_data_polo_df, addr_var_list)
     assert len(entity_data_polo_df) > 0
-
     return entity_data_polo_df
 
 
 # Combines addr_var, zip_var, st_num_var into a new column (addr_key_var) to act
 # as a unique key for comparison and matching
 def create_addr_key(data_df, addr_var, zip_var, st_num_var, addr_key_var):
-    print('CREATE_ADDR_KEY')
+    LOGGER.debug('CREATE_ADDR_KEY')
     assert len(data_df) > 0
     data_df = data_df[data_df[addr_var].notnull()]
     assert len(data_df) > 0
@@ -104,11 +105,14 @@ def get_ent_addr_counts(ent_data, group_var_lst, count_var_name):
 
 #
 def create_combined_addr_ent_data(ent_df, post_addr_df, ent_join_var, st_num_var, addr_key_var):
-    # LOGGING - print('CREATE_COMBINED_ADDR_ENT_DATA')
+    LOGGER.debug('CREATE_COMBINED_ADDR_ENT_DATA')
     entity_addr_df = ent_df.merge(post_addr_df,
                                   how='inner',
                                   left_on=ent_join_var,
                                   right_on='post_comm_id')
+
+    if entity_addr_df.empty:
+        raise BadDataFrameMerge(f"No results returned from merge on variables '{ent_join_var}' and 'post_comm_id'.")
 
     entity_addr_df = create_addr_key(entity_addr_df,
                                      addr_var='post_addr_line2',
@@ -122,7 +126,7 @@ def create_combined_addr_ent_data(ent_df, post_addr_df, ent_join_var, st_num_var
 
 # Gets entity-address pair data from historical and current usages for POLO-eligible addresses
 def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
-    # LOGGING - print("CREATE_ENT_COMM_DATA")
+    LOGGER.debug("CREATE_ENT_COMM_DATA")
     entity_addr_df = create_combined_addr_ent_data(ent_comm_df, post_addr_df, 'ent_comm_comm_id',
                                                    'ent_st_num', 'ent_addr_key')
 
@@ -151,8 +155,7 @@ def create_ent_comm_data(ent_comm_df, post_addr_df, ent_key_df):
 
 
 def create_ent_usg_data(ent_comm_usg_df, post_addr_df, ent_key_df):
-    # LOGGING - print('CREATE_ENT_USG_DATA')
-    create_combined_
+    LOGGER.debug('CREATE_ENT_USG_DATA')
     entity_usg_addr_df = create_combined_addr_ent_data(ent_df=ent_comm_usg_df,
                                                        post_addr_df=post_addr_df,
                                                        ent_join_var='usg_comm_id',
@@ -177,7 +180,7 @@ def create_ent_usg_data(ent_comm_usg_df, post_addr_df, ent_key_df):
 
 
 def get_valid_ppd_ent_data(ent_ppd_df, date_var):
-    # LOGGING - print('GET_VALID_PPD_ENT_DATA')
+    LOGGER.debug('GET_VALID_PPD_ENT_DATA')
     assert len(ent_ppd_df) > 0
 
     set_entity_dates['ent_comm_begin_dt'] = pd.to_datetime(set_entity_dates['ent_comm_begin_dt'])
@@ -207,7 +210,7 @@ def get_data_in_date_range(data, date_var, begin_dt, end_dt):
 
 # Merges the entity data tables
 def join_ent_comm_count_data(ent_date_df, ent_id_addr_count_df, ent_all_addr_count_df, id_addr_var, all_addr_var):
-    print('JOIN_ENT_COMM_COUNT_DATA')
+    LOGGER.debug('JOIN_ENT_COMM_COUNT_DATA')
     match_cols = ['ent_comm_entity_id', 'ent_addr_key']
     for c in match_cols:
         ent_date_df[c] = ent_date_df[c].astype(str)
@@ -230,7 +233,7 @@ def join_ent_comm_count_data(ent_date_df, ent_id_addr_count_df, ent_all_addr_cou
 # Merges the usage count tables
 def join_ent_usg_count_data(ent_date_df, ent_id_addr_count_df, ent_all_addr_count_df,
                             id_addr_var, all_addr_var):
-    # LOGGING - print('JOIN_ENT_USG_COUNT_DATA')
+    LOGGER.debug('JOIN_ENT_USG_COUNT_DATA')
     left_cols = ['ent_comm_entity_id', 'ent_addr_key']
     for c in left_cols:
         ent_date_df[c] = ent_date_df[c].astype(str)
@@ -259,14 +262,16 @@ def join_ent_usg_count_data(ent_date_df, ent_id_addr_count_df, ent_all_addr_coun
 
 # Extracts data from license data table to merge with entities (physicians) to make model input features
 def get_ent_lic_data(ent_date_df, license_df, date_var):
-    print('GET_ENT_LIC_DATA')
+    LOGGER.debug('GET_ENT_LIC_DATA')
     lic_notnull_df = assign_lic_end_dates(license_df)
     assert len(lic_notnull_df) > 0
     lic_ent_dt_df = lic_notnull_df.merge(ent_date_df[['ent_comm_entity_id', date_var]],
                                          how='inner',
                                          left_on='entity_id',
                                          right_on='ent_comm_entity_id')
-    assert len(lic_ent_dt_df) > 0
+    if lic_ent_dt_df.empty:
+        raise BadDataFrameMerge(f"No results returned from merge on variables 'entity_id' and 'ent_comm_entity_id'.")
+
     license_date_df = lic_ent_dt_df[(lic_ent_dt_df['lic_issue_dt'] <= lic_ent_dt_df[date_var]) &
                                     (lic_ent_dt_df['anlys_end_dt'] >= lic_ent_dt_df[date_var])]
     assert len(license_date_df) > 0
@@ -287,16 +292,16 @@ def get_ent_lic_data(ent_date_df, license_df, date_var):
 # Creates the entity-address data used in the model input
 def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_df, ent_key_df, date_df, date_var,
                             date_me_var):
-    print('CREATE_ADDR_ENTITY_DATA')
+    LOGGER.debug('CREATE_ADDR_ENTITY_DATA')
     assert len(ent_comm_df) > 0
     assert len(post_addr_df) > 0
     assert len(ent_comm_usg_df) > 0
     assert len(ent_key_df) > 0
     assert len(date_df) > 0
 
-    ent_comm_df = clean_ent_comm_data(ent_comm_df)
-    post_addr_df = clean_addr_data(post_addr_df)
-    ent_comm_usg_df = clean_ent_usg_data(ent_comm_usg_df)
+    # ent_comm_df = clean_ent_comm_data(ent_comm_df)
+    # post_addr_df = clean_addr_data(post_addr_df)
+    # ent_comm_usg_df = clean_ent_usg_data(ent_comm_usg_df)
 
     ent_key_df = create_ent_me_data(ent_key_df)
 
@@ -358,7 +363,7 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
                                                      group_var_lst=['usg_addr_key'],
                                                      count_var_name='curr_usg_all_addr_count')
 
-    # LOGGING - print('join_ent_comm_count_data - historical')
+    LOGGER.debug('join_ent_comm_count_data - historical')
     entity_addr_df = join_ent_comm_count_data(entity_addr_df, hist_ent_id_addr_count_df,
                                               hist_ent_all_addr_count_df, 'hist_ent_id_addr_count',
                                               'hist_ent_all_addr_count')
@@ -400,8 +405,8 @@ def create_model_initial_data(wslive_uniq_me_res_df, init_sample_file_lst, ppd_f
                                         license_df=license_df,
                                         ent_key_df=ent_key_df,
                                         date_df=date_df,
-                                        'INIT_SAMPLE_DATE',
-                                        'ME')
+                                        date_var='INIT_SAMPLE_DATE',
+                                        date_me_var='ME')
 
     wslive_ppd_df = create_addr_key(data_df=wslive_ppd_df,
                                     addr_var='INIT_POLO_MAILING_LINE_2',
@@ -425,14 +430,14 @@ def create_model_initial_data(wslive_uniq_me_res_df, init_sample_file_lst, ppd_f
 # creates data which the model is applied to
 def create_ppd_scoring_data(ppd_df, ppd_date, ent_comm_df, ent_comm_usg_df, post_addr_df,
                             license_df, ent_key_df):
-    print('CREATE_PPD_SCORING_DATA')
+    LOGGER.debug('CREATE_PPD_SCORING_DATA')
 
-    print('len ppd_df:\t\t{}'.format(len(ppd_df)))
-    print('len ent_comm_df:\t\t{}'.format(len(ent_comm_df)))
-    print('len ent_comm_usg_df:\t\t{}'.format(len(ent_comm_usg_df)))
-    print('len post_addr_df:\t\t{}'.format(len(post_addr_df)))
-    print('len license_df:\t\t{}'.format(len(license_df)))
-    print('len ent_key_df:\t\t{}'.format(len(ent_key_df)))
+    LOGGER.debug('len ppd_df:\t\t{}'.format(len(ppd_df)))
+    LOGGER.debug('len ent_comm_df:\t\t{}'.format(len(ent_comm_df)))
+    LOGGER.debug('len ent_comm_usg_df:\t\t{}'.format(len(ent_comm_usg_df)))
+    LOGGER.debug('len post_addr_df:\t\t{}'.format(len(post_addr_df)))
+    LOGGER.debug('len license_df:\t\t{}'.format(len(license_df)))
+    LOGGER.debug('len ent_key_df:\t\t{}'.format(len(ent_key_df)))
     assert len(ppd_df) > 0
     assert len(ent_comm_df) > 0
     assert len(ent_comm_usg_df) > 0
@@ -447,10 +452,10 @@ def create_ppd_scoring_data(ppd_df, ppd_date, ent_comm_df, ent_comm_usg_df, post
                     (ppd_df['POLO_STATE'].notnull()) &
                     (ppd_df['POLO_ZIP'].notnull())]
 
-    print('trimming to dpc')
+    LOGGER.debug('trimming to dpc')
     ppd_df = ppd_df[(ppd_df['TOP_CD'] == '020') | (ppd_df['TOP_CD'] == '20') | (ppd_df['TOP_CD'] == 20)]
     assert len(ppd_df) > 0
-    print('len ppd_df:\t\t{}'.format(len(ppd_df)))
+    LOGGER.debug('len ppd_df:\t\t{}'.format(len(ppd_df)))
 
     ppd_df['ppd_date'] = ppd_date
 
@@ -479,7 +484,7 @@ def create_ppd_scoring_data(ppd_df, ppd_date, ent_comm_df, ent_comm_usg_df, post
     #ppd_final_df = rename_comm_cols(ppd_final_df)
     assert len(ppd_final_df) > 0
     for col in ppd_final_df.columns.values:
-        print(col)
+        LOGGER.debug(col)
 
     assert 'ent_comm_begin_dt' in ppd_final_df.columns.values
     return ppd_final_df

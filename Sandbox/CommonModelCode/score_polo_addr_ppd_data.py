@@ -1,15 +1,23 @@
 # Kari Palmier    8/16/19    Created
 #
 #############################################################################
+import logging
+import os
+import sys
+import warnings
+
 import pandas as pd
 
-import warnings
+from   datalabs.analysis.exception import InvalidDataException
 
 warnings.filterwarnings("ignore")
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
+
 # Get path of general (common) code and add it to the python path variable
-import sys
-import os
 
 # curr_path = os.path.abspath(__file__)
 # print(curr_path)
@@ -34,18 +42,24 @@ def fill_nan_model_vars(data_df):
 
 
 def score_polo_addr_data(ppd_scoring_df, model, model_vars, init_model_vars, info_vars):
-    print('SCORE_POLO_ADDR_DATA')
+    LOGGER.debug('SCORE_POLO_ADDR_DATA')
     assert len(ppd_scoring_df) > 0
-    print(ppd_scoring_df.dtypes)
-    print('#'*80)
+    LOGGER.debug(ppd_scoring_df.dtypes)
+    LOGGER.debug('#'*80)
     # Convert data types to expected
     assert 'ent_comm_begin_dt' in ppd_scoring_df.columns.values
+    MISSING_VARIABLES = [
+        'lic_state_match_0', 'ent_comm_src_cat_code_ADMIT-HOS', 'ent_comm_src_cat_code_ECF-CNVRSN',
+        'ent_comm_src_cat_code_GROUP', 'ent_comm_src_cat_code_PHNSURV', 'ent_comm_src_cat_code_SCHL-HOSP',
+        'ent_comm_comm_type_GROUP', 'ppd_pe_cd_11', 'ppd_pe_cd_110',
+    ]
+
     ppd_scoring_converted_df = convert_data_types(ppd_scoring_df)
 
     # Create new model variables
     ppd_scoring_new_df = create_new_addr_vars(ppd_scoring_converted_df)
 
-    # Get data wtih just model variables
+    # Get data with just model variables
     model_df = ppd_scoring_new_df.loc[:, init_model_vars]
 
     # Deal with any NaN or invalid entries
@@ -59,12 +73,17 @@ def score_polo_addr_data(ppd_scoring_df, model, model_vars, init_model_vars, inf
 
     # Keep only variable required for the model
     model_vars = list(model_vars)
+
+    missing_variables = [var for var in model_vars if var not in model_data_all.columns.values]
+    if missing_variables:
+        raise InvalidDataException(f'Model input data is missing the following columns: {missing_variables}')
+
     model_data_pruned = model_data_all.loc[:, model_vars]
     model_data_pruned = fill_nan_model_vars(model_data_pruned)
 
-    outpath = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\Polo_Rank_Model\\Data\\2020-01-30_Model_Data.csv'
-    print('Writing processed data to {}'.format(outpath))
-    model_data_pruned.to_csv(outpath, index=False)
+    # outpath = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\Polo_Rank_Model\\Data\\2020-01-30_Model_Data.csv'
+    # print('Writing processed data to {}'.format(outpath))
+    # model_data_pruned.to_csv(outpath, index=False)
     # get model class probabilites and predictions
     preds, probs = get_class_predictions(model, model_data_pruned, 0.5, False)
 
@@ -77,7 +96,7 @@ def score_polo_addr_data(ppd_scoring_df, model, model_vars, init_model_vars, inf
 
 
 def score_polo_ppd_data(ppd_scoring_df, model, model_vars):
-    print('SCORE_POLO_PPD_DATA')
+    LOGGER.debug('SCORE_POLO_PPD_DATA')
     assert len(ppd_scoring_df) > 0
     init_model_vars = ['lic_state_match', 'pcp', 'ent_comm_src_cat_code', 'ent_comm_comm_type',
                        'addr_age_yrs', 'yop_yrs', 'doctor_age_yrs', 'ppd_address_type', 'ppd_region',

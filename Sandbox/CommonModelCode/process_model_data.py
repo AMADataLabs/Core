@@ -1,15 +1,20 @@
 # Kari Palmier    Created 7/30/19
 #
 #############################################################################
+import datetime
+import logging
+import os
+import sys
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import datetime
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 # Get path of general (common) code and add it to the python path variable
-import sys
-import os
-
 # curr_path = os.path.abspath(__file__)
 # slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
 # base_path = curr_path[:slash_ndx[-2] + 1]
