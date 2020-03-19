@@ -10,7 +10,7 @@ from   datalabs.analysis.polo.rank.model import ModelInputData, ModelParameters,
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 class InputDataLoader():
     def __init__(self, expected_df_lengths: ModelInputData=None):
@@ -75,7 +75,7 @@ class InputDataLoader():
             raise ValueError(f"No data loaded from file {filename}")
 
         if self._expected_df_lengths:
-            cls._assert_reasonable_dataframe_length(getattr(self._expected_df_lengths.entity, key), data)
+            self._assert_reasonable_dataframe_length(getattr(self._expected_df_lengths.entity, key), data)
 
         return data
 

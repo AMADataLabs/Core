@@ -5,6 +5,7 @@ Kari Palmier    7/31/19    Created
 Kari Palmier    8/14/19    Updated to work with more generic get_sample
 Peter Lane      3/17/2020  Refactored ranking code to datalabs.analysis.polo.rank.model module
 '''
+import logging
 import os
 from   pathlib import Path
 import re
@@ -12,6 +13,10 @@ import re
 import settings
 import datalabs.analysis.polo.rank.model as model
 import datalabs.analysis.polo.rank.data.ppd as data
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class PoloPPDRankModelApp():
@@ -32,7 +37,7 @@ class PoloPPDRankModelApp():
         return model.ModelInputData(
             model=None,
             ppd=1.3e6,
-            entity=dict(
+            entity=model.EntityData(
                 entity_comm_at=33e6,
                 entity_comm_usg=15e6,
                 post_addr_at=16e6,

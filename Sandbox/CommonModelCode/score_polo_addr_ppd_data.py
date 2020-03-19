@@ -14,7 +14,7 @@ warnings.filterwarnings("ignore")
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 # Get path of general (common) code and add it to the python path variable
@@ -42,10 +42,10 @@ def fill_nan_model_vars(data_df):
 
 
 def score_polo_addr_data(ppd_scoring_df, model, model_vars, init_model_vars, info_vars):
-    print('SCORE_POLO_ADDR_DATA')
+    LOGGER.debug('SCORE_POLO_ADDR_DATA')
     assert len(ppd_scoring_df) > 0
-    print(ppd_scoring_df.dtypes)
-    print('#'*80)
+    LOGGER.debug(ppd_scoring_df.dtypes)
+    LOGGER.debug('#'*80)
     # Convert data types to expected
     assert 'ent_comm_begin_dt' in ppd_scoring_df.columns.values
     MISSING_VARIABLES = [
@@ -96,7 +96,7 @@ def score_polo_addr_data(ppd_scoring_df, model, model_vars, init_model_vars, inf
 
 
 def score_polo_ppd_data(ppd_scoring_df, model, model_vars):
-    print('SCORE_POLO_PPD_DATA')
+    LOGGER.debug('SCORE_POLO_PPD_DATA')
     assert len(ppd_scoring_df) > 0
     init_model_vars = ['lic_state_match', 'pcp', 'ent_comm_src_cat_code', 'ent_comm_comm_type',
                        'addr_age_yrs', 'yop_yrs', 'doctor_age_yrs', 'ppd_address_type', 'ppd_region',

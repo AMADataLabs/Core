@@ -23,26 +23,26 @@ def main():
             input='ENTITY_COMM_AT_FILE_RAW',
             output='ENTITY_COMM_AT_FILE',
             kwargs=dict(
-                # row_filters={'comm_cat': 'A '},
-                # column_filters={name:'ent_comm_'+name for name in [
-                #     'entity_id', 'comm_type', 'begin_dt', 'comm_id', 'end_dt', 'src_cat_code'
-                # ]},
+                row_filters={'comm_cat': 'A '},
+                column_filters={name:'ent_comm_'+name for name in [
+                    'entity_id', 'comm_type', 'begin_dt', 'comm_id', 'end_dt', 'src_cat_code'
+                ]},
+                datestamp_columns=['begin_dt', 'end_dt']
                 # types={'entity_id': 'uint32', 'comm_id': 'uint32'},
-                types={'ent_comm_entity_id': 'str', 'ent_comm_comm_id': 'str'},
-                # datestamp_columns=['begin_dt', 'end_dt']
+                # types={'ent_comm_entity_id': 'str', 'ent_comm_comm_id': 'str'},
             )
         ),
         Parameters(
             input='ENTITY_COMM_USG_FILE_RAW',
             output='ENTITY_COMM_USG_FILE',
             kwargs=dict(
-                # row_filters={'comm_cat': 'A '},
-                # column_filters={name:'usg_'+name if name.startswith('usg_') else name for name in [
-                #     'entity_id', 'comm_type', 'comm_usage', 'usg_begin_dt', 'comm_id', 'comm_type', 'end_dt', 'src_cat_code'
-                # ]},
+                row_filters={'comm_cat': 'A '},
+                column_filters={name:'usg_'+name if name.startswith('usg_') else name for name in [
+                    'entity_id', 'comm_type', 'comm_usage', 'usg_begin_dt', 'comm_id', 'comm_type', 'end_dt', 'src_cat_code'
+                ]},
+                datestamp_columns=['usg_begin_dt', 'end_dt']
                 # types={'entity_id': 'uint32', 'comm_id': 'uint32'},
-                types={'usg_entity_id': 'str', 'usg_comm_id': 'str'},
-                # datestamp_columns=['usg_begin_dt', 'end_dt']
+                # types={'usg_entity_id': 'str', 'usg_comm_id': 'str'},
             )
 
         ),
@@ -50,21 +50,21 @@ def main():
             input='POST_ADDR_AT_FILE_RAW',
             output='POST_ADDR_AT_FILE',
             kwargs=dict(
-                # column_filters={name:'post_'+name for name in [
-                #     'comm_id', 'addr_line2', 'addr_line1', 'addr_line0', 'city_cd', 'state_cd', 'zip', 'plus4'
-                # ]},
+                column_filters={name:'post_'+name for name in [
+                    'comm_id', 'addr_line2', 'addr_line1', 'addr_line0', 'city_cd', 'state_cd', 'zip', 'plus4'
+                ]},
                 # types={'comm_id': 'uint32'}
-                types={'post_comm_id': 'str'}
+                # types={'post_comm_id': 'str'}
             )
         ),
         Parameters(
             input='LICENSE_LT_FILE_RAW',
             output='LICENSE_LT_FILE',
             kwargs=dict(
+                defaults={'comm_id': '0'},
+                datestamp_columns=['lic_exp_dt', 'lic_issue_dt', 'lic_rnw_dt']
                 # types={'entity_id': 'uint32', 'comm_id': 'uint32'},
-                types={'entity_id': 'str', 'comm_id': 'str'},
-                # defaults={'comm_id': '0'},
-                # datestamp_columns=['lic_exp_dt', 'lic_issue_dt', 'lic_rnw_dt']
+                # types={'entity_id': 'str', 'comm_id': 'str'},
             )
         ),
         Parameters(
@@ -72,7 +72,7 @@ def main():
             output='ENTITY_KEY_ET_FILE',
             kwargs=dict(
                 # types={'entity_id': 'uint32'}
-                types={'entity_id': 'str'}
+                # types={'entity_id': 'str'}
             )
         ),
     ]

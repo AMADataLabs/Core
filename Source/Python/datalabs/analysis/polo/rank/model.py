@@ -15,7 +15,7 @@ from   datalabs.analysis.exception import InvalidDataException
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 warnings.filterwarnings("ignore")
 
