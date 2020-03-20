@@ -1,0 +1,44 @@
+#!/bin/bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+PROJECT_NAME=
+
+
+main() {
+    process_arguments $*
+
+    build_project
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        *)
+            PROJECT_NAME=$1
+            shift
+            ;;
+      esac
+    done
+
+    if [[ "$PROJECT_NAME" == "" ]]; then
+        echo "Error: The name of the project to create was not specified."
+        exit 1
+    fi
+}
+
+
+build_project() {
+    cd ${SCRIPT_BASE_PATH}/../
+
+    docker-compose --project-directory ./ --file Build/BitBucketSync/docker-compose.yml build
+}
+
+
+main $*
