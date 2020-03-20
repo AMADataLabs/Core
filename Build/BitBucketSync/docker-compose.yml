@@ -1,0 +1,13 @@
+version: "2"
+services:
+  web:
+    image: ${ECR_URL}/payment-service:${GIT_SHORT_HASH}
+    ports:
+      - "8080:8080"
+    command: pipenv run gunicorn wsgi:app --log-level ${gunicorn_log_level} -b 0.0.0.0:8080
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /ecs/hc-payment-service-${ENV}
+        awslogs-region: us-east-2
+        awslogs-stream-prefix: ecs
