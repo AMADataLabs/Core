@@ -6,7 +6,5 @@ routes = Blueprint('trigger', __name__)
 
 
 @routes.route('/')
-def health():
-    # version = os.getenv('GIT_SHORT_HASH', 'LOCAL')
-    version = 0.1
-    return f'Healthy! Running version: {version}'
+def sync_bitbucket():
+    return flask.jsonify({'Synced': True})

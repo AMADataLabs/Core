@@ -37,7 +37,7 @@ process_arguments() {
 build_project() {
     cd ${SCRIPT_BASE_PATH}/../
 
-    docker-compose --project-directory ./ --file Build/BitBucketSync/docker-compose.yml build
+    docker-compose --verbose --project-directory ./ --file Build/BitBucketSync/docker-compose.yml build
 }
 
 

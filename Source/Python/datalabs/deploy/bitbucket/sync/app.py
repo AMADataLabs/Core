@@ -12,6 +12,7 @@ def start():
 def register_blueprints(app):
     import datalabs.deploy.bitbucket.sync.trigger as trigger
 
+    app.register_blueprint(trigger.routes)
     app.register_blueprint(trigger.routes, url_prefix='/trigger')
 
 if __name__ == '__main__':

@@ -3,11 +3,9 @@ services:
   bitbucket-sync:
     image: bitbucket-sync
     build:
-      # args:
-      #   repository_path: $REPOSITORY_PATH
       context: .
       dockerfile: ./Build/BitBucketSync/Dockerfile
     container_name: bitbucket-sync
     ports:
       - "8080:8080"
-    command: pipenv run gunicorn datalabs.deploy.bitbucket.sync.app:start -b 0.0.0.0:8080
+    command: pipenv run gunicorn datalabs.deploy.bitbucket.sync.app:start() -b 0.0.0.0:8080
