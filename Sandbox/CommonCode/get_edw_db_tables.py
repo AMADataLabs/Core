@@ -8,8 +8,9 @@ from remove_col_whitespace import remove_col_whitespace
 
 
 def get_edw_connection(username, password):
-    
-    EDW_conn = pyodbc.connect('DSN=prddw; UID={}; PWD={}'.format(username, password))
+    # DSN=<odbc driver name for EDW> view your odbc sources to find the name and change if necessary.
+    # Might need to be reworked
+    EDW_conn = pyodbc.connect('DSN=EDW; UID={}; PWD={}'.format(username, password))
     EDW_conn.execute('SET ISOLATION TO DIRTY READ;')
     
     return EDW_conn

@@ -50,7 +50,7 @@ def get_non_po_box(data_df, addr_var_list):
 # returns df of records with POLO eligible addresses
 def get_polo_eligible(entity_data_df, addr_var_list):
     LOGGER.debug('GET_POLO_ELIGIBLE')
-    assert len(entity_data_df) > 0
+    assert len(e*ntity_data_df) > 0
     eligible_comm_types = ['OF', 'HO', 'GROUP']
     eligible_comm_srcs = ['AMC', 'GROUP', 'MBSHP-WEB', 'PHONE-CALL', 'PPA', 'WHITE-MAIL', 'E-MAIL',
                           'MBSHP-MAIL', 'OLDCC', 'PHNSURV', 'USC-OUTBND', 'CME-REG', 'LOCK_BOX',
