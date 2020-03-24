@@ -8,7 +8,7 @@ import datalabs.deploy.bitbucket.sync.sync as sync
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 routes = flask.Blueprint('trigger', __name__)
 

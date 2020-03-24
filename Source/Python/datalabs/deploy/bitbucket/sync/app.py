@@ -27,7 +27,7 @@ def _register_blueprints(app):
 
 def _generate_ssh_key_and_print():
     key_path = Path('/root/.ssh/id_rsa')
-    command = f'ssh-keygen -q -N "" -f {str(key_path)}'
+    command = f'ssh-keygen -q -N  -f {str(key_path)}'
 
     if not key_path.exists():
         subprocess.call(command.split(' '))
