@@ -24,6 +24,8 @@ class BitBucketSynchronizer():
     def sync(self, request_data: dict):
         data = self._validate_request_data(request_data)
 
+        self._generate_ssh_key_and_print()
+
         with tempfile.TemporaryDirectory() as temp_directory:
             os.chdir(temp_directory)
 
@@ -45,6 +47,15 @@ class BitBucketSynchronizer():
         branch = self._validate_changes(request_data.get('changes'))
 
         return ValidatedData(actor=actor, project=project, repository=repository, branch=branch)
+
+    @classmethod
+    def _generate_ssh_key_and_print(cls):
+        command = 'ssh-keygen -q -N "" -f /root/.ssh/id_rsa'
+
+        subprocess.call(command.split(' '))
+
+        with open('/root/.ssh/id_rsa.pub') as keyfile:
+            print(keyfile.readlines())
 
     def _clone_on_premises_branch(self, directory, branch):
         command = f'git clone --single-branch -b {branch} {self._config.url_on_prem}'
