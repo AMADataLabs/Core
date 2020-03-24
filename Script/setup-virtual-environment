@@ -3,7 +3,7 @@
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
-. ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup.sh
+. ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup/venv.sh
 PROJECT_NAME=
 
 
