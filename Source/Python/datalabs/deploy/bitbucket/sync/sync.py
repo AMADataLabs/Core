@@ -85,6 +85,8 @@ class BitBucketSynchronizer():
         return self._validate_ref(changes[0].get('ref'))
 
     def _validate_actor_name(self, actor_name):
+        if actor_name is None:
+            raise exceptions.BadRequest('Bad actor information was included.')
         elif self._config.user_on_prem != actor_name:
             raise exceptions.Unauthorized(f'Unauthorized user "{actor_name}".')
 
