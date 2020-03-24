@@ -17,6 +17,8 @@ WORKDIR /BitBucketSync
 
 COPY ./Source/Python/ .
 COPY ./Test/Python/ .
+COPY ./Environment/BitBucketSync/.env .
+COPY ./Environment/Master/settings.py .
 
 COPY ./Build/BitBucketSync/server-ssl.conf .
 RUN openssl req --batch -config server-ssl.conf -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem
