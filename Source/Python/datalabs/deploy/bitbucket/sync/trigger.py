@@ -1,3 +1,4 @@
+import logging
 import os
 import flask
 
@@ -5,12 +6,17 @@ import settings
 
 import datalabs.deploy.bitbucket.sync.sync as sync
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+
 routes = flask.Blueprint('trigger', __name__)
 
 
 @routes.route('/', methods=['POST'])
 def sync_bitbucket():
     data = flask.request.get_json()
+    LOGGER.debug('Trigger Request: {}', data)
     config = _generate_sync_configuration()
     synchronizer = sync.BitBucketSynchronizer(config)
 
