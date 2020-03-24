@@ -1,7 +1,12 @@
+import logging
 from   pathlib import Path
 import subprocess
 
 from flask import Flask, request, session, abort, jsonify
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 def start():
@@ -28,7 +33,7 @@ def _generate_ssh_key_and_print():
         subprocess.call(command.split(' '))
 
     with open('/root/.ssh/id_rsa.pub') as keyfile:
-        print(keyfile.readlines())
+        LOGGER.info(keyfile.readlines())
 
 if __name__ == '__main__':
     start()

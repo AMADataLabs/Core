@@ -7,7 +7,7 @@ import datalabs.deploy.bitbucket.sync.sync as sync
 routes = flask.Blueprint('trigger', __name__)
 
 
-@routes.route('/')
+@routes.route('/', methods=['POST'])
 def sync_bitbucket():
     data = flask.request.get_json()
     config = _generate_sync_configuration()
