@@ -23,6 +23,7 @@ COPY ./Environment/Master/settings.py .
 COPY ./Build/BitBucketSync/server-ssl.conf .
 RUN openssl req --batch -config server-ssl.conf -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem
 
+RUN rm -rf /root/.ssh
 RUN mkdir /root/.ssh
 RUN chmod go-rwx /root/.ssh
 COPY ./Build/BitBucketSync/ssh_config.txt /root/.ssh/config
