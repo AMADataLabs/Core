@@ -12,10 +12,10 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-def test_bitbucket_synchronizer_runs_without_error(configuration, request_data):
+def test_bitbucket_synchronizer_validation_runs_without_error(configuration, request_data):
     synchronizer = sync.BitBucketSynchronizer(configuration)
 
-    synchronizer.sync(request_data)
+    synchronizer._validate_request_data(request_data)
 
 
 @pytest.fixture
@@ -23,7 +23,7 @@ def configuration():
     return sync.Configuration(
         url_on_prem='ssh://git@bitbucket.ama-assn.org:7999/test-project/test-repository.git',
         user_on_prem='admin',
-        url_cloud='ssh://git@bitbucket.org:7999/test-project/test-repository.git'
+        url_cloud='git@bitbucket.org:test-project/test-repository.git'
     )
 
 

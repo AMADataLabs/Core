@@ -1,6 +1,8 @@
 from   collections import namedtuple
 import os
 from   pathlib import Path
+import subprocess
+import tempfile
 from   urllib.parse import urlparse
 
 import werkzeug.exceptions as exceptions
@@ -22,7 +24,16 @@ class BitBucketSynchronizer():
     def sync(self, request_data: dict):
         data = self._validate_request_data(request_data)
 
-        self._clone_on_premises_branch(data.branch)
+        with tempfile.TemporaryDirectory() as temp_directory:
+            os.chdir(temp_directory)
+
+            self._clone_on_premises_branch(data.branch)
+
+            os.chdir(Path(temp_directory).joinpath(self._repository_name))
+
+            self._add_cloud_remote()
+
+            self._push_branch_to_cloud(data.branch)
 
         return {'actor': data.actor, 'project': data.project, 'repository': data.repository, 'branch': data.branch}
 
@@ -35,9 +46,21 @@ class BitBucketSynchronizer():
 
         return ValidatedData(actor=actor, project=project, repository=repository, branch=branch)
 
-    def _clone_on_premises_branch(self, branch):
-        # git clone --single-branch -b story/DL-431 ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
-        pass
+    def _clone_on_premises_branch(self, directory, branch):
+        command = f'git clone --single-branch -b {branch} {self._config.url_on_prem}'
+
+        subprocess.call(command.split(' '))
+
+    def _add_cloud_remote(self):
+        command = f'git remote add cloud {self._config.url_cloud}'
+
+        subprocess.call(command.split(' '))
+
+    def _push_branch_to_cloud(self, directory, branch):
+        command = f'git push cloud {branch}'
+
+        subprocess.call(command.split(' '))
+
 
     def _validate_actor(self, actor):
         if actor is None:
