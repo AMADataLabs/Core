@@ -1,0 +1,5 @@
+Host bitbucket.ama-assn.org
+    StrictHostKeyChecking no
+
+Host bitbucket.org
+    StrictHostKeyChecking no

@@ -25,5 +25,4 @@ RUN openssl req --batch -config server-ssl.conf -newkey rsa:2048 -nodes -keyout 
 
 RUN mkdir /root/.ssh
 RUN chmod go-rwx /root/.ssh
-RUN echo -e "Host bitbucket.ama-assn.org\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
-RUN echo -e "Host bitbucket.org\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
+COPY ./Build/BitBucketSync/ssh_config.txt /root/.ssh/config
