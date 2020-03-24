@@ -1,0 +1,1 @@
+Flask,gunicorn,ipython,pylint,pytest,python-dotenv

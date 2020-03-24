@@ -3,14 +3,13 @@
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
-. ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup/venv.sh
 PROJECT_NAME=
 
 
 main() {
     process_arguments $*
 
-    setup_python_virtual_environment ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+    build_project
 }
 
 
@@ -35,8 +34,10 @@ process_arguments() {
 }
 
 
-print_usage() {
-    echo "Usage: setup-virtual-environment <project name> [-h|--help]"
+build_project() {
+    cd ${SCRIPT_BASE_PATH}/../
+
+    docker-compose --verbose --project-directory ./ --file Build/BitBucketSync/docker-compose.yml build
 }
 
 
