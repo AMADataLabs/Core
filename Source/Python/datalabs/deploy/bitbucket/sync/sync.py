@@ -106,7 +106,7 @@ class BitBucketSynchronizer():
         if project is None:
             raise exceptions.BadRequest('Bad repository information.')
 
-        return self._validate_project_name(project.get('key').tolower())
+        return self._validate_project_name(project.get('key').lower())
 
     def _validate_ref(self, ref):
         if ref is None or 'displayId' not in ref:
