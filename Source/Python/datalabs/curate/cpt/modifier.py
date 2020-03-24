@@ -32,13 +32,13 @@ class Event(Enum):
 Context = namedtuple('Context', 'state event data')
 
 
-class EventHandler(ABC):
+class StateProcessor(ABC):
     @abstractmethod
     def handle_event(self, context, line):
         pass
 
 
-class AppendixAHandler(EventHandler):
+class AppendixAProcessor(EventHandler):
     def handle_event(self, data, line):
         event = Event.Start
         data = {}
@@ -49,7 +49,7 @@ class AppendixAHandler(EventHandler):
         return Context(state=State.AppendixAHandler, event=event, data=data)
 
 
-class RegularModifierHandler(EventHandler):
+class RegularModifierProcessor(EventHandler):
     def handle_event(self, context, line):
         event = None
         data = {}
@@ -82,7 +82,8 @@ class FileParser():
 
     STATE_PROCESSORS = [
         AppendixAProcessor(),
-        RegularModifierHandler(),
+        RegularModifierProcessor(),
+        # ...
     ]
 
     @classmethod
@@ -107,6 +108,6 @@ class FileParser():
 
     @classmethod
     def _process_event(cls, context, line):
-        state = TRANSITION_TABLE[context.state][context.event]
+        state = TRANSITION_TABLE[context.state.value][context.event.value]
 
-        return STATE_PROCESSORS[state].process_line(context, line)
+        return STATE_PROCESSORS[state.value].process_line(context, line)
