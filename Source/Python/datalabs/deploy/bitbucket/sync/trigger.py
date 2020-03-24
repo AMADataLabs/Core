@@ -18,7 +18,7 @@ def sync_bitbucket():
     return flask.jsonify(response)
 
 
-def _generte_sync_configuration():
+def _generate_sync_configuration():
     return sync.Configuration(
         on_prem_url=os.environ.get('URL_ON_PREMISES'),
         cloud_url=os.environ.get('URL_CLOUD'),
