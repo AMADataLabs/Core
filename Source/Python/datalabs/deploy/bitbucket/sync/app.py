@@ -21,7 +21,7 @@ def _register_blueprints(app):
     app.register_blueprint(trigger.routes, url_prefix='/trigger')
 
 def _generate_ssh_key_and_print():
-    key_path = Path(/root/.ssh/id_rsa)
+    key_path = Path('/root/.ssh/id_rsa')
     command = f'ssh-keygen -q -N "" -f {str(key_path)}'
 
     if not key_path.exists():
