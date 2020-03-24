@@ -80,9 +80,9 @@ class BitBucketSynchronizer():
 
     def _validate_repository(self, repository):
         if repository is None:
-            raise exceptions.BadRequest('No repository information .')
+            raise exceptions.BadRequest('No repository information.')
 
-        repository_name = self._validate_repository_name(repository.get('name'))
+        repository_name = self._validate_repository_name(repository.get('slug'))
 
         project_name = self._validate_project(repository.get('project'))
 
@@ -90,13 +90,13 @@ class BitBucketSynchronizer():
 
     def _validate_changes(self, changes):
         if not changes:
-            raise exceptions.BadRequest('No pushed changes information .')
+            raise exceptions.BadRequest('No pushed changes information.')
 
         return self._validate_ref(changes[0].get('ref'))
 
     def _validate_repository_name(self, repository_name):
         if repository_name is None:
-            raise exceptions.BadRequest('Bad repository information .')
+            raise exceptions.BadRequest('Bad repository information.')
         elif self._repository_name != repository_name:
             raise exceptions.BadRequest(f'Unsupported repository "{repository_name}".')
 
@@ -104,19 +104,19 @@ class BitBucketSynchronizer():
 
     def _validate_project(self, project):
         if project is None:
-            raise exceptions.BadRequest('Bad repository information .')
+            raise exceptions.BadRequest('Bad repository information.')
 
-        return self._validate_project_name(project.get('name'))
+        return self._validate_project_name(project.get('key').tolower())
 
     def _validate_ref(self, ref):
         if ref is None or 'displayId' not in ref:
-            raise exceptions.BadRequest('Bad pushed changes information .')
+            raise exceptions.BadRequest('Bad pushed changes information.')
 
         return ref['displayId']
 
     def _validate_project_name(self, project_name):
         if project_name is None:
-            raise exceptions.BadRequest('Bad repository information .')
+            raise exceptions.BadRequest('Bad repository information.')
         elif self._project_name != project_name:
             raise exceptions.BadRequest(f'Unsupported project "{project_name}".')
 
