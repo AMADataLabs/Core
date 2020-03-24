@@ -42,7 +42,7 @@ def test_dotenv_finds_configuration_file(temp_directory, dotenv_file, environmen
     dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
 
     test_variable = os.environ.get('DATALABS_TEST_VARIABLE_BOOLEAN_BOLERO')
-    assert test_variable == True
+    assert test_variable.capitalize() == 'True'
 
 
 @pytest.fixture

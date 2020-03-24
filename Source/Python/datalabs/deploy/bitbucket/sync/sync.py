@@ -1,16 +1,23 @@
 from   collections import namedtuple
 import os
+from   pathlib import Path
+from   urllib.parse import urlparse
 
-import exception werkzeug.exceptions as exceptions
+import werkzeug.exceptions as exceptions
 
 
 ValidatedData = namedtuple('ValidatedData', 'actor project repository branch')
-Configuration = namedtuple('Configuration', 'authorized_user project repository')
+Configuration = namedtuple('Configuration', 'url_on_prem url_cloud user_on_prem')
 
 
 class BitBucketSynchronizer():
     def __init__(self, config: Configuration):
         self._config = config
+        url = urlparse(self._config.url_on_prem)
+        path = Path(url.path)
+
+        self._repository_name = path.name.split('.')[0]
+        self._project_name = path.parent.name
 
     def sync(self, request_data: dict):
         data = self._validate_request_data(request_data)
@@ -32,39 +39,39 @@ class BitBucketSynchronizer():
         # git clone --single-branch -b story/DL-431 ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
         pass
 
-    def _validate_actor(self, actor)
+    def _validate_actor(self, actor):
         if actor is None:
             raise exceptions.BadRequest('No actor information was included.')
-        elif self._config.authorized_user != actor.get('name'):
+        elif self._config.user_on_prem != actor.get('name'):
             raise exceptions.Unauthorized(f'Unauthorized user "{actor}".')
 
         return actor
 
-    def _validate_repository(self, repository)
+    def _validate_repository(self, repository):
         if repository is None:
             raise exceptions.BadRequest('No repository information was included.')
 
-        repository_name = self._validate_repository_name(self, repository.get('name'))
+        repository_name = self._validate_repository_name(repository.get('name'))
 
-        project_name = self._validate_project(self, repository.get('project'))
+        project_name = self._validate_project(repository.get('project'))
 
         return repository_name, project_name
 
-    def _validate_changes(self, changes)
-        if changes is None:
+    def _validate_changes(self, changes):
+        if not changes:
             raise exceptions.BadRequest('No pushed changes information was included.')
 
-        return self._validate_ref(changes.get('ref'))
+        return self._validate_ref(changes[0].get('ref'))
 
     def _validate_repository_name(self, repository_name):
-        if repository_name is None
+        if repository_name is None:
             raise exceptions.BadRequest('Bad repository information was included.')
-        elif self._config.supported_repository != repository_name:
+        elif self._repository_name != repository_name:
             raise exceptions.BadRequest(f'Unsupported repository "{repository_name}".')
 
         return repository_name
 
-    def _validate_project(self, project)
+    def _validate_project(self, project):
         if project is None:
             raise exceptions.BadRequest('Bad repository information was included.')
 
@@ -79,7 +86,7 @@ class BitBucketSynchronizer():
     def _validate_project_name(self, project_name):
         if project_name is None:
             raise exceptions.BadRequest('Bad repository information was included.')
-        elif self._config.project != project_name:
+        elif self._project_name != project_name:
             raise exceptions.BadRequest(f'Unsupported project "{project_name}".')
 
         return project_name
