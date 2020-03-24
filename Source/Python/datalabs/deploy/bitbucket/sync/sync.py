@@ -36,7 +36,7 @@ class BitBucketSynchronizer():
             LOGGER.info('-- Cloning --')
             self._clone_on_premises_branch(data.branch)
 
-            os.chdir(Path(temp_directory).joinpath(self._repository_name))
+            os.chdir(Path(temp_directory).joinpath(data.repository))
 
             self._add_cloud_remote()
 
@@ -54,7 +54,7 @@ class BitBucketSynchronizer():
 
         return ValidatedData(actor=actor, project=project, repository=repository, branch=branch)
 
-    def _clone_on_premises_branch(self, directory, branch):
+    def _clone_on_premises_branch(self, branch):
         command = f'git clone --single-branch -b {branch} {self._config.url_on_prem}'
 
         subprocess.call(command.split(' '))
@@ -64,7 +64,7 @@ class BitBucketSynchronizer():
 
         subprocess.call(command.split(' '))
 
-    def _push_branch_to_cloud(self, directory, branch):
+    def _push_branch_to_cloud(self, branch):
         command = f'git push cloud {branch}'
 
         subprocess.call(command.split(' '))
