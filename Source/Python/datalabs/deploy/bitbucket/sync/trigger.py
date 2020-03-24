@@ -21,7 +21,7 @@ def sync_bitbucket():
 
 def _generate_sync_configuration():
     return sync.Configuration(
-        on_prem_url=os.environ.get('URL_ON_PREMISES'),
+        url_on_prem=os.environ.get('URL_ON_PREMISES'),
         cloud_url=os.environ.get('URL_CLOUD'),
         user_on_prem=os.environ.get('USER_ON_PREMISES'),
     )
