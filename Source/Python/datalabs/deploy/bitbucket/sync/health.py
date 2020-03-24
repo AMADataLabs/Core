@@ -1,8 +1,8 @@
 import os
 
-from flask import Blueprint
+import flask
 
-routes = Blueprint('health', __name__)
+routes = flask.Blueprint('health', __name__)
 
 
 @routes.route('/')

@@ -1,8 +1,8 @@
 import os
 
-from flask import Blueprint
+import flask
 
-routes = Blueprint('trigger', __name__)
+routes = flask.Blueprint('trigger', __name__)
 
 
 @routes.route('/')
