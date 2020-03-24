@@ -16,10 +16,10 @@ routes = flask.Blueprint('trigger', __name__)
 @routes.route('/', methods=['POST'])
 def sync_bitbucket():
     data = flask.request.get_json()
-    LOGGER.debug('Trigger Request: {}', data)
     config = _generate_sync_configuration()
     synchronizer = sync.BitBucketSynchronizer(config)
 
+    LOGGER.debug('Trigger Request: {}', data)
     response = synchronizer.sync(data)
 
     return flask.jsonify(response)
