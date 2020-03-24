@@ -65,10 +65,8 @@ class BitBucketSynchronizer():
     def _validate_actor(self, actor):
         if actor is None:
             raise exceptions.BadRequest('No actor information was included.')
-        elif self._config.user_on_prem != actor.get('name'):
-            raise exceptions.Unauthorized(f'Unauthorized user "{actor}".')
 
-        return actor
+        return self._validate_actor_name(actor.get('name'))
 
     def _validate_repository(self, repository):
         if repository is None:
@@ -85,6 +83,12 @@ class BitBucketSynchronizer():
             raise exceptions.BadRequest('No pushed changes information was included.')
 
         return self._validate_ref(changes[0].get('ref'))
+
+    def _validate_actor_name(self, actor_name):
+        elif self._config.user_on_prem != actor_name:
+            raise exceptions.Unauthorized(f'Unauthorized user "{actor_name}".')
+
+        return actor_name
 
     def _validate_repository_name(self, repository_name):
         if repository_name is None:

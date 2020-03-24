@@ -19,7 +19,7 @@ def sync_bitbucket():
     config = _generate_sync_configuration()
     synchronizer = sync.BitBucketSynchronizer(config)
 
-    LOGGER.debug('Trigger Request: {}', data)
+    LOGGER.debug('Trigger Request: %s', data)
     response = synchronizer.sync(data)
 
     return flask.jsonify(response)
