@@ -1,2 +1,3 @@
+SECRET_KEY='{{ secret_key }}'
 URL_ON_PREMISES='ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git'
 URL_CLOUD='git@bitbucket.org:hsdatalabs/hsg-data-labs.git'
