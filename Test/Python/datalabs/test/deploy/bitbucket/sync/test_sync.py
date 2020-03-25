@@ -22,7 +22,6 @@ def test_bitbucket_synchronizer_validation_runs_without_error(configuration, req
 def configuration():
     return sync.Configuration(
         url_on_prem='ssh://git@bitbucket.ama-assn.org:7999/test-project/test-repository.git',
-        user_on_prem='admin',
         url_cloud='git@bitbucket.org:test-project/test-repository.git'
     )
 
@@ -50,9 +49,9 @@ def request_data():
         "statusMessage":"Available",
         "forkable":True,
         "project":{  
-          "key":"TESTPROJ",
+          "key":"TEST-PROJECT",
           "id":84,
-          "name":"test-project",
+          "name":"Test Project",
           "public":True,
           "type":"NORMAL"
         },
