@@ -67,12 +67,12 @@ class BitBucketSynchronizer():
         subprocess.call(command.split(' '))
 
     def _sync_branch_to_cloud(self, branch, action):
-        if action == 'UPDATE':
-            self._push_branch_to_cloud(branch)
-        elif action == 'DELETE':
-            self._push_branch_to_cloud(branch, delete=True)
-        else:
-            raise ValueError(f'Unexpected change action {action}.')
+        delete = False
+
+        if action == 'DELETE':
+            delete = True
+
+        self._push_branch_to_cloud(branch, delete=delete)
 
     def _push_branch_to_cloud(self, branch, delete=False):
         command = f'git push cloud --force {"--delete " if delete else ""}{branch}'
@@ -128,7 +128,7 @@ class BitBucketSynchronizer():
         return ref['displayId']
 
     def _validate_type(self, change_type):
-        if change_type is None or change_type not in ['UPDATE', 'DELETE']:
+        if change_type is None or change_type not in ['ADD', 'UPDATE', 'DELETE']:
             raise exceptions.BadRequest('Bad pushed changes information.')
 
         return change_type
