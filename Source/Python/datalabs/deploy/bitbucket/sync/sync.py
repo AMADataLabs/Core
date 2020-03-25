@@ -75,7 +75,7 @@ class BitBucketSynchronizer():
             raise ValueError(f'Unexpected change action {action}.')
 
     def _push_branch_to_cloud(self, branch, delete=False):
-        command = f'git push cloud {"--delete " if delete else ""}{branch}'
+        command = f'git push cloud --force {"--delete " if delete else ""}{branch}'
 
         subprocess.call(command.split(' '))
 
