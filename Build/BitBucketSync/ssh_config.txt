@@ -1,0 +1,7 @@
+Host bitbucket.ama-assn.org
+    StrictHostKeyChecking no
+    IdentityFile /BitBucketSync/bitbucket_sync
+
+Host bitbucket.org
+    StrictHostKeyChecking no
+    IdentityFile /BitBucketSync/bitbucket_sync

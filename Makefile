@@ -15,7 +15,7 @@ clean-master:
 	cd ${CWD}/Environment/Master; rm -rf ${FILES_MASTER}
 
 test: setup_test_files
-	${RUN} python -m pytest
+	${RUN} python -m pytest Test/Python/
 
 setup_test_files: ${TEMPLATE_FILES}
 	cp ${TEMPLATE_FILES} ${CWD}/Test/Python/datalabs/test/environment/
