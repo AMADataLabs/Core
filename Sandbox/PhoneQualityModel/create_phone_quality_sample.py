@@ -13,7 +13,7 @@ import os
 curr_path = os.path.abspath(__file__)
 slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
 base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
+gen_path = base_path + 'CommonCode\\'
 sys.path.insert(0, gen_path)
 
 from exclude_phone_samples import exclude_phone_samples
@@ -21,7 +21,7 @@ from select_files import select_files
 from get_ddb_logins import get_ddb_logins
 from get_aims_db_tables import get_pe_description, get_aims_connection, get_entity_me_key, get_no_contacts
 
-gen_path = base_path + 'Common_Model_Code\\'
+gen_path = base_path + 'CommonModelCode\\'
 sys.path.insert(0, gen_path)
 
 from create_model_sample import get_phone_sample, format_phone_sample_cols
