@@ -37,7 +37,7 @@ def _verify_secret_key(request_data, request_signature):
         raise exceptions.BadRequest('The request data signature is invalid.')
 
 
-def _sync_on_prem_with_cloud_bitbucket(request_data)
+def _sync_on_prem_with_cloud_bitbucket(request_data):
     config = _generate_sync_configuration()
     synchronizer = sync.BitBucketSynchronizer(config)
 
