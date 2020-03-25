@@ -34,7 +34,7 @@ class BitBucketSynchronizer():
             os.chdir(temp_directory)
 
             LOGGER.info('-- Cloning --')
-            self._clone_on_premises_branch(data.branch)
+            self._clone_on_premises_branch(data.branch, data.action)
 
             os.chdir(Path(temp_directory).joinpath(data.repository))
 
@@ -56,8 +56,8 @@ class BitBucketSynchronizer():
 
         return ValidatedData(actor=actor, project=project, repository=repository, branch=branch, action=action)
 
-    def _clone_on_premises_branch(self, branch):
-        command = f'git clone --single-branch -b {branch} {self._config.url_on_prem}'
+    def _clone_on_premises_branch(self, branch, action):
+        command = f'git clone --single-branch -b {"master" if action == "DELETE" else branch} {self._config.url_on_prem}'
 
         subprocess.call(command.split(' '))
 
