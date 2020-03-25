@@ -19,7 +19,9 @@ routes = flask.Blueprint('trigger', __name__)
 
 @routes.route('/', methods=['POST'])
 def sync_bitbucket():
-    _verify_secret_key(flask.request.data, flask.request.headers.get('X-Hub-Signature'))
+    request_signature = bytes(flask.request.headers.get('X-Hub-Signature'), 'utf-8')
+
+    _verify_secret_key(flask.request.data, request_signature)
 
     response = _sync_on_prem_with_cloud_bitbucket(flask.request.json)
 
@@ -27,10 +29,11 @@ def sync_bitbucket():
 
 
 def _verify_secret_key(request_data, request_signature):
+    LOGGER.debug('Request Data: %s', request_data)
+    LOGGER.debug('Request Signature: %s', request_signature)
     secret_key = os.environ.get('SECRET_KEY')
 
     calculated_signature = _sign_request_data(request_data, secret_key)
-    LOGGER.debug('Request signature: %s', request_signature)
     LOGGER.debug('Calculated signature: %s', calculated_signature)
 
     if request_signature != calculated_signature:
@@ -46,7 +49,7 @@ def _sync_on_prem_with_cloud_bitbucket(request_data):
 
 
 def _sign_request_data(request_data, secret_key):
-    message = bytes(request_data, 'utf-8')
+    message = request_data
     secret = bytes(secret_key, 'utf-8')
 
     return base64.b64encode(hmac.new(secret, message, digestmod=hashlib.sha256).digest())
