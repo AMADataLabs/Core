@@ -43,6 +43,8 @@ class BitBucketSynchronizer():
             LOGGER.info('-- Pushing --')
             self._push_branch_to_cloud(data.branch)
 
+        LOGGER.info('Done syncing "%s" branch of repository "%s" under project "%s".', data.branch, data.repository, data.project)
+
         return {'actor': data.actor, 'project': data.project, 'repository': data.repository, 'branch': data.branch}
 
     def _validate_request_data(self, request_data):

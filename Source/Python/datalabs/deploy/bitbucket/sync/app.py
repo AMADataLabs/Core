@@ -14,7 +14,7 @@ def start():
 
     _register_blueprints(app)
 
-    _generate_ssh_key_and_print()
+    # _generate_ssh_key_and_print()
 
     return app
 
