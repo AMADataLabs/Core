@@ -1,4 +1,3 @@
-import base64
 import logging
 import os
 import flask
@@ -19,7 +18,7 @@ routes = flask.Blueprint('trigger', __name__)
 
 @routes.route('/', methods=['POST'])
 def sync_bitbucket():
-    request_signature = bytes(flask.request.headers.get('X-Hub-Signature'), 'utf-8')
+    request_signature = flask.request.headers.get('X-Hub-Signature')
 
     _verify_secret_key(flask.request.data, request_signature)
 
@@ -52,7 +51,7 @@ def _sign_request_data(request_data, secret_key):
     message = request_data
     secret = bytes(secret_key, 'utf-8')
 
-    return base64.b64encode(hmac.new(secret, message, digestmod=hashlib.sha256).digest())
+    return 'sha256=' + hmac.new(secret, message, digestmod=hashlib.sha256).hexdigest()
 
 def _generate_sync_configuration():
     return sync.Configuration(
