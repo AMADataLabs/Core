@@ -10,4 +10,4 @@ services:
     #   - "~/.ssh:/root/.ssh:ro"
     ports:
       - "8080:8080"
-    command: pipenv run gunicorn datalabs.deploy.bitbucket.sync.app:start() -b 0.0.0.0:8080
+    command: pipenv run gunicorn --workers=3 datalabs.deploy.bitbucket.sync.app:start() -b 0.0.0.0:8080
