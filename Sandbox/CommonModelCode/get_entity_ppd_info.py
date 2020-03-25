@@ -42,12 +42,12 @@ def assign_lic_end_dates(license_df):
     return lic_notnull_df
 
 
-def set_entity_dates(ent_data_df, begin_var, end_var):
-    ent_data_df[begin_var] = pd.to_datetime(ent_data_df[begin_var])
-    ent_data_df[end_var].fillna(datetime.datetime.now(), inplace=True)
-    ent_data_df[end_var] = pd.to_datetime(ent_data_df[end_var])
-    print('END SET_ENTITY_DATES')
-    return ent_data_df
+# def set_entity_dates(ent_data_df, begin_var, end_var):
+#    ent_data_df[begin_var] = pd.to_datetime(ent_data_df[begin_var])
+#    ent_data_df[end_var].fillna(datetime.datetime.now(), inplace=True)
+#    ent_data_df[end_var] = pd.to_datetime(ent_data_df[end_var])
+#    print('END SET_ENTITY_DATES')
+#    return ent_data_df
 
 
 def rename_ent_ppd_addr_cols(data_df):
