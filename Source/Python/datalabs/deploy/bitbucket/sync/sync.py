@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-ValidatedData = namedtuple('ValidatedData', 'actor project repository branch')
+ValidatedData = namedtuple('ValidatedData', 'actor project repository branch action')
 Configuration = namedtuple('Configuration', 'url_on_prem url_cloud')
 
 
@@ -40,21 +40,21 @@ class BitBucketSynchronizer():
 
             self._add_cloud_remote()
 
-            LOGGER.info('-- Pushing --')
-            self._push_branch_to_cloud(data.branch)
+            LOGGER.info('-- Syncing --')
+            self._sync_branch_to_cloud(data.branch, data.action)
 
         LOGGER.info('Done syncing "%s" branch of repository "%s" under project "%s".', data.branch, data.repository, data.project)
 
-        return {'actor': data.actor, 'project': data.project, 'repository': data.repository, 'branch': data.branch}
+        return {'actor': data.actor, 'project': data.project, 'repository': data.repository, 'branch': data.branch, 'action': data.action}
 
     def _validate_request_data(self, request_data):
         actor = self._validate_actor(request_data.get('actor'))
 
         project, repository = self._validate_repository(request_data.get('repository'))
 
-        branch = self._validate_changes(request_data.get('changes'))
+        branch, action = self._validate_changes(request_data.get('changes'))
 
-        return ValidatedData(actor=actor, project=project, repository=repository, branch=branch)
+        return ValidatedData(actor=actor, project=project, repository=repository, branch=branch, action=action)
 
     def _clone_on_premises_branch(self, branch):
         command = f'git clone --single-branch -b {branch} {self._config.url_on_prem}'
@@ -66,11 +66,18 @@ class BitBucketSynchronizer():
 
         subprocess.call(command.split(' '))
 
-    def _push_branch_to_cloud(self, branch):
-        command = f'git push cloud {branch}'
+    def _sync_branch_to_cloud(self, branch, action):
+        if action == 'UPDATE':
+            self._push_branch_to_cloud(branch)
+        elif action == 'DELETE':
+            self._push_branch_to_cloud(branch, delete=True)
+        else:
+            raise ValueError(f'Unexpected change action {action}.')
+
+    def _push_branch_to_cloud(self, branch, delete=False):
+        command = f'git push cloud {"--delete " if delete else ""}{branch}'
 
         subprocess.call(command.split(' '))
-
 
     def _validate_actor(self, actor):
         if actor is None:
@@ -94,7 +101,11 @@ class BitBucketSynchronizer():
         if not changes:
             raise exceptions.BadRequest('No pushed changes information.')
 
-        return self._validate_ref(changes[0].get('ref'))
+        branch = self._validate_ref(changes[0].get('ref'))
+
+        action = self._validate_type(changes[0].get('type'))
+
+        return branch, action
 
     def _validate_repository_name(self, repository_name):
         if repository_name is None:
@@ -115,6 +126,12 @@ class BitBucketSynchronizer():
             raise exceptions.BadRequest('Bad pushed changes information.')
 
         return ref['displayId']
+
+    def _validate_type(self, change_type):
+        if change_type is None or change_type not in ['UPDATE', 'DELETE']:
+            raise exceptions.BadRequest('Bad pushed changes information.')
+
+        return change_type
 
     def _validate_project_name(self, project_name):
         if project_name is None:
