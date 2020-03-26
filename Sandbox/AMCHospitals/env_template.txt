@@ -1,9 +1,9 @@
 # Project Settings
-PROJECT_NAME='AMCHospitals'
+PROJECT_NAME='AMAIA'
 DATALABS_PYTHONPATH='{{ pythonpath }}'
 
-#NPI Data File
-NPI_FILE_RAW='U:/Source Files/Data Analytics/Data-Science/Data/AMC_Hospital_List/npidata_pfile_20050523-20200112.csv'
+#Database Otufile
+AUTH='U:/Source Files/Data Analytics/Data-Science/Data/AMC_Hospital_List/npidata_pfile_20050523-20200112.csv'
 
-#NPI Output Data 
-NPI_FILTERED_FOLDER='U:/Source Files/Data Analytics/Data-Science/Data/AMC_Hospital_List/'
+#Insurance Output Data 
+INSURANCE_FOLDER='U:/Source Files/Data Analytics/Data-Science/Data/AMAIA/'

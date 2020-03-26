@@ -6,7 +6,7 @@ import pyodbc
 from auth import username, password
 
 
-s = "DSN=PRDDW; UID={}; PWD={}".format(username, password)
+Credentials = "DSN=PRDDW; UID={}; PWD={}".format(username, password)
 AMAEDW = pyodbc.connect(s)
 
 sql_query = \
@@ -35,5 +35,4 @@ DEA = dea.drop_duplicates(subset = 'PARTY_ID', keep='first')
 print(dea.shape)
 dea.head()
 
-DEA.shape
 DEA.to_csv('DEA_dump.csv')
