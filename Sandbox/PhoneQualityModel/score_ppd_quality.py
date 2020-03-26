@@ -18,7 +18,7 @@ gen_path = base_path + 'Common_Code\\'
 sys.path.insert(0, gen_path)
 
 from get_ppd import get_latest_ppd_data
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 gen_path = base_path + 'Common_Model_Code\\'
 sys.path.insert(0, gen_path)
@@ -132,7 +132,7 @@ ppd_entity_file = ppd_archive_dir + start_time_str + '_PPD_' + ppd_date_str + '_
 ppd_scoring_df.to_csv(ppd_entity_file, sep=',', header=True, index=True)
 
 model_pred_df, model_data_pruned = score_phone_ppd_data(ppd_scoring_df, model, model_vars)
-model_pred_df = capitalize_column_names(model_pred_df)
+model_pred_df = df.rename_in_upper_case(model_pred_df)
 
 get_prob_info(model_pred_df['PRED_PROBABILITY'])
 get_pred_info(model_pred_df['PRED_CLASS'])

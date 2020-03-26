@@ -17,7 +17,7 @@ sys.path.insert(0, gen_path)
 
 from filter_bad_phones import get_good_bad_phones
 from create_batch_loads import create_phone_append, create_fax_append
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 
 import warnings
@@ -83,7 +83,7 @@ if vt_response_file.find('.csv') >= 0:
     vt_resp_df = pd.read_csv(vt_response_file, delimiter=",", index_col=None, header=0, dtype=str)
 else:
     vt_resp_df = pd.read_excel(vt_response_file, index_col=None, header=0, dtype=str)
-vt_resp_df = capitalize_column_names(vt_resp_df)
+vt_resp_df = df.rename_in_upper_case(vt_resp_df)
     
 # Read in VT internal version of batch data
 if int_vt_batch_file.find('.csv') >= 0:
@@ -92,7 +92,7 @@ else:
     vt_int_batch_df = pd.read_excel(int_vt_batch_file, index_col=None, header=0, dtype=str)
 if 'me' in list(vt_int_batch_df.columns.values):
     vt_int_batch_df = vt_int_batch_df.rename(columns={'me': 'entity_me'})
-vt_int_batch_df = capitalize_column_names(vt_int_batch_df)
+vt_int_batch_df = df.rename_in_upper_case(vt_int_batch_df)
 
 
 # Read PPD and find only non-null TELEPHONE NUMBER entries

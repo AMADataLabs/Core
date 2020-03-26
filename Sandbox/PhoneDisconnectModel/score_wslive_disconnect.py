@@ -13,9 +13,9 @@ import pandas as pd
 
 import settings
 import datalabs.curate.wslive as wslive
+import datalabs.curate.dataframe as df
 
 # Sandbox/CommonCode/
-from capitalize_column_names import capitalize_column_names
 from get_input_date_range import get_input_date_range
 
 # Sandbox/CommonModelCode/
@@ -121,7 +121,7 @@ fone_zr_df = clean_fone_zr_data(fone_zr_df)
 # Read in wslive data
 wslive_results_df = pd.read_csv(wslive_results_file, delimiter = ",", index_col = None,
                                 header = 0, dtype = str)
-wslive_results_df = capitalize_column_names(wslive_results_df)
+wslive_results_df = df.rename_in_upper_case(wslive_results_df)
 
 # Get data for date range specified
 wslive_results_df['WSLIVE_FILE_DT'] = pd.to_datetime(wslive_results_df['WSLIVE_FILE_DT'])
@@ -142,7 +142,7 @@ ppd_scoring_df.to_csv(ppd_entity_file, sep = ',', header = True, index = True)
         
     
 wslive_pred_df, model_data_pruned = score_phone_wslive_data(ppd_scoring_df, model, model_vars)
-wslive_pred_df = capitalize_column_names(wslive_pred_df)
+wslive_pred_df = df.rename_in_upper_case(wslive_pred_df)
 
 print('\n')
 print('Prediction Information')

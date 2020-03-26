@@ -19,7 +19,7 @@ from get_ddb_logins import get_ddb_logins
 from get_aims_db_tables import get_no_contacts, get_active_licenses, get_ent_comm_phones
 from get_aims_db_tables import get_spec_description, get_entity_me_key, get_aims_connection
 from get_edw_db_tables import get_party_keys, get_active_gradschool_name, get_edw_connection
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 gen_path = base_path + 'CommonModelCode\\'
 sys.path.insert(0, gen_path)
@@ -136,7 +136,7 @@ spec_desc_df = get_spec_description(AIMS_conn)
 AIMS_conn.close()
 print('Pulling PPD.')
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
-ppd_df = capitalize_column_names(ppd_df)
+ppd_df = df.rename_in_upper_case(ppd_df)
 
 print('Starting a bunch of shit')
 ppd_null_df = ppd_df[ppd_df[phone_var_name].isna()]

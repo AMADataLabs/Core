@@ -18,7 +18,7 @@ sys.path.insert(0, gen_path)
 from get_ddb_logins import get_ddb_logins
 from get_ods_db_tables import get_symphony_all_phys_info, get_ods_connection
 from get_comp_completeness import get_var_completeness, get_ppd_comp_comparison
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 from capitalize_df_contents import capitalize_df_contents
 
 import warnings
@@ -75,11 +75,11 @@ if data_sel == 'n':
 else:
     sym_df =  pd.read_csv(sym_file, delimiter = ",", index_col = None, header = 0, dtype = str)
 
-sym_df = capitalize_column_names(sym_df)
+sym_df = df.rename_in_upper_case(sym_df)
 sym_df = capitalize_df_contents(sym_df)
     
 ppd_df =  pd.read_csv(ppd_file, delimiter = ",", index_col = None, header = 0, dtype = str)
-ppd_df = capitalize_column_names(ppd_df)
+ppd_df = df.rename_in_upper_case(ppd_df)
 ppd_df = capitalize_df_contents(ppd_df)
 
 ppd_df['ME_SUBSTR'] = ppd_df['ME'].apply(lambda x: x[:(len(x) - 1)])
