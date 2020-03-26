@@ -78,7 +78,7 @@ class PoloRankModel():
         )
         LOGGER.debug('Model predictions length: %s', len(model_predictions))
 
-        model_predictions = capitalize_column_names(model_predictions)
+        model_predictions = df.rename_in_upper_case(model_predictions)
 
         self._archive_pruned_model_input_data(pruned_model_input_data)
 

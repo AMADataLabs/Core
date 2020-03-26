@@ -9,9 +9,7 @@ import warnings
 import pandas as pd
 
 import datalabs.curate.wslive as wslive
-
-# Sandbox/CommonCode/
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 warnings.filterwarnings("ignore")
 
@@ -100,7 +98,7 @@ def match_wslive_result_to_sample(wslive_uniq_me_res_df, init_sample_file_lst):
     for i in range(len(init_sample_file_lst)):
         temp_sample_file = init_sample_file_lst[i]
         temp_sample_df = pd.read_excel(temp_sample_file, index_col=None, header=0, dtype=str)
-        temp_sample_df = capitalize_column_names(temp_sample_df)
+        temp_sample_df = df.rename_in_upper_case(temp_sample_df)
         
         slash_ndx = [i for i in range(len(temp_sample_file)) if temp_sample_file.startswith('/', i)]
         base_name = temp_sample_file[slash_ndx[-1] + 1:]

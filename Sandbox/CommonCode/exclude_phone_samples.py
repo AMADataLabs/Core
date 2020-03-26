@@ -13,7 +13,7 @@ base_path = curr_path[:slash_ndx[-2]+1]
 gen_path = base_path + 'Common_Code\\'
 sys.path.insert(0, gen_path)
 
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -24,7 +24,7 @@ def exclude_phone_samples(curr_sample_df, exclude_list, me_var_name, phone_var_n
     if exclude_list == []:
         return curr_sample_df
 
-    curr_sample_df = capitalize_column_names(curr_sample_df)
+    curr_sample_df = df.rename_in_upper_case(curr_sample_df)
     phone_var_name = phone_var_name.upper()
     curr_sample_df[me_var_name] = curr_sample_df[me_var_name].astype('str')
     curr_sample_df[phone_var_name] = curr_sample_df[phone_var_name].astype('str')
@@ -39,7 +39,7 @@ def exclude_phone_samples(curr_sample_df, exclude_list, me_var_name, phone_var_n
         else:
             temp_df = pd.read_excel(file, index_col = None, header = 0, dtype = str)
         
-        temp_df = capitalize_column_names(temp_df)
+        temp_df = df.rename_in_upper_case(temp_df)
                     
         temp_df['me_phone'] = temp_df[me_var_name] + '-' + temp_df[phone_var_name]
         

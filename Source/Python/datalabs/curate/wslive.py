@@ -2,10 +2,10 @@ import datetime
 
 import pandas as pd
 
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 def standardize(data):
-    data = capitalize_column_names(data)
+    data = df.rename_in_upper_case(data)
 
     data = masterfile_sourced_records(data)
 

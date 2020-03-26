@@ -22,7 +22,7 @@ from filter_bad_phones import get_good_bad_phones
 from get_ddb_logins import get_ddb_logins
 from get_edw_db_tables import get_npi_me_mapping, get_edw_connection
 from select_files import select_files
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 from get_aims_db_tables import get_no_contacts, get_entity_me_key, get_aims_connection
 
 gen_path = base_path + 'CommonModelCode\\'
@@ -112,7 +112,7 @@ AIMS_conn.close()
    
 # Load PPD csv file
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
-ppd_df = capitalize_column_names(ppd_df)
+ppd_df = df.rename_in_upper_case(ppd_df)
 
 ppd_ent_key_df = ppd_df.merge(entity_key_df, how='inner', left_on='ME', right_on='me')
 
@@ -137,7 +137,7 @@ ppd_npi_df = npi_me_df.merge(ppd_contact_df, how='inner', on='ME')
 
 # Extract only DHC entries that are not registered in the Do Not Call Registry
 dhc_ok_df = dhc_df[dhc_df['Do Not Call Registry'] != 'Registered']
-dhc_ok_df = capitalize_column_names(dhc_ok_df)
+dhc_ok_df = df.rename_in_upper_case(dhc_ok_df)
 
 
 print('Total number of DHC entries: {}'.format(dhc_df.shape[0]))
