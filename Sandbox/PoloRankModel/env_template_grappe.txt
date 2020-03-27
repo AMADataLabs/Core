@@ -1,9 +1,28 @@
 # 1. Make a copy of this file named ".env"
 # 2. Replace  {{ repository_dir }} with the path to your hsg-data-labs repository clone
 
+# Repository Settings
+DATALABS_PYTHONPATH='{{ repository_dir }}/Source/Python:{{ repository_dir }}/Sandbox/CommonCode:{{ repository_dir }}/Sandbox/CommonModelCode'
+
+# Database Settings
+DATABASE_NAME_AIMS='aims_prod'
+CREDENTIALS_AIMS_USERNAME='{{ aims_username }}
+CREDENTIALS_AIMS_USERNAME='{{ aims_password }}
+
+DATABASE_NAME_EDW='PRDDW'       # Test: etstods
+CREDENTIALS_EDW_USERNAME='{{ edw_username }}
+CREDENTIALS_EDW_USERNAME='{{ edw_password }}
+
+DATABASE_NAME_DATAMART='PRDDM'
+CREDENTIALS_DATAMART_USERNAME='{{ datamart_username }}
+CREDENTIALS_DATAMART_USERNAME='{{ datamart_password }}
+
+DATABASE_NAME_ODS='eprdods'     # Test: etstods
+CREDENTIALS_ODS_USERNAME='{{ ods_username }}
+CREDENTIALS_ODS_USERNAME='{{ ods_password }}
+
 # Project Settings
 PROJECT_NAME='PoloRankModel'
-DATALABS_PYTHONPATH='{{ repository_dir }}/Source/Python:{{ repository_dir }}/Sandbox/CommonCode:{{ repository_dir }}/Sandbox/CommonModelCode'
 
 # PPD Input Data
 PPD_FILE='C:/Users/glappe/Documents/udrive/Data/PPD/ppd_data_20200222.csv'

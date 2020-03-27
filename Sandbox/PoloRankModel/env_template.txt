@@ -1,6 +1,12 @@
+# General Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+DATABASE_NAME_EDW='PRDDW'       # Test: etstods
+DATABASE_NAME_AIMS='aims_prod'
+DATABASE_NAME_ODS='eprdods'     # Test: etstods
+DATABASE_NAME_DATAMART='PRDDM'
+
 # Project Settings
 PROJECT_NAME='PoloRankModel'
-DATALABS_PYTHONPATH='{{ pythonpath }}'
 
 # PPD Input Data
 PPD_FILE='U:/Source Files/Data Analytics/Data-Science/Data/PPD/ppd_data_20200222.csv'
