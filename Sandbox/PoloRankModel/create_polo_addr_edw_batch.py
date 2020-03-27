@@ -16,7 +16,7 @@ base_path = curr_path[:slash_ndx[-2]+1]
 gen_path = base_path + 'CommonCode\\'
 sys.path.insert(0, gen_path)
 
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 from get_ddb_logins import get_ddb_logins
 from get_edw_db_tables import get_party_keys, get_edw_connection, get_edw_post_addr_data
 
@@ -43,7 +43,7 @@ out_dir += "\\"
 
 
 ranked_df = pd.read_csv(ranked_file, delimiter = ",", index_col = None, header = 0, dtype = str)
-ranked_df = capitalize_column_names(ranked_df)
+ranked_df = df.rename_in_upper_case(ranked_df)
 
 
 # Get ddb login information

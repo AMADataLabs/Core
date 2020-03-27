@@ -19,7 +19,7 @@ sys.path.insert(0, gen_path)
 from get_input_date_range import get_input_date_range
 from select_files import select_files
 from combine_data import combine_data
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -52,11 +52,11 @@ start_time_str = current_time.strftime("%Y-%m-%d")
 # Read in samples sent
 if len(sample_paths) > 0:
     sample_df = combine_data(sample_paths, None, 0)
-    sample_df = capitalize_column_names(sample_df)
+    sample_df = df.rename_in_upper_case(sample_df)
 
 # Read in wslive data
 wslive_results_df = pd.read_csv(wslive_results_file, delimiter = ",", index_col = None, header = 0, dtype = str)
-wslive_results_df = capitalize_column_names(wslive_results_df)
+wslive_results_df = df.rename_in_upper_case(wslive_results_df)
 
 # Get data for date range specified
 wslive_results_df['WSLIVE_FILE_DT'] = pd.to_datetime(wslive_results_df['WSLIVE_FILE_DT'])

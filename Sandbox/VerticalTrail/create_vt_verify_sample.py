@@ -20,7 +20,7 @@ from select_files import select_files
 from exclude_phone_samples import exclude_phone_samples
 from get_ddb_logins import get_ddb_logins
 from get_aims_db_tables import get_pe_description, get_aims_connection
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -97,7 +97,7 @@ if vt_response_file.find('.csv') >= 0:
     vt_resp_df = pd.read_csv(vt_response_file, delimiter=",", index_col=None, header=0, dtype=str)
 else:  
     vt_resp_df = pd.read_excel(vt_response_file, index_col=None, header=0, dtype=str)
-vt_resp_df = capitalize_column_names(vt_resp_df)
+vt_resp_df = df.rename_in_upper_case(vt_resp_df)
 print('Vertical Trail response Size: {}'.format(len(vt_resp_df)))
 
 # Read in VT internal version of batch data
@@ -107,7 +107,7 @@ else:
     vt_int_batch_df = pd.read_excel(int_vt_batch_file, index_col=None, header=0, dtype=str)
 if 'me' in list(vt_int_batch_df.columns.values):
     vt_int_batch_df = vt_int_batch_df.rename(columns={'me': 'entity_me'})
-vt_int_batch_df = capitalize_column_names(vt_int_batch_df)
+vt_int_batch_df = df.rename_in_upper_case(vt_int_batch_df)
 if 'DESCRIPTION' in list(vt_int_batch_df.columns.values):
     vt_int_batch_df = vt_int_batch_df.rename(columns={'DESCRIPTION': 'SPEC_DESCRIPTION'})
 
@@ -115,7 +115,7 @@ print('Internal version size: {}'.format(len(vt_int_batch_df)))
 
 # Read PPD and find only non-null TELEPHONE NUMBER entries
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
-ppd_df = capitalize_column_names(ppd_df)
+ppd_df = df.rename_in_upper_case(ppd_df)
 ppd_null_df = ppd_df[ppd_df['TELEPHONE_NUMBER'].isna()]
 
 # Convert med school year to string without decimal point 

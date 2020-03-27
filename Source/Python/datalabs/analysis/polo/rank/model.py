@@ -7,11 +7,11 @@ import warnings
 
 import pandas as pd
 
-from   capitalize_column_names import capitalize_column_names
 from   score_polo_addr_ppd_data import score_polo_ppd_data  # pylint: disable=wrong-import-position
 from   class_model_creation import get_prob_info, get_pred_info  # pylint: disable=wrong-import-position
 from   create_addr_model_input_data import create_ppd_scoring_data  # pylint: disable=wrong-import-position
 from   datalabs.analysis.exception import InvalidDataException
+import datalabs.curate.dataframe as df
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ class PoloRankModel():
         )
         LOGGER.debug('Model predictions length: %s', len(model_predictions))
 
-        model_predictions = capitalize_column_names(model_predictions)
+        model_predictions = df.rename_in_upper_case(model_predictions)
 
         self._archive_pruned_model_input_data(pruned_model_input_data)
 

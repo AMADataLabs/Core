@@ -1,34 +1,17 @@
 # Kari Palmier    10/9/19    Created
 #
 #############################################################################
-import pandas as pd
 import datetime
-
-import warnings
-warnings.filterwarnings("ignore")
-
-# Get path of general (common) code and add it to the python path variable
-import sys
 import os
-# curr_path = os.path.abspath(__file__)
-# slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-# base_path = curr_path[:slash_ndx[-2]+1]
-# gen_path = base_path + 'Common_Code\\'
-# sys.path.insert(0, gen_path)
+import sys
+import warnings
 
-#from get_aims_db_tables get_aims_connection, import get_no_contacts, get_pe_description
-from capitalize_column_names import capitalize_column_names
+import pandas as pd
 
+import datalabs.curate.wslive as wslive
+import datalabs.curate.dataframe as df
 
-def get_latest_uniq_wslive(wslive_df):
-    
-    wslive_df = capitalize_column_names(wslive_df)
-    wslive_df['WSLIVE_FILE_DT'] = pd.to_datetime(wslive_df['WSLIVE_FILE_DT'])
-    wslive_df = wslive_df[wslive_df['SOURCE'].isin(['C', 'Z', 'CR'])]
-    wslive_uniq_df = wslive_df.sort_values(['WSLIVE_FILE_DT'],
-                                           ascending  = False).groupby('PHYSICIAN_ME_NUMBER').first().reset_index()
-    
-    return wslive_uniq_df
+warnings.filterwarnings("ignore")
 
 
 def rename_wslive_init_smpl_cols(wslive_init_df):
@@ -62,8 +45,11 @@ def get_wslive_ppd_res_data(wslive_df, ppd_df):
                         'WSLIVE_FILE_DT', 'WS_MONTH', 'COMMENTS', 'SPECIALTY', 
                         'PRESENT_EMPLOYMENT_CODE', 'ADDR_STATUS', 'PHONE_STATUS', 'FAX_STATUS',
                         'SPEC_STATUS', 'PE_STATUS', 'NEW_METRIC', 'PPD_DATE', 'SOURCE']
-    
-    wslive_uniq_df = get_latest_uniq_wslive(wslive_df)
+
+    # TODO: This should be part of the cleaning stage so we have standardized input data
+    wslive_df = wslive.standardize(wslive_df)
+
+    wslive_uniq_df = wslive.most_recent_by_me_number(wslive_df)
     
     if 'INIT_POLO_MAILING_LINE_2' in list(wslive_uniq_df.columns.values):
         wslive_uniq_df = wslive_uniq_df[wslive_keep_cols_w_init]
@@ -112,7 +98,7 @@ def match_wslive_result_to_sample(wslive_uniq_me_res_df, init_sample_file_lst):
     for i in range(len(init_sample_file_lst)):
         temp_sample_file = init_sample_file_lst[i]
         temp_sample_df = pd.read_excel(temp_sample_file, index_col=None, header=0, dtype=str)
-        temp_sample_df = capitalize_column_names(temp_sample_df)
+        temp_sample_df = df.rename_in_upper_case(temp_sample_df)
         
         slash_ndx = [i for i in range(len(temp_sample_file)) if temp_sample_file.startswith('/', i)]
         base_name = temp_sample_file[slash_ndx[-1] + 1:]

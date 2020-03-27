@@ -16,7 +16,7 @@ gen_path = base_path + 'Common_Code\\'
 sys.path.insert(0, gen_path)
 
 from get_input_date_range import get_input_date_range
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 gen_path = base_path + 'Common_Model_Code\\'
 sys.path.insert(0, gen_path)
@@ -64,7 +64,7 @@ source_code = ['C', 'Z', 'CR']
 # Read in wslive data
 if data_type == '2':
     wslive_results_df = pd.read_csv(wslive_results_file, delimiter=",", index_col=None, header=0, dtype=str)
-    wslive_results_df = capitalize_column_names(wslive_results_df)
+    wslive_results_df = df.rename_in_upper_case(wslive_results_df)
     
     # Get data for date range specified
     wslive_results_df['WSLIVE_FILE_DT'] = pd.to_datetime(wslive_results_df['WSLIVE_FILE_DT'])
@@ -80,7 +80,7 @@ if wslive_pred_sample_file.find('.csv') >= 0:
 else:
     wslive_pred_sample_df = pd.read_excel(wslive_pred_sample_file, index_col=None, header=0, dtype=str)
     
-wslive_pred_sample_df = capitalize_column_names(wslive_pred_sample_df)
+wslive_pred_sample_df = df.rename_in_upper_case(wslive_pred_sample_df)
 
 
 if data_type == '2':

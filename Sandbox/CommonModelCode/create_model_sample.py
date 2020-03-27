@@ -16,7 +16,7 @@ gen_path = base_path + 'CommonCode\\'
 sys.path.insert(0, gen_path)
 
 from filter_bad_phones import get_good_bad_phones
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -194,7 +194,7 @@ def get_phone_sample(model_pred_df, sample_bin_lls, sample_bin_uls, samples_per_
              
 def format_phone_sample_cols(sample_df, sample_vars):
     
-    sample_df = capitalize_column_names(sample_df)
+    sample_df = df.rename_in_upper_case(sample_df)
     cap_sample_vars = []
 
     for var in sample_vars:

@@ -20,7 +20,7 @@ from get_input_date_range import get_input_date_range
 from get_aims_db_tables import get_ent_comm_phones, get_aims_connection
 from select_files import select_files
 from combine_data import combine_data
-from capitalize_column_names import capitalize_column_names
+import datalabs.curate.dataframe as df
 
 gen_path = base_path + 'Common_Model_Code\\'
 sys.path.insert(0, gen_path)
@@ -121,11 +121,11 @@ entity_comm_uniq_df = entity_comm_me_df.sort_values(['begin_dt'], ascending = Fa
 
 # Read in samples sent
 sample_df = combine_data(sample_paths, None, 0)
-sample_df = capitalize_column_names(sample_df)
+sample_df = df.rename_in_upper_case(sample_df)
 
 # Read in wslive data
 wslive_results_df = pd.read_csv(wslive_results_file, delimiter=",", index_col=None, header=0, dtype=str)
-wslive_results_df = capitalize_column_names(wslive_results_df)
+wslive_results_df = df.rename_in_upper_case(wslive_results_df)
 
 # Join results with sample sent on ME
 wslive_res_smpl_df = wslive_results_df.merge(sample_df, how='inner', left_on='PHYSICIAN_ME_NUMBER',
