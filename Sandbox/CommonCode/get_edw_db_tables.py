@@ -4,7 +4,7 @@
 import pandas as pd
 import pyodbc
 
-from remove_col_whitespace import remove_col_whitespace
+import datalabs.curate.dataframe as df
 
 
 def get_edw_connection(username, password):
@@ -39,7 +39,7 @@ def get_npi_me_mapping(EDW_conn):
         """    
     npi_me_df = pd.read_sql(npi_me_query, EDW_conn)
     
-    npi_me_df = remove_col_whitespace(npi_me_df)
+    npi_me_df = df.strip(npi_me_df)
 
     return npi_me_df
 
@@ -56,7 +56,7 @@ def get_party_keys(EDW_conn, key_type_id):
         
     party_key_df = pd.read_sql(party_key_query, EDW_conn)
     
-    party_key_df = remove_col_whitespace(party_key_df)
+    party_key_df = df.strip(party_key_df)
 
     return party_key_df
 
@@ -72,7 +72,7 @@ def get_active_gradschool_name(EDW_conn):
         """    
     act_grad_name_df = pd.read_sql(act_grad_name_query, EDW_conn)
     
-    act_grad_name_df = remove_col_whitespace(act_grad_name_df)
+    act_grad_name_df = df.strip(act_grad_name_df)
 
     return act_grad_name_df
 
@@ -89,6 +89,6 @@ def get_edw_post_addr_data(EDW_conn):
         """    
     addr_df = pd.read_sql(addr_query, EDW_conn)
     
-    addr_df = remove_col_whitespace(addr_df)
+    addr_df = df.strip(addr_df)
 
     return addr_df

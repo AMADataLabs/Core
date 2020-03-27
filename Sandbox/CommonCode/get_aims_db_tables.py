@@ -1,20 +1,14 @@
 # Kari Palmier    Created 8/8/19
 #
 #############################################################################
+import os
+import sys
 
 import pandas as pd
 import pyodbc
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
+import datalabs.curate.dataframe as df
 
-from remove_col_whitespace import remove_col_whitespace
 
 
 def format_list_for_sql(lst):
@@ -45,7 +39,7 @@ def get_entity_me_key(AIMS_conn):
         
     entity_key_df = pd.read_sql(entity_key_query, AIMS_conn)
     
-    entity_key_df = remove_col_whitespace(entity_key_df)
+    entity_key_df = df.strip(entity_key_df)
     
     return entity_key_df
 
@@ -69,7 +63,7 @@ def get_ent_comm_phones(AIMS_conn):
     
     entity_comm_me_df = entity_comm_df.merge(entity_key_df, how = 'inner', on = 'entity_id')
     
-    entity_comm_me_df = remove_col_whitespace(entity_comm_me_df)
+    entity_comm_me_df = df.strip(entity_comm_me_df)
 
     return entity_comm_me_df
 
@@ -90,7 +84,7 @@ def get_comm_usg_preferred_phones(AIMS_conn):
     
     ent_comm_usg_me_df = entity_comm_usg_df.merge(entity_key_df, how = 'inner', on = 'entity_id')
 
-    ent_comm_usg_me_df = remove_col_whitespace(ent_comm_usg_me_df)
+    ent_comm_usg_me_df = df.strip(ent_comm_usg_me_df)
 
     return ent_comm_usg_me_df
 
@@ -111,7 +105,7 @@ def get_comm_usg_all_phones(AIMS_conn):
     
     ent_comm_usg_me_df = entity_comm_usg_df.merge(entity_key_df, how = 'inner', on = 'entity_id')
 
-    ent_comm_usg_me_df = remove_col_whitespace(ent_comm_usg_me_df)
+    ent_comm_usg_me_df = df.strip(ent_comm_usg_me_df)
 
     return ent_comm_usg_me_df
 
@@ -135,7 +129,7 @@ def get_active_licenses(AIMS_conn):
         """    
     license_df = pd.read_sql(license_query, AIMS_conn)
     
-    license_df = remove_col_whitespace(license_df)
+    license_df = df.strip(license_df)
 
     return license_df
    
@@ -152,7 +146,7 @@ def get_no_contacts(AIMS_conn):
         """    
     no_contact_df = pd.read_sql(no_contact_query, AIMS_conn)
     
-    no_contact_df = remove_col_whitespace(no_contact_df)
+    no_contact_df = df.strip(no_contact_df)
 
     return no_contact_df
    
@@ -166,7 +160,7 @@ def get_pe_description(AIMS_conn):
        """    
     pe_desc_df = pd.read_sql(pe_desc_query, AIMS_conn)
     
-    pe_desc_df = remove_col_whitespace(pe_desc_df)
+    pe_desc_df = df.strip(pe_desc_df)
 
     return pe_desc_df
    
@@ -180,7 +174,7 @@ def get_spec_description(AIMS_conn):
        """    
     spec_desc_df = pd.read_sql(spec_desc_query, AIMS_conn)
     
-    spec_desc_df = remove_col_whitespace(spec_desc_df)
+    spec_desc_df = df.strip(spec_desc_df)
 
     return spec_desc_df
 
@@ -199,7 +193,7 @@ def get_all_ent_comm_addrs(AIMS_conn):
     
     entity_comm_me_df = entity_comm_df.merge(entity_key_df, how = 'inner', on = 'entity_id')
     
-    entity_comm_me_df = remove_col_whitespace(entity_comm_me_df)
+    entity_comm_me_df = df.strip(entity_comm_me_df)
 
     return entity_comm_me_df
 
@@ -218,7 +212,7 @@ def get_all_comm_usg_addrs(AIMS_conn):
     
     ent_comm_usg_me_df = entity_comm_usg_df.merge(entity_key_df, how = 'inner', on = 'entity_id')
 
-    ent_comm_usg_me_df = remove_col_whitespace(ent_comm_usg_me_df)
+    ent_comm_usg_me_df = df.strip(ent_comm_usg_me_df)
 
     col_names = ent_comm_usg_me_df.columns.values
     new_col_dict = {}
@@ -243,7 +237,7 @@ def get_all_post_addr_at(AIMS_conn):
         """    
     post_addr_df = pd.read_sql(post_addr_query, AIMS_conn)       
     
-    post_addr_df = remove_col_whitespace(post_addr_df)
+    post_addr_df = df.strip(post_addr_df)
     
     return post_addr_df
 
@@ -268,7 +262,7 @@ def get_me_ent_comm_addrs(AIMS_conn, me_lst):
     
     entity_comm_me_df = entity_comm_df.merge(entity_key_df, how = 'inner', on = 'entity_id')
     
-    entity_comm_me_df = remove_col_whitespace(entity_comm_me_df)
+    entity_comm_me_df = df.strip(entity_comm_me_df)
 
     return entity_comm_me_df
 
