@@ -22,14 +22,14 @@ class Credentials():
             Variables are of the form CREDENTIALS_<KEY>_USERNAME='<username>' and
             CREDENTIALS_<KEY>_PASSWORD='<password>'.
         """
-        username = cls._load_credentials_variable('USERNAME', key)
-        password = cls._load_credentials_variable('PASSWORD', key)
+        username = cls._load_credentials_variable(key, 'USERNAME')
+        password = cls._load_credentials_variable(key, 'PASSWORD')
 
         return Credentials(username, password)
 
     @classmethod
-    def _load_credentials_variable(cls, credential_type, key):
-        name = f'CREDENTIALS_{credential_type.upper()}_{key.upper()}'
+    def _load_credentials_variable(cls, key, credential_type):
+        name = f'CREDENTIALS_{key.upper()}_{credential_type.upper()}'
         value = os.environ.get(name)
 
         if value is None:
