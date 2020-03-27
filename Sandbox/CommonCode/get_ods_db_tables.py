@@ -1,20 +1,13 @@
 # Kari Palmier    Created 8/22/19
 #
 #############################################################################
+import os
+import sys
 
-import pandas as pd 
+import pandas as pd
 import pyodbc
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
-
-from remove_col_whitespace import remove_col_whitespace
+import datalabs.curate.dataframe as df
 
 
 def get_ods_connection(username, password):
@@ -55,7 +48,7 @@ def get_iqvia_sample_info(ODS_conn):
         
     iqvia_dpc_df = pd.read_sql(ims_query, ODS_conn)
     
-    iqvia_dpc_df = remove_col_whitespace(iqvia_dpc_df)
+    iqvia_dpc_df = df.strip(iqvia_dpc_df)
     
     return iqvia_dpc_df
 
@@ -89,7 +82,7 @@ def get_iqvia_all_phys_info(ODS_conn):
         
     iqvia_dpc_df = pd.read_sql(ims_query, ODS_conn)
     
-    iqvia_dpc_df = remove_col_whitespace(iqvia_dpc_df)
+    iqvia_dpc_df = df.strip(iqvia_dpc_df)
     
     return iqvia_dpc_df
 
@@ -125,7 +118,7 @@ def get_symphony_sample_info(ODS_conn):
     sym_dpc_df['SYM_FAX_NUMBER'] = sym_dpc_df['SYM_FAX_ORIG'].apply(lambda x: x.replace('(', 
               '').replace(')', '').replace(' ', '').replace('-', '') if x != None else x)
     
-    sym_dpc_df = remove_col_whitespace(sym_dpc_df)
+    sym_dpc_df = df.strip(sym_dpc_df)
     
     return sym_dpc_df
 
@@ -159,7 +152,7 @@ def get_symphony_all_phys_info(ODS_conn):
     sym_dpc_df['SYM_FAX_NUMBER'] = sym_dpc_df['SYM_FAX_ORIG'].apply(lambda x: x.replace('(', 
               '').replace(')', '').replace(' ', '').replace('-', '') if x != None else x)
     
-    sym_dpc_df = remove_col_whitespace(sym_dpc_df)
+    sym_dpc_df = df.strip(sym_dpc_df)
     
     return sym_dpc_df
 

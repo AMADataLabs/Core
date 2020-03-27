@@ -1,4 +1,4 @@
-import datetime
+""" Utility functions for curating WSLive/Humach survey results data. """
 
 import pandas as pd
 

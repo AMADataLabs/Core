@@ -24,7 +24,7 @@ clean-test:
 	rm -f ${CWD}/Test/Python/datalabs/test/environment/*_template.txt
 
 lint:
-	${RUN} pylint ${CWD}/Source/Python/*
+	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/*
 
 pythonpath:
 	${RUN} printenv PYTHONPATH

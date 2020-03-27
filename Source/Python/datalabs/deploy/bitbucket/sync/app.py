@@ -1,8 +1,12 @@
+""" Main BitBucket sync application module. """
+
 import logging
 from   pathlib import Path
 import subprocess
 
-from flask import Flask, request, session, abort, jsonify
+from flask import Flask
+
+import datalabs.deploy.bitbucket.sync.trigger as trigger
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -20,10 +24,8 @@ def start():
 
 
 def _register_blueprints(app):
-    import datalabs.deploy.bitbucket.sync.trigger as trigger
-
-    app.register_blueprint(trigger.routes)
-    app.register_blueprint(trigger.routes, url_prefix='/trigger')
+    app.register_blueprint(trigger.ROUTES)
+    app.register_blueprint(trigger.ROUTES, url_prefix='/trigger')
 
 def _generate_ssh_key_and_print():
     key_path = Path('/root/.ssh/id_rsa')
