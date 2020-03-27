@@ -1,3 +1,5 @@
+""" Database object for HSG DataMart """
+
 import datalabs.access.database as db
 
 

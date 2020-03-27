@@ -1,3 +1,5 @@
+""" BitBucket synchronization objects. """
+
 from   collections import namedtuple
 import logging
 import os
@@ -28,7 +30,10 @@ class BitBucketSynchronizer():
 
     def sync(self, request_data: dict):
         data = self._validate_request_data(request_data)
-        LOGGER.info('Processing push to "%s" branch of repository "%s" under project "%s".', data.branch, data.repository, data.project)
+        LOGGER.info(
+            'Processing push to "%s" branch of repository "%s" under project "%s".',
+            data.branch, data.repository, data.project
+        )
 
         with tempfile.TemporaryDirectory() as temp_directory:
             os.chdir(temp_directory)
@@ -43,9 +48,15 @@ class BitBucketSynchronizer():
             LOGGER.info('-- Syncing --')
             self._sync_branch_to_cloud(data.branch, data.action)
 
-        LOGGER.info('Done syncing "%s" branch of repository "%s" under project "%s".', data.branch, data.repository, data.project)
+        LOGGER.info(
+            'Done syncing "%s" branch of repository "%s" under project "%s".',
+            data.branch, data.repository, data.project
+        )
 
-        return {'actor': data.actor, 'project': data.project, 'repository': data.repository, 'branch': data.branch, 'action': data.action}
+        return {
+            'actor': data.actor, 'project': data.project, 'repository': data.repository,
+            'branch': data.branch, 'action': data.action
+        }
 
     def _validate_request_data(self, request_data):
         actor = self._validate_actor(request_data.get('actor'))
@@ -57,7 +68,9 @@ class BitBucketSynchronizer():
         return ValidatedData(actor=actor, project=project, repository=repository, branch=branch, action=action)
 
     def _clone_on_premises_branch(self, branch, action):
-        command = f'git clone --single-branch -b {"master" if action == "DELETE" else branch} {self._config.url_on_prem}'
+        command = 'git clone --single-branch -b {} {}'.format(
+            "master" if action == "DELETE" else branch, self._config.url_on_prem
+        )
 
         subprocess.call(command.split(' '))
 
@@ -74,15 +87,18 @@ class BitBucketSynchronizer():
 
         self._push_branch_to_cloud(branch, delete=delete)
 
-    def _push_branch_to_cloud(self, branch, delete=False):
+    @classmethod
+    def _push_branch_to_cloud(cls, branch, delete=False):
         command = f'git push cloud --force {"--delete " if delete else ""}{branch}'
 
         subprocess.call(command.split(' '))
 
-    def _validate_actor(self, actor):
+    @classmethod
+    def _validate_actor(cls, actor):
         if actor is None:
             raise exceptions.BadRequest('No actor information.')
-        elif 'name' not in actor:
+
+        if 'name' not in actor:
             raise exceptions.BadRequest('Bad actor information.')
 
         return actor['name']
@@ -110,7 +126,8 @@ class BitBucketSynchronizer():
     def _validate_repository_name(self, repository_name):
         if repository_name is None:
             raise exceptions.BadRequest('Bad repository information.')
-        elif self._repository_name != repository_name:
+
+        if self._repository_name != repository_name:
             raise exceptions.BadRequest(f'Unsupported repository "{repository_name}".')
 
         return repository_name
@@ -121,13 +138,15 @@ class BitBucketSynchronizer():
 
         return self._validate_project_name(project.get('key').lower())
 
-    def _validate_ref(self, ref):
+    @classmethod
+    def _validate_ref(cls, ref):
         if ref is None or 'displayId' not in ref:
             raise exceptions.BadRequest('Bad pushed changes information.')
 
         return ref['displayId']
 
-    def _validate_type(self, change_type):
+    @classmethod
+    def _validate_type(cls, change_type):
         if change_type is None or change_type not in ['ADD', 'UPDATE', 'DELETE']:
             raise exceptions.BadRequest('Bad pushed changes information.')
 
@@ -136,7 +155,8 @@ class BitBucketSynchronizer():
     def _validate_project_name(self, project_name):
         if project_name is None:
             raise exceptions.BadRequest('Bad repository information.')
-        elif self._project_name != project_name:
+
+        if self._project_name != project_name:
             raise exceptions.BadRequest(f'Unsupported project "{project_name}".')
 
         return project_name

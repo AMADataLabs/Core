@@ -6,20 +6,20 @@ DATALABS_PYTHONPATH='{{ repository_dir }}/Source/Python:{{ repository_dir }}/San
 
 # Database Settings
 DATABASE_NAME_AIMS='aims_prod'
-CREDENTIALS_AIMS_USERNAME='{{ aims_username }}
-CREDENTIALS_AIMS_USERNAME='{{ aims_password }}
+CREDENTIALS_AIMS_USERNAME='{{ aims_username }}'
+CREDENTIALS_AIMS_USERNAME='{{ aims_password }}'
 
 DATABASE_NAME_EDW='PRDDW'       # Test: etstods
-CREDENTIALS_EDW_USERNAME='{{ edw_username }}
-CREDENTIALS_EDW_USERNAME='{{ edw_password }}
+CREDENTIALS_EDW_USERNAME='{{ edw_username }}'
+CREDENTIALS_EDW_USERNAME='{{ edw_password }}'
 
 DATABASE_NAME_DATAMART='PRDDM'
-CREDENTIALS_DATAMART_USERNAME='{{ datamart_username }}
-CREDENTIALS_DATAMART_USERNAME='{{ datamart_password }}
+CREDENTIALS_DATAMART_USERNAME='{{ datamart_username }}'
+CREDENTIALS_DATAMART_USERNAME='{{ datamart_password }}'
 
 DATABASE_NAME_ODS='eprdods'     # Test: etstods
-CREDENTIALS_ODS_USERNAME='{{ ods_username }}
-CREDENTIALS_ODS_USERNAME='{{ ods_password }}
+CREDENTIALS_ODS_USERNAME='{{ ods_username }}'
+CREDENTIALS_ODS_USERNAME='{{ ods_password }}'
 
 # Project Settings
 PROJECT_NAME='PoloRankModel'

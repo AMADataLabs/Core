@@ -1,3 +1,5 @@
+""" Database object for ODS """
+
 import datalabs.access.database as db
 
 

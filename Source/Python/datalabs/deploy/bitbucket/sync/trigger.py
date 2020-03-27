@@ -1,10 +1,11 @@
+""" BitBucket sync trigger route. """
+
 import logging
 import os
-import flask
 import hashlib
 import hmac
 
-import settings
+import flask
 import werkzeug.exceptions as exceptions
 
 import datalabs.deploy.bitbucket.sync.sync as sync
@@ -13,10 +14,10 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-routes = flask.Blueprint('trigger', __name__)
+ROUTES = flask.Blueprint('trigger', __name__)
 
 
-@routes.route('/', methods=['POST'])
+@ROUTES.route('/', methods=['POST'])
 def sync_bitbucket():
     request_signature = flask.request.headers.get('X-Hub-Signature')
 
