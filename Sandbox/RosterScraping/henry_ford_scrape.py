@@ -68,4 +68,4 @@ for num in NUM_LIST:
 with open(f'{OUT_DIRECTORY}Henry_Ford_Text_{TODAY}.txt', 'w') as outfile:
     json.dump(TEXT_LIST, outfile)
 
-pd.DataFrame(DICT_LIST).to_csv(f'{OUT_DIRECTORY}Henry_Ford_Scrape_{TODAY}.csv', index= False)
+pd.DataFrame(DICT_LIST).to_csv(f'{OUT_DIRECTORY}Henry_Ford_Scrape_{TODAY}.csv', index=False)
