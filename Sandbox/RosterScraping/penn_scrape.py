@@ -128,13 +128,15 @@ def get_location_info(link_df):
 
 LINKS, LINK_TEXT = get_links()
 LINK_DF = pd.DataFrame(LINKS)
-LOC_LIST, LOC_TEXT = get_location_info(LINK_DF)
-LOC_DF = pd.DataFrame(LOC_LIST)
+# LOC_LIST, LOC_TEXT = get_location_info(LINK_DF)
+# LOC_DF = pd.DataFrame(LOC_LIST)
 
 with open(f'{OUT_DIRECTORY}Penn_Link_Text_{TODAY}.txt', 'w') as outfile:
     json.dump(LINK_TEXT, outfile)
 
-with open(f'{OUT_DIRECTORY}Penn_Loc_Text_{TODAY}.txt', 'w') as outfile:
-    json.dump(LOC_TEXT, outfile)
+# with open(f'{OUT_DIRECTORY}Penn_Loc_Text_{TODAY}.txt', 'w') as outfile:
+#     json.dump(LOC_TEXT, outfile)
 
-pd.merge(LOC_DF, LINK_DF, on='LINK').to_csv(f'{OUT_DIRECTORY}Penn_Scrape_{TODAY}.csv', index=False)
+# pd.merge(LOC_DF, LINK_DF, on='LINK').to_csv(f'{OUT_DIRECTORY}Penn_Scrape_{TODAY}.csv', index=False)
+
+LINK_DF.to_csv(f'{OUT_DIRECTORY}Penn_Scrape_{TODAY}.csv', index=False)
