@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 bucket  = 'pa-data-output-file-csv'
-file_name = sample
+file_name = 'sample'
 def scrape():
     NUM_LIST = list(range(1, 474))
 
