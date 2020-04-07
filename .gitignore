@@ -10,3 +10,7 @@
 **/Environment/*/share/
 **/Environment/*/src/
 **/Environment/*/xgboost/
+
+.idea
+
+
