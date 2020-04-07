@@ -21,6 +21,9 @@ class Database():
         )
         self._connection.execute('SET ISOLATION TO DIRTY READ;')
 
+    def close(self):
+        self._connection.close()
+
     def read(self, sql: str):
         return pandas.read_sql(sql, self._connection)
 

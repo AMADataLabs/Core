@@ -1,24 +1,18 @@
 # Kari Palmier    8/30/19    Created
 #
 #############################################################################
-import pandas as pd
+import datetime
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog
-import datetime
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'CommonCode\\'
-sys.path.insert(0, gen_path)
+import pandas as pd
 
-from get_ddb_logins import get_ddb_logins
 from get_aims_db_tables import get_no_contacts, get_active_licenses, get_ent_comm_phones
-from get_aims_db_tables import get_spec_description, get_entity_me_key, get_aims_connection
-from get_edw_db_tables import get_party_keys, get_active_gradschool_name, get_edw_connection
+from get_aims_db_tables import get_spec_description, get_entity_me_key
+import datalabs.access.aims as AIMS
+import datalabs.access.edw as EDW
 import datalabs.curate.dataframe as df
 
 gen_path = base_path + 'CommonModelCode\\'
@@ -102,38 +96,29 @@ start_time_str = current_time.strftime("%Y-%m-%d")
 
 phone_var_name = 'TELEPHONE_NUMBER'
 
-# Get ddb login information
-ddb_login_dict = get_ddb_logins(ddb_info_file)
-
-if 'EDW' not in ddb_login_dict.keys():
-    print('EDW login information not present.')
-    sys.exit()
-
-if 'AIMS' not in ddb_login_dict.keys():
-    print('AIMS login information not present.')
-    sys.exit()
-
-EDW_conn = get_edw_connection(ddb_login_dict['EDW']['username'], ddb_login_dict['EDW']['password'])
-
 print('Starting...')
-
-
 print('Pulling EDW data.')
-party_key_df = get_party_keys(EDW_conn, 23)
-act_grad_name_df = get_active_gradschool_name(EDW_conn)
+edw = EDW()
+
+party_key_df = edw.get_school_ids()
+act_grad_name_df = edw.get_active_medical_school_map()
 
 EDW_conn.close()
 
+
 print('Pulling AIMS data.')
-AIMS_conn = get_aims_connection(ddb_login_dict['AIMS']['username'], ddb_login_dict['AIMS']['password'])
+aims = AIMS()
 
-entity_key_df = get_entity_me_key(AIMS_conn)
-entity_comm_me_df = get_ent_comm_phones(AIMS_conn)
-no_contact_df = get_no_contacts(AIMS_conn)
-active_license_df = get_active_licenses(AIMS_conn)
-spec_desc_df = get_spec_description(AIMS_conn)
+# FIXME: replace with AIMS methods when finished
+entity_key_df = get_entity_me_key(aims._connection)
+entity_comm_me_df = get_ent_comm_phones(aims._connection)
+no_contact_df = get_no_contacts(aims._connection)
+active_license_df = get_active_licenses(aims._connection)
+spec_desc_df = get_spec_description(aims._connection)
 
-AIMS_conn.close()
+ais.close()
+
+
 print('Pulling PPD.')
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
 ppd_df = df.rename_in_upper_case(ppd_df)
@@ -161,7 +146,7 @@ ppd_lic_df['medschool_key'] = ppd_lic_df['MEDSCHOOL_STATE'] + ppd_lic_df['MEDSCH
 
 ppd_party_key_df = ppd_lic_df.merge(party_key_df, how='inner', left_on='medschool_key',  right_on='KEY_VAL')
 
-ppd_med_name_df = ppd_party_key_df.merge(act_grad_name_df, how='inner', on='PARTY_ID')
+ppd_med_name_df = ppd_party_key_df.merge(active_medical_schools, how='inner', on='PARTY_ID')
 
 ppd_spec_desc_df = ppd_med_name_df.merge(spec_desc_df, how='inner', left_on='PRIM_SPEC_CD',
                                          right_on='spec_cd')

@@ -1,5 +1,6 @@
 """ Database object for AIMS """
 import logging
+import re
 
 import pandas
 
@@ -17,27 +18,34 @@ class AIMS(db.Database):
 
         return int(record_count.iloc[0,0])
 
-    def get_me_entity_map(self, chunk_size=100000, order_by='me'):
-        chunks = self._get_me_entity_map_chunks(chunk_size, order_by)
+    def get_me_entity_map(self, chunk_size=100000):
+        chunks = self.read_in_chunks(
+            f"SELECT SKIP {offset} FIRST {chunk_size} key_type_val as me, entity_id "
+            f"FROM entity_key_et WHERE key_type='ME' "
+            chunk_size,
+            'me'
+        )
         data = pandas.concat(chunks, ignore_index=True)
 
         return df.strip(data)
 
-    def _get_me_entity_map_chunks(self, chunk_size, order_by):
+    def read_in_chunks(self, sql, chunk_size, order_by):
         chunks = []
         chunk = pandas.DataFrame([True])
         offset = 0
 
         while not chunk.empty:
-            LOGGER.debug(f'Get ME/entity ID map chunk at offset: {offset}')
-            chunk = self.read(
-                f"SELECT SKIP {offset} FIRST {chunk_size} key_type_val as me, entity_id "
-                f"FROM entity_key_et WHERE key_type='ME' "
-                f"ORDER BY {order_by}"
-            )
+            chunk = self._read_chunk(sql, offset, chunk_size)
 
             if not chunk.empty:
                 chunks.append(chunk)
                 offset += chunk_size
 
         return chunks
+
+    def _read_chunk(self, sql, offset, size):
+            LOGGER.debug(f'Get ME/entity ID map chunk at offset: {offset}')
+            chunk_sql = re.sub('SELECT ', f"SELECT SKIP {offset} FIRST {size} ", sql, flags=re.I)
+                      + f" ORDER BY {order_by}"
+
+            return self.read(chunk_sql)
