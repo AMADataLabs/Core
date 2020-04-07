@@ -42,26 +42,24 @@ for num in NUM_LIST:
             name = 'None'
         print(f"{name} is done!")
         offices = listing.find_all(class_='module-pd-office-item')
-        office_names = []
-        office_addresses = []
         for office in offices:
             try:
-                office_names.append(office.find(class_='office-detail').text.replace('\n', ''))
+                office_name = office.find(class_='office-detail').text.replace('\n', '')
             except:
-                office_names.append('None')
+                office_name = 'None'
             try:
-                office_addresses.append(office.find(class_='map')['href'].split('=')[1])
+                office_address = office.find(class_='map')['href'].split('=')[1]
             except:
-                office_addresses.append('None')
-        new_dict = {
-            'Link': link,
-            'Name': name,
-            'Specialty': specialty,
-            'Phone': phone,
-            'Offices': office_names,
-            'Addresses': office_addresses
-        }
-        DICT_LIST.append(new_dict)
+                office_address = 'None'
+            new_dict = {
+                'Link': link,
+                'Name': name,
+                'Specialty': specialty,
+                'Phone': phone,
+                'Office': office_name,
+                'Address': office_address
+            }
+            DICT_LIST.append(new_dict)
     print(f'Page {num} is done!')
 
 
