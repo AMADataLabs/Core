@@ -37,7 +37,7 @@ def scrape():
               "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York",
               "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
               "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah",
-              "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
+              "Puerto Rico","Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
 
     dict_list = []
     for paragraph in all_pars[6:-10]:
@@ -62,6 +62,7 @@ def scrape():
                 city = info_list[3]
             else:
                 for info in info_list:
+                    info = info.replace(' (presumed)', '')
                     if info.isnumeric() or info == 'age unknown':
                         age = info
                     if info in states:
@@ -69,7 +70,7 @@ def scrape():
                         country = 'USA'
                         city = info_list[-2]
                 if country != 'USA':
-                    country = info_list[-1]
+                    country = info_list[-1].replace(' (presumed)', '')
                     city = info_list[-2]
                 if age != 'None':
                     remain = info_text.split(f'{age},')[1]
@@ -87,13 +88,17 @@ def scrape():
                 if specialty[-1] == ' ':
                     specialty = specialty[:-1]
             if country == 'New York City':
-                country = 'USA'
                 city = 'New York City'
+            if city == 'New York City':
+                country = 'USA'
                 state = 'New York'
             if city == 'Washington':
                 state = 'DC'
                 specialty = specialty.replace(',DC', '')
             if city == 'age unknown':
+                city = 'None'
+            if country == 'None':
+                country = city
                 city = 'None'
         except IndexError as index_error:
             print('Human intervention needed for the following exception:')
@@ -116,5 +121,5 @@ print('Scraping...')
 DICT_LIST = scrape()
 ALL_DATA = pd.DataFrame(DICT_LIST)
 USA_DATA = ALL_DATA[ALL_DATA.COUNTRY == 'USA']
-ALL_DATA.to_csv(f'{OUT_DIRECTORY}Memorium_Scrape_{TODAY}.csv', index=False)
-USA_DATA.to_csv(f'{OUT_DIRECTORY}Memorium_Scrape_USA_{TODAY}.csv', index=False)
+ALL_DATA.to_csv(f'{OUT_DIRECTORY}Memorium_{TODAY}.csv', index=False)
+USA_DATA.to_csv(f'{OUT_DIRECTORY}Memorium_USA_{TODAY}.csv', index=False)

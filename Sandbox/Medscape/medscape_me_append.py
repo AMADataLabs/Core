@@ -21,8 +21,8 @@ print('Scraping...')
 DICT_LIST = scrape()
 ALL_DATA = pd.DataFrame(DICT_LIST)
 USA_DATA = ALL_DATA[ALL_DATA.COUNTRY == 'USA']
-ALL_DATA.to_csv(f'{OUT_DIRECTORY}Memorium_Scrape_{TODAY}.csv', index=False)
-USA_DATA.to_csv(f'{OUT_DIRECTORY}Memorium_Scrape_USA_{TODAY}.csv', index=False)
+ALL_DATA.to_csv(f'{OUT_DIRECTORY}Memorium_{TODAY}.csv', index=False)
+USA_DATA.to_csv(f'{OUT_DIRECTORY}Memorium_USA_{TODAY}.csv', index=False)
 
 def split_names(roster_df):
     '''Splits name column into components'''
@@ -77,8 +77,9 @@ def append_me(roster_df):
 
     data_split['ME'] = mes
     data_me = data_split[data_split.ME != 'None']
-    return data_me
+    return data_split, data_me
 
 print('Matching and appending ME numbers...')
-USA_DATA_ME = append_me(USA_DATA)
-USA_DATA_ME.to_csv(f'{OUT_DIRECTORY}Memorium_Scrape_USA_Physicians_{TODAY}.csv', index=False)
+USA_DATA_SPLIT, USA_DATA_ME = append_me(USA_DATA)
+USA_DATA_ME.to_csv(f'{OUT_DIRECTORY}Memorium_USA_Physicians_{TODAY}.csv', index=False)
+USA_DATA_SPLIT.to_csv(f'{OUT_DIRECTORY}Memorium_USA_ME_{TODAY}.csv', index=False)
