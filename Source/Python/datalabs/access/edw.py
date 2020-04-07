@@ -30,8 +30,8 @@ class EDW(db.Database):
             f"SELECT PARTY_ID, KEY_VAL "
             f"FROM AMAEDW.PARTY_KEY "
             f"WHERE KEY_TYPE_ID={party_key_type.value}",
+            'PARTY_ID',
             chunk_size,
-            'PARTY_ID'
         )
 
         return data.strip(data)
@@ -42,8 +42,8 @@ class EDW(db.Database):
             f"FROM AMAEDW.PARTY_KEY K1, AMAEDW.PARTY_KEY K2 "
             f"WHERE K1.KEY_TYPE_ID={PartyKeyType.ME.value} AND K1.ACTIVE_IND='Y' AND K1.PARTY_ID=K2.PARTY_ID AND "
             f"K2.KEY_TYPE_ID={PartyKeyType.NPI.value} AND K2.ACTIVE_IND='Y'",
+            'PARTY_ID',
             chunk_size,
-            'PARTY_ID'
         )
 
         return data.strip(data)
@@ -53,8 +53,8 @@ class EDW(db.Database):
             f"SELECT PARTY_ID, ORG_NM as MEDSCHOOL_NAME "
             f"FROM AMAEDW.ORG_NM "
             f"WHERE THRU_DT IS NULL",
+            'PARTY_ID',
             chunk_size,
-            'PARTY_ID'
         )
 
         return data.strip(data)
@@ -64,8 +64,8 @@ class EDW(db.Database):
             f"SELECT POST_CD_ID, SRC_POST_KEY, ADDR_1, ADDR_2, CITY, SRC_STATE_CD, POST_CD, POST_CD_PLUS_4 "
             f"FROM AMAEDW.POST_CD P, AMAEDW.STATE S "
             f"P.STATE_ID=S.STATE_ID",
+            'POST_CD_ID',
             chunk_size,
-            'POST_CD_ID'
         )
 
         return data.strip(data)
