@@ -2,22 +2,25 @@
 This script compiles some statistics about medscape data
 '''
 import os
-from datetime import datetime
+from datetime import date
 import pandas as pd
+import matplotlib.pyplot as plt
 
-TODAY = str(datetime.now()).split('.')[0].replace(' ', '_').replace(':', '')
+TODAY = str(date.today())
 
 DIRECTORY = 'U:/Source Files/Data Analytics/Data-Science/Data/Medscape/'
 
-def newest(path):
+def newest(path, text):
     '''Grabs newest filename'''
     files = os.listdir(path)
-    paths = [os.path.join(path, basename) for basename in files if 'USA_ME' in basename]
+    paths = [os.path.join(path, basename) for basename in files if text in basename]
     return max(paths, key=os.path.getctime)
 
-RESULT_DIR = newest(DIRECTORY)
-print(RESULT_DIR)
-DATA = pd.read_csv(RESULT_DIR)
+US_RESULTS = newest(DIRECTORY, 'USA_ME')
+ALL_RESULTS = newest(DIRECTORY, 'm_2')
+
+US_DATA = pd.read_csv(US_RESULTS)
+ALL_DATA = pd.read_csv(ALL_RESULTS)
 
 def get_counts(dataframe):
     '''GET COUNTS'''
@@ -70,29 +73,30 @@ def get_counts(dataframe):
     role_df = pd.DataFrame({'Role':['Physician', 'Nurse', 'Technician', 'PA', 'Administration',
                                     'Other'], 'Count':[phys, nurse, tech, assistant, admin, other]})
     role_plt = role_df.plot.bar(x='Role', y='Count', rot=0,
-                                title='COVID-19 Healthcare Worker Fatalities by Role',
+                                title='COVID-19 Healthcare Worker Fatalities by Role - USA',
                                 color='darkorchid')
     age_df = pd.DataFrame({'Age':['80 and older', '70-79', '60-69', '50-59', '40-49', '30-39',
                                   'under 30', 'Unknown'], 'Count':[eight, seven, six, five, four,
                                                                    three, two, unk]})
-    age_plt = age_df.plot.bar(x='Age', y='Count', rot=0,
-                              title='COVID-19 Healthcare Worker Fatalities by Age',
-                              color='darkorchid')
-    return(role_df, role_plt, age_df, age_plt)
+    return(role_df, role_plt, age_df)
 
-ROLE_DF, ROLE_PLT, AGE_DF, AGE_PLT = get_counts(DATA)
-STATE_DF = DATA.groupby('STATE').count()['NAME']
-STATE_PLT = STATE_DF.plot.bar(title='COVID-19 Healthcare Worker Fatalities by State',
-                              color='darkorchid')
+ROLE_DF, ROLE_PLT, AGE_DF = get_counts(US_DATA)
+plt.savefig(f'{DIRECTORY}ROLE_{TODAY}.png')
+STATE_DF = US_DATA.groupby('STATE').count()['NAME']
+STATE_PLT = STATE_DF.plot.bar(title='COVID-19 Healthcare Worker Fatalities by State - USA',
+                              color='darkorchid', figsize=(15, 10), rot=45, legend=False)
+plt.savefig(f'{DIRECTORY}STATE_{TODAY}.png')
+COUNTRY_DF = ALL_DATA.groupby('COUNTRY').count()['NAME'].sort_values(ascending=False)
+COUNTRY_PLT = COUNTRY_DF.plot.bar(title='COVID-19 Healthcare Worker Fatalities by Country',
+                                  color='darkorchid', figsize=(15, 10), rot=45, legend=False)
+plt.savefig(f'{DIRECTORY}COUNTRY_{TODAY}.png')
+AGE_DF_2 = US_DATA[(US_DATA.AGE != 'age unknown')&(US_DATA.AGE != 'None')][['NAME', 'AGE']]
+AGE_DF_2['AGE'] = AGE_DF_2.AGE.astype(int)
+AGE_PLT = AGE_DF_2.hist(color='darkorchid')
+plt.savefig(f'{DIRECTORY}AGE_{TODAY}.png')
 
 with pd.ExcelWriter(f'{DIRECTORY}USA_Stats_{TODAY}.xlsx') as writer:
     STATE_DF.to_excel(writer, sheet_name='By State')
     ROLE_DF.to_excel(writer, sheet_name='By Role', index=False)
     AGE_DF.to_excel(writer, sheet_name='By Age', index=False)
-
-FIG_1 = AGE_PLT.get_figure()
-FIG_1.savefig(f'{DIRECTORY}AGE_{TODAY}.png')
-FIG_2 = ROLE_PLT.get_figure()
-FIG_2.savefig(f'{DIRECTORY}ROLE_{TODAY}.png')
-FIG_3 = STATE_PLT.get_figure()
-FIG_3.savefig(f'{DIRECTORY}STATE_{TODAY}.png')
+    COUNTRY_DF.to_excel(writer, sheet_name='By Country')
