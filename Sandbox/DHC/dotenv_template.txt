@@ -20,3 +20,15 @@ CREDENTIALS_ODS_PASSWORD='{{ ods_password }}'
 
 # Project Settings
 PROJECT_NAME='DHC'
+
+#DHC data files
+PHYSICIANS_AK_AZ = 'U:/Source Files/Data Analytics/Data-Science/Data/DHC/Downloaded Data/ContactInfo_AK-AZ.csv'
+PHYSICIANS_CA_DE = 'U:/Source Files/Data Analytics/Data-Science/Data/DHC/Downloaded Data/ContactInfo_CA-DE.csv'
+PHYSICIANS_FL_KY = 'U:/Source Files/Data Analytics/Data-Science/Data/DHC/Downloaded Data/ContactInfo_FL-KY.csv'
+PHYSICIANS_LA_NH = 'U:/Source Files/Data Analytics/Data-Science/Data/DHC/Downloaded Data/ContactInfo_LA-NH.csv'
+PHYSICIANS_NJ_OR = 'U:/Source Files/Data Analytics/Data-Science/Data/DHC/Downloaded Data/ContactInfo_NJ-OR.csv'
+PHYSICIANS_PA_TX = 'U:/Source Files/Data Analytics/Data-Science/Data/DHC/Downloaded Data/ContactInfo_PA-TX.csv'
+PHYSICIANS_UT_WY = 'U:/Source Files/Data Analytics/Data-Science/Data/DHC/Downloaded Data/ContactInfo_UT-WY.csv'
+
+#DHC Output Data 
+DHC_OUT_FOLDER='U:/Source Files/Data Analytics/Data-Science/Data/DHC/'
