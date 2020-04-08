@@ -1,14 +1,14 @@
 '''
 This script scrapes the Medscape In Memorium feature
 '''
-from datetime import datetime
+from datetime import date
 import json
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
 
 #Set today
-TODAY = str(datetime.now()).split('.')[0].replace(' ', '_').replace(':', '')
+TODAY = str(date.today())
 
 #Set Output Directory
 OUT_DIRECTORY = 'U:/Source Files/Data Analytics/Data-Science/Data/Medscape/'
@@ -36,7 +36,10 @@ def scrape():
 
     dict_list = []
     no_link_count = 0
+    index = 6
     for paragraph in all_pars[6:-10]:
+        if paragraph.text == "\xa0":
+            continue
         link = 'None'
         name = 'None'
         age = 'None'
@@ -103,8 +106,9 @@ def scrape():
                 city = 'None'
         except IndexError as index_error:
             print('Human intervention needed for the following exception:')
+            print(index)
             print(index_error)
-            print(paragraph.text)
+            print(paragraph)
             print(' ')
         new_dict = {
             'NAME': name,
@@ -117,6 +121,7 @@ def scrape():
             'LINK': link
         }
         dict_list.append(new_dict)
+        index += 1
     print(f'{len(dict_list)} total healthcare workers')
     print(f'{no_link_count} have no link')
     return dict_list
