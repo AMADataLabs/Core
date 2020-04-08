@@ -7,7 +7,7 @@ import pandas as pd
 import dotenv
 import pyodbc
 
-ENV_PATH = 'F:\hsg-data-labs\Sandbox\DHC\env_template.env'
+ENV_PATH = 'C:\hsg-data-labs\Sandbox\DHC\env_template.env'
 dotenv.load_dotenv(dotenv_path=ENV_PATH)
 
 #Set today

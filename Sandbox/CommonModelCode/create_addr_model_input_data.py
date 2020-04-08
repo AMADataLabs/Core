@@ -2,8 +2,6 @@
 #
 #############################################################################
 import logging
-import os
-import sys
 import warnings
 
 from   datalabs.analysis.exception import BadDataFrameMerge
@@ -12,10 +10,8 @@ import datalabs.curate.dataframe as df
 from get_wslive_res_init_ppd_info import match_wslive_result_to_sample, create_wslive_ppd_data
 
 from rename_model_cols import rename_ppd_columns
-from rename_entity_cols import rename_comm_cols
 
 from get_entity_ppd_info import set_entity_dates, assign_lic_end_dates, create_general_key
-from get_entity_ppd_info import clean_ent_comm_data, clean_addr_data, clean_ent_usg_data
 from get_entity_ppd_info import create_ent_me_data
 
 warnings.filterwarnings("ignore")
@@ -41,7 +37,7 @@ def get_non_po_box(data_df, addr_var_list):
 # returns df of records with POLO eligible addresses
 def get_polo_eligible(entity_data_df, addr_var_list):
     LOGGER.debug('GET_POLO_ELIGIBLE')
-    assert len(e*ntity_data_df) > 0
+    assert len(entity_data_df) > 0
     eligible_comm_types = ['OF', 'HO', 'GROUP']
     eligible_comm_srcs = ['AMC', 'GROUP', 'MBSHP-WEB', 'PHONE-CALL', 'PPA', 'WHITE-MAIL', 'E-MAIL',
                           'MBSHP-MAIL', 'OLDCC', 'PHNSURV', 'USC-OUTBND', 'CME-REG', 'LOCK_BOX',
