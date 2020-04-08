@@ -79,24 +79,30 @@ def get_counts(dataframe):
                                   'under 30', 'Unknown'], 'Count':[eight, seven, six, five, four,
                                                                    three, two, unk]})
     return(role_df, role_plt, age_df)
-
+#Roles
 ROLE_DF, ROLE_PLT, AGE_DF = get_counts(US_DATA)
 plt.savefig(f'{DIRECTORY}ROLE_{TODAY}.png')
-STATE_DF = US_DATA.groupby('STATE').count()['NAME']
+plt.close()
+#State breakdown
+STATE_DF = US_DATA.groupby('STATE').count()['NAME'].sort_values(ascending=False)
 STATE_PLT = STATE_DF.plot.bar(title='COVID-19 Healthcare Worker Fatalities by State - USA',
                               color='darkorchid', figsize=(15, 10), rot=45, legend=False)
 plt.savefig(f'{DIRECTORY}STATE_{TODAY}.png')
+plt.close()
+#Country breakdown
 COUNTRY_DF = ALL_DATA.groupby('COUNTRY').count()['NAME'].sort_values(ascending=False)
 COUNTRY_PLT = COUNTRY_DF.plot.bar(title='COVID-19 Healthcare Worker Fatalities by Country',
                                   color='darkorchid', figsize=(15, 10), rot=45, legend=False)
 plt.savefig(f'{DIRECTORY}COUNTRY_{TODAY}.png')
+plt.close()
+#Age breakdown
 AGE_DF_2 = US_DATA[(US_DATA.AGE != 'age unknown')&(US_DATA.AGE != 'None')][['NAME', 'AGE']]
 AGE_DF_2['AGE'] = AGE_DF_2.AGE.astype(int)
 AGE_PLT = AGE_DF_2.hist(color='darkorchid')
 plt.savefig(f'{DIRECTORY}AGE_{TODAY}.png')
-
+plt.close()
 with pd.ExcelWriter(f'{DIRECTORY}USA_Stats_{TODAY}.xlsx') as writer:
-    STATE_DF.to_excel(writer, sheet_name='By State')
-    ROLE_DF.to_excel(writer, sheet_name='By Role', index=False)
-    AGE_DF.to_excel(writer, sheet_name='By Age', index=False)
+    STATE_DF.to_excel(writer, sheet_name='By State - USA')
+    ROLE_DF.to_excel(writer, sheet_name='By Role - USA', index=False)
+    AGE_DF.to_excel(writer, sheet_name='By Age - USA', index=False)
     COUNTRY_DF.to_excel(writer, sheet_name='By Country')
