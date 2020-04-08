@@ -9,7 +9,6 @@ from tkinter import filedialog
 import warnings
 
 import settings
-from get_ddb_logins import get_ddb_logins
 from get_ods_db_tables import get_iqvia_all_phys_info
 from   datalabs.access.ods import ODS
 

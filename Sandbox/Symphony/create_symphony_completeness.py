@@ -11,7 +11,6 @@ import warnings
 import pandas as pd
 
 import settings
-from get_ddb_logins import get_ddb_logins
 from get_ods_db_tables import get_symphony_all_phys_info
 from get_comp_completeness import get_var_completeness, get_ppd_comp_comparison
 from datalabs.access.ods import ODS

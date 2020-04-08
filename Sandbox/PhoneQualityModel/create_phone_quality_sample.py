@@ -60,13 +60,6 @@ current_time = datetime.datetime.now()
 start_time_str = current_time.strftime("%Y-%m-%d")
 
 
-# Get ddb login information
-ddb_login_dict = get_ddb_logins(ddb_info_file)
-
-if 'AIMS' not in ddb_login_dict.keys():
-    print('AIMS login information not present.')
-    sys.exit()
-
 print('Pulling data.')
 with AIMS() as aims:
   pe_desc_df = get_pe_description(aims._connection)
