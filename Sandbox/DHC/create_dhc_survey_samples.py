@@ -78,19 +78,16 @@ sys.stdout = log_file
 
 
 edw = EDW()
+edw.connect()
 
 npi_me_df = edw.get_me_npi_mapping()
 
 edw.close()
 
 
-aims = AIMS()
-
-# FIXME: replace with AIMS methods when they are finished
-entity_key_df = get_entity_me_key(aims._connection)
-no_contact_df = get_no_contacts(aims._connection)
-
-aims.close()
+with AIMS() as aims:
+  entity_key_df = get_entity_me_key(aims._connection)
+  no_contact_df = get_no_contacts(aims._connection)
    
 # Load PPD csv file
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)

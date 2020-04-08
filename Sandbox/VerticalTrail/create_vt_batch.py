@@ -98,25 +98,17 @@ phone_var_name = 'TELEPHONE_NUMBER'
 
 print('Starting...')
 print('Pulling EDW data.')
-edw = EDW()
-
-party_key_df = edw.get_school_ids()
-act_grad_name_df = edw.get_active_medical_school_map()
-
-EDW_conn.close()
-
+with EDW() as edw:
+    party_key_df = edw.get_school_ids()
+    act_grad_name_df = edw.get_active_medical_school_map()
 
 print('Pulling AIMS data.')
-aims = AIMS()
-
-# FIXME: replace with AIMS methods when finished
-entity_key_df = get_entity_me_key(aims._connection)
-entity_comm_me_df = get_ent_comm_phones(aims._connection)
-no_contact_df = get_no_contacts(aims._connection)
-active_license_df = get_active_licenses(aims._connection)
-spec_desc_df = get_spec_description(aims._connection)
-
-ais.close()
+with AIMS() as aims:
+    entity_key_df = get_entity_me_key(aims._connection)
+    entity_comm_me_df = get_ent_comm_phones(aims._connection)
+    no_contact_df = get_no_contacts(aims._connection)
+    active_license_df = get_active_licenses(aims._connection)
+    spec_desc_df = get_spec_description(aims._connection)
 
 
 print('Pulling PPD.')

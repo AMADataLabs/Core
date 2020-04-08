@@ -15,6 +15,14 @@ class Database():
         self._database_name = self._load_database_name(self._key)
         self._connection = None
 
+    def __enter__(self):
+        self.connect()
+
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.close()
+
     def connect(self):
         self._connection = pyodbc.connect(
             f'DSN={self._database_name}; UID={self._credentials.username}; PWD={self._credentials.password}'
@@ -24,11 +32,11 @@ class Database():
     def close(self):
         self._connection.close()
 
-    def read(self, sql: str):
-        return pandas.read_sql(sql, self._connection)
+    def read(self, sql: str, **kwargs):
+        return pandas.read_sql(sql, self._connection, **kwargs)
 
-    def execute(self, sql: str):
-        return self._connection.execute(sql)
+    def execute(self, sql: str, **kwargs):
+        return self._connection.execute(sql, **kwargs)
 
     @classmethod
     def _load_credentials(cls, credentials: cred.Credentials, key: str):

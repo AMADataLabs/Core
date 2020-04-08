@@ -2,32 +2,24 @@
 # Kari Palmier    Updated to filter known bad by if they are in current PPD
 #
 #############################################################################
-import pandas as pd
+import datetime
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog
+import warnings
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
+import pandas as pd
 
-from get_ddb_logins import get_ddb_logins
+import settings
 from get_input_date_range import get_input_date_range
-from get_aims_db_tables import get_ent_comm_phones, get_aims_connection
+from get_aims_db_tables import get_ent_comm_phones
 from select_files import select_files
 from combine_data import combine_data
 import datalabs.curate.dataframe as df
-
-gen_path = base_path + 'Common_Model_Code\\'
-sys.path.insert(0, gen_path)
-
 from get_entity_ppd_info import create_ent_me_data, clean_phn_data
+from datalabs.access.aims import AIMS
 
-import warnings
 warnings.filterwarnings("ignore")
 
     
@@ -81,22 +73,9 @@ log_file = open(log_filename, "w")
 sys.stdout = log_file
 
 if db_str.find('y') < 0:
-
-    # Get ddb login information
-    ddb_login_dict = get_ddb_logins(ddb_info_file)
-    
-    if 'AIMS' not in ddb_login_dict.keys():
-        print('AIMS login information not present.')
-        sys.exit()
-        
-    # Connect to AIMS production database
-    AIMS_conn = get_aims_connection(ddb_login_dict['AIMS']['username'], ddb_login_dict['AIMS']['password'])
-    
-    # get entity_comm_at, phone_at, and me info for latest begin date of each me/entity_id
-    entity_comm_me_df = get_ent_comm_phones(AIMS_conn)
-    
-    AIMS_conn.close()
-
+    with AIMS() as aims:
+        # get entity_comm_at, phone_at, and me info for latest begin date of each me/entity_id
+        entity_comm_me_df = get_ent_comm_phones(aims._connection)
 else:
     # Load entity data
     ent_comm_df = pd.read_csv(ent_comm_file, delimiter=",", index_col=None, header=0, dtype=str)

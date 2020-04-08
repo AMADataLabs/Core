@@ -40,6 +40,7 @@ ranked_df = df.rename_in_upper_case(ranked_df)
 
 
 edw = EDW()
+edw.connect()
 
 party_key_df = edw.get_me_numbers()
 addr_df = edw.get_postal_address_map()
