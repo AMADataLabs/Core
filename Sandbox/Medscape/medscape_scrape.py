@@ -1,22 +1,17 @@
 '''
 This script scrapes the Medscape In Memorium feature
 '''
-from datetime import datetime
+from datetime import date
 import json
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
 
 #Set today
-TODAY = str(datetime.now()).split('.')[0].replace(' ', '_').replace(':', '')
+TODAY = str(date.today())
 
 #Set Output Directory
 OUT_DIRECTORY = 'U:/Source Files/Data Analytics/Data-Science/Data/Medscape/'
-
-#Define ppd
-PPD_FILE = 'U:/Source Files/Data Analytics/Data-Science/Data/PPD/ppd_data_20200404.csv'
-print('Reading PPD...')
-PPD = pd.read_csv(PPD_FILE)
 
 def scrape():
     '''Scrapes the medscape in memorium page'''
@@ -37,10 +32,15 @@ def scrape():
               "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York",
               "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
               "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah",
-              "Puerto Rico","Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
+              "Puerto Rico", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
 
     dict_list = []
+    no_link_count = 0
+    index = 6
     for paragraph in all_pars[6:-10]:
+        if paragraph.text == "\xa0":
+            continue
+        link = 'None'
         name = 'None'
         age = 'None'
         specialty = 'None'
@@ -48,6 +48,10 @@ def scrape():
         state = 'None'
         country = 'None'
         location = 'None'
+        try:
+            link = paragraph.find('a')['href']
+        except TypeError:
+            no_link_count += 1
         try:
             info_text = paragraph.text.replace('\n', '').replace('\xa0', '')
             info_list = info_text.split(', ')
@@ -102,8 +106,9 @@ def scrape():
                 city = 'None'
         except IndexError as index_error:
             print('Human intervention needed for the following exception:')
+            print(index)
             print(index_error)
-            print(paragraph.text)
+            print(paragraph)
             print(' ')
         new_dict = {
             'NAME': name,
@@ -112,9 +117,13 @@ def scrape():
             'CITY': city,
             'STATE': state,
             'COUNTRY': country,
-            'LOCATION': location
+            'LOCATION': location,
+            'LINK': link
         }
         dict_list.append(new_dict)
+        index += 1
+    print(f'{len(dict_list)} total healthcare workers')
+    print(f'{no_link_count} have no link')
     return dict_list
 
 print('Scraping...')

@@ -1,7 +1,7 @@
 '''
-This script scrapes the Medscape In Memorium feature
+This script scrapes the Medscape In Memorium feature and appends ME numbers to US Physicians
 '''
-from datetime import datetime
+from datetime import date
 import pandas as pd
 from nameparser import HumanName
 #from medscape_scrape import scrape
@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup
 import requests
 
 #Set today
-TODAY = str(datetime.now()).split('.')[0].replace(' ', '_').replace(':', '')
+TODAY = str(date.today())
 
 #Set Output Directory
 OUT_DIRECTORY = 'U:/Source Files/Data Analytics/Data-Science/Data/Medscape/'
