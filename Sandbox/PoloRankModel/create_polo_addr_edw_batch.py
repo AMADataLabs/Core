@@ -39,13 +39,9 @@ ranked_df = pd.read_csv(ranked_file, delimiter = ",", index_col = None, header =
 ranked_df = df.rename_in_upper_case(ranked_df)
 
 
-edw = EDW()
-edw.connect()
-
-party_key_df = edw.get_me_numbers()
-addr_df = edw.get_postal_address_map()
-
-edw.close()
+with EDW() as edw:
+    party_key_df = edw.get_me_numbers()
+    addr_df = edw.get_postal_address_map()
 
 
 ranked_df = ranked_df.merge(party_key_df, how = 'inner', left_on = 'PPD_ME', right_on = 'KEY_VAL')

@@ -8,6 +8,7 @@ import os
 import sys
 import tkinter as tk
 from tkinter import filedialog
+import warnings
 
 import pandas as pd
 
@@ -19,13 +20,8 @@ from select_files import select_files
 from   datalabs.access.aims import AIMS
 from   datalabs.access.edw import EDW
 import datalabs.curate.dataframe as df
-
-gen_path = base_path + 'CommonModelCode\\'
-sys.path.insert(0, gen_path)
-
 from create_model_sample import get_uniq_entries
 
-import warnings
 warnings.filterwarnings("ignore")
 
 
@@ -77,12 +73,8 @@ log_file = open(log_filename, "w")
 sys.stdout = log_file
 
 
-edw = EDW()
-edw.connect()
-
-npi_me_df = edw.get_me_npi_mapping()
-
-edw.close()
+with EDW() as edw:
+  npi_me_df = edw.get_me_npi_mapping()
 
 
 with AIMS() as aims:
