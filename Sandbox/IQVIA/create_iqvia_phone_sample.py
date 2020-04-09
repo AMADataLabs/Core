@@ -2,28 +2,24 @@
 # Kari Palmier    9/9/19     Add reading from csv wtih IQVIA data
 #
 #############################################################################
-import pandas as pd
+import datetime
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog
-import datetime
+import warnings
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
+import pandas as pd
 
+import settings
 from exclude_phone_samples import exclude_phone_samples
 from filter_bad_phones import get_good_bad_phones
 from select_files import select_files
-from get_ddb_logins import get_ddb_logins
-from get_ods_db_tables import get_iqvia_sample_info, get_ods_connection
+from get_ods_db_tables import get_iqvia_sample_info
 from get_aims_db_tables import get_no_contacts, get_pe_description, get_entity_me_key
-from get_aims_db_tables import get_aims_connection
 from rename_competitor_sample import rename_competitor_sample
+from   datalabs.access.aims import AIMS
+from   datalabs.access.ods import ODS
 import datalabs.curate.dataframe as df
 
 gen_path = base_path + 'Common_Model_Code\\'
@@ -31,7 +27,6 @@ sys.path.insert(0, gen_path)
 
 from create_model_sample import get_uniq_entries
 
-import warnings
 warnings.filterwarnings("ignore")
 
 
@@ -84,35 +79,21 @@ start_time_str = current_time.strftime("%Y-%m-%d")
 
 phone_var_name = 'TELEPHONE_NUMBER'
 
-# Get ddb login information
-ddb_login_dict = get_ddb_logins(ddb_info_file)
-
-if 'AIMS' not in ddb_login_dict.keys():
-    print('AIMS login information not present.')
-    sys.exit()
-
 if data_sel == 'n':
-    if 'ODS' not in ddb_login_dict.keys():
-        print('ODS login information not present.')
-        sys.exit()
-
-    ODS_conn = get_ods_connection(ddb_login_dict['ODS']['username'], ddb_login_dict['ODS']['password'])
+    ods = ODS()
+    ods.connect()
     
-    iqvia_df = get_iqvia_sample_info(ODS_conn)
+    iqvia_df = get_iqvia_sample_info(ods._connection)
     
-    ODS_conn.close()
+    ods.close()
     
 else:
     iqvia_df = pd.read_csv(iq_file, delimiter=",", index_col=None, header=0, dtype=str)
 
-
-AIMS_conn = get_aims_connection(ddb_login_dict['AIMS']['username'], ddb_login_dict['AIMS']['password'])
-
-entity_key_df = get_entity_me_key(AIMS_conn)
-no_contact_df = get_no_contacts(AIMS_conn)
-pe_desc_df = get_pe_description(AIMS_conn)
-
-AIMS_conn.close()
+with AIMS() as aims:
+    entity_key_df = get_entity_me_key(aims._connection)
+    no_contact_df = get_no_contacts(aims._connection)
+    pe_desc_df = get_pe_description(aims._connection)
    
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
 ppd_df = df.rename_in_upper_case(ppd_df)

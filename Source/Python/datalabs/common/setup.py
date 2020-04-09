@@ -3,7 +3,7 @@
 from   abc import ABC, abstractmethod
 from   dataclasses import dataclass
 
-from   jinja2 import Template
+import jinja2
 
 
 @dataclass
@@ -26,11 +26,11 @@ class TemplatedFileGenerator(ABC):
 
         self._write_output(output)
 
-    def _read_template(self) -> Template:
-        template = None
+    def _read_template(self) -> jinja2.Template:
+        environment = jinja2.Environment(undefined=jinja2.DebugUndefined)
 
         with open(self._filenames.template) as file:
-            template = Template(file.read())
+            template = environment.from_string(file.read())
 
         return template
 
@@ -39,7 +39,7 @@ class TemplatedFileGenerator(ABC):
         pass
 
     @classmethod
-    def _render_template(cls, template: Template, template_paratameters: dict) -> str:
+    def _render_template(cls, template: jinja2.Template, template_paratameters: dict) -> str:
         return template.render(**template_paratameters)
 
     def _write_output(self, output):

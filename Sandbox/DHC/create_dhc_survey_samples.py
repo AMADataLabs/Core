@@ -3,34 +3,25 @@
 #
 #############################################################################
 
-import pandas as pd
+import datetime
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog
-import datetime
+import warnings
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'CommonCode\\'
-sys.path.insert(0, gen_path)
+import pandas as pd
 
+import settings
 from exclude_phone_samples import exclude_phone_samples
 from filter_bad_phones import get_good_bad_phones
-from get_ddb_logins import get_ddb_logins
-from get_edw_db_tables import get_npi_me_mapping, get_edw_connection
+from get_aims_db_tables import get_no_contacts, get_entity_me_key
 from select_files import select_files
+from   datalabs.access.aims import AIMS
+from   datalabs.access.edw import EDW
 import datalabs.curate.dataframe as df
-from get_aims_db_tables import get_no_contacts, get_entity_me_key, get_aims_connection
-
-gen_path = base_path + 'CommonModelCode\\'
-sys.path.insert(0, gen_path)
-
 from create_model_sample import get_uniq_entries
 
-import warnings
 warnings.filterwarnings("ignore")
 
 
@@ -82,33 +73,13 @@ log_file = open(log_filename, "w")
 sys.stdout = log_file
 
 
-# Get ddb login information
-ddb_login_dict = get_ddb_logins(ddb_info_file)
-
-if 'AIMS' not in ddb_login_dict.keys():
-    print('AIMS login information not present.')
-    sys.exit()
-if 'EDW' not in ddb_login_dict.keys():
-    print('EDW login information not present.')
-    sys.exit()
+with EDW() as edw:
+  npi_me_df = edw.get_me_npi_mapping()
 
 
-# Connect to AIMS production database
-#AIMS_conn = pyodbc.connect('DSN=aims_prod; UID={}; PWD={}'.format(ddb_login_dict['AIMS']['username'], 
-#                           ddb_login_dict['AIMS']['password']))
-EDW_conn = get_edw_connection(ddb_login_dict['EDW']['username'], ddb_login_dict['EDW']['password'])
-
-npi_me_df = get_npi_me_mapping(EDW_conn)
-
-EDW_conn.close()
-
-
-AIMS_conn = get_aims_connection(ddb_login_dict['AIMS']['username'], ddb_login_dict['AIMS']['password'])
-
-entity_key_df = get_entity_me_key(AIMS_conn)
-no_contact_df = get_no_contacts(AIMS_conn)
-
-AIMS_conn.close()
+with AIMS() as aims:
+  entity_key_df = get_entity_me_key(aims._connection)
+  no_contact_df = get_no_contacts(aims._connection)
    
 # Load PPD csv file
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)

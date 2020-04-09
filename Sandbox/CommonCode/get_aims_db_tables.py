@@ -21,13 +21,6 @@ def format_list_for_sql(lst):
     return sql_str
 
 
-def get_aims_connection(username, password):
-    
-    AIMS_conn = pyodbc.connect('DSN=aims_prod; UID={}; PWD={}'.format(username, password))
-    AIMS_conn.execute('SET ISOLATION TO DIRTY READ;')
-    
-    return AIMS_conn
-
 def get_entity_me_key(AIMS_conn):
 
     entity_key_query = \

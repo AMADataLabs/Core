@@ -1,27 +1,21 @@
 # Kari Palmier    9/9/19    Created
 #
 #############################################################################
-import pandas as pd
+import datetime
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog
-import datetime
+import warnings
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'CommonCode\\'
-sys.path.insert(0, gen_path)
+import pandas as pd
 
-from get_ddb_logins import get_ddb_logins
+import settings
 from get_ods_db_tables import get_symphony_all_phys_info, get_iqvia_all_phys_info
-from get_ods_db_tables import get_ods_connection
 from get_comp_completeness import get_var_completeness, get_ppd_comp_comparison
+from   datalabs.access.ods import ODS
 import datalabs.curate.dataframe as df
 
-import warnings
 warnings.filterwarnings("ignore")
 
 
@@ -62,21 +56,10 @@ log_file = open(log_filename, "w")
 sys.stdout = log_file
 
 if data_sel == 'n':
-    # Get ddb login information
-    ddb_login_dict = get_ddb_logins(ddb_info_file)
-
-    if 'ODS' not in ddb_login_dict.keys():
-        print('ODS login information not present.')
-        sys.exit()
-
-    ODS_conn = get_ods_connection(ddb_login_dict['ODS']['username'], ddb_login_dict['ODS']['password'])
-    
-    iqvia_df = get_iqvia_all_phys_info(ODS_conn)
-    
-    sym_df = get_symphony_all_phys_info(ODS_conn)
-    
-    ODS_conn.close()
-    
+    with ODS() as ods:
+        iqvia_df = get_iqvia_all_phys_info(ODS_conn)
+        
+        sym_df = get_symphony_all_phys_info(ODS_conn)
 else:
     iqvia_df =  pd.read_csv(iq_file, delimiter = ",", index_col = None, header = 0, dtype = str)
 

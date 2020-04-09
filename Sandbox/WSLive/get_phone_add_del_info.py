@@ -1,31 +1,22 @@
 # Kari Palmier    8/30/19    Created
 #
 #############################################################################
-import pandas as pd
+import datetime
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog
-import datetime
+import warnings
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
+import pandas as pd
 
-from get_ddb_logins import get_ddb_logins
-from get_aims_db_tables import get_comm_usg_preferred_phones, get_ent_comm_phones, get_aims_connection
+import settings
+from get_aims_db_tables import get_comm_usg_preferred_phones, get_ent_comm_phones
 from get_input_date_range import get_input_date_range
-
-gen_path = base_path + 'Common_Model_Code\\'
-sys.path.insert(0, gen_path)
-
 from get_entity_ppd_info import set_entity_dates
 from rename_entity_cols import rename_comm_cols, rename_usg_cols
+from datalabs.access.aims import AIMS
 
-import warnings
 warnings.filterwarnings("ignore")
 
 
@@ -113,21 +104,9 @@ if ent_file_str.find('n') >= 0:
     # Get files needed
     ddb_info_file = filedialog.askopenfilename(initialdir = "C:\\",
                                              title = "Choose txt file with database login information...")
-    
-    # Get ddb login information
-    ddb_login_dict = get_ddb_logins(ddb_info_file)
-    
-    if 'AIMS' not in ddb_login_dict.keys():
-        print('AIMS login information not present.')
-        sys.exit()
-    
-    AIMS_conn = get_aims_connection(ddb_login_dict['AIMS']['username'], ddb_login_dict['AIMS']['password'])
-    
-    entity_comm_df = get_ent_comm_phones(AIMS_conn)
-    ent_usg_me_pref_df = get_comm_usg_preferred_phones(AIMS_conn)
-    
-    AIMS_conn.close()
-    
+    with AIMS() as aims:
+      entity_comm_df = get_ent_comm_phones(aims._connection)
+      ent_usg_me_pref_df = get_comm_usg_preferred_phones(aims._connection)
 else:
     
     # Get entity data

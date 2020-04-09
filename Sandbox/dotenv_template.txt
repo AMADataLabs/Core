@@ -20,4 +20,3 @@ CREDENTIALS_ODS_PASSWORD='{{ ods_password }}'
 
 # Project Settings
 PROJECT_NAME='{{ project }}'
-
