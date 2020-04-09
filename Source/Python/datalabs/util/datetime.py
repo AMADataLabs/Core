@@ -8,7 +8,7 @@ def date_range(start_date_str, end_date_str):
     current_date = datetime.now()
     
     if end_date > current_date:
-        end_date = current_date
+        end_date = datetime(current_date.year, current_date.month, current_date.day)
 
     date_range_str = '{}_to_{}'.format(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
 
@@ -34,6 +34,6 @@ def _parse_partial_date(date_str, default_day):
     date = datetime.strptime(date_str, '%Y-%m')
 
     if not default_day:
-        default_day = calendar(date.year, date.month)[1]
+        default_day = calendar.monthrange(date.year, date.month)[1]
 
     return datetime(date.year, date.month, default_day)
