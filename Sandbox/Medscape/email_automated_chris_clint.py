@@ -30,20 +30,13 @@ TODAY = str(date.today())
 OUT_DIRECTORY = f'C:\\Users\\nkhatri\\OneDrive - American Medical Association\\Documents\\Task-Scheduled\\{str(date.today())}'
 # C:\Users\nkhatri\OneDrive - American Medical Association\Documents\Task-Scheduled\2020-04-08
 # OUT_DIRECTORY = f'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/Task-Scheduled/{TODAY}'
-file1 = f'{OUT_DIRECTORY}\\Memorium_{TODAY}.csv'
-file2 = f'{OUT_DIRECTORY}\\Memorium_USA_{TODAY}.csv'
-file3 = f'{OUT_DIRECTORY}\\Memorium_USA_Physicians_{TODAY}.csv'
-file4 = f'{OUT_DIRECTORY}\\Memorium_USA_ME_{TODAY}.csv'
-file5 = f'{OUT_DIRECTORY}\\AGE_{TODAY}.png'
-file6 = f'{OUT_DIRECTORY}\\ROLE_{TODAY}.png'
-file7 = f'{OUT_DIRECTORY}\\STATE_{TODAY}.png'
-file8 = f'{OUT_DIRECTORY}\\USA_Stats_{TODAY}.xlsx'
-#'Chris.Mathews@ama-assn.org', 'Clint.Sheffer@ama-assn.org', 'Nicole.Neal@ama-assn.org','Tammy.Weaver@ama-assn.org', 'Derek.Smart@ama-assn.org', 'victoria.grose@ama-assn.org','sandeep.dhamale@ama-assn.org'
-
-def send_email(recipients=['nikhil.khatri@ama-assn.org' ], cc=['nikhil.khatri@ama-assn.org'],
-               subject='COVID-19 Mortality Data – Medscape for”' + ' ' + TODAY,
-               body='Hi,\nThis is an automated email from DataLabs. Please find all new content in attachments.\n \nNOTE: The scraping activity happens every morning at 8:55 am and the results are emailed at 9:00 am. If you would like the results at another time or would like to stop this service, kindly reply to this email.\n\nThank you!\nDataLabs',
-               attachments=[file1, file2, file3, file4, file5, file6, file7, file8], auto_send=True):
+file1 = f'{OUT_DIRECTORY}\\Memorium_USA_Physicians_{TODAY}.xlsx'
+full = ['Chris.Mathews@ama-assn.org', 'Clint.Sheffer@ama-assn.org','victoria.grose@ama-assn.org','sandeep.dhamale@ama-assn.org']
+meonly = ['nikhil.khatri@ama-assn.org']
+def send_email(recipients= full, cc=['nikhil.khatri@ama-assn.org'],
+               subject='COVID-19 Mortality Data – Medscape for' + ' ' + TODAY,
+               body='Hi,\nThis is an automated email from DataLabs. Please find all new content in attachments.\n\nFile Description is as follows:\n\nMemorium contains all healthcare workers found on Medscape\nMemorium_USA contains all healthcare workers in the US\nMemorium_USA_Physicians contains all the physicians in the previous dataset, matched to their ME numbers\nMemorium_World_Delta and Memorium_USA_Delta contain the records that have been changed since yesterday. This includes both new and updated records.\n\n\nNOTE: The scraping activity happens every morning at 8:55 am and the results are emailed at 9:00 am. If you would like the results at another time or would like to stop this service, kindly reply to this email.\n\nThank you!\nDataLabs',
+               attachments=[file1], auto_send=True):
     if len(recipients) == 0 or len(subject) == 0 or len(body) == 0:
         raise ValueError('recipients, subject, and body must be defined.')
 
@@ -78,3 +71,4 @@ def send_email(recipients=['nikhil.khatri@ama-assn.org' ], cc=['nikhil.khatri@am
 
 
 send_email()
+

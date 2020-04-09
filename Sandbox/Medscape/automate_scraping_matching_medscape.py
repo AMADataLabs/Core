@@ -1,39 +1,45 @@
 '''
 This script scrapes the Medscape In Memorium feature
 '''
-from datetime import datetime, date
-import pandas as pd
+from datetime import datetime, date, timedelta
 from nameparser import HumanName
-#from medscape_scrape import scrape
 from datetime import datetime
 import json
 import pandas as pd
 from bs4 import BeautifulSoup
 import requests
 import os
+import matplotlib.pyplot as plt
+
+YESTERDAY = str(date.today() - timedelta(days=1))
 
 #Set today
 TODAY = str(date.today())
 #Set Output Directory
 OUT_DIRECTORY = f'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/Task-Scheduled/{TODAY}'
+OUT_DIRECTORY_YESTERDAY = f'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/Task-Scheduled/{YESTERDAY}'
 os.mkdir(OUT_DIRECTORY)
 #Define ppd
 PPD_FILE = 'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/Task-Scheduled/ppd_data_20200404.csv'
 print('Reading PPD...')
-PPD = pd.read_csv(PPD_FILE)
+PPD = pd.read_csv(PPD_FILE, low_memory=False)
 
 def scrape():
-    '''Scrapes the medscape in memorium page'''
+    #Scrapes the medscape in memorium page
     med_url = 'https://www.medscape.com/viewarticle/927976#vp_1'
     response = requests.get(med_url)
     soup = BeautifulSoup(response.content, 'html.parser')
     all_text = soup.text
+    #no_link_count = 0
 
     with open(f'{OUT_DIRECTORY}/Memorium_Text_{TODAY}.txt', 'w') as outfile:
         json.dump(all_text, outfile)
 
     all_pars = soup.find_all('p')
+    return (all_pars)
 
+
+def get_states():
     states = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
               "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois",
               "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland",
@@ -41,10 +47,19 @@ def scrape():
               "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York",
               "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
               "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah",
-              "Puerto Rico","Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
+              "Puerto Rico", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"]
+    return (states)
 
+
+def grab_data():
+    no_link_count = 0
+    states = get_states()
+    data = scrape()
     dict_list = []
-    for paragraph in all_pars[6:-10]:
+    for paragraph in data[6:-10]:
+        if paragraph.text == "\xa0":
+            continue
+        link = 'None'
         name = 'None'
         age = 'None'
         specialty = 'None'
@@ -52,6 +67,10 @@ def scrape():
         state = 'None'
         country = 'None'
         location = 'None'
+        try:
+            link = paragraph.find('a')['href']
+        except TypeError:
+            no_link_count += 1
         try:
             info_text = paragraph.text.replace('\n', '').replace('\xa0', '')
             info_list = info_text.split(', ')
@@ -116,40 +135,59 @@ def scrape():
             'CITY': city,
             'STATE': state,
             'COUNTRY': country,
-            'LOCATION': location
+            'LOCATION': location,
+            'LINK': link
         }
         dict_list.append(new_dict)
     return dict_list
 
+
 print('Scraping...')
-DICT_LIST = scrape()
+DICT_LIST = grab_data()
 ALL_DATA = pd.DataFrame(DICT_LIST)
 USA_DATA = ALL_DATA[ALL_DATA.COUNTRY == 'USA']
 ALL_DATA.to_csv(f'{OUT_DIRECTORY}/Memorium_{TODAY}.csv', index=False)
 USA_DATA.to_csv(f'{OUT_DIRECTORY}/Memorium_USA_{TODAY}.csv', index=False)
 
+
 def split_names(roster_df):
-    '''Splits name column into components'''
+    #Splits name column into components
     roster_df = roster_df.drop_duplicates()
     dict_list = []
     for row in roster_df.itertuples():
         name_parsed = HumanName(row.NAME)
         name_dict = {
-            'NAME':row.NAME,
+            'NAME': row.NAME,
             'FIRST_NAME': name_parsed.first.upper(),
             'LAST_NAME': name_parsed.last.upper(),
             'MIDDLE_NAME': name_parsed.middle.upper(),
-            'SUFFIX':name_parsed.suffix.upper(),
-            'NICKNAME':name_parsed.nickname.upper(),
-            'TITLE':name_parsed.title.upper(),
+            'SUFFIX': name_parsed.suffix.upper(),
+            'NICKNAME': name_parsed.nickname.upper(),
+            'TITLE': name_parsed.title.upper(),
         }
         dict_list.append(name_dict)
     name_df = pd.DataFrame(dict_list)
     new_df = pd.merge(name_df, roster_df, on='NAME')
     return new_df
 
+
+def fix_me(me_list):
+    nums = []
+    for num in me_list:
+        num = str(num)
+        num = num.replace('.0', '')
+        if len(num) == 10:
+            num = '0' + num
+        elif len(num) == 9:
+            num = '00' + num
+        elif len(num) == 8:
+            num = '000' + num
+        nums.append(num)
+    return nums
+
+
 def append_me(roster_df):
-    '''Matches to PPD and appends ME'''
+    #Matches to PPD and appends ME
     data_split = split_names(roster_df)
 
     bad_spec_words = [
@@ -159,7 +197,6 @@ def append_me(roster_df):
         'Assistant',
         'Receptionist'
     ]
-
     mes = []
     for row in data_split.itertuples():
         physician_me = 'None'
@@ -168,35 +205,50 @@ def append_me(roster_df):
             if word in row.SPECIALTY:
                 keep = False
         if keep:
-            new_df = PPD[(PPD.FIRST_NAME == row.FIRST_NAME)&(PPD.LAST_NAME == row.LAST_NAME)]
-            if len(new_df) == 0:
+            try:
+                years = [2019.0 - int(row.AGE), 2020.0 - int(row.AGE)]
+            except ValueError:
                 pass
-            elif len(new_df) > 1:
-                new_df = new_df[new_df.BIRTH_YEAR.isin([2019.0-int(row.AGE), 2020.0-int(row.AGE)])]
+            new_df = PPD[(PPD.FIRST_NAME == row.FIRST_NAME) & (PPD.LAST_NAME == row.LAST_NAME)]
+            if len(new_df) == 0 and years:
+                new_df = PPD[(PPD.LAST_NAME == row.LAST_NAME) & (PPD.BIRTH_YEAR.isin(years))]
+                if len(new_df) == 0:
+                    pass
+                if len(new_df) > 1:
+                    new_df = new_df[new_df.CITY == row.CITY.upper()]
+            elif len(new_df) > 1 and years:
+                new_df = new_df[new_df.BIRTH_YEAR.isin(years)]
                 if len(new_df) > 1:
                     print('wtf')
             if len(new_df) == 1:
                 physician_me = list(new_df.ME)[0]
+
         mes.append(physician_me)
 
-    data_split['ME'] = mes
+    data_split['ME'] = fix_me(mes)
     data_me = data_split[data_split.ME != 'None']
     return data_split, data_me
 
+
 print('Matching and appending ME numbers...')
 USA_DATA_SPLIT, USA_DATA_ME = append_me(USA_DATA)
-USA_DATA_ME.to_csv(f'{OUT_DIRECTORY}/Memorium_USA_Physicians_{TODAY}.csv', index=False)
-USA_DATA_SPLIT.to_csv(f'{OUT_DIRECTORY}/Memorium_USA_ME_{TODAY}.csv', index=False)
+USA_DATA_ME.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_Physicians_{TODAY}.xlsx', index=False)
+USA_DATA_SPLIT.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_ME_{TODAY}.xlsx', index=False)
 
-def newest(path):
+
+def newest(path, text):
     '''Grabs newest filename'''
     files = os.listdir(path)
-    paths = [os.path.join(path, basename) for basename in files if 'USA_ME' in basename]
+    paths = [os.path.join(path, basename) for basename in files if text in basename]
     return max(paths, key=os.path.getctime)
 
-RESULT_DIR = newest(OUT_DIRECTORY)
-print(RESULT_DIR)
-DATA = pd.read_csv(RESULT_DIR)
+
+US_RESULTS = newest(OUT_DIRECTORY, 'USA_ME')
+ALL_RESULTS = newest(OUT_DIRECTORY, 'm_2')
+
+US_DATA = pd.read_excel(US_RESULTS)
+ALL_DATA = pd.read_csv(ALL_RESULTS)
+
 
 def get_counts(dataframe):
     '''GET COUNTS'''
@@ -246,32 +298,76 @@ def get_counts(dataframe):
                 two += 1
         else:
             unk += 1
-    role_df = pd.DataFrame({'Role':['Physician', 'Nurse', 'Technician', 'PA', 'Administration',
-                                    'Other'], 'Count':[phys, nurse, tech, assistant, admin, other]})
+    role_df = pd.DataFrame({'Role': ['Physician', 'Nurse', 'Technician', 'PA', 'Administration',
+                                    'Other'], 'Count': [phys, nurse, tech, assistant, admin, other]})
     role_plt = role_df.plot.bar(x='Role', y='Count', rot=0,
-                                title='COVID-19 Healthcare Worker Fatalities by Role',
+                                title='COVID-19 Healthcare Worker Fatalities by Role - USA',
                                 color='darkorchid')
-    age_df = pd.DataFrame({'Age':['80 and older', '70-79', '60-69', '50-59', '40-49', '30-39',
-                                  'under 30', 'Unknown'], 'Count':[eight, seven, six, five, four,
+    age_df = pd.DataFrame({'Age': ['80 and older', '70-79', '60-69', '50-59', '40-49', '30-39',
+                                  'under 30', 'Unknown'], 'Count': [eight, seven, six, five, four,
                                                                    three, two, unk]})
-    age_plt = age_df.plot.bar(x='Age', y='Count', rot=0,
-                              title='COVID-19 Healthcare Worker Fatalities by Age',
-                              color='darkorchid')
-    return(role_df, role_plt, age_df, age_plt)
+    return (role_df, role_plt, age_df)
 
-ROLE_DF, ROLE_PLT, AGE_DF, AGE_PLT = get_counts(DATA)
-STATE_DF = DATA.groupby('STATE').count()['NAME']
-STATE_PLT = STATE_DF.plot.bar(title='COVID-19 Healthcare Worker Fatalities by State',
-                              color='darkorchid')
+
+ROLE_DF, ROLE_PLT, AGE_DF = get_counts(US_DATA)
+plt.savefig(f'{OUT_DIRECTORY}/ROLE_{TODAY}.png')
+plt.close()
+STATE_DF = US_DATA.groupby('STATE').count()['NAME'].sort_values(ascending=False)
+STATE_PLT = STATE_DF.plot.bar(title='COVID-19 Healthcare Worker Fatalities by State - USA',
+                              color='darkorchid', figsize=(15, 10), rot=45, legend=False)
+plt.savefig(f'{OUT_DIRECTORY}/STATE_{TODAY}.png')
+plt.close()
+COUNTRY_DF = ALL_DATA.groupby('COUNTRY').count()['NAME'].sort_values(ascending=False)
+COUNTRY_PLT = COUNTRY_DF.plot.bar(title='COVID-19 Healthcare Worker Fatalities by Country',
+                                  color='darkorchid', figsize=(15, 10), rot=45, legend=False)
+plt.savefig(f'{OUT_DIRECTORY}/COUNTRY_{TODAY}.png')
+plt.close()
+AGE_DF_2 = US_DATA[(US_DATA.AGE != 'age unknown') & (US_DATA.AGE != 'None')][['NAME', 'AGE']]
+AGE_DF_2['AGE'] = AGE_DF_2.AGE.astype(int)
+AGE_PLT = AGE_DF_2.hist(color='darkorchid')
+plt.savefig(f'{OUT_DIRECTORY}/AGE_{TODAY}.png')
+plt.close()
 
 with pd.ExcelWriter(f'{OUT_DIRECTORY}/USA_Stats_{TODAY}.xlsx') as writer:
-    STATE_DF.to_excel(writer, sheet_name='By State')
-    ROLE_DF.to_excel(writer, sheet_name='By Role', index=False)
-    AGE_DF.to_excel(writer, sheet_name='By Age', index=False)
+    STATE_DF.to_excel(writer, sheet_name='By State - US')
+    ROLE_DF.to_excel(writer, sheet_name='By Role - US', index=False)
+    AGE_DF.to_excel(writer, sheet_name='By Age - US', index=False)
+    COUNTRY_DF.to_excel(writer, sheet_name='By Country')
 
-FIG_1 = AGE_PLT.get_figure()
-FIG_1.savefig(f'{OUT_DIRECTORY}/AGE_{TODAY}.png')
-FIG_2 = ROLE_PLT.get_figure()
-FIG_2.savefig(f'{OUT_DIRECTORY}/ROLE_{TODAY}.png')
-FIG_3 = STATE_PLT.get_figure()
-FIG_3.savefig(f'{OUT_DIRECTORY}/STATE_{TODAY}.png')
+def newest_delta(path, text):
+    files = os.listdir(path)
+    paths = [os.path.join(path, basename) for basename in files if text in basename]
+    return max(paths, key=os.path.getctime)
+
+US_YESTERDAY = newest_delta(OUT_DIRECTORY_YESTERDAY, f'USA_ME_{YESTERDAY}')
+US_TODAY = newest_delta(OUT_DIRECTORY, f'USA_ME_{TODAY}')
+ALL_YESTERDAY = newest_delta(OUT_DIRECTORY_YESTERDAY, f'Memorium_{YESTERDAY}')
+ALL_TODAY = newest_delta(OUT_DIRECTORY, f'Memorium_{TODAY}')
+
+US_DATA_TODAY = pd.read_excel(US_TODAY)
+US_DATA_YESTERDAY = pd.read_csv(US_YESTERDAY)
+ALL_DATA_TODAY = pd.read_csv(ALL_TODAY)
+ALL_DATA_YESTERDAY = pd.read_csv(ALL_YESTERDAY)
+
+INTERSECT_US = list(pd.merge(US_DATA_TODAY, US_DATA_YESTERDAY, on=['NAME',
+                                                                   'AGE',
+                                                                   'SPECIALTY',
+                                                                   'LOCATION',
+                                                                   'CITY',
+                                                                   'STATE',
+                                                                   'COUNTRY'
+                                                                   ])['NAME'])
+US_DELTA = US_DATA_TODAY[US_DATA_TODAY.NAME.isin(INTERSECT_US) == False]
+
+INTERSECT_ALL = list(pd.merge(ALL_DATA_TODAY, ALL_DATA_YESTERDAY, on=['NAME',
+                                                                      'AGE',
+                                                                      'SPECIALTY',
+                                                                      'LOCATION',
+                                                                      'CITY',
+                                                                      'STATE',
+                                                                      'COUNTRY'
+                                                                      ])['NAME'])
+ALL_DELTA = ALL_DATA_TODAY[ALL_DATA_TODAY.NAME.isin(INTERSECT_ALL) == False]
+
+US_DELTA.to_csv(f'{OUT_DIRECTORY}/Memorium_USA_Delta_{TODAY}.csv', index=False)
+ALL_DELTA.to_csv(f'{OUT_DIRECTORY}/Memorium_World_Delta_{TODAY}.csv', index=False)
