@@ -8,7 +8,6 @@ import os
 import pickle
 import sys
 import tkinter as tk
-import warnings
 
 import pandas as pd
 
@@ -22,9 +21,7 @@ from score_polo_addr_ppd_data import score_polo_wslive_data
 from class_model_creation import get_prob_info, get_pred_info
 from create_addr_model_input_data import create_model_initial_data
 
-warnings.filterwarnings("ignore")
-
-main(args):
+def main(args):
     root = tk.Tk()
     root.withdraw()
 
