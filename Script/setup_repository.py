@@ -34,7 +34,7 @@ def find_dotenv_templates(script_base_path):
     search_directories = generate_search_directories(script_base_path)
 
     for search_directory in search_directories:
-        template_path = Path(search_directory, 'env_template.txt')
+        template_path = Path(search_directory, 'dotenv_template.txt')
 
         if os.path.isfile(template_path):
             yield template_path

@@ -1,28 +1,23 @@
 # Kari Palmier    Created 8/14/19
 #
 #############################################################################
-import pandas as pd
-from tkinter import filedialog
 import datetime
-import numpy as np
-
-# Get path of general (common) code and add it to the python path variable
-import sys
 import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
+import sys
+import tkinter as tk
+from tkinter import filedialog
+import warnings
 
+import pandas as pd
+
+import settings
 from filter_bad_phones import get_good_bad_phones
 from select_files import select_files
 from exclude_phone_samples import exclude_phone_samples
-from get_ddb_logins import get_ddb_logins
-from get_aims_db_tables import get_pe_description, get_aims_connection
+from get_aims_db_tables import get_pe_description
+from   datalabs.access.aims import aims
 import datalabs.curate.dataframe as df
 
-import warnings
 warnings.filterwarnings("ignore")
 
 sample_vars = ['ME', 'FIRST_NAME', 'MIDDLE_NAME', 'LAST_NAME', 'SUFFIX',
@@ -74,20 +69,8 @@ slash_ndx = [i for i in range(len(vt_resp_base_file)) if vt_resp_base_file.start
 base_anyls_name = vt_resp_base_file[slash_ndx[-1]+1:]
 dot_ndx = base_anyls_name.find('.')
 
-
-# Get ddb login information
-ddb_login_dict = get_ddb_logins(ddb_info_file)
-
-if 'AIMS' not in ddb_login_dict.keys():
-    print('AIMS login information not present.')
-    sys.exit()
-   
-# Connect to AIMS production database
-AIMS_conn = get_aims_connection(ddb_login_dict['AIMS']['username'], ddb_login_dict['AIMS']['password'])
-
-pe_desc_df = get_pe_description(AIMS_conn)
-
-AIMS_conn.close()
+with AIMS() as aims:
+  pe_desc_df = get_pe_description(aims._connection)
 
 pe_desc_df = pe_desc_df.rename(columns={'description': 'DESCRIPTION'})
 

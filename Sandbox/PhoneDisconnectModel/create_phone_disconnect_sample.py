@@ -2,29 +2,21 @@
 # Kari Palmier    8/14/19    Updated to work with more generic get_sample
 #
 #############################################################################
-import pandas as pd
+import datetime
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog
-import datetime
+import warnings
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Model_Code\\'
-sys.path.insert(0, gen_path)
+import pandas as pd
 
+import settings
 from create_model_sample import get_sample, format_phone_sample_cols
-
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
-
 from exclude_phone_samples import exclude_phone_samples
 from select_files import select_files
-from get_ddb_logins import get_ddb_logins
-from get_aims_db_tables import get_pe_description, get_aims_connection, get_entity_me_key, get_no_contacts
+from get_aims_db_tables import get_pe_description, get_entity_me_key, get_no_contacts
+from datalabs.access.aims import AIMS
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -67,23 +59,10 @@ current_time = datetime.datetime.now()
 start_time_str = current_time.strftime("%Y-%m-%d")
 
 
-# Get ddb login information
-ddb_login_dict = get_ddb_logins(ddb_info_file)
-
-if 'AIMS' not in ddb_login_dict.keys():
-    print('AIMS login information not present.')
-    sys.exit()
-   
-# Connect to AIMS production database
-AIMS_conn = get_aims_connection(ddb_login_dict['AIMS']['username'], ddb_login_dict['AIMS']['password'])
-
-pe_desc_df = get_pe_description(AIMS_conn)
-
-no_contact_df = get_no_contacts(AIMS_conn)
-
-entity_key_df = get_entity_me_key(AIMS_conn)
-
-AIMS_conn.close()
+with AIMS() as aims:
+    pe_desc_df = get_pe_description(aims._connection)
+    no_contact_df = get_no_contacts(aims._connection)
+    entity_key_df = get_entity_me_key(aims._connection)
 
 pe_desc_df = pe_desc_df.rename(columns = {'description':'PE_DESCRIPTION'})
 
