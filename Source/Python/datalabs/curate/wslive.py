@@ -1,87 +1,88 @@
 """ Utility functions for curating WSLive/Humach survey results data. """
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Iterable
 
 import pandas as pd
 
 import datalabs.curate.dataframe as df
 
+@pd.api.extensions.register_dataframe_accessor("wslive")
+class WSLiveAccessor:
+    def __init__(self, data):
+        self._data = data
 
-def standardize(data):
-    data = df.rename_in_upper_case(data)
+    def standardize(self):
+        data = df.rename_in_upper_case(self._data)
 
-    data = _masterfile_sourced_records(data)
+        data = self._filter_for_masterfile_sourced_rows(data)
 
-    data['WSLIVE_FILE_DT'] = pd.to_datetime(data['WSLIVE_FILE_DT'])
+        data['WSLIVE_FILE_DT'] = pd.to_datetime(data['WSLIVE_FILE_DT'])
 
-    return data
+        return data
 
+    def most_recent_by_me_number(self):
+        data = self._sort_by_result_date(self._data)
 
-def most_recent_by_me_number(data):
-    data = _sort_by_result_date(data)
+        return data.groupby('PHYSICIAN_ME_NUMBER', sort=False).first().reset_index()
 
-    return data.groupby('PHYSICIAN_ME_NUMBER').first().reset_index()
+    def match_to_samples(self, samples: pd.DataFrame) -> pd.DataFrame:
+        data = self._data.merge(samples, how='inner', left_on='PHYSICIAN_ME_NUMBER',  right_on='ME')
 
+        data = self._filter_out_late_results(data)
 
-def match_to_sample(data: pd.DataFrame, sample_files: Iterable) -> pd.DataFrame:
-    samples = _load_samples(sample_files)
+        data = _sort_by_result_date(data)
 
-    merged_data = data.merge(samples, how='inner', left_on='PHYSICIAN_ME_NUMBER',  right_on='ME')
+        return data.groupby('PHYSICIAN_ME_NUMBER', sort=False).first().reset_index()
 
-    # FIXME: use WS_YEAR as well to properly account for possible "calendar wrap" conditions (i.e. month index cycles back to 1)
-    wslive_filter_df = merged_data[merged_data['WS_MONTH'].astype(int) <= merged_data['SAMPLE_MAX_PERFORM_MONTH']]
+    @classmethod
+    def _sort_by_result_date(cls, data):
+        return data.sort_values(['WSLIVE_FILE_DT'], ascending=False)
 
-    wslive_final_df = wslive_filter_df.sort_values('WSLIVE_FILE_DT', 
-                            ascending=False).groupby('PHYSICIAN_ME_NUMBER').first().reset_index()
+    @classmethod
+    def _filter_for_masterfile_sourced_rows(cls, data):
+        return data[data['SOURCE'].isin(['C', 'Z', 'CR'])]
 
-    return wslive_final_df
+    @classmethod
+    def _filter_out_late_results(cls, data):
+        data['WS_DAY'] = 1
+        data['WS_DATE'] = pd.to_datetime(data[['WS_YEAR', 'WS_MONTH', 'WS_DAY']])
 
-
-def _masterfile_sourced_records(data):
-    return data[data['SOURCE'].isin(['C', 'Z', 'CR'])]
-
-
-def _sort_by_result_date(data):
-    return data.sort_values(['WSLIVE_FILE_DT'], ascending=False)
-
-
-def _load_samples(sample_files: Iterable) -> pd.DataFrame:
-    samples = []
-
-    for sample_file in sample_files:
-        sample = _load_sample(sample_file)
-        
-        samples.append(sample)
-
-    return pd.concat(samles, ignore_index=True)
+        return data[data['WS_DATE'] <= data['SAMPLE_MAX_DATE']]
 
 
-def _load_sample(sample_file: str) -> pd.DataFrame:
-    sample_date = _extract_sample_date_from_file_name(sample_file)
+class SampleLoader:
+    def load_samples(self, sample_files: Iterable) -> pd.DataFrame:
+        samples = []
 
-    sample = pd.read_excel(sample_file, index_col=None, header=0, dtype=str)
+        for sample_file in sample_files:
+            sample = self.load_sample(sample_file)
+            
+            samples.append(sample)
 
-    sample = _standardize_sample(sample)
+        return pd.concat(samles, ignore_index=True)
 
-    return sample
+    def load_sample(self, sample_file: str) -> pd.DataFrame:
+        sample_date = _extract_sample_date_from_file_name(sample_file)
 
+        sample = pd.read_excel(sample_file, index_col=None, header=0, dtype=str)
 
-def _extract_sample_date_from_file_name(sample_files):
-    slash_ndx = [i for i in range(len(sample_file)) if sample_file.startswith('/', i)]
-    base_name = sample_file[slash_ndx[-1] + 1:]
-    under_ndx = base_name.find('_')
-    dash_ndx = base_name.find('-')
-    date_str = base_name[dash_ndx + 1:under_ndx]
+        sample = self._standardize_sample(sample, sample_date)
 
-    return datetime.strptime(date_str, '%Y-%m-%d')
+        return sample
 
+    def _extract_sample_date_from_file_name(self, sample_files):
+        slash_ndx = [i for i in range(len(sample_file)) if sample_file.startswith('/', i)]
+        base_name = sample_file[slash_ndx[-1] + 1:]
+        under_ndx = base_name.find('_')
+        dash_ndx = base_name.find('-')
+        date_str = base_name[dash_ndx + 1:under_ndx]
 
-def _standardize_sample(sample: pd.DataFrame, sample_date: datetime) -> pd.DataFrame:
-    sample = df.rename_in_upper_case(sample)
+        return datetime.strptime(date_str, '%Y-%m-%d')
 
-    sample['SAMPLE_DATE'] = sample_date
-    sample['SAMPLE_SENT_MONTH'] = sample_date.month
-    sample['SAMPLE_MAX_PERFORM_MONTH'] = sample_date.month + 2
-    sample['SAMPLE_DATE'] = sample_date
+    def _standardize_sample(self, sample: pd.DataFrame, sample_date: datetime) -> pd.DataFrame:
+        sample = df.rename_in_upper_case(sample)
 
-    return sample
+        sample['SAMPLE_DATE'] = sample_date
+        sample['SAMPLE_MAX_DATE'] = sample_date + timedelta(months=2)
+
+        return sample
