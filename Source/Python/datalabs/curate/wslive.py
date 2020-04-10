@@ -1,10 +1,16 @@
 """ Utility functions for curating WSLive/Humach survey results data. """
 from datetime import datetime, timedelta
+import logging
 from typing import Iterable
 
 import pandas as pd
 
 import datalabs.curate.dataframe as df
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+
 
 @pd.api.extensions.register_dataframe_accessor("wslive")
 class WSLiveAccessor:
@@ -27,12 +33,14 @@ class WSLiveAccessor:
 
     def match_to_samples(self, samples: pd.DataFrame) -> pd.DataFrame:
         data = self._data.merge(samples, how='inner', left_on='PHYSICIAN_ME_NUMBER',  right_on='ME')
+        LOGGER.debug('Columns: %s', data.columns.values)
+        LOGGER.debug('Merged WSLive data with Samples: %s', data)
 
         data = self._filter_out_late_results(data)
 
-        data = _sort_by_result_date(data)
+        data = self._sort_by_result_date(data)
 
-        return data.groupby('PHYSICIAN_ME_NUMBER', sort=False).first().reset_index()
+        return data.groupby('PHYSICIAN_ME_NUMBER').first().reset_index()
 
     @classmethod
     def _sort_by_result_date(cls, data):
@@ -45,7 +53,10 @@ class WSLiveAccessor:
     @classmethod
     def _filter_out_late_results(cls, data):
         data['WS_DAY'] = 1
-        data['WS_DATE'] = pd.to_datetime(data[['WS_YEAR', 'WS_MONTH', 'WS_DAY']])
+        date_data = data[['WS_YEAR', 'WS_MONTH', 'WS_DAY']].rename(
+            columns={'WS_YEAR': 'year', 'WS_MONTH': 'month', 'WS_DAY': 'day'}
+        )
+        data['WS_DATE'] = pd.to_datetime(date_data)
 
         return data[data['WS_DATE'] <= data['SAMPLE_MAX_DATE']]
 
