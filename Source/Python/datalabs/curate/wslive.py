@@ -23,7 +23,7 @@ class WSLiveAccessor:
     def most_recent_by_me_number(self):
         data = self._sort_by_result_date(self._data)
 
-        return data.groupby('PHYSICIAN_ME_NUMBER', sort=False).first().reset_index()
+        return data.groupby('PHYSICIAN_ME_NUMBER').first().reset_index()
 
     def match_to_samples(self, samples: pd.DataFrame) -> pd.DataFrame:
         data = self._data.merge(samples, how='inner', left_on='PHYSICIAN_ME_NUMBER',  right_on='ME')
