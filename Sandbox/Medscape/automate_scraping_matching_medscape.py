@@ -345,7 +345,7 @@ ALL_YESTERDAY = newest_delta(OUT_DIRECTORY_YESTERDAY, f'Memorium_{YESTERDAY}')
 ALL_TODAY = newest_delta(OUT_DIRECTORY, f'Memorium_{TODAY}')
 
 US_DATA_TODAY = pd.read_excel(US_TODAY)
-US_DATA_YESTERDAY = pd.read_csv(US_YESTERDAY)
+US_DATA_YESTERDAY = pd.read_excel(US_YESTERDAY)
 ALL_DATA_TODAY = pd.read_csv(ALL_TODAY)
 ALL_DATA_YESTERDAY = pd.read_csv(ALL_YESTERDAY)
 
