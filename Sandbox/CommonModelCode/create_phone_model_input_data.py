@@ -11,8 +11,6 @@ from   datalabs.access.ppd import PPDFile
 from   datalabs.access.sample import SampleFile
 import datalabs.curate.wslive as wslive
 
-from get_wslive_res_init_ppd_info import create_wslive_ppd_data
-
 from rename_model_cols import rename_ppd_columns
 from get_entity_ppd_info import assign_lic_end_dates, create_general_key
 

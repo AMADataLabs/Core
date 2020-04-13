@@ -3,8 +3,6 @@
 #############################################################################
 import logging
 
-from get_wslive_res_init_ppd_info import create_wslive_ppd_data
-
 from rename_model_cols import rename_ppd_columns
 from get_entity_ppd_info import set_entity_dates, assign_lic_end_dates, create_general_key
 from get_entity_ppd_info import create_ent_me_data
