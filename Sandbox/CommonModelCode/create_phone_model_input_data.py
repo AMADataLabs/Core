@@ -1,30 +1,18 @@
 # Kari Palmier    9/20/19    Created
 #
 #############################################################################
-import warnings
-warnings.filterwarnings("ignore")
-
-# Get path of general (common) code and add it to the python path variable
-import sys
+import datetime
 import os
+import sys
 
 import pandas as pd
-import datetime
 
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'CommonCode\\'
-sys.path.insert(0, gen_path)
-
-from get_wslive_res_init_ppd_info import match_wslive_result_to_sample, create_wslive_ppd_data
-
-gen_path = base_path + 'CommonModelCode\\'
-sys.path.insert(0, gen_path)
+from get_wslive_res_init_ppd_info import create_wslive_ppd_data
 
 from rename_model_cols import rename_ppd_columns
 from get_entity_ppd_info import assign_lic_end_dates, create_general_key
 
+import datalabs.curate.wslive as wslive
 
 
 def get_ent_phn_counts(ent_data, group_var_lst, count_var_name):
@@ -253,8 +241,8 @@ def create_phn_entity_data(ent_comm_df, ent_comm_usg_df, phone_df, ent_key_df,
 
 def create_model_initial_data(wslive_uniq_me_res_df, init_sample_file_lst, ppd_file_lst, ent_comm_df, 
                               ent_comm_usg_df, phone_df, license_df, ent_key_df, fone_zr_df):
-    
-    wslive_uniq_res_init_df = match_wslive_result_to_sample(wslive_uniq_me_res_df, init_sample_file_lst)
+    samples = wslive.SampleLoader.load_samples(init_sample_file_lst)
+    wslive_uniq_res_init_df = wslive_uniq_me_res_df.wslive.match_to_samples(samples)
     
     wslive_ppd_df = create_wslive_ppd_data(wslive_uniq_res_init_df, ppd_file_lst)
     
