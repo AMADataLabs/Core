@@ -10,13 +10,6 @@ import pyodbc
 import datalabs.curate.dataframe as df
 
 
-def get_ods_connection(username, password):
-    
-    ODS_conn = pyodbc.connect('DSN=eprdods; UID={}; PWD={}'.format(username, password))
-    ODS_conn.execute('SET ISOLATION TO DIRTY READ;')
-    
-    return ODS_conn
-
 def get_iqvia_sample_info(ODS_conn):
     
     ims_query = \

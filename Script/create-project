@@ -6,6 +6,7 @@ SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 PROJECT_NAME=
 DEPENDENCY_LIST=
 FORCE_OVERWRITE=false
+SANDBOX=false
 
 
 main() {
@@ -14,8 +15,6 @@ main() {
     create_project_directories
 
     generate_configuration_files
-
-    # create_virtual_environment
 }
 
 
@@ -40,6 +39,10 @@ process_arguments() {
             FORCE_OVERWRITE=true
             shift
             ;;
+        -s|--sandbox)
+            SANDBOX=true
+            shift
+            ;;
         *)
             PROJECT_NAME=$1
             shift
@@ -55,23 +58,43 @@ process_arguments() {
 
 
 create_project_directories() {
-    # create_directory Build ${PROJECT_NAME}
+    if [[ "$SANDBOX" == true ]]; then
+        echo "--- Creating sandbox project ${PROJECT_NAME} ---"
 
-    create_directory Environment ${PROJECT_NAME}
+        create_directory Sandbox ${PROJECT_NAME}
+    else
+        echo "--- Creating global project ${PROJECT_NAME} ---"
+
+        # create_directory Build ${PROJECT_NAME}
+
+        create_directory Environment ${PROJECT_NAME}
+    fi
 }
 
 
 generate_configuration_files() {
-    generate_dependency_whitelist
+    if [[ "$SANDBOX" == true ]]; then
+        generate_configuration_files
+    else
+        generate_dependency_whitelist
 
-    generate_requirements
+        generate_requirements
 
-    # generate_dockerfile
+        # generate_dockerfile
+    fi
 }
 
 
 print_usage() {
-    echo "Usage: create-project <project name> [-h|--help] [-l|--list-deps] [-d|--dependencies dep1[,dep2[...]]]"
+    echo "Usage: create-project <project name> [OPTION]...[PROJECT]"
+    echo "Create directories and initial configuration files for a project."
+    echo
+    echo "OPTIONS"
+    echo "  -f, --force                           overwrite any directories or files that are created"
+    echo "  -h, --help                            print this usage text"
+    echo "  -s, --sandbox                         create Sandbox project instead of a global (repository) project"
+    echo "  -l, --list-deps                       list the available Python dependencies and then quit"
+    echo "  -d, --dependencies dep1[,dep2[...]]]  specify dependencies for the project"
 }
 
 
@@ -93,6 +116,13 @@ create_directory() {
 
     echo "Creating directory ${DIRECTORY_PATH}"
     mkdir -p ${DIRECTORY_PATH}
+}
+
+
+generate_configuration_files() {
+    copy_file Environment Sandbox settings.py
+
+    generate_dotenv_template
 }
 
 
@@ -121,6 +151,41 @@ generate_requirements() {
 
     echo "Generating requirements.txt for project ${PROJECT_NAME}"
     $GENENV $ARGUMENTS
+}
+
+
+copy_file() {
+    SOURCE=$1
+    DESTINATION=$2
+    FILE_NAME=$3
+    SOURCE_PATH=${SCRIPT_BASE_PATH}/../${SOURCE}/Master/${FILE_NAME}
+    DESTINATION_PATH=${SCRIPT_BASE_PATH}/../${DESTINATION}/${PROJECT_NAME}/${FILE_NAME}
+
+    if [[ "$FORCE_OVERWRITE" == false && -d $DESTINATION_PATH ]]; then
+        real_path=`realpath ${DESTINATION_PATH}`
+        echo "Error: File ${real_path} already exists."
+        exit 2
+    fi
+
+    cp -f ${SOURCE_PATH} ${DESTINATION_PATH}
+}
+
+
+generate_dotenv_template() {
+    TEMPLATE_NAME=dotenv_template.txt
+    TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Environment/Master/${TEMPLATE_NAME}
+    RESULT_PATH=${SCRIPT_BASE_PATH}/../Sandbox/${PROJECT_NAME}/${TEMPLATE_NAME}
+    RESOLVE_TEMPLATE="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/resolve_template.py"
+
+
+    if [[ "$FORCE_OVERWRITE" == false && -d $RESULT_PATH ]]; then
+        real_path=`realpath ${RESULT_PATH}`
+        echo "Error: Template file ${real_path} already exists."
+        exit 2
+    fi
+
+
+    ${RESOLVE_TEMPLATE} -t ${TEMPLATE_PATH} -f ${RESULT_PATH} -v project=${PROJECT_NAME}
 }
 
 

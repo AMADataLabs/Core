@@ -19,4 +19,5 @@ CREDENTIALS_ODS_USERNAME='{{ ods_username }}'
 CREDENTIALS_ODS_PASSWORD='{{ ods_password }}'
 
 # Project Settings
-PROJECT_NAME='{{ pythonpath }}'
+PROJECT_NAME='{{ project }}'
+

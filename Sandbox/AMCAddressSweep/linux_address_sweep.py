@@ -175,16 +175,7 @@ def sweep(df, check_line1=False):
 
 
 if __name__ == '__main__':
-
-    # aims auth info
-    username = 'bdehling'
-    with open ("C:\\Users\\bdehling\\brian.txt") as file:
-        password = file.readline()
-
     print('Starting Address Sweep...')
-    print('Connecting to AIMS')
-    AIMS_conn = pyodbc.connect(f"DSN=aims_prod; UID={username}; PWD={password}")
-    AIMS_conn.execute("SET ISOLATION TO DIRTY READ;")
     sql3 = \
         """
         SELECT 
@@ -228,8 +219,11 @@ if __name__ == '__main__':
             eke.key_type ='ME'
         """
 
-    print('Querying data...(takes a while)...')
-    df = pd.read_sql(sql3, AIMS_conn, coerce_float=False)
+    print('Connecting to AIMS')
+    with AIMS() as aims:
+        print('Querying data...(takes a while)...')
+        df = aims.read(sql3, coerce_float=False)
+
     print('Query complete. Cleaning results...')
     # cleaning whitespace
     df = df.replace(np.nan, '', regex=True)
