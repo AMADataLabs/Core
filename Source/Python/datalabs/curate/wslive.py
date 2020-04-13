@@ -62,26 +62,29 @@ class WSLiveAccessor:
 
 
 class SampleLoader:
-    def load_samples(self, sample_files: Iterable) -> pd.DataFrame:
+    @classmethod
+    def load_samples(cls, sample_files: Iterable) -> pd.DataFrame:
         samples = []
 
         for sample_file in sample_files:
-            sample = self.load_sample(sample_file)
+            sample = cls.load_sample(sample_file)
             
             samples.append(sample)
 
         return pd.concat(samles, ignore_index=True)
 
-    def load_sample(self, sample_file: str) -> pd.DataFrame:
+    @classmethod
+    def load_sample(cls, sample_file: str) -> pd.DataFrame:
         sample_date = _extract_sample_date_from_file_name(sample_file)
 
         sample = pd.read_excel(sample_file, index_col=None, header=0, dtype=str)
 
-        sample = self._standardize_sample(sample, sample_date)
+        sample = cls._standardize_sample(sample, sample_date)
 
         return sample
 
-    def _extract_sample_date_from_file_name(self, sample_files):
+    @classmethod
+    def _extract_sample_date_from_file_name(cls, sample_files):
         slash_ndx = [i for i in range(len(sample_file)) if sample_file.startswith('/', i)]
         base_name = sample_file[slash_ndx[-1] + 1:]
         under_ndx = base_name.find('_')
@@ -90,7 +93,8 @@ class SampleLoader:
 
         return datetime.strptime(date_str, '%Y-%m-%d')
 
-    def _standardize_sample(self, sample: pd.DataFrame, sample_date: datetime) -> pd.DataFrame:
+    @classmethod
+    def _standardize_sample(cls, sample: pd.DataFrame, sample_date: datetime) -> pd.DataFrame:
         sample = df.rename_in_upper_case(sample)
 
         sample['SAMPLE_DATE'] = sample_date
