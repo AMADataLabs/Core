@@ -9,6 +9,8 @@ from rename_model_cols import rename_ppd_columns
 from get_entity_ppd_info import set_entity_dates, assign_lic_end_dates, create_general_key
 from get_entity_ppd_info import create_ent_me_data
 
+from   datalabs.access.ppd import PPDFile
+from   datalabs.access.sample import SampleFile
 from   datalabs.analysis.exception import BadDataFrameMerge
 import datalabs.curate.dataframe as df
 import datalabs.curate.wslive as wslive
@@ -377,10 +379,11 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
 # creates data to be used by the pre-processing notebook (which is used to build and train models)
 def create_model_initial_data(wslive_uniq_me_res_df, init_sample_file_lst, ppd_file_lst, ent_comm_df,
                               ent_comm_usg_df, post_addr_df, license_df, ent_key_df):
-    samples = wslive.SampleLoader.load_multiple(init_sample_file_lst)
+    samples = SampleFile.load_multiple(init_sample_file_lst)
     wslive_uniq_res_init_df = wslive_uniq_me_res_df.wslive.match_to_samples(samples)
 
-    wslive_ppd_df = create_wslive_ppd_data(wslive_uniq_res_init_df, ppd_file_lst)
+    ppds = PPDFile.load_multiple(ppd_file_lst)
+    wslive_ppd_df = wslive_uniq_res_init_df.wslive.match_to_ppds(ppds)
 
     date_df = wslive_ppd_df[['ME', 'INIT_SAMPLE_DATE']]
 

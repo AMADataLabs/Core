@@ -7,12 +7,14 @@ import sys
 
 import pandas as pd
 
+from   datalabs.access.ppd import PPDFile
+from   datalabs.access.sample import SampleFile
+import datalabs.curate.wslive as wslive
+
 from get_wslive_res_init_ppd_info import create_wslive_ppd_data
 
 from rename_model_cols import rename_ppd_columns
 from get_entity_ppd_info import assign_lic_end_dates, create_general_key
-
-import datalabs.curate.wslive as wslive
 
 
 def get_ent_phn_counts(ent_data, group_var_lst, count_var_name):
@@ -241,11 +243,12 @@ def create_phn_entity_data(ent_comm_df, ent_comm_usg_df, phone_df, ent_key_df,
 
 def create_model_initial_data(wslive_uniq_me_res_df, init_sample_file_lst, ppd_file_lst, ent_comm_df, 
                               ent_comm_usg_df, phone_df, license_df, ent_key_df, fone_zr_df):
-    samples = wslive.SampleLoader.load_multiple(init_sample_file_lst)
+    samples = SampleFile.load_multiple(init_sample_file_lst)
     wslive_uniq_res_init_df = wslive_uniq_me_res_df.wslive.match_to_samples(samples)
     
-    wslive_ppd_df = create_wslive_ppd_data(wslive_uniq_res_init_df, ppd_file_lst)
-    
+    ppds = PPDFile.load_multiple(ppd_file_lst)
+    wslive_ppd_df = wslive_uniq_res_init_df.wslive.match_to_ppds(ppds)
+
     date_df =  wslive_ppd_df[['ME', 'INIT_SAMPLE_DATE']]
 
     entity_df = create_phn_entity_data(ent_comm_df, ent_comm_usg_df, 
