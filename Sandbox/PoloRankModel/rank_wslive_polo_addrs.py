@@ -12,6 +12,7 @@ import tkinter as tk
 import pandas as pd
 
 import settings
+from   datalabs.access.wslive import WSLiveFile
 import datalabs.curate.wslive as wslive
 import datalabs.curate.dataframe as df
 import datalabs.util.datetime as dt
@@ -99,20 +100,11 @@ def main(args):
     ent_key_df = pd.read_csv(ent_key_file, delimiter = ",", index_col = None, header = 0, dtype = str)
 
 
-    # Read in wslive data
-    wslive_results_df = pd.read_csv(wslive_results_file, delimiter = ",", index_col = None,
-                                    header = 0, dtype = str)
-    wslive_results_df = df.rename_in_upper_case(wslive_results_df)
+    wslive_results_df = WSLiveFile.load(wslive_results_file)
 
     # Get data for date range specified
-    wslive_results_df['WSLIVE_FILE_DT'] = pd.to_datetime(wslive_results_df['WSLIVE_FILE_DT'])
     wslive_date_df = wslive_results_df[(wslive_results_df['WSLIVE_FILE_DT'] >= start_date) & \
                                       (wslive_results_df['WSLIVE_FILE_DT'] <= end_date)]
-
-    # TODO: This should be part of the cleaning stage so we have standardized input data
-    wslive_date_df = wslive.standardize(wslive_date_df)
-
-    wslive_uniq_me_df = wslive.most_recent_by_me_number(wslive_date_df)
 
     ppd_scoring_df = create_model_initial_data(wslive_uniq_me_df, init_sample_file_lst, 
                                              ppd_file_lst, ent_comm_df, ent_comm_usg_df, 

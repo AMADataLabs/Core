@@ -17,20 +17,6 @@ class WSLiveAccessor:
     def __init__(self, data):
         self._data = data
 
-    def standardize(self):
-        data = df.rename_in_upper_case(self._data)
-
-        data = self._filter_for_masterfile_sourced_rows(data)
-
-        data['WSLIVE_FILE_DT'] = pd.to_datetime(data['WSLIVE_FILE_DT'])
-
-        return data
-
-    def most_recent_by_me_number(self):
-        data = self._sort_by_result_date(self._data)
-
-        return data.groupby('PHYSICIAN_ME_NUMBER').first().reset_index()
-
     def match_to_samples(self, samples: pd.DataFrame) -> pd.DataFrame:
         data = self._data.merge(samples, how='inner', left_on='PHYSICIAN_ME_NUMBER',  right_on='ME')
         LOGGER.debug('Columns: %s', data.columns.values)
@@ -38,66 +24,62 @@ class WSLiveAccessor:
 
         data = self._filter_out_late_results(data)
 
-        data = self._sort_by_result_date(data)
+        return self._most_recent_by_me_number(data)
 
-        return data.groupby('PHYSICIAN_ME_NUMBER').first().reset_index()
+    def match_to_ppds(self, ppds: pd.DataFrame) -> pd.DataFrame:
+        data = self._rename_initial_sample_columns(self._data)
+        data = data.merge(ppds, how='inner', left_on='PHYSICIAN_ME_NUMBER',  right_on='ME')
 
-    @classmethod
-    def _sort_by_result_date(cls, data):
-        return data.sort_values(['WSLIVE_FILE_DT'], ascending=False)
-
-    @classmethod
-    def _filter_for_masterfile_sourced_rows(cls, data):
-        return data[data['SOURCE'].isin(['C', 'Z', 'CR'])]
+        data = self._filter_on_ppd_date(data)
 
     @classmethod
     def _filter_out_late_results(cls, data):
+        self._assert_has_columns(data, ['SAMPLE_MAX_DATE'])
+
+        data = self._add_ws_date(data)
+
+        return data[data['WS_DATE'] <= data['SAMPLE_MAX_DATE']]
+
+    @classpath
+    def _most_recent_by_me_number(cls, data):
+        data = data.sort_values(['WSLIVE_FILE_DT'], ascending=False)
+
+        return data.groupby('PHYSICIAN_ME_NUMBER').first().reset_index()
+
+    def _rename_initial_sample_columns(self):
+        initial_sample_columns = [
+            'POLO_MAILING_LINE_1', 'POLO_MAILING_LINE_2', 'POLO_CITY', 'POLO_STATE', 'POLO_ZIP', 'TELEPHONE_NUMBER',
+            'FAX_NUMBER', 'SAMPLE_MAX_PERFORM_MONTH', 'SAMPLE_SENT_MONTH', 'SAMPLE_DATE'
+        ]
+        column_map = {c:'INIT_'+c for c in initial_sample_columns}
+
+        self._assert_has_columns(self._data, initial_sample_columns)
+
+        return self._data.rename(columns = new_col_dict)
+
+    @classmethod
+    def _filter_on_ppd_date(cls, data):
+        return data[
+            (data['INIT_SAMPLE_DATE'].apply(lambda d: d.year) == data['PPD_DATE'].apply(lambda d: d.year)) &
+            (data['INIT_SAMPLE_DATE'].apply(lambda d: d.month) == data['PPD_DATE'].apply(lambda d: d.month))
+        ]
+
+    @classmethod
+    def _add_ws_date(cls, data):
         data['WS_DAY'] = 1
         date_data = data[['WS_YEAR', 'WS_MONTH', 'WS_DAY']].rename(
             columns={'WS_YEAR': 'year', 'WS_MONTH': 'month', 'WS_DAY': 'day'}
         )
         data['WS_DATE'] = pd.to_datetime(date_data)
 
-        return data[data['WS_DATE'] <= data['SAMPLE_MAX_DATE']]
+        return data
 
+    @classpath
+    def _assert_has_columns(cls, data: pd.DataFrame, columns: Iterable):
+        column_logical_indices = pd.Series([c in data.columns.values for c in columns])
+        missing_column_logical_indices = ~column_logical_indices
 
-class SampleLoader:
-    @classmethod
-    def load_samples(cls, sample_files: Iterable) -> pd.DataFrame:
-        samples = []
-
-        for sample_file in sample_files:
-            sample = cls.load_sample(sample_file)
-            
-            samples.append(sample)
-
-        return pd.concat(samles, ignore_index=True)
-
-    @classmethod
-    def load_sample(cls, sample_file: str) -> pd.DataFrame:
-        sample_date = _extract_sample_date_from_file_name(sample_file)
-
-        sample = pd.read_excel(sample_file, index_col=None, header=0, dtype=str)
-
-        sample = cls._standardize_sample(sample, sample_date)
-
-        return sample
-
-    @classmethod
-    def _extract_sample_date_from_file_name(cls, sample_files):
-        slash_ndx = [i for i in range(len(sample_file)) if sample_file.startswith('/', i)]
-        base_name = sample_file[slash_ndx[-1] + 1:]
-        under_ndx = base_name.find('_')
-        dash_ndx = base_name.find('-')
-        date_str = base_name[dash_ndx + 1:under_ndx]
-
-        return datetime.strptime(date_str, '%Y-%m-%d')
-
-    @classmethod
-    def _standardize_sample(cls, sample: pd.DataFrame, sample_date: datetime) -> pd.DataFrame:
-        sample = df.rename_in_upper_case(sample)
-
-        sample['SAMPLE_DATE'] = sample_date
-        sample['SAMPLE_MAX_DATE'] = sample_date + timedelta(months=2)
-
-        return sample
+        if any(missing_column_logical_indices):
+            raise AttributeError('The following columns were not found in the WSLive data: {}'.format(
+                pd.Series(columns)[missing_column_logical_indices].to_list()
+            ))
