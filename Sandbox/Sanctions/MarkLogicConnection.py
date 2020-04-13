@@ -3,7 +3,6 @@ from requests.auth import HTTPDigestAuth
 import os
 import json
 from xml.dom import minidom
-
 from pprint import pprint
 
 
@@ -31,12 +30,12 @@ class MarkLogicConnection(object):
                                                                                            database)
             # print(url)
             search = requests.get(url, auth=self.auth)
-            # print(search.content)
-            # with open('pdf_search_results.xml', 'wb') as s:
-            #    s.write(search.content)
-            # xmldoc = minidom.parse('pdf_search_results.xml')
+            #print(search.content)
+            with open('pdf_search_results.xml', 'wb') as s:
+               s.write(search.content)
+            xmldoc = minidom.parse('pdf_search_results.xml')
 
-            xmldoc = minidom.parseString(search.content)
+            #xmldoc = minidom.parseString(search.content)
 
             res = xmldoc.getElementsByTagName('search:result')
 
@@ -49,6 +48,58 @@ class MarkLogicConnection(object):
 
             start += page_length
         return uris
+
+    def set_lic_nbr(self, uri, lic_nbr, database='PhysicianSanctions'):
+        # step 1, download current metadata file
+        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
+        response = requests.get(url=url, auth=self.auth)
+
+        json_file = json.loads(response.content)
+
+        # step 2, fill in license number
+        json_file['sanction']['physician']['license'] = lic_nbr
+        # print('Data to write:')
+        # pprint(json_file)
+
+        # step 3, upload edited file to update the document in MarkLogic
+        resp = requests.put('{}/documents?uri={}&database={}'.format(self.url, uri, database),
+                            auth=self.auth,
+                            data=json.dumps(json_file))
+        print(resp.status_code)
+        return
+
+    def set_me_nbr(self, uri, me_nbr, database='PhysicianSanctions'):
+        # step 1, download current metadata file
+        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
+        response = requests.get(url=url, auth=self.auth)
+
+        json_file = json.loads(response.content)
+
+        # step 2, fill in ME number
+        json_file['sanction']['physician']['me'] = me_nbr
+        json_file['app']['assignment']['me'] = me_nbr
+        # print('Data to write:')
+        # pprint(json_file)
+
+        # step 3, upload edited file to update the document in MarkLogic
+        resp = requests.put('{}/documents?uri={}&database={}'.format(self.url, uri, database),
+                            auth=self.auth,
+                            data=json.dumps(json_file))
+
+        print(resp.status_code)
+        return
+
+    def get_file(self, uri, database='PhysicianSanctions'):
+        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
+
+        response = requests.get(url=url, auth=self.auth)
+        # should probably add more specific web response error handling
+        if response.status_code != 200:
+            print(response.status_code)
+            response.raise_for_status()
+            return None
+
+        return response.content
 
     # downloads a file specified by URI to local environment
     def download_file(self, uri, database='PhysicianSanctions', save_dir=''):
@@ -72,35 +123,4 @@ class MarkLogicConnection(object):
 
         with open(file, 'wb+') as f:
             f.write(response.content)
-        return
-
-    # populates the 'me' field in the json metadata file specified by URI
-    def update_metadata_me_nbr(self, uri, me_nbr, database='PhysicianSanctions'):
-
-        # step 1, download current metadata file
-        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
-        response = requests.get(url=url, auth=self.auth)
-
-        json_file = json.loads(response.content)
-
-        """
-        print('Pre-update JSON:')
-        pprint(json_file)
-        print()
-        print('#'*80)
-        print()
-        """
-
-        # step 2, fill in ME number
-        json_file['sanction']['physician']['me'] = me_nbr
-        json_file['app']['assignment']['me'] = me_nbr
-        # print('Data to write:')
-        # pprint(json_file)
-
-        # step 3, upload edited file to update the document in MarkLogic
-        resp = requests.put('{}/documents?uri={}&database={}'.format(self.url, uri, database),
-                            auth=self.auth,
-                            data=json.dumps(json_file))
-
-        print(resp.status_code)
         return
