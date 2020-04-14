@@ -1,10 +1,17 @@
+#Change the paths and run setup_repository.py
 # Repository Settings
-DATALABS_PYTHONPATH='C://Users//vigrose//hsg-data-labs//Source//Python'
+DATALABS_PYTHONPATH='C:/Users/vigrose/hsg-data-labs/Source/Python
 
 DATABASE_NAME_EDW='PRDDW'
-CREDENTIALS_EDW_USERNAME='vigrose'
-CREDENTIALS_EDW_PASSWORD='slytherin10946'
-
+CREDENTIALS_EDW_USERNAME={{EDW USERNAME}}
+CREDENTIALS_EDW_PASSWORD={{EDW PASSWORD}}
 
 # Project Settings
 PROJECT_NAME='Medscape'
+
+#PPD Directory
+PPD_DIR = 'U:/Source Files/Data Analytics/Data-Science/Data/PPD/'
+
+#Out Directory
+OUT_DIR = 'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/Task-Scheduled/'
+
