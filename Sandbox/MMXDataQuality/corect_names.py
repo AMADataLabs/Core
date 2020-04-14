@@ -1,12 +1,12 @@
+from collections import namedtuple
+import logging
 import settings
 import pandas as pd
 from datalabs.access.edw import EDW
-import logging
-from collections import namedtuple
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 RuleForNames = namedtuple('RuleForNames', 'test_user, middle_to_last, last_nm_1, last_nm_split, first_only, de_la, de, ben, Del, delle, san')
 
