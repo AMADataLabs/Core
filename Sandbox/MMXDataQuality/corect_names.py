@@ -82,7 +82,9 @@ def rules_to_exclude_names(data):
 
 def append_excluded_names(incorrect_dfs):
     incorrect_df = pd.DataFrame(columns=['PARTY_ID', 'FIRST_NM', 'MIDDLE_NM', 'LAST_NM', 'ME_NUMBER'])
-    incorrect_df = incorrect_df.append([incorrect_dfs.test_user, incorrect_dfs.middle_to_last, incorrect_dfs.last_nm_1, incorrect_dfs.last_nm_split, incorrect_dfs.first_only, incorrect_dfs.de_la, incorrect_dfs.de, incorrect_dfs.ben, incorrect_dfs.Del, incorrect_dfs.delle, incorrect_dfs.san], ignore_index=True)
+    incorrect_df = incorrect_df.append([incorrect_dfs.test_user, incorrect_dfs.middle_to_last, incorrect_dfs.last_nm_1, \
+                                        incorrect_dfs.last_nm_split, incorrect_dfs.first_only, incorrect_dfs.de_la, incorrect_dfs.de, \
+                                        incorrect_dfs.ben, incorrect_dfs.Del, incorrect_dfs.delle, incorrect_dfs.san], ignore_index=True)
     return incorrect_df
 
 def save_to_csv(incorrect_df):
