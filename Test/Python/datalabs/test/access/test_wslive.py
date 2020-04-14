@@ -3,28 +3,15 @@ from datetime import datetime, timedelta
 import pandas
 import pytest
 
-import datalabs.curate.wslive
+from datalabs.access.wslive import WSLiveFile
 
 
-def test_most_recent_by_me_number(wslive_results):
-    standardized_results = wslive_results.wslive.standardize()
-    filtered_results = standardized_results.wslive.most_recent_by_me_number()
+def test_standardize(wslive_results):
+    standardized_data = WSLiveFile._standardize(wslive_results)
 
-    assert 3 == len(filtered_results)
-    assert all(filtered_results['PHSYICIAN_FIRST_NAME'] == sorted(filtered_results['PHSYICIAN_FIRST_NAME']))
-    assert all(2019 == filtered_results['WS_YEAR'])
-    assert all(10 == filtered_results['WS_MONTH'])
-
-
-def test_match_to_samples(wslive_results, samples):
-    standardized_results = wslive_results.wslive.standardize()
-    matched_results = standardized_results.wslive.match_to_samples(samples)
-
-    assert 3 == len(matched_results)
-    assert all(matched_results['PHSYICIAN_FIRST_NAME'] == sorted(matched_results['PHSYICIAN_FIRST_NAME']))
-    assert all(datetime(2019, 10, 1) == matched_results['WS_DATE'])
-    assert 'DESCRIPTION' in matched_results.columns.values
-    assert all('Group Practice' == matched_results['DESCRIPTION'])
+    assert 'SOURCE' in standardized_data.columns.values
+    assert 6 == len(standardized_data)
+    assert all(standardized_data['WSLIVE_FILE_DT'].apply(lambda x: hasattr(x, 'tzname')))
 
 
 @pytest.fixture

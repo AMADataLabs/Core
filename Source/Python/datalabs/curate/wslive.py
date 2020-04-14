@@ -40,7 +40,7 @@ class WSLiveAccessor:
 
         return data[data['WS_DATE'] <= data['SAMPLE_MAX_DATE']]
 
-    @classpath
+    @classmethod
     def _most_recent_by_me_number(cls, data):
         data = data.sort_values(['WSLIVE_FILE_DT'], ascending=False)
 
@@ -74,7 +74,7 @@ class WSLiveAccessor:
 
         return data
 
-    @classpath
+    @classmethod
     def _assert_has_columns(cls, data: pd.DataFrame, columns: Iterable):
         column_logical_indices = pd.Series([c in data.columns.values for c in columns])
         missing_column_logical_indices = ~column_logical_indices

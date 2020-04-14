@@ -21,9 +21,6 @@ class SampleFile(DataFile):
         date_str = base_name[dash_ndx + 1:under_ndx]
 
         return datetime.strptime(date_str, '%Y-%m-%d')
-    @classmethod
-    def _load_from_file(cls, file):
-        return pd.read_excel(file, index_col=None, header=0, dtype=str)
 
     @classmethod
     def _standardize(cls, data: pd.DataFrame, data_date: datetime) -> pd.DataFrame:
