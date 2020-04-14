@@ -1,12 +1,13 @@
 import pandas as pd
 import pyodbc
 
+"""
 # needs to be refactored to the new authentication/connection method from Peter
 username = ''
 password = ''
 AIMS_conn = pyodbc.connect('DSN=aims_prod; UID={}; PWD={}'.format(username, password))
 AIMS_conn.execute('SET ISOLATION TO DIRTY READ;')
-
+"""
 
 def get_me_nbr(first, last, state, lic_nbr, con):
     # initial search is just on first + last because I was getting some weird errors / unexpected behavior when

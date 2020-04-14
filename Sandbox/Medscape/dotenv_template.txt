@@ -1,0 +1,10 @@
+# Repository Settings
+DATALABS_PYTHONPATH='C://Users//vigrose//hsg-data-labs//Source//Python'
+
+DATABASE_NAME_EDW='PRDDW'
+CREDENTIALS_EDW_USERNAME='vigrose'
+CREDENTIALS_EDW_PASSWORD='slytherin10946'
+
+
+# Project Settings
+PROJECT_NAME='Medscape'
