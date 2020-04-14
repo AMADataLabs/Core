@@ -26,5 +26,8 @@ clean-test:
 lint:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/*
 
+lint-test:
+	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Test/Python/*
+
 pythonpath:
 	${RUN} printenv PYTHONPATH

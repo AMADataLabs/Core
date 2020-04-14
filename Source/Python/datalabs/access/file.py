@@ -1,5 +1,5 @@
-from abc import ABC
-from datetime import datetime, timedelta
+""" Base classes for loading data from files. """
+from datetime import datetime
 from enum import Enum
 import logging
 from pathlib import Path
@@ -26,7 +26,7 @@ class DataFile:
 
         for file in files:
             data = cls.load(file, file_type)
-            
+
             dataset.append(data)
 
         return pd.concat(dataset, ignore_index=True)
@@ -34,7 +34,7 @@ class DataFile:
     @classmethod
     def load(cls, file: str, file_type: DataFileType = None) -> pd.DataFrame:
         file_type = file_type or cls._intuit_file_type(file)
-        data_date = _extract_date_from_path(file, file_type)
+        data_date = cls._extract_date_from_path(file)
 
         data = cls._load_from_file(file, file_type)
 
@@ -56,7 +56,7 @@ class DataFile:
         return file_type
 
     @classmethod
-    def _extract_date_from_path(cls, path, file_type: DataFileType = None):
+    def _extract_date_from_path(cls, path):
         path = Path(path)
         datestamp = cls._extract_datestamp_from_filename(path.name)
         date = None
@@ -69,13 +69,16 @@ class DataFile:
     @classmethod
     def _load_from_file(cls, file_name, file_type: DataFileType):
         data = None
+
         if file_type == DataFileType.CSV:
             data = pd.read_csv(file_name, index_col=None, header=0, dtype=str)
         elif file_type == DataFileType.Excel:
-            data = pd.read_excel(file, index_col=None, header=0, dtype=str)
+            data = pd.read_excel(file_name, index_col=None, header=0, dtype=str)
+
+        return data
 
     @classmethod
-    def _standardize(cls, data: pd.DataFrame, data_date: datetime) -> pd.DataFrame:
+    def _standardize(cls, data: pd.DataFrame, data_date: datetime) -> pd.DataFrame:  # pylint: disable=unused-argument
         return data
 
     @classmethod

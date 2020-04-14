@@ -1,11 +1,8 @@
 """ Utility functions for curating WSLive/Humach survey results data. """
-from datetime import datetime, timedelta
 import logging
 from typing import Iterable
 
 import pandas as pd
-
-import datalabs.curate.dataframe as df
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -18,7 +15,7 @@ class WSLiveAccessor:
         self._data = data
 
     def match_to_samples(self, samples: pd.DataFrame) -> pd.DataFrame:
-        data = self._data.merge(samples, how='inner', left_on='PHYSICIAN_ME_NUMBER',  right_on='ME')
+        data = self._data.merge(samples, how='inner', left_on='PHYSICIAN_ME_NUMBER', right_on='ME')
         LOGGER.debug('Columns: %s', data.columns.values)
         LOGGER.debug('Merged WSLive data with Samples: %s', data)
 
@@ -28,15 +25,15 @@ class WSLiveAccessor:
 
     def match_to_ppds(self, ppds: pd.DataFrame) -> pd.DataFrame:
         data = self._rename_initial_sample_columns(self._data)
-        data = data.merge(ppds, how='inner', left_on='PHYSICIAN_ME_NUMBER',  right_on='ME')
+        data = data.merge(ppds, how='inner', left_on='PHYSICIAN_ME_NUMBER', right_on='ME')
 
         data = self._filter_on_ppd_date(data)
 
     @classmethod
     def _filter_out_late_results(cls, data):
-        self._assert_has_columns(data, ['SAMPLE_MAX_DATE'])
+        cls._assert_has_columns(data, ['SAMPLE_MAX_DATE'])
 
-        data = self._add_ws_date(data)
+        data = cls._add_ws_date(data)
 
         return data[data['WS_DATE'] <= data['SAMPLE_MAX_DATE']]
 
@@ -46,16 +43,17 @@ class WSLiveAccessor:
 
         return data.groupby('PHYSICIAN_ME_NUMBER').first().reset_index()
 
-    def _rename_initial_sample_columns(self):
+    @classmethod
+    def _rename_initial_sample_columns(cls, data):
         initial_sample_columns = [
             'POLO_MAILING_LINE_1', 'POLO_MAILING_LINE_2', 'POLO_CITY', 'POLO_STATE', 'POLO_ZIP', 'TELEPHONE_NUMBER',
             'FAX_NUMBER', 'SAMPLE_MAX_PERFORM_MONTH', 'SAMPLE_SENT_MONTH', 'SAMPLE_DATE'
         ]
         column_map = {c:'INIT_'+c for c in initial_sample_columns}
 
-        self._assert_has_columns(self._data, initial_sample_columns)
+        cls._assert_has_columns(data, initial_sample_columns)
 
-        return self._data.rename(columns = new_col_dict)
+        return data.rename(columns=column_map)
 
     @classmethod
     def _filter_on_ppd_date(cls, data):
