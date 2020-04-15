@@ -6,22 +6,13 @@ import pandas
 import pyodbc
 
 import datalabs.access.credentials as cred
+from   datalabs.access.datastore import Datastore
 
 
-class Database():
+class Database(Datastore):
     def __init__(self, credentials: cred.Credentials = None):
-        self._key = self.__class__.__name__.upper()
-        self._credentials = self._load_credentials(credentials, self._key)
+        super().__init__()
         self._database_name = self._load_database_name(self._key)
-        self._connection = None
-
-    def __enter__(self):
-        self.connect()
-
-        return self
-
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.close()
 
     def connect(self):
         self._connection = pyodbc.connect(
@@ -29,23 +20,11 @@ class Database():
         )
         self._connection.execute('SET ISOLATION TO DIRTY READ;')
 
-    def close(self):
-        self._connection.close()
-
     def read(self, sql: str, **kwargs):
         return pandas.read_sql(sql, self._connection, **kwargs)
 
     def execute(self, sql: str, **kwargs):
         return self._connection.execute(sql, **kwargs)
-
-    @classmethod
-    def _load_credentials(cls, credentials: cred.Credentials, key: str):
-        if credentials is None:
-            credentials = cred.Credentials.load(key)
-        elif not hasattr(credentials, 'username') or hasattr(credentials, 'password'):
-            raise ValueError('Invalid credentials object.')
-
-        return credentials
 
     @classmethod
     def _load_database_name(cls, key: str):
