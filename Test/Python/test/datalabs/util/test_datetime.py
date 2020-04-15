@@ -1,7 +1,7 @@
 """ source: datalabs.util.datetime """
-import calendar
 from datetime import datetime
 from collections import namedtuple
+
 import pytest
 
 import datalabs.util.datetime as dt
@@ -10,22 +10,27 @@ import datalabs.util.datetime as dt
 DateData = namedtuple('DateData', 'start_str start end_str end range')
 
 
+# pylint: disable=redefined-outer-name
 def test_full_date_range(date_test_data):
     _test_date_range(date_test_data['full'])
 
 
+# pylint: disable=redefined-outer-name
 def test_partial_date_range(date_test_data):
     _test_date_range(date_test_data['partial'])
 
 
+# pylint: disable=redefined-outer-name
 def test_future_full_date_range(date_test_data):
     _test_date_range(date_test_data['future_full'])
 
 
+# pylint: disable=redefined-outer-name
 def test_future_partial_date_range(date_test_data):
     _test_date_range(date_test_data['future_partial'])
 
 
+# pylint: disable=redefined-outer-name
 def _test_date_range(data):
     start_date, end_date, date_range_str = dt.date_range(data.start_str, data.end_str)
 

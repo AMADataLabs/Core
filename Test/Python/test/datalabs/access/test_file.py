@@ -7,6 +7,7 @@ import pytest
 from datalabs.access.file import DataFile
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_extract_date_from_filename(path_dataset):
     for path_data in path_dataset:
         date = DataFile._extract_date_from_path(path_data.name)

@@ -13,6 +13,7 @@ def test_standardize(samples):
     max_date = datetime(1913, 2, 19)
     standardized_data = SampleFile._standardize(samples, data_date)
 
+    assert all([c in standardized_data.columns.values for c in ['SAMPLE_DATE', 'SAMPLE_MAX_DATE']])
     assert all(data_date == standardized_data['SAMPLE_DATE'])
     assert all(max_date == standardized_data['SAMPLE_MAX_DATE'])
 
@@ -21,14 +22,8 @@ def test_standardize(samples):
 def samples():
     return pandas.DataFrame(
         {
-            'ME': [1234567, 2345678, 3456789, 4567890],
-            'FIRST_NAME': ['Ammar', 'Bob', 'Carol', 'Danielle'],
-            'DESCRIPTION': ['Group Practice', 'Group Practice', 'Group Practice', 'Group Practice'],
-            'SAMPLE_DATE': [
-                datetime(2019, 10, 22), datetime(2019, 10, 3), datetime(2019, 11, 14), datetime(2019, 12, 9)
-            ],
-            'SAMPLE_MAX_DATE': [
-                datetime(2019, 12, 22), datetime(2019, 12, 3), datetime(2020, 1, 14), datetime(2020, 2, 9)
-            ],
+            'ME': [7654321, 8765432, 9876543, 987654],
+            'FIRST_NAME': ['Amy', 'Bill', 'Caroline', 'Doug'],
+            'DESCRIPTION': ['NO CLASSIFICATION', 'NO CLASSIFICATION', 'NO CLASSIFICATION', 'NO CLASSIFICATION'],
         }
     )
