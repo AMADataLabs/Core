@@ -27,15 +27,13 @@ class WSLiveAccessor:
         data = self._rename_initial_sample_columns(self._data)
         data = data.merge(ppds, how='inner', left_on='PHYSICIAN_ME_NUMBER', right_on='ME')
 
-        data = self._filter_on_ppd_date(data)
+        return self._filter_on_ppd_date(data)
 
     @classmethod
     def _filter_out_late_results(cls, data):
-        cls._assert_has_columns(data, ['SAMPLE_MAX_DATE'])
+        cls._assert_has_columns(data, ['WSLIVE_FILE_DT', 'SAMPLE_MAX_DATE'])
 
-        data = cls._add_ws_date(data)
-
-        return data[data['WS_DATE'] <= data['SAMPLE_MAX_DATE']]
+        return data[data['WSLIVE_FILE_DT'] <= data['SAMPLE_MAX_DATE']]
 
     @classmethod
     def _most_recent_by_me_number(cls, data):
@@ -47,7 +45,7 @@ class WSLiveAccessor:
     def _rename_initial_sample_columns(cls, data):
         initial_sample_columns = [
             'POLO_MAILING_LINE_1', 'POLO_MAILING_LINE_2', 'POLO_CITY', 'POLO_STATE', 'POLO_ZIP', 'TELEPHONE_NUMBER',
-            'FAX_NUMBER', 'SAMPLE_MAX_PERFORM_MONTH', 'SAMPLE_SENT_MONTH', 'SAMPLE_DATE'
+            'FAX_NUMBER', 'SAMPLE_MAX_DATE', 'SAMPLE_SENT_MONTH', 'SAMPLE_DATE'
         ]
         column_map = {c:'INIT_'+c for c in initial_sample_columns}
 
@@ -61,16 +59,6 @@ class WSLiveAccessor:
             (data['INIT_SAMPLE_DATE'].apply(lambda d: d.year) == data['PPD_DATE'].apply(lambda d: d.year)) &
             (data['INIT_SAMPLE_DATE'].apply(lambda d: d.month) == data['PPD_DATE'].apply(lambda d: d.month))
         ]
-
-    @classmethod
-    def _add_ws_date(cls, data):
-        data['WS_DAY'] = 1
-        date_data = data[['WS_YEAR', 'WS_MONTH', 'WS_DAY']].rename(
-            columns={'WS_YEAR': 'year', 'WS_MONTH': 'month', 'WS_DAY': 'day'}
-        )
-        data['WS_DATE'] = pd.to_datetime(date_data)
-
-        return data
 
     @classmethod
     def _assert_has_columns(cls, data: pd.DataFrame, columns: Iterable):
