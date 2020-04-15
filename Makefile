@@ -18,10 +18,10 @@ test: setup_test_files
 	${RUN} python -m pytest Test/Python/
 
 setup_test_files: ${TEMPLATE_FILES}
-	cp ${TEMPLATE_FILES} ${CWD}/Test/Python/datalabs/test/environment/
+	cp ${TEMPLATE_FILES} ${CWD}/Test/Python/test/datalabs/environment/
 
 clean-test:
-	rm -f ${CWD}/Test/Python/datalabs/test/environment/*_template.txt
+	rm -f ${CWD}/Test/Python/test/datalabs/environment/*_template.txt
 
 lint:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/*
