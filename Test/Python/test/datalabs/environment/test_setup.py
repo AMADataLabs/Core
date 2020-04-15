@@ -113,8 +113,8 @@ def pipenv_filenames():
     output_file.close()
 
     return setup.EnvironmentFilenames(
-        package_list='Test/Python/datalabs/test/environment/requirements.txt',
-        template='Test/Python/datalabs/test/environment/Pipfile_template.txt',
+        package_list='Test/Python/test/datalabs/environment/requirements.txt',
+        template='Test/Python/test/datalabs/environment/Pipfile_template.txt',
         output=output_file.name,
         whitelist=None
     )
@@ -126,7 +126,7 @@ def whitelisting_pipenv_filenames(pipenv_filenames):
         package_list=pipenv_filenames.package_list,
         template=pipenv_filenames.template,
         output=pipenv_filenames.output,
-        whitelist = 'Test/Python/datalabs/test/environment/package_selection.csv',
+        whitelist = 'Test/Python/test/datalabs/environment/package_selection.csv',
     )
 
 
@@ -136,8 +136,8 @@ def pip_filenames():
     output_file.close()
 
     return setup.EnvironmentFilenames(
-        package_list='Test/Python/datalabs/test/environment/requirements.txt',
-        template='Test/Python/datalabs/test/environment/requirements_template.txt',
+        package_list='Test/Python/test/datalabs/environment/requirements.txt',
+        template='Test/Python/test/datalabs/environment/requirements_template.txt',
         output=output_file.name,
         whitelist=None
     )
@@ -149,8 +149,8 @@ def conda_filenames():
     output_file.close()
 
     return setup.EnvironmentFilenames(
-        package_list='Test/Python/datalabs/test/environment/requirements.txt',
-        template='Test/Python/datalabs/test/environment/conda_requirements_template.txt',
+        package_list='Test/Python/test/datalabs/environment/requirements.txt',
+        template='Test/Python/test/datalabs/environment/conda_requirements_template.txt',
         output=output_file.name,
         whitelist=None
     )

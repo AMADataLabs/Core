@@ -3,26 +3,27 @@ from datetime import datetime, timedelta
 import pandas
 import pytest
 
+from   datalabs.access.wslive import WSLiveFile
 import datalabs.curate.wslive
 
 
 def test_most_recent_by_me_number(wslive_results):
-    standardized_results = wslive_results.wslive.standardize()
-    filtered_results = standardized_results.wslive.most_recent_by_me_number()
+    # standardized_results = WSLiveFile._standardize(wslive_results, datetime.now())
+    filtered_results = wslive_results.wslive._most_recent_by_me_number(wslive_results)
 
-    assert 3 == len(filtered_results)
+    assert len(filtered_results) == 3
     assert all(filtered_results['PHSYICIAN_FIRST_NAME'] == sorted(filtered_results['PHSYICIAN_FIRST_NAME']))
-    assert all(2019 == filtered_results['WS_YEAR'])
-    assert all(10 == filtered_results['WS_MONTH'])
+    assert all(filtered_results['WS_YEAR'] == 2019)
+    assert all(filtered_results['WS_MONTH'] == 10)
 
 
 def test_match_to_samples(wslive_results, samples):
-    standardized_results = wslive_results.wslive.standardize()
-    matched_results = standardized_results.wslive.match_to_samples(samples)
+    # standardized_results = WSLiveFile._standardize(wslive_results, datetime.now())
+    matched_results = wslive_results.wslive.match_to_samples(samples)
 
-    assert 3 == len(matched_results)
+    assert len(matched_results) == 3
     assert all(matched_results['PHSYICIAN_FIRST_NAME'] == sorted(matched_results['PHSYICIAN_FIRST_NAME']))
-    assert all(datetime(2019, 10, 1) == matched_results['WS_DATE'])
+    assert all(matched_results['WS_DATE'] == datetime(2019, 10, 1))
     assert 'DESCRIPTION' in matched_results.columns.values
     assert all('Group Practice' == matched_results['DESCRIPTION'])
 
@@ -31,12 +32,33 @@ def test_match_to_samples(wslive_results, samples):
 def wslive_results():
     return pandas.DataFrame(
         {
-            'PHYSICIAN_ME_NUMBER': [4567890, 2345678, 3456789, 1234567, 4567890, 2345678, 3456789, 1234567],
-            'PHSYICIAN_FIRST_NAME': ['Danielle', 'Bob', 'Carol', 'Ammar', 'Danielle', 'Bob', 'Carol', 'Ammar'],
-            'Source': ['C', 'Z', 'Q', 'CR', 'C', 'Z', 'Q', 'CR'],
-            'WSLIVE_FILE_DT': ['3/1/2019', '4/1/2019', '5/1/2018', '8/1/2019', '10/1/2019', '10/1/2019', '10/1/2019', '10/1/2019'],
-            'WS_YEAR': [2012, 2014, 2018, 2019, 2019, 2019, 2019, 2019],
-            'WS_MONTH': [3, 4, 5, 8, 10, 10, 10, 10],
+            'PHYSICIAN_ME_NUMBER': [4567890, 2345678, 1234567, 4567890, 2345678, 1234567],
+            'PHSYICIAN_FIRST_NAME': ['Danielle', 'Bob', 'Ammar', 'Danielle', 'Bob', 'Ammar'],
+            'SOURCE': ['C', 'Z', 'CR', 'C', 'Z', 'CR'],
+            'WSLIVE_FILE_DT': [
+                datetime(2012, 3, 1), datetime(2014, 4, 1), datetime(2019, 8, 1),
+                datetime(2019, 10, 1), datetime(2019, 10, 1), datetime(2019, 10, 1)
+            ],
+            'WS_YEAR': [2012, 2014, 2019, 2019, 2019, 2019],
+            'WS_MONTH': [3, 4, 8, 10, 10, 10],
+            'WS_DAY': [1, 1, 1, 1, 1, 1],
+            'OFFICE_TELEPHONE': [1, 2, 3, 4, 5, 6],
+            'OFFICE_FAX': [1, 2, 3, 4, 5, 6],
+            'OFFICE_ADDRESS_LINE_2': [1, 2, 3, 4, 5, 6],
+            'OFFICE_ADDRESS_LINE_1': [1, 2, 3, 4, 5, 6],
+            'OFFICE_ADDRESS_CITY': [1, 2, 3, 4, 5, 6],
+            'OFFICE_ADDRESS_STATE': [1, 2, 3, 4, 5, 6],
+            'OFFICE_ADDRESS_ZIP': [1, 2, 3, 4, 5, 6],
+            'COMMENTS': [1, 2, 3, 4, 5, 6],
+            'SPECIALTY': [1, 2, 3, 4, 5, 6],
+            'PRESENT_EMPLOYMENT_CODE': [1, 2, 3, 4, 5, 6],
+            'ADDR_STATUS': [1, 2, 3, 4, 5, 6],
+            'PHONE_STATUS': [1, 2, 3, 4, 5, 6],
+            'FAX_STATUS': [1, 2, 3, 4, 5, 6],
+            'SPEC_STATUS': [1, 2, 3, 4, 5, 6],
+            'PE_STATUS': [1, 2, 3, 4, 5, 6],
+            'NEW_METRIC': [1, 2, 3, 4, 5, 6],
+            'PPD_DATE': [1, 2, 3, 4, 5, 6],
         }
     )
 
