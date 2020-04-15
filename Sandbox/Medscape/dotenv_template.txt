@@ -1,10 +1,10 @@
 #Change the paths and run setup_repository.py
 # Repository Settings
-DATALABS_PYTHONPATH='C:/Users/vigrose/hsg-data-labs/Source/Python
+DATALABS_PYTHONPATH='{{ pythonpath }}'
 
 DATABASE_NAME_EDW='PRDDW'
-CREDENTIALS_EDW_USERNAME={{EDW USERNAME}}
-CREDENTIALS_EDW_PASSWORD={{EDW PASSWORD}}
+CREDENTIALS_EDW_USERNAME={{edw_username}}
+CREDENTIALS_EDW_PASSWORD={{edw_password}}
 
 # Project Settings
 PROJECT_NAME='Medscape'

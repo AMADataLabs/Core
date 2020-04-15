@@ -365,4 +365,4 @@ US_DELTA.to_csv(f'{OUT_DIRECTORY}/Memorium_USA_Delta_{TODAY}.csv', index=False)
 ALL_DELTA.to_csv(f'{OUT_DIRECTORY}/Memorium_World_Delta_{TODAY}.csv', index=False)
 
 UNPROCESSED = remove_processed_mes(US_DATA_ME)
-UNPROCESSED.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_Physicians_Unprocessed_{TODAY}.excel', index=False)
+UNPROCESSED.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_Physicians_Unprocessed_{TODAY}.xlsx', index=False)
