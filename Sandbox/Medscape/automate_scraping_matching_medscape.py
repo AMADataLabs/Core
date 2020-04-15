@@ -224,7 +224,10 @@ def append_me(roster_df):
                 pass
             new_df = PPD[(PPD.FIRST_NAME == row.FIRST_NAME) & (PPD.LAST_NAME == row.LAST_NAME)]
             if len(new_df) == 0 and years:
-                last = row.LAST_NAME.replace('-',' ')
+                if '-' in row.LAST_NAME:
+                    last = row.LAST_NAME.replace('-', ' ')
+                else:
+                    last = row.LAST_NAME.replace(' ', '')
                 new_df = PPD[(PPD.LAST_NAME == last) & (PPD.BIRTH_YEAR.isin(years))]
                 if len(new_df) == 0:
                     pass
