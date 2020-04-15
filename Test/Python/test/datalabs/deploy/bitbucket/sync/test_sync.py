@@ -1,9 +1,6 @@
-import dotenv
+""" source: datalabs.deploy.bitbucket.sync.sync """
 import logging
-import os
-import pathlib
 import pytest
-import tempfile
 
 import datalabs.deploy.bitbucket.sync.sync as sync
 
@@ -12,6 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_bitbucket_synchronizer_validation_runs_without_error(configuration, request_data):
     synchronizer = sync.BitBucketSynchronizer(configuration)
 
@@ -28,10 +26,11 @@ def configuration():
 
 @pytest.fixture
 def request_data():
+  # pylint: disable=bad-continuation
     return {
       "eventKey":"repo:refs_changed",
       "date":"2017-09-19T09:45:32+1000",
-      "actor":{  
+      "actor":{
         "name":"admin",
         "emailAddress":"admin@example.com",
         "id":1,
@@ -40,7 +39,7 @@ def request_data():
         "slug":"admin",
         "type":"NORMAL"
       },
-      "repository":{  
+      "repository":{
         "slug":"test-repository",
         "id":84,
         "name":"test-repository",
@@ -48,7 +47,7 @@ def request_data():
         "state":"AVAILABLE",
         "statusMessage":"Available",
         "forkable":True,
-        "project":{  
+        "project":{
           "key":"TEST-PROJECT",
           "id":84,
           "name":"Test Project",
@@ -57,9 +56,9 @@ def request_data():
         },
         "public":False
       },
-      "changes":[  
-        {  
-          "ref":{  
+      "changes":[
+        {
+          "ref":{
             "id":"refs/heads/master",
             "displayId":"master",
             "type":"BRANCH"

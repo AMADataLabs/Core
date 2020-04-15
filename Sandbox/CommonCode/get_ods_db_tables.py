@@ -7,7 +7,7 @@ import sys
 import pandas as pd
 import pyodbc
 
-import datalabs.curate.dataframe as df
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 
 def get_iqvia_sample_info(ODS_conn):
@@ -41,7 +41,7 @@ def get_iqvia_sample_info(ODS_conn):
         
     iqvia_dpc_df = pd.read_sql(ims_query, ODS_conn)
     
-    iqvia_dpc_df = df.strip(iqvia_dpc_df)
+    iqvia_dpc_df = iqvia_dpc_df.datalabs.strip()
     
     return iqvia_dpc_df
 
@@ -75,7 +75,7 @@ def get_iqvia_all_phys_info(ODS_conn):
         
     iqvia_dpc_df = pd.read_sql(ims_query, ODS_conn)
     
-    iqvia_dpc_df = df.strip(iqvia_dpc_df)
+    iqvia_dpc_df = iqvia_dpc_df.datalabs.strip()
     
     return iqvia_dpc_df
 
@@ -111,7 +111,7 @@ def get_symphony_sample_info(ODS_conn):
     sym_dpc_df['SYM_FAX_NUMBER'] = sym_dpc_df['SYM_FAX_ORIG'].apply(lambda x: x.replace('(', 
               '').replace(')', '').replace(' ', '').replace('-', '') if x != None else x)
     
-    sym_dpc_df = df.strip(sym_dpc_df)
+    sym_dpc_df = sym_dpc_df.datalabs.strip()
     
     return sym_dpc_df
 
@@ -145,7 +145,7 @@ def get_symphony_all_phys_info(ODS_conn):
     sym_dpc_df['SYM_FAX_NUMBER'] = sym_dpc_df['SYM_FAX_ORIG'].apply(lambda x: x.replace('(', 
               '').replace(')', '').replace(' ', '').replace('-', '') if x != None else x)
     
-    sym_dpc_df = df.strip(sym_dpc_df)
+    sym_dpc_df = sym_dpc_df.datalabs.strip()
     
     return sym_dpc_df
 

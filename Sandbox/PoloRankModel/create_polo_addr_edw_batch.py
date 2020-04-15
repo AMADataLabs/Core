@@ -12,7 +12,7 @@ import pandas as pd
 
 import settings
 from   datalabs.access.edw import EDW
-import datalabs.curate.dataframe as df
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 warnings.filterwarnings("ignore")
 
@@ -36,7 +36,7 @@ out_dir += "\\"
 
 
 ranked_df = pd.read_csv(ranked_file, delimiter = ",", index_col = None, header = 0, dtype = str)
-ranked_df = df.rename_in_upper_case(ranked_df)
+ranked_df = ranked_df.datalabs.rename_in_upper_case()
 
 
 with EDW() as edw:

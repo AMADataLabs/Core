@@ -6,11 +6,11 @@ import sys
 
 import numpy as np
 
-import datalabs.curate.dataframe as df
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 def replace_nan_str_w_npnan(data_df):   
     
-    data_df = df.upper_values(data_df)
+    data_df = data_df.datalabs.upper()
     
     col_names = list(data_df.columns.values)
     for name in col_names:

@@ -3,21 +3,20 @@ import datetime
 import logging
 import os
 from   pathlib import Path
-import warnings
 
 import pandas as pd
 
+import settings
 from   score_polo_addr_ppd_data import score_polo_ppd_data  # pylint: disable=wrong-import-position
 from   class_model_creation import get_prob_info, get_pred_info  # pylint: disable=wrong-import-position
 from   create_addr_model_input_data import create_ppd_scoring_data  # pylint: disable=wrong-import-position
+
 from   datalabs.analysis.exception import InvalidDataException
-import datalabs.curate.dataframe as df
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-
-warnings.filterwarnings("ignore")
 
 
 ModelInputData = namedtuple('ModelInputData', 'model ppd entity date')
@@ -78,7 +77,7 @@ class PoloRankModel():
         )
         LOGGER.debug('Model predictions length: %s', len(model_predictions))
 
-        model_predictions = df.rename_in_upper_case(model_predictions)
+        model_predictions = model_predictions.datalabs.rename_in_upper_case()
 
         self._archive_pruned_model_input_data(pruned_model_input_data)
 

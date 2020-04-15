@@ -6,7 +6,6 @@ import os
 import sys
 import tkinter as tk
 from tkinter import filedialog
-import warnings
 
 import pandas as pd
 
@@ -17,12 +16,11 @@ from select_files import select_files
 from get_ods_db_tables import get_symphony_sample_info
 from get_aims_db_tables import get_no_contacts, get_pe_description, get_entity_me_key
 from rename_competitor_sample import rename_competitor_sample
-import datalabs.curate.dataframe as df
 from create_model_sample import get_uniq_entries
+
 from datalabs.access.aims import AIMS
 from datalabs.access.ods import ODS
-
-warnings.filterwarnings("ignore")
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 
 sample_col_names = ['ME', 'FIRST_NAME', 'MIDDLE_NAME', 'LAST_NAME', 'SUFFIX',
@@ -86,7 +84,7 @@ with AIMS() as aims:
     pe_desc_df = get_pe_description(aims._connection)
    
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
-ppd_df = df.rename_in_upper_case(ppd_df)
+ppd_df = ppd_df.datalabs.rename_in_upper_case()
 
 ppd_dpc_df = ppd_df[ppd_df['TOP_CD'] == '020']
 
@@ -102,7 +100,7 @@ ppd_pe_df = ppd_contact_df.merge(pe_desc_df, how='inner',
 ppd_pe_df['ME_SUBSTR'] = ppd_pe_df['ME'].apply(lambda x: x[:(len(x) - 1)])
 
 ppd_sym_df = ppd_pe_df.merge(symphony_df, how='inner', left_on=['ME_SUBSTR'],  right_on=['SYM_ME'])
-ppd_sym_df = df.rename_in_upper_case(ppd_sym_df)
+ppd_sym_df = ppd_sym_df.datalabs.rename_in_upper_case()
 
 ppd_sym_rename_df = rename_competitor_sample(ppd_sym_df, 'SYM_')
 ppd_sym_rename_df = ppd_sym_rename_df[sample_col_names]

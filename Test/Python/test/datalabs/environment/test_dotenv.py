@@ -1,17 +1,21 @@
-import dotenv
+"""
+    Documentary tests to clarify the behavior of the dotenv module.
+    source: N/A
+"""
 import logging
 import os
 import pathlib
-import pytest
 import tempfile
 
-import datalabs.environment.setup as setup
+import dotenv
+import pytest
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name, unused-argument
 def test_dotenv_ignores_missing_configuration_file(temp_directory, environment):
     test_variable = os.environ.get('DATALABS_TEST_VARIABLE_OMICRON_OMEGA')
     assert test_variable is None
@@ -24,6 +28,7 @@ def test_dotenv_ignores_missing_configuration_file(temp_directory, environment):
     assert test_variable is None
 
 
+# pylint: disable=redefined-outer-name, unused-argument
 def test_dotenv_finds_configuration_file(temp_directory, dotenv_file, environment):
     test_variable = os.environ.get('DATALABS_TEST_VARIABLE_OMICRON_OMEGA')
     assert test_variable is None
@@ -36,7 +41,8 @@ def test_dotenv_finds_configuration_file(temp_directory, dotenv_file, environmen
     assert test_variable == 'Howdy, Partner!'
 
 
-def test_dotenv_finds_configuration_file(temp_directory, dotenv_file, environment):
+# pylint: disable=redefined-outer-name, unused-argument
+def test_dotenv_treats_boolean_variable_as_string(temp_directory, dotenv_file, environment):
     # The argument to load_dotenv in conjunction with temp_directory and dotenv_file
     # simulates passing no arguments with a .env in the script directory.
     dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))

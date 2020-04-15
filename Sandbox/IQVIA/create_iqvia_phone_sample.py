@@ -18,9 +18,10 @@ from select_files import select_files
 from get_ods_db_tables import get_iqvia_sample_info
 from get_aims_db_tables import get_no_contacts, get_pe_description, get_entity_me_key
 from rename_competitor_sample import rename_competitor_sample
+
 from   datalabs.access.aims import AIMS
 from   datalabs.access.ods import ODS
-import datalabs.curate.dataframe as df
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 gen_path = base_path + 'Common_Model_Code\\'
 sys.path.insert(0, gen_path)
@@ -96,7 +97,7 @@ with AIMS() as aims:
     pe_desc_df = get_pe_description(aims._connection)
    
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
-ppd_df = df.rename_in_upper_case(ppd_df)
+ppd_df = ppd_df.datalabs.rename_in_upper_case()
 
 ppd_dpc_df = ppd_df[ppd_df['TOP_CD'] == '020']
 
@@ -112,7 +113,7 @@ ppd_pe_df = ppd_contact_df.merge(pe_desc_df, how='inner',
 ppd_pe_df['ME_SUBSTR'] = ppd_pe_df['ME'].apply(lambda x: x[:(len(x) - 1)])
 
 ppd_iqvia_df = ppd_pe_df.merge(iqvia_df, how='inner', left_on=['ME_SUBSTR'],  right_on=['IMS_ME'])
-ppd_iqvia_df = df.rename_in_upper_case(ppd_iqvia_df)
+ppd_iqvia_df = ppd_iqvia_df.datalabs.rename_in_upper_case()
 
 ppd_iq_rename_df = rename_competitor_sample(ppd_iqvia_df, 'IMS_')
 ppd_iq_rename_df = ppd_iq_rename_df[sample_col_names]
