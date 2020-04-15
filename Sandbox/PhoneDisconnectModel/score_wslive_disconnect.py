@@ -13,10 +13,6 @@ import warnings
 import pandas as pd
 
 import settings
-from   datalabs.access.wslive import WSLiveFile
-import datalabs.curate.wslive as wslive
-import datalabs.curate.dataframe as df
-import datalabs.util.datetime as dt
 
 # Sandbox/CommonModelCode/
 from score_phone_ppd_data import score_phone_wslive_data
@@ -24,6 +20,11 @@ from class_model_creation import get_prob_info, get_pred_info
 from create_phone_model_input_data import create_model_initial_data
 from get_entity_ppd_info import clean_ent_comm_data, clean_phn_data, clean_ent_usg_data
 from get_entity_ppd_info import clean_fone_zr_data, create_ent_me_data
+
+from   datalabs.access.wslive import WSLiveFile
+import datalabs.curate.wslive as wslive
+import datalabs.curate.dataframe  # pylint: disable=unused-import
+import datalabs.util.datetime as dt
 
 
 def main(args):
@@ -131,7 +132,7 @@ def main(args):
             
         
     wslive_pred_df, model_data_pruned = score_phone_wslive_data(ppd_scoring_df, model, model_vars)
-    wslive_pred_df = df.rename_in_upper_case(wslive_pred_df)
+    wslive_pred_df = wslive_pred_df.datalabs.rename_in_upper_case()
 
     print('\n')
     print('Prediction Information')

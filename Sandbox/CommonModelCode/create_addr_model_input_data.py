@@ -10,7 +10,7 @@ from get_entity_ppd_info import create_ent_me_data
 from   datalabs.access.ppd import PPDFile
 from   datalabs.access.sample import SampleFile
 from   datalabs.analysis.exception import BadDataFrameMerge
-import datalabs.curate.dataframe as df
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 import datalabs.curate.wslive as wslive
 
 logging.basicConfig()
@@ -22,7 +22,7 @@ LOGGER.setLevel(logging.INFO)
 def get_non_po_box(data_df, addr_var_list):
     po_regex_strs = 'P.O.|P.O. |PO |P O|BOX | APT |POBOX|LOCKBOX|MAILBOX|LOCK BOX|MAIL BOX'
 
-    data_df = df.upper_values(data_df)
+    data_df = data_df.datalabs.upper()
 
     for var in addr_var_list:
         po_ndx = data_df[var].str.contains(po_regex_strs, na=False, regex=True)

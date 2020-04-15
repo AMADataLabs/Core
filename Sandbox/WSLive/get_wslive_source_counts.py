@@ -14,7 +14,8 @@ import pandas as pd
 import settings
 from select_files import select_files
 from combine_data import combine_data
-import datalabs.curate.dataframe as df
+
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 import datalabs.util.datetime as dt
 
 
@@ -46,11 +47,11 @@ def main(args):
   # Read in samples sent
   if len(sample_paths) > 0:
       sample_df = combine_data(sample_paths, None, 0)
-      sample_df = df.rename_in_upper_case(sample_df)
+      sample_df = sample_df.datalabs.rename_in_upper_case()
 
   # Read in wslive data
   wslive_results_df = pd.read_csv(wslive_results_file, delimiter = ",", index_col = None, header = 0, dtype = str)
-  wslive_results_df = df.rename_in_upper_case(wslive_results_df)
+  wslive_results_df = wslive_results_df.datalabs.rename_in_upper_case()
 
   # Get data for date range specified
   wslive_results_df['WSLIVE_FILE_DT'] = pd.to_datetime(wslive_results_df['WSLIVE_FILE_DT'])

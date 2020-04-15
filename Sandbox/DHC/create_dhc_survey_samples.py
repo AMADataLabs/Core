@@ -8,7 +8,6 @@ import os
 import sys
 import tkinter as tk
 from tkinter import filedialog
-import warnings
 
 import pandas as pd
 
@@ -17,12 +16,12 @@ from exclude_phone_samples import exclude_phone_samples
 from filter_bad_phones import get_good_bad_phones
 from get_aims_db_tables import get_no_contacts, get_entity_me_key
 from select_files import select_files
-from   datalabs.access.aims import AIMS
-from   datalabs.access.edw import EDW
-import datalabs.curate.dataframe as df
+
 from create_model_sample import get_uniq_entries
 
-warnings.filterwarnings("ignore")
+from   datalabs.access.aims import AIMS
+from   datalabs.access.edw import EDW
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 
 root = tk.Tk()
@@ -83,7 +82,7 @@ with AIMS() as aims:
    
 # Load PPD csv file
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
-ppd_df = df.rename_in_upper_case(ppd_df)
+ppd_df = ppd_df.datalabs.rename_in_upper_case()
 
 ppd_ent_key_df = ppd_df.merge(entity_key_df, how='inner', left_on='ME', right_on='me')
 
@@ -108,7 +107,7 @@ ppd_npi_df = npi_me_df.merge(ppd_contact_df, how='inner', on='ME')
 
 # Extract only DHC entries that are not registered in the Do Not Call Registry
 dhc_ok_df = dhc_df[dhc_df['Do Not Call Registry'] != 'Registered']
-dhc_ok_df = df.rename_in_upper_case(dhc_ok_df)
+dhc_ok_df = dhc_ok_df.datalabs.rename_in_upper_case()
 
 
 print('Total number of DHC entries: {}'.format(dhc_df.shape[0]))

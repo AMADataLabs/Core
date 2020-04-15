@@ -10,9 +10,10 @@ from tkinter import filedialog
 import pandas as pd
 
 import settings
-import datalabs.curate.dataframe as df
-import datalabs.util.datetime as dt
 from analyze_scored_survey_results import analyze_survey_class_results, analyze_survey_binned_results
+
+import datalabs.curate.dataframe  # pylint: disable=unused-import
+import datalabs.util.datetime as dt
 
 
 def main(args):
@@ -53,7 +54,7 @@ def main(args):
   # Read in wslive data
   if data_type == '2':
       wslive_results_df = pd.read_csv(wslive_results_file, delimiter = ",", index_col = None, header = 0, dtype = str)
-      wslive_results_df = df.rename_in_upper_case(wslive_results_df)
+      wslive_results_df = wslive_results_df.datalabs.rename_in_upper_case()
       
       # Get data for date range specified
       wslive_results_df['WSLIVE_FILE_DT'] = pd.to_datetime(wslive_results_df['WSLIVE_FILE_DT'])
@@ -69,7 +70,7 @@ def main(args):
   else:
       wslive_pred_sample_df = pd.read_excel(wslive_pred_sample_file, index_col = None, header = 0, dtype = str)
       
-  wslive_pred_sample_df = df.rename_in_upper_case(wslive_pred_sample_df)
+  wslive_pred_sample_df = wslive_pred_sample_df.datalabs.rename_in_upper_case()
 
 
   if data_type == '2':

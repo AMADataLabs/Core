@@ -1,27 +1,31 @@
 """ Utility functions for curating data in Pandas DataFrames. """
+import pandas as pd
 
 
-def rename_in_upper_case(data):
-    """ Like DataFrame.rename() but new names are the old names converted to upper case. """
-    column_names = data.columns.values
-    column_name_map = {name:name.upper() for name in column_names}
+@pd.api.extensions.register_dataframe_accessor("datalabs")
+class DatalabsAccessor:
+    def __init__(self, data):
+        self._data = data
 
-    return data.rename(columns=column_name_map)
+    def rename_in_upper_case(self):
+        """ Like DataFrame.rename() but new names are the old names converted to upper case. """
+        column_names = self._data.columns.values
+        column_name_map = {name:name.upper() for name in column_names}
 
+        return self._data.rename(columns=column_name_map)
 
-def upper(data):
-    """ Convert all string values in the DataFrame to upper case. """
-    column_names = data.columns[data.dtypes == 'object']
+    def upper(self):
+        """ Convert all string values in the DataFrame to upper case. """
+        column_names = self._data.columns[self._data.dtypes == 'object']
 
-    data[column_names] = data[column_names].apply(lambda column: column.str.upper())
+        self._data[column_names] = self._data[column_names].apply(lambda column: column.str.upper())
 
-    return data
+        return self._data
 
+    def strip(self):
+        """ Apply string.strip() to all string values in the DataFrame. """
+        column_names = self._data.columns[self._data.dtypes == 'object']
 
-def strip(data):
-    """ Apply string.strip() to all string values in the DataFrame. """
-    column_names = data.columns[data.dtypes == 'object']
+        self._data[column_names] = self._data[column_names].apply(lambda column: column.str.strip())
 
-    data[column_names] = data[column_names].apply(lambda column: column.str.strip())
-
-    return data
+        return self._data

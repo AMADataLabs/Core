@@ -2,26 +2,17 @@
 # Kari Palmier    8/14/19    Updated to work with more generic get_sample
 #
 #############################################################################
+import datetime
+import os
+import pickle 
+import sys
 import tkinter as tk
 from tkinter import filedialog
-import pickle 
-import datetime
+
 import pandas as pd
 
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
-
+import settings
 from get_ppd import get_latest_ppd_data
-import datalabs.curate.dataframe as df
-
-gen_path = base_path + 'Common_Model_Code\\'
-sys.path.insert(0, gen_path)
 
 from score_phone_ppd_data import score_phone_ppd_data
 from class_model_creation import get_prob_info, get_pred_info
@@ -29,8 +20,7 @@ from create_phone_model_input_data import create_ppd_scoring_data
 from get_entity_ppd_info import clean_ent_comm_data, clean_phn_data, clean_ent_usg_data
 from get_entity_ppd_info import clean_fone_zr_data, create_ent_me_data
 
-import warnings
-warnings.filterwarnings("ignore")
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
     
 root = tk.Tk()
@@ -138,7 +128,7 @@ ppd_entity_file = ppd_archive_dir + start_time_str + '_PPD_' + ppd_date_str + '_
 ppd_scoring_df.to_csv(ppd_entity_file, sep = ',', header = True, index = True)
 
 model_pred_df, model_data_pruned = score_phone_ppd_data(ppd_scoring_df, model, model_vars)
-model_pred_df = df.rename_in_upper_case(model_pred_df)
+model_pred_df = model_pred_df.datalabs.rename_in_upper_case()
 
 get_prob_info(model_pred_df['PRED_PROBABILITY'])
 get_pred_info(model_pred_df['PRED_CLASS'])

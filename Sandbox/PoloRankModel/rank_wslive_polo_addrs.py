@@ -12,15 +12,17 @@ import tkinter as tk
 import pandas as pd
 
 import settings
-from   datalabs.access.wslive import WSLiveFile
-import datalabs.curate.wslive as wslive
-import datalabs.curate.dataframe as df
-import datalabs.util.datetime as dt
 
 # Sandbox/CommonModelCode/
 from score_polo_addr_ppd_data import score_polo_wslive_data
 from class_model_creation import get_prob_info, get_pred_info
 from create_addr_model_input_data import create_model_initial_data
+
+from   datalabs.access.wslive import WSLiveFile
+import datalabs.curate.wslive as wslive
+import datalabs.curate.dataframe  # pylint: disable=unused-import
+import datalabs.util.datetime as dt
+
 
 def main(args):
     root = tk.Tk()
@@ -115,7 +117,7 @@ def main(args):
 
 
     wslive_pred_df, model_data_pruned = score_polo_wslive_data(ppd_scoring_df, model, model_vars)
-    wslive_pred_df = df.rename_in_upper_case(wslive_pred_df)
+    wslive_pred_df = wslive_pred_df.datalabs.rename_in_upper_case()
 
     wslive_pred_df['RANK_ROUND'] = wslive_pred_df['PRED_PROBABILITY'].apply(lambda x: round((x * 10)))
     zero_ndx = wslive_pred_df['RANK_ROUND'] == 0

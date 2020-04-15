@@ -5,7 +5,7 @@ import logging
 
 import pandas as pd
 
-import datalabs.curate.dataframe as df
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 from datalabs.access.file import DataFile
 
 logging.basicConfig()
@@ -16,7 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 class PPDFile(DataFile):
     @classmethod
     def _standardize(cls, data: pd.DataFrame, data_date: datetime) -> pd.DataFrame:
-        data = df.rename_in_upper_case(data)
+        data = data.datalabs.rename_in_upper_case()
 
         data['PPD_DATE'] = data_date
 

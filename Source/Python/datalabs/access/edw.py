@@ -5,7 +5,7 @@ import logging
 import pandas
 
 import datalabs.access.database as db
-import datalabs.curate.dataframe as df
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class EDW(db.Database):
             chunk_size,
         )
 
-        return df.strip(data)
+        return data.datalabs.strip()
 
     def get_me_npi_map(self, chunk_size=None):
         data = self.read_in_chunks(
@@ -47,7 +47,7 @@ class EDW(db.Database):
             chunk_size,
         )
 
-        return df.strip(data)
+        return data.datalabs.strip()
 
     def get_active_medical_school_map(self, chunk_size=None):
         data = self.read_in_chunks(
@@ -58,7 +58,7 @@ class EDW(db.Database):
             chunk_size,
         )
 
-        return df.strip(data)
+        return data.datalabs.strip()
 
     def get_postal_address_map(self, chunk_size=None):
         data = self.read_in_chunks(
@@ -69,7 +69,7 @@ class EDW(db.Database):
             chunk_size,
         )
 
-        return df.strip(data)
+        return data.datalabs.strip()
 
     def read_in_chunks(self, sql, order_by, chunk_size=None):
         chunks = []
