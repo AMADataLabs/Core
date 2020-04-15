@@ -8,12 +8,37 @@ from pprint import pprint
 
 class MarkLogicConnection(object):
 
-    def __init__(self, url, username, password):
+    def __init__(self, username, password, url=None, server=None):
+
         self.auth = HTTPDigestAuth(username=username, password=password)
         self.url = url  # url takes the following form: "http://appd1454:8000/LATEST", "http://address:port/version"
 
+        if server is not None:
+            # server URLs
+            prod = 'http://appp1462:8000/LATEST'
+            test = 'http://appt1456:8000/LATEST'
+            dev  = 'http://appd1454:8000/LATEST'
+
+            # server aliases linked to URLs
+            servers = {
+                ('prod', 'production'): prod,
+                ('test'):               test,
+                ('dev', 'development'): dev}
+
+            for aliases in servers:
+                if server in aliases:
+                    self.url = servers[aliases]
+
+        if self.url is None:
+            raise ValueError("server '{}' not found in server aliases.".format(server))
+
+        # test connection
+        response = requests.get(self.url.replace('/LATEST', ''), auth=self.auth)
+        response.raise_for_status()
+
     # returns a list of URIs resulting from a search query within some database/collection
     # empty query string will return all URIs in that collection
+    # can be used to query json_data or pdf_data collections
     def get_file_uris(self, database='PhysicianSanctions', collection='json_data', query=''):
         start = 1
         page_length = 100
@@ -62,10 +87,10 @@ class MarkLogicConnection(object):
         # pprint(json_file)
 
         # step 3, upload edited file to update the document in MarkLogic
-        resp = requests.put('{}/documents?uri={}&database={}'.format(self.url, uri, database),
-                            auth=self.auth,
-                            data=json.dumps(json_file))
-        print(resp.status_code)
+        response = requests.put('{}/documents?uri={}&database={}'.format(self.url, uri, database),
+                                auth=self.auth,
+                                data=json.dumps(json_file))
+        response.raise_for_status()
         return
 
     def set_me_nbr(self, uri, me_nbr, database='PhysicianSanctions'):
@@ -82,22 +107,18 @@ class MarkLogicConnection(object):
         # pprint(json_file)
 
         # step 3, upload edited file to update the document in MarkLogic
-        resp = requests.put('{}/documents?uri={}&database={}'.format(self.url, uri, database),
-                            auth=self.auth,
-                            data=json.dumps(json_file))
+        response = requests.put('{}/documents?uri={}&database={}'.format(self.url, uri, database),
+                                auth=self.auth,
+                                data=json.dumps(json_file))
 
-        print(resp.status_code)
+        response.raise_for_status()
         return
 
     def get_file(self, uri, database='PhysicianSanctions'):
         url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
 
         response = requests.get(url=url, auth=self.auth)
-        # should probably add more specific web response error handling
-        if response.status_code != 200:
-            print(response.status_code)
-            response.raise_for_status()
-            return None
+        response.raise_for_status()
 
         return response.content
 
@@ -106,10 +127,7 @@ class MarkLogicConnection(object):
         url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
 
         response = requests.get(url=url, auth=self.auth)
-        if response.status_code != 200:
-            print(response.status_code)
-            print('oops')
-            return
+        response.raise_for_status()
 
         # write the file
         # if not os.path.exists(save_dir):
