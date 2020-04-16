@@ -13,8 +13,8 @@ import settings
 from get_aims_db_tables import get_no_contacts, get_active_licenses, get_ent_comm_phones
 from get_aims_db_tables import get_spec_description, get_entity_me_key
 
-import datalabs.access.aims as AIMS
-import datalabs.access.edw as EDW
+from datalabs.access.aims import AIMS
+from datalabs.access.edw import EDW
 import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 
