@@ -9,9 +9,14 @@ import (
 
 
 func Path() (repo_path string) {
-	script_path = ScriptPath()
+	script_path := ScriptPath()
 
-	repo_path = filepath.Abs(script_path + string(os.PathSeparator) + "..")
+	// Assumes the running application resides in the Script directory within the repository
+	repo_path, error := filepath.Abs(script_path + string(os.PathSeparator) + "..")
+
+	if error != nil {
+		log.Fatal(error)
+	}
 
 	return
 }
