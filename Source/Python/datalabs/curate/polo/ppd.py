@@ -5,8 +5,8 @@ import pickle
 import pandas as pd
 
 from   datalabs.analysis.exception import InvalidDataException
-from   datalabs.analysis.polo.rank.data.entity import EntityTableCleaner
-from   datalabs.analysis.polo.rank.model import ModelInputData, ModelParameters, EntityData
+from   datalabs.analysis.polo.fitness.model import ModelInputData, ModelParameters, EntityData
+from   datalabs.curate.polo.entity import EntityTableCleaner
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

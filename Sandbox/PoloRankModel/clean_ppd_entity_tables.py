@@ -7,7 +7,7 @@ import os
 import pandas as pd
 
 import settings
-from   datalabs.analysis.polo.rank.data.ppd import EntityTableCleaner
+from   datalabs.curate.polo.ppd import EntityTableCleaner
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
