@@ -15,3 +15,15 @@
 [0415/084801.762:ERROR:file_io_win.cc(161)] CreateFile C:\Users\vigrose\AppData\Local\Temp\scoped_dir13644_9548\Crashpad\settings.dat: The system cannot find the path specified. (0x3)
 [0415/084801.763:ERROR:file_io_win.cc(170)] CreateFile C:\Users\vigrose\AppData\Local\Temp\scoped_dir13644_9548\Crashpad\reports\804b87b3-2d7d-40e3-9129-a6917ee2d72d.dmp: The system cannot find the path specified. (0x3)
 [0415/084801.763:ERROR:crash_report_exception_handler.cc(97)] PrepareNewCrashReport failed
+[0415/151954.821:ERROR:process_reader_win.cc(123)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights. (0xc0000022)
+[0415/151956.639:ERROR:process_reader_win.cc(123)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights. (0xc0000022)
+[0415/160402.359:ERROR:process_reader_win.cc(151)] SuspendThread: Access is denied. (0x5)
+[0415/160402.371:ERROR:file_io_win.cc(161)] CreateFile C:\Users\vigrose\AppData\Local\Temp\scoped_dir36960_2887\Crashpad\settings.dat: The system cannot find the path specified. (0x3)
+[0415/160402.371:ERROR:file_io_win.cc(170)] CreateFile C:\Users\vigrose\AppData\Local\Temp\scoped_dir36960_2887\Crashpad\reports\2c427d66-753a-4acd-a133-86b9f3ec6578.dmp: The system cannot find the path specified. (0x3)
+[0415/160402.371:ERROR:crash_report_exception_handler.cc(97)] PrepareNewCrashReport failed
+[0415/164647.910:ERROR:process_reader_win.cc(151)] SuspendThread: Access is denied. (0x5)
+[0415/164647.913:ERROR:process_reader_win.cc(151)] SuspendThread: Access is denied. (0x5)
+[0415/164647.947:ERROR:file_io_win.cc(161)] CreateFile C:\Users\vigrose\AppData\Local\Temp\scoped_dir8420_9331\Crashpad\settings.dat: The system cannot find the path specified. (0x3)
+[0415/164647.947:ERROR:file_io_win.cc(170)] CreateFile C:\Users\vigrose\AppData\Local\Temp\scoped_dir8420_9331\Crashpad\reports\65908bf3-b761-4832-990b-a48ac2818e74.dmp: The system cannot find the path specified. (0x3)
+[0415/164647.947:ERROR:crash_report_exception_handler.cc(97)] PrepareNewCrashReport failed
+[0416/005218.990:ERROR:prune_crash_reports.cc(35)] PruneCrashReportDatabase: Failed to get pending reports
