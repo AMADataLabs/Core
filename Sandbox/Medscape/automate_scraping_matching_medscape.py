@@ -11,6 +11,7 @@ import requests
 import matplotlib.pyplot as plt
 import settings
 from process_me import remove_processed_mes
+from spec_match import get_spec_table, match_spec
 
 YESTERDAY = str(date.today() - timedelta(days=1))
 
@@ -18,7 +19,7 @@ YESTERDAY = str(date.today() - timedelta(days=1))
 TODAY = str(date.today())
 
 #Set directories
-PPD_DIRECTORY = os.environ.get('PPD_DIR')
+PPD_FILE = os.environ.get('PPD_FILE')
 OUT = os.environ.get('OUT_DIR')
 OUT_DIRECTORY = f'{OUT}{TODAY}'
 OUT_DIRECTORY_YESTERDAY = f'{OUT}{YESTERDAY}'
@@ -31,7 +32,6 @@ def newest_delta(path, text):
     return max(paths, key=os.path.getctime)
 
 #Define ppd
-PPD_FILE = newest_delta(PPD_DIRECTORY, 'ppd_data')
 print('Reading PPD...')
 PPD = pd.read_csv(PPD_FILE, low_memory=False)
 
@@ -199,7 +199,7 @@ def fix_me(me_list):
     return nums
 
 
-def append_me(roster_df):
+def append_me(roster_df, spec_df):
     '''Matches to PPD and appends ME'''
     data_split = split_names(roster_df)
 
@@ -238,7 +238,8 @@ def append_me(roster_df):
                 if len(new_df) > 1:
                     print('wtf')
             if len(new_df) == 1:
-                physician_me = list(new_df.ME)[0]
+                if match_spec(new_df, row.SPECIALTY, spec_df):
+                    physician_me = new_df.iloc[0]['ME']
 
         mes.append(physician_me)
 
@@ -248,7 +249,8 @@ def append_me(roster_df):
 
 
 print('Matching and appending ME numbers...')
-US_DATA_SPLIT, US_DATA_ME = append_me(USA_DATA)
+SPEC_DF = get_spec_table()
+US_DATA_SPLIT, US_DATA_ME = append_me(USA_DATA, SPEC_DF)
 US_DATA_ME.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_Physicians_{TODAY}.xlsx', index=False)
 US_DATA_SPLIT.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_ME_{TODAY}.xlsx', index=False)
 
@@ -355,17 +357,18 @@ INTERSECT_US = list(pd.merge(US_DATA_SPLIT, US_DATA_YESTERDAY, on=['NAME',
 US_DELTA = US_DATA_SPLIT[US_DATA_SPLIT.NAME.isin(INTERSECT_US) == False]
 
 INTERSECT_ALL = list(pd.merge(ALL_DATA, ALL_DATA_YESTERDAY, on=['NAME',
-                                                                      'AGE',
-                                                                      'SPECIALTY',
-                                                                      'LOCATION',
-                                                                      'CITY',
-                                                                      'STATE',
-                                                                      'COUNTRY'
-                                                                      ])['NAME'])
+                                                                'AGE',
+                                                                'SPECIALTY',
+                                                                'LOCATION',
+                                                                'CITY',
+                                                                'STATE',
+                                                                'COUNTRY'
+                                                                ])['NAME'])
 ALL_DELTA = ALL_DATA[ALL_DATA.NAME.isin(INTERSECT_ALL) == False]
 
 US_DELTA.to_csv(f'{OUT_DIRECTORY}/Memorium_USA_Delta_{TODAY}.csv', index=False)
 ALL_DELTA.to_csv(f'{OUT_DIRECTORY}/Memorium_World_Delta_{TODAY}.csv', index=False)
 
 UNPROCESSED = remove_processed_mes(US_DATA_ME)
-UNPROCESSED.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_Physicians_Unprocessed_{TODAY}.xlsx', index=False)
+UNPROCESSED.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_Physicians_Unprocessed_{TODAY}.xlsx',
+                     index=False)

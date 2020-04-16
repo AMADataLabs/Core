@@ -10,8 +10,11 @@ CREDENTIALS_EDW_PASSWORD={{edw_password}}
 PROJECT_NAME='Medscape'
 
 #PPD Directory
-PPD_DIR = 'U:/Source Files/Data Analytics/Data-Science/Data/PPD/'
+PPD_FILE = 'U:/Source Files/Data Analytics/Data-Science/Data/PPD/ppd_data_20200404.csv'
 
 #Out Directory
 OUT_DIR = 'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/Task-Scheduled/'
+
+#Specialty Table
+SPEC_FILE = 'U:/Source Files/Data Analytics/Data-Science/Data/Medscape/specialty_id.csv'
 

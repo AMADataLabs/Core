@@ -26,6 +26,6 @@ def get_processed_list():
 def remove_processed_mes(physicians):
     '''Remove physicians whose ME numbers are already processed'''
     processed_list = get_processed_list()
-    unprocessed_physicians = physicians[physicians.ME.isin(processed_list)==False]
+    unprocessed_physicians = physicians[physicians.ME.isin(processed_list) == False]
 
     return unprocessed_physicians
