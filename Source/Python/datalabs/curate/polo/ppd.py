@@ -5,7 +5,7 @@ import pickle
 import pandas as pd
 
 from   datalabs.analysis.exception import InvalidDataException
-from   datalabs.analysis.polo.fitness.model import ModelInputData, ModelParameters, EntityData
+from   datalabs.analysis.polo.fitness import ModelInputData, ModelParameters, EntityData
 from   datalabs.curate.polo.entity import EntityTableCleaner
 
 logging.basicConfig()

@@ -25,8 +25,8 @@ EntityData = namedtuple('EntityData', 'entity_comm_at entity_comm_usg post_addr_
 ModelParameters = namedtuple('ModelParameters', 'meta variables')
 
 
-class PoloRankModel():
-    '''POLO address rank scoring model'''
+class POLOFitnessModel():
+    '''POLO address fitness model'''
 
     def __init__(self, archive_dir):
         self._archive_dir = archive_dir
