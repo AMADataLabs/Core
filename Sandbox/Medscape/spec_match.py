@@ -26,5 +26,7 @@ def match_spec(ppd_df, specialty, spec_table):
         return True
     elif mf_spec == 'Unspecified' and 'Resident' in specialty:
         return True
+    elif mf_spec == 'Unspecified':
+        return True
     else:
         return False
