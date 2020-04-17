@@ -6,17 +6,15 @@ import os
 import sys
 import tkinter as tk
 from tkinter import filedialog
-import warnings
 
 import pandas as pd
 
 import settings
 from get_ods_db_tables import get_symphony_all_phys_info
 from get_comp_completeness import get_var_completeness, get_ppd_comp_comparison
-from datalabs.access.ods import ODS
-import datalabs.curate.dataframe as df
 
-warnings.filterwarnings("ignore")
+from datalabs.access.ods import ODS
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 
 root = tk.Tk()
@@ -58,12 +56,12 @@ if data_sel == 'n':
 else:
     sym_df =  pd.read_csv(sym_file, delimiter = ",", index_col = None, header = 0, dtype = str)
 
-sym_df = df.rename_in_upper_case(sym_df)
-sym_df = df.upper_values(sym_df)
+sym_df = sym_df.datalabs.rename_in_upper_case()
+sym_df = sym_df.datalabs.upper()
     
 ppd_df =  pd.read_csv(ppd_file, delimiter = ",", index_col = None, header = 0, dtype = str)
-ppd_df = df.rename_in_upper_case(ppd_df)
-ppd_df = df.upper_values(ppd_df)
+ppd_df = ppd_df.datalabs.rename_in_upper_case()
+ppd_df = ppd_df.datalabs.upper()
 
 ppd_df['ME_SUBSTR'] = ppd_df['ME'].apply(lambda x: x[:(len(x) - 1)])
 

@@ -2,19 +2,16 @@
 #
 #############################################################################
 import logging
-import warnings
-
-from   datalabs.analysis.exception import BadDataFrameMerge
-
-import datalabs.curate.dataframe as df
-from get_wslive_res_init_ppd_info import match_wslive_result_to_sample, create_wslive_ppd_data
 
 from rename_model_cols import rename_ppd_columns
-
 from get_entity_ppd_info import set_entity_dates, assign_lic_end_dates, create_general_key
 from get_entity_ppd_info import create_ent_me_data
 
-warnings.filterwarnings("ignore")
+from   datalabs.access.ppd import PPDFile
+from   datalabs.access.sample import SampleFile
+from   datalabs.analysis.exception import BadDataFrameMerge
+import datalabs.curate.dataframe  # pylint: disable=unused-import
+import datalabs.curate.wslive as wslive
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +22,7 @@ LOGGER.setLevel(logging.INFO)
 def get_non_po_box(data_df, addr_var_list):
     po_regex_strs = 'P.O.|P.O. |PO |P O|BOX | APT |POBOX|LOCKBOX|MAILBOX|LOCK BOX|MAIL BOX'
 
-    data_df = df.upper_values(data_df)
+    data_df = data_df.datalabs.upper()
 
     for var in addr_var_list:
         po_ndx = data_df[var].str.contains(po_regex_strs, na=False, regex=True)
@@ -380,9 +377,11 @@ def create_addr_entity_data(ent_comm_df, ent_comm_usg_df, post_addr_df, license_
 # creates data to be used by the pre-processing notebook (which is used to build and train models)
 def create_model_initial_data(wslive_uniq_me_res_df, init_sample_file_lst, ppd_file_lst, ent_comm_df,
                               ent_comm_usg_df, post_addr_df, license_df, ent_key_df):
-    wslive_uniq_res_init_df = match_wslive_result_to_sample(wslive_uniq_me_res_df, init_sample_file_lst)
+    samples = SampleFile.load_multiple(init_sample_file_lst)
+    wslive_uniq_res_init_df = wslive_uniq_me_res_df.wslive.match_to_samples(samples)
 
-    wslive_ppd_df = create_wslive_ppd_data(wslive_uniq_res_init_df, ppd_file_lst)
+    ppds = PPDFile.load_multiple(ppd_file_lst)
+    wslive_ppd_df = wslive_uniq_res_init_df.wslive.match_to_ppds(ppds)
 
     date_df = wslive_ppd_df[['ME', 'INIT_SAMPLE_DATE']]
 

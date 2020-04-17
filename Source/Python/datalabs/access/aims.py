@@ -5,7 +5,7 @@ import re
 import pandas
 
 import datalabs.access.database as db
-import datalabs.curate.dataframe as df
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ class AIMS(db.Database):
         )
         data = pandas.concat(chunks, ignore_index=True)
 
-        return df.strip(data)
+        return data.datalabs.strip()
 
     def read_in_chunks(self, sql, order_by, chunk_size=None):
         chunks = []

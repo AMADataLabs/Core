@@ -2,24 +2,16 @@
 # Kari Palmier    8/14/19    Update to make get_sample more generic for other data usage
 #
 #########################################################################################
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-# Get path of general (common) code and add it to the python path variable
-import sys
 import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'CommonCode\\'
-sys.path.insert(0, gen_path)
+import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 from filter_bad_phones import get_good_bad_phones
-import datalabs.curate.dataframe as df
 
-import warnings
-warnings.filterwarnings("ignore")
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 
 def get_prob_info(probs):
@@ -194,7 +186,7 @@ def get_phone_sample(model_pred_df, sample_bin_lls, sample_bin_uls, samples_per_
              
 def format_phone_sample_cols(sample_df, sample_vars):
     
-    sample_df = df.rename_in_upper_case(sample_df)
+    sample_df = sample_df.datalabs.rename_in_upper_case()
     cap_sample_vars = []
 
     for var in sample_vars:

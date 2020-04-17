@@ -42,6 +42,10 @@ Create an initial Python development environment. This script assumes the user i
 
 This script creates a Python virtual environment for a project and installs the dependencies in the project's requirements.txt file.
 
+### setup-repository / setup_repository.py
+
+The Python script and its BASH wrapper generate `.env` files from `dotenv_template.txt` files in all `Sandbox/*` directories. See the *Local Environment Setup* section for more details.
+
 ### start-ssh-agent
 
 This is a helper script for starting an *ssh-agent* process and configuring the user's environment to reconnect to the process when a new WSL terminal is started.
@@ -69,3 +73,10 @@ The Pytest tool is used for running Python test code.  Due to how Pytest looks f
 Additional supporting test code can be added as needed in modules without a *test_* prefix.
 
 
+# Local Environment Setup
+
+In order to find Data Labs Python modules when developing code, the `PYTHONPATH` needs to be set. A system of per-project `settings.py` modules and `.env` template files is used to bootstrap the `PYTHONPATH` for Sandbox applications.
+
+Manually or using the `create-project` script, a copy of the `settings.py` and `dotenv_template.py` files from `Environment/Master` should be added and committed to every new Sandbox project. The `PROJECT_NAME` variable should be set to the name of the directory in `dotenv_template.py` Any necessary configuration customizations should also be done in the template file. Credentials should not be added at this time, although credential variables with placeholder values can be added and removed as needed to/from the template file for a particular project.
+
+Running the `setup_repository.py` script will find all `dotenv_template.txt` Jinja template files in `Sandbox/*` directories, resolve their `DATALABS_PYTHONPATH` variables, and generate `.env` configuration files for each template. Any application in that directory can then `import settings`, after which all Python modules under the `datalabs` package tree will be available for importing. Temporarily the PYTHONPATH also includes `Sandbox/CommonCode/` and `Sandbox/CommonModelCode/` in addition to `Source/Python` until such time all shared code is migrated into `Source/Python/`.

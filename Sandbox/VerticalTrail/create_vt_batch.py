@@ -9,17 +9,13 @@ from tkinter import filedialog
 
 import pandas as pd
 
+import settings
 from get_aims_db_tables import get_no_contacts, get_active_licenses, get_ent_comm_phones
 from get_aims_db_tables import get_spec_description, get_entity_me_key
-import datalabs.access.aims as AIMS
-import datalabs.access.edw as EDW
-import datalabs.curate.dataframe as df
 
-gen_path = base_path + 'CommonModelCode\\'
-sys.path.insert(0, gen_path)
-
-import warnings
-warnings.filterwarnings("ignore")
+from datalabs.access.aims import AIMS
+from datalabs.access.edw import EDW
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 
 # Gets historical phone numbers for a list of given physicians, specified by entity ids
@@ -113,7 +109,7 @@ with AIMS() as aims:
 
 print('Pulling PPD.')
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
-ppd_df = df.rename_in_upper_case(ppd_df)
+ppd_df = ppd_df.datalabs.rename_in_upper_case()
 
 print('Starting a bunch of shit')
 ppd_null_df = ppd_df[ppd_df[phone_var_name].isna()]

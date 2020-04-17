@@ -1,27 +1,20 @@
 # Kari Palmier    Created 8/14/19
 #
 #############################################################################
-import pandas as pd
-from tkinter import filedialog
 import datetime
-import numpy as np
-
-# Get path of general (common) code and add it to the python path variable
-import sys
 import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Code\\'
-sys.path.insert(0, gen_path)
+import sys
+from tkinter import filedialog
 
+import numpy as np
+import pandas as pd
+
+import settings
 from filter_bad_phones import get_good_bad_phones
 from create_batch_loads import create_phone_append, create_fax_append
-import datalabs.curate.dataframe as df
 
+import datalabs.curate.dataframe  # pylint: disable=unused-import
 
-import warnings
-warnings.filterwarnings("ignore")
 
 init_ppd_dir = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\PPD\\'
 init_vt_response_dir = 'U:\\Source Files\\Data Analytics\\Data-Science\\Data\\Vertical_Trail\\Response\\'
@@ -83,7 +76,7 @@ if vt_response_file.find('.csv') >= 0:
     vt_resp_df = pd.read_csv(vt_response_file, delimiter=",", index_col=None, header=0, dtype=str)
 else:
     vt_resp_df = pd.read_excel(vt_response_file, index_col=None, header=0, dtype=str)
-vt_resp_df = df.rename_in_upper_case(vt_resp_df)
+vt_resp_df = vt_resp_df.datalabs.rename_in_upper_case()
     
 # Read in VT internal version of batch data
 if int_vt_batch_file.find('.csv') >= 0:
@@ -92,7 +85,7 @@ else:
     vt_int_batch_df = pd.read_excel(int_vt_batch_file, index_col=None, header=0, dtype=str)
 if 'me' in list(vt_int_batch_df.columns.values):
     vt_int_batch_df = vt_int_batch_df.rename(columns={'me': 'entity_me'})
-vt_int_batch_df = df.rename_in_upper_case(vt_int_batch_df)
+vt_int_batch_df = vt_int_batch_df.datalabs.rename_in_upper_case()
 
 
 # Read PPD and find only non-null TELEPHONE NUMBER entries
