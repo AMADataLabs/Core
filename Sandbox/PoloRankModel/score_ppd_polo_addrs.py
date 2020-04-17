@@ -11,7 +11,7 @@ from   pathlib import Path
 import re
 
 import settings
-from datalabs.analysis.polo.fitness import POLOFitnessModel, ModelInputData, ModelParameters, EntityData
+from   datalabs.analysis.polo.fitness import POLOFitnessModel, ModelInputData, ModelParameters, EntityData
 import datalabs.analysis.polo.plot as plot
 import datalabs.curate.polo.ppd as data
 
