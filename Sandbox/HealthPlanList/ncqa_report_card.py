@@ -2,7 +2,7 @@ from selenium import webdriver
 import pandas as pd
 import time
 
-driver = webdriver.Chrome()
+driver = webdriver.Chrome(executable_path='C:/Users/vigrose/hsg-data-labs/Sandbox/HealthPlanList/chromedriver.exe')
 driver.get('https://reportcards.ncqa.org/#/health-plans/list')
 element = driver.find_element_by_class_name('modal__button')
 element.click()
@@ -11,6 +11,8 @@ accr_list = []
 state_list = []
 insure_list = []
 product_list = []
+
+index=0
 
 while index <5:
     names = driver.find_elements_by_class_name('name')
