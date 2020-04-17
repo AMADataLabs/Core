@@ -1,16 +1,10 @@
-'''
-Run the POLO address rank scoring model using PPD and AIMS data.
-
-Kari Palmier    7/31/19    Created
-Kari Palmier    8/14/19    Updated to work with more generic get_sample
-Peter Lane      3/17/2020  Refactored ranking code to datalabs.analysis.polo.fitness module
-'''
+""" Apply the POLO address fitness model to the PPD. """
 import logging
 import os
 from   pathlib import Path
 import re
 
-import settings
+import settings  # pylint: disable=unused-import
 from   datalabs.analysis.polo.fitness import POLOFitnessModel, ModelInputData, ModelParameters, EntityData
 import datalabs.analysis.polo.plot as plot
 import datalabs.curate.polo.ppd as data
@@ -77,7 +71,7 @@ class POLOFitnessScoringApp():
         )
 
     @classmethod
-    def _get_scores_file(cls):
+    def _get_scored_data_file(cls):
         return os.environ.get('MODEL_PREDICTIONS_FILE')
 
     @classmethod
@@ -90,12 +84,10 @@ class POLOFitnessScoringApp():
         return match.group(1)
 
     @classmethod
-    def _save_scores(cls, scores, scores):
-        LOGGER.info('Writing scores to %s', scores)
-        scores.to_csv(scores_file, index=False)
+    def _save_scored_data(cls, scored_data, scored_data_file):
+        LOGGER.info('Writing scored data to %s', scored_data_file)
+        scored_data.to_csv(scored_data_file, index=False)
 
 
 if __name__ == '__main__':
     POLOFitnessScoringApp().run()
-
-
