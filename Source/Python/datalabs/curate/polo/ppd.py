@@ -1,19 +1,18 @@
+""" Classes for loading PPD for POLO analysis """
 import logging
-from   pathlib import Path
 import pickle
 
 import pandas as pd
 
 from   datalabs.analysis.exception import InvalidDataException
 from   datalabs.analysis.polo.fitness import ModelInputData, ModelParameters, EntityData
-from   datalabs.curate.polo.entity import EntityTableCleaner
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 class InputDataLoader():
-    def __init__(self, expected_df_lengths: ModelInputData=None):
+    def __init__(self, expected_df_lengths: ModelInputData = None):
         self._expected_df_lengths = expected_df_lengths
 
     def load(self, input_files: ModelInputData) -> ModelInputData:
@@ -86,4 +85,4 @@ class InputDataLoader():
         arbitrary_max_deviation = 0.25
 
         if deviation > arbitrary_max_deviation:
-            raise InvalidDataException('The following DataFrame has an unusual length: %s', data)
+            raise InvalidDataException(f'The following DataFrame has an unusual length: {data}')

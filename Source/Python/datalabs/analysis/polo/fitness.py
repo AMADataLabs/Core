@@ -8,7 +8,6 @@ import pandas as pd
 
 import settings
 from   score_polo_addr_ppd_data import score_polo_ppd_data  # pylint: disable=wrong-import-position
-from   class_model_creation import get_prob_info, get_pred_info  # pylint: disable=wrong-import-position
 from   create_addr_model_input_data import create_ppd_scoring_data  # pylint: disable=wrong-import-position
 
 from   datalabs.analysis.exception import InvalidDataException
@@ -20,7 +19,6 @@ LOGGER.setLevel(logging.INFO)
 
 
 ModelInputData = namedtuple('ModelInputData', 'model ppd entity date')
-ModelOutputData = namedtuple('ModelOutputData', 'predictions ranked_predictions')
 EntityData = namedtuple('EntityData', 'entity_comm_at entity_comm_usg post_addr_at license_lt entity_key_et')
 ModelParameters = namedtuple('ModelParameters', 'meta variables')
 
@@ -53,50 +51,30 @@ class POLOFitnessModel():
         return datetime.datetime.strptime(self._ppd_datestamp, '%Y%m%d')
 
     def apply(self, input_data: ModelInputData) -> ModelOutputData:
-        '''Apply the POLO address rank scoring model to PPD and AIMS data.'''
+        '''Apply the POLO address fitness model to AIMS data.'''
         self._ppd_datestamp = input_data.date
 
-        predictions = self._predict(input_data)
+        scored_data = self._score(input_data)
 
-        ranked_predictions = self._rank(predictions)
+        self._plot(scored_data)
 
-        self._plot(ranked_predictions)
+        return scored_data
 
-        return ModelOutputData(
-            predictions=predictions,
-            ranked_predictions=ranked_predictions
-        )
-
-    def _predict(self, input_data):
+    def _score(self, input_data):
         self._start_time = datetime.datetime.now()
         curated_input_data = self._curate_input_data(input_data)
 
         LOGGER.info('-- Applying POLO model --')
-        model_predictions, pruned_model_input_data = score_polo_ppd_data(
+        scored_data, pruned_model_input_data = score_polo_ppd_data(
             curated_input_data, input_data.model.meta, input_data.model.variables
         )
-        LOGGER.debug('Model predictions length: %s', len(model_predictions))
+        LOGGER.debug('Scored data length: %s', len(scored_data))
 
-        model_predictions = model_predictions.datalabs.rename_in_upper_case()
+        scored_data = scored_data.datalabs.rename_in_upper_case()
 
         self._archive_pruned_model_input_data(pruned_model_input_data)
 
-        return model_predictions
-
-    def _rank(self, model_predictions):
-        model_predictions['RANK_ROUND'] = model_predictions['PRED_PROBABILITY'].apply(lambda x: round((x * 10)))
-        zero_ndx = model_predictions['RANK_ROUND'] == 0
-        model_predictions.loc[zero_ndx, 'RANK_ROUND'] = 1
-
-        LOGGER.debug('Length of model_predictions: %s', len(model_predictions))
-
-        self._archive_ranked_model_predictions(model_predictions)
-
-        return model_predictions
-
-    def _plot(cls, model_predictions):
-        get_prob_info(model_predictions['PRED_PROBABILITY'])
-        get_pred_info(model_predictions['PRED_CLASS'])
+        return scored_data
 
     def _curate_input_data(self, input_data):
         LOGGER.info('-- Creating Scoring Model Input Data --')
@@ -130,11 +108,3 @@ class POLOFitnessModel():
 
         LOGGER.info('Archiving pruned model input data to %s', model_input_path)
         pruned_model_input_data.to_csv(model_input_path, sep=',', header=True, index=True)
-
-    def _archive_ranked_model_predictions(self, ranked_model_predictions):
-        ranked_predictions_filename = '{}_PPD_{}_Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'.format(
-            self.start_datestamp, self.ppd_datestamp
-        )
-        ranked_predictions_path = Path(self._archive_dir, ranked_predictions_filename)
-
-        ranked_model_predictions.to_csv(ranked_predictions_path, sep=',', header=True, index=True)

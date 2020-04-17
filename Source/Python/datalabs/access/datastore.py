@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 import datalabs.access.credentials as cred
 
 
-class Datastore():
+class Datastore(ABC):
     def __init__(self, credentials: cred.Credentials = None):
         self._key = self.__class__.__name__.upper()
         self._credentials = self._load_credentials(credentials, self._key)

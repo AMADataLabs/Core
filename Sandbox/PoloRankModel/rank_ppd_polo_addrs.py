@@ -11,7 +11,8 @@ from   pathlib import Path
 import re
 
 import settings
-from datalabs.analysis.polo.fitness import POLOFitnessModel, ModelInputData, ModelOutputData, ModelParameters, EntityData
+from datalabs.analysis.polo.fitness import POLOFitnessModel, ModelInputData, ModelParameters, EntityData
+import datalabs.analysis.polo.plot as plot
 import datalabs.curate.polo.ppd as data
 
 logging.basicConfig()
@@ -22,15 +23,17 @@ LOGGER.setLevel(logging.INFO)
 class POLOFitnessScoringApp():
     def run(self):
         model_input_files = self._get_input_files()
-        model_output_files = self._get_output_files()
+        scored_data_file = self._get_scored_data_file()
         archive_dir = os.environ.get('MODEL_ARCHIVE_DIR')
         expected_df_lengths = self._get_expected_df_lengths()
 
         input_data = data.InputDataLoader(expected_df_lengths).load(model_input_files)
 
-        model_output_data = POLOFitnessModel(archive_dir).apply(input_data)
+        scored_data = POLOFitnessModel(archive_dir).apply(input_data)
 
-        self._save_model_predictions(model_output_data, model_output_files)
+        self._save_scored_data(scored_data, scored_data_file)
+
+        plot.scoring_statistics(scored_data)
 
     @classmethod
     def _get_expected_df_lengths(cls):
@@ -74,11 +77,8 @@ class POLOFitnessScoringApp():
         )
 
     @classmethod
-    def _get_output_files(cls):
-        return ModelOutputData(
-            predictions=os.environ.get('MODEL_PREDICTIONS_FILE'),
-            ranked_predictions=os.environ.get('MODEL_RANKED_PREDICTIONS_FILE')
-        )
+    def _get_scores_file(cls):
+        return os.environ.get('MODEL_PREDICTIONS_FILE')
 
     @classmethod
     def _extract_ppd_date_from_filename(cls, ppd_file):
@@ -90,13 +90,12 @@ class POLOFitnessScoringApp():
         return match.group(1)
 
     @classmethod
-    def _save_model_predictions(cls, output_data, output_files):
-        LOGGER.info('Writing model predictions to %s', output_files.predictions)
-        output_data.predictions.to_csv(output_files.predictions, index=False)
-
-        LOGGER.info('Writing scored model predictions to %s', output_files.ranked_predictions)
-        output_data.ranked_predictions.to_csv(output_files.ranked_predictions, sep=',', header=True, index=True)
+    def _save_scores(cls, scores, scores):
+        LOGGER.info('Writing scores to %s', scores)
+        scores.to_csv(scores_file, index=False)
 
 
 if __name__ == '__main__':
     POLOFitnessScoringApp().run()
+
+
