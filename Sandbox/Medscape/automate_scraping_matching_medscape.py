@@ -208,7 +208,8 @@ def append_me(roster_df, spec_df):
         'Vet',
         'Transport',
         'Assistant',
-        'Receptionist'
+        'Receptionist',
+        'Technician'
     ]
     mes = []
     for row in data_split.itertuples():
@@ -236,10 +237,12 @@ def append_me(roster_df, spec_df):
             elif len(new_df) > 1 and years:
                 new_df = new_df[new_df.BIRTH_YEAR.isin(years)]
                 if len(new_df) > 1:
-                    print('wtf')
+                    new_df = new_df[new_df.CITY == row.CITY.upper()]   
             if len(new_df) == 1:
                 if match_spec(new_df, row.SPECIALTY, spec_df):
                     physician_me = new_df.iloc[0]['ME']
+            elif len(new_df) > 1:
+                print(f'{row.NAME} potentially matched to multiple ME numbers.')
 
         mes.append(physician_me)
 
