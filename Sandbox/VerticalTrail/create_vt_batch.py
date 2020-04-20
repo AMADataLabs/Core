@@ -9,6 +9,8 @@ from tkinter import filedialog
 
 import pandas as pd
 
+import logging
+
 import settings
 from get_aims_db_tables import get_no_contacts, get_active_licenses, get_ent_comm_phones
 from get_aims_db_tables import get_spec_description, get_entity_me_key
@@ -92,13 +94,13 @@ start_time_str = current_time.strftime("%Y-%m-%d")
 
 phone_var_name = 'TELEPHONE_NUMBER'
 
-print('Starting...')
-print('Pulling EDW data.')
+logging.info('STARTING')
+logging.info('PULLING DATA - EDW')
 with EDW() as edw:
     party_key_df = edw.get_school_ids()
     act_grad_name_df = edw.get_active_medical_school_map()
 
-print('Pulling AIMS data.')
+logging.info('PULLING DATA - AIMS')
 with AIMS() as aims:
     entity_key_df = get_entity_me_key(aims._connection)
     entity_comm_me_df = get_ent_comm_phones(aims._connection)
@@ -106,12 +108,11 @@ with AIMS() as aims:
     active_license_df = get_active_licenses(aims._connection)
     spec_desc_df = get_spec_description(aims._connection)
 
-
-print('Pulling PPD.')
+logging.info('PULLING DATA - PPD')
 ppd_df = pd.read_csv(ppd_file, delimiter=",", index_col=None, header=0, dtype=str)
 ppd_df = ppd_df.datalabs.rename_in_upper_case()
 
-print('Starting a bunch of shit')
+logging.info('FILTERING DATA - DPC PHYSICIANS WITHOUT PHONE NUMBERS')
 ppd_null_df = ppd_df[ppd_df[phone_var_name].isna()]
 ppd_dpc_df = ppd_null_df[ppd_null_df['TOP_CD'] == '020']
 
@@ -119,12 +120,12 @@ ppd_dpc_df = ppd_null_df[ppd_null_df['TOP_CD'] == '020']
 ppd_ent_key_df = ppd_dpc_df.merge(entity_key_df, how='inner', left_on='ME', right_on='me')
 ppd_ent_key_df = ppd_ent_key_df.sort_values('ME').groupby('ME').first().reset_index()
 
-
+logging.info('FILTERING DATA - NO-CONTACT')
 ppd_contact_df = ppd_ent_key_df[~ppd_ent_key_df['entity_id'].isin(no_contact_df['entity_id'])]
-print('Doing more shit')
+
+logging.info('GETTING LICENSE INFO')
 uniq_act_license_df = active_license_df.sort_values('lic_exp_dt', 
                                                     ascending=False).groupby('entity_id').first().reset_index()
-
 
 ppd_lic_df = ppd_contact_df.merge(uniq_act_license_df, how='inner', on='entity_id')
 
@@ -134,13 +135,14 @@ ppd_lic_df['medschool_key'] = ppd_lic_df['MEDSCHOOL_STATE'] + ppd_lic_df['MEDSCH
 
 ppd_party_key_df = ppd_lic_df.merge(party_key_df, how='inner', left_on='medschool_key',  right_on='KEY_VAL')
 
-ppd_med_name_df = ppd_party_key_df.merge(active_medical_schools, how='inner', on='PARTY_ID')
+ppd_med_name_df = ppd_party_key_df.merge(act_grad_name_df, how='inner', on='PARTY_ID')
 
 ppd_spec_desc_df = ppd_med_name_df.merge(spec_desc_df, how='inner', left_on='PRIM_SPEC_CD',
                                          right_on='spec_cd')
 ppd_spec_desc_df = ppd_spec_desc_df.rename(columns={'description': 'spec_description'})
 ppd_spec_desc_df['specialty'] = ppd_spec_desc_df['spec_description']
-print('More shit')
+
+logging.info('ASSIGNING DEGREE TYPE VALUES - MD / DO')
 ppd_spec_desc_df['degree_type'] = 'MD'
 do_ndx = ppd_spec_desc_df['MD_DO_CODE'] == 2
 ppd_spec_desc_df.loc[do_ndx, 'degree_type'] = 'DO'
@@ -148,6 +150,7 @@ ppd_spec_desc_df.loc[do_ndx, 'degree_type'] = 'DO'
 ppd_uniq_df = ppd_spec_desc_df.groupby(['FIRST_NAME', 'LAST_NAME', 'MEDSCHOOL_GRAD_YEAR', 
                                         'lic_state']).apply(lambda x: x.sample(1)).reset_index(drop=True)
 
+logging.info(f'CREATING SAMPLE - BATCH SIZE - {batch_size}')
 batch_df = ppd_uniq_df.sample(batch_size)
 
 
@@ -156,7 +159,8 @@ uniq_ent_comm_df = filtered_ent_comm_df.sort_values(['entity_id',
                                                      'aims_phone']).groupby(['entity_id', 'aims_phone']).first().reset_index()
     
 uniq_ent_ids = list(uniq_ent_comm_df['entity_id'].unique())
-print('Even more shit, somehow')
+
+logging.info('ADDING PREVIOUS PHONE NUMBERS TO SAMPLE')
 old_phone_df, oldphone_name_list = get_old_phones(uniq_ent_comm_df, uniq_ent_ids)
 
 int_batch_df = batch_df.merge(old_phone_df, how='left', on='entity_id')
@@ -171,12 +175,13 @@ vt_batch_cols = base_vt_batch_cols + oldphone_name_list
 
 vt_batch_df = int_batch_df[vt_batch_cols]
 vt_save_file = out_dir + start_time_str + '_' + str(batch_size) + '_VT_Sample.xlsx'
-print('FINALLY. Saving to csv at {}'.format(vt_save_file))
+
+logging.info(f'SAVING FILE - DESTINATION - {vt_save_file}')
 writer = pd.ExcelWriter(vt_save_file, engine='xlsxwriter')
 vt_batch_df.to_excel(writer, index=None, header=True)
 writer.save()
 
-print('DONE')
+logging.info('SAMPLE GENERATION COMPLETE.')
 
 
 
