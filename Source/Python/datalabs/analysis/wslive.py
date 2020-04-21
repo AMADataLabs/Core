@@ -1,23 +1,15 @@
-# Kari Palmier    Created 9/3/19
-#
-#############################################################################
+""" Functions for analysis of scored WSLive survey results. """
+import os
+import sys
+
+import numpy as np
 import pandas as pd
 from sklearn import metrics
-import numpy as np
-
-# Get path of general (common) code and add it to the python path variable
-import sys
-import os
-curr_path = os.path.abspath(__file__)
-slash_ndx = [i for i in range(len(curr_path)) if curr_path.startswith('\\', i)]
-base_path = curr_path[:slash_ndx[-2]+1]
-gen_path = base_path + 'Common_Model_Code\\'
-sys.path.insert(0, gen_path)
 
 from class_model_creation import score_fit_model
 
 
-def analyze_survey_class_results(wslive_pred_df):
+def class_results(wslive_pred_df):
     
     num_0 = sum(wslive_pred_df['ACTUAL_CLASS'] == 0)
     num_1 = sum(wslive_pred_df['ACTUAL_CLASS'] == 1)
@@ -85,7 +77,7 @@ def analyze_survey_class_results(wslive_pred_df):
     return conf_mat, class_mat_df, score_df
 
 
-def analyze_survey_binned_results(wslive_pred_df, bin_step, status_var):
+def binned_results(wslive_pred_df, bin_step, status_var):
     
     sample_bin_lls = list(np.arange(0, 1, bin_step))
     sample_bin_uls = list(np.arange(bin_step, (1 + bin_step), bin_step))

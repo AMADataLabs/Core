@@ -10,9 +10,9 @@ from tkinter import filedialog
 import pandas as pd
 
 import settings
-from analyze_scored_survey_results import analyze_survey_class_results, analyze_survey_binned_results
 from create_addr_model_input_data import create_addr_key
 
+import datalabs.analysis.wslive as wslive
 import datalabs.curate.dataframe  # pylint: disable=unused-import
 import datalabs.util.datetime as dt
 
@@ -117,7 +117,7 @@ def main(args):
   print('-----------------------------------------------------')
   print('\n')
 
-  conf_mat_all, class_mat_all, score_df_all = analyze_survey_class_results(wslive_pred_df)
+  conf_mat_all, class_mat_all, score_df_all = wslive.class_results(wslive_pred_df)
 
   save_file = anlys_out_dir + date_range_str + '_WSLive_PoloRank_Class_Results_All.xlsx'
   writer = pd.ExcelWriter(save_file, engine = 'xlsxwriter')
@@ -133,7 +133,7 @@ def main(args):
 
   wslive_filter_df = wslive_pred_df[wslive_pred_df['ADDR_STATUS'].isin(['CONFIRMED', 'UPDATED'])]
 
-  conf_mat_filter, class_mat_filter, score_df_filter = analyze_survey_class_results(wslive_filter_df)
+  conf_mat_filter, class_mat_filter, score_df_filter = class_results(wslive_filter_df)
 
   save_file = anlys_out_dir + date_range_str + '_WSLive_PoloRank_Class_Results_Filtered.xlsx'
   writer = pd.ExcelWriter(save_file, engine = 'xlsxwriter')
@@ -142,7 +142,7 @@ def main(args):
   writer.save()
 
   bin_step = 0.05
-  bin_df_0p05 = analyze_survey_binned_results(wslive_pred_df, bin_step, 'ADDR_STATUS')
+  bin_df_0p05 = wslive.binned_results(wslive_pred_df, bin_step, 'ADDR_STATUS')
 
   num_rows = bin_df_0p05.shape[0] + 1
   num_cols = bin_df_0p05.shape[1] + 1
@@ -160,7 +160,7 @@ def main(args):
   bin_df_0p05.to_excel(writer, sheet_name = 'step_size_0.05', index = None, header = True)
 
   bin_step = 0.1
-  bin_df_0p1 = analyze_survey_binned_results(wslive_pred_df, bin_step, 'ADDR_STATUS')
+  bin_df_0p1 = wslive.binned_results(wslive_pred_df, bin_step, 'ADDR_STATUS')
 
   num_rows = bin_df_0p1.shape[0] + 1
   num_cols = bin_df_0p1.shape[1] + 1

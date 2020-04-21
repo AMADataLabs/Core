@@ -1,18 +1,11 @@
-#!/usr/bin/env python
-
-from   abc import ABC, abstractmethod
-from   collections import namedtuple
-from   datetime import datetime
+""" Classes for loading AIMS data for POLO analysis """
 from   enum import Enum
 import gc
 import logging
-import os
 import re
 import sys
 
 import pandas
-
-import settings
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -27,10 +20,11 @@ class DataFileFormat(Enum):
 class EntityTableCleaner():
     TIMESTAMP_REGEX = re.compile('(?P<date>[0-9]{4}/[0-9]{2}/[0-9]{2}):(?P<time>[0-9]{2}:[0-9]{2}:[0-9]{2})')
 
+    # pylint: disable=too-many-arguments
     def __init__(
-        self, input_path: str, output_path: str,
-        row_filters: dict=None, column_filters: dict=None, types: dict=None, defaults: dict=None,
-        datestamp_columns: list=None
+            self, input_path: str, output_path: str,
+            row_filters: dict = None, column_filters: dict = None, types: dict = None, defaults: dict = None,
+            datestamp_columns: list = None
     ):
         self._input_path = input_path
         self._output_path = output_path
@@ -57,7 +51,7 @@ class EntityTableCleaner():
     @classmethod
     def _read_table_from_file(cls, filename):
         extension = filename.rsplit('.')[-1]
-        LOGGER.debug(f'File extension: {extension}')
+        LOGGER.debug('File extension: %s', extension)
         table_chunks = None
 
         if extension == DataFileFormat.CSV.value:
@@ -76,11 +70,13 @@ class EntityTableCleaner():
 
         for chunk in table_chunks:
             cleaned_chunk = self._clean_table(chunk)
-            sys.stdout.write('.'); sys.stdout.flush()
+            sys.stdout.write('.')
+            sys.stdout.flush()
             LOGGER.debug('Cleaned chunk: %s', cleaned_chunk)
 
             cleaned_table_chunks.append(cleaned_chunk)
-        sys.stdout.write('\n'); sys.stdout.flush()
+        sys.stdout.write('\n')
+        sys.stdout.flush()
 
         cleaned_table = pandas.concat(cleaned_table_chunks)
         cleaned_table.reset_index(inplace=True)
@@ -151,7 +147,7 @@ class EntityTableCleaner():
 
     @classmethod
     def _filter_rows(cls, table: pandas.DataFrame, filters: dict) -> pandas.DataFrame:
-        for name,value in filters.items():
+        for name, value in filters.items():
             table = table[table[name] == value]
 
         return table
@@ -181,17 +177,17 @@ class EntityTableCleaner():
             try:
                 # column[~column.isna()] = column[~column.isna()].apply(str.strip)
                 table.loc[~column.isna(), column_name] = column[~column.isna()].apply(str.strip)
-            except TypeError as te:
-                LOGGER.warn("Non-string type '%s' for column '%s'", table[column_name].dtype, column_name)
-            except Exception as e:
+            except TypeError:
+                LOGGER.warning("Non-string type '%s' for column '%s'", table[column_name].dtype, column_name)
+            except Exception as exception:
                 LOGGER.debug('Bad column %s:\n%s', column_name, column[~column.isna()])
-                raise e
+                raise exception
 
         return table
 
     @classmethod
     def _insert_defaults(cls, table, defaults):
-        for column_name,default_value in defaults.items():
+        for column_name, default_value in defaults.items():
             table[column_name].fillna(default_value, inplace=True)
 
         return table
@@ -205,7 +201,7 @@ class EntityTableCleaner():
 
     @classmethod
     def _set_column_types(cls, table: pandas.DataFrame, types: dict) -> pandas.DataFrame:
-        for column_name,type_name in types.items():
+        for column_name, type_name in types.items():
             table[column_name] = table[column_name].astype(type_name)
 
         return table
