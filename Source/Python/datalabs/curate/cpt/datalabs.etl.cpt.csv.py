@@ -38,14 +38,14 @@ def df_to_csv(df, FileType, file_descriptor):
     csv_name = []
     if FileType == 'clinicalDescriptors':
         output_file = ['ClinicianDescriptor.csv']
-        with tempfile.NamedTemporaryFile(mode='r+') as temp:
+        with tempfile.NamedTemporaryFile() as temp:
             df.to_csv(temp.name + '.csv', sep='\t')
         csv_name.append(temp.name)
         return csv_name, output_file
 
     elif FileType == 'modifiers':
         output_file = ['modifier.csv']
-        with tempfile.NamedTemporaryFile(mode='r+') as temp:
+        with tempfile.NamedTemporaryFile() as temp:
             df.to_csv(temp.name + '.csv', sep='\t')
         csv_name.append(temp.name)
         return csv_name, output_file

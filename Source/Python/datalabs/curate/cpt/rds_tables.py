@@ -12,11 +12,11 @@ class CreateRDS:
 
     def __init__(self):
         self.connection = psycopg2.connect(
-            host=os.environ.get('host'),
-            port=os.environ.get('port'),
-            user=os.environ.get('user'),
-            password=os.environ.get('password'),
-            database=os.environ.get('database'))
+            host=os.environ['rds_host'],
+            port=os.environ['rds_port'],
+            user=os.environ['rds_user'],
+            password=os.environ['rds_password'],
+            database=os.environ['rds_database'])
 
         self.cursor = self.connection.cursor()
 
@@ -61,17 +61,17 @@ class CreateRDS:
         self.connection.commit()
         LOGGER.info('Successful')
 
-    def push_cpt_table(self):
+    def push_cpt_table(self, file):
         self.cursor.execute("""TRUNCATE CPT_Data.cpt""")
-        with open('cpt_table.csv', 'r') as row:
+        with open(file, 'r') as row:
             next(row)
             self.cursor.copy_from(row, 'CPT_Data.cpt', sep='\t')
         self.connection.commit()
         LOGGER.info('Successful')
 
-    def push_descriptor_table(self):
+    def push_descriptor_table(self, file):
         self.cursor.execute("""TRUNCATE CPT_Data.clinician_descriptor""")
-        with open('ClinicianDescriptor.csv', 'r') as row:
+        with open(file, 'r') as row:
             next(row)
             self.cursor.copy_from(row, 'CPT_Data.clinician_descriptor', sep='\t')
         self.connection.commit()
@@ -85,9 +85,9 @@ class CreateRDS:
         self.connection.commit()
         LOGGER.info('Successful')
 
-    def push_modifiers_table(self):
+    def push_modifiers_table(self, file):
         self.cursor.execute("""TRUNCATE CPT_Data.modifiers""")
-        with open('modifiers.csv', 'r') as row:
+        with open(file, 'r') as row:
             next(row)
             self.cursor.copy_from(row, 'CPT_Data.modifiers', sep='\t')
         self.connection.commit()
