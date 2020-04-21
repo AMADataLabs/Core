@@ -56,8 +56,6 @@ class POLOFitnessModel():
 
         scored_data = self._score(input_data)
 
-        self._plot(scored_data)
-
         return scored_data
 
     def _score(self, input_data):

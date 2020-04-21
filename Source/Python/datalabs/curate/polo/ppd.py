@@ -83,8 +83,7 @@ class InputDataLoader():
         length_delta = abs(expected_df_length - len(data))
         deviation = length_delta / expected_df_length
         arbitrary_max_deviation = 0.25
-        LOGGER.info('DataFrame record count: %d', len(data))
-        LOGGER.info('Deviation from expected record count: %.2f %', deviation*100)
+        LOGGER.info('Record count: %d. Deviation: %.2f %%', len(data), deviation*100)
 
         if deviation > arbitrary_max_deviation:
             raise InvalidDataException(f'The following DataFrame has an unusual length: {data}')
