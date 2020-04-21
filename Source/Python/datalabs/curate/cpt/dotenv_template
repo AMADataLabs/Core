@@ -1,0 +1,22 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+# S3 Buckets Settings
+S3_INGESTION_BUCKET = '{{ingestion_bucket}}'
+S3_PROCESSED_BUCKET = '{{processed_bucket}}'
+INPUT_FILE_PATH = '{{path}}'
+OUTPUT_FILE_PATH = '{{s3_output}}'
+CLINICAL_DESCRIPTOR_FILE_PATH = '{{c_path}}'
+MODIFIER_CSV_KEY = '{{mod_key}}'
+CPT_CSV_KEY = '{{cpt_key}}'
+CLINICAL_DESCRIPTORS_CSV_KEY = '{{descriptors_key}}'
+
+# Database Connection
+HOST = '{{host}}'
+PORT  = '{{port}}'
+USER = '{{user}}'
+PASSWORD = '{{password}}'
+DATABASE = '{{database}}'
+
+
+

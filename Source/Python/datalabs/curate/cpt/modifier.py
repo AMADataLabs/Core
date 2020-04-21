@@ -5,8 +5,6 @@ from collections import namedtuple
 from enum import Enum
 import re
 import pandas as pd
-import boto3
-import os
 
 
 class State(Enum):
@@ -45,7 +43,7 @@ class ModifierType(Enum):
 Context = namedtuple('Context', 'state event data')
 
 
-class FileParser:
+class ModifierFileParser:
     # pylint: disable=line-too-long,bad-whitespace
     TRANSITION_TABLE = [
         # Start           Blank                      Text                       Modifier                   AppendixA              AnesthesiaPhysicalStatus  CPTLevelIModifiers      CategoryIIModifiers       LevelIIModifiers
@@ -85,12 +83,13 @@ class FileParser:
     def add_modifier(self, modifier_type: ModifierType, code: str, description: str):
         self._modifiers[modifier_type][code] = description
 
-    def parse(self, input_filename: str, output_filename: str) -> dict:
+    def parse(self, input_filename: str):
         lines = self._read_file(input_filename)
 
         self._parse_file(lines)
 
-        self._write_data(output_filename, self._modifiers)
+        dataFrame = self._write_dataframe(self._modifiers)
+        return dataFrame
 
     @classmethod
     def _read_file(cls, input_filename):
@@ -103,39 +102,31 @@ class FileParser:
         for line in lines:
             context = self._process_event(context, line.strip())
 
-    @classmethod
-    def _write_data(cls, output_filename, modifiers):
-        dataframes = []
+    @staticmethod
+    def _write_dataframe(modifiers):
+        dataFrames = []
         i = 0
         while i < 5:
-            for l in modifiers:
-                d = pd.DataFrame(list(modifiers[l].items()), columns=['mod_code', 'mod_description'], index=None)
-                d['mod_type'] = str(list(modifiers.keys())[i]).split('.')[1]
-                dataframes.append(d)
+            for mod_type in modifiers:
+                df = pd.DataFrame(list(modifiers[mod_type].items()), columns=['mod_code', 'mod_description'],
+                                  index=None)
+                df['mod_type'] = str(list(modifiers.keys())[i]).split('.')[1]
+                dataFrames.append(df)
                 i = i + 1
-        df_merged = pd.concat(dataframes, ignore_index=True)
-        df_merged.to_csv('modifiers.csv', sep='\t')
 
-        s3 = boto3.client('s3')
-
-        try:
-            s3.upload_file('modifiers.csv', 'ama-hsg-datalabs-datalake-ingestion-sandbox', 'modifiers.csv')
-            return True
-        except FileNotFoundError:
-            print("The file was not found")
-            return False
-        pass
+        df_merged = pd.concat(dataFrames, ignore_index=True)
+        return df_merged
 
     def _process_event(self, context, line):
         state = self.TRANSITION_TABLE[context.state.value][context.event.value]
 
-        _, event, data = self._state_processors[state.value - 1].process_line(context, line)
+        _, event, data = self._state_processors[context.state.value - 1].process_line(context, line)
 
         return Context(state=state, event=event, data=data)
 
 
 class StateProcessor(ABC):
-    def __init__(self, parser: FileParser):
+    def __init__(self, parser: ModifierFileParser):
         self._parser = parser
 
     @abstractmethod
@@ -312,14 +303,3 @@ class LevelTwoModifierProcessor(StateProcessor):
         description = match.group(2)
         self._parser.add_modifier(ModifierType.LevelTwo, code, description)
 
-
-def main():
-    test_object = FileParser()
-    s3 = boto3.client('s3')
-    s3.download_file('ama-hsg-datalabs-datalake-ingestion-sandbox', 'AMA/CPT/20200131/standard/MODUL.txt', 'modul1.txt')
-    test_object.parse('modul1.txt', "modul.csv")
-    os.remove("modul1.txt")
-
-
-if __name__ == "__main__":
-    main()
