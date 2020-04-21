@@ -85,14 +85,6 @@ class POLOFitnessModel():
         LOGGER.debug('SCORE_POLO_ADDR_DATA')
         LOGGER.debug(ppd_scoring_df.dtypes)
 
-        # Convert data types to expected
-        assert 'ent_comm_begin_dt' in ppd_scoring_df.columns.values
-        MISSING_VARIABLES = [
-            'lic_state_match_0', 'ent_comm_src_cat_code_ADMIT-HOS', 'ent_comm_src_cat_code_ECF-CNVRSN',
-            'ent_comm_src_cat_code_GROUP', 'ent_comm_src_cat_code_PHNSURV', 'ent_comm_src_cat_code_SCHL-HOSP',
-            'ent_comm_comm_type_GROUP', 'ppd_pe_cd_11', 'ppd_pe_cd_110',
-        ]
-
         ppd_scoring_converted_df = convert_data_types(ppd_scoring_df)
 
         # Create new model variables
