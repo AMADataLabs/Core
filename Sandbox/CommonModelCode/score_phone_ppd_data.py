@@ -42,7 +42,7 @@ def score_phone_data(ppd_scoring_df, model, model_vars, init_model_vars, info_va
     model_df = ppd_scoring_new_df.loc[:, init_model_vars]
     
     # Deal with any NaN or invalid entries
-    model_clean_df, ppd_scoring_clean_df = clean_model_data(model_df, ppd_scoring_new_df)
+    model_clean_df = clean_model_data(model_df, ppd_scoring_new_df)
     
     # Convert int variables to integer from float
     model_convert_df = convert_int_to_cat(model_clean_df)
