@@ -50,7 +50,7 @@ class POLOFitnessModel():
     def ppd_date(self):
         return datetime.datetime.strptime(self._ppd_datestamp, '%Y%m%d')
 
-    def apply(self, input_data: ModelInputData) -> ModelOutputData:
+    def apply(self, input_data: ModelInputData) -> pd.DataFrame:
         '''Apply the POLO address fitness model to AIMS data.'''
         self._ppd_datestamp = input_data.date
 
