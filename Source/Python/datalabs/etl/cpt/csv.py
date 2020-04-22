@@ -3,9 +3,7 @@ import os
 import logging
 import tempfile
 from enum import Enum
-from datalabs.etl.cpt import clinical_descriptors
-from datalabs.etl.cpt import cpt
-from datalabs.etl.cpt import modifier
+from datalabs.curate.cpt import clinical_descriptors, modifier, cpt
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
