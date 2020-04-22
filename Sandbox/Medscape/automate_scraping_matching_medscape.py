@@ -21,6 +21,7 @@ TODAY = str(date.today())
 #Set directories
 PPD_FILE = os.environ.get('PPD_FILE')
 OUT = os.environ.get('OUT_DIR')
+print(OUT)
 OUT_DIRECTORY = f'{OUT}{TODAY}'
 OUT_DIRECTORY_YESTERDAY = f'{OUT}{YESTERDAY}'
 os.mkdir(OUT_DIRECTORY)
@@ -136,10 +137,12 @@ def grab_data():
                 country = city
                 city = 'None'
         except IndexError as index_error:
-            print('Human intervention needed for the following exception:')
-            print(index_error)
-            print(paragraph.text)
-            print(' ')
+            if ',' in paragraph.text:
+                print('Human intervention needed for the following exception:')
+                print(index_error)
+                print(paragraph)
+                print(paragraph.text)
+                print(' ')
         new_dict = {
             'NAME': name,
             'AGE': age,
