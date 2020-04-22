@@ -12,7 +12,6 @@ from   pathlib import Path
 import pandas as pd
 
 import settings
-from   score_polo_addr_ppd_data import score_polo_ppd_data
 from   class_model_creation import get_class_predictions
 from   create_addr_model_input_data import create_ppd_scoring_data
 from   process_model_data import convert_data_types, create_new_addr_vars, clean_model_data, convert_int_to_cat
@@ -29,7 +28,7 @@ ModelInputData = namedtuple('ModelInputData', 'model ppd entity date')
 EntityData = namedtuple('EntityData', 'entity_comm_at entity_comm_usg post_addr_at license_lt entity_key_et')
 ModelParameters = namedtuple('ModelParameters', 'meta variables')
 ModelVariables = namedtuple('ModelVariables', 'input feature output')
-ModelPredictions = namedtuple('ModelPredictions', 'class probability')
+ModelPredictions = namedtuple('ModelPredictions', 'pclass probability')
 
 
 class POLOFitnessModel():
@@ -117,7 +116,7 @@ class POLOFitnessModel():
         cls._assert_has_columns(variables.input, model_data)
 
         # Deal with any NaN or invalid entries
-        cleaned_model_data = clean_model_data(model_data, ppd_scoring_new_df)
+        cleaned_model_data = clean_model_data(model_data, model_data)
 
         # Convert int variables to integer from float
         converted_model_data = convert_int_to_cat(cleaned_model_data)
@@ -145,8 +144,8 @@ class POLOFitnessModel():
     @classmethod
     def _generate_scored_data(cls, merged_input_data, variables, predictions):
         scored_data = merged_input_data.loc[:, variables.input.union(variables.output)]
-        scored_data['pred_class'] = predictions[0]
-        scored_data['pred_probability'] = predictions[1]
+        scored_data['pred_class'] = predictions.pclass
+        scored_data['pred_probability'] = predictions.probability
 
         LOGGER.debug('Scored data length: %s', len(scored_data))
 
