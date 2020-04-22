@@ -6,7 +6,7 @@ import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import presence_of_all_elements_located
-from scrape import get_driver, click_modal_button, get_next_page
+from scrape import get_driver, click_modal_button, get_next_page, wait
 
 def main():
     '''Main'''
@@ -30,9 +30,12 @@ def scrape_health_orgs(browser):
     for num in list(range(0, 22)):
         try:
             time.sleep(2)
-            names = WebDriverWait(browser, 20).until(presence_of_all_elements_located((By.CLASS_NAME, 'name')))
-            programs = WebDriverWait(browser, 20).until(presence_of_all_elements_located((By.CLASS_NAME, 'program')))
-            statuses = WebDriverWait(browser, 20).until(presence_of_all_elements_located((By.CLASS_NAME, 'status')))
+            names = wait(browser).until(presence_of_all_elements_located((By.CLASS_NAME,
+                                                                          'name')))
+            programs = wait(browser).until(presence_of_all_elements_located((By.CLASS_NAME,
+                                                                             'program')))
+            statuses = wait(browser).until(presence_of_all_elements_located((By.CLASS_NAME,
+                                                                             'status')))
             for name in names[1:11]:
                 name_list.append(name.text)
             for program in programs[1:11]:
@@ -41,10 +44,12 @@ def scrape_health_orgs(browser):
                 status_list.append(status.text)
             #Click on each link on page
             for index in list(range(0, 10)):
-                all_links = WebDriverWait(browser, 20).until(presence_of_all_elements_located((By.XPATH, '//*[@ui-sref="otherHealthCare({org: item.id})"]')))
-                all_links[index].click()
+                link_path = '//*[@ui-sref="otherHealthCare({org: item.id})"]'
+                links = wait(browser).until(presence_of_all_elements_located((By.XPATH, link_path)))
+                links[index].click()
                 time.sleep(1)
-                all_content = WebDriverWait(browser, 20).until(presence_of_all_elements_located((By.CLASS_NAME, 'content')))
+                all_content = wait(browser).until(presence_of_all_elements_located((By.CLASS_NAME,
+                                                                                    'content')))
                 if len(all_content) > 2:
                     website = all_content[0].text
                     address = all_content[1].text
@@ -59,7 +64,12 @@ def scrape_health_orgs(browser):
             print(f'{len(name_list)} health organizations counted')
             print(f'{num} pages scraped')
         except (KeyboardInterrupt, SystemExit):
-            min_len = min(len(name_list), len(program_list), len(status_list), len(website_list), len(address_list))
+            lists = [len(name_list),
+                     len(program_list),
+                     len(status_list),
+                     len(website_list),
+                     len(address_list)]
+            min_len = min(lists)
             name_list = name_list[:min_len]
             program_list = program_list[:min_len]
             status_list = status_list[:min_len]

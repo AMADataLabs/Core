@@ -28,3 +28,6 @@
 [0415/164647.947:ERROR:crash_report_exception_handler.cc(97)] PrepareNewCrashReport failed
 [0416/005218.990:ERROR:prune_crash_reports.cc(35)] PruneCrashReportDatabase: Failed to get pending reports
 [0417/140454.819:ERROR:crash_report_database_win.cc(558)] GetFileAttributes C:\Users\vigrose\AppData\Local\Temp\scoped_dir804_14069\Crashpad: The system cannot find the file specified. (0x2)
+[0422/082600.190:ERROR:process_reader_win.cc(123)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights. (0xc0000022)
+[0422/082600.619:ERROR:process_reader_win.cc(123)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights. (0xc0000022)
+[0422/082601.008:ERROR:process_reader_win.cc(123)] NtOpenThread: {Access Denied} A process has requested access to an object, but has not been granted those access rights. (0xc0000022)
