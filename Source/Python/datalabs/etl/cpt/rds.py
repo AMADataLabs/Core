@@ -8,7 +8,7 @@ LOGGER.setLevel(logging.INFO)
 LOGGER.info('Upload Successful')
 
 
-class CreateRDS:
+class RDSCreator:
 
     def __init__(self):
         self.connection = psycopg2.connect(

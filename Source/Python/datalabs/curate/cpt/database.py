@@ -2,7 +2,7 @@ import boto3
 import logging
 import os
 import tempfile
-from rds_tables import CreateRDS
+from datalabs.etl.cpt import rds
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def get_s3_files(table_type):
 
 
 def create_table(table_type):
-    rds_object = CreateRDS()
+    rds_object = rds.RDSCreator()
     if table_type == 'modifiers':
         rds_object.create_schema()
         rds_object.create_modifier_type_table()
@@ -53,7 +53,7 @@ def create_table(table_type):
 
 
 def push_table(table_type, file):
-    rds_object = CreateRDS()
+    rds_object = rds.RDSCreator()
     if table_type == 'modifiers':
         rds_object.push_modifier_type_table()
         rds_object.push_modifiers_table(file)
