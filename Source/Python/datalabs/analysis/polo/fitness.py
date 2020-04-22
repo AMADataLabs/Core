@@ -28,6 +28,7 @@ LOGGER.setLevel(logging.INFO)
 ModelInputData = namedtuple('ModelInputData', 'model ppd entity date')
 EntityData = namedtuple('EntityData', 'entity_comm_at entity_comm_usg post_addr_at license_lt entity_key_et')
 ModelParameters = namedtuple('ModelParameters', 'meta variables')
+ModelVariables = namedtuple('ModelVariables', 'input feature output')
 
 
 class POLOFitnessModel():
@@ -69,54 +70,19 @@ class POLOFitnessModel():
 
     def _score(self, input_data):
         self._start_time = datetime.datetime.now()
-        merged_input_data = self._merge_input_data(input_data)
 
-        LOGGER.info('-- Applying POLO model --')
+        merged_input_data = self._merge_ppd_and_aims_data(input_data)
 
-        # note these are in the order desired for the sample output
-        info_vars = ['ppd_me', 'ppd_first_name', 'ppd_middle_name', 'ppd_last_name', 'ppd_suffix',
-                     'ppd_polo_mailing_line_1', 'ppd_polo_mailing_line_2', 'ppd_polo_city',
-                     'ppd_polo_state', 'ppd_polo_zip',
-                     'ppd_telephone_number', 'ppd_prim_spec_cd', 'ppd_pe_cd', 'ppd_fax_number',
-                     'post_addr_line1', 'post_addr_line2', 'post_city_cd', 'post_state_cd',
-                     'post_zip', 'ent_comm_comm_type', 'ent_comm_begin_dt', 'ent_comm_end_dt',
-                     'ent_comm_comm_id', 'ent_comm_entity_id']
+        model_input_data = self._generate_features(merged_input_data, input_data.model.variables)
 
-        LOGGER.debug('SCORE_POLO_ADDR_DATA')
-        LOGGER.debug(ppd_scoring_df.dtypes)
-
-        ppd_scoring_converted_df = convert_data_types(ppd_scoring_df)
-
-        # Create new model variables
-        ppd_scoring_new_df = create_new_addr_vars(ppd_scoring_converted_df)
-
-        # Get data with just model variables
-        model_df = self._filter_out_extra_variables(ppd_scoring_new_df)
-
-        # Deal with any NaN or invalid entries
-        model_clean_df = clean_model_data(model_df, ppd_scoring_new_df)
-
-        # Convert int variables to integer from float
-        model_convert_df = convert_int_to_cat(model_clean_df)
-
-        # Convert categorical variables to dummy variables
-        model_data_all = pd.get_dummies(model_convert_df)
-
-        # Keep only variable required for the model
-        model_vars = list(model_vars)
-
-        missing_variables = [var for var in model_vars if var not in model_data_all.columns.values]
-        if missing_variables:
-            raise InvalidDataException(f'Model input data is missing the following columns: {missing_variables}')
-
-        pruned_model_input_data = model_data_all.loc[:, input_data.model.variables]
-        pruned_model_input_data = fill_nan_model_vars(pruned_model_input_data)
+        pruned_model_input_data = self._prune_and_patch_model_input_data(model_input_data, input_data.model.variables)
 
         # get model class probabilites and predictions
-        preds, probs = get_class_predictions(input_data.model.meta, pruned_model_input_data, 0.5, False)
+        LOGGER.info('-- Applying POLO model --')
+        preds, probs = get_class_predictions(input_data.model.meta, feature_data, 0.5, False)
 
-        scored_data = model_df[:]
-        scored_data[info_vars] = scored_data.loc[:, info_vars]
+        scored_data = output_feature_data.loc[:, input_data.model.variables.input]
+        scored_data[input_data.model.variables.output] = merged_input_data.loc[:, input_data.model.variables.output]
         scored_data['pred_class'] = preds
         scored_data['pred_probability'] = probs
 
@@ -124,9 +90,18 @@ class POLOFitnessModel():
 
         scored_data = scored_data.datalabs.rename_in_upper_case()
 
-        return scored_data, pruned_model_input_data
+        return scored_data, feature_data
 
-    def _merge_input_data(self, input_data):
+    def _archive_pruned_model_input_data(self, pruned_model_input_data):
+        model_input_filename = '{}_PPD_{}_Polo_Addr_Rank_Input_Data.csv'.format(
+            self.start_datestamp, self.ppd_datestamp
+        )
+        model_input_path = Path(self._archive_dir, model_input_filename)
+
+        LOGGER.info('Archiving pruned model input data to %s', model_input_path)
+        pruned_model_input_data.to_csv(model_input_path, sep=',', header=True, index=True)
+
+    def _merge_ppd_and_aims_data(self, input_data):
         LOGGER.info('-- Creating Scoring Model Input Data --')
 
         merged_input_data = create_ppd_scoring_data(
@@ -139,7 +114,35 @@ class POLOFitnessModel():
 
         self._archive_merged_input_data(merged_input_data)
 
-        return merged_input_data
+
+        return convert_data_types(merged_input_data)
+
+    @classmethod
+    def _generate_features(cls, merged_input_data, variables)
+        initial_feature_data = create_new_addr_vars(merged_input_data)
+
+        # Get data with just model variables
+        model_data = initial_feature_data.loc[:, variables.input]
+
+        cls._assert_has_columns(variables.input, model_data)
+
+        # Deal with any NaN or invalid entries
+        cleaned_model_data = clean_model_data(model_data, ppd_scoring_new_df)
+
+        # Convert int variables to integer from float
+        converted_model_data = convert_int_to_cat(cleaned_model_data)
+
+        # Convert categorical variables to dummy variables
+        model_feature_data = pd.get_dummies(converted_model_data)
+
+        cls._assert_has_columns(variables.feature, model_feature_data)
+
+        return model_feature_data
+
+    def _prune_and_patch_model_input_data(cls, model_input_data, variables):
+        pruned_model_input_data = model_input_data.loc[:, variables.feature]
+
+        return fill_nan_model_vars(pruned_model_input_data)
 
     def _archive_merged_input_data(self, merged_input_data):
         ppd_entity_filename = '{}_PPD_{}_Polo_Addr_Rank_PPD_Entity_Data.csv'.format(
@@ -150,45 +153,11 @@ class POLOFitnessModel():
         LOGGER.info('Archiving scoring data to %s', ppd_entity_path)
         merged_input_data.to_csv(ppd_entity_path, sep=',', header=True, index=True)
 
-    def _archive_pruned_model_input_data(self, pruned_model_input_data):
-        model_input_filename = '{}_PPD_{}_Polo_Addr_Rank_Input_Data.csv'.format(
-            self.start_datestamp, self.ppd_datestamp
-        )
-        model_input_path = Path(self._archive_dir, model_input_filename)
-
-        LOGGER.info('Archiving pruned model input data to %s', model_input_path)
-        pruned_model_input_data.to_csv(model_input_path, sep=',', header=True, index=True)
-
     @classmethod
-    def _filter_out_extra_variables(cls, data):
-        required_input_data_variables = [
-            'addr_age_yrs',
-            'curr_ent_all_addr_count',
-            'curr_ent_id_addr_count',
-            'curr_usg_all_addr_count',
-            'doctor_age_yrs',
-            'ent_comm_comm_type',
-            'ent_comm_src_cat_code',
-            'hist_ent_all_addr_count',
-            'hist_ent_id_addr_count',
-            'lic_state_match',
-            'pcp',
-            'ppd_address_type',
-            'ppd_division',
-            'ppd_gender',
-            'ppd_group',
-            'ppd_md_do_code',
-            'ppd_micro_metro_ind',
-            'ppd_msa_population_size',
-            'ppd_pe_cd',
-            'ppd_polo_state',
-            'ppd_prim_spec_cd',
-            'ppd_region',
-            'ppd_top_cd',
-            'yop_yrs'
-        ]
-
-        return data.loc[:, required_input_data_variables]
+    def _assert_has_columns(cls, column_names, data):
+        missing_columns = [c for c in column_names if c not in data.columns.values]
+        if missing_columns:
+            raise InvalidDataException(f'The data is missing the following columns: {missing_columns}')
 
 
 

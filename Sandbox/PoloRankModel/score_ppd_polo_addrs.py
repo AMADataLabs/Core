@@ -5,7 +5,7 @@ from   pathlib import Path
 import re
 
 import settings  # pylint: disable=unused-import
-from   datalabs.analysis.polo.fitness import POLOFitnessModel, ModelInputData, ModelParameters, EntityData
+import datalabs.analysis.polo.fitness as fitness
 import datalabs.analysis.polo.plot as plot
 import datalabs.curate.polo.ppd as data
 
@@ -23,7 +23,7 @@ class POLOFitnessScoringApp():
 
         input_data = data.InputDataLoader(expected_df_lengths).load(model_input_files)
 
-        scored_data = POLOFitnessModel(archive_dir).apply(input_data)
+        scored_data = fitness.POLOFitnessModel(archive_dir).apply(input_data)
 
         self._save_scored_data(scored_data, scored_data_file)
 
@@ -31,7 +31,7 @@ class POLOFitnessScoringApp():
 
     @classmethod
     def _get_expected_df_lengths(cls):
-        return ModelInputData(
+        return fitness.ModelInputData(
             model=None,
             ppd=1.3e6,
             entity=EntityData(
@@ -49,7 +49,7 @@ class POLOFitnessScoringApp():
         ppd_file = os.environ.get('PPD_FILE')
         ppd_date = cls._extract_ppd_date_from_filename(ppd_file)
 
-        entity_files = EntityData(
+        entity_files = fitness.EntityData(
             entity_comm_at=os.environ.get('ENTITY_COMM_AT_FILE'),
             entity_comm_usg=os.environ.get('ENTITY_COMM_USG_FILE'),
             post_addr_at=os.environ.get('POST_ADDR_AT_FILE'),
@@ -57,12 +57,16 @@ class POLOFitnessScoringApp():
             entity_key_et=os.environ.get('ENTITY_KEY_ET_FILE')
         )
 
-        model_parameters = ModelParameters(
+        model_parameters = fitness.ModelParameters(
             meta=os.environ.get('MODEL_FILE'),
-            variables=os.environ.get('MODEL_VAR_FILE'),
+            variables=fitness.ModelVariables(
+                input=set(os.environ.get('MODEL_INPUT_VARIABLES').split(',')),
+                feature=set(os.environ.get('MODEL_FEATURE_VARIABLES').split(',')),
+                output=set(os.environ.get('MODEL_OUTPUT_VARIABLES').split(',')),
+            ),
         )
 
-        return ModelInputData(
+        return fitness.ModelInputData(
             model=model_parameters,
             ppd=ppd_file,
             entity=entity_files,

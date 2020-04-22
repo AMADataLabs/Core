@@ -29,10 +29,7 @@ class InputDataLoader():
         LOGGER.info('Reading Pickle file %s', model_files.meta)
         meta_parameters = pickle.load(open(model_files.meta, 'rb'))
 
-        LOGGER.info('Reading Pickle file %s', model_files.variables)
-        variables = pickle.load(open(model_files.variables, 'rb'))
-
-        return ModelParameters(meta=meta_parameters, variables=variables)
+        return ModelParameters(meta=meta_parameters, variables=model_files.variables)
 
     def _get_ppd_data(self, ppd_file: str) -> pd.DataFrame:
         LOGGER.info('--- Loading PPD Data ---')
