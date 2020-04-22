@@ -29,6 +29,7 @@ ModelInputData = namedtuple('ModelInputData', 'model ppd entity date')
 EntityData = namedtuple('EntityData', 'entity_comm_at entity_comm_usg post_addr_at license_lt entity_key_et')
 ModelParameters = namedtuple('ModelParameters', 'meta variables')
 ModelVariables = namedtuple('ModelVariables', 'input feature output')
+ModelPredictions = namedtuple('ModelPredictions', 'class probability')
 
 
 class POLOFitnessModel():
@@ -77,20 +78,11 @@ class POLOFitnessModel():
 
         pruned_model_input_data = self._prune_and_patch_model_input_data(model_input_data, input_data.model.variables)
 
-        # get model class probabilites and predictions
-        LOGGER.info('-- Applying POLO model --')
-        preds, probs = get_class_predictions(input_data.model.meta, feature_data, 0.5, False)
+        predictions = self._predict(input_data.model.meta, pruned_model_input_data)
 
-        scored_data = output_feature_data.loc[:, input_data.model.variables.input]
-        scored_data[input_data.model.variables.output] = merged_input_data.loc[:, input_data.model.variables.output]
-        scored_data['pred_class'] = preds
-        scored_data['pred_probability'] = probs
+        scored_data = self._generate_scored_data(merged_input_data, input_data.model.variables, predictions)
 
-        LOGGER.debug('Scored data length: %s', len(scored_data))
-
-        scored_data = scored_data.datalabs.rename_in_upper_case()
-
-        return scored_data, feature_data
+        return scored_data, pruned_model_input_data
 
     def _archive_pruned_model_input_data(self, pruned_model_input_data):
         model_input_filename = '{}_PPD_{}_Polo_Addr_Rank_Input_Data.csv'.format(
@@ -110,15 +102,13 @@ class POLOFitnessModel():
             input_data.entity.post_addr_at, input_data.entity.license_lt, input_data.entity.entity_key_et)
         LOGGER.debug('Model input data length: %s', len(merged_input_data))
 
-        assert 'ent_comm_begin_dt' in merged_input_data.columns.values
-
         self._archive_merged_input_data(merged_input_data)
 
 
         return convert_data_types(merged_input_data)
 
     @classmethod
-    def _generate_features(cls, merged_input_data, variables)
+    def _generate_features(cls, merged_input_data, variables):
         initial_feature_data = create_new_addr_vars(merged_input_data)
 
         # Get data with just model variables
@@ -139,10 +129,28 @@ class POLOFitnessModel():
 
         return model_feature_data
 
+    @classmethod
     def _prune_and_patch_model_input_data(cls, model_input_data, variables):
         pruned_model_input_data = model_input_data.loc[:, variables.feature]
 
-        return fill_nan_model_vars(pruned_model_input_data)
+        return cls._fill_nan(pruned_model_input_data)
+
+    @classmethod
+    def _predict(cls, metaparameters, model_input_data):
+        LOGGER.info('-- Applying POLO model --')
+        predictions = get_class_predictions(metaparameters, model_input_data, 0.5, False)
+
+        return ModelPredictions(predictions[0], predictions[1])
+
+    @classmethod
+    def _generate_scored_data(cls, merged_input_data, variables, predictions):
+        scored_data = merged_input_data.loc[:, variables.input.union(variables.output)]
+        scored_data['pred_class'] = predictions[0]
+        scored_data['pred_probability'] = predictions[1]
+
+        LOGGER.debug('Scored data length: %s', len(scored_data))
+
+        return scored_data.datalabs.rename_in_upper_case()
 
     def _archive_merged_input_data(self, merged_input_data):
         ppd_entity_filename = '{}_PPD_{}_Polo_Addr_Rank_PPD_Entity_Data.csv'.format(
@@ -159,15 +167,12 @@ class POLOFitnessModel():
         if missing_columns:
             raise InvalidDataException(f'The data is missing the following columns: {missing_columns}')
 
+    @classmethod
+    def _fill_nan(cls, data):
+        for name in data.columns.values:
+            if all(data[name].isna()):
+                data[name] = 0
 
-
-def fill_nan_model_vars(data_df):
-    data_cols = data_df.columns.values
-    for name in data_cols:
-
-        if all(data_df[name].isna()):
-            data_df[name] = 0
-
-    return data_df
+        return data
 
 
