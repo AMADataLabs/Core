@@ -7,7 +7,7 @@ import os
 import pandas as pd
 
 import settings
-from   datalabs.analysis.polo.rank.data.ppd import EntityTableCleaner
+from   datalabs.curate.polo.entity import EntityTableCleaner
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ def main():
             output='ENTITY_COMM_USG_FILE',
             kwargs=dict(
                 row_filters={'comm_cat': 'A '},
-                column_filters={name:'usg_'+name if name.startswith('usg_') else name for name in [
+                column_filters={name:name if name.startswith('usg_') else 'usg_'+name for name in [
                     'entity_id', 'comm_type', 'comm_usage', 'usg_begin_dt', 'comm_id', 'comm_type', 'end_dt', 'src_cat_code'
                 ]},
                 datestamp_columns=['usg_begin_dt', 'end_dt']

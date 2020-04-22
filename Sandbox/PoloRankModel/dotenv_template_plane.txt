@@ -28,11 +28,11 @@ PROJECT_NAME='PoloRankModel'
 PPD_FILE='/home/plane/TestData/PoloRankModel/PPD/ppd_data_20200222.csv'
 
 # Masterfile Raw Data
-ENTITY_COMM_AT_FILE_RAW='/mnt/u/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/entity_comm_at.csv'
-ENTITY_COMM_USG_FILE_RAW='/mnt/u/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/entity_comm_usg_at.csv'
-POST_ADDR_AT_FILE_RAW='/mnt/u/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/post_addr_at.csv'
-LICENSE_LT_FILE_RAW='/mnt/u/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/license_lt.csv'
-ENTITY_KEY_ET_FILE_RAW='/mnt/u/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/entity_key_et.csv'
+ENTITY_COMM_AT_FILE_RAW='/home/plane/entity_data/2020-02-25/entity_comm_at.csv'
+ENTITY_COMM_USG_FILE_RAW='/home/plane/entity_data/2020-02-25/entity_comm_usg_at.csv'
+POST_ADDR_AT_FILE_RAW='/home/plane/entity_data/2020-02-25/post_addr_at.csv'
+LICENSE_LT_FILE_RAW='/home/plane/entity_data/2020-02-25/license_lt.csv'
+ENTITY_KEY_ET_FILE_RAW='/home/plane/entity_data/2020-02-25/entity_key_et.csv'
 
 # Masterfile Clean Input Data
 ENTITY_COMM_AT_FILE='/home/plane/TestData/PoloRankModel/entity_data/2020-02-25/entity_comm_at.csv'

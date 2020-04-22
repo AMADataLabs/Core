@@ -32,5 +32,12 @@ lint-source:
 lint-test:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Test/Python/*
 
+coverage:
+	${RUN} coverage run -m pytest Test/Python/
+	coverage report
+
+coverage-report:
+	coverage report
+
 pythonpath:
 	${RUN} printenv PYTHONPATH
