@@ -32,11 +32,11 @@ LICENSE_LT_FILE_RAW='U:/Source Files/Data Analytics/Data-Science/Data/entity_dat
 ENTITY_KEY_ET_FILE_RAW='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/entity_key_et.csv'
 
 # Masterfile Clean Input Data
-ENTITY_COMM_AT_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_entity_comm_at.csv'
-ENTITY_COMM_USG_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_entity_comm_usg_at.csv'
-POST_ADDR_AT_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_post_addr_at.csv'
-LICENSE_LT_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_license_lt.csv'
-ENTITY_KEY_ET_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_entity_key_et.csv'
+ENTITY_COMM_AT_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_entity_comm_at.feather'
+ENTITY_COMM_USG_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_entity_comm_usg_at.feather'
+POST_ADDR_AT_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_post_addr_at.feather'
+LICENSE_LT_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_license_lt.feather'
+ENTITY_KEY_ET_FILE='U:/Source Files/Data Analytics/Data-Science/Data/entity_data/2020-02-25/str_entity_key_et.feather'
 
 # Model Output Data
 MODEL_ARCHIVE_DIR='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model_Archived/'

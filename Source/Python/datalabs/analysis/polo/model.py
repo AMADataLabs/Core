@@ -88,39 +88,20 @@ class POLOFitnessModel():
     def apply(self, input_data: ModelInputData) -> pd.DataFrame:
         '''Apply the POLO address fitness model to AIMS data.'''
         self._ppd_datestamp = input_data.date
-
-        scored_data, pruned_model_input_data = self._score(input_data)
-
-        self._archive_pruned_model_input_data(pruned_model_input_data)
-
-        return scored_data
-
-    def _score(self, input_data):
         self._start_time = datetime.datetime.now()
 
         merged_input_data = self._merge_ppd_and_aims_data(input_data)
 
-        model_input_data = self._generate_features(merged_input_data, input_data.variables)
+        model_input_data = _curate_input_data_for_model(merged_input_data)
 
-        pruned_model_input_data = self._prune_and_patch_model_input_data(model_input_data, input_data.variables)
+        self._archive_model_input_data(model_input_data)
 
-        predictions = self._predict(input_data.model.meta, pruned_model_input_data)
+        scored_data =  self._score(input_data, model_input_data, merged_input_data)
 
-        scored_data = self._generate_scored_data(merged_input_data, input_data.variables, predictions)
-
-        return scored_data, pruned_model_input_data
-
-    def _archive_pruned_model_input_data(self, pruned_model_input_data):
-        model_input_filename = '{}_PPD_{}_Polo_Addr_Rank_Input_Data.csv'.format(
-            self.start_datestamp, self.ppd_datestamp
-        )
-        model_input_path = Path(self._archive_dir, model_input_filename)
-
-        LOGGER.info('Archiving pruned model input data to %s', model_input_path)
-        pruned_model_input_data.to_csv(model_input_path, sep=',', header=True, index=True)
+        return scored_data
 
     def _merge_ppd_and_aims_data(self, input_data):
-        LOGGER.info('-- Creating Scoring Model Input Data --')
+        LOGGER.info('-- Merging PPD and AIMS Data --')
 
         merged_input_data = create_ppd_scoring_data(
             input_data.ppd, self.ppd_date,
@@ -130,8 +111,46 @@ class POLOFitnessModel():
 
         self._archive_merged_input_data(merged_input_data)
 
-
         return convert_data_types(merged_input_data)
+
+    def _curate_input_data_for_model(self, merged_input_data):
+        LOGGER.info('-- Creating Scoring Model Input Data --')
+
+        model_input_data = self._generate_features(merged_input_data, input_data.variables)
+
+        pruned_model_input_data = self._prune_and_patch_model_input_data(model_input_data, input_data.variables)
+
+        return pruned_model_input_data
+
+    def _archive_model_input_data(self, model_input_data):
+        LOGGER.info('-- Archiving Model Input Data --')
+
+        model_input_filename = '{}_PPD_{}_Polo_Addr_Rank_Input_Data.csv'.format(
+            self.start_datestamp, self.ppd_datestamp
+        )
+        model_input_path = Path(self._archive_dir, model_input_filename)
+
+        LOGGER.info('Archiving pruned model input data to %s', model_input_path)
+        model_input_data.to_csv(model_input_path, sep=',', header=True, index=True)
+
+    @classmethod
+    def _score(cls, input_data, model_input_data, merged_input_data):
+        LOGGER.info('-- Predicting Fitness of POLO Addresses --')
+
+        predictions = self._predict(input_data.model, model_input_data)
+
+        scored_data = self._generate_scored_data(merged_input_data, input_data.variables, predictions)
+
+        return scored_data
+
+    def _archive_merged_input_data(self, merged_input_data):
+        ppd_entity_filename = '{}_PPD_{}_Polo_Addr_Rank_PPD_Entity_Data.csv'.format(
+            self.start_datestamp, self.ppd_datestamp
+        )
+        ppd_entity_path = Path(self._archive_dir, ppd_entity_filename)
+
+        LOGGER.info('Archiving scoring data to %s', ppd_entity_path)
+        merged_input_data.to_csv(ppd_entity_path, sep=',', header=True, index=True)
 
     @classmethod
     def _generate_features(cls, merged_input_data, variables):
@@ -177,15 +196,6 @@ class POLOFitnessModel():
         LOGGER.debug('Scored data length: %s', len(scored_data))
 
         return scored_data.datalabs.rename_in_upper_case()
-
-    def _archive_merged_input_data(self, merged_input_data):
-        ppd_entity_filename = '{}_PPD_{}_Polo_Addr_Rank_PPD_Entity_Data.csv'.format(
-            self.start_datestamp, self.ppd_datestamp
-        )
-        ppd_entity_path = Path(self._archive_dir, ppd_entity_filename)
-
-        LOGGER.info('Archiving scoring data to %s', ppd_entity_path)
-        merged_input_data.to_csv(ppd_entity_path, sep=',', header=True, index=True)
 
     @classmethod
     def _assert_has_columns(cls, column_names, data):
