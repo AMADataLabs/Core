@@ -4,10 +4,12 @@ Preferred office location (POLO) address fitness model class.
 TODO: remove code elsewhere that uses the function score_polo_addr_ppd_data.score_polo_wslive_data()
 """
 from   collections import namedtuple
+from   dataclasses import dataclass
 import datetime
 import logging
 import os
 from   pathlib import Path
+from   typing import Iterable, Set
 
 import pandas as pd
 
@@ -24,11 +26,36 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-ModelInputData = namedtuple('ModelInputData', 'model ppd entity date')
-EntityData = namedtuple('EntityData', 'entity_comm_at entity_comm_usg post_addr_at license_lt entity_key_et')
-ModelParameters = namedtuple('ModelParameters', 'meta variables')
-ModelVariables = namedtuple('ModelVariables', 'input feature output')
-ModelPredictions = namedtuple('ModelPredictions', 'pclass probability')
+ModelVariables = namedtuple('ModelVariables', 'input output')
+@dataclass
+class ModelVariables:
+    input: Set
+    feature: Iterable
+    output: Set
+
+
+@dataclass
+class EntityData:
+    entity_comm_at: 'str or DataFrame'
+    entity_comm_usg: 'str or DataFrame'
+    post_addr_at: 'str or DataFrame'
+    license_lt: 'str or DataFrame'
+    entity_key_et: 'str or DataFrame'
+
+
+@dataclass
+class ModelInputData:
+    model: 'str or XGBClassifier'
+    variables: ModelVariables
+    ppd: 'str or DataFrame'
+    entity: EntityData
+    date: datetime.datetime
+
+
+@dataclass
+class ModelPredictions:
+    pclass: Iterable
+    probability: Iterable
 
 
 class POLOFitnessModel():
@@ -73,13 +100,13 @@ class POLOFitnessModel():
 
         merged_input_data = self._merge_ppd_and_aims_data(input_data)
 
-        model_input_data = self._generate_features(merged_input_data, input_data.model.variables)
+        model_input_data = self._generate_features(merged_input_data, input_data.variables)
 
-        pruned_model_input_data = self._prune_and_patch_model_input_data(model_input_data, input_data.model.variables)
+        pruned_model_input_data = self._prune_and_patch_model_input_data(model_input_data, input_data.variables)
 
         predictions = self._predict(input_data.model.meta, pruned_model_input_data)
 
-        scored_data = self._generate_scored_data(merged_input_data, input_data.model.variables, predictions)
+        scored_data = self._generate_scored_data(merged_input_data, input_data.variables, predictions)
 
         return scored_data, pruned_model_input_data
 
