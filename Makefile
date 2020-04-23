@@ -15,7 +15,7 @@ clean-master:
 	cd ${CWD}/Environment/Master; rm -rf ${FILES_MASTER}
 
 test: setup_test_files
-	${RUN} python -m pytest Test/Python/
+	${RUN} python -m pytest Test/Python/ -W ignore::DeprecationWarning
 
 setup_test_files: ${TEMPLATE_FILES}
 	cp ${TEMPLATE_FILES} ${CWD}/Test/Python/test/datalabs/environment/

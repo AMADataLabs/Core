@@ -13,7 +13,6 @@ from   typing import Iterable, Set
 
 import pandas as pd
 
-import settings
 from   class_model_creation import get_class_predictions
 from   create_addr_model_input_data import create_ppd_scoring_data
 from   process_model_data import convert_data_types, create_new_addr_vars, clean_model_data, convert_int_to_cat
@@ -23,7 +22,7 @@ import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 ModelVariables = namedtuple('ModelVariables', 'input output')
@@ -63,7 +62,7 @@ class POLOFitnessModel():
 
     def __init__(self, archive_dir):
         self._archive_dir = archive_dir
-        self._start_time = datetime.datetime.now()
+        self._start_time = None
         self._ppd_datestamp = None
 
         if not os.path.exists(self._archive_dir):
@@ -90,35 +89,43 @@ class POLOFitnessModel():
         self._ppd_datestamp = input_data.date
         self._start_time = datetime.datetime.now()
 
-        merged_input_data = self._merge_ppd_and_aims_data(input_data)
+        merged_input_data = self._merge_ppd_and_aims_data(input_data.ppd, input_data.entity)
 
-        model_input_data = _curate_input_data_for_model(merged_input_data)
+        model_input_data = self._curate_input_data_for_model(merged_input_data, input_data.variables)
 
         self._archive_model_input_data(model_input_data)
 
-        scored_data =  self._score(input_data, model_input_data, merged_input_data)
+        scored_data =  self._score(input_data.model, input_data.variables, model_input_data, merged_input_data)
 
         return scored_data
 
-    def _merge_ppd_and_aims_data(self, input_data):
+    def _merge_ppd_and_aims_data(self, ppd_data, entity_data):
         LOGGER.info('-- Merging PPD and AIMS Data --')
 
+        start_time = datetime.datetime.now()
         merged_input_data = create_ppd_scoring_data(
-            input_data.ppd, self.ppd_date,
-            input_data.entity.entity_comm_at, input_data.entity.entity_comm_usg,
-            input_data.entity.post_addr_at, input_data.entity.license_lt, input_data.entity.entity_key_et)
+            ppd_data, self.ppd_date,
+            entity_data.entity_comm_at, entity_data.entity_comm_usg,
+            entity_data.post_addr_at, entity_data.license_lt, entity_data.entity_key_et)
+        LOGGER.debug('Merge duration: %d s', (datetime.datetime.now()-start_time).seconds)
         LOGGER.debug('Model input data length: %s', len(merged_input_data))
 
+        start_time = datetime.datetime.now()
         self._archive_merged_input_data(merged_input_data)
+        LOGGER.debug('Archive duration: %d s', (datetime.datetime.now()-start_time).seconds)
 
-        return convert_data_types(merged_input_data)
+        start_time = datetime.datetime.now()
+        converted_input_data = convert_data_types(merged_input_data)
+        LOGGER.debug('Conversion duration: %d s', (datetime.datetime.now()-start_time).seconds)
 
-    def _curate_input_data_for_model(self, merged_input_data):
+        return converted_input_data
+
+    def _curate_input_data_for_model(self, merged_input_data, variables):
         LOGGER.info('-- Creating Scoring Model Input Data --')
 
-        model_input_data = self._generate_features(merged_input_data, input_data.variables)
+        model_input_data = self._generate_features(merged_input_data, variables)
 
-        pruned_model_input_data = self._prune_and_patch_model_input_data(model_input_data, input_data.variables)
+        pruned_model_input_data = self._prune_and_patch_model_input_data(model_input_data, variables)
 
         return pruned_model_input_data
 
@@ -134,12 +141,12 @@ class POLOFitnessModel():
         model_input_data.to_csv(model_input_path, sep=',', header=True, index=True)
 
     @classmethod
-    def _score(cls, input_data, model_input_data, merged_input_data):
+    def _score(cls, model, variables, model_input_data, merged_input_data):
         LOGGER.info('-- Predicting Fitness of POLO Addresses --')
 
-        predictions = self._predict(input_data.model, model_input_data)
+        predictions = cls._predict(model, model_input_data)
 
-        scored_data = self._generate_scored_data(merged_input_data, input_data.variables, predictions)
+        scored_data = cls._generate_scored_data(merged_input_data, variables, predictions)
 
         return scored_data
 
@@ -189,7 +196,7 @@ class POLOFitnessModel():
 
     @classmethod
     def _generate_scored_data(cls, merged_input_data, variables, predictions):
-        scored_data = merged_input_data.loc[:, variables.input.union(variables.output)]
+        scored_data = merged_input_data.loc[:, set(variables.input).union(variables.output)]
         scored_data['pred_class'] = predictions.pclass
         scored_data['pred_probability'] = predictions.probability
 
@@ -199,6 +206,8 @@ class POLOFitnessModel():
 
     @classmethod
     def _assert_has_columns(cls, column_names, data):
+        LOGGER.debug('Expected the following columns: %s', column_names)
+        LOGGER.debug('DataFrame columns: %s', data.columns.values)
         missing_columns = [c for c in column_names if c not in data.columns.values]
         if missing_columns:
             raise InvalidDataException(f'The data is missing the following columns: {missing_columns}')
