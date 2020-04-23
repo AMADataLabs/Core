@@ -119,6 +119,9 @@ def grab_data():
                     if len(remainder_list) > 2:
                         location = remainder_list[-2]
                         specialty = remainder.replace(location, '').replace(', ', ' ')
+                elif city != 'None':
+                    specialty = info_list[1]
+                    location = info_list[2]
             specialty = specialty.replace('  ', '')
             if len(specialty) > 1:
                 if specialty[-1] == ' ':

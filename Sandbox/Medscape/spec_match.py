@@ -18,7 +18,7 @@ def match_spec(ppd_df, specialty, spec_table):
     specialty = specialty.title()
     mf_spec = spec_table[spec_table.SPEC_CD == mf_spec_cd].iloc[0]['DESC'].title()
     specialty = specialty.replace('Primary Care', 'Family Medicine')
-    specialty = specialty.replace('OB-GYN', 'Obstetrics & Gynecology')
+    specialty = specialty.replace('Ob-Gyn', 'Obstetrics & Gynecology')
     specialty = specialty.replace('Ob/Gyn', 'Obstetrics & Gynecology')
     specialty = specialty.replace('trist', 'try').replace('gist', 'gy')
     specialty = specialty.replace('eon', 'ery').replace('cian', 's')
