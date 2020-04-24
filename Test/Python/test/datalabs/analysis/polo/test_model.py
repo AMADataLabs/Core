@@ -57,7 +57,7 @@ def test_archive_model_input_data_produces_data_file(model, data):
     assert len(os.listdir(model._archive_dir)) == 1
 
 
-def test_score(model, data, variables):
+def test_score_runs(model, data, variables):
     with mock.patch('datalabs.analysis.polo.model.get_class_predictions') as get_class_predictions:
         get_class_predictions.return_value = ([0], [0])
         model._score(None, variables, data, data)
@@ -92,7 +92,7 @@ def data():
 
 
 @pytest.fixture
-def variables(data):
+def variables():
     return polo.ModelVariables(
         input=[
             'ppd_medschool_grad_year',
@@ -122,12 +122,3 @@ def variables(data):
             'ppd_prim_spec_cd',
         ],
     )
-    return [
-        'ppd_medschool_grad_year',
-        'ppd_birth_year',
-        'ent_comm_begin_dt',
-        'ent_comm_end_dt',
-        'lic_match',
-        'ppd_top_cd_0',
-        'ppd_prim_spec_cd',
-    ]

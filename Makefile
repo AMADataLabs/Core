@@ -33,7 +33,8 @@ lint-test:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Test/Python/*
 
 coverage:
-	${RUN} coverage run -m pytest Test/Python/
+	${RUN} coverage run -m pytest Test/Python/ -W ignore::DeprecationWarning
+
 	coverage report
 
 coverage-report:

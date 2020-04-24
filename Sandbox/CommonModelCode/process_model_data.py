@@ -93,6 +93,7 @@ def clean_model_data(model_data, orig_data):
         if str(model_data[name].dtype) == 'object' or str(orig_data[name].dtype) == 'category':
             na_ndx = model_data[name].isna()
             model_data.drop(model_data[na_ndx].index, axis=0, inplace=True)
+            orig_data.drop(orig_data[na_ndx].index, axis=0, inplace=True)
         elif str(model_data[name].dtype) == 'int64' or str(orig_data[name].dtype) == 'float64':
             if not (len(model_data[name].unique()) < 3 and
                     ((0 in list(model_data[name].unique())) and (1 in list(model_data[name].unique())))):
@@ -101,8 +102,9 @@ def clean_model_data(model_data, orig_data):
             else:
                 na_ndx = model_data[name].isna()
                 model_data.drop(model_data[na_ndx].index, axis=0, inplace=True)
+                orig_data.drop(orig_data[na_ndx].index, axis=0, inplace=True)
 
-    return model_data
+    return model_data, orig_data
 
 
 def create_explore_plots(model_data, fig_save_path):

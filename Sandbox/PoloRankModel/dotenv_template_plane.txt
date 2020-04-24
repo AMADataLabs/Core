@@ -43,8 +43,8 @@ ENTITY_KEY_ET_FILE='/home/plane/TestData/PoloRankModel/entity_data/2020-02-25/en
 
 # Model Output Data
 MODEL_ARCHIVE_DIR='/home/plane/TestData/PoloRankModel/Archived/'
-MODEL_FILE='/mnt/u/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model.sav'
-MODEL_VAR_FILE='/mnt/u/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model_FeatureList.sav'
+MODEL_FILE='/home/plane/TestData/PoloRankModel/Address_POLO_Rank_Class_Model.sav'
+Address_POLO_Rank_Class_Model_FeatureList.sav'
 MODEL_PREDICTIONS_FILE='/home/plane/TestData/PoloRankModel/model_pred_df.csv'
 MODEL_RANKED_PREDICTIONS_FILE='/home/plane/TestData/PoloRankModel/Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'
 

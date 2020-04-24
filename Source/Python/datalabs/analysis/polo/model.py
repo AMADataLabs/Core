@@ -22,7 +22,7 @@ import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 ModelVariables = namedtuple('ModelVariables', 'input output')
@@ -91,11 +91,11 @@ class POLOFitnessModel():
 
         merged_input_data = self._merge_ppd_and_aims_data(input_data.ppd, input_data.entity)
 
-        model_input_data = self._curate_input_data_for_model(merged_input_data, input_data.variables)
+        model_input_data, cleaned_merged_data = self._curate_input_data_for_model(merged_input_data, input_data.variables)
 
         self._archive_model_input_data(model_input_data)
 
-        scored_data =  self._score(input_data.model, input_data.variables, model_input_data, merged_input_data)
+        scored_data =  self._score(input_data.model, input_data.variables, model_input_data, cleaned_merged_data)
 
         return scored_data
 
@@ -123,11 +123,11 @@ class POLOFitnessModel():
     def _curate_input_data_for_model(self, merged_input_data, variables):
         LOGGER.info('-- Creating Scoring Model Input Data --')
 
-        model_input_data = self._generate_features(merged_input_data, variables)
+        model_input_data, cleaned_merged_data = self._generate_features(merged_input_data, variables)
 
         pruned_model_input_data = self._prune_and_patch_model_input_data(model_input_data, variables)
 
-        return pruned_model_input_data
+        return pruned_model_input_data, cleaned_merged_data
 
     def _archive_model_input_data(self, model_input_data):
         LOGGER.info('-- Archiving Model Input Data --')
@@ -169,7 +169,7 @@ class POLOFitnessModel():
         cls._assert_has_columns(variables.input, model_data)
 
         # Deal with any NaN or invalid entries
-        cleaned_model_data = clean_model_data(model_data, model_data)
+        cleaned_model_data, cleaned_merged_data = clean_model_data(model_data, merged_input_data)
 
         # Convert int variables to integer from float
         converted_model_data = convert_int_to_cat(cleaned_model_data)
@@ -179,7 +179,7 @@ class POLOFitnessModel():
 
         cls._assert_has_columns(variables.feature, model_feature_data)
 
-        return model_feature_data
+        return model_feature_data, cleaned_merged_data
 
     @classmethod
     def _prune_and_patch_model_input_data(cls, model_input_data, variables):
@@ -192,15 +192,13 @@ class POLOFitnessModel():
         LOGGER.info('-- Applying POLO model --')
         predictions = get_class_predictions(metaparameters, model_input_data, 0.5, False)
 
-        return ModelPredictions(predictions[0], predictions[1])
+        return ModelPredictions(pclass=predictions[0], probability=predictions[1])
 
     @classmethod
     def _generate_scored_data(cls, merged_input_data, variables, predictions):
-        scored_data = merged_input_data.loc[:, set(variables.input).union(variables.output)]
-        scored_data['pred_class'] = predictions.pclass
-        scored_data['pred_probability'] = predictions.probability
+        scored_data = merged_input_data.loc[:, variables.output]
 
-        LOGGER.debug('Scored data length: %s', len(scored_data))
+        scored_data = cls._add_fitness_scores(scored_data, predictions)
 
         return scored_data.datalabs.rename_in_upper_case()
 
@@ -219,5 +217,12 @@ class POLOFitnessModel():
                 data[name] = 0
 
         return data
+
+    @classmethod
+    def _add_fitness_scores(cls, scored_data, predictions):
+        scored_data['pred_class'] = predictions.pclass
+        scored_data['pred_probability'] = predictions.probability
+
+        return scored_data
 
 
