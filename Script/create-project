@@ -73,7 +73,7 @@ create_project_directories() {
 
 generate_configuration_files() {
     if [[ "$SANDBOX" == true ]]; then
-        echo "--- Generating Sandbox configuration files for project ${PROJECT_NAME} ---"
+        echo "--- Generating build files for project ${PROJECT_NAME} ---"
         generate_build_files Sandbox
     else
         echo "--- Generating configuration files for project ${PROJECT_NAME} ---"
