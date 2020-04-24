@@ -1,36 +1,13 @@
-from enum import Enum
+import enum
 import logging
-import os
-import tempfile
-
-import boto3
 
 import datalabs.curate.cpt as cpt
+from   datalabs.etl.common.extract import Extractor
+from   datalabs.etl.common.load import Loader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-
-
-FileDescriptor = namedtuple('description', 'name tab_separated')
-
-
-class FileType(Enum):
-    Code = 0
-    Modifier = 1
-    ClinicalDescriptor = 2
-
-
-def main(event, context):
-    ETL(configuration).run()
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "scrape successfull",
-            # "location": ip.text.replace("\n", "")
-        }),
-    }
 
 
 class ETL():
@@ -46,8 +23,7 @@ class ETL():
         self._load_csv_data(csv_dataset)
 
     def _extract_text_data(self):
-        for url in self._source_urls:
-            pass
+        pass
 
     @classmethod
     def _transform_text_to_csv_data(cls, text_dataset):
@@ -145,3 +121,11 @@ def get_cpt_files():
         imported_file.append(temp.name)
 
     return imported_file, file_descriptors
+
+
+@dataclass
+class Configuration:
+    extractor: Extractor
+    loader: Loader
+
+
