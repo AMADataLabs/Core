@@ -11,7 +11,7 @@ PROJECT_NAME='CPT'
 
 # ETL Settings
 ETL_CONVERTCPT_LAMBDA_FUNCTION=ConvertCPT
-ETL_CONVERTCPT_LAMBDA_ETL=datalabs.etl.cpt.convert.app.ETL
+ETL_CONVERTCPT_APP=datalabs.etl.cpt.convert.app.ETL
 ETL_CONVERTCPT_EXTRACTOR=datalabs.etl.extract.S3Extractor
 ETL_CONVERTCPT_EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-ingestion-sandbox
 ETL_CONVERTCPT_EXTRACTOR_BASE_PATH=/AMA/CPT
@@ -23,7 +23,7 @@ ETL_CONVERTCPT_LOADER_FILES=standard/SHORTU.csv,standard/MEDU.csv,standard/LONGU
 ETL_CONVERTCPT_LOADER_BASE_PATH=/AMA/CPT
 
 ETL_LOADCPT_LAMBDA_FUNCTION=LoadCPT
-ETL_LOADCPT_LAMBDA_ETL=datalabs.etl.cpt.load.app.ETL
+ETL_LOADCPT_APP=datalabs.etl.cpt.load.app.ETL
 ETL_LOADCPT_EXTRACTOR=S3Extractor
 ETL_LOADCPT_EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
 ETL_LOADCPT_EXTRACTOR_BASE_PATH=/AMA/CPT

@@ -1,4 +1,6 @@
 """ Functions involved in triggering the execution of CPT ETLs. """
+import os
+
 import datalabs.plugin as plugin
 
 
@@ -40,13 +42,13 @@ def _instantiate_etl(function_name):
 def _generate_app_configuration(function_name):
     etl_name = function_name.upper()
     variable_base_name = 'ETL_' + etl_name + '_'
-    expected_function_name = variable_base_name + 'LAMBDA_FUNCTION'
+    expected_function_name = os.environ[variable_base_name + 'LAMBDA_FUNCTION']
     configuration = None
 
     if function_name == expected_function_name:
         configuration = _generate_etl_configuration(variable_base_name)
     else:
-        raise ValueError('Lambda Function Name Mismatch. Expected "%s" but got "%s".'.format(
+        raise ValueError('Lambda Function Name Mismatch. Expected "{}" but got "{}".'.format(
                 expected_function_name, function_name
         ))
 
@@ -54,11 +56,11 @@ def _generate_app_configuration(function_name):
 
 
 def _generate_etl_configuration(variable_base_name):
-    configuration = [
-        name[len(variable_name):]:value
+    configuration = {
+        name[len(variable_base_name):]:value
         for name, value in os.environ.items()
-        if name.startwith(variable_base_name)
-    ]
+        if name.startswith(variable_base_name)
+    }
 
     configuration['EXTRACTOR'] = _instantiate_etl_plugin(configuration, 'EXTRACTOR')
     configuration['LOADER'] = _instantiate_etl_plugin(configuration, 'LOADER')
@@ -73,11 +75,17 @@ def _instantiate_etl_plugin(etl_configuration, variable_name):
 
     return Plugin(plugin_configuration)
 
+
 def _extract_and_remove_plugin_configuration(etl_configuration, variable_name):
     plugin_configuration = {}
+    drop_names = []
+
     for name, value in etl_configuration.items():
-        if name.startwith(variable_name) and name != variable_name:
-            plugin_configuration[name[len(variable_name):]] = value
-            etl_configuration.pop(name)
+        if name.startswith(variable_name) and name != variable_name:
+            plugin_configuration[name[len(variable_name)+1:]] = value
+            drop_names.append(name)
+
+    for name in drop_names:
+        etl_configuration.pop(name)
 
     return plugin_configuration
