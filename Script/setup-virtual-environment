@@ -10,6 +10,10 @@ PROJECT_NAME=
 main() {
     process_arguments $*
 
+    create_environment_directory
+
+    link_to_requirements_file
+
     setup_python_virtual_environment ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
 }
 
@@ -39,5 +43,13 @@ print_usage() {
     echo "Usage: setup-virtual-environment <project name> [-h|--help]"
 }
 
+
+create_environment_directory() {
+    mkdir ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+}
+
+link_to_requirements_file() {
+    ln -s ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}/requirements.txt ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}/requirements.txt
+}
 
 main $*

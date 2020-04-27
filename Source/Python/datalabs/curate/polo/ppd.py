@@ -5,7 +5,7 @@ import pickle
 import pandas as pd
 
 from   datalabs.analysis.exception import InvalidDataException
-from   datalabs.analysis.polo.fitness import ModelInputData, ModelParameters, EntityData
+from   datalabs.analysis.polo.model import ModelInputData, ModelVariables, EntityData
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -16,25 +16,35 @@ class InputDataLoader():
         self._expected_df_lengths = expected_df_lengths
 
     def load(self, input_files: ModelInputData) -> ModelInputData:
-        model_parameters = self._get_model_parameters(input_files.model)
-        ppd_data = self._get_ppd_data(input_files.ppd)
-        entity_data = self._get_entity_data(input_files.entity)
+        model = self._load_model(input_files.model)
+        variables = self._get_variables(input_files.variables, model)
+        ppd_data = self._load_ppd_data(input_files.ppd)
+        entity_data = self._load_entity_data(input_files.entity)
 
-        return ModelInputData(model=model_parameters, ppd=ppd_data, entity=entity_data, date=input_files.date)
+        return ModelInputData(
+            model=model,
+            variables=variables,
+            ppd=ppd_data,
+            entity=entity_data,
+            date=input_files.date
+        )
 
     @classmethod
-    def _get_model_parameters(cls, model_files: ModelParameters) -> ModelParameters:
+    def _load_model(cls, model_file: str) -> 'XGBClassifier':
         LOGGER.info('-- Loading Model Parameters --')
 
-        LOGGER.info('Reading Pickle file %s', model_files.meta)
-        mata_parameters = pickle.load(open(model_files.meta, 'rb'))
+        LOGGER.info('Reading Pickle file %s', model_file)
+        return pickle.load(open(model_file, 'rb'))
 
-        LOGGER.info('Reading Pickle file %s', model_files.variables)
-        variables = pickle.load(open(model_files.variables, 'rb'))
+    @classmethod
+    def _get_variables(cls, variables, model):
+        return ModelVariables(
+            input=variables.input,
+            feature=model.get_booster().feature_names,
+            output=variables.output,
+        )
 
-        return ModelParameters(meta=mata_parameters, variables=variables)
-
-    def _get_ppd_data(self, ppd_file: str) -> pd.DataFrame:
+    def _load_ppd_data(self, ppd_file: str) -> pd.DataFrame:
         LOGGER.info('--- Loading PPD Data ---')
 
         LOGGER.info('Reading CSV file %s', ppd_file)
@@ -45,7 +55,7 @@ class InputDataLoader():
 
         return ppd_data
 
-    def _get_entity_data(self, entity_files: EntityData) -> EntityData:
+    def _load_entity_data(self, entity_files: EntityData) -> EntityData:
         LOGGER.info('--- Loading Entity Data ---')
 
         return EntityData(
