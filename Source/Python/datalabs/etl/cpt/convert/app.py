@@ -1,14 +1,36 @@
-import boto3
-import os
+import enum
 import logging
-import tempfile
-from enum import Enum
-from datalabs.curate.cpt import clinical_descriptors, modifier, cpt
+
+import datalabs.curate.cpt as cpt
+from   datalabs.etl.common.extract import Extractor
+from   datalabs.etl.common.load import Loader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-LOGGER.info('Upload Successful')
+
+
+class ETL():
+    def __init__(self):
+        self._source_urls = None
+        self._destination_urls = None
+
+    def run(self):
+        text_dataset = self._extract_text_data()
+
+        csv_dataset = self._transform_text_to_csv_data(text_dataset)
+
+        self._load_csv_data(csv_dataset)
+
+    def _extract_text_data(self):
+        pass
+
+    @classmethod
+    def _transform_text_to_csv_data(cls, text_dataset):
+        pass
+
+    def _load_csv_data(csv_dataset):
+        pass
 
 
 def main(file_type):
@@ -17,17 +39,18 @@ def main(file_type):
     csv_file, output_file = df_to_csv(df, file_type, descriptors)
     push_csv(csv_file, output_file)
 
-
-class FileType(Enum):
-    Modifier = 'Modifiers'
-    ClinicalDescriptor = 'Clinical Descriptor'
-    CPT = 'cpt'
+    return {
+        "statusCode": 200,
+        "body": json.dumps({
+            "message": "done",
+        }),
+    }
 
 
 def get_s3_files(file_type):
     s3 = boto3.client('s3')
     if file_type == FileType.CPT:
-        file_list, file_descriptions = cpt.get_cpt_files()
+        file_list, file_descriptions = get_cpt_files()
         return file_list, file_descriptions
 
     elif file_type == FileType.ClinicalDescriptor:
@@ -43,16 +66,16 @@ def get_s3_files(file_type):
 
 def parse_s3_txt(file_list, file_descriptor, file_type):
     if file_type == FileType.ClinicalDescriptor:
-        cd_df = clinical_descriptors.parse_descriptors(file_list)
+        cd_df = cpt.clinical_descriptor.parse_descriptors(file_list)
         return cd_df
 
     elif file_type == FileType.Modifier:
-        file_object = modifier.ModifierFileParser()
+        file_object = cpt.modifier.ModifierFileParser()
         mod_df = file_object.parse(file_list)
         return mod_df
 
     elif file_type == FileType.CPT:
-        cpt_df = cpt.parse_cpt_file(file_list, file_descriptor)
+        cpt_df = cpt.description.parse_cpt_file(file_list, file_descriptor)
         return cpt_df
 
 
@@ -83,3 +106,26 @@ def push_csv(csv_files, output_file):
         s3.upload_file(csv + '.csv', os.environ['processed_bucket'], output_file[csv_files.index(csv)])
 
     LOGGER.info('Upload Successful')
+
+
+def get_cpt_files():
+    s3 = boto3.client('s3')
+    imported_file = []
+    file_list = ['MEDU.txt', 'SHORTU.txt', 'LONGUF.txt', 'LONGULF.txt', 'LONGUT.txt', 'LONGULT.txt']
+    file_descriptors = [FileDescriptor('medium_description', False), FileDescriptor('short_description', False),
+                        FileDescriptor('longuf_description', False), FileDescriptor('longulf_description', False),
+                        FileDescriptor('longut_description', True), FileDescriptor('longult_description', True)]
+    for file in file_list:
+        with tempfile.NamedTemporaryFile(mode='r+') as temp:
+            s3.download_file(os.environ['ingestion_bucket'], os.environ['s3_path'] + file, temp.name)
+        imported_file.append(temp.name)
+
+    return imported_file, file_descriptors
+
+
+@dataclass
+class Configuration:
+    extractor: Extractor
+    loader: Loader
+
+

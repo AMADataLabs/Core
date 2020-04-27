@@ -1,9 +1,11 @@
 # Repository Settings
 DATALABS_PYTHONPATH='{{ pythonpath }}'
 
+# Extraction Settings
+EXTRACTOR=
 # S3 Buckets Settings
-S3_INGESTION_BUCKET = '{{ingestion_bucket}}'
-S3_PROCESSED_BUCKET = '{{processed_bucket}}'
+S3_BUCKET_INGESTION = '{{ingestion_bucket}}'
+S3_BUCKET_PROCESSED = '{{processed_bucket}}'
 INPUT_FILE_PATH = '{{path}}'
 OUTPUT_FILE_PATH = '{{s3_output}}'
 CLINICAL_DESCRIPTOR_FILE_PATH = '{{c_path}}'
