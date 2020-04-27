@@ -144,14 +144,14 @@ generate_dependency_whitelist() {
 
 generate_requirements() {
     GENENV="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/genenv.py"
-    MASTER_ENV_PATH=${SCRIPT_BASE_PATH}/../Build/Master
-    PROJECT_ENV_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
+    MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
+    PROJECT_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
 
-    ARGUMENTS="--env pip --in ${MASTER_ENV_PATH}/requirements.txt --out ${PROJECT_ENV_PATH}/requirements.txt \
-        --template ${MASTER_ENV_PATH}/requirements_template.txt "
+    ARGUMENTS="--env pip --in ${MASTER_BUILD_PATH}/requirements.txt --out ${PROJECT_BUILD_PATH}/requirements.txt \
+        --template ${MASTER_BUILD_PATH}/requirements_template.txt "
 
     if [[ "$DEPENDENCY_LIST" != "" ]]; then
-        ARGUMENTS="${ARGUMENTS} --whitelist ${PROJECT_ENV_PATH}/whitelist.txt"
+        ARGUMENTS="${ARGUMENTS} --whitelist ${PROJECT_BUILD_PATH}/whitelist.txt"
     fi
 
     echo "Generating requirements.txt for project ${PROJECT_NAME}"
