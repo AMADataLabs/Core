@@ -77,7 +77,7 @@ def score_phone_data(ppd_scoring_df, model, model_vars, init_model_vars, info_va
     preds, probs = get_class_predictions(model, model_data_pruned, 0.5, False)
     
     model_pred_df = model_df[:]
-    model_pred_df[info_vars] = ppd_scoring_df.loc[:, info_vars]
+    model_pred_df[info_vars] = ppd_scoring_clean_df.loc[:, info_vars]
     model_pred_df['pred_class'] = preds
     model_pred_df['pred_probability'] = probs
 

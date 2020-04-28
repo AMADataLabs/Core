@@ -35,15 +35,19 @@ LICENSE_LT_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-2
 ENTITY_KEY_ET_FILE_RAW='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/entity_key_et.csv'
 
 # Masterfile Clean Input Data
-ENTITY_COMM_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_entity_comm_at.csv'
-ENTITY_COMM_USG_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_entity_comm_usg_at.csv'
-POST_ADDR_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_post_addr_at.csv'
-LICENSE_LT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_license_lt.csv'
-ENTITY_KEY_ET_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_entity_key_et.csv'
+ENTITY_COMM_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_entity_comm_at.feather'
+ENTITY_COMM_USG_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_entity_comm_usg_at.feather'
+POST_ADDR_AT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_post_addr_at.feather'
+LICENSE_LT_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_license_lt.feather'
+ENTITY_KEY_ET_FILE='C:/Users/glappe/Documents/udrive/Data/entity_data/2020-02-25/str_clean_entity_key_et.feather'
 
 # Model Output Data
 MODEL_ARCHIVE_DIR='C:/Users/glappe/Documents/udrive/Data/Polo_Rank_Model_Archived/'
 MODEL_FILE='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model.sav'
-MODEL_VAR_FILE='U:/Source Files/Data Analytics/Data-Science/Data/Polo_Rank_Model/Address_POLO_Rank_Class_Model_FeatureList.sav'
 MODEL_PREDICTIONS_FILE='C:/Users/glappe/Documents/udrive/Data/Polo_Rank_Model/Data/model_pred_df.csv'
 MODEL_RANKED_PREDICTIONS_FILE='C:/Users/glappe/Documents/udrive/Data/Polo_Rank_Model/Polo_Addr_Rank_Scored_PPD_DPC_Pop.csv'
+
+# Model Parameters
+MODEL_INPUT_VARIABLES=addr_age_yrs,curr_ent_all_addr_count,curr_ent_id_addr_count,curr_usg_all_addr_count,doctor_age_yrs,ent_comm_comm_type,ent_comm_src_cat_code,hist_ent_all_addr_count,hist_ent_id_addr_count,lic_state_match,pcp,ppd_address_type,ppd_division,ppd_gender,ppd_group,ppd_md_do_code,ppd_micro_metro_ind,ppd_msa_population_size,ppd_pe_cd,ppd_polo_state,ppd_prim_spec_cd,ppd_region,ppd_top_cd,yop_yrs
+
+MODEL_OUTPUT_VARIABLES=ppd_me,ppd_first_name,ppd_middle_name,ppd_last_name,ppd_suffix,ppd_polo_mailing_line_1,ppd_polo_mailing_line_2,ppd_polo_city,ppd_polo_state,ppd_polo_zip,ppd_telephone_number,ppd_prim_spec_cd,ppd_pe_cd,ppd_fax_number,post_addr_line1,post_addr_line2,post_city_cd,post_state_cd,post_zip,ent_comm_comm_type,ent_comm_begin_dt,ent_comm_end_dt,ent_comm_comm_id,ent_comm_entity_id
