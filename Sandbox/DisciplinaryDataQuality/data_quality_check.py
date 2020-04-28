@@ -126,8 +126,8 @@ def ValidateCompleteness(path) -> bool:
         for i in files:
             all_files.append(i)
     # a) check if there is .pdf files
+    count = 0
     for file in all_files:
-        count = 0
         if file[-4:] == '.pdf':
             count += 1
     if count == 0:
@@ -314,7 +314,7 @@ else:
                         if type == 'QA':
                             if not check_qa_file(fullpath):
                                 print(f'QA file {file} is not right')
-                                failcount_fielquality += 1
+                                failcount_filequality += 1
                         # check board orders file:
                         elif type == 'BO' or type == 'SL' or type == 'NL':
                             if not check_bo_pdf(fullpath):
@@ -346,7 +346,7 @@ else:
                     # if not check_qa_file(fullpath):  # define the function to check qa csv file
                     if not check_qa_file(fullpath):
                         print(f'QA file {file} is not right')
-                        failcount_fielquality += 1
+                        failcount_filequality += 1
                 # check board orders file:
                 elif type == 'BO':
                     if not check_bo_pdf(fullpath):  # define the function to check board orders
