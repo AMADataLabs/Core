@@ -1,2 +1,0 @@
-{% for package,version in package_versions %}{{ package }}={{ version }}
-{% endfor %}

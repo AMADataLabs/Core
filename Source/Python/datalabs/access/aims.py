@@ -4,7 +4,7 @@ import re
 
 import pandas
 
-import datalabs.access.database as db
+from   datalabs.access.odbc import ODBCDatabase
 import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 logging.basicConfig()
@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class AIMS(db.Database):
+class AIMS(ODBCDatabase):
     def get_me_entity_count(self):
         record_count = self.read("SELECT count(key_type_val) FROM entity_key_et WHERE key_type='ME'")
 

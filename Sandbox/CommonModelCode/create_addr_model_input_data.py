@@ -4,7 +4,7 @@
 import logging
 
 from rename_model_cols import rename_ppd_columns
-from get_entity_ppd_info import set_entity_dates, assign_lic_end_dates, create_general_key
+from get_entity_ppd_info import assign_lic_end_dates, create_general_key
 from get_entity_ppd_info import create_ent_me_data
 
 from   datalabs.access.ppd import PPDFile
@@ -167,8 +167,8 @@ def get_valid_ppd_ent_data(ent_ppd_df, date_var):
     LOGGER.debug('GET_VALID_PPD_ENT_DATA')
     assert len(ent_ppd_df) > 0
 
-    set_entity_dates['ent_comm_begin_dt'] = pd.to_datetime(set_entity_dates['ent_comm_begin_dt'])
-    set_entity_dates['ent_comm_end_dt'].fillna(datetime.datetime.now(), inplace=True)
+    ent_ppd_df['ent_comm_begin_dt'] = pd.to_datetime(ent_ppd_df['ent_comm_begin_dt'])
+    ent_ppd_df['ent_comm_end_dt'].fillna(datetime.datetime.now(), inplace=True)
 
     ent_date_df = ent_ppd_df[(ent_ppd_df['ent_comm_begin_dt'] <= ent_ppd_df[date_var]) &
                              (ent_ppd_df['ent_comm_end_dt'] >= ent_ppd_df[date_var])]

@@ -1,24 +1,21 @@
 """ Generic database object intended to be subclassed by specific databases. """
-
+from   abc import abstractmethod
 import os
 
 import pandas
-import pyodbc
 
-import datalabs.access.credentials as cred
+from   datalabs.access.credentials import Credentials
 from   datalabs.access.datastore import Datastore
 
 
 class Database(Datastore):
-    def __init__(self, credentials: cred.Credentials = None):
-        super().__init__()
+    def __init__(self, credentials: Credentials = None):
+        super().__init__(credentials)
         self._database_name = self._load_database_name(self._key)
 
+    @abstractmethod
     def connect(self):
-        self._connection = pyodbc.connect(
-            f'DSN={self._database_name}; UID={self._credentials.username}; PWD={self._credentials.password}'
-        )
-        self._connection.execute('SET ISOLATION TO DIRTY READ;')
+        pass
 
     def read(self, sql: str, **kwargs):
         return pandas.read_sql(sql, self._connection, **kwargs)
