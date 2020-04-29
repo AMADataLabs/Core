@@ -1,7 +1,7 @@
 """ Database object for ODS """
 
-import datalabs.access.database as db
+from   datalabs.access.odbc import ODBCDatabase
 
 
-class ODS(db.Database):
+class ODS(ODBCDatabase):
     pass
