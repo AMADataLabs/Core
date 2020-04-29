@@ -210,6 +210,12 @@ components:
         concept_id:
           type: string
           format: byte
+        clinician:
+          type: string
+          format: byte
+        consumer:
+          type: string
+          format: byte
   securitySchemes:
     cpt_auth:
       type: oauth2
