@@ -1,7 +1,7 @@
 """ Database object for HSG DataMart """
 
-import datalabs.access.database as db
+from   datalabs.access.odbc import ODBCDatabase
 
 
-class DataMart(db.Database):
+class DataMart(ODBCDatabase):
     pass
