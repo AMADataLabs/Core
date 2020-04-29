@@ -15,6 +15,8 @@ import re
 # path of the directory of results
 directory = '/Users/elaineyao/Desktop/QAtest/'
 
+udrive_disc_dir = 'U:\\Data Procurement & Disciplinary\\JIRA Historical Documents\\DISCP\\'
+
 # dictionary of each folder shouldhave what files:
 doc_check_dic = {'SL&BO': ['CA_MD_SummaryList',
                            'FL_MD_SummaryList',
@@ -126,8 +128,8 @@ def ValidateCompleteness(path) -> bool:
         for i in files:
             all_files.append(i)
     # a) check if there is .pdf files
+    count = 0
     for file in all_files:
-        count = 0
         if file[-4:] == '.pdf':
             count += 1
     if count == 0:
@@ -146,7 +148,7 @@ def ValidateCompleteness(path) -> bool:
             print(f'folder total number is not right: {len(folders) + len(nodatafolders)}')
 
 
-# 3. check if candownload to Udrive??
+# 3. check if can download to Udrive??
 def check_in_udrive(path, UdrivePath) -> bool:
     return os.listdir(path) == os.listdir(UdrivePath)
 
@@ -284,7 +286,7 @@ else:
 
     print(f'new folders uploaded: {path}')
 
-    # Step 0: check is new pocurement or rebaseline folder:
+    # Step 0: check is new procurement or rebaseline folder:
     if check_new_pocurement(path):
         print('This folder is new pocurement')
         # Step 1: Validate Completeness:
@@ -314,7 +316,7 @@ else:
                         if type == 'QA':
                             if not check_qa_file(fullpath):
                                 print(f'QA file {file} is not right')
-                                failcount_fielquality += 1
+                                failcount_filequality += 1
                         # check board orders file:
                         elif type == 'BO' or type == 'SL' or type == 'NL':
                             if not check_bo_pdf(fullpath):
@@ -346,7 +348,7 @@ else:
                     # if not check_qa_file(fullpath):  # define the function to check qa csv file
                     if not check_qa_file(fullpath):
                         print(f'QA file {file} is not right')
-                        failcount_fielquality += 1
+                        failcount_filequality += 1
                 # check board orders file:
                 elif type == 'BO':
                     if not check_bo_pdf(fullpath):  # define the function to check board orders
