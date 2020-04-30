@@ -65,17 +65,20 @@ create_project_directories() {
     else
         echo "--- Creating global project ${PROJECT_NAME} ---"
 
-        # create_directory Build ${PROJECT_NAME}
-
-        create_directory Environment ${PROJECT_NAME}
+        create_directory Build ${PROJECT_NAME}
+        create_directory Deploy ${PROJECT_NAME}
     fi
 }
 
 
 generate_configuration_files() {
     if [[ "$SANDBOX" == true ]]; then
-        generate_configuration_files
+        echo "--- Generating build files for project ${PROJECT_NAME} ---"
+        generate_build_files Sandbox
     else
+        echo "--- Generating configuration files for project ${PROJECT_NAME} ---"
+        generate_build_files Build
+
         generate_dependency_whitelist
 
         generate_requirements
@@ -99,7 +102,7 @@ print_usage() {
 
 
 print_master_dependencies() {
-    cat ${SCRIPT_BASE_PATH}/../Environment/Master/requirements.txt | sed 's/==.*//'
+    cat ${SCRIPT_BASE_PATH}/../Build/Master/requirements.txt | sed 's/==.*//'
 }
 
 
@@ -119,15 +122,17 @@ create_directory() {
 }
 
 
-generate_configuration_files() {
-    copy_file Environment Sandbox settings.py
+generate_build_files() {
+    DIRECTORY_NAME=$1
 
-    generate_dotenv_template
+    copy_file Build ${DIRECTORY_NAME} settings.py
+
+    generate_dotenv_template ${DIRECTORY_NAME}
 }
 
 
 generate_dependency_whitelist() {
-    PROJECT_ENV_PATH=${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+    PROJECT_ENV_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
     WHITELIST_PATH=${PROJECT_ENV_PATH}/whitelist.txt
 
     if [[ "$DEPENDENCY_LIST" != "" ]]; then
@@ -139,14 +144,14 @@ generate_dependency_whitelist() {
 
 generate_requirements() {
     GENENV="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/genenv.py"
-    MASTER_ENV_PATH=${SCRIPT_BASE_PATH}/../Environment/Master
-    PROJECT_ENV_PATH=${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+    MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
+    PROJECT_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
 
-    ARGUMENTS="--env pip --in ${MASTER_ENV_PATH}/requirements.txt --out ${PROJECT_ENV_PATH}/requirements.txt \
-        --template ${MASTER_ENV_PATH}/requirements_template.txt "
+    ARGUMENTS="--env pip --in ${MASTER_BUILD_PATH}/requirements.txt --out ${PROJECT_BUILD_PATH}/requirements.txt \
+        --template ${MASTER_BUILD_PATH}/requirements_template.txt "
 
     if [[ "$DEPENDENCY_LIST" != "" ]]; then
-        ARGUMENTS="${ARGUMENTS} --whitelist ${PROJECT_ENV_PATH}/whitelist.txt"
+        ARGUMENTS="${ARGUMENTS} --whitelist ${PROJECT_BUILD_PATH}/whitelist.txt"
     fi
 
     echo "Generating requirements.txt for project ${PROJECT_NAME}"
@@ -172,9 +177,10 @@ copy_file() {
 
 
 generate_dotenv_template() {
+    DIRECTORY_NAME=$1
     TEMPLATE_NAME=dotenv_template.txt
-    TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Environment/Master/${TEMPLATE_NAME}
-    RESULT_PATH=${SCRIPT_BASE_PATH}/../Sandbox/${PROJECT_NAME}/${TEMPLATE_NAME}
+    TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Build/Master/${TEMPLATE_NAME}
+    RESULT_PATH=${SCRIPT_BASE_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}/${TEMPLATE_NAME}
     RESOLVE_TEMPLATE="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/resolve_template.py"
 
 

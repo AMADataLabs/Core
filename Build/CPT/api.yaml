@@ -1,0 +1,236 @@
+openapi: 3.0.3
+info:
+  description: 'CPT API initial design '
+  version: "1.0.0-oas3"
+  title: Swagger CPI
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: datalabs@ama-assn.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Description
+    description: >-
+      CPT code description in short, medium, or long format. This corresponds to
+      entries in the cpt_description table.
+  - name: Descriptor
+    description: >-
+      CPT descriptor for either a clinician or consumer.  This corresponds to
+      entries in the cpt_descriptor table.
+    externalDocs:
+      url: 'http://swagger.io'
+paths:
+  /descriptions:
+    get:
+      tags:
+        - Description
+      summary: All CPT descriptions
+      description: Returns all CPT code descriptons in all lengths.
+      operationId: getCPTDescriptions
+      parameters:
+      - name: length
+        in: query
+        description: 'Filter by description length. Any of "short", "medium", or "long".'
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - name: keyword
+        in: query
+        description: Filter by keyword across any of the description lengths.
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Description'
+        '404':
+          description: No CPT descriptions found for the given parameters.
+      security:
+        - cpt_auth:
+            - 'read:cpt'
+  '/description/{code}':
+    get:
+      tags:
+        - Description
+      summary: CPT description by code
+      description: Returns all lengths of the description for a particular CPT code.
+      operationId: getCPTDescription
+      parameters:
+      - name: code
+        in: path
+        description: CPT description by code.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: string
+      - name: length
+        in: query
+        description: 'Filter by description length. Any of "short", "medium", or "long".'
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Description'
+        '404':
+          description: No description found for the given CPT code.
+      security:
+        - cpt_auth:
+            - 'read:cpt'
+  '/descriptor/{id}':
+    get:
+      tags:
+        - Descriptor
+      summary: CPT descriptor by ID
+      description: >-
+        Returns the CPT descriptor in by ID in both clinician and consumer
+        friendly forms.
+      operationId: findClinicalConsumerDescriptorsId
+      parameters:
+        - name: id
+          in: path
+          description: clinician descriptor ID
+          required: true
+          schema:
+            type: string
+        - name: audience
+          in: query
+          description: Filter by audience. Any of "clinician" or "consumer".
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Descriptor'
+        '400':
+          description: invalid parameters
+        '404':
+          description: CPT descriptor not found for ID
+      security:
+        - cpt_auth:
+            - 'read:descriptors'
+  /descriptors:
+    get:
+      tags:
+        - Descriptor
+      summary: All CPT descriptors.s
+      description: Returns all descriptors in their clinician and consumer friendly forms.
+      operationId: viewAllDescriptors
+      parameters:
+        - name: audience
+          in: query
+          description: Filter by audience. Any of "clinician" or "consumer".
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: keyword
+          in: query
+          description: Filter by keyword across any of the desriptor forms.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Descriptor'
+        '400':
+          description: invalid query parameter
+      security:
+        - cpt_auth:
+            - 'read:descriptors'
+components:
+  schemas:
+    Description:
+      type: object
+      required:
+        - code
+      properties:
+        cpt_code:
+          type: string
+          format: byte
+        short:
+          type: string
+          format: byte
+        medium:
+          type: string
+          format: byte
+        long:
+          type: string
+          format: byte
+    Descriptor:
+      type: object
+      required:
+        - id
+        - cpt_code
+        - concept_id
+      properties:
+        id:
+          type: integer
+          format: int64
+        cpt_code:
+          type: string
+          format: byte
+        concept_id:
+          type: string
+          format: byte
+        clinician:
+          type: string
+          format: byte
+        consumer:
+          type: string
+          format: byte
+  securitySchemes:
+    cpt_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'http://cptAPI.swagger.io/oauth/dialog'
+          scopes:
+            'read:cpt': read cpt table
+            'read:descriptors': read clinical descriptor table
+    api_key:
+        type: apiKey
+        name: api_key
+        in: header
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+servers:
+  - url: https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.0.0
