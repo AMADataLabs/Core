@@ -69,6 +69,25 @@ def get_state_dict():
         'Wyoming': 'WY'
     }
 
+def get_city_dict():
+    return {'Cincinnati':'OH',
+            'Chicago':'IL',
+            'Detroit':'MI',
+            'Cleveland':'OH',
+            'Philadelphia':'PA',
+            'Phoenix':'AZ',
+            'Boston':'MA',
+            'Sacramento':'CA',
+            'Dallas':'TX'}
+
+def is_city(word):
+    '''Get state from city'''
+    cities = get_city_dict()
+    for city in cities.keys():
+        if city in word:
+            return cities[city]
+    return False
+
 def get_state_list():
     '''List of state names and abbreviations'''
     return ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
@@ -84,7 +103,7 @@ def get_state_list():
             "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennsylvania",
             "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah",
             "Puerto Rico", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin",
-            "Wyoming"]
+            "Wyoming",'WVa']
 
 def get_worker_words():
     '''Worker words'''
@@ -127,7 +146,9 @@ def convert_state(state):
 def is_state(word):
     '''Check if word is a state, return state abbrevation if so'''
     states = get_state_list()
-    word = word.replace('.', '').replace('(', '').replace(')', '')
+    word = word.replace('.', '').replace('(', '').replace(')', '').replace(',','')
+    if word == 'Fla':
+        return('FL')
     for state in states:
         if state[0:3] == word[0:3]:
             return convert_state(state)
@@ -246,6 +267,8 @@ def extract_data(soup):
                     new = word.replace('based', '').replace('-', '')
                     if is_state(new):
                         state = is_state(new)
+                elif is_city(word) and state == 'Unspecified':
+                    state = is_city(word)
                 word_index += 1
             new_dict = {
                 'Date': date,
