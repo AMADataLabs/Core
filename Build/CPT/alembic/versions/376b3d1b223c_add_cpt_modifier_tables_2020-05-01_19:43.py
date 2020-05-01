@@ -41,7 +41,7 @@ def upgrade():
                type_=sa.Integer(),
                existing_nullable=False,
                schema='cpt',
-               postgresql_using='concept_id::integer')
+               postgresql_using='concept_id::integer')  # Custom postgresql_using parameter
     op.alter_column('descriptor', 'cpt_code',
                existing_type=sa.VARCHAR(length=10),
                type_=sa.String(length=5),
