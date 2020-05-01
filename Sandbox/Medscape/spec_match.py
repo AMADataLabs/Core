@@ -16,6 +16,7 @@ def match_spec(ppd_df, specialty, spec_table):
     '''Checks fuzzy matching on specialty'''
     mf_spec_cd = ppd_df.iloc[0]['PRIM_SPEC_CD']
     specialty = specialty.title()
+    specialty = specialty.replace('Doctor ','')
     mf_spec = spec_table[spec_table.SPEC_CD == mf_spec_cd].iloc[0]['DESC'].title()
     specialty = specialty.replace('Primary Care', 'Family Medicine')
     specialty = specialty.replace('Ob-Gyn', 'Obstetrics & Gynecology')

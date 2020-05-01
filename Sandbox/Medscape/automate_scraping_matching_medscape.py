@@ -139,6 +139,9 @@ def grab_data():
             if country == 'None':
                 country = city
                 city = 'None'
+            if specialty == 'Doctor':
+                specialty = location
+                location = 'None'
         except IndexError as index_error:
             if ',' in paragraph.text:
                 print('Human intervention needed for the following exception:')
@@ -225,22 +228,26 @@ def append_me(roster_df, spec_df):
             if word in row.SPECIALTY:
                 keep = False
         if keep:
+            new_df = PPD[(PPD.FIRST_NAME == row.FIRST_NAME) & (PPD.LAST_NAME == row.LAST_NAME)]
             try:
                 years = [2019.0 - int(row.AGE), 2020.0 - int(row.AGE)]
             except ValueError:
-                pass
-            new_df = PPD[(PPD.FIRST_NAME == row.FIRST_NAME) & (PPD.LAST_NAME == row.LAST_NAME)]
-            if len(new_df) == 0 and years:
+                years = []
+                if len(new_df)>1:
+                    new_df = new_df[new_df.POLO_CITY == row.CITY.upper()]
+            if len(new_df) == 0 and len(years)>0:
                 if '-' in row.LAST_NAME:
                     last = row.LAST_NAME.replace('-', ' ')
-                else:
+                elif ' ' in row.LAST_NAME:
                     last = row.LAST_NAME.replace(' ', '')
+                else:
+                    last = row.LAST_NAME.replace('J', 'G')
                 new_df = PPD[(PPD.LAST_NAME == last) & (PPD.BIRTH_YEAR.isin(years))]
                 if len(new_df) == 0:
                     pass
                 if len(new_df) > 1:
                     new_df = new_df[new_df.CITY == row.CITY.upper()]
-            elif len(new_df) > 1 and years:
+            elif len(new_df) > 1 and len(years)>0:
                 new_df = new_df[new_df.BIRTH_YEAR.isin(years)]
                 if len(new_df) > 1:
                     new_df = new_df[new_df.CITY == row.CITY.upper()]   
@@ -249,13 +256,11 @@ def append_me(roster_df, spec_df):
                     physician_me = new_df.iloc[0]['ME']
             elif len(new_df) > 1:
                 print(f'{row.NAME} potentially matched to multiple ME numbers.')
-
         mes.append(physician_me)
 
     data_split['ME'] = fix_me(mes)
     data_me = data_split[data_split.ME != 'None']
     return data_split, data_me
-
 
 print('Matching and appending ME numbers...')
 SPEC_DF = get_spec_table()
