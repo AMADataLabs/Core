@@ -20,13 +20,24 @@ def upgrade():
     # op.execute('CREATE SCHEMA cpt')
     op.create_table(
         'description',
+        sa.Column('cpt_code', sa.String(5), primary_key=True),
+        sa.Column('short', sa.String(28), nullable=False),
+        sa.Column('medium', sa.String(48), nullable=False),
+        sa.Column('long', sa.String(), nullable=False),
+        schema='cpt',
+    )
+    op.create_table(
+        'descriptor',
         sa.Column('id', sa.Integer, primary_key=True),
-        sa.Column('name', sa.String(50), nullable=False),
-        sa.Column('description', sa.Unicode(200)),
+        sa.Column('cpt_code', sa.String(5), sa.ForeignKey("cpt.description.cpt_code"), nullable=False),
+        sa.Column('concept_id', sa.String(5), nullable=False),
+        sa.Column('clinician', sa.String, nullable=False),
+        sa.Column('consumer', sa.String, nullable=False),
         schema='cpt',
     )
 
 
 def downgrade():
-    op.drop_table('description')
+    op.drop_table('descriptor', schema='cpt')
+    op.drop_table('description', schema='cpt')
     # op.execute('DROP SCHEMA cpt')
