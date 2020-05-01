@@ -1,0 +1,94 @@
+#!/bin/bash
+
+echo "This script is under construction and currently acts only as documentation."
+exit 0
+
+
+# Define a SQLAlchemy declaritive base and models in a Python module:
+# import sqlalchemy as sa
+# from sqlalchemy.ext.declarative import declarative_base
+#
+# naming_convention = {
+#   "ix": "ix_%(column_0_label)s",
+#   "uq": "uq_%(table_name)s_%(column_0_name)s",
+#   "ck": "ck_%(table_name)s_%(constraint_name)s",
+#   "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+#   "pk": "pk_%(table_name)s"
+# }
+#
+# metadata = MetaData(naming_convention=naming_convention)
+#
+# Base = declarative_base(metadata=mymetadata)
+
+
+# class Description(Base):
+#     __tablename__ = 'description'
+#     __table_args__ = {"schema": "cpt"}
+
+#     cpt_code = sa.Column(sa.String(10), primary_key=True)
+# . . .
+
+
+alembic init alembic
+
+
+# Modify alembic.ini as follows:
+#
+# file_template = %%(rev)s_%%(slug)s
+#  to
+# file_template = %%(rev)s_%%(slug)s_%%(year)d-%%(month).2d-%%(day).2d_%%(hour).2d:%%(minute).2d
+#
+#
+# timezone =
+#  to
+# timezone = UTC
+
+
+# Modify alembic/env.py as follows:
+#
+# Import delcaritive base. For example,
+from datalabs.etl.cpt.dbmodel import Base
+#
+# target_metadata = mymodel.Base.metadata
+#  to
+target_metadata = Base.metadata
+#
+#
+# Add the following after "config = context.config":
+config.set_main_option(
+    "sqlalchemy.url",
+    "postgresql+psycopg2://%s:%s@%s/%s".format(
+        os.getenv("CREDENTIALS_RDS_USERNAME"),
+        os.getenv("CREDENTIALS_RDS_PASSWORD"),
+        os.getenv("DATABASE_HOST_RDS"),
+        os.getenv("DATABASE_NAME_RDS"),
+    )
+)
+#
+#
+# Add the following to the context.configure() call in run_migrations_online():
+            version_table_schema="CPT",
+            include_schemas=True,
+            include_object=include_object,
+#
+#
+# Add the following just after the context.configure() call:
+        connection.execute("CREATE SCHEMA IF NOT EXISTS cpt")
+
+# Add the following function:
+def include_object(object, name, type_, reflected, compare_to):
+    return object.schema == "cpt"
+
+
+env DATABASE_HOST_RDS='{{ rds_database_host }}' \
+    DATABASE_NAME_RDS='{{ rds_database_name }}' \
+    CREDENTIALS_RDS_USERNAME='{{ rds_database_username }}' \
+    CREDENTIALS_RDS_PASSWORD='{{ rds_database_password }}' \
+    python ../../Script/run.py alembic revision --autogenerate -m "Initial CPT description and descriptor tables."
+
+
+env DATABASE_HOST_RDS='{{ rds_database_host }}' \
+    DATABASE_NAME_RDS='{{ rds_database_name }}' \
+    CREDENTIALS_RDS_USERNAME='{{ rds_database_username }}' \
+    CREDENTIALS_RDS_PASSWORD='{{ rds_database_password }}' \
+    python ../../Script/run.py alembic upgrade head
