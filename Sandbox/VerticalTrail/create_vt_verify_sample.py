@@ -9,6 +9,7 @@ from tkinter import filedialog
 import warnings
 
 import pandas as pd
+import numpy as np
 
 import settings
 from filter_bad_phones import get_good_bad_phones
@@ -16,7 +17,7 @@ from select_files import select_files
 from exclude_phone_samples import exclude_phone_samples
 from get_aims_db_tables import get_pe_description
 
-from   datalabs.access.aims import aims
+from datalabs.access.aims import AIMS
 import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 warnings.filterwarnings("ignore")
@@ -163,6 +164,7 @@ sample_df.fillna('', inplace=True)
 sample_df.replace('nan', '', inplace=True)
 
 save_file = survey_out_dir + start_time_str + '_VT_VerificationSample.xlsx'
+print('\nSaving sample to {}'.format(save_file))
 writer = pd.ExcelWriter(save_file, engine='xlsxwriter')
 sample_df.to_excel(writer, index=None, header=True)
 writer.save()
