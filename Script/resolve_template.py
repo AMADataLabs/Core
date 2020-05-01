@@ -20,7 +20,7 @@ def main(args):
 
 def parse_kwargs(kwargs_string):
     kwarg_strings = kwargs_string.split(',')
-    kwarg_regex = re.compile(r'\s*([a-zA-Z0-9_]+)=([a-zA-Z0-9_]+)')
+    kwarg_regex = re.compile(r'\s*([a-zA-Z0-9_]+)=([^ $]+)')
     kwargs = {}
 
     for kwarg_string in kwarg_strings:
