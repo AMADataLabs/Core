@@ -58,6 +58,7 @@ def run_migrations_offline():
         dialect_opts={"paramstyle": "named"},
         include_schemas=True,
         include_object = include_object,
+        compare_type=True,
     )
 
     with context.begin_transaction():
@@ -85,6 +86,7 @@ def run_migrations_online():
             version_table_schema="cpt",
             include_schemas=True,
             include_object = include_object,
+            compare_type=True,
         )
 
         connection.execute("CREATE SCHEMA IF NOT EXISTS cpt")
@@ -94,7 +96,7 @@ def run_migrations_online():
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    return object.schema == "cpt"
+    return not hasattr(object, 'schema') or object.schema == "cpt"
 
 
 if context.is_offline_mode():
