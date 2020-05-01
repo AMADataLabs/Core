@@ -1,7 +1,6 @@
-package main
+package path
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -9,7 +8,7 @@ import (
 
 
 func Path() (repo_path string) {
-	script_path := ScriptPath()
+	script_path := script_path()
 
 	// Assumes the running application resides in the Script directory within the repository
 	repo_path, error := filepath.Abs(script_path + string(os.PathSeparator) + "..")
@@ -18,15 +17,19 @@ func Path() (repo_path string) {
 		log.Fatal(error)
 	}
 
-	return
+	return repo_path
 }
 
 
-func ScriptPath() string {
-	script_path, error := filepath.Abs(filepath.Dir(os.Args[0]))
+func script_path() string {
+	executable, err := os.Executable()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	if error != nil {
-		log.Fatal(error)
+	script_path, err := filepath.Abs(filepath.Dir(executable))
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return script_path

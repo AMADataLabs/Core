@@ -7,13 +7,21 @@ TEMPLATE_FILES=${CWD}/Build/Master/requirements_template.txt ${CWD}/Build/Master
 setup:
 	./Script/setup_development_environment
 
-build-install-go-linux:
+install-go-linux:
 	env GOPATH=${CWD}/Source/Go go build -o Script/install-go datalabs/repo/install-go
 
-build-install-go-windows:
+install-go-windows:
 	env GOPATH=${CWD}/Source/Go GOOS=windows GOARCH=amd64 go build -o Script/install-go.exe datalabs/repo/install-go
 
-build-install-go: build-install-go-linux build-install-go-windows
+install-go: install-go-linux install-go-windows
+
+activate-virtual-environment-linux:
+	env GOPATH=${CWD}/Source/Go go build -o Script/activate-virtual-environment datalabs/repo/activate-virtual-environment
+
+activate-virtual-environment-windows:
+	env GOPATH=${CWD}/Source/Go GOOS=windows GOARCH=amd64 go build -o Script/activate-virtual-environment.exe datalabs/repo/activate-virtual-environment
+
+activate-virtual-environment: activate-virtual-environment-linux activate-virtual-environment-windows
 
 test: setup_test_files
 	${RUN} python -m pytest Test/Python/ -W ignore::DeprecationWarning
