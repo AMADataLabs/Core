@@ -13,9 +13,8 @@ import re
 
 # Part 1: hard coding
 # path of the directory of results
-directory = '/Users/elaineyao/Desktop/QAtest/'
-
-udrive_disc_dir = 'U:\\Data Procurement & Disciplinary\\JIRA Historical Documents\\DISCP\\'
+#directory = '/Users/elaineyao/Desktop/QAtest/'
+directory = 'U:\\Data Procurement & Disciplinary\\JIRA Historical Documents\\DISCP\\'
 
 # dictionary of each folder shouldhave what files:
 doc_check_dic = {'SL&BO': ['CA_MD_SummaryList',
@@ -275,9 +274,12 @@ failcount_filequality = 0
 failcount_nodatapdf = 0
 failcount_nodataduplicate = 0
 
+
+modtime_unix = os.path.getmtime(directory)
+
 # Step 0: check if there is new result in directory, determine whether it is new pocurement or re-baseline pocurement
 if not check_delivery(directory):
-    modtime_unix = os.path.getmtime(directory)
+    # modtime_unix = os.path.getmtime(directory)
     moddate = datetime.datetime.utcfromtimestamp(modtime_unix).strftime('%Y-%m-%d')
     print(f'no new folders uploaded, latest folder uploaded at {moddate}')
 else:
@@ -288,7 +290,7 @@ else:
 
     # Step 0: check is new procurement or rebaseline folder:
     if check_new_pocurement(path):
-        print('This folder is new pocurement')
+        print('This folder is new procurement')
         # Step 1: Validate Completeness:
         if not ValidateCompleteness(path):
 
@@ -328,12 +330,13 @@ else:
 
     else:
         print('This folder is re-baselined folder')
-        updatefolders = [f for f in os.listdir('/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM') if not f.startswith('.')]
-        validupdatefolders = [f for f in updatefolders if f != 'no_data']
+        #updatefolders = [f for f in os.listdir(directory + 'results_04_08_2020_09_10PM') if not f.startswith('.')]
+        #updatefolders = [f for f in os.listdir(path) if not f.startswith('.')]
+        validupdatefolders = [f for f in folders if f != 'no_data']
         for fold in validupdatefolders:
-            for file in [f for f in os.listdir('/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold) if not f.startswith('.')]:
-                # fullpath = path +'/' + fold + '/' + file
-                fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold + '/' + file
+            for file in [f for f in os.listdir(path + fold) if not f.startswith('.')]:
+                fullpath = path +'/' + fold + '/' + file
+                # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold + '/' + file
                 type = get_doc_type(file)
 
                 # check name format:
