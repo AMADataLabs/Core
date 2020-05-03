@@ -1,0 +1,15 @@
+---
+# <- yaml supports comments, json does not
+# did you know you can embed json in yaml?
+# try uncommenting the next line
+# { foo: 'bar' }
+
+modspec:
+  - package: datalabs
+    include:
+      - plugin
+  - package: datalabs.access
+    exclude:
+      - odb
+      - aims
+      - edw
