@@ -100,7 +100,7 @@ print_usage() {
 render_alembic_env() {
     TEMPLATE_PATH=${MASTER_BUILD_PATH}/alembic/env_template.py
     RENDERING_PATH=${BUILD_PATH}/alembic/env.py
-    RENDER="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/resolve_template.py"
+    RENDER="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/render_template.py"
 
 
     if [[ "$FORCE_OVERWRITE" == false && -d $RENDER_PATH ]]; then
@@ -119,5 +119,5 @@ main $*
 
 # TODO:
 #   - Copy Build/Master/alembic_template.ini to Build/<PROJECT>/alembic.ini
-#   - Resolve Build/Master/alembic/env_template.py into Build/<PROJCE>/alembic/env.py
+#   - Render Build/Master/alembic/env_template.py into Build/<PROJCE>/alembic/env.py
 #       - Variables: model_module, schema
