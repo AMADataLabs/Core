@@ -14,7 +14,14 @@ import re
 # Part 1: hard coding
 # path of the directory of results
 #directory = '/Users/elaineyao/Desktop/QAtest/'
-directory = 'U:\\Data Procurement & Disciplinary\\JIRA Historical Documents\\DISCP\\'
+directory = 'U:/Data Procurement & Disciplinary/JIRA Historical Documents/DISCP/'
+
+count_log_path = 'U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityLog.csv'
+file_log_path  = 'U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityFileLog.csv'
+
+date = str(datetime.datetime.now().date())
+
+
 
 # dictionary of each folder shouldhave what files:
 doc_check_dic = {'SL&BO': ['CA_MD_SummaryList',
@@ -266,13 +273,18 @@ def get_doc_type(filename) -> str:
 
 # Part 3: workflow:
 # parameters for weekly report
-failcount = 0
-failcount_nameformat = 0
-failcount_completeness = 0
-failcount_fileexist = 0
-failcount_filequality = 0
-failcount_nodatapdf = 0
-failcount_nodataduplicate = 0
+failcount                   = 0
+failcount_nameformat        = 0
+failcount_completeness      = 0
+failcount_fileexist         = 0
+failcount_filequality       = 0
+failcount_nodatapdf         = 0
+failcount_nodataduplicate   = 0
+
+
+def log_file_failure(file_log_path, date, file, failure_type):
+    with open(file_log_path, 'a') as f:
+        f.write(f'\n{date}, {file}, {failure_type}')
 
 
 modtime_unix = os.path.getmtime(directory)
@@ -313,19 +325,33 @@ else:
                         if not check_file_nameformat(file, type):
                             print(f'File Format is not right: {file} as type {type}')
                             failcount_nameformat += 1
+                            log_file_failure(file_log_path=file_log_path,
+                                             date=date,
+                                             file=file,
+                                             failure_type='nameformat - file type')
+
+                            file_log_df = file_log_df.append(pd.Series({'date': [date], 'file': [file], 'failure_type': ['nameformat']}))
 
                         # check csv file:
                         if type == 'QA':
                             if not check_qa_file(fullpath):
                                 print(f'QA file {file} is not right')
                                 failcount_filequality += 1
+                                log_file_failure(file_log_path=file_log_path,
+                                                 date=date,
+                                                 file=file,
+                                                 failure_type='filequality - QA')
                         # check board orders file:
                         elif type == 'BO' or type == 'SL' or type == 'NL':
                             if not check_bo_pdf(fullpath):
                                 print(f'PDF file {file} has blank page')
                                 failcount_filequality += 1
-                            else:
-                                print('')
+                                log_file_failure(file_log_path=file_log_path,
+                                                 date=date,
+                                                 file=file,
+                                                 failure_type='filequality - blank page')
+                            #else:
+                            #    print('')
 
 
     else:
@@ -345,6 +371,10 @@ else:
                 else:
                     print(f'File Format is not right: {file}')
                     failcount_nameformat += 1
+                    log_file_failure(file_log_path=file_log_path,
+                                     date=date,
+                                     file=file,
+                                     failure_type='nameformat')
 
                 # check csv file:
                 if type == 'QA':
@@ -352,8 +382,24 @@ else:
                     if not check_qa_file(fullpath):
                         print(f'QA file {file} is not right')
                         failcount_filequality += 1
+                        log_file_failure(file_log_path=file_log_path,
+                                         date=date,
+                                         file=file,
+                                         failure_type='filequality - QA')
                 # check board orders file:
                 elif type == 'BO':
                     if not check_bo_pdf(fullpath):  # define the function to check board orders
                         print(f'BO file {file} is not right')
                         failcount_filequality += 1
+                        log_file_failure(file_log_path=file_log_path,
+                                         date=date,
+                                         file=file,
+                                         failure_type='filequality - BO')
+
+
+with open(count_log_path, 'a') as count_log_file:
+    count_log_file.write('\n{},{},{},{},{},{}, {}'.format(date, failcount,
+                                                          failcount_nameformat, failcount_completeness,
+                                                          failcount_fileexist, failcount_filequality,
+                                                          failcount_nodatapdf, failcount_nodataduplicate))
+
