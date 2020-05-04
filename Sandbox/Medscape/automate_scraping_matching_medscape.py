@@ -139,7 +139,7 @@ def grab_data():
             if country == 'None':
                 country = city
                 city = 'None'
-            if specialty == 'Doctor':
+            if specialty == 'Doctor' and 'Medical' not in location:
                 specialty = location
                 location = 'None'
         except IndexError as index_error:
