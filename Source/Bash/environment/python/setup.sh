@@ -22,7 +22,7 @@ link_to_requirements_file() {
 create_python_virtual_environment() {
     environment_path=$1
 
-    python3 -m venv $environment_path
+    /usr/bin/python3.7 -m venv $environment_path
 }
 
 

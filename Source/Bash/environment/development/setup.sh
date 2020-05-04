@@ -58,7 +58,7 @@ install_aws_tools() {
 install_pip() {
     apt install -y python3-pip
 
-    python3 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
+    /usr/bin/python3.7 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
 }
 
 
@@ -70,20 +70,13 @@ install_python3_7() {
 }
 
 
-configure_default_python3() {
-    # Python 3.6 is pre-installed with the Ubuntu WSL
-    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 0
-    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1
-}
-
-
 install_venv() {
     apt install -y python3.7-venv
 }
 
 
 install_pipenv() {
-    python3 -m pip install pipenv
+    /usr/bin/python3.7 -m pip install pipenv
 }
 
 
