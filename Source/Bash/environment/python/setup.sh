@@ -9,6 +9,16 @@ setup_python_virtual_environment() {
 }
 
 
+create_environment_directory() {
+    mkdir ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+}
+
+
+link_to_requirements_file() {
+    ln -s ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}/requirements.txt ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}/requirements.txt
+}
+
+
 create_python_virtual_environment() {
     environment_path=$1
 
