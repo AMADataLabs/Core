@@ -63,11 +63,15 @@ def generate_dotenv_file_from_template(dotenv_template, pythonpath):
     from datalabs.common.setup import FileGeneratorFilenames, SimpleFileGenerator
 
     dotenv_path = Path(dotenv_template.parent, '.env')
-    LOGGER.info(f'Generating dotenv file {str(dotenv_path)}')
-    filenames = FileGeneratorFilenames(template=dotenv_template, output=dotenv_path)
 
-    dotenv_generator = SimpleFileGenerator(filenames, pythonpath=pythonpath)
-    dotenv_generator.generate()
+    if os.path.exists(dotenv_path):
+        LOGGER.info(f'The dotenv file {str(dotenv_path)} already exists. Ignoring.')
+    else:
+        LOGGER.info(f'Generating dotenv file {str(dotenv_path)}')
+        filenames = FileGeneratorFilenames(template=dotenv_template, output=dotenv_path)
+
+        dotenv_generator = SimpleFileGenerator(filenames, pythonpath=pythonpath)
+        dotenv_generator.generate()
 
 
 if __name__ == '__main__':

@@ -89,7 +89,7 @@ generate_configuration_files() {
 
 
 print_usage() {
-    echo "Usage: create-project <project name> [OPTION]...[PROJECT]"
+    echo "Usage: create-project [OPTION]... <project name>"
     echo "Create directories and initial configuration files for a project."
     echo
     echo "OPTIONS"
@@ -111,13 +111,13 @@ create_directory() {
     PROJECT_NAME=$2
     DIRECTORY_PATH=${SCRIPT_BASE_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}
 
+    echo "Creating directory ${DIRECTORY_PATH}"
+
     if [[ "$FORCE_OVERWRITE" == false && -d $DIRECTORY_PATH ]]; then
         real_directory_path=`realpath ${DIRECTORY_PATH}`
-        echo "Error: Project directory ${real_directory_path} already exists."
-        exit 2
+        echo "Warning: Project directory ${real_directory_path} already exists."
     fi
 
-    echo "Creating directory ${DIRECTORY_PATH}"
     mkdir -p ${DIRECTORY_PATH}
 }
 

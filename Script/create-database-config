@@ -1,0 +1,123 @@
+#!/bin/bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+. ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup/venv.sh
+SCHEMA=
+MODEL_MODULE=
+PROJECT=
+FORCE_OVERWRITE=false
+MASTER_BUILD_PATH=
+BUILD_PATH=
+
+
+main() {
+    process_arguments $*
+
+    initialize_alembic 
+
+    generate_configuration_files
+}
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -s|--schema)
+            SCHEMA=$2
+            echo "Schema: $2"
+            shift
+            shift
+            ;;
+        -m|--model-module)
+            MODEL_MODULE=$2
+            shift
+            shift
+            ;;
+        -f|--force)
+            FORCE_OVERWRITE=true
+            shift
+            ;;
+        *)
+            PROJECT=$1
+            shift
+            shift
+            ;;
+      esac
+    done
+
+    if [[ "$SCHEMA" == "" ]]; then
+        echo "Error: The database schema name was not specified."
+        exit 1
+    fi
+
+    if [[ "$MODEL_MODULE" == "" ]]; then
+        echo "Error: The model module was not specified."
+        exit 1
+    fi
+
+    if [[ "$PROJECT" == "" ]]; then
+        echo "Error: The name of the target project was not specified."
+        exit 1
+    fi
+
+    MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
+    BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT}
+}
+
+
+initialize_alembic() {
+    cd ${BUILD_PATH}
+
+    alembic init alembic
+}
+
+
+generate_configuration_files() {
+    cp ${MASTER_BUILD_PATH}/alembic_template.ini ${BUILD_PATH}/alembic.ini
+
+    render_alembic_env
+}
+
+
+print_usage() {
+    echo "Usage: create-database-config [OPTION]... <project>"
+    echo "Setup an initial Alembic configuration in ...Build/<project>/."
+    echo
+    echo "Options:"
+    echo "  -h|--help                  Print usage."
+    echo "  -s|--schema <schema>       Set the database schema name to use for tables."
+    echo "  -m|--model-module <module> Set the fully-qualified Python module name that"
+    echo "                             holds the SQLAlchemy declaritive base definition."
+    echo "  -f, --force                Overwrite any directories or files that are created."
+}
+
+
+render_alembic_env() {
+    TEMPLATE_PATH=${MASTER_BUILD_PATH}/alembic/env_template.py
+    RENDERING_PATH=${BUILD_PATH}/alembic/env.py
+    RENDER="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/resolve_template.py"
+
+
+    if [[ "$FORCE_OVERWRITE" == false && -d $RENDER_PATH ]]; then
+        real_path=`realpath ${RESULT_PATH}`
+        echo "Error: Template file ${real_path} already exists."
+        exit 2
+    fi
+
+    echo "Model Module: $MODEL_MODULE"
+
+    ${RENDER} -t ${TEMPLATE_PATH} -f ${RENDERING_PATH} -v schema=${SCHEMA},model_module=${MODEL_MODULE}
+}
+
+main $*
+
+
+# TODO:
+#   - Copy Build/Master/alembic_template.ini to Build/<PROJECT>/alembic.ini
+#   - Resolve Build/Master/alembic/env_template.py into Build/<PROJCE>/alembic/env.py
+#       - Variables: model_module, schema
