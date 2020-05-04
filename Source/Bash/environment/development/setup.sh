@@ -74,8 +74,6 @@ configure_default_python3() {
     # Python 3.6 is pre-installed with the Ubuntu WSL
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 0
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1
-
-    # update-alternatives --set python3 /usr/bin/python3.7
 }
 
 
