@@ -1,5 +1,5 @@
 setup_python_virtual_environment() {
-    environment_path=$1
+    environment_path=`realpath $1`
 
     echo "### Creating Python virtual environment $environment_path ###"
     create_python_virtual_environment $environment_path
@@ -12,7 +12,7 @@ setup_python_virtual_environment() {
 create_python_virtual_environment() {
     environment_path=$1
 
-    python3 -m venv $environment_path
+    /usr/bin/python3.7 -m venv $environment_path
 }
 
 

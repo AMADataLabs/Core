@@ -2,7 +2,8 @@
 DATALABS_PYTHONPATH='{{ pythonpath }}'
 
 # Database Settings
-DATABASE_NAME_RDS='database-test-ui'
+DATABASE_HOST_RDS='{{ rds_database_host }}'
+DATABASE_NAME_RDS='{{ rds_database_name }}'
 CREDENTIALS_RDS_USERNAME='{{ rds_username }}'
 CREDENTIALS_RDS_PASSWORD='{{ rds_password }}'
 

@@ -13,9 +13,15 @@ import re
 
 # Part 1: hard coding
 # path of the directory of results
-directory = '/Users/elaineyao/Desktop/QAtest/'
+#directory = '/Users/elaineyao/Desktop/QAtest/'
+directory = 'U:/Data Procurement & Disciplinary/JIRA Historical Documents/DISCP/'
 
-udrive_disc_dir = 'U:\\Data Procurement & Disciplinary\\JIRA Historical Documents\\DISCP\\'
+count_log_path = 'U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityLog.csv'
+file_log_path  = 'U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityFileLog.csv'
+
+date = str(datetime.datetime.now().date())
+
+
 
 # dictionary of each folder shouldhave what files:
 doc_check_dic = {'SL&BO': ['CA_MD_SummaryList',
@@ -267,17 +273,25 @@ def get_doc_type(filename) -> str:
 
 # Part 3: workflow:
 # parameters for weekly report
-failcount = 0
-failcount_nameformat = 0
-failcount_completeness = 0
-failcount_fileexist = 0
-failcount_filequality = 0
-failcount_nodatapdf = 0
-failcount_nodataduplicate = 0
+failcount                   = 0
+failcount_nameformat        = 0
+failcount_completeness      = 0
+failcount_fileexist         = 0
+failcount_filequality       = 0
+failcount_nodatapdf         = 0
+failcount_nodataduplicate   = 0
 
-# Step 0: check if there is new result in directory, determine whether it is new pocurement or re-baseline pocurement
+
+def log_file_failure(file_log_path, date, file, failure_type):
+    with open(file_log_path, 'a') as f:
+        f.write(f'\n{date}, {file}, {failure_type}')
+
+
+modtime_unix = os.path.getmtime(directory)
+
+# Step 0: check if there is new result in directory, determine whether it is new procurement or re-baseline procurement
 if not check_delivery(directory):
-    modtime_unix = os.path.getmtime(directory)
+    # modtime_unix = os.path.getmtime(directory)
     moddate = datetime.datetime.utcfromtimestamp(modtime_unix).strftime('%Y-%m-%d')
     print(f'no new folders uploaded, latest folder uploaded at {moddate}')
 else:
@@ -288,7 +302,7 @@ else:
 
     # Step 0: check is new procurement or rebaseline folder:
     if check_new_pocurement(path):
-        print('This folder is new pocurement')
+        print('This folder is new procurement')
         # Step 1: Validate Completeness:
         if not ValidateCompleteness(path):
 
@@ -311,29 +325,42 @@ else:
                         if not check_file_nameformat(file, type):
                             print(f'File Format is not right: {file} as type {type}')
                             failcount_nameformat += 1
+                            log_file_failure(file_log_path=file_log_path,
+                                             date=date,
+                                             file=file,
+                                             failure_type='nameformat - file type')
 
                         # check csv file:
                         if type == 'QA':
                             if not check_qa_file(fullpath):
                                 print(f'QA file {file} is not right')
                                 failcount_filequality += 1
+                                log_file_failure(file_log_path=file_log_path,
+                                                 date=date,
+                                                 file=file,
+                                                 failure_type='filequality - QA')
                         # check board orders file:
                         elif type == 'BO' or type == 'SL' or type == 'NL':
                             if not check_bo_pdf(fullpath):
                                 print(f'PDF file {file} has blank page')
                                 failcount_filequality += 1
-                            else:
-                                print('')
+                                log_file_failure(file_log_path=file_log_path,
+                                                 date=date,
+                                                 file=file,
+                                                 failure_type='filequality - blank page')
+                            #else:
+                            #    print('')
 
 
     else:
         print('This folder is re-baselined folder')
-        updatefolders = [f for f in os.listdir('/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM') if not f.startswith('.')]
-        validupdatefolders = [f for f in updatefolders if f != 'no_data']
+        #updatefolders = [f for f in os.listdir(directory + 'results_04_08_2020_09_10PM') if not f.startswith('.')]
+        #updatefolders = [f for f in os.listdir(path) if not f.startswith('.')]
+        validupdatefolders = [f for f in folders if f != 'no_data']
         for fold in validupdatefolders:
-            for file in [f for f in os.listdir('/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold) if not f.startswith('.')]:
-                # fullpath = path +'/' + fold + '/' + file
-                fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold + '/' + file
+            for file in [f for f in os.listdir(path + fold) if not f.startswith('.')]:
+                fullpath = path +'/' + fold + '/' + file
+                # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold + '/' + file
                 type = get_doc_type(file)
 
                 # check name format:
@@ -342,6 +369,10 @@ else:
                 else:
                     print(f'File Format is not right: {file}')
                     failcount_nameformat += 1
+                    log_file_failure(file_log_path=file_log_path,
+                                     date=date,
+                                     file=file,
+                                     failure_type='nameformat')
 
                 # check csv file:
                 if type == 'QA':
@@ -349,8 +380,24 @@ else:
                     if not check_qa_file(fullpath):
                         print(f'QA file {file} is not right')
                         failcount_filequality += 1
+                        log_file_failure(file_log_path=file_log_path,
+                                         date=date,
+                                         file=file,
+                                         failure_type='filequality - QA')
                 # check board orders file:
                 elif type == 'BO':
                     if not check_bo_pdf(fullpath):  # define the function to check board orders
                         print(f'BO file {file} is not right')
                         failcount_filequality += 1
+                        log_file_failure(file_log_path=file_log_path,
+                                         date=date,
+                                         file=file,
+                                         failure_type='filequality - BO')
+
+
+with open(count_log_path, 'a') as count_log_file:
+    count_log_file.write('\n{},{},{},{},{},{}, {}'.format(date, failcount,
+                                                          failcount_nameformat, failcount_completeness,
+                                                          failcount_fileexist, failcount_filequality,
+                                                          failcount_nodatapdf, failcount_nodataduplicate))
+

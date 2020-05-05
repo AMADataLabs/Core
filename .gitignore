@@ -4,14 +4,7 @@
 **/.env
 **/.idea/
 **/.ipynb_checkpoints
-**/Environment/*/bin/
-**/Environment/*/etc/
-**/Environment/*/lib/
-**/Environment/*/lib64
-**/Environment/*/pyvenv.cfg
-**/Environment/*/share/
-**/Environment/*/src/
-**/Environment/*/xgboost/
+Environment/*
 
 .idea
 venv
