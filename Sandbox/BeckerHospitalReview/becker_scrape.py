@@ -8,8 +8,8 @@ from auto_email import send_email
 
 def get_email_parameters(file_1, file_2, today):
     '''Get parameters'''
-    full = ['victoria.grose@ama-assn.org']
-    just_me = ['victoria.grose@ama-assn.org']
+    full = ['Lauren.McConnell@ama-assn.org']
+    just_me = ['victoria.grose@ama-assn.org', 'Sandeep.Dhamale@ama-assn.org']
     subject = f'Hospital COVID-19 Furloughs for {today}'
     body = '''
 Hi,
