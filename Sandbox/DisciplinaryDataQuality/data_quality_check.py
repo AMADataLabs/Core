@@ -289,7 +289,7 @@ def log_file_failure(file_log_path, date, file, failure_type):
 
 modtime_unix = os.path.getmtime(directory)
 
-# Step 0: check if there is new result in directory, determine whether it is new pocurement or re-baseline pocurement
+# Step 0: check if there is new result in directory, determine whether it is new procurement or re-baseline procurement
 if not check_delivery(directory):
     # modtime_unix = os.path.getmtime(directory)
     moddate = datetime.datetime.utcfromtimestamp(modtime_unix).strftime('%Y-%m-%d')
@@ -329,8 +329,6 @@ else:
                                              date=date,
                                              file=file,
                                              failure_type='nameformat - file type')
-
-                            file_log_df = file_log_df.append(pd.Series({'date': [date], 'file': [file], 'failure_type': ['nameformat']}))
 
                         # check csv file:
                         if type == 'QA':
