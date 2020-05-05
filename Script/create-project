@@ -3,6 +3,10 @@
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+ACTIVATE=". ${SCRIPT_BASE_PATH}/../Environment/Master/bin/activate"
+GENENV="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/genenv.py"
+RENDER_TEMPLATE="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/render_template.py"
+MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
 PROJECT_NAME=
 DEPENDENCY_LIST=
 FORCE_OVERWRITE=false
@@ -143,8 +147,6 @@ generate_dependency_whitelist() {
 
 
 generate_requirements() {
-    GENENV="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/genenv.py"
-    MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
     PROJECT_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
 
     ARGUMENTS="--env pip --in ${MASTER_BUILD_PATH}/requirements.txt --out ${PROJECT_BUILD_PATH}/requirements.txt \
@@ -155,7 +157,9 @@ generate_requirements() {
     fi
 
     echo "Generating requirements.txt for project ${PROJECT_NAME}"
+    $ACTIVATE
     $GENENV $ARGUMENTS
+    deactivate
 }
 
 
@@ -181,7 +185,6 @@ generate_dotenv_template() {
     TEMPLATE_NAME=dotenv_template.txt
     TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Build/Master/${TEMPLATE_NAME}
     RESULT_PATH=${SCRIPT_BASE_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}/${TEMPLATE_NAME}
-    RESOLVE_TEMPLATE="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/resolve_template.py"
 
 
     if [[ "$FORCE_OVERWRITE" == false && -d $RESULT_PATH ]]; then
@@ -190,8 +193,9 @@ generate_dotenv_template() {
         exit 2
     fi
 
-
-    ${RESOLVE_TEMPLATE} -t ${TEMPLATE_PATH} -f ${RESULT_PATH} -v project=${PROJECT_NAME}
+    $ACTIVATE
+    $RENDER_TEMPLATE -t ${TEMPLATE_PATH} -f ${RESULT_PATH} -v project=${PROJECT_NAME}
+    deactivate
 }
 
 
