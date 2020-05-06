@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "terraform_state_store" {
-    bucket = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
+    bucket = var.state_bucket
 
     lifecycle {
         prevent_destroy = true
@@ -50,6 +50,23 @@ resource "aws_dynamodb_table" "terraform_locks_store" {
         EOL                 = local.na
         MaintenanceWindow   = local.na
     }
+}
+
+
+variable "state_bucket" {
+    description = "S3 bucket for storing Terraform state."
+}
+
+
+variable "environment" {
+    description = "AWS Account Environment"
+    type        = string
+}
+
+
+variable "contact" {
+    description = "Email address of the Data Labs contact."
+    type        = string
 }
 
 
