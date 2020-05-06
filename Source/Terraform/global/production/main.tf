@@ -8,5 +8,5 @@ module "terraform_state" {
 
     environment         = "Production"
     contact             = "peter.lane@ama-assn.org"
-    state_bucket        = "ama-hsg-datalabs-datalake-terraform-state"
+    state_bucket        = "ama-hsg-datalabs-datalake-terraform-state-production"
 }
