@@ -1,0 +1,30 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+# Database Settings
+DATABASE_NAME_AIMS='aims_prod'
+CREDENTIALS_AIMS_USERNAME='{{ aims_username }}'
+CREDENTIALS_AIMS_PASSWORD='{{ aims_password }}'
+
+DATABASE_NAME_EDW='PRDDW'       # Test: etstods
+CREDENTIALS_EDW_USERNAME='vigrose'
+CREDENTIALS_EDW_PASSWORD='slytherin10946'
+
+DATABASE_NAME_DATAMART='PRDDM'
+CREDENTIALS_DATAMART_USERNAME='{{ datamart_username }}'
+CREDENTIALS_DATAMART_PASSWORD='{{ datamart_password }}'
+
+DATABASE_NAME_ODS='eprdods'     # Test: etstods
+CREDENTIALS_ODS_USERNAME='{{ ods_username }}'
+CREDENTIALS_ODS_PASSWORD='{{ ods_password }}'
+
+# Project Settings
+PROJECT_NAME='AddressQualityTriangulation'
+
+#File names
+DHC_FOLDER='U:/Source Files/Data Analytics/Data-Science/Data/DHC/'
+INSURANCE_FOLDER = 'U:/Source Files/Data Analytics/Data-Science/Data/AMAIA/'
+
+#Keys
+GETPHONE_KEY = 'WS77-PWJ1-MKS5'
+GPLACES_KEY = 'AIzaSyCGOwnycSPj5jUrjz_7figjGKFvpO3mA-I'

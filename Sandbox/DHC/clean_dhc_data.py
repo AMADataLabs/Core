@@ -4,14 +4,11 @@ This script cleans and concatenates disparate DHC data files
 from datetime import date
 import os
 import pandas as pd
-import dotenv
-import pyodbc
-
-ENV_PATH = 'C:\hsg-data-labs\Sandbox\DHC\env_template.env'
-dotenv.load_dotenv(dotenv_path=ENV_PATH)
+import settings
+from datalabs.access.edw import EDW
 
 #Set today
-TODAY = str(date.today())
+TODAY = str(date.today())[0:7]
 
 #Set file locations
 AK_AZ_FILE = os.getenv('PHYSICIANS_AK_AZ')
@@ -32,11 +29,6 @@ LA_NH = pd.read_csv(LA_NH_FILE)
 NJ_OR = pd.read_csv(NJ_OR_FILE)
 PA_TX = pd.read_csv(PA_TX_FILE)
 UT_WY = pd.read_csv(UT_WY_FILE)
-
-#Connect to database
-print('Connecting to database...')
-CONNECTION = "DSN=PRDDW; UID={}; PWD={}".format('vigrose', 'slytherin10946')
-AMAEDW = pyodbc.connect(CONNECTION)
 
 #Write queries
 ME_QUERY = \
@@ -65,8 +57,9 @@ NPI_QUERY = \
     P.ACTIVE_IND = 'Y'
     """
 #Execute queries
-NPI = pd.read_sql(con=AMAEDW, sql=NPI_QUERY)
-ME = pd.read_sql(con=AMAEDW, sql=ME_QUERY)
+with EDW() as edw:
+    NPI = edw.read(NPI_QUERY)
+    ME = edw.read(ME_QUERY)
 
 #Make id conversion table
 NPI_TO_ME = pd.merge(NPI, ME, on='PARTY_ID')[['NPI', 'ME']]
@@ -78,6 +71,11 @@ ALL_DHC = pd.concat([AK_AZ, CA_DE, FL_KY, LA_NH, NJ_OR, PA_TX, UT_WY])
 #Add ME
 ALL_DHC['NPI'] = ALL_DHC['NPI'].astype(str)
 DHC = pd.merge(NPI_TO_ME, ALL_DHC, on='NPI', how='right')
+
+#Fix phones
+ALL_DHC.columns = [c.replace(' ','_') for c in ALL_DHC.columns.values]
+ALL_DHC = ALL_DHC.fillna('None')
+ALL_DHC['Phone_Number'] = ALL_DHC['Phone_Number'].apply(lambda x: x.replace('.',''))
 
 #Save
 print('Saving...')
