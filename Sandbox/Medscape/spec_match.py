@@ -33,5 +33,7 @@ def match_spec(ppd_df, specialty, spec_table):
         return True
     elif 'Physician' in specialty_og or specialty_og == 'Doctor':
         return True
+    elif 'Family Medicine' in specialty_og and mf_spec == 'Pediatrics':
+        return True
     else:
         return False

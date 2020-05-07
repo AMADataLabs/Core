@@ -218,7 +218,8 @@ def append_me(roster_df, spec_df):
         'Transport',
         'Assistant',
         'Receptionist',
-        'Technician'
+        'Technician',
+        'Paramedic'
     ]
     mes = []
     for row in data_split.itertuples():
@@ -234,7 +235,10 @@ def append_me(roster_df, spec_df):
             except ValueError:
                 years = []
                 if len(new_df)>1:
-                    new_df = new_df[new_df.POLO_CITY == row.CITY.upper()]
+                    if row.STATE == "New York":
+                        new_df = new_df[new_df.POLO_STATE == 'NY']
+                    else:
+                        new_df = new_df[new_df.POLO_CITY == row.CITY.upper()]
             if len(new_df) == 0 and len(years)>0:
                 if '-' in row.LAST_NAME:
                     last = row.LAST_NAME.replace('-', ' ')
