@@ -31,7 +31,7 @@ def test_files(modspec_file, base_path):
     source_files = bundle.SourceBundle(modspec_file).files(base_path)
 
     LOGGER.debug(source_files)
-    assert source_files is not None
+    assert len(source_files) == 8
 
 
 @pytest.fixture
@@ -42,9 +42,9 @@ modspec:
   - package: datalabs
   - package: datalabs.access
     exclude:
-      - odb
-      - aims
+      - ods
       - edw
+      - file
   - package: datalabs.analysis
     include:
       - exception
@@ -60,24 +60,24 @@ modspec:
 def base_path():
     with tempfile.TemporaryDirectory() as temp_dir:
         populate_directory(
-            os.path.join(temp_dir.name, 'Source/Python/datalabs'),
+            os.path.join(temp_dir, 'Source/Python/datalabs'),
             ['__init__.py', 'plugin.py']
         )
 
         populate_directory(
-            os.path.join(temp_dir.name, 'Source/Python/datalabs/access'),
-            ['__init__.py', 'odb.py', 'aims.py', 'edw.py', 'database.py', 'file.py']
+            os.path.join(temp_dir, 'Source/Python/datalabs/access'),
+            ['__init__.py', 'ods.py', 'aims.py', 'edw.py', 'database.py', 'file.py', 'odbc.py']
         )
 
         populate_directory(
-            os.path.join(temp_dir.name, 'Source/Python/datalabs/analysis'),
+            os.path.join(temp_dir, 'Source/Python/datalabs/analysis'),
             ['__init__.py', 'exception.py', 'wslive.py']
         )
 
-        yield temp_dir.name
+        yield temp_dir
 
 def populate_directory(directory, files):
-    os.mkdir(directory)
+    os.makedirs(directory)
 
     for file in files:
         open(os.path.join(directory, file), 'w').close()

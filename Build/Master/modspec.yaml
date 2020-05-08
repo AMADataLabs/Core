@@ -14,6 +14,6 @@ modspec:
       - plugin
   - package: datalabs.access
     exclude:
-      - odb
+      - ods
       - aims
       - edw
