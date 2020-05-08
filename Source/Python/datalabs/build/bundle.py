@@ -5,27 +5,38 @@ import yaml
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
-class SourcesEmitter:
+class SourceBundle:
+    def __init__(self, modspec_path):
+        self._modspec_path = modspec_path
+
+    def files(self, base_path):
+        modspec_yaml = self._load_module_spec(self._modspec_path)
+
+        modspec = self._parse_module_spec(modspec_yaml)
+
+        return self._generate_module_paths(module_spec, base_path)
+
     @classmethod
-    def emit(cls, modspec_path):
-        module_spec = cls._load_module_spec(modspec_path)
+    def _load_module_spec(cls, modspec_path) -> str:
+        LOGGER.debug(f'Modspec path: {modspec_path}')
+        modspec_yaml = None
 
-        return cls._generate_module_paths(module_spec)
+        with open(modspec_path, 'r') as file:
+            modspec_yaml = file.read()
+
+        return modspec_yaml
 
     @classmethod
-    def _load_module_spec(cls, modspec_path):
-        with open(yaml_path, 'r') as file:
-            modspec = {}
-            try:
-                modspec = yaml.safe_load(stream)
-            except yaml.YAMLError as e:
-                LOGGER.error('Unable to load module spec file.', e)
+    def _parse_module_spec(cls, modspec_yaml) -> dict:
+        modspec = yaml.safe_load(modspec_yaml)
+        LOGGER.debug(f'Module spec: {modspec}')
 
         return modspec
 
     @classmethod
-    def _load_module_spec(cls, modspec):
+    def _generate_module_paths(cls, modspec, base_path):
+        pass
         
