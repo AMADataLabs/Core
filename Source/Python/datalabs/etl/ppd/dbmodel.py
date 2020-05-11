@@ -1,0 +1,103 @@
+""" SQLAlchemy models for PPD """
+import sqlalchemy as sa
+from sqlalchemy.ext.declarative import declarative_base
+
+naming_convention = {
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
+
+metadata = sa.MetaData(naming_convention=naming_convention)
+
+Base = declarative_base(metadata=metadata)
+
+
+class PPD(Base):
+    __tablename__ = 'ppd'
+    __table_args__ = {"schema": "ppd"}
+
+    id = sa.Column(sa.String(), primary_key=True)
+    ME = sa.Column(sa.String(), nullable=False)
+    record_id = sa.Column(sa.String(), nullable=False)
+    update_type = sa.Column(sa.String(), nullable=False)
+    address_type = sa.Column(sa.INTEGER(1), nullable=False)
+    mailing_name = sa.Column(sa.String(), nullable=False)
+    last_name = sa.Column(sa.String(), nullable=False)
+    first_name = sa.Column(sa.String(), nullable=False)
+    middle_name = sa.Column(sa.String(), nullable=False)
+    suffix = sa.Column(sa.Integer(), nullable=False)
+    mailing_name_1 = sa.Column(sa.String(), nullable=False)
+    mailing_name_2 = sa.Column(sa.String(), nullable=False)
+    city = sa.Column(sa.String(), nullable=False)
+    state = sa.Column(sa.String(), nullable=False)
+    zip = sa.Column(sa.String(), nullable=False)
+    sector = sa.Column(sa.String(), nullable=False)
+    carrier_route = sa.Column(sa.String(), nullable=False)
+    address_undeliverable_flag = sa.Column(sa.String(), nullable=False)
+    fips_county = sa.Column(sa.String(), nullable=False)
+    fips_state = sa.Column(sa.String(), nullable=False)
+    printer_control_code = sa.Column(sa.String(), nullable=False)
+    pc_zip = sa.Column(sa.String(), nullable=False)
+    pc_sector = sa.Column(sa.String(), nullable=False)
+    delivery_point_code = sa.Column(sa.String(), nullable=False)
+    check_digit = sa.Column(sa.String(), nullable=False)
+    printer_control_code_2 = sa.Column(sa.String(), nullable=False)
+    region = sa.Column(sa.Integer(1), nullable=False)
+    division = sa.Column(sa.Integer(1), nullable=False)
+    group = sa.Column(sa.Integer(1), nullable=False)
+    tract = sa.Column(sa.Integer(), nullable=False)
+    suffix_census = sa.Column(sa.Integer(), nullable=False)
+    block_group = sa.Column(sa.Integer(1), nullable=False)
+    msa_population_size = sa.Column(sa.String(1), nullable=False)
+    micro_metro_ind = sa.Column(sa.Integer(1), nullable=False)
+    cbsa = sa.Column(sa.String(), nullable=False)
+    cbsa_div_ind = sa.Column(sa.Integer(1), nullable=False)
+    mo_do_code = sa.Column(sa.Integer(1), nullable=False)
+    birth_year = sa.Column(sa.String(), nullable=False)
+    birth_city = sa.Column(sa.String(), nullable=False)
+    birth_state = sa.Column(sa.String(2), nullable=False)
+    birth_country = sa.Column(sa.String(), nullable=False)
+    gender = sa.Column(sa.String(), nullable=False)
+    telephone_number = sa.Column(sa.String(), nullable=False)
+    presumed_dead_flag = sa.Column(sa.String(1), nullable=False)
+    fax_number = sa.Column(sa.String(), nullable=False)
+    top_cd = sa.Column(sa.Integer(3), nullable=False)
+    pe_cd = sa.Column(sa.Integer(3), nullable=False)
+    prim_spec_cd = sa.Column(sa.String(), nullable=False)
+    sec_spec_cd = sa.Column(sa.String(), nullable=False)
+    mpa_cd = sa.Column(sa.String(), nullable=False)
+    pra_recipient = sa.Column(sa.String(1), nullable=False)
+    pra_exp_dt = sa.Column(sa.Integer(8), nullable=False)
+    gme_conf_flg = sa.Column(sa.String(1), nullable=False)
+    from_dt = sa.Column(sa.String(), nullable=False)
+    to_dt = sa.Column(sa.String(), nullable=False)
+    year_in_program = sa.Column(sa.Integer(1), nullable=False)
+    post_graduate_year = sa.Column(sa.Integer(1), nullable=False)
+    gme_spec_1 = sa.Column(sa.String(), nullable=False)
+    gme_spec_2 = sa.Column(sa.String(2), nullable=False)
+    training_type = sa.Column(sa.Integer(1), nullable=False)
+    gme_inst_state = sa.Column(sa.String(2), nullable=False)
+    gme_inst_id = sa.Column(sa.String(), nullable=False)
+    medschool_state = sa.Column(sa.String(), nullable=False)
+    medschool_id = sa.Column(sa.String(2), nullable=False)
+    medschool_gradyear = sa.Column(sa.String(), nullable=False)
+    no_contact_ind = sa.Column(sa.String(1), nullable=False)
+    no_web_flag = sa.Column(sa.String(1), nullable=False)
+    pdrp_flag = sa.Column(sa.String(1), nullable=False)
+    pdrd_start_dp = sa.Column(sa.String(), nullable=False)
+    polo_mailing_line_1 = sa.Column(sa.String(), nullable=False)
+    polo_mailing_line_2 = sa.Column(sa.String(), nullable=False)
+    polo_city = sa.Column(sa.String(), nullable=False)
+    polo_state = sa.Column(sa.String(2), nullable=False)
+    polo_zip = sa.Column(sa.String(), nullable=False)
+    polo_sector = sa.Column(sa.String(), nullable=False)
+    polo_carrier_route = sa.Column(sa.String(), nullable=False)
+    most_recent_former_last_name = sa.Column(sa.String(), nullable=False)
+    most_recent_former_middle_name = sa.Column(sa.String(), nullable=False)
+    most_recent_former_first_name = sa.Column(sa.String(), nullable=False)
+    next_most_recent_former_last = sa.Column(sa.String(), nullable=False)
+    next_most_recent_former_middle = sa.Column(sa.String(), nullable=False)
+    next_most_recent_former_first = sa.Column(sa.String(), nullable=False)

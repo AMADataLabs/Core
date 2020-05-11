@@ -1,0 +1,7 @@
+alembic==1.4.2
+boto3==1.12.45
+json5==0.8.5
+pandas==1.0.1
+psycopg2-binary==2.8.5
+python-dotenv==0.12.0
+sqlalchemy==1.3.13
