@@ -74,10 +74,11 @@ def new_data_available(date_last_updated) -> bool:
     return date_last_updated == today
 
 
-def check_disciplinary_action_data_quality(data_directory, required_files, log_paths)
+def check_disciplinary_action_data_quality(data_directory, required_files, log_paths):
     failure_counts = FailureCounts()
     # have new result updated, get path of new result and list of contents
     path, folders = get_latest_folder_path(data_directory)
+    date = datetime.datetime.now().date()
 
     LOGGER.info(f'new folders uploaded: {path}')
 
@@ -107,29 +108,29 @@ def check_disciplinary_action_data_quality(data_directory, required_files, log_p
                         if not check_file_name_format(file, type):
                             LOGGER.info(f'File Format is not right: {file} as type {type}')
                             failure_counts.name_format += 1
-                            log_file_failure(log_paths.file=log_paths.file,
-                                             date=date,
-                                             file=file,
-                                             failure_type='name_format - file type')
+                            log_file_failure(log_paths.file,
+                                             date,
+                                             file,
+                                             'name_format - file type')
 
                         # check csv file:
                         if type == 'QA':
                             if not check_qa_file(fullpath):
                                 LOGGER.info(f'QA file {file} is not right')
                                 failure_counts.file_quality += 1
-                                log_file_failure(log_paths.file=log_paths.file,
-                                                 date=date,
-                                                 file=file,
-                                                 failure_type='file_quality - QA')
+                                log_file_failure(log_paths.file,
+                                                 date,
+                                                 file,
+                                                 'file_quality - QA')
                         # check board orders file:
                         elif type == 'BO' or type == 'SL' or type == 'NL':
                             if not check_bo_pdf(fullpath):
                                 LOGGER.info(f'PDF file {file} has blank page')
                                 failure_counts.file_quality += 1
-                                log_file_failure(log_paths.file=log_paths.file,
-                                                 date=date,
-                                                 file=file,
-                                                 failure_type='file_quality - blank page')
+                                log_file_failure(log_paths.file,
+                                                 date,
+                                                 file,
+                                                 'file_quality - blank page')
 
 
     else:
@@ -149,10 +150,10 @@ def check_disciplinary_action_data_quality(data_directory, required_files, log_p
                 else:
                     LOGGER.info(f'File Format is not right: {file}')
                     failure_counts.name_format += 1
-                    log_file_failure(log_paths.file=log_paths.file,
-                                     date=date,
-                                     file=file,
-                                     failure_type='name_format')
+                    log_file_failure(log_paths.file,
+                                     date,
+                                     file,
+                                     'name_format')
 
                 # check csv file:
                 if type == 'QA':
@@ -160,19 +161,19 @@ def check_disciplinary_action_data_quality(data_directory, required_files, log_p
                     if not check_qa_file(fullpath):
                         LOGGER.info(f'QA file {file} is not right')
                         failure_counts.file_quality += 1
-                        log_file_failure(log_paths.file=log_paths.file,
-                                         date=date,
-                                         file=file,
-                                         failure_type='file_quality - QA')
+                        log_file_failure(log_paths.file,
+                                         date,
+                                         file,
+                                         'file_quality - QA')
                 # check board orders file:
                 elif type == 'BO':
                     if not check_bo_pdf(fullpath):  # define the function to check board orders
                         LOGGER.info(f'BO file {file} is not right')
                         failure_counts.file_quality += 1
-                        log_file_failure(log_paths.file=log_paths.file,
-                                         date=date,
-                                         file=file,
-                                         failure_type='file_quality - BO')
+                        log_file_failure(log_paths.file,
+                                         date,
+                                         file,
+                                         'file_quality - BO')
 
 
 with open(log_paths.count, 'a') as count_log_file:
@@ -351,8 +352,8 @@ def get_doc_type(filename) -> str:
     return type
 
 
-def log_file_failure(log_paths.file, date, file, failure_type):
-    with open(log_paths.file, 'a') as f:
+def log_file_failure(log_path, date, file, failure_type):
+    with open(log_path, 'a') as f:
         f.write(f'\n{date}, {file}, {failure_type}')
 
 
