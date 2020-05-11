@@ -1,49 +1,30 @@
 """ Check the quality of disciplinary action data. """
-# CLEAN CODE NOTE: Core Python imports go first in alphabetical order
 import csv
 from   dataclasses import dataclass
-import datetime
+from   datetime import datetime
 import glob
 import json
+import logging
 import os
 import re
 from   time import strftime
 
-# CLEAN CODE NOTE: External dependencies go next.
-#   Make sure these get added to the master dependencies list (Build/Master/requirements.txt).
 from PyPDF2 import PdfFileReader
 
-# CLEAN CODE NOTE: Local/repo imports go last.
 import settings
 
-
-# CLEAN CODE NOTE: To Do lists are fine for branch code, but they should be removed when merging to master. If you are not
-#   done, create stories for the required work or keep track of it in the comments of the current story.
-
-# TODO:
-# 1. function check name format 3.5
-# 2. get statistic data for weekly report and get PowerBI Dashboard
-
-# CLEAN CODE NOTE: Avoid global variables if at all possible. If you must, use the PEP8 standard of all-caps names.
-#   This makes it clear in the code that a variable is global and can be altered by ANY function or method.
-
-# CLEAN CODE NOTE: Never hard-code paths. Use the repo standard of settings module plus .env. 
-
-# path of the directory of results
-DIRECTORY = os.environ.get('INPUT_DATA_DIRECTORY')
-
-COUNT_LOG_PATH = os.environ.get('COUNT_LOG')
-FILE_LOG_PATH = os.environ.get('FILE_LOG')
-
-DATE = str(datetime.datetime.now().date())
-
-# CLEAN CODE NOTE: Large data definitions should be treated as such and put in a data file. Python natively supports
-#   JSON, so don't be afraid of creating such data as JSON files.
-
-DOC_CHECK_DICT = json.load(os.environ.get('TRACKED_FILES'))
+# CLEAN CODE NOTE: A proper logger allows you to easily adjust what level of logging is produced by the program.
+#   The LOGGER is usually the only global variable/code I allow since per-function logging is too cluttered.
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
-# CLEAN CODE NOTE: Used a dataclass or collections.namedtuple for grouping related data.
+@dataclass
+class LogPaths:
+    count: str = os.environ.get('COUNT_LOG')
+    file: str = os.environ.get('FILE_LOG')
+
 
 @dataclass
 class FailureCounts:
@@ -57,134 +38,150 @@ class FailureCounts:
 
 
 def main():
-    failure_counts = FailureCounts()
+    # CLEAN CODE NOTE: Bring globals into main() and pass them to functions. This eliminates the risk of side effects
+    #   while allowing the functions to be explicit about their parameters. Group parameters logically if needed.
+    data_directory = os.environ.get('DATA_DIRECTORY')
+    required_files = json.load(os.environ.get('REQUIRED_FILES'))
+    log_paths = LogPaths()
 
-    modtime_unix = os.path.getmtime(DIRECTORY)
 
-    # Step 0: check if there is new result in DIRECTORY, determine whether it is new procurement or re-baseline procurement
-    if not check_delivery(DIRECTORY):
-        # modtime_unix = os.path.getmtime(DIRECTORY)
-        moddate = datetime.datetime.utcfromtimestamp(modtime_unix).strftime('%Y-%m-%d')
-        print(f'no new folders uploaded, latest folder uploaded at {moddate}')
+    # CLEAN CODE NOTE: In general, names should reflect usage rather than implementation.
+    # CLEAN CODE NOTE: DRY (Don't Repeat Yourself) principle:
+    #   Just pass the mod date if you already retrieved it and you don't need the actual directory name for anything.
+    # CLEAN CODE NOTE: multi-step logic at a lower level of abstraction should be placed in a function
+    date_last_updated = modification_date(data_directory)
+
+    # CLEAN CODE NOTE: Conditional blocks indicate logic at a lower-level of abstraction, so put the logic in functions.
+    if new_data_available(date_last_updated):
+        check_disciplinary_action_data_quality(data_directory, required_files, log_paths)
     else:
-        # have new result updated, get path of new result and list of contents
-        path, folders = get_latest_folder_path(DIRECTORY)
+        LOGGER.info(f'No new folders uploaded. Last folder uploaded on {date_last_updated}.')
 
-        print(f'new folders uploaded: {path}')
 
-        # Step 0: check is new procurement or rebaseline folder:
-        if check_new_pocurement(path):
-            print('This folder is new procurement')
-            # Step 1: Validate Completeness:
-            if not ValidateCompleteness(path):
+def modification_date(path):
+    mod_time_in_seconds = os.path.getmtime(data_directory)
 
-                failure_counts.completeness += 1
-            else:  # ValidateCompleteness is True
-                if not check_files_exist(path):  # no_data folder is deleted in this function
-                    failure_counts.file_exists += 1
-                else:  # check_files_exist is True
-                    print('folders are correct, next step: check mandatory files contents in the folder')
+    mod_datetime = datetime.utcfromtimestamp(mod_time_in_seconds)
 
-                    # Step 2: Validate Content Quality
-                    # remove no_data folder
-                    validfolders = [x for x in folders if x != 'no_data']
-                    for fold in validfolders:
-                        for file in [f for f in os.listdir(path + '/' + fold) if not f.startswith('.')]:
-                            fullpath = path + '/' + fold + '/' + file
-                            # get the type of file: BO, SL, NL, QA, M (json)
-                            type = get_doc_type(file)
-                            # check name format:
-                            if not check_file_name_format(file, type):
-                                print(f'File Format is not right: {file} as type {type}')
-                                failure_counts.name_format += 1
-                                log_file_failure(FILE_LOG_PATH=FILE_LOG_PATH,
+    return mod_datetime.date()
+
+
+# CLEAN CODE NOTE: Summarize functions in the official "docstring"
+def new_data_available(date_last_updated) -> bool:
+    """ check if new data was uploaded to the directory of weekly result """
+    today = datetime.datetime.utcnow()
+
+    return date_last_updated == today
+
+
+def check_disciplinary_action_data_quality(data_directory, required_files, log_paths)
+    failure_counts = FailureCounts()
+    # have new result updated, get path of new result and list of contents
+    path, folders = get_latest_folder_path(data_directory)
+
+    LOGGER.info(f'new folders uploaded: {path}')
+
+    # Step 0: check is new procurement or rebaseline folder:
+    if check_new_pocurement(path):
+        LOGGER.debug('This folder is new procurement')
+        # Step 1: Validate Completeness:
+        if not ValidateCompleteness(path):
+
+            failure_counts.completeness += 1
+        else:  # ValidateCompleteness is True
+            if not check_files_exist(path):  # no_data folder is deleted in this function
+                failure_counts.file_exists += 1
+            else:  # check_files_exist is True
+                LOGGER.info('folders are correct')
+                LOGGER.debug('next step: check mandatory files contents in the folder')
+
+                # Step 2: Validate Content Quality
+                # remove no_data folder
+                validfolders = [x for x in folders if x != 'no_data']
+                for fold in validfolders:
+                    for file in [f for f in os.listdir(path + '/' + fold) if not f.startswith('.')]:
+                        fullpath = path + '/' + fold + '/' + file
+                        # get the type of file: BO, SL, NL, QA, M (json)
+                        type = get_doc_type(file)
+                        # check name format:
+                        if not check_file_name_format(file, type):
+                            LOGGER.info(f'File Format is not right: {file} as type {type}')
+                            failure_counts.name_format += 1
+                            log_file_failure(log_paths.file=log_paths.file,
+                                             date=date,
+                                             file=file,
+                                             failure_type='name_format - file type')
+
+                        # check csv file:
+                        if type == 'QA':
+                            if not check_qa_file(fullpath):
+                                LOGGER.info(f'QA file {file} is not right')
+                                failure_counts.file_quality += 1
+                                log_file_failure(log_paths.file=log_paths.file,
                                                  date=date,
                                                  file=file,
-                                                 failure_type='name_format - file type')
-
-                            # check csv file:
-                            if type == 'QA':
-                                if not check_qa_file(fullpath):
-                                    print(f'QA file {file} is not right')
-                                    failure_counts.file_quality += 1
-                                    log_file_failure(FILE_LOG_PATH=FILE_LOG_PATH,
-                                                     date=date,
-                                                     file=file,
-                                                     failure_type='file_quality - QA')
-                            # check board orders file:
-                            elif type == 'BO' or type == 'SL' or type == 'NL':
-                                if not check_bo_pdf(fullpath):
-                                    print(f'PDF file {file} has blank page')
-                                    failure_counts.file_quality += 1
-                                    log_file_failure(FILE_LOG_PATH=FILE_LOG_PATH,
-                                                     date=date,
-                                                     file=file,
-                                                     failure_type='file_quality - blank page')
-                                #else:
-                                #    print('')
+                                                 failure_type='file_quality - QA')
+                        # check board orders file:
+                        elif type == 'BO' or type == 'SL' or type == 'NL':
+                            if not check_bo_pdf(fullpath):
+                                LOGGER.info(f'PDF file {file} has blank page')
+                                failure_counts.file_quality += 1
+                                log_file_failure(log_paths.file=log_paths.file,
+                                                 date=date,
+                                                 file=file,
+                                                 failure_type='file_quality - blank page')
 
 
-        else:
-            print('This folder is re-baselined folder')
-            #updatefolders = [f for f in os.listdir(DIRECTORY + 'results_04_08_2020_09_10PM') if not f.startswith('.')]
-            #updatefolders = [f for f in os.listdir(path) if not f.startswith('.')]
-            validupdatefolders = [f for f in folders if f != 'no_data']
-            for fold in validupdatefolders:
-                for file in [f for f in os.listdir(path + fold) if not f.startswith('.')]:
-                    fullpath = path +'/' + fold + '/' + file
-                    # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold + '/' + file
-                    type = get_doc_type(file)
+    else:
+        LOGGER.debug('This folder is a re-baselined folder')
+        #updatefolders = [f for f in os.listdir(data_directory + 'results_04_08_2020_09_10PM') if not f.startswith('.')]
+        #updatefolders = [f for f in os.listdir(path) if not f.startswith('.')]
+        validupdatefolders = [f for f in folders if f != 'no_data']
+        for fold in validupdatefolders:
+            for file in [f for f in os.listdir(path + fold) if not f.startswith('.')]:
+                fullpath = path +'/' + fold + '/' + file
+                # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold + '/' + file
+                type = get_doc_type(file)
 
-                    # check name format:
-                    if check_file_name_format(file, type):
-                        print('File format is right.')
-                    else:
-                        print(f'File Format is not right: {file}')
-                        failure_counts.name_format += 1
-                        log_file_failure(FILE_LOG_PATH=FILE_LOG_PATH,
+                # check name format:
+                if check_file_name_format(file, type):
+                    LOGGER.debug('File format is right.')
+                else:
+                    LOGGER.info(f'File Format is not right: {file}')
+                    failure_counts.name_format += 1
+                    log_file_failure(log_paths.file=log_paths.file,
+                                     date=date,
+                                     file=file,
+                                     failure_type='name_format')
+
+                # check csv file:
+                if type == 'QA':
+                    # if not check_qa_file(fullpath):  # define the function to check qa csv file
+                    if not check_qa_file(fullpath):
+                        LOGGER.info(f'QA file {file} is not right')
+                        failure_counts.file_quality += 1
+                        log_file_failure(log_paths.file=log_paths.file,
                                          date=date,
                                          file=file,
-                                         failure_type='name_format')
-
-                    # check csv file:
-                    if type == 'QA':
-                        # if not check_qa_file(fullpath):  # define the function to check qa csv file
-                        if not check_qa_file(fullpath):
-                            print(f'QA file {file} is not right')
-                            failure_counts.file_quality += 1
-                            log_file_failure(FILE_LOG_PATH=FILE_LOG_PATH,
-                                             date=date,
-                                             file=file,
-                                             failure_type='file_quality - QA')
-                    # check board orders file:
-                    elif type == 'BO':
-                        if not check_bo_pdf(fullpath):  # define the function to check board orders
-                            print(f'BO file {file} is not right')
-                            failure_counts.file_quality += 1
-                            log_file_failure(FILE_LOG_PATH=FILE_LOG_PATH,
-                                             date=date,
-                                             file=file,
-                                             failure_type='file_quality - BO')
+                                         failure_type='file_quality - QA')
+                # check board orders file:
+                elif type == 'BO':
+                    if not check_bo_pdf(fullpath):  # define the function to check board orders
+                        LOGGER.info(f'BO file {file} is not right')
+                        failure_counts.file_quality += 1
+                        log_file_failure(log_paths.file=log_paths.file,
+                                         date=date,
+                                         file=file,
+                                         failure_type='file_quality - BO')
 
 
-    with open(COUNT_LOG_PATH, 'a') as count_log_file:
-        count_log_file.write(
-            '\n{},{},{},{},{},{}, {}'.format(
-                date, failcount, failure_counts.name_format, failure_counts.completeness, failure_counts.file_exists,
-                failure_counts.file_quality, failure_counts.no_data_pdf, failure_counts.no_data_duplicate
-            )
+with open(log_paths.count, 'a') as count_log_file:
+    count_log_file.write(
+        '\n{},{},{},{},{},{}, {}'.format(
+            date, failcount, failure_counts.name_format, failure_counts.completeness, failure_counts.file_exists,
+            failure_counts.file_quality, failure_counts.no_data_pdf, failure_counts.no_data_duplicate
         )
-
-
-# Part 2: User Define Functions
-# 0. check if new result uploaded in the directory of weekly result
-def check_delivery(direct) -> bool:
-    # get most recent modification time:
-    modtime_unix = os.path.getmtime(direct)
-    moddate = datetime.datetime.utcfromtimestamp(modtime_unix).strftime('%Y-%m-%d')
-    now = datetime.datetime.now()
-    present_date = now.strftime('%Y-%m-%d')
-    return moddate == present_date
+    )
 
 
 def get_latest_folder_path(dir) -> list:
@@ -221,19 +218,20 @@ def ValidateCompleteness(path) -> bool:
         if file[-4:] == '.pdf':
             count += 1
     if count == 0:
-        print('no pdf files in no_data folder. Good!')
+        LOGGER.debug('no pdf files in no_data folder. Good!')
         # b) check no same folder outside not data folder. # logic: whole folders in two layers == 69, loop to check the duplicate
         if len(folders) + len(nodatafolders) == 69:  # folders in total in and out no_data should be 69
-            print('It seems the total number of folders is right, next step examine will be executed.')
+            LOGGER.info('It seems the total number of folders is correct.')
+            LOGGER.debug('Next step, examine will be executed.')
             wholefolders = folders + nodatafolders
             noDupFolders = set(wholefolders)
             if len(wholefolders) == len(noDupFolders):
-                print('there is no duplicate in the folder. Cool!')
+                LOGGER.debug('there is no duplicate in the folder. Cool!')
                 return True
             else:
-                print('There is a duplicate folder in and out no_data folder.')
+                LOGGER.info('There is a duplicate folder in and out no_data folder.')
         else:
-            print(f'folder total number is not right: {len(folders) + len(nodatafolders)}')
+            LOGGER.info(f'folder total number is not right: {len(folders) + len(nodatafolders)}')
 
 
 # 3. check if can download to Udrive??
@@ -276,7 +274,7 @@ def check_file_name_format(filename, type) -> bool:
 
 
 # 4. check if mandatory files exits in each folder
-def check_files_exist(path) -> bool:
+def check_files_exist(path, required_files) -> bool:
     validfolders = [x for x in folders if x != 'no_data']
     for f in validfolders:
         keyvalue = f.rsplit('_', 5)[0]
@@ -286,7 +284,7 @@ def check_files_exist(path) -> bool:
         for i in os.listdir(path + '/' + f):
             # check if there is word file:
             if i.split('.')[-1] in ['docx', 'doc']:
-                print(f'There is a non-pdf file: {i}')
+                LOGGER.info(f'There is a non-pdf file: {i}')
                 return False
             # get file type in each state folder:
             type = i.split('.')[0].rsplit('_', 1)[1]
@@ -296,26 +294,26 @@ def check_files_exist(path) -> bool:
                 type = i.split('.')[0].rsplit('_', 2)[-2]
             filetype.append(type)
         # check if all necessary files are in the folder:
-        if keyvalue in DOC_CHECK_DICT['SL&BO']:
+        if keyvalue in expected_files['SL&BO']:
             if set(filetype) == {'M', 'QA', 'SL', 'BO'}:
                 return True
             else:
-                print(f'only have {filetype}')
-        elif keyvalue in DOC_CHECK_DICT['SL']:
+                LOGGER.info(f'only have {filetype}')
+        elif keyvalue in expected_files['SL']:
             if set(filetype) == {'M', 'QA', 'SL'}:
                 return True
             else:
-                print(f'only have {filetype}')
-        elif keyvalue in DOC_CHECK_DICT['NL&BO']:
+                LOGGER.info(f'only have {filetype}')
+        elif keyvalue in expected_files['NL&BO']:
             if set(filetype) == {'M', 'QA', 'NL', 'BO'}:
                 return True
             else:
-                print(f'only have {filetype}')
-        elif keyvalue in DOC_CHECK_DICT['NL']:
+                LOGGER.info(f'only have {filetype}')
+        elif keyvalue in expected_files['NL']:
             if set(filetype) == {'M', 'QA', 'NL'}:
                 return True
             else:
-                print(f'only have {filetype}')
+                LOGGER.info(f'only have {filetype}')
 
 
 # 5. Validate Basic Content:
@@ -324,7 +322,7 @@ def check_qa_file(filepath) -> bool:
         csvreader = csv.reader(f, delimiter=",")
         for row in csvreader:
             if row[1] in (None, ''):
-                print(f'no value for {row[0]}')
+                LOGGER.info(f'no value for {row[0]}')
                 return False
             else:
                 continue
@@ -337,7 +335,7 @@ def check_bo_pdf(filepath) -> bool:
     for i in range(pagenum):
         # Page is blank or not
         if pdfObj.getPage(i).getContents() is None:
-            print(f'Page {i} of {filepath} is blank.')
+            LOGGER.info(f'Page {i} of {filepath} is blank.')
             return False
     return True
     # Page is distorted or not: TODO.
@@ -353,8 +351,8 @@ def get_doc_type(filename) -> str:
     return type
 
 
-def log_file_failure(FILE_LOG_PATH, date, file, failure_type):
-    with open(FILE_LOG_PATH, 'a') as f:
+def log_file_failure(log_paths.file, date, file, failure_type):
+    with open(log_paths.file, 'a') as f:
         f.write(f'\n{date}, {file}, {failure_type}')
 
 

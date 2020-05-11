@@ -5,8 +5,8 @@ DATALABS_PYTHONPATH='{{ pythonpath }}'
 PROJECT_NAME='DisciplinaryDataQuality'
 
 
-INPUT_DATA_DIRECTORY='U:/Data Procurement & Disciplinary/JIRA Historical Documents/DISCP/'
+DATA_DIRECTORY='U:/Data Procurement & Disciplinary/JIRA Historical Documents/DISCP/'
 
 COUNT_LOG='U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityLog.csv'
 FILE_LOG='U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityFileLog.csv'
-TRACKED_FILES='tracked_files.json'
+REQUIRED_FILES='required_files.json'
