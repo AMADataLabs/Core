@@ -1,0 +1,7 @@
+---
+modspec:
+  - package: datalabs
+    include:
+      - plugin
+  - package: datalabs.etl.ppd
+
