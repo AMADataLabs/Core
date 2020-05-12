@@ -4,8 +4,6 @@
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 . ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup/venv.sh
-SCHEMA=
-MODEL_MODULE=
 PROJECT=
 FORCE_OVERWRITE=false
 MASTER_BUILD_PATH=
@@ -14,11 +12,13 @@ BUILD_PATH=
 
 main() {
     process_arguments $*
+
     BUNDLE_DIRECTORY=${BUILD_PATH}/app
+    ENVIRONMENT_DIRECTORY=${BUILD_PATH}/app
 
-    create_bundle_directory
+    create_bundle_directory $BUNDLE_DIRECTORY
 
-    copy_source_files
+    copy_source_files $BUNDLE_DIRECTORY
 
     copy_dependency_files
 
@@ -32,15 +32,8 @@ process_arguments() {
             print_usage
             exit 0
             ;;
-        -s|--schema)
-            SCHEMA=$2
-            echo "Schema: $2"
-            shift
-            shift
-            ;;
-        -m|--model-module)
-            MODEL_MODULE=$2
-            shift
+        -z|--zip)
+            FORCE_OVERWRITE=true
             shift
             ;;
         -f|--force)
@@ -72,7 +65,6 @@ process_arguments() {
 
     MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
     BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT}
-    BUNDLE_DIRECTORY=${BUILD_PATH}/app
 }
 
 
