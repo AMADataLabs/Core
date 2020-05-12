@@ -8,4 +8,4 @@ Environment/*
 
 .idea
 venv
-
+get-pip.py
