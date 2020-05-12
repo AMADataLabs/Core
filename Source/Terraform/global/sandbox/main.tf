@@ -7,6 +7,6 @@ module "terraform_state" {
     source = "../state"
 
     environment         = "Sandbox"
-    contact             = "peter.lane@ama-assn.org"
+    contact             = "DataLabs@ama-assn.org"
     state_bucket        = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
 }
