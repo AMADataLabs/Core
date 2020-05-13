@@ -2,13 +2,12 @@
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
 
-
 naming_convention = {
-  "ix": "ix_%(column_0_label)s",
-  "uq": "uq_%(table_name)s_%(column_0_name)s",
-  "ck": "ck_%(table_name)s_%(constraint_name)s",
-  "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-  "pk": "pk_%(table_name)s"
+    "ix": "ix_%(column_0_label)s",
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
 }
 
 metadata = sa.MetaData(naming_convention=naming_convention)
@@ -24,6 +23,8 @@ class CPTDescriptor(Base):
     short_form = sa.Column(sa.String(28), nullable=False)
     medium_form = sa.Column(sa.String(48), nullable=False)
     long_form = sa.Column(sa.String(), nullable=False)
+    created = sa.Column(sa.DateTime, nullable=False)
+    modified = sa.Column(sa.DateTime, nullable=False)
 
 
 class ModifierType(Base):
@@ -49,6 +50,8 @@ class ConsumerDescriptor(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     descriptor = sa.Column(sa.String, nullable=False)
+    created = sa.Column(sa.DateTime, nullable=False)
+    modified = sa.Column(sa.DateTime, nullable=False)
 
 
 class ClinicianDescriptor(Base):
@@ -57,6 +60,8 @@ class ClinicianDescriptor(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     descriptor = sa.Column(sa.String, nullable=False)
+    created = sa.Column(sa.DateTime, nullable=False)
+    modified = sa.Column(sa.DateTime, nullable=False)
 
 
 class Concept(Base):
@@ -66,6 +71,8 @@ class Concept(Base):
     id = sa.Column(sa.Integer, primary_key=True)
     cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.cpt_descriptor.cpt_code"), nullable=False)
     consumer_descriptor_id = sa.Column(sa.Integer, sa.ForeignKey("cpt.consumer_descriptor.id"), nullable=False)
+    created = sa.Column(sa.DateTime, nullable=False)
+    modified = sa.Column(sa.DateTime, nullable=False)
 
 
 class ClinicianDescriptorMapping(Base):
