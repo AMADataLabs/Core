@@ -13,6 +13,9 @@ class SourceBundle:
     def __init__(self, modspec_path):
         self._modspec_path = modspec_path
 
+    def copy(self, base_path):
+        files = files(base_path)
+
     def files(self, base_path):
         modspec_yaml = self._load_module_spec(self._modspec_path)
 

@@ -16,8 +16,8 @@ metadata = sa.MetaData(naming_convention=naming_convention)
 Base = declarative_base(metadata=metadata)
 
 
-class Description(Base):
-    __tablename__ = 'description'
+class CPTDescriptor(Base):
+    __tablename__ = 'cpt_descriptor'
     __table_args__ = {"schema": "cpt"}
 
     cpt_code = sa.Column(sa.String(5), primary_key=True)
@@ -26,15 +26,39 @@ class Description(Base):
     long = sa.Column(sa.String(), nullable=False)
 
 
-class Descriptor(Base):
-    __tablename__ = 'descriptor'
+class ConsumerDescriptor(Base):
+    __tablename__ = 'consumer_descriptor'
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.description.cpt_code"), nullable=False)
-    concept_id = sa.Column(sa.Integer, nullable=False)
-    clinician = sa.Column(sa.String, nullable=False)
-    consumer = sa.Column(sa.String, nullable=False)
+    cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.cpt_descriptor.cpt_code"), nullable=False)
+    descriptor = sa.Column(sa.String, nullable=False)
+
+
+class ClinicianDescriptor(Base):
+    __tablename__ = 'clinician_descriptor'
+    __table_args__ = {"schema": "cpt"}
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.cpt_descriptor.cpt_code"), nullable=False)
+    descriptor = sa.Column(sa.String, nullable=False)
+
+
+class ConceptMapping(Base):
+    __tablename__ = 'concept_mapping'
+    __table_args__ = {"schema": "cpt"}
+
+    concept_id = sa.Column(sa.Integer, primary_key=True)
+    cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.cpt_descriptor.cpt_code"), nullable=False)
+
+
+class ClinicianDescriptorMapping(Base):
+    __tablename__ = 'clinician_descriptor_mapping'
+    __table_args__ = {"schema": "cpt"}
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    clinician_descriptor_id = sa.Column(sa.Integer, sa.ForeignKey("cpt.clinician_descriptor.id"), nullable=False)
+    cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.cpt_descriptor.cpt_code"), nullable=False)
 
 
 class ModifierType(Base):
