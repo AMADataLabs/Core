@@ -69,7 +69,7 @@ def grab_data():
     states = get_states()
     data = scrape()
     dict_list = []
-    for paragraph in data[6:-10]:
+    for paragraph in data[10:-10]:
         if paragraph.text == "\xa0":
             continue
         link = 'None'
@@ -142,6 +142,13 @@ def grab_data():
             if specialty == 'Doctor' and 'Medical' not in location:
                 specialty = location
                 location = 'None'
+            if country in states:
+                state = country
+                country = 'USA'
+            if not str(age).isnumeric() and age!='None' and age != 'age unknown':
+                city = specialty
+                specialty = age
+                age = 'None'
         except IndexError as index_error:
             if ',' in paragraph.text:
                 print('Human intervention needed for the following exception:')
