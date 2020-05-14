@@ -18,6 +18,13 @@ tags:
     description: >-
       CPT descriptor for either a clinician or consumer.  This corresponds to
       entries in the cpt_descriptor table.
+  - name: PLA
+    description: >-
+      Proprietary laboratory analyses codes with long, medium, short, clinical and consumer descriptors. Includes various dates,code status, lab name, manufacturer name and test name.
+  - name: PDF
+    description: >-
+      Returns a time-limited URL to a zip archive of the PDFs
+
     externalDocs:
       url: 'http://swagger.io'
 paths:
@@ -39,7 +46,15 @@ paths:
             type: string
       - name: keyword
         in: query
-        description: Filter by keyword across any of the description lengths.
+        description: Filter by keyword across any of the description lengths, code, and/or descriptor text.
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - name: since
+        in: query
+        description: Filters new codes since a date ("YYYY-MM-DD"), the last annual release ("annual"), or the last quarterly release ("quarterly").since "annualy" or "quarterly"
         required: false
         schema:
           type: array
@@ -141,7 +156,7 @@ paths:
     get:
       tags:
         - Descriptor
-      summary: All CPT descriptors.s
+      summary: All CPT descriptors
       description: Returns all descriptors in their clinician and consumer friendly forms.
       operationId: viewAllDescriptors
       parameters:
@@ -155,7 +170,15 @@ paths:
               type: string
         - name: keyword
           in: query
-          description: Filter by keyword across any of the desriptor forms.
+          description: Filter by keyword across any of the description lengths, code, and/or descriptor text.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: since
+          in: query
+          description: Filters new codes since a date ("YYYY-MM-DD"), the last annual release ("annual"), or the last quarterly release ("quarterly").since "annualy" or "quarterly"
           required: false
           schema:
             type: array
@@ -175,6 +198,113 @@ paths:
       security:
         - cpt_auth:
             - 'read:descriptors'
+  /PLA/descriptions:
+    get:
+      tags:
+        - PLA
+      summary: All PLA codes with their descriptors
+      description: ALL PLA codes
+      operationId: viewAllPLA
+      parameters:
+        - name: length
+          in: query
+          description: Filter by "long", "medium", "short" descriptors
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: keyword
+          in: query
+          description: Filter by keyword across any of the description lengths, code, and/or descriptor text.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: since
+            in: query
+            description: Filters new codes since a date ("YYYY-MM-DD"), the last annual release ("annual"), or the last quarterly release ("quarterly").since "annualy" or "quarterly"
+            required: false
+            schema:
+              type: array
+              items:
+                type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PLA'
+        '400':
+          description: invalid query parameter
+      security:
+        - cpt_auth:
+            - 'read:pla'
+  '/PLA/descriptor/{code_number}':
+    get:
+      tags:
+        - PLA
+      summary: PLA codes by ID
+      description: >-
+        Returns the PLA codes and descriptors by code number.
+      operationId: findPLAById
+      parameters:
+        - name: code_number
+          in: path
+          description: clinician descriptor ID
+          required: true
+          schema:
+            type: string
+        - name: length
+          in: query
+          description: Filter by "long", "medium", "short" descriptors
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PLA'
+        '400':
+          description: invalid parameters
+        '404':
+          description: PLA descriptor not found for ID
+      security:
+        - cpt_auth:
+            - 'read:pla'
+
+  /PDF:
+    get:
+      tags:
+        - PDF
+      summary: Zip archive of the pdfs
+      description: >-
+        Provides a time-limited URL to a zip archive of the PDFs
+      operationId: getPDFLink
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PDF'
+        '400':
+          description: invalid parameters
+
+
 components:
   schemas:
     Description:
@@ -216,6 +346,56 @@ components:
         consumer:
           type: string
           format: byte
+    PLA:
+      type: object
+      required:
+        - pla_code
+        - long_description
+        - medium_description
+        - short_description
+        - code_status
+        - effective_date
+        - lab_name
+        - manufacturer_name
+        - publish_date
+        - test_name
+      properties:
+        pla_code:
+          type: string
+          format: byte
+        long_description:
+          type: string
+          format: byte
+        medium_description:
+          type: string
+          format: byte
+        short_description:
+          type: string
+          format: byte
+        code_status:
+          type: string
+          format: byte
+        effective_date:
+          type: string
+          format: byte
+        lab_name:
+          type: string
+          format: byte
+        manufacturer_name:
+          type: string
+          format: byte
+        published_date:
+          type: string
+          format: byte
+        test_name:
+          type: string
+          format: byte
+    PDF:
+      type: object
+      properties:
+        url:
+          type: string
+          format: byte
   securitySchemes:
     cpt_auth:
       type: oauth2
@@ -225,6 +405,8 @@ components:
           scopes:
             'read:cpt': read cpt table
             'read:descriptors': read clinical descriptor table
+            'read:pla' : read pla codes table
+            'read:pdf' : read pdf url
     api_key:
         type: apiKey
         name: api_key
