@@ -4,25 +4,30 @@
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 . ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup/venv.sh
-SCHEMA=
-MODEL_MODULE=
+MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
+PYTHON_SOURCE_PATH=${SCRIPT_BASE_PATH}/../Source/Python
 PROJECT=
 FORCE_OVERWRITE=false
-MASTER_BUILD_PATH=
-BUILD_PATH=
+PROJECT_BUILD_PATH=
+PROJECT_ENVIRONMENT_PATH=
+ZIP_BUNDLE=
 
 
 main() {
     process_arguments $*
-    BUNDLE_DIRECTORY=${BUILD_PATH}/app
 
-    create_bundle_directory
+    BUNDLE_PATH=${PROJECT_BUILD_PATH}/app
+    BUNDLE_ZIP_PATH=${PROJECT_BUILD_PATH}/app.zip
 
-    copy_source_files
+    create_bundle_directory $BUNDLE_PATH
 
-    copy_dependency_files
+    copy_source_files $BUNDLE_PATH
 
-    zip_bundle_directory
+    copy_dependency_files $BUNDLE_PATH
+
+    if [[ "$ZIP_BUNDLE" == true ]]; then
+        zip_bundle_directory $BUNDLE_PATH $BUNDLE_ZIP_PATH
+    fi
 }
 
 process_arguments() {
@@ -32,15 +37,8 @@ process_arguments() {
             print_usage
             exit 0
             ;;
-        -s|--schema)
-            SCHEMA=$2
-            echo "Schema: $2"
-            shift
-            shift
-            ;;
-        -m|--model-module)
-            MODEL_MODULE=$2
-            shift
+        -s|--serverless)
+            ZIP_BUNDLE=true
             shift
             ;;
         -f|--force)
@@ -70,37 +68,40 @@ process_arguments() {
         exit 1
     fi
 
-    MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
-    BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT}
-    BUNDLE_DIRECTORY=${BUILD_PATH}/app
+    PROJECT_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT}
+    PROJECT_ENVIRONMENT_PATH=${SCRIPT_BASE_PATH}/../Environment/${PROJECT}
 }
 
 
 create_bundle_directory() {
-    if [[ -d $BUNDLE_DIRECTORY ]]; then
-        real_directory_path=`realpath ${DIRECTORY_PATH}`
-        echo "Deleting old bundle directory ${real_directory_path}."
+    BUNDLE_PATH=$1
 
-        # rm -rf $BUNDLE_DIRECTORY
+    if [[ -d $BUNDLE_PATH && "$FORCE_OVERWRITE" == false ]]; then
+        real_path=`realpath ${BUNDLE_PATH}`
+        echo "Error: Bundle directory ${real_path} already exists."
+        exit 2
     fi
 
-    echo "Creating bundle directory ${real_directory_path}."
+    # rm -rf $PROJECT_BUNDLE_PATH
+
+    echo "Creating bundle directory ${real_path}."
     mkdir -p 
 }
 
 
 copy_source_files() {
-    echo pass
+    BUNDLE_PATH=$1
 }
 
 
 copy_dependency_files() {
-    echo pass
+    BUNDLE_PATH=$2
 }
 
 
 zip_bundle_directory() {
-    echo pass
+    BUNDLE_PATH=$1
+    BUNDLE_ZIP_PATH=$2
 }
 
 

@@ -1,0 +1,12 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+# Project Settings
+PROJECT_NAME='DisciplinaryDataQuality'
+
+
+DATA_BASE_PATH='U:/Data Procurement & Disciplinary/JIRA Historical Documents/DISCP/'
+
+COUNT_LOG='U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityLog.csv'
+FILE_LOG='U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityFileLog.csv'
+REQUIRED_FILES='required_files.json'

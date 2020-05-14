@@ -1,0 +1,25 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+# Database Settings
+DATABASE_HOST_RDS='{{ rds_database_host }}'
+DATABASE_NAME_RDS='{{ rds_database_name }}'
+CREDENTIALS_RDS_USERNAME='{{ rds_username }}'
+CREDENTIALS_RDS_PASSWORD='{{ rds_password }}'
+
+# Project Settings
+PROJECT_NAME='PPD'
+
+# ETL Settings
+ETL_CONVERTPPD_LAMBDA_FUNCTION=
+ETL_CONVERTPPD_APP=datalabs.etl.ppd.convert.app.ETL
+ETL_CONVERTPPD_EXTRACTOR=datalabs.etl.extract.S3Extractor
+ETL_CONVERTPPD_EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-ingestion-sandbox
+ETL_CONVERTPPD_EXTRACTOR_BASE_PATH=/AMA/PPD
+ETL_CONVERTPPD_EXTRACTOR_FILES='{{ppd_file}}'
+ETL_CONVERTPPD_EXTRACTOR_FILE_TYPES=PPD
+
+
+ETL_LOADPPD_LAMBDA_FUNCTION=
+ETL_LOADPPD_APP=datalabs.etl.ppd.load.app.ETL
+

@@ -26,6 +26,7 @@ psycopg2-binary==2.8.5
 pydeps==1.9.0
 pylint==2.4.4
 pyodbc==4.0.28
+PyPDF2==1.26.0
 pytest==5.3.5
 python-dateutil==2.8.1
 python-dotenv==0.12.0

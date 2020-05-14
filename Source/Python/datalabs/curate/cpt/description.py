@@ -39,10 +39,8 @@ def check_tab_delimited(fname, index, descriptions):
     if not descriptions[index][0]:
         with open(fname, 'r') as f:
             data = f.read().replace('\t', '   ')
-        f.close()
         with tempfile.TemporaryFile(mode='w') as temp:
             temp.write(data)
-        f.close()
         return temp
     else:
         return fname

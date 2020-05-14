@@ -7,8 +7,47 @@ PROJECT_NAME=$1
 
 
 main() {
-  run="python ${SCRIPT_PATH}/run.py"
-	${run} pylint ${SCRIPT_PATH}/../Sandbox/${PROJECT_NAME}/*
+    process_arguments $*
+
+    pylint_project_directory
 }
 
-main
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        *)
+            PROJECT_NAME=$1
+            shift
+            ;;
+      esac
+    done
+
+    if [[ "$PROJECT_NAME" == "" ]]; then
+        echo "Error: The name of the Sandbox project to lint was not specified."
+        exit 1
+    fi
+}
+
+
+pylint_project_directory() {
+    RUN="python ${SCRIPT_PATH}/run.py"
+
+    ${RUN} pylint ${SCRIPT_PATH}/../Sandbox/${PROJECT_NAME}/*
+}
+
+
+print_usage() {
+    echo "Usage: pylint-sandbox [OPTION]... <project name>"
+    echo "Run pylint on files in the Sandbox/<project name>/ directory."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+}
+
+
+main $*

@@ -126,6 +126,7 @@ create_directory() {
 }
 
 
+<<<<<<< Updated upstream
 generate_build_files() {
     DIRECTORY_NAME=$1
 
@@ -137,6 +138,10 @@ generate_build_files() {
 
 generate_dependency_whitelist() {
     PROJECT_ENV_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
+=======
+generate_dependency_whitelist() {
+    PROJECT_ENV_PATH=${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+>>>>>>> Stashed changes
     WHITELIST_PATH=${PROJECT_ENV_PATH}/whitelist.txt
 
     if [[ "$DEPENDENCY_LIST" != "" ]]; then
@@ -196,6 +201,11 @@ generate_dotenv_template() {
     $ACTIVATE
     $RENDER_TEMPLATE -t ${TEMPLATE_PATH} -f ${RESULT_PATH} -v project=${PROJECT_NAME}
     deactivate
+}
+
+
+generate_dockerfile() {
+    echo "Not Implemented"
 }
 
 
