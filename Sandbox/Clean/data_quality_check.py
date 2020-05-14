@@ -49,13 +49,6 @@ class FailureCounts:
 def main():
     data_base_path = os.environ.get('DATA_BASE_PATH')
     required_files = json.load(os.environ.get('REQUIRED_FILES'))
-    # CLEAN CODE UPDATE: All setup dealing with dependencies should be done in the main function of the app.
-    #
-    #   This relates to the principle of Dependency Injection: all dependencies of a function should be
-    #   "injected" into the function instead of the function searching for its dependencies outside of itself.
-    #
-    #   Since we can't have an "unmoved mover" scenario, the main function must be responsible for doing all of
-    #   the injecting.
     log_paths = LogPaths(
         count=os.environ.get('COUNT_LOG'),
         file=os.environ.get('FILE_LOG')
@@ -92,11 +85,9 @@ def check_disciplinary_action_data_quality(data_base_path, required_files, log_p
 
     if is_newly_procured_data(latest_actions_folder):
         LOGGER.debug('This folder is a newly-procured data folder')
-        # CLEAN CODE NOTE: What does "validate" actually mean? What results from the validation?
         failure_counts = validate_newly_procured_data(latest_actions_folder)
     else:
         LOGGER.debug('This folder is a re-baselined data folder')
-        # CLEAN CODE COMMENT: Delete any commented-out code before merging to master. Revision control got you covered!
         failure_counts = validate_rebaselined_data(latest_actions_folder)
 
     log_failure_counts(log_paths.count, failure_counts)
