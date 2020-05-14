@@ -3,6 +3,7 @@ from   collections import Counter
 import csv
 from   dataclasses import dataclass
 from   datetime import datetime
+import functools
 import glob
 import json
 import logging
@@ -114,7 +115,7 @@ def is_newly_procured_data(latest_actions_folder, action_source_folders) -> bool
 
 
 def validate_newly_procured_data(latest_actions_folder):
-    failure_counts = FailureCounts()
+    failure_counts = None
     action_source_folders = folder_contents(latest_actions_folder)
 
     LOGGER.debug('This folder is new procurement')
@@ -126,14 +127,15 @@ def validate_newly_procured_data(latest_actions_folder):
     #
     #   Second, another ambigous "validate" function. In this case, its better to rename this with a boolean-returning name.
     if is_data_complete(latest_actions_folder):
+        failure_counts = validate_complete_data(latest_actions_folder)
     else:
-        failure_counts.completeness += 1
-    else:
-        validate_complete_data(latest_actions_folder)
+        failure_counts = FailureCounts(completeness=1)
+
+    return failure_counts
 
 
 def validate_rebaselined_data(latest_actions_folder):
-    failure_coutns = []
+    failure_counts = []
     action_source_folders = get_folder_contents(latest_actions_folder)
 
     # CLEAN CODE NOTE: Whatever language, use either snake case or camel case to break up words. Don't mash them togehter
@@ -149,18 +151,8 @@ def validate_rebaselined_data(latest_actions_folder):
     for folder in valid_update_folders:
         failure_counts.append(validate_update_folder(folder))
 
-    return combine_failure_counts(failure_counts)
+    return functools.reduce(lambda a, b: a + b, failure_counts)
 
-
-def combine_failure_counts(failure_counts_list: list) -> FailureCounts:
-    totals = Counter()
-
-    for failure_counts in failure_counts_list:
-        subtotals = Counter({k:getattr(failure_counts, k) for k in failure_counts.__dataclass_fields__.keys()})
-
-        totals += subtotals
-
-    return totals
 
 def log_failure_counts(log_path, failure_counts, current_date):
     with open(log_path, 'a') as count_log_file:
@@ -206,47 +198,49 @@ def is_data_complete(path) -> bool:
 
 
 def validate_complete_data(latest_actions_folder):
-        if not check_files_exist(latest_actions_folder):  # no_data folder is deleted in this function
-            failure_counts.file_exists += 1
-        else:  # check_files_exist is True
-            LOGGER.info('Disciplinary action folders are correct')
-            LOGGER.debug('next step: check mandatory files contents in the folder')
+    failure_counts = FailureCounts()
 
-            # Step 2: Validate Content Quality
-            # remove no_data folder
-            validfolders = [x for x in action_source_folders if x != 'no_data']
-            for folder in validfolders:
-                for file in [f for f in os.listdir(latest_actions_folder + '/' + folder) if not f.startswith('.')]:
-                    fullpath = latest_actions_folder + '/' + folder + '/' + file
-                    # get the type of file: BO, SL, NL, QA, M (json)
-                    type = get_doc_type(file)
-                    # check name format:
-                    if not check_file_name_format(file, type):
-                        LOGGER.info('File Format is not right: %s as type %s', file, type)
-                        failure_counts.name_format += 1
+    if not check_files_exist(latest_actions_folder):  # no_data folder is deleted in this function
+        failure_counts.file_exists += 1
+    else:  # check_files_exist is True
+        LOGGER.info('Disciplinary action folders are correct')
+        LOGGER.debug('next step: check mandatory files contents in the folder')
+
+        # Step 2: Validate Content Quality
+        # remove no_data folder
+        validfolders = [x for x in action_source_folders if x != 'no_data']
+        for folder in validfolders:
+            for file in [f for f in os.listdir(latest_actions_folder + '/' + folder) if not f.startswith('.')]:
+                fullpath = latest_actions_folder + '/' + folder + '/' + file
+                # get the type of file: BO, SL, NL, QA, M (json)
+                type = get_doc_type(file)
+                # check name format:
+                if not check_file_name_format(file, type):
+                    LOGGER.info('File Format is not right: %s as type %s', file, type)
+                    failure_counts.name_format += 1
+                    log_file_failure(log_paths.file,
+                                     current_date,
+                                     file,
+                                     'name_format - file type')
+
+                # check csv file:
+                if type == 'QA':
+                    if not check_qa_file(fullpath):
+                        LOGGER.info('QA file %s is not right', file)
+                        failure_counts.file_quality += 1
                         log_file_failure(log_paths.file,
                                          current_date,
                                          file,
-                                         'name_format - file type')
-
-                    # check csv file:
-                    if type == 'QA':
-                        if not check_qa_file(fullpath):
-                            LOGGER.info('QA file %s is not right', file)
-                            failure_counts.file_quality += 1
-                            log_file_failure(log_paths.file,
-                                             current_date,
-                                             file,
-                                             'file_quality - QA')
-                    # check board orders file:
-                    elif type == 'BO' or type == 'SL' or type == 'NL':
-                        if not check_bo_pdf(fullpath):
-                            LOGGER.info('PDF file %s has blank page', file)
-                            failure_counts.file_quality += 1
-                            log_file_failure(log_paths.file,
-                                             current_date,
-                                             file,
-                                             'file_quality - blank page')
+                                         'file_quality - QA')
+                # check board orders file:
+                elif type == 'BO' or type == 'SL' or type == 'NL':
+                    if not check_bo_pdf(fullpath):
+                        LOGGER.info('PDF file %s has blank page', file)
+                        failure_counts.file_quality += 1
+                        log_file_failure(log_paths.file,
+                                         current_date,
+                                         file,
+                                         'file_quality - blank page')
 
 
 
