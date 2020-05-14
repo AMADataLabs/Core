@@ -25,7 +25,7 @@ class Database(Datastore):
 
     @classmethod
     def _load_database_name(cls, key: str):
-        database_name_variable = f'DATABASE_NAME_{key}'
+        database_name_variable = f'DATABASE_{key}_NAME'
         database_name = os.environ.get(database_name_variable)
 
         if database_name is None:
