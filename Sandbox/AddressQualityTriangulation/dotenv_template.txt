@@ -6,7 +6,7 @@ DATABASE_NAME_AIMS='aims_prod'
 CREDENTIALS_AIMS_USERNAME='{{ aims_username }}'
 CREDENTIALS_AIMS_PASSWORD='{{ aims_password }}'
 
-DATABASE_NAME_EDW='PRDDW'       # Test: etstods
+DATABASE_EDW_NAME='PRDDW'       # Test: etstods
 CREDENTIALS_EDW_USERNAME='vigrose'
 CREDENTIALS_EDW_PASSWORD='slytherin10946'
 
@@ -22,9 +22,18 @@ CREDENTIALS_ODS_PASSWORD='{{ ods_password }}'
 PROJECT_NAME='AddressQualityTriangulation'
 
 #File names
-DHC_FOLDER='U:/Source Files/Data Analytics/Data-Science/Data/DHC/'
-INSURANCE_FOLDER = 'U:/Source Files/Data Analytics/Data-Science/Data/AMAIA/'
+DHC_DIR='U:/Source Files/Data Analytics/Data-Science/Data/DHC/'
+AMAIA_DIR = 'U:/Source Files/Data Analytics/Data-Science/Data/AMAIA/'
+OUT_DIR = 'U:/Source Files/Data Analytics/Data-Science/Data/Triangulation/'
+GPLACES_DIR = 'U:/Source Files/Data Analytics/Data-Science/Data/Triangulation/Google/'
+GETPHONE_DIR = 'U:/Source Files/Data Analytics/Data-Science/Data/Triangulation/GetPhone/'
+
+#Input
+INPUT = 'C:/Users/vigrose/Data/Rosters/Henry_Ford_2020-04-06.csv'
 
 #Keys
 GETPHONE_KEY = 'WS77-PWJ1-MKS5'
 GPLACES_KEY = 'AIzaSyCGOwnycSPj5jUrjz_7figjGKFvpO3mA-I'
+
+#parameters
+NEW_INSURANCE = 'NO'

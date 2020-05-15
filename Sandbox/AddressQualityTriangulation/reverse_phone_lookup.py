@@ -5,25 +5,27 @@ import pandas as pd
 import requests
 import xmltodict
 import settings
+from datetime import date
 
 #Reverse lookup a single phone number:
-def reverse_lookup(phone_number, apikey):
+def reverse_lookup(phone_number):
     '''Lookup one phone number'''
+    apikey = os.environ.get('GETPHONE_KEY')
 
     #Create an empty dictionary:
     info_dict = {}
 
     #Call api with given parameters and save xml as dictionary:
     base_url = "https://ws.serviceobjects.com/gppl2/api.svc/GetPhoneInfo"
-    parameters = {'PhoneNumber': phone_number, 'LicenseKey': apikey}
-    response =  requests.get(base_url, params=parameters)
+    parameters = {'PhoneNumber': int(phone_number), 'LicenseKey': apikey}
+    response = requests.get(base_url, params=parameters)
     results = xmltodict.parse(response.content)
 
     #Select phone info section of resulting dictionary:
     phone_results = results["PhoneInfoResponse"]["PhoneInfo"]
 
     #Save phone number:
-    info_dict['Phone_Number'] = phone_number
+    info_dict['Phone_Number'] = str(int(phone_number))
 
     #Save relevant values in results in smaller dictionary. Save null value if errors:
     try:
@@ -76,41 +78,40 @@ def reverse_lookup(phone_number, apikey):
 
 
 #Test all number in a dataframe:
-def test_numbers(phone_list, apikey):
+def test_numbers(phone_list):
     '''Many numbers'''
-
+    today = str(date.today())
+    out_dir = os.getenv('GETPHONE_DIR')
     #Create two empty lists:
     results_dict_list = []
-    fun_massive_list = []
+    all_results = []
 
     #Iterate through dataframe and call reverse_lookup on each number:
     for phone in phone_list:
         new_dict = {}
         try:
-            new_dict, phone_results = reverse_lookup(phone, apikey)
+            new_dict, phone_results = reverse_lookup(phone)
             results_dict_list.append(new_dict)
-            fun_massive_list.append(phone_results)
+            all_results.append(phone_results)
         except:
             pass
 
     #Save lists of dictionaries as dataframes:
     new_df = pd.DataFrame(results_dict_list)
-
+    with open(f'{out_dir}getphone_data_{today}.txt', 'w') as outfile:
+        json.dump(all_results, outfile)
     #Return dataframes:
-    return(fun_massive_list, new_df)
+    return(new_df)
 
 #Export results to files:
 def export_results(phone_csv, xml_location, df_location, phone_column):
     '''Run and save results'''
-    #Input variables from command line:
-    key = os.environ.get('GETPHONE_KEY')
-
     #Create dataframe from csv:
     phone_df = pd.DataFrame(phone_csv)
     phones = list(phone_df[phone_column])
 
     #Call test_numbers on dataframe:
-    fun_massive_list, final_df = test_numbers(phones, key)
+    fun_massive_list, final_df = test_numbers(phones)
 
     #Export results:
     final_df.to_csv(df_location)

@@ -6,8 +6,6 @@ import pandas as pd
 import settings
 from datalabs.access.edw import EDW
 
-TODAY = str(date.today())
-
 def get_amaia_query():
     '''Define insurance query'''
     query = \
@@ -146,6 +144,12 @@ def get_insurance():
     insurance_ppma_polo['KEEP'] = keep_list
     return insurance_ppma_polo[insurance_ppma_polo.KEEP == True]
 
-INSURANCE = get_insurance()
-print('Saving...')
-INSURANCE.to_csv(f'C:/Users/vigrose/Data/AMAIA/Insurance_{TODAY}.csv', index=False)
+def save_insurance():
+    '''Save'''
+    TODAY = str(date.today())
+    INSURANCE = get_insurance()
+    print('Saving...')
+    INSURANCE.to_csv(f'C:/Users/vigrose/Data/AMAIA/Insurance_{TODAY}.csv', index=False)
+
+if __name__ == "__main__":
+    save_insurance()
