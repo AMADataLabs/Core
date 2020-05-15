@@ -3,8 +3,11 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "datalake_ingestion_bucket" {
-    acl = "private"
-    force_destroy = false
+    bucket = local.ingestion_bucket
+
+    lifecycle {
+        prevent_destroy = true
+    }
 
     tags = {
         Name = "Data Labs Data Lake Ingestion Bucket"
@@ -23,6 +26,16 @@ resource "aws_s3_bucket" "datalake_ingestion_bucket" {
 }
 
 
+resource "aws_s3_bucket_public_access_block" "datalake_ingestion_bucket_public_access_block" {
+    bucket = local.ingestion_bucket
+
+    block_public_acls       = true
+    block_public_policy     = true
+    ignore_public_acls      = true
+    restrict_public_buckets = true
+}
+
+
 variable "environment" {
     description = "AWS Account Environment"
     type        = string
@@ -38,6 +51,8 @@ variable "contact" {
 
 
 locals {
+    ingestion_bucket    = format("ama-hsg-datalabs-datalake-ingestion-%s", lower(var.environment))
+    processed_bucket    = format("ama-hsg-datalabs-datalake-processed-%s", lower(var.environment))
     system_tier         = "Application"
     na                  = "N/A"
     budget_code         = "PBW"

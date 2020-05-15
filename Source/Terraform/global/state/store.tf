@@ -26,6 +26,16 @@ resource "aws_s3_bucket" "terraform_state_store" {
 }
 
 
+resource "aws_s3_bucket_public_access_block" "terraform_state_store_public_access_block" {
+    bucket = var.state_bucket
+
+    block_public_acls       = true
+    block_public_policy     = true
+    ignore_public_acls      = true
+    restrict_public_buckets = true
+}
+
+
 resource "aws_dynamodb_table" "terraform_locks_store" {
     name            = "hsg-datalabs-terraform-locks"
     billing_mode    = "PAY_PER_REQUEST"
