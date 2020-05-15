@@ -110,13 +110,7 @@ def validate_newly_procured_data(latest_actions_folder):
     action_source_folders = folder_contents(latest_actions_folder)
 
     LOGGER.debug('This folder is new procurement')
-    # CLEAN CODE NOTE: Ideally, writing clean code should obviate the need for procedural comments. Reserve comments
-    #   for technical details that cannot be expressed easily otherwise.
 
-    # CLEAN CODE NOTE: First, both the Be Consistent principle and the PEP style guide dictate that this function
-    #   name should be in snake case.
-    #
-    #   Second, another ambigous "validate" function. In this case, its better to rename this with a boolean-returning name.
     if is_data_complete(latest_actions_folder):
         failure_counts = validate_complete_data(latest_actions_folder)
     else:
@@ -128,17 +122,8 @@ def validate_newly_procured_data(latest_actions_folder):
 def validate_rebaselined_data(latest_actions_folder):
     failure_counts = []
     action_source_folders = get_folder_contents(latest_actions_folder)
-
-    # CLEAN CODE NOTE: Whatever language, use either snake case or camel case to break up words. Don't mash them togehter
-    #   into an unreadable mess.
-    #
-    #   Also, consider putting potentially confusing code in a function to self-document.
     valid_update_folders = get_valid_update_folders(action_source_folders)
-    # CLEAN CODE NOTE: Don't use misleading names, especially to save two characters of space.
-    #
-    #   A fold is a real thing and is different from a folder.
-    #
-    #   Also, "fold" is not a standard and unambiguous abbreviation for "folder".
+
     for folder in valid_update_folders:
         failure_counts.append(validate_update_folder(folder))
 
