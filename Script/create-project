@@ -73,7 +73,7 @@ create_project_directories() {
 
         create_directory Build ${PROJECT_NAME}
         create_directory Deploy ${PROJECT_NAME}
-        create_directory Source/Terraform `echo ${PROJECT_NAME} | tr "[:upper:]" "[:lower:]"`
+        create_directory Source/Terraform ${PROJECT_NAME}
     fi
 }
 
@@ -221,9 +221,8 @@ generate_dockerfile() {
 generate_terraform_file() {
     TERRAFORM_FILE=$1
     TEMPLATE_NAME=${TERRAFORM_FILE/.tf/_template.txt}
-    PORJECT_MODULE=`echo ${PROJECT_NAME} | tr "[:upper:]" "[:lower:]"`
     TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/template/${TEMPLATE_NAME}
-    RENDERING_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/${PORJECT_MODULE}/${TERRAFORM_FILE}
+    RENDERING_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/${PROJECT_NAME}/${TERRAFORM_FILE}
 
 
     if [[ "$FORCE_OVERWRITE" == false && -d $RENDERING_PATH ]]; then
