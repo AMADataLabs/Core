@@ -20,7 +20,7 @@ class ReleaseType(Base):
     __tablename__ = 'release_type'
     __table_args__ = {"schema": "cpt"}
 
-    id = sa.Column(sa.String(3), primary_key=True)  # Y, Q1, Q2, Q3, Q4
+    type = sa.Column(sa.String(3), primary_key=True)  # Y, Q1, Q2, Q3, Q4
 
 
 class Release(Base):
@@ -29,7 +29,7 @@ class Release(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     date = sa.Column(sa.Date, nullable=False)
-    type = sa.Column(sa.String(3), sa.ForeignKey("cpt.release_type.id"), nullable=False)
+    type = sa.Column(sa.String(3), sa.ForeignKey("cpt.release_type.type"), nullable=False)
 
 
 class Code(Base):
@@ -109,7 +109,7 @@ class Modifier(Base):
 
     modifier = sa.Column(sa.String(2), primary_key=True)
     type = sa.Column(sa.Integer, sa.ForeignKey("cpt.modifier_type.id"), nullable=False)
-    description = sa.Column(sa.String, nullable=False)
+    descriptor = sa.Column(sa.String, nullable=False)
 
 
 # === CPT Link Tables ===

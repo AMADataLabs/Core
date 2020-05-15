@@ -1,8 +1,8 @@
 """Initial CPT API tables.
 
-Revision ID: c4eb9967f4a2
+Revision ID: 59216147215f
 Revises: 
-Create Date: 2020-05-15 03:33:54.362421+00:00
+Create Date: 2020-05-15 04:02:00.017216+00:00
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'c4eb9967f4a2'
+revision = '59216147215f'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -36,8 +36,8 @@ def upgrade():
     schema='cpt'
     )
     op.create_table('release_type',
-    sa.Column('id', sa.String(length=3), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_release_type')),
+    sa.Column('type', sa.String(length=3), nullable=False),
+    sa.PrimaryKeyConstraint('type', name=op.f('pk_release_type')),
     schema='cpt'
     )
     op.create_table('clinician_descriptor_code_mapping',
@@ -79,7 +79,7 @@ def upgrade():
     op.create_table('modifier',
     sa.Column('modifier', sa.String(length=2), nullable=False),
     sa.Column('type', sa.Integer(), nullable=False),
-    sa.Column('description', sa.String(), nullable=False),
+    sa.Column('descriptor', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['type'], ['cpt.modifier_type.id'], name=op.f('fk_modifier_type_modifier_type')),
     sa.PrimaryKeyConstraint('modifier', name=op.f('pk_modifier')),
     schema='cpt'
@@ -88,7 +88,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('date', sa.Date(), nullable=False),
     sa.Column('type', sa.String(length=3), nullable=False),
-    sa.ForeignKeyConstraint(['type'], ['cpt.release_type.id'], name=op.f('fk_release_type_release_type')),
+    sa.ForeignKeyConstraint(['type'], ['cpt.release_type.type'], name=op.f('fk_release_type_release_type')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_release')),
     schema='cpt'
     )
