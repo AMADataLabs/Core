@@ -71,6 +71,7 @@ create_project_directories() {
 
         create_directory Build ${PROJECT_NAME}
         create_directory Deploy ${PROJECT_NAME}
+        create_directory Source/Terraform `echo ${PROJECT_NAME} | tr "[:upper:]" "[:lower:]"`
     fi
 }
 
