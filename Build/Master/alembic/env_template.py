@@ -16,8 +16,8 @@ config.set_main_option(
     "postgresql+psycopg2://{}:{}@{}/{}".format(
         os.getenv("CREDENTIALS_RDS_USERNAME"),
         os.getenv("CREDENTIALS_RDS_PASSWORD"),
-        os.getenv("DATABASE_HOST_RDS"),
-        os.getenv("DATABASE_NAME_RDS"),
+        os.getenv("DATABASE_RDS_HOST"),
+        os.getenv("DATABASE_RDS_NAME"),
     )
 )
 

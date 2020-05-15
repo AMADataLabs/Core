@@ -1,7 +1,7 @@
 # Repository Settings
 DATALABS_PYTHONPATH='C://Users//vigrose//hsg-data-labs//Source//Python'
 
-DATABASE_NAME_EDW='PRDDW'
+DATABASE_EDW_NAME='PRDDW'
 CREDENTIALS_EDW_USERNAME='vigrose'
 CREDENTIALS_EDW_PASSWORD='slytherin10946'
 
