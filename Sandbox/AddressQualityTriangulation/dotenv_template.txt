@@ -7,8 +7,8 @@ CREDENTIALS_AIMS_USERNAME='{{ aims_username }}'
 CREDENTIALS_AIMS_PASSWORD='{{ aims_password }}'
 
 DATABASE_EDW_NAME='PRDDW'       # Test: etstods
-CREDENTIALS_EDW_USERNAME='vigrose'
-CREDENTIALS_EDW_PASSWORD='slytherin10946'
+CREDENTIALS_EDW_USERNAME= '{{ edw_username }}'
+CREDENTIALS_EDW_PASSWORD= '{{ edw_password }}'
 
 DATABASE_DATAMART_NAME='PRDDM'
 CREDENTIALS_DATAMART_USERNAME='{{ datamart_username }}'
@@ -29,11 +29,11 @@ GPLACES_DIR = 'U:/Source Files/Data Analytics/Data-Science/Data/Triangulation/Go
 GETPHONE_DIR = 'U:/Source Files/Data Analytics/Data-Science/Data/Triangulation/GetPhone/'
 
 #Input
-INPUT = 'C:/Users/vigrose/Data/Rosters/Henry_Ford_2020-04-06.csv'
+INPUT = '{{ input_path }}'
 
 #Keys
-GETPHONE_KEY = 'WS77-PWJ1-MKS5'
-GPLACES_KEY = 'AIzaSyCGOwnycSPj5jUrjz_7figjGKFvpO3mA-I'
+GETPHONE_KEY = '{{ getphone_api_key }}'
+GPLACES_KEY = '{{ google_places_api_key }}'
 
 #parameters
 NEW_INSURANCE = 'NO'
