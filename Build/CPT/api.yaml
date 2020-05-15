@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   description: 'CPT API initial design '
-  version: "1.0.0-oas3"
-  title: Swagger CPI
+  version: "1.1.0"
+  title: CPT API
   termsOfService: 'http://swagger.io/terms/'
   contact:
     email: datalabs@ama-assn.org
@@ -10,127 +10,48 @@ info:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 tags:
-  - name: Description
-    description: >-
-      CPT code description in short, medium, or long format. This corresponds to
-      entries in the cpt_description table.
   - name: Descriptor
     description: >-
-      CPT descriptor for either a clinician or consumer.  This corresponds to
-      entries in the cpt_descriptor table.
+      CPT Code descriptor in short, medium, or long format. This corresponds to
+      entries in the cpt.short_descriptor, cpt.medium_descriptor, and
+      cpt.log_descriptor tables.
+  - name: Consumer Descriptor
+    description: >-
+      Consumer-friendly CPT descriptor. This corresponds to entries in the
+      cpt.consumer_descriptor table.
+  - name: Clinician Descriptor
+    description: >-
+      Precise CPT descriptors for clinicians. This corresponds to entries in the
+      cpt.clinician_descriptor table.
   - name: PLA
     description: >-
-      Proprietary laboratory analyses codes with long, medium, short, clinical and consumer descriptors. Includes various dates,code status, lab name, manufacturer name and test name.
+      Proprietary Laboratory Analysis Codes with long, medium, short
+      descriptors. Includes various dates, code status, lab name, manufacturer
+      name, and test name.
   - name: PDF
-    description: >-
-      Returns a time-limited URL to a zip archive of the PDFs
-
+    description: Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
     externalDocs:
       url: 'http://swagger.io'
 paths:
-  /descriptions:
-    get:
-      tags:
-        - Description
-      summary: All CPT descriptions
-      description: Returns all CPT code descriptons in all lengths.
-      operationId: getCPTDescriptions
-      parameters:
-      - name: length
-        in: query
-        description: 'Filter by description length. Any of "short", "medium", or "long".'
-        required: false
-        schema:
-          type: array
-          items:
-            type: string
-      - name: keyword
-        in: query
-        description: Filter by keyword across any of the description lengths, code, and/or descriptor text.
-        required: false
-        schema:
-          type: array
-          items:
-            type: string
-      - name: since
-        in: query
-        description: Filters new codes since a date ("YYYY-MM-DD"), the last annual release ("annual"), or the last quarterly release ("quarterly").since "annualy" or "quarterly"
-        required: false
-        schema:
-          type: array
-          items:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Description'
-        '404':
-          description: No CPT descriptions found for the given parameters.
-      security:
-        - cpt_auth:
-            - 'read:cpt'
-  '/description/{code}':
-    get:
-      tags:
-        - Description
-      summary: CPT description by code
-      description: Returns all lengths of the description for a particular CPT code.
-      operationId: getCPTDescription
-      parameters:
-      - name: code
-        in: path
-        description: CPT description by code.
-        required: true
-        content:
-          application/json:
-            schema:
-              type: string
-      - name: length
-        in: query
-        description: 'Filter by description length. Any of "short", "medium", or "long".'
-        required: false
-        schema:
-          type: array
-          items:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Description'
-        '404':
-          description: No description found for the given CPT code.
-      security:
-        - cpt_auth:
-            - 'read:cpt'
-  '/descriptor/{id}':
+  '/descriptor/{code}':
     get:
       tags:
         - Descriptor
-      summary: CPT descriptor by ID
-      description: >-
-        Returns the CPT descriptor in by ID in both clinician and consumer
-        friendly forms.
-      operationId: findClinicalConsumerDescriptorsId
+      summary: CPT descriptor by CPT Code
+      description: Returns all lengths of the descriptor for a particular CPT Code.
+      operationId: getDescriptor
       parameters:
-        - name: id
+        - name: code
           in: path
-          description: clinician descriptor ID
+          description: CPT Code
           required: true
-          schema:
-            type: string
-        - name: audience
+          content:
+            application/json:
+              schema:
+                type: string
+        - name: length
           in: query
-          description: Filter by audience. Any of "clinician" or "consumer".
+          description: 'Filter by description length. Any of "short", "medium", or "long".'
           required: false
           schema:
             type: array
@@ -142,27 +63,23 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Descriptor'
-        '400':
-          description: invalid parameters
+                $ref: '#/components/schemas/Descriptor'
         '404':
-          description: CPT descriptor not found for ID
+          description: No description found for the given CPT Code.
       security:
         - cpt_auth:
-            - 'read:descriptors'
+            - 'read:cpt'
   /descriptors:
     get:
       tags:
         - Descriptor
       summary: All CPT descriptors
-      description: Returns all descriptors in their clinician and consumer friendly forms.
-      operationId: viewAllDescriptors
+      description: 'Returns the CPT Code descriptor in short, medium, and long forms.'
+      operationId: getDescriptors
       parameters:
-        - name: audience
+        - name: length
           in: query
-          description: Filter by audience. Any of "clinician" or "consumer".
+          description: 'Filter by description length. Any of "short", "medium", or "long".'
           required: false
           schema:
             type: array
@@ -170,7 +87,7 @@ paths:
               type: string
         - name: keyword
           in: query
-          description: Filter by keyword across any of the description lengths, code, and/or descriptor text.
+          description: Filter by keyword across the text of any of the descriptor lengths.
           required: false
           schema:
             type: array
@@ -178,7 +95,9 @@ paths:
               type: string
         - name: since
           in: query
-          description: Filters new codes since a date ("YYYY-MM-DD"), the last annual release ("annual"), or the last quarterly release ("quarterly").since "annualy" or "quarterly"
+          description: >-
+            Filters new codes since a date ("YYYY-MM-DD"), the last annual
+            release ("annual"), or the last quarterly release ("quarterly").
           required: false
           schema:
             type: array
@@ -193,42 +112,163 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Descriptor'
+        '404':
+          description: No CPT descriptors found for the given parameters.
+      security:
+        - cpt_auth:
+            - 'read:cpt'
+  '/consumer/descriptor/{code}':
+    get:
+      tags:
+        - Consumer Descriptor
+      summary: Consumer-friendly descriptor by CPT Code
+      description: Returns the Consumer-friendly CPT descriptor by CPT Code.
+      operationId: getConsumerDescriptor
+      parameters:
+        - name: code
+          in: path
+          description: CPT Code
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerDescriptor'
         '400':
-          description: invalid query parameter
+          description: invalid parameters
+        '404':
+          description: Consumer Descriptor not found for ID
       security:
         - cpt_auth:
             - 'read:descriptors'
-  /PLA/descriptions:
+  /consumer/descriptors:
     get:
       tags:
-        - PLA
-      summary: All PLA codes with their descriptors
-      description: ALL PLA codes
-      operationId: viewAllPLA
+        - Consumer Descriptor
+      summary: All consumer-friendly descriptors
+      description: Returns all Consumer-friendly CPT descriptors.
+      operationId: getConsumerDescriptors
       parameters:
-        - name: length
-          in: query
-          description: Filter by "long", "medium", "short" descriptors
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
         - name: keyword
           in: query
-          description: Filter by keyword across any of the description lengths, code, and/or descriptor text.
+          description: Filter by keyword in the descriptor text.
           required: false
           schema:
             type: array
             items:
               type: string
         - name: since
-            in: query
-            description: Filters new codes since a date ("YYYY-MM-DD"), the last annual release ("annual"), or the last quarterly release ("quarterly").since "annualy" or "quarterly"
-            required: false
-            schema:
-              type: array
-              items:
+          in: query
+          description: >-
+            Filters new codes since a date ("YYYY-MM-DD"), the last annual
+            release ("annual"), or the last quarterly release ("quarterly").
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConsumerDescriptor'
+        '400':
+          description: invalid query parameter
+      security:
+        - cpt_auth:
+            - 'read:descriptors'
+  '/clinician/descriptor/{id}':
+    get:
+      tags:
+        - Clinician Descriptor
+      summary: Clinician descriptor by ID
+      description: Returns the Clinician CPT descriptor by ID.
+      operationId: getClinicianDescriptor
+      parameters:
+        - name: id
+          in: path
+          description: Clinician Descriptor ID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClinicianDescriptor'
+        '400':
+          description: invalid parameters
+        '404':
+          description: Clinician Descriptor not found for ID
+      security:
+        - cpt_auth:
+            - 'read:descriptors'
+  /clinician/descriptors:
+    get:
+      tags:
+        - Clinician Descriptor
+      summary: All clinician descriptors
+      description: Returns all Clinician CPT descriptors.
+      operationId: getClinicianDescriptors
+      parameters:
+        - name: keyword
+          in: query
+          description: Filter by keyword in the descriptor text.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: since
+          in: query
+          description: >-
+            Filters new codes since a date ("YYYY-MM-DD"), the last annual
+            release ("annual"), or the last quarterly release ("quarterly").
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClinicianDescriptor'
+        '400':
+          description: invalid query parameter
+      security:
+        - cpt_auth:
+            - 'read:descriptors'
+  '/clinician/descriptors/{code}':
+    get:
+      tags:
+        - Clinician Descriptor
+      summary: All clinician descriptors by CPT Code
+      description: Returns all Clinician CPT descriptors.
+      operationId: getClinicianDescriptorsByCode
+      parameters:
+        - name: code
+          in: path
+          description: CPT Code
+          required: true
+          content:
+            application/json:
+              schema:
                 type: string
       responses:
         '200':
@@ -238,30 +278,79 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PLA'
+                  $ref: '#/components/schemas/ClinicianDescriptor'
         '400':
           description: invalid query parameter
       security:
         - cpt_auth:
-            - 'read:pla'
-  '/PLA/descriptor/{code_number}':
+            - 'read:descriptors'
+  '/pla/details/{code}':
     get:
       tags:
         - PLA
-      summary: PLA codes by ID
-      description: >-
-        Returns the PLA codes and descriptors by code number.
-      operationId: findPLAById
+      summary: PLA Code details
+      description: Returns the details of a PLA Code.
+      operationId: getPLADetails
       parameters:
-        - name: code_number
+        - name: code
           in: path
-          description: clinician descriptor ID
+          description: PLA code
           required: true
           schema:
             type: string
         - name: length
           in: query
-          description: Filter by "long", "medium", "short" descriptors
+          description: 'Filter by "long", "medium", "short" descriptors'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PLA'
+        '400':
+          description: invalid parameters
+        '404':
+          description: PLA descriptor not found for ID
+      security:
+        - cpt_auth:
+            - 'read:pla'
+  /pla/details:
+    get:
+      tags:
+        - PLA
+      summary: All PLA Code details
+      description: ALL PLA codes
+      operationId: getAllPLADetails
+      parameters:
+        - name: length
+          in: query
+          description: 'Filter by "long", "medium", "short" descriptors'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: keyword
+          in: query
+          description: >-
+            Filter by keyword across the text of any of the descriptor lengths.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: since
+          in: query
+          description: >-
+            Filters new codes since a date ("YYYY-MM-DD"), the last annual
+            release ("annual"), or the last quarterly release
+            ("quarterly").
           required: false
           schema:
             type: array
@@ -277,20 +366,16 @@ paths:
                 items:
                   $ref: '#/components/schemas/PLA'
         '400':
-          description: invalid parameters
-        '404':
-          description: PLA descriptor not found for ID
+          description: invalid query parameter
       security:
         - cpt_auth:
             - 'read:pla'
-
-  /PDF:
+  /pdfs:
     get:
       tags:
         - PDF
-      summary: Zip archive of the pdfs
-      description: >-
-        Provides a time-limited URL to a zip archive of the PDFs
+      summary: Zip archive of the most recent PDFs
+      description: Provides a time-limited URL to a zip archive of the PDFs from the most recent release
       operationId: getPDFLink
       responses:
         '200':
@@ -298,21 +383,40 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PDF'
+                $ref: '#/components/schemas/PDF'
         '400':
           description: invalid parameters
-
-
+  /pdfs/{release}:
+    get:
+      tags:
+        - PDF
+      summary: Zip archive of the PDFs from the specified release
+      description: Provides a time-limited URL to a zip archive of the PDFs from the specified release
+      operationId: getPDFLinkForRelease
+      parameters:
+        - name: release
+          in: path
+          description: release in the form YYYY-['Y' | 'Q1' | 'Q2' | 'Q3' | 'Q4']
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PDF'
+        '400':
+          description: invalid parameters
 components:
   schemas:
-    Description:
+    Descriptor:
       type: object
       required:
         - code
       properties:
-        cpt_code:
+        code:
           type: string
           format: byte
         short:
@@ -324,52 +428,57 @@ components:
         long:
           type: string
           format: byte
-    Descriptor:
+    ConsumerDescriptor:
+      type: object
+      required:
+        - code
+        - descriptor
+      properties:
+        code:
+          type: string
+          format: byte
+        descriptor:
+          type: string
+          format: byte
+    ClinicianDescriptor:
       type: object
       required:
         - id
-        - cpt_code
-        - concept_id
+        - code
+        - descriptor
       properties:
         id:
           type: integer
           format: int64
-        cpt_code:
+        code:
           type: string
           format: byte
-        concept_id:
-          type: string
-          format: byte
-        clinician:
-          type: string
-          format: byte
-        consumer:
+        descriptor:
           type: string
           format: byte
     PLA:
       type: object
       required:
-        - pla_code
-        - long_description
-        - medium_description
-        - short_description
-        - code_status
+        - code
+        - short_descriptor
+        - medium_descriptor
+        - long_descriptor
         - effective_date
         - lab_name
         - manufacturer_name
         - publish_date
         - test_name
       properties:
-        pla_code:
+        code:
           type: string
           format: byte
-        long_description:
+        long_descriptor:
           type: string
           format: byte
-        medium_description:
+        medium_descriptor:
           type: string
           format: byte
-        short_description:
+        short_descriptor:
           type: string
           format: byte
         code_status:
@@ -405,14 +514,14 @@ components:
           scopes:
             'read:cpt': read cpt table
             'read:descriptors': read clinical descriptor table
-            'read:pla' : read pla codes table
-            'read:pdf' : read pdf url
+            'read:pla': read pla codes table
+            'read:pdf': read pdf url
     api_key:
-        type: apiKey
-        name: api_key
-        in: header
+      type: apiKey
+      name: api_key
+      in: header
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
 servers:
-  - url: https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.0.0
+  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.1.0'
