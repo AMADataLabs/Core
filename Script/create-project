@@ -19,6 +19,8 @@ main() {
     create_project_directories
 
     generate_configuration_files
+
+    generate_terraform_files
 }
 
 
@@ -90,6 +92,12 @@ generate_configuration_files() {
 
         # generate_dockerfile
     fi
+}
+
+
+generate_terraform_files() {
+    generate_terraform_file main.tf
+    generate_terraform_file state.tf
 }
 
 
@@ -185,17 +193,17 @@ generate_dotenv_template() {
     DIRECTORY_NAME=$1
     TEMPLATE_NAME=dotenv_template.txt
     TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Build/Master/${TEMPLATE_NAME}
-    RESULT_PATH=${SCRIPT_BASE_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}/${TEMPLATE_NAME}
+    RENDERING_PATH=${SCRIPT_BASE_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}/${TEMPLATE_NAME}
 
 
-    if [[ "$FORCE_OVERWRITE" == false && -d $RESULT_PATH ]]; then
-        real_path=`realpath ${RESULT_PATH}`
-        echo "Error: Template file ${real_path} already exists."
+    if [[ "$FORCE_OVERWRITE" == false && -d $RENDERING_PATH ]]; then
+        real_path=`realpath ${RENDERING_PATH}`
+        echo "Error: Template rendering ${real_path} already exists."
         exit 2
     fi
 
     $ACTIVATE
-    $RENDER_TEMPLATE -t ${TEMPLATE_PATH} -f ${RESULT_PATH} -v project=${PROJECT_NAME}
+    $RENDER_TEMPLATE -t ${TEMPLATE_PATH} -f ${RENDERING_PATH} -v project=${PROJECT_NAME}
     deactivate
 }
 
@@ -207,6 +215,26 @@ generate_dockerfile() {
 
 generate_dockerfile() {
     echo "Not Implemented"
+}
+
+
+generate_terraform_file() {
+    TERRAFORM_FILE=$1
+    TEMPLATE_NAME=${TERRAFORM_FILE/.tf/_template.txt}
+    PORJECT_MODULE=`echo ${PROJECT_NAME} | tr "[:upper:]" "[:lower:]"`
+    TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/template/${TEMPLATE_NAME}
+    RENDERING_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/${PORJECT_MODULE}/${TERRAFORM_FILE}
+
+
+    if [[ "$FORCE_OVERWRITE" == false && -d $RENDERING_PATH ]]; then
+        real_path=`realpath ${RENDERING_PATH}`
+        echo "Error: Template rendering ${real_path} already exists."
+        exit 2
+    fi
+
+    $ACTIVATE
+    $RENDER_TEMPLATE -t ${TEMPLATE_PATH} -f ${RENDERING_PATH} -v project=${PROJECT_NAME}
+    deactivate
 }
 
 
