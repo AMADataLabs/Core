@@ -2,7 +2,7 @@
 DATALABS_PYTHONPATH='{{ pythonpath }}'
 
 # Database Settings
-DATABASE_NAME_AIMS='aims_prod'
+DATABASE_AIMS_NAME='aims_prod'
 CREDENTIALS_AIMS_USERNAME='{{ aims_username }}'
 CREDENTIALS_AIMS_PASSWORD='{{ aims_password }}'
 
@@ -10,11 +10,11 @@ DATABASE_EDW_NAME='PRDDW'       # Test: etstods
 CREDENTIALS_EDW_USERNAME='vigrose'
 CREDENTIALS_EDW_PASSWORD='slytherin10946'
 
-DATABASE_NAME_DATAMART='PRDDM'
+DATABASE_DATAMART_NAME='PRDDM'
 CREDENTIALS_DATAMART_USERNAME='{{ datamart_username }}'
 CREDENTIALS_DATAMART_PASSWORD='{{ datamart_password }}'
 
-DATABASE_NAME_ODS='eprdods'     # Test: etstods
+DATABASE_ODS_NAME='eprdods'     # Test: etstods
 CREDENTIALS_ODS_USERNAME='{{ ods_username }}'
 CREDENTIALS_ODS_PASSWORD='{{ ods_password }}'
 

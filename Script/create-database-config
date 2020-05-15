@@ -3,7 +3,6 @@
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
-. ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup/venv.sh
 SCHEMA=
 MODEL_MODULE=
 PROJECT=
@@ -29,7 +28,6 @@ process_arguments() {
             ;;
         -s|--schema)
             SCHEMA=$2
-            echo "Schema: $2"
             shift
             shift
             ;;
@@ -66,11 +64,16 @@ process_arguments() {
     fi
 
     MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
-    BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT}
+    BUILD_PATH=`realpath ${SCRIPT_BASE_PATH}/../Build/${PROJECT}`
 }
 
 
 initialize_alembic() {
+    if [[ ! -d $BUILD_PATH ]]; then
+        echo "ERROR: Project build directory (${BUILD_PATH}) does not exist. Use the Script/create-project tool to initialize the project first."
+        exit 2
+    fi
+
     cd ${BUILD_PATH}
 
     alembic init alembic

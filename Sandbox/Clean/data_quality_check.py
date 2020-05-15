@@ -49,13 +49,6 @@ class FailureCounts:
 def main():
     data_base_path = os.environ.get('DATA_BASE_PATH')
     required_files = json.load(os.environ.get('REQUIRED_FILES'))
-    # CLEAN CODE UPDATE: All setup dealing with dependencies should be done in the main function of the app.
-    #
-    #   This relates to the principle of Dependency Injection: all dependencies of a function should be
-    #   "injected" into the function instead of the function searching for its dependencies outside of itself.
-    #
-    #   Since we can't have an "unmoved mover" scenario, the main function must be responsible for doing all of
-    #   the injecting.
     log_paths = LogPaths(
         count=os.environ.get('COUNT_LOG'),
         file=os.environ.get('FILE_LOG')
@@ -92,11 +85,9 @@ def check_disciplinary_action_data_quality(data_base_path, required_files, log_p
 
     if is_newly_procured_data(latest_actions_folder):
         LOGGER.debug('This folder is a newly-procured data folder')
-        # CLEAN CODE NOTE: What does "validate" actually mean? What results from the validation?
         failure_counts = validate_newly_procured_data(latest_actions_folder)
     else:
         LOGGER.debug('This folder is a re-baselined data folder')
-        # CLEAN CODE COMMENT: Delete any commented-out code before merging to master. Revision control got you covered!
         failure_counts = validate_rebaselined_data(latest_actions_folder)
 
     log_failure_counts(log_paths.count, failure_counts)
@@ -119,13 +110,7 @@ def validate_newly_procured_data(latest_actions_folder):
     action_source_folders = folder_contents(latest_actions_folder)
 
     LOGGER.debug('This folder is new procurement')
-    # CLEAN CODE NOTE: Ideally, writing clean code should obviate the need for procedural comments. Reserve comments
-    #   for technical details that cannot be expressed easily otherwise.
 
-    # CLEAN CODE NOTE: First, both the Be Consistent principle and the PEP style guide dictate that this function
-    #   name should be in snake case.
-    #
-    #   Second, another ambigous "validate" function. In this case, its better to rename this with a boolean-returning name.
     if is_data_complete(latest_actions_folder):
         failure_counts = validate_complete_data(latest_actions_folder)
     else:
@@ -137,17 +122,8 @@ def validate_newly_procured_data(latest_actions_folder):
 def validate_rebaselined_data(latest_actions_folder):
     failure_counts = []
     action_source_folders = get_folder_contents(latest_actions_folder)
-
-    # CLEAN CODE NOTE: Whatever language, use either snake case or camel case to break up words. Don't mash them togehter
-    #   into an unreadable mess.
-    #
-    #   Also, consider putting potentially confusing code in a function to self-document.
     valid_update_folders = get_valid_update_folders(action_source_folders)
-    # CLEAN CODE NOTE: Don't use misleading names, especially to save two characters of space.
-    #
-    #   A fold is a real thing and is different from a folder.
-    #
-    #   Also, "fold" is not a standard and unambiguous abbreviation for "folder".
+
     for folder in valid_update_folders:
         failure_counts.append(validate_update_folder(folder))
 
