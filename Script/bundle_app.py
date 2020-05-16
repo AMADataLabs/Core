@@ -5,6 +5,7 @@ from   pathlib import Path
 import re
 import shutil
 import sys
+from   zipfile import ZipFile
 
 import jinja2
 
@@ -12,7 +13,7 @@ from datalabs.build.bundle import SourceBundle
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 def main(args):
@@ -20,8 +21,8 @@ def main(args):
     script_base_path = script_path.parent
     repository_path = os.path.join(script_base_path, '..')
     shared_source_path = Path(os.path.join(repository_path, 'Source', 'Python')).resolve()
-    build_path = os.path.join(repository_path, 'Build', args['project'])
-    app_path = Path(os.path.join(build_path, 'app')).resolve()
+    build_path = Path(os.path.join(repository_path, 'Build', args['project'])).resolve()
+    app_path = os.path.join(build_path, 'app')
     modspec_path = os.path.join(build_path, 'modspec.yaml')
 
     if not args['in_place']:
@@ -34,10 +35,12 @@ def main(args):
     LOGGER.info('=== Copying Source Files ===')
     relative_file_paths = SourceBundle(modspec_path).copy(shared_source_path, app_path)
 
-    # log_files_copied(shared_source_path, app_path, relative_file_paths)
+    if args['verbose']:
+        log_files_copied(shared_source_path, app_path, relative_file_paths)
 
     if args['serverless']:
-        zip_bundle_directory()
+        LOGGER.info('=== Creating Zip Archive ===')
+        zip_bundle_directory(build_path, app_path)
 
 
 def copy_dependency_files(repository_path, app_path, project):
@@ -55,8 +58,32 @@ def log_files_copied(shared_source_path, app_path, relative_file_paths):
         LOGGER.info(file)
 
 
-def zip_bundle_directory():
-    pass
+def zip_bundle_directory(build_path, app_path):
+    archive_path = os.path.join(build_path, 'app.zip')
+
+    os.remove(archive_path)
+
+    with ZipFile(archive_path, 'w') as archive:
+        archive.write('app')
+
+        for contents in os.walk(app_path):
+            archive_contents(archive, build_path, contents)
+
+
+def archive_contents(archive, build_path, contents):
+    root, dirs, files = contents
+    relative_root = root.replace(str(build_path), '')[1:]
+    LOGGER.debug('Build Path: %s', build_path)
+    LOGGER.debug('Root Path: %s', root)
+    LOGGER.debug('Relative Root Path: %s', relative_root)
+
+
+    for d in dirs:
+        archive.write(os.path.join(relative_root, d))
+
+    for f in files:
+        archive.write(os.path.join(relative_root, f))
+
 
 
 if __name__ == '__main__':
@@ -67,6 +94,8 @@ if __name__ == '__main__':
         help='Create a zip archive of the bundle for serverless deployment.')
     ap.add_argument('-i', '--in-place', action='store_true', default=False,
         help='Do not pre-clean the app directory or try to install dependencies.')
+    ap.add_argument('-v', '--verbose', action='store_true', default=False,
+        help='Verbose output.')
     ap.add_argument('project', help='Name of the project.')
     args = vars(ap.parse_args())
     LOGGER.debug('Args: %s', args)
