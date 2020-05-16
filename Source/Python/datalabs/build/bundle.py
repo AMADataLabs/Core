@@ -8,7 +8,7 @@ import yaml
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class SourceBundle:
@@ -24,6 +24,8 @@ class SourceBundle:
         for source_file, destination_file in zip(shared_source_paths, app_source_paths):
             os.makedirs(os.path.dirname(destination_file), exist_ok=True)
             shutil.copyfile(source_file, destination_file)
+
+        return relative_file_paths
 
     def files(self, base_path):
         modspec_yaml = self._load_module_spec(self._modspec_path)
