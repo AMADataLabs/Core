@@ -18,7 +18,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-
 @dataclass
 class LogPaths:
     count: str

@@ -8,7 +8,7 @@ setup:
 	./Script/setup_development_environment
 
 test: setup_test_files
-	${RUN} python -m pytest Test/Python/ -W ignore::DeprecationWarning
+	${RUN} python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
 
 setup_test_files: ${TEMPLATE_FILES}
 	cp ${TEMPLATE_FILES} ${CWD}/Test/Python/test/datalabs/environment/
