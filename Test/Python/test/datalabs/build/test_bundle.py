@@ -74,17 +74,17 @@ modspec:
 def base_path():
     with tempfile.TemporaryDirectory() as temp_dir:
         populate_directory(
-            os.path.join(temp_dir, 'Source/Python/datalabs'),
+            os.path.join(temp_dir, 'datalabs'),
             ['__init__.py', 'plugin.py']
         )
 
         populate_directory(
-            os.path.join(temp_dir, 'Source/Python/datalabs/access'),
+            os.path.join(temp_dir, 'datalabs/access'),
             ['__init__.py', 'ods.py', 'aims.py', 'edw.py', 'database.py', 'file.py', 'odbc.py']
         )
 
         populate_directory(
-            os.path.join(temp_dir, 'Source/Python/datalabs/analysis'),
+            os.path.join(temp_dir, 'datalabs/analysis'),
             ['__init__.py', 'exception.py', 'wslive.py']
         )
 

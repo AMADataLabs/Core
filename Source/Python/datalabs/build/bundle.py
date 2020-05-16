@@ -16,8 +16,9 @@ class SourceBundle:
         self._modspec_path = modspec_path
 
     def copy(self, base_path, app_path):
-        relative_file_paths = self.files(base_path)
-        shared_source_paths = [os.path.join(base_path, 'Source', 'Python', p) for p in relative_file_paths]
+        shared_source_path = os.path.join(base_path)
+        relative_file_paths = self.files(shared_source_path)
+        shared_source_paths = [os.path.join(shared_source_path, p) for p in relative_file_paths]
         app_source_paths = [os.path.join(app_path, p) for p in relative_file_paths]
 
         for source_file, destination_file in zip(shared_source_paths, app_source_paths):
@@ -60,7 +61,7 @@ class SourceBundle:
     @classmethod
     def _find_package_files(cls, package, base_path):
         relative_package_path = cls._generate_package_path(package['package'])
-        absolute_package_path = os.path.join(base_path, 'Source', 'Python', relative_package_path)
+        absolute_package_path = os.path.join(base_path, relative_package_path)
         init_path = os.path.join(relative_package_path, '__init__.py')
         filtered_files = None
         all_files = cls._get_files_in_directory(absolute_package_path)
@@ -89,6 +90,7 @@ class SourceBundle:
 
     @classmethod
     def _get_files_in_directory(cls, path):
+        LOGGER.debug('Files path: %s', path)
         _, _, all_files = next(os.walk(path))
 
         return all_files

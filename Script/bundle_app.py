@@ -18,14 +18,19 @@ LOGGER.setLevel(logging.DEBUG)
 def main(args):
     script_path = Path(sys.argv[0])
     script_base_path = script_path.parent
+    repository_path = os.path.join(script_base_path, '..')
+    shared_source_path = os.path.join(repository_path, 'Source', 'Python')
+    build_path = os.path.join(repository_path, 'Build', args['project'])
+    app_path = os.path.join(build_path, 'app')
+    modspec_path = os.path.join(build_path, 'modspec.yaml')
 
-    create_bundle_directory(args.project)
+    os.makedirs(app_path, exist_ok=True)
 
-    copy_source_files()
+    SourceBundle(modspec_path).copy(shared_source_path, app_path)
 
     copy_dependency_files()
 
-    if args.serverless:
+    if args['serverless']:
         zip_bundle_directory()
 
 
@@ -54,6 +59,7 @@ if __name__ == '__main__':
     ap.add_argument('-f', '--force', type=bool, default=False, help='Overwrite the existing bundle.')
     ap.add_argument('project', help='Name of the project.')
     args = vars(ap.parse_args())
+    LOGGER.info('Args: %s', args)
 
     try:
         return_code = main(args)
