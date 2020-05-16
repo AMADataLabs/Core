@@ -25,7 +25,7 @@ def main(args):
     app_path = os.path.join(build_path, 'app')
     modspec_path = os.path.join(build_path, 'modspec.yaml')
 
-    if not args['in_place']:
+    if args['serverless'] and not args['in_place']:
         LOGGER.info('=== Removing Old App Directory ===')
         shutil.rmtree(app_path)
 
