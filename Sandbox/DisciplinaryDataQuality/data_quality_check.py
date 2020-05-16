@@ -1,7 +1,9 @@
 """ Check the quality of disciplinary action data. """
+from   collections import Counter
 import csv
 from   dataclasses import dataclass
 from   datetime import datetime
+import functools
 import glob
 import json
 import logging
@@ -35,14 +37,26 @@ class FailureCounts:
     no_data_pdf: int = 0
     no_data_duplicate: int = 0
 
+    def __add__(self, other):
+        count_map = {key:getattr(self, key) + getattr(other, key) for key in self.__dataclass_fields__.keys()}
+
+        return FailureCounts(**count_map)
+
+    def __iadd__(self, other):
+        for field in self.__dataclass_fields__.keys():
+            setattr(self, field, getattr(self, field) + getattr(other, field))
 
 def main():
     data_base_path = os.environ.get('DATA_BASE_PATH')
     required_files = json.load(os.environ.get('REQUIRED_FILES'))
+    log_paths = LogPaths(
+        count=os.environ.get('COUNT_LOG'),
+        file=os.environ.get('FILE_LOG')
+    )
     date_last_updated = modification_date(data_base_path)
 
     if new_data_available(date_last_updated):
-        check_disciplinary_action_data_quality(data_base_path, required_files)
+        check_disciplinary_action_data_quality(data_base_path, required_files, log_paths)
     else:
         LOGGER.info('No new folders uploaded. Last folder uploaded on %s.', date_last_updated)
 
@@ -62,33 +76,19 @@ def new_data_available(date_last_updated) -> bool:
     return date_last_updated == today
 
 
-def check_disciplinary_action_data_quality(data_base_path, required_files):
-    failure_counts = FailureCounts()
-
-    # CLEAN CODE UPDATE: All setup dealing with dependencies should be done in the main function of the app.
-    #
-    #   This relates to the principle of Dependency Injection: all dependencies of a function should be
-    #   "injected" into the function instead of the function searching for its dependencies outside of itself.
-    #
-    #   Since we can't have an "unmoved mover" scenario, the main function must be responsible for doing all of
-    #   the injecting.
-    log_paths = LogPaths(
-        count=os.environ.get('COUNT_LOG'),
-        file=os.environ.get('FILE_LOG')
-    )
-
+def check_disciplinary_action_data_quality(data_base_path, required_files, log_paths):
+    failure_counts = None
     latest_actions_folder = get_latest_actions_folder(data_base_path)
     current_date = datetime.datetime.now().date()
 
     LOGGER.info('New disciplinary action folders uploaded: %s', latest_actions_folder)
 
     if is_newly_procured_data(latest_actions_folder):
-        # CLEAN CODE NOTE: What does "validate" actually mean? What results from the validation?
-        validate_newly_procured_data(latest_actions_folder)
+        LOGGER.debug('This folder is a newly-procured data folder')
+        failure_counts = validate_newly_procured_data(latest_actions_folder)
     else:
-        LOGGER.debug('This folder is a re-baselined folder')
-        # CLEAN_CODE_COMMENT: Delete any commented-out code before merging to master. Revision control got you covered!
-        validate_rebaselined_data(latest_actions_folder)
+        LOGGER.debug('This folder is a re-baselined data folder')
+        failure_counts = validate_rebaselined_data(latest_actions_folder)
 
     log_failure_counts(log_paths.count, failure_counts)
 
@@ -99,124 +99,35 @@ def get_latest_actions_folder(data_base_path) -> list:
     return max(files, key=os.path.getctime)
 
 
-def get_folder_contents(path) -> list:
-    return [d for d in os.listdir(path) if not d.startswith('.')]
-
-
 def is_newly_procured_data(latest_actions_folder, action_source_folders) -> bool:
-    if len(action_source_folders) + len(get_folder_contents(latest_actions_folder + '/no_data')) == 69:
+    if len(action_source_folders) + len(folder_contents(latest_actions_folder + '/no_data')) == 69:
         return True
     return False
 
 
-def validate_newly_procured_data(latest_actions_folder, failure_counts):
-    action_source_folders = get_folder_contents(latest_actions_folder)
+def validate_newly_procured_data(latest_actions_folder):
+    failure_counts = None
+    action_source_folders = folder_contents(latest_actions_folder)
 
     LOGGER.debug('This folder is new procurement')
-    # CLEAN CODE NOTE: Ideally, writing clean code should obviate the need for procedural comments. Reserve comments
-    #   for technical details that cannot be expressed easily in spite of good structure and naming.
-    # Step 1: Validate Completeness:
 
-    # CLEAN CODE NOTE: First, both the Be Consistent principle and the PEP style guide dictate that this function
-    #   name should be in snake case.
-    #
-    #   Second, another ambigous "validate" function. In this case, its better to rename this with a boolean-returning name.
-    if not ValidateCompleteness(latest_actions_folder):
+    if is_data_complete(latest_actions_folder):
+        failure_counts = validate_complete_data(latest_actions_folder)
+    else:
+        failure_counts = FailureCounts(completeness=1)
 
-        failure_counts.completeness += 1
-    else:  # ValidateCompleteness is True
-        if not check_files_exist(latest_actions_folder):  # no_data folder is deleted in this function
-            failure_counts.file_exists += 1
-        else:  # check_files_exist is True
-            LOGGER.info('Disciplinary action folders are correct')
-            LOGGER.debug('next step: check mandatory files contents in the folder')
-
-            # Step 2: Validate Content Quality
-            # remove no_data folder
-            validfolders = [x for x in action_source_folders if x != 'no_data']
-            for fold in validfolders:
-                for file in [f for f in os.listdir(latest_actions_folder + '/' + fold) if not f.startswith('.')]:
-                    fullpath = latest_actions_folder + '/' + fold + '/' + file
-                    # get the type of file: BO, SL, NL, QA, M (json)
-                    type = get_doc_type(file)
-                    # check name format:
-                    if not check_file_name_format(file, type):
-                        LOGGER.info('File Format is not right: %s as type %s', file, type)
-                        failure_counts.name_format += 1
-                        log_file_failure(log_paths.file,
-                                         current_date,
-                                         file,
-                                         'name_format - file type')
-
-                    # check csv file:
-                    if type == 'QA':
-                        if not check_qa_file(fullpath):
-                            LOGGER.info('QA file %s is not right', file)
-                            failure_counts.file_quality += 1
-                            log_file_failure(log_paths.file,
-                                             current_date,
-                                             file,
-                                             'file_quality - QA')
-                    # check board orders file:
-                    elif type == 'BO' or type == 'SL' or type == 'NL':
-                        if not check_bo_pdf(fullpath):
-                            LOGGER.info('PDF file %s has blank page', file)
-                            failure_counts.file_quality += 1
-                            log_file_failure(log_paths.file,
-                                             current_date,
-                                             file,
-                                             'file_quality - blank page')
+    return failure_counts
 
 
-def validate_rebaselined_data(latest_actions_folder, failure_counts):
+def validate_rebaselined_data(latest_actions_folder):
+    failure_counts = []
     action_source_folders = get_folder_contents(latest_actions_folder)
+    valid_update_folders = get_valid_update_folders(action_source_folders)
 
-    # CLEAN CODE NOTE: Whatever language, use either snake case or camel case to break up words. Don't mash them togehter
-    #   into an unreadable mess.
-    #
-    #   Also, consider putting potentially confusing code in a function to self-document.
-    validupdatefolders = [f for f in action_source_folders if f != 'no_data']
-    # CLEAN CODE NOTE: Don't use misleading names, especially to save two characters of space.
-    #
-    #   A fold is a real thing and is different from a folder.
-    #
-    #   Also, "fold" is not a standard and unambiguous abbreviation for "folder".
-    for fold in validupdatefolders:
-        for file in [f for f in os.listdir(latest_actions_folder + fold) if not f.startswith('.')]:
-            fullpath = latest_actions_folder +'/' + fold + '/' + file
-            # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold + '/' + file
-            type = get_doc_type(file)
+    for folder in valid_update_folders:
+        failure_counts.append(validate_update_folder(folder))
 
-            # check name format:
-            if check_file_name_format(file, type):
-                LOGGER.debug('File format is right.')
-            else:
-                LOGGER.info('File Format is not right: %s', file)
-                failure_counts.name_format += 1
-                log_file_failure(log_paths.file,
-                                 current_date,
-                                 file,
-                                 'name_format')
-
-            # check csv file:
-            if type == 'QA':
-                # if not check_qa_file(fullpath):  # define the function to check qa csv file
-                if not check_qa_file(fullpath):
-                    LOGGER.info('QA file %s is not right', file)
-                    failure_counts.file_quality += 1
-                    log_file_failure(log_paths.file,
-                                     current_date,
-                                     file,
-                                     'file_quality - QA')
-            # check board orders file:
-            elif type == 'BO':
-                if not check_bo_pdf(fullpath):  # define the function to check board orders
-                    LOGGER.info('BO file %s is not right', file)
-                    failure_counts.file_quality += 1
-                    log_file_failure(log_paths.file,
-                                     current_date,
-                                     file,
-                                     'file_quality - BO')
+    return functools.reduce(lambda a, b: a + b, failure_counts)
 
 
 def log_failure_counts(log_path, failure_counts, current_date):
@@ -231,10 +142,13 @@ def log_failure_counts(log_path, failure_counts, current_date):
 
 
 # 2. check Completeness:
-def ValidateCompleteness(path) -> bool:
+def is_data_complete(path) -> bool:
     # get folder and file list in nodata folder
     nodatapath = path + '/no_data'
+    # CLEAN CODE NOTE: DRY principle leads to code reuse and fewer mistakes
     nodatafolders = [f for f in os.listdir(nodatapath) if not f.startswith('.')]
+
+    # CLEAN CODE NOTE: by focusing on bite-sized chunks, errors and inefficiencies will often be revealed
     all_files = []
     for entry in nodatafolders:
         files = os.listdir(nodatapath + '/' + entry)
@@ -245,6 +159,9 @@ def ValidateCompleteness(path) -> bool:
     for file in all_files:
         if file[-4:] == '.pdf':
             count += 1
+
+    # CLEAN_CODE_NOTE: breaking up code into functions often obviates the need for nested ifs and, of course,
+    #   improves readability
     if count == 0:
         LOGGER.debug('no pdf files in no_data folder. Good!')
         # b) check no same folder outside not data folder. # logic: whole folders in two layers == 69, loop to check the duplicate
@@ -260,6 +177,101 @@ def ValidateCompleteness(path) -> bool:
                 LOGGER.info('There is a duplicate folder in and out no_data folder.')
         else:
             LOGGER.info('folder total number is not right: %d', len(folders) + len(nodatafolders))
+
+
+def validate_complete_data(latest_actions_folder):
+    failure_counts = FailureCounts()
+
+    if not check_files_exist(latest_actions_folder):  # no_data folder is deleted in this function
+        failure_counts.file_exists += 1
+    else:  # check_files_exist is True
+        LOGGER.info('Disciplinary action folders are correct')
+        LOGGER.debug('next step: check mandatory files contents in the folder')
+
+        # Step 2: Validate Content Quality
+        # remove no_data folder
+        validfolders = [x for x in action_source_folders if x != 'no_data']
+        for folder in validfolders:
+            for file in [f for f in os.listdir(latest_actions_folder + '/' + folder) if not f.startswith('.')]:
+                fullpath = latest_actions_folder + '/' + folder + '/' + file
+                # get the type of file: BO, SL, NL, QA, M (json)
+                type = get_doc_type(file)
+                # check name format:
+                if not check_file_name_format(file, type):
+                    LOGGER.info('File Format is not right: %s as type %s', file, type)
+                    failure_counts.name_format += 1
+                    log_file_failure(log_paths.file,
+                                     current_date,
+                                     file,
+                                     'name_format - file type')
+
+                # check csv file:
+                if type == 'QA':
+                    if not check_qa_file(fullpath):
+                        LOGGER.info('QA file %s is not right', file)
+                        failure_counts.file_quality += 1
+                        log_file_failure(log_paths.file,
+                                         current_date,
+                                         file,
+                                         'file_quality - QA')
+                # check board orders file:
+                elif type == 'BO' or type == 'SL' or type == 'NL':
+                    if not check_bo_pdf(fullpath):
+                        LOGGER.info('PDF file %s has blank page', file)
+                        failure_counts.file_quality += 1
+                        log_file_failure(log_paths.file,
+                                         current_date,
+                                         file,
+                                         'file_quality - blank page')
+
+
+
+def get_folder_contents(path) -> list:
+    return [d for d in os.listdir(path) if not d.startswith('.')]
+
+
+def get_valid_update_folders(action_source_folders):
+    return [f for f in action_source_folders if f != 'no_data']
+
+
+def validate_update_folder(folder)
+    failure_counts = FailureCounts()
+
+    for file in [f for f in os.listdir(latest_actions_folder + folder) if not f.startswith('.')]:
+        fullpath = latest_actions_folder +'/' + folder + '/' + file
+        # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + folder + '/' + file
+        type = get_doc_type(file)
+
+        # check name format:
+        if check_file_name_format(file, type):
+            LOGGER.debug('File format is right.')
+        else:
+            LOGGER.info('File Format is not right: %s', file)
+            failure_counts.name_format += 1
+            log_file_failure(log_paths.file,
+                             current_date,
+                             file,
+                             'name_format')
+
+        # check csv file:
+        if type == 'QA':
+            # if not check_qa_file(fullpath):  # define the function to check qa csv file
+            if not check_qa_file(fullpath):
+                LOGGER.info('QA file %s is not right', file)
+                failure_counts.file_quality += 1
+                log_file_failure(log_paths.file,
+                                 current_date,
+                                 file,
+                                 'file_quality - QA')
+        # check board orders file:
+        elif type == 'BO':
+            if not check_bo_pdf(fullpath):  # define the function to check board orders
+                LOGGER.info('BO file %s is not right', file)
+                failure_counts.file_quality += 1
+                log_file_failure(log_paths.file,
+                                 current_date,
+                                 file,
+                                 'file_quality - BO')
 
 
 # 3. check if can download to Udrive??
