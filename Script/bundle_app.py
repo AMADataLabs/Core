@@ -48,7 +48,7 @@ def copy_dependency_files(repository_path, app_path, project):
     shutil.copytree(site_packages_path, app_path)
 
 
-def copy_source_files(build_path, shared_source_path, app_path)
+def copy_source_files(build_path, shared_source_path, app_path):
     modspec_path = os.path.join(build_path, 'modspec.yaml')
     bundle = SourceBundle(modspec_path)
 
