@@ -1,38 +1,40 @@
 import psycopg2
 
-CONNECTION = psycopg2.connect(
-    host='database-test-ui.c3mn4zysffxi.us-east-1.rds.amazonaws.com',
-    port=5432,
-    user='DataLabs_UI',
-    password='hsgdatalabs',
-    database='sample')
-
-CURSOR = CONNECTION.cursor()
+import os
 
 
 def lambda_handler(event, context):
-    response = check_event(event)
+    connection = psycopg2.connect(
+        host=os.environ.get('DATABASE_RDS_HOST'),
+        port=os.environ.get('DATABASE_RDS_PORT'),
+        database=os.environ.get('DATABASE_RDS_NAME'),
+        user=os.environ.get('CREDENTIALS_RDS_USERNAME'),
+        password=os.environ.get('CREDENTIALS_RDS_PASSWORD'),
+    )
+
+    cursor = connection.cursor()
+    response = check_event(event, cursor)
 
     return {'statusCode': 200, 'body': response}
 
 
-def check_event(event):
+def check_event(event, cursor):
     if 'keyword' in list(event.keys()):
-        response = query_keyword(event)
+        response = query_keyword(event, cursor)
 
     elif "since" in list(event.keys()):
-        response = query_date(event)
+        response = query_date(event, cursor)
 
     else:
-        response = query_all(event)
+        response = query_all(cursor)
 
     return response
 
 
-def query_all(event):
-    CURSOR.execute('SELECT * FROM CPT_Data.clinician_descriptor LIMIT 10')
+def query_all(cursor):
+    cursor.execute('SELECT * FROM CPT_Data.clinician_descriptor LIMIT 10')
     records = []
-    for row in CURSOR:
+    for row in cursor:
         record = {
             'concept_id': row[1],
             'cpt_code': row[2],
@@ -45,12 +47,12 @@ def query_all(event):
     return records
 
 
-def query_keyword(event):
+def query_keyword(event, cursor):
     records = []
     keyword = event['keyword'].upper()
     query = "SELECT * FROM CPT_Data.clinician_descriptor WHERE clinical_descriptor LIKE '%{}%'".format(keyword)
-    CURSOR.execute(query)
-    for row in CURSOR:
+    cursor.execute(query)
+    for row in cursor:
         record = {
             'concept_id': row[1],
             'cpt_code': row[2],
@@ -63,5 +65,5 @@ def query_keyword(event):
     return records
 
 
-def query_date(date):
+def query_date(date, cursor):
     return 'test'
