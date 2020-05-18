@@ -31,35 +31,6 @@ def check_event(event, cursor):
     return response
 
 
-def query_all(cursor):
-    cursor.execute('SELECT * FROM CPT_Data.cpt LIMIT 10')
-    records = []
-    for row in cursor:
-        record = {
-            'cpt_code': row[1],
-            'short_description': row[2],
-            'medium_description': row[3],
-            'long_description': row[4]
-        }
-        records.append(record)
-    return records
-
-
-def query_length(event, cursor):
-    length = event['length'] + str('_description')
-    records = []
-    query = "SELECT cpt_code, {} FROM CPT_Data.cpt LIMIT 5".format(length)
-    cursor.execute(query)
-    for row in cursor:
-        record = {
-            'code': row[0],
-            'description': row[1]
-        }
-        records.append(record)
-
-    return records
-
-
 def query_keyword(event, cursor):
     records = []
     keyword = event['keyword'].upper()
@@ -83,7 +54,8 @@ def query_length_keyword(event, cursor):
     records = []
     keyword = event['keyword'].upper()
     length = event['length'] + str('_description')
-    query = "SELECT cpt_code, {} FROM CPT_Data.cpt WHERE short_description LIKE '%{}%' OR medium_description LIKE '%{}%' OR long_description LIKE '%{}%' LIMIT 5".format(length, keyword, keyword, keyword)
+    query = "SELECT cpt_code, {} FROM CPT_Data.cpt WHERE short_description LIKE '%{}%' " \
+            "OR medium_description LIKE '%{}%' OR long_description LIKE '%{}%' LIMIT 5".format(length, keyword, keyword, keyword)
     cursor.execute(query)
     for row in cursor:
         record = {
@@ -92,3 +64,34 @@ def query_length_keyword(event, cursor):
         }
         records.append(record)
     return records
+
+
+def query_length(event, cursor):
+    length = event['length'] + str('_description')
+    records = []
+    query = "SELECT cpt_code, {} FROM CPT_Data.cpt LIMIT 5".format(length)
+    cursor.execute(query)
+    for row in cursor:
+        record = {
+            'code': row[0],
+            'description': row[1]
+        }
+        records.append(record)
+
+    return records
+
+
+def query_all(cursor):
+    cursor.execute('SELECT * FROM CPT_Data.cpt LIMIT 10')
+    records = []
+    for row in cursor:
+        record = {
+            'cpt_code': row[1],
+            'short_description': row[2],
+            'medium_description': row[3],
+            'long_description': row[4]
+        }
+        records.append(record)
+    return records
+
+
