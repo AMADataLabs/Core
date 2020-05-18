@@ -32,12 +32,13 @@ def query_length(event, cursor):
     query = "SELECT cpt_code, {} FROM CPT_Data.cpt WHERE cpt_code= {}".format(length, requested_id)
     record_row = {}
     cursor.execute(query)
+
     for row in cursor:
         record_row = {
             'cpt_code': row[0],
             length: row[1]
-
         }
+
     return record_row
 
 
