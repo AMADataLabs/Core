@@ -141,14 +141,9 @@ def log_failure_counts(log_path, failure_counts, current_date):
 
 
 def data_is_complete(no_data_path, action_source_folders) -> bool:
-    # CLEAN CODE NOTE: DRY principle leads to code reuse and fewer mistakes
     no_data_folders = get_folder_contents(no_data_path)
     is_complete = False
 
-    # CLEAN CODE NOTE: by focusing on bite-sized chunks, errors and inefficiencies will often be revealed
-
-    # CLEAN_CODE_NOTE: breaking up code into functions often obviates the need for nested ifs and, of course,
-    #   improves readability
     if not pdfs_are_present(no_data_folders) \
        and folder_count_is_correct(action_source_folders, no_data_folders) \
        and all_folders_are_unique(action_source_folders + no_data_folders):

@@ -78,16 +78,17 @@ def new_data_available(date_last_updated) -> bool:
 def check_disciplinary_action_data_quality(data_base_path, required_files, log_paths):
     failure_counts = None
     latest_actions_folder = get_latest_actions_folder(data_base_path)
+    action_source_folders = folder_contents(latest_actions_folder)
     current_date = datetime.datetime.now().date()
 
     LOGGER.info('New disciplinary action folders uploaded: %s', latest_actions_folder)
 
-    if is_newly_procured_data(latest_actions_folder):
+    if is_newly_procured_data(latest_actions_folder, action_source_folders):
         LOGGER.debug('This folder is a newly-procured data folder')
-        failure_counts = validate_newly_procured_data(latest_actions_folder)
+        failure_counts = validate_newly_procured_data(latest_actions_folder, action_source_folders)
     else:
         LOGGER.debug('This folder is a re-baselined data folder')
-        failure_counts = validate_rebaselined_data(latest_actions_folder)
+        failure_counts = validate_rebaselined_data(latest_actions_folder, action_source_folders)
 
     log_failure_counts(log_paths.count, failure_counts)
 
@@ -104,23 +105,22 @@ def is_newly_procured_data(latest_actions_folder, action_source_folders) -> bool
     return False
 
 
-def validate_newly_procured_data(latest_actions_folder):
+def validate_newly_procured_data(latest_actions_folder, action_source_folders):
     failure_counts = None
-    action_source_folders = folder_contents(latest_actions_folder)
+    no_data_path = path + '/no_data'
 
-    LOGGER.debug('This folder is new procurement')
+    LOGGER.debug('This folder is a new procurement')
 
-    if is_data_complete(latest_actions_folder):
-        failure_counts = validate_complete_data(latest_actions_folder)
+    if data_is_complete(no_data_path, action_source_folders):
+        failure_counts = validate_complete_data(latest_actions_folder, action_source_folders)
     else:
         failure_counts = FailureCounts(completeness=1)
 
     return failure_counts
 
 
-def validate_rebaselined_data(latest_actions_folder):
+def validate_rebaselined_data(latest_actions_folder, action_source_folders):
     failure_counts = []
-    action_source_folders = get_folder_contents(latest_actions_folder)
     valid_update_folders = get_valid_update_folders(action_source_folders)
 
     for folder in valid_update_folders:
@@ -140,45 +140,19 @@ def log_failure_counts(log_path, failure_counts, current_date):
         )
 
 
-# 2. check Completeness:
-def is_data_complete(path) -> bool:
-    # get folder and file list in nodata folder
-    nodatapath = path + '/no_data'
-    # CLEAN CODE NOTE: DRY principle leads to code reuse and fewer mistakes
-    nodatafolders = [f for f in os.listdir(nodatapath) if not f.startswith('.')]
+def data_is_complete(no_data_path, action_source_folders) -> bool:
+    no_data_folders = get_folder_contents(no_data_path)
+    is_complete = False
 
-    # CLEAN CODE NOTE: by focusing on bite-sized chunks, errors and inefficiencies will often be revealed
-    all_files = []
-    for entry in nodatafolders:
-        files = os.listdir(nodatapath + '/' + entry)
-        for i in files:
-            all_files.append(i)
-    # a) check if there is .pdf files
-    count = 0
-    for file in all_files:
-        if file[-4:] == '.pdf':
-            count += 1
+    if not pdfs_are_present(no_data_folders) \
+       and folder_count_is_correct(action_source_folders, no_data_folders) \
+       and all_folders_are_unique(action_source_folders + no_data_folders):
+        is_complete = True
 
-    # CLEAN_CODE_NOTE: breaking up code into functions often obviates the need for nested ifs and, of course,
-    #   improves readability
-    if count == 0:
-        LOGGER.debug('no pdf files in no_data folder. Good!')
-        # b) check no same folder outside not data folder. # logic: whole folders in two layers == 69, loop to check the duplicate
-        if len(folders) + len(nodatafolders) == 69:  # folders in total in and out no_data should be 69
-            LOGGER.info('It seems the total number of folders is correct.')
-            LOGGER.debug('Next step, examine will be executed.')
-            wholefolders = folders + nodatafolders
-            noDupFolders = set(wholefolders)
-            if len(wholefolders) == len(noDupFolders):
-                LOGGER.debug('there is no duplicate in the folder. Cool!')
-                return True
-            else:
-                LOGGER.info('There is a duplicate folder in and out no_data folder.')
-        else:
-            LOGGER.info('folder total number is not right: %d', len(folders) + len(nodatafolders))
+    return is_complete
 
 
-def validate_complete_data(latest_actions_folder):
+def validate_complete_data(latest_actions_folder, action_source_folders):
     failure_counts = FailureCounts()
 
     if not check_files_exist(latest_actions_folder):  # no_data folder is deleted in this function
@@ -223,6 +197,51 @@ def validate_complete_data(latest_actions_folder):
                                          file,
                                          'file_quality - blank page')
 
+
+def pdfs_are_present(no_data_folders):
+    pdf_count = count_pdfs(no_data_folders)
+    pdfs_are_present = False
+
+    if count > 0:
+        pdfs_are_present = True
+
+    return pdfs_are_present
+
+
+def folder_count_is_correct(action_source_folders, no_data_folders):
+    total_folder_count = len(action_source_folders) + len(no_data_folders)
+    count_is_correct = False
+
+    if total_folder_count == 69:
+        count_is_correct = True
+    else:
+        LOGGER.info('Total folder count is not right: %d', total_folder_count)
+
+    return count_is_correct
+
+
+def all_folders_are_unique(all_folders):
+    unique_folders = set(all_folders)
+    are_unique = False
+
+    if len(all_folders) == len(unique_folders):
+        are_unique True
+    else:
+        LOGGER.info('Duplicate folder found in no_data folder.')
+
+    return are_unique
+
+
+def count_pdfs(folders):
+    count = 0
+
+    for folder in no_data_folders:
+        files = os.listdir(no_data_path + '/' + folder)
+
+        if file[-4:] == '.pdf':
+            count += 1
+
+    return count
 
 
 def get_folder_contents(path) -> list:

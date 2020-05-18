@@ -23,7 +23,6 @@ def main(args):
     shared_source_path = Path(os.path.join(repository_path, 'Source', 'Python')).resolve()
     build_path = Path(os.path.join(repository_path, 'Build', args['project'])).resolve()
     app_path = os.path.join(build_path, 'app')
-    modspec_path = os.path.join(build_path, 'modspec.yaml')
 
     if args['serverless'] and not args['in_place']:
         LOGGER.info('=== Removing Old App Directory ===')
@@ -33,10 +32,10 @@ def main(args):
         copy_dependency_files(repository_path, app_path, args['project'])
 
     LOGGER.info('=== Copying Source Files ===')
-    relative_file_paths = SourceBundle(modspec_path).copy(shared_source_path, app_path)
+    copy_source_files(build_path, shared_source_path, app_path)
 
     if args['verbose']:
-        log_files_copied(shared_source_path, app_path, relative_file_paths)
+        log_copied_source_files(shared_source_path, app_path, relative_file_paths)
 
     if args['serverless']:
         LOGGER.info('=== Creating Zip Archive ===')
@@ -47,9 +46,16 @@ def copy_dependency_files(repository_path, app_path, project):
     site_packages_path = os.path.join(repository_path, 'Environment', project, 'lib', 'python3.7', 'site-packages')
 
     shutil.copytree(site_packages_path, app_path)
-    
 
-def log_files_copied(shared_source_path, app_path, relative_file_paths):
+
+def copy_source_files(build_path, shared_source_path, app_path)
+    modspec_path = os.path.join(build_path, 'modspec.yaml')
+    bundle = SourceBundle(modspec_path)
+
+    return bundle.copy(shared_source_path, app_path)
+
+
+def log_copied_source_files(shared_source_path, app_path, relative_file_paths):
     LOGGER.info('Copied the following files from')
     LOGGER.info(shared_source_path)
     LOGGER.info(f'    to {app_path}:')
