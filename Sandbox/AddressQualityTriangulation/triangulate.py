@@ -1,8 +1,6 @@
 '''Office Address Triangulation'''
 import os
-
 import pandas as pd
-
 import settings
 import get_insurance_data
 from google_places import places_phone_list_lookup
@@ -99,7 +97,6 @@ def main():
     new_addresses.to_csv(f'{out_dir}/Raw_Triangulation_Data.csv', index=False)
     print('API Calling...')
     reverse_phone_results = phone_call(master_phone_list)
-    reverse_phone_results.to_csv(f'{out_dir}/help.csv', index=False)
     new_addresses.to_csv(f'{out_dir}/Raw_Triangulation_Data.csv', index=False)
     new_addresses = pd.merge(reverse_phone_results, new_addresses, left_on='Phone_Number', right_on='Phone_Complete', how='right', suffixes = ['_Reverse',''])
     print('Matching...')

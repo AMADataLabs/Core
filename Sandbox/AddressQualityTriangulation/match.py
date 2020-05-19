@@ -1,6 +1,19 @@
 '''Match'''
 from fuzzywuzzy import fuzz
 
+def count_found(row):
+    '''count'''
+    found = 0
+    if row.State_DHC != 'None':
+        found += 1
+    if row.STATE_CD != 'None':
+        found += 1
+    if row.State_Google != 'None':
+        found += 1
+    if row.State_GetPhone != 'None':
+        found += 1
+    return found
+
 def check_match(thing_1, thing_2):
     '''match check'''
     if thing_1 == thing_2:
@@ -28,6 +41,7 @@ def find_address_matches(new_addresses):
     amaia_names = []
     dhc_names = []
     dhc_phones = []
+    totals = []
 
     for row in new_addresses.itertuples():
         state_dhc = 0
@@ -42,8 +56,7 @@ def find_address_matches(new_addresses):
         add_ins = 0
         add_3_ins = 0
         name_ins = 0
-        office_ins = 0
-        office_ins = 0
+
         if int(row.Phone) == int(row.Phone_Complete):
             dhc_phone = 1
         if row.State_New == row.State_DHC:
@@ -85,11 +98,12 @@ def find_address_matches(new_addresses):
         dhc_zips.append(zip_dhc)
         amaia_adds.append(add_ins)
         dhc_adds.append(add_dhc)
-        amaia_adds_3.append(add_ins)
-        dhc_adds_3.append(add_dhc)
+        amaia_adds_3.append(add_3_ins)
+        dhc_adds_3.append(add_3_dhc)
         amaia_names.append(name_ins)
         dhc_names.append(name_dhc)
         dhc_phones.append(dhc_phone)
+        totals.append(count_found(row))
 
     new_addresses['AMAIA_State_Match'] = amaia_states
     new_addresses['AMAIA_City_Match'] = amaia_citys
@@ -104,6 +118,7 @@ def find_address_matches(new_addresses):
     new_addresses['DHC_Address_2_Match'] = dhc_adds
     new_addresses['DHC_Address_3_Match'] = dhc_adds_3
     new_addresses['DHC_Phone_Match'] = dhc_phones
+    new_addresses['Total_Records'] = totals
 
     return new_addresses
 
