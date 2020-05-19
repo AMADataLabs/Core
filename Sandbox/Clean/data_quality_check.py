@@ -1,4 +1,5 @@
 """ Check the quality of disciplinary action data. """
+from   abc import ABC, abstractmethod
 from   collections import Counter
 import csv
 from   dataclasses import dataclass
@@ -8,6 +9,7 @@ import glob
 import json
 import logging
 import os
+import pandas
 import re
 from   time import strftime
 
@@ -44,6 +46,109 @@ class FailureCounts:
     def __iadd__(self, other):
         for field in self.__dataclass_fields__.keys():
             setattr(self, field, getattr(self, field) + getattr(other, field))
+
+
+class FileValidator(ABC):
+    @abstractmethod
+    def file_name_is_valid(self, filename):
+        pass
+
+    @abstractmethod
+    def file_is_valid(self, filename):
+        pass
+
+
+class IgnoreNameFileValidatorMixin(FileValidator):
+    def file_name_is_valid(self, filename):
+        return True
+
+    def file_is_valid(self, filename):
+        return True
+
+
+class PDFFileContentsValidatorMixin(FileValidator):
+    def file_contents_is_valid(self, filename):
+        # TODO: Page is distorted or not
+        is_valid = True
+
+        with file in open(filename, 'rb'):
+            pdf = PdfFileReader(open(filename, 'rb'))
+
+        for page_number, page in enumerate(pdf.pages):
+            if _page_is_blank(page):
+                LOGGER.info('Page %d of %s is blank.', page_number, filename)
+                is_valid = False
+
+        return is_valid
+
+
+class SLFileValidator(IgnoreNameFileValidatorMixin, PDFFileContentsValidatorMixin);
+    def file_name_is_valid(self, filename):
+        is_valid = False
+        pattern = r'[A-Z_]*_[0-9]*-[0-9]*-[0-9]*_SL.pdf'
+
+        if re.match(pattern, filename) is not None:
+            is_valid = True
+        else:
+            if filename.split('-')[0] == 'DHHS':
+                pattern = r'DHHS-\S*_SL.pdf'
+                if re.match(pattern, filename) is not None:
+                    is_valid = True
+
+
+class NLFileValidator(PDFFileContentsValidatorMixin, FileValidator);
+    def file_name_is_valid(self, filename):
+        pattern = r'[A-Z_]*_[0-9]*-[0-9]*-[0-9]*_NL.pdf'
+
+        if re.match(pattern, filename) is not None:
+            return True
+
+
+class BOFileValidator(PDFFileContentsValidatorMixin, FileValidator):
+    def file_name_is_valid(self, filename):
+        is_valid = False
+
+        if filename.split('-')[0] == 'DHHS':
+            pattern = r'DHHS-\S*_BO.pdf'
+            if re.match(pattern, filename) is not None:
+                is_valid = True
+        pattern = r'\S*-[0-9]*_[0-9]*_[0-9]*_BO.pdf'
+        if re.match(pattern, filename) is not None:
+            is_valid = True
+        else:
+            pattern = r'\S*-[0-9]*_[0-9]*_[0-9]*_BO_#[0-9].pdf'
+            if re.match(pattern, filename) is not None:
+                is_valid = True
+
+    @classmethod
+    def _page_is_blank(cls, page):
+        return page.getContents() is None
+
+
+# CLEAN CODE NOTE: array-based operations are not only more efficient, they eliminate nested for loops!
+class QAFileValidator(DefaultFileValidator):
+    def file_contents_is_valid(self, filename):
+        data = pandas.read_csv(filename)
+
+        return np.all(pandas.isnull(data))
+
+
+class FileValidatorFactory():
+    VALIDATORS = dict(
+        SL=SLFileValidator,
+        NL=FileValidator,
+        BO=BOFileValidator,
+        QA=DefaultFileValidator,
+        M=DefaultFileValidator,
+    )
+
+    @classmethod
+    def create_validator(cls, file_type):
+        if file_type not in VALIDATOR_TABLE:
+            raise ValueError(f"File type '{file_type}' is not supported.")
+
+        return VALIDATORS[file_type]()
+
 
 def main():
     data_base_path = os.environ.get('DATA_BASE_PATH')
@@ -153,49 +258,58 @@ def data_is_complete(no_data_path, action_source_folders) -> bool:
 
 
 def validate_complete_data(latest_actions_folder, action_source_folders):
-    failure_counts = FailureCounts()
+    failure_counts = []
 
     if not check_files_exist(latest_actions_folder):  # no_data folder is deleted in this function
-        failure_counts.file_exists += 1
+        failure_counts.append(FailureCounts(file_exists=1))
     else:  # check_files_exist is True
-        LOGGER.info('Disciplinary action folders are correct')
-        LOGGER.debug('next step: check mandatory files contents in the folder')
+        failure_counts = validate_data_files(latest_actions_folder, action_source_folders)
 
-        # Step 2: Validate Content Quality
-        # remove no_data folder
-        validfolders = [x for x in action_source_folders if x != 'no_data']
-        for folder in validfolders:
-            for file in [f for f in os.listdir(latest_actions_folder + '/' + folder) if not f.startswith('.')]:
-                fullpath = latest_actions_folder + '/' + folder + '/' + file
-                # get the type of file: BO, SL, NL, QA, M (json)
-                type = get_doc_type(file)
-                # check name format:
-                if not check_file_name_format(file, type):
-                    LOGGER.info('File Format is not right: %s as type %s', file, type)
-                    failure_counts.name_format += 1
-                    log_file_failure(log_paths.file,
-                                     current_date,
-                                     file,
-                                     'name_format - file type')
 
-                # check csv file:
-                if type == 'QA':
-                    if not check_qa_file(fullpath):
-                        LOGGER.info('QA file %s is not right', file)
-                        failure_counts.file_quality += 1
-                        log_file_failure(log_paths.file,
-                                         current_date,
-                                         file,
-                                         'file_quality - QA')
-                # check board orders file:
-                elif type == 'BO' or type == 'SL' or type == 'NL':
-                    if not check_bo_pdf(fullpath):
-                        LOGGER.info('PDF file %s has blank page', file)
-                        failure_counts.file_quality += 1
-                        log_file_failure(log_paths.file,
-                                         current_date,
-                                         file,
-                                         'file_quality - blank page')
+def get_valid_update_folders(action_source_folders):
+    return [f for f in action_source_folders if f != 'no_data']
+
+
+def validate_update_folder(folder)
+    failure_counts = FailureCounts()
+
+    for file in [f for f in os.listdir(latest_actions_folder + folder) if not f.startswith('.')]:
+        fullpath = latest_actions_folder +'/' + folder + '/' + file
+        # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + folder + '/' + file
+        type = get_doc_type(file)
+
+        # check name format:
+        if not file_name_is_valid(file, type):
+            LOGGER.info('File Format is not right: %s', file)
+            failure_counts.name_format += 1
+            log_file_failure(log_paths.file,
+                             current_date,
+                             file,
+                             'name_format')
+
+        # check csv file:
+        if type == 'QA':
+            # if not check_qa_file(fullpath):  # define the function to check qa csv file
+            if not check_qa_file(fullpath):
+                LOGGER.info('QA file %s is not right', file)
+                failure_counts.file_quality += 1
+                log_file_failure(log_paths.file,
+                                 current_date,
+                                 file,
+                                 'file_quality - QA')
+        # check board orders file:
+        elif type == 'BO':
+            if not check_bo_pdf(fullpath):  # define the function to check board orders
+                LOGGER.info('BO file %s is not right', file)
+                failure_counts.file_quality += 1
+                log_file_failure(log_paths.file,
+                                 current_date,
+                                 file,
+                                 'file_quality - BO')
+
+
+def get_folder_contents(path) -> list:
+    return [d for d in os.listdir(path) if not d.startswith('.')]
 
 
 def pdfs_are_present(no_data_folders):
@@ -230,105 +344,6 @@ def all_folders_are_unique(all_folders):
         LOGGER.info('Duplicate folder found in no_data folder.')
 
     return are_unique
-
-
-def count_pdfs(folders):
-    count = 0
-
-    for folder in no_data_folders:
-        files = os.listdir(no_data_path + '/' + folder)
-
-        if file[-4:] == '.pdf':
-            count += 1
-
-    return count
-
-
-def get_folder_contents(path) -> list:
-    return [d for d in os.listdir(path) if not d.startswith('.')]
-
-
-def get_valid_update_folders(action_source_folders):
-    return [f for f in action_source_folders if f != 'no_data']
-
-
-def validate_update_folder(folder)
-    failure_counts = FailureCounts()
-
-    for file in [f for f in os.listdir(latest_actions_folder + folder) if not f.startswith('.')]:
-        fullpath = latest_actions_folder +'/' + folder + '/' + file
-        # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + folder + '/' + file
-        type = get_doc_type(file)
-
-        # check name format:
-        if check_file_name_format(file, type):
-            LOGGER.debug('File format is right.')
-        else:
-            LOGGER.info('File Format is not right: %s', file)
-            failure_counts.name_format += 1
-            log_file_failure(log_paths.file,
-                             current_date,
-                             file,
-                             'name_format')
-
-        # check csv file:
-        if type == 'QA':
-            # if not check_qa_file(fullpath):  # define the function to check qa csv file
-            if not check_qa_file(fullpath):
-                LOGGER.info('QA file %s is not right', file)
-                failure_counts.file_quality += 1
-                log_file_failure(log_paths.file,
-                                 current_date,
-                                 file,
-                                 'file_quality - QA')
-        # check board orders file:
-        elif type == 'BO':
-            if not check_bo_pdf(fullpath):  # define the function to check board orders
-                LOGGER.info('BO file %s is not right', file)
-                failure_counts.file_quality += 1
-                log_file_failure(log_paths.file,
-                                 current_date,
-                                 file,
-                                 'file_quality - BO')
-
-
-# 3. check if can download to Udrive??
-def check_in_udrive(path, UdrivePath) -> bool:
-    return os.listdir(path) == os.listdir(UdrivePath)
-
-
-# 3.5 check file format: Agency_Date-Time_SL/NL.pdf, Agency-Physician_Name-Date_Time_BO.pdf
-def check_file_name_format(filename, type) -> bool:
-    if type == 'SL':
-        pattern = r'[A-Z_]*_[0-9]*-[0-9]*-[0-9]*_SL.pdf'
-        if re.match(pattern, filename) is not None:
-            return True
-        else:
-            if filename.split('-')[0] == 'DHHS':
-                pattern = r'DHHS-\S*_SL.pdf'
-                if re.match(pattern, filename) is not None:
-                    return True
-    elif type == 'NL':
-        pattern = r'[A-Z_]*_[0-9]*-[0-9]*-[0-9]*_NL.pdf'
-        if re.match(pattern, filename) is not None:
-            return True
-    elif type == 'BO':
-        # Exception: DHHS-2003REIN_BO.pdf
-        if filename.split('-')[0] == 'DHHS':
-            pattern = r'DHHS-\S*_BO.pdf'
-            if re.match(pattern, filename) is not None:
-                return True
-        pattern = r'\S*-[0-9]*_[0-9]*_[0-9]*_BO.pdf'
-        if re.match(pattern, filename) is not None:
-            return True
-        else:
-            pattern = r'\S*-[0-9]*_[0-9]*_[0-9]*_BO_#[0-9].pdf'
-            if re.match(pattern, filename) is not None:
-                return True
-    elif type == 'QA' or type == 'M':
-        return True
-    else:
-        return False
 
 
 # 4. check if mandatory files exits in each folder
@@ -374,29 +389,35 @@ def check_files_exist(path, required_files) -> bool:
                 LOGGER.info('only have %s', filetype)
 
 
-# 5. Validate Basic Content:
-def check_qa_file(filepath) -> bool:
-    with open(filepath, "r") as f:
-        csvreader = csv.reader(f, delimiter=",")
-        for row in csvreader:
-            if row[1] in (None, ''):
-                LOGGER.info('no value for %d', row[0])
-                return False
-            else:
-                continue
-    return True
+def validate_data_files(latest_actions_folder, action_source_folders):
+    LOGGER.info('Disciplinary action folders are correct')
+    LOGGER.debug('next step: check mandatory files contents in the folder')
 
+    # Step 2: Validate Content Quality
+    # remove no_data folder
+    validfolders = [x for x in action_source_folders if x != 'no_data']
+    for folder in validfolders:
+        for file in [f for f in os.listdir(latest_actions_folder + '/' + folder) if not f.startswith('.')]:
+            fullpath = latest_actions_folder + '/' + folder + '/' + file
+            # get the type of file: BO, SL, NL, QA, M (json)
+            file_type = get_doc_type(file)
+            # check name format:
+            if not file_name_is_valid(file, file_type):
+                LOGGER.info('File Format is not right: %s as type %s', file, file_type)
+                failure_counts.name_format += 1
+                log_file_failure(log_paths.file,
+                                 current_date,
+                                 file,
+                                 f'name_format - {file_type}')
+            elif not file_contents_is_valid(file, file_type):
+                LOGGER.info('%s file %s is not right', file_type, file)
+                failure_counts.file_quality += 1
+                log_file_failure(log_paths.file,
+                                 current_date,
+                                 file,
+                                 f'file_quality - {file_type or "blank page" if file_type != "QA"}')
 
-def check_bo_pdf(filepath) -> bool:
-    pdfObj = PdfFileReader(open(filepath, 'rb'))
-    pagenum = pdfObj.getNumPages()
-    for i in range(pagenum):
-        # Page is blank or not
-        if pdfObj.getPage(i).getContents() is None:
-            LOGGER.info('Page %d of %s is blank.', i, filepath)
-            return False
-    return True
-    # Page is distorted or not: TODO.
+    return functools.reduce(lambda a, b: a + b, failure_counts)
 
 
 def get_doc_type(filename) -> str:
@@ -407,6 +428,35 @@ def get_doc_type(filename) -> str:
         type = filename.split('.')[0].rsplit('_', 2)[-2]
         return type
     return type
+
+
+def file_name_is_valid(filename, file_type) -> bool:
+    validator = FileValidatorFactory.create_validator(file_type)
+
+    return validator.file_name_is_valid(filename)
+
+
+def file_contents_is_valid(filename, file_type) -> bool:
+    validator = FileValidatorFactory.create_validator(file_type)
+
+    return validator.file_contents_is_valid(filename)
+
+
+def count_pdfs(folders):
+    count = 0
+
+    for folder in no_data_folders:
+        files = os.listdir(no_data_path + '/' + folder)
+
+        if file[-4:] == '.pdf':
+            count += 1
+
+    return count
+
+
+# 3. check if can download to Udrive??
+def check_in_udrive(path, UdrivePath) -> bool:
+    return os.listdir(path) == os.listdir(UdrivePath)
 
 
 def log_file_failure(log_path, date, file, failure_type):
