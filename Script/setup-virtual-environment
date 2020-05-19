@@ -45,12 +45,16 @@ print_usage() {
 
 
 create_environment_directory() {
-    mkdir ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+    mkdir -p ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
 }
 
 
 link_to_requirements_file() {
-    ln -s ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}/requirements.txt ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}/requirements.txt
+    BUILD_REQUIREMENTS=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}/requirements.txt
+    ENVIRONMENT_REQUIREMENTS=${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}/requirements.txt
+
+    rm ${ENVIRONMENT_REQUIREMENTS}
+    ln -s ${BUILD_REQUIREMENTS} ${ENVIRONMENT_REQUIREMENTS}
 }
 
 
