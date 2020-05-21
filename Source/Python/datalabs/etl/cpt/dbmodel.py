@@ -21,7 +21,8 @@ class Release(Base):
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    date = sa.Column(sa.Date, nullable=False)
+    publish_date = sa.Column(sa.Date, nullable=False)
+    effective_date = sa.Column(sa.Date, nullable=False)
     type = sa.Column(sa.String(3), sa.ForeignKey("cpt.release_type.type"), nullable=False)
 
 
@@ -120,7 +121,6 @@ class PLACode(Base):
 
     code = sa.Column(sa.String(5), nullable=False, primary_key=True)
     status = sa.Column(sa.String, nullable=False)
-    effective_date = sa.Column(sa.String, nullable=False)
     test_name = sa.Column(sa.String, nullable=False)
 
 class PLAShortDescriptor(Base):
