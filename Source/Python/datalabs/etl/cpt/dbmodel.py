@@ -114,18 +114,73 @@ class Concept(Base):
     cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False)
 
 
-class PLA(Base):
-    __tablename__ = 'pla'
+class PLACode(Base):
+    __tablename__ = 'pla_code'
     __table_args__ = {"schema": "cpt"}
 
-    cd_id = sa.Column(sa.Integer, primary_key=True)
-    pla_code = sa.Column(sa.String(5), nullable=False)
-    long_descriptor = sa.Column(sa.String, nullable=False)
-    medium_descriptor = sa.Column(sa.String, nullable=False)
-    short_descriptor = sa.Column(sa.String, nullable=False)
-    cd_status = sa.Column(sa.String, nullable=False)
+    code = sa.Column(sa.String(5), nullable=False, primary_key=True)
+    status = sa.Column(sa.String, nullable=False)
     effective_date = sa.Column(sa.String, nullable=False)
-    lab_name = sa.Column(sa.String, nullable=False)
-    manufacturer_name = sa.Column(sa.String, nullable=False)
-    publish_date = sa.Column(sa.String, nullable=False)
     test_name = sa.Column(sa.String, nullable=False)
+
+class PLAShortDescriptor(Base):
+    __tablename__ = 'pla_short_descriptor'
+    __table_args__ = {"schema": "cpt"}
+
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
+    descriptor = sa.Column(sa.String(28), nullable=False)
+
+
+class PLAMediumDescriptor(Base):
+    __tablename__ = 'pla_medium_descriptor'
+    __table_args__ = {"schema": "cpt"}
+
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
+    descriptor = sa.Column(sa.String(48), nullable=False)
+
+
+class PLALongDescriptor(Base):
+    __tablename__ = 'pla_long_descriptor'
+    __table_args__ = {"schema": "cpt"}
+
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
+    descriptor = sa.Column(sa.String(), nullable=False)
+
+
+class Manufacturer(Base):
+    __tablename__ = 'manufacturer'
+    __table_args__ = {"schema": "cpt"}
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String, nullable=False)
+
+
+class ManufacturerPLACodeMapping(Base):
+    __tablename__ = 'manufacturer_pla_code_mapping'
+    __table_args__ = {"schema": "cpt"}
+
+    manufacturer = sa.Column(sa.Integer, sa.ForeignKey("cpt.manufacturer.id"), primary_key=True)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
+
+class Lab(Base):
+    __tablename__ = 'lab'
+    __table_args__ = {"schema": "cpt"}
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String, nullable=False)
+
+
+class LabPLACodeMapping(Base):
+    __tablename__ = 'lab_pla_code_mapping'
+    __table_args__ = {"schema": "cpt"}
+
+    lab = sa.Column(sa.Integer, sa.ForeignKey("cpt.lab.id"), primary_key=True)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
+
+
+class ReleasePLACodeMapping(Base):
+    __tablename__ = 'release_pla_code_mapping'
+    __table_args__ = {"schema": "cpt"}
+
+    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), primary_key=True)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
