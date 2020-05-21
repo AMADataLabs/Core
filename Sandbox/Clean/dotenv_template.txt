@@ -9,4 +9,4 @@ DATA_BASE_PATH='U:/Data Procurement & Disciplinary/JIRA Historical Documents/DIS
 
 COUNT_LOG='U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityLog.csv'
 FILE_LOG='U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityFileLog.csv'
-REQUIRED_FILES='required_files.json'
+REQUIRED_FILE_TYPES='required_file_types.json'

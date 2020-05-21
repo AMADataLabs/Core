@@ -265,6 +265,11 @@ def data_is_complete(action_source_folders, no_data_folders) -> bool:
 def validate_data(latest_actions_folder, action_source_folders):
     failure_counts = []
 
+    # CLEAN CODE COMMENT: Example of why comments are risky:
+    #   1) If you have to explain what a function does, either the name isn't sufficient or its burying functionality
+    #      that should be at the same abstraction level as the function. Split it up.
+    #   2) Comments often fall out of sync with the code they are annotating. Case in point,
+    #      mandatory_data_files_exist() is not deleting anything.
     if mandatory_data_files_exist(latest_actions_folder):  # no_data folder is deleted in this function
         LOGGER.info('Disciplinary action folders are correct')
         LOGGER.debug('next step: check mandatory files contents in the folder')
