@@ -112,3 +112,20 @@ class Concept(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False)
+
+
+class PLA(Base):
+    __tablename__ = 'pla'
+    __table_args__ = {"schema": "cpt"}
+
+    cd_id = sa.Column(sa.Integer, primary_key=True)
+    pla_code = sa.Column(sa.String(5), nullable=False)
+    long_descriptor = sa.Column(sa.String, nullable=False)
+    medium_descriptor = sa.Column(sa.String, nullable=False)
+    short_descriptor = sa.Column(sa.String, nullable=False)
+    cd_status = sa.Column(sa.String, nullable=False)
+    effective_date = sa.Column(sa.String, nullable=False)
+    lab_name = sa.Column(sa.String, nullable=False)
+    manufacturer_name = sa.Column(sa.String, nullable=False)
+    publish_date = sa.Column(sa.String, nullable=False)
+    test_name = sa.Column(sa.String, nullable=False)
