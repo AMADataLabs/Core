@@ -191,6 +191,9 @@ def check_disciplinary_action_data_quality(data_base_path, required_files, log_p
     latest_actions_folder = get_latest_actions_folder(data_base_path)
     action_source_folders = get_folder_contents(latest_actions_folder)
     no_data_folders = get_folder_contents(no_data_path)
+
+    # CLEAN CODE COMMENT: file loggers used to avoid mysterious passing of current_date and to make it clear that
+    #   a function may be logging data.
     current_date = datetime.datetime.now().date()
 
 
@@ -316,6 +319,18 @@ def all_folders_are_unique(all_folders):
 
     return are_unique
 
+
+# CLEAN CODE COMMENT: Summary of changes:
+#   1) Eliminated duplicated code
+#       - get_doc_type()
+#   2) Put lower-abstraction code in functions
+#       - function was doing multiple things with nested structures
+#   3) Used a while loop + list.pop(0) to avoid nested "if" in for loop
+#       - for loops don't have a conditional clause and while loops are not great for iteration, so get creative
+#   4) Used list comprehensions to eliminate an ugly for loop with a break
+#       - Nested for loop was doing two different things and returning if one of those things failed
+#   5) Modified JSON data and reindexed it to allow for lookups instead of an if-elif block
+#       - see required_file_types.json and dict comprehension in main()
 
 # 4. check if mandatory files exits in each folder
 def mandatory_data_files_exist(path, required_files) -> bool:

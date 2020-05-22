@@ -171,6 +171,8 @@ def main():
         file_error=os.environ.get('FILE_LOG')
     )
 
+    # CLEAN CODE COMMENT: file loggers used to avoid mysterious passing of current_date and to make it clear that
+    #   a function may be logging data.
     loggers = setup_loggers(log_paths)
 
     date_last_updated = modification_date(data_base_path)
@@ -304,11 +306,6 @@ def validate_data(latest_actions_path, action_source_folders, required_file_type
     failure_counts = []
     valid_update_folders = get_valid_update_folders(action_source_folders)
 
-    # CLEAN CODE COMMENT: Example of why comments are risky:
-    #   1) If you have to explain what a function does, either the name isn't sufficient or its burying functionality
-    #      that should be at the same abstraction level as the function. Split it up.
-    #   2) Comments often fall out of sync with the code they are annotating. Case in point,
-    #      data_file_composition_is_correct() is not deleting anything.
     if data_file_composition_is_correct(latest_actions_path, valid_update_folders, required_file_types):
         LOGGER.info('Disciplinary action folders are correct')
         LOGGER.debug('next step: check mandatory files contents in the folder')
@@ -356,17 +353,6 @@ def get_valid_update_folders(action_source_folders):
     return [f for f in action_source_folders if f != 'no_data']
 
 
-# CLEAN CODE COMMENT: Summary of changes:
-#   1) Eliminated duplicated code
-#       - get_doc_type()
-#   2) Put lower-abstraction code in functions
-#       - function was doing multiple things with nested structures
-#   3) Used a while loop + list.pop(0) to avoid nested "if" in for loop
-#       - for loops don't have a conditional clause and while loops are not great for iteration, so get creative
-#   4) Used list comprehensions to eliminate an ugly for loop with a break
-#       - Nested for loop was doing two different things and returning if one of those things failed
-#   5) Modified JSON data and reindexed it to allow for lookups instead of an if-elif block
-#       - see required_file_types.json and dict comprehension in main()
 def data_file_composition_is_correct(latest_actions_path, valid_update_folders, required_file_types) -> bool:
     composition_is_correct = True
 
@@ -438,6 +424,8 @@ def required_data_file_types_are_present(folder, required_file_types):
             file_types_are_present = True
         else:
             LOGGER.info('Expected file types %s for folder %s, but found only %s', expected_file_types, folder, file_types)
+
+        return file_types_are_present
 
 
 def validate_data_file(file_path, logger):
