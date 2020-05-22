@@ -32,6 +32,37 @@ def test_long_descriptor_parser(long_descriptor_text):
     assert data['cpt_code'][0] == '00100'
     assert data['cpt_code'][1] == '00102'
 
+    for descriptor in data['long_descriptor']:
+        assert descriptor.startswith('Anesthesia for procedure')
+
+
+def test_medium_descriptor_parser(medium_descriptor_text):
+    parser = desc.MediumDescriptorParser()
+
+    data = parser.parse(medium_descriptor_text)
+
+    assert len(data) == 2
+
+    assert data['cpt_code'][0] == '00100'
+    assert data['cpt_code'][1] == '00102'
+
+    assert data['medium_descriptor'][0] == 'ANESTHESIA SALIVARY GLANDS WITH BIOPSY'
+    assert data['medium_descriptor'][1] == 'ANESTHESIA CLEFT LIP INVOLVING PLASTIC REPAIR'
+
+
+def test_short_descriptor_parser(short_descriptor_text):
+    parser = desc.ShortDescriptorParser()
+
+    data = parser.parse(short_descriptor_text)
+
+    assert len(data) == 2
+
+    assert data['cpt_code'][0] == '00100'
+    assert data['cpt_code'][1] == '00102'
+
+    assert data['short_descriptor'][0] == 'ANESTH SALIVARY GLAND'
+    assert data['short_descriptor'][1] == 'ANESTH REPAIR OF CLEFT LIP'
+
 
 def test_consumer_descriptor_parser(consumer_descriptor_text):
     parser = desc.ConsumerDescriptorParser()
@@ -84,6 +115,34 @@ Chicago, IL 60611-5885, 312 464-5022.
 00102\tAnesthesia for procedures involving plastic repair of cleft lip
 """
 
+
+@pytest.fixture
+def medium_descriptor_text():
+    return """To purchase additional CPT products, contact the American Medical
+Association customer service at 800-621-8335.
+
+To request a license for distribution of products with CPT content, please
+see our Web site at www.ama-assn.org/go/cpt or contact the American
+Medical Association Intellectual Property Services, 330 N. Wabash Ave., Suite 39300, 
+Chicago, IL 60611-5885, 312 464-5022.
+
+00100 ANESTHESIA SALIVARY GLANDS WITH BIOPSY
+00102 ANESTHESIA CLEFT LIP INVOLVING PLASTIC REPAIR
+"""
+
+@pytest.fixture
+def short_descriptor_text():
+    return """To purchase additional CPT products, contact the American Medical
+Association customer service at 800-621-8335.
+
+To request a license for distribution of products with CPT content, please
+see our Web site at www.ama-assn.org/go/cpt or contact the American
+Medical Association Intellectual Property Services, 330 N. Wabash Ave., Suite 39300, 
+Chicago, IL 60611-5885, 312 464-5022.
+
+00100 ANESTH SALIVARY GLAND
+00102 ANESTH REPAIR OF CLEFT LIP
+"""
 
 @pytest.fixture
 def consumer_descriptor_text():
