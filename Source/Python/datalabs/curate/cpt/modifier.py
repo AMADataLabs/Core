@@ -1,10 +1,15 @@
 """ File parser for CPT'S MODUL.txt file using a state machine pattern. """
-
-from abc import ABC, abstractmethod
-from collections import namedtuple
-from enum import Enum
+from   abc import ABC, abstractmethod
+from   collections import namedtuple
+from   enum import Enum
+import logging
 import re
+
 import pandas as pd
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class State(Enum):
@@ -33,11 +38,11 @@ class Event(Enum):
 
 
 class ModifierType(Enum):
-    Regular = 'regular'
-    Physical = 'physical'
-    LevelOne = 'level_one'
-    CategoryTwo = 'category_two'
-    LevelTwo = 'level_two'
+    Regular = 'Regular'
+    Physical = 'Physical'
+    LevelOne = 'Level I'
+    CategoryTwo = 'Category II'
+    LevelTwo = 'Level II'
 
 
 Context = namedtuple('Context', 'state event data')
@@ -46,21 +51,30 @@ Context = namedtuple('Context', 'state event data')
 class ModifierFileParser:
     # pylint: disable=line-too-long,bad-whitespace
     TRANSITION_TABLE = [
-        # Start           Blank                      Text                       Modifier                   AppendixA              AnesthesiaPhysicalStatus  CPTLevelIModifiers      CategoryIIModifiers       LevelIIModifiers
-        [State.Unknown, State.Unknown, State.Unknown, State.Unknown, State.Unknown, State.Unknown, State.Unknown,
-         State.Unknown, State.Unknown],  # Unknown
-        [State.Beginning, State.Beginning, State.Beginning, State.Unknown, State.RegularModifier, State.Unknown,
-         State.Unknown, State.Unknown, State.Unknown],  # Beginning
-        [State.Unknown, State.RegularModifier, State.RegularModifier, State.RegularModifier, State.Unknown,
-         State.PhysicalModifier, State.Unknown, State.Unknown, State.Unknown],  # RegularModifier
-        [State.Unknown, State.PhysicalModifier, State.PhysicalModifier, State.PhysicalModifier, State.Unknown,
-         State.Unknown, State.LevelOneModifier, State.Unknown, State.Unknown],  # PhysicalModifier
-        [State.Unknown, State.LevelOneModifier, State.LevelOneModifier, State.LevelOneModifier, State.Unknown,
-         State.Unknown, State.Unknown, State.CategoryTwoModifier, State.Unknown],  # LevelOneModifier
-        [State.Unknown, State.CategoryTwoModifier, State.CategoryTwoModifier, State.CategoryTwoModifier, State.Unknown,
-         State.Unknown, State.Unknown, State.Unknown, State.LevelTwoModifier],  # CategoryTwoModifier
-        [State.Unknown, State.LevelTwoModifier, State.LevelTwoModifier, State.LevelTwoModifier, State.Unknown,
-         State.Unknown, State.Unknown, State.Unknown, State.Unknown],  # LevelTwoModifier
+        # Start             Blank                   Text                            Modifier
+        #   AppendixA              AnesthesiaPhysicalStatus    CPTLevelIModifiers          CategoryIIModifiers
+        #   LevelIIModifiers
+        [State.Unknown,     State.Unknown,          State.Unknown,                  State.Unknown,
+            State.Unknown,          State.Unknown,              State.Unknown,              State.Unknown,
+            State.Unknown],  # Unknown
+        [State.Beginning,   State.Beginning,        State.Beginning,                State.Unknown,
+            State.RegularModifier,  State.Unknown,              State.Unknown,              State.Unknown,
+            State.Unknown],  # Beginning
+        [State.Unknown,     State.RegularModifier,  State.RegularModifier,          State.RegularModifier,
+            State.Unknown,          State.PhysicalModifier,     State.Unknown,              State.Unknown,
+            State.Unknown],  # RegularModifier
+        [State.Unknown,     State.PhysicalModifier, State.PhysicalModifier,         State.PhysicalModifier,
+            State.Unknown,          State.Unknown,          State.LevelOneModifier,     State.Unknown,
+            State.Unknown],  # PhysicalModifier
+        [State.Unknown,     State.LevelOneModifier, State.LevelOneModifier,         State.LevelOneModifier,
+            State.Unknown,          State.Unknown,          State.Unknown,              State.CategoryTwoModifier,
+            State.Unknown],  # LevelOneModifier
+        [State.Unknown,     State.CategoryTwoModifier, State.CategoryTwoModifier,   State.CategoryTwoModifier,
+            State.Unknown,          State.Unknown,          State.Unknown,              State.Unknown,
+            State.LevelTwoModifier],  # CategoryTwoModifier
+        [State.Unknown,     State.LevelTwoModifier, State.LevelTwoModifier,         State.LevelTwoModifier,
+            State.Unknown,          State.Unknown,          State.Unknown,              State.Unknown,
+            State.Unknown],  # LevelTwoModifier
     ]
 
     def __init__(self):
@@ -72,6 +86,7 @@ class ModifierFileParser:
             ModifierType.LevelTwo: {},
         }
         self._state_processors = [
+            None,
             AppendixAProcessor(self),
             RegularModifierProcessor(self),
             PhysicalModifierProcessor(self),
@@ -83,47 +98,35 @@ class ModifierFileParser:
     def add_modifier(self, modifier_type: ModifierType, code: str, description: str):
         self._modifiers[modifier_type][code] = description
 
-    def parse(self, input_filename: str):
-        lines = self._read_file(input_filename)
+    def parse(self, text: str):
+        lines = text.splitlines()
 
-        self._parse_file(lines)
+        self._parse_lines(lines)
+        LOGGER.debug('Dict: \n%s', self._modifiers)
 
-        dataFrame = self._write_dataframe(self._modifiers)
-        return dataFrame
+        return self._generate_dataframe()
 
-    @classmethod
-    def _read_file(cls, input_filename):
-        with open(input_filename) as file:
-            return file.readlines()
-
-    def _parse_file(self, lines):
+    def _parse_lines(self, lines):
         context = Context(state=State.Beginning, event=Event.Start, data='')
 
         for line in lines:
             context = self._process_event(context, line.strip())
 
-    @staticmethod
-    def _write_dataframe(modifiers):
-        dataFrames = []
-        i = 0
-        while i < 5:
-            for mod_type in modifiers:
-                df = pd.DataFrame(list(modifiers[mod_type].items()), columns=['mod_code', 'mod_description'],
-                                  index=None)
-                df['mod_type'] = str(list(modifiers.keys())[i]).split('.')[1]
-                dataFrames.append(df)
-                i = i + 1
+    def _generate_dataframe(self):
+        rows = []
 
-        df_merged = pd.concat(dataFrames, ignore_index=True)
-        return df_merged
+        for modifier_type, modifiers in self._modifiers.items():
+            for code, descriptor in modifiers.items():
+                rows.append([code, modifier_type.value, descriptor])
+
+        return pd.DataFrame(rows, columns=['modifier', 'type', 'descriptor'])
 
     def _process_event(self, context, line):
-        state = self.TRANSITION_TABLE[context.state.value][context.event.value]
+        _, event, data = self._state_processors[context.state.value].process_line(context, line)
 
-        _, event, data = self._state_processors[context.state.value - 1].process_line(context, line)
+        state = self.TRANSITION_TABLE[context.state.value][event.value]
 
         return Context(state=state, event=event, data=data)
-
 
 class StateProcessor(ABC):
     def __init__(self, parser: ModifierFileParser):
@@ -154,14 +157,11 @@ class RegularModifierProcessor(StateProcessor):
         if line == 'Anesthesia Physical Status':
             event = Event.AnesthesiaPhysicalStatus
             data = ''
-
         elif context.event != Event.Modifier and match:
             event = Event.Modifier
             data = data + ' ' + line
-
         elif context.event == Event.Modifier and line != '':
             data = data + ' ' + line
-
         elif context.event == Event.Modifier and line == '':
             event = Event.Blank
             match = data.strip()
@@ -169,7 +169,6 @@ class RegularModifierProcessor(StateProcessor):
             data = ''
         elif line == '':
             event = Event.Blank
-
         else:
             event = Event.Text
 
