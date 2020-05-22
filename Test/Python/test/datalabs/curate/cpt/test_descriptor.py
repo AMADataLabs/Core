@@ -1,15 +1,40 @@
 import logging
 import pytest
 
-from   datalabs.curate.cpt.descriptor import ConsumerDescriptorParser, ClinicianDescriptorParser
+import datalabs.curate.cpt.descriptor as desc
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=protected-access
+def test_long_descriptor_header_removal(long_descriptor_text):
+    parser = desc.LongDescriptorParser()
+
+    headerless_text = parser._remove_header(long_descriptor_text)
+
+    lines = headerless_text.splitlines()
+
+    assert len(lines) == 2
+
+    for line in lines:
+        assert line.startswith('0010')
+
+
+def test_long_descriptor_parser(long_descriptor_text):
+    parser = desc.LongDescriptorParser()
+
+    data = parser.parse(long_descriptor_text)
+
+    assert len(data) == 2
+
+    assert data['cpt_code'][0] == '00100'
+    assert data['cpt_code'][1] == '00102'
+
+
 def test_consumer_descriptor_parser(consumer_descriptor_text):
-    parser = ConsumerDescriptorParser()
+    parser = desc.ConsumerDescriptorParser()
 
     data = parser.parse(consumer_descriptor_text)
 
@@ -26,7 +51,7 @@ def test_consumer_descriptor_parser(consumer_descriptor_text):
         assert descriptor.startswith('Anesthesia for procedure')
 
 def test_clinician_descriptor_parser(clinician_descriptor_text):
-    parser = ClinicianDescriptorParser()
+    parser = desc.ClinicianDescriptorParser()
 
     data = parser.parse(clinician_descriptor_text)
 
@@ -43,6 +68,21 @@ def test_clinician_descriptor_parser(clinician_descriptor_text):
 
     for descriptor in data['clinician_descriptor']:
         assert descriptor.startswith('Anesthesia for procedure')
+
+
+@pytest.fixture
+def long_descriptor_text():
+    return """To purchase additional CPT products, contact the American Medical
+Association customer service at 800-621-8335.
+
+To request a license for distribution of products with CPT content, please
+see our Web site at www.ama-assn.org/go/cpt or contact the American
+Medical Association Intellectual Property Services, 330 N. Wabash Ave., Suite 39300, 
+Chicago, IL 60611-5885, 312 464-5022.
+
+00100\tAnesthesia for procedures on salivary glands, including biopsy
+00102\tAnesthesia for procedures involving plastic repair of cleft lip
+"""
 
 
 @pytest.fixture
