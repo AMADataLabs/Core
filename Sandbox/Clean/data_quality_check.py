@@ -12,15 +12,15 @@ import logging
 import os
 import pandas
 import re
-from   time import strftime
+import time
 
 from PyPDF2 import PdfFileReader
 
 import settings
 
-logging.basicConfig()
+# logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 @dataclass
 class Loggers:
@@ -184,21 +184,29 @@ def main():
 def setup_loggers(log_paths) -> Loggers:
     loggers = Loggers(
         failure_count=logging.getLogger('Failure Counts'),
-        file_error=os.environ.get('File Errors')
+        file_error=logging.getLogger('File Errors')
     )
+    LOGGER.debug('Loggers: %s', loggers)
 
     for field in log_paths.__dataclass_fields__:
+        LOGGER.debug('Field: %s', field)
         logger = getattr(loggers, field)
+        LOGGER.debug('Logger: %s', logger)
 
         file_handler = logging.FileHandler(getattr(log_paths, field))
-        file_handler.setLevel(logging.DEBUG)
+
+        stream_handler = logging.StreamHandler(getattr(log_paths, field))
 
         formatter = logging.Formatter('%(asctime)s,%(message)s', "%Y-%m-%d")
         formatter.converter = time.gmtime
 
         file_handler.setFormatter(formatter)
+        stream_handler.setFormatter(formatter)
 
         logger.addHandler(file_handler)
+        logger.addHandler(stream_handler)
+
+        logger.setLevel(logging.INFO)
 
     return loggers
 
