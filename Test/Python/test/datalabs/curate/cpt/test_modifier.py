@@ -1,7 +1,7 @@
 import logging
 import pytest
 
-from   datalabs.curate.cpt.modifier import ModifierFileParser, ModifierType
+from   datalabs.curate.cpt.modifier import ModifierParser, ModifierType
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -9,7 +9,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 def test_modifier_parser(text):
-    parser = ModifierFileParser()
+    parser = ModifierParser()
 
     data = parser.parse(text)
 

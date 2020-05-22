@@ -48,7 +48,7 @@ class ModifierType(Enum):
 Context = namedtuple('Context', 'state event data')
 
 
-class ModifierFileParser:
+class ModifierParser:
     # pylint: disable=line-too-long,bad-whitespace
     TRANSITION_TABLE = [
         # Start             Blank                   Text                            Modifier
@@ -129,7 +129,7 @@ class ModifierFileParser:
         return Context(state=state, event=event, data=data)
 
 class StateProcessor(ABC):
-    def __init__(self, parser: ModifierFileParser):
+    def __init__(self, parser: ModifierParser):
         self._parser = parser
 
     @abstractmethod
