@@ -18,9 +18,10 @@ from PyPDF2 import PdfFileReader
 
 import settings
 
-# logging.basicConfig()
+logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
 
 @dataclass
 class Loggers:
@@ -189,24 +190,7 @@ def setup_loggers(log_paths) -> Loggers:
     LOGGER.debug('Loggers: %s', loggers)
 
     for field in log_paths.__dataclass_fields__:
-        LOGGER.debug('Field: %s', field)
-        logger = getattr(loggers, field)
-        LOGGER.debug('Logger: %s', logger)
-
-        file_handler = logging.FileHandler(getattr(log_paths, field))
-
-        stream_handler = logging.StreamHandler(getattr(log_paths, field))
-
-        formatter = logging.Formatter('%(asctime)s,%(message)s', "%Y-%m-%d")
-        formatter.converter = time.gmtime
-
-        file_handler.setFormatter(formatter)
-        stream_handler.setFormatter(formatter)
-
-        logger.addHandler(file_handler)
-        logger.addHandler(stream_handler)
-
-        logger.setLevel(logging.INFO)
+        setup_logger(getattr(loggers, field), getattr(log_paths, field))
 
     return loggers
 
@@ -242,6 +226,23 @@ def check_disciplinary_action_data_quality(data_base_path, required_file_types, 
         failure_counts = validate_rebaselined_data(latest_actions_path, action_source_folders, required_file_types)
 
     log_failure_counts(loggers.failure_count, failure_counts)
+
+
+def setup_logger(logger, log_path):
+    file_handler = logging.FileHandler(log_path)
+
+    stream_handler = logging.StreamHandler()
+
+    formatter = logging.Formatter('%(asctime)s,%(message)s', "%Y-%m-%d")
+    formatter.converter = time.gmtime
+
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+
+    logger.setLevel(logging.INFO)
 
 
 def get_latest_actions_path(data_base_path) -> list:

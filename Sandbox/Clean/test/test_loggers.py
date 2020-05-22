@@ -7,7 +7,7 @@ import pytest
 
 import data_quality_check as dqc
 
-# logging.basicConfig()
+logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
