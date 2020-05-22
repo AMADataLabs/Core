@@ -11,7 +11,7 @@ def trigger_etl(event, context):
     try:
         etl = _instantiate_etl(context['function_name'])
 
-        etl(configuration).run()
+        etl.run()
     except Exception as e:
         status = 500
         message = e.message

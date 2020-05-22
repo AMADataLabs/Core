@@ -2,23 +2,30 @@ import enum
 import logging
 
 import datalabs.curate.cpt as cpt
-from   datalabs.etl.common.extract import Extractor
-from   datalabs.etl.common.load import Loader
+import datalabs.etl.etl as etl
+from   datalabs.etl.extract import Extractor
+from   datalabs.etl.load import Loader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class ETL():
-    def __init__(self):
-        self._source_urls = None
-        self._destination_urls = None
+@dataclass
+class Configuration:
+    extractor: Extractor
+    loader: Loader
+
+
+class ETL(etl.ETL):
+    def __init__(self, configuration):
+        self._configuration = configuration
 
     def run(self):
-        text_dataset = self._extract_text_data()
+        texts = self._extract_texts()
 
-        csv_dataset = self._transform_text_to_csv_data(text_dataset)
+        for text_type
+        csv_dataset = self._transform_text_to_csv_dataset(texts)
 
         self._load_csv_data(csv_dataset)
 
@@ -26,7 +33,7 @@ class ETL():
         pass
 
     @classmethod
-    def _transform_text_to_csv_data(cls, text_dataset):
+    def _transform_text_to_csv_data(cls, texts):
         pass
 
     def _load_csv_data(csv_dataset):
@@ -121,11 +128,5 @@ def get_cpt_files():
         imported_file.append(temp.name)
 
     return imported_file, file_descriptors
-
-
-@dataclass
-class Configuration:
-    extractor: Extractor
-    loader: Loader
 
 
