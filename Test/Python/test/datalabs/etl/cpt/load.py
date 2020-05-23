@@ -1,6 +1,6 @@
-class TestLoader:
-    def __init__(self, configuration):
-        self.configuration = configuration
+from datalabs.etl.load import Loader
 
+
+class TestLoader(Loader):
     def load(self):
         pass

@@ -1,7 +1,12 @@
 """ Functions involved in triggering the execution of CPT ETLs. """
+import logging
 import os
 
 import datalabs.plugin as plugin
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 def trigger_etl(event, context):
@@ -41,12 +46,12 @@ def _instantiate_etl(function_name):
 
 def _generate_app_configuration(function_name):
     etl_name = function_name.upper()
-    variable_base_name = 'ETL_' + etl_name + '_'
-    expected_function_name = os.environ[variable_base_name + 'LAMBDA_FUNCTION']
-    configuration = None
+    variable_base_name = 'ETL_' + etl_name
+    expected_function_name = os.environ[variable_base_name + '_LAMBDA_FUNCTION']
+    configuration = _generate_configuration({name:value for name,value in os.environ.items()}, variable_base_name)
 
     if function_name == expected_function_name:
-        configuration = _generate_etl_configuration(variable_base_name)
+        configuration = _instantiate_plugins(configuration)
     else:
         raise ValueError('Lambda Function Name Mismatch. Expected "{}" but got "{}".'.format(
                 expected_function_name, function_name
@@ -55,37 +60,27 @@ def _generate_app_configuration(function_name):
     return configuration
 
 
-def _generate_etl_configuration(variable_base_name):
-    configuration = {
-        name[len(variable_base_name):]:value
-        for name, value in os.environ.items()
-        if name.startswith(variable_base_name)
-    }
+def _instantiate_plugins(configuration):
+    for variable_base_name in ['EXTRACTOR', 'TRANSFORMER', 'LOADER']:
+        plugin_configuration = _generate_configuration(configuration, variable_base_name)
 
-    configuration['EXTRACTOR'] = _instantiate_etl_plugin(configuration, 'EXTRACTOR')
-    configuration['LOADER'] = _instantiate_etl_plugin(configuration, 'LOADER')
+        configuration[variable_base_name] = _instantiate_plugin(configuration[variable_base_name], plugin_configuration)
 
     return configuration
 
 
-def _instantiate_etl_plugin(etl_configuration, variable_name):
-    plugin_configuration = _extract_and_remove_plugin_configuration(etl_configuration, variable_name)
+def _generate_configuration(variables, variable_base_name):
+    LOGGER.debug('Variables: %s', variables)
+    LOGGER.debug('Variable Base Name: %s', variable_base_name)
+    configuration = {name[len(variable_base_name)+1:]:value for name, value in variables.items() if name.startswith(variable_base_name + '_')}
 
-    Plugin = plugin.import_plugin(etl_configuration[variable_name])
+    if not configuration:
+        raise ValueError(f'No configuration for "{variable_base_name}" in {variables}')
 
-    return Plugin(plugin_configuration)
+    return configuration
 
 
-def _extract_and_remove_plugin_configuration(etl_configuration, variable_name):
-    plugin_configuration = {}
-    drop_names = []
+def _instantiate_plugin(plugin_class, configuration):
+    Plugin = plugin.import_plugin(plugin_class)
 
-    for name, value in etl_configuration.items():
-        if name.startswith(variable_name) and name != variable_name:
-            plugin_configuration[name[len(variable_name)+1:]] = value
-            drop_names.append(name)
-
-    for name in drop_names:
-        etl_configuration.pop(name)
-
-    return plugin_configuration
+    return Plugin(configuration)

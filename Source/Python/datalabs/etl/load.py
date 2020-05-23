@@ -1,6 +1,10 @@
+from abc import ABC, abstractmethod
+
+
 class Loader:
     def __init__(self, configuration):
-        self.configuration = configuration
+        self._configuration = configuration
 
-    def load(self):
+    @abstractmethod
+    def load(self, data: "Transformed Data"):
         pass

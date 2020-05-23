@@ -1,6 +1,6 @@
-class TestExtractor:
-    def __init__(self, configuration):
-        self.configuration = configuration
+from datalabs.etl.extract import Extractor
 
+
+class TestExtractor(Extractor):
     def extract(self):
         pass

@@ -17,29 +17,6 @@ class Configuration:
     loader: Loader
 
 
-class ETL(etl.ETL):
-    def __init__(self, configuration):
-        self._configuration = configuration
-
-    def run(self):
-        texts = self._extract_texts()
-
-        for text_type
-        csv_dataset = self._transform_text_to_csv_dataset(texts)
-
-        self._load_csv_data(csv_dataset)
-
-    def _extract_text_data(self):
-        pass
-
-    @classmethod
-    def _transform_text_to_csv_data(cls, texts):
-        pass
-
-    def _load_csv_data(csv_dataset):
-        pass
-
-
 def main(file_type):
     files, descriptors = get_s3_files(file_type)
     df = parse_s3_txt(files, descriptors, file_type)

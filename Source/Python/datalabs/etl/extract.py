@@ -6,5 +6,5 @@ class Extractor(ABC):
         self._configuration = configuration
 
     @abstractmethod
-    def extract(self):
+    def extract(self) -> "Extracted Data":
         pass
