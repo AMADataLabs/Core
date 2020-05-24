@@ -36,6 +36,28 @@ resource "aws_db_instance" "cpt_api_database" {
 }
 
 
+# resource "aws_iam_role" "cpt_lambda_role" {
+#     name = "DataLabsCPTLambdaExecution"
+
+#     assume_role_policy = <<EOF
+# {
+#     "Version": "sts:AssumeRole",
+#     "Principal": {
+#         "Service": "lambda.amazonaws.com"
+#     },
+#     "Effect": "Allow",
+# }
+# EOF
+# }
+
+
+# resource "aws_lambda_function" "convert_cpt_etl" {
+#     filename        = "../../../Build/CPT/app.zip"
+#     function_name   = "ConvertCPT"
+
+# }
+
+
 variable "username" {}
 
 variable "password" {}
