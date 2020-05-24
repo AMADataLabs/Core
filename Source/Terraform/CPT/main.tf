@@ -36,26 +36,59 @@ resource "aws_db_instance" "cpt_api_database" {
 }
 
 
-# resource "aws_iam_role" "cpt_lambda_role" {
-#     name = "DataLabsCPTLambdaExecution"
+resource "aws_iam_role" "cpt_lambda_role" {
+    name = "DataLabsCPTLambdaExecution"
 
-#     assume_role_policy = <<EOF
-# {
-#     "Version": "sts:AssumeRole",
-#     "Principal": {
-#         "Service": "lambda.amazonaws.com"
-#     },
-#     "Effect": "Allow",
-# }
-# EOF
-# }
+    assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": "sts:AssumeRole",
+            "Principal": {
+                "Service": "lambda.amazonaws.com"
+            },
+            "Effect": "Allow"
+        }
+    ]
+}
+EOF
+}
 
 
-# resource "aws_lambda_function" "convert_cpt_etl" {
-#     filename        = "../../../Build/CPT/app.zip"
-#     function_name   = "ConvertCPT"
+resource "aws_lambda_function" "convert_cpt_etl" {
+    filename        = "../../../Build/CPT/app.zip"
+    function_name   = "ConvertCPT"
+    role            = aws_iam_role.cpt_lambda_role.arn
+    handler         = "datalabs.etl.run.lambda_handler"
+    runtime         = "python3.7"
+    environment {
+        variables = {
+            ETL_CONVERTCPT_LAMBDA_FUNCTION=data.aws_ssm_parameter.ETL_CONVERTCPT_LAMBDA_FUNCTION.value
+            ETL_CONVERTCPT_APP=data.aws_ssm_parameter.ETL_CONVERTCPT_APP.value
+            ETL_CONVERTCPT_EXTRACTOR=data.aws_ssm_parameter.ETL_CONVERTCPT_EXTRACTOR.value
+            ETL_CONVERTCPT_EXTRACTOR_BUCKET=data.aws_ssm_parameter.ETL_CONVERTCPT_EXTRACTOR_BUCKET.value
+            ETL_CONVERTCPT_EXTRACTOR_BASE_PATH=data.aws_ssm_parameter.ETL_CONVERTCPT_EXTRACTOR_BASE_PATH.value
+            ETL_CONVERTCPT_EXTRACTOR_FILES=data.aws_ssm_parameter.ETL_CONVERTCPT_EXTRACTOR_FILES.value
+            ETL_CONVERTCPT_TRANSFORMER=data.aws_ssm_parameter.ETL_CONVERTCPT_TRANSFORMER.value
+            ETL_CONVERTCPT_TRANSFORMER_PARSERS=data.aws_ssm_parameter.ETL_CONVERTCPT_TRANSFORMER_PARSERS.value
+            ETL_CONVERTCPT_LOADER=data.aws_ssm_parameter.ETL_CONVERTCPT_LOADER.value
+            ETL_CONVERTCPT_LOADER_BUCKET=data.aws_ssm_parameter.ETL_CONVERTCPT_LOADER_BUCKET.value
+            ETL_CONVERTCPT_LOADER_FILES=data.aws_ssm_parameter.ETL_CONVERTCPT_LOADER_FILES.value
+            ETL_CONVERTCPT_LOADER_BASE_PATH=data.aws_ssm_parameter.ETL_CONVERTCPT_LOADER_BASE_PATH.value
 
-# }
+            # TODO: These need to be moved to the RDS loading ETL Lambda resource
+            ETL_LOADCPT_LAMBDA_FUNCTION=data.aws_ssm_parameter.ETL_LOADCPT_LAMBDA_FUNCTION.value
+            ETL_LOADCPT_APP=data.aws_ssm_parameter.ETL_LOADCPT_APP.value
+            ETL_LOADCPT_EXTRACTOR=data.aws_ssm_parameter.ETL_LOADCPT_EXTRACTOR.value
+            ETL_LOADCPT_EXTRACTOR_BUCKET=data.aws_ssm_parameter.ETL_LOADCPT_EXTRACTOR_BUCKET.value
+            ETL_LOADCPT_EXTRACTOR_BASE_PATH=data.aws_ssm_parameter.ETL_LOADCPT_EXTRACTOR_BASE_PATH.value
+            ETL_LOADCPT_EXTRACTOR_FILES=data.aws_ssm_parameter.ETL_LOADCPT_EXTRACTOR_FILES.value
+            ETL_LOADCPT_TRANSFORMER=data.aws_ssm_parameter.ETL_LOADCPT_TRANSFORMER.value
+            ETL_LOADCPT_LOADER=data.aws_ssm_parameter.ETL_LOADCPT_LOADER.value
+        }
+    }
+}
 
 
 data "aws_ssm_parameter" "database_username" {
