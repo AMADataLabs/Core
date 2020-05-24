@@ -1,9 +1,7 @@
+""" source: datalabs.etl.cpt.transform """
 import logging
 
-import pytest
-
 from   datalabs.etl.cpt.transform import CPTFileToCSVTransformer
-from   test.datalabs.etl.cpt.parse import TestParser
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

@@ -1,3 +1,4 @@
+""" Test Extractor class """
 from datalabs.etl.extract import Extractor
 
 

@@ -1,4 +1,5 @@
 """ Functions involved in triggering the execution of CPT ETLs. """
+import json
 import logging
 import os
 
@@ -9,6 +10,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
+# pylint: disable=unused-argument
 def lambda_handler(event, context):
     status = 200
     message = "ETL successfull"
@@ -17,12 +19,12 @@ def lambda_handler(event, context):
         etl = _instantiate_etl(context['function_name'])
 
         etl.run()
-    except Exception as e:
+    except Exception as exception:  # pylint: disable=broad-except
         status = 500
-        message = e.message
+        message = str(exception)
 
     return {
-        "statusCode": 200,
+        "statusCode": status,
         "body": json.dumps({
             "message": message,
         }),
@@ -32,9 +34,9 @@ def lambda_handler(event, context):
 def _instantiate_etl(function_name):
     configuration = _generate_app_configuration(function_name)
 
-    ETL = plugin.import_plugin(configuration['ETL'])
+    ETL = plugin.import_plugin(configuration['APP'])  # pylint: disable=invalid-name
 
-    etl =  ETL(configuration)
+    etl = ETL(configuration)
 
     if not hasattr(etl, 'run'):
         raise TypeError('ETL plugin class does not have a "run" method.')
@@ -48,13 +50,13 @@ def _generate_app_configuration(function_name):
     etl_name = function_name.upper()
     variable_base_name = 'ETL_' + etl_name
     expected_function_name = os.environ[variable_base_name + '_LAMBDA_FUNCTION']
-    configuration = _generate_configuration({name:value for name,value in os.environ.items()}, variable_base_name)
+    configuration = _generate_configuration(os.environ, variable_base_name)
 
     if function_name == expected_function_name:
         configuration = _instantiate_plugins(configuration)
     else:
         raise ValueError('Lambda Function Name Mismatch. Expected "{}" but got "{}".'.format(
-                expected_function_name, function_name
+            expected_function_name, function_name
         ))
 
     return configuration
@@ -72,7 +74,11 @@ def _instantiate_plugins(configuration):
 def _generate_configuration(variables, variable_base_name):
     LOGGER.debug('Variables: %s', variables)
     LOGGER.debug('Variable Base Name: %s', variable_base_name)
-    configuration = {name[len(variable_base_name)+1:]:value for name, value in variables.items() if name.startswith(variable_base_name + '_')}
+    configuration = {
+        name[len(variable_base_name)+1:]:value
+        for name, value in variables.items()
+        if name.startswith(variable_base_name + '_')
+    }
 
     if not configuration:
         raise ValueError(f'No configuration for "{variable_base_name}" in {variables}')
@@ -81,6 +87,6 @@ def _generate_configuration(variables, variable_base_name):
 
 
 def _instantiate_plugin(plugin_class, configuration):
-    Plugin = plugin.import_plugin(plugin_class)
+    Plugin = plugin.import_plugin(plugin_class)  # pylint: disable=invalid-name
 
     return Plugin(configuration)

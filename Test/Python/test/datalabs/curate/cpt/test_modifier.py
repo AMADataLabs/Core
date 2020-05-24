@@ -1,3 +1,4 @@
+""" source: datalabs.curate.cpt.modifier """
 import logging
 import pytest
 
@@ -8,6 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name
 def test_modifier_parser(text):
     parser = ModifierParser()
 

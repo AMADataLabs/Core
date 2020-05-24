@@ -1,5 +1,4 @@
 """ CPT ETL Transformer classes """
-import io
 import logging
 
 from   datalabs.plugin import import_plugin
@@ -11,9 +10,6 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class CPTFileToCSVTransformer(Transformer):
-    def __init__(self, configuration):
-        super().__init__(configuration)
-
     def transform(self, data):
         LOGGER.debug('Data to transform: %s', data)
         parsers = self._instantiate_parsers()
@@ -28,7 +24,8 @@ class CPTFileToCSVTransformer(Transformer):
         for parser_class in parser_classes:
             yield self._instantiate_parser(parser_class)
 
-    def _instantiate_parser(self, class_name):
+    @classmethod
+    def _instantiate_parser(cls, class_name):
         Parser = import_plugin(class_name)  # pylint: disable=invalid-name
 
         return Parser()

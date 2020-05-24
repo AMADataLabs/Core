@@ -3,9 +3,9 @@
     These extractors assume that objects are arranged in the S3 bucket as follows:
         SOME/BASE/PATH/YYYYMMDD/some/path/object
 
-    It will determine the latest prefx SOME/BASE/PATH/YYYYMMDD and retrieve the objects listed in the FILES configuration
-    variable. FILES is a list of S3 object names with the relative prefix some/path. For example given the following
-    files in an S3 bucket named "some-bucket-name":
+    It will determine the latest prefx SOME/BASE/PATH/YYYYMMDD and retrieve the objects listed in the FILES
+    configuration variable. FILES is a list of S3 object names with the relative prefix some/path. For example given
+    the following files in an S3 bucket named "some-bucket-name":
 
     AMA/CPT/20200131/standard/MEDU.txt
     AMA/CPT/20200131/standard/SHORTU.txt
@@ -24,8 +24,6 @@
     AMA/CPT/20200401/standard/MEDU.txt
     AMA/CPT/20200401/standard/SHORTU.txt
 """
-import io
-
 import boto3
 
 from datalabs.etl.extract import Extractor
@@ -41,7 +39,7 @@ class S3WindowsTextExtractor(Extractor):
         latest_path = self._get_latest_path()
         files = self._configuration['FILES'].split(',')
 
-        return [self._extract_file(latest_cpt_path, file) for file in files]
+        return [self._extract_file(latest_path, file) for file in files]
 
     def _get_latest_path(self):
         release_folders = sorted(self._listdir(self._configuration['BUCKET'], self._configuration['BASE_PATH']))

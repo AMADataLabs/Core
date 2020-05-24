@@ -1,3 +1,4 @@
+""" source: datalabs.curate.cpt.descriptor """
 import logging
 import pytest
 
@@ -8,7 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access, redefined-outer-name
 def test_long_descriptor_header_removal(long_descriptor_text):
     parser = desc.LongDescriptorParser()
 
@@ -22,6 +23,7 @@ def test_long_descriptor_header_removal(long_descriptor_text):
         assert line.startswith('0010')
 
 
+# pylint: disable=redefined-outer-name
 def test_long_descriptor_parser(long_descriptor_text):
     parser = desc.LongDescriptorParser()
 
@@ -36,6 +38,7 @@ def test_long_descriptor_parser(long_descriptor_text):
         assert descriptor.startswith('Anesthesia for procedure')
 
 
+# pylint: disable=redefined-outer-name
 def test_medium_descriptor_parser(medium_descriptor_text):
     parser = desc.MediumDescriptorParser()
 
@@ -50,6 +53,7 @@ def test_medium_descriptor_parser(medium_descriptor_text):
     assert data['medium_descriptor'][1] == 'ANESTHESIA CLEFT LIP INVOLVING PLASTIC REPAIR'
 
 
+# pylint: disable=redefined-outer-name
 def test_short_descriptor_parser(short_descriptor_text):
     parser = desc.ShortDescriptorParser()
 
@@ -64,6 +68,7 @@ def test_short_descriptor_parser(short_descriptor_text):
     assert data['short_descriptor'][1] == 'ANESTH REPAIR OF CLEFT LIP'
 
 
+# pylint: disable=redefined-outer-name
 def test_consumer_descriptor_parser(consumer_descriptor_text):
     parser = desc.ConsumerDescriptorParser()
 
@@ -81,6 +86,7 @@ def test_consumer_descriptor_parser(consumer_descriptor_text):
     for descriptor in data['consumer_descriptor']:
         assert descriptor.startswith('Anesthesia for procedure')
 
+# pylint: disable=redefined-outer-name
 def test_clinician_descriptor_parser(clinician_descriptor_text):
     parser = desc.ClinicianDescriptorParser()
 

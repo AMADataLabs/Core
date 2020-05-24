@@ -57,9 +57,6 @@ class LongDescriptorParser(HeaderedDescriptorParser):
     def __init__(self):
         super().__init__(['cpt_code', 'long_descriptor'])
 
-    def parse(self, text):
-        return super().parse(text)
-
 
 class MediumDescriptorParser(FixedWidthDescriptorParser):
     def __init__(self):

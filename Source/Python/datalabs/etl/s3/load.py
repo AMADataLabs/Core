@@ -1,8 +1,7 @@
-" AWS S3 Loader "
+""" AWS S3 Loader """
 import base64
 from   datetime import datetime
 import hashlib
-import io
 import logging
 
 import boto3

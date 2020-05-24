@@ -12,21 +12,21 @@ PROJECT_NAME='CPT'
 
 # ETL Settings
 ETL_CONVERTCPT_LAMBDA_FUNCTION=ConvertCPT
-ETL_CONVERTCPT_APP=datalabs.etl.ETL
-ETL_CONVERTCPT_EXTRACTOR=datalabs.etl.s3.extract.S3Extractor
+ETL_CONVERTCPT_APP=datalabs.etl.etl.ETL
+ETL_CONVERTCPT_EXTRACTOR=datalabs.etl.s3.extract.S3WindowsTextExtractor
 ETL_CONVERTCPT_EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-ingestion-sandbox
 ETL_CONVERTCPT_EXTRACTOR_BASE_PATH=AMA/CPT
 ETL_CONVERTCPT_EXTRACTOR_FILES=standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/Clinician Descriptors/ClinicianDescriptor.txt
 ETL_CONVERTCPT_TRANSFORMER=datalabs.etl.cpt.transform.CPTFileToCSVTransformer
 ETL_CONVERTCPT_TRANSFORMER_PARSERS=datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser
-ETL_CONVERTCPT_LOADER=datalabs.etl.s3.load.S3Loader
+ETL_CONVERTCPT_LOADER=datalabs.etl.s3.load.S3WindowsTextLoader
 ETL_CONVERTCPT_LOADER_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
 ETL_CONVERTCPT_LOADER_FILES=standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv
 ETL_CONVERTCPT_LOADER_BASE_PATH=AMA/CPT
 
 ETL_LOADCPT_LAMBDA_FUNCTION=LoadCPT
-ETL_LOADCPT_APP=datalabs.etl.ETL
-ETL_LOADCPT_EXTRACTOR=datalabs.etl.s3.extract.S3Extractor
+ETL_LOADCPT_APP=datalabs.etl.etl.ETL
+ETL_LOADCPT_EXTRACTOR=datalabs.etl.s3.extract.S3WindowsTextExtractor
 ETL_LOADCPT_EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
 ETL_LOADCPT_EXTRACTOR_BASE_PATH=AMA/CPT
 ETL_LOADCPT_EXTRACTOR_FILES=standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv

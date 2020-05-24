@@ -1,7 +1,8 @@
+""" Loader base class """
 from abc import ABC, abstractmethod
 
 
-class Loader:
+class Loader(ABC):
     def __init__(self, configuration):
         self._configuration = configuration
 

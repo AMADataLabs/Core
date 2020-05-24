@@ -1,3 +1,4 @@
+""" source: datalabs.etl.run """
 import os
 
 import pytest
@@ -5,25 +6,26 @@ import pytest
 import datalabs.etl.run as run
 
 
+# pylint: disable=redefined-outer-name, unused-argument
 def test_etl_configurations_are_collected_and_trimed_as_expected(function_names, environment):
     for name in function_names:
-        _test_etl_configuration_is_collected_and_trimed_as_expected(name, environment)
+        _test_etl_configuration_is_collected_and_trimed_as_expected(name)
 
 
-# pylint: disable=protected-access
-def _test_etl_configuration_is_collected_and_trimed_as_expected(name, environment):
-        configuration = run._generate_app_configuration(name)
+# pylint: disable=protected-access, redefined-outer-name
+def _test_etl_configuration_is_collected_and_trimed_as_expected(name):
+    configuration = run._generate_app_configuration(name)
 
-        assert len(configuration) == 8
+    assert len(configuration) == 8
 
-        for key in ['LAMBDA_FUNCTION', 'APP', 'EXTRACTOR', 'EXTRACTOR_FOO', 'LOADER', 'LOADER_FOO', 'TRANSFORMER', 'TRANSFORMER_FOO']:
-            assert key in configuration
+    for key in ['LAMBDA_FUNCTION', 'APP', 'EXTRACTOR', 'LOADER', 'TRANSFORMER', 'TRANSFORMER_FOO']:
+        assert key in configuration
 
 
-        for key, method in {'EXTRACTOR':'extract', 'LOADER':'load', 'TRANSFORMER':'transform'}.items():
-            assert hasattr(configuration[key], method)
+    for key, method in {'EXTRACTOR':'extract', 'LOADER':'load', 'TRANSFORMER':'transform'}.items():
+        assert hasattr(configuration[key], method)
 
-            assert configuration[key]._configuration['FOO'] == 'bar'
+        assert configuration[key]._configuration['FOO'] == 'bar'
 
 
 @pytest.fixture
@@ -31,6 +33,7 @@ def function_names():
     return ['TestFunction1', 'TestFunction2']
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def environment(function_names):
     configuration = dict(
