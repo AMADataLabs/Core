@@ -24,12 +24,18 @@ def main(args):
     build_path = Path(os.path.join(repository_path, 'Build', args['project'])).resolve()
     app_path = os.path.join(build_path, 'app')
 
-    if args['serverless'] and not args['in_place']:
+    if not args['in_place']:
         LOGGER.info('=== Removing Old App Directory ===')
         shutil.rmtree(app_path)
 
-        LOGGER.info('=== Copying Dependencies ===')
-        copy_dependency_files(repository_path, app_path, args['project'])
+        if args['serverless']:
+            LOGGER.info('=== Copying Dependencies ===')
+            copy_dependency_files(repository_path, app_path, args['project'])
+        else:
+            os.makedirs(app_path, exist_ok=True)
+
+    LOGGER.info('=== Copying Build Files ===')
+    copy_build_files(build_path, app_path)
 
     LOGGER.info('=== Copying Source Files ===')
     copy_source_files(build_path, shared_source_path, app_path)
@@ -46,6 +52,14 @@ def copy_dependency_files(repository_path, app_path, project):
     site_packages_path = os.path.join(repository_path, 'Environment', project, 'lib', 'python3.7', 'site-packages')
 
     shutil.copytree(site_packages_path, app_path)
+
+
+def copy_build_files(build_path, app_path):
+    copy_alembic_files(build_path, app_path)
+
+    shutil.copy(os.path.join(build_path, 'requirements.txt'), os.path.join(app_path, 'requirements.txt'))
+
+    shutil.copy(os.path.join(build_path, 'settings.py'), os.path.join(app_path, 'settings.py'))
 
 
 def copy_source_files(build_path, shared_source_path, app_path):
@@ -74,6 +88,15 @@ def zip_bundle_directory(build_path, app_path):
 
         for contents in os.walk(app_path):
             archive_contents(archive, build_path, contents)
+
+
+def copy_alembic_files(build_path, app_path):
+    alembic_path = os.path.join(build_path, 'alembic')
+    app_alembic_path = os.path.join(app_path, 'alembic')
+
+    if os.path.exists(alembic_path):
+        shutil.copytree(alembic_path, app_alembic_path)
+        shutil.copyfile(alembic_path + '.ini', app_alembic_path + '.ini')
 
 
 def archive_contents(archive, build_path, contents):
