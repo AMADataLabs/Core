@@ -10,7 +10,7 @@ from datalabs.etl.load import Loader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class S3WindowsTextLoader(Loader):

@@ -139,4 +139,4 @@ E1 Upper left, eyelid
 E2 Lower left, eyelid 
 
 (*HCPCS modifiers for selective identification of subsets of 
-Distinct Procedural Services [-59 modifier])"""
+Distinct Procedural Services [-59 modifier])""".encode('cp1252').replace(b'\n', b'\r\n').decode('cp1252')

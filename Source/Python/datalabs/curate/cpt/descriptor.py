@@ -1,8 +1,13 @@
 """Clinical Descriptor Table module"""
 import io
+import logging
 import re
 
 import pandas
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class DescriptorParser:
@@ -26,12 +31,17 @@ class DescriptorParser:
 class HeaderedDescriptorParser(DescriptorParser):
     def parse(self, text):
         headerless_text = self._remove_header(text)
+        LOGGER.debug('Headerless Text: %s', headerless_text)
 
         return super().parse(' '.join(self._column_names) + '\n' + headerless_text)
 
     @classmethod
     def _remove_header(cls, text):
-        return re.sub(r'..*\n\n', '', text, flags=re.DOTALL)
+        lines = text.splitlines()
+
+        reversed_lines = lines[::-1]
+
+        return '\r\n'.join(reversed_lines[:reversed_lines.index('')][::-1])
 
 
 class FixedWidthDescriptorParser(HeaderedDescriptorParser):

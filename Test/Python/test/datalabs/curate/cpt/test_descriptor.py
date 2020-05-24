@@ -119,7 +119,7 @@ Chicago, IL 60611-5885, 312 464-5022.
 
 00100\tAnesthesia for procedures on salivary glands, including biopsy
 00102\tAnesthesia for procedures involving plastic repair of cleft lip
-"""
+""".encode('cp1252').replace(b'\n', b'\r\n').decode('cp1252')
 
 
 @pytest.fixture
@@ -134,7 +134,7 @@ Chicago, IL 60611-5885, 312 464-5022.
 
 00100 ANESTHESIA SALIVARY GLANDS WITH BIOPSY
 00102 ANESTHESIA CLEFT LIP INVOLVING PLASTIC REPAIR
-"""
+""".encode('cp1252').replace(b'\n', b'\r\n').decode('cp1252')
 
 @pytest.fixture
 def short_descriptor_text():
@@ -148,14 +148,14 @@ Chicago, IL 60611-5885, 312 464-5022.
 
 00100 ANESTH SALIVARY GLAND
 00102 ANESTH REPAIR OF CLEFT LIP
-"""
+""".encode('cp1252').replace(b'\n', b'\r\n').decode('cp1252')
 
 @pytest.fixture
 def consumer_descriptor_text():
     return """Concept Id\tCPT Code\tConsumer Friendly Descriptor
 1002798\t00100\tAnesthesia for procedure on salivary gland with biopsy
 1002799\t00102\tAnesthesia for procedure to repair lip defect present at birth
-"""
+""".encode('cp1252').replace(b'\n', b'\r\n').decode('cp1252')
 
 
 @pytest.fixture
@@ -163,4 +163,4 @@ def clinician_descriptor_text():
     return """Concept Id\tCPT Code\tClinician Descriptor Id\tClinician Descriptor
 1002798\t00100\t10000002\tAnesthesia for procedure on salivary gland with biopsy
 1002798\t00100\t10031990\tAnesthesia for procedure on salivary gland
-"""
+""".encode('cp1252').replace(b'\n', b'\r\n').decode('cp1252')

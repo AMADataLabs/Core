@@ -6,7 +6,7 @@ from   datalabs.etl.transform import Transformer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class CPTFileToCSVTransformer(Transformer):
@@ -16,7 +16,7 @@ class CPTFileToCSVTransformer(Transformer):
 
         parsed_data = [parser.parse(text) for parser, text in zip(parsers, data)]
 
-        return [datum.to_csv() for datum in parsed_data]
+        return [datum.to_csv(index=False) for datum in parsed_data]
 
     def _instantiate_parsers(self):
         parser_classes = self._configuration['PARSERS'].split(',')
