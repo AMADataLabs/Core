@@ -21,8 +21,8 @@ resource "aws_db_instance" "cpt_api_database" {
 
     tags = {
         Name = "Data Labs Datalake Terraform State Bucket"
-        Env                 = var.environment
-        Contact             = var.contact
+        Env                 = data.aws_ssm_parameter.environment.value
+        Contact             = data.aws_ssm_parameter.contact.value
         SystemTier          = local.system_tier
         DRTier              = local.na
         DataClassification  = local.na
@@ -63,17 +63,13 @@ variable "username" {}
 variable "password" {}
 
 
-variable "environment" {
-    description = "AWS Account Environment"
-    type        = string
-    default     = "Sandbox"
+data "aws_ssm_parameter" "account_environment" {
+    name = "/DataLabs/DataLake/account_environment"
 }
 
 
-variable "contact" {
-    description = "Email address of the Data Labs contact."
-    type        = string
-    default     = "DataLabs@ama-assn.org"
+data "aws_ssm_parameter" "contact" {
+    name = "/DataLabs/DataLake/contact"
 }
 
 

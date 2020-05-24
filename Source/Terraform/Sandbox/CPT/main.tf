@@ -3,6 +3,22 @@ provider "aws" {
 }
 
 
+resource "aws_ssm_parameter" "database_username" {
+    name  = "/DataLabs/CPT/RDS/username"
+    type  = "String"
+    value = "DataLabs_UI"
+    tags = local.tags
+}
+
+
+resource "aws_ssm_parameter" "database_password" {
+    name  = "/DataLabs/CPT/RDS/password"
+    type  = "String"
+    value = var.password
+    tags = local.tags
+}
+
+
 resource "aws_ssm_parameter" "ETL_CONVERTCPT_LAMBDA_FUNCTION" {
     name  = "/DataLabs/CPT/ETL_CONVERTCPT_LAMBDA_FUNCTION"
     type  = "String"
@@ -181,6 +197,9 @@ data "aws_ssm_parameter" "ingestion_bucket" {
 data "aws_ssm_parameter" "processed_bucket" {
     name = "/DataLabs/DataLake/processed_bucket"
 }
+
+
+variable "password" {}
 
 
 locals {
