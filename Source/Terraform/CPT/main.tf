@@ -16,12 +16,12 @@ resource "aws_db_instance" "cpt_api_database" {
     copy_tags_to_snapshot         = true
     performance_insights_enabled  = true
     skip_final_snapshot           = true
-    username                      = var.username
-    password                      = var.password
+    username                      = data.aws_ssm_parameter.database_username.value
+    password                      = data.aws_ssm_parameter.database_password.value
 
     tags = {
         Name = "Data Labs Datalake Terraform State Bucket"
-        Env                 = data.aws_ssm_parameter.environment.value
+        Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
         SystemTier          = local.system_tier
         DRTier              = local.na
@@ -58,9 +58,14 @@ resource "aws_db_instance" "cpt_api_database" {
 # }
 
 
-variable "username" {}
+data "aws_ssm_parameter" "database_username" {
+    name = "/DataLabs/CPT/RDS/username"
+}
 
-variable "password" {}
+
+data "aws_ssm_parameter" "database_password" {
+    name = "/DataLabs/CPT/RDS/password"
+}
 
 
 data "aws_ssm_parameter" "account_environment" {
