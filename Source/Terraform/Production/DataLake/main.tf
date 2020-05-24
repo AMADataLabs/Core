@@ -1,27 +1,32 @@
+provider "aws" {
+    region = "us-east-1"
+}
+
+
 resource "aws_ssm_parameter" "account_environment" {
   name  = "/DataLabs/DataLake/account_environment"
   type  = "String"
-  value = "Sandbox"
+  value = "Production"
 }
 
 
 resource "aws_ssm_parameter" "contact" {
   name  = "/DataLabs/DataLake/contact"
   type  = "String"
-  value = "DataLabs@ama-assn.org"
+  value = "DLHSDataLabs@ama-assn.org"
 }
 
 
-resource "aws_ssm_parameter" "ingestion_bucket_name" {
+resource "aws_ssm_parameter" "ingestion_bucket" {
   name  = "/DataLabs/DataLake/ingestion_bucket"
   type  = "String"
-  value = "ama-hsg-datalabs-datalake-ingestion-sandbox"
+  value = "ama-hsg-datalabs-datalake-ingestion"
 }
 
 
-resource "aws_ssm_parameter" "processed_bucket_name" {
+resource "aws_ssm_parameter" "processed_bucket" {
   name  = "/DataLabs/DataLake/processed_bucket"
   type  = "String"
-  value = "ama-hsg-datalabs-datalake-processed-sandbox"
+  value = "ama-hsg-datalabs-datalake-processed"
 }
 
