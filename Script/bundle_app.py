@@ -57,8 +57,6 @@ def copy_dependency_files(repository_path, app_path, project):
 def copy_build_files(build_path, app_path):
     copy_alembic_files(build_path, app_path)
 
-    shutil.copy(os.path.join(build_path, 'requirements.txt'), os.path.join(app_path, 'requirements.txt'))
-
     shutil.copy(os.path.join(build_path, 'settings.py'), os.path.join(app_path, 'settings.py'))
 
 
