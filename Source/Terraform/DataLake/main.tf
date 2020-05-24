@@ -112,5 +112,5 @@ locals {
     na                  = "N/A"
     budget_code         = "PBW"
     owner               = "Data Labs"
-    notes               = "Experimental"
+    notes               = ""
 }
