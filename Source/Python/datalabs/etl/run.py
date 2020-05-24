@@ -9,7 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-def trigger_etl(event, context):
+def lambda_handler(event, context):
     status = 200
     message = "ETL successfull"
 
