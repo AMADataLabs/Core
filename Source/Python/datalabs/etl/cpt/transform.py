@@ -52,6 +52,13 @@ class CSVToRelationalTablesTransformer(Transformer):
         return self._generate_tables(input_data)
 
     def _generate_tables(self, input_data):
+        modifier_types = pandas.DataFrame(dict(id=list(range(5)), name=sorted(input_data.modifier['type'].unique())))
+        modifiers = input_data.modifier
+        modifiers['type'] = input_data.modifier['type'].apply(
+            lambda x: modifier_types[modifier_types['name'] == x]['id'].values[0]
+        )
+
+
         return (
             input_data.short_descriptor[['cpt_code']].rename(
                 columns=dict(cpt_code='code')
@@ -65,6 +72,8 @@ class CSVToRelationalTablesTransformer(Transformer):
             input_data.long_descriptor.rename(
                 columns=dict(cpt_code='code', long_descriptor='descriptor')
             ),
+            modifier_types,
+            modifiers,
             input_data.consumer_descriptor[['cpt_code', 'consumer_descriptor']].rename(
                 columns=dict(cpt_code='code', consumer_descriptor='descriptor')
             ),
