@@ -30,5 +30,5 @@ ETL_LOADCPT_EXTRACTOR=datalabs.etl.s3.extract.S3WindowsTextExtractor
 ETL_LOADCPT_EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
 ETL_LOADCPT_EXTRACTOR_BASE_PATH=AMA/CPT
 ETL_LOADCPT_EXTRACTOR_FILES=standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv
-ETL_LOADCPT_TRANSFORMER=datalabs.etl.transform.PassThroughTransformer
-ETL_LOADCPT_LOADER=datalabs.etl.cpt.load.load.RDSLoader
+ETL_LOADCPT_TRANSFORMER=datalabs.etl.cpt.transform.CSVToRelationalTablesTransformer
+ETL_LOADCPT_LOADER=datalabs.etl.cpt.load.RDSLoader

@@ -162,6 +162,7 @@ class ManufacturerPLACodeMapping(Base):
     manufacturer = sa.Column(sa.Integer, sa.ForeignKey("cpt.manufacturer.id"), primary_key=True)
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
 
+
 class Lab(Base):
     __tablename__ = 'lab'
     __table_args__ = {"schema": "cpt"}

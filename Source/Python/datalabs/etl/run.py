@@ -7,7 +7,7 @@ import datalabs.plugin as plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=unused-argument
@@ -20,6 +20,7 @@ def lambda_handler(event, context):
 
         etl.run()
     except Exception as exception:  # pylint: disable=broad-except
+        LOGGER.error('Unable to instantiate ETL', exc_info=True)
         status = 500
         message = str(exception)
 
@@ -34,6 +35,7 @@ def lambda_handler(event, context):
 def _instantiate_etl(function_name):
     configuration = _generate_app_configuration(function_name)
 
+    LOGGER.info('Instantiating ETL app plugin %s', configuration['APP'])
     ETL = plugin.import_plugin(configuration['APP'])  # pylint: disable=invalid-name
 
     etl = ETL(configuration)
@@ -66,6 +68,7 @@ def _instantiate_plugins(configuration):
     for variable_base_name in ['EXTRACTOR', 'TRANSFORMER', 'LOADER']:
         plugin_configuration = _generate_configuration(configuration, variable_base_name)
 
+        LOGGER.info('Instantiating ETL %s plugin %s', variable_base_name.lower(), configuration['APP'])
         configuration[variable_base_name] = _instantiate_plugin(configuration[variable_base_name], plugin_configuration)
 
     return configuration
@@ -81,7 +84,8 @@ def _generate_configuration(variables, variable_base_name):
     }
 
     if not configuration:
-        raise ValueError(f'No configuration for "{variable_base_name}" in {variables}')
+        LOGGER.debug('Configuration: %s', configuration)
+        LOGGER.warn(f'No configuration for "{variable_base_name}" in {variables}')
 
     return configuration
 

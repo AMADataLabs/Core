@@ -57,6 +57,8 @@ class S3WindowsTextExtractor(Extractor):
         response = self._s3.list_objects_v2(Bucket=bucket, Prefix=base_path)
 
         objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
-        objects.remove('')
+
+        if  '' in objects:
+            objects.remove('')
 
         return objects
