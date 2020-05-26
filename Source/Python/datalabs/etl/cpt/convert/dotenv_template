@@ -1,0 +1,8 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+#S3 Bucket
+S3_INGESTION_BUCKET = '{{ingestion_bucket}}'
+PLA_FILE_PATH = '{{pla_path}}'
+S3_PROCESSED_BUCKET = '{{processed_bucket}}'
+

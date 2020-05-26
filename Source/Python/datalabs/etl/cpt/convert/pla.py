@@ -1,6 +1,6 @@
 import boto3
 import logging
-import json
+import os
 import pandas as pd
 import tempfile
 import xml.etree.ElementTree as et
@@ -17,19 +17,11 @@ def main():
     csv_file = dataframe_to_csv(dataframe)
     push_csv(csv_file)
 
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "done",
-        }),
-    }
-
 
 def get_s3_file():
     s3 = boto3.client('s3')
     with tempfile.NamedTemporaryFile(mode='r+') as temp:
-        s3.download_file('ama-hsg-datalabs-datalake-ingestion-sandbox',
-                         'AMA/CPT/20200131/standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA', temp.name)
+        s3.download_file(os.environ['ingestion_bucket'], os.environ['pla_path'], temp.name)
 
     LOGGER.info('Download Successful')
 
@@ -51,7 +43,7 @@ def extract_fields(file):
     tree = et.parse(file)
     root = tree.getroot()
 
-    for c in tree.findall('plaCode'):
+    for c in root.findall('plaCode'):
         pla_code.append(c.attrib.get('cdCode'))
         long_description.append(c.find('cdDesc').text)
         medium_description.append(c.find('cdMDesc').text)
@@ -89,9 +81,6 @@ def dataframe_to_csv(df):
 
 def push_csv(file):
     s3 = boto3.client('s3')
-    s3.upload_file(file+'.csv', 'ama-hsg-datalabs-datalake-processed-sandbox', 'pla.csv')
+    s3.upload_file(file+'.csv', os.environ['processed_bucket'], 'pla.csv')
 
     LOGGER.info('Upload Successful')
-
-
-main()

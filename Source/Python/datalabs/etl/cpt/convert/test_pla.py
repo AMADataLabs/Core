@@ -1,4 +1,5 @@
 import boto3
+import os
 import pandas as pd
 import tempfile
 import pytest
@@ -8,7 +9,7 @@ import pytest
 def csv_file():
     s3 = boto3.client('s3')
     with tempfile.NamedTemporaryFile(mode='r+') as temp:
-        s3.download_file('ama-hsg-datalabs-datalake-processed-sandbox', 'pla.csv', temp.name)
+        s3.download_file(os.environ['processed_bucket'], 'pla.csv', temp.name)
     csv_file = temp.name
     return csv_file
 
