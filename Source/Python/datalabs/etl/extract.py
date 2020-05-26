@@ -1,6 +1,11 @@
-class Extractor:
-    def __init__(self, configuration):
-        self.configuration = configuration
+""" Extractor base class """
+from abc import ABC, abstractmethod
 
-    def extract(self):
+
+class Extractor(ABC):
+    def __init__(self, configuration):
+        self._configuration = configuration
+
+    @abstractmethod
+    def extract(self) -> "Extracted Data":
         pass

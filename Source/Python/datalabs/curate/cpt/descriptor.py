@@ -1,8 +1,13 @@
 """Clinical Descriptor Table module"""
 import io
+import logging
 import re
 
 import pandas
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class DescriptorParser:
@@ -23,22 +28,54 @@ class DescriptorParser:
         )
 
 
-# clinicianDescriptor_file = cliniciandescriptor_obj['Body'].read()
-# stream = io.BytesIO(clinicianDescriptor_file)
+class HeaderedDescriptorParser(DescriptorParser):
+    def parse(self, text):
+        headerless_text = self._remove_header(text)
+        LOGGER.debug('Headerless Text: %s', headerless_text)
+
+        return super().parse(' '.join(self._column_names) + '\n' + headerless_text)
+
+    @classmethod
+    def _remove_header(cls, text):
+        lines = text.splitlines()
+
+        reversed_lines = lines[::-1]
+
+        return '\r\n'.join(reversed_lines[:reversed_lines.index('')][::-1])
 
 
-class LongDescriptorParser(DescriptorParser):
-    def __init__(self):
-        super().__init__(['cpt_code', 'long_descriptor'])
+class FixedWidthDescriptorParser(HeaderedDescriptorParser):
+    def __init__(self, column_names, descriptor_width):
+        super().__init__(column_names)
+
+        self._descriptor_width = descriptor_width
 
     def parse(self, text):
         headerless_text = self._remove_header(text)
 
-        return super().parse('col1\tcol2\n' + headerless_text)
+        return pandas.read_fwf(
+            io.StringIO(headerless_text),
+            names=self._column_names, colspecs=[(0, 5), (6, self._descriptor_width+6)],
+            dtype=str
+        )
 
-    @classmethod
-    def _remove_header(cls, text):
-        return re.sub(r'..*\n\n', '', text, flags=re.DOTALL)
+# clinicianDescriptor_file = cliniciandescriptor_obj['Body'].read()
+# stream = io.BytesIO(clinicianDescriptor_file)
+
+
+class LongDescriptorParser(HeaderedDescriptorParser):
+    def __init__(self):
+        super().__init__(['cpt_code', 'long_descriptor'])
+
+
+class MediumDescriptorParser(FixedWidthDescriptorParser):
+    def __init__(self):
+        super().__init__(['cpt_code', 'medium_descriptor'], descriptor_width=48)
+
+
+class ShortDescriptorParser(FixedWidthDescriptorParser):
+    def __init__(self):
+        super().__init__(['cpt_code', 'short_descriptor'], descriptor_width=28)
 
 
 class ClinicianDescriptorParser(DescriptorParser):

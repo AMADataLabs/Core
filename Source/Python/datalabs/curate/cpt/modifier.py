@@ -9,7 +9,7 @@ import pandas as pd
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class State(Enum):
@@ -48,6 +48,7 @@ class ModifierType(Enum):
 Context = namedtuple('Context', 'state event data')
 
 
+# pylint: disable=bad-continuation
 class ModifierParser:
     # pylint: disable=line-too-long,bad-whitespace
     TRANSITION_TABLE = [
@@ -301,4 +302,3 @@ class LevelTwoModifierProcessor(StateProcessor):
         code = match.group(1)
         description = match.group(2)
         self._parser.add_modifier(ModifierType.LevelTwo, code, description)
-
