@@ -3,8 +3,11 @@ modspec:
   - package: datalabs
     include:
       - plugin
+      - sqlalchemy
   - package: datalabs.access.cpt.api
   - package: datalabs.curate.cpt
+  - package: datalabs.etl
   - package: datalabs.etl.cpt
   - package: datalabs.etl.cpt.convert
   - package: datalabs.etl.cpt.load
+  - package: datalabs.etl.s3

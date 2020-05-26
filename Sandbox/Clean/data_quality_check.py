@@ -6,12 +6,13 @@ from   dataclasses import dataclass
 from   datetime import datetime
 import functools
 import glob
+import itertools
 import json
 import logging
 import os
 import pandas
 import re
-from   time import strftime
+import time
 
 from PyPDF2 import PdfFileReader
 
@@ -19,13 +20,19 @@ import settings
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
+
+
+@dataclass
+class Loggers:
+    file_error: logging.Logger
+    failure_count: logging.Logger
 
 
 @dataclass
 class LogPaths:
-    count: str
-    file: str
+    failure_count: str
+    file_error: str
 
 
 @dataclass
@@ -50,74 +57,77 @@ class FailureCounts:
 
 class FileValidator(ABC):
     @abstractmethod
-    def file_name_is_valid(self, filename):
+    def file_name_is_valid(self, file_name):
         pass
 
     @abstractmethod
-    def file_is_valid(self, filename):
+    def file_contents_is_valid(self, file_name):
         pass
 
 
-class IgnoreNameFileValidatorMixin(FileValidator):
-    def file_name_is_valid(self, filename):
-        return True
-
-    def file_is_valid(self, filename):
+class IgnoreNameFileValidatorMixin:
+    def file_name_is_valid(self, file_name):
         return True
 
 
-class PDFFileContentsValidatorMixin(FileValidator):
-    def file_contents_is_valid(self, filename):
+class IgnoreContentsFileValidatorMixin:
+    def file_contents_is_valid(self, file_name):
+        return True
+
+
+class PDFFileContentsValidatorMixin:
+    def file_contents_is_valid(self, file_name):
         # TODO: Page is distorted or not
         is_valid = True
 
-        with file in open(filename, 'rb'):
-            pdf = PdfFileReader(open(filename, 'rb'))
+        with file in open(file_name, 'rb'):
+            pdf = PdfFileReader(open(file_name, 'rb'))
 
         for page_number, page in enumerate(pdf.pages):
             if _page_is_blank(page):
-                LOGGER.info('Page %d of %s is blank.', page_number, filename)
+                LOGGER.info('Page %d of %s is blank.', page_number, file_name)
                 is_valid = False
 
         return is_valid
 
 
-class SLFileValidator(IgnoreNameFileValidatorMixin, PDFFileContentsValidatorMixin);
-    def file_name_is_valid(self, filename):
+class SLFileValidator(PDFFileContentsValidatorMixin, FileValidator):
+    def file_name_is_valid(self, file_name):
         is_valid = False
         pattern = r'[A-Z_]*_[0-9]*-[0-9]*-[0-9]*_SL.pdf'
 
-        if re.match(pattern, filename) is not None:
+        if re.match(pattern, file_name) is not None:
             is_valid = True
         else:
-            if filename.split('-')[0] == 'DHHS':
+            if file_name.split('-')[0] == 'DHHS':
                 pattern = r'DHHS-\S*_SL.pdf'
-                if re.match(pattern, filename) is not None:
+                if re.match(pattern, file_name) is not None:
                     is_valid = True
 
 
-class NLFileValidator(PDFFileContentsValidatorMixin, FileValidator);
-    def file_name_is_valid(self, filename):
+class NLFileValidator(PDFFileContentsValidatorMixin, FileValidator):
+    def file_name_is_valid(self, file_name):
         pattern = r'[A-Z_]*_[0-9]*-[0-9]*-[0-9]*_NL.pdf'
 
-        if re.match(pattern, filename) is not None:
+        if re.match(pattern, file_name) is not None:
             return True
 
 
 class BOFileValidator(PDFFileContentsValidatorMixin, FileValidator):
-    def file_name_is_valid(self, filename):
+    def file_name_is_valid(self, file_name):
         is_valid = False
 
-        if filename.split('-')[0] == 'DHHS':
+        if file_name.split('-')[0] == 'DHHS':
             pattern = r'DHHS-\S*_BO.pdf'
-            if re.match(pattern, filename) is not None:
+            if re.match(pattern, file_name) is not None:
                 is_valid = True
+
         pattern = r'\S*-[0-9]*_[0-9]*_[0-9]*_BO.pdf'
-        if re.match(pattern, filename) is not None:
+        if re.match(pattern, file_name) is not None:
             is_valid = True
         else:
             pattern = r'\S*-[0-9]*_[0-9]*_[0-9]*_BO_#[0-9].pdf'
-            if re.match(pattern, filename) is not None:
+            if re.match(pattern, file_name) is not None:
                 is_valid = True
 
     @classmethod
@@ -125,12 +135,15 @@ class BOFileValidator(PDFFileContentsValidatorMixin, FileValidator):
         return page.getContents() is None
 
 
-# CLEAN CODE NOTE: array-based operations are not only more efficient, they eliminate nested for loops!
-class QAFileValidator(DefaultFileValidator):
-    def file_contents_is_valid(self, filename):
-        data = pandas.read_csv(filename)
+class QAFileValidator(IgnoreNameFileValidatorMixin, PDFFileContentsValidatorMixin, FileValidator):
+    def file_contents_is_valid(self, file_name):
+        data = pandas.read_csv(file_name)
 
         return np.all(pandas.isnull(data))
+
+
+class MFileValidator(IgnoreNameFileValidatorMixin, IgnoreContentsFileValidatorMixin, FileValidator):
+    pass
 
 
 class FileValidatorFactory():
@@ -138,8 +151,8 @@ class FileValidatorFactory():
         SL=SLFileValidator,
         NL=FileValidator,
         BO=BOFileValidator,
-        QA=DefaultFileValidator,
-        M=DefaultFileValidator,
+        QA=QAFileValidator,
+        M=MFileValidator,
     )
 
     @classmethod
@@ -152,17 +165,36 @@ class FileValidatorFactory():
 
 def main():
     data_base_path = os.environ.get('DATA_BASE_PATH')
-    required_files = json.load(os.environ.get('REQUIRED_FILES'))
+    required_file_types = {prefix: set(group['types']) for group in json.load(os.environ.get('REQUIRED_FILE_TYPES') for prefix in group)}
     log_paths = LogPaths(
-        count=os.environ.get('COUNT_LOG'),
-        file=os.environ.get('FILE_LOG')
+        failure_count=os.environ.get('COUNT_LOG'),
+        file_error=os.environ.get('FILE_LOG')
     )
+
+    # CLEAN CODE COMMENT: file loggers used to avoid mysterious passing of current_date and to make it clear that
+    #   a function may be logging data.
+    loggers = setup_loggers(log_paths)
+
     date_last_updated = modification_date(data_base_path)
 
+
     if new_data_available(date_last_updated):
-        check_disciplinary_action_data_quality(data_base_path, required_files, log_paths)
+        check_disciplinary_action_data_quality(data_base_path, required_file_types, loggers)
     else:
         LOGGER.info('No new folders uploaded. Last folder uploaded on %s.', date_last_updated)
+
+
+def setup_loggers(log_paths) -> Loggers:
+    loggers = Loggers(
+        failure_count=logging.getLogger('Failure Counts'),
+        file_error=logging.getLogger('File Errors')
+    )
+    LOGGER.debug('Loggers: %s', loggers)
+
+    for field in log_paths.__dataclass_fields__:
+        setup_logger(getattr(loggers, field), getattr(log_paths, field))
+
+    return loggers
 
 
 def modification_date(path):
@@ -180,73 +212,86 @@ def new_data_available(date_last_updated) -> bool:
     return date_last_updated == today
 
 
-def check_disciplinary_action_data_quality(data_base_path, required_files, log_paths):
+def check_disciplinary_action_data_quality(data_base_path, required_file_types, loggers):
     failure_counts = None
-    latest_actions_folder = get_latest_actions_folder(data_base_path)
-    action_source_folders = folder_contents(latest_actions_folder)
-    current_date = datetime.datetime.now().date()
+    latest_actions_path = get_latest_actions_path(data_base_path)
+    action_source_folders = get_folder_contents(latest_actions_path)
+    no_data_folders = get_folder_contents(no_data_path)
 
-    LOGGER.info('New disciplinary action folders uploaded: %s', latest_actions_folder)
+    LOGGER.info('New disciplinary action folders uploaded: %s', latest_actions_path)
 
-    if is_newly_procured_data(latest_actions_folder, action_source_folders):
+    if is_newly_procured_data(no_data_folders, action_source_folders):
         LOGGER.debug('This folder is a newly-procured data folder')
-        failure_counts = validate_newly_procured_data(latest_actions_folder, action_source_folders)
+        failure_counts = validate_newly_procured_data(latest_actions_path, action_source_folders, no_data_folders)
     else:
         LOGGER.debug('This folder is a re-baselined data folder')
-        failure_counts = validate_rebaselined_data(latest_actions_folder, action_source_folders)
+        failure_counts = validate_rebaselined_data(latest_actions_path, action_source_folders, required_file_types)
 
-    log_failure_counts(log_paths.count, failure_counts)
+    log_failure_counts(loggers.failure_count, failure_counts)
 
 
-def get_latest_actions_folder(data_base_path) -> list:
-    files = glob.glob(f'{data_base_path}/*')
+def setup_logger(logger, log_path):
+    file_handler = logging.FileHandler(log_path)
+
+    stream_handler = logging.StreamHandler()
+
+    formatter = logging.Formatter('%(asctime)s,%(message)s', "%Y-%m-%d")
+    formatter.converter = time.gmtime
+
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+
+    logger.setLevel(logging.INFO)
+
+
+def get_latest_actions_path(data_base_path) -> list:
+    files = glob.glob(os.path.join(data_base_path, '/*'))
 
     return max(files, key=os.path.getctime)
 
 
-def is_newly_procured_data(latest_actions_folder, action_source_folders) -> bool:
-    if len(action_source_folders) + len(folder_contents(latest_actions_folder + '/no_data')) == 69:
+def get_folder_contents(path) -> list:
+    return [d for d in os.listdir(path) if not d.startswith('.')]
+
+
+def is_newly_procured_data(no_data_folders, action_source_folders) -> bool:
+    if len(action_source_folders) + len(no_data_folders) == 69:
         return True
     return False
 
 
-def validate_newly_procured_data(latest_actions_folder, action_source_folders):
+def validate_newly_procured_data(latest_actions_path, action_source_folders, no_data_folders) -> FailureCounts:
     failure_counts = None
-    no_data_path = path + '/no_data'
+    no_data_path = latest_actions_path + '/no_data'
 
     LOGGER.debug('This folder is a new procurement')
 
-    if data_is_complete(no_data_path, action_source_folders):
-        failure_counts = validate_complete_data(latest_actions_folder, action_source_folders)
+    if data_is_complete(action_source_folders, no_data_folders):
+        failure_counts = validate_data(latest_actions_path, action_source_folders)
     else:
         failure_counts = FailureCounts(completeness=1)
 
     return failure_counts
 
 
-def validate_rebaselined_data(latest_actions_folder, action_source_folders):
-    failure_counts = []
-    valid_update_folders = get_valid_update_folders(action_source_folders)
-
-    for folder in valid_update_folders:
-        failure_counts.append(validate_update_folder(folder))
-
-    return functools.reduce(lambda a, b: a + b, failure_counts)
+def validate_rebaselined_data(latest_actions_path, action_source_folders, required_file_types) -> FailureCounts:
+    return validate_data(latest_actions_path, action_source_folders)
 
 
-def log_failure_counts(log_path, failure_counts, current_date):
-    with open(log_path, 'a') as count_log_file:
-        count_log_file.write(
-            '\n{},{},{},{},{},{}, {}'.format(
-                current_date, failcount, failure_counts.name_format, failure_counts.completeness,
-                failure_counts.file_exists, failure_counts.file_quality, failure_counts.no_data_pdf,
-                failure_counts.no_data_duplicate
-            )
+def log_failure_counts(logger, failure_counts):
+    logger.info(
+        '\n{},{},{},{},{},{}, {}'.format(
+            failcount, failure_counts.name_format, failure_counts.completeness,
+            failure_counts.file_exists, failure_counts.file_quality, failure_counts.no_data_pdf,
+            failure_counts.no_data_duplicate
         )
+    )
 
 
-def data_is_complete(no_data_path, action_source_folders) -> bool:
-    no_data_folders = get_folder_contents(no_data_path)
+def data_is_complete(action_source_folders, no_data_folders) -> bool:
     is_complete = False
 
     if not pdfs_are_present(no_data_folders) \
@@ -257,59 +302,17 @@ def data_is_complete(no_data_path, action_source_folders) -> bool:
     return is_complete
 
 
-def validate_complete_data(latest_actions_folder, action_source_folders):
+def validate_data(latest_actions_path, action_source_folders, required_file_types):
     failure_counts = []
+    valid_update_folders = get_valid_update_folders(action_source_folders)
 
-    if not check_files_exist(latest_actions_folder):  # no_data folder is deleted in this function
+    if data_file_composition_is_correct(latest_actions_path, valid_update_folders, required_file_types):
+        LOGGER.info('Disciplinary action folders are correct')
+        LOGGER.debug('next step: check mandatory files contents in the folder')
+
+        failure_counts = validate_data_files(latest_actions_path, action_source_folders, valid_update_folders)
+    else:
         failure_counts.append(FailureCounts(file_exists=1))
-    else:  # check_files_exist is True
-        failure_counts = validate_data_files(latest_actions_folder, action_source_folders)
-
-
-def get_valid_update_folders(action_source_folders):
-    return [f for f in action_source_folders if f != 'no_data']
-
-
-def validate_update_folder(folder)
-    failure_counts = FailureCounts()
-
-    for file in [f for f in os.listdir(latest_actions_folder + folder) if not f.startswith('.')]:
-        fullpath = latest_actions_folder +'/' + folder + '/' + file
-        # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + folder + '/' + file
-        type = get_doc_type(file)
-
-        # check name format:
-        if not file_name_is_valid(file, type):
-            LOGGER.info('File Format is not right: %s', file)
-            failure_counts.name_format += 1
-            log_file_failure(log_paths.file,
-                             current_date,
-                             file,
-                             'name_format')
-
-        # check csv file:
-        if type == 'QA':
-            # if not check_qa_file(fullpath):  # define the function to check qa csv file
-            if not check_qa_file(fullpath):
-                LOGGER.info('QA file %s is not right', file)
-                failure_counts.file_quality += 1
-                log_file_failure(log_paths.file,
-                                 current_date,
-                                 file,
-                                 'file_quality - QA')
-        # check board orders file:
-        elif type == 'BO':
-            if not check_bo_pdf(fullpath):  # define the function to check board orders
-                LOGGER.info('BO file %s is not right', file)
-                failure_counts.file_quality += 1
-                log_file_failure(log_paths.file,
-                                 current_date,
-                                 file,
-                                 'file_quality - BO')
-
-
-def get_folder_contents(path) -> list:
-    return [d for d in os.listdir(path) if not d.startswith('.')]
 
 
 def pdfs_are_present(no_data_folders):
@@ -339,107 +342,31 @@ def all_folders_are_unique(all_folders):
     are_unique = False
 
     if len(all_folders) == len(unique_folders):
-        are_unique True
+        are_unique = True
     else:
         LOGGER.info('Duplicate folder found in no_data folder.')
 
     return are_unique
 
 
-# 4. check if mandatory files exits in each folder
-def check_files_exist(path, required_files) -> bool:
-    validfolders = [x for x in folders if x != 'no_data']
-    for f in validfolders:
-        keyvalue = f.rsplit('_', 5)[0]
-        # example: NV_MD_SummaryList
-
-        filetype = []
-        for i in os.listdir(path + '/' + f):
-            # check if there is word file:
-            if i.split('.')[-1] in ['docx', 'doc']:
-                LOGGER.info('There is a non-pdf file: %s', i)
-                return False
-            # get file type in each state folder:
-            type = i.split('.')[0].rsplit('_', 1)[1]
-            # if there are multiple BO for same physician, need adjust to get BO
-            # Example: NY-Faizuddin_Shareef-03_11_2020_BO_#2.pdf
-            if re.match(r'#[0-9]', type):
-                type = i.split('.')[0].rsplit('_', 2)[-2]
-            filetype.append(type)
-        # check if all necessary files are in the folder:
-        if keyvalue in expected_files['SL&BO']:
-            if set(filetype) == {'M', 'QA', 'SL', 'BO'}:
-                return True
-            else:
-                LOGGER.info('only have %s', filetype)
-        elif keyvalue in expected_files['SL']:
-            if set(filetype) == {'M', 'QA', 'SL'}:
-                return True
-            else:
-                LOGGER.info('only have %s', filetype)
-        elif keyvalue in expected_files['NL&BO']:
-            if set(filetype) == {'M', 'QA', 'NL', 'BO'}:
-                return True
-            else:
-                LOGGER.info('only have %s', filetype)
-        elif keyvalue in expected_files['NL']:
-            if set(filetype) == {'M', 'QA', 'NL'}:
-                return True
-            else:
-                LOGGER.info('only have %s', filetype)
+def get_valid_update_folders(action_source_folders):
+    return [f for f in action_source_folders if f != 'no_data']
 
 
-def validate_data_files(latest_actions_folder, action_source_folders):
-    LOGGER.info('Disciplinary action folders are correct')
-    LOGGER.debug('next step: check mandatory files contents in the folder')
+def data_file_composition_is_correct(latest_actions_path, valid_update_folders, required_file_types) -> bool:
+    composition_is_correct = True
 
-    # Step 2: Validate Content Quality
-    # remove no_data folder
-    validfolders = [x for x in action_source_folders if x != 'no_data']
-    for folder in validfolders:
-        for file in [f for f in os.listdir(latest_actions_folder + '/' + folder) if not f.startswith('.')]:
-            fullpath = latest_actions_folder + '/' + folder + '/' + file
-            # get the type of file: BO, SL, NL, QA, M (json)
-            file_type = get_doc_type(file)
-            # check name format:
-            if not file_name_is_valid(file, file_type):
-                LOGGER.info('File Format is not right: %s as type %s', file, file_type)
-                failure_counts.name_format += 1
-                log_file_failure(log_paths.file,
-                                 current_date,
-                                 file,
-                                 f'name_format - {file_type}')
-            elif not file_contents_is_valid(file, file_type):
-                LOGGER.info('%s file %s is not right', file_type, file)
-                failure_counts.file_quality += 1
-                log_file_failure(log_paths.file,
-                                 current_date,
-                                 file,
-                                 f'file_quality - {file_type or "blank page" if file_type != "QA"}')
+    while composition_is_correct:
+        composition_is_correct = partial_data_file_composition_is_correct(latest_actions_path, valid_update_folders.pop(0), required_file_types)
+
+    return composition_is_correct
+
+
+def validate_data_files(latest_actions_path, valid_update_folders):
+    for folder in valid_update_folders:
+        failure_counts = validate_folder_data(latest_actions_path, folder)
 
     return functools.reduce(lambda a, b: a + b, failure_counts)
-
-
-def get_doc_type(filename) -> str:
-    type = filename.rsplit('.', 1)[0].rsplit('_', 1)[-1]
-    # if there are multiple BO for same physician, need adjust to get 'BO'
-    # Example: NY-Faizuddin_Shareef-03_11_2020_BO_#2.pdf
-    if re.match(r'#[0-9]', type) is not None:
-        type = filename.split('.')[0].rsplit('_', 2)[-2]
-        return type
-    return type
-
-
-def file_name_is_valid(filename, file_type) -> bool:
-    validator = FileValidatorFactory.create_validator(file_type)
-
-    return validator.file_name_is_valid(filename)
-
-
-def file_contents_is_valid(filename, file_type) -> bool:
-    validator = FileValidatorFactory.create_validator(file_type)
-
-    return validator.file_contents_is_valid(filename)
 
 
 def count_pdfs(folders):
@@ -454,14 +381,116 @@ def count_pdfs(folders):
     return count
 
 
+def partial_data_file_composition_is_correct(latest_actions_path, folder, required_file_types):
+    folder_path = os.path.join(latest_actions_path,  folder)
+    all_files = os.listdir(folder_path)
+    pdf_files = [file for file in os.listdir(folder_path) if not file_is_a_word_document(file)]
+    composition_is_correct = False
+
+    if len(pdf_files) == len(all_files):
+        composition_is_correct = required_data_file_types_are_present(folder, required_file_types)
+
+    return composition_is_correct
+
+
+def validate_folder_data(latest_actions_path, folder):
+    failure_counts = []
+
+    for file in [f for f in os.listdir(latest_actions_path + folder) if not f.startswith('.')]:
+        file_path = os.path.join(latest_actions_path, folder, file)
+
+        failure_count.append(validate_data_file(file_path))
+
+    return functools.reduce(lambda a, b: a + b, failure_counts)
+
+
+def file_is_a_word_document(file):
+    is_word_doc = False
+
+    if file.split('.')[-1] in ['docx', 'doc']:
+        LOGGER.info('There is a non-pdf file: %s', file)
+        is_word_doc = True
+
+    return is_word_doc
+
+
+def required_data_file_types_are_present(folder, required_file_types):
+        folder_prefix = folder.rsplit('_', 5)[0]  # Example: NV_MD_SummaryList
+        expected_file_types = required_file_types[folder_prefix]
+        file_types = set([get_doc_type(file) for file in pdf_files])
+        file_types_are_present = False
+
+        if file_types == expected_file_types:
+            file_types_are_present = True
+        else:
+            LOGGER.info('Expected file types %s for folder %s, but found only %s', expected_file_types, folder, file_types)
+
+        return file_types_are_present
+
+
+def validate_data_file(file_path, logger):
+    failure_counts = FailureCounts()
+    file_name = os.path.basename(file)
+    file_type = get_doc_type(file_name)
+    failure_counts = []
+
+    failure_counts.append(validate_file_name(file_name, file_type, logger))
+
+    failure_counts.append(validate_file_contents(file_path, file_type, logger))
+
+    return functools.reduce(lambda a, b: a + b, failure_counts)
+
+
+def get_doc_type(file_name) -> str:
+    file_type = file_name.rsplit('.', 1)[0].rsplit('_', 1)[-1]
+
+    # if there are multiple BO for same physician, need adjust to get 'BO'
+    # Example: NY-Faizuddin_Shareef-03_11_2020_BO_#2.pdf
+    if re.match(r'#[0-9]', file_type) is not None:
+        file_type = file_name.split('.')[0].rsplit('_', 2)[-2]
+
+    return file_type
+
+
+def validate_file_name(file_name, file_type, logger) -> FailureCounts:
+    failure_counts = FailureCounts()
+
+    if not file_name_is_valid(file_name, file_type):
+        LOGGER.info('File name format is not right: %s', file_name)
+        failure_counts.name_format = 1
+
+        logger.info('%s, name_format', file_name)
+
+    return failure_counts
+
+
+def validate_file_contents(file_path, file_type, logger) -> FailureCounts:
+    failure_counts = FailureCounts()
+
+    if not file_contents_is_valid(file_path, file_type):
+        LOGGER.info('%s file %s is not right', file_type, file_name)
+        failure_counts.file_quality = 1
+
+        logger.info('%s, file_quality - %s', file_name, "QA" if file_type == "QA" else "blank page")
+
+    return failure_counts
+
+
+def file_name_is_valid(file_name, file_type) -> bool:
+    validator = FileValidatorFactory.create_validator(file_type)
+
+    return validator.file_name_is_valid(file_name)
+
+
+def file_contents_is_valid(file_name, file_type) -> bool:
+    validator = FileValidatorFactory.create_validator(file_type)
+
+    return validator.file_contents_is_valid(file_name)
+
+
 # 3. check if can download to Udrive??
 def check_in_udrive(path, UdrivePath) -> bool:
     return os.listdir(path) == os.listdir(UdrivePath)
-
-
-def log_file_failure(log_path, date, file, failure_type):
-    with open(log_path, 'a') as f:
-        f.write(f'\n{date}, {file}, {failure_type}')
 
 
 if __name__ == '__main__':
