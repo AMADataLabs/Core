@@ -5,12 +5,14 @@ import re
 
 import pandas
 
+from datalabs.curate.parse import Parser
+
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class DescriptorParser:
+class DescriptorParser(Parser):
     def __init__(self, column_names, separator=None):
         self._column_names = column_names
         self._separator = separator

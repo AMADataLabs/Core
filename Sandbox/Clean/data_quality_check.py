@@ -171,8 +171,6 @@ def main():
         file_error=os.environ.get('FILE_LOG')
     )
 
-    # CLEAN CODE COMMENT: file loggers used to avoid mysterious passing of current_date and to make it clear that
-    #   a function may be logging data.
     loggers = setup_loggers(log_paths)
 
     date_last_updated = modification_date(data_base_path)
