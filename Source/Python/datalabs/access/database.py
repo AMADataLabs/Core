@@ -11,9 +11,9 @@ from   datalabs.access.datastore import Datastore
 
 @dataclass
 class Configuration:
+    name: str
     backend: str = None
     host: str = None
-    name: str
 
     @classmethod
     def load(cls, key: str):
@@ -21,14 +21,14 @@ class Configuration:
             Variables are of the form DATABASE_<KEY>_BACKEND='<backend>',
             DATABASE_<KEY>_HOST='<host>', and DATABASE_<KEY>_NAME='<name>'.
         """
-        backend = cls._load_credentials_variable(key, 'BACKEND')
-        host = cls._load_credentials_variable(key, 'HOST')
-        name = cls._load_credentials_variable(key, 'NAME')
+        backend = cls._load_varaible(key, 'BACKEND')
+        host = cls._load_varaible(key, 'HOST')
+        name = cls._load_varaible(key, 'NAME')
 
         return Credentials(username=username, password=password)
 
     @classmethod
-    def _load_credentials_variable(cls, key, credential_type):
+    def _load_varaible(cls, key, credential_type):
         name = f'DATABASE_{key.upper()}_{credential_type.upper()}'
         value = os.environ.get(name)
 
@@ -43,10 +43,13 @@ class ConfigurationException(Exception):
 
 
 class Database(Datastore):
-    def __init__(self, configuration: Configuration, credentials: Credentials):
+    def __init__(self, configuration: Configuration = None, credentials: Credentials = None, key: str = None):
         super().__init__(credentials)
-        self._configuration = configuration
-        self._database_name = self._load_database_name(self._key)
+
+        self._configuration = self._load_or_verify_configuration(configuration, self._key)
+
+        if key:
+            self._key = key
 
     @property
     def url(self):
@@ -69,11 +72,10 @@ class Database(Datastore):
         return self._connection.execute(sql, **kwargs)
 
     @classmethod
-    def _load_database_name(cls, key: str):
-        database_name_variable = f'DATABASE_{key}_NAME'
-        database_name = os.environ.get(database_name_variable)
+    def _load_or_verify_configuration(cls, configuration: Configuration, key: str):
+        if configuration is None:
+            configuration.load(key)
+        elif not hasattr(configuration, 'name') or not hasattr(configuration, 'backend') or not  hasattr(configuration, 'host'):
+            raise ValueError('Invalid configuration object.')
 
-        if database_name is None:
-            raise ValueError(f'Missing or blank database name variable {database_name_variable}.')
-
-        return database_name
+        return configuration
