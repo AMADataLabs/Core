@@ -344,12 +344,12 @@ paths:
       security:
         - cpt_auth:
             - 'read:pla'
-  /modifier:
+  /modifiers:
     get:
       tags:
         - Modifier
-      summary: All Modifier codes with their descriptors and type
-      description: ALL Modifier codes
+      summary: All Modifier codes and types
+      description: Returns all modifier codes with their descriptors and types
       operationId: viewALLmodifiers
       parameters:
         - name: type
@@ -374,12 +374,12 @@ paths:
       security:
         - cpt_auth:
             - 'read:modifier'
-  '/modifier/{code}':
+  '/modifiers/{code}':
     get:
       tags:
         - Modifier
-      summary: Modifier description and type by code
-      description: Returns code and type by specific code
+      summary: Modifier code details
+      description: Returns code details and type by specific code
       operationId: getModifierByCode
       parameters:
         - name: code
@@ -396,7 +396,6 @@ paths:
           content:
             application/json:
               schema:
-                type: array
                 items:
                   $ref: '#/components/schemas/Modifier'
         '404':
@@ -542,9 +541,9 @@ components:
     Modifier:
       type: object
       required:
-        - modifier_code
-        - modifier_description
-        - modifier_type
+        - code
+        - description
+        - type
       properties:
         modifier_code:
           type: string
