@@ -7,7 +7,7 @@ import datalabs.access.credentials as cred
 class Datastore(ABC):
     def __init__(self, credentials: cred.Credentials = None):
         self._key = self.__class__.__name__.upper()
-        self._credentials = self._load_credentials(credentials, self._key)
+        self._credentials = self._load_or_verify_credentials(credentials, self._key)
         self._connection = None
 
     def __enter__(self):
@@ -28,10 +28,10 @@ class Datastore(ABC):
         self._connection = None
 
     @classmethod
-    def _load_credentials(cls, credentials: cred.Credentials, key: str):
+    def _load_or_verify_credentials(cls, credentials: cred.Credentials, key: str):
         if credentials is None:
             credentials = cred.Credentials.load(key)
-        elif not hasattr(credentials, 'username') or hasattr(credentials, 'password'):
+        elif not hasattr(credentials, 'username') or not hasattr(credentials, 'password'):
             raise ValueError('Invalid credentials object.')
 
         return credentials

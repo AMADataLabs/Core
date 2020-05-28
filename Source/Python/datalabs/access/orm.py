@@ -5,14 +5,20 @@ import os
 
 import pandas
 import sqlalchemy
+from   sqlalchemy.orm import sessionmaker
 
 import datalabs.access.database as db
 
 
 class Database(db.Database):
     @property
-    def engine(self):
-        return self._connection
+    def session(self):
+        Session = sessionmaker(bind=self._connection)
+
+        return Session()
 
     def connect(self):
         self._connection = sqlalchemy.create_engine(self.url, echo=True)
+
+    def close(self):
+        pass
