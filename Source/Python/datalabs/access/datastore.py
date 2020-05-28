@@ -25,6 +25,8 @@ class Datastore(ABC):
     def close(self):
         self._connection.close()
 
+        self._connection = None
+
     @classmethod
     def _load_credentials(cls, credentials: cred.Credentials, key: str):
         if credentials is None:
