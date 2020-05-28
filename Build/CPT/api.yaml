@@ -542,7 +542,7 @@ components:
       type: object
       required:
         - code
-        - description
+        - descriptor
         - type
       properties:
         modifier_code:
