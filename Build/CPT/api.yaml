@@ -374,7 +374,7 @@ paths:
       security:
         - cpt_auth:
             - 'read:modifier'
-  '/modifiers/{code}':
+  '/modifier/{code}':
     get:
       tags:
         - Modifier
