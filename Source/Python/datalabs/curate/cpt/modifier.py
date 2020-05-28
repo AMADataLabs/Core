@@ -7,6 +7,8 @@ import re
 
 import pandas as pd
 
+from datalabs.curate.parse import Parser
+
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -49,7 +51,7 @@ Context = namedtuple('Context', 'state event data')
 
 
 # pylint: disable=bad-continuation
-class ModifierParser:
+class ModifierParser(Parser):
     # pylint: disable=line-too-long,bad-whitespace
     TRANSITION_TABLE = [
         # Start             Blank                   Text                            Modifier

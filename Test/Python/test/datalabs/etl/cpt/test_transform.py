@@ -20,5 +20,5 @@ def test_transforming_cpt_files_to_csv():
 
     LOGGER.debug('Transformed Data: %s', data)
 
-    assert ',"Hello, there!"' in data[0]
-    assert ',Dear John' in data[1]
+    assert '"Hello, there!"' in data[0]
+    assert 'Dear John' in data[1]
