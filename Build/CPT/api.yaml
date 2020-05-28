@@ -545,13 +545,13 @@ components:
         - descriptor
         - type
       properties:
-        modifier_code:
+        code:
           type: string
           format: byte
-        modifier_description:
+        description:
           type: string
           format: byte
-        modifier_type:
+        type:
           type: string
           format: byte
     PDF:
