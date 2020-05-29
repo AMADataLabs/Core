@@ -31,19 +31,19 @@ class CPTRelationalTableLoader(Loader):
            self._update_tables(data)
 
     def _update_tables(self, data: transform.OutputData):
-            codes = self._update_codes(data.code)
+            # codes = self._update_codes(data.code)
 
-            self._update_short_descriptors(codes, data.short_descriptor)
+            # self._update_short_descriptors(codes, data.short_descriptor)
 
-            self._update_medium_descriptors(codes, data.medium_descriptor)
+            # self._update_medium_descriptors(codes, data.medium_descriptor)
 
-            self._update_long_descriptors(codes, data.long_descriptor)
+            # self._update_long_descriptors(codes, data.long_descriptor)
 
-            # self._update_modifier_types(data.modifier_type)
+            self._update_modifier_types(data.modifier_type)
 
             # self._update_modifiers(data.modifier)
 
-            self._update_consumer_descriptors(codes, data.consumer_descriptor)
+            # self._update_consumer_descriptors(codes, data.consumer_descriptor)
 
             # self._update_clinician_descriptors(data.clinician_descriptor)
 
@@ -88,20 +88,26 @@ class CPTRelationalTableLoader(Loader):
         current_modifier_types = [row.name for row in query.all()]
 
         LOGGER.info('Adding new modifier types...')
-        for index, modifier_type in enumerate(modifier_types):
+        for modifier_type in modifier_types.name:
             if modifier_type not in current_modifier_types:
-                self._session.add(model.ModifierType(id=index, name=modifier_type))
+                self._session.add(
+                    model.ModifierType(name=modifier_type)
+                )
 
         self._session.commit()
+
+    @classmethod
+    def _modifier_types_to_indices(cls, modifiers, modifier_types):
+        return modifiers['type'].apply(lambda x: modifier_types[modifier_types['name'] == x]['id'].values[0])
 
     def _update_modifiers(self, modifiers):
         LOGGER.info('Processing modifiers...')
         query = self._session.query(model.Modifier)
         current_modifiers = {row.modifier:row for row in query.all()}
 
-        self._update_old_modifiers(descriptors, current_descriptors)
+        self._update_old_modifiers(modifiers, current_modifiers)
 
-        self._add_new_modifiers(new_modifiers, descriptors, current_descriptors)
+        self._add_new_modifiers(modifiers, current_modifiers)
 
         self._session.commit()
 
