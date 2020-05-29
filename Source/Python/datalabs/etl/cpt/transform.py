@@ -68,9 +68,7 @@ class CSVToRelationalTablesTransformer(Transformer):
     def _generate_tables(self, input_data):
         modifier_types = pandas.DataFrame(dict(id=list(range(5)), name=sorted(input_data.modifier['type'].unique())))
         modifiers = input_data.modifier
-        modifiers['type'] = input_data.modifier['type'].apply(
-            lambda x: modifier_types[modifier_types['name'] == x]['id'].values[0]
-        )
+        modifiers['type'] = self._modifier_types_to_indices(modifiers, modifier_types)
 
         return OutputData(
             code=input_data.short_descriptor[['cpt_code']].rename(
@@ -99,3 +97,7 @@ class CSVToRelationalTablesTransformer(Transformer):
                 columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')
             )
         )
+
+    @classmethod
+    def _modifier_types_to_indices(cls, modifiers, modifier_types):
+        return modifiers['type'].apply(lambda x: modifier_types[modifier_types['name'] == x]['id'].values[0])

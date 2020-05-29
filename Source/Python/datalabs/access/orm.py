@@ -18,7 +18,7 @@ class Database(db.Database):
         return Session()
 
     def connect(self):
-        self._connection = sqlalchemy.create_engine(self.url, echo=True)
+        self._connection = sqlalchemy.create_engine(self.url, echo=False)
 
     def close(self):
         pass
