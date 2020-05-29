@@ -33,3 +33,4 @@ ETL_LOADCPT_EXTRACTOR_BASE_PATH=AMA/CPT
 ETL_LOADCPT_EXTRACTOR_FILES=standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv
 ETL_LOADCPT_TRANSFORMER=datalabs.etl.cpt.transform.CSVToRelationalTablesTransformer
 ETL_LOADCPT_LOADER=datalabs.etl.cpt.load.RDSLoader
+ETL_LOADCPT_LOADER_DATABASE=ORM

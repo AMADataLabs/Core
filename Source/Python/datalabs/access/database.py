@@ -21,11 +21,11 @@ class Configuration:
             Variables are of the form DATABASE_<KEY>_BACKEND='<backend>',
             DATABASE_<KEY>_HOST='<host>', and DATABASE_<KEY>_NAME='<name>'.
         """
+        name = cls._load_varaible(key, 'NAME')
         backend = cls._load_varaible(key, 'BACKEND')
         host = cls._load_varaible(key, 'HOST')
-        name = cls._load_varaible(key, 'NAME')
 
-        return Credentials(username=username, password=password)
+        return Configuration(name, backend, host)
 
     @classmethod
     def _load_varaible(cls, key, credential_type):
@@ -44,12 +44,9 @@ class ConfigurationException(Exception):
 
 class Database(Datastore):
     def __init__(self, configuration: Configuration = None, credentials: Credentials = None, key: str = None):
-        super().__init__(credentials)
+        super().__init__(credentials, key)
 
         self._configuration = self._load_or_verify_configuration(configuration, self._key)
-
-        if key:
-            self._key = key
 
     @property
     def url(self):
@@ -74,7 +71,7 @@ class Database(Datastore):
     @classmethod
     def _load_or_verify_configuration(cls, configuration: Configuration, key: str):
         if configuration is None:
-            configuration.load(key)
+            configuration = Configuration.load(key)
         elif not hasattr(configuration, 'name') or not hasattr(configuration, 'backend') or not  hasattr(configuration, 'host'):
             raise ValueError('Invalid configuration object.')
 

@@ -5,8 +5,8 @@ import datalabs.access.credentials as cred
 
 
 class Datastore(ABC):
-    def __init__(self, credentials: cred.Credentials = None):
-        self._key = self.__class__.__name__.upper()
+    def __init__(self, credentials: cred.Credentials = None, key: str = None):
+        self._key = key or self.__class__.__name__.upper()
         self._credentials = self._load_or_verify_credentials(credentials, self._key)
         self._connection = None
 
