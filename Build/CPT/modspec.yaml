@@ -8,6 +8,5 @@ modspec:
   - package: datalabs.curate.cpt
   - package: datalabs.etl
   - package: datalabs.etl.cpt
-  - package: datalabs.etl.cpt.convert
-  - package: datalabs.etl.cpt.load
+  - package: datalabs.etl.cpt.wrapper
   - package: datalabs.etl.s3

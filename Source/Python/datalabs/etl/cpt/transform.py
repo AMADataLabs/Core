@@ -19,8 +19,22 @@ class InputData:
     medium_descriptor: pandas.DataFrame
     long_descriptor: pandas.DataFrame
     modifier: pandas.DataFrame
-    clinician_descriptor: pandas.DataFrame
     consumer_descriptor: pandas.DataFrame
+    clinician_descriptor: pandas.DataFrame
+
+
+@dataclass
+class OutputData:
+    code: pandas.DataFrame
+    short_descriptor: pandas.DataFrame
+    medium_descriptor: pandas.DataFrame
+    long_descriptor: pandas.DataFrame
+    modifier_type: pandas.DataFrame
+    modifier: pandas.DataFrame
+    consumer_descriptor: pandas.DataFrame
+    clinician_descriptor: pandas.DataFrame
+    clinician_descriptor_code_mapping: pandas.DataFrame
+    
 
 
 class CPTFileToCSVTransformer(Transformer):
@@ -59,28 +73,28 @@ class CSVToRelationalTablesTransformer(Transformer):
         )
 
 
-        return (
-            input_data.short_descriptor[['cpt_code']].rename(
+        return OutputData(
+            code=input_data.short_descriptor[['cpt_code']].rename(
                 columns=dict(cpt_code='code')
             ),
-            input_data.short_descriptor.rename(
+            short_descriptor=input_data.short_descriptor.rename(
                 columns=dict(cpt_code='code', short_descriptor='descriptor')
             ),
-            input_data.medium_descriptor.rename(
+            medium_descriptor=input_data.medium_descriptor.rename(
                 columns=dict(cpt_code='code', medium_descriptor='descriptor')
             ),
-            input_data.long_descriptor.rename(
+            long_descriptor=input_data.long_descriptor.rename(
                 columns=dict(cpt_code='code', long_descriptor='descriptor')
             ),
-            modifier_types,
-            modifiers,
-            input_data.consumer_descriptor[['cpt_code', 'consumer_descriptor']].rename(
+            modifier_type=modifier_types,
+            modifier=modifiers,
+            consumer_descriptor=input_data.consumer_descriptor[['cpt_code', 'consumer_descriptor']].rename(
                 columns=dict(cpt_code='code', consumer_descriptor='descriptor')
             ),
-            input_data.clinician_descriptor[['clinician_descriptor_id', 'clinician_descriptor']].rename(
+            clinician_descriptor=input_data.clinician_descriptor[['clinician_descriptor_id', 'clinician_descriptor']].rename(
                 columns=dict(clinician_descriptor_id='id', clinician_descriptor='descriptor')
             ),
-            input_data.clinician_descriptor[
+            clinician_descriptor_code_mapping=input_data.clinician_descriptor[
                 ['clinician_descriptor_id', 'cpt_code']
             ].rename(
                 columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')

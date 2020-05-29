@@ -1,4 +1,5 @@
 """ Generic database object intended to be subclassed by specific databases. """
+from   dataclasses import dataclass
 from   abc import abstractmethod
 import os
 
@@ -8,10 +9,54 @@ from   datalabs.access.credentials import Credentials
 from   datalabs.access.datastore import Datastore
 
 
+@dataclass
+class Configuration:
+    name: str
+    backend: str = None
+    host: str = None
+
+    @classmethod
+    def load(cls, key: str):
+        """ Load configuration from environment variables.
+            Variables are of the form DATABASE_<KEY>_BACKEND='<backend>',
+            DATABASE_<KEY>_HOST='<host>', and DATABASE_<KEY>_NAME='<name>'.
+        """
+        name = cls._load_varaible(key, 'NAME')
+        backend = cls._load_varaible(key, 'BACKEND')
+        host = cls._load_varaible(key, 'HOST')
+
+        return Configuration(name, backend, host)
+
+    @classmethod
+    def _load_varaible(cls, key, credential_type):
+        name = f'DATABASE_{key.upper()}_{credential_type.upper()}'
+        value = os.environ.get(name)
+
+        if value is None:
+            raise ConfigurationException(f'Unable to load environment variable {name}.')
+
+        return value
+
+
+class ConfigurationException(Exception):
+    pass
+
+
 class Database(Datastore):
-    def __init__(self, credentials: Credentials = None):
-        super().__init__(credentials)
-        self._database_name = self._load_database_name(self._key)
+    def __init__(self, configuration: Configuration = None, credentials: Credentials = None, key: str = None):
+        super().__init__(credentials, key)
+
+        self._configuration = self._load_or_verify_configuration(configuration, self._key)
+
+    @property
+    def url(self):
+        return "{}://{}:{}@{}/{}".format(
+            self._configuration.backend,
+            self._credentials.username,
+            self._credentials.password,
+            self._configuration.host,
+            self._configuration.name,
+        )
 
     @abstractmethod
     def connect(self):
@@ -24,11 +69,10 @@ class Database(Datastore):
         return self._connection.execute(sql, **kwargs)
 
     @classmethod
-    def _load_database_name(cls, key: str):
-        database_name_variable = f'DATABASE_{key}_NAME'
-        database_name = os.environ.get(database_name_variable)
+    def _load_or_verify_configuration(cls, configuration: Configuration, key: str):
+        if configuration is None:
+            configuration = Configuration.load(key)
+        elif not hasattr(configuration, 'name') or not hasattr(configuration, 'backend') or not  hasattr(configuration, 'host'):
+            raise ValueError('Invalid configuration object.')
 
-        if database_name is None:
-            raise ValueError(f'Missing or blank database name variable {database_name_variable}.')
-
-        return database_name
+        return configuration
