@@ -72,7 +72,6 @@ class CSVToRelationalTablesTransformer(Transformer):
             lambda x: modifier_types[modifier_types['name'] == x]['id'].values[0]
         )
 
-
         return OutputData(
             code=input_data.short_descriptor[['cpt_code']].rename(
                 columns=dict(cpt_code='code')

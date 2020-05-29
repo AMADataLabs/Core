@@ -35,15 +35,15 @@ class CPTRelationalTableLoader(Loader):
 
             self._update_short_descriptors(codes, data.short_descriptor)
 
-            self._update_medium_descriptors(data.medium_descriptor)
+            self._update_medium_descriptors(codes, data.medium_descriptor)
 
-            self._update_long_descriptors(data.long_descriptor)
+            self._update_long_descriptors(codes, data.long_descriptor)
 
             self._update_modifier_types(data.modifier_type)
 
             self._update_modifiers(data.modifier)
 
-            self._update_consumer_descriptors(data.consumer_descriptor)
+            self._update_consumer_descriptors(codes, data.consumer_descriptor)
 
             # self._update_clinician_descriptors(data.clinician_descriptor)
 
@@ -81,16 +81,36 @@ class CPTRelationalTableLoader(Loader):
         self._update_descriptors(model.ConsumerDescriptor, codes, descriptors)
 
     def _update_descriptors(self, model_class, codes, descriptors):
+        codes.new = codes.new.copy()
         query = self._session.query(model_class)
-        current_descriptor_rows = {row.code:row for row in query.all()}
+        current_descriptors = {row.code:row for row in query.all()}
 
-        for code in codes.old:
+        missing_codes = self._update_old_descriptors(model_class, codes.old, descriptors, current_descriptors)
+
+        self._add_new_descriptors(model_class, codes.new + missing_codes, descriptors, current_descriptors)
+
+    @classmethod
+    def _update_old_descriptors(cls, model_class, old_codes, descriptors, current_descriptors):
+        missing_codes = []
+
+        for code in old_codes:
             descriptor = descriptors.descriptor[descriptors.code == code].iloc[0]
 
-            if current_descriptor_rows[code] != descriptor:
-                current_descriptor_rows[code].descriptor = descriptor
+            if code not in current_descriptors:
+                missing_codes.append(code)
+            elif current_descriptors[code] != descriptor:
+                current_descriptors[code].descriptor = descriptor
 
-        for code in codes.new:
-            descriptor = descriptors.descriptor[descriptors.code == code].iloc[0]
+        return missing_codes
+
+    def _add_new_descriptors(self, model_class, new_codes, descriptors, current_descriptors):
+        for code in new_codes:
+            matches = descriptors.descriptor[descriptors.code == code]
+
+            if len(matches) == 0:
+                LOGGER.warn('No %s for code "%s".', model_class.__class__.__name__, code)
+                continue
+
+            descriptor = matches.iloc[0]
 
             self._session.add(model_class(code=code, descriptor=descriptor))
