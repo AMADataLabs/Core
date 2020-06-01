@@ -11,7 +11,7 @@ import datalabs.etl.cpt.transform as transform
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @dataclass
@@ -31,19 +31,19 @@ class CPTRelationalTableLoader(Loader):
            self._update_tables(data)
 
     def _update_tables(self, data: transform.OutputData):
-            codes = self._update_codes(data.code)
+            # codes = self._update_codes(data.code)
 
-            self._update_short_descriptors(codes, data.short_descriptor)
+            # self._update_short_descriptors(codes, data.short_descriptor)
 
-            self._update_medium_descriptors(codes, data.medium_descriptor)
+            # self._update_medium_descriptors(codes, data.medium_descriptor)
 
-            self._update_long_descriptors(codes, data.long_descriptor)
+            # self._update_long_descriptors(codes, data.long_descriptor)
 
-            self._update_modifier_types(data.modifier_type)
+            # self._update_modifier_types(data.modifier_type)
 
-            # self._update_modifiers(data.modifier)
+            self._update_modifiers(data.modifier)
 
-            self._update_consumer_descriptors(codes, data.consumer_descriptor)
+            # self._update_consumer_descriptors(codes, data.consumer_descriptor)
 
             # self._update_clinician_descriptors(data.clinician_descriptor)
 
@@ -51,8 +51,7 @@ class CPTRelationalTableLoader(Loader):
 
     def _update_codes(self, codes):
         LOGGER.info('Processing CPT codes...')
-        query = self._session.query(model.Code)
-        current_codes = {row.code:row for row in query.all()}
+        current_codes = self._get_codes()
         old_codes = [code for code in codes.code if code in current_codes]
         new_codes = [code for code in codes.code if code not in current_codes]
 
@@ -84,8 +83,7 @@ class CPTRelationalTableLoader(Loader):
 
     def _update_modifier_types(self, modifier_types):
         LOGGER.info('Processing modifier types...')
-        query = self._session.query(model.ModifierType)
-        current_modifier_types = [row.name for row in query.all()]
+        current_modifier_types = self._get_modifier_types()
 
         LOGGER.info('Adding new modifier types...')
         for modifier_type in modifier_types.name:
@@ -96,18 +94,14 @@ class CPTRelationalTableLoader(Loader):
 
         self._session.commit()
 
-    @classmethod
-    def _modifier_types_to_indices(cls, modifiers, modifier_types):
-        return modifiers['type'].apply(lambda x: modifier_types[modifier_types['name'] == x]['id'].values[0])
-
     def _update_modifiers(self, modifiers):
         LOGGER.info('Processing modifiers...')
-        query = self._session.query(model.Modifier)
-        current_modifiers = {row.modifier:row for row in query.all()}
+        current_modifier_types = self._get_modifier_types()
+        current_modifiers = self._get_modifiers()
 
         self._update_old_modifiers(modifiers, current_modifiers)
 
-        self._add_new_modifiers(modifiers, current_modifiers)
+        self._add_new_modifiers(modifiers, current_modifiers, current_modifier_types)
 
         self._session.commit()
 
@@ -116,6 +110,21 @@ class CPTRelationalTableLoader(Loader):
         self._update_descriptors(model.ConsumerDescriptor, codes, descriptors)
 
         self._session.commit()
+
+    def _get_codes(self):
+        query = self._session.query(model.Code)
+
+        return {row.code:row for row in query.all()}
+
+    def _get_modifier_types(self):
+        query = self._session.query(model.ModifierType)
+
+        return {row.name:row for row in query.all()}
+
+    def _get_modifiers(self):
+        query = self._session.query(model.Modifier)
+
+        return {row.modifier:row for row in query.all()}
 
     @classmethod
     def _update_old_modifiers(cls, modifiers, current_modifiers):
@@ -128,24 +137,31 @@ class CPTRelationalTableLoader(Loader):
             else:
                 cls._update_old_descriptor(modifier, modifiers, current_modifiers)
 
-    def _add_new_modifiers(self, modifiers, current_modifiers):
+    def _add_new_modifiers(self, modifiers, current_modifiers, modifier_types):
         LOGGER.info('    Adding new modifiers...')
         new_modifiers = [modifier for modifier in modifiers.modifier if modifier not in current_modifiers]
+        LOGGER.debug('New Modifiers: %s', new_modifiers)
 
         for modifier in new_modifiers:
-            modifier = descriptors.descriptor[modifiers.modifier == modifier].iloc[0]
+            modifier_details = modifiers[modifiers.modifier == modifier].iloc[0]
+            modifier_type = modifier_types[modifier_details.type]
+            descriptor = modifier_details.descriptor
 
-            self._session.add(model.Modifier(modifier=code, descriptor=descriptor))
+            self._session.add(model.Modifier(modifier=modifier, type=modifier_type.id, descriptor=descriptor))
 
     def _update_descriptors(self, model_class, codes, descriptors):
         LOGGER.info('    Fetching current descriptors...')
         codes.new = codes.new.copy()
-        query = self._session.query(model_class)
-        current_descriptors = {row.code:row for row in query.all()}
+        current_descriptors = self._get_descriptors(model_class)
 
         missing_codes = self._update_old_descriptors(model_class, codes.old, descriptors, current_descriptors)
 
         self._add_new_descriptors(model_class, codes.new + missing_codes, descriptors, current_descriptors)
+
+    def _get_descriptors(self, model_class):
+        query = self._session.query(model_class)
+
+        return {row.code:row for row in query.all()}
 
     @classmethod
     def _update_old_descriptors(cls, model_class, old_codes, descriptors, current_descriptors):
