@@ -4,7 +4,16 @@ modspec:
     include:
       - plugin
       - sqlalchemy
+  - package: datalabs.access
+    include:
+      - credentials
+      - datastore
+      - database
+      - orm
   - package: datalabs.access.cpt.api
+  - package: datalabs.curate
+    include:
+      - parse
   - package: datalabs.curate.cpt
   - package: datalabs.etl
   - package: datalabs.etl.cpt
