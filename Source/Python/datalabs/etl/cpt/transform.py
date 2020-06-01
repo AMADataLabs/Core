@@ -21,7 +21,7 @@ class InputData:
     modifier: pandas.DataFrame
     consumer_descriptor: pandas.DataFrame
     clinician_descriptor: pandas.DataFrame
-
+    pla : pandas.DataFrame
 
 @dataclass
 class OutputData:
@@ -34,7 +34,7 @@ class OutputData:
     consumer_descriptor: pandas.DataFrame
     clinician_descriptor: pandas.DataFrame
     clinician_descriptor_code_mapping: pandas.DataFrame
-    
+    pla: pandas.DataFrame
 
 
 class CPTFileToCSVTransformer(Transformer):
