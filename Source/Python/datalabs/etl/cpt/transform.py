@@ -1,12 +1,12 @@
 """ CPT ETL Transformer classes """
-from   dataclasses import dataclass
+from dataclasses import dataclass
 import io
 import logging
 
 import pandas
 
-from   datalabs.plugin import import_plugin
-from   datalabs.etl.transform import Transformer
+from datalabs.plugin import import_plugin
+from datalabs.etl.transform import Transformer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -21,7 +21,8 @@ class InputData:
     modifier: pandas.DataFrame
     consumer_descriptor: pandas.DataFrame
     clinician_descriptor: pandas.DataFrame
-    pla : pandas.DataFrame
+    pla: pandas.DataFrame
+
 
 @dataclass
 class OutputData:
@@ -87,7 +88,8 @@ class CSVToRelationalTablesTransformer(Transformer):
             consumer_descriptor=input_data.consumer_descriptor[['cpt_code', 'consumer_descriptor']].rename(
                 columns=dict(cpt_code='code', consumer_descriptor='descriptor')
             ),
-            clinician_descriptor=input_data.clinician_descriptor[['clinician_descriptor_id', 'clinician_descriptor']].rename(
+            clinician_descriptor=input_data.clinician_descriptor[
+                ['clinician_descriptor_id', 'clinician_descriptor']].rename(
                 columns=dict(clinician_descriptor_id='id', clinician_descriptor='descriptor')
             ),
             clinician_descriptor_code_mapping=input_data.clinician_descriptor[
