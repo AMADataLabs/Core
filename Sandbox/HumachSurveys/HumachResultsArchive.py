@@ -126,10 +126,18 @@ class HumachResultsArchive:
 
     def ingest_result_file(self, table, file_path):
         assert table in ['results_standard', 'results_validation']
-        df = pd.read_excel(file_path, dtype=str)
-        df_cols = df.columns.values
 
-        self.validate_cols(table=table, cols=df_cols)
+        if table == 'results_standard':
+            df = pd.read_excel(file_path, dtype=str)
+            df_cols = df.columns.values
+            self.validate_cols(table=table, cols=df_cols)
+        else:
+            df = pd.DataFrame(columns=self.validation_results_cols_expected)
+            sheet_names = ['ValidatedCorrect', 'ValidatedIncorrect', 'NotValidated', 'Unfinalized']
+            for sheet_name in sheet_names:
+                print('Extracting data from sheet: {}'.format(sheet_name))
+                sheet_df = pd.read_excel(file_path, sheet_name=sheet_name)
+                df = df.append(sheet_df, ignore_index=True)
 
         for i, r in df.iterrows():
             self.insert_row(table=table, vals=[v for v in r.values])

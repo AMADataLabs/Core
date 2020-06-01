@@ -1,11 +1,11 @@
 from glob import glob
 from HumachSurveys.HumachResultsArchive import HumachResultsArchive
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 import settings
 
 
-class HumachStandardResultsIngester:
+class HumachResultsIngester:
     def __init__(self, archive: HumachResultsArchive):
         self.archive = archive
         self.file_input_directory_standard = 'U:/Source Files/Data Analytics/Data-Science/Data/HumachSurveys/standard'
@@ -21,8 +21,8 @@ class HumachStandardResultsIngester:
         files = [f.replace('\\', '/') for f in files]
         return files
 
-    def get_valdiation_result_files(self):
-        files = glob(self.file_input_directory_validation + '/*.xls')
+    def get_validation_result_files(self):
+        files = glob(self.file_input_directory_validation + '/*.xlsx')
         files = [f.replace('\\', '/') for f in files]
         return files
 
@@ -31,21 +31,29 @@ class HumachStandardResultsIngester:
         files = self.get_standard_result_files()
 
         for file in files:
-            #try:
-            self.logger.info(f'PROCESSING FILE: {file}')
-            self.archive.ingest_result_file(table='results_standard', file_path=file)
-            self.logger.info('SUCCESS.')
-            #except Exception:
-            #    self.logger.info('FAILED.')
+            try:
+                self.logger.info(f'PROCESSING FILE: {file}')
+                self.archive.ingest_result_file(table='results_standard', file_path=file)
+                self.logger.info('SUCCESS.')
+            except Exception as e:
+                self.logger.info('FAILED:', e)
 
     def ingest_validation(self):
-        pass
 
+        files = self.get_validation_result_files()
+        for file in files:
+            try:
+                self.logger.info(f'PROCESSING FILE: {file}')
+                self.archive.ingest_result_file(table='results_validation', file_path=file)
+                self.logger.info('SUCCESS.')
+            except Exception as e:
+                self.logger.info('FAILED:', e)
 
+"""
 archive = HumachResultsArchive(database='HumachSurveys.db')
-ingester = HumachStandardResultsIngester(archive=archive)
 
-ingester.ingest_standard()
-
+ingester = HumachResultsIngester(archive=archive)
+ingester.ingest_validation()
+"""
 
 
