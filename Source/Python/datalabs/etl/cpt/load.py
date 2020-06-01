@@ -31,19 +31,19 @@ class CPTRelationalTableLoader(Loader):
            self._update_tables(data)
 
     def _update_tables(self, data: transform.OutputData):
-            # codes = self._update_codes(data.code)
+            codes = self._update_codes(data.code)
 
-            # self._update_short_descriptors(codes, data.short_descriptor)
+            self._update_short_descriptors(codes, data.short_descriptor)
 
-            # self._update_medium_descriptors(codes, data.medium_descriptor)
+            self._update_medium_descriptors(codes, data.medium_descriptor)
 
-            # self._update_long_descriptors(codes, data.long_descriptor)
+            self._update_long_descriptors(codes, data.long_descriptor)
 
-            # self._update_modifier_types(data.modifier_type)
+            self._update_modifier_types(data.modifier_type)
 
-            self._update_modifiers(data.modifier)
+            # self._update_modifiers(data.modifier)
 
-            # self._update_consumer_descriptors(codes, data.consumer_descriptor)
+            self._update_consumer_descriptors(codes, data.consumer_descriptor)
 
             # self._update_clinician_descriptors(data.clinician_descriptor)
 
