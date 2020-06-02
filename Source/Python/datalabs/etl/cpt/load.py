@@ -41,7 +41,7 @@ class CPTRelationalTableLoader(Loader):
 
             self._update_modifier_types(data.modifier_type)
 
-            # self._update_modifiers(data.modifier)
+            self._update_modifiers(data.modifier)
 
             self._update_consumer_descriptors(codes, data.consumer_descriptor)
 
