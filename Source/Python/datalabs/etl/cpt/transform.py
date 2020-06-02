@@ -35,7 +35,6 @@ class OutputData:
     consumer_descriptor: pandas.DataFrame
     clinician_descriptor: pandas.DataFrame
     clinician_descriptor_code_mapping: pandas.DataFrame
-    pla: pandas.DataFrame
 
 
 class CPTFileToCSVTransformer(Transformer):
@@ -96,5 +95,5 @@ class CSVToRelationalTablesTransformer(Transformer):
                 ['clinician_descriptor_id', 'cpt_code']
             ].rename(
                 columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')
-            )
+            ),
         )
