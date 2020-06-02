@@ -94,7 +94,7 @@ class ModifierType(Base):
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.String(20), nullable=False)
+    name = sa.Column(sa.String(30), nullable=False)
 
 
 class Modifier(Base):

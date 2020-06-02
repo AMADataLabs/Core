@@ -44,7 +44,7 @@ class S3WindowsTextExtractor(Extractor):
     def _get_latest_path(self):
         release_folders = sorted(self._listdir(self._configuration['BUCKET'], self._configuration['BASE_PATH']))
 
-        return '/'.join((self._configuration['BASE_PATH'], release_folders[0]))
+        return '/'.join((self._configuration['BASE_PATH'], release_folders[-1]))
 
     def _extract_file(self, base_path, file):
         file_path = '/'.join((base_path, file))

@@ -35,7 +35,6 @@ class OutputData:
     consumer_descriptor: pandas.DataFrame
     clinician_descriptor: pandas.DataFrame
     clinician_descriptor_code_mapping: pandas.DataFrame
-    pla: pandas.DataFrame
 
 
 class CPTFileToCSVTransformer(Transformer):
@@ -68,7 +67,7 @@ class CSVToRelationalTablesTransformer(Transformer):
 
     def _generate_tables(self, input_data):
         modifier_types = pandas.DataFrame(dict(name=input_data.modifier['type'].unique()))
-        modifiers = input_data.modifier
+        modifiers = self._dedupe_modifiers(input_data.modifier)
 
         return OutputData(
             code=input_data.short_descriptor[['cpt_code']].rename(
@@ -96,5 +95,11 @@ class CSVToRelationalTablesTransformer(Transformer):
                 ['clinician_descriptor_id', 'cpt_code']
             ].rename(
                 columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')
-            )
+            ),
         )
+
+    def _dedupe_modifiers(self, modifiers):
+        asc_modifiers = modifiers.modifier[modifiers.type == 'Ambulatory Service Center'].tolist()
+        duplicate_modifiers = modifiers[(modifiers.type == 'Category I') & modifiers.modifier.isin(asc_modifiers)]
+
+        return modifiers.drop(index=duplicate_modifiers.index)
