@@ -14,6 +14,9 @@ class HumachResultsIngester:
         self.file_input_directory_validation = 'U:/Source Files/Data Analytics/Data-Science/Data/HumachSurveys/validation'
         self.file_input_directory_validation_archive = 'U:/Source Files/Data Analytics/Data-Science/Data/HumachSurveys/validation/archive'
 
+        self.file_input_directory_samples = 'U:/Source Files/Data Analytics/Data-Science/Data/HumachSurveys/samples'
+        self.file_input_directory_samples_archive = 'U:/Source Files/Data Analytics/Data-Science/Data/HumachSurveys/samples/archive'
+
         self.logger = logging.getLogger('info')
 
     def get_standard_result_files(self):
@@ -26,6 +29,13 @@ class HumachResultsIngester:
         files = [f.replace('\\', '/') for f in files]
         return files
 
+    def get_sample_files(self):
+        files = glob(self.file_input_directory_samples + '/*.xlsx')
+        files = [f.replace('\\', '/') for f in files]
+        return files
+
+    # ingest_standard and ingest_validation are different because standard and validation result files have
+    # different file types (xls vs xlsx)
     def ingest_standard(self):
 
         files = self.get_standard_result_files()
@@ -49,11 +59,22 @@ class HumachResultsIngester:
             except Exception as e:
                 self.logger.info('FAILED:', e)
 
-"""
+    def ingest_samples(self):
+
+        files = self.get_sample_files()
+        for file in files:
+            try:
+                self.logger.info(f'PROCESSING FILE: {file}')
+                self.archive.ingest_sample_file(file_path=file)
+                self.logger.info('SUCCESS.')
+            except Exception as e:
+                self.logger.info('FAILED:', e)
+
+
+
 archive = HumachResultsArchive(database='HumachSurveys.db')
 
 ingester = HumachResultsIngester(archive=archive)
-ingester.ingest_validation()
-"""
+ingester.ingest_samples()
 
 
