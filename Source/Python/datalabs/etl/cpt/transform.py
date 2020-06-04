@@ -35,6 +35,16 @@ class OutputData:
     consumer_descriptor: pandas.DataFrame
     clinician_descriptor: pandas.DataFrame
     clinician_descriptor_code_mapping: pandas.DataFrame
+    pla_code: pandas.DataFrame
+    pla_short_descriptor: pandas.DataFrame
+    pla_long_descriptor: pandas.DataFrame
+    pla_medium_descriptor: pandas.DataFrame
+    pla_manufacturer: pandas.DataFrame
+    pla_manufacturer_code_mapping: pandas.DataFrame
+    pla_lab: pandas.DataFrame
+    pla_lab_code_mapping: pandas.DataFrame
+    # pla_release: pandas.DataFrame
+    # pla_release_code_mapping: pandas.DataFrame
 
 
 class CPTFileToCSVTransformer(Transformer):
@@ -96,6 +106,46 @@ class CSVToRelationalTablesTransformer(Transformer):
             ].rename(
                 columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')
             ),
+            pla_code=input_data.pla[
+                ['pla_code', 'status', 'test']
+            ].rename(
+                columns=dict(pla_code='code', status='status', test='test')
+            ),
+            pla_short_descriptor=input_data.pla[
+                ['pla_code', 'short']
+            ].rename(
+                columns=dict(pla_code='code', short='descriptor')
+            ),
+            pla_medium_descriptor=input_data.pla[
+                ['pla_code', 'medium']
+            ].rename(
+                columns=dict(pla_code='code', medium='descriptor')
+            ),
+            pla_long_descriptor=input_data.pla[
+                ['pla_code', 'long']
+            ].rename(
+                columns=dict(pla_code='code', long='descriptor')
+            ),
+            pla_manufacturer=input_data.pla[
+                ['id', 'manufacturer']
+            ].rename(
+                columns=dict(id='id', manufacturer='manufacturer')
+            ),
+            pla_manufacturer_code_mapping=input_data.pla[
+                ['id', 'pla_code']
+            ].rename(
+                columns=dict(id='id', pla_code='code')
+            ),
+            pla_lab=input_data.pla[
+                ['id', 'pla_code']
+            ].rename(
+                columns=dict(id='id', pla_code='code')
+            ),
+            pla_lab_code_mapping=input_data.pla[
+                ['id', 'pla_code']
+            ].rename(
+                columns=dict(id='id', pla_code='code')
+            )
         )
 
     def _dedupe_modifiers(self, modifiers):

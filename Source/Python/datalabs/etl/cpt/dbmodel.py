@@ -4,7 +4,6 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from datalabs.sqlalchemy import metadata
 
-
 Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
 
@@ -123,6 +122,7 @@ class PLACode(Base):
     status = sa.Column(sa.String, nullable=False)
     test_name = sa.Column(sa.String, nullable=False)
 
+
 class PLAShortDescriptor(Base):
     __tablename__ = 'pla_short_descriptor'
     __table_args__ = {"schema": "cpt"}
@@ -179,9 +179,19 @@ class LabPLACodeMapping(Base):
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
 
 
+class PLARelease(Base):
+    __tablename__ = 'pla_release'
+    __table_args__ = {"schema": "cpt"}
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    publish_date = sa.Column(sa.Date, nullable=False)
+    effective_date = sa.Column(sa.Date, nullable=False)
+    # type = sa.Column(sa.String(3), sa.ForeignKey("cpt.pla_release_type.type"), nullable=False)
+
+
 class ReleasePLACodeMapping(Base):
     __tablename__ = 'release_pla_code_mapping'
     __table_args__ = {"schema": "cpt"}
 
-    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), primary_key=True)
+    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.pla_release.id"), primary_key=True)
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
