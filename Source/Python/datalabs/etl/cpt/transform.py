@@ -1,12 +1,12 @@
 """ CPT ETL Transformer classes """
-from dataclasses import dataclass
+from   dataclasses import dataclass
 import io
 import logging
 
 import pandas
 
-from datalabs.plugin import import_plugin
-from datalabs.etl.transform import Transformer
+from   datalabs.plugin import import_plugin
+from   datalabs.etl.transform import Transformer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -43,8 +43,6 @@ class OutputData:
     pla_manufacturer_code_mapping: pandas.DataFrame
     pla_lab: pandas.DataFrame
     pla_lab_code_mapping: pandas.DataFrame
-    # pla_release: pandas.DataFrame
-    # pla_release_code_mapping: pandas.DataFrame
 
 
 class CPTFileToCSVTransformer(Transformer):
@@ -106,41 +104,36 @@ class CSVToRelationalTablesTransformer(Transformer):
             ].rename(
                 columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')
             ),
-            pla_code=input_data.pla[
-                ['pla_code', 'status', 'test']
-            ].rename(
-                columns=dict(pla_code='code', status='status', test='test')
-            ),
+            pla_code=input_data.pla[['pla_code', 'status', 'test']],
+
             pla_short_descriptor=input_data.pla[
-                ['pla_code', 'short']
+                ['pla_code', 'short_descriptor']
             ].rename(
-                columns=dict(pla_code='code', short='descriptor')
+                columns=dict(pla_code='code', short_descriptor='descriptor')
             ),
+
             pla_medium_descriptor=input_data.pla[
-                ['pla_code', 'medium']
+                ['pla_code', 'medium_descriptor']
             ].rename(
-                columns=dict(pla_code='code', medium='descriptor')
+                columns=dict(pla_code='code', medium_descriptor='descriptor')
             ),
+
             pla_long_descriptor=input_data.pla[
-                ['pla_code', 'long']
+                ['pla_code', 'long_descriptor']
             ].rename(
-                columns=dict(pla_code='code', long='descriptor')
+                columns=dict(pla_code='code', long_descriptor='descriptor')
             ),
-            pla_manufacturer=input_data.pla[
-                ['id', 'manufacturer']
-            ].rename(
-                columns=dict(id='id', manufacturer='manufacturer')
-            ),
+
+            pla_manufacturer=input_data.pla[['id', 'manufacturer']],
+
             pla_manufacturer_code_mapping=input_data.pla[
                 ['id', 'pla_code']
             ].rename(
                 columns=dict(id='id', pla_code='code')
             ),
-            pla_lab=input_data.pla[
-                ['id', 'pla_code']
-            ].rename(
-                columns=dict(id='id', pla_code='code')
-            ),
+
+            pla_lab=input_data.pla[['id', 'lab_name']],
+
             pla_lab_code_mapping=input_data.pla[
                 ['id', 'pla_code']
             ].rename(

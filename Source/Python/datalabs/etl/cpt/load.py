@@ -1,11 +1,11 @@
 """ CPT ETL Loader classes """
-from dataclasses import dataclass
+from   dataclasses import dataclass
 import logging
 
 # import pandas
 
-from datalabs.access.orm import Database
-from datalabs.etl.load import Loader
+from   datalabs.access.orm import Database
+from   datalabs.etl.load import Loader
 import datalabs.etl.cpt.dbmodel as model
 import datalabs.etl.cpt.transform as transform
 
@@ -497,8 +497,4 @@ class CPTRelationalTableLoader(Loader):
                 LOGGER.debug('Mapping Lab names with id %s to PLA code %s', id, code)
 
             self._session.add(model.LabPLACodeMapping(lab=id, code=code))
-
-    # def _update_pla_release(self, releases):
-
-    # def _update_pla_release_code_mapping(self, mapping):
 

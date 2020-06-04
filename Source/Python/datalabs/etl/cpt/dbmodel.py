@@ -1,8 +1,8 @@
 """ SQLAlchemy models for CPT """
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import declarative_base
+from   sqlalchemy.ext.declarative import declarative_base
 
-from datalabs.sqlalchemy import metadata
+from   datalabs.sqlalchemy import metadata
 
 Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
@@ -187,11 +187,3 @@ class PLARelease(Base):
     publish_date = sa.Column(sa.Date, nullable=False)
     effective_date = sa.Column(sa.Date, nullable=False)
     # type = sa.Column(sa.String(3), sa.ForeignKey("cpt.pla_release_type.type"), nullable=False)
-
-
-class ReleasePLACodeMapping(Base):
-    __tablename__ = 'release_pla_code_mapping'
-    __table_args__ = {"schema": "cpt"}
-
-    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.pla_release.id"), primary_key=True)
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
