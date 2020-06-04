@@ -17,14 +17,12 @@ LOGGER.setLevel(logging.INFO)
 class State(Enum):
     Unknown = 0
     Beginning = 1
-    RegularModifier = 2
-    PhysicalModifier = 3
-    LevelOneModifier = 4
+    CategoryOneModifier = 2
+    AnesthesiaPhysicalStatusModifier = 3
+    AmbulatoryServiceCenterModifier = 4
     CategoryTwoModifier = 5
     LevelTwoModifier = 6
-    # ParsingModifier = 7
-    # ParsingPhysicalModifier = 8
-    End = 8
+    End = 7
 
 
 class Event(Enum):
@@ -40,9 +38,9 @@ class Event(Enum):
 
 
 class ModifierType(Enum):
-    Regular = 'Regular'
-    Physical = 'Physical'
-    LevelOne = 'Level I'
+    CategoryOne = 'Category I'
+    AnesthesiaPhysicalStatus = 'Anesthesia Physical Status'
+    AmbulatoryServiceCenter = 'Ambulatory Service Center'
     CategoryTwo = 'Category II'
     LevelTwo = 'Level II'
 
@@ -61,17 +59,17 @@ class ModifierParser(Parser):
             State.Unknown,          State.Unknown,              State.Unknown,              State.Unknown,
             State.Unknown],  # Unknown
         [State.Beginning,   State.Beginning,        State.Beginning,                State.Unknown,
-            State.RegularModifier,  State.Unknown,              State.Unknown,              State.Unknown,
+            State.CategoryOneModifier,  State.Unknown,              State.Unknown,              State.Unknown,
             State.Unknown],  # Beginning
-        [State.Unknown,     State.RegularModifier,  State.RegularModifier,          State.RegularModifier,
-            State.Unknown,          State.PhysicalModifier,     State.Unknown,              State.Unknown,
-            State.Unknown],  # RegularModifier
-        [State.Unknown,     State.PhysicalModifier, State.PhysicalModifier,         State.PhysicalModifier,
-            State.Unknown,          State.Unknown,          State.LevelOneModifier,     State.Unknown,
-            State.Unknown],  # PhysicalModifier
-        [State.Unknown,     State.LevelOneModifier, State.LevelOneModifier,         State.LevelOneModifier,
+        [State.Unknown,     State.CategoryOneModifier,  State.CategoryOneModifier,          State.CategoryOneModifier,
+            State.Unknown,          State.AnesthesiaPhysicalStatusModifier,     State.Unknown,              State.Unknown,
+            State.Unknown],  # CategoryOneModifier
+        [State.Unknown,     State.AnesthesiaPhysicalStatusModifier, State.AnesthesiaPhysicalStatusModifier,         State.AnesthesiaPhysicalStatusModifier,
+            State.Unknown,          State.Unknown,          State.AmbulatoryServiceCenterModifier,     State.Unknown,
+            State.Unknown],  # AnesthesiaPhysicalStatusModifier
+        [State.Unknown,     State.AmbulatoryServiceCenterModifier, State.AmbulatoryServiceCenterModifier,         State.AmbulatoryServiceCenterModifier,
             State.Unknown,          State.Unknown,          State.Unknown,              State.CategoryTwoModifier,
-            State.Unknown],  # LevelOneModifier
+            State.Unknown],  # AmbulatoryServiceCenterModifier
         [State.Unknown,     State.CategoryTwoModifier, State.CategoryTwoModifier,   State.CategoryTwoModifier,
             State.Unknown,          State.Unknown,          State.Unknown,              State.Unknown,
             State.LevelTwoModifier],  # CategoryTwoModifier
@@ -82,18 +80,18 @@ class ModifierParser(Parser):
 
     def __init__(self):
         self._modifiers = {
-            ModifierType.Regular: {},
-            ModifierType.Physical: {},
-            ModifierType.LevelOne: {},
+            ModifierType.CategoryOne: {},
+            ModifierType.AnesthesiaPhysicalStatus: {},
+            ModifierType.AmbulatoryServiceCenter: {},
             ModifierType.CategoryTwo: {},
             ModifierType.LevelTwo: {},
         }
         self._state_processors = [
             None,
             AppendixAProcessor(self),
-            RegularModifierProcessor(self),
-            PhysicalModifierProcessor(self),
-            LevelOneModifierProcessor(self),
+            CategoryOneModifierProcessor(self),
+            AnesthesiaPhysicalStatusModifierProcessor(self),
+            AmbulatoryServiceCenterModifierProcessor(self),
             CategoryTwoModifier(self),
             LevelTwoModifierProcessor(self)
         ]
@@ -151,7 +149,7 @@ class AppendixAProcessor(StateProcessor):
         return Context(state=None, event=event, data=data)
 
 
-class RegularModifierProcessor(StateProcessor):
+class CategoryOneModifierProcessor(StateProcessor):
     def process_line(self, context, line):
         event = context.event
         data = context.data
@@ -179,10 +177,10 @@ class RegularModifierProcessor(StateProcessor):
 
     def _process_match(self, match):
         code, description = match.split(' ', 1)
-        self._parser.add_modifier(ModifierType.Regular, code, description)
+        self._parser.add_modifier(ModifierType.CategoryOne, code, description)
 
 
-class PhysicalModifierProcessor(StateProcessor):
+class AnesthesiaPhysicalStatusModifierProcessor(StateProcessor):
     def process_line(self, context, line):
 
         data = context.data
@@ -209,10 +207,10 @@ class PhysicalModifierProcessor(StateProcessor):
     def _process_match(self, match):
         code = match.group(1)
         description = match.group(2)
-        self._parser.add_modifier(ModifierType.Physical, code, description)
+        self._parser.add_modifier(ModifierType.AnesthesiaPhysicalStatus, code, description)
 
 
-class LevelOneModifierProcessor(StateProcessor):
+class AmbulatoryServiceCenterModifierProcessor(StateProcessor):
     def process_line(self, context, line):
 
         event = context.event
@@ -244,7 +242,7 @@ class LevelOneModifierProcessor(StateProcessor):
 
     def _process_match(self, code_description_line):
         code, description = code_description_line.split(' ', 1)
-        self._parser.add_modifier(ModifierType.LevelOne, code, description)
+        self._parser.add_modifier(ModifierType.AmbulatoryServiceCenter, code, description)
 
 
 class CategoryTwoModifier(StateProcessor):

@@ -25,8 +25,9 @@ def main(args):
     app_path = os.path.join(build_path, 'app')
 
     if not args['in_place']:
-        LOGGER.info('=== Removing Old App Directory ===')
-        shutil.rmtree(app_path)
+        if os.path.exists(app_path):
+            LOGGER.info('=== Removing Old App Directory ===')
+            shutil.rmtree(app_path)
 
         if args['serverless']:
             LOGGER.info('=== Copying Dependencies ===')
