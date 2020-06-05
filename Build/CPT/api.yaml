@@ -68,7 +68,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Descriptor'
         '404':
-          description: No description found for the given CPT Code.
+          description: No descriptor found for the given CPT Code.
       security:
         - cpt_auth:
             - 'read:cpt'
@@ -142,7 +142,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ConsumerDescriptor'
         '400':
-          description: invalid parameters
+          description: invalid query parameter
         '404':
           description: Consumer Descriptor not found for ID
       security:
@@ -288,7 +288,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/PLA'
         '400':
-          description: invalid parameters
+          description: invalid query parameter
         '404':
           description: PLA descriptor not found for ID
       security:
@@ -418,7 +418,7 @@ paths:
               schema:
                 type: "string"
         '400':
-          description: invalid parameters
+          description: invalid query parameter
       security:
         - cpt_auth:
             - 'read:pdf'
@@ -444,7 +444,7 @@ paths:
               schema:
                 type: "string"
         '400':
-          description: invalid parameters
+          description: invalid query parameter
       security:
         - cpt_auth:
             - 'read:pdf'
