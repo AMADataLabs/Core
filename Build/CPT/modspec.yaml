@@ -2,6 +2,7 @@
 modspec:
   - package: datalabs
     include:
+      - feature
       - plugin
       - sqlalchemy
   - package: datalabs.access

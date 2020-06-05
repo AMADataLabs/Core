@@ -5,6 +5,7 @@ import logging
 
 import pandas
 
+import datalabs.feature as feature
 from datalabs.plugin import import_plugin
 from datalabs.etl.transform import Transformer
 
@@ -77,7 +78,7 @@ class CSVToRelationalTablesTransformer(Transformer):
         modifier_types = pandas.DataFrame(dict(name=input_data.modifier['type'].unique()))
         modifiers = self._dedupe_modifiers(input_data.modifier)
 
-        return OutputData(
+        tables = OutputData(
             code=input_data.short_descriptor[['cpt_code']].rename(
                 columns=dict(cpt_code='code')
             ),
@@ -104,39 +105,62 @@ class CSVToRelationalTablesTransformer(Transformer):
             ].rename(
                 columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')
             ),
-            pla_code=input_data.pla[
-                ['pla_code', 'status', 'test']
-            ].rename(
-                columns=dict(pla_code='code', status='status', test='test_name')
-            ),
-            pla_short_descriptor=input_data.pla[
-                ['pla_code', 'short_descriptor']
-            ].rename(
-                columns=dict(pla_code='code', short_descriptor='descriptor')
-            ),
-            pla_medium_descriptor=input_data.pla[
-                ['pla_code', 'medium_descriptor']
-            ].rename(
-                columns=dict(pla_code='code', medium_descriptor='descriptor')
-            ),
-            pla_long_descriptor=input_data.pla[
-                ['pla_code', 'long_descriptor']
-            ].rename(
-                columns=dict(pla_code='code', long_descriptor='descriptor')
-            ),
-            pla_manufacturer=input_data.pla[['id', 'manufacturer']],
-            pla_manufacturer_code_mapping=input_data.pla[
-                ['id', 'pla_code']
-            ].rename(
-                columns=dict(id='id', pla_code='code')
-            ),
-            pla_lab=input_data.pla[['id', 'lab_name']],
-            pla_lab_code_mapping=input_data.pla[
-                ['id', 'pla_code']
-            ].rename(
-                columns=dict(id='id', pla_code='code')
-            )
+            pla_code=None,
+            pla_short_descriptor=None,
+            pla_medium_descriptor=None,
+            pla_long_descriptor=None,
+            pla_manufacturer=None,
+            pla_manufacturer_code_mapping=None,
+            pla_lab=None,
+            pla_lab_code_mapping=None,
         )
+
+        if feature.enabled('PLA'):
+            tables = OutputData(
+                code=tables.code,
+                short_descriptor=tables.short_descriptor,
+                medium_descriptor=tables.medium_descriptor,
+                long_descriptor=tables.long_descriptor,
+                modifier_type=tables.modifier_type,
+                modifier=tables.modifier,
+                consumer_descriptor=tables.consumer_descriptor,
+                clinician_descriptor=tables.clinician_descriptor,
+                clinician_descriptor_code_mapping=tables.clinician_descriptor_code_mapping,
+                pla_code=input_data.pla[
+                    ['pla_code', 'status', 'test']
+                ].rename(
+                    columns=dict(pla_code='code', status='status', test='test_name')
+                ),
+                pla_short_descriptor=input_data.pla[
+                    ['pla_code', 'short_descriptor']
+                ].rename(
+                    columns=dict(pla_code='code', short_descriptor='descriptor')
+                ),
+                pla_medium_descriptor=input_data.pla[
+                    ['pla_code', 'medium_descriptor']
+                ].rename(
+                    columns=dict(pla_code='code', medium_descriptor='descriptor')
+                ),
+                pla_long_descriptor=input_data.pla[
+                    ['pla_code', 'long_descriptor']
+                ].rename(
+                    columns=dict(pla_code='code', long_descriptor='descriptor')
+                ),
+                pla_manufacturer=input_data.pla[['id', 'manufacturer']],
+                pla_manufacturer_code_mapping=input_data.pla[
+                    ['id', 'pla_code']
+                ].rename(
+                    columns=dict(id='id', pla_code='code')
+                ),
+                pla_lab=input_data.pla[['id', 'lab_name']],
+                pla_lab_code_mapping=input_data.pla[
+                    ['id', 'pla_code']
+                ].rename(
+                    columns=dict(id='id', pla_code='code')
+                )
+            )
+
+        return tables
 
     def _dedupe_modifiers(self, modifiers):
         asc_modifiers = modifiers.modifier[modifiers.type == 'Ambulatory Service Center'].tolist()

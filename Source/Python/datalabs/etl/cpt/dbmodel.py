@@ -179,11 +179,9 @@ class LabPLACodeMapping(Base):
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
 
 
-class PLARelease(Base):
-    __tablename__ = 'pla_release'
+class ReleasePLACodeMapping(Base):
+    __tablename__ = 'release_pla_code_mapping'
     __table_args__ = {"schema": "cpt"}
 
-    id = sa.Column(sa.Integer, primary_key=True)
-    publish_date = sa.Column(sa.Date, nullable=False)
-    effective_date = sa.Column(sa.Date, nullable=False)
-    # type = sa.Column(sa.String(3), sa.ForeignKey("cpt.pla_release_type.type"), nullable=False)
+    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), primary_key=True)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)

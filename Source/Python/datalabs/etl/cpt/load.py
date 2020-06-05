@@ -8,6 +8,7 @@ from   datalabs.access.orm import Database
 from   datalabs.etl.load import Loader
 import datalabs.etl.cpt.dbmodel as model
 import datalabs.etl.cpt.transform as transform
+import datalabs.feature as feature
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -49,25 +50,24 @@ class CPTRelationalTableLoader(Loader):
 
         self._update_clinician_descriptor_code_mappings_table(data.clinician_descriptor_code_mapping)
 
-        pla_codes = self._update_pla_code(data.pla_code)
+        if feature.enabled('PLA'):
+            pla_codes = self._update_pla_code_table(data.pla_code)
 
-        self._update_pla_short_descriptor(pla_codes, data.pla_short_descriptor)
+            self._update_pla_short_descriptor_table(pla_codes, data.pla_short_descriptor)
 
-        self._update_pla_medium_descriptor(pla_codes, data.pla_medium_descriptor)
+            self._update_pla_medium_descriptor_table(pla_codes, data.pla_medium_descriptor)
 
-        self._update_pla_long_descriptor(pla_codes, data.pla_long_descriptor)
+            self._update_pla_long_descriptor_table(pla_codes, data.pla_long_descriptor)
 
-        self._update_manufacturer(data.pla_manufacturer)
+            self._update_manufacturer_table(data.pla_manufacturer)
 
-        self._update_manufacturer_code_mapping(data.pla_manufacturer_code_mapping)
+            self._update_manufacturer_code_mapping_table(data.pla_manufacturer_code_mapping)
 
-        self._update_lab(data.pla_lab)
+            self.__update_lab_table(data.pla_lab)
 
-        self._update_lab_code_mapping(data.pla_lab_code_mapping)
+            self._update_lab_code_mapping_table(data.pla_lab_code_mapping)
 
-        # self._update_pla_release(data.pla_release)
-
-        # self._update_pla_release_code_mapping(data.pla_release_code_mapping)
+            self._update_pla_release_code_mapping_table(data.pla_release_code_mapping)
 
     def _update_codes_table(self, codes):
         LOGGER.info('Processing CPT codes...')
@@ -286,7 +286,7 @@ class CPTRelationalTableLoader(Loader):
 
         return {row.code: row for row in query.all()}
 
-    def _update_pla_code(self, pla_codes):
+    def _update_pla_code_table(self, pla_codes):
         LOGGER.info('Processing PLA codes...')
         current_codes = self._get_pla_codes()
         old_codes = [code for code in pla_codes.code if code in current_codes]
@@ -300,19 +300,19 @@ class CPTRelationalTableLoader(Loader):
 
         return IDs(old_codes, new_codes)
 
-    def _update_pla_short_descriptor(self, codes, descriptors):
+    def _update_pla_short_descriptor_table(self, codes, descriptors):
         LOGGER.info('Processing short pla descriptors...')
         self._update_pla_descriptors_table(model.PLAShortDescriptor, codes, descriptors)
 
         self._session.commit()
 
-    def _update_pla_medium_descriptor(self, codes, descriptors):
+    def _update_pla_medium_descriptor_table(self, codes, descriptors):
         LOGGER.info('Processing medium descriptors...')
         self._update_pla_descriptors_table(model.PLAMediumDescriptor, codes, descriptors)
 
         self._session.commit()
 
-    def _update_pla_long_descriptor(self, codes, descriptors):
+    def _update_pla_long_descriptor_table(self, codes, descriptors):
         LOGGER.info('Processing long descriptors...')
         self._update_pla_descriptors_table(model.PLALongDescriptor, codes, descriptors)
 
@@ -365,7 +365,7 @@ class CPTRelationalTableLoader(Loader):
 
         return {row.code: row for row in query.all()}
 
-    def _update_manufacturer(self, manufacturer):
+    def _update_manufacturer_table(self, manufacturer):
         LOGGER.info('Processing manufacturers...')
         current_manufacturer = self._get_manufacturer()
 
@@ -401,7 +401,7 @@ class CPTRelationalTableLoader(Loader):
 
             self._session.add(model.Manufacturer(id=id, name=matches.manufacturer.iloc[0]))
 
-    def _update_manufacturer_code_mapping(self, mappings):
+    def _update_manufacturer_code_mapping_table(self, mappings):
         LOGGER.info('Processing manufacturer code mappings...')
         current_codes = self._get_pla_codes()
         current_mappings = self._get_manufacturer_code_mapping()
@@ -431,7 +431,7 @@ class CPTRelationalTableLoader(Loader):
 
             self._session.add(model.ManufacturerPLACodeMapping(manufacturer=id, code=code))
 
-    def _update_lab(self, lab):
+    def __update_lab_table(self, lab):
         LOGGER.info('Processing lab names...')
         current_lab = self._get_lab()
 
@@ -467,7 +467,7 @@ class CPTRelationalTableLoader(Loader):
 
             self._session.add(model.Lab(id=id, name=matches.manufacturer.iloc[0]))
 
-    def _update_lab_code_mapping(self, mappings):
+    def _update_lab_code_mapping_table(self, mappings):
         LOGGER.info('Processing lab code mappings...')
         current_codes = self._get_pla_codes()
         current_mappings = self._get_lab_code_mapping()
