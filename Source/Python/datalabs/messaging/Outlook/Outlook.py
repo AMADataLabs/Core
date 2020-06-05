@@ -16,6 +16,15 @@ def add_attachments(msg, attachments):
                 errno.ENOENT, os.strerror(errno.ENOENT), attachment)
 
 
+def set_msg_sender(msg, account_name):
+    for acc in outlook.Session.Accounts:
+        if acc.SmtpAddress.lower() == account_name.lower():
+            msg._oleobj_.Invoke(*(64209, 0, 8, 0, acc))  # msg.SendUsingAccount = acc_to_use
+            return
+    raise ValueError(f'Account {account_name} not found in active Outlook accounts.\n'
+                     f'Try checking your settings in Outlook to add the account.')
+
+
 """
 Sends an email.
 Requirements
@@ -60,15 +69,7 @@ def send_email(to, subject, cc=None, body='', attachments=None, from_account=Non
 
     # Find Account object by name
     if from_account is not None:
-        acc_to_use = None
-        for acc in outlook.Session.Accounts:
-            if acc.SmtpAddress.lower() == from_account.lower():
-                acc_to_use = acc
-
-        if acc_to_use is None:
-            raise ValueError(f'Account {from_account} not found in active Outlook accounts.\n'
-                             f'Try checking your settings in Outlook to add the account.')
-        msg._oleobj_.Invoke(*(64209, 0, 8, 0, acc_to_use))  # msg.SendUsingAccount = acc_to_use)
+        set_msg_sender(msg, from_account)
 
     if attachments is not None:
         if isinstance(attachments, str):
