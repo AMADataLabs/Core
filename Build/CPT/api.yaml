@@ -411,12 +411,11 @@ paths:
       description: Provides a time-limited URL to a zip archive of the PDFs from the most recent release
       operationId: getPDFLink
       responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PDF'
+        '303':
+          description: successful creation of a time-limited download URL
+          headers:
+            Location:
+              type: "string"
         '400':
           description: invalid parameters
       security:
@@ -437,12 +436,11 @@ paths:
           schema:
             type: string
       responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PDF'
+        '303':
+          description: successful creation of a time-limited download URL
+          headers:
+            Location:
+              type: "string"
         '400':
           description: invalid parameters
       security:
@@ -552,12 +550,6 @@ components:
           type: string
           format: byte
         type:
-          type: string
-          format: byte
-    PDF:
-      type: object
-      properties:
-        url:
           type: string
           format: byte
   securitySchemes:
