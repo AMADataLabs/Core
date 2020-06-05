@@ -21,28 +21,28 @@ class Outlook:
                              f'Try checking your settings in Outlook to add the account.')
         return
 
-    """
-    Sends an email.
-    Requirements
-       outlook: win32com.client.Dispatch('outlook.application')
-       Outlook must be running on the system running this code.
-       The following parameters MUST be defined:
-          * to
-          * subject
-    Notes
-       - There is no check on the validity of email addresses in to and cc
-       - Method will fail if attachments are specified but not found.
-    Parameters
-       to:            email address (string) or list of email addresses (strings)
-       cc:            email address (string) or list of email addresses (strings)
-       subject:       email message subject (string)
-       body:          email message body text (string)
-       attachments:   absolute path (string) or list of absolute paths (strings) to desired email attachments.
-         Ex: ['C:\\Documents\\file_A.csv', 'C:\\Documents\\file_B.csv']
-       auto_send:     whether or not the method sends the email (if not, message will display in Outlook)
-    """
-    def send_email(self, to, subject, cc=None, body='', attachments=None, from_account=None, auto_send=True):
 
+    def send_email(self, to, subject, cc=None, body='', attachments=None, from_account=None, auto_send=True):
+        """
+            Sends an email.
+            Requirements
+               outlook: win32com.client.Dispatch('outlook.application')
+               Outlook must be running on the system running this code.
+               The following parameters MUST be defined:
+                  * to
+                  * subject
+            Notes
+               - There is no check on the validity of email addresses in to and cc
+               - Method will fail if attachments are specified but not found.
+            Parameters
+               to:            email address (string) or list of email addresses (strings)
+               cc:            email address (string) or list of email addresses (strings)
+               subject:       email message subject (string)
+               body:          email message body text (string)
+               attachments:   absolute path (string) or list of absolute paths (strings) to desired email attachments.
+                 Ex: ['C:\\Documents\\file_A.csv', 'C:\\Documents\\file_B.csv']
+               auto_send:     whether or not the method sends the email (if not, message will display in Outlook)
+        """
         message = self.outlook.CreateItem(0)
 
         message.To = param_to_address_list(to)
