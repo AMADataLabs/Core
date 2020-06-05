@@ -19,13 +19,13 @@ def test_modifier_parser(text):
 
     assert len(data) == 2 * len(ModifierType.__members__)
 
-    regular_modifiers = data[data['type'] == 'Regular']
+    regular_modifiers = data[data['type'] == 'Category I']
     assert len(regular_modifiers) == 2
 
-    regular_modifiers = data[data['type'] == 'Physical']
+    regular_modifiers = data[data['type'] == 'Anesthesia Physical Status']
     assert len(regular_modifiers) == 2
 
-    regular_modifiers = data[data['type'] == 'Level I']
+    regular_modifiers = data[data['type'] == 'Ambulatory Service Center']
     assert len(regular_modifiers) == 2
 
     regular_modifiers = data[data['type'] == 'Category II']

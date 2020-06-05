@@ -1,9 +1,8 @@
 """ SQLAlchemy models for CPT """
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import declarative_base
+from   sqlalchemy.ext.declarative import declarative_base
 
-from datalabs.sqlalchemy import metadata
-
+from   datalabs.sqlalchemy import metadata
 
 Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
@@ -122,6 +121,7 @@ class PLACode(Base):
     code = sa.Column(sa.String(5), nullable=False, primary_key=True)
     status = sa.Column(sa.String, nullable=False)
     test_name = sa.Column(sa.String, nullable=False)
+
 
 class PLAShortDescriptor(Base):
     __tablename__ = 'pla_short_descriptor'
