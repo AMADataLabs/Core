@@ -1,49 +1,52 @@
-import os
-import psycopg2
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from datalabs.etl.cpt.dbmodel import ClinicianDescriptorCodeMapping, ClinicianDescriptor
+from datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
-    connection = psycopg2.connect(
-        host=os.environ.get('DATABASE_RDS_HOST'),
-        port=os.environ.get('DATABASE_RDS_PORT'),
-        database=os.environ.get('DATABASE_RDS_NAME'),
-        user=os.environ.get('CREDENTIALS_RDS_USERNAME'),
-        password=os.environ.get('CREDENTIALS_RDS_PASSWORD'),
-    )
-    cursor = connection.cursor()
+    engine = create_engine(Database.url)
+    Session = sessionmaker(bind=engine)
+    session = Session()
 
-    status_code, response = query_code(event, cursor)
+    status_code, response = query_event(event, session)
+
     return {'statusCode': status_code, 'body': response}
 
 
-def query_code(event, cursor):
-    code_exists = check_if_code_given(event)
-    if code_exists:
-        requested_code = event['code']
-        query = "SELECT * FROM CPT_Data.clinician_descriptor WHERE cpt_code ='{}'".format(requested_code)
-
-        cursor.execute(query)
-        if cursor.rowcount == 0:
-            return 400, {requested_code: "Does Not Exist"}
-        else:
-            records = []
-            for row in cursor:
-                record = {
-                    'concept_id': row[1],
-                    'cpt_code': row[2],
-                    'clinician_descriptor_id': row[3],
-                    'clinical_descriptor': row[4]
-
-                }
-                records.append(record)
-            return 200, records
+def query_event(event, session):
+    if code_is_not_null(event):
+        return query_by_code(event, session)
     else:
         return 400, {"Error": "No code given"}
 
 
-def check_if_code_given(event):
-    requested_code = event['code']
-    if requested_code is None:
-        return False
-    else:
+def code_is_not_null(event):
+    code = event.get('code', None)
+    if code is not None:
         return True
+    else:
+        return False
+
+
+def query_by_code(event, session):
+    requested_code = event['code']
+    result = session.query(ClinicianDescriptorCodeMapping, ClinicianDescriptor).join(ClinicianDescriptor) \
+        .filter(ClinicianDescriptorCodeMapping.code == '{}'.format(requested_code))
+
+    if result.count() != 0:
+        return get_content_from_query_output(result)
+    else:
+        return 400, {'code': 'bad'}
+
+
+def get_content_from_query_output(result):
+    rows = []
+    for row in result:
+        record = {
+            'id': row.ClinicianDescriptor.id,
+            'code': row.ClinicianDescriptorCodeMapping.code,
+            'description': row.ClinicianDescriptor.descriptor
+        }
+        rows.append(record)
+    return 200, rows

@@ -1,94 +1,64 @@
-import psycopg2
-
-import os
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from datalabs.etl.cpt.dbmodel import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
+from datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
-    connection = psycopg2.connect(
-        host=os.environ.get('DATABASE_RDS_HOST'),
-        port=os.environ.get('DATABASE_RDS_PORT'),
-        database=os.environ.get('DATABASE_RDS_NAME'),
-        user=os.environ.get('CREDENTIALS_RDS_USERNAME'),
-        password=os.environ.get('CREDENTIALS_RDS_PASSWORD'),
-    )
+    engine = create_engine(Database.url)
+    Session = sessionmaker(bind=engine)
+    session = Session()
 
-    cursor = connection.cursor()
-
-    status_code, response = query_event(event, cursor)
+    status_code, response = query_event(event, session)
     return {'statusCode': status_code, 'body': response}
 
 
-def query_event(event, cursor):
-    event_type = check_event(event)
-    if event_type == 'keyword':
-        status, body = query_keyword(event, cursor)
-        return status, body
-    elif event_type == 'since':
-        status, body = query_date(event, cursor)
-        return status, body
-    elif event_type == 'since_and_keyword':
-        status, body = query_date_keyword(event, cursor)
-        return status, body
-    elif event_type == 'no_filters':
-        status, body = query_all(cursor)
-        return status, body
-
-
-def check_event(event):
-    if 'keyword' in list(event.keys()) and 'since' not in list(event.keys()):
-        response = 'keyword'
-    elif 'keyword' not in list(event.keys()) and 'since' in list(event.keys()):
-        response = 'since'
-    elif 'keyword' in list(event.keys()) and 'since' in list(event.keys()):
-        response = 'since_and_keyword'
+def query_event(event, session):
+    if 'keyword' not in list(event.keys()) and 'since' not in list(event.keys()):
+        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping)
+        return get_content_from_query(query)
     else:
-        response = 'no_filters'
+        since = event.get('since', None)
+        keyword = event.get('keyword', None)
+        return query_filters(session, since, keyword)
 
-    return response
 
-
-def query_keyword(event, cursor):
+def get_content_from_query(query):
     all_rows = []
-    keyword = event['keyword'].upper()
-    query = "SELECT * FROM CPT_Data.clinician_descriptor WHERE clinical_descriptor LIKE '%{}%'".format(keyword)
-    cursor.execute(query)
-
-    if cursor.rowcount == 0:
-        return 400, {event['keyword']: "Not Found"}
-    else:
-        for row in cursor:
-            record = {
-                'concept_id': row[1],
-                'cpt_code': row[2],
-                'clinician_descriptor_id': row[3],
-                'clinical_descriptor': row[4]
-
-            }
-
-            all_rows.append(record)
-
-        return 200, all_rows
-
-
-def query_date(event, cursor):
-    return 200, {"In": "Progress"}
-
-
-def query_date_keyword(event, cursor):
-    return 200, {"In": "Progress"}
-
-
-def query_all(cursor):
-    cursor.execute('SELECT * FROM CPT_Data.clinician_descriptor LIMIT 10')
-    all_rows = []
-    for row in cursor:
+    for row in query:
         record = {
-            'concept_id': row[1],
-            'cpt_code': row[2],
-            'clinician_descriptor_id': row[3],
-            'clinical_descriptor': row[4]
-
+            'id': row.ClinicianDescriptor.id,
+            'code': row.ClinicianDescriptorCodeMapping.code,
+            'descriptor': row.ClinicianDescriptor.descriptor
         }
         all_rows.append(record)
-
     return 200, all_rows
+
+
+def query_filters(session, since, keyword):
+    if since == None:
+        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping) \
+            .filter(ClinicianDescriptor.descriptor.like('%{}%'.format(keyword)))
+    elif keyword == None:
+        d_type = date_type(since)
+        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping,
+                                                                                        Release) \
+            .filter(getattr(Release, d_type).like('%{}%'.format(since)))
+    else:
+        d_type = date_type(since)
+        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping,
+                                                                                        Release) \
+            .filter(getattr(Release, d_type).like('%{}%'.format(since))).filter(
+            ClinicianDescriptor.descriptor.like('%{}%'.format(keyword)))
+
+    if query.count() == 0:
+        return 400, {'filter': 'not found'}
+    else:
+        return get_content_from_query(query)
+
+
+def date_type(since):
+    # check format
+    # return annual,date,or quaterly
+    date_type_table = 'publish_date'
+    return date_type_table
