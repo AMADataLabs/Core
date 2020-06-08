@@ -3,6 +3,26 @@ import errno
 import win32com.client as win32
 
 
+def param_to_address_list(param):
+    if param is None:
+        param = []
+    elif not hasattr(param, '__iter__'):
+        if not isinstance(param, str):
+            raise TypeError(f"Parameter '{param}' is not a string or an iterable")
+        param = [param]
+    return param
+
+
+def add_attachments(message, attachments):
+    for attachment in attachments:
+        if os.path.exists(attachment):
+            message.Attachments.Add(attachment)
+        else:
+            message.Delete()
+            raise FileNotFoundError(
+                errno.ENOENT, os.strerror(errno.ENOENT), attachment)
+
+
 class Outlook:
 
     def __init__(self):
@@ -44,10 +64,8 @@ class Outlook:
         """
         message = self.outlook.CreateItem(0)
 
-        message.To = param_to_address_list(to)
-
-        if cc is not None:
-            message.Cc = param_to_address_list(cc)
+        message.To = '; '.join(param_to_address_list(to))
+        message.Cc = '; '.join(param_to_address_list(cc))
 
         message.Subject = subject
 
@@ -71,20 +89,3 @@ class Outlook:
         else:
             message.Display(True)
 
-
-def param_to_address_list(param):
-    if param is not None:
-        if not hasattr(param, '__iter__'):
-            param = [param]
-        param = '; '.join(param)
-    return param
-
-
-def add_attachments(message, attachments):
-    for attachment in attachments:
-        if os.path.exists(attachment):
-            message.Attachments.Add(attachment)
-        else:
-            message.Delete()
-            raise FileNotFoundError(
-                errno.ENOENT, os.strerror(errno.ENOENT), attachment)
