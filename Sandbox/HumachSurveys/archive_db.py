@@ -35,7 +35,7 @@ def main():
     db.commit()
 
     # make_humach_arhive_tables.sql contains the SQL commands to create the following tables:
-    # - samples,
+    # - samples
     # - results_standard
     # - results_validation
     execute_sql_from_file(connection=db, filename='make_humach_archive_tables.sql')

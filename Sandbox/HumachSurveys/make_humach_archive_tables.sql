@@ -13,14 +13,15 @@ CREATE TABLE IF NOT EXISTS samples(
     suffix VARCHAR,
     polo_comm_id INTEGER,
     polo_mailing_line_1 VARCHAR,
-    polo_mailing_line_2, VARCHAR,
+    polo_mailing_line_2 VARCHAR,
     polo_city VARCHAR,
     polo_state VARCHAR,
     polo_zip VARCHAR,
     phone_comm_id INTEGER,
     telephone_number VARCHAR,
     prim_spec_cd VARCHAR,
-    description_pe_cd VARCHAR,
+    description VARCHAR,
+    pe_cd VARCHAR,
     fax_number VARCHAR,
 
     UNIQUE(sample_id, row_id)
