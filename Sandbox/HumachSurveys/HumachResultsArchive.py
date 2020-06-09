@@ -70,8 +70,32 @@ class HumachResultsArchive:
             'adcid',
             'secondattempt',
             'result_of_call']
+        self.sample_cols = ['sample_id',
+                            'row_id',
+                            'survey_month',
+                            'survey_year',
+                            'survey_type',
+                            'sample_source',
+                            'me',
+                            'entity_id',
+                            'first_name',
+                            'middle_name',
+                            'last_name',
+                            'suffix',
+                            'polo_comm_id',
+                            'polo_mailing_line_1',
+                            'polo_mailing_line_2',
+                            'polo_city',
+                            'polo_state',
+                            'polo_zip',
+                            'phone_comm_id',
+                            'telephone_number',
+                            'prim_spec_cd',
+                            'description',
+                            'pe_cd',
+                            'fax_number']
 
-        # column names of Excel files from Humach
+        # column names of Excel files sent/received to/from Humach
         self.standard_results_cols_expected = ['SAMPLE_ID',
                                                'ROW_ID',
                                                'PHYSICIAN ME NUMBER',
@@ -97,21 +121,82 @@ class HumachResultsArchive:
                                                'COMMENTS',
                                                'SOURCE',
                                                'SOURCE DATE']
-        self.validation_results_cols_expected = []
+        self.validation_results_cols_expected = ['SAMPLE_ID',
+                                                 'ROW_ID',
+                                                 'STUDY_CD',
+                                                 'ME_NO',
+                                                 'FNAME',
+                                                 'MNAME',
+                                                 'LNAME',
+                                                 'SUFFIX',
+                                                 'DEGREE',
+                                                 'LABLE_NAME',
+                                                 'OFFICE_PHONE',
+                                                 'POLO_ADDR_LINE_0',
+                                                 'POLO_ADDR_LINE_1',
+                                                 'POLO_ADDR_LINE_2',
+                                                 'POLO_CITY',
+                                                 'POLO_STATE',
+                                                 'POLO_ZIP',
+                                                 'POLO_ZIPEXT',
+                                                 'ORIGINAL_PHONE',
+                                                 'CORRECT_PHONE',
+                                                 'REASON_PHONE_INCORRECT',
+                                                 'REASON_PHONE_OTHER',
+                                                 'CAPTURED_NUMBER',
+                                                 'CORRECT_ADDRESS',
+                                                 'REASON_ADDR_INCORRECT',
+                                                 'REASON_ADDR_OTHER',
+                                                 'NO_LONGER_AT_ADDR_COMMENT',
+                                                 'CAPTURED_ADD0',
+                                                 'CAPTURED_ADD1',
+                                                 'CAPTURED_ADD2',
+                                                 'CAPTURED_CITY',
+                                                 'CAPTURED_STATE',
+                                                 'CAPTURED_ZIP',
+                                                 'CAPTURED_ZIPEXT',
+                                                 'LASTCALL',
+                                                 'ADCID',
+                                                 'SECONDATTEMPT',
+                                                 'RESULT_OF_CALL']
+        self.sample_cols_expected = ['SAMPLE_ID',
+                                     'ROW_ID',
+                                     'SURVEY_MONTH',
+                                     'SURVEY_YEAR',
+                                     'SURVEY_TYPE',
+                                     'SURVEY_SOURCE',
+                                     'ME',
+                                     'ENTITY_ID',
+                                     'FIRST_NAME',
+                                     'MIDDLE_NAME',
+                                     'LAST_NAME',
+                                     'SUFFIX',
+                                     'POLO_COMM_ID',
+                                     'POLO_MAILING_LINE_1',
+                                     'POLO_MAILING_LINE_2',
+                                     'POLO_CITY',
+                                     'POLO_STATE',
+                                     'POLO_ZIP',
+                                     'PHONE_COMM_ID',
+                                     'TELEPHONE_NUMBER',
+                                     'PRIM_SPEC_CD',
+                                     'DESCRIPTION',
+                                     'PE_CD',
+                                     'FAX_NUMBER']
 
-    # vals - a list of values corresponding to standard_results_cols
     def insert_row(self, table, vals):
         if table == 'results_standard':
             cols = self.standard_results_cols
         elif table == 'results_validation':
             cols = self.validation_results_cols
+        elif table == 'samples':
+            cols = self.sample_cols
         else:
-            raise ValueError('Table must be results_standard or results_validation')
+            raise ValueError('Table must be "results_standard", "results_validation", or "samples"')
 
         sql = \
             "INSERT INTO {}({}) VALUES({});".format(table, ','.join(cols), ','.join(['"' + str(v) + '"' for v in vals]))
 
-        print(sql)
         self.connection.execute(sql)
 
     def validate_cols(self, table, cols):
@@ -120,6 +205,8 @@ class HumachResultsArchive:
             expected_set = set(self.standard_results_cols_expected)
         elif table == 'results_validation':
             expected_set = set(self.validation_results_cols_expected)
+        elif table == 'samples':
+            expected_set = set(self.sample_cols_expected)
         else:
             expected_set = None
         assert cols_set == expected_set, f'{cols_set}' + f'\n{expected_set}'
@@ -143,3 +230,14 @@ class HumachResultsArchive:
             self.insert_row(table=table, vals=[v for v in r.values])
 
         self.connection.commit()
+
+    def ingest_sample_file(self, file_path):
+
+        df = pd.read_excel(file_path, dtype=str)
+        df_cols = df.columns.values
+        self.validate_cols(table='samples', cols=df_cols)
+        df.fillna('', inplace=True)
+
+        for i, r in df.iterrows():
+            self.insert_row(table='samples', vals=[v for v in r.values])
+
