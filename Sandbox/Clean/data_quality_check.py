@@ -205,7 +205,7 @@ def modification_date(path):
 
 def new_data_available(date_last_updated) -> bool:
     """ check if new data was uploaded to the folder of weekly results """
-    today = datetime.datetime.utcnow()
+    today = datetime.utcnow().date()
 
     return date_last_updated == today
 
