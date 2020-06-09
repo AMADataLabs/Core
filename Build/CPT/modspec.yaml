@@ -2,9 +2,21 @@
 modspec:
   - package: datalabs
     include:
+      - feature
       - plugin
+      - sqlalchemy
+  - package: datalabs.access
+    include:
+      - credentials
+      - datastore
+      - database
+      - orm
   - package: datalabs.access.cpt.api
+  - package: datalabs.curate
+    include:
+      - parse
   - package: datalabs.curate.cpt
+  - package: datalabs.etl
   - package: datalabs.etl.cpt
-  - package: datalabs.etl.cpt.convert
-  - package: datalabs.etl.cpt.load
+  - package: datalabs.etl.cpt.wrapper
+  - package: datalabs.etl.s3

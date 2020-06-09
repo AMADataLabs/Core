@@ -1,9 +1,8 @@
 """ SQLAlchemy models for CPT """
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import declarative_base
+from   sqlalchemy.ext.declarative import declarative_base
 
-from datalabs.sqlalchemy import metadata
-
+from   datalabs.sqlalchemy import metadata
 
 Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
@@ -94,7 +93,7 @@ class ModifierType(Base):
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.String(20), nullable=False)
+    name = sa.Column(sa.String(30), nullable=False)
 
 
 class Modifier(Base):
@@ -122,6 +121,7 @@ class PLACode(Base):
     code = sa.Column(sa.String(5), nullable=False, primary_key=True)
     status = sa.Column(sa.String, nullable=False)
     test_name = sa.Column(sa.String, nullable=False)
+
 
 class PLAShortDescriptor(Base):
     __tablename__ = 'pla_short_descriptor'
@@ -161,6 +161,7 @@ class ManufacturerPLACodeMapping(Base):
 
     manufacturer = sa.Column(sa.Integer, sa.ForeignKey("cpt.manufacturer.id"), primary_key=True)
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
+
 
 class Lab(Base):
     __tablename__ = 'lab'

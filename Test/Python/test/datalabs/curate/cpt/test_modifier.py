@@ -1,3 +1,4 @@
+""" source: datalabs.curate.cpt.modifier """
 import logging
 import pytest
 
@@ -8,6 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name
 def test_modifier_parser(text):
     parser = ModifierParser()
 
@@ -17,13 +19,13 @@ def test_modifier_parser(text):
 
     assert len(data) == 2 * len(ModifierType.__members__)
 
-    regular_modifiers = data[data['type'] == 'Regular']
+    regular_modifiers = data[data['type'] == 'Category I']
     assert len(regular_modifiers) == 2
 
-    regular_modifiers = data[data['type'] == 'Physical']
+    regular_modifiers = data[data['type'] == 'Anesthesia Physical Status']
     assert len(regular_modifiers) == 2
 
-    regular_modifiers = data[data['type'] == 'Level I']
+    regular_modifiers = data[data['type'] == 'Ambulatory Service Center']
     assert len(regular_modifiers) == 2
 
     regular_modifiers = data[data['type'] == 'Category II']
@@ -137,4 +139,4 @@ E1 Upper left, eyelid
 E2 Lower left, eyelid 
 
 (*HCPCS modifiers for selective identification of subsets of 
-Distinct Procedural Services [-59 modifier])"""
+Distinct Procedural Services [-59 modifier])""".encode('cp1252').replace(b'\n', b'\r\n').decode('cp1252')

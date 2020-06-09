@@ -6,20 +6,23 @@ from sqlalchemy import pool
 
 from alembic import context
 
+from datalabs.access.credentials import Credentials
+from datalabs.access.database import Configuration
+from datalabs.access.orm import Database
 from datalabs.etl.ppd.dbmodel import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
+database = Database(
+    configuration=Configuration.load('ORM'),
+    credentials=Credentials.load('ORM')
+)
+
 config.set_main_option(
     "sqlalchemy.url",
-    "postgresql+psycopg2://{}:{}@{}/{}".format(
-        os.getenv("CREDENTIALS_RDS_USERNAME"),
-        os.getenv("CREDENTIALS_RDS_PASSWORD"),
-        os.getenv("DATABASE_RDS_HOST"),
-        os.getenv("DATABASE_RDS_NAME"),
-    )
+    database.url
 )
 
 # Interpret the config file for Python logging.
