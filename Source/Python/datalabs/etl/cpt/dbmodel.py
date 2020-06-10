@@ -12,7 +12,7 @@ class ReleaseType(Base):
     __tablename__ = 'release_type'
     __table_args__ = {"schema": "cpt"}
 
-    type = sa.Column(sa.String(3), primary_key=True)  # Y, Q1, Q2, Q3, Q4
+    type = sa.Column(sa.String(6), primary_key=True)  # ANNUAL, Q1, Q2, Q3, Q4, OTHER
 
 
 class Release(Base):
@@ -22,7 +22,7 @@ class Release(Base):
     id = sa.Column(sa.Integer, primary_key=True)
     publish_date = sa.Column(sa.Date, nullable=False)
     effective_date = sa.Column(sa.Date, nullable=False)
-    type = sa.Column(sa.String(3), sa.ForeignKey("cpt.release_type.type"), nullable=False)
+    type = sa.Column(sa.String(6), sa.ForeignKey("cpt.release_type.type"), nullable=False)
 
 
 class Code(Base):
