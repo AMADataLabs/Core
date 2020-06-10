@@ -1,11 +1,11 @@
 FROM python:3.7
 WORKDIR /BitBucketSync
 
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pipenv
+RUN apt update
+RUN apt install git
 
-COPY ./Build/BitBucketSync/Pipfile .
-
-RUN pipenv install
+COPY ./Build/BitBucketSync/requirements.txt .
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 COPY ./Source/Python/ .
 COPY ./Test/Python/ .
