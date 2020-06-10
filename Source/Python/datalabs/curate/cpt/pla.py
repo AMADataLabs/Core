@@ -11,16 +11,16 @@ LOGGER.setLevel(logging.INFO)
 
 class PLAParser(Parser):
     def __init__(self):
-        self.pla_code = []
-        self.long_description = []
-        self.medium_description = []
-        self.short_description = []
-        self.code_status = []
-        self.effective_date = []
-        self.lab_name = []
-        self.manufacturer_name = []
-        self.published_date = []
-        self.test_name = []
+        self._pla_code = []
+        self._long_description = []
+        self._medium_description = []
+        self._short_description = []
+        self._code_status = []
+        self._effective_date = []
+        self._lab_name = []
+        self._manufacturer_name = []
+        self._published_date = []
+        self._test_name = []
 
     def parse(self, text: str) -> pandas.DataFrame:
         self._extract_fields(text)
@@ -30,21 +30,21 @@ class PLAParser(Parser):
         root = et.fromstring(text)
 
         for c in root.findall('plaCode'):
-            self.pla_code.append(c.attrib.get('cdCode'))
-            self.long_description.append(c.find('cdDesc').text)
-            self.medium_description.append(c.find('cdMDesc').text)
-            self.short_description.append(c.find('cdSDesc').text)
-            self.code_status.append(c.find('cdStatus').text)
-            self.effective_date.append(c.find('effectiveDate').text)
-            self.lab_name.append(c.find('labName').text)
-            self.manufacturer_name.append(c.find('manufacturerName').text)
-            self.published_date.append(c.find('publishDate').text)
-            self.test_name.append(c.find('testName').text)
+            self._pla_code.append(c.attrib.get('cdCode'))
+            self._long_description.append(c.find('cdDesc').text)
+            self._medium_description.append(c.find('cdMDesc').text)
+            self._short_description.append(c.find('cdSDesc').text)
+            self._code_status.append(c.find('cdStatus').text)
+            self._effective_date.append(c.find('effectiveDate').text)
+            self._lab_name.append(c.find('labName').text)
+            self._manufacturer_name.append(c.find('manufacturerName').text)
+            self._published_date.append(c.find('publishDate').text)
+            self._test_name.append(c.find('testName').text)
 
     def _generate_dataframe(self):
-        df = pandas.DataFrame(list(zip(self.pla_code, self.long_description, self.medium_description,
-                                       self.short_description, self.code_status, self.effective_date, self.lab_name,
-                                       self.manufacturer_name, self.published_date,self.test_name)),
+        df = pandas.DataFrame(list(zip(self._pla_code, self._long_description, self._medium_description,
+                                       self._short_description, self._code_status, self._effective_date, self._lab_name,
+                                       self._manufacturer_name, self._published_date,self._test_name)),
 
                               columns=['pla_code', 'long_descriptor', 'medium_descriptor', 'short_descriptor',
                                        'status', 'effective_date', 'lab', 'manufacturer',
