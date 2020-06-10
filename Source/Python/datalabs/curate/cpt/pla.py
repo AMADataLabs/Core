@@ -1,3 +1,4 @@
+"""File Parser for PLA"""
 import logging
 import pandas
 import xml.etree.ElementTree as et
