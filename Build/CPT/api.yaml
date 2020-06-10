@@ -464,9 +464,7 @@ paths:
           description: Number of results to return
           required: false
           schema:
-            type: array
-            items:
-              type: string
+            type: string
       responses:
         '200':
           description: successful operation
@@ -477,7 +475,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Release'
         '400':
-          description: invalid date
+          description: invalid query parameter
       security:
         - cpt_auth:
             - 'read:release'
