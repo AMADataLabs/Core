@@ -33,6 +33,9 @@ tags:
       name, and test name.
   - name: PDF
     description: Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
+  - name: Release
+    description: >-
+      Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
     externalDocs:
       url: 'http://swagger.io'
 paths:
@@ -448,6 +451,34 @@ paths:
       security:
         - cpt_auth:
             - 'read:pdf'
+  /Release:
+    get:
+      tags:
+        - Release
+      summary: Release data in descending order of date
+      description: Allows user to query for updates to expose release data in descending order of date
+      operationId: getReleaseDate
+      parameters:
+        - name: _results_
+          in: query
+          description: Number of results to return
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Release'
+        '400':
+          description: invalid date
+      security:
+        - cpt_auth:
+            - 'read:release'
 components:
   schemas:
     Descriptor:
@@ -554,6 +585,26 @@ components:
         type:
           type: string
           format: byte
+    Release:
+      type: object
+      required:
+        - id
+        - type
+        - effective_date
+        - publish_date
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+          format: byte
+        effective_date:
+          type: string
+          format: byte
+        publish_date:
+          type: string
+          format: byte
   securitySchemes:
     cpt_auth:
       type: oauth2
@@ -566,6 +617,7 @@ components:
             'read:pla': read pla codes table
             'read:modifier' : read modifier table
             'read:pdf': read pdf url
+            'read:release': read release date table
     api_key:
       type: apiKey
       name: api_key
