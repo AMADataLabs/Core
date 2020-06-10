@@ -1,9 +1,6 @@
 FROM python:3.7
 WORKDIR /BitBucketSync
 
-RUN apt update
-RUN apt install git
-
 COPY ./Build/BitBucketSync/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 

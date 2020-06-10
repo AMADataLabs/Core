@@ -1,0 +1,1 @@
+flask,gevent,gunicorn,python-dotenv,pytest
