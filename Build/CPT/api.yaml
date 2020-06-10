@@ -459,7 +459,7 @@ paths:
       description: Allows user to query for updates to expose release data in descending order of date
       operationId: getReleaseDate
       parameters:
-        - name: _results_
+        - name: results
           in: query
           description: Number of results to return
           required: false
@@ -473,7 +473,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Release'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Release'
         '400':
           description: invalid date
       security:
