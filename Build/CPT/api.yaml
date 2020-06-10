@@ -35,7 +35,7 @@ tags:
     description: Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
   - name: Release
     description: >-
-      Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
+      All release data in descending order of date
     externalDocs:
       url: 'http://swagger.io'
 paths:
