@@ -38,8 +38,9 @@ def generate_datalabs_pythonpath(script_path):
     shared_source_path = str(script_path.parent.joinpath('../Source/Python').resolve())
     common_code_path = str(script_path.parent.joinpath('../Sandbox/CommonCode').resolve())
     common_model_code_path = str(script_path.parent.joinpath('../Sandbox/CommonModelCode').resolve())
+    shared_test_path = str(script_path.parent.joinpath('../Test/Python').resolve())
 
-    return os.pathsep.join([shared_source_path, common_code_path, common_model_code_path])
+    return os.pathsep.join([shared_source_path, common_code_path, common_model_code_path, shared_test_path])
 
 
 if __name__ == '__main__':
