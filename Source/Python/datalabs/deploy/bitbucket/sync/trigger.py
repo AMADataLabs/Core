@@ -21,9 +21,15 @@ ROUTES = flask.Blueprint('trigger', __name__)
 def sync_bitbucket():
     request_signature = flask.request.headers.get('X-Hub-Signature')
 
-    _verify_secret_key(flask.request.data, request_signature)
+    try:
+        _verify_secret_key(flask.request.data, request_signature)
 
-    response = _sync_on_prem_with_cloud_bitbucket(flask.request.json)
+        response = _sync_on_prem_with_cloud_bitbucket(flask.request.json)
+    except exceptions.BadRequest as exception:
+        if _is_test_data(flask.request.data):
+            response = {'alive': True}
+        else:
+            raise exception
 
     return flask.jsonify(response)
 
