@@ -53,6 +53,9 @@ def _sync_on_prem_with_cloud_bitbucket(request_data):
     LOGGER.debug('Trigger Request: %s', request_data)
     return synchronizer.sync(request_data)
 
+def _is_test_data(request_data):
+    return request_data.get('test')
+
 
 def _sign_request_data(request_data, secret_key):
     message = request_data
