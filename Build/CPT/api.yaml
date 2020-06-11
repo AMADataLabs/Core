@@ -33,7 +33,7 @@ tags:
       name, and test name.
   - name: PDF
     description: Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
-  - name: Release
+  - name: Releases
     description: >-
       All release data in descending order of date
     externalDocs:
@@ -451,10 +451,10 @@ paths:
       security:
         - cpt_auth:
             - 'read:pdf'
-  /Release:
+  /Releases:
     get:
       tags:
-        - Release
+        - Releases
       summary: Release data in descending order of date
       description: Allows user to query for updates to expose release data in descending order of date
       operationId: getReleaseDate
@@ -464,7 +464,8 @@ paths:
           description: Number of results to return
           required: false
           schema:
-            type: string
+            type: integer
+            minimum: 1
       responses:
         '200':
           description: successful operation
