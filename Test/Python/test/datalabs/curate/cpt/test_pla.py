@@ -19,10 +19,10 @@ def test_pla_parser(text):
     assert data['pla_code'][0] == '0001U'
     assert data['pla_code'][1] == '0002U'
 
-    assert data['short_descriptor'][0] == 'RBC DNA HEA 35 AG 11 BLD GRP WHL BLD CMN ALLEL'
-    assert data['short_descriptor'][1] == 'ONC CLRCT QUAN 3 UR METABOLITES ALG ADNMTS PLP'
+    assert data['short_descriptor'][0] == 'RBC DNA HEA 35 AG 11 BLD GRP'
+    assert data['short_descriptor'][1] == 'ONC CLRCT 3 UR METAB ALG PLP'
 
-    assert data['medium_descriptor'][0] == 'RBC DNA HEA 35 AG 11 BLD GRP'
+    assert data['medium_descriptor'][0] == 'RBC DNA HEA 35 AG 11 BLD GRP WHL BLD CMN ALLEL'
     assert data['medium_descriptor'][1] == 'ONC CLRCT QUAN 3 UR METABOLITES ALG ADNMTS PLP'
 
     assert data['long_descriptor'][0] == 'Red blood cell antigen typing, DNA, human erythrocyte antigen gene analysis' \
@@ -39,8 +39,8 @@ def test_pla_parser(text):
     assert data['effective_date'][0] == '2017-02-01T00:00:00-06:00'
     assert data['effective_date'][1] == '2017-02-01T00:00:00-06:00'
 
-    assert data['lab_name'][0] == 'Immucor, Inc'
-    assert data['lab_name'][1] == 'Atlantic Diagnostic Laboratories, LLC'
+    assert data['lab'][0] == 'Immucor, Inc'
+    assert data['lab'][1] == 'Atlantic Diagnostic Laboratories, LLC'
 
     assert data['manufacturer'][0] == 'Immucor, Inc'
     assert data['manufacturer'][1] == 'Metabolomic Technologies Inc'
