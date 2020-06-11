@@ -10,15 +10,16 @@ class CPTTextDataExtractor(S3WindowsTextExtractor):
         data = super().extract()
         release_date = self._get_release_date()
 
-        data.append(self._extract_release_type())
-        data.append(self._extract_release_details())
+        data.append(self._extract_release_type(release_date))
+        data.append(self._extract_release_details(release_date))
 
         return data
 
     def _get_release_date(self):
         latest_release_path = self._get_latest_path()
+        release_datestamp = latest_release_path.rsplit('/', 1)[1]
 
-        return rsplit(latest_release_path, 1)[1]
+        return datetime.strptime(release_datestamp, '%Y%m%d').date()
 
     def _extract_release_type(self):
         release_schedule = self._configuration['RELEASE_SCHEDULE']
