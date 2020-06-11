@@ -71,7 +71,7 @@ class EnvironmentGenerator(setup.TemplatedFileGenerator):
         value = None
 
         if not dependency.startswith('#'):
-            variable, value = dependency.strip().split('==')
+            variable, value = dependency.strip().split('==', 1)
 
         return variable, value
 
