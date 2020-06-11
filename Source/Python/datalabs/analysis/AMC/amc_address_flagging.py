@@ -1,6 +1,5 @@
 from datetime import datetime
 import numpy as np
-import os
 import pandas as pd
 import string
 
@@ -41,7 +40,6 @@ FALSE_POSITIVES = ['sebastopol',
                    'mailslot',
                    'mail ctr',
                    'vanderbilt mail']
-
 
 
 def get_flag_words():
@@ -151,16 +149,13 @@ def clean_str_data(data: pd.DataFrame):
                       data['state_cd'].str.lower()
     data['usg_begin_dt'] = data['usg_begin_dt'].apply(lambda x: x.replace('[', '').replace(']', ''))
     data['usg_begin_dt'] = data['usg_begin_dt'].apply(lambda x: x[:x.index(':')] if ':' in x else x)
-    #data['usg_begin_dt'] = pd.to_datetime(data['usg_begin_dt']).apply(datetime.date)
     data['usg_begin_dt'] = pd.to_datetime(data['usg_begin_dt'])
 
     return data
 
 
 def get_flagged_data_and_summary(data):
-    logger.info('get_flagged_data_and_summary')
-    logger.info('\tadding flag indicator cols:')
-    # add flag indicator columns
+    logger.info('\tAdding flag indicator columns:')
     logger.info('\t\taddr1')
     data['addr1_flagged'] = data['addr_line1'].apply(lambda x: is_flagged_addr1(x))
     logger.info('\t\taddr2')
@@ -176,7 +171,7 @@ def get_flagged_data_and_summary(data):
     logger.info('\t\tflagwords')
     data['contains_flag_word'] = data['address'].apply(lambda x: contains_flagword(x, flag_words))
 
-    logger.info('\tgetting counts')
+    logger.info('\tGetting flag type counts.')
 
     # flag type ounts
     n_addr1     = len(data[data['addr1_flagged']])
@@ -195,7 +190,7 @@ def get_flagged_data_and_summary(data):
         'flag_word': n_flagwords}
 
     # compile records that have any flag
-    logger.info('\tcompiling all flagged records')
+    logger.info('\tCompiling flagged Records.')
     any_flags = []
     for i, row in data.iterrows():
         a = any([row['addr1_flagged'],
@@ -234,16 +229,16 @@ def save_output(data: pd.DataFrame):
 
 
 def run_amc_flagging_script():
-    logger.info('getting data')
+    logger.info('Querying active AMC-sourced address data.')
     data = get_amc_address_data()
-    logger.info('cleaning data')
+    logger.info('Cleaning data.')
     data = clean_str_data(data)
 
     flagged_data, summary = get_flagged_data_and_summary(data)
-    logger.info('Saving results')
+    logger.info('Saving results.')
     save_output(flagged_data)
 
-    logger.info('Creating email report')
+    logger.info('Creating email report.')
     report_body = \
     'Hello!\n\n' + \
     'Attached are the latest results of the AMC address flagging script.\n\n' + \
