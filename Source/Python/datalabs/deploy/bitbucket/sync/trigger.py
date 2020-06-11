@@ -26,7 +26,7 @@ def sync_bitbucket():
 
         response = _sync_on_prem_with_cloud_bitbucket(flask.request.json)
     except exceptions.BadRequest as exception:
-        if _is_test_data(flask.request.data):
+        if _is_test_data(flask.request.json):
             response = {'alive': True}
         else:
             raise exception
