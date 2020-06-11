@@ -14,3 +14,5 @@ RUN rm -rf /root/.ssh
 RUN mkdir /root/.ssh
 RUN chmod go-rwx /root/.ssh
 COPY ./Build/BitBucketSync/ssh_config.txt /root/.ssh/config
+
+EXPOSE 8080
