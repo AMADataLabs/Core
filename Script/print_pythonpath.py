@@ -2,6 +2,8 @@ import os
 
 import repo
 
-repo.configure()
 
-print(os.environ.get('PYTHONPATH'))
+if __name__ == '__main__':
+    repo.configure()
+
+    print(os.environ.get('PYTHONPATH'))
