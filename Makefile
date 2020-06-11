@@ -1,5 +1,5 @@
 CWD=$(shell realpath .)
-RUN=. ${CWD}/Environment/Master/bin/activate; python ${CWD}/Script/run.py
+RUN=env VIRTUAL_ENV="${CWD}/Environment/Master" python ${CWD}/Script/run.py
 TEMPLATE_FILES=${CWD}/Build/Master/requirements_template.txt ${CWD}/Build/Master/Pipfile_template.txt ${CWD}/Build/Master/conda_requirements_template.txt
 
 .PHONY: test
