@@ -31,5 +31,5 @@ class CPTTextDataExtractor(S3WindowsTextExtractor):
 
     @classmethod
     def _convert_datestamps_to_dates(cls, datestamps):
-        return [date.strptime(datestamp, '%d-%b').date() for datestamp in datestamps]
+        return [datetime.strptime(datestamp, '%d-%b').date() for datestamp in datestamps]
 
