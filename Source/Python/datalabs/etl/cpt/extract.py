@@ -33,8 +33,16 @@ class CPTTextDataExtractor(S3WindowsTextExtractor):
 
     def _generate_release_details(self, release_schedule, release_date):
         release_type = self._get_release_type(release_schedule, release_date)
+        effective_date = release_schedule[release_type][1]
+        effective_date = date(release_date.year, effective_date.month, effective_date.day)
 
-        return pandas.DataFrame()
+        return pandas.DataFrame(
+            dict(
+                publish_date=[release_date],
+                effective_date=[effective_date],
+                type=[release_type]
+            )
+        )
 
 
     def _get_release_type(self, release_schedule, release_date):

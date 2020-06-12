@@ -33,7 +33,7 @@ def test_extract_release_date(get_latest_path):
     assert release_date == expected_release_date
 
 def test_generate_release_types(release_schedule):
-    extractor = CPTTextDataExtractor(dict(RELEASE_SCHEDULE=json.dumps(release_schedule)))
+    extractor = CPTTextDataExtractor(None)
     release_types = extractor._generate_release_types(release_schedule)
 
     assert len(release_types.columns.values) == 1
@@ -42,14 +42,25 @@ def test_generate_release_types(release_schedule):
     assert release_types.type.to_list() == ['ANNUAL', 'Q1', 'Q2', 'Q3', 'Q4', 'OTHER']
 
 def test_get_release_type(release_schedule):
-    extractor = CPTTextDataExtractor(dict(RELEASE_SCHEDULE=json.dumps(release_schedule)))
+    extractor = CPTTextDataExtractor(None)
     release_date = date(2020, 7, 1)
     expected_release_type = 'Q3'
     release_type = extractor._get_release_type(release_schedule, release_date)
 
     assert release_type == expected_release_type
 
+def test_generate_release_details(release_schedule):
+    extractor = CPTTextDataExtractor(None)
+    release_date = date(2020, 7, 1)
+    effective_date = date(2020, 10, 1)
+    release_details = extractor._generate_release_details(release_schedule, release_date)
 
+    assert len(release_details.columns.values) == 3
+    assert all([c in release_details for c in ['publish_date', 'effective_date', 'type']])
+    assert len(release_details) == 1
+    assert release_details.publish_date.iloc[0] == release_date
+    assert release_details.effective_date.iloc[0] == effective_date
+    assert release_details.type.iloc[0] == 'Q3'
 
 @pytest.fixture
 def release_schedule():
