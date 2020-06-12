@@ -34,6 +34,7 @@ class S3WindowsTextExtractor(Extractor):
         super().__init__(configuration)
 
         self._s3 = boto3.client('s3')
+        self._latest_path = None
 
     def extract(self):
         latest_path = self._get_latest_path()
@@ -42,9 +43,12 @@ class S3WindowsTextExtractor(Extractor):
         return [self._extract_file(latest_path, file) for file in files]
 
     def _get_latest_path(self):
-        release_folders = sorted(self._listdir(self._configuration['BUCKET'], self._configuration['BASE_PATH']))
+        if self._latest_path is None:
+            release_folders = sorted(self._listdir(self._configuration['BUCKET'], self._configuration['BASE_PATH']))
 
-        return '/'.join((self._configuration['BASE_PATH'], release_folders[-1]))
+            self._latest_path = '/'.join((self._configuration['BASE_PATH'], release_folders[-1]))
+
+        return self._latest_path
 
     def _extract_file(self, base_path, file):
         file_path = '/'.join((base_path, file))
