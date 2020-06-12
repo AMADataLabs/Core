@@ -8,6 +8,9 @@ def configure():
 
     os.environ['PYTHONPATH'] = environment['PYTHONPATH']
 
+    for p in environment.get('PYTHONPATH', '').split(os.pathsep)[::-1]:
+        sys.path.insert(0, p)
+
 
 def setup_pythonpath(script_path):
     datalabs_pythonpath = generate_datalabs_pythonpath(script_path)

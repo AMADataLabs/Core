@@ -1,16 +1,35 @@
+import argparse
 import os
 
 import repo
-import datalabs.somepackage as app
-# or from datalabs.somepackage import Application
+
+
+def main(args):
+    repo.configure()  # Setup the repo's PYTHONPATH
+
+    _configure_app(args)
+
+    _run_application()
+
+
+def _configure_app(args):
+    import app
+
+    app.configure(args)
+
+
+def _run_application():
+    raise NotImplementedError('Copy this template, remove this line, and modify this function as needed.')
+    import datalabs.somepackage as myapp
+    # or from datalabs.somepackage import MyApplication
+
+    myapp.main()
+    # or MyApplication().run()
 
 
 if __name__ == '__main__':
-    repo.configure()  # Setup the repo's PYTHONPATH
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-s', '--secret', required=False, help='Super secret value')
+    args = vars(ap.parse_args())
 
-    # TODO: replace with some configuration management mechanism based on .env files
-    os.environ['APP_CONFIG_VALUE_1'] = 'Value 1'
-    os.environ['APP_CONFIG_VALUE_2'] = True
-
-    app.main()
-    # or Application().run()
+    main(args)
