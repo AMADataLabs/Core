@@ -1,6 +1,6 @@
 '''Scrapes Becker Review and sends email'''
 import os
-from datetime import date
+from datetime import date, datetime
 import pandas as pd
 import settings
 from scrape import get_soup, extract_data

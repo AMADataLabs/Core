@@ -8,10 +8,6 @@ def count_found(row):
         found += 1
     if row.STATE_CD != 'None':
         found += 1
-    if row.State_Google != 'None':
-        found += 1
-    if row.State_GetPhone != 'None':
-        found += 1
     return found
 
 def check_match(thing_1, thing_2):
