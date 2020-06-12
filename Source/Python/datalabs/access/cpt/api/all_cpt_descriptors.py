@@ -22,7 +22,8 @@ def query_event(event, session):
 
 
 def query_all(event, session):
-    query = session.query(Code, LongDescriptor, ShortDescriptor, MediumDescriptor)
+    query = session.query(Code, LongDescriptor, ShortDescriptor, MediumDescriptor).join(LongDescriptor, ShortDescriptor,
+                                                                                        MediumDescriptor)
     return filter_length(query, event)
 
 

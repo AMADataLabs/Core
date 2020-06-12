@@ -15,7 +15,7 @@ def lambda_handler(event, context):
 
 def query_event(event, session):
     if 'keyword' not in list(event.keys()) and 'since' not in list(event.keys()):
-        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping)
+        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping)
         return get_content_from_query(query)
     else:
         since = event.get('since', None)
