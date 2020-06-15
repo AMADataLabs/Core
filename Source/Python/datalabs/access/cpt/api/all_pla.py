@@ -72,7 +72,7 @@ def get_filtered_length_response(query, lengths):
     query_exist = query_exists(query)
 
     if query_exist:
-        for row in query.limit(5).all():
+        for row in query.all():
             result.append({
                 "code": row.Code.code,
                 lengths + '_descriptor': getattr(row, length_dict.get(lengths)).descriptor,
@@ -93,7 +93,7 @@ def get_content_from_query(query):
     query_exist = query_exists(query)
 
     if query_exist:
-        for row in query.limit(5).all():
+        for row in query.all():
             record = {
                 'code': row.PLACode.code,
                 'long_descriptor': row.PLALongDescriptor.descriptor,
