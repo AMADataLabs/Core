@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor, Release
 from datalabs.access.database import Database
 
+
 def lambda_handler(event, context):
     engine = create_engine(Database.url)
     Session = sessionmaker(bind=engine)
@@ -13,84 +14,94 @@ def lambda_handler(event, context):
 
 
 def query_event(event, session):
-    if 'keyword' not in list(event.keys()) and 'since' not in list(event.keys()):
-        return query_all(event, session)
-    else:
-        since = event.get('since', None)
-        keyword = event.get('keyword', None)
-        return query_filters(session, since, keyword, event)
+    query = query_for_code(session)
+    query = query_for_release(event.get('since', None), session, query)
+    query = query_for_keyword(event.get('keyword', None), event.get('length', None), session, query)
+
+    return get_response_data_from_query(query, event.get('length', None), session)
 
 
-def query_all(event, session):
-    query = session.query(Code, LongDescriptor, ShortDescriptor, MediumDescriptor).join(LongDescriptor, ShortDescriptor,
-                                                                                        MediumDescriptor)
-    return filter_length(query, event)
+def query_for_code(session):
+    query = session.query(Code, LongDescriptor, MediumDescriptor, ShortDescriptor).join(LongDescriptor,
+                                                                                        MediumDescriptor,
+                                                                                        ShortDescriptor)
+    return query
 
 
-def query_filters(session, since, keyword, event):
-    if since == None:
-        query = session.query(Code, LongDescriptor, ShortDescriptor, MediumDescriptor).join(LongDescriptor,
-                                                                                            ShortDescriptor,
-                                                                                            MediumDescriptor) \
-            .filter(or_((LongDescriptor.descriptor.like('%{}%'.format(keyword))),
-                        (MediumDescriptor.descriptor.like('%{}%'.format(keyword))),
-                        (ShortDescriptor.descriptor.like('%{}%'.format(keyword)))))
+def query_for_release(since, session, query):
+    if since is not None:
+        query = session.query().add_column(Release.publish_date)
         print(query)
-    elif keyword == None:
-        d_type = date_type(since)
-        query = session.query(Release).join(Code, LongDescriptor, MediumDescriptor, ShortDescriptor) \
-            .filter(getattr(Release, d_type).like('%{}%'.format(since)))
+        query = query.filter(Release.publish_date.like('%{}%'.format(since)))
+        return query
     else:
-        d_type = date_type(since)
-        query = session.query(LongDescriptor, ShortDescriptor, MediumDescriptor, Release).join(Code) \
-            .filter(getattr(Release, d_type).like('%{}%'.format(since))).filter(
-            or_(LongDescriptor.descriptor.like('%{}%'.format(keyword))),
-            (MediumDescriptor.descriptor.like('%{}%'.format(keyword))),
-            (ShortDescriptor.descriptor.like('%{}%'.format(keyword))))
+        return query
 
+
+def query_for_keyword(keyword, lengths, session, query):
+    length_dict = {"long": LongDescriptor, "medium": MediumDescriptor, "short": ShortDescriptor}
+    l = length_dict.get(lengths)
+
+    if keyword is not None:
+        if lengths is None:
+            query = query.filter(or_((LongDescriptor.descriptor.ilike('%{}%'.format(keyword))),
+                                     (MediumDescriptor.descriptor.like('%{}%'.format(keyword))),
+                                     (ShortDescriptor.descriptor.like('%{}%'.format(keyword)))))
+
+        else:
+            query = query.filter(l.descriptor.ilike('%{}%'.format(keyword)))
+
+        return query
+    else:
+        return query
+
+
+def get_response_data_from_query(query, lengths, session):
     print(query)
-    if query.count() == 0:
-        return 400, {'filter': 'not found'}
-    else:
-        return filter_length(query, event)
-
-
-def date_type(since):
-    # check format
-    # return annual,date,or quarterly
-    date_type_table = 'publish_date'
-    return date_type_table
-
-
-def filter_length(query, event):
-    length = event.get('length', None)
-    if length != None:
-        return get_filtered_content_from_query(query, event)
+    if lengths is not None:
+        return get_filtered_length_response(query, lengths)
     else:
         return get_content_from_query(query)
 
 
+def get_filtered_length_response(query, lengths):
+    length_dict = {"long": "LongDescriptor", "medium": "MediumDescriptor", "short": "ShortDescriptor"}
+    result = []
+    query_exist = query_exists(query)
+
+    if query_exist:
+        for row in query.limit(5).all():
+            result.append({
+                "code": row.Code.code,
+                lengths + '_descriptor': getattr(row, length_dict.get(lengths)).descriptor
+            })
+
+        return 200, result
+    else:
+        return 400, {"invalid": "filter"}
+
+
 def get_content_from_query(query):
-    record = {}
-    for row in query:
-        record = {
-            'code': row.Code.code,
-            'long_descriptor': row.LongDescriptor.descriptor,
-            'medium_descriptor': row.MediumDescriptor.descriptor,
-            'short_descriptor': row.ShortDescriptor.descriptor
-        }
+    result = []
+    query_exist = query_exists(query)
 
-    return 200, record
+    if query_exist:
+        for row in query.limit(5).all():
+            record = {
+                'code': row.Code.code,
+                'long_descriptor': row.LongDescriptor.descriptor,
+                'medium_descriptor': row.MediumDescriptor.descriptor,
+                'short_descriptor': row.ShortDescriptor.descriptor
+            }
+            result.append(record)
+
+        return 200, result
+    else:
+        return 400, {"invalid": "filter"}
 
 
-def get_filtered_content_from_query(query, event):
-    lengths = event.get('length', None)
-    length_dict = {"long": 'LongDescriptor', "medium": 'MediumDescriptor', "short": 'ShortDescriptor'}
-    record = {}
-    for row in query:
-        record.update({'code': row.Code.code})
-        for length in lengths:
-            length = length_dict.get(length)
-            record.update({length: getattr(row, length).descriptor})
-
-    return 200, record
+def query_exists(query):
+    if query.count() == 0:
+        return False
+    else:
+        return True
