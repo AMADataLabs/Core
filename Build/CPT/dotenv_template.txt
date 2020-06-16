@@ -1,6 +1,7 @@
 # Repository Settings
 DATALABS_PYTHONPATH='{{ pythonpath }}'
 
+
 # Database Settings
 DATABASE_ORM_HOST='{{ orm_database_host }}'
 DATABASE_ORM_NAME='{{ orm_database_name }}'
@@ -8,29 +9,40 @@ DATABASE_ORM_BACKEND='postgresql+psycopg2'
 CREDENTIALS_ORM_USERNAME='{{ orm_username }}'
 CREDENTIALS_ORM_PASSWORD='{{ orm_password }}'
 
+
 # Project Settings
 PROJECT_NAME='CPT'
 
-# ETL Settings
+
+# ConvertCPT ETL Settings
 ETL_CONVERTCPT_LAMBDA_FUNCTION=ConvertCPT
 ETL_CONVERTCPT_APP=datalabs.etl.etl.ETL
-ETL_CONVERTCPT_EXTRACTOR=datalabs.etl.s3.extract.S3WindowsTextExtractor
+
+ETL_CONVERTCPT_EXTRACTOR=datalabs.etl.cpt.extract.CPTTextDataExtractor
 ETL_CONVERTCPT_EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-ingestion-sandbox
 ETL_CONVERTCPT_EXTRACTOR_BASE_PATH=AMA/CPT
 ETL_CONVERTCPT_EXTRACTOR_FILES=standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/Consumer Friendly Descriptors/ConsumerDescriptor.txt,standard/Clinician Descriptors/ClinicianDescriptor.txt,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA
+ETL_CONVERTCPT_EXTRACTOR_RELEASE_SCHEDULE='{"ANNUAL": ["1-Sep", "1-Jan"], "Q1": ["1-Jan", "1-Apr"], "Q2": ["1-Apr", "1-Jul"], "Q3": ["1-Jul", "1-Oct"], "Q4": ["1-Oct", "1-Jan"]}'
+
 ETL_CONVERTCPT_TRANSFORMER=datalabs.etl.cpt.transform.CPTFileToCSVTransformer
 ETL_CONVERTCPT_TRANSFORMER_PARSERS=datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser,datalabs.curate.cpt.pla.PLAParser
+
 ETL_CONVERTCPT_LOADER=datalabs.etl.s3.load.S3WindowsTextLoader
 ETL_CONVERTCPT_LOADER_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
 ETL_CONVERTCPT_LOADER_FILES=standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv
 ETL_CONVERTCPT_LOADER_BASE_PATH=AMA/CPT
 
+
+# LoadCPT ETL Settings
 ETL_LOADCPT_LAMBDA_FUNCTION=LoadCPT
 ETL_LOADCPT_APP=datalabs.etl.etl.ETL
+
 ETL_LOADCPT_EXTRACTOR=datalabs.etl.s3.extract.S3WindowsTextExtractor
 ETL_LOADCPT_EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
 ETL_LOADCPT_EXTRACTOR_BASE_PATH=AMA/CPT
 ETL_LOADCPT_EXTRACTOR_FILES=standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv
+
 ETL_LOADCPT_TRANSFORMER=datalabs.etl.cpt.transform.CSVToRelationalTablesTransformer
+
 ETL_LOADCPT_LOADER=datalabs.etl.cpt.load.CPTRelationalTableLoader
 ETL_LOADCPT_LOADER_DATABASE=ORM
