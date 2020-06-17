@@ -211,7 +211,6 @@ class AMCFlagger:
 
     def _get_env_variables(self):
         self.AMC_QUERY_FILE = os.environ.get('AMC_QUERY_FILE')
-        print(self.AMC_QUERY_FILE)
         self.FLAG_WORD_FILE = os.environ.get('FLAG_WORD_FILE')
 
         self.OUTPUT_DIRECTORY = os.environ.get('OUTPUT_DIRECTORY')
