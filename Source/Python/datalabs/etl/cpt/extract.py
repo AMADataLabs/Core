@@ -44,7 +44,6 @@ class CPTTextDataExtractor(S3WindowsTextExtractor):
             )
         )
 
-
     def _get_release_type(self, release_schedule, release_date):
         release_date_for_lookup = date(1900, release_date.month, release_date.day)
         release_types = self._map_release_dates_to_types(release_schedule)
