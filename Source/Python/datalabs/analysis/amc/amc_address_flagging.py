@@ -52,8 +52,8 @@ class AMCFlagger:
     def _is_flagged_city(cls, city_string):
         city_string = city_string.lower()
         return any([city_string == '',
-                    len(set(city_string)) == 1,
-                    any([d in city_string for d in string.digits])])
+                    not cls._contains_n_unique_chars(city_string, 2),
+                    cls._contains_any_digits(city_string)])
 
     @classmethod
     def _is_flagged_addr1(cls, addr1_string, flag_null=False):
@@ -62,8 +62,7 @@ class AMCFlagger:
         if not flag_null:
             if addr1_string is not None and len(addr1_string) != 0:
                 addr1_string = addr1_string.lower()
-                # if address only contains 1 unique character
-                if len(set(addr1_string)) <= 1:
+                if not cls._contains_n_unique_chars(addr1_string, 2):
                     flag = True
 
         if flag_null:
@@ -75,11 +74,9 @@ class AMCFlagger:
     def _is_flagged_addr2(cls, addr2_string):
         flag = False
 
-        # if null or empty
         if addr2_string is None or len(addr2_string) == 0:
             flag = True
 
-        # if addr2 is a digit or has <= 2 unique characters
         elif not cls._contains_n_unique_chars(addr2_string, 2) or addr2_string.isdigit():
             flag = True
 
@@ -107,6 +104,15 @@ class AMCFlagger:
                 only_digits = False
                 break
         return only_digits
+
+    @classmethod
+    def _contains_any_digits(cls, text):
+        any_digits = False
+        for char in text:
+            if char in string.digits:
+                any_digits = True
+                break
+        return any_digits
 
     @classmethod
     def _is_flagged_state(cls, state_string):
