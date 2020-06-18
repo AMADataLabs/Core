@@ -18,36 +18,35 @@ class AMCFlagger:
     def __init__(self):
         self.logger = logging.getLogger('info')
 
-        self.TODAY_DATE = str(datetime.now().date())
+        self._today_date = str(datetime.now().date())
 
-        self.OUTPUT_FILE = None
+        self._output_file = None
 
-        self.AMC_QUERY_FILE = None
-        self.FLAG_WORD_FILE = None
+        self._amc_query_file = None
+        self._flag_word_file = None
 
-        self.OUTPUT_DIRECTORY = None
-        self.OUTPUT_FILE_PASSWORD = None
+        self._output_directory = None
+        self._output_file_password = None
 
-        self.REPORT_SENDER = None
-        self.REPORT_RECIPIENTS = None
-        self.REPORT_CC = None
+        self._report_sender = None
+        self._report_recipients = None
+        self._report_cc = None
 
-        self.FALSE_POSITIVES = None
+        self._false_positives = None
 
     def _get_flag_words(self):
-        flag_words = pd.read_excel(self.FLAG_WORD_FILE, header=None)[0].values
+        flag_words = pd.read_excel(self._flag_word_file, header=None)[0].values
         flag_words = [str(word).lower() for word in flag_words]
 
         return flag_words
 
     def _get_amc_address_data(self):
-        with open(self.AMC_QUERY_FILE, 'r') as f:
+        with open(self._amc_query_file, 'r') as f:
             sql = f.read()
         with AIMS() as aims:
             data = aims.read(sql=sql, coerce_float=False)
 
-        data = self._clean_str_data(data)
-        return data
+        return self._clean_str_data(data)
 
     @classmethod
     def _is_flagged_city(cls, city_string):
@@ -81,18 +80,40 @@ class AMCFlagger:
             flag = True
 
         # if addr2 is a digit or has <= 2 unique characters
-        elif len(set(addr2_string)) <= 2 or addr2_string.isdigit():
+        elif not cls._contains_n_unique_chars(addr2_string, 2) or addr2_string.isdigit():
             flag = True
 
         return flag
 
     @classmethod
+    def _contains_n_unique_chars(cls, text, n):
+        chars = set(text.lower())
+        return len(chars) >= n
+
+    @classmethod
+    def _contains_only_ascii_chars(cls, text):
+        only_ascii = True
+        for char in text:
+            if char not in string.ascii_letters:
+                only_ascii = False
+                break
+        return only_ascii
+
+    @classmethod
+    def _contains_only_digits(cls, text):
+        only_digits = True
+        for char in text:
+            if char not in string.digits:
+                only_digits = False
+                break
+        return only_digits
+
+    @classmethod
     def _is_flagged_state(cls, state_string):
-        # if null, not 2 characters, not 2 unique characters, any non-ascii letters
         return any([state_string is None,
-                    all([len(state_string) != 2, any([not isinstance(c, str) for c in state_string])]),
-                    len(set(state_string.lower())) != 2,
-                    any([c not in string.ascii_letters for c in state_string])])
+                    len(state_string) != 2,
+                    cls._contains_n_unique_chars(state_string, 2),
+                    cls._contains_only_ascii_chars(state_string)])
 
     @classmethod
     def _is_flagged_zip(cls, zip_string):
@@ -102,7 +123,7 @@ class AMCFlagger:
             flag = True
 
         # if any non-digits or len > 5
-        if any([any([c not in string.digits for c in zip_string]),
+        if any([not cls._contains_only_digits(zip_string),
                 len(zip_string) > 5]):
             flag = True
 
@@ -114,7 +135,7 @@ class AMCFlagger:
         # we want to avoid false positive markers from flagging the method that checks for flag words.
         # this is done by removing the text of false positives from the aggregated address text before
         # we search that text for flag words.
-        for fp in self.FALSE_POSITIVES:
+        for fp in self._false_positives:
             if fp in address_string:
                 address_string = address_string.replace(fp, '')
 
@@ -201,27 +222,27 @@ class AMCFlagger:
         data.drop(columns='address', axis=1, inplace=True)  # delete temp column
 
         flagged_data = data[data['any_flag']]
-        flagged_data['date_checked'] = self.TODAY_DATE
+        flagged_data['date_checked'] = self._today_date
 
         return flagged_data, results_summary
 
     def _save_output(self, data: pd.DataFrame):
-        excel.save_formatted_output(data, self.OUTPUT_FILE, 'amc Address Sweep')
-        excel.add_password_to_xlsx(self.OUTPUT_FILE, self.OUTPUT_FILE_PASSWORD)
+        excel.save_formatted_output(data, self._output_file, 'amc Address Sweep')
+        excel.add_password_to_xlsx(self._output_file, self._output_file_password)
 
     def _get_env_variables(self):
-        self.AMC_QUERY_FILE = os.environ.get('AMC_QUERY_FILE')
-        self.FLAG_WORD_FILE = os.environ.get('FLAG_WORD_FILE')
+        self._amc_query_file = os.environ.get('AMC_QUERY_FILE')
+        self._flag_word_file = os.environ.get('FLAG_WORD_FILE')
 
-        self.OUTPUT_DIRECTORY = os.environ.get('OUTPUT_DIRECTORY')
-        self.OUTPUT_FILE_PASSWORD = os.environ.get('OUTPUT_FILE_PASSWORD')
-        self.OUTPUT_FILE = f'{self.OUTPUT_DIRECTORY}/AMC_flagged_addresses_{self.TODAY_DATE}.xlsx'
+        self._output_directory = os.environ.get('OUTPUT_DIRECTORY')
+        self._output_file_password = os.environ.get('OUTPUT_FILE_PASSWORD')
+        self._output_file = f'{self._output_directory}/AMC_flagged_addresses_{self._today_date}.xlsx'
 
-        self.REPORT_SENDER = os.environ.get('REPORT_SENDER')
-        self.REPORT_RECIPIENTS = os.environ.get('REPORT_RECIPIENTS').split(',')
-        self.REPORT_CC = os.environ.get('REPORT_CC').split(',')
+        self._report_sender = os.environ.get('REPORT_SENDER')
+        self._report_recipients = os.environ.get('REPORT_RECIPIENTS').split(',')
+        self._report_cc = os.environ.get('REPORT_CC').split(',')
 
-        self.FALSE_POSITIVES = os.environ.get('FALSE_POSITIVES').split(',')
+        self._false_positives = os.environ.get('FALSE_POSITIVES').split(',')
 
     def run(self):
         self.logger.info('Getting required environment variables.')
@@ -247,10 +268,10 @@ class AMCFlagger:
         'Thanks!'
 
         outlook = Outlook()
-        outlook.send_email(to=self.REPORT_RECIPIENTS,
-                           cc=self.REPORT_CC,
-                           subject=f'AMC Sweep Results - {self.TODAY_DATE}',
+        outlook.send_email(to=self._report_recipients,
+                           cc=self._report_cc,
+                           subject=f'AMC Sweep Results - {self._today_date}',
                            body=report_body,
-                           from_account=self.REPORT_SENDER,
-                           attachments=[self.OUTPUT_FILE],
+                           from_account=self._report_sender,
+                           attachments=[self._output_file],
                            auto_send=False)
