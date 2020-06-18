@@ -30,15 +30,20 @@ class Outlook:
         """
         message = self.outlook.CreateItem(0)
 
+        # Find Account object by name
+        if from_account is not None:
+            self._set_message_sender(message, from_account)
+
         message.To = '; '.join(self._param_to_list(to))
         message.Cc = '; '.join(self._param_to_list(cc))
 
         message.Subject = subject
-        message.Body = body
 
-        # Find Account object by name
-        if from_account is not None:
-            self._set_message_sender(message, from_account)
+        message.GetInspector  # required for the next few lines inserting the body
+
+        # Add body by inserting the text between the existing HTML body (which would contain any signatures)
+        index = message.HTMLbody.find('>', message.HTMLbody.find('<body'))
+        message.HTMLbody = message.HTMLbody[:index + 1] + body + message.HTMLbody[index + 1:]
 
         attachments = self._param_to_list(attachments)
         self._add_attachments(message, attachments)
