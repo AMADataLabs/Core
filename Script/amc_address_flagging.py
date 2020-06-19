@@ -19,9 +19,9 @@ def _configure_app(args):
 
 
 def _run_application():
-    from datalabs.analysis.amc.amc_address_flagging import AMCFlagger
+    from datalabs.analysis.amc.address import AMCAddressFlagger
 
-    AMCFlagger().run()
+    AMCAddressFlagger().run()
 
 
 if __name__ == '__main__':

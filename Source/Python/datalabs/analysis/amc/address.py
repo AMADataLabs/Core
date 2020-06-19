@@ -12,7 +12,7 @@ from datalabs.access import excel
 from datalabs.messaging.outlook import Outlook
 
 
-class AMCFlagger:
+class AMCAddressFlagger:
     def __init__(self):
         self.logger = logging.getLogger('info')
 
