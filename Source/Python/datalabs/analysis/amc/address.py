@@ -8,10 +8,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 from datalabs.access.aims import AIMS
-from datalabs.common import excel
+from datalabs.access import excel
 from datalabs.messaging.outlook import Outlook
-
-import settings
 
 
 class AMCFlagger:
@@ -136,11 +134,12 @@ class AMCFlagger:
         return flag
 
     def _contains_flagword(self, address_string, flag_words):
+        """
+        We want to avoid false positive markers from flagging the method that checks for flag words.
+        this is done by removing the text of false positives from the aggregated address text before
+        we search that text for flag words.
+        """
         address_string = address_string.lower()
-
-        # we want to avoid false positive markers from flagging the method that checks for flag words.
-        # this is done by removing the text of false positives from the aggregated address text before
-        # we search that text for flag words.
         for fp in self._false_positives:
             if fp in address_string:
                 address_string = address_string.replace(fp, '')
