@@ -12,7 +12,11 @@ class ReleaseType(Base):
     __tablename__ = 'release_type'
     __table_args__ = {"schema": "cpt"}
 
-    type = sa.Column(sa.String(6), primary_key=True)  # ANNUAL, Q1, Q2, Q3, Q4, OTHER
+    type = sa.Column(sa.String(6), primary_key=True)  # ANNUAL, PLA-Q1, PLA-Q2, PLA-Q3, PLA-Q4, OTHER
+    publish_month = sa.Column(sa.String(3), nullable=False)
+    publish_day = sa.Column(sa.Integer, nullable=False)
+    effective_month = sa.Column(sa.String(3), nullable=False)
+    effective_day = sa.Column(sa.Integer, nullable=False)
 
 
 class Release(Base):
@@ -30,6 +34,8 @@ class Code(Base):
     __table_args__ = {"schema": "cpt"}
 
     code = sa.Column(sa.String(5), primary_key=True)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class ReleaseCodeMapping(Base):
@@ -70,6 +76,8 @@ class ConsumerDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
     descriptor = sa.Column(sa.String, nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class ClinicianDescriptor(Base):
@@ -78,6 +86,8 @@ class ClinicianDescriptor(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     descriptor = sa.Column(sa.String, nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class ClinicianDescriptorCodeMapping(Base):
@@ -103,6 +113,8 @@ class Modifier(Base):
     modifier = sa.Column(sa.String(2), primary_key=True)
     type = sa.Column(sa.Integer, sa.ForeignKey("cpt.modifier_type.id"), nullable=False)
     descriptor = sa.Column(sa.String, nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 # === CPT Link Tables ===
@@ -112,6 +124,8 @@ class Concept(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class PLACode(Base):
@@ -121,6 +135,8 @@ class PLACode(Base):
     code = sa.Column(sa.String(5), nullable=False, primary_key=True)
     status = sa.Column(sa.String, nullable=False)
     test_name = sa.Column(sa.String, nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class PLAShortDescriptor(Base):
@@ -153,6 +169,8 @@ class Manufacturer(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String, nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class ManufacturerPLACodeMapping(Base):
@@ -169,6 +187,8 @@ class Lab(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String, nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class LabPLACodeMapping(Base):
