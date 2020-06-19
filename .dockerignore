@@ -1,0 +1,4 @@
+.git/*
+Environment/*
+Sandbox/*
+**/.terraform

@@ -20,7 +20,7 @@ main() {
 
     generate_configuration_files
 
-    generate_terraform_files
+    render_terraform_templates
 }
 
 
@@ -90,14 +90,16 @@ generate_configuration_files() {
 
         generate_requirements
 
-        # generate_dockerfile
+        generate_modspec
+
+        render_master_template Build Dockerfile_template Dockerfile
     fi
 }
 
 
-generate_terraform_files() {
-    generate_terraform_file main.tf
-    generate_terraform_file state.tf
+render_terraform_templates() {
+    render_terraform_template main.tf
+    render_terraform_template state.tf
 }
 
 
@@ -138,9 +140,9 @@ create_directory() {
 generate_build_files() {
     DIRECTORY_NAME=$1
 
-    copy_file Build ${DIRECTORY_NAME} settings.py
+    copy_master_file Build ${DIRECTORY_NAME} settings.py
 
-    generate_dotenv_template ${DIRECTORY_NAME}
+    render_master_template ${DIRECTORY_NAME} dotenv_template.txt dotenv_template.txt
 }
 
 
@@ -150,7 +152,7 @@ generate_dependency_whitelist() {
 
     if [[ "$DEPENDENCY_LIST" != "" ]]; then
         echo $DEPENDENCY_LIST > ${WHITELIST_PATH}
-        echo Created dependency whitelist file `realpath ${WHITELIST_PATH}`
+        echo "-> Created dependency whitelist file `realpath ${WHITELIST_PATH}`"
     fi
 }
 
@@ -165,20 +167,48 @@ generate_requirements() {
         ARGUMENTS="${ARGUMENTS} --whitelist ${PROJECT_BUILD_PATH}/whitelist.txt"
     fi
 
-    echo "Generating requirements.txt for project ${PROJECT_NAME}"
+    echo "-> Generating requirements.txt for project ${PROJECT_NAME}"
     $ACTIVATE
     $GENENV $ARGUMENTS
     deactivate
 }
 
 
-copy_file() {
+generate_modspec() {
+    copy_master_file Build Build modspec.yaml
+}
+
+
+render_master_template() {
+    DIRECTORY_NAME=$1
+    TEMPLATE_NAME=$2
+    RENDERING_NAME=$3
+    TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Build/Master/${TEMPLATE_NAME}
+    RENDERING_PATH=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}/${RENDERING_NAME}
+
+    if [[ "$FORCE_OVERWRITE" == false && -d $RENDERING_PATH ]]; then
+        real_path=`realpath ${RENDERING_PATH}`
+        echo "Error: Template rendering ${real_path} already exists."
+        exit 2
+    fi
+
+    echo "-> Rendering Build/Master template ${TEMPLATE_NAME} to Build/${PROJECT_NAME}/${RENDERING_NAME}"
+
+    $ACTIVATE
+    $RENDER_TEMPLATE -t ${TEMPLATE_PATH} -f ${RENDERING_PATH} -v project=${PROJECT_NAME},slug=$(slug ${PROJECT_NAME})
+    deactivate
+}
+
+
+copy_master_file() {
     SOURCE=$1
     DESTINATION=$2
     FILE_NAME=$3
     SOURCE_PATH=${SCRIPT_BASE_PATH}/../${SOURCE}/Master/${FILE_NAME}
     DESTINATION_PATH=${SCRIPT_BASE_PATH}/../${DESTINATION}/${PROJECT_NAME}/${FILE_NAME}
 
+    echo "-> Copying file ${FILE_NAME} from ${SOURCE}/Master to ${DESTINATION}/${PROJECT_NAME}"
+    
     if [[ "$FORCE_OVERWRITE" == false && -d $DESTINATION_PATH ]]; then
         real_path=`realpath ${DESTINATION_PATH}`
         echo "Error: File ${real_path} already exists."
@@ -189,36 +219,7 @@ copy_file() {
 }
 
 
-generate_dotenv_template() {
-    DIRECTORY_NAME=$1
-    TEMPLATE_NAME=dotenv_template.txt
-    TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Build/Master/${TEMPLATE_NAME}
-    RENDERING_PATH=${SCRIPT_BASE_PATH}/../${DIRECTORY_NAME}/${PROJECT_NAME}/${TEMPLATE_NAME}
-
-
-    if [[ "$FORCE_OVERWRITE" == false && -d $RENDERING_PATH ]]; then
-        real_path=`realpath ${RENDERING_PATH}`
-        echo "Error: Template rendering ${real_path} already exists."
-        exit 2
-    fi
-
-    $ACTIVATE
-    $RENDER_TEMPLATE -t ${TEMPLATE_PATH} -f ${RENDERING_PATH} -v project=${PROJECT_NAME}
-    deactivate
-}
-
-
-generate_dockerfile() {
-    echo "Not Implemented"
-}
-
-
-generate_dockerfile() {
-    echo "Not Implemented"
-}
-
-
-generate_terraform_file() {
+render_terraform_template() {
     TERRAFORM_FILE=$1
     TEMPLATE_NAME=${TERRAFORM_FILE/.tf/_template.txt}
     TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/template/${TEMPLATE_NAME}
@@ -231,9 +232,18 @@ generate_terraform_file() {
         exit 2
     fi
 
+    echo "-> Rendering Terraform template ${TEMPLATE_NAME} to Source/Terraform/${PROJECT_NAME}/${TERRAFORM_FILE}"
+
     $ACTIVATE
     $RENDER_TEMPLATE -t ${TEMPLATE_PATH} -f ${RENDERING_PATH} -v project=${PROJECT_NAME}
     deactivate
+}
+
+
+slug() {
+    NAME=$1
+
+    echo "${NAME}" | sed -e 's/\([A-Z][a-z][a-z]*\)/-\1/g' -e 's/\([A-Z][A-Z][A-Z]*\)/-\1/g' -e 's/^-//' | tr '[A-Z]' '[a-z]'
 }
 
 

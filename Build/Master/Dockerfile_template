@@ -1,20 +1,21 @@
-FROM python:{{ python_version }} AS Base
-WORKDIR /{{ project_name }}
+# Build Example:
+#    docker build -t {{ slug }} -f ./Build/{{ project }}/Dockerfile ./
 
-# Needed for AMA local development builds
-COPY ./Build/Master/rootca.pem .
-RUN pip config set global.cert rootca.pem
+FROM python:3.7
+WORKDIR /{{ project }}
 
-RUN pip install python{{ python_version }}-dev unixodbc-dev pipenv
+COPY ./Build/{{ project }}/requirements.txt .
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
+COPY ./Script ./Script
+COPY ./Build/{{ project }} ./Build/{{ project }}
+COPY ./Source ./Source
+RUN ./Script/bundle-app -i --directory ./ {{ project }}
 
-FROM Base as PythonDependencies
-WORKDIR /{{ project_name }}
-COPY ./Environment/{{ project_name }}/Pipfile .
-RUN pipenv install
+RUN rm -rf ./Script
+RUN rm -rf ./Build
+RUN rm -rf ./Source
 
+# COPY ./Test/Python/ .
 
-FROM PythonDependencies as Code
-WORKDIR /{{ project_name }}
-COPY {{ repo_directory }}/Source/ .
-COPY {{ repo_directory }}/Test/ .
+# EXPOSE 8080

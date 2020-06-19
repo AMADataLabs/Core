@@ -1,3 +1,6 @@
+# Build Example:
+#    docker build -t disciplinary-action -f ./Build/DisciplinaryAction/Dockerfile ./
+
 FROM python:3.7
 WORKDIR /DisciplinaryAction
 

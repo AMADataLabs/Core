@@ -24,6 +24,9 @@ def main(args):
     build_path = Path(os.path.join(repository_path, 'Build', args['project'])).resolve()
     app_path = os.path.join(build_path, 'app')
 
+    if 'directory' in args:
+        app_path = Path(args['directory'])
+
     if not args['in_place']:
         if os.path.exists(app_path):
             LOGGER.info('=== Removing Old App Directory ===')
@@ -118,10 +121,12 @@ if __name__ == '__main__':
     return_code = 0
 
     ap = argparse.ArgumentParser()
-    ap.add_argument('-s', '--serverless', action='store_true', default=False,
-        help='Create a zip archive of the bundle for serverless deployment.')
+    ap.add_argument('-d', '--directory',
+        help='Specify the app directory into which files will be bundled (default Build/<PROJECT>/app)')
     ap.add_argument('-i', '--in-place', action='store_true', default=False,
         help='Do not pre-clean the app directory or try to install dependencies.')
+    ap.add_argument('-s', '--serverless', action='store_true', default=False,
+        help='Create a zip archive of the bundle for serverless deployment.')
     ap.add_argument('-v', '--verbose', action='store_true', default=False,
         help='Verbose output.')
     ap.add_argument('project', help='Name of the project.')

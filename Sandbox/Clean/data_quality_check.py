@@ -4,6 +4,7 @@ from   collections import Counter
 import csv
 from   dataclasses import dataclass
 from   datetime import datetime
+from   enum import Enum
 import functools
 import glob
 import itertools
@@ -33,6 +34,11 @@ class Loggers:
 class LogPaths:
     failure_count: str
     file_error: str
+
+
+class LoggerNames(Enum):
+    failure_count = 'Failure Counts'
+    file_error = 'File Errors'
 
 
 @dataclass
@@ -245,15 +251,15 @@ class DataValidator:
             return file_types_are_present
 
     @classmethod
-    def _validate_data_file(cls, file_path, logger):
+    def _validate_data_file(cls, file_path):
         failure_counts = FailureCounts()
         file_name = os.path.basename(file)
         file_type = cls._get_doc_type(file_name)
         failure_counts = []
 
-        failure_counts.append(_validate_file_name(file_name, file_type, logger))
+        failure_counts.append(_validate_file_name(file_name, file_type))
 
-        failure_counts.append(_validate_file_contents(file_path, file_type, logger))
+        failure_counts.append(_validate_file_contents(file_path, file_type))
 
         return functools.reduce(lambda a, b: a + b, failure_counts)
 
@@ -269,7 +275,8 @@ class DataValidator:
         return file_type
 
     @classmethod
-    def _validate_file_name(cls, file_name, file_type, logger) -> FailureCounts:
+    def _validate_file_name(cls, file_name, file_type) -> FailureCounts:
+        logger = logging.getLogger(LoggerNames.file_error)
         failure_counts = FailureCounts()
 
         if not cls._file_name_is_valid(file_name, file_type):
@@ -281,7 +288,8 @@ class DataValidator:
         return failure_counts
 
     @classmethod
-    def _validate_file_contents(cls, file_path, file_type, logger) -> FailureCounts:
+    def _validate_file_contents(cls, file_path, file_type,) -> FailureCounts:
+        logger = logging.getLogger(LoggerNames.file_error)
         failure_counts = FailureCounts()
 
         if not cls._file_contents_is_valid(file_path, file_type):
@@ -383,7 +391,6 @@ class DisciplinaryDataQualityChecker:
     def __init__(self):
         self._data_base_path = None
         self._required_file_types = None
-        self._loggers = None
 
     def run(self):
         self._data_base_path = os.environ.get('DATA_BASE_PATH')
@@ -404,17 +411,12 @@ class DisciplinaryDataQualityChecker:
         else:
             LOGGER.info('No new data to check.')
 
-    def _setup_loggers(self, log_paths) -> Loggers:
-        loggers = Loggers(
-            failure_count=logging.getLogger('Failure Counts'),
-            file_error=logging.getLogger('File Errors')
-        )
+    @classmethod
+    def _setup_loggers(cls, log_paths) -> Loggers:
         LOGGER.debug('Loggers: %s', loggers)
 
-        for field in log_paths.__dataclass_fields__:
-            self._setup_logger(getattr(loggers, field), getattr(log_paths, field))
-
-        retrn loggers
+        for key in LoggerNames.__members__.keys
+            cls._setup_logger(logging.getLogger(getattr(LoggerNames, key)), getattr(log_paths, key))
 
     def _new_data_available(self) -> bool:
         """ check if new data was uploaded to the folder of weekly results """
@@ -443,7 +445,7 @@ class DisciplinaryDataQualityChecker:
 
         failure_counts = validator.validate()
 
-        _log_failure_counts(self._loggers.failure_count, failure_counts)
+        self._log_failure_counts(failure_counts)
 
     @classmethod
     def _setup_logger(cls, logger, log_path):
@@ -482,6 +484,18 @@ class DisciplinaryDataQualityChecker:
         if len(self._action_source_folders) + len(self._no_data_folders) == 69:
             return True
         return False
+
+
+    def _log_failure_counts(self, failure_counts):
+        logger = logging.getLogger(LoggerNames.failure_count)
+
+        logger.info(
+            '\n{},{},{},{},{},{}, {}'.format(
+                failcount, failure_counts.name_format, failure_counts.completeness,
+                failure_counts.file_exists, failure_counts.file_quality, failure_counts.no_data_pdf,
+                failure_counts.no_data_duplicate
+            )
+        )
 
 
 if __name__ == '__main__':
