@@ -22,10 +22,7 @@ def main(args):
     repository_path = os.path.join(script_base_path, '..')
     shared_source_path = Path(os.path.join(repository_path, 'Source', 'Python')).resolve()
     build_path = Path(os.path.join(repository_path, 'Build', args['project'])).resolve()
-    app_path = os.path.join(build_path, 'app')
-
-    if 'directory' in args:
-        app_path = Path(args['directory'])
+    app_path = args['directory'] or os.path.join(build_path, 'app')
 
     if not args['in_place']:
         if os.path.exists(app_path):
