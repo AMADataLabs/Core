@@ -1,8 +1,11 @@
 """ CPT ETL Loader classes """
+from   collections import defaultdict
 from   dataclasses import dataclass
+from   functools import reduce
 import logging
 
-# import pandas
+import pandas
+import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.load import Loader
@@ -21,9 +24,70 @@ class IDs:
     new: list
 
 
+class TableUpdater:
+    def __init__(self, session, model_class: type, primary_key, match_column: str):
+        self._session = session
+        self._model_class = model_class
+        self._primary_key = primary_key
+        self._match_column = match_column
+
+        mapper = sa.inspect(self._model_class)
+        self._columns = [column.key for column in mapper.attrs]
+
+    def update(self, data):
+        current_models, current_data = self._get_current_data()
+
+        old_data, new_data = self._differentiate_data(current_data, data)
+
+        self._update_data(current_models, old_data)
+
+        self._add_data(new_data)
+
+    def _get_current_data(self):
+        results = self._session.query(self._model_class).all()
+
+        return results, self._get_query_results_data(results)
+
+    def _differentiate_data(self, current_data, data):
+        merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
+
+        if self._primary_key != self._match_column:
+            merged_data[self._primary_key] = merged_data[self._primary_key + '_CURRENT']
+
+        old_data = merged_data[~merged_data.isnull().any(axis=1)]
+
+        new_data = merged_data[merged_data.isnull().any(axis=1)]
+
+        return old_data, new_data
+
+    def _update_data(self, models, data):
+        # TODO: 1) filter out unchanged data
+        #       2) create models for remaining data
+        #       3) add models
+        pass
+
+    def _add_data(self, data):
+        # TODO: 1) create models for data
+        #       2) add models
+        pass
+
+    def _get_query_results_data(self, results):
+        return pandas.DataFrame({column:[getattr(result, column) for result in results] for column in self._columns})
+
+    def _create_model(self, result):
+        mapper = sa.inspect(self._model_class)
+        columns = [column.key for column in mapper.attrs]
+        parameters = {column:getattr(result, column) for column in columns}
+
+        return model_class(**parameters)
+
+
 class CPTRelationalTableLoader(Loader):
     def __init__(self, configuration):
         super().__init__(configuration)
+        self._release = None
+        self._codes = None
+        self._pla_codes = None
 
     def load(self, data: transform.OutputData):
         with Database(key=self._configuration['DATABASE']) as database:
@@ -32,32 +96,38 @@ class CPTRelationalTableLoader(Loader):
             self._update_tables(data)
 
     def _update_tables(self, data: transform.OutputData):
-        codes = self._update_codes_table(data.code)
+        self._release = self._update_release_table(data.release)
 
-        self._update_short_descriptors_table(codes, data.short_descriptor)
+        self._codes = self._update_codes_table(data.code)
 
-        self._update_medium_descriptors_table(codes, data.medium_descriptor)
+        self._update_release_code_mappings()
 
-        self._update_long_descriptors_table(codes, data.long_descriptor)
+        self._update_short_descriptors_table(data.short_descriptor)
+
+        self._update_medium_descriptors_table(data.medium_descriptor)
+
+        self._update_long_descriptors_table(data.long_descriptor)
 
         self._update_modifier_types_table(data.modifier_type)
 
         self._update_modifiers_table(data.modifier)
 
-        self._update_consumer_descriptors_table(codes, data.consumer_descriptor)
+        self._update_consumer_descriptors_table(data.consumer_descriptor)
 
         self._update_clinician_descriptors_table(data.clinician_descriptor)
 
         self._update_clinician_descriptor_code_mappings_table(data.clinician_descriptor_code_mapping)
 
         if feature.enabled('PLA'):
-            pla_codes = self._update_pla_code_table(data.pla_code)
+            self._pla_codes = self._update_pla_code_table(data.pla_code)
 
-            self._update_pla_short_descriptor_table(pla_codes, data.pla_short_descriptor)
+            self._update_release_pla_code_mappings()
 
-            self._update_pla_medium_descriptor_table(pla_codes, data.pla_medium_descriptor)
+            self._update_pla_short_descriptor_table(data.pla_short_descriptor)
 
-            self._update_pla_long_descriptor_table(pla_codes, data.pla_long_descriptor)
+            self._update_pla_medium_descriptor_table(data.pla_medium_descriptor)
+
+            self._update_pla_long_descriptor_table(data.pla_long_descriptor)
 
             self._update_manufacturer_table(data.pla_manufacturer)
 
@@ -68,6 +138,28 @@ class CPTRelationalTableLoader(Loader):
             self._update_lab_code_mapping_table(data.pla_lab_code_mapping)
 
             self._update_pla_release_code_mapping_table(data.pla_release_code_mapping)
+
+    def _update_release_table(self, release_data):
+        LOGGER.info('Processing releases...')
+        release = model.Release(
+            type=release_data.type.iloc[0],
+            publish_date=release_data.publish_date.iloc[0],
+            effective_date=release_data.effective_date.iloc[0]
+        )
+        conditions = [
+            model.Release.type == release.type,
+            model.Release.publish_date == release.publish_date,
+            model.Release.effective_date == release.effective_date,
+        ]
+        matching_releases = self._session.query(model.Release).filter(*conditions).all()
+
+        if len(matching_releases) == 0:
+            LOGGER.info('    Adding new release...')
+            self._session.add(release)
+        else:
+            LOGGER.info('    Using existing release...')
+
+        return release
 
     def _update_codes_table(self, codes):
         LOGGER.info('Processing CPT codes...')
@@ -83,21 +175,24 @@ class CPTRelationalTableLoader(Loader):
 
         return IDs(old_codes, new_codes)
 
-    def _update_short_descriptors_table(self, codes, descriptors):
+    def _update_release_code_mappings(self):
+        pass
+
+    def _update_short_descriptors_table(self, descriptors):
         LOGGER.info('Processing short descriptors...')
-        self._update_descriptors_table(model.ShortDescriptor, codes, descriptors)
+        self._update_descriptors_table(model.ShortDescriptor, descriptors)
 
         self._session.commit()
 
-    def _update_medium_descriptors_table(self, codes, descriptors):
+    def _update_medium_descriptors_table(self, descriptors):
         LOGGER.info('Processing medium descriptors...')
-        self._update_descriptors_table(model.MediumDescriptor, codes, descriptors)
+        self._update_descriptors_table(model.MediumDescriptor, descriptors)
 
         self._session.commit()
 
-    def _update_long_descriptors_table(self, codes, descriptors):
+    def _update_long_descriptors_table(self, descriptors):
         LOGGER.info('Processing long descriptors...')
-        self._update_descriptors_table(model.LongDescriptor, codes, descriptors)
+        self._update_descriptors_table(model.LongDescriptor, descriptors)
 
         self._session.commit()
 
@@ -125,9 +220,9 @@ class CPTRelationalTableLoader(Loader):
 
         self._session.commit()
 
-    def _update_consumer_descriptors_table(self, codes, descriptors):
+    def _update_consumer_descriptors_table(self, descriptors):
         LOGGER.info('Processing consumer descriptors...')
-        self._update_descriptors_table(model.ConsumerDescriptor, codes, descriptors)
+        self._update_descriptors_table(model.ConsumerDescriptor, descriptors)
 
         self._session.commit()
 
@@ -162,19 +257,36 @@ class CPTRelationalTableLoader(Loader):
 
         self._session.commit()
 
+    def _update_pla_code_table(self, pla_codes):
+        LOGGER.info('Processing PLA codes...')
+        current_codes = self._get_pla_codes()
+        old_codes = [code for code in pla_codes.code if code in current_codes]
+        new_codes = [code for code in pla_codes.code if code not in current_codes]
+
+        LOGGER.info('    Adding new codes...')
+        for code in new_codes:
+            self._session.add(model.PLACode(code=code))
+
+        self._session.commit()
+
+        return IDs(old_codes, new_codes)
+
+    def _update_release_pla_code_mappings(self):
+        pass
+
     def _get_codes(self):
         query = self._session.query(model.Code)
 
         return {row.code: row for row in query.all()}
 
-    def _update_descriptors_table(self, model_class, codes, descriptors):
+    def _update_descriptors_table(self, model_class, descriptors):
         LOGGER.info('    Fetching current descriptors...')
-        codes.new = codes.new.copy()
+        self._codes.new = self._codes.new.copy()
         current_descriptors = self._get_descriptors(model_class)
 
-        missing_codes = self._update_descriptors(model_class, 'code', codes.old, descriptors, current_descriptors)
+        missing_codes = self._update_descriptors(model_class, 'code', self._codes.old, descriptors, current_descriptors)
 
-        self._add_descriptors(model_class, codes.new + missing_codes, descriptors)
+        self._add_descriptors(model_class, self._codes.new + missing_codes, descriptors)
 
     def _get_modifier_types(self):
         query = self._session.query(model.ModifierType)
@@ -286,20 +398,6 @@ class CPTRelationalTableLoader(Loader):
 
         return {row.code: row for row in query.all()}
 
-    def _update_pla_code_table(self, pla_codes):
-        LOGGER.info('Processing PLA codes...')
-        current_codes = self._get_pla_codes()
-        old_codes = [code for code in pla_codes.code if code in current_codes]
-        new_codes = [code for code in pla_codes.code if code not in current_codes]
-
-        LOGGER.info('    Adding new codes...')
-        for code in new_codes:
-            self._session.add(model.PLACode(code=code))
-
-        self._session.commit()
-
-        return IDs(old_codes, new_codes)
-
     def _update_pla_short_descriptor_table(self, codes, descriptors):
         LOGGER.info('Processing short pla descriptors...')
         self._update_pla_descriptors_table(model.PLAShortDescriptor, codes, descriptors)
@@ -320,12 +418,12 @@ class CPTRelationalTableLoader(Loader):
 
     def _update_pla_descriptors_table(self, model_class, codes, descriptors):
         LOGGER.info('    Fetching current descriptors...')
-        codes.new = codes.new.copy()
+        self._codes.new = self._codes.new.copy()
         current_descriptors = self._get_pla_descriptors(model_class)
 
-        missing_codes = self._update_pla_descriptors('code', codes.old, descriptors, current_descriptors)
+        missing_codes = self._update_pla_descriptors('code', self._codes.old, descriptors, current_descriptors)
 
-        self._add_pla_descriptors(model_class, codes.new + missing_codes, descriptors)
+        self._add_pla_descriptors(model_class, self._codes.new + missing_codes, descriptors)
 
     @classmethod
     def _update_pla_descriptors(cls, primary_key_name, old_primary_keys, descriptors, current_descriptors):
