@@ -1,64 +1,71 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 from datalabs.etl.cpt.dbmodel import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
 from datalabs.access.database import Database
+import json
 
 
 def lambda_handler(event, context):
+    session = create_database_connection()
+    query = query_for_descriptor(session)
+
+    if event.get('multiValueQueryStringParameters', None) is not None:
+        query = filter_query_for_release(event, session, query)
+        query = filter_query_for_keyword(event, query)
+
+        status_code, response = get_response_data_from_query(query)
+
+    else:
+        status_code, response = get_response_data_from_query(query)
+
+    return {
+        "statusCode": status_code,
+        "body": json.dumps(response)
+    }
+
+
+def create_database_connection():
     engine = create_engine(Database.url)
     Session = sessionmaker(bind=engine)
-    session = Session()
-
-    status_code, response = query_event(event, session)
-    return {'statusCode': status_code, 'body': response}
+    return Session()
 
 
-def query_event(event, session):
-    if 'keyword' not in list(event.keys()) and 'since' not in list(event.keys()):
-        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping)
-        return get_content_from_query(query)
-    else:
-        since = event.get('since', None)
-        keyword = event.get('keyword', None)
-        return query_filters(session, since, keyword)
+def query_for_descriptor(session):
+    query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping)
+    return query
 
 
-def get_content_from_query(query):
-    all_rows = []
-    for row in query:
-        record = {
+def filter_query_for_release(event, session, query):
+    # needs editing
+    if event['multiValueQueryStringParameters'].get('since', None) is not None:
+        query = session.query().add_column(Release.publish_date)
+        query = query.filter(Release.publish_date.like('%{}%'.format(event)))
+
+    return query
+
+
+def filter_query_for_keyword(event, query):
+    filter_conditions = []
+
+    if event['multiValueQueryStringParameters'].get('keyword', None) is not None:
+        for word in event['multiValueQueryStringParameters']['keyword']:
+            filter_conditions.append(ClinicianDescriptor.descriptor.ilike('%{}%'.format(word)))
+
+        query = query.filter(or_(*filter_conditions))
+
+    return query
+
+
+def get_response_data_from_query(query):
+    response_rows = []
+
+    for row in query.all():
+        response_data = {
             'id': row.ClinicianDescriptor.id,
             'code': row.ClinicianDescriptorCodeMapping.code,
             'descriptor': row.ClinicianDescriptor.descriptor
         }
-        all_rows.append(record)
-    return 200, all_rows
 
+        response_rows.append(response_data)
 
-def query_filters(session, since, keyword):
-    if since == None:
-        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping) \
-            .filter(ClinicianDescriptor.descriptor.like('%{}%'.format(keyword)))
-    elif keyword == None:
-        d_type = date_type(since)
-        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping,
-                                                                                        Release) \
-            .filter(getattr(Release, d_type).like('%{}%'.format(since)))
-    else:
-        d_type = date_type(since)
-        query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping,
-                                                                                        Release) \
-            .filter(getattr(Release, d_type).like('%{}%'.format(since))).filter(
-            ClinicianDescriptor.descriptor.like('%{}%'.format(keyword)))
-
-    if query.count() == 0:
-        return 400, {'filter': 'not found'}
-    else:
-        return get_content_from_query(query)
-
-
-def date_type(since):
-    # check format
-    # return annual,date,or quaterly
-    date_type_table = 'publish_date'
-    return date_type_table
+    return 200, response_rows

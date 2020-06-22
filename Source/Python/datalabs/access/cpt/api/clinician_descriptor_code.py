@@ -2,51 +2,57 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from datalabs.etl.cpt.dbmodel import ClinicianDescriptorCodeMapping, ClinicianDescriptor
 from datalabs.access.database import Database
+import json
 
 
 def lambda_handler(event, context):
+    session = create_database_connection()
+
+    query = query_for_descriptor(session)
+    query = query_by_code(query, event)
+    status_code, response = get_content_from_query_output(query)
+
+    return {
+        'statusCode': status_code,
+        'body': json.dumps(response)
+    }
+
+
+def create_database_connection():
     engine = create_engine(Database.url)
     Session = sessionmaker(bind=engine)
-    session = Session()
-
-    status_code, response = query_event(event, session)
-
-    return {'statusCode': status_code, 'body': response}
+    return Session()
 
 
-def query_event(event, session):
-    if code_is_not_null(event):
-        return query_by_code(event, session)
+def query_for_descriptor(session):
+    query = session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping)
+    return query
+
+
+def query_by_code(query, event):
+    if event.get('pathParameters', None) is not None:
+        query = query.filter(ClinicianDescriptorCodeMapping.code == event['pathParameters']['code'])
+
     else:
-        return 400, {"Error": "No code given"}
+        query = None
+
+    return query
 
 
-def code_is_not_null(event):
-    code = event.get('code', None)
-    if code is not None:
-        return True
+def get_content_from_query_output(query):
+    if query is not None:
+        rows = []
+        for row in query.all():
+            record = {
+                'id': row.ClinicianDescriptor.id,
+                'code': row.ClinicianDescriptorCodeMapping.code,
+                'description': row.ClinicianDescriptor.descriptor
+            }
+            rows.append(record)
+        status_code = 200
+
     else:
-        return False
+        status_code = 400
+        rows = {"Code": "No given"}
 
-
-def query_by_code(event, session):
-    requested_code = event['code']
-    result = session.query(ClinicianDescriptorCodeMapping, ClinicianDescriptor).join(ClinicianDescriptor) \
-        .filter(ClinicianDescriptorCodeMapping.code == '{}'.format(requested_code))
-
-    if result.count() != 0:
-        return get_content_from_query_output(result)
-    else:
-        return 400, {'code': 'bad'}
-
-
-def get_content_from_query_output(result):
-    rows = []
-    for row in result:
-        record = {
-            'id': row.ClinicianDescriptor.id,
-            'code': row.ClinicianDescriptorCodeMapping.code,
-            'description': row.ClinicianDescriptor.descriptor
-        }
-        rows.append(record)
-    return 200, rows
+    return status_code, rows
