@@ -68,10 +68,9 @@ class TableUpdater:
         self._update_models(filtered_models, filtered_data)
 
     def _add_data(self, data):
-        # TODO: 1) create models for data
-        #       2) add models
-        # models = [self._create_model(row) for row in data.itertuples(index=False)]
-        pass
+        models = self._create_models(data)
+
+        self._add_models(models)
 
     def _get_query_results_data(self, results):
         return pandas.DataFrame({column:[getattr(result, column) for result in results] for column in self._columns})
@@ -93,6 +92,13 @@ class TableUpdater:
         for model, row in zip(models, data.itertuples()):
             self._update_model(model, row, columns)
 
+    def _create_models(self, data):
+        return [self._create_model(row) for row in data.itertuples(index=False)]
+
+    def _add_models(self, models):
+        for model in models:
+            self._session.add(model)
+
     def _get_changeable_columns(self):
         columns = self._get_model_columns()
 
@@ -109,9 +115,9 @@ class TableUpdater:
 
     def _create_model(self, row):
         columns = self._get_model_columns()
-        parameters = {column:value for column, value in zip(columns, row)}
+        parameters = {column:getattr(row, column) for column in columns}
 
-        return model_class(**parameters)
+        return self._model_class(**parameters)
 
     def _get_model_columns(self):
         mapper = sa.inspect(self._model_class)

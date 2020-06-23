@@ -61,6 +61,7 @@ def test_differentiate_data_when_primary_key_equals_match_column(current_codes):
     assert len(new_data) == 2
     assert list(new_data.code) == ['22', '44']
 
+
 def test_filter_out_unchanged_data(old_codes):
     updater = TableUpdater(None, model.Code, 'code', 'code')
 
@@ -69,6 +70,7 @@ def test_filter_out_unchanged_data(old_codes):
     assert len(changed_data) == 2
     assert changed_data.modified_date.iloc[0] == date(2100, 9, 1)
     assert changed_data.deleted.iloc[1] == True
+
 
 def test_get_matching_models(current_codes, old_codes):
     updater = TableUpdater(None, model.Code, 'code', 'code')
@@ -80,6 +82,7 @@ def test_get_matching_models(current_codes, old_codes):
 
     assert len(models) == 3
     assert codes == ['21', '42', '84']
+
 
 def test_update_models(current_codes, old_codes):
     session = MockSession(current_codes)
@@ -101,15 +104,46 @@ def test_update_models(current_codes, old_codes):
         assert model_.deleted == deleted
 
 
+def test_create_models(new_codes):
+    updater = TableUpdater(None, model.Code, 'code', 'code')
+    codes = new_codes.code.tolist()
+
+    models = updater._create_models(new_codes)
+
+    assert len(models) == 3
+    for code, model_ in zip(codes, models):
+        assert model_.code == code
+        assert model_.modified_date == date(2020, 6, 1)
+        assert model_.deleted == False
+
+
+def test_add_models(new_codes):
+    session = MockSession(new_codes)
+    updater = TableUpdater(session, model.Code, 'code', 'code')
+    models = updater._create_models(new_codes)
+
+    updater._add_models(models)
+
+    assert session.add_count == 3
+
+
 class MockSession:
     def __init__(self, return_value):
         self._return_value = return_value
+        self._add_count = 0
+
+    @property
+    def add_count(self):
+        return self._add_count
 
     def query(self, *args):
         return self
 
     def all(self):
         return self._return_value
+
+    def add(self, *args):
+        self._add_count += 1
 
 
 @pytest.fixture
@@ -137,5 +171,18 @@ def old_codes():
             modified_date=[date(2100, 9, 1), date(1900, 10, 1), date(1900, 10, 1)],
             deleted_CURRENT=[False, False, False],
             deleted=[False, False, True],
+        )
+    )
+
+
+@pytest.fixture
+def new_codes():
+    return pandas.DataFrame(
+        dict(
+            code=['55', '66', '77'],
+            modified_date_CURRENT=[None, None, None],
+            modified_date=[date(2020, 6, 1), date(2020, 6, 1), date(2020, 6, 1)],
+            deleted_CURRENT=[None, None, None],
+            deleted=[False, False, False],
         )
     )
