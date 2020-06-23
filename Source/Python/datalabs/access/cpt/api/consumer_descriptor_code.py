@@ -7,8 +7,8 @@ import json
 
 def lambda_handler(event, context):
     session = create_database_connection()
-
     query = query_for_descriptor(session, event.get('pathParameters', None))
+
     status_code, response = get_content_from_query_output(query)
 
     return {'statusCode': status_code, 'body': json.dumps(response)}
