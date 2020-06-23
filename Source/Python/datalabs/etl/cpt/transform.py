@@ -88,9 +88,7 @@ class CSVToRelationalTablesTransformer(Transformer):
 
         tables = OutputData(
             release=input_data.release,
-            code=input_data.short_descriptor[['cpt_code']].rename(
-                columns=dict(cpt_code='code')
-            ),
+            code=codes,
             short_descriptor=input_data.short_descriptor.rename(
                 columns=dict(cpt_code='code', short_descriptor='descriptor')
             ),

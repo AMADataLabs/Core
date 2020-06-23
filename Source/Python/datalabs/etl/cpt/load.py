@@ -36,7 +36,7 @@ class TableUpdater:
         self._columns = [column.key for column in mapper.attrs]
 
     def update(self, data):
-        LOGGER.info('Updating table %s...', model.Release.__table__.name)
+        LOGGER.info('Updating table %s...', dbmodel.Release.__table__.name)
         current_models, current_data = self._get_current_data()
 
         old_data, new_data = self._differentiate_data(current_data, data)
@@ -51,12 +51,7 @@ class TableUpdater:
         return results, self._get_query_results_data(results)
 
     def _differentiate_data(self, current_data, data):
-        if 'modified_date' in current_data:
-            current_data.drop('modified_date', axis=1)
-        merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
-
-        if self._primary_key != self._match_column:
-            merged_data[self._primary_key] = merged_data[self._primary_key + '_CURRENT']
+        merged_data = self._merge_data(current_data, data)
 
         old_data = merged_data[~merged_data.isnull().any(axis=1)]
 
@@ -65,7 +60,6 @@ class TableUpdater:
         return old_data, new_data
 
     def _update_data(self, models, data):
-        LOGGER.info('    Updating existing rows...')
         filtered_data = self._filter_out_unchanged_data(data)
 
         filtered_models = self._get_matching_models(models, filtered_data)
@@ -73,13 +67,41 @@ class TableUpdater:
         self._update_models(filtered_models, filtered_data)
 
     def _add_data(self, data):
-        LOGGER.info('    Adding new rows...')
         models = self._create_models(data)
 
         self._add_models(models)
 
     def _get_query_results_data(self, results):
         return pandas.DataFrame({column:[getattr(result, column) for result in results] for column in self._columns})
+
+    def _merge_data(self, current_data, data):
+        current_data = self._remove_modified_date(current_data)  # set programmatically
+
+        merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
+
+        merged_data = self._set_deleted_if_missing(merged_data)
+
+        return self._sync_primary_key(merged_data)
+
+    @classmethod
+    def _remove_modified_date(cls, data):
+        if 'modified_date' in data:
+            data.drop('modified_date', axis=1)
+
+        return data
+
+    @classmethod
+    def _set_deleted_if_missing(cls, data):
+        if 'deleted' in data:
+            data.deleted[data.deleted.isnull()] = True
+
+        return data
+
+    def _sync_primary_key(self, data):
+        if self._primary_key != self._match_column:
+            data[self._primary_key] = data[self._primary_key + '_CURRENT']
+
+        return data
 
     def _filter_out_unchanged_data(self, data):
         columns = self._get_changeable_columns()
@@ -93,6 +115,7 @@ class TableUpdater:
         return [model_map[key] for key in getattr(filtered_data, self._primary_key)]
 
     def _update_models(self, models, data):
+        LOGGER.info('    Updating %d existing rows...', len(models))
         columns = self._get_changeable_columns()
 
         for model, row in zip(models, data.itertuples()):
@@ -102,6 +125,7 @@ class TableUpdater:
         return [self._create_model(row) for row in data.itertuples(index=False)]
 
     def _add_models(self, models):
+        LOGGER.info('    Adding %d new rows...', len(models))
         for model in models:
             self._session.add(model)
 
@@ -199,6 +223,8 @@ class CPTRelationalTableLoader(Loader):
         #     self._update_lab_code_mapping_table(data.pla_lab_code_mapping)
 
         #     self._update_pla_release_code_mapping_table(data.pla_release_code_mapping)
+
+        self._session.commit()
 
     def _update_release_table(self, release_data):
         LOGGER.info('Processing releases...')
