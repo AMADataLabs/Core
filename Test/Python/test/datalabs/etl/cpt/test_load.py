@@ -70,7 +70,7 @@ def test_filter_out_unchanged_data(old_codes):
     assert changed_data.modified_date.iloc[0] == date(2100, 9, 1)
     assert changed_data.deleted.iloc[1] == True
 
-def test_get_matching_models(old_codes, current_codes):
+def test_get_matching_models(current_codes, old_codes):
     updater = TableUpdater(None, model.Code, 'code', 'code')
     current_codes.append(model.Code(code='22', modified_date=date(2100, 9, 1), deleted=False))
     current_codes.append(model.Code(code='44', modified_date=date(2100, 9, 1), deleted=False))
@@ -80,6 +80,26 @@ def test_get_matching_models(old_codes, current_codes):
 
     assert len(models) == 3
     assert codes == ['21', '42', '84']
+
+def test_update_models(current_codes, old_codes):
+    session = MockSession(current_codes)
+    updater = TableUpdater(session, model.Code, 'code', 'code')
+    models = updater._get_matching_models(current_codes, old_codes)
+    expected_dates = [date(1900, 10, 1), date(1900, 10, 1), date(1900, 10, 1)]
+    expected_deleteds = [False, False, False]
+
+    for model_, modified_date, deleted in zip(models, expected_dates, expected_deleteds):
+        assert model_.modified_date == modified_date
+        assert model_.deleted == deleted
+
+    updater._update_models(models, old_codes)
+
+    expected_dates[0] = date(2100, 9, 1)
+    expected_deleteds[2] = True
+    for model_, modified_date, deleted in zip(models, expected_dates, expected_deleteds):
+        assert model_.modified_date == modified_date
+        assert model_.deleted == deleted
+
 
 class MockSession:
     def __init__(self, return_value):

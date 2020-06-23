@@ -64,10 +64,8 @@ class TableUpdater:
         filtered_data = self._filter_out_unchanged_data(data)
 
         filtered_models = self._get_matching_models(models, filtered_data)
-        # TODO: 1) filter out unchanged data
-        #       2) create models for remaining data
-        #       3) add models
-        pass
+
+        self._update_models(filtered_models, filtered_data)
 
     def _add_data(self, data):
         # TODO: 1) create models for data
@@ -89,6 +87,12 @@ class TableUpdater:
 
         return [model_map[key] for key in getattr(filtered_data, self._primary_key)]
 
+    def _update_models(self, models, data):
+        columns = self._get_changeable_columns()
+
+        for model, row in zip(models, data.itertuples()):
+            self._update_model(model, row, columns)
+
     def _get_changeable_columns(self):
         columns = self._get_model_columns()
 
@@ -97,6 +101,11 @@ class TableUpdater:
             columns.remove(self._match_column)
 
         return columns
+
+    @classmethod
+    def _update_model(cls, model, row, columns):
+        for column in columns:
+            setattr(model, column, getattr(row, column))
 
     def _create_model(self, row):
         columns = self._get_model_columns()
