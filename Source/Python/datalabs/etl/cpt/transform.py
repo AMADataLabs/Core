@@ -80,11 +80,8 @@ class CSVToRelationalTablesTransformer(Transformer):
 
     def _generate_tables(self, input_data):
         modifier_types = pandas.DataFrame(dict(name=input_data.modifier['type'].unique()))
-        modifiers = self._dedupe_modifiers(input_data.modifier)
-        codes = input_data.short_descriptor[['cpt_code']].rename(
-            columns=dict(cpt_code='code')
-        )
-        codes['deleted'] = False
+        modifiers = self._generate_modifier_table(input_data.modifier)
+        codes = self._generate_code_table(input_data.short_descriptor)
 
         tables = OutputData(
             release=input_data.release,
@@ -168,6 +165,20 @@ class CSVToRelationalTablesTransformer(Transformer):
             )
 
         return tables
+
+    def _generate_modifier_table(self, modifiers):
+        modifiers = self._dedupe_modifiers(modifiers)
+        modifiers['deleted'] = False
+
+        return modifiers
+
+    def _generate_code_table(self, descriptors):
+        codes = descriptors[['cpt_code']].rename(
+            columns=dict(cpt_code='code')
+        )
+        codes['deleted'] = False
+
+        return codes
 
     def _dedupe_modifiers(self, modifiers):
         asc_modifiers = modifiers.modifier[modifiers.type == 'Ambulatory Service Center'].tolist()

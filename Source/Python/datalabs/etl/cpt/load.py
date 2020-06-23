@@ -16,7 +16,7 @@ import datalabs.feature as feature
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @dataclass
@@ -36,7 +36,7 @@ class TableUpdater:
         self._columns = [column.key for column in mapper.attrs]
 
     def update(self, data):
-        LOGGER.info('Updating table %s...', dbmodel.Release.__table__.name)
+        LOGGER.info('Updating table %s...', self._model_class.__table__.name)
         current_models, current_data = self._get_current_data()
 
         old_data, new_data = self._differentiate_data(current_data, data)
@@ -56,6 +56,7 @@ class TableUpdater:
         old_data = merged_data[~merged_data.isnull().any(axis=1)]
 
         new_data = merged_data[merged_data.isnull().any(axis=1)]
+        new_data = self._remove_missing_rows(new_data)
 
         return old_data, new_data
 
@@ -79,9 +80,19 @@ class TableUpdater:
 
         merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
 
-        merged_data = self._set_deleted_if_missing(merged_data)
+        merged_data = self._delete_if_missing(merged_data)
+        LOGGER.debug('Merged data: %s', merged_data)
 
         return self._sync_primary_key(merged_data)
+
+    def _remove_missing_rows(self, data):
+        current_columns = [column.name + '_CURRENT' for column in self._model_class.__table__.columns]
+        drop_columns = [column for column in current_columns if column in data]
+        reduced_data = data.drop(drop_columns, axis=1)
+        reduced_data = reduced_data.drop(self._primary_key, axis=1)
+        delete_indices = reduced_data.isnull().any(axis=1)
+
+        return data.drop(data.index[delete_indices])
 
     @classmethod
     def _remove_modified_date(cls, data):
@@ -91,23 +102,28 @@ class TableUpdater:
         return data
 
     @classmethod
-    def _set_deleted_if_missing(cls, data):
+    def _delete_if_missing(cls, data):
         if 'deleted' in data:
-            data.deleted[data.deleted.isnull()] = True
+            data.loc[data.deleted.isnull(), 'deleted'] = True
 
         return data
 
     def _sync_primary_key(self, data):
-        if self._primary_key != self._match_column:
-            data[self._primary_key] = data[self._primary_key + '_CURRENT']
+        current_primary_key = self._primary_key + '_CURRENT'
+        if current_primary_key in data and self._primary_key != self._match_column:
+            data[self._primary_key] = data[current_primary_key]
 
         return data
 
     def _filter_out_unchanged_data(self, data):
         columns = self._get_changeable_columns()
         conditions = [getattr(data, column) != getattr(data, column + '_CURRENT') for column in columns]
+        filtered_data = data
 
-        return data[reduce(lambda x, y: x | y, conditions)]
+        if conditions:
+            filtered_data = data[reduce(lambda x, y: x | y, conditions)]
+
+        return filtered_data
 
     def _get_matching_models(self, models, filtered_data):
         model_map = {getattr(model, self._primary_key):model for model in models}
@@ -166,6 +182,24 @@ class TableUpdater:
         return columns
 
 
+class ModifierTableUpdater:
+    def __init__(self, session, model_class: type, primary_key, match_column: str):
+        super().__init__(session, model_class, primary_key, match_column)
+
+        self._modifier_types = None
+
+    def _get_current_data(self):
+        self._modifier_types = {type_.name:type_.id for type_ in self._session.query(dbmodel.ModifierType).all()}
+
+        return super()._get_current_data()
+
+    def _merge_data(self, current_data, data):
+        merged_data = super()._merge_data(current_data, data)
+        merged_data.type.apply(lambda x: self._modifier_types[x])
+
+        return merged_data
+
+
 class CPTRelationalTableLoader(Loader):
     def __init__(self, configuration):
         super().__init__(configuration)
@@ -180,24 +214,24 @@ class CPTRelationalTableLoader(Loader):
             self._update_tables(data)
 
     def _update_tables(self, data: transform.OutputData):
-        TableUpdater(self._session, dbmodel.Code, 'code', 'code').update(data.code)
         # self._release = self._update_release_table(data.release)
 
+        TableUpdater(self._session, dbmodel.Code, 'code', 'code').update(data.code)
         # self._codes = self._update_codes_table(data.code)
 
-        # self._update_release_code_mappings()
+        # TableUpdater(self._session, dbmodel.ReleaseCodeMapping, 'release', 'release').update(???)
 
-        # self._update_short_descriptors_table(data.short_descriptor)
+        TableUpdater(self._session, dbmodel.ShortDescriptor, 'code', 'code').update(data.short_descriptor)
 
-        # self._update_medium_descriptors_table(data.medium_descriptor)
+        TableUpdater(self._session, dbmodel.MediumDescriptor, 'code', 'code').update(data.medium_descriptor)
 
-        # self._update_long_descriptors_table(data.long_descriptor)
+        TableUpdater(self._session, dbmodel.LongDescriptor, 'code', 'code').update(data.long_descriptor)
 
-        # self._update_modifier_types_table(data.modifier_type)
+        TableUpdater(self._session, dbmodel.ModifierType, 'id', 'name').update(data.modifier_type)
 
-        # self._update_modifiers_table(data.modifier)
+        ModifierTableUpdater(self._session, dbmodel.Modifier, 'modifier', 'modifier').update(data.modifier)
 
-        # self._update_consumer_descriptors_table(data.consumer_descriptor)
+        TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code', 'code').update(data.consumer_descriptor)
 
         # self._update_clinician_descriptors_table(data.clinician_descriptor)
 
