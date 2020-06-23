@@ -61,7 +61,9 @@ class TableUpdater:
         return old_data, new_data
 
     def _update_data(self, models, data):
-        data = self._filter_out_unchanged_data(data)
+        filtered_data = self._filter_out_unchanged_data(data)
+
+        filtered_models = self._get_matching_models(models, filtered_data)
         # TODO: 1) filter out unchanged data
         #       2) create models for remaining data
         #       3) add models
@@ -70,6 +72,7 @@ class TableUpdater:
     def _add_data(self, data):
         # TODO: 1) create models for data
         #       2) add models
+        # models = [self._create_model(row) for row in data.itertuples(index=False)]
         pass
 
     def _get_query_results_data(self, results):
@@ -81,6 +84,10 @@ class TableUpdater:
 
         return data[reduce(lambda x, y: x | y, conditions)]
 
+    def _get_matching_models(self, models, filtered_data):
+        model_map = {getattr(model, self._primary_key):model for model in models}
+
+        return [model_map[key] for key in getattr(filtered_data, self._primary_key)]
 
     def _get_changeable_columns(self):
         columns = self._get_model_columns()
@@ -91,9 +98,9 @@ class TableUpdater:
 
         return columns
 
-    def _create_model(self, result):
+    def _create_model(self, row):
         columns = self._get_model_columns()
-        parameters = {column:getattr(result, column) for column in columns}
+        parameters = {column:value for column, value in zip(columns, row)}
 
         return model_class(**parameters)
 

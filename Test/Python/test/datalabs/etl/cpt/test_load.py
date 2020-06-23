@@ -70,6 +70,17 @@ def test_filter_out_unchanged_data(old_codes):
     assert changed_data.modified_date.iloc[0] == date(2100, 9, 1)
     assert changed_data.deleted.iloc[1] == True
 
+def test_get_matching_models(old_codes, current_codes):
+    updater = TableUpdater(None, model.Code, 'code', 'code')
+    current_codes.append(model.Code(code='22', modified_date=date(2100, 9, 1), deleted=False))
+    current_codes.append(model.Code(code='44', modified_date=date(2100, 9, 1), deleted=False))
+
+    models = updater._get_matching_models(current_codes, old_codes)
+    codes = [model.code for model in models]
+
+    assert len(models) == 3
+    assert codes == ['21', '42', '84']
+
 class MockSession:
     def __init__(self, return_value):
         self._return_value = return_value
