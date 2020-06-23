@@ -16,6 +16,7 @@ LOGGER.setLevel(logging.INFO)
 
 @dataclass
 class InputData:
+    release: pandas.DataFrame
     short_descriptor: pandas.DataFrame
     medium_descriptor: pandas.DataFrame
     long_descriptor: pandas.DataFrame
@@ -27,6 +28,7 @@ class InputData:
 
 @dataclass
 class OutputData:
+    release: pandas.DataFrame
     code: pandas.DataFrame
     short_descriptor: pandas.DataFrame
     medium_descriptor: pandas.DataFrame
@@ -70,6 +72,8 @@ class CPTFileToCSVTransformer(Transformer):
 
 class CSVToRelationalTablesTransformer(Transformer):
     def transform(self, data):
+        if not feature.enabled('PLA'):
+            data.append('DUMMY')
         input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
 
         return self._generate_tables(input_data)
@@ -77,8 +81,13 @@ class CSVToRelationalTablesTransformer(Transformer):
     def _generate_tables(self, input_data):
         modifier_types = pandas.DataFrame(dict(name=input_data.modifier['type'].unique()))
         modifiers = self._dedupe_modifiers(input_data.modifier)
+        codes = input_data.short_descriptor[['cpt_code']].rename(
+            columns=dict(cpt_code='code')
+        )
+        codes['deleted'] = False
 
         tables = OutputData(
+            release=input_data.release,
             code=input_data.short_descriptor[['cpt_code']].rename(
                 columns=dict(cpt_code='code')
             ),

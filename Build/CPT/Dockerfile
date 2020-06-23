@@ -1,30 +1,24 @@
-FROM python:3.7 AS Base
-WORKDIR /app
+# Build Example:
+#    docker build -t cpt -f ./Build/CPT/Dockerfile ./
 
-RUN apt update
-RUN apt install -y python3.7-venv
+FROM python:3.7
+WORKDIR /CPT
+ENV PYTHONPATH=/CPT
+ENV AWS_SHARED_CREDENTIALS_FILE=/CPT/.aws/credentials
 
+COPY ./Build/CPT/requirements.txt .
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
-FROM Base as PythonDependencies
-WORKDIR /app
+COPY ./Script ./Script
+COPY ./Build/CPT ./Build/CPT
+COPY ./Source ./Source
+RUN ./Script/bundle-app -i --directory ./ CPT
 
-ENV VIRTUAL_ENV=/app
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN rm -rf ./Script
+RUN rm -rf ./Build
+RUN rm -rf ./Source
 
-RUN /usr/bin/python3 -m venv /app
+# COPY ./Test/Python/ .
 
-COPY ./requirements.txt .
-
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r /app/requirements.txt
-
-
-FROM PythonDependencies as App
-WORKDIR /app
-
-ENV PYTHONPATH=/app
-ENV AWS_SHARED_CREDENTIALS_FILE=/app/.aws/credentials
-
-COPY app/ .
-COPY .env .
-COPY credentials ${AWS_SHARED_CREDENTIALS_FILE}
+COPY ./Build/CPT/.env .
+COPY ./Build/CPT/credentials ${AWS_SHARED_CREDENTIALS_FILE}

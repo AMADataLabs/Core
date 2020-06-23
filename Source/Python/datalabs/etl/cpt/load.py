@@ -1,6 +1,7 @@
 """ CPT ETL Loader classes """
 from   collections import defaultdict
 from   dataclasses import dataclass
+from   datetime import datetime
 from   functools import reduce
 import logging
 
@@ -9,7 +10,7 @@ import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.load import Loader
-import datalabs.etl.cpt.dbmodel as model
+import datalabs.etl.cpt.dbmodel as dbmodel
 import datalabs.etl.cpt.transform as transform
 import datalabs.feature as feature
 
@@ -35,6 +36,7 @@ class TableUpdater:
         self._columns = [column.key for column in mapper.attrs]
 
     def update(self, data):
+        LOGGER.info('Updating table %s...', model.Release.__table__.name)
         current_models, current_data = self._get_current_data()
 
         old_data, new_data = self._differentiate_data(current_data, data)
@@ -49,6 +51,8 @@ class TableUpdater:
         return results, self._get_query_results_data(results)
 
     def _differentiate_data(self, current_data, data):
+        if 'modified_date' in current_data:
+            current_data.drop('modified_date', axis=1)
         merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
 
         if self._primary_key != self._match_column:
@@ -61,6 +65,7 @@ class TableUpdater:
         return old_data, new_data
 
     def _update_data(self, models, data):
+        LOGGER.info('    Updating existing rows...')
         filtered_data = self._filter_out_unchanged_data(data)
 
         filtered_models = self._get_matching_models(models, filtered_data)
@@ -68,6 +73,7 @@ class TableUpdater:
         self._update_models(filtered_models, filtered_data)
 
     def _add_data(self, data):
+        LOGGER.info('    Adding new rows...')
         models = self._create_models(data)
 
         self._add_models(models)
@@ -113,16 +119,27 @@ class TableUpdater:
         for column in columns:
             setattr(model, column, getattr(row, column))
 
+        if hasattr(model, 'modified_date'):
+            model.modified_date = datetime.utcnow().date()
+
     def _create_model(self, row):
         columns = self._get_model_columns()
         parameters = {column:getattr(row, column) for column in columns}
+        model = self._model_class(**parameters)
 
-        return self._model_class(**parameters)
+        if hasattr(model, 'modified_date'):
+            model.modified_date = datetime.utcnow().date()
+
+        return model
 
     def _get_model_columns(self):
         mapper = sa.inspect(self._model_class)
+        columns = [column.key for column in mapper.attrs]
 
-        return [column.key for column in mapper.attrs]
+        if 'modified_date' in columns:
+            columns.remove('modified_date')
+
+        return columns
 
 
 class CPTRelationalTableLoader(Loader):
@@ -139,48 +156,49 @@ class CPTRelationalTableLoader(Loader):
             self._update_tables(data)
 
     def _update_tables(self, data: transform.OutputData):
-        self._release = self._update_release_table(data.release)
+        TableUpdater(self._session, dbmodel.Code, 'code', 'code').update(data.code)
+        # self._release = self._update_release_table(data.release)
 
-        self._codes = self._update_codes_table(data.code)
+        # self._codes = self._update_codes_table(data.code)
 
-        self._update_release_code_mappings()
+        # self._update_release_code_mappings()
 
-        self._update_short_descriptors_table(data.short_descriptor)
+        # self._update_short_descriptors_table(data.short_descriptor)
 
-        self._update_medium_descriptors_table(data.medium_descriptor)
+        # self._update_medium_descriptors_table(data.medium_descriptor)
 
-        self._update_long_descriptors_table(data.long_descriptor)
+        # self._update_long_descriptors_table(data.long_descriptor)
 
-        self._update_modifier_types_table(data.modifier_type)
+        # self._update_modifier_types_table(data.modifier_type)
 
-        self._update_modifiers_table(data.modifier)
+        # self._update_modifiers_table(data.modifier)
 
-        self._update_consumer_descriptors_table(data.consumer_descriptor)
+        # self._update_consumer_descriptors_table(data.consumer_descriptor)
 
-        self._update_clinician_descriptors_table(data.clinician_descriptor)
+        # self._update_clinician_descriptors_table(data.clinician_descriptor)
 
-        self._update_clinician_descriptor_code_mappings_table(data.clinician_descriptor_code_mapping)
+        # self._update_clinician_descriptor_code_mappings_table(data.clinician_descriptor_code_mapping)
 
-        if feature.enabled('PLA'):
-            self._pla_codes = self._update_pla_code_table(data.pla_code)
+        # if feature.enabled('PLA'):
+        #     self._pla_codes = self._update_pla_code_table(data.pla_code)
 
-            self._update_release_pla_code_mappings()
+        #     self._update_release_pla_code_mappings()
 
-            self._update_pla_short_descriptor_table(data.pla_short_descriptor)
+        #     self._update_pla_short_descriptor_table(data.pla_short_descriptor)
 
-            self._update_pla_medium_descriptor_table(data.pla_medium_descriptor)
+        #     self._update_pla_medium_descriptor_table(data.pla_medium_descriptor)
 
-            self._update_pla_long_descriptor_table(data.pla_long_descriptor)
+        #     self._update_pla_long_descriptor_table(data.pla_long_descriptor)
 
-            self._update_manufacturer_table(data.pla_manufacturer)
+        #     self._update_manufacturer_table(data.pla_manufacturer)
 
-            self._update_manufacturer_code_mapping_table(data.pla_manufacturer_code_mapping)
+        #     self._update_manufacturer_code_mapping_table(data.pla_manufacturer_code_mapping)
 
-            self.__update_lab_table(data.pla_lab)
+        #     self.__update_lab_table(data.pla_lab)
 
-            self._update_lab_code_mapping_table(data.pla_lab_code_mapping)
+        #     self._update_lab_code_mapping_table(data.pla_lab_code_mapping)
 
-            self._update_pla_release_code_mapping_table(data.pla_release_code_mapping)
+        #     self._update_pla_release_code_mapping_table(data.pla_release_code_mapping)
 
     def _update_release_table(self, release_data):
         LOGGER.info('Processing releases...')

@@ -1,5 +1,5 @@
 """ source: datalabs.etl.cpt.extract """
-from datetime import date
+from datetime import datetime, date
 import json
 import logging
 
@@ -31,7 +31,7 @@ def test_get_current_data(current_codes):
     assert list(current_data.code) == ['21', '42', '84']
 
 
-def test_differentiate_data_when_primary_key_no_equal_to_match_column(current_releases):
+def test_differentiate_data_when_primary_key_not_equal_to_match_column(current_releases):
     session = MockSession(current_releases)
     updater = TableUpdater(session, model.Release, 'id', 'publish_date')
     _, current_data = updater._get_current_data()
@@ -67,9 +67,8 @@ def test_filter_out_unchanged_data(old_codes):
 
     changed_data = updater._filter_out_unchanged_data(old_codes)
 
-    assert len(changed_data) == 2
-    assert changed_data.modified_date.iloc[0] == date(2100, 9, 1)
-    assert changed_data.deleted.iloc[1] == True
+    assert len(changed_data) == 1
+    assert changed_data.deleted.iloc[0] == True
 
 
 def test_get_matching_models(current_codes, old_codes):
@@ -97,7 +96,8 @@ def test_update_models(current_codes, old_codes):
 
     updater._update_models(models, old_codes)
 
-    expected_dates[0] = date(2100, 9, 1)
+    today = datetime.utcnow().date()
+    expected_dates = [today, today, today]
     expected_deleteds[2] = True
     for model_, modified_date, deleted in zip(models, expected_dates, expected_deleteds):
         assert model_.modified_date == modified_date
@@ -107,13 +107,14 @@ def test_update_models(current_codes, old_codes):
 def test_create_models(new_codes):
     updater = TableUpdater(None, model.Code, 'code', 'code')
     codes = new_codes.code.tolist()
+    today = datetime.utcnow().date()
 
     models = updater._create_models(new_codes)
 
     assert len(models) == 3
     for code, model_ in zip(codes, models):
         assert model_.code == code
-        assert model_.modified_date == date(2020, 6, 1)
+        assert model_.modified_date == today
         assert model_.deleted == False
 
 
@@ -167,8 +168,6 @@ def old_codes():
     return pandas.DataFrame(
         dict(
             code=['21', '42', '84'],
-            modified_date_CURRENT=[date(1900, 10, 1), date(1900, 10, 1), date(1900, 10, 1)],
-            modified_date=[date(2100, 9, 1), date(1900, 10, 1), date(1900, 10, 1)],
             deleted_CURRENT=[False, False, False],
             deleted=[False, False, True],
         )
@@ -180,8 +179,6 @@ def new_codes():
     return pandas.DataFrame(
         dict(
             code=['55', '66', '77'],
-            modified_date_CURRENT=[None, None, None],
-            modified_date=[date(2020, 6, 1), date(2020, 6, 1), date(2020, 6, 1)],
             deleted_CURRENT=[None, None, None],
             deleted=[False, False, False],
         )
