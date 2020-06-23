@@ -9,11 +9,11 @@ def lambda_handler(event, context):
     query_parameter = event.get('multiValueQueryStringParameters', None)
 
     session = create_database_connection()
-    query = query_for_descriptor(session)
+    query = query_for_descriptors(session)
 
     if query_parameter is not None:
         query = filter_query_for_release(query_parameter['since'], session, query)
-        query = filter_query_for_keyword(query_parameter['keyword'], query)
+        query = filter_query_for_keywords(query_parameter['keyword'], query)
 
     status_code, response = get_response_data_from_query(query)
 
@@ -29,7 +29,7 @@ def create_database_connection():
     return Session()
 
 
-def query_for_descriptor(session):
+def query_for_descriptors(session):
     query = session.query(ConsumerDescriptor)
     return query
 
@@ -43,7 +43,7 @@ def filter_query_for_release(since, session, query):
     return query
 
 
-def filter_query_for_keyword(keyword, query):
+def filter_query_for_keywords(keyword, query):
     filter_conditions = []
 
     if keyword is not None:
@@ -56,14 +56,6 @@ def filter_query_for_keyword(keyword, query):
 
 
 def get_response_data_from_query(query):
-    response_rows = []
-
-    for row in query.all():
-        response_data = {
-            'code': row.code,
-            'descriptor': row.descriptor
-        }
-
-        response_rows.append(response_data)
+    response_rows = [dict(code=row.code, descriptor=row.descriptor) for row in query.all()]
 
     return 200, response_rows

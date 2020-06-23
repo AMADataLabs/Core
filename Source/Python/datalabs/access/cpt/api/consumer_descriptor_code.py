@@ -43,6 +43,6 @@ def get_content_from_query_output(query):
 
     else:
         status_code = 404
-        rows = {"Code": "Invalid"}
+        rows = {"Code": "No Consumer Descriptor found for the given CPT code."}
 
     return status_code, rows
