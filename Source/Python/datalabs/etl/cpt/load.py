@@ -61,6 +61,7 @@ class TableUpdater:
         return old_data, new_data
 
     def _update_data(self, models, data):
+        data = self._filter_out_unchanged_data(data)
         # TODO: 1) filter out unchanged data
         #       2) create models for remaining data
         #       3) add models
@@ -74,12 +75,32 @@ class TableUpdater:
     def _get_query_results_data(self, results):
         return pandas.DataFrame({column:[getattr(result, column) for result in results] for column in self._columns})
 
+    def _filter_out_unchanged_data(self, data):
+        columns = self._get_changeable_columns()
+        conditions = [getattr(data, column) != getattr(data, column + '_CURRENT') for column in columns]
+
+        return data[reduce(lambda x, y: x | y, conditions)]
+
+
+    def _get_changeable_columns(self):
+        columns = self._get_model_columns()
+
+        columns.remove(self._primary_key)
+        if self._match_column in columns:
+            columns.remove(self._match_column)
+
+        return columns
+
     def _create_model(self, result):
-        mapper = sa.inspect(self._model_class)
-        columns = [column.key for column in mapper.attrs]
+        columns = self._get_model_columns()
         parameters = {column:getattr(result, column) for column in columns}
 
         return model_class(**parameters)
+
+    def _get_model_columns(self):
+        mapper = sa.inspect(self._model_class)
+
+        return [column.key for column in mapper.attrs]
 
 
 class CPTRelationalTableLoader(Loader):
