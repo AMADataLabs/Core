@@ -42,10 +42,10 @@ class OutputData:
     pla_short_descriptor: pandas.DataFrame
     pla_long_descriptor: pandas.DataFrame
     pla_medium_descriptor: pandas.DataFrame
-    pla_manufacturer: pandas.DataFrame
-    pla_manufacturer_code_mapping: pandas.DataFrame
-    pla_lab: pandas.DataFrame
-    pla_lab_code_mapping: pandas.DataFrame
+    manufacturer: pandas.DataFrame
+    manufacturer_pla_code_mapping: pandas.DataFrame
+    lab: pandas.DataFrame
+    lab_pla_code_mapping: pandas.DataFrame
 
 
 class CPTFileToCSVTransformer(Transformer):
@@ -96,10 +96,10 @@ class CSVToRelationalTablesTransformer(Transformer):
             pla_short_descriptor=None,
             pla_medium_descriptor=None,
             pla_long_descriptor=None,
-            pla_manufacturer=None,
-            pla_manufacturer_code_mapping=None,
-            pla_lab=None,
-            pla_lab_code_mapping=None,
+            manufacturer=None,
+            manufacturer_pla_code_mapping=None,
+            lab=None,
+            lab_pla_code_mapping=None,
         )
 
         if feature.enabled('PLA'):
@@ -133,14 +133,14 @@ class CSVToRelationalTablesTransformer(Transformer):
                 ].rename(
                     columns=dict(pla_code='code', long_descriptor='descriptor')
                 ),
-                pla_manufacturer=input_data.pla[['id', 'manufacturer']],
-                pla_manufacturer_code_mapping=input_data.pla[
+                manufacturer=input_data.pla[['id', 'manufacturer']],
+                manufacturer_pla_code_mapping=input_data.pla[
                     ['id', 'pla_code']
                 ].rename(
                     columns=dict(id='id', pla_code='code')
                 ),
-                pla_lab=input_data.pla[['id', 'lab_name']],
-                pla_lab_code_mapping=input_data.pla[
+                lab=input_data.pla[['id', 'lab_name']],
+                lab_pla_code_mapping=input_data.pla[
                     ['id', 'pla_code']
                 ].rename(
                     columns=dict(id='id', pla_code='code')

@@ -151,6 +151,8 @@ class PLAShortDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(28), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class PLAMediumDescriptor(Base):
@@ -159,6 +161,8 @@ class PLAMediumDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(48), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class PLALongDescriptor(Base):
@@ -167,6 +171,8 @@ class PLALongDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class Manufacturer(Base):

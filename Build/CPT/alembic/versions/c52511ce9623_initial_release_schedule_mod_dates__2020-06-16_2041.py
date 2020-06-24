@@ -28,7 +28,10 @@ TABLE_NAMES = [
     'lab',
     'manufacturer',
     'modifier',
-    'pla_code'
+    'pla_code',
+    'pla_short_descriptor',
+    'pla_medium_descriptor',
+    'pla_long_descriptor',
 ]
 
 
