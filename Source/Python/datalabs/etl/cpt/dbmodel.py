@@ -216,5 +216,6 @@ class ReleasePLACodeMapping(Base):
     __tablename__ = 'release_pla_code_mapping'
     __table_args__ = {"schema": "cpt"}
 
-    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), primary_key=True)
+    id = sa.Column(sa.Integer, primary_key=True)
+    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), nullable=True)
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)

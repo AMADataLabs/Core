@@ -18,6 +18,7 @@ depends_on = None
 
 def upgrade():
     op.drop_table('release_code_mapping', schema='cpt')
+    op.drop_table('release_pla_code_mapping', schema='cpt')
 
     op.create_table('release_code_mapping',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -29,10 +30,30 @@ def upgrade():
     schema='cpt'
     )
 
+    op.create_table('release_pla_code_mapping',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('release', sa.Integer(), nullable=False),
+    sa.Column('code', sa.String(length=5), nullable=False),
+    sa.ForeignKeyConstraint(['code'], ['cpt.pla_code.code'], name=op.f('fk_release_pla_code_mapping_code_code')),
+    sa.ForeignKeyConstraint(['release'], ['cpt.release.id'], name=op.f('fk_release_pla_code_mapping_release_release')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_release_pla_code_mapping')),
+    schema='cpt'
+    )
+
 
 
 def downgrade():
+    op.drop_table('release_pla_code_mapping', schema='cpt')
     op.drop_table('release_code_mapping', schema='cpt')
+
+    op.create_table('release_pla_code_mapping',
+    sa.Column('release', sa.Integer(), nullable=False),
+    sa.Column('code', sa.String(length=5), nullable=False),
+    sa.ForeignKeyConstraint(['code'], ['cpt.pla_code.code'], name=op.f('fk_release_pla_code_mapping_code_code')),
+    sa.ForeignKeyConstraint(['release'], ['cpt.release.id'], name=op.f('fk_release_pla_code_mapping_release_release')),
+    sa.PrimaryKeyConstraint('release', name=op.f('pk_release_pla_code_mapping')),
+    schema='cpt'
+    )
 
     op.create_table('release_code_mapping',
     sa.Column('release', sa.Integer(), nullable=False),
