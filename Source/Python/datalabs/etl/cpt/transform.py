@@ -30,6 +30,7 @@ class InputData:
 class OutputData:
     release: pandas.DataFrame
     code: pandas.DataFrame
+    release_code_mapping: pandas.DataFrame
     short_descriptor: pandas.DataFrame
     medium_descriptor: pandas.DataFrame
     long_descriptor: pandas.DataFrame
@@ -79,9 +80,12 @@ class CSVToRelationalTablesTransformer(Transformer):
         return self._generate_tables(input_data)
 
     def _generate_tables(self, input_data):
+        releases = self._generate_release_table(input_data.release)
+        codes = self._generate_code_table(input_data.short_descriptor)
         tables = OutputData(
-            release=self._generate_release_table(input_data.release),
-            code=self._generate_code_table(input_data.short_descriptor),
+            release=releases,
+            code=codes,
+            release_code_mapping=self._generate_release_code_mapping_table(releases, codes),
             short_descriptor=self._generate_descriptor_table('short_descriptor', input_data.short_descriptor),
             medium_descriptor=self._generate_descriptor_table('medium_descriptor', input_data.medium_descriptor),
             long_descriptor=self._generate_descriptor_table('long_descriptor', input_data.long_descriptor),
@@ -104,7 +108,9 @@ class CSVToRelationalTablesTransformer(Transformer):
 
         if feature.enabled('PLA'):
             tables = OutputData(
+                release=tables.release,
                 code=tables.code,
+                release_code_mapping=tables.release_code_mapping,
                 short_descriptor=tables.short_descriptor,
                 medium_descriptor=tables.medium_descriptor,
                 long_descriptor=tables.long_descriptor,
@@ -161,6 +167,12 @@ class CSVToRelationalTablesTransformer(Transformer):
         codes['deleted'] = False
 
         return codes
+
+    def _generate_release_code_mapping_table(self, releases, codes):
+        release_ids = [None]*len(codes)  # the new release ID is unknown until it is committed to the DB
+
+        return pandas.DataFrame(dict(release=release_ids, code=codes.code))
+
 
     def _generate_clinician_descriptor_table(self, descriptors):
         descriptor_table = self._generate_descriptor_table(

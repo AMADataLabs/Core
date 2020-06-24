@@ -195,14 +195,60 @@ class TableUpdater:
 
 
 class ReleaseTableUpdater(TableUpdater):
+    def __init__(self, session):
+        super().__init__(session, dbmodel.Release, 'id', match_column='publish_date', dtmatch=True)
+
+        self._current_models = None
+        self._new_models = None
+        self._release_id = None
+
+    @property
+    def release_id(self):
+        return self._release_id
+    
+
+    def update(self, data):
+        super().update(data)
+
+        self._session.commit()
+
+        if self._new_models:
+            self._release_id = self._new_models[-1].id
+        else:
+            self._release_id = self._current_models[-1].id
+
+    def _get_current_data(self):
+        self._current_models, current_data = super()._get_current_data()
+
+        self._current_models.sort(key=lambda x: x.publish_date)
+
+        return self._current_models, current_data
+
+    def _add_data(self, data):
+        self._new_models = self._create_models(data)
+
+        self._add_models(self._new_models)
+
     @classmethod
     def _delete_if_missing(cls, data):
         return data
 
 
+class ReleaseCodeMappingTableUpdater(TableUpdater):
+    def __init__(self, session, release_id: int):
+        super().__init__(session, dbmodel.ReleaseCodeMapping, 'release')
+
+        self._release_id = release_id
+
+    def update(self, data):
+        data.release = self._release_id
+
+        super().update(data)
+
+
 class ModifierTableUpdater(TableUpdater):
-    def __init__(self, session, model_class: type, primary_key):
-        super().__init__(session, model_class, primary_key)
+    def __init__(self, session):
+        super().__init__(session, dbmodel.Modifier, 'modifier')
 
         self._modifier_types = None
 
@@ -233,13 +279,14 @@ class CPTRelationalTableLoader(Loader):
             self._update_tables(data)
 
     def _update_tables(self, data: transform.OutputData):
-        ReleaseTableUpdater(self._session, dbmodel.Release, 'id', match_column='publish_date', dtmatch=True).update(
-            data.release
-        )
+        release_table_updater = ReleaseTableUpdater(self._session)
+        release_table_updater.update(data.release)
 
         TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
 
-        # TableUpdater(self._session, dbmodel.ReleaseCodeMapping, 'release').update(???)
+        ReleaseCodeMappingTableUpdater(self._session, release_table_updater.release_id).update(
+            data.release_code_mapping
+        )
 
         TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
 
@@ -249,7 +296,7 @@ class CPTRelationalTableLoader(Loader):
 
         TableUpdater(self._session, dbmodel.ModifierType, 'id', match_column='name').update(data.modifier_type)
 
-        ModifierTableUpdater(self._session, dbmodel.Modifier, 'modifier').update(data.modifier)
+        ModifierTableUpdater(self._session).update(data.modifier)
 
         TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code').update(data.consumer_descriptor)
 

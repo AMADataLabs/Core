@@ -145,12 +145,12 @@ def _add_release_types():
 
 def _constrain_deleted_columns():
     for table_name in TABLE_NAMES:
-        op.alter_column(table_name, 'deleted', existing_nullable=False, nullable=True, schema='cpt')
+        op.alter_column(table_name, 'deleted', existing_nullable=True, nullable=False, schema='cpt')
 
 
 def _constrain_modified_columns():
     for table_name in TABLE_NAMES:
-        op.alter_column(table_name, 'deleted', existing_nullable=False, nullable=True, schema='cpt')
+        op.alter_column(table_name, 'modified_date', existing_nullable=True, nullable=False, schema='cpt')
 
 
 def _downgrade_data():
