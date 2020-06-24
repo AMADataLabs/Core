@@ -79,36 +79,18 @@ class CSVToRelationalTablesTransformer(Transformer):
         return self._generate_tables(input_data)
 
     def _generate_tables(self, input_data):
-        modifier_types = pandas.DataFrame(dict(name=input_data.modifier['type'].unique()))
-        modifiers = self._generate_modifier_table(input_data.modifier)
-        codes = self._generate_code_table(input_data.short_descriptor)
-        consumer_descriptors = self._generate_consumer_descriptors_table(input_data.consumer_descriptor)
-
         tables = OutputData(
-            release=input_data.release,
-            code=codes,
-            short_descriptor=input_data.short_descriptor.rename(
-                columns=dict(cpt_code='code', short_descriptor='descriptor')
-            ),
-            medium_descriptor=input_data.medium_descriptor.rename(
-                columns=dict(cpt_code='code', medium_descriptor='descriptor')
-            ),
-            long_descriptor=input_data.long_descriptor.rename(
-                columns=dict(cpt_code='code', long_descriptor='descriptor')
-            ),
-            modifier_type=modifier_types,
-            modifier=modifiers,
-            consumer_descriptor=input_data.consumer_descriptor[['cpt_code', 'consumer_descriptor']].rename(
-                columns=dict(cpt_code='code', consumer_descriptor='descriptor')
-            ),
-            clinician_descriptor=input_data.clinician_descriptor[
-                ['clinician_descriptor_id', 'clinician_descriptor']].rename(
-                columns=dict(clinician_descriptor_id='id', clinician_descriptor='descriptor')
-            ),
-            clinician_descriptor_code_mapping=input_data.clinician_descriptor[
-                ['clinician_descriptor_id', 'cpt_code']
-            ].rename(
-                columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')
+            release=self._generate_release_table(input_data.release),
+            code=self._generate_code_table(input_data.short_descriptor),
+            short_descriptor=self._generate_descriptor_table('short_descriptor', input_data.short_descriptor),
+            medium_descriptor=self._generate_descriptor_table('medium_descriptor', input_data.medium_descriptor),
+            long_descriptor=self._generate_descriptor_table('long_descriptor', input_data.long_descriptor),
+            modifier_type=self._generate_modifier_type_table(input_data.modifier),
+            modifier=self._generate_modifier_table(input_data.modifier),
+            consumer_descriptor=self._generate_descriptor_table('consumer_descriptor', input_data.consumer_descriptor),
+            clinician_descriptor=self._generate_clinician_descriptor_table(input_data.clinician_descriptor),
+            clinician_descriptor_code_mapping=self._generate_clinician_descriptor_code_mapping_table(
+                input_data.clinician_descriptor
             ),
             pla_code=None,
             pla_short_descriptor=None,
@@ -167,11 +149,10 @@ class CSVToRelationalTablesTransformer(Transformer):
 
         return tables
 
-    def _generate_modifier_table(self, modifiers):
-        modifiers = self._dedupe_modifiers(modifiers)
-        modifiers['deleted'] = False
+    def _generate_release_table(self, releases):
+        releases['id'] = None
 
-        return modifiers
+        return releases
 
     def _generate_code_table(self, descriptors):
         codes = descriptors[['cpt_code']].rename(
@@ -180,6 +161,41 @@ class CSVToRelationalTablesTransformer(Transformer):
         codes['deleted'] = False
 
         return codes
+
+    def _generate_clinician_descriptor_table(self, descriptors):
+        descriptor_table = self._generate_descriptor_table(
+            'clinician_descriptor',
+            descriptors[['clinician_descriptor_id', 'clinician_descriptor']]
+        )
+
+        return descriptor_table.rename(columns=dict(clinician_descriptor_id='id'))
+
+    def _generate_clinician_descriptor_code_mapping_table(self, descriptors):
+        mapping_table = descriptors[
+            ['clinician_descriptor_id', 'cpt_code']
+        ].rename(
+            columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')
+        )
+        mapping_table = mapping_table[mapping_table.code.apply(lambda x: not x.endswith('U'))]
+
+        return mapping_table
+
+    def _generate_descriptor_table(self, name, descriptors):
+        columns = dict(cpt_code='code')
+        columns[name] = 'descriptor'
+        descriptor_table = descriptors.rename(columns=columns)
+        descriptor_table['deleted'] = False
+
+        return descriptor_table
+
+    def _generate_modifier_type_table(self, modifiers):
+        return pandas.DataFrame(dict(name=modifiers.type.unique()))
+
+    def _generate_modifier_table(self, modifiers):
+        modifiers = self._dedupe_modifiers(modifiers)
+        modifiers['deleted'] = False
+
+        return modifiers
 
     def _dedupe_modifiers(self, modifiers):
         asc_modifiers = modifiers.modifier[modifiers.type == 'Ambulatory Service Center'].tolist()

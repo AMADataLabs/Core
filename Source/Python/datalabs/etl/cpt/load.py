@@ -26,11 +26,12 @@ class IDs:
 
 
 class TableUpdater:
-    def __init__(self, session, model_class: type, primary_key, match_column: str):
+    def __init__(self, session, model_class: type, primary_key, match_column: str = None, dtmatch: bool = False):
         self._session = session
         self._model_class = model_class
         self._primary_key = primary_key
-        self._match_column = match_column
+        self._match_column = match_column or self._primary_key
+        self._date_time_match = dtmatch
 
         mapper = sa.inspect(self._model_class)
         self._columns = [column.key for column in mapper.attrs]
@@ -76,6 +77,10 @@ class TableUpdater:
         return pandas.DataFrame({column:[getattr(result, column) for result in results] for column in self._columns})
 
     def _merge_data(self, current_data, data):
+        if self._date_time_match:
+            data[self._match_column] = pandas.to_datetime(data[self._match_column])
+            current_data[self._match_column] = pandas.to_datetime(current_data[self._match_column])
+
         current_data = self._remove_modified_date(current_data)  # set programmatically
 
         merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
@@ -122,6 +127,8 @@ class TableUpdater:
 
         if conditions:
             filtered_data = data[reduce(lambda x, y: x | y, conditions)]
+        else:
+            filtered_data = pandas.DataFrame(columns=data.columns.values)
 
         return filtered_data
 
@@ -167,6 +174,10 @@ class TableUpdater:
         columns = self._get_model_columns()
         parameters = {column:getattr(row, column) for column in columns}
         model = self._model_class(**parameters)
+        primary_key = getattr(row, self._primary_key)
+
+        if primary_key != primary_key:
+            setattr(model, self._primary_key, None)
 
         if hasattr(model, 'modified_date'):
             model.modified_date = datetime.utcnow().date()
@@ -183,9 +194,15 @@ class TableUpdater:
         return columns
 
 
+class ReleaseTableUpdater(TableUpdater):
+    @classmethod
+    def _delete_if_missing(cls, data):
+        return data
+
+
 class ModifierTableUpdater(TableUpdater):
-    def __init__(self, session, model_class: type, primary_key, match_column: str):
-        super().__init__(session, model_class, primary_key, match_column)
+    def __init__(self, session, model_class: type, primary_key):
+        super().__init__(session, model_class, primary_key)
 
         self._modifier_types = None
 
@@ -216,28 +233,31 @@ class CPTRelationalTableLoader(Loader):
             self._update_tables(data)
 
     def _update_tables(self, data: transform.OutputData):
-        # self._release = self._update_release_table(data.release)
+        ReleaseTableUpdater(self._session, dbmodel.Release, 'id', match_column='publish_date', dtmatch=True).update(
+            data.release
+        )
 
-        TableUpdater(self._session, dbmodel.Code, 'code', 'code').update(data.code)
-        # self._codes = self._update_codes_table(data.code)
+        TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
 
         # TableUpdater(self._session, dbmodel.ReleaseCodeMapping, 'release', 'release').update(???)
 
-        TableUpdater(self._session, dbmodel.ShortDescriptor, 'code', 'code').update(data.short_descriptor)
+        TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
 
-        TableUpdater(self._session, dbmodel.MediumDescriptor, 'code', 'code').update(data.medium_descriptor)
+        TableUpdater(self._session, dbmodel.MediumDescriptor, 'code').update(data.medium_descriptor)
 
-        TableUpdater(self._session, dbmodel.LongDescriptor, 'code', 'code').update(data.long_descriptor)
+        TableUpdater(self._session, dbmodel.LongDescriptor, 'code').update(data.long_descriptor)
 
-        TableUpdater(self._session, dbmodel.ModifierType, 'id', 'name').update(data.modifier_type)
+        TableUpdater(self._session, dbmodel.ModifierType, 'id', match_column='name').update(data.modifier_type)
 
-        ModifierTableUpdater(self._session, dbmodel.Modifier, 'modifier', 'modifier').update(data.modifier)
+        ModifierTableUpdater(self._session, dbmodel.Modifier, 'modifier').update(data.modifier)
 
-        TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code', 'code').update(data.consumer_descriptor)
+        TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code').update(data.consumer_descriptor)
 
-        # self._update_clinician_descriptors_table(data.clinician_descriptor)
+        TableUpdater(self._session, dbmodel.ClinicianDescriptor, 'id').update(data.clinician_descriptor)
 
-        # self._update_clinician_descriptor_code_mappings_table(data.clinician_descriptor_code_mapping)
+        TableUpdater(self._session, dbmodel.ClinicianDescriptorCodeMapping, 'clinician_descriptor').update(
+            data.clinician_descriptor_code_mapping
+        )
 
         # if feature.enabled('PLA'):
         #     self._pla_codes = self._update_pla_code_table(data.pla_code)
