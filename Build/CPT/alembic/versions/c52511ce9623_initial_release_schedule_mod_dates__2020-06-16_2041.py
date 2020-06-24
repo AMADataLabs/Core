@@ -18,7 +18,17 @@ branch_labels = None
 depends_on = None
 
 TABLE_NAMES = [
-    'clinician_descriptor', 'code', 'concept', 'consumer_descriptor', 'lab', 'manufacturer', 'modifier', 'pla_code'
+    'clinician_descriptor',
+    'code',
+    'short_descriptor',
+    'medium_descriptor',
+    'long_descriptor',
+    'concept',
+    'consumer_descriptor',
+    'lab',
+    'manufacturer',
+    'modifier',
+    'pla_code'
 ]
 
 
@@ -141,6 +151,7 @@ def _constrain_modified_columns():
 
 
 def _downgrade_data():
+    op.execute(f"delete from cpt.release")
     op.execute("delete from cpt.release_type")
 
 

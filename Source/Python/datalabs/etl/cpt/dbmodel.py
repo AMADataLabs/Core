@@ -52,6 +52,8 @@ class ShortDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(28), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class MediumDescriptor(Base):
@@ -60,6 +62,8 @@ class MediumDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(48), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class LongDescriptor(Base):
@@ -68,6 +72,8 @@ class LongDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class ConsumerDescriptor(Base):

@@ -82,6 +82,7 @@ class CSVToRelationalTablesTransformer(Transformer):
         modifier_types = pandas.DataFrame(dict(name=input_data.modifier['type'].unique()))
         modifiers = self._generate_modifier_table(input_data.modifier)
         codes = self._generate_code_table(input_data.short_descriptor)
+        consumer_descriptors = self._generate_consumer_descriptors_table(input_data.consumer_descriptor)
 
         tables = OutputData(
             release=input_data.release,

@@ -149,6 +149,7 @@ class TableUpdater:
         columns = self._get_model_columns()
 
         columns.remove(self._primary_key)
+
         if self._match_column in columns:
             columns.remove(self._match_column)
 
@@ -182,7 +183,7 @@ class TableUpdater:
         return columns
 
 
-class ModifierTableUpdater:
+class ModifierTableUpdater(TableUpdater):
     def __init__(self, session, model_class: type, primary_key, match_column: str):
         super().__init__(session, model_class, primary_key, match_column)
 
@@ -195,7 +196,8 @@ class ModifierTableUpdater:
 
     def _merge_data(self, current_data, data):
         merged_data = super()._merge_data(current_data, data)
-        merged_data.type.apply(lambda x: self._modifier_types[x])
+
+        merged_data.loc[:, 'type'] = merged_data.type.apply(lambda x: self._modifier_types[x])
 
         return merged_data
 
