@@ -26,12 +26,11 @@ class IDs:
 
 
 class TableUpdater:
-    def __init__(self, session, model_class: type, primary_key, match_column: str = None, dtmatch: bool = False):
+    def __init__(self, session, model_class: type, primary_key, match_column: str = None):
         self._session = session
         self._model_class = model_class
         self._primary_key = primary_key
         self._match_column = match_column or self._primary_key
-        self._date_time_match = dtmatch
 
         mapper = sa.inspect(self._model_class)
         self._columns = [column.key for column in mapper.attrs]
@@ -78,10 +77,6 @@ class TableUpdater:
         return pandas.DataFrame({column:[getattr(result, column) for result in results] for column in self._columns})
 
     def _merge_data(self, current_data, data):
-        if self._date_time_match:
-            data[self._match_column] = pandas.to_datetime(data[self._match_column])
-            current_data[self._match_column] = pandas.to_datetime(current_data[self._match_column])
-
         current_data = self._remove_modified_date(current_data)  # set programmatically
 
         merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
@@ -197,7 +192,7 @@ class TableUpdater:
 
 class ReleaseTableUpdater(TableUpdater):
     def __init__(self, session):
-        super().__init__(session, dbmodel.Release, 'id', match_column='publish_date', dtmatch=True)
+        super().__init__(session, dbmodel.Release, 'id', match_column='publish_date')
 
         self._current_models = None
         self._new_models = None

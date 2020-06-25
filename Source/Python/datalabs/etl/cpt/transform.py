@@ -1,13 +1,14 @@
 """ CPT ETL Transformer classes """
-from dataclasses import dataclass
+from   dataclasses import dataclass
+from   datetime import datetime
 import io
 import logging
 
 import pandas
 
 import datalabs.feature as feature
-from datalabs.plugin import import_plugin
-from datalabs.etl.transform import Transformer
+from   datalabs.plugin import import_plugin
+from   datalabs.etl.transform import Transformer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -156,7 +157,9 @@ class CSVToRelationalTablesTransformer(Transformer):
         return tables
 
     def _generate_release_table(self, releases):
-        releases['id'] = None
+        releases.id = None
+        releases.publish_date = releases.publish_date.apply(lambda x: datetime.strptime(x, '%Y-%m-%d').date())
+        releases.effective_date = releases.effective_date.apply(lambda x: datetime.strptime(x, '%Y-%m-%d').date())
 
         return releases
 
