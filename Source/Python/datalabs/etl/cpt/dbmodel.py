@@ -42,7 +42,8 @@ class ReleaseCodeMapping(Base):
     __tablename__ = 'release_code_mapping'
     __table_args__ = {"schema": "cpt"}
 
-    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), primary_key=True)
+    id = sa.Column(sa.Integer, primary_key=True)
+    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), nullable=True)
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False)
 
 
@@ -52,6 +53,8 @@ class ShortDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(28), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class MediumDescriptor(Base):
@@ -60,6 +63,8 @@ class MediumDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(48), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class LongDescriptor(Base):
@@ -68,6 +73,8 @@ class LongDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class ConsumerDescriptor(Base):
@@ -145,6 +152,8 @@ class PLAShortDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(28), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class PLAMediumDescriptor(Base):
@@ -153,6 +162,8 @@ class PLAMediumDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(48), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class PLALongDescriptor(Base):
@@ -161,6 +172,8 @@ class PLALongDescriptor(Base):
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
     descriptor = sa.Column(sa.String(), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class Manufacturer(Base):
@@ -203,5 +216,6 @@ class ReleasePLACodeMapping(Base):
     __tablename__ = 'release_pla_code_mapping'
     __table_args__ = {"schema": "cpt"}
 
-    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), primary_key=True)
+    id = sa.Column(sa.Integer, primary_key=True)
+    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), nullable=True)
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
