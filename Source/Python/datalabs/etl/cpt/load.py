@@ -39,6 +39,7 @@ class TableUpdater:
     def update(self, data):
         LOGGER.info('Updating table %s...', self._model_class.__table__.name)
         current_models, current_data = self._get_current_data()
+        LOGGER.debug('New data: %s', data)
 
         old_data, new_data = self._differentiate_data(current_data, data)
 
@@ -236,14 +237,20 @@ class ReleaseTableUpdater(TableUpdater):
 
 class ReleaseCodeMappingTableUpdater(TableUpdater):
     def __init__(self, session, release_id: int):
-        super().__init__(session, dbmodel.ReleaseCodeMapping, 'release')
+        super().__init__(session, dbmodel.ReleaseCodeMapping, 'id')
 
         self._release_id = release_id
 
-    def update(self, data):
-        data.release = self._release_id
+    def _differentiate_data(self, current_data, data):
+        current_columns = [column+'_CURRENT' for column in self._get_changeable_columns()]
+        old_data = pandas.DataFrame(columns=data.columns.values.tolist()+current_columns)
+        new_data = data
+        new_data.release = self._release_id
 
-        super().update(data)
+        if all(current_data.release == self._release_id):
+            new_data = pandas.DataFrame(columns=new_data.columns)
+
+        return old_data, new_data
 
 
 class ModifierTableUpdater(TableUpdater):

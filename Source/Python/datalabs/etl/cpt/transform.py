@@ -169,9 +169,10 @@ class CSVToRelationalTablesTransformer(Transformer):
         return codes
 
     def _generate_release_code_mapping_table(self, releases, codes):
-        release_ids = [None]*len(codes)  # the new release ID is unknown until it is committed to the DB
+        ids = [None]*len(codes)  # Placeholder for new mapping IDs
+        releases = [None]*len(codes)  # the new release ID is unknown until it is committed to the DB
 
-        return pandas.DataFrame(dict(release=release_ids, code=codes.code))
+        return pandas.DataFrame(dict(id=ids, release=releases, code=codes.code))
 
 
     def _generate_clinician_descriptor_table(self, descriptors):
