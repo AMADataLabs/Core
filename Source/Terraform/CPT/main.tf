@@ -76,7 +76,7 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
     description = local.spec_description
 
     tags = {
-        Name = "CPT API Gateway"
+        Name                = "CPT API Gateway"
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
         SystemTier          = local.system_tier
@@ -100,8 +100,8 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway_test" {
         {
             title = local.spec_title,
             description = local.spec_description,
-            region = "us-east-1",
-            lambda_return404_arn = "arn:aws:lambda:us-east-1:644454719059:function:Return404",
+            region = local.region,
+            lambda_return404_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:Return404",
         }
     )
 
@@ -121,6 +121,13 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway_test" {
     }
 }
 
+resource "aws_lambda_permission" "lambda_permissions_return404" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "Return404"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
 
 # resource "aws_lambda_function" "convert_cpt_etl" {
 #     filename        = "../../../Build/CPT/app.zip"
@@ -156,6 +163,8 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway_test" {
 #     }
 # }
 
+data "aws_caller_identity" "account" {}
+
 
 data "aws_ssm_parameter" "database_username" {
     name = "/DataLabs/CPT/RDS/username"
@@ -178,6 +187,7 @@ data "aws_ssm_parameter" "contact" {
 
 
 locals {
+    region              = "us-east-1"
     spec_title          = "CPT API"
     spec_description    = "CPT API Phase I"
     system_tier         = "Application"
