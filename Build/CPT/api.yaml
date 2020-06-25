@@ -406,7 +406,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Modifier'
         '404':
-          description: invalid code
+          description: No data exists for the given modifier.
       security:
         - cpt_auth:
             - 'read:modifier'
