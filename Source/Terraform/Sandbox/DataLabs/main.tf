@@ -14,7 +14,23 @@ resource "aws_ssm_parameter" "account_environment" {
 resource "aws_ssm_parameter" "contact" {
     name  = "/DataLabs/contact"
     type  = "String"
-    value = local.Contact
+    value = local.contact
+    tags = local.tags
+}
+
+
+resource "aws_ssm_parameter" "terraform_state_bucket" {
+    name  = "/DataLabs/Terraform/state_bucket"
+    type  = "String"
+    value = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
+    tags = local.tags
+}
+
+
+resource "aws_ssm_parameter" "terraform_locks_database" {
+    name  = "/DataLabs/Terraform/locks_database"
+    type  = "String"
+    value = "hsg-datalabs-terraform-locks"
     tags = local.tags
 }
 
