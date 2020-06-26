@@ -23,6 +23,7 @@ def main(args):
     shared_source_path = Path(os.path.join(repository_path, 'Source', 'Python')).resolve()
     build_path = Path(os.path.join(repository_path, 'Build', args['project'])).resolve()
     app_path = args['directory'] or os.path.join(build_path, 'app')
+    dependencies_path = os.path.join(app_path, 'site-packages')
 
     if not args['in_place']:
         if os.path.exists(app_path):
@@ -31,7 +32,7 @@ def main(args):
 
         if args['serverless']:
             LOGGER.info('=== Copying Dependencies ===')
-            copy_dependency_files(repository_path, app_path, args['project'])
+            copy_dependency_files(repository_path, dependencies_path, args['project'])
         else:
             os.makedirs(app_path, exist_ok=True)
 
@@ -83,7 +84,7 @@ def zip_bundle_directory(build_path, app_path):
     os.remove(archive_path)
 
     with ZipFile(archive_path, 'w') as archive:
-        archive.write('app')
+        archive.write(app_path, arcname='app')
 
         for contents in os.walk(app_path):
             archive_contents(archive, build_path, contents)
@@ -94,6 +95,9 @@ def copy_alembic_files(build_path, app_path):
     app_alembic_path = os.path.join(app_path, 'alembic')
 
     if os.path.exists(alembic_path):
+        if os.path.exists(app_alembic_path):
+            shutil.rmtree(app_alembic_path)
+
         shutil.copytree(alembic_path, app_alembic_path)
         shutil.copyfile(alembic_path + '.ini', app_alembic_path + '.ini')
 
@@ -107,10 +111,10 @@ def archive_contents(archive, build_path, contents):
 
 
     for d in dirs:
-        archive.write(os.path.join(relative_root, d))
+        archive.write(os.path.join(root, d), arcname=os.path.join(relative_root, d))
 
     for f in files:
-        archive.write(os.path.join(relative_root, f))
+        archive.write(os.path.join(root, f), arcname=os.path.join(relative_root, f))
 
 
 

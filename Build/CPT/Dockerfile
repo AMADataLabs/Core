@@ -3,7 +3,7 @@
 
 FROM python:3.7
 WORKDIR /CPT
-ENV PYTHONPATH=/CPT
+ENV PYTHONPATH=/CPT:/CPT/site-packages
 ENV AWS_SHARED_CREDENTIALS_FILE=/CPT/.aws/credentials
 
 COPY ./Build/CPT/requirements.txt .
