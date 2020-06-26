@@ -71,6 +71,14 @@ EOF
 }
 
 
+resource "aws_lambda_function" "cpt_get_descriptor" {
+    filename        = "../../../Build/CPT/app.zip"
+    function_name   = "CPTGetDescriptor"
+    role            = aws_iam_role.cpt_lambda_role.arn
+    handler         = "datalabs.access.cpt.api.cpt_descriptor_code.lambda_handler"
+    runtime         = "python3.7"
+}
+
 # resource "aws_lambda_function" "ConvertCPT_test" {
 #     filename        = "../../../Build/CPT/app.zip"
 #     function_name   = "ConvertCPT"

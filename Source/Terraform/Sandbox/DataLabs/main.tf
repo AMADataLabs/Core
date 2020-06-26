@@ -3,33 +3,25 @@ provider "aws" {
 }
 
 
-resource "aws_ssm_parameter" "ingestion_bucket" {
-    name  = "/DataLabs/DataLake/ingestion_bucket"
+resource "aws_ssm_parameter" "account_environment" {
+    name  = "/DataLabs/account_environment"
     type  = "String"
-    value = "ama-hsg-datalabs-datalake-ingestion-sandbox"
+    value = local.account_environment
     tags = local.tags
 }
 
 
-resource "aws_ssm_parameter" "processed_bucket" {
-    name  = "/DataLabs/DataLake/processed_bucket"
+resource "aws_ssm_parameter" "contact" {
+    name  = "/DataLabs/contact"
     type  = "String"
-    value = "ama-hsg-datalabs-datalake-processed-sandbox"
+    value = local.Contact
     tags = local.tags
-}
-
-
-data "aws_ssm_parameter" "account_environment" {
-    name = "/DataLabs/account_environment"
-}
-
-
-data "aws_ssm_parameter" "contact" {
-    name = "/DataLabs/contact"
 }
 
 
 locals {
+    account_environment = "Sandbox"
+    contact             = "DataLabs@ama-assn.org"
     system_tier         = "Application"
     na                  = "N/A"
     budget_code         = "PBW"
@@ -37,8 +29,8 @@ locals {
     notes               = ""
     tags                = {
         Name = "Data Labs Data Lake Parameter"
-        Env                 = data.aws_ssm_parameter.account_environment.value
-        Contact             = data.aws_ssm_parameter.contact.value
+        Env                 = "Sandbox"
+        Contact             = local.contact
         SystemTier          = local.system_tier
         DRTier              = local.na
         DataClassification  = local.na
