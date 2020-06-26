@@ -101,6 +101,19 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway_test" {
             title = local.spec_title,
             description = local.spec_description,
             region = local.region,
+            lambda_descriptor_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:cpt_descriptor_code",
+            lambda_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_cpt_descriptors",
+            lambda_consumer_descriptor_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:consumer_descriptor_code",
+            lambda_consumer_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_consumer_descriptor",
+            lambda_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:clinician_descriptor_code",
+            lambda_all_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_clinician_descriptors",
+            # lambda_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:pla_details_code",
+            # lambda_all_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_pla_details",
+            # lambda_modifier_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:modifier_code",
+            # lambda_modifiers_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_modifiers",
+            # lambda_latest_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:latest_pdfs",
+            # lambda_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:pdfs_release",
+            # lambda_releases_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_releases",
             lambda_return404_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:Return404",
         }
     )
@@ -120,6 +133,136 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway_test" {
         MaintenanceWindow   = local.na
     }
 }
+
+
+resource "aws_api_gateway_deployment" "cpt_api_deployment_test" {
+  depends_on = [aws_api_gateway_rest_api.cpt_api_gateway_test]
+
+  rest_api_id = aws_api_gateway_rest_api.cpt_api_gateway_test.id
+  stage_name  = "test"
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_descriptor" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "cpt_descriptor_code"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_descriptors" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "all_cpt_descriptors"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_consumer_descriptor" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "consumer_descriptor_code"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_consumer_descriptors" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "all_consumer_descriptor"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_clinician_descriptors" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "clinician_descriptor_code"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_all_clinician_descriptors" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "all_clinician_descriptor"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_pla_details" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "pla_code"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_all_pla_details" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "all_pla"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_modifier" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "modifier_code"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+resource "aws_lambda_permission" "lambda_permissions_modifiers" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = "all_modifier"
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+}
+
+
+# resource "aws_lambda_permission" "lambda_permissions_latest_pdfs" {
+#   statement_id  = "AllowExecutionFromAPIGateway"
+#   action        = "lambda:InvokeFunction"
+#   function_name = "cpt_descriptor_code"
+#   principal     = "apigateway.amazonaws.com"
+#   source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+# }
+
+
+# resource "aws_lambda_permission" "lambda_permissions_pdfs" {
+#   statement_id  = "AllowExecutionFromAPIGateway"
+#   action        = "lambda:InvokeFunction"
+#   function_name = "cpt_descriptor_code"
+#   principal     = "apigateway.amazonaws.com"
+#   source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+# }
+
+
+# resource "aws_lambda_permission" "lambda_permissions_releases" {
+#   statement_id  = "AllowExecutionFromAPIGateway"
+#   action        = "lambda:InvokeFunction"
+#   function_name = "cpt_descriptor_code"
+#   principal     = "apigateway.amazonaws.com"
+#   source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+# }
+
 
 resource "aws_lambda_permission" "lambda_permissions_return404" {
   statement_id  = "AllowExecutionFromAPIGateway"
