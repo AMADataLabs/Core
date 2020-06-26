@@ -19,20 +19,7 @@ resource "aws_db_instance" "cpt_api_database" {
     username                      = data.aws_ssm_parameter.database_username.value
     password                      = data.aws_ssm_parameter.database_password.value
 
-    tags = {
-        Name = "CPT API Database"
-        Env                 = data.aws_ssm_parameter.account_environment.value
-        Contact             = data.aws_ssm_parameter.contact.value
-        SystemTier          = local.system_tier
-        DRTier              = local.na
-        DataClassification  = local.na
-        BudgetCode          = local.budget_code
-        Owner               = local.owner
-        Notes               = local.notes
-        OS                  = local.na
-        EOL                 = local.na
-        MaintenanceWindow   = local.na
-    }
+    tags = merge(local.tags, {Name = "CPT API Database"})
 }
 
 
@@ -54,20 +41,7 @@ resource "aws_iam_role" "cpt_lambda_role" {
 }
 EOF
 
-    tags = {
-        Name = "CPT API Lambda function execution role"
-        Env                 = data.aws_ssm_parameter.account_environment.value
-        Contact             = data.aws_ssm_parameter.contact.value
-        SystemTier          = local.system_tier
-        DRTier              = local.na
-        DataClassification  = local.na
-        BudgetCode          = local.budget_code
-        Owner               = local.owner
-        Notes               = local.notes
-        OS                  = local.na
-        EOL                 = local.na
-        MaintenanceWindow   = local.na
-    }
+    tags = merge(local.tags, {Name = "CPT API Lambda function execution role"})
 }
 
 
@@ -140,20 +114,7 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
         }
     )
 
-    tags = {
-        Name = "CPT API Gateway"
-        Env                 = data.aws_ssm_parameter.account_environment.value
-        Contact             = data.aws_ssm_parameter.contact.value
-        SystemTier          = local.system_tier
-        DRTier              = local.na
-        DataClassification  = local.na
-        BudgetCode          = local.budget_code
-        Owner               = local.owner
-        Notes               = local.notes
-        OS                  = local.na
-        EOL                 = local.na
-        MaintenanceWindow   = local.na
-    }
+    tags = merge(local.tags, {Name = "CPT API Gateway"})
 }
 
 
@@ -338,13 +299,28 @@ data "aws_ssm_parameter" "contact" {
 }
 
 
+data "aws_ssm_parameter" "lambda_code_bucket" {
+    name = "/DataLabs/lambda_code_bucket"
+}
+
+
+
+
 locals {
     region              = "us-east-1"
     spec_title          = "CPT API"
     spec_description    = "CPT API Phase I"
-    system_tier         = "Application"
-    na                  = "N/A"
-    budget_code         = "PBW"
-    owner               = "Data Labs"
-    notes               = "Experimental"
+    tags = {
+        Env                 = data.aws_ssm_parameter.account_environment.value
+        Contact             = data.aws_ssm_parameter.contact.value
+        SystemTier          = local.system_tier
+        DRTier              = local.na
+        DataClassification  = local.na
+        BudgetCode          = local.budget_code
+        Owner               = local.owner
+        Notes               = local.notes
+        OS                  = local.na
+        EOL                 = local.na
+        MaintenanceWindow   = local.na
+    }
 }

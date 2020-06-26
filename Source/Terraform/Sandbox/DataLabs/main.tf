@@ -35,6 +35,14 @@ resource "aws_ssm_parameter" "terraform_locks_database" {
 }
 
 
+resource "aws_ssm_parameter" "lambda_code_bucket" {
+    name = "/DataLabs/lambda_code_bucket"
+    type  = "String"
+    value = "ama-hsg-datalabs-lambda-code-sandbox"
+    tags = local.tags
+}
+
+
 locals {
     account_environment = "Sandbox"
     contact             = "DataLabs@ama-assn.org"
