@@ -74,27 +74,6 @@ EOF
 resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
     name = local.spec_title
     description = local.spec_description
-
-    tags = {
-        Name                = "CPT API Gateway"
-        Env                 = data.aws_ssm_parameter.account_environment.value
-        Contact             = data.aws_ssm_parameter.contact.value
-        SystemTier          = local.system_tier
-        DRTier              = local.na
-        DataClassification  = local.na
-        BudgetCode          = local.budget_code
-        Owner               = local.owner
-        Notes               = local.notes
-        OS                  = local.na
-        EOL                 = local.na
-        MaintenanceWindow   = local.na
-    }
-}
-
-
-resource "aws_api_gateway_rest_api" "cpt_api_gateway_test" {
-    name = local.spec_title
-    description = local.spec_description
     body = templatefile(
         "${path.module}/../../../Build/CPT/api.yaml",
         {
@@ -136,14 +115,14 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway_test" {
 
 
 resource "aws_api_gateway_deployment" "cpt_api_deployment_test" {
-  depends_on = [aws_api_gateway_rest_api.cpt_api_gateway_test]
+  depends_on = [aws_api_gateway_rest_api.cpt_api_gateway]
 
-  rest_api_id = aws_api_gateway_rest_api.cpt_api_gateway_test.id
+  rest_api_id = aws_api_gateway_rest_api.cpt_api_gateway.id
   stage_name  = "test"
 
   triggers = {
     redeployment = sha1(join(",", list(
-      jsonencode(aws_api_gateway_rest_api.cpt_api_gateway_test),
+      jsonencode(aws_api_gateway_rest_api.cpt_api_gateway),
     )))
   }
 
@@ -158,7 +137,7 @@ resource "aws_lambda_permission" "lambda_permissions_descriptor" {
   action        = "lambda:InvokeFunction"
   function_name = "cpt_descriptor_code"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -167,7 +146,7 @@ resource "aws_lambda_permission" "lambda_permissions_descriptors" {
   action        = "lambda:InvokeFunction"
   function_name = "all_cpt_descriptors"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -176,7 +155,7 @@ resource "aws_lambda_permission" "lambda_permissions_consumer_descriptor" {
   action        = "lambda:InvokeFunction"
   function_name = "consumer_descriptor_code"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -185,7 +164,7 @@ resource "aws_lambda_permission" "lambda_permissions_consumer_descriptors" {
   action        = "lambda:InvokeFunction"
   function_name = "all_consumer_descriptor"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -194,7 +173,7 @@ resource "aws_lambda_permission" "lambda_permissions_clinician_descriptors" {
   action        = "lambda:InvokeFunction"
   function_name = "clinician_descriptor_code"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -203,7 +182,7 @@ resource "aws_lambda_permission" "lambda_permissions_all_clinician_descriptors" 
   action        = "lambda:InvokeFunction"
   function_name = "all_clinician_descriptor"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -212,7 +191,7 @@ resource "aws_lambda_permission" "lambda_permissions_pla_details" {
   action        = "lambda:InvokeFunction"
   function_name = "pla_code"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -221,7 +200,7 @@ resource "aws_lambda_permission" "lambda_permissions_all_pla_details" {
   action        = "lambda:InvokeFunction"
   function_name = "all_pla"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -230,7 +209,7 @@ resource "aws_lambda_permission" "lambda_permissions_modifier" {
   action        = "lambda:InvokeFunction"
   function_name = "modifier_code"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -239,7 +218,7 @@ resource "aws_lambda_permission" "lambda_permissions_modifiers" {
   action        = "lambda:InvokeFunction"
   function_name = "all_modifier"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 
@@ -248,7 +227,7 @@ resource "aws_lambda_permission" "lambda_permissions_modifiers" {
 #   action        = "lambda:InvokeFunction"
 #   function_name = "cpt_descriptor_code"
 #   principal     = "apigateway.amazonaws.com"
-#   source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+#   source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 # }
 
 
@@ -257,7 +236,7 @@ resource "aws_lambda_permission" "lambda_permissions_modifiers" {
 #   action        = "lambda:InvokeFunction"
 #   function_name = "cpt_descriptor_code"
 #   principal     = "apigateway.amazonaws.com"
-#   source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+#   source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 # }
 
 
@@ -266,7 +245,7 @@ resource "aws_lambda_permission" "lambda_permissions_modifiers" {
 #   action        = "lambda:InvokeFunction"
 #   function_name = "cpt_descriptor_code"
 #   principal     = "apigateway.amazonaws.com"
-#   source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+#   source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 # }
 
 
@@ -275,7 +254,7 @@ resource "aws_lambda_permission" "lambda_permissions_return404" {
   action        = "lambda:InvokeFunction"
   function_name = "Return404"
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway_test.id}/*/*/*"
+  source_arn    = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*/*"
 }
 
 # resource "aws_lambda_function" "convert_cpt_etl" {

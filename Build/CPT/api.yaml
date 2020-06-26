@@ -592,7 +592,7 @@ paths:
       security:
         - cpt_auth:
             - 'read:release'
-  /{proxy}:
+  /{proxy+}:
     get:
       parameters:
         - name: proxy
