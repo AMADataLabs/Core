@@ -28,7 +28,8 @@ class PLAParser(Parser):
         return self._generate_dataframe()
 
     def _extract_fields(self, text):
-        root = et.fromstring(text)
+        text_split = text.split("\n", 1)[1]
+        root = et.fromstring(text_split)
 
         for c in root.findall('plaCode'):
             self._pla_code.append(c.attrib.get('cdCode'))
