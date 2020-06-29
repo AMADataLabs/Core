@@ -23,7 +23,6 @@ def main(args):
     shared_source_path = Path(os.path.join(repository_path, 'Source', 'Python')).resolve()
     build_path = Path(os.path.join(repository_path, 'Build', args['project'])).resolve()
     app_path = args['directory'] or os.path.join(build_path, 'app')
-    dependencies_path = os.path.join(app_path, 'site-packages')
 
     if not args['in_place']:
         if os.path.exists(app_path):
@@ -32,7 +31,7 @@ def main(args):
 
         if args['serverless']:
             LOGGER.info('=== Copying Dependencies ===')
-            copy_dependency_files(repository_path, dependencies_path, args['project'])
+            copy_dependency_files(repository_path, app_path, args['project'])
         else:
             os.makedirs(app_path, exist_ok=True)
 
@@ -85,31 +84,31 @@ def zip_bundle_directory(build_path, app_path):
         os.remove(archive_path)
 
     with ZipFile(archive_path, 'w') as archive:
-        archive.write(app_path, arcname='app')
+        # archive.write(app_path, arcname='app')
 
         for contents in os.walk(app_path):
-            archive_contents(archive, build_path, contents)
+            archive_contents(archive, app_path, contents)
 
 
 def copy_alembic_files(build_path, app_path):
     alembic_path = os.path.join(build_path, 'alembic')
     app_alembic_path = os.path.join(app_path, 'alembic')
 
-    if os.path.exists(alembic_path):
-        if os.path.exists(app_alembic_path):
-            shutil.rmtree(app_alembic_path)
+    remove_alembic_files(app_alembic_path)
 
-        shutil.copytree(alembic_path, app_alembic_path)
+    if os.path.exists(alembic_path):
+        shutil.copytree(os.path.join(alembic_path, 'versions'), os.path.join(app_alembic_path, 'versions'))
+        shutil.copyfile(os.path.join(alembic_path, 'script.py.mako'), os.path.join(app_alembic_path, 'env.py'))
+        shutil.copyfile(os.path.join(alembic_path, 'env.py'), os.path.join(app_alembic_path, 'script.py.mako'))
         shutil.copyfile(alembic_path + '.ini', app_alembic_path + '.ini')
 
 
-def archive_contents(archive, build_path, contents):
+def archive_contents(archive, app_path, contents):
     root, dirs, files = contents
-    relative_root = root.replace(str(build_path), '')[1:]
-    LOGGER.debug('Build Path: %s', build_path)
+    relative_root = root.replace(str(app_path), '')[1:]
+    LOGGER.debug('Build Path: %s', app_path)
     LOGGER.debug('Root Path: %s', root)
     LOGGER.debug('Relative Root Path: %s', relative_root)
-
 
     for d in dirs:
         archive.write(os.path.join(root, d), arcname=os.path.join(relative_root, d))
@@ -117,6 +116,20 @@ def archive_contents(archive, build_path, contents):
     for f in files:
         archive.write(os.path.join(root, f), arcname=os.path.join(relative_root, f))
 
+
+def remove_alembic_files(app_alembic_path):
+    versions_path = os.path.join(app_alembic_path, 'versions')
+    env_path = os.path.join(app_alembic_path, 'env.py')
+    mako_path = os.path.join(app_alembic_path, 'script.py.mako')
+
+    if os.path.exists(versions_path):
+        shutil.rmtree(versions_path)
+
+    if os.path.exists(env_path):
+        os.remove(env_path)
+
+    if os.path.exists(mako_path):
+        os.remove(mako_path)
 
 
 if __name__ == '__main__':
