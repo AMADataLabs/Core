@@ -1,5 +1,7 @@
+
+
 resource "aws_s3_bucket" "terraform_state_store" {
-    bucket = var.state_bucket
+    bucket = data.aws_ssm_parameter.terraform_state_bucket.value
 
     lifecycle {
         prevent_destroy = true
@@ -9,25 +11,12 @@ resource "aws_s3_bucket" "terraform_state_store" {
         enabled = true
     }
 
-    tags = {
-        Name = "Data Labs Datalake Terraform State Bucket"
-        Env                 = var.environment
-        Contact             = var.contact
-        SystemTier          = local.system_tier
-        DRTier              = local.na
-        DataClassification  = local.na
-        BudgetCode          = local.budget_code
-        Owner               = local.owner
-        Notes               = local.notes
-        OS                  = local.na
-        EOL                 = local.na
-        MaintenanceWindow   = local.na
-    }
+    tags = merge(local.tags, {Name = "Data Labs Terraform State Bucket"})
 }
 
 
 resource "aws_s3_bucket_public_access_block" "terraform_state_store_public_access_block" {
-    bucket = var.state_bucket
+    bucket = data.aws_ssm_parameter.terraform_state_bucket.value
 
     block_public_acls       = true
     block_public_policy     = true
@@ -37,7 +26,7 @@ resource "aws_s3_bucket_public_access_block" "terraform_state_store_public_acces
 
 
 resource "aws_dynamodb_table" "terraform_locks_store" {
-    name            = "hsg-datalabs-terraform-locks"
+    name            = data.aws_ssm_parameter.terraform_locks_database.value
     billing_mode    = "PAY_PER_REQUEST"
     hash_key        = "LockID"
 
@@ -46,37 +35,27 @@ resource "aws_dynamodb_table" "terraform_locks_store" {
         type = "S"
     }
 
-    tags = {
-        Name = "Data Labs Datalake Terraform State Bucket"
-        Env                 = var.environment
-        Contact             = var.contact
-        SystemTier          = local.system_tier
-        DRTier              = local.na
-        DataClassification  = local.na
-        BudgetCode          = local.budget_code
-        Owner               = local.owner
-        Notes               = local.notes
-        OS                  = local.na
-        EOL                 = local.na
-        MaintenanceWindow   = local.na
-    }
+    tags = merge(local.tags, {Name = "Data Labs Terraform State Locks Database"})
 }
 
 
-variable "state_bucket" {
-    description = "S3 bucket for storing Terraform state."
+data "aws_ssm_parameter" "terraform_state_bucket" {
+    name = "/DataLabs/Terraform/state_bucket"
 }
 
 
-variable "environment" {
-    description = "AWS Account Environment"
-    type        = string
+data "aws_ssm_parameter" "terraform_locks_database" {
+    name = "/DataLabs/Terraform/locks_database"
 }
 
 
-variable "contact" {
-    description = "Email address of the Data Labs contact."
-    type        = string
+data "aws_ssm_parameter" "account_environment" {
+    name = "/DataLabs/account_environment"
+}
+
+
+data "aws_ssm_parameter" "contact" {
+    name = "/DataLabs/contact"
 }
 
 
@@ -85,5 +64,17 @@ locals {
     na                  = "N/A"
     budget_code         = "PBW"
     owner               = "Data Labs"
-    notes               = "Experimental"
+    notes               = ""
+    tags                = {
+        Env                 = data.aws_ssm_parameter.account_environment.value
+        Contact             = data.aws_ssm_parameter.contact.value
+        SystemTier          = local.system_tier
+        DRTier              = local.na
+        DataClassification  = local.na
+        BudgetCode          = local.budget_code
+        Owner               = local.owner
+        OS                  = local.na
+        EOL                 = local.na
+        MaintenanceWindow   = local.na
+    }
 }
