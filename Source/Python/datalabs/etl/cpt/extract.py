@@ -13,8 +13,7 @@ class CPTTextDataExtractor(S3WindowsTextExtractor):
         release_date = self._extract_release_date()
         release_schedule = json.loads(self._configuration['RELEASE_SCHEDULE'])
 
-        data.append(self._generate_release_types(release_schedule))
-        data.append(self._generate_release_details(release_schedule, release_date))
+        data.insert(0, self._generate_release_details(release_schedule, release_date))
 
         return data
 
@@ -33,16 +32,21 @@ class CPTTextDataExtractor(S3WindowsTextExtractor):
 
     def _generate_release_details(self, release_schedule, release_date):
         release_type = self._get_release_type(release_schedule, release_date)
-        effective_date = release_schedule[release_type][1]
-        effective_date = date(release_date.year, effective_date.month, effective_date.day)
+        effective_date = release_date
 
-        return pandas.DataFrame(
+        if release_type != 'OTHER':
+            effective_date = release_schedule[release_type][1]
+            effective_date = date(release_date.year, effective_date.month, effective_date.day)
+
+        data = pandas.DataFrame(
             dict(
                 publish_date=[release_date],
                 effective_date=[effective_date],
                 type=[release_type]
             )
         )
+
+        return data.to_csv()
 
     def _get_release_type(self, release_schedule, release_date):
         release_date_for_lookup = date(1900, release_date.month, release_date.day)

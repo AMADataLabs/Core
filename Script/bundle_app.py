@@ -81,7 +81,8 @@ def log_copied_source_files(shared_source_path, app_path, relative_file_paths):
 def zip_bundle_directory(build_path, app_path):
     archive_path = os.path.join(build_path, 'app.zip')
 
-    os.remove(archive_path)
+    if os.path.exists(archive_path):
+        os.remove(archive_path)
 
     with ZipFile(archive_path, 'w') as archive:
         archive.write(app_path, arcname='app')

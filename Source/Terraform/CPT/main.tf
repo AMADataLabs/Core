@@ -281,7 +281,7 @@ data "aws_caller_identity" "account" {}
 
 
 data "aws_ssm_parameter" "database_username" {
-    name = "/DataLabs/CPT/RDS/username"
+    name = "/DataLabs/CPT/RDS/username"R
 }
 
 
@@ -291,12 +291,12 @@ data "aws_ssm_parameter" "database_password" {
 
 
 data "aws_ssm_parameter" "account_environment" {
-    name = "/DataLabs/DataLake/account_environment"
+    name = "/DataLabs/account_environment"
 }
 
 
 data "aws_ssm_parameter" "contact" {
-    name = "/DataLabs/DataLake/contact"
+    name = "/DataLabs/contact"
 }
 
 
@@ -311,15 +311,16 @@ locals {
     region              = "us-east-1"
     spec_title          = "CPT API"
     spec_description    = "CPT API Phase I"
+    na                  = "N/A"
     tags = {
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
-        SystemTier          = local.system_tier
+        SystemTier          = "Application"
         DRTier              = local.na
         DataClassification  = local.na
-        BudgetCode          = local.budget_code
-        Owner               = local.owner
-        Notes               = local.notes
+        BudgetCode          = "PBW"
+        Owner               = "Data Labs"
+        Notes               = ""
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na
