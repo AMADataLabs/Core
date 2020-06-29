@@ -32,13 +32,7 @@ def query_for_descriptor(session, path_parameter):
 
 def get_content_from_query_output(query):
     if query is not None and query.count() != 0:
-        rows = []
-        for row in query.all():
-            record = {
-                'code': row.code,
-                'description': row.descriptor
-            }
-            rows.append(record)
+        rows = [dict(code=row.code, descriptor=row.descriptor) for row in query.all()]
         status_code = 200
 
     else:

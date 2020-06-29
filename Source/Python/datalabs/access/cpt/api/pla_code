@@ -1,4 +1,5 @@
 import sqlalchemy
+import json
 from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
 from datalabs.etl.cpt.dbmodel import PLACode, PLAShortDescriptor, PLAMediumDescriptor, PLALongDescriptor, Manufacturer, \
@@ -7,87 +8,99 @@ from datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
+    path_parameter = event.get('pathParameters', None)
+
+    session = create_database_connection()
+    query = query_for_descriptor(session, path_parameter)
+
+    status_code, response = get_response_data_from_query(query, path_parameter.get('lengths', None))
+
+    return {'statusCode': status_code, 'body': json.dumps(response)}
+
+
+def create_database_connection():
     engine = create_engine(Database.url)
     Session = sessionmaker(bind=engine)
-    session = Session()
-
-    status_code, response = query_event(event.get('code', None), session)
-    return {'statusCode': status_code, 'body': response}
+    return Session()
 
 
-def query_event(event, session):
-    if event is None:
-        return 400, {'code': 'not given'}
-    else:
-        query = query_for_code(event, session)
-        return get_response_data_from_query(query, event.get('length', None))
+def query_for_descriptor(session, path_parameter):
+    query = None
 
+    if path_parameter is not None:
+        query = session.query(PLACode, PLALongDescriptor, PLAMediumDescriptor, PLAShortDescriptor).join(
+            PLALongDescriptor,
+            PLAMediumDescriptor,
+            PLAShortDescriptor,
+            Manufacturer, Lab,
+            Release)
+        query = query.filter(PLACode.code == path_parameter['code'])
 
-def query_for_code(event, session):
-    query = session.query(PLACode, PLALongDescriptor, PLAShortDescriptor, PLAMediumDescriptor).join(PLAShortDescriptor,
-                                                                                                    PLALongDescriptor,
-                                                                                                    PLAMediumDescriptor)\
-        .filter(PLACode.code == event)
     return query
 
 
 def get_response_data_from_query(query, lengths):
     if lengths is not None:
-        return get_filtered_length_response(query, lengths)
+        if lengths_exist(lengths):
+            status_code, response_data = get_filtered_length_response(query, lengths)
+        else:
+            status_code = 400
+            response_data = {'length(s)': 'invalid'}
     else:
-        return get_content_from_query(query)
+        status_code, response_data = get_content_from_query(query)
+
+    return status_code, response_data
+
+
+def lengths_exist(lengths):
+    length_dict = {"long": PLALongDescriptor, "medium": PLAMediumDescriptor, "short": PLAShortDescriptor}
+    return all([length in lengths for length in length_dict.keys()])
 
 
 def get_filtered_length_response(query, lengths):
     length_dict = {"long": "PLALongDescriptor", "medium": "PLAMediumDescriptor", "short": "PLAShortDescriptor"}
-    result = []
-    query_exist = query_exists(query)
+    response_rows = []
 
-    if query_exist:
+    if query is not None:
         for row in query.all():
-            result.append({
-                "code": row.Code.code,
-                lengths + '_descriptor': getattr(row, length_dict.get(lengths)).descriptor,
-                'code_status': row.PLACode.status,
-                'effective_date': row.Release.effective_date,
-                'lab_name': row.Lab.name,
-                'manufacturer_name': row.Manufacturer.name,
-                'publish_date': row.Release.publish_date,
-                'test_name': row.PLACode.test_name
-            })
-        return 200, result
+            response_data = {'code': row.PLACode.code,
+                             'code_status': row.PLACode.status,
+                             'effective_date': row.Release.effective_date,
+                             'lab_name': row.Lab.name,
+                             'manufacturer_name': row.Manufacturer.name,
+                             'publish_date': row.Release.publish_date,
+                             'test_name': row.PLACode.test_name}
+            for length in lengths:
+                length = {length + '_descriptor': getattr(row, length_dict.get(length)).descriptor}
+                response_data.update(length)
+
+            response_rows.append(response_data)
+        status_code = 200
+
     else:
-        return 400, {"invalid": "code"}
+        response_rows = {'code': 'invalid'}
+        status_code = 404
+
+    return status_code, response_rows
 
 
 def get_content_from_query(query):
-    result = []
-    query_exist = query_exists(query)
+    if query is not None:
+        rows = [dict(
+            code=row.PLACode.code,
+            long_descriptor=row.PLALongDescriptor.descriptor,
+            medium_descriptor=row.PLAMediumDescriptor.descriptor,
+            short_descriptor=row.PLAShortDescriptor.descriptor,
+            code_status=row.PLACode.status,
+            effective_date=row.Release.effective_date,
+            lab_name=row.Lab.name,
+            manufacturer_name=row.Manufacturer.name,
+            publish_date=row.Release.publish_date,
+            test_name=row.PLACode.test_name) for row in query.all()]
+        status_code = 200
 
-    if query_exist:
-        for row in query.all():
-            record = {
-                'code': row.PLACode.code,
-                'long_descriptor': row.PLALongDescriptor.descriptor,
-                'medium_descriptor': row.PLAMediumDescriptor.descriptor,
-                'short_descriptor': row.PLAShortDescriptor.descriptor,
-                'code_status': row.PLACode.status,
-                'effective_date': row.Release.effective_date,
-                'lab_name': row.Lab.name,
-                'manufacturer_name': row.Manufacturer.name,
-                'publish_date': row.Release.publish_date,
-                'test_name': row.PLACode.test_name
-            }
-
-            result.append(record)
-
-        return 200, result
     else:
-        return 400, {"invalid": "code"}
+        rows = {'code': 'invalid'}
+        status_code = 404
 
-
-def query_exists(query):
-    if query.count() == 0:
-        return False
-    else:
-        return True
+    return status_code, rows

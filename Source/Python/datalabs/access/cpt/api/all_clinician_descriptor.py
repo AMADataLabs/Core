@@ -6,17 +6,16 @@ import json
 
 
 def lambda_handler(event, context):
+    query_parameter = event.get('multiValueQueryStringParameters', None)
+
     session = create_database_connection()
     query = query_for_descriptor(session)
 
-    if event.get('multiValueQueryStringParameters', None) is not None:
-        query = filter_query_for_release(event, session, query)
-        query = filter_query_for_keyword(event, query)
+    if query_parameter is not None:
+        query = filter_query_for_release(query_parameter.get('since', None), session, query)
+        query = filter_query_for_keyword(query_parameter.get('keyword', None), query)
 
-        status_code, response = get_response_data_from_query(query)
-
-    else:
-        status_code, response = get_response_data_from_query(query)
+    status_code, response = get_response_data_from_query(query)
 
     return {
         "statusCode": status_code,
@@ -35,37 +34,29 @@ def query_for_descriptor(session):
     return query
 
 
-def filter_query_for_release(event, session, query):
+def filter_query_for_release(since, session, query):
     # needs editing
-    if event['multiValueQueryStringParameters'].get('since', None) is not None:
+    if since is not None:
         query = session.query().add_column(Release.publish_date)
-        query = query.filter(Release.publish_date.like('%{}%'.format(event)))
+        query = query.filter(Release.publish_date.like('%{}%'.format(since)))
 
     return query
 
 
-def filter_query_for_keyword(event, query):
-    filter_conditions = []
-
-    if event['multiValueQueryStringParameters'].get('keyword', None) is not None:
-        for word in event['multiValueQueryStringParameters']['keyword']:
-            filter_conditions.append(ClinicianDescriptor.descriptor.ilike('%{}%'.format(word)))
-
+def filter_query_for_keyword(keyword, query):
+    if keyword is not None:
+        filter_conditions = [(ClinicianDescriptor.descriptor.ilike('%{}%'.format(word))) for word in keyword]
         query = query.filter(or_(*filter_conditions))
 
     return query
 
 
 def get_response_data_from_query(query):
-    response_rows = []
-
-    for row in query.all():
-        response_data = {
-            'id': row.ClinicianDescriptor.id,
-            'code': row.ClinicianDescriptorCodeMapping.code,
-            'descriptor': row.ClinicianDescriptor.descriptor
-        }
-
-        response_rows.append(response_data)
+    response_rows = [
+        dict(
+            id=row.ClinicianDescriptor.id,
+            code=row.ClinicianDescriptorCodeMapping.code,
+            descriptor=row.ClinicianDescriptor.descriptor)
+        for row in query.all()]
 
     return 200, response_rows

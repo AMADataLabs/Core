@@ -1,26 +1,19 @@
-from   sqlalchemy import create_engine
-from   sqlalchemy.orm import sessionmaker
-from   datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor
-from   datalabs.access.database import Database
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor
+from datalabs.access.database import Database
 import json
 
 
 def lambda_handler(event, context):
+    path_parameter = event.get('pathParameters', None)
+
     session = create_database_connection()
+    query = query_for_descriptor(session, path_parameter)
 
-    query = query_for_descriptor(session)
-    query = query_by_code(query, event)
+    status_code, response = get_response_data_from_query(query, path_parameter.get('lengths', None))
 
-    if event.get('multiValueQueryStringParameters', None) is not None:
-        status_code, response = get_filtered_length_response(query, event['multiValueQueryStringParameters']['length'])
-    else:
-        response = get_content_from_query(query)
-        status_code = 200
-
-    return {
-        "statusCode": status_code,
-        "body": json.dumps(response)
-    }
+    return {'statusCode': status_code, 'body': json.dumps(response)}
 
 
 def create_database_connection():
@@ -29,51 +22,34 @@ def create_database_connection():
     return Session()
 
 
-def query_for_descriptor(session):
-    query = session.query(Code, LongDescriptor, MediumDescriptor, ShortDescriptor).join(LongDescriptor,
-                                                                                        MediumDescriptor,
-                                                                                        ShortDescriptor)
-    return query
+def query_for_descriptor(session, path_parameter):
+    query = None
 
-
-def query_by_code(query, event):
-    if event.get('pathParameters', None) is not None:
-        query = query.filter(Code.code == event['pathParameters']['code'])
-
-    else:
-        query = None
+    if path_parameter is not None:
+        query = session.query(Code, LongDescriptor, MediumDescriptor, ShortDescriptor).join(LongDescriptor,
+                                                                                            MediumDescriptor,
+                                                                                            ShortDescriptor)
+        query = query.filter(Code.code == path_parameter['code'])
 
     return query
 
 
-def get_response_data_from_query(query, event):
-    lengths = event["multiValueQueryStringParameters"].get('length', None)
-
+def get_response_data_from_query(query, lengths):
     if lengths is not None:
         if lengths_exist(lengths):
-            response_data = get_filtered_length_response(query, lengths)
-            status_code = 200
+            status_code, response_data = get_filtered_length_response(query, lengths)
         else:
             status_code = 400
             response_data = {'length(s)': 'invalid'}
     else:
-        response_data = get_content_from_query(query)
-        status_code = 200
+        status_code, response_data = get_content_from_query(query)
 
     return status_code, response_data
 
 
 def lengths_exist(lengths):
     length_dict = {"long": LongDescriptor, "medium": MediumDescriptor, "short": ShortDescriptor}
-
-    for length in lengths:
-        if length in list(length_dict.keys()):
-            condition = True
-        else:
-            condition = False
-            break
-
-    return condition
+    return all([length in lengths for length in length_dict.keys()])
 
 
 def get_filtered_length_response(query, lengths):
@@ -87,27 +63,26 @@ def get_filtered_length_response(query, lengths):
                 response_row.update({length + '_descriptor': getattr(row, length_dict.get(length)).descriptor})
 
             response_data.append(response_row)
-    else:
-        response_data = {'code': 'not given'}
+        status_code = 200
 
-    return response_data
+    else:
+        response_data = {'code': 'invalid'}
+        status_code = 404
+
+    return status_code, response_data
 
 
 def get_content_from_query(query):
-    response_row = []
-    print(query)
+
     if query is not None:
-        for row in query.all():
-            response_data = {
-                'code': row.Code.code,
-                'long_descriptor': row.LongDescriptor.descriptor,
-                'medium_descriptor': row.MediumDescriptor.descriptor,
-                'short_descriptor': row.ShortDescriptor.descriptor
-            }
-            response_row.append(response_data)
+        response_row = [dict(
+            code=row.Code.code,
+            long_descriptor=row.LongDescriptor.descriptor,
+            medium_descriptor=row.MediumDescriptor.descriptor,
+            short_descriptor=row.ShortDescriptor.descriptor,) for row in query.all()]
+        status_code = 200
     else:
-        response_row = {'code': 'not given'}
+        response_row = {'code': 'invalid'}
+        status_code = 404
 
-    return response_row
-
-
+    return status_code, response_row

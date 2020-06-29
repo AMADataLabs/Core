@@ -44,12 +44,8 @@ def filter_query_for_release(since, session, query):
 
 
 def filter_query_for_keywords(keyword, query):
-    filter_conditions = []
-
     if keyword is not None:
-        for word in keyword:
-            filter_conditions.append(ConsumerDescriptor.descriptor.ilike('%{}%'.format(word)))
-
+        filter_conditions = [(ConsumerDescriptor.descriptor.ilike('%{}%'.format(word))) for word in keyword]
         query = query.filter(or_(*filter_conditions))
 
     return query
