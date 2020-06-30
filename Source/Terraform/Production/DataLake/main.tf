@@ -26,7 +26,7 @@ resource "aws_ssm_parameter" "account_environment" {
 
 
 resource "aws_ssm_parameter" "contact" {
-    name  = "/DataLabs/DataLake/contact"
+    name  = "/DataLabs/contact"
     type  = "String"
     value = "DLHSDataLabs@ama-assn.org"
 }
