@@ -7,6 +7,7 @@ from time import strftime
 import glob
 import re
 
+
 # TODO:
 # 1. function check name format 3.5
 # 2. get statistic data for weekly report and get PowerBI Dashboard
@@ -21,6 +22,7 @@ count_log_path = 'U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/Dat
 file_log_path  = 'U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityFileLog.csv'
 
 date = str(datetime.datetime.now().date())
+
 
 
 
