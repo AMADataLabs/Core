@@ -1,15 +1,15 @@
 """ CPT ETL Loader classes """
-from   collections import defaultdict
-from   dataclasses import dataclass
-from   datetime import datetime
-from   functools import reduce
+from collections import defaultdict
+from dataclasses import dataclass
+from datetime import datetime
+from functools import reduce
 import logging
 
 import pandas
 import sqlalchemy as sa
 
-from   datalabs.access.orm import Database
-from   datalabs.etl.load import Loader
+from datalabs.access.orm import Database
+from datalabs.etl.load import Loader
 import datalabs.etl.cpt.dbmodel as dbmodel
 import datalabs.etl.cpt.transform as transform
 import datalabs.feature as feature
@@ -74,11 +74,12 @@ class TableUpdater:
         self._add_models(models)
 
     def _get_query_results_data(self, results):
-        return pandas.DataFrame({column:[getattr(result, column) for result in results] for column in self._columns})
+        return pandas.DataFrame({column: [getattr(result, column) for result in results] for column in self._columns})
 
     def _merge_data(self, current_data, data):
+        LOGGER.debug('data: %s', data)
+        LOGGER.debug('current_data: %s', current_data)
         current_data = self._remove_modified_date(current_data)  # set programmatically
-
         merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
 
         merged_data = self._delete_if_missing(merged_data)
@@ -129,7 +130,7 @@ class TableUpdater:
         return filtered_data
 
     def _get_matching_models(self, models, filtered_data):
-        model_map = {getattr(model, self._primary_key):model for model in models}
+        model_map = {getattr(model, self._primary_key): model for model in models}
 
         return [model_map[key] for key in getattr(filtered_data, self._primary_key)]
 
@@ -168,7 +169,7 @@ class TableUpdater:
 
     def _create_model(self, row):
         columns = self._get_model_columns()
-        parameters = {column:getattr(row, column) for column in columns}
+        parameters = {column: getattr(row, column) for column in columns}
         model = self._model_class(**parameters)
         primary_key = getattr(row, self._primary_key)
 
@@ -201,7 +202,6 @@ class ReleaseTableUpdater(TableUpdater):
     @property
     def release_id(self):
         return self._release_id
-    
 
     def update(self, data):
         super().update(data)
@@ -237,8 +237,8 @@ class ReleaseCodeMappingTableUpdater(TableUpdater):
         self._release_id = release_id
 
     def _differentiate_data(self, current_data, data):
-        current_columns = [column+'_CURRENT' for column in self._get_changeable_columns()]
-        old_data = pandas.DataFrame(columns=data.columns.values.tolist()+current_columns)
+        current_columns = [column + '_CURRENT' for column in self._get_changeable_columns()]
+        old_data = pandas.DataFrame(columns=data.columns.values.tolist() + current_columns)
         new_data = data
         new_data.release = self._release_id
 
@@ -255,7 +255,7 @@ class ModifierTableUpdater(TableUpdater):
         self._modifier_types = None
 
     def _get_current_data(self):
-        self._modifier_types = {type_.name:type_.id for type_ in self._session.query(dbmodel.ModifierType).all()}
+        self._modifier_types = {type_.name: type_.id for type_ in self._session.query(dbmodel.ModifierType).all()}
 
         return super()._get_current_data()
 
@@ -308,25 +308,24 @@ class CPTRelationalTableLoader(Loader):
             data.clinician_descriptor_code_mapping
         )
 
-        if feature.enabled('PLA'):
-            TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
+        TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
 
-            # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
+        # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
 
-            TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
+        TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
 
-            TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
+        TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
 
-            TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
+        TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
 
-            TableUpdater(self._session, dbmodel.Manufacturer, 'code').update(data.manufacturer)
+        TableUpdater(self._session, dbmodel.Manufacturer, 'id').update(data.manufacturer)
 
-            TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
-                data.manufacturer_pla_code_mapping
-            )
+        TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
+            data.manufacturer_pla_code_mapping
+        )
 
-            TableUpdater(self._session, dbmodel.Lab, 'code').update(data.lab)
+        TableUpdater(self._session, dbmodel.Lab, 'id').update(data.lab)
 
-            TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
+        TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
 
         self._session.commit()
