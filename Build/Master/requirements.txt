@@ -2,6 +2,7 @@ setuptools==41.0.0
 alembic==1.4.2
 boto3==1.12.45
 coverage==5.1
+docker==4.2.1
 doit==0.31.1
 Flask==1.1.1
 feather-format==0.4.0

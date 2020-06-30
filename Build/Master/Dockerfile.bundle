@@ -1,0 +1,43 @@
+# Build Example:
+#    docker build -t cpt -f ./Build/CPT/Dockerfile ./
+
+# FROM python:3.7
+FROM amazonlinux as amazon-python
+WORKDIR /Build
+RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel wget tar gzip make
+RUN wget https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
+RUN tar xzf Python-3.7.7.tgz
+
+WORKDIR /Build/Python-3.7.7
+RUN ./configure --enable-optimizations
+RUN make altinstall
+
+
+FROM amazonlinux as build
+ARG PROJECT
+WORKDIR /Build
+COPY --from=amazon-python /usr/local/bin/py*3.7* /usr/local/bin/
+COPY --from=amazon-python /usr/local/bin/pip3.7 /usr/local/bin/
+COPY --from=amazon-python /usr/local/lib/python3.7 /usr/local/lib/python3.7
+
+ENV PYTHONPATH=/Build:/Build/Source/Python
+COPY Script Script
+COPY Build/${PROJECT} Build/${PROJECT}
+COPY Source Source
+
+RUN python3.7 ./Script/bundle_app.py --directory ./ ${PROJECT}
+RUN pip3.7 install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r Build/${PROJECT}/requirements.txt
+
+
+FROM amazonlinux as archive
+ARG PROJECT
+WORKDIR /Bundle
+COPY --from=build /Build/Bundle ./
+
+# FROM amazonlinux as build
+# COPY --from=amazon-python 
+# RUN python3.7 ./Script/bundle_app.py -i --directory ./ CPT
+# COPY ./Script ./Script
+# COPY ./Build/CPT ./Build/CPT
+# COPY ./Source ./Source
+# ENV PYTHONPATH=/CPT:/CPT/Source/Python
