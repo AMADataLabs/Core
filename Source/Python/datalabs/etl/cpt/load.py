@@ -77,8 +77,6 @@ class TableUpdater:
         return pandas.DataFrame({column: [getattr(result, column) for result in results] for column in self._columns})
 
     def _merge_data(self, current_data, data):
-        LOGGER.debug('data: %s', data)
-        LOGGER.debug('current_data: %s', current_data)
         current_data = self._remove_modified_date(current_data)  # set programmatically
         merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
 
@@ -99,7 +97,7 @@ class TableUpdater:
     @classmethod
     def _remove_modified_date(cls, data):
         if 'modified_date' in data:
-            data.drop('modified_date', axis=1)
+            data = data.drop('modified_date', axis=1)
 
         return data
 
@@ -312,20 +310,21 @@ class CPTRelationalTableLoader(Loader):
 
         # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
 
-        TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
+        if feature.enabled('PLA'):
+            TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
 
-        TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
+            TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
 
-        TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
+            TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
 
-        TableUpdater(self._session, dbmodel.Manufacturer, 'id').update(data.manufacturer)
+            TableUpdater(self._session, dbmodel.Manufacturer, 'id').update(data.manufacturer)
 
-        TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
-            data.manufacturer_pla_code_mapping
-        )
+            TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
+                data.manufacturer_pla_code_mapping
+            )
 
-        TableUpdater(self._session, dbmodel.Lab, 'id').update(data.lab)
+            TableUpdater(self._session, dbmodel.Lab, 'id').update(data.lab)
 
-        TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
+            TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
 
         self._session.commit()
