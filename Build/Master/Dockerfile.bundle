@@ -24,15 +24,23 @@ ENV PYTHONPATH=/Build:/Build/Source/Python
 COPY Script Script
 COPY Build/${PROJECT} Build/${PROJECT}
 COPY Source Source
+RUN pip3.7 install --trusted-host pypi.org --trusted-host files.pythonhosted.org PyYAML
 
-RUN python3.7 ./Script/bundle_app.py --directory ./ ${PROJECT}
 RUN pip3.7 install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r Build/${PROJECT}/requirements.txt
+RUN python3.7 ./Script/bundle_project.py --in-place --directory Bundle/ ${PROJECT}
 
 
-FROM amazonlinux as archive
-ARG PROJECT
-WORKDIR /Bundle
-COPY --from=build /Build/Bundle ./
+# FROM amazonlinux as archive
+# ARG PROJECT
+# WORKDIR /${PROJECT}
+# ENV PYTHONPATH=/${PROJECT}
+# COPY --from=build /Build/Bundle ./
+# COPY --from=amazon-python /usr/local/bin/py*3.7* /usr/local/bin/
+# COPY --from=amazon-python /usr/local/bin/pip3.7 /usr/local/bin/
+# COPY --from=amazon-python /usr/local/lib/python3.7 /usr/local/lib/python3.7
+# COPY --from=amazon-python S /usr/local/lib/python3.7
+
+
 
 # FROM amazonlinux as build
 # COPY --from=amazon-python 

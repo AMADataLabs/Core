@@ -1,5 +1,6 @@
 from   abc import ABC, abstractmethod
 import argparse
+import io
 import logging
 import os
 from   pathlib import Path
@@ -8,85 +9,73 @@ import shutil
 import sys
 from   zipfile import ZipFile
 
-import jinja2
-
 from datalabs.build.bundle import SourceBundle
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class ProjectBundler(ABC):
     def __init__(self, repository_path):
         self._repository_path = repository_path
         self._shared_source_path = Path(os.path.join(self._repository_path, 'Source', 'Python')).resolve()
+        self._build_path = Path(os.path.join(self._repository_path, 'Build')).resolve()
 
-    def bundle(self, project, target_directory=None, **kwargs):
-        build_path = Path(os.path.join(self._repository_path, 'Build', args['project'])).resolve()
-        target_directory = target_directory or os.path.join(build_path, project)
 
-        self._build_bundle(project, target_directory, **kwargs)
+    def bundle(self, project, target_path=None, **kwargs):
+        target_path = target_path or Path(os.path.join(self._build_path, project, project)).resolve()
+
+        self._build_bundle(project, Path(target_path), **kwargs)
 
     @abstractmethod
-    def _build_bundle(self, project, target_directory, **kwargs):
+    def _build_bundle(self, project, target_path, **kwargs):
         pass
 
 
 class LocalProjectBundler(ProjectBundler):
-    def _build_bundle(self, project, target_directory, **kwargs):
-        if os.path.exists(target_directory) and not kwargs['inplace']:
+    def _build_bundle(self, project, target_path, **kwargs):
+        if os.path.exists(target_path) and not kwargs['in_place']:
             LOGGER.info('=== Removing Old Target Directory ===')
-            shutil.rmtree(target_directory)
+            shutil.rmtree(target_path)
 
-        os.makedirs(target_directory, exist_ok=True)
+        os.makedirs(target_path, exist_ok=True)
 
         LOGGER.info('=== Copying Build Files ===')
-        self._copy_build_files(build_path, target_path)
+        self._copy_build_files(project, target_path)
 
         LOGGER.info('=== Copying Source Files ===')
-        self._copy_source_files()
-
-        if kwargs['verbose']:
-            self._log_copied_source_files(relative_file_paths)
+        self._copy_source_files(project, target_path)
 
         LOGGER.info('=== Creating Zip Archive ===')
-        self._zip_bundle_directory(project)
+        self._zip_bundle_directory(project, target_path)
 
-    def _copy_build_files(self):
-        copy_alembic_files()
+    def _copy_build_files(self, project, target_path):
+        self._copy_alembic_files(project, target_path)
 
-        shutil.copy(os.path.join(build_path, 'settings.py'), os.path.join(target_path, 'settings.py'))
+        shutil.copy(os.path.join(self._build_path, project, 'settings.py'), os.path.join(target_path, 'settings.py'))
 
-    def _copy_source_files(self):
-        modspec_path = os.path.join(build_path, 'modspec.yaml')
+    def _copy_source_files(self, project, target_path):
+        modspec_path = os.path.join(self._build_path, project, 'modspec.yaml')
         bundle = SourceBundle(modspec_path)
 
-        return bundle.copy(self._shared_source_path, target_directory)
+        return bundle.copy(self._shared_source_path, target_path)
 
-    def _log_copied_source_files(self, relative_file_paths):
-        LOGGER.info('Copied the following files from')
-        LOGGER.info(self._shared_source_path)
-        LOGGER.info(f'    to {target_directory}:')
-
-        for file in relative_file_paths:
-            LOGGER.info(file)
-
-    def _zip_bundle_directory(self, project):
-        archive_path = os.path.join(build_path, f'{project}.zip')
+    def _zip_bundle_directory(self, project, target_path):
+        archive_path = target_path.parent.joinpath(f'{project}.zip')
 
         if os.path.exists(archive_path):
             os.remove(archive_path)
 
         with ZipFile(archive_path, 'w') as archive:
-            for contents in os.walk(target_directory):
-                archive_contents(archive, target_directory, contents)
+            for contents in os.walk(target_path):
+                self._archive_contents(archive, target_path, contents)
 
-    def _copy_alembic_files(self):
-        alembic_path = os.path.join(build_path, 'alembic')
-        target_alembic_path = os.path.join(target_directory, 'alembic')
+    def _copy_alembic_files(self, project, target_path):
+        alembic_path = os.path.join(self._build_path, project, 'alembic')
+        target_alembic_path = os.path.join(target_path, 'alembic')
 
-        remove_alembic_files(target_alembic_path)
+        self._remove_alembic_files(target_alembic_path)
 
         if os.path.exists(alembic_path):
             shutil.copytree(os.path.join(alembic_path, 'versions'), os.path.join(target_alembic_path, 'versions'))
@@ -94,10 +83,10 @@ class LocalProjectBundler(ProjectBundler):
             shutil.copyfile(os.path.join(alembic_path, 'env.py'), os.path.join(target_alembic_path, 'script.py.mako'))
             shutil.copyfile(alembic_path + '.ini', target_alembic_path + '.ini')
 
-    def _archive_contents(self, archive, contents):
+    def _archive_contents(self, archive, target_path, contents):
         root, dirs, files = contents
-        relative_root = root.replace(str(target_directory), '')[1:]
-        LOGGER.debug('Build Path: %s', target_directory)
+        relative_root = Path(root).relative_to(target_path)
+        LOGGER.debug('Build Path: %s', target_path)
         LOGGER.debug('Root Path: %s', root)
         LOGGER.debug('Relative Root Path: %s', relative_root)
 
@@ -124,35 +113,26 @@ class LocalProjectBundler(ProjectBundler):
 
 
 class ServerlessProjectBundler(ProjectBundler):
-    def _build_bundle(self, project, target_directory, **kwargs):
-        from docker import from_env
+    def _build_bundle(self, project, target_path, **kwargs):
+        from   docker import from_env
 
         docker = from_env()
 
-        image = self._get_bundler_image(docker, project)
+        image, _ = self._generate_serverless_artifact(docker, project)
 
-        # docker.containers.run(image, )
+        self._retrieve_serverless_artifact(docker, image, project, target_path)
 
-
-
-    def _get_bundler_image(self, docker, project):
-        from docker.errors import ImageNotFound
-
-        image = None
-
-        # try:
-        #     image = docker.images.get('datalabs-serverless-bundler')
-        # except ImageNotFound:
-        #     image = self._create_bundler_image(docker)
-        image = self._create_bundler_image(docker, project)
-
-        return image
-
-
-    def _create_bundler_image(self, docker, project):
-        LOGGER.info('=== Creating Bundler Docker Image ===')
-        dockerfile_path = os.path.join(self._repository_path, 'Build', 'Master', 'Dockerfile.bundle')
         import pdb; pdb.set_trace()
+        try:
+            container.kill()
+        except Exception:
+            pass
+
+
+    def _generate_serverless_artifact(self, docker, project):
+        LOGGER.info('=== Generating Serverless Artifact ===')
+        dockerfile_path = os.path.join(self._repository_path, 'Build', 'Master', 'Dockerfile.bundle')
+
         return docker.images.build(
             path=self._repository_path,
             tag='datalabs-serverless-bundler',
@@ -160,6 +140,25 @@ class ServerlessProjectBundler(ProjectBundler):
             buildargs=dict(PROJECT=f'{project}'),
             quiet=False
         )
+
+    def _retrieve_serverless_artifact(self, docker, image, project, target_path):
+        import tarfile
+
+        LOGGER.info('=== Saving Serverless Artifact ===')
+        artifact_path = target_path.parent.joinpath(f'{project}.zip')
+
+        container = docker.containers.run(image.tags[0], '/bin/bash', detach=True)
+        tarball_stream, stat = container.get_archive(f'/Build/{project}.zip')
+        tarball = tarfile.open(fileobj=tarball_stream)
+        artifact = tar.extractfile(f'{project}.zip')
+
+        # with open(tarball_path, 'wb') as tarball:
+        #     for chunk in artifact:
+        #         tarball.write(chunk)
+
+        with open(artifact_path, 'wb') as f:
+            for chunk in artifact:
+                f.write(chunk)
 
 
 if __name__ == '__main__':
@@ -172,8 +171,6 @@ if __name__ == '__main__':
         help='Do not pre-clean the target directory or try to install dependencies.')
     ap.add_argument('-s', '--serverless', action='store_true', default=False,
         help='Create a zip archive of the bundle for serverless deployment.')
-    ap.add_argument('-v', '--verbose', action='store_true', default=False,
-        help='Verbose output.')
     ap.add_argument('project', help='Name of the project.')
     args = vars(ap.parse_args())
     LOGGER.debug('Args: %s', args)
@@ -191,9 +188,8 @@ if __name__ == '__main__':
 
         return_code = project_bundler.bundle(
             args['project'],
-            target_directory=args['directory'],
-            verbose=args['verbose'],
-            inplace=args['in-place']
+            target_path=args['directory'],
+            in_place=args['in_place']
         )
     except Exception as e:
         LOGGER.exception(f"Failed to create project bundle.")
