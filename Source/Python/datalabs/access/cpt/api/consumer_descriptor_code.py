@@ -11,7 +11,7 @@ def lambda_handler(event, context):
 
     status_code, response = get_content_from_query_output(query)
 
-    return {'statusCode': status_code, 'body': json.dumps(response)}
+    return {'statusCode': status_code, 'body': json.dumps(response[0])}
 
 
 def create_database_connection():
@@ -37,6 +37,6 @@ def get_content_from_query_output(query):
 
     else:
         status_code = 404
-        rows = {"Code": "No Consumer Descriptor found for the given CPT code."}
+        rows = 'No Consumer Descriptor found for the given CPT code.'
 
     return status_code, rows

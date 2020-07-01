@@ -39,6 +39,6 @@ def get_content_from_query_output(query):
 
     else:
         status_code = 400
-        rows = {"Code": "No given"}
+        rows = 'Invalid query parameter'
 
     return status_code, rows

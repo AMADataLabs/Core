@@ -38,7 +38,7 @@ def get_response_from_query(query, query_parameter):
             query = query.limit(results).all()
             response_data = get_content_from_rows(query)
         else:
-            response_data = {'results': 'invalid'}
+            response_data = 'Invalid query parameter'
             status_code = 400
 
     else:

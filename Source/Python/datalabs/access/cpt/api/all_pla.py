@@ -1,3 +1,4 @@
+import json
 import sqlalchemy
 from sqlalchemy import create_engine, or_
 from sqlalchemy.orm import sessionmaker
@@ -96,7 +97,7 @@ def get_response_data_from_query(query, lengths):
             status_code = 200
         else:
             status_code = 400
-            response_data = {'length(s)': 'invalid'}
+            response_data = 'Invalid query parameter'
     else:
         response_data = get_content_from_query(query)
         status_code = 200

@@ -15,7 +15,7 @@ def lambda_handler(event, context):
 
     status_code, response = get_response_data_from_query(query, path_parameter.get('lengths', None))
 
-    return {'statusCode': status_code, 'body': json.dumps(response)}
+    return {'statusCode': status_code, 'body': json.dumps(response[0])}
 
 
 def create_database_connection():
@@ -78,7 +78,7 @@ def get_filtered_length_response(query, lengths):
         status_code = 200
 
     else:
-        response_rows = {'code': 'invalid'}
+        response_rows = 'No PLA details found for the given PLA code'
         status_code = 404
 
     return status_code, response_rows
@@ -100,7 +100,7 @@ def get_content_from_query(query):
         status_code = 200
 
     else:
-        rows = {'code': 'invalid'}
+        rows = 'No PLA details found for the given PLA code'
         status_code = 404
 
     return status_code, rows

@@ -12,7 +12,7 @@ def lambda_handler(event, context):
 
     status_code, response = get_content_from_query(query)
 
-    return {'statusCode': status_code, 'body': json.dumps(response)}
+    return {'statusCode': status_code, 'body': json.dumps(response[0])}
 
 
 def create_database_connection():
@@ -44,7 +44,7 @@ def get_content_from_query(query):
         status_code = 200
 
     else:
-        status_code = 400
-        response_rows = {"invalid": "type"}
+        status_code = 404
+        response_rows = 'No data exists for the given modifier.'
 
     return status_code, response_rows

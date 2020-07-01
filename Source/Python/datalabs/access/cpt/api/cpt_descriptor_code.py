@@ -13,7 +13,7 @@ def lambda_handler(event, context):
 
     status_code, response = get_response_data_from_query(query, path_parameter.get('lengths', None))
 
-    return {'statusCode': status_code, 'body': json.dumps(response)}
+    return {'statusCode': status_code, 'body': json.dumps(response[0])}
 
 
 def create_database_connection():
@@ -40,7 +40,7 @@ def get_response_data_from_query(query, lengths):
             status_code, response_data = get_filtered_length_response(query, lengths)
         else:
             status_code = 400
-            response_data = {'length(s)': 'invalid'}
+            response_data = 'Invalid query parameter'
     else:
         status_code, response_data = get_content_from_query(query)
 
@@ -66,7 +66,7 @@ def get_filtered_length_response(query, lengths):
         status_code = 200
 
     else:
-        response_data = {'code': 'invalid'}
+        response_data = 'No descriptor found for the given CPT Code'
         status_code = 404
 
     return status_code, response_data
