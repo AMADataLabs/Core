@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine, or_
-from sqlalchemy.orm import sessionmaker
-from datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor, Release
-from datalabs.access.database import Database
 import json
+from   sqlalchemy import create_engine, or_
+from   sqlalchemy.orm import sessionmaker
+from   datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor, Release
+from   datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
@@ -12,9 +12,9 @@ def lambda_handler(event, context):
     query = query_for_code(session)
 
     if query_parameter is not None:
-        query = filter_query_for_release(query_parameter.get('since', None), session, query)
-        query = filter_query_for_keyword(query_parameter.get('keyword', None), query_parameter.get('length', None),
-                                         query)
+        query = filter_query_for_release(query_parameter.get('since', None), query)
+        query = filter_query_for_keywords(query_parameter.get('keyword', None), query_parameter.get('length', None),
+                                          query)
 
         status_code, response = get_response_data_from_query(query, query_parameter.get('length', None))
 
@@ -40,16 +40,15 @@ def query_for_code(session):
     return query
 
 
-def filter_query_for_release(since, session, query):
-    # needs editing
+def filter_query_for_release(since, query):
     if since is not None:
-        query = session.query().add_column(Release.publish_date)
-        query = query.filter(Release.publish_date.like('%{}%'.format(since)))
+        query = query.add_column(Release.effective_date)
+        query = query.filter(Release.effective_date >= since)
 
     return query
 
 
-def filter_query_for_keyword(keyword, length, query):
+def filter_query_for_keywords(keyword, length, query):
     filter_conditions = []
 
     if keyword is not None and length is None:
@@ -123,7 +122,7 @@ def get_content_from_query(query):
             code=row.Code.code,
             long_descriptor=row.LongDescriptor.descriptor,
             medium_descriptor=row.MediumDescriptor.descriptor,
-            short_descriptor=row.ShortDescriptor.descriptor,)
+            short_descriptor=row.ShortDescriptor.descriptor, )
         for row in query.all()
     ]
 

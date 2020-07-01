@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor
-from datalabs.access.database import Database
 import json
+from   sqlalchemy import create_engine
+from   sqlalchemy.orm import sessionmaker
+from   datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor
+from   datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
@@ -82,7 +82,7 @@ def get_content_from_query(query):
             short_descriptor=row.ShortDescriptor.descriptor,) for row in query.all()]
         status_code = 200
     else:
-        response_row = {'code': 'invalid'}
+        response_row = 'No descriptor found for the given CPT Code'
         status_code = 404
 
     return status_code, response_row

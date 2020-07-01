@@ -1,10 +1,10 @@
 import sqlalchemy
 import json
-from sqlalchemy import create_engine, or_
-from sqlalchemy.orm import sessionmaker
-from datalabs.etl.cpt.dbmodel import PLACode, PLAShortDescriptor, PLAMediumDescriptor, PLALongDescriptor, Manufacturer, \
+from   sqlalchemy import create_engine, or_
+from   sqlalchemy.orm import sessionmaker
+from   datalabs.etl.cpt.dbmodel import PLACode, PLAShortDescriptor, PLAMediumDescriptor, PLALongDescriptor, Manufacturer, \
     ManufacturerPLACodeMapping, Lab, LabPLACodeMapping, Release
-from datalabs.access.database import Database
+from   datalabs.access.database import Database
 
 
 def lambda_handler(event, context):

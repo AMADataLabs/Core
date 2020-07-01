@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from datalabs.etl.cpt.dbmodel import Release
-from datalabs.access.database import Database
 import json
+from   sqlalchemy import create_engine
+from   sqlalchemy.orm import sessionmaker
+from   datalabs.etl.cpt.dbmodel import Release
+from   datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
