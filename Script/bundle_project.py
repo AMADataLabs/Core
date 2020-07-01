@@ -120,13 +120,7 @@ class ServerlessProjectBundler(ProjectBundler):
 
         image, _ = self._generate_serverless_artifact(docker, project)
 
-        self._retrieve_serverless_artifact(docker, image, project, target_path)
-
-        import pdb; pdb.set_trace()
-        try:
-            container.kill()
-        except Exception:
-            pass
+        self._save_serverless_artifact(docker, image, project, target_path)
 
 
     def _generate_serverless_artifact(self, docker, project):
@@ -141,24 +135,44 @@ class ServerlessProjectBundler(ProjectBundler):
             quiet=False
         )
 
-    def _retrieve_serverless_artifact(self, docker, image, project, target_path):
+    def _save_serverless_artifact(self, docker, image, project, target_path):
         import tarfile
 
         LOGGER.info('=== Saving Serverless Artifact ===')
         artifact_path = target_path.parent.joinpath(f'{project}.zip')
 
-        container = docker.containers.run(image.tags[0], '/bin/bash', detach=True)
-        tarball_stream, stat = container.get_archive(f'/Build/{project}.zip')
-        tarball = tarfile.open(fileobj=tarball_stream)
-        artifact = tar.extractfile(f'{project}.zip')
-
-        # with open(tarball_path, 'wb') as tarball:
-        #     for chunk in artifact:
-        #         tarball.write(chunk)
+        archive = DockerArchive(docker, image.tags[0], f'/Build/{project}.zip')
+        tarball = tarfile.open(fileobj=archive)
+        artifact = tarball.extractfile(f'{project}.zip')
 
         with open(artifact_path, 'wb') as f:
             for chunk in artifact:
                 f.write(chunk)
+
+
+class DockerArchive(io.BytesIO):
+    def __init__(self, docker, image: str, path: str):
+        self._docker = docker
+        self._image = image
+        self._path = path
+
+        super().__init__(self._load())
+
+    def _load(self):
+        chunks = []
+        container = self._docker.containers.run(self._image, '/bin/bash', detach=True)
+        stream, _ = container.get_archive(self._path)
+
+        for chunk in stream:
+            chunks.append(chunk)
+
+        try:
+            container.kill()
+        except Exception:
+            pass
+
+        return b''.join(chunks)
+
 
 
 if __name__ == '__main__':
