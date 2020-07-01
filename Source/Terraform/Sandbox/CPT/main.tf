@@ -180,12 +180,12 @@ resource "aws_ssm_parameter" "ETL_LOADCPT_LOADER" {
 
 
 data "aws_ssm_parameter" "account_environment" {
-    name = "/DataLabs/DataLake/account_environment"
+    name = "/DataLabs/account_environment"
 }
 
 
 data "aws_ssm_parameter" "contact" {
-    name = "/DataLabs/DataLake/contact"
+    name = "/DataLabs/contact"
 }
 
 

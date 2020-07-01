@@ -3,22 +3,6 @@ provider "aws" {
 }
 
 
-resource "aws_ssm_parameter" "account_environment" {
-    name  = "/DataLabs/DataLake/account_environment"
-    type  = "String"
-    value = "Sandbox"
-    tags = local.tags
-}
-
-
-resource "aws_ssm_parameter" "contact" {
-    name  = "/DataLabs/DataLake/contact"
-    type  = "String"
-    value = "DLHSDataLabs@ama-assn.org"
-    tags = local.tags
-}
-
-
 resource "aws_ssm_parameter" "ingestion_bucket" {
     name  = "/DataLabs/DataLake/ingestion_bucket"
     type  = "String"
@@ -36,12 +20,12 @@ resource "aws_ssm_parameter" "processed_bucket" {
 
 
 data "aws_ssm_parameter" "account_environment" {
-    name = "/DataLabs/DataLake/account_environment"
+    name = "/DataLabs/account_environment"
 }
 
 
 data "aws_ssm_parameter" "contact" {
-    name = "/DataLabs/DataLake/contact"
+    name = "/DataLabs/contact"
 }
 
 
