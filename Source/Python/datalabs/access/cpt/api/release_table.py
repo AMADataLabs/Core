@@ -1,8 +1,8 @@
 import json
-from   sqlalchemy import create_engine
-from   sqlalchemy.orm import sessionmaker
-from   datalabs.etl.cpt.dbmodel import Release
-from   datalabs.access.database import Database
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from datalabs.etl.cpt.dbmodel import Release
+from datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
@@ -49,16 +49,9 @@ def get_response_from_query(query, query_parameter):
 
 
 def get_content_from_rows(query):
-    response_rows = []
-
-    for row in query:
-        response_data = {
-            'id': row.id,
-            'publish_date': str(row.publish_date),
-            'effective_date': str(row.effective_date),
-            'type': row.type
-        }
-
-        response_rows.append(response_data)
+    response_rows = [dict(id=row.id,
+                          publish_date=str(row.publish_date),
+                          effective_date=str(row.effective_date),
+                          type=row.type) for row in query]
 
     return response_rows

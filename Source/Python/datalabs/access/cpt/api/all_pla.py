@@ -1,10 +1,10 @@
 import json
 import sqlalchemy
-from   sqlalchemy import create_engine, or_
-from   sqlalchemy.orm import sessionmaker
-from   datalabs.etl.cpt.dbmodel import PLACode, PLAShortDescriptor, PLAMediumDescriptor, PLALongDescriptor, \
+from sqlalchemy import create_engine, or_
+from sqlalchemy.orm import sessionmaker
+from datalabs.etl.cpt.dbmodel import PLACode, PLAShortDescriptor, PLAMediumDescriptor, PLALongDescriptor, \
     Manufacturer, ManufacturerPLACodeMapping, Lab, LabPLACodeMapping, Release
-from   datalabs.access.database import Database
+from datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
@@ -14,11 +14,11 @@ def lambda_handler(event, context):
     query = query_for_code(session)
 
     if query_parameter is not None:
-        query = filter_query_for_release(query_parameter.get('since', None), query)
-        query = filter_query_for_keyword(query_parameter.get('keyword', None), query_parameter.get('length', None),
-                                         query)
+        query = filter_query_for_release(query_parameter.get('since', None), query_parameter, query)
+        query = filter_query_for_keyword(query_parameter.get('keyword', None), query_parameter,
+                                         query_parameter.get('length', None), query)
 
-        status_code, response = get_response_data_from_query(query, query_parameter.get('length', None))
+        status_code, response = get_response_data_from_query(query, query_parameter, query_parameter.get('length', None))
 
     else:
         status_code, response = get_content_from_query(query)
@@ -38,26 +38,27 @@ def create_database_connection():
 def query_for_code(session):
     query = session.query(PLACode, PLALongDescriptor, PLAMediumDescriptor, PLAShortDescriptor).join(PLALongDescriptor,
                                                                                                     PLAMediumDescriptor,
-                                                                                                    PLAShortDescriptor,
-                                                                                                    Manufacturer, Lab,
-                                                                                                    Release)
+                                                                                                    PLAShortDescriptor)
+
+    query = query.add_columns(Manufacturer.name, Lab.name)
     return query
 
 
-def filter_query_for_release(since, query):
+def filter_query_for_release(since, query_parameter, query):
     if since is not None:
         query = query.add_column(Release.effective_date)
-        query = query.filter(Release.effective_date >= since)
+        for date in query_parameter['since']:
+            query = query.filter(Release.effective_date >= date)
 
     return query
 
 
-def filter_query_for_keyword(keyword, length, query):
+def filter_query_for_keyword(keyword, query_parameter, length, query):
     filter_conditions = []
 
     if keyword is not None and length is None:
 
-        for word in keyword:
+        for word in query_parameter['keyword']:
             filter_conditions.append(PLALongDescriptor.descriptor.ilike('%{}%'.format(word)))
             filter_conditions.append(PLAMediumDescriptor.descriptor.like('%{}%'.format(word)))
             filter_conditions.append(PLAShortDescriptor.descriptor.like('%{}%'.format(word)))
@@ -65,7 +66,7 @@ def filter_query_for_keyword(keyword, length, query):
         query = query.filter(or_(*filter_conditions))
 
     elif keyword is not None:
-        query = filter_query_for_keyword_with_length(query, length, keyword)
+        query = filter_query_for_keyword_with_length(query, query_parameter['length'], query_parameter['keyword'])
 
     return query
 
@@ -87,12 +88,12 @@ def lengths_exist(lengths, length_dict):
     return all([length in length_dict.keys() for length in lengths])
 
 
-def get_response_data_from_query(query, lengths):
+def get_response_data_from_query(query, query_parameter, lengths):
     length_dict = {"long": PLALongDescriptor, "medium": PLAMediumDescriptor, "short": PLAShortDescriptor}
 
     if lengths is not None:
         if lengths_exist(lengths, length_dict):
-            response_data = get_filtered_length_content(query, lengths)
+            response_data = get_filtered_length_content(query, query_parameter['length'])
             status_code = 200
         else:
             status_code = 400
@@ -129,8 +130,8 @@ def get_filtered_length_content(query, lengths):
 def get_content_from_query(query):
     response_rows = [
         dict(
-            code= row.PLACode.code,
-            long_descriptor= row.PLALongDescriptor.descriptor,
+            code=row.PLACode.code,
+            long_descriptor=row.PLALongDescriptor.descriptor,
             medium_descriptor=row.PLAMediumDescriptor.descriptor,
             short_descriptor=row.PLAShortDescriptor.descriptor,
             code_status=row.PLACode.status,
@@ -143,4 +144,3 @@ def get_content_from_query(query):
     ]
 
     return response_rows
-

@@ -13,7 +13,7 @@ def lambda_handler(event, context):
     query = query_for_modifier(session)
 
     if query_parameter is not None:
-        query = filter_query_for_type(query_parameter.get('type', None), query)
+        query = filter_query_for_type(query_parameter.get('type', None), query_parameter, query)
 
     status_code, response = get_response_data_from_query(query)
 
@@ -34,9 +34,11 @@ def query_for_modifier(session):
     return query
 
 
-def filter_query_for_type(mod_type, query):
+def filter_query_for_type(mod_type, query_parameter, query):
     if mod_type is not None:
-        query = query.filter((ModifierType.name.like(('%{}%'.format(mod_type)))))
+        filter_types = [ModifierType.name.ilike(('%{}%'.format(modifier_type)))
+                        for modifier_type in query_parameter['type']]
+        query = query.filter(or_(*filter_types))
 
     return query
 
