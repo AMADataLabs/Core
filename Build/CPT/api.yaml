@@ -113,8 +113,7 @@ paths:
         - name: since
           in: query
           description: >-
-            Filters new codes since a date ("YYYY-MM-DD"), the last annual
-            release ("annual"), or the last quarterly release ("quarterly").
+            Filters new codes since a date ("YYYY-MM-DD").
           required: false
           schema:
             type: array
@@ -199,8 +198,7 @@ paths:
         - name: since
           in: query
           description: >-
-            Filters new codes since a date ("YYYY-MM-DD"), the last annual
-            release ("annual"), or the last quarterly release ("quarterly").
+            Filters new codes since a date ("YYYY-MM-DD").
           required: false
           schema:
             type: array
@@ -248,8 +246,7 @@ paths:
         - name: since
           in: query
           description: >-
-            Filters new codes since a date ("YYYY-MM-DD"), the last annual
-            release ("annual"), or the last quarterly release ("quarterly").
+            Filters new codes since a date ("YYYY-MM-DD").
           required: false
           schema:
             type: array
@@ -391,8 +388,7 @@ paths:
         - name: since
           in: query
           description: >-
-            Filters new codes since a date ("YYYY-MM-DD"), the last annual
-            release ("annual"), or the last quarterly release
+            Filters new codes since a date ("YYYY-MM-DD")
             ("quarterly").
           required: false
           schema:
