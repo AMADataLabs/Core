@@ -30,12 +30,12 @@ TODAY = str(date.today())
 OUT_DIRECTORY = f'C:\\Users\\nkhatri\\OneDrive - American Medical Association\\Documents\\Task-Scheduled\\{str(date.today())}'
 # C:\Users\nkhatri\OneDrive - American Medical Association\Documents\Task-Scheduled\2020-04-08
 # OUT_DIRECTORY = f'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/Task-Scheduled/{TODAY}'
-file1 = f'{OUT_DIRECTORY}\\Memorium_USA_Physicians_{TODAY}.xlsx'
+file1 = f'{OUT_DIRECTORY}\\Other_Physicians_Unprocessed_{TODAY}.xlsx'
 file2 = f'{OUT_DIRECTORY}\\Memorium_USA_Physicians_Unprocessed_{TODAY}.xlsx'
 full = ['Chris.Mathews@ama-assn.org', 'Clint.Sheffer@ama-assn.org','victoria.grose@ama-assn.org','sandeep.dhamale@ama-assn.org']
 meonly = ['nikhil.khatri@ama-assn.org']
 def send_email(recipients= full, cc=['nikhil.khatri@ama-assn.org'],
-               subject='COVID-19 Mortality Data – Medscape for' + ' ' + TODAY,
+               subject='COVID-19 Mortality Data – ' + ' ' + TODAY,
                body='Hi,\nThis is an automated email from DataLabs. Please find all new content in attachments.\n\n\nNOTE: The scraping activity happens every morning at 8:55 am and the results are emailed at 9:00 am. If you would like the results at another time or would like to stop this service, kindly reply to this email.\n\nThank you!\nDataLabs',
                attachments=[file1, file2], auto_send=True):
     if len(recipients) == 0 or len(subject) == 0 or len(body) == 0:

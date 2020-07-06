@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 import settings
 from process_me import remove_processed_mes
 from spec_match import get_spec_table, match_spec
+from heroes import hero_scrape
+from twitter import twitter_scrape
 
 YESTERDAY = str(date.today() - timedelta(days=1))
 
@@ -176,6 +178,9 @@ ALL_DATA = pd.DataFrame(DICT_LIST)
 USA_DATA = ALL_DATA[ALL_DATA.COUNTRY == 'USA']
 ALL_DATA.to_csv(f'{OUT_DIRECTORY}/Memorium_{TODAY}.csv', index=False)
 USA_DATA.to_csv(f'{OUT_DIRECTORY}/Memorium_USA_{TODAY}.csv', index=False)
+ALL_TWITTER, TWITTER_DOCS = twitter_scrape()
+TWITTER_DOCS.to_csv(f'{OUT_DIRECTORY}/Twitter_Doctors_{TODAY}.csv', index=False)
+HEROES = hero_scrape()
 
 
 def split_names(roster_df):
@@ -217,24 +222,65 @@ def fix_me(me_list):
 
 def append_me(roster_df, spec_df):
     '''Matches to PPD and appends ME'''
-    data_split = split_names(roster_df)
+    from_twitter = False
+    if 'DATE' in roster_df.columns or 'Date' in roster_df.columns:
+        from_twitter = True
+        data_split = roster_df
+    else:
+        data_split = split_names(roster_df)
 
     bad_spec_words = [
-        'Nurse',
-        'Vet',
-        'Transport',
-        'Assistant',
-        'Receptionist',
-        'Technician',
-        'Paramedic'
+        'NURS',
+        'VET',
+        'TRANSPORT',
+        'ASSISTANT',
+        'RECEPTIONIST',
+        'TECHNICIAN',
+        'PARAMEDIC',
+        'AIDE',
+        'SOCIAL WORKER',
+        'ENTREPRENEUR',
+        'SERVICES',
+        'GROUPHOME',
+        'SECURITY',
+        'PHARMACIST',
+        'FIRE',
+        'EMPLOYEE',
+        'DEVELOPER',
+        'PSYCHIATRIST',
+        'ADMINISTRATOR',
+        'LEADER',
+        'LPN',
+        'THERAPIST',
+        'CLERK',
+        'COUNSELOR',
+        'ATTENDANT',
+        'ADMIN',
+        'SUPPLY',
+        'CLEAN',
+        'PRIEST',
+        'STAFF',
+        'INVESTIGATOR',
+        'MRI',
+        'EDUCATOR',
+        'OFFICER',
+        'MAINTENANCE',
+        'CNA',
+        'SUPERVISOR',
+        'COORDINATOR',
+        'SUPERVISOR',
+        'TECHNOLOGIST',
+        'MECHANIC',
+        'EMT'
     ]
     mes = []
     for row in data_split.itertuples():
         physician_me = 'None'
         keep = True
-        for word in bad_spec_words:
-            if word in row.SPECIALTY:
-                keep = False
+        if not from_twitter:
+            for word in bad_spec_words:
+                if word in row.SPECIALTY.upper():
+                    keep = False
         if keep:
             new_df = PPD[(PPD.FIRST_NAME == row.FIRST_NAME) & (PPD.LAST_NAME == row.LAST_NAME)]
             try:
@@ -244,9 +290,11 @@ def append_me(roster_df, spec_df):
                 if len(new_df)>1:
                     if row.STATE == "New York":
                         new_df = new_df[new_df.POLO_STATE == 'NY']
-                    else:
+                    elif not from_twitter:
                         new_df = new_df[new_df.POLO_CITY == row.CITY.upper()]
-            if len(new_df) == 0 and len(years)>0:
+                    else:
+                        new_df = new_df[new_df.STATE == row.STATE]
+            if len(new_df) == 0 and len(years) > 0:
                 if '-' in row.LAST_NAME:
                     last = row.LAST_NAME.replace('-', ' ')
                 elif ' ' in row.LAST_NAME:
@@ -257,13 +305,18 @@ def append_me(roster_df, spec_df):
                 if len(new_df) == 0:
                     pass
                 if len(new_df) > 1:
-                    new_df = new_df[new_df.CITY == row.CITY.upper()]
-            elif len(new_df) > 1 and len(years)>0:
+                    if from_twitter:
+                        print(f'{row.NAME} potentially matched to multiple ME numbers.')
+                    else:
+                        new_df = new_df[new_df.CITY == row.CITY.upper()]
+            elif len(new_df) > 1 and len(years) > 0:
                 new_df = new_df[new_df.BIRTH_YEAR.isin(years)]
-                if len(new_df) > 1:
-                    new_df = new_df[new_df.CITY == row.CITY.upper()]   
+                if len(new_df) > 1 and not from_twitter:
+                    new_df = new_df[new_df.CITY == row.CITY.upper()]  
             if len(new_df) == 1:
-                if match_spec(new_df, row.SPECIALTY, spec_df):
+                if from_twitter:
+                    physician_me = new_df.iloc[0]['ME']
+                elif match_spec(new_df, row.SPECIALTY, spec_df):
                     physician_me = new_df.iloc[0]['ME']
             elif len(new_df) > 1:
                 print(f'{row.NAME} potentially matched to multiple ME numbers.')
@@ -278,7 +331,57 @@ SPEC_DF = get_spec_table()
 US_DATA_SPLIT, US_DATA_ME = append_me(USA_DATA, SPEC_DF)
 US_DATA_ME.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_Physicians_{TODAY}.xlsx', index=False)
 US_DATA_SPLIT.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_ME_{TODAY}.xlsx', index=False)
+TWITTER_SPLIT, TWITTER_ME = append_me(TWITTER_DOCS, SPEC_DF)
+HEROES_SPLIT, HEROES_ME = append_me(HEROES, SPEC_DF)
+HEROES_ME.to_excel(f'{OUT_DIRECTORY}/Heroes_Physicians_{TODAY}.xlsx', index=False)
+TWITTER_ME.to_excel(f'{OUT_DIRECTORY}/Twitter_Physicians_{TODAY}.xlsx', index=False)
 
+def clean_other(xx):
+    '''Clean other data'''
+    xx = xx.fillna('None')
+    xx = xx.drop_duplicates()
+    YY = xx[['ME', 'DATE']]
+    dict__list = []
+    for row in xx.itertuples():
+        me=row.ME
+        if row.NAME_twitter=='None':
+            name = row.NAME_hero
+            first_name = row.FIRST_NAME_hero
+            middle_name = row.MIDDLE_NAME_hero
+            title = row.TITLE_hero
+            nickname = row.NICKNAME_hero
+            last_name = row.LAST_NAME_hero
+            age = row.AGE_hero
+            state = row.STATE_hero
+        else:
+            name = row.NAME_twitter
+            first_name = row.FIRST_NAME_twitter
+            middle_name = row.MIDDLE_NAME_twitter
+            title = row.TITLE_twitter
+            nickname = row.NICKNAME_twitter
+            last_name = row.LAST_NAME_twitter
+            age = row.AGE_twitter
+            state = row.STATE_twitter
+        if row.LINK_twitter =='None':
+            link = row.LINK_hero
+        else:
+            link = row.LINK_twitter
+        new_dict = {
+            'NAME':name,
+            'FIRST_NAME':first_name,
+            'MIDDLE_NAME': middle_name,
+            'LAST_NAME': last_name,
+            'NICKNAME': nickname,
+            'TITLE': title,
+            'AGE': age,
+            'STATE': state,
+            'LINK': link,
+            'ME':me
+        }
+        dict__list.append(new_dict)
+    WW = pd.DataFrame(dict__list)
+    VV = pd.merge(YY, WW, on='ME')
+    return VV
 
 def get_counts(dataframe):
     '''GET COUNTS'''
@@ -396,4 +499,10 @@ ALL_DELTA.to_csv(f'{OUT_DIRECTORY}/Memorium_World_Delta_{TODAY}.csv', index=Fals
 
 UNPROCESSED = remove_processed_mes(US_DATA_ME)
 UNPROCESSED.to_excel(f'{OUT_DIRECTORY}/Memorium_USA_Physicians_Unprocessed_{TODAY}.xlsx',
+                     index=False)
+
+OTHER_ME = pd.merge(TWITTER_ME, HEROES_ME, on='ME', how='outer', suffixes=['_twitter', '_hero'])
+CLEANED_OTHER = clean_other(OTHER_ME)
+OTHER_UNPROCESSED = remove_processed_mes(CLEANED_OTHER)
+OTHER_UNPROCESSED.to_excel(f'{OUT_DIRECTORY}/Other_Physicians_Unprocessed_{TODAY}.xlsx',
                      index=False)
