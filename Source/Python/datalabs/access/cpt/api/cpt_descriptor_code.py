@@ -25,7 +25,7 @@ class DescriptorEndpointTask(APIEndpointTask):
 
             return {
                 "statusCode": status_code,
-                "body": json.dumps(response)
+                "body": json.dumps(response[0])
             }
 
     @classmethod
@@ -55,7 +55,7 @@ class DescriptorEndpointTask(APIEndpointTask):
                 status_code, response_data = cls._get_filtered_length_response(query, lengths)
             else:
                 status_code = 400
-                response_data = 'Invalid query parameter'
+                response_data = ['Invalid query parameter']
         else:
             status_code, response_data = cls._get_content_from_query(query)
 
@@ -82,7 +82,7 @@ class DescriptorEndpointTask(APIEndpointTask):
             status_code = 200
 
         else:
-            response_data = 'No descriptor found for the given CPT Code'
+            response_data = ['No descriptor found for the given CPT Code']
             status_code = 404
 
         return status_code, response_data
@@ -94,10 +94,10 @@ class DescriptorEndpointTask(APIEndpointTask):
                 code=row.Code.code,
                 long_descriptor=row.LongDescriptor.descriptor,
                 medium_descriptor=row.MediumDescriptor.descriptor,
-                short_descriptor=row.ShortDescriptor.descriptor, ) for row in query.all()]
+                short_descriptor=row.ShortDescriptor.descriptor) for row in query.all()]
             status_code = 200
         else:
-            response_row = 'No descriptor found for the given CPT Code'
+            response_row = ['No descriptor found for the given CPT Code']
             status_code = 404
 
         return status_code, response_row
