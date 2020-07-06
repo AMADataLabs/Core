@@ -38,7 +38,7 @@ def get_content_from_query_output(query):
         status_code = 200
 
     else:
-        status_code = 400
-        rows = 'Invalid query parameter'
+        status_code = 404
+        rows = 'No descriptor found for the given CPT Code'
 
     return status_code, rows

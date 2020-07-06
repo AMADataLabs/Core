@@ -12,9 +12,9 @@ def lambda_handler(event, context):
     query = query_for_code(session)
 
     if query_parameter is not None:
-        query = filter_query_for_release(query_parameter.get('since', None), query)
-        query = filter_query_for_keywords(query_parameter.get('keyword', None), query_parameter.get('length', None),
-                                          query)
+        query = filter_query_for_release(query_parameter.get('since', None), query_parameter, query)
+        query = filter_query_for_keywords(query_parameter.get('keyword', None),
+                                          query_parameter, query_parameter.get('length', None), query)
 
         status_code, response = get_response_data_from_query(query, query_parameter.get('length', None))
 
@@ -40,20 +40,21 @@ def query_for_code(session):
     return query
 
 
-def filter_query_for_release(since, query):
+def filter_query_for_release(since, query_parameter, query):
     if since is not None:
         query = query.add_column(Release.effective_date)
-        query = query.filter(Release.effective_date >= since)
+        for date in query_parameter['since']:
+            query = query.filter(Release.effective_date >= date)
 
     return query
 
 
-def filter_query_for_keywords(keyword, length, query):
+def filter_query_for_keywords(keyword, query_parameter, length, query):
     filter_conditions = []
 
     if keyword is not None and length is None:
 
-        for word in keyword:
+        for word in query_parameter['keyword']:
             filter_conditions.append(LongDescriptor.descriptor.ilike('%{}%'.format(word)))
             filter_conditions.append(MediumDescriptor.descriptor.like('%{}%'.format(word)))
             filter_conditions.append(ShortDescriptor.descriptor.like('%{}%'.format(word)))
@@ -61,7 +62,7 @@ def filter_query_for_keywords(keyword, length, query):
         query = query.filter(or_(*filter_conditions))
 
     elif keyword is not None:
-        query = filter_query_for_keyword_with_length(query, length, keyword)
+        query = filter_query_for_keyword_with_length(query, query_parameter['length'], query_parameter['keyword'])
 
     return query
 

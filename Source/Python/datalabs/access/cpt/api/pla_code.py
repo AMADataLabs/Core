@@ -45,7 +45,7 @@ def get_response_data_from_query(query, lengths):
             status_code, response_data = get_filtered_length_response(query, lengths)
         else:
             status_code = 400
-            response_data = {'length(s)': 'invalid'}
+            response_data = ['invalid query parameter']
     else:
         status_code, response_data = get_content_from_query(query)
 
@@ -78,7 +78,7 @@ def get_filtered_length_response(query, lengths):
         status_code = 200
 
     else:
-        response_rows = 'No PLA details found for the given PLA code'
+        response_rows = ['No PLA details found for the given PLA code']
         status_code = 404
 
     return status_code, response_rows
@@ -100,7 +100,7 @@ def get_content_from_query(query):
         status_code = 200
 
     else:
-        rows = 'No PLA details found for the given PLA code'
+        rows = ['No PLA details found for the given PLA code']
         status_code = 404
 
     return status_code, rows

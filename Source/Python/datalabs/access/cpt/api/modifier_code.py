@@ -45,6 +45,6 @@ def get_content_from_query(query):
 
     else:
         status_code = 404
-        response_rows = 'No data exists for the given modifier.'
+        response_rows = ['No data exists for the given modifier.']
 
     return status_code, response_rows
