@@ -54,7 +54,7 @@ def get_response_data_from_query(query, lengths):
 
 def lengths_exist(lengths):
     length_dict = {"long": PLALongDescriptor, "medium": PLAMediumDescriptor, "short": PLAShortDescriptor}
-    return all([length in lengths for length in length_dict.keys()])
+    return all([length in length_dict.keys() for length in lengths])
 
 
 def get_filtered_length_response(query, lengths):

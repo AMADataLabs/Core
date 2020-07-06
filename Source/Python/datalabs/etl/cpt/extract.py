@@ -46,7 +46,7 @@ class CPTTextDataExtractor(S3WindowsTextExtractor):
             )
         )
 
-        return data.to_csv()
+        return data.to_csv(index=False)
 
     def _get_release_type(self, release_schedule, release_date):
         release_date_for_lookup = date(1900, release_date.month, release_date.day)

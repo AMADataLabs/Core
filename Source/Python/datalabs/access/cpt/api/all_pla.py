@@ -84,7 +84,7 @@ def filter_query_for_keyword_with_length(query, lengths, keyword):
 
 
 def lengths_exist(lengths, length_dict):
-    return all([length in lengths for length in length_dict.keys()])
+    return all([length in length_dict.keys() for length in lengths])
 
 
 def get_response_data_from_query(query, lengths):
