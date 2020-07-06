@@ -47,7 +47,7 @@ EOF
 
 resource "aws_lambda_function" "cpt_get_descriptor" {
     s3_bucket       = data.aws_ssm_parameter.lambda_code_bucket.value
-    s3_key          = "CPT/app.zip"
+    s3_key          = "CPT/CPT.zip"
     function_name   = "CPTGetDescriptor"
     role            = aws_iam_role.cpt_lambda_role.arn
     handler         = "datalabs.access.cpt.api.cpt_descriptor_code.lambda_handler"
