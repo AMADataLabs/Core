@@ -6,6 +6,7 @@ from   sqlalchemy.orm import sessionmaker
 
 import datalabs.access.credentials as credentials
 import datalabs.access.database as database
+from   datalabs.access.task import APIEndpointTask
 from   datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor
 from   datalabs.access.database import Database
 
