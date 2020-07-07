@@ -1,10 +1,13 @@
 """ source: datalabs.etl.cpt.extract """
-from datetime import date
+from   datetime import date
 import json
+import io
 import logging
 
 import mock
 import pytest
+
+import pandas
 
 from   datalabs.etl.cpt.extract import CPTTextDataExtractor
 
@@ -53,13 +56,13 @@ def test_generate_release_details(release_schedule):
     extractor = CPTTextDataExtractor(None)
     release_date = date(2020, 7, 1)
     effective_date = date(2020, 10, 1)
-    release_details = extractor._generate_release_details(release_schedule, release_date)
+    release_details = pandas.read_csv(io.StringIO(extractor._generate_release_details(release_schedule, release_date)))
 
     assert len(release_details.columns.values) == 3
     assert all([c in release_details for c in ['publish_date', 'effective_date', 'type']])
     assert len(release_details) == 1
-    assert release_details.publish_date.iloc[0] == release_date
-    assert release_details.effective_date.iloc[0] == effective_date
+    assert release_details.publish_date.iloc[0] == release_date.strftime('%Y-%m-%d')
+    assert release_details.effective_date.iloc[0] == effective_date.strftime('%Y-%m-%d')
     assert release_details.type.iloc[0] == 'Q3'
 
 @pytest.fixture

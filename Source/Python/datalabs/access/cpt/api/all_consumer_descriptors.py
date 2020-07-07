@@ -1,8 +1,8 @@
+import json
 from   sqlalchemy import create_engine, or_
 from   sqlalchemy.orm import sessionmaker
 from   datalabs.etl.cpt.dbmodel import ConsumerDescriptor, Release
 from   datalabs.access.database import Database
-import json
 
 
 def lambda_handler(event, context):
@@ -12,8 +12,8 @@ def lambda_handler(event, context):
     query = query_for_descriptors(session)
 
     if query_parameter is not None:
-        query = filter_query_for_release(query_parameter['since'], session, query)
-        query = filter_query_for_keywords(query_parameter['keyword'], query)
+        query = filter_query_for_release(query_parameter.get('since', None), query_parameter, query)
+        query = filter_query_for_keywords(query_parameter.get('keyword', None), query_parameter, query)
 
     status_code, response = get_response_data_from_query(query)
 
@@ -34,22 +34,19 @@ def query_for_descriptors(session):
     return query
 
 
-def filter_query_for_release(since, session, query):
-    # needs editing
+def filter_query_for_release(since, query_parameter, query):
     if since is not None:
-        query = session.query().add_column(Release.publish_date)
-        query = query.filter(Release.publish_date.like('%{}%'.format(since)))
+        query = query.add_column(Release.effective_date)
+        for date in query_parameter['since']:
+            query = query.filter(Release.effective_date >= date)
 
     return query
 
 
-def filter_query_for_keywords(keyword, query):
-    filter_conditions = []
-
+def filter_query_for_keywords(keyword, query_parameter, query):
     if keyword is not None:
-        for word in keyword:
-            filter_conditions.append(ConsumerDescriptor.descriptor.ilike('%{}%'.format(word)))
-
+        filter_conditions = [(ConsumerDescriptor.descriptor.ilike('%{}%'.format(word)))
+                             for word in query_parameter['keyword']]
         query = query.filter(or_(*filter_conditions))
 
     return query

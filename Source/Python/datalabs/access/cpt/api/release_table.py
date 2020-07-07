@@ -1,8 +1,8 @@
 import json
-from   sqlalchemy import create_engine
-from   sqlalchemy.orm import sessionmaker
-from   datalabs.etl.cpt.dbmodel import Release
-from   datalabs.access.database import Database
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from datalabs.etl.cpt.dbmodel import Release
+from datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
@@ -38,7 +38,7 @@ def get_response_from_query(query, query_parameter):
             query = query.limit(results).all()
             response_data = get_content_from_rows(query)
         else:
-            response_data = {'results': 'invalid'}
+            response_data = 'Invalid query parameter'
             status_code = 400
 
     else:
@@ -52,6 +52,6 @@ def get_content_from_rows(query):
     response_rows = [dict(id=row.id,
                           publish_date=str(row.publish_date),
                           effective_date=str(row.effective_date),
-                          type=row.type) for row in query.all()]
+                          type=row.type) for row in query]
 
     return response_rows

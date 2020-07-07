@@ -54,6 +54,54 @@ resource "aws_lambda_function" "cpt_get_descriptor" {
     runtime         = "python3.7"
 }
 
+
+resource "aws_api_gateway_rest_api" "cpt_api_gateway_TEST" {
+    name = "CPT API TEST"
+    description = local.spec_description
+    body = templatefile(
+        "${path.module}/../../../Build/CPT/api.yaml",
+        {
+            title = "CPT API TEST",
+            description = local.spec_description,
+            region = local.region,
+            lambda_descriptor_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.descriptor}",
+            lambda_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_cpt_descriptors",
+            lambda_consumer_descriptor_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:consumer_descriptor_code",
+            lambda_consumer_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_consumer_descriptor",
+            lambda_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:clinician_descriptor_code",
+            lambda_all_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_clinician_descriptor",
+            # lambda_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:pla_details_code",
+            # lambda_all_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_pla_details",
+            # lambda_modifier_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:modifier_code",
+            # lambda_modifiers_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_modifiers",
+            # lambda_latest_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:latest_pdfs",
+            # lambda_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:pdfs_release",
+            # lambda_releases_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_releases",
+            lambda_return404_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:Return404",
+        }
+    )
+
+    tags = merge(local.tags, {Name = "CPT API Gateway"})
+}
+
+resource "aws_api_gateway_deployment" "cpt_api_deployment_test_TEST" {
+  depends_on = [aws_api_gateway_rest_api.cpt_api_gateway_TEST]
+
+  rest_api_id = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
+  stage_name  = "test"
+
+  triggers = {
+    redeployment = sha1(join(",", list(
+      jsonencode(aws_api_gateway_rest_api.cpt_api_gateway_TEST),
+    )))
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+
 # resource "aws_lambda_function" "ConvertCPT_test" {
 #     filename        = "../../../Build/CPT/app.zip"
 #     function_name   = "ConvertCPT"
@@ -144,6 +192,10 @@ module "lambda_descriptor" {
     region          = local.region
     account_id      = data.aws_caller_identity.account.account_id
     api_gateway_id  = aws_api_gateway_rest_api.cpt_api_gateway.id
+
+
+    function_name_TEST   = local.function_names.descriptor
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -281,7 +333,7 @@ data "aws_caller_identity" "account" {}
 
 
 data "aws_ssm_parameter" "database_username" {
-    name = "/DataLabs/CPT/RDS/username"R
+    name = "/DataLabs/CPT/RDS/username"
 }
 
 
@@ -324,5 +376,21 @@ locals {
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na
+    }
+    function_names = {
+        descriptor                  = "CPTGetDescriptor"
+        descriptors                 = "CPTGetDescriptors"
+        consumer_descriptor         = "CPTGetConsumerDescriptor"
+        consumer_descriptors        = "CPTGetConsumerDescriptors"
+        clinician_descriptors       = "CPTGetClinicianDescriptors"
+        all_clinician_descriptors   = "CPTGetAllClinicianDescriptors"
+        modifier                    = "CPTGetModifier"
+        modifiers                   = "CPTGetModifiers"
+        pla_details                 = "CPTGetPLADetails"
+        all_pla_details             = "CPTGetAllPLADetails"
+        latest_pdfs                 = "CPTGetLatestPDFs"
+        pdfs                        = "CPTGetPDFs"
+        releases                    = "CPTGetReleases"
+        default                     = "Return404"
     }
 }

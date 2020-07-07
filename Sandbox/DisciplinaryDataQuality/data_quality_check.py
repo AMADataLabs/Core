@@ -7,6 +7,7 @@ from time import strftime
 import glob
 import re
 
+
 # TODO:
 # 1. function check name format 3.5
 # 2. get statistic data for weekly report and get PowerBI Dashboard
@@ -14,12 +15,14 @@ import re
 # Part 1: hard coding
 # path of the directory of results
 #directory = '/Users/elaineyao/Desktop/QAtest/'
-directory = 'U:/Data Procurement & Disciplinary/JIRA Historical Documents/DISCP/'
+#directory = 'U:/Data Procurement & Disciplinary/JIRA Historical Documents/DISCP/'
+directory = 'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/DISCP'
 
 count_log_path = 'U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityLog.csv'
 file_log_path  = 'U:/Source Files/Data Analytics/Data-Science/Data/Sanctions/DataQualityCheck/SanctionsQualityFileLog.csv'
 
 date = str(datetime.datetime.now().date())
+
 
 
 
@@ -110,6 +113,7 @@ def get_latest_folder_path(dir) -> list:
     list_of_files = glob.glob(f'{dir}/*')  # * means all if need specific format then *.csv
     latest_result = max(list_of_files, key=os.path.getctime)
     path = latest_result
+    print(path)
 
     # folders under results: outside states + no_data
     folders = [f for f in os.listdir(latest_result) if not f.startswith('.')]
@@ -358,8 +362,12 @@ else:
         #updatefolders = [f for f in os.listdir(path) if not f.startswith('.')]
         validupdatefolders = [f for f in folders if f != 'no_data']
         for fold in validupdatefolders:
-            for file in [f for f in os.listdir(path + fold) if not f.startswith('.')]:
+            print(fold)
+            #print(os.listdir(path + fold))
+            print(os.path.join(path, fold))
+            for file in [f for f in os.listdir(os.path.join(path, fold)) if not f.startswith('.')]:
                 fullpath = path +'/' + fold + '/' + file
+                #print(fullpath)
                 # fullpath = '/Users/elaineyao/Desktop/QAtest/results_04_08_2020_09_10PM/' + fold + '/' + file
                 type = get_doc_type(file)
 

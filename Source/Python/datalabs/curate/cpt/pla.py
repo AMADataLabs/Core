@@ -29,8 +29,9 @@ class PLAParser(Parser):
         return self._generate_dataframe()
 
     def _extract_fields(self, text):
-        text_headerless = text.split("\n", 1)[1]
-        root = et.fromstring(text_headerless)
+
+        text_split = text.split("\n", 1)[1]
+        root = et.fromstring(text_split)
 
         for c in root.findall('plaCode'):
             self._pla_id.append(c.attrib.get('cdId'))
