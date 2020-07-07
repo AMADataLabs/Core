@@ -1,0 +1,15 @@
+#!/bin/bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+ACTIVATE=". ${SCRIPT_BASE_PATH}/../Environment/Master/bin/activate"
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+
+main() {
+    $RUN ${SCRIPT_BASE_PATH}/bundle_project.py $*
+}
+
+
+main $*
