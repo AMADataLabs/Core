@@ -65,7 +65,7 @@ class LocalProjectBundler(ProjectBundler):
         return bundle.copy(self._shared_source_path, target_path)
 
     def _copy_lambda_function_handler(self, target_path):
-        shutil.copy(os.path.join(self._build_path, 'Master', 'lambda.py'), os.path.join(target_path, 'lambda.py'))
+        shutil.copy(os.path.join(self._build_path, 'Master', 'awslambda.py'), os.path.join(target_path, 'awslambda.py'))
 
     def _zip_bundle_directory(self, project, target_path):
         archive_path = target_path.parent.joinpath(f'{project}.zip')

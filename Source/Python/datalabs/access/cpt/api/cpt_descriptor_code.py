@@ -5,7 +5,7 @@ import os
 from   sqlalchemy import create_engine
 from   sqlalchemy.orm import sessionmaker
 
-from   datalabs.access.task import APIEndpointTask, APIException, InvalidRequest, ResourceNotFound
+from   datalabs.access.task import APIEndpointTask, APIEndpointException, InvalidRequest, ResourceNotFound
 from   datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor
 from   datalabs.access.database import Database
 

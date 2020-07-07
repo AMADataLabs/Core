@@ -1,9 +1,12 @@
 from   abc import ABC, abstractmethod
+import json
+
+from   datalabs.task import TaskException
 
 
 class TaskWrapper:
     def __init__(self, task_class):
-        self._task_class
+        self._task_class = task_class
 
     def run(self, event):
         status_code = 200
@@ -15,12 +18,12 @@ class TaskWrapper:
             task.run()
 
             status_code, body = self._generate_response(task)
-        except APIException as exception:
+        except TaskException as exception:
             status_code, body = self._handle_exception(exception)
 
         return {
             "statusCode": status_code,
-            "body": json.dumps(response)
+            "body": json.dumps(body)
         }
 
     @abstractmethod
@@ -28,9 +31,9 @@ class TaskWrapper:
         pass
 
     @abstractmethod
-    def _handle_exception(self, exception: Exception) => (int, dict):
+    def _generate_response(self, task) -> (int, dict):
         pass
 
     @abstractmethod
-    def _generate_response(self, task) => (int, dict):
+    def _handle_exception(self, exception: Exception) -> (int, dict):
         pass

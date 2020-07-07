@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datalabs.task import Task
+from datalabs.task import Task, TaskException
 
 from datalabs.access.credentials import Credentials
 from datalabs.access.orm import Database
@@ -15,7 +15,7 @@ class APIEndpointParameters:
 
 class APIEndpointTask(Task):
     def __init__(self, parameters: APIEndpointParameters):
-        self._parameters = parameters
+        super().__init__(parameters)
         self._status_code = 200
         self._response_body = 'success'
 
@@ -24,7 +24,7 @@ class APIEndpointTask(Task):
         return self._status_code
 
     @property
-    def _response_body(self):
+    def response_body(self):
         return self._response_body
 
     def run(self):
@@ -50,7 +50,7 @@ class APIEndpointTask(Task):
         return database.Database(config, credentials)
 
 
-class APIEndpointException(Exception):
+class APIEndpointException(TaskException):
     def __init__(self, message, status_code=None):
         super().__init__(message)
 
