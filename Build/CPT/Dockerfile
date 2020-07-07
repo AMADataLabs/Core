@@ -12,7 +12,7 @@ RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r
 COPY ./Script ./Script
 COPY ./Build/CPT ./Build/CPT
 COPY ./Source ./Source
-RUN ./Script/bundle-app -i --directory ./ CPT
+RUN ./Script/bundle-project -i --directory ./ CPT
 
 RUN rm -rf ./Script
 RUN rm -rf ./Build
