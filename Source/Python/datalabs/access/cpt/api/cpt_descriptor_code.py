@@ -1,3 +1,4 @@
+from   collections import defaultdict
 import json
 import os
 
@@ -6,30 +7,46 @@ from   sqlalchemy.orm import sessionmaker
 
 import datalabs.access.credentials as credentials
 import datalabs.access.database as database
-from   datalabs.access.task import APIEndpointTask
+from   datalabs.access.task import APIEndpointTask, APIException, InvalidRequest, ResourceNotFound
 from   datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor
+from   datalabs.access.database import Database
 
 
 def lambda_handler(event, context):
-    DescriptorEndpointTask(event).run()
+    status_code = 200
+    response = None
+
+    try:
+        response = DescriptorEndpointTask(event).run()
+    except APIException as exception:
+        status_code = exception.status_code
+        response = dict(message=str(exception))
+
+    return {
+        "statusCode": status_code,
+        "body": json.dumps(response)
+    }
 
 
 class DescriptorEndpointTask(APIEndpointTask):
+    LENGTH_MODEL_NAMES = dict(short='ShortDescriptor', medium='MediumDescriptor', long='LongDescriptor')
+
     def run(self):
         with self._get_database() as database:
-            query = query_for_descriptor(database.session)
-            query = _query_by_code(query, self._event)
-            status_code = 200
+            path_parameters = self._event.get('pathParameters', dict())
+            code = path_parameters.get('code')
+            multi_value_parameters = self._event.get('multiValueQueryStringParameters', defaultdict(list))
+            lengths = multi_value_parameters.get('length') or ['short', 'medium', 'long']
 
-            if self._event.get('multiValueQueryStringParameters', None) is not None:
-                status_code, response = _get_filtered_length_response(query, self._event['multiValueQueryStringParameters']['length'])
-            else:
-                response = _get_content_from_query(query)
+            if not cls._lengths_are_valid(lengths):
+                raise InvalidRequest("Invalid query parameter")
 
-            return {
-                "statusCode": status_code,
-                "body": json.dumps(response)
-            }
+            query = self._query_for_descriptor(database.session, code)
+
+            if query is None:
+                raise ResourceNotFound('No descriptor found for the given CPT Code')
+
+            return cls._generate_response_body(query.one(), lengths)
 
     @classmethod
     def _get_database(cls):
@@ -40,91 +57,26 @@ class DescriptorEndpointTask(APIEndpointTask):
         return database.Database(database_config, database_credentials)
 
     @classmethod
-    def query_for_descriptor(cls, session):
-        query = session.query(Code, LongDescriptor, MediumDescriptor, ShortDescriptor).join(LongDescriptor,
-                                                                                            MediumDescriptor,
-                                                                                            ShortDescriptor)
+    def _lengths_are_valid(cls, lengths):
+        return all(length in cls.LENGTH_MODEL_NAMES.keys() for length in lengths)
+
+    @classmethod
+    def _query_for_descriptor(cls, session, code):
+        query = None
+
+        if code is not None:
+            query = session.query(Code, LongDescriptor, MediumDescriptor, ShortDescriptor).join(
+                LongDescriptor, MediumDescriptor, ShortDescriptor
+            )
+            query = query.filter(Code.code == code)
+
         return query
 
     @classmethod
-    def _query_by_code(cls, query, event):
-        if event.get('pathParameters', None) is not None:
-            query = query.filter(Code.code == event['pathParameters']['code'])
-
-        else:
-            query = None
-
-        return query
-
-
-    @classmethod
-    def _get_response_data_from_query(cls, query, event):
-        lengths = event["multiValueQueryStringParameters"].get('length', None)
-
-        if lengths is not None:
-            if _lengths_exist(lengths):
-                response_data = _get_filtered_length_response(query, lengths)
-                status_code = 200
-            else:
-                status_code = 400
-                response_data = {'length(s)': 'invalid'}
-        else:
-            response_data = _get_content_from_query(query)
-            status_code = 200
-
-        return status_code, response_data
-
-
-    @classmethod
-    def _lengths_exist(cls, lengths):
-        length_dict = {"long": LongDescriptor, "medium": MediumDescriptor, "short": ShortDescriptor}
+    def _generate_response_body(cls, row, lengths):
+        body = dict(code=row.Code.code)
 
         for length in lengths:
-            if length in list(length_dict.keys()):
-                condition = True
-            else:
-                condition = False
-                break
+            body.update({length + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length]).descriptor})
 
-        return condition
-
-
-    @classmethod
-    def _get_filtered_length_response(cls, query, lengths):
-        response_data = []
-        length_dict = {"long": 'LongDescriptor', "medium": 'MediumDescriptor', "short": 'ShortDescriptor'}
-        if not lengths:
-            lengths = ['short', 'medium', 'long']
-
-        if query is not None:
-            for row in query.all():
-                response_row = {"code": row.Code.code}
-                for length in lengths:
-                    response_row.update({length + '_descriptor': getattr(row, length_dict.get(length)).descriptor})
-
-                response_data.append(response_row)
-        else:
-            response_data = {'code': 'not given'}
-
-        return response_data
-
-
-    @classmethod
-    def _get_content_from_query(cls, query):
-        response_row = []
-        print(query)
-        if query is not None:
-            for row in query.all():
-                response_data = {
-                    'code': row.Code.code,
-                    'long_descriptor': row.LongDescriptor.descriptor,
-                    'medium_descriptor': row.MediumDescriptor.descriptor,
-                    'short_descriptor': row.ShortDescriptor.descriptor
-                }
-                response_row.append(response_data)
-        else:
-            response_row = {'code': 'not given'}
-
-        return response_row
-
-
+        return body
