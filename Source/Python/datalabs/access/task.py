@@ -57,6 +57,10 @@ class APIEndpointException(TaskException):
 
         self._status_code = status_code or 400  # Invalid request
 
+    @property
+    def status_code(self):
+        return self._status_code
+
 
 class InvalidRequest(APIEndpointException):
     pass

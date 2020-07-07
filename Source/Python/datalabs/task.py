@@ -12,4 +12,6 @@ class Task(ABC):
 
 
 class TaskException(BaseException):
-    pass
+    @property
+    def message(self):
+        return self.args[0]
