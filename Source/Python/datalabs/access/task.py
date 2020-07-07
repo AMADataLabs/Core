@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datalabs.task import Task, TaskException
 
 from datalabs.access.credentials import Credentials
+from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
 
 
@@ -47,7 +48,7 @@ class APIEndpointTask(Task):
             password=self._parameters.database['password']
         )
 
-        return database.Database(config, credentials)
+        return Database(config, credentials)
 
 
 class APIEndpointException(TaskException):
