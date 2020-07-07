@@ -18,7 +18,7 @@ class APIEndpointTask(Task):
     def __init__(self, parameters: APIEndpointParameters):
         super().__init__(parameters)
         self._status_code = 200
-        self._response_body = 'success'
+        self._response_body = dict()
 
     @property
     def status_code(self):

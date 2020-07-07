@@ -32,19 +32,6 @@ def test_task_wrapper_succeeds_as_expected():
     assert response['body'] == '"failed"'
 
 
-
-# def test_lambda_handler_returns_correct_success_response(event, context, expected_response_body):
-#     with mock.patch('datalabs.access.cpt.api.cpt_descriptor_code.DescriptorEndpointTask.run') as run:
-#         run.return_value = expected_response_body
-#         response = lambda_handler(event, context)
-
-#     assert 'statusCode' in response
-#     assert response['statusCode'] == 200
-#     assert 'body' in response
-#     body = json.loads(response['body'])
-#     assert body == expected_response_body
-
-
 class BadTaskWrapper(TaskWrapper):
     pass
 

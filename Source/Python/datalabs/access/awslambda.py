@@ -1,9 +1,10 @@
 import os
 
 from   datalabs.access.task import APIEndpointTask, APIEndpointParameters, APIEndpointException
+from   datalabs.awslambda import TaskWrapper
 
 
-class APIEndpointTaskWrapper:
+class APIEndpointTaskWrapper(TaskWrapper):
     def __init__(self):
         super().__init__(APIEndpointTask)
 
@@ -16,18 +17,18 @@ class APIEndpointTaskWrapper:
             query=query_parameters,
             database=dict(
                 name=os.getenv('DATABASE_NAME'),
-                host=os.getenv('DATABASE_HOST'),
                 backend=os.getenv('DATABASE_BACKEND'),
+                host=os.getenv('DATABASE_HOST'),
                 username=os.getenv('DATABASE_USERNAME'),
                 password=os.getenv('DATABASE_PASSWORD')
             ),
         )
 
-    def _handle_exception(self, exception: Exception) => (int, dict):
+    def _handle_exception(self, exception: APIEndpointException) -> (int, dict):
         status_code = exception.status_code
-        response = dict(message=str(exception))
+        body = dict(message=exception.message)
 
-        return status_code, response
+        return status_code, body
 
-    def _generate_response(self, task) => (int, dict):
+    def _generate_response(self, task) -> (int, dict):
         return task.status_code, task.response_body

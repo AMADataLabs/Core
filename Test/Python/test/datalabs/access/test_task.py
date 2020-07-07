@@ -25,14 +25,9 @@ def test_task_is_not_abstract():
     GoodTask(None)._run(None)
 
 
-def test_task_runs_with_database():
+def test_task_runs_with_database(parameters):
     with mock.patch('datalabs.access.task.Database') as database:
         database.return_value.session = True
-        parameters = apitask.APIEndpointParameters(
-            path=None,
-            query=None,
-            database=dict(name=None, backend=None, host=None, username=None, password=None)
-        )
         task = GoodTask(parameters)
         task.run()
 
@@ -67,3 +62,12 @@ def test_resource_not_found_is_404():
 
     assert exception.status_code == 404
     assert exception.message == 'failed'
+
+
+@pytest.fixture
+def parameters():
+    return apitask.APIEndpointParameters(
+        path=None,
+        query=None,
+        database=dict(name=None, backend=None, host=None, username=None, password=None)
+    )
