@@ -8,7 +8,7 @@ from   sqlalchemy import or_
 from   sqlalchemy.orm.exc import NoResultFound
 
 from   datalabs.access.task import APIEndpointTask, APIEndpointException, InvalidRequest, ResourceNotFound
-from   datalabs.etl.cpt.dbmodel import ClinicianDescriptor, ClinicianDescriptorCodeMapping
+from   datalabs.etl.cpt.dbmodel import Modifier, ModifierType
 from   datalabs.access.database import Database
 
 logging.basicConfig()
@@ -16,7 +16,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
+class BaseModifierEndpointTask(APIEndpointTask):
     def _run(self, session):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
@@ -29,11 +29,11 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
         self._response_body = self._generate_response_body(query.all())
 
     def _set_parameter_defaults(self):
-        self._parameters.query['keyword'] = self._parameters.query.get('keyword') or []
+        pass
 
     @classmethod
     def _query_for_descriptors(cls, session):
-        return session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping)
+        return session.query(Modifier, ModifierType).join(ModifierType)
 
     @abstractmethod
     def _filter(self, query):
@@ -41,19 +41,23 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response_body(cls, rows):
-        return [dict(id=row.ClinicianDescriptor.id,
-                     code=row.ClinicianDescriptorCodeMapping.code,
-                     descriptor=row.ClinicianDescriptor.descriptor) for row in rows]
+        return [
+            dict(
+                modifier=row.Modifier.modifier,
+                descriptor=row.Modifier.descriptor,
+                type=row.ModifierType.name)
+            for row in rows
+        ]
 
 
-class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
+class ModifierEndpointTask(BaseModifierEndpointTask):
     def _run(self, session):
         super()._run(session)
 
         if not self._response_body:
-            raise ResourceNotFound('No Clinician Descriptors found for the given CPT code')
+            raise ResourceNotFound('No data exists for the given modifier')
 
-        self._response_body = self._response_body
+        self._response_body = self._response_body[0]
 
     def _filter(self, query):
         code = self._parameters.path.get('code')
@@ -62,17 +66,20 @@ class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
 
     @classmethod
     def _filter_by_code(cls, query, code):
-        return query.filter(ClinicianDescriptorCodeMapping.code == code)
+        return query.filter(Modifier.modifier == code)
 
 
-class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
+class AllModifiersEndpointTask(BaseModifierEndpointTask):
+    def _set_parameter_defaults(self):
+        self._parameters.query['type'] = self._parameters.query.get('type') or []
+
     def _filter(self, query):
         since = self._parameters.query.get('since')
-        keywords = self._parameters.query.get('keyword')
+        types = self._parameters.query.get('type')
 
         query = self._filter_for_release(query, since)
 
-        query = self._filter_for_keywords(query, keywords)
+        query = self._filter_for_type(query, types)
 
         return query
 
@@ -85,7 +92,7 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
 
         return query
 
-    def _filter_for_keywords(self, query, keywords):
-        filter_conditions = [(ClinicianDescriptor.descriptor.ilike('%{}%'.format(word))) for word in keywords]
+    def _filter_for_type(self, query, types):
+        filter_conditions = [(ModifierType.name == t) for t in types]
 
         return query.filter(or_(*filter_conditions))

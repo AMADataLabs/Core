@@ -84,8 +84,6 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
         return query
 
     def _filter_for_keywords(self, query, keywords):
-        filter_conditions = []
-
         filter_conditions = [(ConsumerDescriptor.descriptor.ilike('%{}%'.format(word))) for word in keywords]
 
         return query.filter(or_(*filter_conditions))

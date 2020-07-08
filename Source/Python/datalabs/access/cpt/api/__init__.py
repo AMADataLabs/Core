@@ -7,3 +7,5 @@ APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.consumer_descripto
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.consumer_descriptor.AllConsumerDescriptorsEndpointTask')
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.clinician_descriptor.ClinicianDescriptorsEndpointTask')
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.clinician_descriptor.AllClinicianDescriptorsEndpointTask')
+APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.modifier.ModifierEndpointTask')
+APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.modifier.AllModifiersEndpointTask')
