@@ -1,14 +1,14 @@
 """ CPT ETL Transformer classes """
-from dataclasses import dataclass
-from datetime import datetime
+from   dataclasses import dataclass
+from   datetime import datetime
 import io
 import logging
 
 import pandas
 
 import datalabs.feature as feature
-from datalabs.plugin import import_plugin
-from datalabs.etl.transform import Transformer
+from   datalabs.plugin import import_plugin
+from   datalabs.etl.transform import Transformer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -48,6 +48,7 @@ class OutputData:
     manufacturer_pla_code_mapping: pandas.DataFrame
     lab: pandas.DataFrame
     lab_pla_code_mapping: pandas.DataFrame
+    pla_release: pandas.DataFrame
 
 
 class CPTFileToCSVTransformer(Transformer):
@@ -74,8 +75,6 @@ class CPTFileToCSVTransformer(Transformer):
 
 class CSVToRelationalTablesTransformer(Transformer):
     def transform(self, data):
-        # if feature.enabled('PLA'):
-        #     data.append('DUMMY')
 
         input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
         return self._generate_tables(input_data)
@@ -106,50 +105,8 @@ class CSVToRelationalTablesTransformer(Transformer):
             manufacturer_pla_code_mapping=self._generate_pla_manufacturer_code_mapping_table(input_data.pla),
             lab=self._generate_pla_lab_table(input_data.pla),
             lab_pla_code_mapping=self._generate_pla_lab_code_mapping_table(input_data.pla),
+            pla_release=self._generate_pla_release_code_mapping_table(input_data.pla)
         )
-
-        if feature.enabled('PLA'):
-            tables = OutputData(
-                release=tables.release,
-                code=tables.code,
-                release_code_mapping=tables.release_code_mapping,
-                short_descriptor=tables.short_descriptor,
-                medium_descriptor=tables.medium_descriptor,
-                long_descriptor=tables.long_descriptor,
-                modifier_type=tables.modifier_type,
-                modifier=tables.modifier,
-                consumer_descriptor=tables.consumer_descriptor,
-                clinician_descriptor=tables.clinician_descriptor,
-                clinician_descriptor_code_mapping=tables.clinician_descriptor_code_mapping,
-                pla_code=tables.pla_code,
-                pla_short_descriptor=tables.pla_short_descriptor,
-                pla_medium_descriptor=input_data.pla[
-                    ['pla_code', 'medium_descriptor']
-                ].rename(
-                    columns=dict(pla_code='code', medium_descriptor='descriptor')
-                ),
-                pla_long_descriptor=input_data.pla[
-                    ['pla_code', 'long_descriptor']
-                ].rename(
-                    columns=dict(pla_code='code', long_descriptor='descriptor')
-                ),
-                manufacturer=input_data.pla[
-                    ['id', 'manufacturer']
-                ].rename(
-                    columns=dict(pla_id='id', manufacturer='name')
-                ),
-                manufacturer_pla_code_mapping=input_data.pla[
-                    ['id', 'pla_code']
-                ].rename(
-                    columns=dict(id='manufacturer', pla_code='code')
-                ),
-                lab=input_data.pla[['id', 'lab']],
-                lab_pla_code_mapping=input_data.pla[
-                    ['id', 'pla_code']
-                ].rename(
-                    columns=dict(id='id', pla_code='code')
-                )
-            )
 
         return tables
 
@@ -173,6 +130,7 @@ class CSVToRelationalTablesTransformer(Transformer):
         releases = [None] * len(codes)  # the new release ID is unknown until it is committed to the DB
 
         return pandas.DataFrame(dict(id=ids, release=releases, code=codes.code))
+
 
     def _generate_clinician_descriptor_table(self, descriptors):
         descriptor_table = descriptors[
@@ -232,13 +190,12 @@ class CSVToRelationalTablesTransformer(Transformer):
 
         return descriptor_table
 
-    # def _generate_pla_manufacturer_code_mapping_table(self, input_descriptors):
-    #     columns = {'id': 'manufacturer', 'pla_code': 'code'}
-    #     id_table = OutputData.manufacturer[['id']]
-    #     code_table = input_descriptors[['pla_code']].rename(columns=dict(pla_code='code'))
-    #
-    #     mapping_table = code_table.append(id_table)
-    #     return mapping_table
+    def _generate_pla_manufacturer_code_mapping_table(self, descriptors):
+        descriptor_table = descriptors[['pla_code', 'manufacturer', 'id']].rename(columns=dict(pla_code='code', manufacturer='man', id='manufacturer'))
+
+        descriptor_table.drop(columns='man')
+
+        return descriptor_table
 
     def _generate_pla_lab_table(self, descriptors):
         columns = {'lab': 'name'}

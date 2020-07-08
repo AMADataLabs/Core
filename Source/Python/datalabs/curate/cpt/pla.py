@@ -3,7 +3,7 @@ import logging
 import pandas
 import xml.etree.ElementTree as et
 
-from datalabs.curate.parse import Parser
+from   datalabs.curate.parse import Parser
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
