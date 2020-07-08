@@ -35,7 +35,7 @@ def test_task_wrapper_succeeds_as_expected():
 def test_task_wrapper_creation_from_task_class_name():
     task_class_name = '.'.join((MockTask.__module__, MockTask.__name__))
     GoodTaskWrapper.register_task(task_class_name)
-    wrapper = GoodTaskWrapper.create(task_class_name)
+    wrapper = GoodTaskWrapper.create(MockTask)
     response = wrapper.run(dict(fail=False))
 
     assert response['statusCode'] == 200

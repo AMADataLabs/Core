@@ -4,6 +4,7 @@ import os
 
 from   sqlalchemy import create_engine
 from   sqlalchemy.orm import sessionmaker
+from   sqlalchemy.orm.exc import NoResultFound
 
 from   datalabs.access.task import APIEndpointTask, APIEndpointException, InvalidRequest, ResourceNotFound
 from   datalabs.etl.cpt.dbmodel import Code, ShortDescriptor, LongDescriptor, MediumDescriptor
@@ -22,10 +23,12 @@ class DescriptorEndpointTask(APIEndpointTask):
 
         query = self._query_for_descriptor(session, code)
 
-        if query is None:
+        try:
+            result = query.one()
+        except NoResultFound:
             raise ResourceNotFound('No descriptor found for the given CPT Code')
 
-        self._status_code, self._response_body = self._generate_response_body(query.one(), lengths)
+        self._response_body = self._generate_response_body(result, lengths)
 
     @classmethod
     def _lengths_are_valid(cls, lengths):
@@ -33,13 +36,10 @@ class DescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _query_for_descriptor(cls, session, code):
-        query = None
-
-        if code is not None:
-            query = session.query(Code, LongDescriptor, MediumDescriptor, ShortDescriptor).join(
-                LongDescriptor, MediumDescriptor, ShortDescriptor
-            )
-            query = query.filter(Code.code == code)
+        query = session.query(Code, LongDescriptor, MediumDescriptor, ShortDescriptor).join(
+            LongDescriptor, MediumDescriptor, ShortDescriptor
+        )
+        query = query.filter(Code.code == code)
 
         return query
 
