@@ -1,14 +1,14 @@
 """ CPT ETL Transformer classes """
-from   dataclasses import dataclass
-from   datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime
 import io
 import logging
 
 import pandas
 
 import datalabs.feature as feature
-from   datalabs.plugin import import_plugin
-from   datalabs.etl.transform import Transformer
+from datalabs.plugin import import_plugin
+from datalabs.etl.transform import Transformer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class OutputData:
     manufacturer_pla_code_mapping: pandas.DataFrame
     lab: pandas.DataFrame
     lab_pla_code_mapping: pandas.DataFrame
-    pla_release: pandas.DataFrame
+    # pla_release: pandas.DataFrame
 
 
 class CPTFileToCSVTransformer(Transformer):
@@ -75,7 +75,6 @@ class CPTFileToCSVTransformer(Transformer):
 
 class CSVToRelationalTablesTransformer(Transformer):
     def transform(self, data):
-
         input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
         return self._generate_tables(input_data)
 
@@ -105,7 +104,7 @@ class CSVToRelationalTablesTransformer(Transformer):
             manufacturer_pla_code_mapping=self._generate_pla_manufacturer_code_mapping_table(input_data.pla),
             lab=self._generate_pla_lab_table(input_data.pla),
             lab_pla_code_mapping=self._generate_pla_lab_code_mapping_table(input_data.pla),
-            pla_release=self._generate_pla_release_code_mapping_table(input_data.pla)
+            # pla_release=self._generate_pla_release_code_mapping_table(input_data.pla)
         )
 
         return tables
@@ -130,7 +129,6 @@ class CSVToRelationalTablesTransformer(Transformer):
         releases = [None] * len(codes)  # the new release ID is unknown until it is committed to the DB
 
         return pandas.DataFrame(dict(id=ids, release=releases, code=codes.code))
-
 
     def _generate_clinician_descriptor_table(self, descriptors):
         descriptor_table = descriptors[
@@ -191,7 +189,8 @@ class CSVToRelationalTablesTransformer(Transformer):
         return descriptor_table
 
     def _generate_pla_manufacturer_code_mapping_table(self, descriptors):
-        descriptor_table = descriptors[['pla_code', 'manufacturer', 'id']].rename(columns=dict(pla_code='code', manufacturer='man', id='manufacturer'))
+        descriptor_table = descriptors[['pla_code', 'manufacturer', 'id']].rename(
+            columns=dict(pla_code='code', manufacturer='man', id='manufacturer'))
 
         descriptor_table.drop(columns='man')
 
