@@ -181,7 +181,7 @@ class Manufacturer(Base):
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.String, nullable=False)
+    name = sa.Column(sa.String, nullable=True)
     modified_date = sa.Column(sa.Date, nullable=False)
     deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 

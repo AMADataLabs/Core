@@ -308,23 +308,22 @@ class CPTRelationalTableLoader(Loader):
 
         TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
 
+        TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
+
+        TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
+
+        TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
+
+        TableUpdater(self._session, dbmodel.Manufacturer, 'id').update(data.manufacturer)
+
+        TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
+            data.manufacturer_pla_code_mapping
+        )
+
+        TableUpdater(self._session, dbmodel.Lab, 'id').update(data.lab)
+
+        TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
+
         # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
-
-        if feature.enabled('PLA'):
-            TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
-
-            TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
-
-            TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
-
-            TableUpdater(self._session, dbmodel.Manufacturer, 'id').update(data.manufacturer)
-
-            TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
-                data.manufacturer_pla_code_mapping
-            )
-
-            TableUpdater(self._session, dbmodel.Lab, 'id').update(data.lab)
-
-            TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
 
         self._session.commit()
