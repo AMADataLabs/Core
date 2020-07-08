@@ -86,7 +86,7 @@ class DescriptorEndpointTask(BaseDescriptorEndpointTask):
 
     @classmethod
     def _filter_by_code(cls, query, code):
-        return query.filter(Code.code == code)
+        return query.filter(dbmodel.Code.code == code)
 
 
 class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
