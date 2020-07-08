@@ -50,8 +50,21 @@ resource "aws_lambda_function" "cpt_get_descriptor" {
     s3_key          = "CPT/CPT.zip"
     function_name   = "CPTGetDescriptor"
     role            = aws_iam_role.cpt_lambda_role.arn
-    handler         = "datalabs.access.cpt.api.cpt_descriptor_code.lambda_handler"
+    handler         = "awslambda.handler"
     runtime         = "python3.7"
+    timeout         = 5
+    memory_size     = 1024
+
+    environment {
+        variables = {
+            TASK_CLASS="datalabs.access.cpt.api.cpt_descriptor_code.DescriptorEndpointTask"
+            DATABASE_NAME=aws_db_instance.cpt_api_database.name
+            DATABASE_BACKEND="postgresql+psycopg2"
+            DATABASE_HOST=aws_db_instance.cpt_api_database.address
+            DATABASE_USERNAME=data.aws_ssm_parameter.database_username.value
+            DATABASE_PASSWORD=data.aws_ssm_parameter.database_password.value
+        }
+    }
 }
 
 

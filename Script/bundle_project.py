@@ -13,7 +13,7 @@ from datalabs.build.bundle import SourceBundle
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class ProjectBundler(ABC):

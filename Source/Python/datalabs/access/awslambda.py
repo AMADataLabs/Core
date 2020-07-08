@@ -6,11 +6,11 @@ from   datalabs.awslambda import TaskWrapper
 
 class APIEndpointTaskWrapper(TaskWrapper):
     def _get_task_parameters(self, event: dict):
-        query_parameters = event.get('queryStringParameters', dict())
-        query_parameters.update(event.get('multiValueQueryStringParameters', dict()))
+        query_parameters = event.get('queryStringParameters') or dict()
+        query_parameters.update(event.get('multiValueQueryStringParameters') or dict())
 
         return APIEndpointParameters(
-            path=event.get('pathParameters', dict()),
+            path=event.get('pathParameters') or dict(),
             query=query_parameters,
             database=dict(
                 name=os.getenv('DATABASE_NAME'),
