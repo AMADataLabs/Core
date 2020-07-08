@@ -11,3 +11,4 @@ APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.modifier.ModifierE
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.modifier.AllModifiersEndpointTask')
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.pla.PLADetailsEndpointTask')
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.pla.AllPLADetailsEndpointTask')
+APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.release.ReleasesEndpointTask')

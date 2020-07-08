@@ -22,7 +22,7 @@ class BaseModifierEndpointTask(APIEndpointTask):
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
-        query = self._query_for_descriptors(session)
+        query = self._query_for_modifiers(session)
 
         query = self._filter(query)
 
@@ -32,7 +32,7 @@ class BaseModifierEndpointTask(APIEndpointTask):
         pass
 
     @classmethod
-    def _query_for_descriptors(cls, session):
+    def _query_for_modifiers(cls, session):
         return session.query(Modifier, ModifierType).join(ModifierType)
 
     @abstractmethod
@@ -43,7 +43,7 @@ class BaseModifierEndpointTask(APIEndpointTask):
     def _generate_response_body(cls, rows):
         return [
             dict(
-                modifier=row.Modifier.modifier,
+                code=row.Modifier.modifier,
                 descriptor=row.Modifier.descriptor,
                 type=row.ModifierType.name)
             for row in rows

@@ -26,7 +26,7 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         lengths = self._parameters.query.get('length')
 
         if not self._lengths_are_valid(lengths):
-            raise InvalidRequest("Invalid query parameter")
+            raise InvalidRequest(f"Invalid query parameter: length={lengths}")
 
         query = self._query_for_descriptors(session)
 
