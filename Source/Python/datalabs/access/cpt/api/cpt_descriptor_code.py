@@ -15,9 +15,9 @@ class DescriptorEndpointTask(APIEndpointTask):
 
     def _run(self, session):
         code = self._parameters.path.get('code')
-        lengths = self._paramters.query.get('length') or ['short', 'medium', 'long']
+        lengths = self._parameters.query.get('length') or ['short', 'medium', 'long']
 
-        if not cls._lengths_are_valid(lengths):
+        if not self._lengths_are_valid(lengths):
             raise InvalidRequest("Invalid query parameter")
 
         query = self._query_for_descriptor(session, code)
@@ -25,7 +25,7 @@ class DescriptorEndpointTask(APIEndpointTask):
         if query is None:
             raise ResourceNotFound('No descriptor found for the given CPT Code')
 
-        self._status_code, self._response_body = cls._generate_response_body(query.one(), lengths)
+        self._status_code, self._response_body = self._generate_response_body(query.one(), lengths)
 
     @classmethod
     def _lengths_are_valid(cls, lengths):

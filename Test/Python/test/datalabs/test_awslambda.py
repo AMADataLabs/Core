@@ -6,7 +6,7 @@ from datalabs.task import Task, TaskException
 
 def test_task_wrapper_is_abstract():
     with pytest.raises(TypeError):
-        BadTaskWrapper()
+        BadTaskWrapper(None)
 
 
 def test_task_wrapper_is_not_abstract():
@@ -30,6 +30,16 @@ def test_task_wrapper_succeeds_as_expected():
 
     assert response['statusCode'] == 400
     assert response['body'] == '"failed"'
+
+
+def test_task_wrapper_creation_from_task_class_name():
+    task_class_name = '.'.join((MockTask.__module__, MockTask.__name__))
+    GoodTaskWrapper.register_task(task_class_name)
+    wrapper = GoodTaskWrapper.create(task_class_name)
+    response = wrapper.run(dict(fail=False))
+
+    assert response['statusCode'] == 200
+    assert response['body'] == '"succeeded"'
 
 
 class BadTaskWrapper(TaskWrapper):

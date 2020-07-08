@@ -6,14 +6,14 @@ from   datalabs.access.task import APIEndpointTask, APIEndpointParameters
 
 
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
-    wrapper = APIEndpointTaskWrapper()
+    wrapper = APIEndpointTaskWrapper(dict())
     parameters = wrapper._get_task_parameters(event)
 
     assert expected_parameters == parameters
 
 
 def test_task_wrapper_handle_exception():
-    wrapper = APIEndpointTaskWrapper()
+    wrapper = APIEndpointTaskWrapper(dict())
     status_code, body = wrapper._handle_exception(APIEndpointException('failed'))
 
     assert status_code == 400
@@ -21,7 +21,7 @@ def test_task_wrapper_handle_exception():
 
 
 def test_task_wrapper_generate_response():
-    wrapper = APIEndpointTaskWrapper()
+    wrapper = APIEndpointTaskWrapper(dict())
     task = MockTask(None)
     status_code, body = wrapper._generate_response(task)
 

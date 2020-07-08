@@ -5,9 +5,6 @@ from   datalabs.awslambda import TaskWrapper
 
 
 class APIEndpointTaskWrapper(TaskWrapper):
-    def __init__(self):
-        super().__init__(APIEndpointTask)
-
     def _get_task_parameters(self, event: dict):
         query_parameters = event.get('queryStringParameters', dict())
         query_parameters.update(event.get('multiValueQueryStringParameters', dict()))
