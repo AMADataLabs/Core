@@ -9,3 +9,5 @@ APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.clinician_descript
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.clinician_descriptor.AllClinicianDescriptorsEndpointTask')
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.modifier.ModifierEndpointTask')
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.modifier.AllModifiersEndpointTask')
+APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.pla.PLADetailsEndpointTask')
+APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.pla.AllPLADetailsEndpointTask')

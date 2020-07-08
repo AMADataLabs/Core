@@ -9,7 +9,6 @@ from   sqlalchemy.orm.exc import NoResultFound
 
 from   datalabs.access.task import APIEndpointTask, APIEndpointException, InvalidRequest, ResourceNotFound
 from   datalabs.etl.cpt.dbmodel import ClinicianDescriptor, ClinicianDescriptorCodeMapping
-from   datalabs.access.database import Database
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

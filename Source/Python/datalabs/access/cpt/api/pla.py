@@ -15,8 +15,8 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class BaseDescriptorEndpointTask(APIEndpointTask):
-    LENGTH_MODEL_NAMES = dict(short='ShortDescriptor', medium='MediumDescriptor', long='LongDescriptor')
+class BasePLADetailsEndpointTask(APIEndpointTask):
+    LENGTH_MODEL_NAMES = dict(short='PLAShortDescriptor', medium='PLAMediumDescriptor', long='PLALongDescriptor')
 
     def _run(self, session):
         LOGGER.debug('Parameters: %s', self._parameters)
@@ -44,10 +44,37 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _query_for_descriptors(cls, session):
-        query = session.query(dbmodel.Code, dbmodel.LongDescriptor, dbmodel.MediumDescriptor, dbmodel.ShortDescriptor).join(
-            dbmodel.LongDescriptor, dbmodel.MediumDescriptor, dbmodel.ShortDescriptor
+        query = session.query(
+            dbmodel.PLACode,
+            dbmodel.PLALongDescriptor,
+            dbmodel.PLAMediumDescriptor,
+            dbmodel.PLAShortDescriptor,
+            # dbmodel.Release,
+            dbmodel.Manufacturer,
+            dbmodel.Lab
+        ).join(
+            dbmodel.PLALongDescriptor,
+            dbmodel.PLAMediumDescriptor,
+            dbmodel.PLAShortDescriptor,
+        # ).join(
+        #     dbmodel.ReleasePLACodeMapping,
+        #     dbmodel.ReleasePLACodeMapping.code==dbmodel.PLACode.code
+        # ).join(
+        #     dbmodel.Release,
+        #     dbmodel.Release.id==dbmodel.ReleasePLACodeMapping.release
+        ).join(
+            dbmodel.ManufacturerPLACodeMapping,
+            dbmodel.ManufacturerPLACodeMapping.code==dbmodel.PLACode.code
+        ).join(
+            dbmodel.Manufacturer,
+            dbmodel.Manufacturer.id==dbmodel.ManufacturerPLACodeMapping.manufacturer
+        ).join(
+            dbmodel.LabPLACodeMapping,
+            dbmodel.LabPLACodeMapping.code==dbmodel.PLACode.code
+        ).join(
+            dbmodel.Lab,
+            dbmodel.Lab.id==dbmodel.LabPLACodeMapping.lab
         )
-
         return query
 
     @abstractmethod
@@ -59,7 +86,15 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         body = []
 
         for row in rows:
-            row_body = dict(code=row.Code.code)
+            row_body = dict(
+                code=row.PLACode.code,
+                code_status=row.PLACode.status,
+                # publish_date=row.Release.publish_date,
+                # effective_date=row.Release.effective_date,
+                test_name=row.PLACode.test_name,
+                lab_name=row.Lab.name,
+                manufacturer_name=row.Manufacturer.name
+            )
 
             for length in lengths:
                 row_body.update({length + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length]).descriptor})
@@ -69,12 +104,12 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         return body
 
 
-class DescriptorEndpointTask(BaseDescriptorEndpointTask):
+class PLADetailsEndpointTask(BasePLADetailsEndpointTask):
     def _run(self, session):
         super()._run(session)
 
         if not self._response_body:
-            raise ResourceNotFound('No descriptor found for the given CPT Code')
+            raise ResourceNotFound('No PLA details found for the given PLA code')
 
         self._response_body = self._response_body[0]
 
@@ -85,10 +120,10 @@ class DescriptorEndpointTask(BaseDescriptorEndpointTask):
 
     @classmethod
     def _filter_by_code(cls, query, code):
-        return query.filter(dbmodel.Code.code == code)
+        return query.filter(dbmodel.PLACode.code == code)
 
 
-class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
+class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask):
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
@@ -110,7 +145,7 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
         return query
 
     def _filter_for_keywords(self, query, keywords, lengths):
-        length_dict = {length:getattr(dbmodel, length.capitalize()+'Descriptor') for length in lengths}
+        length_dict = {length:getattr(dbmodel, 'PLA'+length.capitalize()+'Descriptor') for length in lengths}
         filter_conditions = []
 
         for length in lengths:
