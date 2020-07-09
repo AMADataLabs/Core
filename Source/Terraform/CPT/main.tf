@@ -60,13 +60,13 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway_TEST" {
             lambda_consumer_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.consumer_descriptors}",
             lambda_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.clinician_descriptors}",
             lambda_all_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.all_clinician_descriptors}",
-            # lambda_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.pla_details}",
-            # lambda_all_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.all_pla_details}",
-            # lambda_modifier_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.modifier}",
-            # lambda_modifiers_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.modifiers}",
+            lambda_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.pla_details}",
+            lambda_all_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.all_pla_details}",
+            lambda_modifier_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.modifier}",
+            lambda_modifiers_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.modifiers}",
             # lambda_latest_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.latest_pdfs}",
             # lambda_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.pdfs}",
-            # lambda_releases_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.releases}",
+            lambda_releases_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.releases}",
             lambda_return404_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.default}",
         }
     )
@@ -142,13 +142,13 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
             lambda_consumer_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_consumer_descriptor",
             lambda_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:clinician_descriptor_code",
             lambda_all_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_clinician_descriptor",
-            # lambda_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:pla_details_code",
-            # lambda_all_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_pla_details",
-            # lambda_modifier_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:modifier_code",
-            # lambda_modifiers_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_modifiers",
+            lambda_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:pla_details_code",
+            lambda_all_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_pla_details",
+            lambda_modifier_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:modifier_code",
+            lambda_modifiers_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_modifiers",
             # lambda_latest_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:latest_pdfs",
             # lambda_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:pdfs_release",
-            # lambda_releases_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:all_releases",
+            lambda_releases_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:release_table",
             lambda_return404_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:Return404",
         }
     )
@@ -222,6 +222,10 @@ module "endpoint_consumer_descriptor" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+
+
+    function_name_TEST   = local.function_names.consumer_descriptor
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -236,6 +240,10 @@ module "endpoint_consumer_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+
+
+    function_name_TEST   = local.function_names.consumer_descriptors
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -250,6 +258,10 @@ module "endpoint_clinician_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+
+
+    function_name_TEST   = local.function_names.clinician_descriptors
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -264,6 +276,10 @@ module "endpoint_all_clinician_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+
+
+    function_name_TEST   = local.function_names.all_clinician_descriptors
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -278,6 +294,10 @@ module "endpoint_pla_details" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+
+
+    function_name_TEST   = local.function_names.pla_details
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -292,6 +312,10 @@ module "endpoint_all_pla_details" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+
+
+    function_name_TEST   = local.function_names.all_pla_details
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -306,6 +330,10 @@ module "endpoint_modifier" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+
+
+    function_name_TEST   = local.function_names.modifier
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -320,6 +348,10 @@ module "endpoint_modifiers" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+
+
+    function_name_TEST   = local.function_names.modifiers
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -334,6 +366,10 @@ module "endpoint_modifiers" {
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
 #     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
+
+
+#     function_name_TEST   = local.function_names.latest_pdfs
+#     api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 # }
 
 
@@ -348,21 +384,29 @@ module "endpoint_modifiers" {
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
 #     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
+
+
+#     function_name_TEST   = local.function_names.pdfs
+#     api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 # }
 
 
-# module "endpoint_releases" {
-#     source = "./endpoint"
+module "endpoint_releases" {
+    source = "./endpoint"
 
-#     function_name       = "all_releases"
-#     task_class          = local.task_classes.releases
-#     region              = local.region
-#     account_id          = data.aws_caller_identity.account.account_id
-#     role                = aws_iam_role.cpt_lambda_role.arn
-#     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-#     database_name       = aws_db_instance.cpt_api_database.name
-#     database_host       = aws_db_instance.cpt_api_database.address
-# }
+    function_name       = "release_table"
+    task_class          = local.task_classes.releases
+    region              = local.region
+    account_id          = data.aws_caller_identity.account.account_id
+    role                = aws_iam_role.cpt_lambda_role.arn
+    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    database_name       = aws_db_instance.cpt_api_database.name
+    database_host       = aws_db_instance.cpt_api_database.address
+
+
+    function_name_TEST   = local.function_names.releases
+    api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
+}
 
 
 module "endpoint_default" {
@@ -376,6 +420,10 @@ module "endpoint_default" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+
+
+    # function_name_TEST   = local.function_names.default
+    # api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
 }
 
 
@@ -443,7 +491,7 @@ locals {
         descriptor                  = "${local.task_class_base}.descriptor.DescriptorEndpointTask"
         descriptors                 = "${local.task_class_base}.descriptor.AllDescriptorsEndpointTask"
         consumer_descriptor         = "${local.task_class_base}.consumer_descriptor.ConsumerDescriptorEndpointTask"
-        consumer_descriptors        = "${local.task_class_base}.consumer_descriptor.AllConsumerDescriptorEndpointTask"
+        consumer_descriptors        = "${local.task_class_base}.consumer_descriptor.AllConsumerDescriptorsEndpointTask"
         clinician_descriptors       = "${local.task_class_base}.clinician_descriptor.ClinicianDescriptorsEndpointTask"
         all_clinician_descriptors   = "${local.task_class_base}.clinician_descriptor.AllClinicianDescriptorsEndpointTask"
         modifier                    = "${local.task_class_base}.modifier.ModifierEndpointTask"
