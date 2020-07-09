@@ -30,6 +30,9 @@ class ReleasesEndpointTask(APIEndpointTask):
         self._response_body = self._generate_response_body(query.all())
 
     def _set_parameter_defaults(self):
+        if self._parameters.query['results'] is not None and not hasattr(self._parameters.query['results'], 'isdigit'):
+            self._parameters.query['results'] = self._parameters.query.get('results')[0]
+
         self._parameters.query['keyword'] = self._parameters.query.get('keyword') or []
 
     @classmethod
