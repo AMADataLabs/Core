@@ -88,12 +88,11 @@ class BasePLADetailsEndpointTask(APIEndpointTask):
         for row in rows:
             row_body = dict(
                 code=row.PLACode.code,
-                code_status=row.PLACode.status,
                 # publish_date=row.Release.publish_date,
                 # effective_date=row.Release.effective_date,
-                test_name=row.PLACode.test_name,
-                lab_name=row.Lab.name,
-                manufacturer_name=row.Manufacturer.name
+                test=row.PLACode.test_name,
+                lab=row.Lab.name,
+                manufacturer=row.Manufacturer.name
             )
 
             for length in lengths:
