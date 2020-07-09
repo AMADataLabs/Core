@@ -174,7 +174,7 @@ create_base_virtual_environment() {
         mkdir -p $ENVIRONMENT_PATH
     fi
 
-    rm ${ENVIRONMENT_REQUIREMENTS}
+    rm -f ${ENVIRONMENT_REQUIREMENTS}
     ln -s ${BUILD_REQUIREMENTS} ${ENVIRONMENT_REQUIREMENTS}
 
     setup_python_virtual_environment Environment/Master
