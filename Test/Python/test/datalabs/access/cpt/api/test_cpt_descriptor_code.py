@@ -7,25 +7,12 @@ import logging
 import mock
 import pytest
 
-from   datalabs.access.cpt.api.cpt_descriptor_code import lambda_handler, DescriptorEndpointTask
-from   datalabs.access.task import APIEndpointTask, APIException, InvalidRequest, ResourceNotFound
+from   datalabs.access.cpt.api.cpt_descriptor_code import DescriptorEndpointTask
 import datalabs.etl.cpt.dbmodel as dbmodel
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-
-
-def test_lambda_handler_returns_correct_success_response(event, context, expected_response_body):
-    with mock.patch('datalabs.access.cpt.api.cpt_descriptor_code.DescriptorEndpointTask.run') as run:
-        run.return_value = expected_response_body
-        response = lambda_handler(event, context)
-
-    assert 'statusCode' in response
-    assert response['statusCode'] == 200
-    assert 'body' in response
-    body = json.loads(response['body'])
-    assert body == expected_response_body
 
 
 def test_lengths_are_valid(event):
