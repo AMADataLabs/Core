@@ -51,17 +51,3 @@ variable "database_host" {
     description = "API RDS host"
     type        = string
 }
-
-
-variable "function_name_TEST" {
-    description = "AWS region"
-    type        = string
-    default     = ""
-}
-
-
-variable "api_gateway_id_TEST" {
-    description = "API Gateway ID"
-    type        = string
-    default     = ""
-}

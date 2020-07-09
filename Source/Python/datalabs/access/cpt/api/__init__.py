@@ -12,3 +12,4 @@ APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.modifier.AllModifi
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.pla.PLADetailsEndpointTask')
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.pla.AllPLADetailsEndpointTask')
 APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.release.ReleasesEndpointTask')
+APIEndpointTaskWrapper.register_task('datalabs.access.cpt.api.default.DefaultEndpointTask')

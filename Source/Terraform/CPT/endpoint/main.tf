@@ -1,10 +1,8 @@
 
 resource "aws_lambda_function" "endpoint_lambda" {
-    count = var.function_name_TEST == "" ? 0 : 1
-
     s3_bucket       = data.aws_ssm_parameter.lambda_code_bucket.value
     s3_key          = "CPT/CPT.zip"
-    function_name = var.function_name_TEST
+    function_name = var.function_name
     role            = var.role
     handler         = "awslambda.handler"
     runtime         = "python3.7"
