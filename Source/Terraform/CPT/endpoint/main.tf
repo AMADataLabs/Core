@@ -39,6 +39,7 @@ data "aws_ssm_parameter" "lambda_code_bucket" {
     name = "/DataLabs/lambda_code_bucket"
 }
 
+
 data "aws_caller_identity" "account" {}
 
 
@@ -50,8 +51,6 @@ data "aws_ssm_parameter" "account_environment" {
 data "aws_ssm_parameter" "contact" {
     name = "/DataLabs/contact"
 }
-
-
 
 
 locals {
