@@ -268,14 +268,14 @@ class ModifierTableUpdater(TableUpdater):
 
 
 class CPTRelationalTableLoader(Loader):
-    def __init__(self, configuration):
-        super().__init__(configuration)
+    def __init__(self, parameters):
+        super().__init__(parameters)
         self._release = None
         self._codes = None
         self._pla_codes = None
 
     def load(self, data: transform.OutputData):
-        with Database(key=self._configuration['DATABASE']) as database:
+        with Database(key=self._parameters['DATABASE']) as database:
             self._session = database.session
 
             self._update_tables(data)

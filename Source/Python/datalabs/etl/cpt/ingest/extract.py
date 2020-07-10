@@ -11,7 +11,7 @@ class CPTTextDataExtractor(S3WindowsTextExtractor):
     def extract(self):
         data = super().extract()
         release_date = self._extract_release_date()
-        release_schedule = json.loads(self._configuration['RELEASE_SCHEDULE'])
+        release_schedule = json.loads(self._parameters['RELEASE_SCHEDULE'])
 
         data.insert(0, self._generate_release_details(release_schedule, release_date))
 
