@@ -349,19 +349,16 @@ module "etl_load" {
     database_host       = aws_db_instance.cpt_api_database.address
 
     variables           = {
-        EXTRACTOR_CLASS="datalabs.etl.cpt.extract.CPTTextDataExtractor"
-        EXTRACTOR_BUCKET="ama-hsg-datalabs-datalake-ingestion-sandbox"
+        EXTRACTOR_BUCKET=data.ingestion_bucket
         EXTRACTOR_BASE_PATH="AMA/CPT"
         EXTRACTOR_FILES="standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/Consumer Friendly Descriptors/ConsumerDescriptor.txt,standard/Clinician Descriptors/ClinicianDescriptor.txt"
         EXTRACTOR_RELEASE_SCHEDULE="{\"ANNUAL\": [\"1-Sep\", \"1-Jan\"], \"Q1\": [\"1-Jan\", \"1-Apr\"], \"Q2\": [\"1-Apr\", \"1-Jul\"], \"Q3\": [\"1-Jul\", \"1-Oct\"], \"Q4\": [\"1-Oct\", \"1-Jan\"]}"
 
-        TRANSFORMER_CLASS="datalabs.etl.cpt.transform.CPTFileToCSVTransformer"
         TRANSFORMER_PARSERS="datalabs.curate.parse.CSVParser,datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser"
 
-        LOADER_CLASS="datalabs.etl.s3.load.S3WindowsTextLoader"
-        LOADER_BUCKET="ama-hsg-datalabs-datalake-processed-sandbox"
+        LOADER_BUCKET=data.processed_bucket
         LOADER_FILES="standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv
-                LOADER_BASE_PATH=AMA/CPT"
+        LOADER_BASE_PATH=AMA/CPT"
 }
 
 
@@ -375,14 +372,9 @@ module "etl_load" {
     database_host       = aws_db_instance.cpt_api_database.address
 
     variables           = {
-        EXTRACTOR_CLASS="datalabs.etl.s3.extract.S3WindowsTextExtractor"
-        EXTRACTOR_BUCKET="ama-hsg-datalabs-datalake-processed-sandbox"
+        EXTRACTOR_BUCKET=data.processed_bucket
         EXTRACTOR_BASE_PATH="AMA/CPT"
         EXTRACTOR_FILES="standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv"
-
-        TRANSFORMER_CLASS="datalabs.etl.cpt.transform.CSVToRelationalTablesTransformer"
-
-        LOADER_CLASS="datalabs.etl.cpt.load.CPTRelationalTableLoader"
     }
 }
 
@@ -407,6 +399,16 @@ data "aws_ssm_parameter" "account_environment" {
 
 data "aws_ssm_parameter" "contact" {
     name = "/DataLabs/contact"
+}
+
+
+data "aws_ssm_parameter" "ingestion_bucket" {
+    name = "/DataLabs/DataLake/ingestion_bucket"
+}
+
+
+data "aws_ssm_parameter" "processed_bucket" {
+    name = "/DataLabs/DataLake/processed_bucket"
 }
 
 
