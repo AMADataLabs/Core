@@ -385,7 +385,7 @@ locals {
         latest_pdfs                 = "CPTGetLatestPDFs"
         pdfs                        = "CPTGetPDFs"
         releases                    = "CPTGetReleases"
-        default                     = "Return404"
+        default                     = "CPTDefault"
     }
     task_class_base = "datalabs.access.cpt.api"
     task_classes = {
