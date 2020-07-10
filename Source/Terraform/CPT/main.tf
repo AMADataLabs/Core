@@ -331,17 +331,6 @@ module "endpoint_default" {
 module "etl_convert" {
     source = "./etl"
 
-    function_name       = local.function_names.default
-    task_class          = local.task_classes.default
-    account_id          = data.aws_caller_identity.account.account_id
-    database_name       = aws_db_instance.cpt_api_database.name
-    database_host       = aws_db_instance.cpt_api_database.address
-}
-
-
-module "etl_load" {
-    source = "./etl"
-
     function_name       = local.function_names.convert
     task_class          = local.task_classes.convert
     account_id          = data.aws_caller_identity.account.account_id
@@ -350,15 +339,16 @@ module "etl_load" {
 
     variables           = {
         EXTRACTOR_BUCKET=data.ingestion_bucket
-        EXTRACTOR_BASE_PATH="AMA/CPT"
-        EXTRACTOR_FILES="standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/Consumer Friendly Descriptors/ConsumerDescriptor.txt,standard/Clinician Descriptors/ClinicianDescriptor.txt"
-        EXTRACTOR_RELEASE_SCHEDULE="{\"ANNUAL\": [\"1-Sep\", \"1-Jan\"], \"Q1\": [\"1-Jan\", \"1-Apr\"], \"Q2\": [\"1-Apr\", \"1-Jul\"], \"Q3\": [\"1-Jul\", \"1-Oct\"], \"Q4\": [\"1-Oct\", \"1-Jan\"]}"
+        EXTRACTOR_BASE_PATH=data.s3_base_path
+        EXTRACTOR_FILES=data.raw_data_files
+        EXTRACTOR_RELEASE_SCHEDULE=data.release_schedule
 
-        TRANSFORMER_PARSERS="datalabs.curate.parse.CSVParser,datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser"
+        TRANSFORMER_PARSERS=data.raw_data_parsers
 
         LOADER_BUCKET=data.processed_bucket
-        LOADER_FILES="standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv
-        LOADER_BASE_PATH=AMA/CPT"
+        LOADER_FILES=data.converted_data_files
+        LOADER_BASE_PATH=data.s3_base_path
+    }
 }
 
 
@@ -373,8 +363,8 @@ module "etl_load" {
 
     variables           = {
         EXTRACTOR_BUCKET=data.processed_bucket
-        EXTRACTOR_BASE_PATH="AMA/CPT"
-        EXTRACTOR_FILES="standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv"
+        EXTRACTOR_BASE_PATH=data.s3_base_path
+        EXTRACTOR_FILES=data.converted_data_files
     }
 }
 
@@ -394,6 +384,31 @@ data "aws_ssm_parameter" "database_password" {
 
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
+}
+
+
+data "aws_ssm_parameter" "s3_base_path" {
+    name  = "/DataLabs/CPT/s3/base_path"
+}
+
+
+data "aws_ssm_parameter" "raw_data_files" {
+    name  = "/DataLabs/CPT/data/raw_files"
+}
+
+
+data "aws_ssm_parameter" "release_schedule" {
+    name  = "/DataLabs/CPT/release/schedule"
+}
+
+
+data "aws_ssm_parameter" "raw_data_parsers" {
+    name  = "/DataLabs/CPT/data/parsers"
+}
+
+
+data "aws_ssm_parameter" "converted_data_files" {
+    name  = "/DataLabs/CPT/data/converted_files"
 }
 
 
