@@ -1,15 +1,15 @@
 """ Transformer base class and NO-OP implementation. """
 from abc import ABC, abstractmethod
 
-from datalabs.etl.task import ETLTaskComponent
+from datalabs.task import Task
 
 
-class Transformer(ETLTaskComponent, ABC):
+class TransformerTask(Task, ABC):
     @abstractmethod
     def transform(self, data: "Extracted Data") -> 'Transformed Data':
         pass
 
 
-class PassThroughTransformer(Transformer):
+class PassThroughTransformerTask(TransformerTask):
     def transform(self, data):
         return data

@@ -331,20 +331,23 @@ module "endpoint_default" {
 module "etl_convert" {
     source = "./etl"
 
-    function_name       = local.function_names.convert
+    function_name       = local.function_names.etl
     task_class          = local.task_classes.convert
     account_id          = data.aws_caller_identity.account.account_id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
 
     variables           = {
+        EXTRACTOR_CLASS="datalabs.etl.cpt.ingest.extract.CPTTextDataExtractor"
         EXTRACTOR_BUCKET=data.ingestion_bucket
         EXTRACTOR_BASE_PATH=data.s3_base_path
         EXTRACTOR_FILES=data.raw_data_files
         EXTRACTOR_RELEASE_SCHEDULE=data.release_schedule
 
+        TRANSFORMER_CLASS="datalabs.etl.cpt.ingest.transform.CPTFileToCSVTransformer"
         TRANSFORMER_PARSERS=data.raw_data_parsers
 
+        LOADER_CLASS="datalabs.etl.s3.load.S3WindowsTextLoader"
         LOADER_BUCKET=data.processed_bucket
         LOADER_FILES=data.converted_data_files
         LOADER_BASE_PATH=data.s3_base_path
@@ -355,16 +358,21 @@ module "etl_convert" {
 module "etl_load" {
     source = "./etl"
 
-    function_name       = local.function_names.loaddb
+    function_name       = local.function_names.etl
     task_class          = local.task_classes.loaddb
     account_id          = data.aws_caller_identity.account.account_id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
 
     variables           = {
+        EXTRACTOR_CLASS="datalabs.etl.s3.extract.S3WindowsTextExtractor"
         EXTRACTOR_BUCKET=data.processed_bucket
         EXTRACTOR_BASE_PATH=data.s3_base_path
         EXTRACTOR_FILES=data.converted_data_files
+
+        TRANSFORMER_CLASS="datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformer"
+
+        LOADER_CLASS="datalabs.etl.cpt.api.load.CPTRelationalTableLoader"
     }
 }
 
@@ -480,7 +488,6 @@ locals {
         pdfs                        = "datalabs.access.cpt.api.pdf.PDFsEndpointTask"
         releases                    = "datalabs.access.cpt.api.release.ReleasesEndpointTask"
         default                     = "datalabs.access.cpt.api.default.DefaultEndpointTask"
-        convert                     = "datalabs.etl.cpt.api.default.ConvertRawDataETLTask"
-        loaddb                      = "datalabs.etl.cpt.api.default.LoadAPIDatabaseETLTask"
+        etl                         = "datalabs.etl.task.ETLTask"
     }
 }

@@ -6,7 +6,7 @@ import logging
 
 import pandas
 
-from   datalabs.etl.transform import Transformer
+from   datalabs.etl.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class OutputData:
     lab_pla_code_mapping: pandas.DataFrame
 
 
-class CSVToRelationalTablesTransformer(Transformer):
+class CSVToRelationalTablesTransformerTask(TransformerTask):
     def transform(self, data):
         if not feature.enabled('PLA'):
             data.append('DUMMY')

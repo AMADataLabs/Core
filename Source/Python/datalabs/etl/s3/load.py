@@ -6,14 +6,14 @@ import logging
 
 import boto3
 
-from datalabs.etl.load import Loader
+from datalabs.etl.load import LoaderTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class S3WindowsTextLoader(Loader):
+class S3WindowsTextLoaderTask(LoaderTask):
     def __init__(self, parameters):
         super().__init__(parameters)
 

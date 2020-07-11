@@ -4,10 +4,10 @@ import json
 
 import pandas
 
-from datalabs.etl.s3.extract import S3WindowsTextExtractor
+from datalabs.etl.s3.extract import S3WindowsTextExtractorTask
 
 
-class CPTTextDataExtractor(S3WindowsTextExtractor):
+class CPTTextDataExtractorTask(S3WindowsTextExtractorTask):
     def extract(self):
         data = super().extract()
         release_date = self._extract_release_date()

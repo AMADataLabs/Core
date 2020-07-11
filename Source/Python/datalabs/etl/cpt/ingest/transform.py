@@ -1,6 +1,6 @@
 import logging
 
-from   datalabs.etl.transform import Transformer
+from   datalabs.etl.transform import TransformerTask
 from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
@@ -8,7 +8,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class CPTFileToCSVTransformer(Transformer):
+class CPTFileToCSVTransformerTask(TransformerTask):
     def transform(self, data):
         LOGGER.debug('Data to transform: %s', data)
         parsers = self._instantiate_parsers()

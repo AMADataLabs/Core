@@ -1,10 +1,10 @@
 """ Extractor base class """
 from abc import ABC, abstractmethod
 
-from datalabs.etl.task import ETLTaskComponent
+from datalabs.task import Task
 
 
-class Extractor(ETLTaskComponent, ABC):
+class ExtractorTask(Task, ABC):
     @abstractmethod
     def extract(self) -> "Extracted Data":
         pass

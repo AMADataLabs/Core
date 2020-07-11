@@ -1,12 +1,5 @@
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from datalabs.access.credentials import Credentials
-from datalabs.access.database import Configuration
-from datalabs.access.orm import Database
-from datalabs.etl.extract import Extractor
-from datalabs.etl.transform import Transformer
-from datalabs.etl.load import Loader
 from datalabs.task import Task, TaskException
 
 
@@ -22,81 +15,76 @@ class ETLTask(Task):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-        self._session = None
         self._extractor = None
         self._transformer = None
         self._loader = None
 
-    @property
-    def session(self):
-        return self._session
-
     def run(self):
-        self._assert_components_configured()
+        try:
+            self._instantiate_plugins()
+        except Exception as e:
+            raise ETLException(f'Unable to instantiate ETL sub-tasks: {e}')
 
-        with self._get_database() as database:
-            self._session - database.session
+        self._logger.info('Extracting...')
+        data = self._extract()
 
-            self._logger.info('Extracting...')
-            data = self._extract()
+        self._logger.info('Transforming...')
+        transformed_data = self._transform(data)
 
-            self._logger.info('Transforming...')
-            transformed_data = self._transform(data)
+        self._logger.info('Loading...')
+        self._load(transformed_data)
 
-            self._logger.info('Loading...')
-            self._load(transformed_data)
+    def _instantiate_plugins(self, parameters):
+        attributes = [self._extractor, self._transformer, self._loader]
+        variable_base_names = ['EXTRACTOR', 'TRANSFORMER', 'LOADER']
+        for attribute, variable_base_name in zip(attribute_names, variable_base_names):
+            plugin_parameters = self._generate_parameters(parameters, variable_base_name)
 
-    def set_extractor(self, extractor):
-        self._extractor = extractor
+            LOGGER.info('Instantiating ETL %s plugin', variable_base_name.lower())
+            attribute = self._instantiate_plugin(plugin_parameters)
 
-    def set_transformer(self, transformer):
-        self._transformer = transformer
+    @classmethod
+    def _generate_parameters(cls, variables, variable_base_name):
+        LOGGER.debug('Variables: %s', variables)
+        LOGGER.debug('Variable Base Name: %s', variable_base_name)
+        parameters = {
+            name[len(variable_base_name)+1:]:value
+            for name, value in variables.items()
+            if name.startswith(variable_base_name + '_')
+        }
 
-    def set_loader(self, loader):
-        self._loader = loader
+        if not parameters:
+            LOGGER.debug('parameters: %s', parameters)
+            LOGGER.warn(f'No parameters for "{variable_base_name}" in {variables}')
 
-    def _get_database(self):
-        config = Configuration(
-            name=self._parameters.database['name'],
-            backend=self._parameters.database['backend'],
-            host=self._parameters.database['host']
-        )
-        credentials = Credentials(
-            username=self._parameters.database['username'],
-            password=self._parameters.database['password']
-        )
+        return parameters
 
-        return Database(config, credentials)
+    def _instantiate_plugin(self, parameters):
+        Plugin = plugin.import_plugin(parameters['CLASS'])  # pylint: disable=invalid-name
 
-    def _assert_components_configured(self):
-        for component in ['extractor', 'transformer', 'loader']:
-            self._assert_component_configured(component)
+        return Plugin(parameters)
 
     def _extract(self):
-        extractor = self._extractor(self, self._parameters.extractor)
+        extractor = self._extractor(self._parameters.extractor)
 
         return extractor.extract()
 
     def _transform(self, data):
-        transformer = self._transformer(self, self._parameters.transformer)
+        transformer = self._transformer(self._parameters.transformer)
 
         return transformer.transform(data)
 
     def _load(self):
-        loader = self._loader(self, self._parameters.loader)
+        loader = self._loader(self._parameters.loader)
 
         loader.load(transformed_data)
 
-    def _assert_component_configured(self, component):
-        if getattr(self, '_'+component) is None:
-            raise ETLException('{component.capitalize()} was not configured.')
+    def _instantiate_plugin(plugin_class, parameters):
+        Plugin = plugin.import_plugin(plugin_class)  # pylint: disable=invalid-name
 
-
-class ETLTaskComponent:
-    def __init__(self, etl, parameters):
-        self._etl = etl
-        self._parameters = parameters
+        return Plugin(parameters)
 
 
 class ETLException(TaskException):
     pass
+

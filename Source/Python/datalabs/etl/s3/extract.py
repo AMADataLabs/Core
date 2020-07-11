@@ -26,10 +26,10 @@
 """
 import boto3
 
-from datalabs.etl.extract import Extractor
+from datalabs.etl.extract import ExtractorTask
 
 
-class S3WindowsTextExtractor(Extractor):
+class S3WindowsTextExtractorTask(ExtractorTask):
     def __init__(self, parameters):
         super().__init__(parameters)
 
