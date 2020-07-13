@@ -3,12 +3,14 @@ import logging
 
 from abc import ABC, abstractmethod
 
-from datalabs.task import Task
+from datalabs.etl.task import ETLComponentTask
 
 
-class LoaderTask(Task, ABC):
+class LoaderTask(ETLComponentTask, ABC):
     def run(self):
-        self._data = self._load(parameters['data'])
+        self._data = self._parameters['data']
+
+        self._load(self._data)
 
     @abstractmethod
     def _load(self, data: "Transformed Data"):

@@ -91,7 +91,7 @@ class ETLTask(Task):
         return Plugin(parameters)
 
 
-class ETLComponent(Task):
+class ETLComponentTask(Task):
     def __init__(self, parameters):
         super().__init__(parameters)
 
