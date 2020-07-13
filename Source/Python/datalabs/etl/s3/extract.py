@@ -36,7 +36,7 @@ class S3WindowsTextExtractorTask(ExtractorTask):
         self._s3 = boto3.client('s3')
         self._latest_path = None
 
-    def extract(self):
+    def _extract(self):
         latest_path = self._get_latest_path()
         files = self._parameters['FILES'].split(',')
 

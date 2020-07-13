@@ -19,7 +19,7 @@ class S3WindowsTextLoaderTask(LoaderTask):
 
         self._s3 = boto3.client('s3')
 
-    def load(self, data):
+    def _load(self, data):
         current_path = self._get_current_path()
         files = self._parameters['FILES'].split(',')
 

@@ -67,23 +67,40 @@ class ETLTask(Task):
     def _extract(self):
         extractor = self._extractor(self._parameters.extractor)
 
-        return extractor.extract()
+        extractor.run()
+
+        return extractor.data
 
     def _transform(self, data):
+        self._parameters.transformer['data'] = data
         transformer = self._transformer(self._parameters.transformer)
 
-        return transformer.transform(data)
+        transformer.run()
+
+        return transformer.data
 
     def _load(self):
+        self._parameters.loader['data'] = data
         loader = self._loader(self._parameters.loader)
 
-        loader.load(transformed_data)
+        loader.run()
 
     def _instantiate_plugin(plugin_class, parameters):
         Plugin = plugin.import_plugin(plugin_class)  # pylint: disable=invalid-name
 
         return Plugin(parameters)
 
+
+class ETLComponent(Task):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+        self._data = None
+
+    @property
+    def data(self):
+        return self._data
+    
 
 class ETLException(TaskException):
     pass

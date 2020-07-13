@@ -7,8 +7,11 @@ from datalabs.task import Task
 
 
 class LoaderTask(Task, ABC):
+    def run(self):
+        self._data = self._load(parameters['data'])
+
     @abstractmethod
-    def load(self, data: "Transformed Data"):
+    def _load(self, data: "Transformed Data"):
         pass
 
 
@@ -19,7 +22,7 @@ class ConsoleLoaderTask(LoaderTask):
         self._logger = logging.getLogger(ConsoleLoader.__name__)
         self._logger.setLevel(logging.INFO)
 
-    def load(self, data):
+    def _load(self, data):
         for datum in data:
             self._logger.info(datum)
 

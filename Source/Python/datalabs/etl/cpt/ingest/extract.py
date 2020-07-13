@@ -8,7 +8,7 @@ from datalabs.etl.s3.extract import S3WindowsTextExtractorTask
 
 
 class CPTTextDataExtractorTask(S3WindowsTextExtractorTask):
-    def extract(self):
+    def _extract(self):
         data = super().extract()
         release_date = self._extract_release_date()
         release_schedule = json.loads(self._parameters['RELEASE_SCHEDULE'])

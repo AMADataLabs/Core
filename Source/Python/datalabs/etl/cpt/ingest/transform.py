@@ -9,7 +9,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class CPTFileToCSVTransformerTask(TransformerTask):
-    def transform(self, data):
+    def _transform(self, data):
         LOGGER.debug('Data to transform: %s', data)
         parsers = self._instantiate_parsers()
 

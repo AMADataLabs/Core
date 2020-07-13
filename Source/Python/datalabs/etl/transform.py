@@ -5,11 +5,14 @@ from datalabs.task import Task
 
 
 class TransformerTask(Task, ABC):
+    def run(self):
+        self._data = self._transform(parameters['data'])
+
     @abstractmethod
-    def transform(self, data: "Extracted Data") -> 'Transformed Data':
+    def _transform(self, data: "Extracted Data") -> 'Transformed Data':
         pass
 
 
 class PassThroughTransformerTask(TransformerTask):
-    def transform(self, data):
+    def _transform(self, data):
         return data

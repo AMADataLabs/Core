@@ -12,7 +12,7 @@ from   datalabs.access.orm import Database
 from   datalabs.etl.database import DatabaseTaskMixin
 from   datalabs.etl.load import LoaderTask
 import datalabs.etl.cpt.dbmodel as dbmodel
-import datalabs.etl.cpt.transform as transform
+import datalabs.etl.cpt.api.transform as transform
 import datalabs.feature as feature
 
 logging.basicConfig()
@@ -33,7 +33,7 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
         self._codes = None
         self._pla_codes = None
 
-    def load(self, data: transform.OutputData):
+    def _load(self, data: transform.OutputData):
         with Database(key=self._parameters['DATABASE']) as database:
             self._session = database.session
 
