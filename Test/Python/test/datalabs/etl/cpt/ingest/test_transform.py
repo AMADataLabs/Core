@@ -1,7 +1,7 @@
 """ source: datalabs.etl.cpt.transform """
 import logging
 
-from   datalabs.etl.cpt.transform import CPTFileToCSVTransformer
+from   datalabs.etl.cpt.ingest.transform import CPTFileToCSVTransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -9,14 +9,14 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 def test_transforming_cpt_files_to_csv():
-    parser_class = 'test.datalabs.etl.cpt.parse.TestParser'
+    parser_class = 'test.datalabs.etl.cpt.ingest.parse.TestParser'
     configuration = dict(
         PARSERS=','.join((parser_class, parser_class))
     )
 
-    transformer = CPTFileToCSVTransformer(configuration)
+    transformer = CPTFileToCSVTransformerTask(configuration)
 
-    data = transformer.transform(['Hello, there!', 'Dear John'])
+    data = transformer._transform(['Hello, there!', 'Dear John'])
 
     LOGGER.debug('Transformed Data: %s', data)
 

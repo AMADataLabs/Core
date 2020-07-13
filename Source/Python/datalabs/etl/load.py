@@ -3,24 +3,26 @@ import logging
 
 from abc import ABC, abstractmethod
 
+from datalabs.task import Task
 
-class Loader(ABC):
-    def __init__(self, configuration):
-        self._configuration = configuration
+
+class LoaderTask(Task, ABC):
+    def run(self):
+        self._data = self._load(parameters['data'])
 
     @abstractmethod
-    def load(self, data: "Transformed Data"):
+    def _load(self, data: "Transformed Data"):
         pass
 
 
-class ConsoleLoader(Loader):
-    def __init__(self, configuration):
-        super().__init__(configuration)
+class ConsoleLoaderTask(LoaderTask):
+    def __init__(self, parameters):
+        super().__init__(parameters)
 
         self._logger = logging.getLogger(ConsoleLoader.__name__)
         self._logger.setLevel(logging.INFO)
 
-    def load(self, data):
+    def _load(self, data):
         for datum in data:
             self._logger.info(datum)
 

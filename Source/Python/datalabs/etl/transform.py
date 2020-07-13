@@ -1,16 +1,18 @@
 """ Transformer base class and NO-OP implementation. """
 from abc import ABC, abstractmethod
 
+from datalabs.task import Task
 
-class Transformer(ABC):
-    def __init__(self, configuration):
-        self._configuration = configuration
+
+class TransformerTask(Task, ABC):
+    def run(self):
+        self._data = self._transform(parameters['data'])
 
     @abstractmethod
-    def transform(self, data: "Extracted Data") -> 'Transformed Data':
+    def _transform(self, data: "Extracted Data") -> 'Transformed Data':
         pass
 
 
-class PassThroughTransformer(Transformer):
-    def transform(self, data):
+class PassThroughTransformerTask(TransformerTask):
+    def _transform(self, data):
         return data

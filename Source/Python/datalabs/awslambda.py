@@ -6,26 +6,8 @@ from   datalabs.task import Task, TaskException
 
 
 class TaskWrapper(ABC):
-    WRAPPER_CLASSES = dict()
-
     def __init__(self, task_class):
         self._task_class = task_class
-
-    @classmethod
-    def create(cls, task_class):
-        task_class_name = '.'.join((task_class.__module__, task_class.__name__))
-        wrapper_class_name = TaskWrapper.WRAPPER_CLASSES.get(task_class_name)
-
-        if wrapper_class_name is None:
-            raise ValueError(f'No wrapper class registered for task {task_class_name}.')
-
-        wrapper_class = import_plugin(wrapper_class_name)
-
-        return wrapper_class(task_class)
-
-    @classmethod
-    def register_task(cls, task_class_name):
-        TaskWrapper.WRAPPER_CLASSES[task_class_name] = '.'.join((cls.__module__, cls.__name__))
 
     def run(self, event):
         status_code = 200

@@ -7,7 +7,7 @@ import mock
 import pandas
 import pytest
 
-from   datalabs.etl.cpt.load import TableUpdater
+from   datalabs.etl.cpt.api.load import TableUpdater
 import datalabs.etl.cpt.dbmodel as model
 
 logging.basicConfig()

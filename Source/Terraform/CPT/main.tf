@@ -328,6 +328,55 @@ module "endpoint_default" {
 }
 
 
+module "etl_convert" {
+    source = "./etl"
+
+    function_name       = local.function_names.etl
+    task_class          = local.task_classes.convert
+    account_id          = data.aws_caller_identity.account.account_id
+    database_name       = aws_db_instance.cpt_api_database.name
+    database_host       = aws_db_instance.cpt_api_database.address
+
+    variables           = {
+        EXTRACTOR_CLASS="datalabs.etl.cpt.ingest.extract.CPTTextDataExtractor"
+        EXTRACTOR_BUCKET=data.ingestion_bucket
+        EXTRACTOR_BASE_PATH=data.s3_base_path
+        EXTRACTOR_FILES=data.raw_data_files
+        EXTRACTOR_RELEASE_SCHEDULE=data.release_schedule
+
+        TRANSFORMER_CLASS="datalabs.etl.cpt.ingest.transform.CPTFileToCSVTransformer"
+        TRANSFORMER_PARSERS=data.raw_data_parsers
+
+        LOADER_CLASS="datalabs.etl.s3.load.S3WindowsTextLoader"
+        LOADER_BUCKET=data.processed_bucket
+        LOADER_FILES=data.converted_data_files
+        LOADER_BASE_PATH=data.s3_base_path
+    }
+}
+
+
+module "etl_load" {
+    source = "./etl"
+
+    function_name       = local.function_names.etl
+    task_class          = local.task_classes.loaddb
+    account_id          = data.aws_caller_identity.account.account_id
+    database_name       = aws_db_instance.cpt_api_database.name
+    database_host       = aws_db_instance.cpt_api_database.address
+
+    variables           = {
+        EXTRACTOR_CLASS="datalabs.etl.s3.extract.S3WindowsTextExtractor"
+        EXTRACTOR_BUCKET=data.processed_bucket
+        EXTRACTOR_BASE_PATH=data.s3_base_path
+        EXTRACTOR_FILES=data.converted_data_files
+
+        TRANSFORMER_CLASS="datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformer"
+
+        LOADER_CLASS="datalabs.etl.cpt.api.load.CPTRelationalTableLoader"
+    }
+}
+
+
 data "aws_caller_identity" "account" {}
 
 
@@ -346,8 +395,43 @@ data "aws_ssm_parameter" "account_environment" {
 }
 
 
+data "aws_ssm_parameter" "s3_base_path" {
+    name  = "/DataLabs/CPT/s3/base_path"
+}
+
+
+data "aws_ssm_parameter" "raw_data_files" {
+    name  = "/DataLabs/CPT/data/raw_files"
+}
+
+
+data "aws_ssm_parameter" "release_schedule" {
+    name  = "/DataLabs/CPT/release/schedule"
+}
+
+
+data "aws_ssm_parameter" "raw_data_parsers" {
+    name  = "/DataLabs/CPT/data/parsers"
+}
+
+
+data "aws_ssm_parameter" "converted_data_files" {
+    name  = "/DataLabs/CPT/data/converted_files"
+}
+
+
 data "aws_ssm_parameter" "contact" {
     name = "/DataLabs/contact"
+}
+
+
+data "aws_ssm_parameter" "ingestion_bucket" {
+    name = "/DataLabs/DataLake/ingestion_bucket"
+}
+
+
+data "aws_ssm_parameter" "processed_bucket" {
+    name = "/DataLabs/DataLake/processed_bucket"
 }
 
 
@@ -385,23 +469,25 @@ locals {
         latest_pdfs                 = "CPTGetLatestPDFs"
         pdfs                        = "CPTGetPDFs"
         releases                    = "CPTGetReleases"
-        default                     = "Return404"
+        default                     = "CPTDefault"
+        convert                     = "CPTConvert"
+        loaddb                      = "CPTLoad"
     }
-    task_class_base = "datalabs.access.cpt.api"
     task_classes = {
-        descriptor                  = "${local.task_class_base}.descriptor.DescriptorEndpointTask"
-        descriptors                 = "${local.task_class_base}.descriptor.AllDescriptorsEndpointTask"
-        consumer_descriptor         = "${local.task_class_base}.consumer_descriptor.ConsumerDescriptorEndpointTask"
-        consumer_descriptors        = "${local.task_class_base}.consumer_descriptor.AllConsumerDescriptorsEndpointTask"
-        clinician_descriptors       = "${local.task_class_base}.clinician_descriptor.ClinicianDescriptorsEndpointTask"
-        all_clinician_descriptors   = "${local.task_class_base}.clinician_descriptor.AllClinicianDescriptorsEndpointTask"
-        modifier                    = "${local.task_class_base}.modifier.ModifierEndpointTask"
-        modifiers                   = "${local.task_class_base}.modifier.AllModifiersEndpointTask"
-        pla_details                 = "${local.task_class_base}.pla.PLADetailsEndpointTask"
-        all_pla_details             = "${local.task_class_base}.pla.AllPLADetailsEndpointTask"
-        latest_pdfs                 = "${local.task_class_base}.pdf.LatestPDFsEndpointTask"
-        pdfs                        = "${local.task_class_base}.pdf.PDFsEndpointTask"
-        releases                    = "${local.task_class_base}.release.ReleasesEndpointTask"
-        default                     = "${local.task_class_base}.default.DefaultEndpointTask"
+        descriptor                  = "datalabs.access.cpt.api.descriptor.DescriptorEndpointTask"
+        descriptors                 = "datalabs.access.cpt.api.descriptor.AllDescriptorsEndpointTask"
+        consumer_descriptor         = "datalabs.access.cpt.api.consumer_descriptor.ConsumerDescriptorEndpointTask"
+        consumer_descriptors        = "datalabs.access.cpt.api.consumer_descriptor.AllConsumerDescriptorsEndpointTask"
+        clinician_descriptors       = "datalabs.access.cpt.api.clinician_descriptor.ClinicianDescriptorsEndpointTask"
+        all_clinician_descriptors   = "datalabs.access.cpt.api.clinician_descriptor.AllClinicianDescriptorsEndpointTask"
+        modifier                    = "datalabs.access.cpt.api.modifier.ModifierEndpointTask"
+        modifiers                   = "datalabs.access.cpt.api.modifier.AllModifiersEndpointTask"
+        pla_details                 = "datalabs.access.cpt.api.pla.PLADetailsEndpointTask"
+        all_pla_details             = "datalabs.access.cpt.api.pla.AllPLADetailsEndpointTask"
+        latest_pdfs                 = "datalabs.access.cpt.api.pdf.LatestPDFsEndpointTask"
+        pdfs                        = "datalabs.access.cpt.api.pdf.PDFsEndpointTask"
+        releases                    = "datalabs.access.cpt.api.release.ReleasesEndpointTask"
+        default                     = "datalabs.access.cpt.api.default.DefaultEndpointTask"
+        etl                         = "datalabs.etl.task.ETLTask"
     }
 }

@@ -7,7 +7,7 @@ import logging
 import mock
 import pytest
 
-from   datalabs.access.cpt.api.cpt_descriptor_code import DescriptorEndpointTask
+from   datalabs.access.cpt.api.descriptor import DescriptorEndpointTask
 import datalabs.etl.cpt.dbmodel as dbmodel
 
 logging.basicConfig()
@@ -23,28 +23,30 @@ def test_lengths_are_valid(event):
     assert task._lengths_are_valid(['short', 'medium', 'long']) == True
 
 
-def test_query_for_descriptor(event, query_results):
-    with mock.patch('datalabs.access.cpt.api.cpt_descriptor_code.DescriptorEndpointTask._get_database') as get_database:
+def test_query_for_descriptors(event, query_results):
+    with mock.patch('datalabs.access.cpt.api.descriptor.DescriptorEndpointTask._get_database') as get_database:
         session = mock.MagicMock()
         session.query.return_value.join.return_value.filter.return_value = query_results
         task = DescriptorEndpointTask(event)
-        results = task._query_for_descriptor(session, '00100')
+        results = task._query_for_descriptors(session)
 
     assert all(hasattr(results, attr) for attr in ['Code', 'ShortDescriptor', 'MediumDescriptor', 'LongDescriptor'])
 
 
 def test_generate_response_body(query_results):
-    with mock.patch('datalabs.access.cpt.api.cpt_descriptor_code.DescriptorEndpointTask._get_database') as get_database:
+    with mock.patch('datalabs.access.cpt.api.descriptor.DescriptorEndpointTask._get_database') as get_database:
         session = mock.MagicMock()
-        session.query.return_value.join.return_value.filter.return_value = query_results
+        session.query.return_value.join.return_value.all.return_value = query_results
         task = DescriptorEndpointTask(event)
-        results = task._query_for_descriptor(session, '00100')
-        response_body = task._generate_response_body(results, ['short', 'long'])
+        query = task._query_for_descriptors(session)
+        response_body = task._generate_response_body(query.all(), ['short', 'long'])
 
-    assert 'code' in response_body
-    assert 'short_descriptor' in response_body
-    assert 'medium_descriptor' not in response_body
-    assert 'long_descriptor' in response_body
+    assert type(response_body).__name__ == 'list'
+    item = response_body[0]
+    assert 'code' in item
+    assert 'short_descriptor' in item
+    assert 'medium_descriptor' not in item
+    assert 'long_descriptor' in item
 
 
 @pytest.fixture
@@ -59,7 +61,7 @@ def event():
 
 @pytest.fixture
 def context():
-    return dict(function_name='cpt_descriptor_code')
+    return dict(function_name='descriptor')
 
 
 @pytest.fixture
@@ -74,7 +76,7 @@ def expected_response_body():
 @pytest.fixture
 def query_results():
     Result = namedtuple('Result', 'Code ShortDescriptor MediumDescriptor LongDescriptor')
-    return Result(
+    return [Result(
         Code=dbmodel.Code(code='00100', modified_date=date(2020, 7, 6), deleted=False),
         ShortDescriptor=dbmodel.ShortDescriptor(
             code='00100',
@@ -94,4 +96,4 @@ def query_results():
             modified_date=date(2020, 7, 6),
             deleted=False
         )
-    )
+    )]
