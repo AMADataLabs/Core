@@ -30,18 +30,18 @@ class CPTLinkParser(Parser):
         )
 
 
-class DeletedHistory(CPTLinkParser):
+class DeletionHistoryParser(CPTLinkParser):
     def __init__(self):
         super().__init__(['concept_id', 'cpt_code', 'date_deleted', 'level', 'description'])
 
 
-class HistoryDTK(CPTLinkParser):
+class CodeHistoryParser(CPTLinkParser):
     def __init__(self):
         super().__init__(
             ['date', 'change_type', 'concept_id', 'cpt_code', 'level', 'prior_value', 'current_value', 'instruction'])
 
 
-class HistoryModifier(CPTLinkParser):
+class HistoryModifierParser(CPTLinkParser):
     def __init__(self):
         super().__init__(
             ['date', 'change_type', 'concept_id', 'cpt_code', 'level', 'prior_value', 'current_value', 'instruction'])

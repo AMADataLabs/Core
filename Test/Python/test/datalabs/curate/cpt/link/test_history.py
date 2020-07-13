@@ -1,8 +1,8 @@
-""" source: datalabs.curate.cpt.cpt_link """
+""" source: datalabs.curate.cpt.link.history """
 import logging
 import pytest
 
-import datalabs.curate.cpt.cpt_link as link
+import link.history as link
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -10,8 +10,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=protected-access, redefined-outer-name
-def test_deleted_dtk(deleted_dtk_text):
-    parser = link.DeletedHistory()
+def test_deleted_history(deleted_text):
+    parser = link.DeletionHistoryParser()
     text = parser.parse(deleted_dtk_text)
 
     LOGGER.debug('Text: \n%s', text)
@@ -25,9 +25,9 @@ def test_deleted_dtk(deleted_dtk_text):
 
 
 # pylint: disable=protected-access, redefined-outer-name
-def test_history_dtk(history_dtk_text):
-    parser = link.DeletedHistory()
-    text = parser.parse(history_dtk_text)
+def test_code_history(code_history_text):
+    parser = link.CodeHistoryParser()
+    text = parser.parse(code_history_text)
 
     LOGGER.debug('Text: \n%s', text)
 
@@ -40,9 +40,9 @@ def test_history_dtk(history_dtk_text):
 
 
 # pylint: disable=protected-access, redefined-outer-name
-def test_history_modifiers(deleted_dtk_text):
-    parser = link.DeletedHistory()
-    text = parser.parse(deleted_dtk_text)
+def test_history_modifiers(modifier_history_text):
+    parser = link.HistoryModifierParser()
+    text = parser.parse(modifier_history_text)
 
     LOGGER.debug('Text: \n%s', text)
 
@@ -55,7 +55,7 @@ def test_history_modifiers(deleted_dtk_text):
 
 
 @pytest.fixture
-def deleted_dtk_text():
+def deleted_test_data():
     return """Concept Id	Code	Date Deleted	Level	Descriptor	Instruction
 1031078	11050	Pre-1982	Not available	Descriptor not available	
 1031079	14800	Pre-1982	Not available	Descriptor not available	
@@ -71,7 +71,7 @@ def deleted_dtk_text():
 
 
 @pytest.fixture
-def history_dtk_test():
+def code_history_test_data():
     return """Date	Change Type	Concept Id	CPT Code	Level	Prior Value	Current Value	Instruction
 Pre-1982	DELETED	1031078	11050		Descriptor not available
 Pre-1982	DELETED	1031079	14800		Descriptor not available
@@ -88,7 +88,7 @@ Pre-1982	DELETED	1031088	26125		Descriptor not available
 
 
 @pytest.fixture
-def history_modifier_test():
+def modifier_history_test_data():
     return """Date	Change Type	Concept Id	Modifier Code	Prior Value	CurrentValue
 Pre-1990	ADDED	1021517	1P		Performance Measure Exclusion Modifier due to Medical Reasons
 20140101	ADDED	1021516			Category II Modifiers
