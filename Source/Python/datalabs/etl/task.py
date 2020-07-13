@@ -14,7 +14,6 @@ class ETLParameters:
     extractor: dict
     transformer: dict
     loader: dict
-    database: dict
 
 
 class ETLTask(Task):
@@ -28,7 +27,7 @@ class ETLTask(Task):
     def run(self):
         LOGGER.info('Extracting...')
         try:
-            self._extractor = self._instantiate_plugin('EXTRACTOR')
+            self._extractor = self._instantiate_plugin(self._parameters.extractor)
 
             self._extractor.run()
         except Exception as e:
@@ -36,7 +35,7 @@ class ETLTask(Task):
 
         LOGGER.info('Transforming...')
         try:
-            self._transformer = self._instantiate_plugin('TRANSFORMER', self._extractor.data)
+            self._transformer = self._instantiate_plugin(self._parameters.transformer, self._extractor.data)
 
             self._transformer.run()
         except Exception as e:
@@ -44,22 +43,21 @@ class ETLTask(Task):
 
         LOGGER.info('Loading...')
         try:
-            self._loader = self._instantiate_plugin('LOADER', self._transformer.data)
+            self._loader = self._instantiate_plugin(self._parameters.loader, self._transformer.data)
 
             self._loader.run()
         except Exception as e:
             raise ETLException(f'Unable to instantiate ETL loader sub-task: {e}')
 
-    def _instantiate_plugin(self, variable_base_name, data=None):
-        plugin_parameters = self._generate_parameters(self._parameters, variable_base_name)
-        plugin_parameters['data'] = data
+    def _instantiate_plugin(self, parameters, data=None):
+        parameters['data'] = data
 
-        if 'CLASS' not in plugin_parameters:
-            raise ETLException('%s_CLASS parameter not specified', variable_base_name + '_CLASS')
+        if 'CLASS' not in parameters:
+            raise ETLException('..._CLASS parameter not specified in %s', parameters)
 
-        Plugin = plugin.import_plugin(plugin_parameters['CLASS'])  # pylint: disable=invalid-name
+        Plugin = plugin.import_plugin(parameters['CLASS'])  # pylint: disable=invalid-name
 
-        return Plugin(plugin_parameters)
+        return Plugin(parameters)
 
     @classmethod
     def _generate_parameters(cls, variables, variable_base_name):
