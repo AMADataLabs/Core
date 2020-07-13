@@ -1,7 +1,7 @@
 """ Test Transformer class """
-from datalabs.etl.transform import Transformer
+from datalabs.etl.transform import TransformerTask
 
 
-class TestTransformer(Transformer):
+class TestTransformerTask(TransformerTask):
     def transform(self, data):
         pass

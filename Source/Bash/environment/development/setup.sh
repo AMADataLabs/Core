@@ -1,5 +1,5 @@
 # Import setup_virtual_environment
-. ${SCRIPT_PATH}/../Source/Bash/environment/python/setup.sh
+. ${SCRIPT_BASE_PATH}/../Source/Bash/environment/python/setup.sh
 
 
 install_msodbcsql17_driver() {
@@ -163,6 +163,20 @@ remove_dev_libraries() {
 
 create_base_virtual_environment() {
     echo "### Setting up master Python virtual environment ###"
+    BUILD_REQUIREMENTS=${SCRIPT_BASE_PATH}/../Build/Master/requirements.txt
+    ENVIRONMENT_PATH=${SCRIPT_BASE_PATH}/../Environment/Master
+    ENVIRONMENT_REQUIREMENTS=${ENVIRONMENT_PATH}/requirements.txt
+
+    if [[ -d $ENVIRONMENT_PATH ]]; then
+        real_directory_path=`realpath ${ENVIRONMENT_PATH}`
+        echo "Warning: Environment directory ${real_directory_path} already exists."
+    else
+        mkdir -p $ENVIRONMENT_PATH
+    fi
+
+    rm -f ${ENVIRONMENT_REQUIREMENTS}
+    ln -s ${BUILD_REQUIREMENTS} ${ENVIRONMENT_REQUIREMENTS}
+
     setup_python_virtual_environment Environment/Master
 }
 

@@ -1,11 +1,13 @@
 """ Extractor base class """
 from abc import ABC, abstractmethod
 
+from datalabs.task import Task
 
-class Extractor(ABC):
-    def __init__(self, configuration):
-        self._configuration = configuration
+
+class ExtractorTask(Task, ABC):
+    def run(self):
+        self._data = self._extract()
 
     @abstractmethod
-    def extract(self) -> "Extracted Data":
+    def _extract(self) -> "Extracted Data":
         pass

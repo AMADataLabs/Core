@@ -4,7 +4,7 @@
         SOME/BASE/PATH/YYYYMMDD/some/path/object
 
     It will determine the latest prefx SOME/BASE/PATH/YYYYMMDD and retrieve the objects listed in the FILES
-    configuration variable. FILES is a list of S3 object names with the relative prefix some/path. For example given
+    parameters variable. FILES is a list of S3 object names with the relative prefix some/path. For example given
     the following files in an S3 bucket named "some-bucket-name":
 
     AMA/CPT/20200131/standard/MEDU.txt
@@ -12,7 +12,7 @@
     AMA/CPT/20200401/standard/MEDU.txt
     AMA/CPT/20200401/standard/SHORTU.txt
 
-    and the following extractor configuration:
+    and the following extractor parameters:
 
     {
         BUCKET="some-bucket-name",
@@ -26,34 +26,34 @@
 """
 import boto3
 
-from datalabs.etl.extract import Extractor
+from datalabs.etl.extract import ExtractorTask
 
 
-class S3WindowsTextExtractor(Extractor):
-    def __init__(self, configuration):
-        super().__init__(configuration)
+class S3WindowsTextExtractorTask(ExtractorTask):
+    def __init__(self, parameters):
+        super().__init__(parameters)
 
         self._s3 = boto3.client('s3')
         self._latest_path = None
 
-    def extract(self):
+    def _extract(self):
         latest_path = self._get_latest_path()
-        files = self._configuration['FILES'].split(',')
+        files = self._parameters['FILES'].split(',')
 
         return [self._extract_file(latest_path, file) for file in files]
 
     def _get_latest_path(self):
         if self._latest_path is None:
-            release_folders = sorted(self._listdir(self._configuration['BUCKET'], self._configuration['BASE_PATH']))
+            release_folders = sorted(self._listdir(self._parameters['BUCKET'], self._parameters['BASE_PATH']))
 
-            self._latest_path = '/'.join((self._configuration['BASE_PATH'], release_folders[-1]))
+            self._latest_path = '/'.join((self._parameters['BASE_PATH'], release_folders[-1]))
 
         return self._latest_path
 
     def _extract_file(self, base_path, file):
         file_path = '/'.join((base_path, file))
 
-        response = self._s3.get_object(Bucket=self._configuration['BUCKET'], Key=file_path)
+        response = self._s3.get_object(Bucket=self._parameters['BUCKET'], Key=file_path)
 
         return response['Body'].read().decode('cp1252')
 

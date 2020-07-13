@@ -1,7 +1,7 @@
 """ Test Loader class """
-from datalabs.etl.load import Loader
+from datalabs.etl.load import LoaderTask
 
 
-class TestLoader(Loader):
+class TestLoaderTask(LoaderTask):
     def load(self, data):
         pass
