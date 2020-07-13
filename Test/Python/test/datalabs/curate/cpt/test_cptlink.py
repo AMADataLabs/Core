@@ -23,6 +23,7 @@ def test_deleted_dtk(deleted_dtk_text):
     for line in lines:
         assert line.startswith('1031078')
 
+
 # pylint: disable=protected-access, redefined-outer-name
 def test_history_dtk(history_dtk_text):
     parser = link.DeletedHistory()
@@ -36,6 +37,7 @@ def test_history_dtk(history_dtk_text):
 
     for line in lines:
         assert line.startswith('Pre-1982')
+
 
 # pylint: disable=protected-access, redefined-outer-name
 def test_history_modifiers(deleted_dtk_text):
@@ -51,6 +53,7 @@ def test_history_modifiers(deleted_dtk_text):
     for line in lines:
         assert line.startswith('Pre-1990')
 
+
 @pytest.fixture
 def deleted_dtk_text():
     return """Concept Id	Code	Date Deleted	Level	Descriptor	Instruction
@@ -65,6 +68,7 @@ def deleted_dtk_text():
 1031086	15265	Pre-1982	Not available	Descriptor not available	
 1031087	24300	Pre-1982	Not available	Descriptor not available
 """
+
 
 @pytest.fixture
 def history_dtk_test():
@@ -82,6 +86,7 @@ Pre-1982	DELETED	1031087	24300		Descriptor not available
 Pre-1982	DELETED	1031088	26125		Descriptor not available
 """
 
+
 @pytest.fixture
 def history_modifier_test():
     return """Date	Change Type	Concept Id	Modifier Code	Prior Value	CurrentValue
@@ -95,4 +100,3 @@ Pre-1990	ADDED	1021443	25		Significant, Separately Identifiable Evaluation and M
 20140101	ADDED	1021438			CPT Level I Modifiers for ASC
 20140101	ADDED	1021437			Modifiers Approved for Ambulatory Surgery Center (ASC) Hospital Outpatient Use
 """
-
