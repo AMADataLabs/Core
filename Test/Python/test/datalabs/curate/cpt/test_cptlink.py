@@ -32,7 +32,7 @@ def test_history_dtk(history_dtk_text):
 
     lines = text.splitlines()
 
-    assert len(lines) == 6
+    assert len(lines) == 8
 
     for line in lines:
         assert line.startswith('Pre-1982')
@@ -46,7 +46,7 @@ def test_history_modifiers(deleted_dtk_text):
 
     lines = text.splitlines()
 
-    assert len(lines) == 6
+    assert len(lines) == 8
 
     for line in lines:
         assert line.startswith('Pre-1990')
