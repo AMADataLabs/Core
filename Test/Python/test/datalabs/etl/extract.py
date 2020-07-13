@@ -3,5 +3,5 @@ from datalabs.etl.extract import ExtractorTask
 
 
 class TestExtractorTask(ExtractorTask):
-    def extract(self):
+    def _extract(self):
         pass

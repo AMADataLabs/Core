@@ -1,6 +1,12 @@
-from dataclasses import dataclass
+from   dataclasses import dataclass
+import logging
 
-from datalabs.task import Task, TaskException
+from   datalabs.task import Task, TaskException
+import datalabs.plugin as plugin
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @dataclass
@@ -20,28 +26,40 @@ class ETLTask(Task):
         self._loader = None
 
     def run(self):
+        LOGGER.info('Extracting...')
         try:
-            self._instantiate_plugins()
+            self._extractor = self._instantiate_plugin('EXTRACTOR')
+
+            self._extractor.run()
         except Exception as e:
-            raise ETLException(f'Unable to instantiate ETL sub-tasks: {e}')
+            raise ETLException(f'Unable to instantiate ETL extractor sub-task: {e}')
 
-        self._logger.info('Extracting...')
-        data = self._extract()
+        LOGGER.info('Transforming...')
+        try:
+            self._transformer = self._instantiate_plugin('TRANSFORMER', self._extractor.data)
 
-        self._logger.info('Transforming...')
-        transformed_data = self._transform(data)
+            self._transformer.run()
+        except Exception as e:
+            raise ETLException(f'Unable to instantiate ETL transformer sub-task: {e}')
 
-        self._logger.info('Loading...')
-        self._load(transformed_data)
+        LOGGER.info('Loading...')
+        try:
+            self._loader = self._instantiate_plugin('LOADER', self._transformer.data)
 
-    def _instantiate_plugins(self, parameters):
-        attributes = [self._extractor, self._transformer, self._loader]
-        variable_base_names = ['EXTRACTOR', 'TRANSFORMER', 'LOADER']
-        for attribute, variable_base_name in zip(attribute_names, variable_base_names):
-            plugin_parameters = self._generate_parameters(parameters, variable_base_name)
+            self._loader.run()
+        except Exception as e:
+            raise ETLException(f'Unable to instantiate ETL loader sub-task: {e}')
 
-            LOGGER.info('Instantiating ETL %s plugin', variable_base_name.lower())
-            attribute = self._instantiate_plugin(plugin_parameters)
+    def _instantiate_plugin(self, variable_base_name, data=None):
+        plugin_parameters = self._generate_parameters(self._parameters, variable_base_name)
+        plugin_parameters['data'] = data
+
+        if 'CLASS' not in plugin_parameters:
+            raise ETLException('%s_CLASS parameter not specified', variable_base_name + '_CLASS')
+
+        Plugin = plugin.import_plugin(plugin_parameters['CLASS'])  # pylint: disable=invalid-name
+
+        return Plugin(plugin_parameters)
 
     @classmethod
     def _generate_parameters(cls, variables, variable_base_name):
@@ -58,37 +76,6 @@ class ETLTask(Task):
             LOGGER.warn(f'No parameters for "{variable_base_name}" in {variables}')
 
         return parameters
-
-    def _instantiate_plugin(self, parameters):
-        Plugin = plugin.import_plugin(parameters['CLASS'])  # pylint: disable=invalid-name
-
-        return Plugin(parameters)
-
-    def _extract(self):
-        extractor = self._extractor(self._parameters.extractor)
-
-        extractor.run()
-
-        return extractor.data
-
-    def _transform(self, data):
-        self._parameters.transformer['data'] = data
-        transformer = self._transformer(self._parameters.transformer)
-
-        transformer.run()
-
-        return transformer.data
-
-    def _load(self):
-        self._parameters.loader['data'] = data
-        loader = self._loader(self._parameters.loader)
-
-        loader.run()
-
-    def _instantiate_plugin(plugin_class, parameters):
-        Plugin = plugin.import_plugin(plugin_class)  # pylint: disable=invalid-name
-
-        return Plugin(parameters)
 
 
 class ETLComponentTask(Task):

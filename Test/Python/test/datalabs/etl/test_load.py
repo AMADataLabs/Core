@@ -11,8 +11,9 @@ def test_loader_task(loader):
 
 @pytest.fixture
 def loader():
-    class Loader(LoaderTask):
-        def _load(self, data):
-            return str(data)
-
     return Loader(dict(data=True))
+
+
+class Loader(LoaderTask):
+    def _load(self, data):
+        pass

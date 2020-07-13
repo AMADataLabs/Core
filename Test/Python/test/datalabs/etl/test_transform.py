@@ -20,8 +20,9 @@ def test_pass_through_transformer():
 
 @pytest.fixture
 def transformer():
-    class Transformer(TransformerTask):
-        def _transform(self, data):
-            return str(data)
-
     return Transformer(dict(data=True))
+
+
+class Transformer(TransformerTask):
+    def _transform(self, data):
+        return str(data)
