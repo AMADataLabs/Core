@@ -54,8 +54,6 @@ class OutputData:
 
 class CSVToRelationalTablesTransformerTask(TransformerTask):
     def _transform(self, data):
-        if not feature.enabled('PLA'):
-            data.append('DUMMY')
 
         input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
 

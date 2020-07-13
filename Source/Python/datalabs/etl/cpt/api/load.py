@@ -1,5 +1,5 @@
 """ CPT ETL Loader classes """
-from   collections import defaultdict
+from collections import defaultdict
 from   dataclasses import dataclass
 from   datetime import datetime
 from   functools import reduce
@@ -67,26 +67,25 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
             data.clinician_descriptor_code_mapping
         )
 
-        if feature.enabled('PLA'):
-            TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
+        TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
 
-            # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
+        # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
 
-            TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
+        TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
 
-            TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
+        TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
 
-            TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
+        TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
 
-            TableUpdater(self._session, dbmodel.Manufacturer, 'code').update(data.manufacturer)
+        TableUpdater(self._session, dbmodel.Manufacturer, 'code').update(data.manufacturer)
 
-            TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
-                data.manufacturer_pla_code_mapping
-            )
+        TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
+            data.manufacturer_pla_code_mapping
+        )
 
-            TableUpdater(self._session, dbmodel.Lab, 'code').update(data.lab)
+        TableUpdater(self._session, dbmodel.Lab, 'code').update(data.lab)
 
-            TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
+        TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
 
         self._session.commit()
 
@@ -331,66 +330,4 @@ class ModifierTableUpdater(TableUpdater):
         return merged_data
 
 
-class CPTRelationalTableLoader(Loader):
-    def __init__(self, configuration):
-        super().__init__(configuration)
-        self._release = None
-        self._codes = None
-        self._pla_codes = None
-
-    def load(self, data: transform.OutputData):
-        with Database(key=self._configuration['DATABASE']) as database:
-            self._session = database.session
-
-            self._update_tables(data)
-
-    def _update_tables(self, data: transform.OutputData):
-        release_table_updater = ReleaseTableUpdater(self._session)
-        release_table_updater.update(data.release)
-
-        TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
-
-        ReleaseCodeMappingTableUpdater(self._session, release_table_updater.release_id).update(
-            data.release_code_mapping
-        )
-
-        TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
-
-        TableUpdater(self._session, dbmodel.MediumDescriptor, 'code').update(data.medium_descriptor)
-
-        TableUpdater(self._session, dbmodel.LongDescriptor, 'code').update(data.long_descriptor)
-
-        TableUpdater(self._session, dbmodel.ModifierType, 'id', match_column='name').update(data.modifier_type)
-
-        ModifierTableUpdater(self._session).update(data.modifier)
-
-        TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code').update(data.consumer_descriptor)
-
-        TableUpdater(self._session, dbmodel.ClinicianDescriptor, 'id').update(data.clinician_descriptor)
-
-        TableUpdater(self._session, dbmodel.ClinicianDescriptorCodeMapping, 'clinician_descriptor').update(
-            data.clinician_descriptor_code_mapping
-        )
-
-        TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
-
-        TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
-
-        TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
-
-        TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
-
-        TableUpdater(self._session, dbmodel.Manufacturer, 'id').update(data.manufacturer)
-
-        TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
-            data.manufacturer_pla_code_mapping
-        )
-
-        TableUpdater(self._session, dbmodel.Lab, 'id').update(data.lab)
-
-        TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
-
-        # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
-
-        self._session.commit()
-
+c
