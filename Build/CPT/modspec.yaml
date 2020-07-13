@@ -3,14 +3,16 @@ modspec:
   - package: datalabs
     include:
       - feature
+      - awslambda
       - plugin
       - sqlalchemy
       - task
   - package: datalabs.access
     include:
       - credentials
-      - datastore
       - database
+      - datastore
+      - awslambda
       - orm
       - task
   - package: datalabs.access.cpt.api

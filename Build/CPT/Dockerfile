@@ -10,6 +10,7 @@ COPY ./Build/CPT/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 COPY ./Script ./Script
+COPY ./Build/Master ./Build/Master
 COPY ./Build/CPT ./Build/CPT
 COPY ./Source ./Source
 RUN ./Script/bundle-project -i --directory ./ CPT
