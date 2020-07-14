@@ -8,6 +8,8 @@ import logging
 import pandas
 import sqlalchemy as sa
 
+from   datalabs.access.credentials import Credentials
+from   datalabs.access.database import Configuration
 from   datalabs.access.orm import Database
 from   datalabs.etl.database import DatabaseTaskMixin
 from   datalabs.etl.load import LoaderTask
@@ -34,7 +36,17 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
         self._pla_codes = None
 
     def _load(self, data: transform.OutputData):
-        with Database(key=self._parameters['DATABASE']) as database:
+        configuration = Configuration(
+            name=self._parameters['DATABASE_NAME'],
+            backend=self._parameters['DATABASE_BACKEND'],
+            host=self._parameters['DATABASE_HOST'],
+        )
+        credentials = Credentials(
+            username=self._parameters['DATABASE_USERNAME'],
+            password=self._parameters['DATABASE_PASSWORD'],
+        )
+
+        with Database(configuration, credentials) as database:
             self._session = database.session
 
             self._update_tables(data)
