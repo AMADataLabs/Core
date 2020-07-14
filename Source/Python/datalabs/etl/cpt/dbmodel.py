@@ -190,8 +190,8 @@ class ManufacturerPLACodeMapping(Base):
     __tablename__ = 'manufacturer_pla_code_mapping'
     __table_args__ = {"schema": "cpt"}
 
-    manufacturer = sa.Column(sa.Integer, sa.ForeignKey("cpt.manufacturer.id"), primary_key=True)
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
+    manufacturer = sa.Column(sa.Integer, sa.ForeignKey("cpt.manufacturer.id"), nullable=False)
 
 
 class Lab(Base):
@@ -208,8 +208,8 @@ class LabPLACodeMapping(Base):
     __tablename__ = 'lab_pla_code_mapping'
     __table_args__ = {"schema": "cpt"}
 
-    lab = sa.Column(sa.Integer, sa.ForeignKey("cpt.lab.id"), primary_key=True)
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
+    lab = sa.Column(sa.Integer, sa.ForeignKey("cpt.lab.id"), nullable=False)
 
 
 class ReleasePLACodeMapping(Base):

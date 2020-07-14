@@ -3,5 +3,5 @@ from datalabs.etl.transform import TransformerTask
 
 
 class TestTransformerTask(TransformerTask):
-    def transform(self, data):
+    def _transform(self, data):
         pass

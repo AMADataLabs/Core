@@ -1,7 +1,12 @@
+import logging
 import os
 
 from   datalabs.etl.task import ETLTask, ETLParameters, ETLException
 from   datalabs.awslambda import TaskWrapper
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class ETLTaskWrapper(TaskWrapper):
@@ -10,23 +15,17 @@ class ETLTaskWrapper(TaskWrapper):
             extractor=self._generate_parameters(os.environ, "EXTRACTOR"),
             transformer=self._generate_parameters(os.environ, "TRANSFORMER"),
             loader=self._generate_parameters(os.environ, "LOADER"),
-            database=dict(
-                name=os.getenv('DATABASE_NAME'),
-                backend=os.getenv('DATABASE_BACKEND'),
-                host=os.getenv('DATABASE_HOST'),
-                username=os.getenv('DATABASE_USERNAME'),
-                password=os.getenv('DATABASE_PASSWORD')
-            ),
         )
 
-    def _handle_exception(self, exception: APIEndpointException) -> (int, dict):
-        status_code = exception.status_code
-        body = dict(message=exception.message)
+    def _handle_exception(self, exception: ETLException) -> (int, dict):
+        LOGGER.error('Handling ETL task exception', exception)
+        status_code = 400
+        body = dict(message=str(exception))
 
         return status_code, body
 
     def _generate_response(self, task) -> (int, dict):
-        return task.status_code, task.response_body
+        return 200, dict()
 
     @classmethod
     def _generate_parameters(cls, variables, variable_base_name):

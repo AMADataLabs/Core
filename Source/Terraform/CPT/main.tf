@@ -45,41 +45,6 @@ EOF
 }
 
 
-# resource "aws_lambda_function" "ConvertCPT_test" {
-#     filename        = "../../../Build/CPT/app.zip"
-#     function_name   = "ConvertCPT"
-#     role            = aws_iam_role.cpt_lambda_role.arn
-#     handler         = "datalabs.etl.run.lambda_handler"
-#     runtime         = "python3.7"
-#     environment {
-#         variables = {
-#             ETL_CONVERTCPT_LAMBDA_FUNCTION=data.aws_ssm_parameter.ETL_CONVERTCPT_LAMBDA_FUNCTION.value
-#             ETL_CONVERTCPT_APP=data.aws_ssm_parameter.ETL_CONVERTCPT_APP.value
-#             ETL_CONVERTCPT_EXTRACTOR=data.aws_ssm_parameter.ETL_CONVERTCPT_EXTRACTOR.value
-#             ETL_CONVERTCPT_EXTRACTOR_BUCKET=data.aws_ssm_parameter.ETL_CONVERTCPT_EXTRACTOR_BUCKET.value
-#             ETL_CONVERTCPT_EXTRACTOR_BASE_PATH=data.aws_ssm_parameter.ETL_CONVERTCPT_EXTRACTOR_BASE_PATH.value
-#             ETL_CONVERTCPT_EXTRACTOR_FILES=data.aws_ssm_parameter.ETL_CONVERTCPT_EXTRACTOR_FILES.value
-#             ETL_CONVERTCPT_TRANSFORMER=data.aws_ssm_parameter.ETL_CONVERTCPT_TRANSFORMER.value
-#             ETL_CONVERTCPT_TRANSFORMER_PARSERS=data.aws_ssm_parameter.ETL_CONVERTCPT_TRANSFORMER_PARSERS.value
-#             ETL_CONVERTCPT_LOADER=data.aws_ssm_parameter.ETL_CONVERTCPT_LOADER.value
-#             ETL_CONVERTCPT_LOADER_BUCKET=data.aws_ssm_parameter.ETL_CONVERTCPT_LOADER_BUCKET.value
-#             ETL_CONVERTCPT_LOADER_FILES=data.aws_ssm_parameter.ETL_CONVERTCPT_LOADER_FILES.value
-#             ETL_CONVERTCPT_LOADER_BASE_PATH=data.aws_ssm_parameter.ETL_CONVERTCPT_LOADER_BASE_PATH.value
-
-#             # TODO: These need to be moved to the RDS loading ETL Lambda resource
-#             ETL_LOADCPT_LAMBDA_FUNCTION=data.aws_ssm_parameter.ETL_LOADCPT_LAMBDA_FUNCTION.value
-#             ETL_LOADCPT_APP=data.aws_ssm_parameter.ETL_LOADCPT_APP.value
-#             ETL_LOADCPT_EXTRACTOR=data.aws_ssm_parameter.ETL_LOADCPT_EXTRACTOR.value
-#             ETL_LOADCPT_EXTRACTOR_BUCKET=data.aws_ssm_parameter.ETL_LOADCPT_EXTRACTOR_BUCKET.value
-#             ETL_LOADCPT_EXTRACTOR_BASE_PATH=data.aws_ssm_parameter.ETL_LOADCPT_EXTRACTOR_BASE_PATH.value
-#             ETL_LOADCPT_EXTRACTOR_FILES=data.aws_ssm_parameter.ETL_LOADCPT_EXTRACTOR_FILES.value
-#             ETL_LOADCPT_TRANSFORMER=data.aws_ssm_parameter.ETL_LOADCPT_TRANSFORMER.value
-#             ETL_LOADCPT_LOADER=data.aws_ssm_parameter.ETL_LOADCPT_LOADER.value
-#         }
-#     }
-# }
-
-
 resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
     name = "CPT API"
     description = local.spec_description
@@ -338,19 +303,19 @@ module "etl_convert" {
     database_host       = aws_db_instance.cpt_api_database.address
 
     variables           = {
-        EXTRACTOR_CLASS="datalabs.etl.cpt.ingest.extract.CPTTextDataExtractor"
-        EXTRACTOR_BUCKET=data.ingestion_bucket
-        EXTRACTOR_BASE_PATH=data.s3_base_path
-        EXTRACTOR_FILES=data.raw_data_files
-        EXTRACTOR_RELEASE_SCHEDULE=data.release_schedule
+        EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractor"
+        EXTRACTOR_BUCKET            = data.ingestion_bucket
+        EXTRACTOR_BASE_PATH         = data.s3_base_path
+        EXTRACTOR_FILES             = data.raw_data_files
+        EXTRACTOR_RELEASE_SCHEDULE  = data.release_schedule
 
-        TRANSFORMER_CLASS="datalabs.etl.cpt.ingest.transform.CPTFileToCSVTransformer"
-        TRANSFORMER_PARSERS=data.raw_data_parsers
+        TRANSFORMER_CLASS           = "datalabs.etl.cpt.ingest.transform.CPTFileToCSVTransformer"
+        TRANSFORMER_PARSERS         = data.raw_data_parsers
 
-        LOADER_CLASS="datalabs.etl.s3.load.S3WindowsTextLoader"
-        LOADER_BUCKET=data.processed_bucket
-        LOADER_FILES=data.converted_data_files
-        LOADER_BASE_PATH=data.s3_base_path
+        LOADER_CLASS                = "datalabs.etl.s3.load.S3WindowsTextLoader"
+        LOADER_BUCKET               = data.processed_bucket
+        LOADER_FILES                = data.converted_data_files
+        LOADER_BASE_PATH            = data.s3_base_path
     }
 }
 
@@ -365,14 +330,19 @@ module "etl_load" {
     database_host       = aws_db_instance.cpt_api_database.address
 
     variables           = {
-        EXTRACTOR_CLASS="datalabs.etl.s3.extract.S3WindowsTextExtractor"
-        EXTRACTOR_BUCKET=data.processed_bucket
-        EXTRACTOR_BASE_PATH=data.s3_base_path
-        EXTRACTOR_FILES=data.converted_data_files
+        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3WindowsTextExtractor"
+        EXTRACTOR_BUCKET            = data.processed_bucket
+        EXTRACTOR_BASE_PATH         = data.s3_base_path
+        EXTRACTOR_FILES             = data.converted_data_files
 
-        TRANSFORMER_CLASS="datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformer"
+        TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformer"
 
-        LOADER_CLASS="datalabs.etl.cpt.api.load.CPTRelationalTableLoader"
+        LOADER_CLASS                = "datalabs.etl.cpt.api.load.CPTRelationalTableLoader"
+        LOADER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
+        LOADER_DATABASE_BACKEND     = "postgresql+psycopg2"
+        LOADER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
+        LOADER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.value
+        LOADER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.value
     }
 }
 
