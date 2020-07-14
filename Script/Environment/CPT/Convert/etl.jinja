@@ -1,0 +1,16 @@
+TASK_WRAPPER_CLASS=datalabs.etl.awslambda.ETLTaskWrapper
+TASK_CLASS=datalabs.etl.task.ETLTask
+
+EXTRACTOR_CLASS=datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask
+EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-ingestion-sandbox
+EXTRACTOR_BASE_PATH=AMA/CPT
+EXTRACTOR_FILES=standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/ConsumerFriendlyDescriptors/ConsumerDescriptor.txt,standard/ClinicianDescriptors/ClinicianDescriptor.txt
+EXTRACTOR_RELEASE_SCHEDULE='{"ANNUAL":["1-Sep","1-Jan"],"Q1":["1-Jan","1-Apr"],"Q2":["1-Apr","1-Jul"],"Q3":["1-Jul","1-Oct"],"Q4":["1-Oct","1-Jan"]}'
+
+TRANSFORMER_CLASS=datalabs.etl.cpt.ingest.transform.CPTFileToCSVTransformerTask
+TRANSFORMER_PARSERS=datalabs.curate.parse.CSVParser,datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser
+
+LOADER_CLASS=datalabs.etl.s3.load.S3WindowsTextLoaderTask
+LOADER_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
+LOADER_FILES=standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/ConsumerFriendlyDescriptors/ConsumerDescriptor.csv,standard/ClinicianDescriptors/ClinicianDescriptor.csv,standard/ProprietaryLaboratoryAnalyses(PLA)Codes/CPTPLA.csv
+LOADER_BASE_PATH=AMA/CPT

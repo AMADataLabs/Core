@@ -25,29 +25,38 @@ class ETLTask(Task):
         self._loader = None
 
     def run(self):
-        LOGGER.info('Extracting...')
         try:
             self._extractor = self._instantiate_plugin(self._parameters.extractor)
-
-            self._extractor.run()
         except Exception as e:
             raise ETLException(f'Unable to instantiate ETL extractor sub-task: {e}')
 
-        LOGGER.info('Transforming...')
+        LOGGER.info('Extracting...')
+        try:
+            self._extractor.run()
+        except Exception as e:
+            raise ETLException(f'Unable to run ETL extractor sub-task: {e}')
+
         try:
             self._transformer = self._instantiate_plugin(self._parameters.transformer, self._extractor.data)
-
-            self._transformer.run()
         except Exception as e:
             raise ETLException(f'Unable to instantiate ETL transformer sub-task: {e}')
 
-        LOGGER.info('Loading...')
+        LOGGER.info('Transforming...')
+        try:
+            self._transformer.run()
+        except Exception as e:
+            raise ETLException(f'Unable to run ETL transformer sub-task: {e}')
+
         try:
             self._loader = self._instantiate_plugin(self._parameters.loader, self._transformer.data)
-
-            self._loader.run()
         except Exception as e:
             raise ETLException(f'Unable to instantiate ETL loader sub-task: {e}')
+
+        LOGGER.info('Loading...')
+        try:
+            self._loader.run()
+        except Exception as e:
+            raise ETLException(f'Unable to run ETL loader sub-task: {e}')
 
     def _instantiate_plugin(self, parameters, data=None):
         parameters['data'] = data

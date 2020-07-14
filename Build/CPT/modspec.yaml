@@ -22,5 +22,6 @@ modspec:
   - package: datalabs.curate.cpt
   - package: datalabs.etl
   - package: datalabs.etl.cpt
-  - package: datalabs.etl.cpt.wrapper
+  - package: datalabs.etl.cpt.api
+  - package: datalabs.etl.cpt.ingest
   - package: datalabs.etl.s3

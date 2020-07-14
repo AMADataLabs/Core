@@ -20,13 +20,14 @@
         FILES="standard/MEDU.txt,standard/SHORTU.txt",
     }
 
-    the following files would be extracted as strings by the S3WindowsTextExtractor:
+    the following files would be extracted as strings by the S3WindowsTextExtractorTask:
     AMA/CPT/20200401/standard/MEDU.txt
     AMA/CPT/20200401/standard/SHORTU.txt
 """
 import boto3
 
 from datalabs.etl.extract import ExtractorTask
+from datalabs.etl.task import ETLException
 
 
 class S3WindowsTextExtractorTask(ExtractorTask):
@@ -53,7 +54,10 @@ class S3WindowsTextExtractorTask(ExtractorTask):
     def _extract_file(self, base_path, file):
         file_path = '/'.join((base_path, file))
 
-        response = self._s3.get_object(Bucket=self._parameters['BUCKET'], Key=file_path)
+        try:
+            response = self._s3.get_object(Bucket=self._parameters['BUCKET'], Key=file_path)
+        except Exception as e:
+            raise ETLException(f"Unable to get file '{file_path}' from S3 bucket '{self._parameters['BUCKET']}': {e}")
 
         return response['Body'].read().decode('cp1252')
 
