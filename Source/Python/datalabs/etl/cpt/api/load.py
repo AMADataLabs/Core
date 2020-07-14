@@ -89,15 +89,19 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
 
         TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
 
-        TableUpdater(self._session, dbmodel.Manufacturer, 'code').update(data.manufacturer)
+        TableUpdater(self._session, dbmodel.Manufacturer, 'id', match_column='name').update(data.manufacturer)
 
-        TableUpdater(self._session, dbmodel.ManufacturerPLACodeMapping, 'code').update(
+        TableUpdater(self._session, dbmodel.Lab, 'id', match_column='name').update(data.lab)
+
+        OneToManyTableUpdater(
+            self._session, dbmodel.ManufacturerPLACodeMapping, 'code', dbmodel.Manufacturer, 'manufacturer'
+        ).update(
             data.manufacturer_pla_code_mapping
         )
 
-        TableUpdater(self._session, dbmodel.Lab, 'code').update(data.lab)
-
-        TableUpdater(self._session, dbmodel.LabPLACodeMapping, 'code').update(data.lab_pla_code_mapping)
+        OneToManyTableUpdater(
+            self._session, dbmodel.LabPLACodeMapping, 'code', dbmodel.Lab, 'lab'
+        ).update(data.lab_pla_code_mapping)
 
         self._session.commit()
 
@@ -342,4 +346,30 @@ class ModifierTableUpdater(TableUpdater):
         return merged_data
 
 
-c
+class OneToManyTableUpdater(TableUpdater):
+    def __init__(self, session, model_class: type, primary_key, many_model_class, many_key):
+        super().__init__(session, model_class, primary_key)
+
+        self._many_model_class = many_model_class
+        self._many_key = many_key
+
+    def update(self, data):
+        data = self._resolve_key_values_to_ids(data)
+
+        super().update(data)
+
+    def _resolve_key_values_to_ids(self, data):
+        lookup_data = self._session.query(self._many_model_class).all()
+        id_map = self._map_key_values_to_ids(lookup_data)
+
+        data.loc[:, self._many_key] = data[self._many_key].apply(lambda x: id_map.get(x))
+
+        return data[~pandas.isnull(data[self._many_key])]
+
+    def _map_key_values_to_ids(self, lookup_data):
+        id_map = {}
+
+        for lookup_object in lookup_data:
+            id_map[lookup_object.name] = lookup_object.id
+
+        return id_map
