@@ -18,7 +18,7 @@ class ETLTaskWrapper(TaskWrapper):
         )
 
     def _handle_exception(self, exception: ETLException) -> (int, dict):
-        LOGGER.error('Handling ETL task exception', exception)
+        LOGGER.error('Handling ETL task exception: %s', exception)
         status_code = 400
         body = dict(message=str(exception))
 

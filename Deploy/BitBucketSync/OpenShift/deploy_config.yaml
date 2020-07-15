@@ -1,0 +1,63 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  generation: 1
+  labels:
+    app: BitBucketSync
+  name: bitbucket-sync
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    app: BitBucketSync
+    deploymentconfig: bitbucket-sync
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: BitBucketSync
+        deploymentconfig: bitbucket-sync
+    spec:
+      containers:
+      - args:
+        - --workers=3
+        - datalabs.deploy.bitbucket.sync.app:start()
+        - -b
+        - 0.0.0.0:8080
+        command:
+        - gunicorn
+        env:
+        - name: SECRET_KEY
+          value: v$fay4*tkcsrj92uas99@r42
+        image: docker-registry.default.svc:5000/hsg-data-labs-dev/hsg-data-labs@sha256:510b8f1f30d6db9d19feaf2492335f978711a20acf46a2ee7ec69133fb2a648a
+        imagePullPolicy: Always
+        name: hsg-data-labs
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  test: false
+  triggers:
+  - type: ConfigChange
+  - imageChangeParams:
+      automatic: true
+      containerNames:
+      - hsg-data-labs
+      from:
+        kind: ImageStreamTag
+        name: bitbucket-sync:latest
+        namespace: hsg-data-labs-dev
+    type: ImageChange
