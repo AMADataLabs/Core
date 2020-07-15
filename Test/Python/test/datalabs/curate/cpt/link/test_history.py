@@ -2,7 +2,7 @@
 import logging
 import pytest
 
-import link.history as link
+import datalabs.curate.cpt.link.history as link
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -10,9 +10,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=protected-access, redefined-outer-name
-def test_deleted_history(deleted_text):
+def test_deleted_history(deleted_test_data):
     parser = link.DeletionHistoryParser()
-    text = parser.parse(deleted_dtk_text)
+    text = parser.parse(deleted_test_data)
 
     LOGGER.debug('Text: \n%s', text)
 
@@ -25,9 +25,9 @@ def test_deleted_history(deleted_text):
 
 
 # pylint: disable=protected-access, redefined-outer-name
-def test_code_history(code_history_text):
+def test_code_history(code_history_test_data):
     parser = link.CodeHistoryParser()
-    text = parser.parse(code_history_text)
+    text = parser.parse(code_history_test_data)
 
     LOGGER.debug('Text: \n%s', text)
 
@@ -40,9 +40,9 @@ def test_code_history(code_history_text):
 
 
 # pylint: disable=protected-access, redefined-outer-name
-def test_history_modifiers(modifier_history_text):
-    parser = link.HistoryModifierParser()
-    text = parser.parse(modifier_history_text)
+def test_modifier_history(modifier_history_test_data):
+    parser = link.ModifierHistoryParser()
+    text = parser.parse(modifier_history_test_data)
 
     LOGGER.debug('Text: \n%s', text)
 

@@ -41,7 +41,7 @@ class CodeHistoryParser(CPTLinkParser):
             ['date', 'change_type', 'concept_id', 'cpt_code', 'level', 'prior_value', 'current_value', 'instruction'])
 
 
-class HistoryModifierParser(CPTLinkParser):
+class ModifierHistoryParser(CPTLinkParser):
     def __init__(self):
         super().__init__(
             ['date', 'change_type', 'concept_id', 'cpt_code', 'level', 'prior_value', 'current_value', 'instruction'])
