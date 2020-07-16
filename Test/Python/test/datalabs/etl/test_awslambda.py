@@ -1,4 +1,4 @@
-""" REPLACE WITH DOCSTRING """
+""" source: datalabs.etl.awslambda """
 import os
 import pytest
 
@@ -6,6 +6,7 @@ from   datalabs.etl.awslambda import ETLTaskWrapper, ETLException
 from   datalabs.etl.task import ETLTask, ETLParameters
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
     wrapper = ETLTaskWrapper(dict())
     parameters = wrapper._get_task_parameters(event)
@@ -13,6 +14,7 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
     assert expected_parameters == parameters
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
     wrapper = ETLTaskWrapper(dict())
     status_code, body = wrapper._handle_exception(ETLException('failed'))
@@ -21,6 +23,7 @@ def test_task_wrapper_handle_exception():
     assert body == dict(message='failed')
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_generate_response():
     wrapper = ETLTaskWrapper(dict())
     task = MockTask(None)

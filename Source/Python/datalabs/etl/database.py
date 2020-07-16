@@ -1,13 +1,11 @@
-""" REPLACE WITH DOCSTRING """
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-
+""" Task mixin for adding ORM database connectivity. """
 from datalabs.access.credentials import Credentials
 from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
-from datalabs.task import Task, TaskException
+from datalabs.task import Task
 
 
+# pylint: disable=abstract-method
 class DatabaseTaskMixin(Task):
     def __init__(self, parameters):
         super().__init__(parameters)

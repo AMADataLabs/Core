@@ -1,4 +1,4 @@
-""" REPLACE WITH DOCSTRING """
+""" ETL Task base classes. """
 from   dataclasses import dataclass
 import logging
 
@@ -28,48 +28,49 @@ class ETLTask(Task):
     def run(self):
         try:
             self._extractor = self._instantiate_plugin(self._parameters.extractor)
-        except Exception as e:
+        except Exception as Exception:
             LOGGER.error('Unable to instantiate ETL extractor sub-task')
-            raise ETLException(f'Unable to instantiate ETL extractor sub-task: {e}')
+            raise ETLException(f'Unable to instantiate ETL extractor sub-task: {exception}')
 
         LOGGER.info('Extracting...')
         try:
             self._extractor.run()
-        except Exception as e:
+        except Exception as exception:
             LOGGER.error('Unable to run ETL extractor sub-task')
-            raise ETLException(f'Unable to run ETL extractor sub-task: {e}')
+            raise ETLException(f'Unable to run ETL extractor sub-task: {exception}')
 
         try:
             self._transformer = self._instantiate_plugin(self._parameters.transformer, self._extractor.data)
-        except Exception as e:
+        except Exception as exception:
             LOGGER.error('Unable to instantiate ETL extractor sub-task')
-            raise ETLException(f'Unable to instantiate ETL transformer sub-task: {e}')
+            raise ETLException(f'Unable to instantiate ETL transformer sub-task: {exception}')
 
         LOGGER.info('Transforming...')
         try:
             self._transformer.run()
-        except Exception as e:
+        except Exception as exception:
             LOGGER.error('Unable to run ETL transformer sub-task')
-            raise ETLException(f'Unable to run ETL transformer sub-task: {e}')
+            raise ETLException(f'Unable to run ETL transformer sub-task: {exception}')
 
         try:
             self._loader = self._instantiate_plugin(self._parameters.loader, self._transformer.data)
-        except Exception as e:
+        except Exception as exception:
             LOGGER.error('Unable to instantiate ETL extractor sub-task')
-            raise ETLException(f'Unable to instantiate ETL loader sub-task: {e}')
+            raise ETLException(f'Unable to instantiate ETL loader sub-task: {exception}')
 
         LOGGER.info('Loading...')
         try:
             self._loader.run()
-        except Exception as e:
+        except Exception as exception:
             LOGGER.error('Unable to run ETL extractor sub-task')
-            raise ETLException(f'Unable to run ETL loader sub-task: {e}')
+            raise ETLException(f'Unable to run ETL loader sub-task: {exception}')
 
-    def _instantiate_plugin(self, parameters, data=None):
+    @classmethod
+    def _instantiate_plugin(cls, parameters, data=None):
         parameters['data'] = data
 
         if 'CLASS' not in parameters:
-            raise ETLException('..._CLASS parameter not specified in %s', parameters)
+            raise ETLException(f'..._CLASS parameter not specified in {parameters}')
 
         Plugin = plugin.import_plugin(parameters['CLASS'])  # pylint: disable=invalid-name
 
@@ -87,11 +88,12 @@ class ETLTask(Task):
 
         if not parameters:
             LOGGER.debug('parameters: %s', parameters)
-            LOGGER.warn(f'No parameters for "{variable_base_name}" in {variables}')
+            LOGGER.warning('No parameters for "%s" in %s', variable_base_name, variables)
 
         return parameters
 
 
+# pylint: disable=abstract-method
 class ETLComponentTask(Task):
     def __init__(self, parameters):
         super().__init__(parameters)
@@ -105,4 +107,3 @@ class ETLComponentTask(Task):
 
 class ETLException(TaskException):
     pass
-

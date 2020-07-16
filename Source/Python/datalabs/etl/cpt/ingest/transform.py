@@ -1,4 +1,4 @@
-""" REPLACE WITH DOCSTRING """
+""" Transformer task for running parsers on text data, converting it to CSVs. """
 import logging
 
 from   datalabs.etl.transform import TransformerTask

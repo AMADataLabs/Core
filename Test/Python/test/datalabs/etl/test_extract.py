@@ -1,13 +1,14 @@
-""" REPLACE WITH DOCSTRING """
+""" source: datalabs.etl.extract """
 import pytest
 
 from datalabs.etl.extract import ExtractorTask
 
 
+# pylint: disable=redefined-outer-name
 def test_extractor_task(extractor):
     extractor.run()
 
-    assert extractor.data == True
+    assert extractor.data
 
 
 @pytest.fixture

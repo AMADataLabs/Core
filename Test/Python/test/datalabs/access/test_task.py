@@ -1,4 +1,4 @@
-""" REPLACE WITH DOCSTRING """
+""" source: datalabs.access.task """
 import pytest
 
 import mock
@@ -6,26 +6,29 @@ import mock
 import datalabs.access.task as apitask
 
 
+# pylint: disable=abstract-method
 class BadTask(apitask.APIEndpointTask):
     pass
 
 
 class GoodTask(apitask.APIEndpointTask):
     def _run(self, session):
-        GoodTask._run.called = True
+        GoodTask._run.called = True  # pylint: disable=protected-access
 
 GoodTask._run.called = False
 
 
 def test_task_is_abstract():
     with pytest.raises(TypeError):
-        BadTask(None)
+        BadTask(None)  # pylint: disable=abstract-class-instantiated
 
 
+# pylint: disable=protected-access
 def test_task_is_not_abstract():
     GoodTask(None)._run(None)
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_runs_with_database(parameters):
     with mock.patch('datalabs.access.task.Database') as database:
         database.return_value.session = True
@@ -33,8 +36,8 @@ def test_task_runs_with_database(parameters):
         task.run()
 
         assert database.call_count == 1
-        assert database.return_value.session == True
-        assert GoodTask._run.called == True
+        assert database.return_value.session
+        assert GoodTask._run.called
 
 
 def test_api_endpoint_exceptions_have_status_and_message():

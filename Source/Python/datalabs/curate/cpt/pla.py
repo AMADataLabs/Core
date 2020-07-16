@@ -68,12 +68,12 @@ class PLAParser(Parser):
         text_split = text.split("\n", 1)[1]
         root = et.fromstring(text_split)
 
-        for c in root.findall('plaCode'):
+        for pla_element in root.findall('plaCode'):
             for attribute, column in zip(cls.ATTRIBUTES, cls.COLUMNS[:2]):
-                getattr(fields, column).append(c.attrib.get(attribute))
+                getattr(fields, column).append(pla_element.attrib.get(attribute))
 
             for element, column in zip(cls.ELEMENTS, cls.COLUMNS[2:]):
-                getattr(fields, column).append(c.find(element).text)
+                getattr(fields, column).append(pla_element.find(element).text)
 
         return fields
 

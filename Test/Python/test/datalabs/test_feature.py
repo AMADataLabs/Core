@@ -1,4 +1,4 @@
-""" REPLACE WITH DOCSTRING """
+""" source: datalabs.feature """
 import os
 
 import pytest
@@ -6,16 +6,19 @@ import pytest
 import datalabs.feature as feature
 
 
+# pylint: disable=redefined-outer-name
 def test_feature_disabled_by_default(feature_name):
     os.environ.pop('ENABLE_FEATURE_' + feature_name)
 
     assert not feature.enabled(feature_name)
 
 
+# pylint: disable=redefined-outer-name
 def test_feature_disabled_when_not_true(feature_name):
     assert not feature.enabled(feature_name)
 
 
+# pylint: disable=redefined-outer-name
 def test_feature_enabled_when_variable_set(feature_name):
     os.environ['ENABLE_FEATURE_' + feature_name] = 'TrUe'
 

@@ -15,16 +15,18 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_lengths_are_valid(event):
     task = DescriptorEndpointTask(event)
 
-    assert task._lengths_are_valid(['short']) == True
-    assert task._lengths_are_valid(['short', 'medium']) == True
-    assert task._lengths_are_valid(['short', 'medium', 'long']) == True
+    assert task._lengths_are_valid(['short'])
+    assert task._lengths_are_valid(['short', 'medium'])
+    assert task._lengths_are_valid(['short', 'medium', 'long'])
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_query_for_descriptors(event, query_results):
-    with mock.patch('datalabs.access.cpt.api.descriptor.DescriptorEndpointTask._get_database') as get_database:
+    with mock.patch('datalabs.access.cpt.api.descriptor.DescriptorEndpointTask._get_database'):
         session = mock.MagicMock()
         session.query.return_value.join.return_value.filter.return_value = query_results
         task = DescriptorEndpointTask(event)
@@ -33,8 +35,9 @@ def test_query_for_descriptors(event, query_results):
     assert all(hasattr(results, attr) for attr in ['Code', 'ShortDescriptor', 'MediumDescriptor', 'LongDescriptor'])
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_generate_response_body(query_results):
-    with mock.patch('datalabs.access.cpt.api.descriptor.DescriptorEndpointTask._get_database') as get_database:
+    with mock.patch('datalabs.access.cpt.api.descriptor.DescriptorEndpointTask._get_database'):
         session = mock.MagicMock()
         session.query.return_value.join.return_value.all.return_value = query_results
         task = DescriptorEndpointTask(event)

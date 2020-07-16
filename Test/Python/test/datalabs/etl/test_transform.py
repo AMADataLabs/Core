@@ -1,9 +1,10 @@
-""" REPLACE WITH DOCSTRING """
+""" source: datalabs.etl.transform """
 import pytest
 
 from datalabs.etl.transform import TransformerTask, PassThroughTransformerTask
 
 
+# pylint: disable=redefined-outer-name
 def test_transformer_task(transformer):
     transformer.run()
 
@@ -16,7 +17,7 @@ def test_pass_through_transformer():
     transformer.run()
 
 
-    assert transformer.data == True
+    assert transformer.data
 
 
 @pytest.fixture
