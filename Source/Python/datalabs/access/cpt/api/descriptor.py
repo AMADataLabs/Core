@@ -1,13 +1,10 @@
+""" CPT Descriptor endpoint classes. """
 from   abc import abstractmethod
-from   collections import defaultdict
-import json
 import logging
-import os
 
 from   sqlalchemy import or_
-from   sqlalchemy.orm.exc import NoResultFound
 
-from   datalabs.access.task import APIEndpointTask, APIEndpointException, InvalidRequest, ResourceNotFound
+from   datalabs.access.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 import datalabs.etl.cpt.dbmodel as dbmodel
 
 logging.basicConfig()
@@ -100,16 +97,18 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
 
         return query
 
-    def _filter_for_release(self, query, since):
+    @classmethod
+    def _filter_for_release(cls, query, since):
         if since is not None:
-            query = query.add_column(Release.effective_date)
+            query = query.add_column(dbmodel.Release.effective_date)
 
-            for date in query_parameter['since']:
-                query = query.filter(Release.effective_date >= date)
+            for date in since:
+                query = query.filter(dbmodel.Release.effective_date >= date)
 
         return query
 
-    def _filter_for_keywords(self, query, keywords, lengths):
+    @classmethod
+    def _filter_for_keywords(cls, query, keywords, lengths):
         length_dict = {length:getattr(dbmodel, length.capitalize()+'Descriptor') for length in lengths}
         filter_conditions = []
 

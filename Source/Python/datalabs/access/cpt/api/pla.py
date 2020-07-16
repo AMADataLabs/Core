@@ -1,13 +1,10 @@
+""" PLA Details endpoints. """
 from   abc import abstractmethod
-from   collections import defaultdict
-import json
 import logging
-import os
 
 from   sqlalchemy import or_
-from   sqlalchemy.orm.exc import NoResultFound
 
-from   datalabs.access.task import APIEndpointTask, APIEndpointException, InvalidRequest, ResourceNotFound
+from   datalabs.access.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 import datalabs.etl.cpt.dbmodel as dbmodel
 
 logging.basicConfig()
@@ -56,24 +53,24 @@ class BasePLADetailsEndpointTask(APIEndpointTask):
             dbmodel.PLALongDescriptor,
             dbmodel.PLAMediumDescriptor,
             dbmodel.PLAShortDescriptor,
-        # ).join(
-        #     dbmodel.ReleasePLACodeMapping,
-        #     dbmodel.ReleasePLACodeMapping.code==dbmodel.PLACode.code
-        # ).join(
-        #     dbmodel.Release,
-        #     dbmodel.Release.id==dbmodel.ReleasePLACodeMapping.release
+            # ).join(
+            #     dbmodel.ReleasePLACodeMapping,
+            #     dbmodel.ReleasePLACodeMapping.code == dbmodel.PLACode.code
+            # ).join(
+            #     dbmodel.Release,
+            #     dbmodel.Release.id == dbmodel.ReleasePLACodeMapping.release
         ).join(
             dbmodel.ManufacturerPLACodeMapping,
-            dbmodel.ManufacturerPLACodeMapping.code==dbmodel.PLACode.code
+            dbmodel.ManufacturerPLACodeMapping.code == dbmodel.PLACode.code
         ).join(
             dbmodel.Manufacturer,
-            dbmodel.Manufacturer.id==dbmodel.ManufacturerPLACodeMapping.manufacturer
+            dbmodel.Manufacturer.id == dbmodel.ManufacturerPLACodeMapping.manufacturer
         ).join(
             dbmodel.LabPLACodeMapping,
-            dbmodel.LabPLACodeMapping.code==dbmodel.PLACode.code
+            dbmodel.LabPLACodeMapping.code == dbmodel.PLACode.code
         ).join(
             dbmodel.Lab,
-            dbmodel.Lab.id==dbmodel.LabPLACodeMapping.lab
+            dbmodel.Lab.id == dbmodel.LabPLACodeMapping.lab
         )
         return query
 
@@ -134,16 +131,18 @@ class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask):
 
         return query
 
-    def _filter_for_release(self, query, since):
+    @classmethod
+    def _filter_for_release(cls, query, since):
         if since is not None:
-            query = query.add_column(Release.effective_date)
+            query = query.add_column(dbmodel.Release.effective_date)
 
-            for date in query_parameter['since']:
-                query = query.filter(Release.effective_date >= date)
+            for date in since:
+                query = query.filter(dbmodel.Release.effective_date >= date)
 
         return query
 
-    def _filter_for_keywords(self, query, keywords, lengths):
+    @classmethod
+    def _filter_for_keywords(cls, query, keywords, lengths):
         length_dict = {length:getattr(dbmodel, 'PLA'+length.capitalize()+'Descriptor') for length in lengths}
         filter_conditions = []
 

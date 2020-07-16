@@ -1,14 +1,11 @@
+""" Clinician Descriptor endpoints """
 from   abc import abstractmethod
-from   collections import defaultdict
-import json
 import logging
-import os
 
 from   sqlalchemy import or_
-from   sqlalchemy.orm.exc import NoResultFound
 
-from   datalabs.access.task import APIEndpointTask, APIEndpointException, InvalidRequest, ResourceNotFound
-from   datalabs.etl.cpt.dbmodel import ClinicianDescriptor, ClinicianDescriptorCodeMapping
+from   datalabs.access.task import APIEndpointTask, ResourceNotFound
+from   datalabs.etl.cpt.dbmodel import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -65,6 +62,7 @@ class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
 
 
 class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
+    # pylint: disable=no-self-use
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
@@ -79,12 +77,13 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
         if since is not None:
             query = query.add_column(Release.effective_date)
 
-            for date in query_parameter['since']:
+            for date in since:
                 query = query.filter(Release.effective_date >= date)
 
         return query
 
-    def _filter_for_keywords(self, query, keywords):
+    @classmethod
+    def _filter_for_keywords(cls, query, keywords):
         filter_conditions = [(ClinicianDescriptor.descriptor.ilike('%{}%'.format(word))) for word in keywords]
 
         return query.filter(or_(*filter_conditions))

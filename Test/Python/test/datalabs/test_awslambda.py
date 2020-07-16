@@ -1,3 +1,4 @@
+""" REPLACE WITH DOCSTRING """
 import pytest
 
 from datalabs.awslambda import TaskWrapper

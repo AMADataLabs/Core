@@ -1,3 +1,4 @@
+""" REPLACE WITH DOCSTRING """
 import pytest
 
 import mock

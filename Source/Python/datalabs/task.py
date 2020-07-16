@@ -14,4 +14,4 @@ class Task(ABC):
 class TaskException(BaseException):
     @property
     def message(self):
-        return self.args[0]
+        return self.args[0]  # pylint: disable=unsubscriptable-object

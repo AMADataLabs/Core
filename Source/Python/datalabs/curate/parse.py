@@ -1,9 +1,8 @@
 """ Parser abstract base class """
+from abc import ABC, abstractmethod
 import io
 
 import pandas
-
-from abc import ABC, abstractmethod
 
 
 class Parser(ABC):
@@ -13,5 +12,6 @@ class Parser(ABC):
 
 
 class CSVParser(ABC):
+    # pylint: disable=no-self-use
     def parse(self, text: str) -> pandas.DataFrame:
         return pandas.read_csv(io.StringIO(text))

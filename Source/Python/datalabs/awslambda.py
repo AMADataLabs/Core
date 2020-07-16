@@ -1,9 +1,8 @@
+""" Base Lambda function Task wrapper class. """
 from   abc import ABC, abstractmethod
 import json
-import os
 
-from   datalabs.plugin import import_plugin
-from   datalabs.task import Task, TaskException
+from   datalabs.task import TaskException
 
 
 class TaskWrapper(ABC):

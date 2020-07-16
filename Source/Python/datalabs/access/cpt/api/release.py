@@ -1,13 +1,7 @@
-from   abc import abstractmethod
-from   collections import defaultdict
-import json
+""" Release endpoint classes. """
 import logging
-import os
 
-from   sqlalchemy import or_
-from   sqlalchemy.orm.exc import NoResultFound
-
-from   datalabs.access.task import APIEndpointTask, APIEndpointException, InvalidRequest, ResourceNotFound
+from   datalabs.access.task import APIEndpointTask, InvalidRequest
 from   datalabs.etl.cpt.dbmodel import Release
 
 logging.basicConfig()
@@ -68,4 +62,5 @@ class ReleasesEndpointTask(APIEndpointTask):
                 effective_date=str(row.effective_date),
                 type=row.type
             )
-         for row in rows]
+            for row in rows
+        ]

@@ -1,3 +1,4 @@
+""" REPLACE WITH DOCSTRING """
 import os
 import errno
 import win32com.client as win32
