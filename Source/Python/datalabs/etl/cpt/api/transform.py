@@ -107,14 +107,14 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return codes
 
     @classmethod
-    def _generate_release_code_mapping_table(self, releases, codes):
+    def _generate_release_code_mapping_table(cls, releases, codes):
         ids = [None] * len(codes)  # Placeholder for new mapping IDs
         releases = [None] * len(codes)  # the new release ID is unknown until it is committed to the DB
 
         return pandas.DataFrame(dict(id=ids, release=releases, code=codes.code))
 
     @classmethod
-    def _generate_clinician_descriptor_table(self, descriptors):
+    def _generate_clinician_descriptor_table(cls, descriptors):
         descriptor_table = descriptors[
             ['clinician_descriptor_id', 'clinician_descriptor']
         ].rename(
@@ -125,7 +125,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return descriptor_table
 
     @classmethod
-    def _generate_clinician_descriptor_code_mapping_table(self, descriptors):
+    def _generate_clinician_descriptor_code_mapping_table(cls, descriptors):
         mapping_table = descriptors[
             ['clinician_descriptor_id', 'cpt_code']
         ].rename(

@@ -1,7 +1,6 @@
 """ source: datalabs.etl.cpt.extract """
 from   collections import namedtuple
 from   datetime import date
-import json
 import logging
 
 import mock

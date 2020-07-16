@@ -11,11 +11,12 @@ class BadTask(apitask.APIEndpointTask):
     pass
 
 
+# pylint: disable=protected-access
 class GoodTask(apitask.APIEndpointTask):
     def _run(self, session):
-        GoodTask._run.called = True  # pylint: disable=protected-access
+        GoodTask._run.called = True
 
-GoodTask._run.called = False
+GoodTask._run.called = False  # pylint: disable=protected-access
 
 
 def test_task_is_abstract():

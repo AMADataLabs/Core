@@ -28,7 +28,7 @@ class ETLTask(Task):
     def run(self):
         try:
             self._extractor = self._instantiate_plugin(self._parameters.extractor)
-        except Exception as Exception:
+        except Exception as exception:
             LOGGER.error('Unable to instantiate ETL extractor sub-task')
             raise ETLException(f'Unable to instantiate ETL extractor sub-task: {exception}')
 
@@ -103,7 +103,7 @@ class ETLComponentTask(Task):
     @property
     def data(self):
         return self._data
-    
+
 
 class ETLException(TaskException):
     pass

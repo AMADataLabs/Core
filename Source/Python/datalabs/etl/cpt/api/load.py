@@ -251,7 +251,8 @@ class TableUpdater:
         model = self._model_class(**parameters)
         primary_key = getattr(row, self._primary_key)
 
-        if primary_key != primary_key:  # pylint: disable=comparison-with-itself (test for NaN)
+        # pylint: disable=comparison-with-itself
+        if primary_key != primary_key:  # test for NaN
             setattr(model, self._primary_key, None)
 
         if hasattr(model, 'modified_date'):

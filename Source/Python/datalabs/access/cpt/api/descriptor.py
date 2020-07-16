@@ -41,8 +41,15 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _query_for_descriptors(cls, session):
-        query = session.query(dbmodel.Code, dbmodel.LongDescriptor, dbmodel.MediumDescriptor, dbmodel.ShortDescriptor).join(
-            dbmodel.LongDescriptor, dbmodel.MediumDescriptor, dbmodel.ShortDescriptor
+        query = session.query(
+            dbmodel.Code,
+            dbmodel.LongDescriptor,
+            dbmodel.MediumDescriptor,
+            dbmodel.ShortDescriptor
+        ).join(
+            dbmodel.LongDescriptor,
+            dbmodel.MediumDescriptor,
+            dbmodel.ShortDescriptor
         )
 
         return query

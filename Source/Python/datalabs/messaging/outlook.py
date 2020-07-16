@@ -39,8 +39,9 @@ class Outlook:
         message.To = '; '.join(self._param_to_list(to))
         message.Cc = '; '.join(self._param_to_list(cc))
 
-        message.Subject = subject  # pylint: disable=pointless-statement
+        message.Subject = subject
 
+        # pylint: disable: pointless-statement
         message.GetInspector  # required for the next few lines inserting the body
 
         # Add body by inserting the text between the existing HTML body (which would contain any signatures)

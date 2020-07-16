@@ -2,7 +2,7 @@
 import logging
 import os
 
-from   datalabs.etl.task import ETLTask, ETLParameters, ETLException
+from   datalabs.etl.task import ETLParameters, ETLException
 from   datalabs.awslambda import TaskWrapper
 
 logging.basicConfig()
@@ -40,6 +40,6 @@ class ETLTaskWrapper(TaskWrapper):
 
         if not parameters:
             LOGGER.debug('parameters: %s', parameters)
-            LOGGER.warn(f'No parameters for "{variable_base_name}" in {variables}')
+            LOGGER.warning('No parameters for "%s" in %s', variable_base_name, variables)
 
         return parameters

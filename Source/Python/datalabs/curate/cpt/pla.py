@@ -2,9 +2,9 @@
 from dataclasses import dataclass, field
 import logging
 from typing import List
+import xml.etree.ElementTree as et
 
 import pandas
-import xml.etree.ElementTree as et
 
 from   datalabs.curate.parse import Parser
 
@@ -13,6 +13,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class PLAFields:
     pla_id: List = field(default_factory=list)
@@ -44,7 +45,7 @@ class PLAParser(Parser):
         'publishDate',
         'testName'
     ]
-    COLUMNS=[
+    COLUMNS = [
         'pla_id',
         'pla_code',
         'long_descriptor',

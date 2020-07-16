@@ -13,6 +13,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=protected-access
 def test_columns_set_from_model_class():
     updater = TableUpdater(None, model.Code, None, None)
 
@@ -120,7 +121,7 @@ def test_create_models(new_codes):
     for code, model_ in zip(codes, models):
         assert model_.code == code
         assert model_.modified_date == today
-        assert model_.deleted == False
+        assert not model_.deleted
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -143,14 +144,14 @@ class MockSession:
     def add_count(self):
         return self._add_count
 
-    # pylint: disable: unused-argument
+    # pylint: disable=unused-argument
     def query(self, *args):
         return self
 
     def all(self):
         return self._return_value
 
-    # pylint: disable: unused-argument
+    # pylint: disable=unused-argument
     def add(self, *args):
         self._add_count += 1
 

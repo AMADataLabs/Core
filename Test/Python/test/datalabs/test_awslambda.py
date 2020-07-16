@@ -7,7 +7,7 @@ from datalabs.task import Task, TaskException
 
 def test_task_wrapper_is_abstract():
     with pytest.raises(TypeError):
-        BadTaskWrapper(None)  # pylint: abstract-class-instantiated
+        BadTaskWrapper(None)  # pylint: disable=abstract-class-instantiated
 
 
 # pylint: disable=protected-access
@@ -34,7 +34,7 @@ def test_task_wrapper_fails_as_expected():
     assert response['body'] == '"failed"'
 
 
-# pylint: disable=# pylint: disable=protected-access
+# pylint: disable=abstract-method
 class BadTaskWrapper(TaskWrapper):
     pass
 

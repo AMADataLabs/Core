@@ -8,7 +8,7 @@ import datalabs.access.database as db
 class Database(db.Database):
     @property
     def session(self):
-        Session = sessionmaker(bind=self._connection)
+        Session = sessionmaker(bind=self._connection)  # pylint: disable=invalid-name
 
         return Session()
 
