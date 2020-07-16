@@ -62,6 +62,7 @@ resource "aws_api_gateway_deployment" "cpt_api_deployment_test" {
   triggers = {
     redeployment = sha1(join(",", list(
       jsonencode(aws_api_gateway_rest_api.cpt_api_gateway),
+      aws_iam_role.lambda_role.arn
     )))
   }
 
@@ -78,7 +79,7 @@ module "endpoint_descriptor" {
     task_class          = local.task_classes.descriptor
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -92,7 +93,7 @@ module "endpoint_all_descriptors" {
     task_class          = local.task_classes.descriptors
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -106,7 +107,7 @@ module "endpoint_consumer_descriptor" {
     task_class          = local.task_classes.consumer_descriptor
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -120,7 +121,7 @@ module "endpoint_consumer_descriptors" {
     task_class          = local.task_classes.consumer_descriptors
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -134,7 +135,7 @@ module "endpoint_clinician_descriptors" {
     task_class          = local.task_classes.clinician_descriptors
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -148,7 +149,7 @@ module "endpoint_all_clinician_descriptors" {
     task_class          = local.task_classes.all_clinician_descriptors
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -162,7 +163,7 @@ module "endpoint_pla_details" {
     task_class          = local.task_classes.pla_details
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -176,7 +177,7 @@ module "endpoint_all_pla_details" {
     task_class          = local.task_classes.all_pla_details
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -190,7 +191,7 @@ module "endpoint_modifier" {
     task_class          = local.task_classes.modifier
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -204,7 +205,7 @@ module "endpoint_modifiers" {
     task_class          = local.task_classes.modifiers
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -218,7 +219,7 @@ module "endpoint_modifiers" {
 #     task_class          = local.task_classes.latest_pdfs
 #     region              = local.region
 #     account_id          = data.aws_caller_identity.account.account_id
-#     role                = aws_iam_role.cpt_lambda_role.arn
+#     role                = aws_iam_role.lambda_role.arn
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
 #     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
@@ -236,7 +237,7 @@ module "endpoint_modifiers" {
 #     task_class          = local.task_classes.pdfs
 #     region              = local.region
 #     account_id          = data.aws_caller_identity.account.account_id
-#     role                = aws_iam_role.cpt_lambda_role.arn
+#     role                = aws_iam_role.lambda_role.arn
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
 #     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
@@ -250,7 +251,7 @@ module "endpoint_releases" {
     task_class          = local.task_classes.releases
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -264,7 +265,7 @@ module "endpoint_default" {
     task_class          = local.task_classes.default
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -276,7 +277,7 @@ module "etl_convert" {
 
     function_name       = local.function_names.convert
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
 
@@ -303,7 +304,7 @@ module "etl_load" {
 
     function_name       = local.function_names.loaddb
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
 

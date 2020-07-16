@@ -3,6 +3,18 @@ provider "aws" {
 }
 
 
+resource "aws_kms_key" "cpt" {
+  description             = "CPT KMS key"
+  tags = local.tags
+}
+
+
+resource "aws_kms_alias" "a" {
+  name          = "alias/DataLabs/CPT"
+  target_key_id = aws_kms_key.cpt.key_id
+}
+
+
 resource "aws_ssm_parameter" "database_username" {
     name  = "/DataLabs/CPT/RDS/username"
     type  = "String"
@@ -12,10 +24,11 @@ resource "aws_ssm_parameter" "database_username" {
 
 
 resource "aws_ssm_parameter" "database_password" {
-    name  = "/DataLabs/CPT/RDS/password"
-    type  = "SecureString"
-    value = var.password
-    tags = local.tags
+    name    = "/DataLabs/CPT/RDS/password"
+    type    = "SecureString"
+    key_id  = aws_kms_key.cpt.key_id
+    value   = var.password
+    tags    = local.tags
 }
 
 
