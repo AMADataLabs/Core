@@ -4,18 +4,18 @@ import sys
 
 import dotenv
 
-import os; print(os.environ.get('PYTHONPATH'))
+import os
 from   render_template import render_template
 
 
-def configure(template_parameters):
+def configure(template_parameters, relative_path=None):
     script_path = Path(sys.argv[0])
     script_name = script_path.name
     environment_path = Path(script_path.parent, 'Environment')
     dotenv_name = script_path.name.replace('.py', '.env')
-    dotenv_path = Path(environment_path, dotenv_name)
+    dotenv_path = Path(environment_path, relative_path or '', dotenv_name)
     template_name = script_path.name.replace('.py', '.jinja')
-    template_path = Path(environment_path, template_name)
+    template_path = Path(environment_path, relative_path or '', template_name)
 
     if not os.path.exists(dotenv_path) and not os.path.exists(template_path):
         raise FileNotFoundError(

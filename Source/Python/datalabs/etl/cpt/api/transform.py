@@ -13,7 +13,7 @@ from   datalabs.etl.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @dataclass
@@ -147,46 +147,44 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
         return modifiers
 
-    def _generate_pla_code_table(self, descriptors):
-        codes = descriptors[['pla_code', 'status', 'test']].rename(
+    def _generate_pla_code_table(self, pla_details):
+        codes = pla_details[['pla_code', 'status', 'test']].rename(
             columns=dict(pla_code='code', test='test_name')
         )
         codes['deleted'] = False
 
         return codes
 
-    def _generate_pla_descriptor_table(self, name, descriptors):
+    def _generate_pla_descriptor_table(self, name, pla_details):
         columns = {'pla_code': 'code', f'{name}': 'descriptor'}
-        descriptor_table = descriptors[['pla_code', f'{name}']].rename(columns=columns)
+        descriptor_table = pla_details[['pla_code', f'{name}']].rename(columns=columns)
         descriptor_table['deleted'] = False
 
         return descriptor_table
 
-    def _generate_pla_manufacturer_table(self, descriptors):
+    def _generate_pla_manufacturer_table(self, pla_details):
         columns = {'manufacturer': 'name'}
-        descriptor_table = descriptors[['id', 'manufacturer']].rename(columns=columns)
-        descriptor_table['deleted'] = False
+        manufacturer_table = pla_details[['manufacturer']].rename(columns=columns)
+        manufacturer_table['deleted'] = False
 
-        return descriptor_table
+        return manufacturer_table
 
-    def _generate_pla_manufacturer_code_mapping_table(self, descriptors):
-        descriptor_table = descriptors[['pla_code', 'manufacturer', 'id']].rename(
-            columns=dict(pla_code='code', manufacturer='man', id='manufacturer'))
+    def _generate_pla_manufacturer_code_mapping_table(self, pla_details):
+        columns = {'pla_code': 'code'}
+        mapping_table = pla_details[['pla_code', 'manufacturer']].rename(columns=columns)
 
-        descriptor_table.drop(columns='man')
+        return mapping_table
 
-        return descriptor_table
-
-    def _generate_pla_lab_table(self, descriptors):
+    def _generate_pla_lab_table(self, pla_details):
         columns = {'lab': 'name'}
-        descriptor_table = descriptors[['id', 'lab']].rename(columns=columns)
-        descriptor_table['deleted'] = False
+        lab_table = pla_details[['lab']].rename(columns=columns)
+        lab_table['deleted'] = False
 
-        return descriptor_table
+        return lab_table
 
-    def _generate_pla_lab_code_mapping_table(self, descriptors):
-        columns = {'id': 'lab', 'pla_code': 'code'}
-        mapping_table = descriptors[['id', 'pla_code']].rename(columns=columns)
+    def _generate_pla_lab_code_mapping_table(self, pla_details):
+        columns = {'pla_code': 'code'}
+        mapping_table = pla_details[['pla_code', 'lab']].rename(columns=columns)
 
         return mapping_table
 

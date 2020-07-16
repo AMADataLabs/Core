@@ -63,10 +63,5 @@ locals {
     variables = {
         TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.ETLTaskWrapper"
         TASK_CLASS              = var.task_class
-        DATABASE_NAME           = var.database_name
-        DATABASE_BACKEND        = var.database_backend
-        DATABASE_HOST           = var.database_host
-        DATABASE_USERNAME       = data.aws_ssm_parameter.database_username.value
-        DATABASE_PASSWORD       = data.aws_ssm_parameter.database_password.value
     }
 }

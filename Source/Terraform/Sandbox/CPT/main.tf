@@ -30,7 +30,7 @@ resource "aws_ssm_parameter" "s3_base_path" {
 resource "aws_ssm_parameter" "raw_data_files" {
     name  = "/DataLabs/CPT/data/raw_files"
     type  = "String"
-    value = "standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/Consumer Friendly Descriptors/ConsumerDescriptor.txt,standard/Clinician Descriptors/ClinicianDescriptor.txt"
+    value = "standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/Consumer Friendly Descriptors/ConsumerDescriptor.txt,standard/Clinician Descriptors/ClinicianDescriptor.txt,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA"
     tags = local.tags
 }
 
@@ -46,7 +46,7 @@ resource "aws_ssm_parameter" "release_schedule" {
 resource "aws_ssm_parameter" "raw_data_parsers" {
     name  = "/DataLabs/CPT/data/parsers"
     type  = "String"
-    value = "datalabs.curate.parse.CSVParser,datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser"
+    value = "datalabs.curate.parse.CSVParser,datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser,datalabs.curate.cpt.pla.PLAParser"
     tags = local.tags
 }
 
@@ -54,7 +54,7 @@ resource "aws_ssm_parameter" "raw_data_parsers" {
 resource "aws_ssm_parameter" "converted_data_files" {
     name  = "/DataLabs/CPT/data/converted_files"
     type  = "String"
-    value = "standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv"
+    value = "standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv"
     tags = local.tags
 }
 
