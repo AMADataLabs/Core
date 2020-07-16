@@ -95,6 +95,7 @@ resource "aws_iam_policy" "lambda_s3_access" {
   "Statement": [
     {
       "Action": [
+        "s3:ListBucket",
         "s3:ListObjects",
         "s3:ListObjectsV2",
         "s3:GetObject",

@@ -7,12 +7,18 @@ resource "aws_lambda_function" "etl_lambda" {
     runtime         = "python3.7"
     timeout         = 30
     memory_size     = 1024
+    kms_key_arn     = data.aws_kms_key.cpt.arn
 
     environment {
         variables = merge(local.variables, var.variables)
     }
 
     tags = merge(local.tags, {Name = "CPT API ETL Lambda Function"})
+}
+
+
+data "aws_kms_key" "cpt" {
+  key_id = "alias/DataLabs/CPT"
 }
 
 

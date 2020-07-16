@@ -67,7 +67,7 @@ resource "aws_ssm_parameter" "raw_data_parsers" {
 resource "aws_ssm_parameter" "converted_data_files" {
     name  = "/DataLabs/CPT/data/converted_files"
     type  = "String"
-    value = "standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv"
+    value = "standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv"
     tags = local.tags
 }
 
