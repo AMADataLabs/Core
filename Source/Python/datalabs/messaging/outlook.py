@@ -41,7 +41,7 @@ class Outlook:
 
         message.Subject = subject
 
-        # pylint: disable: pointless-statement
+        # pylint: disable=pointless-statement
         message.GetInspector  # required for the next few lines inserting the body
 
         # Add body by inserting the text between the existing HTML body (which would contain any signatures)
