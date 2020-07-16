@@ -1,7 +1,9 @@
+""" Serial SQL statement execution helper function. """
 def execute_sql_from_file(connection, filename):
-    fd = open(filename, 'r')
-    sql_file = fd.read()
-    fd.close()
+    sql_file = None
+
+    with open(filename, 'r') as file:
+        sql_file = file.read()
 
     commands = sql_file.split(';')
 
@@ -12,7 +14,7 @@ def execute_sql_from_file(connection, filename):
         # the DROP TABLE commands
         try:
             connection.execute(command)
-        except ValueError as e:
-            print("Not a valid SQL command:", e)
+        except ValueError as exception:
+            print("Not a valid SQL command:", exception)
 
     connection.commit()

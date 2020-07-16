@@ -1,7 +1,8 @@
+""" REPLACE WITH DOCSTRING """
 import logging
 import os
 
-from   datalabs.etl.task import ETLTask, ETLParameters, ETLException
+from   datalabs.etl.task import ETLParameters, ETLException
 from   datalabs.awslambda import TaskWrapper
 
 logging.basicConfig()
@@ -18,7 +19,7 @@ class ETLTaskWrapper(TaskWrapper):
         )
 
     def _handle_exception(self, exception: ETLException) -> (int, dict):
-        LOGGER.error('Handling ETL task exception', exception)
+        LOGGER.error('Handling ETL task exception: %s', exception)
         status_code = 400
         body = dict(message=str(exception))
 
@@ -39,6 +40,6 @@ class ETLTaskWrapper(TaskWrapper):
 
         if not parameters:
             LOGGER.debug('parameters: %s', parameters)
-            LOGGER.warn(f'No parameters for "{variable_base_name}" in {variables}')
+            LOGGER.warning('No parameters for "%s" in %s', variable_base_name, variables)
 
         return parameters

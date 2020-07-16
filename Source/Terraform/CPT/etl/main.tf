@@ -1,19 +1,24 @@
-
 resource "aws_lambda_function" "etl_lambda" {
     s3_bucket       = data.aws_ssm_parameter.lambda_code_bucket.value
     s3_key          = "CPT/CPT.zip"
-    function_name = var.function_name
+    function_name   = var.function_name
     role            = var.role
     handler         = "awslambda.handler"
     runtime         = "python3.7"
-    timeout         = 5
+    timeout         = 30
     memory_size     = 1024
+    kms_key_arn     = data.aws_kms_key.cpt.arn
 
     environment {
         variables = merge(local.variables, var.variables)
     }
 
     tags = merge(local.tags, {Name = "CPT API ETL Lambda Function"})
+}
+
+
+data "aws_kms_key" "cpt" {
+  key_id = "alias/DataLabs/CPT"
 }
 
 
@@ -61,7 +66,7 @@ locals {
         MaintenanceWindow   = local.na
     }
     variables = {
-        TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.ETLTaskWrapper"
-        TASK_CLASS              = var.task_class
+        TASK_WRAPPER_CLASS      = "datalabs.etl.awslambda.ETLTaskWrapper"
+        TASK_CLASS              = "datalabs.etl.task.ETLTask"
     }
 }

@@ -56,8 +56,10 @@ class S3WindowsTextExtractorTask(ExtractorTask):
 
         try:
             response = self._s3.get_object(Bucket=self._parameters['BUCKET'], Key=file_path)
-        except Exception as e:
-            raise ETLException(f"Unable to get file '{file_path}' from S3 bucket '{self._parameters['BUCKET']}': {e}")
+        except Exception as exception:
+            raise ETLException(
+                f"Unable to get file '{file_path}' from S3 bucket '{self._parameters['BUCKET']}': {exception}"
+            )
 
         return response['Body'].read().decode('cp1252')
 

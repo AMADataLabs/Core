@@ -1,3 +1,4 @@
+""" source: datalabs.access.awslambda """
 import os
 import pytest
 
@@ -5,6 +6,7 @@ from   datalabs.access.awslambda import APIEndpointTaskWrapper, APIEndpointExcep
 from   datalabs.access.task import APIEndpointTask, APIEndpointParameters
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
     wrapper = APIEndpointTaskWrapper(dict())
     parameters = wrapper._get_task_parameters(event)
@@ -12,6 +14,7 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
     assert expected_parameters == parameters
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
     wrapper = APIEndpointTaskWrapper(dict())
     status_code, body = wrapper._handle_exception(APIEndpointException('failed'))
@@ -20,6 +23,7 @@ def test_task_wrapper_handle_exception():
     assert body == dict(message='failed')
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_generate_response():
     wrapper = APIEndpointTaskWrapper(dict())
     task = MockTask(None)

@@ -1,12 +1,14 @@
+""" source: datalabs.etl.load """
 import pytest
 
 from datalabs.etl.load import LoaderTask
 
 
+# pylint: disable=redefined-outer-name
 def test_loader_task(loader):
     loader.run()
 
-    assert loader.data == True
+    assert loader.data
 
 
 @pytest.fixture

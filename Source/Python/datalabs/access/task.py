@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
+""" API endpoint task classes. """
+from abc import abstractmethod
 from dataclasses import dataclass
 from datalabs.task import Task, TaskException
 
@@ -30,7 +31,7 @@ class APIEndpointTask(Task):
 
     def run(self):
         with self._get_database() as database:
-            self._run(database.session)
+            self._run(database.session)  # pylint: disable=no-member
 
     @abstractmethod
     def _run(self, session):

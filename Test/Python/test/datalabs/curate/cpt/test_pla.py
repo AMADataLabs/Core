@@ -9,6 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name
 def test_pla_parser(text):
     parser = PLAParser()
     data = parser.parse(text)
@@ -29,7 +30,7 @@ def test_pla_parser(text):
                                          ' of 35 antigens from 11 blood groups, utilizing whole blood, common RBC ' \
                                          'alleles reported'
     assert data['long_descriptor'][1] == 'Oncology (colorectal), quantitative assessment of three urine metabolites' \
-                                         ' (ascorbic acid, succinic acid and carnitine) by liquid chromatography with ' \
+                                         ' (ascorbic acid, succinic acid and carnitine) by liquid chromatography with '\
                                          'tandem mass spectrometry (LC-MS/MS) using multiple reaction monitoring ' \
                                          'acquisition, algorithm reported as likelihood of adenomatous polyps'
 

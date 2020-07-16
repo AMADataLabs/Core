@@ -72,7 +72,9 @@ class Database(Datastore):
     def _load_or_verify_configuration(cls, configuration: Configuration, key: str):
         if configuration is None:
             configuration = Configuration.load(key)
-        elif not hasattr(configuration, 'name') or not hasattr(configuration, 'backend') or not  hasattr(configuration, 'host'):
+        elif not hasattr(configuration, 'name') or \
+             not hasattr(configuration, 'backend') or \
+             not  hasattr(configuration, 'host'):
             raise ValueError('Invalid configuration object.')
 
         return configuration

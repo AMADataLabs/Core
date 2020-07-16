@@ -1,5 +1,6 @@
+""" Windows-specific Excel functions. """
 import pandas as pd
-import win32com
+import win32com  # pylint: disable=import-error
 
 
 def save_formatted_output(data: pd.DataFrame, file, sheet_name='Sheet1'):
@@ -13,7 +14,7 @@ def save_formatted_output(data: pd.DataFrame, file, sheet_name='Sheet1'):
     :param sheet_name:
     :return:
     """
-    writer = pd.ExcelWriter(file, engine='xlsxwriter')
+    writer = pd.ExcelWriter(file, engine='xlsxwriter')  # pylint: disable=abstract-class-instantiated
     data.to_excel(excel_writer=writer,
                   startrow=1,
                   header=False,
@@ -50,5 +51,3 @@ def add_password_to_xlsx(file_path, password):
     app.DisplayAlerts = True
     app.Quit()
     del app
-
-

@@ -1,9 +1,7 @@
 """ source: datalabs.etl.cpt.extract """
 from datetime import datetime, date
-import json
 import logging
 
-import mock
 import pandas
 import pytest
 
@@ -15,12 +13,14 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=protected-access
 def test_columns_set_from_model_class():
     updater = TableUpdater(None, model.Code, None, None)
 
     assert all([column in updater._columns for column in ['code', 'modified_date', 'deleted']])
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_get_current_data(current_codes):
     session = MockSession(current_codes)
     updater = TableUpdater(session, model.Code, None, None)
@@ -31,6 +31,7 @@ def test_get_current_data(current_codes):
     assert list(current_data.code) == ['21', '42', '84']
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_differentiate_data_when_primary_key_not_equal_to_match_column(current_releases):
     session = MockSession(current_releases)
     updater = TableUpdater(session, model.Release, 'id', 'publish_date')
@@ -46,6 +47,7 @@ def test_differentiate_data_when_primary_key_not_equal_to_match_column(current_r
     assert list(new_data.type) == ['PLA-Q4']
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_differentiate_data_when_primary_key_equals_match_column(current_codes):
     session = MockSession(current_codes)
     updater = TableUpdater(session, model.Code, 'code', 'code')
@@ -62,15 +64,17 @@ def test_differentiate_data_when_primary_key_equals_match_column(current_codes):
     assert list(new_data.code) == ['22', '44']
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_filter_out_unchanged_data(old_codes):
     updater = TableUpdater(None, model.Code, 'code', 'code')
 
     changed_data = updater._filter_out_unchanged_data(old_codes)
 
     assert len(changed_data) == 1
-    assert changed_data.deleted.iloc[0] == True
+    assert changed_data.deleted.iloc[0]
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_get_matching_models(current_codes, old_codes):
     updater = TableUpdater(None, model.Code, 'code', 'code')
     current_codes.append(model.Code(code='22', modified_date=date(2100, 9, 1), deleted=False))
@@ -83,6 +87,7 @@ def test_get_matching_models(current_codes, old_codes):
     assert codes == ['21', '42', '84']
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_update_models(current_codes, old_codes):
     session = MockSession(current_codes)
     updater = TableUpdater(session, model.Code, 'code', 'code')
@@ -104,6 +109,7 @@ def test_update_models(current_codes, old_codes):
         assert model_.deleted == deleted
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_create_models(new_codes):
     updater = TableUpdater(None, model.Code, 'code', 'code')
     codes = new_codes.code.tolist()
@@ -115,9 +121,10 @@ def test_create_models(new_codes):
     for code, model_ in zip(codes, models):
         assert model_.code == code
         assert model_.modified_date == today
-        assert model_.deleted == False
+        assert not model_.deleted
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_add_models(new_codes):
     session = MockSession(new_codes)
     updater = TableUpdater(session, model.Code, 'code', 'code')
@@ -137,12 +144,14 @@ class MockSession:
     def add_count(self):
         return self._add_count
 
+    # pylint: disable=unused-argument
     def query(self, *args):
         return self
 
     def all(self):
         return self._return_value
 
+    # pylint: disable=unused-argument
     def add(self, *args):
         self._add_count += 1
 

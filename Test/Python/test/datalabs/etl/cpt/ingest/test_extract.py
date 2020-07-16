@@ -1,6 +1,5 @@
 """ source: datalabs.etl.cpt.extract """
 from   datetime import date
-import json
 import io
 import logging
 
@@ -16,6 +15,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_datestamp_conversion():
     datestamps = ['1-Jan', '15-Dec', '13-Mar']
     expected_dates = [date(1900, 1, 1), date(1900, 12, 15), date(1900, 3, 13)]
@@ -26,6 +26,7 @@ def test_datestamp_conversion():
 
 
 @mock.patch('datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask._get_latest_path')
+# pylint: disable=redefined-outer-name, protected-access
 def test_extract_release_date(get_latest_path):
     get_latest_path.return_value = 'AMA/CPT/20200131'
     extractor = CPTTextDataExtractorTask(None)
@@ -35,6 +36,7 @@ def test_extract_release_date(get_latest_path):
     assert get_latest_path.call_count == 1
     assert release_date == expected_release_date
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_generate_release_types(release_schedule):
     extractor = CPTTextDataExtractorTask(None)
     release_types = extractor._generate_release_types(release_schedule)
@@ -44,6 +46,7 @@ def test_generate_release_types(release_schedule):
     assert len(release_types) == 6
     assert release_types.type.to_list() == ['ANNUAL', 'Q1', 'Q2', 'Q3', 'Q4', 'OTHER']
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_get_release_type(release_schedule):
     extractor = CPTTextDataExtractorTask(None)
     release_date = date(2020, 7, 1)
@@ -52,6 +55,7 @@ def test_get_release_type(release_schedule):
 
     assert release_type == expected_release_type
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_generate_release_details(release_schedule):
     extractor = CPTTextDataExtractorTask(None)
     release_date = date(2020, 7, 1)
