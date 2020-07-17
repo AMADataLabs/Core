@@ -32,8 +32,8 @@ def _register_blueprints(app):
 def _save_ssh_key():
     key_path = Path('/BitBucketSync/.ssh/id_rsa')
 
-    with open('/BitBucketSync/.ssh/id_rsa', 'w') as keyfile:
-        keyfile.write(os.environ['BITBUCKET_SSH_KEY'])
+    # with open('/BitBucketSync/.ssh/id_rsa', 'w') as keyfile:
+    #     keyfile.write(os.environ['BITBUCKET_SSH_KEY'])
 
 if __name__ == '__main__':
     start()
