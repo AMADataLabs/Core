@@ -20,6 +20,7 @@ modspec:
     include:
       - parse
   - package: datalabs.curate.cpt
+  - package: datalabs.curate.cpt.link
   - package: datalabs.etl
   - package: datalabs.etl.cpt
   - package: datalabs.etl.cpt.api
