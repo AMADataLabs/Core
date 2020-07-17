@@ -51,6 +51,9 @@ COPY ./Test/Python/ .
 COPY ./Build/BitBucketSync/server-ssl.conf .
 RUN openssl req --batch -config server-ssl.conf -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem
 
+COPY ./Build/BitBucketSync/OpenShift/entrypoint.sh ${HOME}/entrypoint.sh
+RUN chmod +x ${HOME}/entrypoint.sh
+
 ENV HOME /BitBucketSync
 RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "BitBucketSync" bitbucketsync
 
@@ -62,8 +65,6 @@ RUN rm -rf ${HOME}/.ssh
 RUN mkdir ${HOME}/.ssh
 RUN chmod go-rwx ${HOME}/.ssh
 COPY ./Build/BitBucketSync/ssh_config.txt ${HOME}/.ssh/config
-COPY ./Build/BitBucketSync/OpenShift/entrypoint.sh ${HOME}/entrypoint.sh
-RUN chmod +x ${HOME}/entrypoint.sh
 RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > ${HOME}/.ssh/id_rsa
 RUN chmod go-rwx ${HOME}/.ssh/id_rsa
 
