@@ -14,7 +14,8 @@ RUN apt-get update -qq && \
  curl \
  git \
  make \
- language-pack-en \
+ locales \
+ locales-all \
  libcurl4-openssl-dev \
  libffi-dev \
  libsqlite3-dev \
@@ -27,6 +28,10 @@ RUN apt-get update -qq && \
  zlib1g-dev && \
  apt-get clean && \
  rm -rf /var/lib/apt/lists/*
+
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
 
 # Install nss_wrapper.
 RUN curl -SL -o nss_wrapper.tar.gz https://ftp.samba.org/pub/cwrap/nss_wrapper-1.1.2.tar.gz && \
