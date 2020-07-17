@@ -1,7 +1,7 @@
 Host bitbucket.ama-assn.org
     StrictHostKeyChecking no
-    IdentityFile /BitBucketSync/bitbucket_sync
+    # IdentityFile /BitBucketSync/.ssh/id_rsa
 
 Host bitbucket.org
     StrictHostKeyChecking no
-    IdentityFile /BitBucketSync/bitbucket_sync
+    # IdentityFile /BitBucketSync/.ssh/id_rsa
