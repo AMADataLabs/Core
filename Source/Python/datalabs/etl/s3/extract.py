@@ -39,15 +39,20 @@ class S3WindowsTextExtractorTask(ExtractorTask):
 
     def _extract(self):
         latest_path = self._get_latest_path()
-        files = self._parameters['FILES'].split(',')
+        files = self._parameters.variables['FILES'].split(',')
 
         return [self._extract_file(latest_path, file) for file in files]
 
     def _get_latest_path(self):
         if self._latest_path is None:
-            release_folders = sorted(self._listdir(self._parameters['BUCKET'], self._parameters['BASE_PATH']))
+            release_folders = sorted(
+                self._listdir(
+                    self._parameters.variables['BUCKET'],
+                    self._parameters.variables['BASE_PATH']
+                )
+            )
 
-            self._latest_path = '/'.join((self._parameters['BASE_PATH'], release_folders[-1]))
+            self._latest_path = '/'.join((self._parameters.variables['BASE_PATH'], release_folders[-1]))
 
         return self._latest_path
 
@@ -55,9 +60,11 @@ class S3WindowsTextExtractorTask(ExtractorTask):
         file_path = '/'.join((base_path, file))
 
         try:
-            response = self._s3.get_object(Bucket=self._parameters['BUCKET'], Key=file_path)
-        except Exception as e:
-            raise ETLException(f"Unable to get file '{file_path}' from S3 bucket '{self._parameters['BUCKET']}': {e}")
+            response = self._s3.get_object(Bucket=self._parameters.variables['BUCKET'], Key=file_path)
+        except Exception as exception:
+            raise ETLException(
+                f"Unable to get file '{file_path}' from S3 bucket '{self._parameters.variables['BUCKET']}': {exception}"
+            )
 
         return response['Body'].read().decode('cp1252')
 

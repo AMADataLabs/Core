@@ -4,15 +4,15 @@ variable "function_name" {
 }
 
 
-variable "task_class" {
-    description = "task class name"
+variable "role" {
+    description = "Lambda function role"
     type        = string
 }
 
 
 variable "variables" {
     description = "ETL variables"
-    type        = object(string)
+    # type        = object(string)
 }
 
 

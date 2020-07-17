@@ -1,3 +1,4 @@
+""" source: datalabs.awslambda """
 import pytest
 
 from datalabs.awslambda import TaskWrapper
@@ -6,9 +7,10 @@ from datalabs.task import Task, TaskException
 
 def test_task_wrapper_is_abstract():
     with pytest.raises(TypeError):
-        BadTaskWrapper(None)
+        BadTaskWrapper(None)  # pylint: disable=abstract-class-instantiated
 
 
+# pylint: disable=protected-access
 def test_task_wrapper_is_not_abstract():
     wrapper = GoodTaskWrapper(MockTask)
     wrapper._get_task_parameters(None)
@@ -24,7 +26,7 @@ def test_task_wrapper_succeeds_as_expected():
     assert response['body'] == '"succeeded"'
 
 
-def test_task_wrapper_succeeds_as_expected():
+def test_task_wrapper_fails_as_expected():
     wrapper = GoodTaskWrapper(MockTask)
     response = wrapper.run(dict(fail=True))
 
@@ -32,6 +34,7 @@ def test_task_wrapper_succeeds_as_expected():
     assert response['body'] == '"failed"'
 
 
+# pylint: disable=abstract-method
 class BadTaskWrapper(TaskWrapper):
     pass
 

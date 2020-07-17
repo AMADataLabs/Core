@@ -1,8 +1,10 @@
+""" source: datalabs.task """
 import pytest
 
 from datalabs.task import Task
 
 
+# pylint: disable=abstract-method
 class BadTask(Task):
     pass
 
@@ -14,7 +16,7 @@ class GoodTask(Task):
 
 def test_task_is_abstract():
     with pytest.raises(TypeError):
-        BadTask(None)
+        BadTask(None)  # pylint: disable=abstract-class-instantiated
 
 
 def test_task_is_not_abstract():

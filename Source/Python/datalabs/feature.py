@@ -1,3 +1,4 @@
+""" Basic feature flagging """
 import os
 
 def enabled(feature_name):

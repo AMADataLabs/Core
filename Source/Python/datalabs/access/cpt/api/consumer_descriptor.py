@@ -1,15 +1,11 @@
+""" Consumer Descriptor endpoint classes. """
 from   abc import abstractmethod
-from   collections import defaultdict
-import json
 import logging
-import os
 
 from   sqlalchemy import or_
-from   sqlalchemy.orm.exc import NoResultFound
 
-from   datalabs.access.task import APIEndpointTask, APIEndpointException, InvalidRequest, ResourceNotFound
-from   datalabs.etl.cpt.dbmodel import ConsumerDescriptor
-from   datalabs.access.database import Database
+from   datalabs.access.task import APIEndpointTask, ResourceNotFound
+from   datalabs.etl.cpt.dbmodel import ConsumerDescriptor, Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -74,16 +70,18 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
 
         return query
 
-    def _filter_for_release(self, query, since):
+    @classmethod
+    def _filter_for_release(cls, query, since):
         if since is not None:
             query = query.add_column(Release.effective_date)
 
-            for date in query_parameter['since']:
+            for date in since:
                 query = query.filter(Release.effective_date >= date)
 
         return query
 
-    def _filter_for_keywords(self, query, keywords):
+    @classmethod
+    def _filter_for_keywords(cls, query, keywords):
         filter_conditions = [(ConsumerDescriptor.descriptor.ilike('%{}%'.format(word))) for word in keywords]
 
         return query.filter(or_(*filter_conditions))

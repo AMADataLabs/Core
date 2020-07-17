@@ -23,28 +23,6 @@ resource "aws_db_instance" "cpt_api_database" {
 }
 
 
-resource "aws_iam_role" "cpt_lambda_role" {
-    name = "DataLabsCPTLambdaExecution"
-
-    assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": "sts:AssumeRole",
-            "Principal": {
-                "Service": "lambda.amazonaws.com"
-            },
-            "Effect": "Allow"
-        }
-    ]
-}
-EOF
-
-    tags = merge(local.tags, {Name = "CPT API Lambda function execution role"})
-}
-
-
 resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
     name = "CPT API"
     description = local.spec_description
@@ -84,6 +62,7 @@ resource "aws_api_gateway_deployment" "cpt_api_deployment_test" {
   triggers = {
     redeployment = sha1(join(",", list(
       jsonencode(aws_api_gateway_rest_api.cpt_api_gateway),
+      aws_iam_role.lambda_role.arn
     )))
   }
 
@@ -100,7 +79,7 @@ module "endpoint_descriptor" {
     task_class          = local.task_classes.descriptor
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -114,7 +93,7 @@ module "endpoint_all_descriptors" {
     task_class          = local.task_classes.descriptors
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -128,7 +107,7 @@ module "endpoint_consumer_descriptor" {
     task_class          = local.task_classes.consumer_descriptor
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -142,7 +121,7 @@ module "endpoint_consumer_descriptors" {
     task_class          = local.task_classes.consumer_descriptors
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -156,7 +135,7 @@ module "endpoint_clinician_descriptors" {
     task_class          = local.task_classes.clinician_descriptors
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -170,7 +149,7 @@ module "endpoint_all_clinician_descriptors" {
     task_class          = local.task_classes.all_clinician_descriptors
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -184,7 +163,7 @@ module "endpoint_pla_details" {
     task_class          = local.task_classes.pla_details
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -198,7 +177,7 @@ module "endpoint_all_pla_details" {
     task_class          = local.task_classes.all_pla_details
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -212,7 +191,7 @@ module "endpoint_modifier" {
     task_class          = local.task_classes.modifier
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -226,7 +205,7 @@ module "endpoint_modifiers" {
     task_class          = local.task_classes.modifiers
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -240,7 +219,7 @@ module "endpoint_modifiers" {
 #     task_class          = local.task_classes.latest_pdfs
 #     region              = local.region
 #     account_id          = data.aws_caller_identity.account.account_id
-#     role                = aws_iam_role.cpt_lambda_role.arn
+#     role                = aws_iam_role.lambda_role.arn
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
 #     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
@@ -258,7 +237,7 @@ module "endpoint_modifiers" {
 #     task_class          = local.task_classes.pdfs
 #     region              = local.region
 #     account_id          = data.aws_caller_identity.account.account_id
-#     role                = aws_iam_role.cpt_lambda_role.arn
+#     role                = aws_iam_role.lambda_role.arn
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
 #     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
@@ -272,7 +251,7 @@ module "endpoint_releases" {
     task_class          = local.task_classes.releases
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -286,7 +265,7 @@ module "endpoint_default" {
     task_class          = local.task_classes.default
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.cpt_lambda_role.arn
+    role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
@@ -296,26 +275,26 @@ module "endpoint_default" {
 module "etl_convert" {
     source = "./etl"
 
-    function_name       = local.function_names.etl
-    task_class          = local.task_classes.convert
+    function_name       = local.function_names.convert
     account_id          = data.aws_caller_identity.account.account_id
+    role                = aws_iam_role.lambda_role.arn
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
 
     variables           = {
-        EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractor"
-        EXTRACTOR_BUCKET            = data.ingestion_bucket
-        EXTRACTOR_BASE_PATH         = data.s3_base_path
-        EXTRACTOR_FILES             = data.raw_data_files
-        EXTRACTOR_RELEASE_SCHEDULE  = data.release_schedule
+        EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
+        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
+        EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_data_files.value
+        EXTRACTOR_RELEASE_SCHEDULE  = data.aws_ssm_parameter.release_schedule.value
 
-        TRANSFORMER_CLASS           = "datalabs.etl.cpt.ingest.transform.CPTFileToCSVTransformer"
-        TRANSFORMER_PARSERS         = data.raw_data_parsers
+        TRANSFORMER_CLASS           = "datalabs.etl.cpt.ingest.transform.CPTFileToCSVTransformerTask"
+        TRANSFORMER_PARSERS         = data.aws_ssm_parameter.raw_data_parsers.value
 
-        LOADER_CLASS                = "datalabs.etl.s3.load.S3WindowsTextLoader"
-        LOADER_BUCKET               = data.processed_bucket
-        LOADER_FILES                = data.converted_data_files
-        LOADER_BASE_PATH            = data.s3_base_path
+        LOADER_CLASS                = "datalabs.etl.s3.load.S3WindowsTextLoaderTask"
+        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
+        LOADER_FILES                = data.aws_ssm_parameter.converted_data_files.value
+        LOADER_BASE_PATH            = data.aws_ssm_parameter.s3_base_path.value
     }
 }
 
@@ -323,21 +302,21 @@ module "etl_convert" {
 module "etl_load" {
     source = "./etl"
 
-    function_name       = local.function_names.etl
-    task_class          = local.task_classes.loaddb
+    function_name       = local.function_names.loaddb
     account_id          = data.aws_caller_identity.account.account_id
+    role                = aws_iam_role.lambda_role.arn
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
 
     variables           = {
-        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3WindowsTextExtractor"
-        EXTRACTOR_BUCKET            = data.processed_bucket
-        EXTRACTOR_BASE_PATH         = data.s3_base_path
-        EXTRACTOR_FILES             = data.converted_data_files
+        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3WindowsTextExtractorTask"
+        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.value
+        EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.converted_data_files.value
 
-        TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformer"
+        TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
 
-        LOADER_CLASS                = "datalabs.etl.cpt.api.load.CPTRelationalTableLoader"
+        LOADER_CLASS                = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
         LOADER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
         LOADER_DATABASE_BACKEND     = "postgresql+psycopg2"
         LOADER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
@@ -458,6 +437,5 @@ locals {
         pdfs                        = "datalabs.access.cpt.api.pdf.PDFsEndpointTask"
         releases                    = "datalabs.access.cpt.api.release.ReleasesEndpointTask"
         default                     = "datalabs.access.cpt.api.default.DefaultEndpointTask"
-        etl                         = "datalabs.etl.task.ETLTask"
     }
 }

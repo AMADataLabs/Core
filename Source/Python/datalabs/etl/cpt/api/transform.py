@@ -6,8 +6,6 @@ import logging
 
 import pandas
 
-import datalabs.feature as feature
-from   datalabs.plugin import import_plugin
 from   datalabs.etl.transform import TransformerTask
 
 
@@ -15,7 +13,7 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class InputData:
     release: pandas.DataFrame
@@ -28,6 +26,7 @@ class InputData:
     pla: pandas.DataFrame
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class OutputData:
     release: pandas.DataFrame
@@ -53,9 +52,9 @@ class OutputData:
 
 
 class CSVToRelationalTablesTransformerTask(TransformerTask):
-    def _transform(self, data):
+    def _transform(self):
 
-        input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
+        input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in self._parameters.data])
 
         return self._generate_tables(input_data)
 
@@ -90,14 +89,16 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
         return tables
 
-    def _generate_release_table(self, releases):
+    @classmethod
+    def _generate_release_table(cls, releases):
         releases.id = None
         releases.publish_date = releases.publish_date.apply(lambda x: datetime.strptime(x, '%Y-%m-%d').date())
         releases.effective_date = releases.effective_date.apply(lambda x: datetime.strptime(x, '%Y-%m-%d').date())
 
         return releases
 
-    def _generate_code_table(self, descriptors):
+    @classmethod
+    def _generate_code_table(cls, descriptors):
         codes = descriptors[['cpt_code']].rename(
             columns=dict(cpt_code='code')
         )
@@ -105,13 +106,15 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
         return codes
 
-    def _generate_release_code_mapping_table(self, releases, codes):
+    @classmethod
+    def _generate_release_code_mapping_table(cls, releases, codes):
         ids = [None] * len(codes)  # Placeholder for new mapping IDs
         releases = [None] * len(codes)  # the new release ID is unknown until it is committed to the DB
 
         return pandas.DataFrame(dict(id=ids, release=releases, code=codes.code))
 
-    def _generate_clinician_descriptor_table(self, descriptors):
+    @classmethod
+    def _generate_clinician_descriptor_table(cls, descriptors):
         descriptor_table = descriptors[
             ['clinician_descriptor_id', 'clinician_descriptor']
         ].rename(
@@ -121,7 +124,8 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
         return descriptor_table
 
-    def _generate_clinician_descriptor_code_mapping_table(self, descriptors):
+    @classmethod
+    def _generate_clinician_descriptor_code_mapping_table(cls, descriptors):
         mapping_table = descriptors[
             ['clinician_descriptor_id', 'cpt_code']
         ].rename(
@@ -131,14 +135,16 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
         return mapping_table
 
-    def _generate_descriptor_table(self, name, descriptors):
+    @classmethod
+    def _generate_descriptor_table(cls, name, descriptors):
         columns = {'cpt_code': 'code', f'{name}': 'descriptor'}
         descriptor_table = descriptors.rename(columns=columns)
         descriptor_table['deleted'] = False
 
         return descriptor_table[descriptor_table.code.apply(lambda x: not x.endswith('U'))]
 
-    def _generate_modifier_type_table(self, modifiers):
+    @classmethod
+    def _generate_modifier_type_table(cls, modifiers):
         return pandas.DataFrame(dict(name=modifiers.type.unique()))
 
     def _generate_modifier_table(self, modifiers):
@@ -147,7 +153,8 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
         return modifiers
 
-    def _generate_pla_code_table(self, pla_details):
+    @classmethod
+    def _generate_pla_code_table(cls, pla_details):
         codes = pla_details[['pla_code', 'status', 'test']].rename(
             columns=dict(pla_code='code', test='test_name')
         )
@@ -155,40 +162,46 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
         return codes
 
-    def _generate_pla_descriptor_table(self, name, pla_details):
+    @classmethod
+    def _generate_pla_descriptor_table(cls, name, pla_details):
         columns = {'pla_code': 'code', f'{name}': 'descriptor'}
         descriptor_table = pla_details[['pla_code', f'{name}']].rename(columns=columns)
         descriptor_table['deleted'] = False
 
         return descriptor_table
 
-    def _generate_pla_manufacturer_table(self, pla_details):
+    @classmethod
+    def _generate_pla_manufacturer_table(cls, pla_details):
         columns = {'manufacturer': 'name'}
         manufacturer_table = pla_details[['manufacturer']].rename(columns=columns)
         manufacturer_table['deleted'] = False
 
         return manufacturer_table
 
-    def _generate_pla_manufacturer_code_mapping_table(self, pla_details):
+    @classmethod
+    def _generate_pla_manufacturer_code_mapping_table(cls, pla_details):
         columns = {'pla_code': 'code'}
         mapping_table = pla_details[['pla_code', 'manufacturer']].rename(columns=columns)
 
         return mapping_table
 
-    def _generate_pla_lab_table(self, pla_details):
+    @classmethod
+    def _generate_pla_lab_table(cls, pla_details):
         columns = {'lab': 'name'}
         lab_table = pla_details[['lab']].rename(columns=columns)
         lab_table['deleted'] = False
 
         return lab_table
 
-    def _generate_pla_lab_code_mapping_table(self, pla_details):
+    @classmethod
+    def _generate_pla_lab_code_mapping_table(cls, pla_details):
         columns = {'pla_code': 'code'}
         mapping_table = pla_details[['pla_code', 'lab']].rename(columns=columns)
 
         return mapping_table
 
-    def _dedupe_modifiers(self, modifiers):
+    @classmethod
+    def _dedupe_modifiers(cls, modifiers):
         asc_modifiers = modifiers.modifier[modifiers.type == 'Ambulatory Service Center'].tolist()
         duplicate_modifiers = modifiers[(modifiers.type == 'Category I') & modifiers.modifier.isin(asc_modifiers)]
 

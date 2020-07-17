@@ -8,6 +8,7 @@ resource "aws_lambda_function" "endpoint_lambda" {
     runtime         = "python3.7"
     timeout         = 5
     memory_size     = 1024
+    kms_key_arn     = data.aws_kms_key.cpt.arn
 
     environment {
         variables = {
@@ -22,6 +23,11 @@ resource "aws_lambda_function" "endpoint_lambda" {
     }
 
     tags = merge(local.tags, {Name = "CPT API Endpoint Lambda Function"})
+}
+
+
+data "aws_kms_key" "cpt" {
+  key_id = "alias/DataLabs/CPT"
 }
 
 

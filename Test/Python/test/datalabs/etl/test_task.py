@@ -1,15 +1,16 @@
+""" source: datalabs.etl.task """
 import pytest
 
-from datalabs.etl.task import ETLTask, ETLParameters
-from datalabs.etl.transform import TransformerTask
-from datalabs.etl.load import LoaderTask
+from datalabs.etl.task import ETLTask, ETLParameters, ETLComponentParameters
 
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_transformer_task(parameters):
     etl = ETLTask(parameters)
 
     etl.run()
 
-    assert etl._extractor.data == True
+    assert etl._extractor.data
     assert etl._transformer.data == 'True'
     assert etl._loader.data == 'True'
 
@@ -17,7 +18,16 @@ def test_transformer_task(parameters):
 @pytest.fixture
 def parameters():
     return ETLParameters(
-        extractor=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing=True),
-        transformer=dict(CLASS='test.datalabs.etl.test_transform.Transformer'),
-        loader=dict(CLASS='test.datalabs.etl.test_load.Loader'),
+        extractor=ETLComponentParameters(
+            database={},
+            variables=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing=True)
+        ),
+        transformer=ETLComponentParameters(
+            database={},
+            variables=dict(CLASS='test.datalabs.etl.test_transform.Transformer')
+        ),
+        loader=ETLComponentParameters(
+            database={},
+            variables=dict(CLASS='test.datalabs.etl.test_load.Loader')
+        )
     )

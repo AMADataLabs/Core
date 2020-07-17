@@ -19,16 +19,16 @@ class S3WindowsTextLoaderTask(LoaderTask):
 
         self._s3 = boto3.client('s3')
 
-    def _load(self, data):
+    def _load(self):
         current_path = self._get_current_path()
-        files = self._parameters['FILES'].split(',')
+        files = self._parameters.variables['FILES'].split(',')
 
-        return [self._load_file(current_path, file, text) for file, text in zip(files, data)]
+        return [self._load_file(current_path, file, text) for file, text in zip(files, self._parameters.data)]
 
     def _get_current_path(self):
         current_date = datetime.utcnow().date().strftime('%Y%m%d')
 
-        return '/'.join((self._parameters['BASE_PATH'], current_date))
+        return '/'.join((self._parameters.variables['BASE_PATH'], current_date))
 
     def _load_file(self, base_path, file, text):
         file_path = '/'.join((base_path, file))
@@ -37,7 +37,7 @@ class S3WindowsTextLoaderTask(LoaderTask):
         b64_md5_hash = base64.b64encode(md5_hash)
 
         return self._s3.put_object(
-            Bucket=self._parameters['BUCKET'],
+            Bucket=self._parameters.variables['BUCKET'],
             Key=file_path,
             Body=body,
             ContentMD5=b64_md5_hash.decode('utf-8'))

@@ -11,7 +11,7 @@ class CPTTextDataExtractorTask(S3WindowsTextExtractorTask):
     def _extract(self):
         data = super()._extract()
         release_date = self._extract_release_date()
-        release_schedule = json.loads(self._parameters['RELEASE_SCHEDULE'])
+        release_schedule = json.loads(self._parameters.variables['RELEASE_SCHEDULE'])
 
         data.insert(0, self._generate_release_details(release_schedule, release_date))
 
@@ -23,7 +23,8 @@ class CPTTextDataExtractorTask(S3WindowsTextExtractorTask):
 
         return datetime.strptime(release_datestamp, '%Y%m%d').date()
 
-    def _generate_release_types(self, release_schedule):
+    @classmethod
+    def _generate_release_types(cls, release_schedule):
         release_types = list(release_schedule.keys())
 
         release_types.append('OTHER')
@@ -63,4 +64,3 @@ class CPTTextDataExtractorTask(S3WindowsTextExtractorTask):
     @classmethod
     def _convert_datestamps_to_dates(cls, datestamps):
         return [datetime.strptime(datestamp, '%d-%b').date() for datestamp in datestamps]
-

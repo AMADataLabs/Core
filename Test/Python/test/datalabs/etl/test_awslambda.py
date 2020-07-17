@@ -1,10 +1,12 @@
+""" source: datalabs.etl.awslambda """
 import os
 import pytest
 
 from   datalabs.etl.awslambda import ETLTaskWrapper, ETLException
-from   datalabs.etl.task import ETLTask, ETLParameters
+from   datalabs.etl.task import ETLTask, ETLParameters, ETLComponentParameters
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
     wrapper = ETLTaskWrapper(dict())
     parameters = wrapper._get_task_parameters(event)
@@ -12,6 +14,7 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
     assert expected_parameters == parameters
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
     wrapper = ETLTaskWrapper(dict())
     status_code, body = wrapper._handle_exception(ETLException('failed'))
@@ -20,6 +23,7 @@ def test_task_wrapper_handle_exception():
     assert body == dict(message='failed')
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_generate_response():
     wrapper = ETLTaskWrapper(dict())
     task = MockTask(None)
@@ -37,9 +41,18 @@ class MockTask(ETLTask):
 @pytest.fixture
 def expected_parameters():
     return ETLParameters(
-        extractor=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing=True),
-        transformer=dict(CLASS='test.datalabs.etl.test_transform.Transformer'),
-        loader=dict(CLASS='test.datalabs.etl.test_load.Loader'),
+        extractor=ETLComponentParameters(
+            database={},
+            variables=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing=True)
+        ),
+        transformer=ETLComponentParameters(
+            database={},
+            variables=dict(CLASS='test.datalabs.etl.test_transform.Transformer')
+        ),
+        loader=ETLComponentParameters(
+            database={},
+            variables=dict(CLASS='test.datalabs.etl.test_load.Loader')
+        )
     )
 
 

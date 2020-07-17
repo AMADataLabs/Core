@@ -1,12 +1,14 @@
+""" Class that sends email via Outlook on Windows machines. """
 import os
 import errno
-import win32com.client as win32
+import win32com.client as win32  # pylint: disable=import-error
 
 
 class Outlook:
     def __init__(self):
         self.outlook = win32.Dispatch('outlook.application')
 
+    #pylint: disable=invalid-name, too-many-arguments
     def send_email(self, to, subject, cc=None, body='', attachments=None, from_account=None, auto_send=True):
         """
             Sends an email.
@@ -39,6 +41,7 @@ class Outlook:
 
         message.Subject = subject
 
+        # pylint: disable=pointless-statement
         message.GetInspector  # required for the next few lines inserting the body
 
         # Add body by inserting the text between the existing HTML body (which would contain any signatures)
@@ -71,7 +74,7 @@ class Outlook:
         for acc in self.outlook.Session.Accounts:
             if acc.SmtpAddress.lower() == account_name.lower():
                 # for information, see: https://stackoverflow.com/questions/52930447
-                message._oleobj_.Invoke(*(64209, 0, 8, 0, acc))
+                message._oleobj_.Invoke(*(64209, 0, 8, 0, acc))  # pylint: disable=protected-access
                 account_found = True
                 break
         if not account_found:
@@ -87,4 +90,3 @@ class Outlook:
                 message.Delete()
                 raise FileNotFoundError(
                     errno.ENOENT, os.strerror(errno.ENOENT), attachment)
-

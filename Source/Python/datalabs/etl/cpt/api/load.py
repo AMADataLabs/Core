@@ -1,5 +1,4 @@
 """ CPT ETL Loader classes """
-from collections import defaultdict
 from   dataclasses import dataclass
 from   datetime import datetime
 from   functools import reduce
@@ -8,14 +7,10 @@ import logging
 import pandas
 import sqlalchemy as sa
 
-from   datalabs.access.credentials import Credentials
-from   datalabs.access.database import Configuration
-from   datalabs.access.orm import Database
-from   datalabs.etl.database import DatabaseTaskMixin
+from   datalabs.access.orm import DatabaseTaskMixin
 from   datalabs.etl.load import LoaderTask
 import datalabs.etl.cpt.dbmodel as dbmodel
 import datalabs.etl.cpt.api.transform as transform
-import datalabs.feature as feature
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -34,22 +29,13 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
         self._release = None
         self._codes = None
         self._pla_codes = None
+        self._session = None
 
-    def _load(self, data: transform.OutputData):
-        configuration = Configuration(
-            name=self._parameters['DATABASE_NAME'],
-            backend=self._parameters['DATABASE_BACKEND'],
-            host=self._parameters['DATABASE_HOST'],
-        )
-        credentials = Credentials(
-            username=self._parameters['DATABASE_USERNAME'],
-            password=self._parameters['DATABASE_PASSWORD'],
-        )
+    def _load(self):
+        with self._get_database(self._parameters.database) as database:
+            self._session = database.session  # pylint: disable=no-member
 
-        with Database(configuration, credentials) as database:
-            self._session = database.session
-
-            self._update_tables(data)
+            self._update_tables(self._parameters.data)
 
     def _update_tables(self, data: transform.OutputData):
         release_table_updater = ReleaseTableUpdater(self._session)
@@ -252,7 +238,8 @@ class TableUpdater:
         model = self._model_class(**parameters)
         primary_key = getattr(row, self._primary_key)
 
-        if primary_key != primary_key:
+        # pylint: disable=comparison-with-itself
+        if primary_key != primary_key:  # test for NaN
             setattr(model, self._primary_key, None)
 
         if hasattr(model, 'modified_date'):
@@ -347,6 +334,7 @@ class ModifierTableUpdater(TableUpdater):
 
 
 class OneToManyTableUpdater(TableUpdater):
+    # pylint: disable=too-many-arguments
     def __init__(self, session, model_class: type, primary_key, many_model_class, many_key):
         super().__init__(session, model_class, primary_key)
 
@@ -362,11 +350,12 @@ class OneToManyTableUpdater(TableUpdater):
         lookup_data = self._session.query(self._many_model_class).all()
         id_map = self._map_key_values_to_ids(lookup_data)
 
-        data.loc[:, self._many_key] = data[self._many_key].apply(lambda x: id_map.get(x))
+        data.loc[:, self._many_key] = data[self._many_key].apply(id_map.get)
 
         return data[~pandas.isnull(data[self._many_key])]
 
-    def _map_key_values_to_ids(self, lookup_data):
+    @classmethod
+    def _map_key_values_to_ids(cls, lookup_data):
         id_map = {}
 
         for lookup_object in lookup_data:

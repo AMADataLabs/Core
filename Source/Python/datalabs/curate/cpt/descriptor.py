@@ -1,7 +1,6 @@
 """Clinical Descriptor Table module"""
 import io
 import logging
-import re
 
 import pandas
 
