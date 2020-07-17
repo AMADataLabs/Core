@@ -27,9 +27,10 @@ class BitBucketSynchronizer():
 
         self._repository_name = path.name.split('.')[0]
         self._project_name = path.parent.name
+        LOGGER.debug('On-Prem BitBucket repository URL: %s', self._config.url_on_prem)
+        LOGGER.debug('Cloud BitBucket repository URL: %s', self._config.url_cloud)
 
     def sync(self, request_data: dict):
-        LOGGER.debug('Received request: %s', request_data)
         data = self._validate_request_data(request_data)
         LOGGER.info(
             'Processing push to "%s" branch of repository "%s" under project "%s".',
