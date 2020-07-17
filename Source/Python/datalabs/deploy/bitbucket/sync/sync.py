@@ -12,7 +12,7 @@ import werkzeug.exceptions as exceptions
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 ValidatedData = namedtuple('ValidatedData', 'actor project repository branch action')
@@ -29,6 +29,7 @@ class BitBucketSynchronizer():
         self._project_name = path.parent.name
 
     def sync(self, request_data: dict):
+        LOGGER.debug('Received request: %s', request_data)
         data = self._validate_request_data(request_data)
         LOGGER.info(
             'Processing push to "%s" branch of repository "%s" under project "%s".',
