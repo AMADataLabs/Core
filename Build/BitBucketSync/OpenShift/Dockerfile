@@ -15,6 +15,6 @@ RUN mkdir /BitBucketSync/.ssh
 RUN chmod go-rwx /BitBucketSync/.ssh
 COPY ./Build/BitBucketSync/ssh_config.txt /BitBucketSync/.ssh/config
 RUN printenv BITBUCKET_SSH_KEY > /BitBucketSync/.ssh/id_rsa
-RUN RUN chmod go-rwx /BitBucketSync/.ssh/id_rsa
+RUN chmod go-rwx /BitBucketSync/.ssh/id_rsa
 
 EXPOSE 8080
