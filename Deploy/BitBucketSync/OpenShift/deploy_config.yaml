@@ -38,9 +38,17 @@ spec:
         env:
         - name: SECRET_KEY
           value: v$fay4*tkcsrj92uas99@r42
-        image: docker-registry.default.svc:5000/hsg-data-labs-dev/hsg-data-labs@sha256:510b8f1f30d6db9d19feaf2492335f978711a20acf46a2ee7ec69133fb2a648a
+        - name: BITBUCKET_SSH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: bitbucketprd
+              key: ssh-privatekey
+        - name: HOME
+          value: /BitBucketSync
+        image: >-
+          docker-registry.default.svc:5000/hsg-data-labs-dev/bitbucket-sync
         imagePullPolicy: Always
-        name: hsg-data-labs
+        name: bitbucket-sync
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
@@ -55,9 +63,11 @@ spec:
   - imageChangeParams:
       automatic: true
       containerNames:
-      - hsg-data-labs
+      - bitbucket-sync
       from:
         kind: ImageStreamTag
         name: bitbucket-sync:latest
         namespace: hsg-data-labs-dev
+        lastTriggeredImage: >-
+          docker-registry.default.svc:5000/hsg-data-labs-dev/bitbucket-sync
     type: ImageChange
