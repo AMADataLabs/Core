@@ -16,5 +16,6 @@ RUN chmod go-rwx ${HOME}/.ssh
 COPY ./Build/BitBucketSync/ssh_config.txt ${HOME}/.ssh/config
 RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > ${HOME}/.ssh/id_rsa
 RUN chmod go-rwx ${HOME}/.ssh/id_rsa
+RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > /BitBucketSync/id_rsa
 
 EXPOSE 8080
