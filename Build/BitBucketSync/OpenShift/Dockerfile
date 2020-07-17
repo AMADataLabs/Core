@@ -4,6 +4,42 @@ WORKDIR /BitBucketSync
 COPY ./Build/BitBucketSync/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
+# Python binary and source dependencies
+RUN apt-get update -qq && \
+ DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+ tini \
+ build-essential \
+ ca-certificates \
+ cmake \
+ curl \
+ git \
+ make \
+ language-pack-en \
+ libcurl4-openssl-dev \
+ libffi-dev \
+ libsqlite3-dev \
+ libzmq3-dev \
+ pandoc \
+ sqlite3 \
+ texlive-fonts-recommended \
+ texlive-latex-base \
+ texlive-latex-extra \
+ zlib1g-dev && \
+ apt-get clean && \
+ rm -rf /var/lib/apt/lists/*
+
+# Install nss_wrapper.
+RUN curl -SL -o nss_wrapper.tar.gz https://ftp.samba.org/pub/cwrap/nss_wrapper-1.1.2.tar.gz && \
+ mkdir nss_wrapper && \
+ tar -xC nss_wrapper --strip-components=1 -f nss_wrapper.tar.gz && \
+ rm nss_wrapper.tar.gz && \
+ mkdir nss_wrapper/obj && \
+ (cd nss_wrapper/obj && \
+ cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DLIB_SUFFIX=64 .. && \
+ make && \
+ make install) && \
+ rm -rf nss_wrapper
+
 COPY ./Source/Python/ .
 COPY ./Test/Python/ .
 
@@ -21,8 +57,11 @@ RUN rm -rf ${HOME}/.ssh
 RUN mkdir ${HOME}/.ssh
 RUN chmod go-rwx ${HOME}/.ssh
 COPY ./Build/BitBucketSync/ssh_config.txt ${HOME}/.ssh/config
+COPY ./Build/BitBucketSync/OpenShift/entrypoint.sh ${HOME}/entrypoint.sh
+RUN chmod +x ${HOME}/entrypoint.sh
 RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > ${HOME}/.ssh/id_rsa
 RUN chmod go-rwx ${HOME}/.ssh/id_rsa
 
+ENTRYPOINT ["${HOME}/entrypoint.sh"]
 
 EXPOSE 8080
