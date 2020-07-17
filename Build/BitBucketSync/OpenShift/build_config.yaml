@@ -32,6 +32,12 @@ spec:
       from:
         kind: ImageStreamTag
         name: python:3.7
+      env:
+        - name: BITBUCKET_SSH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: bitbucketprd
+              key: ssh-privatekey
     type: Docker
   successfulBuildsHistoryLimit: 5
   triggers:

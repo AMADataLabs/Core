@@ -38,11 +38,6 @@ spec:
         env:
         - name: SECRET_KEY
           value: v$fay4*tkcsrj92uas99@r42
-        - name: BITBUCKET_SSH_KEY
-          valueFrom:
-            secretKeyRef:
-              name: bitbucketprd
-              key: ssh-privatekey
         - name: HOME
           value: /BitBucketSync
         image: >-
