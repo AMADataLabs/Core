@@ -6,13 +6,13 @@ from datalabs.etl.task import ETLComponentTask
 
 class TransformerTask(ETLComponentTask, ABC):
     def run(self):
-        self._data = self._transform(self._parameters['data'])
+        self._data = self._transform()
 
     @abstractmethod
-    def _transform(self, data: "Extracted Data") -> 'Transformed Data':
+    def _transform(self) -> 'Transformed Data':
         pass
 
 
 class PassThroughTransformerTask(TransformerTask):
-    def _transform(self, data):
-        return data
+    def _transform(self):
+        return self._parameters.data

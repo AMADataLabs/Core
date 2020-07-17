@@ -1,6 +1,7 @@
 """ source: datalabs.etl.transform """
 import pytest
 
+from datalabs.etl.task import ETLComponentParameters
 from datalabs.etl.transform import TransformerTask, PassThroughTransformerTask
 
 
@@ -12,7 +13,7 @@ def test_transformer_task(transformer):
 
 
 def test_pass_through_transformer():
-    transformer = PassThroughTransformerTask(dict(data=True))
+    transformer = PassThroughTransformerTask(ETLComponentParameters(database={}, variables={}, data='True'))
 
     transformer.run()
 
@@ -22,9 +23,9 @@ def test_pass_through_transformer():
 
 @pytest.fixture
 def transformer():
-    return Transformer(dict(data=True))
+    return Transformer(ETLComponentParameters(database={}, variables={}, data='True'))
 
 
 class Transformer(TransformerTask):
-    def _transform(self, data):
-        return str(data)
+    def _transform(self):
+        return str(self._parameters.data)

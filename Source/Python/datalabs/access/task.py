@@ -3,9 +3,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from datalabs.task import Task, TaskException
 
-from datalabs.access.credentials import Credentials
-from datalabs.access.database import Configuration
-from datalabs.access.orm import Database, DatabaseTaskMixin
+from datalabs.access.orm import DatabaseTaskMixin
 
 
 @dataclass
@@ -30,7 +28,7 @@ class APIEndpointTask(Task, DatabaseTaskMixin):
         return self._response_body
 
     def run(self):
-        with self._get_database() as database:
+        with self._get_database(self._parameters.database) as database:
             self._run(database.session)  # pylint: disable=no-member
 
     @abstractmethod

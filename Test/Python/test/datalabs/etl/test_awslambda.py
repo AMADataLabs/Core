@@ -3,7 +3,7 @@ import os
 import pytest
 
 from   datalabs.etl.awslambda import ETLTaskWrapper, ETLException
-from   datalabs.etl.task import ETLTask, ETLParameters
+from   datalabs.etl.task import ETLTask, ETLParameters, ETLComponentParameters
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -41,9 +41,18 @@ class MockTask(ETLTask):
 @pytest.fixture
 def expected_parameters():
     return ETLParameters(
-        extractor=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing=True),
-        transformer=dict(CLASS='test.datalabs.etl.test_transform.Transformer'),
-        loader=dict(CLASS='test.datalabs.etl.test_load.Loader'),
+        extractor=ETLComponentParameters(
+            database={},
+            variables=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing=True)
+        ),
+        transformer=ETLComponentParameters(
+            database={},
+            variables=dict(CLASS='test.datalabs.etl.test_transform.Transformer')
+        ),
+        loader=ETLComponentParameters(
+            database={},
+            variables=dict(CLASS='test.datalabs.etl.test_load.Loader')
+        )
     )
 
 

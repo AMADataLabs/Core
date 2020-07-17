@@ -2,6 +2,7 @@
 import pytest
 
 from datalabs.etl.load import LoaderTask
+from datalabs.etl.task import ETLComponentParameters
 
 
 # pylint: disable=redefined-outer-name
@@ -13,9 +14,9 @@ def test_loader_task(loader):
 
 @pytest.fixture
 def loader():
-    return Loader(dict(data=True))
+    return Loader(ETLComponentParameters(database={}, variables={}, data=True))
 
 
 class Loader(LoaderTask):
-    def _load(self, data):
+    def _load(self):
         pass

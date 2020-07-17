@@ -2,6 +2,7 @@
 import pytest
 
 from datalabs.etl.extract import ExtractorTask
+from datalabs.etl.task import ETLComponentParameters
 
 
 # pylint: disable=redefined-outer-name
@@ -13,9 +14,9 @@ def test_extractor_task(extractor):
 
 @pytest.fixture
 def extractor():
-    return Extractor(dict(thing=True))
+    return Extractor(ETLComponentParameters(database={}, variables=dict(thing=True)))
 
 
 class Extractor(ExtractorTask):
     def _extract(self):
-        return self._parameters['thing']
+        return self._parameters.variables['thing']

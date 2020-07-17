@@ -52,9 +52,9 @@ class OutputData:
 
 
 class CSVToRelationalTablesTransformerTask(TransformerTask):
-    def _transform(self, data):
+    def _transform(self):
 
-        input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
+        input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in self._parameters.data])
 
         return self._generate_tables(input_data)
 

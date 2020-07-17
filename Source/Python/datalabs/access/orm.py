@@ -4,7 +4,6 @@ from   sqlalchemy.orm import sessionmaker
 
 from   datalabs.access.credentials import Credentials
 import datalabs.access.database as db
-from   datalabs.task import Task
 
 
 
@@ -24,16 +23,17 @@ class Database(db.Database):
 
 
 # pylint: disable=abstract-method
-class DatabaseTaskMixin(Task):
-    def _get_database(self):
+class DatabaseTaskMixin:
+    @classmethod
+    def _get_database(cls, parameters):
         config = db.Configuration(
-            name=self._parameters.database['name'],
-            backend=self._parameters.database['backend'],
-            host=self._parameters.database['host']
+            name=parameters['name'],
+            backend=parameters['backend'],
+            host=parameters['host']
         )
         credentials = Credentials(
-            username=self._parameters.database['username'],
-            password=self._parameters.database['password']
+            username=parameters['username'],
+            password=parameters['password']
         )
 
         return Database(config, credentials)
