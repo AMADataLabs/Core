@@ -17,7 +17,7 @@ EXTRACTOR_FILES='standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,stan
 EXTRACTOR_RELEASE_SCHEDULE='{"ANNUAL":["1-Sep","1-Jan"],"Q1":["1-Jan","1-Apr"],"Q2":["1-Apr","1-Jul"],"Q3":["1-Jul","1-Oct"],"Q4":["1-Oct","1-Jan"]}'
 
 TRANSFORMER_CLASS=datalabs.etl.cpt.ingest.transform.CPTFileToCSVTransformerTask
-TRANSFORMER_PARSERS=datalabs.curate.parse.CSVParser,datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser,datalabs.curate.cpt.pla.PLAParser,datalabs.curate.cpt.link.history.DeletionHistoryParser,datalabs.curate.cpt.link.history.CodeHistoryParser,datalabs.curate.cpt.link.history.ModifierHistoryParser
+TRANSFORMER_PARSERS=datalabs.curate.parse.CSVParser,datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser,datalabs.curate.cpt.pla.PLAParser,datalabs.curate.cpt.link.history.DeletionHistoryParser,datalabs.curate.cpt.link.history.ModifierHistoryParser,datalabs.curate.cpt.link.history.CodeHistoryParser
 
 LOADER_CLASS=datalabs.etl.s3.load.S3WindowsTextLoaderTask
 LOADER_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
