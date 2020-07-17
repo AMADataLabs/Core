@@ -14,6 +14,6 @@ RUN openssl req --batch -config server-ssl.conf -newkey rsa:2048 -nodes -keyout 
 # RUN mkdir /BitBucketSync/.ssh
 # RUN chmod go-rwx /BitBucketSync/.ssh
 COPY ./Build/BitBucketSync/ssh_config.txt /BitBucketSync/.ssh/config
-RUN printenv BITBUCKET_SSH_KEY > /BitBucketSync/.ssh/id_rsa
+RUN "echo $BITBUCKET_SSH_KEY > /BitBucketSync/.ssh/id_rsa"
 
 EXPOSE 8080
