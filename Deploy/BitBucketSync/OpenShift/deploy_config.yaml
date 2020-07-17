@@ -38,8 +38,6 @@ spec:
         env:
         - name: SECRET_KEY
           value: v$fay4*tkcsrj92uas99@r42
-        - name: HOME
-          value: /BitBucketSync
         - name: URL_ON_PREMISES
           value: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
         - name: URL_CLOUD
