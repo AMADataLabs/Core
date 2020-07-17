@@ -9,8 +9,7 @@ import sqlalchemy as sa
 
 from   datalabs.access.credentials import Credentials
 from   datalabs.access.database import Configuration
-from   datalabs.access.orm import Database
-from   datalabs.etl.database import DatabaseTaskMixin
+from   datalabs.access.orm import Database, DatabaseTaskMixin
 from   datalabs.etl.load import LoaderTask
 import datalabs.etl.cpt.dbmodel as dbmodel
 import datalabs.etl.cpt.api.transform as transform
