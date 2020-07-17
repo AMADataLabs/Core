@@ -51,10 +51,11 @@ COPY ./Test/Python/ .
 COPY ./Build/BitBucketSync/server-ssl.conf .
 RUN openssl req --batch -config server-ssl.conf -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem
 
+ENV HOME /BitBucketSync
+
 COPY ./Build/BitBucketSync/OpenShift/entrypoint.sh ${HOME}/entrypoint.sh
 RUN chmod +x ${HOME}/entrypoint.sh
 
-# ENV HOME /BitBucketSync
 # RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "BitBucketSync" bitbucketsync
 
 # RUN chown -Rf 1001 ${HOME}
