@@ -13,6 +13,8 @@ RUN openssl req --batch -config server-ssl.conf -newkey rsa:2048 -nodes -keyout 
 ENV HOME /BitBucketSync
 RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "BitBucketSync" bitbucketsync
 
+RUN chown -Rf 1001 ${HOME}
+
 USER 1001
 
 RUN rm -rf ${HOME}/.ssh
@@ -21,8 +23,6 @@ RUN chmod go-rwx ${HOME}/.ssh
 COPY ./Build/BitBucketSync/ssh_config.txt ${HOME}/.ssh/config
 RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > ${HOME}/.ssh/id_rsa
 RUN chmod go-rwx ${HOME}/.ssh/id_rsa
-
-RUN chown -Rf bitbucketsync ${HOME}
 
 
 EXPOSE 8080
