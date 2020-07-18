@@ -49,7 +49,7 @@ ENV HOME /BitBucketSync
 
 RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "BitBucketSync" bitbucketsync
 
-COPY ./Build/BitBucketSync/OpenShift/entrypoint.sh ${HOME}/entrypoint.sh
+COPY ./Build/BitBucketSync/OpenShift/entrypoint.sh entrypoint.sh
 RUN chmod +x ${HOME}/entrypoint.sh
 
 COPY ./Source/Python/ .
@@ -58,8 +58,8 @@ COPY ./Test/Python/ .
 COPY ./Build/BitBucketSync/server-ssl.conf .
 RUN openssl req --batch -config server-ssl.conf -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem
 
-COPY ./Build/BitBucketSync/ssh_config.txt ${HOME}/ssh_config
-RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > ${HOME}/id_rsa
+COPY ./Build/BitBucketSync/ssh_config.txt ssh_config
+RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > id_rsa
 ENV GIT_SSH_COMMAND "ssh -o StrictHostKeyChecking=no -i ${HOME}/id_rsa"
 
 RUN chown -Rf 1001 ${HOME}
