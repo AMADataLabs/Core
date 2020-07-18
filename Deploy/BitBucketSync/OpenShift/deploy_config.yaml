@@ -28,14 +28,14 @@ spec:
         deploymentconfig: bitbucket-sync
     spec:
       containers:
-      - args:
+      - command:
+        - /BitBucketSync/entrypoint.sh
+        args:
         - gunicorn
         - --workers=3
         - datalabs.deploy.bitbucket.sync.app:start()
         - -b
         - 0.0.0.0:8080
-        command:
-        - /BitBucketSync/entrypoint.sh
         env:
         - name: SECRET_KEY
           value: v$fay4*tkcsrj92uas99@r42

@@ -61,10 +61,10 @@ RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-ho
 # RUN rm -rf ${HOME}/.ssh
 # RUN mkdir ${HOME}/.ssh
 # RUN chmod go-rwx ${HOME}/.ssh
-# COPY ./Build/BitBucketSync/ssh_config.txt ${HOME}/ssh_config
+COPY ./Build/BitBucketSync/ssh_config.txt ${HOME}/ssh_config
 RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > ${HOME}/id_rsa
 # RUN chmod go-rwx ${HOME}/id_rsa
-ENV GIT_SSH_COMMAND "ssh -i ${HOME}/id_rsa"
+ENV GIT_SSH_COMMAND "ssh -o StrictHostKeyChecking=no -i ${HOME}/id_rsa"
 
 RUN chown -Rf 1001 ${HOME}
 RUN chmod go+rwx ${HOME}
