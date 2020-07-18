@@ -40,7 +40,7 @@ spec:
         - name: SECRET_KEY
           value: v$fay4*tkcsrj92uas99@r42
         - name: URL_ON_PREMISES
-          value: ssh://git@10.195.50.49:7999/hsg-data-labs/hsg-data-labs.git
+          value: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
         - name: URL_CLOUD
           value: git@bitbucket.org:hsdatalabs/hsg-data-labs.git
         image: >-
