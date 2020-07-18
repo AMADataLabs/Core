@@ -67,7 +67,9 @@ RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > ${HOME}/id_rsa
 ENV GIT_SSH_COMMAND "ssh -i ${HOME}/id_rsa"
 
 RUN chown -Rf 1001 ${HOME}
-RUN chmod +rwx ${HOME}
+RUN chmod go+rwx ${HOME}
+RUN mkdir /home/bitbucketsync
+RUN chmod go+rwx /home/bitbucketsync
 
 USER 1001
 
