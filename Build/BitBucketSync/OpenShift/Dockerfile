@@ -45,6 +45,8 @@ RUN curl -SL -o nss_wrapper.tar.gz https://ftp.samba.org/pub/cwrap/nss_wrapper-1
  make install) && \
  rm -rf nss_wrapper
 
+RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "BitBucketSync" bitbucketsync
+
 COPY ./Source/Python/ .
 COPY ./Test/Python/ .
 
@@ -55,8 +57,6 @@ ENV HOME /BitBucketSync
 
 COPY ./Build/BitBucketSync/OpenShift/entrypoint.sh ${HOME}/entrypoint.sh
 RUN chmod +x ${HOME}/entrypoint.sh
-
-RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "BitBucketSync" bitbucketsync
 
 COPY ./Build/BitBucketSync/ssh_config.txt ${HOME}/ssh_config
 RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > ${HOME}/id_rsa
