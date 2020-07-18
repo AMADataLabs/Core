@@ -58,8 +58,6 @@ RUN chmod +x ${HOME}/entrypoint.sh
 
 RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "BitBucketSync" bitbucketsync
 
-USER 1001
-
 RUN rm -rf ${HOME}/.ssh
 RUN mkdir ${HOME}/.ssh
 RUN chmod go-rwx ${HOME}/.ssh
@@ -68,6 +66,8 @@ RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > ${HOME}/.ssh/id_rsa
 RUN chmod go-rwx ${HOME}/.ssh/id_rsa
 
 RUN chown -Rf 1001 ${HOME}
+
+USER 1001
 
 ENTRYPOINT ["${HOME}/entrypoint.sh"]
 
