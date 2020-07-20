@@ -66,6 +66,11 @@ Shared source code should be put into the language sub-folder of *Source/* (i.e.
 
 Python package folders should all start with *Source/Python/datalabs/* (i.e. all Data Labs packages start with *datalabs.*).
 
+
+### Terraform
+
+Terraform configurations should be kept in *Source/Terraform*. TODO: elaborate on the structure
+
 ## Test
 
 Not surprisingly, all test code should be put in this folder. The folder and file structure mirrors that of *Source/* with some exceptions.
