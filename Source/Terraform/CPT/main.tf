@@ -326,6 +326,32 @@ module "etl_load" {
 }
 
 
+module "etl_bundle_pdf" {
+    source = "./etl"
+
+    function_name       = local.function_names.loaddb
+    account_id          = data.aws_caller_identity.account.account_id
+    role                = aws_iam_role.lambda_role.arn
+    database_name       = aws_db_instance.cpt_api_database.name
+    database_host       = aws_db_instance.cpt_api_database.address
+
+    variables           = {
+        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3FileExtractorTask"
+        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
+        EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.value
+        # EXTRACTOR_FILES             = "CPT Link Release Notes *.pdf,standard/AnesthesiaGuidelines.pdf,standard/AppendixB.pdf,standard/AppendixN.pdf,standard/AppendixO.pdf,standard/CategoryIIGuidelines.pdf,standard/CategoryIIIGuidelines.pdf,standard/CPT * README.pdf,standard/EvalManagementGuidelines.pdf,standard/MedicineGuidelines.pdf,standard/PathLabGuidelines.pdf,standard/RadiologyGuidelines.pdf,standard/Clinician Descriptors/* Clinician Descriptors README.pdf,standard/Consumer Friendly Descriptors/* Consumer Friendly Descriptors README.pdf"
+
+        TRANSFORMER_CLASS           = "datalabs.etl.archive.transform.ZipTransformerTask"
+
+        LOADER_CLASS                = "datalabs.etl.s3.load.S3FileLoaderTask"
+        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
+        LOADER_BASE_PATH            = data.aws_ssm_parameter.s3_base_path.value
+        LOADER_FILES                = "pdfs.zip"
+    }
+}
+
+
 data "aws_caller_identity" "account" {}
 
 
