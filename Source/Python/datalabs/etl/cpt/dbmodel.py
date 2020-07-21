@@ -135,7 +135,7 @@ class Concept(Base):
     deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
-class PLACode(Base):
+class PLADetails(Base):
     __tablename__ = 'pla_code'
     __table_args__ = {"schema": "cpt"}
 
@@ -143,37 +143,6 @@ class PLACode(Base):
     status = sa.Column(sa.String, nullable=False)
     test_name = sa.Column(sa.String, nullable=False)
     modified_date = sa.Column(sa.Date, nullable=False)
-    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
-
-
-class PLAShortDescriptor(Base):
-    __tablename__ = 'pla_short_descriptor'
-    __table_args__ = {"schema": "cpt"}
-
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
-    descriptor = sa.Column(sa.String(28), nullable=False)
-    modified_date = sa.Column(sa.Date, nullable=False)
-    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
-
-
-class PLAMediumDescriptor(Base):
-    __tablename__ = 'pla_medium_descriptor'
-    __table_args__ = {"schema": "cpt"}
-
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
-    descriptor = sa.Column(sa.String(48), nullable=False)
-    modified_date = sa.Column(sa.Date, nullable=False)
-    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
-
-
-class PLALongDescriptor(Base):
-    __tablename__ = 'pla_long_descriptor'
-    __table_args__ = {"schema": "cpt"}
-
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
-    descriptor = sa.Column(sa.String(), nullable=False)
-    modified_date = sa.Column(sa.Date, nullable=False)
-    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class Manufacturer(Base):
