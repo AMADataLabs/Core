@@ -17,5 +17,8 @@ When you work in the environment again all you need to do is activate the virtua
 source DjangoPPD/bin/activate
 
 
+NOTE: The requirements file listed Django version 2.2.7, but this was removed due to security scans that indicated it as a SQL injection threat.
+
+
 
 

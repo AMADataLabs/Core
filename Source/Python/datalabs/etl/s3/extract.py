@@ -30,7 +30,7 @@ from datalabs.etl.extract import ExtractorTask
 from datalabs.etl.task import ETLException
 
 
-class S3WindowsTextExtractorTask(ExtractorTask):
+class S3FileExtractorTask(ExtractorTask):
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -39,7 +39,7 @@ class S3WindowsTextExtractorTask(ExtractorTask):
 
     def _extract(self):
         latest_path = self._get_latest_path()
-        files = self._parameters.variables['FILES'].split(',')
+        files = self._get_files()
 
         return [self._extract_file(latest_path, file) for file in files]
 
@@ -56,6 +56,9 @@ class S3WindowsTextExtractorTask(ExtractorTask):
 
         return self._latest_path
 
+    def _get_files(self):
+        return self._parameters.variables['FILES'].split(',')
+
     def _extract_file(self, base_path, file):
         file_path = '/'.join((base_path, file))
 
@@ -66,7 +69,7 @@ class S3WindowsTextExtractorTask(ExtractorTask):
                 f"Unable to get file '{file_path}' from S3 bucket '{self._parameters.variables['BUCKET']}': {exception}"
             )
 
-        return response['Body'].read().decode('cp1252')
+        return self._decode_data(response['Body'].read())
 
     def _listdir(self, bucket, base_path):
         response = self._s3.list_objects_v2(Bucket=bucket, Prefix=base_path)
@@ -77,3 +80,13 @@ class S3WindowsTextExtractorTask(ExtractorTask):
             objects.remove('')
 
         return objects
+
+    @classmethod
+    def _decode_data(cls, data):
+        return data
+
+
+class S3WindowsTextExtractorTask(S3FileExtractorTask):
+    @classmethod
+    def _decode_data(cls, data):
+        return data.decode('cp1252')
