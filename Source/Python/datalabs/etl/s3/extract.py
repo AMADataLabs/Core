@@ -39,7 +39,7 @@ class S3FileExtractorTask(ExtractorTask):
 
     def _extract(self):
         latest_path = self._get_latest_path()
-        files = self._parameters.variables['FILES'].split(',')
+        files = self._get_files()
 
         return [self._extract_file(latest_path, file) for file in files]
 
@@ -55,6 +55,9 @@ class S3FileExtractorTask(ExtractorTask):
             self._latest_path = '/'.join((self._parameters.variables['BASE_PATH'], release_folders[-1]))
 
         return self._latest_path
+
+    def _get_files(self):
+        return self._parameters.variables['FILES'].split(',')
 
     def _extract_file(self, base_path, file):
         file_path = '/'.join((base_path, file))
