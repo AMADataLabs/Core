@@ -1,6 +1,7 @@
 """ Extractor class for CPT standard release text data from the S3 ingestion bucket. """
 from   datetime import date, datetime
 import json
+import os
 
 import pandas
 
@@ -12,8 +13,11 @@ class CPTTextDataExtractorTask(S3WindowsTextExtractorTask):
         data = super()._extract()
         release_date = self._extract_release_date()
         release_schedule = json.loads(self._parameters.variables['RELEASE_SCHEDULE'])
+        release_source_path = os.path.join(
+            self._parameters.variables['BASE_PATH'], release_date.strftime('%Y%m%d')
+        )
 
-        data.insert(0, self._generate_release_details(release_schedule, release_date))
+        data.insert(0, (release_source_path, self._generate_release_details(release_schedule, release_date)))
 
         return data
 
