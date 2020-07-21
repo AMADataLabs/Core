@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class S3WindowsTextLoaderTask(LoaderTask):
+class S3FileLoaderTask(LoaderTask):
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -23,16 +23,16 @@ class S3WindowsTextLoaderTask(LoaderTask):
         current_path = self._get_current_path()
         files = self._parameters.variables['FILES'].split(',')
 
-        return [self._load_file(current_path, file, text) for file, text in zip(files, self._parameters.data)]
+        return [self._load_file(current_path, file, data) for file, data in zip(files, self._parameters.data)]
 
     def _get_current_path(self):
         current_date = datetime.utcnow().date().strftime('%Y%m%d')
 
         return '/'.join((self._parameters.variables['BASE_PATH'], current_date))
 
-    def _load_file(self, base_path, file, text):
+    def _load_file(self, base_path, file, data):
         file_path = '/'.join((base_path, file))
-        body = text.encode('cp1252')
+        body = self._encode(data)
         md5_hash = hashlib.md5(body).digest()
         b64_md5_hash = base64.b64encode(md5_hash)
 
@@ -41,3 +41,11 @@ class S3WindowsTextLoaderTask(LoaderTask):
             Key=file_path,
             Body=body,
             ContentMD5=b64_md5_hash.decode('utf-8'))
+
+    def _encode(self, data):
+        return data
+
+
+class S3WindowsTextLoaderTask(S3FileLoaderTask):
+    def _encode(self, data):
+        return data.encode('cp1252')
