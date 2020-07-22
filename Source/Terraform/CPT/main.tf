@@ -326,6 +326,31 @@ module "etl_load" {
 }
 
 
+module "etl_bundle_pdf" {
+    source = "./etl"
+
+    function_name       = local.function_names.bundlepdf
+    account_id          = data.aws_caller_identity.account.account_id
+    role                = aws_iam_role.lambda_role.arn
+    database_name       = aws_db_instance.cpt_api_database.name
+    database_host       = aws_db_instance.cpt_api_database.address
+
+    variables           = {
+        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3FileExtractorTask"
+        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
+        EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.value
+
+        TRANSFORMER_CLASS           = "datalabs.etl.archive.transform.ZipTransformerTask"
+
+        LOADER_CLASS                = "datalabs.etl.s3.load.S3FileLoaderTask"
+        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
+        LOADER_BASE_PATH            = data.aws_ssm_parameter.s3_base_path.value
+        LOADER_FILES                = "pdfs.zip"
+    }
+}
+
+
 data "aws_caller_identity" "account" {}
 
 
@@ -366,6 +391,11 @@ data "aws_ssm_parameter" "raw_data_parsers" {
 
 data "aws_ssm_parameter" "converted_data_files" {
     name  = "/DataLabs/CPT/data/converted_files"
+}
+
+
+data "aws_ssm_parameter" "pdf_files" {
+    name  = "/DataLabs/CPT/data/pdf_files"
 }
 
 
@@ -421,6 +451,7 @@ locals {
         default                     = "CPTDefault"
         convert                     = "CPTConvert"
         loaddb                      = "CPTLoad"
+        bundlepdf                   = "BundlePDF"
     }
     task_classes = {
         descriptor                  = "datalabs.access.cpt.api.descriptor.DescriptorEndpointTask"

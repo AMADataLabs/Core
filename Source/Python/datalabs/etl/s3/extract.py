@@ -39,9 +39,9 @@ class S3FileExtractorTask(ExtractorTask):
 
     def _extract(self):
         latest_path = self._get_latest_path()
-        files = self._get_files()
+        files = self._get_files(latest_path)
 
-        return [self._extract_file(latest_path, file) for file in files]
+        return [(file, self._extract_file(file)) for file in files]
 
     def _get_latest_path(self):
         if self._latest_path is None:
@@ -56,12 +56,21 @@ class S3FileExtractorTask(ExtractorTask):
 
         return self._latest_path
 
-    def _get_files(self):
-        return self._parameters.variables['FILES'].split(',')
+    def _get_files(self, base_path):
+        unresolved_files = ['/'.join((base_path, file)) for file in self._parameters.variables['FILES'].split(',')]
+        resolved_files = []
 
-    def _extract_file(self, base_path, file):
-        file_path = '/'.join((base_path, file))
+        for file in unresolved_files:
+            files = self._resolve_filename(file)
 
+            if isinstance(files, str):
+                resolved_files.append(files)
+            else:
+                resolved_files += files
+
+        return resolved_files
+
+    def _extract_file(self, file_path):
         try:
             response = self._s3.get_object(Bucket=self._parameters.variables['BUCKET'], Key=file_path)
         except Exception as exception:
@@ -81,9 +90,25 @@ class S3FileExtractorTask(ExtractorTask):
 
         return objects
 
+    def _resolve_filename(self, file_path):
+        file_paths = [file_path]
+
+        if '*' in file_path:
+            file_paths = self._find_s3_object(file_path)
+
+        if len(file_paths) == 0:
+            raise FileNotFoundError(f"Unable to find S3 object '{file_path}'")
+
+        return file_paths
+
     @classmethod
     def _decode_data(cls, data):
         return data
+
+    def _find_s3_object(self, wildcard_file_path):
+        file_path_parts = wildcard_file_path.split('*')
+        search_results =  self._s3.list_objects_v2(Bucket=self._parameters.variables['BUCKET'], Prefix=file_path_parts[0])
+        return [a['Key'] for a in search_results['Contents'] if a['Key'].endswith(file_path_parts[1])]
 
 
 class S3WindowsTextExtractorTask(S3FileExtractorTask):
