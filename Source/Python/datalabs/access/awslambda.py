@@ -22,6 +22,7 @@ class APIEndpointTaskWrapper(TaskWrapper):
             ),
             bucket=dict(
                 name=os.getenv('BUCKET_NAME'),
+                base_path=os.getenv('BUCKET_BASE_PATH'),
                 url_duration=os.getenv('BUCKET_URL_DURATION'),
             )
         )

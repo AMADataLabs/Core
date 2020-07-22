@@ -3,7 +3,7 @@ import logging
 
 import boto3
 
-from   datalabs.access.task import APIEndpointTask, InternalServerError
+from   datalabs.access.task import APIEndpointTask, APIEndpointParameters, InternalServerError
 from   datalabs.etl.cpt.dbmodel import Release
 
 logging.basicConfig()
@@ -11,16 +11,22 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class ReleasesEndpointTask(APIEndpointTask):
+class PDFEndpointTask(APIEndpointTask):
+    def __init__(self, parameters: APIEndpointParameters):
+        super().__init__(parameters)
+
+        self._s3 = boto3.client('s3')
+
     def _run(self, session):
-        s3 = boto3.client('s3')
+        pdf_archive_path = self._get_pdf_archive_path()
+        pdfs_archive_url = None
 
         try:
-            response = s3.generate_presigned_url(
+            pdfs_archive_url = self._s3.generate_presigned_url(
                 'get_object',
                 Params={
                     'Bucket': self._parameters.bucket['name'],
-                    'Key': 
+                    'Key': pdf_archive_path
                 },
                 ExpiresIn=self._parameters.bucket['url_duration']
             )
@@ -28,18 +34,24 @@ class ReleasesEndpointTask(APIEndpointTask):
             LOGGER.error(e)
             raise InternalServerError(f'Unable to get PDF archive URL: {str(e)}')
 
-    import pdb; pdb.set_trace()
-    return 200, response
+        self._response_body['url'] = pdfs_archive_url
 
-    def _get_latest_path(self):
-        if self._latest_path is None:
-            release_folders = sorted(
-                self._listdir(
-                    self._parameters.variables['BUCKET'],
-                    self._parameters.variables['BASE_PATH']
-                )
+    def _get_pdf_archive_path(self):
+        release_folders = sorted(
+            self._listdir(
+                self._parameters.bucket['name'],
+                self._parameters.bucket['base_path']
             )
+        )
 
-            self._latest_path = '/'.join((self._parameters.variables['BASE_PATH'], release_folders[-1]))
+        return '/'.join((self._parameters.bucket['base_path'], release_folders[-1], 'pdfs.zip'))
 
-        return self._latest_path
+    def _listdir(self, bucket, base_path):
+        response = self._s3.list_objects_v2(Bucket=bucket, Prefix=base_path)
+
+        objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
+
+        if  '' in objects:
+            objects.remove('')
+
+        return objects
