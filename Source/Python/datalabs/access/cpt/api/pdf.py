@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class PDFEndpointTask(APIEndpointTask):
+class LatestPDFsEndpointTask(APIEndpointTask):
     def __init__(self, parameters: APIEndpointParameters):
         super().__init__(parameters)
 
