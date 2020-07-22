@@ -42,7 +42,7 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
             lambda_all_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.all_pla_details}",
             lambda_modifier_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.modifier}",
             lambda_modifiers_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.modifiers}",
-            # lambda_latest_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.latest_pdfs}",
+            lambda_latest_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.latest_pdfs}",
             # lambda_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.pdfs}",
             lambda_releases_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.releases}",
             lambda_return404_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.default}",
@@ -212,22 +212,18 @@ module "endpoint_modifiers" {
 }
 
 
-# module "endpoint_latest_pdfs" {
-#     source = "./endpoint"
+module "endpoint_latest_pdfs" {
+    source = "./endpoint"
 
-#     function_name       = local.function_names.latest_pdfs
-#     task_class          = local.task_classes.latest_pdfs
-#     region              = local.region
-#     account_id          = data.aws_caller_identity.account.account_id
-#     role                = aws_iam_role.lambda_role.arn
-#     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-#     database_name       = aws_db_instance.cpt_api_database.name
-#     database_host       = aws_db_instance.cpt_api_database.address
-
-
-#     function_name_TEST   = local.function_names.latest_pdfs
-#     api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
-# }
+    function_name       = local.function_names.latest_pdfs
+    task_class          = local.task_classes.latest_pdfs
+    region              = local.region
+    account_id          = data.aws_caller_identity.account.account_id
+    role                = aws_iam_role.lambda_role.arn
+    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    database_name       = aws_db_instance.cpt_api_database.name
+    database_host       = aws_db_instance.cpt_api_database.address
+}
 
 
 # module "endpoint_pdfs" {
@@ -275,11 +271,12 @@ module "endpoint_default" {
 module "etl_convert" {
     source = "./etl"
 
-    function_name       = local.function_names.convert
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    database_name       = aws_db_instance.cpt_api_database.name
-    database_host       = aws_db_instance.cpt_api_database.address
+    function_name           = local.function_names.convert
+    account_id              = data.aws_caller_identity.account.account_id
+    role                    = aws_iam_role.lambda_role.arn
+    database_name           = aws_db_instance.cpt_api_database.name
+    database_host           = aws_db_instance.cpt_api_database.address
+    data_pipeline_ingestion = true
 
     variables           = {
         EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
@@ -299,6 +296,32 @@ module "etl_convert" {
 }
 
 
+module "etl_bundle_pdf" {
+    source = "./etl"
+
+    function_name           = local.function_names.bundlepdf
+    account_id              = data.aws_caller_identity.account.account_id
+    role                    = aws_iam_role.lambda_role.arn
+    database_name           = aws_db_instance.cpt_api_database.name
+    database_host           = aws_db_instance.cpt_api_database.address
+    data_pipeline_ingestion = true
+
+    variables           = {
+        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3FileExtractorTask"
+        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
+        EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.value
+
+        TRANSFORMER_CLASS           = "datalabs.etl.archive.transform.ZipTransformerTask"
+
+        LOADER_CLASS                = "datalabs.etl.s3.load.S3FileLoaderTask"
+        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
+        LOADER_BASE_PATH            = data.aws_ssm_parameter.s3_base_path.value
+        LOADER_FILES                = "pdfs.zip"
+    }
+}
+
+
 module "etl_load" {
     source = "./etl"
 
@@ -307,6 +330,7 @@ module "etl_load" {
     role                = aws_iam_role.lambda_role.arn
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    data_pipeline_api   = true
 
     variables           = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3WindowsTextExtractorTask"
@@ -322,31 +346,6 @@ module "etl_load" {
         LOADER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
         LOADER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.value
         LOADER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.value
-    }
-}
-
-
-module "etl_bundle_pdf" {
-    source = "./etl"
-
-    function_name       = local.function_names.bundlepdf
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    database_name       = aws_db_instance.cpt_api_database.name
-    database_host       = aws_db_instance.cpt_api_database.address
-
-    variables           = {
-        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3FileExtractorTask"
-        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
-        EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
-        EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.value
-
-        TRANSFORMER_CLASS           = "datalabs.etl.archive.transform.ZipTransformerTask"
-
-        LOADER_CLASS                = "datalabs.etl.s3.load.S3FileLoaderTask"
-        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
-        LOADER_BASE_PATH            = data.aws_ssm_parameter.s3_base_path.value
-        LOADER_FILES                = "pdfs.zip"
     }
 }
 
