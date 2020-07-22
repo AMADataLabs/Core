@@ -329,7 +329,7 @@ module "etl_load" {
 module "etl_bundle_pdf" {
     source = "./etl"
 
-    function_name       = local.function_names.loaddb
+    function_name       = local.function_names.bundlepdf
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     database_name       = aws_db_instance.cpt_api_database.name
@@ -340,7 +340,6 @@ module "etl_bundle_pdf" {
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
         EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
         EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.value
-        # EXTRACTOR_FILES             = "CPT Link Release Notes *.pdf,standard/AnesthesiaGuidelines.pdf,standard/AppendixB.pdf,standard/AppendixN.pdf,standard/AppendixO.pdf,standard/CategoryIIGuidelines.pdf,standard/CategoryIIIGuidelines.pdf,standard/CPT * README.pdf,standard/EvalManagementGuidelines.pdf,standard/MedicineGuidelines.pdf,standard/PathLabGuidelines.pdf,standard/RadiologyGuidelines.pdf,standard/Clinician Descriptors/* Clinician Descriptors README.pdf,standard/Consumer Friendly Descriptors/* Consumer Friendly Descriptors README.pdf"
 
         TRANSFORMER_CLASS           = "datalabs.etl.archive.transform.ZipTransformerTask"
 
@@ -392,6 +391,11 @@ data "aws_ssm_parameter" "raw_data_parsers" {
 
 data "aws_ssm_parameter" "converted_data_files" {
     name  = "/DataLabs/CPT/data/converted_files"
+}
+
+
+data "aws_ssm_parameter" "pdf_files" {
+    name  = "/DataLabs/CPT/data/pdf_files"
 }
 
 
@@ -447,6 +451,7 @@ locals {
         default                     = "CPTDefault"
         convert                     = "CPTConvert"
         loaddb                      = "CPTLoad"
+        bundlepdf                   = "BundlePDF"
     }
     task_classes = {
         descriptor                  = "datalabs.access.cpt.api.descriptor.DescriptorEndpointTask"
