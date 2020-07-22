@@ -41,14 +41,10 @@ class OutputData:
     clinician_descriptor: pandas.DataFrame
     clinician_descriptor_code_mapping: pandas.DataFrame
     pla_details: pandas.DataFrame
-    pla_short_descriptor: pandas.DataFrame
-    pla_long_descriptor: pandas.DataFrame
-    pla_medium_descriptor: pandas.DataFrame
     manufacturer: pandas.DataFrame
     manufacturer_pla_code_mapping: pandas.DataFrame
     lab: pandas.DataFrame
     lab_pla_code_mapping: pandas.DataFrame
-    # pla_release: pandas.DataFrame
 
 
 class CSVToRelationalTablesTransformerTask(TransformerTask):
@@ -90,14 +86,10 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
                 input_data.clinician_descriptor
             ),
             pla_details=self._generate_pla_details_table(input_data.pla),
-            pla_short_descriptor=self._generate_pla_descriptor_table('short_descriptor', input_data.pla),
-            pla_medium_descriptor=self._generate_pla_descriptor_table('medium_descriptor', input_data.pla),
-            pla_long_descriptor=self._generate_pla_descriptor_table('long_descriptor', input_data.pla),
             manufacturer=self._generate_pla_manufacturer_table(input_data.pla),
             manufacturer_pla_code_mapping=self._generate_pla_manufacturer_code_mapping_table(input_data.pla),
             lab=self._generate_pla_lab_table(input_data.pla),
             lab_pla_code_mapping=self._generate_pla_lab_code_mapping_table(input_data.pla),
-            # pla_release=self._generate_pla_release_code_mapping_table(input_data.pla)
         )
 
         return tables
@@ -199,14 +191,6 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         codes['deleted'] = False
 
         return codes
-
-    @classmethod
-    def _generate_pla_descriptor_table(cls, name, pla_details):
-        columns = {'pla_code': 'code', f'{name}': 'descriptor'}
-        descriptor_table = pla_details[['pla_code', f'{name}']].rename(columns=columns)
-        descriptor_table['deleted'] = False
-
-        return descriptor_table
 
     @classmethod
     def _generate_pla_manufacturer_table(cls, pla_details):
