@@ -40,7 +40,7 @@ class OutputData:
     consumer_descriptor: pandas.DataFrame
     clinician_descriptor: pandas.DataFrame
     clinician_descriptor_code_mapping: pandas.DataFrame
-    pla_code: pandas.DataFrame
+    pla_details: pandas.DataFrame
     pla_short_descriptor: pandas.DataFrame
     pla_long_descriptor: pandas.DataFrame
     pla_medium_descriptor: pandas.DataFrame
@@ -60,7 +60,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
     def _generate_tables(self, input_data):
         releases = self._generate_release_table(input_data.release)
-        codes = self._generate_code_table(input_data.short_descriptor)
+        codes = self._generate_code_table(input_data.short_descriptor, input_data.pla)
 
         tables = OutputData(
             release=releases,
@@ -76,7 +76,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
             clinician_descriptor_code_mapping=self._generate_clinician_descriptor_code_mapping_table(
                 input_data.clinician_descriptor
             ),
-            pla_code=self._generate_pla_code_table(input_data.pla),
+            pla_details=self._generate_pla_details_table(input_data.pla),
             pla_short_descriptor=self._generate_pla_descriptor_table('short_descriptor', input_data.pla),
             pla_medium_descriptor=self._generate_pla_descriptor_table('medium_descriptor', input_data.pla),
             pla_long_descriptor=self._generate_pla_descriptor_table('long_descriptor', input_data.pla),
@@ -98,9 +98,14 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return releases
 
     @classmethod
-    def _generate_code_table(cls, descriptors):
+    def _generate_code_table(cls, descriptors, pla_details):
         codes = descriptors[['cpt_code']].rename(
             columns=dict(cpt_code='code')
+        )
+        codes = codes.append(
+            pla_details[['pla_code']].rename(
+                columns=dict(pla_code='code')
+            )
         )
         codes['deleted'] = False
 
@@ -154,7 +159,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return modifiers
 
     @classmethod
-    def _generate_pla_code_table(cls, pla_details):
+    def _generate_pla_details_table(cls, pla_details):
         codes = pla_details[['pla_code', 'status', 'test']].rename(
             columns=dict(pla_code='code', test='test_name')
         )

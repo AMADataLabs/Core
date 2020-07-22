@@ -13,17 +13,10 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class BasePLADetailsEndpointTask(APIEndpointTask):
-    LENGTH_MODEL_NAMES = dict(short='PLAShortDescriptor', medium='PLAMediumDescriptor', long='PLALongDescriptor')
-
     def _run(self, session):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
-
-        lengths = self._parameters.query.get('length')
-
-        if not self._lengths_are_valid(lengths):
-            raise InvalidRequest(f"Invalid query parameter: length={lengths}")
 
         query = self._query_for_descriptors(session)
 
@@ -32,7 +25,6 @@ class BasePLADetailsEndpointTask(APIEndpointTask):
         self._response_body = self._generate_response_body(query.all(), lengths)
 
     def _set_parameter_defaults(self):
-        self._parameters.query['length'] = self._parameters.query.get('length') or ['short', 'medium', 'long']
         self._parameters.query['keyword'] = self._parameters.query.get('keyword') or []
 
     @classmethod
@@ -42,32 +34,19 @@ class BasePLADetailsEndpointTask(APIEndpointTask):
     @classmethod
     def _query_for_descriptors(cls, session):
         query = session.query(
-            dbmodel.PLACode,
-            dbmodel.PLALongDescriptor,
-            dbmodel.PLAMediumDescriptor,
-            dbmodel.PLAShortDescriptor,
-            # dbmodel.Release,
+            dbmodel.PLADetails,
             dbmodel.Manufacturer,
             dbmodel.Lab
         ).join(
-            dbmodel.PLALongDescriptor,
-            dbmodel.PLAMediumDescriptor,
-            dbmodel.PLAShortDescriptor,
-            # ).join(
-            #     dbmodel.ReleasePLACodeMapping,
-            #     dbmodel.ReleasePLACodeMapping.code == dbmodel.PLACode.code
-            # ).join(
-            #     dbmodel.Release,
-            #     dbmodel.Release.id == dbmodel.ReleasePLACodeMapping.release
         ).join(
             dbmodel.ManufacturerPLACodeMapping,
-            dbmodel.ManufacturerPLACodeMapping.code == dbmodel.PLACode.code
+            dbmodel.ManufacturerPLACodeMapping.code == dbmodel.PLADetails.code
         ).join(
             dbmodel.Manufacturer,
             dbmodel.Manufacturer.id == dbmodel.ManufacturerPLACodeMapping.manufacturer
         ).join(
             dbmodel.LabPLACodeMapping,
-            dbmodel.LabPLACodeMapping.code == dbmodel.PLACode.code
+            dbmodel.LabPLACodeMapping.code == dbmodel.PLADetails.code
         ).join(
             dbmodel.Lab,
             dbmodel.Lab.id == dbmodel.LabPLACodeMapping.lab
@@ -84,16 +63,11 @@ class BasePLADetailsEndpointTask(APIEndpointTask):
 
         for row in rows:
             row_body = dict(
-                code=row.PLACode.code,
-                # publish_date=row.Release.publish_date,
-                # effective_date=row.Release.effective_date,
-                test=row.PLACode.test_name,
+                code=row.PLADetails.code,
+                test=row.PLADetails.test_name,
                 lab=row.Lab.name,
                 manufacturer=row.Manufacturer.name
             )
-
-            for length in lengths:
-                row_body.update({length + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length]).descriptor})
 
             body.append(row_body)
 
@@ -116,18 +90,17 @@ class PLADetailsEndpointTask(BasePLADetailsEndpointTask):
 
     @classmethod
     def _filter_by_code(cls, query, code):
-        return query.filter(dbmodel.PLACode.code == code)
+        return query.filter(dbmodel.PLADetails.code == code)
 
 
 class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask):
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
-        lengths = self._parameters.query.get('length')
 
         query = self._filter_for_release(query, since)
 
-        query = self._filter_for_keywords(query, keywords, lengths)
+        query = self._filter_for_keywords(query, keywords)
 
         return query
 
@@ -143,10 +116,8 @@ class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask):
 
     @classmethod
     def _filter_for_keywords(cls, query, keywords, lengths):
-        length_dict = {length:getattr(dbmodel, 'PLA'+length.capitalize()+'Descriptor') for length in lengths}
-        filter_conditions = []
-
-        for length in lengths:
-            filter_conditions = [(length_dict.get(length).descriptor.ilike('%{}%'.format(word))) for word in keywords]
+        filter_conditions = [dbmodel.PLADetails.test_name.ilike('%{}%'.format(word))) for word in keywords]
+        filter_conditions += [dbmodel.Manufacturer.name.ilike('%{}%'.format(word))) for word in keywords]
+        filter_conditions += [dbmodel.Lab.name.ilike('%{}%'.format(word))) for word in keywords]
 
         return query.filter(or_(*filter_conditions))

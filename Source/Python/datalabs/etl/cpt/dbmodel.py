@@ -181,6 +181,8 @@ class LabPLACodeMapping(Base):
     lab = sa.Column(sa.Integer, sa.ForeignKey("cpt.lab.id"), nullable=False)
 
 
+
+
 class ReleasePLACodeMapping(Base):
     __tablename__ = 'release_pla_code_mapping'
     __table_args__ = {"schema": "cpt"}
