@@ -212,22 +212,18 @@ module "endpoint_modifiers" {
 }
 
 
-# module "endpoint_latest_pdfs" {
-#     source = "./endpoint"
+module "endpoint_latest_pdfs" {
+    source = "./endpoint"
 
-#     function_name       = local.function_names.latest_pdfs
-#     task_class          = local.task_classes.latest_pdfs
-#     region              = local.region
-#     account_id          = data.aws_caller_identity.account.account_id
-#     role                = aws_iam_role.lambda_role.arn
-#     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-#     database_name       = aws_db_instance.cpt_api_database.name
-#     database_host       = aws_db_instance.cpt_api_database.address
-
-
-#     function_name_TEST   = local.function_names.latest_pdfs
-#     api_gateway_id_TEST  = aws_api_gateway_rest_api.cpt_api_gateway_TEST.id
-# }
+    function_name       = local.function_names.latest_pdfs
+    task_class          = local.task_classes.latest_pdfs
+    region              = local.region
+    account_id          = data.aws_caller_identity.account.account_id
+    role                = aws_iam_role.lambda_role.arn
+    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    database_name       = aws_db_instance.cpt_api_database.name
+    database_host       = aws_db_instance.cpt_api_database.address
+}
 
 
 # module "endpoint_pdfs" {

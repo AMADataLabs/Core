@@ -11,6 +11,7 @@ class APIEndpointParameters:
     path: dict
     query: dict
     database: dict
+    bucket: dict
 
 
 class APIEndpointTask(Task, DatabaseTaskMixin):
@@ -54,3 +55,8 @@ class InvalidRequest(APIEndpointException):
 class ResourceNotFound(APIEndpointException):
     def __init__(self, message):
         super().__init__(message, 404)
+
+
+class InternalServerError(APIEndpointException):
+    def __init__(self, message):
+        super().__init__(message, 500)

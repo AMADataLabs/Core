@@ -19,6 +19,8 @@ resource "aws_lambda_function" "endpoint_lambda" {
             DATABASE_HOST           = var.database_host
             DATABASE_USERNAME       = data.aws_ssm_parameter.database_username.value
             DATABASE_PASSWORD       = data.aws_ssm_parameter.database_password.value
+            BUCKET_NAME             = data.aws_ssm_parameter.processed_bucket.value
+            BUCKET_URL_DURATION     = "600"
         }
     }
 
@@ -38,6 +40,11 @@ data "aws_ssm_parameter" "database_username" {
 
 data "aws_ssm_parameter" "database_password" {
     name = "/DataLabs/CPT/RDS/password"
+}
+
+
+data "aws_ssm_parameter" "processed_bucket" {
+    name = "/DataLabs/DataLake/processed_bucket"
 }
 
 

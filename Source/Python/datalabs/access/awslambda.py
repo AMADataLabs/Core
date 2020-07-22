@@ -20,6 +20,10 @@ class APIEndpointTaskWrapper(TaskWrapper):
                 username=os.getenv('DATABASE_USERNAME'),
                 password=os.getenv('DATABASE_PASSWORD')
             ),
+            bucket=dict(
+                name=os.getenv('BUCKET_NAME'),
+                url_duration=os.getenv('BUCKET_URL_DURATION'),
+            )
         )
 
     def _handle_exception(self, exception: APIEndpointException) -> (int, dict):

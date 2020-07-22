@@ -12,3 +12,5 @@ DATABASE_NAME={{ database_name }}
 DATABASE_BACKEND=postgresql+psycopg2
 DATABASE_USERNAME={{ database_username }}
 DATABASE_PASSWORD={{ database_password }}
+PDF_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
+PDF_URL_DURATION=600
