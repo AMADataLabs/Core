@@ -12,9 +12,10 @@ LOGGER.setLevel(logging.INFO)
 class CPTFileToCSVTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug('Data to transform: %s', self._parameters.data)
+        _, data = zip(*self._parameters.data)  # unpack the list of (filename, data) tuples
         parsers = self._instantiate_parsers()
 
-        parsed_data = [parser.parse(text) for parser, text in zip(parsers, self._parameters.data)]
+        parsed_data = [parser.parse(text) for parser, text in zip(parsers, data)]
 
         return [datum.to_csv(index=False) for datum in parsed_data]
 

@@ -15,12 +15,14 @@ spec:
     to:
       kind: ImageStreamTag
       name: bitbucket-sync:latest
+      namespace: hsg-data-labs-dev
   postCommit: {}
   resources: {}
   runPolicy: Serial
   source:
     git:
       uri: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
+      # ref: story/DL-807
     sourceSecret:
       name: bitbucketprd
     type: Git
@@ -30,6 +32,12 @@ spec:
       from:
         kind: ImageStreamTag
         name: python:3.7
+      env:
+        - name: BITBUCKET_SSH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: bitbucketprd
+              key: ssh-privatekey
     type: Docker
   successfulBuildsHistoryLimit: 5
   triggers:
