@@ -65,7 +65,7 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
             data.clinician_descriptor_code_mapping
         )
 
-        TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
+        TableUpdater(self._session, dbmodel.PLADetails, 'code').update(data.pla_details)
 
         # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
 
