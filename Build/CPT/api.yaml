@@ -538,7 +538,7 @@ paths:
       description: Provides a time-limited URL to a zip archive of the PDFs from the most recent release
       operationId: getPDFLink
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_pdfs_arn}/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_latest_pdfs_arn}/invocations"
         responses:
           default:
             statusCode: "200"
