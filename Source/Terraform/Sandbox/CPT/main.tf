@@ -72,6 +72,14 @@ resource "aws_ssm_parameter" "converted_data_files" {
 }
 
 
+resource "aws_ssm_parameter" "pdf_files" {
+    name  = "/DataLabs/CPT/data/pdf_files"
+    type  = "String"
+    value = "CPT Link Release Notes *.pdf,standard/AnesthesiaGuidelines.pdf,standard/AppendixB.pdf,standard/AppendixN.pdf,standard/AppendixO.pdf,standard/CategoryIIGuidelines.pdf,standard/CategoryIIIGuidelines.pdf,standard/CPT * README.pdf,standard/EvalManagementGuidelines.pdf,standard/MedicineGuidelines.pdf,standard/PathLabGuidelines.pdf,standard/RadiologyGuidelines.pdf,standard/Clinician Descriptors/* Clinician Descriptors README.pdf,standard/Consumer Friendly Descriptors/* Consumer Friendly Descriptors README.pdf"
+    tags = local.tags
+}
+
+
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
 }

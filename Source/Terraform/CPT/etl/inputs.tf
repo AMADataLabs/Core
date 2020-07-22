@@ -39,3 +39,17 @@ variable "database_host" {
     description = "API RDS host"
     type        = string
 }
+
+
+variable "data_pipeline_ingestion" {
+    description = "Indicates an ingestion-side data pipeline ETL"
+    type        = bool
+    default     = false
+}
+
+
+variable "data_pipeline_api" {
+    description = "Indicates an API-side data pipeline ETL"
+    type        = bool
+    default     = false
+}

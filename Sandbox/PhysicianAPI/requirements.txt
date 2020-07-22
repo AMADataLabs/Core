@@ -1,5 +1,4 @@
 aniso8601==7.0.0
-Django==2.2.7
 django-filter==2.2.0
 djangorestframework==3.10.3
 graphene==2.1.8
