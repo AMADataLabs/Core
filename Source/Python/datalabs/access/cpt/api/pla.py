@@ -22,14 +22,10 @@ class BasePLADetailsEndpointTask(APIEndpointTask):
 
         query = self._filter(query)
 
-        self._response_body = self._generate_response_body(query.all(), lengths)
+        self._response_body = self._generate_response_body(query.all())
 
     def _set_parameter_defaults(self):
         self._parameters.query['keyword'] = self._parameters.query.get('keyword') or []
-
-    @classmethod
-    def _lengths_are_valid(cls, lengths):
-        return all(length in cls.LENGTH_MODEL_NAMES.keys() for length in lengths)
 
     @classmethod
     def _query_for_descriptors(cls, session):
@@ -58,7 +54,7 @@ class BasePLADetailsEndpointTask(APIEndpointTask):
         pass
 
     @classmethod
-    def _generate_response_body(cls, rows, lengths):
+    def _generate_response_body(cls, rows):
         body = []
 
         for row in rows:
@@ -115,9 +111,9 @@ class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask):
         return query
 
     @classmethod
-    def _filter_for_keywords(cls, query, keywords, lengths):
-        filter_conditions = [dbmodel.PLADetails.test_name.ilike('%{}%'.format(word))) for word in keywords]
-        filter_conditions += [dbmodel.Manufacturer.name.ilike('%{}%'.format(word))) for word in keywords]
-        filter_conditions += [dbmodel.Lab.name.ilike('%{}%'.format(word))) for word in keywords]
+    def _filter_for_keywords(cls, query, keywords):
+        filter_conditions = [dbmodel.PLADetails.test_name.ilike('%{}%'.format(word)) for word in keywords]
+        filter_conditions += [dbmodel.Manufacturer.name.ilike('%{}%'.format(word)) for word in keywords]
+        filter_conditions += [dbmodel.Lab.name.ilike('%{}%'.format(word)) for word in keywords]
 
         return query.filter(or_(*filter_conditions))
