@@ -33,7 +33,7 @@ class CPTLinkParser(Parser):
 class DeletionHistoryParser(CPTLinkParser):
     def __init__(self):
         super().__init__(
-            ['concept_id', 'cpt_code', 'date_deleted', 'level', 'description', 'instruction'], header=0
+            ['concept_id', 'cpt_code', 'date_deleted', 'level', 'descriptor', 'instruction'], header=0
         )
 
 
