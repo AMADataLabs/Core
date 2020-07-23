@@ -13,6 +13,7 @@ if [ x"$USER_ID" != x"0" -a x"$USER_ID" != x"1001" ]; then
     export LD_PRELOAD
 
     mkdir /ScheduledJobPoC/.ssh
-    chmod go-rwx /ScheduledJobPoC/.ssh
+    touch /ScheduledJobPoC/.ssh/known_hosts
+    chmod -Rf go-rwx /ScheduledJobPoC/.ssh
 fi
 exec tini -- "$@"
