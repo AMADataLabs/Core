@@ -3,6 +3,11 @@ provider "aws" {
 }
 
 
+module "datalabs_terraform_state" {
+    source = "../../Module/DataLabs"
+}
+
+
 resource "aws_ssm_parameter" "account_environment" {
     name  = "/DataLabs/account_environment"
     type  = "String"

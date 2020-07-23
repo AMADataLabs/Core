@@ -1,5 +1,3 @@
-
-
 resource "aws_s3_bucket" "terraform_state_store" {
     bucket = data.aws_ssm_parameter.terraform_state_bucket.value
 
