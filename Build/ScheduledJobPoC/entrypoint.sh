@@ -11,5 +11,8 @@ if [ x"$USER_ID" != x"0" -a x"$USER_ID" != x"1001" ]; then
     export NSS_WRAPPER_GROUP
     LD_PRELOAD=/usr/local/lib64/libnss_wrapper.so
     export LD_PRELOAD
+
+    mkdir /ScheduledJobPoC/.ssh
+    chmod go-rwx /ScheduledJobPoC/.ssh
 fi
 exec tini -- "$@"
