@@ -5,8 +5,8 @@ USER_ID=$(id -u)
 if [ x"$USER_ID" != x"0" -a x"$USER_ID" != x"1001" ]; then
     NSS_WRAPPER_PASSWD=/tmp/passwd.nss_wrapper
     NSS_WRAPPER_GROUP=/etc/group
-    cat /etc/passwd | sed -e 's/^bitbucketsync:/builder:/' > $NSS_WRAPPER_PASSWD
-    echo "bitbucketsync:x:$USER_ID:0:BitBucketSync,,,:/BitBucketSync:/bin/bash" >> $NSS_WRAPPER_PASSWD
+    cat /etc/passwd | sed -e 's/^mockuser:/builder:/' > $NSS_WRAPPER_PASSWD
+    echo "mockuser:x:$USER_ID:0:MockUser,,,:/ScheduledJobPoC:/bin/bash" >> $NSS_WRAPPER_PASSWD
     export NSS_WRAPPER_PASSWD
     export NSS_WRAPPER_GROUP
     LD_PRELOAD=/usr/local/lib64/libnss_wrapper.so

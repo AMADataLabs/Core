@@ -53,7 +53,7 @@ RUN curl -SL -o nss_wrapper.tar.gz https://ftp.samba.org/pub/cwrap/nss_wrapper-1
 
 ENV HOME /ScheduledJobPoC
 
-RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "ScheduledJobPoC" bubba
+RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "ScheduledJobPoC" mockuser
 
 COPY ./Build/BitBucketSync/OpenShift/entrypoint.sh entrypoint.sh
 RUN chmod +x ${HOME}/entrypoint.sh

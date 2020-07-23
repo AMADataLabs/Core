@@ -11,8 +11,9 @@ spec:
           containers:
           containers:
           - command:
-            - python
+            - /ScheduledJobPoC/entrypoint.sh
             args:
+            - python
             - put_foo.py
             image: >-
               docker-registry.default.svc:5000/hsg-data-labs-dev/scheduled-job-poc
