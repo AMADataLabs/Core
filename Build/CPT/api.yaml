@@ -28,9 +28,7 @@ tags:
       Appendix A-Modifiers
   - name: PLA
     description: >-
-      Proprietary Laboratory Analysis Codes with long, medium, short
-      descriptors. Includes various dates, code status, lab name, manufacturer
-      name, and test name.
+      Proprietary Laboratory Analysis Code details. Specifically, the associated test, manufacturer, and lab names.
   - name: PDF
     description: Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
   - name: Releases
@@ -330,14 +328,6 @@ paths:
           required: true
           schema:
             type: string
-        - name: length
-          in: query
-          description: 'Filter by "long", "medium", "short" descriptors'
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_pla_details_arn}/invocations"
         responses:
@@ -369,18 +359,10 @@ paths:
       description: ALL PLA codes
       operationId: getAllPLADetails
       parameters:
-        - name: length
-          in: query
-          description: 'Filter by "long", "medium", "short" descriptors'
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
         - name: keyword
           in: query
           description: >-
-            Filter by keyword across the text of any of the descriptor lengths.
+            Filter by keyword across the text of any of the name fields.
           required: false
           schema:
             type: array
@@ -667,9 +649,6 @@ components:
       type: object
       required:
         - code
-        - short_descriptor
-        - medium_descriptor
-        - long_descriptor
         - effective_date
         - lab_name
         - manufacturer_name

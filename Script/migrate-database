@@ -120,7 +120,7 @@ upgrade_database() {
 }
 
 
-upgrade_database() {
+downgrade_database() {
     cd ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
 
     python ${SCRIPT_BASE_PATH}/run.py alembic downgrade $TARGET_VERSION
