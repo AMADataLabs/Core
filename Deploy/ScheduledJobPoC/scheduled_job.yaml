@@ -1,0 +1,21 @@
+apiVersion: batch/v2alpha1
+kind: ScheduledJob
+metadata:
+  name: scheduled-job-poc
+spec:
+  schedule: */1 * * * *   
+  jobTemplate:             
+    spec:
+      template:
+        spec:
+          containers:
+          containers:
+          - command:
+            - python
+            args:
+            - put_foo.py
+            image: >-
+              docker-registry.default.svc:5000/hsg-data-labs-dev/scheduled-job-poc
+            imagePullPolicy: Always
+            name: scheduled-job-poc
+          restartPolicy: Never
