@@ -13,7 +13,7 @@ if [ x"$USER_ID" != x"0" -a x"$USER_ID" != x"1001" ]; then
     export LD_PRELOAD
 
     mkdir /ScheduledJobPoC/.ssh
-    touch /ScheduledJobPoC/.ssh/known_hosts
+    echo "|1|73cHl1zspROg3smLvYE3liBdIyI=|wOijRpt1JN3EWSwO5jejNKyA68o= ssh-rsa AAAAB3NzaC1yc2EAAAABEQAAAQEAqQX4RaqXGy0/QjCSPrDVrmY8jMKwXXVEvD0iB8Q2q8DE/X5wqTuFR2Dg6KZygUo7IERLMMUVYTzsnDwHF/3kXNFtBtB0oOuV81LNSXe7afKBUzmOwHwAWhM99MXrb6R7bQ9XgefXYxGtFlpaPoBGrOs0+YUFiSYAVsl5EBe5QVpY4myfX9aBpjzHcwFXviviC9ytJNunhVxi2WL3ebk3fCkf0XcKPc+pbWfhUzERPuWhHnjDyYI5/GStMdIaGs5i5OYboMQJC60DDhECeHnjuo5MvNxq7P4W+pEUZUuj85z7Kf3SseFy7j1q34sTEn1UsVKimv1BP32f+6vv08m6tw==" > /ScheduledJobPoC/.ssh/known_hosts
     chmod -Rf go-rwx /ScheduledJobPoC/.ssh
 fi
 exec tini -- "$@"
