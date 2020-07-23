@@ -10,5 +10,6 @@ WORKDIR /ScheduledJobPoC
 COPY ./Build/ScheduledJobPoC/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
+COPY ./Build/ScheduledJobPoC/put_foo.py .
 RUN touch foo
 RUN chmod go+r foo

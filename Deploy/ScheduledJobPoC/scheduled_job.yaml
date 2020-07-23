@@ -1,9 +1,9 @@
-apiVersion: batch/v2alpha1
-kind: ScheduledJob
+apiVersion: batch/v1beta1
+kind: CronJob
 metadata:
   name: scheduled-job-poc
 spec:
-  schedule: */1 * * * *   
+  schedule: "*/1 * * * *"
   jobTemplate:             
     spec:
       template:
