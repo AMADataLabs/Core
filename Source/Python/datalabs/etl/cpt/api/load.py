@@ -41,53 +41,55 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
         release_table_updater = ReleaseTableUpdater(self._session)
         release_table_updater.update(data.release)
 
-        TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
+        # TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
 
-        ReleaseCodeMappingTableUpdater(self._session, release_table_updater.release_id).update(
+        ReleaseCodeMappingTableUpdater(
+            self._session, dbmodel.ReleaseCodeMapping, 'date', dbmodel.Release, 'id'
+        ).update(
             data.release_code_mapping
         )
 
-        TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
+        # TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
+        #
+        # TableUpdater(self._session, dbmodel.MediumDescriptor, 'code').update(data.medium_descriptor)
+        #
+        # TableUpdater(self._session, dbmodel.LongDescriptor, 'code').update(data.long_descriptor)
+        #
+        # TableUpdater(self._session, dbmodel.ModifierType, 'id', match_column='name').update(data.modifier_type)
+        #
+        # ModifierTableUpdater(self._session).update(data.modifier)
+        #
+        # TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code').update(data.consumer_descriptor)
+        #
+        # TableUpdater(self._session, dbmodel.ClinicianDescriptor, 'id').update(data.clinician_descriptor)
+        #
+        # TableUpdater(self._session, dbmodel.ClinicianDescriptorCodeMapping, 'clinician_descriptor').update(
+        #     data.clinician_descriptor_code_mapping
+        # )
 
-        TableUpdater(self._session, dbmodel.MediumDescriptor, 'code').update(data.medium_descriptor)
-
-        TableUpdater(self._session, dbmodel.LongDescriptor, 'code').update(data.long_descriptor)
-
-        TableUpdater(self._session, dbmodel.ModifierType, 'id', match_column='name').update(data.modifier_type)
-
-        ModifierTableUpdater(self._session).update(data.modifier)
-
-        TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code').update(data.consumer_descriptor)
-
-        TableUpdater(self._session, dbmodel.ClinicianDescriptor, 'id').update(data.clinician_descriptor)
-
-        TableUpdater(self._session, dbmodel.ClinicianDescriptorCodeMapping, 'clinician_descriptor').update(
-            data.clinician_descriptor_code_mapping
-        )
-
-        TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
-
-        # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
-
-        TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
-
-        TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
-
-        TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
-
-        TableUpdater(self._session, dbmodel.Manufacturer, 'id', match_column='name').update(data.manufacturer)
-
-        TableUpdater(self._session, dbmodel.Lab, 'id', match_column='name').update(data.lab)
-
-        OneToManyTableUpdater(
-            self._session, dbmodel.ManufacturerPLACodeMapping, 'code', dbmodel.Manufacturer, 'manufacturer'
-        ).update(
-            data.manufacturer_pla_code_mapping
-        )
-
-        OneToManyTableUpdater(
-            self._session, dbmodel.LabPLACodeMapping, 'code', dbmodel.Lab, 'lab'
-        ).update(data.lab_pla_code_mapping)
+        # TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
+        #
+        # # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
+        #
+        # TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
+        #
+        # TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
+        #
+        # TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
+        #
+        # TableUpdater(self._session, dbmodel.Manufacturer, 'id', match_column='name').update(data.manufacturer)
+        #
+        # TableUpdater(self._session, dbmodel.Lab, 'id', match_column='name').update(data.lab)
+        #
+        # OneToManyTableUpdater(
+        #     self._session, dbmodel.ManufacturerPLACodeMapping, 'code', dbmodel.Manufacturer, 'manufacturer'
+        # ).update(
+        #     data.manufacturer_pla_code_mapping
+        # )
+        #
+        # OneToManyTableUpdater(
+        #     self._session, dbmodel.LabPLACodeMapping, 'code', dbmodel.Lab, 'lab'
+        # ).update(data.lab_pla_code_mapping)
 
         self._session.commit()
 
@@ -297,21 +299,34 @@ class ReleaseTableUpdater(TableUpdater):
 
 
 class ReleaseCodeMappingTableUpdater(TableUpdater):
-    def __init__(self, session, release_id: int):
-        super().__init__(session, dbmodel.ReleaseCodeMapping, 'id')
+    # pylint: disable=too-many-arguments
+    def __init__(self, session, model_class: type, primary_key, many_model_class, many_key):
+        super().__init__(session, model_class, primary_key)
 
-        self._release_id = release_id
+        self._many_model_class = many_model_class
+        self._many_key = many_key
 
-    def _differentiate_data(self, current_data, data):
-        current_columns = [column + '_CURRENT' for column in self._get_changeable_columns()]
-        old_data = pandas.DataFrame(columns=data.columns.values.tolist() + current_columns)
-        new_data = data
-        new_data.release = self._release_id
+    def update(self, data):
+        data = self._resolve_key_values_to_ids(data)
 
-        if all(current_data.release == self._release_id):
-            new_data = pandas.DataFrame(columns=new_data.columns)
+        super().update(data)
 
-        return old_data, new_data
+    def _resolve_key_values_to_ids(self, data):
+        lookup_data = self._session.query(self._many_model_class).all()
+        id_map = self._map_key_values_to_ids(lookup_data)
+
+        data.loc[:, self._many_key] = data[self._many_key].apply(id_map.get)
+
+        return data[~pandas.isnull(data[self._many_key])]
+
+    @classmethod
+    def _map_key_values_to_ids(cls, lookup_data):
+        id_map = {}
+
+        for lookup_object in lookup_data:
+            id_map[lookup_object.effective_date] = lookup_object.id
+
+        return id_map
 
 
 class ModifierTableUpdater(TableUpdater):

@@ -1,17 +1,18 @@
 """ CPT ETL Transformer classes """
-from   dataclasses import dataclass
-from   datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, date
 import io
 import logging
 
+import numpy as np
 import pandas
 
-from   datalabs.etl.transform import TransformerTask
-
+from datalabs.etl.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
 
 # pylint: disable=too-many-instance-attributes
 @dataclass
@@ -24,6 +25,9 @@ class InputData:
     consumer_descriptor: pandas.DataFrame
     clinician_descriptor: pandas.DataFrame
     pla: pandas.DataFrame
+    deleted_history: pandas.DataFrame
+    modifier_history: pandas.DataFrame
+    code_history: pandas.DataFrame
 
 
 # pylint: disable=too-many-instance-attributes
@@ -59,13 +63,13 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return self._generate_tables(input_data)
 
     def _generate_tables(self, input_data):
-        releases = self._generate_release_table(input_data.release)
+        releases = self._generate_release_table(input_data.release, input_data.code_history)
         codes = self._generate_code_table(input_data.short_descriptor)
 
         tables = OutputData(
             release=releases,
             code=codes,
-            release_code_mapping=self._generate_release_code_mapping_table(releases, codes),
+            release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history),
             short_descriptor=self._generate_descriptor_table('short_descriptor', input_data.short_descriptor),
             medium_descriptor=self._generate_descriptor_table('medium_descriptor', input_data.medium_descriptor),
             long_descriptor=self._generate_descriptor_table('long_descriptor', input_data.long_descriptor),
@@ -90,12 +94,57 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return tables
 
     @classmethod
-    def _generate_release_table(cls, releases):
-        releases.id = None
-        releases.publish_date = releases.publish_date.apply(lambda x: datetime.strptime(x, '%Y-%m-%d').date())
-        releases.effective_date = releases.effective_date.apply(lambda x: datetime.strptime(x, '%Y-%m-%d').date())
+    def _generate_release_table(cls, releases, code_history):
+        history = code_history.date.unique()
+        history_unique = np.delete(history, [0, 7])
+        effective_dates = [datetime.strptime(date, '%Y%m%d').date().strftime('%Y-%m-%d') for date in history_unique]
+
+        release_types = [cls._generate_release_type(datetime.strptime(date, '%Y%m%d')) for date in history_unique]
+        publish_dates = [cls._generate_release_publish_date(datetime.strptime(date, '%Y%m%d')) for date in
+                         history_unique]
+
+        releases = pandas.DataFrame(
+            {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
 
         return releases
+
+    @classmethod
+    def _generate_release_type(cls, release_date):
+        release_schedule = {"ANNUAL": ["1-Sep", "1-Jan"], "PLA-Q1": ["1-Jan", "1-Apr"], "PLA-Q2": ["1-Apr", "1-Jul"],
+                            "PLA-Q3": ["1-Jul", "1-Oct"], "PLA-Q4": ["1-Oct", "1-Jan"]}
+
+        release_types = list(release_schedule.keys())
+        release_types.append('OTHER')
+
+        release_date_for_lookup = date(1900, release_date.month, release_date.day)
+
+        for release_type in release_schedule:
+            release_schedule[release_type] = [datetime.strptime(datestamp, '%d-%b').date() for datestamp in
+                                              release_schedule[release_type]]
+
+        types = {dates[0]: type for type, dates in release_schedule.items()}
+
+        date_type = types.get(release_date_for_lookup, 'OTHER')
+
+        return date_type
+
+    @classmethod
+    def _generate_release_publish_date(cls, release_date):
+        release_schedule = {"ANNUAL": ["1-Sep", "1-Jan"], "PLA-Q1": ["1-Jan", "1-Apr"], "PLA-Q2": ["1-Apr", "1-Jul"],
+                            "PLA-Q3": ["1-Jul", "1-Oct"], "PLA-Q4": ["1-Oct", "1-Jan"]}
+
+        release_date_for_lookup = date(1900, release_date.month, release_date.day)
+
+        for release_type in release_schedule:
+            release_schedule[release_type] = [datetime.strptime(datestamp, '%d-%b').date() for datestamp in
+                                              release_schedule[release_type]]
+
+        publish_date = {dates: type for type, dates in release_schedule.values()}
+
+        date_type = publish_date.get(release_date_for_lookup, release_date)
+        date_type = date(release_date.year, date_type.month, date_type.day).strftime('%Y-%m-%d')
+
+        return date_type
 
     @classmethod
     def _generate_code_table(cls, descriptors):
@@ -107,11 +156,15 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return codes
 
     @classmethod
-    def _generate_release_code_mapping_table(cls, releases, codes):
-        ids = [None] * len(codes)  # Placeholder for new mapping IDs
-        releases = [None] * len(codes)  # the new release ID is unknown until it is committed to the DB
+    def _generate_release_code_mapping_table(cls, code_history):
+        mapping_table = code_history[['cpt_code', 'date']].rename(
+            columns=dict(cpt_code='code')
+        )
+        mapping_table = mapping_table[mapping_table.date != 'Pre-1982']
+        mapping_table = mapping_table[mapping_table.date != 'Pre-1990']
+        mapping_table.date = mapping_table.date.apply(lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
 
-        return pandas.DataFrame(dict(id=ids, release=releases, code=codes.code))
+        return mapping_table
 
     @classmethod
     def _generate_clinician_descriptor_table(cls, descriptors):
