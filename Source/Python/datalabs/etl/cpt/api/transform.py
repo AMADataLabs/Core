@@ -63,7 +63,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return self._generate_tables(input_data)
 
     def _generate_tables(self, input_data):
-        releases = self._generate_release_table(input_data.release, input_data.code_history)
+        releases = self._generate_release_table(input_data.code_history)
         codes = self._generate_code_table(input_data.short_descriptor)
 
         tables = OutputData(
@@ -94,7 +94,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return tables
 
     @classmethod
-    def _generate_release_table(cls, releases, code_history):
+    def _generate_release_table(cls, code_history):
         history = code_history.date.unique()
         history_unique = np.delete(history, [0, 7])
         effective_dates = [datetime.strptime(date, '%Y%m%d').date().strftime('%Y-%m-%d') for date in history_unique]
