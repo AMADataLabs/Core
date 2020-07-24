@@ -4,15 +4,19 @@ metadata:
   name: scheduled-job-poc
 spec:
   schedule: "*/1 * * * *"
+  concurrencyPolicy: Forbid
   jobTemplate:             
     spec:
       template:
         spec:
           containers:
-          containers:
           - command:
             - /ScheduledJobPoC/entrypoint.sh
             args:
+            # - /bin/bash
+            # - -c
+            # - --
+            # - "while true; do sleep 30; done;"
             - python
             - put_foo.py
             image: >-
