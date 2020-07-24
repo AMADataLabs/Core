@@ -3,6 +3,10 @@ provider "aws" {
 }
 
 
+module "datalabs_terraform_state" {
+    source = "../../Module/DataLake"
+}
+
 resource "aws_ssm_parameter" "ingestion_bucket" {
     name  = "/DataLabs/DataLake/ingestion_bucket"
     type  = "String"
