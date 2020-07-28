@@ -120,6 +120,6 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
         filter_conditions = []
 
         for length in lengths:
-            filter_conditions = [(length_dict.get(length).descriptor.ilike('%{}%'.format(word))) for word in keywords]
+            filter_conditions += [(length_dict.get(length).descriptor.ilike('%{}%'.format(word))) for word in keywords]
 
         return query.filter(or_(*filter_conditions))

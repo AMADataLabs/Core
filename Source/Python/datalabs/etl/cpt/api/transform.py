@@ -44,15 +44,11 @@ class OutputData:
     consumer_descriptor: pandas.DataFrame
     clinician_descriptor: pandas.DataFrame
     clinician_descriptor_code_mapping: pandas.DataFrame
-    pla_code: pandas.DataFrame
-    pla_short_descriptor: pandas.DataFrame
-    pla_long_descriptor: pandas.DataFrame
-    pla_medium_descriptor: pandas.DataFrame
+    pla_details: pandas.DataFrame
     manufacturer: pandas.DataFrame
     manufacturer_pla_code_mapping: pandas.DataFrame
     lab: pandas.DataFrame
     lab_pla_code_mapping: pandas.DataFrame
-    # pla_release: pandas.DataFrame
 
 
 class CSVToRelationalTablesTransformerTask(TransformerTask):
@@ -63,33 +59,42 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return self._generate_tables(input_data)
 
     def _generate_tables(self, input_data):
-        releases = self._generate_release_table(input_data.code_history)
-        codes = self._generate_code_table(input_data.short_descriptor)
+
+        codes = self._generate_code_table(input_data.short_descriptor, input_data.pla)
 
         tables = OutputData(
-            release=releases,
+            release=self._generate_release_table(input_data.code_history),
             code=codes,
             release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history,
                                                                            input_data.deleted_history),
-            short_descriptor=self._generate_descriptor_table('short_descriptor', input_data.short_descriptor),
-            medium_descriptor=self._generate_descriptor_table('medium_descriptor', input_data.medium_descriptor),
-            long_descriptor=self._generate_descriptor_table('long_descriptor', input_data.long_descriptor),
+            short_descriptor=self._generate_descriptor_table(
+                'short_descriptor',
+                input_data.short_descriptor,
+                input_data.pla
+            ),
+            medium_descriptor=self._generate_descriptor_table(
+                'medium_descriptor',
+                input_data.medium_descriptor,
+                input_data.pla
+            ),
+            long_descriptor=self._generate_descriptor_table(
+                'long_descriptor',
+                input_data.long_descriptor,
+                input_data.pla
+            ),
             modifier_type=self._generate_modifier_type_table(input_data.modifier),
             modifier=self._generate_modifier_table(input_data.modifier),
-            consumer_descriptor=self._generate_descriptor_table('consumer_descriptor', input_data.consumer_descriptor),
+            consumer_descriptor=self._generate_consumer_descriptor_table(codes, input_data.consumer_descriptor),
             clinician_descriptor=self._generate_clinician_descriptor_table(input_data.clinician_descriptor),
             clinician_descriptor_code_mapping=self._generate_clinician_descriptor_code_mapping_table(
+                codes,
                 input_data.clinician_descriptor
             ),
-            pla_code=self._generate_pla_code_table(input_data.pla),
-            pla_short_descriptor=self._generate_pla_descriptor_table('short_descriptor', input_data.pla),
-            pla_medium_descriptor=self._generate_pla_descriptor_table('medium_descriptor', input_data.pla),
-            pla_long_descriptor=self._generate_pla_descriptor_table('long_descriptor', input_data.pla),
+            pla_details=self._generate_pla_details_table(input_data.pla),
             manufacturer=self._generate_pla_manufacturer_table(input_data.pla),
             manufacturer_pla_code_mapping=self._generate_pla_manufacturer_code_mapping_table(input_data.pla),
             lab=self._generate_pla_lab_table(input_data.pla),
             lab_pla_code_mapping=self._generate_pla_lab_code_mapping_table(input_data.pla),
-            # pla_release=self._generate_pla_release_code_mapping_table(input_data.pla)
         )
 
         return tables
@@ -149,9 +154,14 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return date_type
 
     @classmethod
-    def _generate_code_table(cls, descriptors):
+    def _generate_code_table(cls, descriptors, pla_details):
         codes = descriptors[['cpt_code']].rename(
             columns=dict(cpt_code='code')
+        )
+        codes = codes.append(
+            pla_details[['pla_code']].rename(
+                columns=dict(pla_code='code')
+            )
         )
         codes['deleted'] = False
 
@@ -179,6 +189,31 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return mapping_table
 
     @classmethod
+    def _generate_descriptor_table(cls, name, descriptors, pla_details):
+        columns = {'cpt_code': 'code', f'{name}': 'descriptor'}
+        descriptor_table = descriptors.rename(columns=columns)
+        descriptor_table = descriptor_table.append(
+            pla_details[['pla_code', f'{name}']].rename(
+                columns={'pla_code':'code', f'{name}': 'descriptor'}
+            )
+        )
+        descriptor_table['deleted'] = False
+
+        return descriptor_table
+
+    @classmethod
+    def _generate_consumer_descriptor_table(cls, codes, descriptors):
+        columns = {'cpt_code': 'code', 'consumer_descriptor': 'descriptor'}
+        descriptor_table = descriptors.rename(columns=columns)
+        descriptor_table['deleted'] = False
+
+        orphaned_codes = list(descriptor_table.code[~descriptor_table.code.isin(codes.code)])
+        if len(orphaned_codes) > 0:
+            LOGGER.warn('Ignoring Consumer Descriptors for the following missing codes: %s', orphaned_codes)
+
+        return descriptor_table[descriptor_table.code.isin(codes.code)]
+
+    @classmethod
     def _generate_clinician_descriptor_table(cls, descriptors):
         descriptor_table = descriptors[
             ['clinician_descriptor_id', 'clinician_descriptor']
@@ -190,23 +225,18 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return descriptor_table
 
     @classmethod
-    def _generate_clinician_descriptor_code_mapping_table(cls, descriptors):
+    def _generate_clinician_descriptor_code_mapping_table(cls, codes, descriptors):
         mapping_table = descriptors[
             ['clinician_descriptor_id', 'cpt_code']
         ].rename(
             columns=dict(clinician_descriptor_id='clinician_descriptor', cpt_code='code')
         )
-        mapping_table = mapping_table[mapping_table.code.apply(lambda x: not x.endswith('U'))]
 
-        return mapping_table
+        orphaned_codes = list(mapping_table.code[~mapping_table.code.isin(codes.code)])
+        if len(orphaned_codes) > 0:
+            LOGGER.warn('Ignoring Clinician Descriptor mappings for the following missing codes: %s', orphaned_codes)
 
-    @classmethod
-    def _generate_descriptor_table(cls, name, descriptors):
-        columns = {'cpt_code': 'code', f'{name}': 'descriptor'}
-        descriptor_table = descriptors.rename(columns=columns)
-        descriptor_table['deleted'] = False
-
-        return descriptor_table[descriptor_table.code.apply(lambda x: not x.endswith('U'))]
+        return mapping_table[mapping_table.code.isin(codes.code)]
 
     @classmethod
     def _generate_modifier_type_table(cls, modifiers):
@@ -219,21 +249,13 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return modifiers
 
     @classmethod
-    def _generate_pla_code_table(cls, pla_details):
+    def _generate_pla_details_table(cls, pla_details):
         codes = pla_details[['pla_code', 'status', 'test']].rename(
             columns=dict(pla_code='code', test='test_name')
         )
         codes['deleted'] = False
 
         return codes
-
-    @classmethod
-    def _generate_pla_descriptor_table(cls, name, pla_details):
-        columns = {'pla_code': 'code', f'{name}': 'descriptor'}
-        descriptor_table = pla_details[['pla_code', f'{name}']].rename(columns=columns)
-        descriptor_table['deleted'] = False
-
-        return descriptor_table
 
     @classmethod
     def _generate_pla_manufacturer_table(cls, pla_details):

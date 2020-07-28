@@ -38,58 +38,47 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
             self._update_tables(self._parameters.data)
 
     def _update_tables(self, data: transform.OutputData):
-        # release_table_updater = ReleaseTableUpdater(self._session)
-        # release_table_updater.update(data.release)
+        release_table_updater = ReleaseTableUpdater(self._session)
+        release_table_updater.update(data.release)
 
-        # TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
+        TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
 
         ReleaseCodeMappingTableUpdater(
-            self._session, dbmodel.ReleaseCodeMapping, 'code', dbmodel.Release, 'release'
-        ).update(
-            data.release_code_mapping
+            self._session, dbmodel.ReleaseCodeMapping, 'code', dbmodel.Release, 'release')
+
+        TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
+
+        TableUpdater(self._session, dbmodel.MediumDescriptor, 'code').update(data.medium_descriptor)
+
+        TableUpdater(self._session, dbmodel.LongDescriptor, 'code').update(data.long_descriptor)
+
+        TableUpdater(self._session, dbmodel.ModifierType, 'id', match_column='name').update(data.modifier_type)
+
+        ModifierTableUpdater(self._session).update(data.modifier)
+
+        TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code').update(data.consumer_descriptor)
+
+        TableUpdater(self._session, dbmodel.ClinicianDescriptor, 'id').update(data.clinician_descriptor)
+
+        TableUpdater(self._session, dbmodel.ClinicianDescriptorCodeMapping, 'clinician_descriptor').update(
+            data.clinician_descriptor_code_mapping
         )
 
-        # TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
-        #
-        # TableUpdater(self._session, dbmodel.MediumDescriptor, 'code').update(data.medium_descriptor)
-        #
-        # TableUpdater(self._session, dbmodel.LongDescriptor, 'code').update(data.long_descriptor)
-        #
-        # TableUpdater(self._session, dbmodel.ModifierType, 'id', match_column='name').update(data.modifier_type)
-        #
-        # ModifierTableUpdater(self._session).update(data.modifier)
-        #
-        # TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code').update(data.consumer_descriptor)
-        #
-        # TableUpdater(self._session, dbmodel.ClinicianDescriptor, 'id').update(data.clinician_descriptor)
-        #
-        # TableUpdater(self._session, dbmodel.ClinicianDescriptorCodeMapping, 'clinician_descriptor').update(
-        #     data.clinician_descriptor_code_mapping
-        # )
+        TableUpdater(self._session, dbmodel.PLADetails, 'code').update(data.pla_details)
 
-        # TableUpdater(self._session, dbmodel.PLACode, 'code').update(data.pla_code)
-        #
-        # # TableUpdater(self._session, dbmodel.ReleasePLACodeMapping, 'release').update(???)
-        #
-        # TableUpdater(self._session, dbmodel.PLAShortDescriptor, 'code').update(data.pla_short_descriptor)
-        #
-        # TableUpdater(self._session, dbmodel.PLAMediumDescriptor, 'code').update(data.pla_medium_descriptor)
-        #
-        # TableUpdater(self._session, dbmodel.PLALongDescriptor, 'code').update(data.pla_long_descriptor)
-        #
-        # TableUpdater(self._session, dbmodel.Manufacturer, 'id', match_column='name').update(data.manufacturer)
-        #
-        # TableUpdater(self._session, dbmodel.Lab, 'id', match_column='name').update(data.lab)
-        #
-        # OneToManyTableUpdater(
-        #     self._session, dbmodel.ManufacturerPLACodeMapping, 'code', dbmodel.Manufacturer, 'manufacturer'
-        # ).update(
-        #     data.manufacturer_pla_code_mapping
-        # )
-        #
-        # OneToManyTableUpdater(
-        #     self._session, dbmodel.LabPLACodeMapping, 'code', dbmodel.Lab, 'lab'
-        # ).update(data.lab_pla_code_mapping)
+        TableUpdater(self._session, dbmodel.Manufacturer, 'id', match_column='name').update(data.manufacturer)
+
+        TableUpdater(self._session, dbmodel.Lab, 'id', match_column='name').update(data.lab)
+
+        OneToManyTableUpdater(
+            self._session, dbmodel.ManufacturerPLACodeMapping, 'code', dbmodel.Manufacturer, 'manufacturer'
+        ).update(
+            data.manufacturer_pla_code_mapping
+        )
+
+        OneToManyTableUpdater(
+            self._session, dbmodel.LabPLACodeMapping, 'code', dbmodel.Lab, 'lab'
+        ).update(data.lab_pla_code_mapping)
 
         self._session.commit()
 

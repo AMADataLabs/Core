@@ -124,56 +124,15 @@ class Modifier(Base):
     deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
-# === CPT Link Tables ===
-class Concept(Base):
-    __tablename__ = 'concept'
-    __table_args__ = {"schema": "cpt"}
-
-    id = sa.Column(sa.Integer, primary_key=True)
-    cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False)
-    modified_date = sa.Column(sa.Date, nullable=False)
-    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
-
-
-class PLACode(Base):
-    __tablename__ = 'pla_code'
+# === PLA Tables ===
+class PLADetails(Base):
+    __tablename__ = 'pla_details'
     __table_args__ = {"schema": "cpt"}
 
     code = sa.Column(sa.String(5), nullable=False, primary_key=True)
     status = sa.Column(sa.String, nullable=False)
     test_name = sa.Column(sa.String, nullable=False)
     modified_date = sa.Column(sa.Date, nullable=False)
-    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
-
-
-class PLAShortDescriptor(Base):
-    __tablename__ = 'pla_short_descriptor'
-    __table_args__ = {"schema": "cpt"}
-
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
-    descriptor = sa.Column(sa.String(28), nullable=False)
-    modified_date = sa.Column(sa.Date, nullable=False)
-    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
-
-
-class PLAMediumDescriptor(Base):
-    __tablename__ = 'pla_medium_descriptor'
-    __table_args__ = {"schema": "cpt"}
-
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
-    descriptor = sa.Column(sa.String(48), nullable=False)
-    modified_date = sa.Column(sa.Date, nullable=False)
-    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
-
-
-class PLALongDescriptor(Base):
-    __tablename__ = 'pla_long_descriptor'
-    __table_args__ = {"schema": "cpt"}
-
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
-    descriptor = sa.Column(sa.String(), nullable=False)
-    modified_date = sa.Column(sa.Date, nullable=False)
-    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class Manufacturer(Base):
@@ -190,7 +149,7 @@ class ManufacturerPLACodeMapping(Base):
     __tablename__ = 'manufacturer_pla_code_mapping'
     __table_args__ = {"schema": "cpt"}
 
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_details.code"), primary_key=True)
     manufacturer = sa.Column(sa.Integer, sa.ForeignKey("cpt.manufacturer.id"), nullable=False)
 
 
@@ -208,14 +167,16 @@ class LabPLACodeMapping(Base):
     __tablename__ = 'lab_pla_code_mapping'
     __table_args__ = {"schema": "cpt"}
 
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), primary_key=True)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_details.code"), primary_key=True)
     lab = sa.Column(sa.Integer, sa.ForeignKey("cpt.lab.id"), nullable=False)
 
 
-class ReleasePLACodeMapping(Base):
-    __tablename__ = 'release_pla_code_mapping'
+# === CPT Link Tables ===
+class Concept(Base):
+    __tablename__ = 'concept'
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), nullable=True)
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.pla_code.code"), nullable=False)
+    cpt_code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False)
+    modified_date = sa.Column(sa.Date, nullable=False)
+    deleted = sa.Column(sa.Boolean, nullable=False, default=False)
