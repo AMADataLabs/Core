@@ -2,6 +2,7 @@ provider "aws" {
     region = "us-east-1"
 }
 
+
 resource "aws_db_instance" "cpt_api_database" {
     identifier                    = var.rds_instance_name
     instance_class                = var.rds_instance_class
@@ -428,7 +429,6 @@ locals {
         DataClassification  = local.na
         BudgetCode          = "PBW"
         Owner               = "Data Labs"
-        Notes               = ""
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

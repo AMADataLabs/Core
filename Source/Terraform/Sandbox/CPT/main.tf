@@ -3,25 +3,13 @@ provider "aws" {
 }
 
 
-module "datalabs_terraform_state" {
+module "cpt" {
     source = "../../Module/CPT"
 
     rds_instance_name   = "database-test-ui"
     rds_instance_class  = "db.t2.micro"
     rds_storage_type    = "gp2"
     database_name       = "sample"
-}
-
-
-resource "aws_kms_key" "cpt" {
-  description   = "CPT KMS key"
-  tags          = local.tags
-}
-
-
-resource "aws_kms_alias" "a" {
-  name          = "alias/DataLabs/CPT"
-  target_key_id = aws_kms_key.cpt.key_id
 }
 
 

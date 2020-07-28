@@ -1,3 +1,15 @@
+resource "aws_kms_key" "cpt" {
+  description   = "CPT KMS key"
+  tags          = local.tags
+}
+
+
+resource "aws_kms_alias" "cpt" {
+  name          = "alias/DataLabs/CPT"
+  target_key_id = aws_kms_key.cpt.key_id
+}
+
+
 resource "aws_ssm_parameter" "database_username" {
     name  = "/DataLabs/CPT/RDS/username"
     type  = "String"
@@ -9,7 +21,7 @@ resource "aws_ssm_parameter" "database_username" {
 resource "aws_ssm_parameter" "database_password" {
     name    = "/DataLabs/CPT/RDS/password"
     type    = "SecureString"
-    key_id  = aws_kms_key.cpt.key_id
+    key_id  = data.aws_kms_key.cpt.key_id
     value   = var.password
     tags    = local.tags
 }
@@ -60,4 +72,9 @@ resource "aws_ssm_parameter" "pdf_files" {
     type  = "String"
     value = "CPT Link Release Notes *.pdf,standard/AnesthesiaGuidelines.pdf,standard/AppendixB.pdf,standard/AppendixN.pdf,standard/AppendixO.pdf,standard/CategoryIIGuidelines.pdf,standard/CategoryIIIGuidelines.pdf,standard/CPT * README.pdf,standard/EvalManagementGuidelines.pdf,standard/MedicineGuidelines.pdf,standard/PathLabGuidelines.pdf,standard/RadiologyGuidelines.pdf,standard/Clinician Descriptors/* Clinician Descriptors README.pdf,standard/Consumer Friendly Descriptors/* Consumer Friendly Descriptors README.pdf"
     tags = local.tags
+}
+
+
+data "aws_kms_key" "cpt" {
+    key_id = "alias/DataLabs/CPT"
 }
