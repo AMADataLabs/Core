@@ -3,7 +3,7 @@ import io
 import logging
 import pandas
 
-from datalabs.curate.parse import Parser
+from   datalabs.curate.parse import Parser
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

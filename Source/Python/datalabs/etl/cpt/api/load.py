@@ -43,9 +43,8 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
 
         TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
 
-        ReleaseCodeMappingTableUpdater(self._session, release_table_updater.release_id).update(
-            data.release_code_mapping
-        )
+        ReleaseCodeMappingTableUpdater(
+            self._session, dbmodel.ReleaseCodeMapping, 'code', dbmodel.Release, 'release').update(data.release_code_mapping)
 
         TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
 
@@ -100,7 +99,6 @@ class TableUpdater:
         LOGGER.debug('New data: %s', data)
 
         old_data, new_data = self._differentiate_data(current_data, data)
-
         self._update_data(current_models, old_data)
 
         self._add_data(new_data)
@@ -251,7 +249,7 @@ class TableUpdater:
 
 class ReleaseTableUpdater(TableUpdater):
     def __init__(self, session):
-        super().__init__(session, dbmodel.Release, 'id', match_column='publish_date')
+        super().__init__(session, dbmodel.Release, 'id', match_column='effective_date')
 
         self._current_models = None
         self._new_models = None
@@ -274,7 +272,7 @@ class ReleaseTableUpdater(TableUpdater):
     def _get_current_data(self):
         self._current_models, current_data = super()._get_current_data()
 
-        self._current_models.sort(key=lambda x: x.publish_date)
+        self._current_models.sort(key=lambda x: x.effective_date)
 
         return self._current_models, current_data
 
@@ -289,21 +287,31 @@ class ReleaseTableUpdater(TableUpdater):
 
 
 class ReleaseCodeMappingTableUpdater(TableUpdater):
-    def __init__(self, session, release_id: int):
-        super().__init__(session, dbmodel.ReleaseCodeMapping, 'id')
+    # pylint: disable=too-many-arguments
+    def __init__(self, session, model_class: type, primary_key, many_model_class, many_key):
+        super().__init__(session, model_class, primary_key)
 
-        self._release_id = release_id
+        self._many_model_class = many_model_class
+        self._many_key = many_key
 
-    def _differentiate_data(self, current_data, data):
-        current_columns = [column + '_CURRENT' for column in self._get_changeable_columns()]
-        old_data = pandas.DataFrame(columns=data.columns.values.tolist() + current_columns)
-        new_data = data
-        new_data.release = self._release_id
+    def update(self, data):
+        data = self._resolve_key_values_to_ids(data)
+        super().update(data)
 
-        if all(current_data.release == self._release_id):
-            new_data = pandas.DataFrame(columns=new_data.columns)
+    def _resolve_key_values_to_ids(self, data):
+        lookup_data = self._session.query(self._many_model_class).all()
+        id_map = self._map_key_values_to_ids(lookup_data)
+        data.loc[:, self._many_key] = data[self._many_key].apply(id_map.get)
 
-        return old_data, new_data
+        return data[~pandas.isnull(data[self._many_key])]
+
+    @classmethod
+    def _map_key_values_to_ids(cls, lookup_data):
+        id_map = {}
+        for lookup_object in lookup_data:
+            id_map[lookup_object.effective_date.strftime('%Y-%m-%d')] = lookup_object.id
+
+        return id_map
 
 
 class ModifierTableUpdater(TableUpdater):
