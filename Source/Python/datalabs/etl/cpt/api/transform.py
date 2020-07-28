@@ -66,7 +66,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
             release=self._generate_release_table(input_data.code_history),
             code=codes,
             release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history,
-                                                                           input_data.deleted_history),
+                                                                           codes),
             short_descriptor=self._generate_descriptor_table(
                 'short_descriptor',
                 input_data.short_descriptor,
@@ -168,13 +168,12 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return codes
 
     @classmethod
-    def _generate_release_code_mapping_table(cls, code_history, deleted):
-        mapping_table = code_history[['date', 'cpt_code','change_type']].rename(columns=dict(date='release',
-                                                                                             cpt_code='code',
-                                                                                             change_type='change'))
-        deleted = deleted[['cpt_code']].rename(columns=dict(cpt_code='code'))
+    def _generate_release_code_mapping_table(cls, code_history, codes):
+        mapping_table = code_history[['date', 'cpt_code', 'change_type']].rename(columns=dict(date='release',
+                                                                                              cpt_code='code',
+                                                                                              change_type='change'))
 
-        mapping_table = mapping_table.loc[~mapping_table['code'].isin(deleted.code)]
+        mapping_table = mapping_table.loc[mapping_table['code'].isin(codes.code)]
         mapping_table = mapping_table.loc[mapping_table['change'] == 'ADDED']
         mapping_table = mapping_table.replace(['Pre-1982', 'Pre-1990'], '19900101')
         mapping_table.release = mapping_table.release.apply(
@@ -183,6 +182,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         mapping_table.reset_index(drop=True)
 
         mapping_table['id'] = list(range(len(mapping_table)))
+
         # mapping_table = pandas.DataFrame({'id': list(range(len(deleted_codes))), 'release': releases, 'code': code})
         # mapping_table.release = mapping_table.release.apply(lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
 
@@ -194,7 +194,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         descriptor_table = descriptors.rename(columns=columns)
         descriptor_table = descriptor_table.append(
             pla_details[['pla_code', f'{name}']].rename(
-                columns={'pla_code':'code', f'{name}': 'descriptor'}
+                columns={'pla_code': 'code', f'{name}': 'descriptor'}
             )
         )
         descriptor_table['deleted'] = False
