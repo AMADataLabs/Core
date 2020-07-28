@@ -38,13 +38,13 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
             self._update_tables(self._parameters.data)
 
     def _update_tables(self, data: transform.OutputData):
-        release_table_updater = ReleaseTableUpdater(self._session)
-        release_table_updater.update(data.release)
+        # release_table_updater = ReleaseTableUpdater(self._session)
+        # release_table_updater.update(data.release)
 
         # TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
 
         ReleaseCodeMappingTableUpdater(
-            self._session, dbmodel.ReleaseCodeMapping, 'date', dbmodel.Release, 'id'
+            self._session, dbmodel.ReleaseCodeMapping, 'code', dbmodel.Release, 'release'
         ).update(
             data.release_code_mapping
         )
@@ -110,7 +110,6 @@ class TableUpdater:
         LOGGER.debug('New data: %s', data)
 
         old_data, new_data = self._differentiate_data(current_data, data)
-
         self._update_data(current_models, old_data)
 
         self._add_data(new_data)
@@ -284,7 +283,7 @@ class ReleaseTableUpdater(TableUpdater):
     def _get_current_data(self):
         self._current_models, current_data = super()._get_current_data()
 
-        self._current_models.sort(key=lambda x: x.publish_date)
+        self._current_models.sort(key=lambda x: x.effective_date)
 
         return self._current_models, current_data
 
@@ -308,13 +307,11 @@ class ReleaseCodeMappingTableUpdater(TableUpdater):
 
     def update(self, data):
         data = self._resolve_key_values_to_ids(data)
-
         super().update(data)
 
     def _resolve_key_values_to_ids(self, data):
         lookup_data = self._session.query(self._many_model_class).all()
         id_map = self._map_key_values_to_ids(lookup_data)
-
         data.loc[:, self._many_key] = data[self._many_key].apply(id_map.get)
 
         return data[~pandas.isnull(data[self._many_key])]
@@ -322,9 +319,8 @@ class ReleaseCodeMappingTableUpdater(TableUpdater):
     @classmethod
     def _map_key_values_to_ids(cls, lookup_data):
         id_map = {}
-
         for lookup_object in lookup_data:
-            id_map[lookup_object.effective_date] = lookup_object.id
+            id_map[lookup_object.effective_date.strftime('%Y-%m-%d')] = lookup_object.id
 
         return id_map
 

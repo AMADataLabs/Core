@@ -69,7 +69,8 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         tables = OutputData(
             release=releases,
             code=codes,
-            release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history),
+            release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history,
+                                                                           input_data.deleted_history),
             short_descriptor=self._generate_descriptor_table('short_descriptor', input_data.short_descriptor),
             medium_descriptor=self._generate_descriptor_table('medium_descriptor', input_data.medium_descriptor),
             long_descriptor=self._generate_descriptor_table('long_descriptor', input_data.long_descriptor),
@@ -106,6 +107,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         releases = pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
 
+        releases.reset_index(drop=True)
         return releases
 
     @classmethod
@@ -156,13 +158,23 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return codes
 
     @classmethod
-    def _generate_release_code_mapping_table(cls, code_history):
-        mapping_table = code_history[['cpt_code', 'date']].rename(
-            columns=dict(cpt_code='code')
-        )
-        mapping_table = mapping_table[mapping_table.date != 'Pre-1982']
-        mapping_table = mapping_table[mapping_table.date != 'Pre-1990']
-        mapping_table.date = mapping_table.date.apply(lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
+    def _generate_release_code_mapping_table(cls, code_history, deleted):
+        mapping_table = code_history[['date', 'cpt_code','change_type']].rename(columns=dict(date='release',
+                                                                                             cpt_code='code',
+                                                                                             change_type='change'))
+        deleted = deleted[['cpt_code']].rename(columns=dict(cpt_code='code'))
+
+        mapping_table = mapping_table.loc[~mapping_table['code'].isin(deleted.code)]
+        mapping_table = mapping_table.loc[mapping_table['change'] == 'ADDED']
+        mapping_table = mapping_table.replace(['Pre-1982', 'Pre-1990'], '19900101')
+        mapping_table.release = mapping_table.release.apply(
+            lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
+        mapping_table = mapping_table.drop(columns=['change'])
+        mapping_table.reset_index(drop=True)
+
+        mapping_table['id'] = list(range(len(mapping_table)))
+        # mapping_table = pandas.DataFrame({'id': list(range(len(deleted_codes))), 'release': releases, 'code': code})
+        # mapping_table.release = mapping_table.release.apply(lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
 
         return mapping_table
 
