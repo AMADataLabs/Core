@@ -13,6 +13,8 @@ resource "aws_lambda_function" "etl_lambda" {
         variables = merge(local.variables, var.variables)
     }
 
+    depends_on = [var.parent_function]
+
     tags = merge(local.tags, {Name = "CPT API ETL Lambda Function"})
 }
 
