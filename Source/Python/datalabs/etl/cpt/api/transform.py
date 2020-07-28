@@ -1,13 +1,13 @@
 """ CPT ETL Transformer classes """
-from dataclasses import dataclass
-from datetime import datetime, date
+from   dataclasses import dataclass
+from   datetime import datetime, date
 import io
 import logging
 
 import numpy as np
 import pandas
 
-from datalabs.etl.transform import TransformerTask
+from   datalabs.etl.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -176,15 +176,14 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         mapping_table = mapping_table.loc[mapping_table['code'].isin(codes.code)]
         mapping_table = mapping_table.loc[mapping_table['change'] == 'ADDED']
         mapping_table = mapping_table.replace(['Pre-1982', 'Pre-1990'], '19900101')
+
         mapping_table.release = mapping_table.release.apply(
             lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
+
         mapping_table = mapping_table.drop(columns=['change'])
         mapping_table.reset_index(drop=True)
 
         mapping_table['id'] = list(range(len(mapping_table)))
-
-        # mapping_table = pandas.DataFrame({'id': list(range(len(deleted_codes))), 'release': releases, 'code': code})
-        # mapping_table.release = mapping_table.release.apply(lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
 
         return mapping_table
 
