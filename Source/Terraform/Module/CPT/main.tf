@@ -3,11 +3,11 @@ provider "aws" {
 }
 
 resource "aws_db_instance" "cpt_api_database" {
-    identifier                    = "database-test-ui"  # FIXME: change to "datalabs-api-backend"
-    name                          = "sample"
-    instance_class                = "db.t2.micro"
+    identifier                    = var.rds_instance_name
+    instance_class                = var.rds_instance_class
+    storage_type                  = var.rds_storage_type
+    name                          = var.database_name
     allocated_storage             = 20
-    storage_type                  = "gp2"
     engine                        = "postgres"
     engine_version                = "11.5"
     parameter_group_name          = "default.postgres11"
@@ -27,7 +27,7 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
     name = "CPT API"
     description = local.spec_description
     body = templatefile(
-        "${path.module}/../../../Build/CPT/api.yaml",
+        "${path.module}/../../../../Build/CPT/api.yaml",
         {
             title = "CPT API",
             description = local.spec_description,
