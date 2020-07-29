@@ -1,5 +1,7 @@
 resource "aws_sns_topic" "ingestion" {
     name = "IngestionBucketNotification"
+
+    tags = merge(local.tags, {Name = "Data Labs Data Lake Ingestion Bucket Notification Topic"})
 }
 
 
@@ -61,6 +63,8 @@ resource "aws_s3_bucket_notification" "ingestion_sns_notification" {
 
 resource "aws_sns_topic" "processed" {
     name = "ProcessedBucketNotification"
+
+    tags = merge(local.tags, {Name = "Data Labs Data Lake Processed Bucket Notification Topic"})
 }
 
 
