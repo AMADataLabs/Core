@@ -5,12 +5,11 @@ import json
 from xml.dom import minidom
 
 
-class MarkLogicConnection(object):
+class MarkLogicConnection:
 
-    def __init__(self, username, password, url=None, server='prod'):
-        self.auth = HTTPDigestAuth(username=username, password=password)
+    def __init__(self, username=None, password=None, url=None, server='prod'):
         self.url = url  # url takes the following form: "http://address:port/version"
-
+        self.auth = HTTPDigestAuth(username, password)
         if url is None:
             # server URLs
             prod = 'http://appp1462:8000/LATEST'
@@ -19,9 +18,9 @@ class MarkLogicConnection(object):
 
             # server aliases linked to URLs
             servers = {
-                ['prod', 'production']: prod,
-                ['test']: test,
-                ['dev', 'development']: dev}
+                ('prod', 'production'): prod,
+                ('test'): test,
+                ('dev', 'development'): dev}
 
             for aliases in servers:
                 if server in aliases:
@@ -33,7 +32,6 @@ class MarkLogicConnection(object):
         # test connection
         response = requests.get(self.url.replace('/LATEST', ''), auth=self.auth)
         response.raise_for_status()
-
 
     def get_file_uris(self, database='PhysicianSanctions', collection='json_data', query=''):
         """

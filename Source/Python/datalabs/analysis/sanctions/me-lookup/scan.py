@@ -5,36 +5,40 @@ import jaydebeapi
 from datalabs.access.ml_sanctions import MarkLogicConnection
 import settings
 
+import pyodbc
+
 
 class SanctionsMEScan:
-    def __init__(self):
-        self.marklogic_username = None
-        self.marklogic_password = None
-        self.aims_source_name = None
-        self.aims_username = None
-        self.aims_password = None
+    def __init__(self, server):
+        self._marklogic_username = None
+        self._marklogic_password = None
+        self._aims_source_name = None
+        self._aims_username = None
+        self._aims_password = None
 
-        self.marklogic_con = None
-        self.aims_con = None
+        self._marklogic_con = None
+        self._server = server
+        self._aims_con = None
 
     def _set_environment_variables(self):
-        self.marklogic_username = os.environ.get('CREDENTIALS_MARKLOGIC_USERNAME')
-        self.marklogic_password = os.environ.get('CREDENTIALS_MARKLOGIC_PASSWOERD')
-        self.aims_source_name = os.environ.get('DATABASE_NAME_AIMS')
-        self.aims_username = os.environ.get('CREDENTIALS_AIMS_USERNAME')
-        self.aims_username = os.environ.get('CREDENTIALS_AIMS_PASSWORD')
+        self._marklogic_username = os.environ.get('CREDENTIALS_MARKLOGIC_USERNAME')
+        self._marklogic_password = os.environ.get('CREDENTIALS_MARKLOGIC_PASSWORD')
+        self._aims_source_name = os.environ.get('DATABASE_NAME_AIMS')
+        self._aims_username = os.environ.get('CREDENTIALS_AIMS_USERNAME')
+        self._aims_username = os.environ.get('CREDENTIALS_AIMS_PASSWORD')
 
     def _set_database_connections(self):
-        self.marklogic_con = MarkLogicConnection(username=self.marklogic_username,
-                                                 password=self.marklogic_password)
-        self.aims_con = jaydebeapi.connect(jclassname='',
-                                           url='',
-                                           driver_args={'DSN': 'aims_prod',
-                                                        'UID': self.aims_username,
-                                                        'PWD': self.aims_password},
-                                           jars='',
-                                           libs='')
-        self.aims_con.cursor().execute('SET ISOLATION TO DIRTY READ;')
+        self._marklogic_con = MarkLogicConnection(username=self._marklogic_username,
+                                                  password=self._marklogic_password,
+                                                  server=self._server)
+
+        self._aims_con = jaydebeapi.connect(
+            'com/informix/jdbc/IfxConnection',
+            'jdbc:informix-sqli://rdbp1627.ama-assn.org:22093/aims_prod:informixserver=prd1srvxnet',
+            [self._aims_username, self._aims_password],
+            './jdbc-4.50.2.fix-1.jar')
+
+        self._aims_con.cursor().execute('SET ISOLATION TO DIRTY READ;')
 
     @classmethod
     def _get_state(cls, uri: str):
@@ -49,10 +53,10 @@ class SanctionsMEScan:
         :param uris: list of MarkLogic document URIs--sanction metadata files--to scan
         :return: None
         """
+        uris = [f for f in uris if 'summarylist' not in f]  # remove Summary List files
         for uri in uris:
             # download the json file for this URI
-            json_data = json.loads(self.marklogic_con.get_file(uri=uri))
-
+            json_data = json.loads(self._marklogic_con.get_file(uri=uri))
             me_nbr = json_data['sanction']['physician']['me']
 
             # if ME not entered, it may be eligible for a ME search
@@ -70,15 +74,12 @@ class SanctionsMEScan:
                         me_nbr = self._get_me_nbr(first=first,
                                                   last=last,
                                                   state=state,
-                                                  lic_nbr=lic_nbr,
-                                                  con=self.aims_con)
-
+                                                  lic_nbr=lic_nbr)
                         if me_nbr is not None:
                             # updating file
-                            self.marklogic_con.set_me_nbr(uri=uri, json_file=json_data, me_nbr=me_nbr)
+                            self._marklogic_con.set_me_nbr(uri=uri, json_file=json_data, me_nbr=me_nbr)
 
-    @classmethod
-    def _get_me_nbr(cls, first, last, state, lic_nbr, con):
+    def _get_me_nbr(self, first, last, state, lic_nbr):
         """
         initial search is just on first + last because I was getting some weird errors / unexpected behavior when
         using state_cd to compare to state in the SQL query. Final matching on state and license number are done
@@ -112,7 +113,7 @@ class SanctionsMEScan:
             """
 
         sql = sql_template.format(first.upper(), last.upper())
-        data = pd.read_sql(con=con, sql=sql)
+        data = pd.read_sql(con=self._aims_con, sql=sql)
 
         # sometimes the license number in our databases has a prefix, "MD" or "DO" to designate license type.
         # to be flexible with unknown prefixes/suffixes, I just look to see if our license number contains the target.
@@ -126,7 +127,7 @@ class SanctionsMEScan:
         # if there were no results, it's possible that first and last name in the metadata file were swapped.
         else:
             sql = sql_template.format(last, first)
-            data = pd.read_sql(con=con, sql=sql)
+            data = pd.read_sql(con=self._aims_con, sql=sql)
 
             data = data[
                 (data['state_cd'] == state) & (data['lic_nbr'].apply(lambda x: str(lic_nbr) in x))].drop_duplicates()
@@ -141,7 +142,5 @@ class SanctionsMEScan:
     def run(self):
         self._set_environment_variables()
         self._set_database_connections()
-
-        uris = self.marklogic_con.get_file_uris()
-        uris = [f for f in uris if 'summarylist' not in f]  # remote Summary List files
+        uris = self._marklogic_con.get_file_uris()
         self._scan_uris(uris=uris)
