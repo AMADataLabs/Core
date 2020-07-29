@@ -8,16 +8,42 @@ resource "aws_sns_topic_policy" "ingestion" {
 
     policy = <<POLICY
 {
-    "Version":"2012-10-17",
-    "Statement":[{
-        "Effect": "Allow",
-        "Principal": {"AWS":"*"},
-        "Action": "SNS:Publish",
-        "Resource": "arn:aws:sns:*:*:IngestionBucketNotification",
-        "Condition":{
-            "ArnLike":{"aws:SourceArn":"${aws_s3_bucket.datalake_ingestion_bucket.arn}"}
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowAccountSubscribe",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": [
+        "SNS:Subscribe",
+        "SNS:Receive"
+      ],
+      "Resource": "${aws_sns_topic.ingestion.arn}",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceAccount": "${data.aws_caller_identity.account.account_id}"
         }
-    }]
+      }
+    },
+    {
+      "Sid": "AllowBucketPublish",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Action": [
+        "SNS:Publish"
+      ],
+      "Resource": "${aws_sns_topic.ingestion.arn}",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "${aws_s3_bucket.datalake_ingestion_bucket.arn}"
+        }
+      }
+    }
+  ]
 }
 POLICY
 }
@@ -43,20 +69,45 @@ resource "aws_sns_topic_policy" "processed" {
 
     policy = <<POLICY
 {
-    "Version":"2012-10-17",
-    "Statement":[{
-        "Effect": "Allow",
-        "Principal": {"AWS":"*"},
-        "Action": "SNS:Publish",
-        "Resource": "arn:aws:sns:*:*:ProcessedBucketNotification",
-        "Condition":{
-            "ArnLike":{"aws:SourceArn":"${aws_s3_bucket.datalake_processed_bucket.arn}"}
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowAccountSubscribe",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": [
+        "SNS:Subscribe",
+        "SNS:Receive"
+      ],
+      "Resource": "${aws_sns_topic.processed.arn}",
+      "Condition": {
+        "StringEquals": {
+          "AWS:SourceAccount": "${data.aws_caller_identity.account.account_id}"
         }
-    }]
+      }
+    },
+    {
+      "Sid": "AllowBucketPublish",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "s3.amazonaws.com"
+      },
+      "Action": [
+        "SNS:Publish"
+      ],
+      "Resource": "${aws_sns_topic.processed.arn}",
+      "Condition": {
+        "ArnLike": {
+          "aws:SourceArn": "${aws_s3_bucket.datalake_processed_bucket.arn}"
+        }
+      }
+    }
+  ]
 }
 POLICY
 }
-
 
 resource "aws_s3_bucket_notification" "processed_sns_notification" {
     bucket = data.aws_ssm_parameter.processed_bucket.value

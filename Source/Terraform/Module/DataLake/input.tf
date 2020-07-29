@@ -18,6 +18,9 @@ data "aws_ssm_parameter" "processed_bucket" {
 }
 
 
+data "aws_caller_identity" "account" {}
+
+
 locals {
     system_tier         = "Application"
     na                  = "N/A"

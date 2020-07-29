@@ -21,6 +21,8 @@ def lambda_handler(event,context):
             InvocationType = 'RequestResponse',
             Payload = json.dumps({})
         )
+
+    return 200, None
 EOF
     filename = "main.py"
   }
@@ -50,11 +52,18 @@ resource "aws_lambda_function" "ingestion_etl_router" {
 
 
 resource "aws_lambda_permission" "ingestion_etl_router" {
-    statement_id    = "AllowS3Invoke"
+    statement_id    = "AllowSNSInvoke"
     action          = "lambda:InvokeFunction"
     function_name   = local.function_names.ingestion_etl_router
-    principal       = "s3.amazonaws.com"
-    source_arn      = "arn:aws:sns:::${data.aws_sns_topic.ingestion.name}"
+    principal       = "sns.amazonaws.com"
+    source_arn      = data.aws_sns_topic.ingestion.arn
+}
+
+
+resource "aws_sns_topic_subscription" "ingestion_etl_router" {
+  topic_arn = data.aws_sns_topic.ingestion.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.ingestion_etl_router.arn
 }
 
 
@@ -81,11 +90,18 @@ resource "aws_lambda_function" "processed_etl_router" {
 
 
 resource "aws_lambda_permission" "processed_etl_router" {
-    statement_id    = "AllowS3Invoke"
+    statement_id    = "AllowLambdaInvoke"
     action          = "lambda:InvokeFunction"
     function_name   = local.function_names.processed_etl_router
-    principal       = "s3.amazonaws.com"
-    source_arn      = "arn:aws:sns:::${data.aws_sns_topic.processed.name}"
+    principal       = "sns.amazonaws.com"
+    source_arn      = data.aws_sns_topic.processed.arn
+}
+
+
+resource "aws_sns_topic_subscription" "processed_etl_router" {
+  topic_arn = data.aws_sns_topic.processed.arn
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.processed_etl_router.arn
 }
 
 
