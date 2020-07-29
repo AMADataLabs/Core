@@ -50,7 +50,5 @@ locals {
     system_tier         = "Application"
     na                  = "N/A"
     budget_code         = "PBW"
-    owner               = "Data Labs"
-    notes               = ""
+    owner               = "DataLabs"
 }
-

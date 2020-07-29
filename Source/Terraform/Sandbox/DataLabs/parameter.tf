@@ -44,7 +44,7 @@ locals {
     system_tier         = "Application"
     na                  = "N/A"
     budget_code         = "PBW"
-    owner               = "Data Labs"
+    owner               = "DataLabs"
     notes               = ""
     tags                = {
         Name = "Data Labs Data Lake Parameter"
@@ -55,6 +55,8 @@ locals {
         DataClassification  = local.na
         BudgetCode          = local.budget_code
         Owner               = local.owner
+        Group               = local.owner
+        Department          = "HSG"
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

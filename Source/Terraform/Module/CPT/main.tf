@@ -427,6 +427,7 @@ locals {
     spec_title          = "CPT API"
     spec_description    = "CPT API Phase I"
     na                  = "N/A"
+    owner               = "DataLabs"
     tags = {
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
@@ -434,7 +435,9 @@ locals {
         DRTier              = local.na
         DataClassification  = local.na
         BudgetCode          = "PBW"
-        Owner               = "Data Labs"
+        Owner               = local.owner
+        Group               = local.owner
+        Department          = "HSG"
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

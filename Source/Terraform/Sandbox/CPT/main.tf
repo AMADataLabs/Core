@@ -30,8 +30,7 @@ locals {
     system_tier         = "Application"
     na                  = "N/A"
     budget_code         = "PBW"
-    owner               = "Data Labs"
-    notes               = ""
+    owner               = "DataLabs"
     tags                = {
         Name = "Data Labs CPT Parameter"
         Env                 = data.aws_ssm_parameter.account_environment.value
@@ -41,6 +40,8 @@ locals {
         DataClassification  = local.na
         BudgetCode          = local.budget_code
         Owner               = local.owner
+        Group               = local.owner
+        Department          = "HSG"
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na
