@@ -1,18 +1,3 @@
-provider "aws" {
-    region = "us-east-1"
-}
-
-
-module "cpt" {
-    source = "../../Module/CPT"
-
-    rds_instance_name   = "database-test-ui"
-    rds_instance_class  = "db.t2.micro"
-    rds_storage_type    = "gp2"
-    database_name       = "sample"
-}
-
-
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
 }
@@ -23,7 +8,17 @@ data "aws_ssm_parameter" "contact" {
 }
 
 
-variable "password" {}
+data "aws_ssm_parameter" "ingestion_bucket" {
+    name = "/DataLabs/DataLake/ingestion_bucket"
+}
+
+
+data "aws_ssm_parameter" "processed_bucket" {
+    name = "/DataLabs/DataLake/processed_bucket"
+}
+
+
+data "aws_caller_identity" "account" {}
 
 
 locals {
@@ -32,8 +27,7 @@ locals {
     budget_code         = "PBW"
     owner               = "Data Labs"
     notes               = ""
-    tags                = {
-        Name = "Data Labs CPT Parameter"
+    tags = {
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
         SystemTier          = local.system_tier
@@ -41,6 +35,7 @@ locals {
         DataClassification  = local.na
         BudgetCode          = local.budget_code
         Owner               = local.owner
+        Notes               = local.notes
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

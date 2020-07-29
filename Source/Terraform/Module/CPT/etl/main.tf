@@ -1,31 +1,21 @@
-
-resource "aws_lambda_function" "endpoint_lambda" {
+resource "aws_lambda_function" "etl_lambda" {
     s3_bucket       = data.aws_ssm_parameter.lambda_code_bucket.value
     s3_key          = "CPT/CPT.zip"
-    function_name = var.function_name
+    function_name   = var.function_name
     role            = var.role
     handler         = "awslambda.handler"
     runtime         = "python3.7"
-    timeout         = 5
+    timeout         = 30
     memory_size     = 1024
     kms_key_arn     = data.aws_kms_key.cpt.arn
 
     environment {
-        variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.APIEndpointTaskWrapper"
-            TASK_CLASS              = var.task_class
-            DATABASE_NAME           = var.database_name
-            DATABASE_BACKEND        = var.database_backend
-            DATABASE_HOST           = var.database_host
-            DATABASE_USERNAME       = data.aws_ssm_parameter.database_username.value
-            DATABASE_PASSWORD       = data.aws_ssm_parameter.database_password.value
-            BUCKET_NAME             = data.aws_ssm_parameter.processed_bucket.value
-            BUCKET_BASE_PATH        = data.aws_ssm_parameter.s3_base_path.value
-            BUCKET_URL_DURATION     = "600"
-        }
+        variables = merge(local.variables, var.variables)
     }
 
-    tags = merge(local.tags, {Name = "CPT API Endpoint Lambda Function"})
+    depends_on = [var.parent_function]
+
+    tags = merge(local.tags, {Name = "CPT API ETL Lambda Function"})
 }
 
 
@@ -44,18 +34,8 @@ data "aws_ssm_parameter" "database_password" {
 }
 
 
-data "aws_ssm_parameter" "processed_bucket" {
-    name = "/DataLabs/DataLake/processed_bucket"
-}
-
-
 data "aws_ssm_parameter" "lambda_code_bucket" {
     name = "/DataLabs/lambda_code_bucket"
-}
-
-
-data "aws_ssm_parameter" "s3_base_path" {
-    name  = "/DataLabs/CPT/s3/base_path"
 }
 
 
@@ -86,5 +66,9 @@ locals {
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na
+    }
+    variables = {
+        TASK_WRAPPER_CLASS      = "datalabs.etl.awslambda.ETLTaskWrapper"
+        TASK_CLASS              = "datalabs.etl.task.ETLTask"
     }
 }

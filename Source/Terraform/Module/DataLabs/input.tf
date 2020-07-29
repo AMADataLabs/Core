@@ -1,18 +1,3 @@
-provider "aws" {
-    region = "us-east-1"
-}
-
-
-module "cpt" {
-    source = "../../Module/CPT"
-
-    rds_instance_name   = "database-test-ui"
-    rds_instance_class  = "db.t2.micro"
-    rds_storage_type    = "gp2"
-    database_name       = "sample"
-}
-
-
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
 }
@@ -23,7 +8,19 @@ data "aws_ssm_parameter" "contact" {
 }
 
 
-variable "password" {}
+data "aws_ssm_parameter" "terraform_state_bucket" {
+    name = "/DataLabs/Terraform/state_bucket"
+}
+
+
+data "aws_ssm_parameter" "terraform_locks_database" {
+    name = "/DataLabs/Terraform/locks_database"
+}
+
+
+data "aws_ssm_parameter" "lambda_code_bucket" {
+    name = "/DataLabs/lambda_code_bucket"
+}
 
 
 locals {
@@ -32,8 +29,7 @@ locals {
     budget_code         = "PBW"
     owner               = "Data Labs"
     notes               = ""
-    tags                = {
-        Name = "Data Labs CPT Parameter"
+    tags = {
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
         SystemTier          = local.system_tier

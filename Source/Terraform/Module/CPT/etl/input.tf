@@ -53,3 +53,14 @@ variable "data_pipeline_api" {
     type        = bool
     default     = false
 }
+
+
+variable "trigger_bucket" {
+    description = "S3 bucket that will trigger ETL Lambda functions"
+    type        = string
+}
+
+
+variable "parent_function" {
+    description = "Reference to the Lambda function allowed to invoke ETLs"
+}
