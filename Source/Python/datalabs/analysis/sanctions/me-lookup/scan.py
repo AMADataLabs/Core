@@ -5,8 +5,6 @@ import jaydebeapi
 from datalabs.access.ml_sanctions import MarkLogicConnection
 import settings
 
-import pyodbc
-
 
 class SanctionsMEScan:
     def __init__(self, server):
