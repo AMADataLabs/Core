@@ -2,7 +2,7 @@ import json
 import os
 import pandas as pd
 import jaydebeapi
-from datalabs.access.ml_sanctions import MarkLogicConnection
+from datalabs.access.sanctions.marklogic import MarkLogic
 import settings
 
 
@@ -26,9 +26,7 @@ class SanctionsMEScan:
         self._aims_username = os.environ.get('CREDENTIALS_AIMS_PASSWORD')
 
     def _set_database_connections(self):
-        self._marklogic_con = MarkLogicConnection(username=self._marklogic_username,
-                                                  password=self._marklogic_password,
-                                                  server=self._server)
+        self._marklogic_con = MarkLogic(server='prod')
 
         self._aims_con = jaydebeapi.connect(
             'com/informix/jdbc/IfxConnection',
@@ -53,29 +51,45 @@ class SanctionsMEScan:
         """
         uris = [f for f in uris if 'summarylist' not in f]  # remove Summary List files
         for uri in uris:
-            # download the json file for this URI
-            json_data = json.loads(self._marklogic_con.get_file(uri=uri))
+            self._scan_uri(uri)
+
+    def _scan_uri(self, uri: str):
+        # download the json file for this URI
+        json_data = json.loads(self._marklogic_con.get_file(uri=uri))
+
+        if self._needs_me(json_data) and self._is_searchable(json_data):
+            lic_nbr = json_data['sanction']['physician']['license']
+            first = json_data['sanction']['physician']['name_first']
+            last = json_data['sanction']['physician']['name_last']
+            state = self._get_state(uri)
+
+            me_nbr = self._get_me_nbr(first=first,
+                                      last=last,
+                                      state=state,
+                                      lic_nbr=lic_nbr)
+            if me_nbr is not None:
+                self._marklogic_con.set_me_nbr(uri=uri,
+                                               json_file=json_data,
+                                               me_nbr=me_nbr)
+
+    @classmethod
+    def _is_null(cls, value):
+        return value in ['None', None, 'Null', 'none', 'null', 'NA', 'na', '']
+
+    @classmethod
+    def _needs_me(cls, json_data):
+        try:
             me_nbr = json_data['sanction']['physician']['me']
+            return cls._is_null(me_nbr)
+        except:  # json_data not formatted properly
+            return False
 
-            # if ME not entered, it may be eligible for a ME search
-            if me_nbr in ['None', None, 'Null', 'none', 'null', 'NA', 'na', '']:
-
-                # if license is filled, we can perform a search for ME number
-                lic_nbr = json_data['sanction']['physician']['license']
-
-                if lic_nbr not in ['None', None, 'Null', 'none', 'null', '']:
-                    # license number is entered
-                    first = json_data['sanction']['physician']['name_first']
-                    last = json_data['sanction']['physician']['name_last']
-                    state = self._get_state(uri)
-                    if first is not None and last is not None:
-                        me_nbr = self._get_me_nbr(first=first,
-                                                  last=last,
-                                                  state=state,
-                                                  lic_nbr=lic_nbr)
-                        if me_nbr is not None:
-                            # updating file
-                            self._marklogic_con.set_me_nbr(uri=uri, json_file=json_data, me_nbr=me_nbr)
+    def _is_searchable(self, json_data):
+        lic_nbr = json_data['sanction']['physician']['license']
+        first = json_data['sanction']['physician']['name_first']
+        last = json_data['sanction']['physician']['name_last']
+        # if any of these are null, we can't search for ME nbr. NOT any null = ALL non-null = searchable
+        return not any([self._is_null(val) for val in [lic_nbr, first, last]])
 
     def _get_me_nbr(self, first, last, state, lic_nbr):
         """
@@ -83,59 +97,28 @@ class SanctionsMEScan:
         using state_cd to compare to state in the SQL query. Final matching on state and license number are done
         once the initial results are in a DataFrame.
         """
-        sql_template = \
-            """
-            SELECT 
-                ek.key_type_val,
-                nm.first_nm,
-                nm.last_nm,
-                lic.lic_nbr,
-                lic.state_cd
+        with open('sql_template.sql', 'r') as sql_template:
+            text = sql_template.read()
+            sql = text.format(first.upper(), last.upper())
+            sql_reversed = text.format(last.upper(), first.upper())
 
-            FROM
-                person_name_et nm
-
-                INNER JOIN
-                entity_key_et ek
-                ON nm.entity_id = ek.entity_id
-
-                INNER JOIN
-                license_lt lic
-                ON lic.entity_id = ek.entity_id
-
-            WHERE
-                ek.key_type          = "ME"    AND
-                UPPER(nm.first_nm)   = "{}"    AND
-                UPPER(nm.last_nm)    = "{}"
-            ;
-            """
-
-        sql = sql_template.format(first.upper(), last.upper())
         data = pd.read_sql(con=self._aims_con, sql=sql)
 
-        # sometimes the license number in our databases has a prefix, "MD" or "DO" to designate license type.
-        # to be flexible with unknown prefixes/suffixes, I just look to see if our license number contains the target.
         data = data[
             (data['state_cd'] == state) & (data['lic_nbr'].apply(lambda x: str(lic_nbr) in x))].drop_duplicates()
 
-        # we should only have one result at this point--duplicates on name + state + license should be impossible
-        if len(data) == 1:
-            return data['key_type_val'].apply(str.strip).values[0]
+        me_nbr = None
+        if len(data) == 1:  # no dupes
+            me_nbr = data['key_type_val'].apply(str.strip).values[0]
 
-        # if there were no results, it's possible that first and last name in the metadata file were swapped.
-        else:
-            sql = sql_template.format(last, first)
-            data = pd.read_sql(con=self._aims_con, sql=sql)
-
+        else:  # try with swapped first/last name
+            data = pd.read_sql(con=self._aims_con, sql=sql_reversed)
             data = data[
                 (data['state_cd'] == state) & (data['lic_nbr'].apply(lambda x: str(lic_nbr) in x))].drop_duplicates()
+            if len(data) == 1:  # no dupes
+                me_nbr = data['key_type_val'].apply(str.strip).values[0]
 
-            if len(data) == 1:
-                return data['key_type_val'].apply(str.strip).values[0]
-
-            # no results found either way
-            else:
-                return None
+        return me_nbr
 
     def run(self):
         self._set_environment_variables()
