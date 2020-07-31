@@ -22,13 +22,15 @@ class TaskWrapper(ABC):
         try:
             task.run()
 
-            status_code, body = self._generate_response(task)
+            status_code, headers, body = self._generate_response(task)
         except TaskException as exception:
-            status_code, body = self._handle_exception(exception)
+            status_code, headers, body = self._handle_exception(exception)
 
         return {
             "statusCode": status_code,
-            "body": json.dumps(body)
+            "headers": headers,
+            "body": json.dumps(body),
+            "isBase64Encoded": False,
         }
 
     @abstractmethod
