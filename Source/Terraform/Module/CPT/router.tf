@@ -1,7 +1,9 @@
 data "archive_file" "etl_router" {
     type            = "zip"
     output_path     = "/tmp/etl_router.zip"
+
     source {
+        filename    = "main.py"
         content     = <<EOF
 import json
 import os
@@ -10,21 +12,35 @@ import boto3
 
 client = boto3.client('lambda')
 
-def lambda_handler(event,context):
+def lambda_handler(event, context):
+    for sns_record in event['Records']:
+        sns_envelope = sns_record['Sns']
+        message = json.loads(sns_envelope['Message'])
+        sqs_records = message['Records']
+
+        for sqs_record in sqs_records:
+            key = sqs_record['s3']['object']['key']
+            print(f'Object updated: {key}')
+
+            if key.startswith('AMA/CPT/') and key.endswith('ETL_TRIGGER'):
+                _trigger_etls()
+
+    return 200, None
+
+def _trigger_etls():
     region = os.environ['REGION']
     account = os.environ['ACCOUNT']
     functions = os.environ['FUNCTIONS'].split(',')
 
     for function in functions:
+        print(f'Invoking function: {function}')
+
         response = client.invoke(
             FunctionName = f'arn:aws:lambda:{region}:{account}:function:{function}',
             InvocationType = 'RequestResponse',
             Payload = json.dumps({})
         )
-
-    return 200, None
 EOF
-    filename = "main.py"
   }
 }
 
