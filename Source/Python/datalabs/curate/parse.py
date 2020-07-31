@@ -11,7 +11,13 @@ class Parser(ABC):
         pass
 
 
-class CSVParser(ABC):
+class PassThroughParser(Parser):
+    # pylint: disable=no-self-use
+    def parse(self, text: str) -> pandas.DataFrame:
+        return text
+
+
+class CSVParser(Parser):
     # pylint: disable=no-self-use
     def parse(self, text: str) -> pandas.DataFrame:
         return pandas.read_csv(io.StringIO(text))

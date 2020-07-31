@@ -343,7 +343,7 @@ module "etl_load" {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3WindowsTextExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.value
         EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
-        EXTRACTOR_FILES             = data.aws_ssm_parameter.converted_data_files.value
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.value
 
         TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
 
@@ -397,6 +397,10 @@ data "aws_ssm_parameter" "raw_data_parsers" {
 
 data "aws_ssm_parameter" "converted_data_files" {
     name  = "/DataLabs/CPT/data/converted_files"
+}
+
+data "aws_ssm_parameter" "raw_csv_files" {
+    name  = "/DataLabs/CPT/data/raw_csv_files"
 }
 
 
