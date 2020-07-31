@@ -14,10 +14,17 @@ class CPTFileToCSVTransformerTask(TransformerTask):
         LOGGER.debug('Data to transform: %s', self._parameters.data)
         _, data = zip(*self._parameters.data)  # unpack the list of (filename, data) tuples
         parsers = self._instantiate_parsers()
+        transformed_data = []
 
         parsed_data = [parser.parse(text) for parser, text in zip(parsers, data)]
 
-        return [datum.to_csv(index=False) for datum in parsed_data]
+        for datum in parsed_data:
+            if hasattr(datum, 'to_csv'):
+                transformed_data.append(datum.to_csv(index=False))
+            else:
+                transformed_data.append(str(datum))
+
+        return transformed_data
 
     def _instantiate_parsers(self):
         parser_classes = self._parameters.variables['PARSERS'].split(',')
