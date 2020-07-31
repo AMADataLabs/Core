@@ -31,11 +31,7 @@ class APIEndpointTaskWrapper(TaskWrapper):
         status_code = exception.status_code
         body = dict(message=exception.message)
 
-        return status_code, body
+        return status_code, dict(), body
 
     def _generate_response(self, task) -> (int, dict):
-        return dict(
-            statusCode=task.status_code,
-            body=task.response_body,
-            headers=task.headers
-        )
+        return task.status_code, task.headers, task.response_body

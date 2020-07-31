@@ -20,13 +20,11 @@ class ETLTaskWrapper(TaskWrapper):
 
     def _handle_exception(self, exception: ETLException) -> (int, dict):
         LOGGER.error('Handling ETL task exception: %s', exception)
-        status_code = 400
-        body = dict(message=str(exception))
 
-        return status_code, body
+        return 400, dict(), dict(message=str(exception))
 
     def _generate_response(self, task) -> (int, dict):
-        return 200, dict()
+        return 200, dict(), dict()
 
     @classmethod
     def _generate_parameters(cls, variables, variable_base_name):
