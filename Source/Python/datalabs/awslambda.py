@@ -30,7 +30,7 @@ class TaskWrapper(ABC):
             "statusCode": status_code,
             "headers": headers,
             "body": json.dumps(body),
-            "isBase64Encoded": false,
+            "isBase64Encoded": False,
         }
 
     @abstractmethod
