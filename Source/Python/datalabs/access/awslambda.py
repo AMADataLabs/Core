@@ -34,4 +34,8 @@ class APIEndpointTaskWrapper(TaskWrapper):
         return status_code, body
 
     def _generate_response(self, task) -> (int, dict):
-        return task.status_code, task.response_body
+        return dict(
+            statusCode=task.status_code,
+            body=task.response_body,
+            headers=task.headers
+        )

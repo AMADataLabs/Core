@@ -34,7 +34,8 @@ class LatestPDFsEndpointTask(APIEndpointTask):
             LOGGER.error(e)
             raise InternalServerError(f'Unable to get PDF archive URL: {str(e)}')
 
-        self._response_body['url'] = pdfs_archive_url
+        self._status_code = 303
+        self._headers['Location'] = pdfs_archive_url
 
     def _get_pdf_archive_path(self):
         release_folders = sorted(
