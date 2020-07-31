@@ -3,45 +3,18 @@ provider "aws" {
 }
 
 
-resource "aws_ssm_parameter" "account_environment" {
-    name  = "/DataLabs/DataLake/account_environment"
-    type  = "String"
-    value = "Sandbox"
-    tags = local.tags
-}
-
-
-resource "aws_ssm_parameter" "contact" {
-    name  = "/DataLabs/DataLake/contact"
-    type  = "String"
-    value = "DLHSDataLabs@ama-assn.org"
-    tags = local.tags
-}
-
-
-resource "aws_ssm_parameter" "ingestion_bucket" {
-    name  = "/DataLabs/DataLake/ingestion_bucket"
-    type  = "String"
-    value = "ama-hsg-datalabs-datalake-ingestion-sandbox"
-    tags = local.tags
-}
-
-
-resource "aws_ssm_parameter" "processed_bucket" {
-    name  = "/DataLabs/DataLake/processed_bucket"
-    type  = "String"
-    value = "ama-hsg-datalabs-datalake-processed-sandbox"
-    tags = local.tags
+module "datalabs_terraform_state" {
+    source = "../../Module/DataLake"
 }
 
 
 data "aws_ssm_parameter" "account_environment" {
-    name = "/DataLabs/DataLake/account_environment"
+    name = "/DataLabs/account_environment"
 }
 
 
 data "aws_ssm_parameter" "contact" {
-    name = "/DataLabs/DataLake/contact"
+    name = "/DataLabs/contact"
 }
 
 
@@ -49,7 +22,7 @@ locals {
     system_tier         = "Application"
     na                  = "N/A"
     budget_code         = "PBW"
-    owner               = "Data Labs"
+    owner               = "DataLabs"
     notes               = ""
     tags                = {
         Name = "Data Labs Data Lake Parameter"
@@ -60,6 +33,8 @@ locals {
         DataClassification  = local.na
         BudgetCode          = local.budget_code
         Owner               = local.owner
+        Group               = local.owner
+        Department          = "HSG"
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

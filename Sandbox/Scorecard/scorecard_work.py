@@ -13,7 +13,7 @@ from dateutil.relativedelta import relativedelta
 TODAY = str(date.today())
 
 LOCAL_DIRECTORY = 'C:/Users/vigrose/Data/Scorecard'
-PPD_DIRECTORY = 'U:/Source Files/Data Analytics/Data-Science/Data/PPD'
+# PPD_DIRECTORY = 'U:/Source Files/Data Analytics/Data-Science/Data/PPD'
 
 def newest(path, text):
     '''Grabs newest filename'''
@@ -23,7 +23,7 @@ def newest(path, text):
 
 #Set file locations
 print('Grabbing file names...')
-PPD_FILE = newest(PPD_DIRECTORY, 'ppd')
+PPD_FILE = newest(LOCAL_DIRECTORY, 'ppd')
 WSLIVE_FILE = newest(LOCAL_DIRECTORY, 'WSLive')
 OLD_SCORECARD = newest(LOCAL_DIRECTORY, 'Scorecard')
 EMAIL_FILE = newest(LOCAL_DIRECTORY, 'Email')
@@ -32,8 +32,8 @@ DO_FILE = newest(LOCAL_DIRECTORY, 'do_count')
 def get_email_data(email_file):
     '''Get email data'''
     em_tbl = pd.read_excel(email_file, header=2)
-    email_count = int(em_tbl.iloc[2,1])
-    email_correctness = em_tbl.iloc[3,1]
+    email_count = int(em_tbl.iloc[2, 1])
+    email_correctness = em_tbl.iloc[3, 1]
     return(email_count, email_correctness)
 
 def get_do_counts(do_file):
@@ -69,8 +69,11 @@ def get_total_table(ppd_df):
     polo_count = counts['POLO_MAILING_LINE_2']
     telephone_count = counts['TELEPHONE_NUMBER']
     # no_delivery_count = counts['ADDRESS_UNDELIVERABLE_FLAG']
+    all_mailing = counts['MAILING_LINE_2']
     deliverable_counts = all_deliverable.count()
     mailing_address_count = deliverable_counts['MAILING_LINE_2']
+    deliverable_home = len(all_deliverable[all_deliverable.ADDRESS_TYPE.isin([2, 3])])
+    deliverable_office = len(all_deliverable[all_deliverable.ADDRESS_TYPE == 1])
     top_count = len(ppd_df[ppd_df['TOP_CD'] != 100])
     pe_cd_count = len(ppd_df[ppd_df['PE_CD'] != 110])
     prim_spec_count = len(ppd_df[ppd_df['PRIM_SPEC_CD'] != 'US'])
@@ -84,7 +87,10 @@ def get_total_table(ppd_df):
         'faxnumber':fax_count,
         'top':top_count,
         'pe':pe_cd_count,
-        'primspec':prim_spec_count
+        'primspec':prim_spec_count,
+        'allmailing': all_mailing,
+        'deliverable_home': deliverable_home,
+        'deliverable_office': deliverable_office
     }
 
     transposed = pd.DataFrame(value_dict, ['Count']).transpose()
@@ -125,6 +131,9 @@ def get_notes(total, sub, correct, email, physicians, students):
     top = int(total.loc['top'])
     pe = int(total.loc['pe'])
     primspec = int(total.loc['primspec'])
+    all_mailing = int(total.loc['allmailing'])
+    deliverable_home = int(total.loc['deliverable_home'])
+    deliverable_office = int(total.loc['deliverable_office'])
 
     totalrecords_dpc = int(sub.loc['totalrecords'])
     mailingaddress_dpc = int(sub.loc['mailingaddress'])
@@ -174,7 +183,7 @@ def get_notes(total, sub, correct, email, physicians, students):
                    top,
                    pe,
                    primspec,
-                   email,
+                   email_count,
                    totalrecords_dpc,
                    mailingaddress_dpc,
                    polo_dpc,
@@ -192,7 +201,10 @@ def get_notes(total, sub, correct, email, physicians, students):
                    do_student_total,
                    do_physician_total,
                    all_,
-                   all_dpc
+                   all_dpc,
+                   all_mailing,
+                   deliverable_home,
+                   deliverable_office
                    ]
     notes_2_list_ = [mailing_completeness,
                      polo_completeness,
@@ -216,7 +228,9 @@ def get_notes(total, sub, correct, email, physicians, students):
                      do_physician,
                      totalrecords,
                      totalrecords_dpc]
-    return (notes_list_, notes_2_list_)
+    NOTE_1 = pd.DataFrame(notes_list_)
+    NOTE_2 = pd.DataFrame(notes_2_list_)
+    return (NOTE_1, NOTE_2)
 
 def get_dates():
     '''Get relevant dates'''
@@ -254,10 +268,10 @@ print('Getting DO counts...')
 PHYSICIANS, STUDENTS = get_do_counts(DO_FILE)
 print('Getting new notes...')
 NOTE_LIST, NOTE_LIST_2 = get_notes(TOTAL, SUB, CORRECT, EMAIL_FILE, PHYSICIANS, STUDENTS)
-print('Editing notes...')
-NEW_NOTES, NEW_NOTES_2, NEW_NOTES_3 = get_new_notes(NOTE_LIST, NOTE_LIST_2, NOTES, NOTES_2, NOTES_3)
+# print('Editing notes...')
+# NEW_NOTES, NEW_NOTES_2, NEW_NOTES_3 = get_new_notes(NOTE_LIST, NOTE_LIST_2, NOTES, NOTES_2, NOTES_3)
 print('Writing to file...')
 with pd.ExcelWriter(f'{LOCAL_DIRECTORY}output.xlsx') as writer:  
-    NEW_NOTES.to_excel(writer, sheet_name='Notes', index=False)
-    NEW_NOTES_2.to_excel(writer, sheet_name='Notes_2', index=False)
-    NEW_NOTES_3.to_excel(writer, sheet_name='Notes_3', index=False)
+    NOTE_LIST.to_excel(writer, sheet_name='Notes', index=False)
+    NOTE_LIST_2.to_excel(writer, sheet_name='Notes_2', index=False)
+    # NEW_NOTES_3.to_excel(writer, sheet_name='Notes_3', index=False)

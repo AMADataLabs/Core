@@ -73,7 +73,8 @@ create_project_directories() {
 
         create_directory Build ${PROJECT_NAME}
         create_directory Deploy ${PROJECT_NAME}
-        create_directory Source/Terraform ${PROJECT_NAME}
+        create_directory Source/Terraform/Sandbox ${PROJECT_NAME}
+        create_directory Source/Terraform/Module ${PROJECT_NAME}
     fi
 }
 
@@ -98,8 +99,9 @@ generate_configuration_files() {
 
 
 render_terraform_templates() {
-    render_terraform_template main.tf
-    render_terraform_template state.tf
+    render_terraform_template Sandbox main.tf
+    render_terraform_template Sandbox state.tf
+    render_terraform_template Module input.tf
 }
 
 
@@ -208,7 +210,7 @@ copy_master_file() {
     DESTINATION_PATH=${SCRIPT_BASE_PATH}/../${DESTINATION}/${PROJECT_NAME}/${FILE_NAME}
 
     echo "-> Copying file ${FILE_NAME} from ${SOURCE}/Master to ${DESTINATION}/${PROJECT_NAME}"
-    
+
     if [[ "$FORCE_OVERWRITE" == false && -d $DESTINATION_PATH ]]; then
         real_path=`realpath ${DESTINATION_PATH}`
         echo "Error: File ${real_path} already exists."
@@ -220,10 +222,11 @@ copy_master_file() {
 
 
 render_terraform_template() {
-    TERRAFORM_FILE=$1
-    TEMPLATE_NAME=${TERRAFORM_FILE/.tf/_template.txt}
-    TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/template/${TEMPLATE_NAME}
-    RENDERING_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/${PROJECT_NAME}/${TERRAFORM_FILE}
+    TEMPLATE_DIRECTORY=$1
+    TERRAFORM_FILE=$2
+    TEMPLATE_NAME=${TERRAFORM_FILE/.tf/.jinja}
+    TEMPLATE_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/Template/${TEMPLATE_DIRECTORY}/${TEMPLATE_NAME}
+    RENDERING_PATH=${SCRIPT_BASE_PATH}/../Source/Terraform/${TEMPLATE_DIRECTORY}/${PROJECT_NAME}/${TERRAFORM_FILE}
 
 
     if [[ "$FORCE_OVERWRITE" == false && -d $RENDERING_PATH ]]; then

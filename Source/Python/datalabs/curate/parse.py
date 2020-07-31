@@ -1,10 +1,17 @@
 """ Parser abstract base class """
-import pandas
-
 from abc import ABC, abstractmethod
+import io
+
+import pandas
 
 
 class Parser(ABC):
     @abstractmethod
     def parse(self, text: str) -> pandas.DataFrame:
         pass
+
+
+class CSVParser(ABC):
+    # pylint: disable=no-self-use
+    def parse(self, text: str) -> pandas.DataFrame:
+        return pandas.read_csv(io.StringIO(text))

@@ -18,7 +18,20 @@ branch_labels = None
 depends_on = None
 
 TABLE_NAMES = [
-    'clinician_descriptor', 'code', 'concept', 'consumer_descriptor', 'lab', 'manufacturer', 'modifier', 'pla_code'
+    'clinician_descriptor',
+    'code',
+    'short_descriptor',
+    'medium_descriptor',
+    'long_descriptor',
+    'concept',
+    'consumer_descriptor',
+    'lab',
+    'manufacturer',
+    'modifier',
+    'pla_code',
+    'pla_short_descriptor',
+    'pla_medium_descriptor',
+    'pla_long_descriptor',
 ]
 
 
@@ -132,15 +145,16 @@ def _add_release_types():
 
 def _constrain_deleted_columns():
     for table_name in TABLE_NAMES:
-        op.alter_column(table_name, 'deleted', existing_nullable=False, nullable=True, schema='cpt')
+        op.alter_column(table_name, 'deleted', existing_nullable=True, nullable=False, schema='cpt')
 
 
 def _constrain_modified_columns():
     for table_name in TABLE_NAMES:
-        op.alter_column(table_name, 'deleted', existing_nullable=False, nullable=True, schema='cpt')
+        op.alter_column(table_name, 'modified_date', existing_nullable=True, nullable=False, schema='cpt')
 
 
 def _downgrade_data():
+    op.execute(f"delete from cpt.release")
     op.execute("delete from cpt.release_type")
 
 

@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  description: 'CPT API initial design '
-  version: "1.3.0"
   title: CPT API
+  description: CPT API Phase I
+  version: "1.3.0"
   termsOfService: 'http://swagger.io/terms/'
   contact:
     email: datalabs@ama-assn.org
@@ -28,9 +28,7 @@ tags:
       Appendix A-Modifiers
   - name: PLA
     description: >-
-      Proprietary Laboratory Analysis Codes with long, medium, short
-      descriptors. Includes various dates, code status, lab name, manufacturer
-      name, and test name.
+      Proprietary Laboratory Analysis Code details. Specifically, the associated test, manufacturer, and lab names.
   - name: PDF
     description: Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
   - name: Releases
@@ -63,6 +61,15 @@ paths:
             type: array
             items:
               type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_descriptor_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -104,13 +111,21 @@ paths:
         - name: since
           in: query
           description: >-
-            Filters new codes since a date ("YYYY-MM-DD"), the last annual
-            release ("annual"), or the last quarterly release ("quarterly").
+            Filters new codes since a date ("YYYY-MM-DD").
           required: false
           schema:
             type: array
             items:
               type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_descriptors_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -139,6 +154,15 @@ paths:
           required: true
           schema:
             type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_consumer_descriptor_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -172,13 +196,21 @@ paths:
         - name: since
           in: query
           description: >-
-            Filters new codes since a date ("YYYY-MM-DD"), the last annual
-            release ("annual"), or the last quarterly release ("quarterly").
+            Filters new codes since a date ("YYYY-MM-DD").
           required: false
           schema:
             type: array
             items:
               type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_consumer_descriptors_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -212,13 +244,21 @@ paths:
         - name: since
           in: query
           description: >-
-            Filters new codes since a date ("YYYY-MM-DD"), the last annual
-            release ("annual"), or the last quarterly release ("quarterly").
+            Filters new codes since a date ("YYYY-MM-DD").
           required: false
           schema:
             type: array
             items:
               type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_all_clinician_descriptors_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -249,6 +289,15 @@ paths:
             application/json:
               schema:
                 type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_clinician_descriptors_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -279,14 +328,15 @@ paths:
           required: true
           schema:
             type: string
-        - name: length
-          in: query
-          description: 'Filter by "long", "medium", "short" descriptors'
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_pla_details_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -309,18 +359,10 @@ paths:
       description: ALL PLA codes
       operationId: getAllPLADetails
       parameters:
-        - name: length
-          in: query
-          description: 'Filter by "long", "medium", "short" descriptors'
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
         - name: keyword
           in: query
           description: >-
-            Filter by keyword across the text of any of the descriptor lengths.
+            Filter by keyword across the text of any of the name fields.
           required: false
           schema:
             type: array
@@ -329,14 +371,22 @@ paths:
         - name: since
           in: query
           description: >-
-            Filters new codes since a date ("YYYY-MM-DD"), the last annual
-            release ("annual"), or the last quarterly release
+            Filters new codes since a date ("YYYY-MM-DD")
             ("quarterly").
           required: false
           schema:
             type: array
             items:
               type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_all_pla_details_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -351,36 +401,6 @@ paths:
       security:
         - cpt_auth:
             - 'read:pla'
-  /modifiers:
-    get:
-      tags:
-        - Modifier
-      summary: All Modifier codes and types
-      description: Returns all modifier codes with their descriptors and types
-      operationId: viewALLmodifiers
-      parameters:
-        - name: type
-          in: query
-          description: Filter by modifier type
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Modifier'
-        '400':
-          description: Invalid query parameter
-      security:
-        - cpt_auth:
-            - 'read:modifier'
   '/modifier/{code}':
     get:
       tags:
@@ -397,6 +417,15 @@ paths:
             application/json:
               schema:
                 type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_modifier_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -406,27 +435,49 @@ paths:
                 items:
                   $ref: '#/components/schemas/Modifier'
         '404':
-          description: invalid code
+          description: No data exists for the given modifier.
       security:
         - cpt_auth:
             - 'read:modifier'
-  /pdfs:
+  /modifiers:
     get:
       tags:
-        - PDF
-      summary: Zip archive of the most recent PDFs
-      description: Provides a time-limited URL to a zip archive of the PDFs from the most recent release
-      operationId: getPDFLink
+        - Modifier
+      summary: All Modifier codes and types
+      description: Returns all modifier codes with their descriptors and types
+      operationId: viewALLmodifiers
+      parameters:
+        - name: type
+          in: query
+          description: Filter by modifier type
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_modifiers_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
-        '303':
-          description: successful creation of a time-limited download URL
-          headers:
-            Location:
+        '200':
+          description: successful operation
+          content:
+            application/json:
               schema:
-                type: "string"
+                type: array
+                items:
+                  $ref: '#/components/schemas/Modifier'
+        '400':
+          description: Invalid query parameter
       security:
         - cpt_auth:
-            - 'read:pdf'
+            - 'read:modifier'
   /pdfs/{release}:
     get:
       tags:
@@ -441,6 +492,14 @@ paths:
           required: true
           schema:
             type: string
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        requestTemplates:
+          application/json: "{\"statusCode\": 200}"
+        passthroughBehavior: "when_no_match"
+        type: "mock"
       responses:
         '303':
           description: successful creation of a time-limited download URL
@@ -450,6 +509,32 @@ paths:
                 type: "string"
         '404':
           description: No PDFs found for the given release.
+      security:
+        - cpt_auth:
+            - 'read:pdf'
+  /pdfs:
+    get:
+      tags:
+        - PDF
+      summary: Zip archive of the most recent PDFs
+      description: Provides a time-limited URL to a zip archive of the PDFs from the most recent release
+      operationId: getPDFLink
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_latest_pdfs_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '303':
+          description: successful creation of a time-limited download URL
+          headers:
+            Location:
+              schema:
+                type: "string"
       security:
         - cpt_auth:
             - 'read:pdf'
@@ -468,6 +553,15 @@ paths:
           schema:
             type: integer
             minimum: 1
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_releases_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
       responses:
         '200':
           description: successful operation
@@ -482,6 +576,28 @@ paths:
       security:
         - cpt_auth:
             - 'read:release'
+  /{proxy+}:
+    get:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_return404_arn}/invocations"
+        responses:
+          default:
+            statusCode: 200
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        cacheNamespace: "www3v9"
+        cacheKeyParameters:
+          - "method.request.path.proxy"
+        type: "aws_proxy"
+      responses:
+        '404':
+          description: Invalid resource.
 components:
   schemas:
     Descriptor:
@@ -533,9 +649,6 @@ components:
       type: object
       required:
         - code
-        - short_descriptor
-        - medium_descriptor
-        - long_descriptor
         - effective_date
         - lab_name
         - manufacturer_name

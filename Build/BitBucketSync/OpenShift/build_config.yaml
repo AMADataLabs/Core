@@ -1,0 +1,51 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: Push DataLabs on-prem BitBucket repo to BitBucket cloud
+    openshift.io/display-name: BitBucketSync
+  creationTimestamp: null
+  labels:
+    app: BitBucketSync
+  name: bitbucket-sync
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: bitbucket-sync:latest
+      namespace: hsg-data-labs-dev
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
+      # ref: story/DL-807
+    sourceSecret:
+      name: bitbucketprd
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Build/BitBucketSync/OpenShift/Dockerfile
+      from:
+        kind: ImageStreamTag
+        name: python:3.7
+      env:
+        - name: BITBUCKET_SSH_KEY
+          valueFrom:
+            secretKeyRef:
+              name: bitbucketprd
+              key: ssh-privatekey
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - github:
+      secret: qZJ_ZEvW9lhY8yGoSkpg
+    type: GitHub
+  - generic:
+      secret: jVit3toJB5LPjRMAIrXw
+    type: Generic
+  - type: ConfigChange
+    type: ImageChange

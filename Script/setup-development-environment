@@ -1,9 +1,9 @@
 #!/bin/bash
 
-SCRIPT=`realpath $0`
-SCRIPT_PATH=`dirname $SCRIPT`
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 
-. ${SCRIPT_PATH}/../Source/Bash/environment/development/setup.sh
+. ${SCRIPT_BASE_PATH}/../Source/Bash/environment/development/setup.sh
 
 
 main() {

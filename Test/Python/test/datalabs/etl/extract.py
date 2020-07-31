@@ -1,7 +1,7 @@
 """ Test Extractor class """
-from datalabs.etl.extract import Extractor
+from datalabs.etl.extract import ExtractorTask
 
 
-class TestExtractor(Extractor):
-    def extract(self):
+class TestExtractorTask(ExtractorTask):
+    def _extract(self):
         pass

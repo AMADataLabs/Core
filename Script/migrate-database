@@ -1,0 +1,148 @@
+#!/bin/bash
+
+
+#!/bin/bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+COMMAND=
+PROJECT_NAME=
+MESSAGE=
+TARGET_VERSION="head"
+
+main() {
+    process_arguments "$@"
+
+    setup_environment
+
+    if [[ "$COMMAND" == "create" ]]; then
+        generate_migration_script
+    elif [[  "$COMMAND" == "upgrade" ]]; then
+        upgrade_database
+    elif [[  "$COMMAND" == "downgrade" ]]; then
+        downgrade_database
+    else
+        echo "Error: unrecognized command '$COMMAND'"
+        print_usage
+    fi
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -m|--message)
+            MESSAGE=$2
+            shift
+            shift
+            ;;
+        -H|--host)
+            HOST=$2
+            shift
+            shift
+            ;;
+        -n|--name)
+            NAME=$2
+            shift
+            shift
+            ;;
+        -u|--username)
+            USERNAME=$2
+            shift
+            shift
+            ;;
+        -p|--password)
+            PASSWORD=$2
+            shift
+            shift
+            ;;
+        *)
+            if [[ "$COMMAND" == "" ]]; then
+                COMMAND=$1
+            elif [[ "$PROJECT_NAME" == "" ]]; then
+                PROJECT_NAME=$1
+            fi
+            shift
+            ;;
+      esac
+    done
+
+    if [[ "$COMMAND" == "" ]]; then
+        echo "Error: No command was specified."
+        print_usage
+    elif [[ "$PROJECT_NAME" == "" ]]; then
+        echo "Error: The name of the project to create was not specified."
+        print_usage
+    elif [[ "$COMMAND" == "plan" || "$MESSAGE" == "" ]]; then
+        echo "Error: No migration message was specified."
+        print_usage
+    elif [[ "$HOST" == "" ]]; then
+        echo "Error: No database host was specified."
+        print_usage
+    elif [[ "$NAME" == "" ]]; then
+        echo "Error: No database name was specified."
+        print_usage
+    elif [[ "$USERNAME" == "" ]]; then
+        echo "Error: No database username was specified."
+        print_usage
+    elif [[ "$PASSWORD" == "" ]]; then
+        echo "Error: No database password was specified."
+        print_usage
+    fi
+}
+
+
+setup_environment() {
+    export DATABASE_ORM_HOST=$HOST
+    export DATABASE_ORM_BACKEND='postgresql+psycopg2'
+    export DATABASE_ORM_NAME=$NAME
+    export CREDENTIALS_ORM_USERNAME=$USERNAME
+    export CREDENTIALS_ORM_PASSWORD=$PASSWORD
+
+    cd ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
+}
+
+
+generate_migration_script() {
+    python ${SCRIPT_BASE_PATH}/run.py alembic revision --autogenerate -m "$MESSAGE"
+}
+
+
+upgrade_database() {
+    cd ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
+
+    python ${SCRIPT_BASE_PATH}/run.py alembic upgrade $TARGET_VERSION
+}
+
+
+downgrade_database() {
+    cd ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
+
+    python ${SCRIPT_BASE_PATH}/run.py alembic downgrade $TARGET_VERSION
+}
+
+
+print_usage() {
+    echo "Usage: migrate-database [OPTION]... <command> <project>"
+    echo "Perform database migration tasks for the configuration in...Build/<project>/."
+    echo
+    echo "Commands"
+    echo "  create                     Generate a migration script from changes made to the"
+    echo "                             project's table model classes."
+    echo "  downgrade                  Run migration scripts to downgrade the database schema."
+    echo "  upgrade                    Run migration scripts to upgrade the database schema."
+    echo
+    echo "Options:"
+    echo "  -h|--help                  Print usage."
+    echo "  -m|--message <module>      Set the message associated with the migration script."
+
+    exit 1
+}
+
+
+main "$@"

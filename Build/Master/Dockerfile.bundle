@@ -1,0 +1,27 @@
+FROM amazonlinux as amazon-python
+WORKDIR /Build
+RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel wget tar gzip make
+RUN wget https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
+RUN tar xzf Python-3.7.7.tgz
+
+WORKDIR /Build/Python-3.7.7
+RUN ./configure --enable-optimizations
+RUN make altinstall
+
+
+FROM amazonlinux as build
+ARG PROJECT
+WORKDIR /Build
+COPY --from=amazon-python /usr/local/bin/py*3.7* /usr/local/bin/
+COPY --from=amazon-python /usr/local/bin/pip3.7 /usr/local/bin/
+COPY --from=amazon-python /usr/local/lib/python3.7 /usr/local/lib/python3.7
+
+ENV PYTHONPATH=/Build:/Build/Source/Python
+COPY Script Script
+COPY Build/Master Build/Master
+COPY Build/${PROJECT} Build/${PROJECT}
+COPY Source Source
+RUN pip3.7 install --trusted-host pypi.org --trusted-host files.pythonhosted.org PyYAML
+
+RUN pip3.7 install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r Build/${PROJECT}/requirements.txt
+RUN python3.7 ./Script/bundle_project.py --in-place --directory Bundle/ ${PROJECT}
