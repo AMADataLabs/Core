@@ -2,12 +2,13 @@ provider "aws" {
     region = "us-east-1"
 }
 
+
 resource "aws_db_instance" "cpt_api_database" {
-    identifier                    = "database-test-ui"  # FIXME: change to "datalabs-api-backend"
-    name                          = "sample"
-    instance_class                = "db.t2.micro"
+    identifier                    = var.rds_instance_name
+    instance_class                = var.rds_instance_class
+    storage_type                  = var.rds_storage_type
+    name                          = var.database_name
     allocated_storage             = 20
-    storage_type                  = "gp2"
     engine                        = "postgres"
     engine_version                = "11.5"
     parameter_group_name          = "default.postgres11"
@@ -27,7 +28,7 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
     name = "CPT API"
     description = local.spec_description
     body = templatefile(
-        "${path.module}/../../../Build/CPT/api.yaml",
+        "${path.module}/../../../../Build/CPT/api.yaml",
         {
             title = "CPT API",
             description = local.spec_description,
@@ -277,8 +278,10 @@ module "etl_convert" {
     database_name           = aws_db_instance.cpt_api_database.name
     database_host           = aws_db_instance.cpt_api_database.address
     data_pipeline_ingestion = true
+    trigger_bucket          = data.aws_ssm_parameter.ingestion_bucket.value
+    parent_function         = aws_lambda_function.ingestion_etl_router
 
-    variables           = {
+    variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
         EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
@@ -305,8 +308,10 @@ module "etl_bundle_pdf" {
     database_name           = aws_db_instance.cpt_api_database.name
     database_host           = aws_db_instance.cpt_api_database.address
     data_pipeline_ingestion = true
+    trigger_bucket          = data.aws_ssm_parameter.ingestion_bucket.value
+    parent_function         = aws_lambda_function.ingestion_etl_router
 
-    variables           = {
+    variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3FileExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
         EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
@@ -325,18 +330,20 @@ module "etl_bundle_pdf" {
 module "etl_load" {
     source = "./etl"
 
-    function_name       = local.function_names.loaddb
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    database_name       = aws_db_instance.cpt_api_database.name
-    database_host       = aws_db_instance.cpt_api_database.address
-    data_pipeline_api   = true
+    function_name           = local.function_names.loaddb
+    account_id              = data.aws_caller_identity.account.account_id
+    role                    = aws_iam_role.lambda_role.arn
+    database_name           = aws_db_instance.cpt_api_database.name
+    database_host           = aws_db_instance.cpt_api_database.address
+    data_pipeline_api       = true
+    trigger_bucket          = data.aws_ssm_parameter.processed_bucket.value
+    parent_function         = aws_lambda_function.processed_etl_router
 
-    variables           = {
+    variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3WindowsTextExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.value
         EXTRACTOR_BASE_PATH         = data.aws_ssm_parameter.s3_base_path.value
-        EXTRACTOR_FILES             = data.aws_ssm_parameter.converted_data_files.value
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.value
 
         TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
 
@@ -392,6 +399,10 @@ data "aws_ssm_parameter" "converted_data_files" {
     name  = "/DataLabs/CPT/data/converted_files"
 }
 
+data "aws_ssm_parameter" "raw_csv_files" {
+    name  = "/DataLabs/CPT/data/raw_csv_files"
+}
+
 
 data "aws_ssm_parameter" "pdf_files" {
     name  = "/DataLabs/CPT/data/pdf_files"
@@ -420,6 +431,7 @@ locals {
     spec_title          = "CPT API"
     spec_description    = "CPT API Phase I"
     na                  = "N/A"
+    owner               = "DataLabs"
     tags = {
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
@@ -427,8 +439,9 @@ locals {
         DRTier              = local.na
         DataClassification  = local.na
         BudgetCode          = "PBW"
-        Owner               = "Data Labs"
-        Notes               = ""
+        Owner               = local.owner
+        Group               = local.owner
+        Department          = "HSG"
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na
@@ -450,7 +463,9 @@ locals {
         default                     = "CPTDefault"
         convert                     = "CPTConvert"
         loaddb                      = "CPTLoad"
-        bundlepdf                   = "BundlePDF"
+        bundlepdf                   = "CPTBundlePDF"
+        ingestion_etl_router        = "CPTIngestionRouter"
+        processed_etl_router        = "CPTProcessedRouter"
     }
     task_classes = {
         descriptor                  = "datalabs.access.cpt.api.descriptor.DescriptorEndpointTask"
