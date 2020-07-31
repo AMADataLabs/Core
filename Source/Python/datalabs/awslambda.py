@@ -28,8 +28,9 @@ class TaskWrapper(ABC):
 
         return {
             "statusCode": status_code,
-            "headers": json.dumps(headers),
-            "body": json.dumps(body)
+            "headers": headers,
+            "body": json.dumps(body),
+            "isBase64Encoded": false,
         }
 
     @abstractmethod
