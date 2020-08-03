@@ -3,19 +3,8 @@ provider "aws" {
 }
 
 
-resource "aws_ssm_parameter" "ingestion_bucket" {
-    name  = "/DataLabs/DataLake/ingestion_bucket"
-    type  = "String"
-    value = "ama-hsg-datalabs-datalake-ingestion-sandbox"
-    tags = local.tags
-}
-
-
-resource "aws_ssm_parameter" "processed_bucket" {
-    name  = "/DataLabs/DataLake/processed_bucket"
-    type  = "String"
-    value = "ama-hsg-datalabs-datalake-processed-sandbox"
-    tags = local.tags
+module "datalabs_terraform_state" {
+    source = "../../Module/DataLake"
 }
 
 
@@ -33,7 +22,7 @@ locals {
     system_tier         = "Application"
     na                  = "N/A"
     budget_code         = "PBW"
-    owner               = "Data Labs"
+    owner               = "DataLabs"
     notes               = ""
     tags                = {
         Name = "Data Labs Data Lake Parameter"
@@ -44,6 +33,8 @@ locals {
         DataClassification  = local.na
         BudgetCode          = local.budget_code
         Owner               = local.owner
+        Group               = local.owner
+        Department          = "HSG"
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

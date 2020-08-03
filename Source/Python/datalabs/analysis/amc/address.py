@@ -116,8 +116,8 @@ class AMCAddressFlagger:
     def _is_flagged_state(cls, state_string):
         return any([state_string is None,
                     len(state_string) != 2,
-                    cls._contains_n_unique_chars(state_string, 2),
-                    cls._contains_only_ascii_chars(state_string)])
+                    not cls._contains_n_unique_chars(state_string, 2),
+                    not cls._contains_only_ascii_chars(state_string)])
 
     @classmethod
     def _is_flagged_zip(cls, zip_string):

@@ -1,0 +1,161 @@
+import pandas as pd
+import os
+from glob import glob
+
+import settings
+
+
+class ExpandedPPDLoader:
+    def __init__(self):
+        self._raw_dir = None
+        self._save_dir = None
+        self._archive_dir = None
+
+        self._filename = str()
+        self._columns = [
+            'ME',
+            'PARTY_ID',
+            'ENTITY_ID',
+            'RECORD_ID',
+            'UPDATE_TYPE',
+            'ADDRESS_TYPE',
+            'MAILING_NAME',
+            'LAST_NAME',
+            'FIRST_NAME',
+            'MIDDLE_NAME',
+            'SUFFIX',
+            'PPMA_POST_CD_ID',
+            'PPMA_COMM_ID',
+            'MAILING_LINE_1',
+            'MAILING_LINE_2',
+            'CITY',
+            'STATE',
+            'ZIP',
+            'SECTOR',
+            'CARRIER_ROUTE',
+            'ADDRESS_UNDELIVERABLE_FLAG',
+            'FIPS_COUNTY',
+            'FIPS_STATE',
+            'PRINTER_CONTROL_CODE',
+            'PC_ZIP',
+            'PC_SECTOR',
+            'DELIVERY_POINT_CODE',
+            'CHECK_DIGIT',
+            'PRINTER_CONTROL_CODE_2',
+            'REGION',
+            'DIVISION',
+            'GROUP',
+            'TRACT',
+            'SUFFIX_CENSUS',
+            'BLOCK_GROUP',
+            'MSA_POPULATION_SIZE',
+            'MICRO_METRO_IND',
+            'CBSA',
+            'CBSA_DIV_IND',
+            'MD_DO_CODE',
+            'BIRTH_YEAR',
+            'BIRTH_CITY',
+            'BIRTH_STATE',
+            'BIRTH_COUNTRY',
+            'GENDER',
+            'PREFERRED_PHONE_PHONE_ID',
+            'PREFERRED_PHONE_COMM_ID',
+            'TELEPHONE_NUMBER',
+            'PRESUMED_DEAD_FLAG',
+            'PREFERRED_FAX_PHONE_ID',
+            'PREFERRED_FAX_COMM_ID',
+            'FAX_NUMBER',
+            'TOP_CD',
+            'PE_CD',
+            'PRIM_SPEC_CD',
+            'SEC_SPEC_CD',
+            'MPA_CD',
+            'PRA_RECIPIENT',
+            'PRA_EXP_DT',
+            'GME_CONF_FLG',
+            'FROM_DT',
+            'TO_DT',
+            'YEAR_IN_PROGRAM',
+            'POST_GRADUATE_YEAR',
+            'GME_SPEC_1',
+            'GME_SPEC_2',
+            'TRAINING_TYPE',
+            'GME_INST_STATE',
+            'GME_INST_ID',
+            'MEDSCHOOL_STATE',
+            'MEDSCHOOL_ID',
+            'MEDSCHOOL_GRAD_YEAR',
+            'NO_CONTACT_IND',
+            'NO_WEB_FLAG',
+            'PDRP_FLAG',
+            'PDRP_START_DT',
+            'POLO_POST_CD_ID',
+            'POLO_COMM_ID',
+            'POLO_MAILING_LINE_1',
+            'POLO_MAILING_LINE_2',
+            'POLO_CITY',
+            'POLO_STATE',
+            'POLO_ZIP',
+            'POLO_SECTOR',
+            'POLO_CARRIER_ROUTE',
+            'MOST_RECENT_FORMER_LAST_NAME',
+            'MOST_RECENT_FORMER_MIDDLE_NAME',
+            'MOST_RECENT_FORMER_FIRST_NAME',
+            'NEXT_MOST_RECENT_FORMER_LAST',
+            'NEXT_MOST_RECENT_FORMER_MIDDLE',
+            'NEXT_MOST_RECENT_FORMER_FIRST']
+        self._data = pd.DataFrame()
+
+    def _set_environment_variables(self):
+        self._raw_dir = os.environ.get('RAW_DIR')
+        self._save_dir = os.environ.get('SAVE_DIR')
+        self._archive_dir = os.environ.get('ARCHIVE_DIR')
+
+    def _get_latest_file(self, dir, extension) -> str:
+        latest_file = None
+        files = glob(dir + f'/*.{extension}')
+        if len(files) > 0:
+            latest_file = files[0]
+            latest_date = self._get_file_date(latest_file)
+            for file in files:
+                date = self._get_file_date(file)
+                if date > latest_date:
+                    latest_file = file
+                    latest_date = date
+            self._filename = latest_file
+        return latest_file
+
+    @classmethod
+    def _get_file_date(cls, filename: str):
+        date = filename[filename.rindex('_') + 1:filename.rindex('.')]
+        date = pd.to_datetime(date).date()
+        return date
+
+    def _load_file(self, filename: str):
+        self._data = pd.read_csv(filename,
+                                 sep='|',
+                                 dtype=str,
+                                 encoding='LATIN',
+                                 names=self._columns,
+                                 index_col=False)
+
+    def _save_data(self):
+        filename = self._filename[self._filename.rindex('\\') + 1:].replace('.txt', '.csv')  # archive version w/ date
+        filename_dateless = filename[:filename.rindex('_')] + '.csv'  # removes date
+
+        save_path = f"{self._save_dir}\\{filename_dateless}"  # newest file name will be persistent
+        archive_path = f"{self._archive_dir}\\{filename}"
+
+        self._data.to_csv(save_path, index=False)
+        self._data.to_csv(archive_path, index=False)
+
+    def run(self):
+        self._set_environment_variables()
+        latest_raw_file = self._get_latest_file(dir=self._raw_dir, extension='txt')
+        latest_loaded_file = self._get_latest_file(dir=self._archive_dir, extension='csv')
+        # if there is no archived file or if there is a newer raw file than we've got already
+        if latest_loaded_file is None or \
+                self._get_file_date(latest_raw_file) > self._get_file_date(latest_loaded_file):
+            self._load_file(latest_raw_file)
+            self._save_data()
+

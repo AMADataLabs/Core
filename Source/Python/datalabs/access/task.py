@@ -19,6 +19,7 @@ class APIEndpointTask(Task, DatabaseTaskMixin):
         super().__init__(parameters)
         self._status_code = 200
         self._response_body = dict()
+        self._headers = dict()
 
     @property
     def status_code(self):
@@ -27,6 +28,10 @@ class APIEndpointTask(Task, DatabaseTaskMixin):
     @property
     def response_body(self):
         return self._response_body
+
+    @property
+    def headers(self):
+        return self._headers
 
     def run(self):
         with self._get_database(self._parameters.database) as database:
