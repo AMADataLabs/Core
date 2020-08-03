@@ -30,23 +30,33 @@ class MarkLogic(Datastore):
         start = 1
         page_length = 100
         uris = []
-        num_res = page_length
+        page_results = page_length
 
         # iterate through each page of results
-        while num_res > 0:
+        while page_results > 0:
             url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \
                   f'pageLength={page_length}&database={database}'
             search = self._connection.get(url, auth=self.auth)
-            xmldoc = minidom.parse(search.content)
-            res = xmldoc.getElementsByTagName('search:result')
 
-            num_res = 0
-            for r in res:
-                num_res += 1
-                uri = r.attributes['uri'].value
-                uris.append(uri)
+            page_result_uris = self._get_search_result_uris(search)
+            uris.extend(page_result_uris)
 
+            page_results = len(page_result_uris)
             start += page_length
+        return uris
+
+    def _get_results_from_search(self, response):
+        xml_doc = minidom.parse(response.content)
+        results = xml_doc.getElementsByTagName('search:result')
+        return results
+
+    def _get_search_result_uris(self, response):
+        uris = []
+
+        results = self._get_results_from_search(response)
+        for r in results:
+            uri = r.attributes['uri'].value
+            uris.append(uri)
         return uris
 
     def get_file(self, uri, database='PhysicianSanctions'):
@@ -59,16 +69,13 @@ class MarkLogic(Datastore):
 
     # downloads a file specified by URI to local environment
     def download_file(self, uri, database='PhysicianSanctions', save_dir=''):
-        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
-
-        response = requests.get(url=url, auth=self.auth)
-        response.raise_for_status()
+        data = self.get_file(uri=uri)
 
         file = (save_dir + uri).replace('/', '\\').replace('\\\\', '\\')
-        file_dir = file[:file.rindex('\\')]
+        file_dir = file[:file.rindex('\\') if '\\' in file else '']
 
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
 
         with open(file, 'wb+') as f:
-            f.write(response.content)
+            f.write(data)
