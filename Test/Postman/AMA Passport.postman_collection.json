@@ -1,0 +1,194 @@
+{
+	"info": {
+		"_postman_id": "d70de048-9f98-4f03-ac63-80c383dc1d42",
+		"name": "AMA Passport",
+		"description": "API for authorization and authentication",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GET TOKEN",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "5fc0e3d6-e1fc-4da8-b08f-e319f11b703b",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"pm.globals.set('token', jsonData.accessToken);\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"content-type": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"clientId\": \"9a3b3d92-5ef9-4ca7-b8ba-ca77344d6753\",\r\n    \"clientSecret\": \"d6ee130c-9beb-41a6-b84c-3b8224620fa6\",\r\n    \"grantType\": \"client_credentials\"\r\n}\r\n\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://amapassport-test.ama-assn.org/auth/provider/token",
+					"protocol": "https",
+					"host": [
+						"amapassport-test",
+						"ama-assn",
+						"org"
+					],
+					"path": [
+						"auth",
+						"provider",
+						"token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Entitlements",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://amapassport-test.ama-assn.org/auth/entitlements/list",
+					"protocol": "https",
+					"host": [
+						"amapassport-test",
+						"ama-assn",
+						"org"
+					],
+					"path": [
+						"auth",
+						"entitlements",
+						"list"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Entitlements By Product Code",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI",
+					"protocol": "https",
+					"host": [
+						"amapassport-test",
+						"ama-assn",
+						"org"
+					],
+					"path": [
+						"auth",
+						"entitlements",
+						"list",
+						"CPTAPI"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Customer Info ",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{token}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://amapassport-test.ama-assn.org/auth/customer",
+					"protocol": "https",
+					"host": [
+						"amapassport-test",
+						"ama-assn",
+						"org"
+					],
+					"path": [
+						"auth",
+						"customer"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "3605a3d9-ad20-4086-9e94-76e4adfbf031",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "6fd700bb-91a8-40f6-a18a-978e16ebf2a9",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "d84bacd4-8c46-4918-bf0a-cbfab79de85d",
+			"key": "token",
+			"value": "",
+			"disabled": true
+		}
+	],
+	"protocolProfileBehavior": {}
+}
