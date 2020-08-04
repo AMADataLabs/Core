@@ -45,7 +45,8 @@ class MarkLogic(Datastore):
             start += page_length
         return uris
 
-    def _get_results_from_search(self, response):
+    @classmethod
+    def _get_results_from_search(cls, response):
         xml_doc = minidom.parse(response.content)
         results = xml_doc.getElementsByTagName('search:result')
         return results
@@ -69,7 +70,7 @@ class MarkLogic(Datastore):
 
     # downloads a file specified by URI to local environment
     def download_file(self, uri, database='PhysicianSanctions', save_dir=''):
-        data = self.get_file(uri=uri)
+        data = self.get_file(uri=uri, database=database)
 
         file = (save_dir + uri).replace('/', '\\').replace('\\\\', '\\')
         file_dir = file[:file.rindex('\\') if '\\' in file else '']

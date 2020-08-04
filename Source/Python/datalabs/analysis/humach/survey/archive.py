@@ -25,6 +25,11 @@ class HumachResultsArchive:
             'results_validation': self.validation_results_cols,
             'samples': self.sample_cols
         }
+        self.expected_file_columns = {
+            'results_standard': self.standard_results_cols_expected,
+            'results_validation': self.validation_results_cols_expected,
+            'samples': self.sample_cols_expected
+        }
 
     def insert_row(self, table, vals):
         cols = self.table_columns[table]
@@ -36,15 +41,9 @@ class HumachResultsArchive:
 
     def validate_cols(self, table, cols):
         cols_set = set(cols)
-        if table == 'results_standard':
-            expected_set = set(self.standard_results_cols_expected)
-        elif table == 'results_validation':
-            expected_set = set(self.validation_results_cols_expected)
-        elif table == 'samples':
-            expected_set = set(self.sample_cols_expected)
-        else:
-            expected_set = None
-        assert cols_set == expected_set, f'{cols_set}' + f'\n{expected_set}'
+        expected_set = self.expected_file_columns[table]
+        if not cols_set == expected_set:
+            raise
 
     def ingest_result_file(self, table, file_path):
         if table == 'results_standard':
