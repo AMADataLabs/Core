@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import jaydebeapi
 from datalabs.access.sanctions.marklogic import MarkLogic
+from datalabs.analysis.sanctions.me.sql import SQL_TEMPLATE
 import settings
 
 
@@ -97,10 +98,9 @@ class SanctionsMEScan:
         using state_cd to compare to state in the SQL query. Final matching on state and license number are done
         once the initial results are in a DataFrame.
         """
-        with open('sql_template.sql', 'r') as sql_template:
-            text = sql_template.read()
-            sql = text.format(first.upper(), last.upper())
-            sql_reversed = text.format(last.upper(), first.upper())
+
+        sql = SQL_TEMPLATE.format(first.upper(), last.upper())
+        sql_reversed = SQL_TEMPLATE.format(last.upper(), first.upper())
 
         data = pd.read_sql(con=self._aims_con, sql=sql)
 
