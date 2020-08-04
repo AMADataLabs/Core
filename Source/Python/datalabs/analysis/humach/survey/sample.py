@@ -37,7 +37,6 @@ class HumachSampleGenerator:
         """ Date """
         self._today_date = datetime.now().date()
         self._survey_date = self._today_date + relativedelta(months=1)
-        self.data = pd.DataFrame()
 
     def run(self):
         LOGGER.info('SETTING VARIABLES AND CONNECTIONS')
