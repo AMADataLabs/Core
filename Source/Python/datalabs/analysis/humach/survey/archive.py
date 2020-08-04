@@ -68,7 +68,6 @@ class HumachResultsArchive:
         data = pd.DataFrame(columns=self.validation_results_cols_expected)
         sheet_names = ['ValidatedCorrect', 'ValidatedIncorrect', 'NotValidated', 'Unfinalized']
         for sheet_name in sheet_names:
-            # print('Extracting data from sheet: {}'.format(sheet_name))
             sheet_df = pd.read_excel(filename, sheet_name=sheet_name)
             data = data.append(sheet_df, ignore_index=True)
         return data
@@ -95,7 +94,6 @@ class HumachResultsArchive:
             """.strip()
         sql = ' '.join([line.strip() for line in sql.splitlines()]).strip()
         sql = sql.format(','.join(['"{}"'.format(str(sample_id)) for sample_id in sample_ids]))
-        print(sql)
         data = pd.read_sql(sql=sql, con=self.connection)
         return data
 
