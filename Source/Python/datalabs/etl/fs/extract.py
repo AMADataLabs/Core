@@ -6,7 +6,7 @@ from   datalabs.etl.extract import ExtractorTask
 from   datalabs.etl.task import ETLException
 
 
-class FileExtractorTask(ExtractorTask):
+class LocalFileExtractorTask(ExtractorTask):
     def _extract(self):
         files = self._get_files()
 
