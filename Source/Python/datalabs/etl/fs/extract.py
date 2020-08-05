@@ -50,7 +50,7 @@ class LocalFileExtractorTask(ExtractorTask):
         return data
 
 
-class WindowsTextExtractorTask(FileExtractorTask):
+class LocalWindowsTextExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252')
