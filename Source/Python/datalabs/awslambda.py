@@ -14,9 +14,6 @@ class TaskWrapper(ABC):
         body = None
         parameters = self._get_task_parameters(event)
 
-        if self._task_class is None:
-            raise KeyError('Task class is not set. Use/implement the wrap() method to set.')
-
         task = self._task_class(parameters)
 
         try:
