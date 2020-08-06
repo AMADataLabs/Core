@@ -1,6 +1,6 @@
 
 resource "aws_iam_role" "sns_logging" {
-    name = "DataLabsDataLakeLoggingRoleForSNS"
+    name = "DataLabs${var.project}LoggingRoleForSNS"
 
     assume_role_policy = <<EOF
 {

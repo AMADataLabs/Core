@@ -15,22 +15,22 @@ resource "aws_lambda_function" "etl_lambda" {
 
     depends_on = [var.parent_function]
 
-    tags = merge(local.tags, {Name = "CPT API ETL Lambda Function"})
+    tags = merge(local.tags, {Name = "${var.project} API ETL Lambda Function"})
 }
 
 
 data "aws_kms_key" "cpt" {
-  key_id = "alias/DataLabs/CPT"
+  key_id = "alias/DataLabs/${var.project}"
 }
 
 
 data "aws_ssm_parameter" "database_username" {
-    name = "/DataLabs/CPT/RDS/username"
+    name = "/DataLabs/${var.project}/RDS/username"
 }
 
 
 data "aws_ssm_parameter" "database_password" {
-    name = "/DataLabs/CPT/RDS/password"
+    name = "/DataLabs/${var.project}/RDS/password"
 }
 
 
@@ -65,6 +65,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
+        Project             = var.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

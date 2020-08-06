@@ -4,7 +4,8 @@ provider "aws" {
 
 
 module "datalabs_terraform_state" {
-    source = "../../Module/DataLake"
+    source  = "../../Module/DataLake"
+    project = "DataLake"
 }
 
 
@@ -24,6 +25,7 @@ locals {
     budget_code         = "PBW"
     owner               = "DataLabs"
     notes               = ""
+    project             = "DataLake"
     tags                = {
         Name = "Data Labs Data Lake Parameter"
         Env                 = data.aws_ssm_parameter.account_environment.value
@@ -35,6 +37,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
+        Project             = local.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

@@ -1,29 +1,17 @@
-variable "project" {
-    description     = "Project name used in tags and names to distinguish resources."
-    type            = string
-}
-
-data "aws_ssm_parameter" "account_environment" {
-    name = "/DataLabs/account_environment"
+provider "aws" {
+    region = "us-east-1"
 }
 
 
-data "aws_ssm_parameter" "contact" {
-    name = "/DataLabs/contact"
+module "cpt" {
+    source = "../../Module/CPT"
+
+    rds_instance_name   = lower(local.project)
+    rds_instance_class  = "db.m5.large"
+    rds_storage_type    = "gp2"
+    database_name       = format("%s_api", lower(local.project))
+    project             = local.project
 }
-
-
-data "aws_ssm_parameter" "ingestion_bucket" {
-    name = "/DataLabs/${var.project}/ingestion_bucket"
-}
-
-
-data "aws_ssm_parameter" "processed_bucket" {
-    name = "/DataLabs/${var.project}/processed_bucket"
-}
-
-
-data "aws_caller_identity" "account" {}
 
 
 locals {
@@ -31,7 +19,9 @@ locals {
     na                  = "N/A"
     budget_code         = "PBW"
     owner               = "DataLabs"
-    tags = {
+    project             = "CPTStress"
+    tags                = {
+        Name                = "Data Labs CPT Parameter"
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
         SystemTier          = local.system_tier
@@ -41,7 +31,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
-        Project             = var.project
+        Project             = local.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

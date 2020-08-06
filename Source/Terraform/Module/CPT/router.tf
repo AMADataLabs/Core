@@ -63,7 +63,7 @@ resource "aws_lambda_function" "ingestion_etl_router" {
         }
     }
 
-    tags = merge(local.tags, {Name = "CPT API Ingestion ETL Router"})
+    tags = merge(local.tags, {Name = "${var.project} API Ingestion ETL Router"})
 }
 
 
@@ -101,7 +101,7 @@ resource "aws_lambda_function" "processed_etl_router" {
         }
     }
 
-    tags = merge(local.tags, {Name = "CPT API Processed ETL Router"})
+    tags = merge(local.tags, {Name = "${var.project} API Processed ETL Router"})
 }
 
 

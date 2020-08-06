@@ -1,3 +1,8 @@
+variable "project" {
+    description     = "Project name used in names to distinguish resources."
+    type            = string
+}
+
 variable "function_name" {
     description = "AWS region"
     type        = string
