@@ -355,6 +355,7 @@ module "etl_load" {
     data_pipeline_api       = true
     trigger_bucket          = data.aws_ssm_parameter.processed_bucket.value
     parent_function         = aws_lambda_function.processed_etl_router
+    timeout                 = 300
 
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3WindowsTextExtractorTask"

@@ -69,3 +69,10 @@ variable "trigger_bucket" {
 variable "parent_function" {
     description = "Reference to the Lambda function allowed to invoke ETLs"
 }
+
+
+variable "timeout" {
+    description = "Timeout in seconds for Lambda functions"
+    type        = number
+    default     = 30
+}

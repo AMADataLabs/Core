@@ -5,7 +5,7 @@ resource "aws_lambda_function" "etl_lambda" {
     role            = var.role
     handler         = "awslambda.handler"
     runtime         = "python3.7"
-    timeout         = 30
+    timeout         = var.timeout
     memory_size     = 1024
     kms_key_arn     = data.aws_kms_key.cpt.arn
 
