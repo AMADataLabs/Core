@@ -41,7 +41,7 @@ class VariableTree:
         for next_branch in branches:
             branch = branch[next_branch.encode('utf-8')]['branches']
 
-        return [branch[key]['value'] for key in branch.keys()]
+        return {key.decode('utf-8'):branch[key]['value'] for key in branch.keys()}
 
 
     @classmethod

@@ -27,8 +27,8 @@ def test_get_branches(tree):
 def test_get_branch_values(tree):
     values = tree.get_branch_values(['ONE', 'TWO'])
 
-    for value in ['foo', 'bar', 'party']:
-        assert value in values
+    for key, value in zip(['BUCKLE', 'MY', 'SHOE'], ['foo', 'bar', 'party']):
+        assert values[key] == value
 
 
 @pytest.fixture

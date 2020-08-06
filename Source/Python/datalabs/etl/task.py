@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 import logging
 from typing import Any
 
+from   datalabs.access.environment import VariableTree
 from   datalabs.task import Task, TaskException
 import datalabs.plugin as plugin
 
@@ -103,10 +104,12 @@ class ETLComponentParameters:
 
 class ETLTaskWrapper(TaskWrapper):
     def _get_task_parameters(self, event: dict):
+        var_tree = VariableTree.generate()
+
         return ETLParameters(
-            extractor=self._get_component_parameters(self._generate_parameters(os.environ, "EXTRACTOR")),
-            transformer=self._get_component_parameters(self._generate_parameters(os.environ, "TRANSFORMER")),
-            loader=self._get_component_parameters(self._generate_parameters(os.environ, "LOADER"))
+            extractor=self._get_component_parameters(var_tree, "EXTRACTOR"),
+            transformer=self._get_component_parameters(var_tree, "TRANSFORMER"),
+            loader=self._get_component_parameters(var_tree, "LOADER")
         )
 
     def _handle_exception(self, exception: ETLException) -> (int, dict):
@@ -117,27 +120,11 @@ class ETLTaskWrapper(TaskWrapper):
         pass
 
     @classmethod
-    def _generate_parameters(cls, variables, variable_base_name):
-        LOGGER.debug('Variables: %s', variables)
-        LOGGER.debug('Variable Base Name: %s', variable_base_name)
-        parameters = {
-            name[len(variable_base_name)+1:]:value
-            for name, value in variables.items()
-            if name.startswith(variable_base_name + '_')
-        }
-        LOGGER.debug('Parameters: %s', parameters)
+    def _get_component_parameters(cls, var_tree, component):
+        component_variables = var_tree.get_branch_values([component])
+        database_variables = var_tree.get_branch_values([component, 'DATABASE'])
 
-        if not parameters:
-            LOGGER.debug('parameters: %s', parameters)
-
-        return parameters
-
-    @classmethod
-    def _get_component_parameters(cls, variables):
-        database_variables = cls._generate_parameters(variables, 'DATABASE')
-        database_parameters = {key.lower(): value for key, value in database_variables.items()}
-        LOGGER.debug('Database variables: %s', database_variables)
-        component_variables = {key: value for key, value in variables.items() if not key.startswith('DATABASE_')}
         LOGGER.debug('Component variables: %s', component_variables)
+        LOGGER.debug('Database variables: %s', database_variables)
 
         return ETLComponentParameters(database=database_parameters, variables=component_variables)

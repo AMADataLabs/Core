@@ -42,15 +42,15 @@ class MockTask(ETLTask):
 def expected_parameters():
     return ETLParameters(
         extractor=ETLComponentParameters(
-            database={},
+            database=dict(HOST='r2d2.droid.com'),
             variables=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing=True)
         ),
         transformer=ETLComponentParameters(
-            database={},
+            database=dict(HOST='c3po.droid.com'),
             variables=dict(CLASS='test.datalabs.etl.test_transform.Transformer')
         ),
         loader=ETLComponentParameters(
-            database={},
+            database=dict(HOST='l337.droid.com'),
             variables=dict(CLASS='test.datalabs.etl.test_load.Loader')
         )
     )
@@ -61,8 +61,11 @@ def event():
     current_env = os.environ.copy()
     os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
     os.environ['EXTRACTOR_thing'] = True
+    os.environ['EXTRACTOR_DATABASE_HOST'] = 'r2d2.droid.com'
     os.environ['TRANSFORMER_CLASS'] = 'test.datalabs.etl.test_transform.Transformer'
+    os.environ['TRANSFORMER_DATABASE_HOST'] = 'c3po.droid.com'
     os.environ['LOADER_CLASS'] = 'test.datalabs.etl.test_load.Loader'
+    os.environ['LOADER_DATABASE_HOST'] = 'l337.droid.com'
 
     yield dict()
 
