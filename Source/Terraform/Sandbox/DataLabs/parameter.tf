@@ -46,6 +46,7 @@ locals {
     budget_code         = "PBW"
     owner               = "DataLabs"
     notes               = ""
+    project             = "DataLabs"
     tags                = {
         Name = "Data Labs Data Lake Parameter"
         Env                 = "Sandbox"
@@ -57,6 +58,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
+        Project             = local.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

@@ -4,5 +4,6 @@ provider "aws" {
 
 
 module "datalabs_terraform_state" {
-    source = "../../Module/DataLabs"
+    source  = "../../Module/DataLabs"
+    project = "DataLabs"
 }

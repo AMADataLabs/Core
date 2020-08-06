@@ -13,7 +13,7 @@ resource "aws_kms_alias" "cpt" {
 resource "aws_ssm_parameter" "database_username" {
     name  = "/DataLabs/${local.project}/RDS/username"
     type  = "String"
-    value = "DataLabs_UI"
+    value = "DataLabs"
     tags  = local.tags
 }
 
