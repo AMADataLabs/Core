@@ -1,5 +1,5 @@
 resource "aws_iam_role" "lambda_role" {
-    name = "DataLabsCPTLambdaExecution"
+    name = "DataLabs${var.project}LambdaExecution"
 
     assume_role_policy = <<EOF
 {
@@ -16,12 +16,12 @@ resource "aws_iam_role" "lambda_role" {
 }
 EOF
 
-    tags = merge(local.tags, {Name = "CPT API Lambda function execution role"})
+    tags = merge(local.tags, {Name = "${var.project} API Lambda function execution role"})
 }
 
 
 resource "aws_iam_policy" "lambda_logging" {
-    name        = "DataLabsCPTLambdaLogging"
+    name        = "DataLabs${var.project}LambdaLogging"
     path        = "/"
     description = "IAM policy for logging from a lambda"
 
@@ -51,7 +51,7 @@ resource "aws_iam_role_policy_attachment" "lambda_logs" {
 
 
 resource "aws_iam_policy" "lambda_kms_access" {
-    name        = "DataLabsCPTLambdaKMSAccess"
+    name        = "DataLabs${var.project}LambdaKMSAccess"
     path        = "/"
     description = "IAM policy for allowing Lambdas to decrypt SSM secure strings"
 
@@ -85,7 +85,7 @@ resource "aws_iam_role_policy_attachment" "lambda_kms_access" {
 
 
 resource "aws_iam_policy" "lambda_s3_access" {
-    name        = "DataLabsCPTLambdaS3Access"
+    name        = "DataLabs${var.project}LambdaS3Access"
     path        = "/"
     description = "IAM policy for accessing S3 from a lambda"
 
@@ -117,7 +117,7 @@ resource "aws_iam_role_policy_attachment" "lambda_s3_access" {
 
 
 resource "aws_iam_policy" "parent_lambda" {
-    name        = "DataLabsCPTLambdaParent"
+    name        = "DataLabs${var.project}LambdaParent"
     path        = "/"
     description = "IAM policy for allowing invocation of child Lambda functions"
 
@@ -145,5 +145,5 @@ resource "aws_iam_role_policy_attachment" "parent_lambda" {
 
 
 data "aws_kms_key" "cpt" {
-  key_id = "alias/DataLabs/CPT"
+  key_id = "alias/DataLabs/${var.project}"
 }
