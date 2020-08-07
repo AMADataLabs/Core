@@ -15,7 +15,7 @@ class VariableTree:
         root = dict()
 
         for name, value in os.environ._data.items():
-            cls._create_branch(root, name, value)
+            cls._create_branch(root, name.decode('utf-8'), value.decode('utf-8'))
 
         return VariableTree(root)
 
@@ -23,7 +23,7 @@ class VariableTree:
         branch = self._root
 
         for next_branch in branches:
-            branch = branch[next_branch.encode('utf-8')]['branches']
+            branch = branch[next_branch]['branches']
 
         return branch['value']
 
@@ -31,24 +31,24 @@ class VariableTree:
         branch = self._root
 
         for next_branch in branches:
-            branch = branch[next_branch.encode('utf-8')]['branches']
+            branch = branch[next_branch]['branches']
 
-        return [key.decode('utf-8') for key in branch.keys()]
+        return [key for key in branch.keys()]
 
     def get_branch_values(self, branches: list):
         branch = self._root
 
         for next_branch in branches:
-            branch = branch[next_branch.encode('utf-8')]['branches']
+            branch = branch[next_branch]['branches']
 
-        return {key.decode('utf-8'):branch[key]['value'] for key in branch.keys()}
+        return {key:branch[key]['value'] for key in branch.keys()}
 
 
     @classmethod
     def _create_branch(cls, trunk, name, value):
         LOGGER.debug('Name: %s', name)
-        if b'_' in name:
-            prefix, suffix = name.split(b'_', 1)
+        if '_' in name:
+            prefix, suffix = name.split('_', 1)
             LOGGER.debug('Prefix: %s\tSuffix: %s', prefix, suffix)
 
             if prefix not in trunk:
@@ -66,4 +66,4 @@ class VariableTree:
                     value=None,
                 )
 
-            trunk[name]['value'] = value.decode()
+            trunk[name]['value'] = value
