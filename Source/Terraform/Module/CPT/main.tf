@@ -303,7 +303,7 @@ module "etl_convert" {
         EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_data_files.value
         EXTRACTOR_RELEASE_SCHEDULE  = data.aws_ssm_parameter.release_schedule.value
 
-        TRANSFORMER_CLASS           = "datalabs.etl.cpt.ingest.transform.CPTFileToCSVTransformerTask"
+        TRANSFORMER_CLASS           = "datalabs.etl.parse.transform.ParseToCSVTransformerTask"
         TRANSFORMER_PARSERS         = data.aws_ssm_parameter.raw_data_parsers.value
 
         LOADER_CLASS                = "datalabs.etl.s3.load.S3WindowsTextLoaderTask"

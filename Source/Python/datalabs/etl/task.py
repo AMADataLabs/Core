@@ -3,7 +3,8 @@ from   dataclasses import dataclass
 import logging
 from typing import Any
 
-from   datalabs.task import Task, TaskException
+from   datalabs.access.environment import VariableTree
+import datalabs.task as task
 import datalabs.plugin as plugin
 
 logging.basicConfig()
@@ -18,7 +19,7 @@ class ETLParameters:
     loader: dict
 
 
-class ETLTask(Task):
+class ETLTask(task.Task):
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -78,12 +79,12 @@ class ETLTask(Task):
         return Plugin(parameters)
 
 
-class ETLException(TaskException):
+class ETLException(task.TaskException):
     pass
 
 
 # pylint: disable=abstract-method
-class ETLComponentTask(Task):
+class ETLComponentTask(task.Task):
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -99,3 +100,36 @@ class ETLComponentParameters:
     database: dict
     variables: dict
     data: Any = None
+
+
+class ETLTaskParametersGetterMixin(task.TaskWrapper):
+    def _get_task_parameters(self):
+        var_tree = VariableTree.generate()
+
+        return ETLParameters(
+            extractor=self._get_component_parameters(var_tree, "EXTRACTOR"),
+            transformer=self._get_component_parameters(var_tree, "TRANSFORMER"),
+            loader=self._get_component_parameters(var_tree, "LOADER")
+        )
+
+    @classmethod
+    def _get_component_parameters(cls, var_tree, component):
+        component_parameters = var_tree.get_branch_values([component])
+        database_parameters = None
+
+        if 'DATABASE' in var_tree.get_branches([component]):
+            component_parameters.pop('DATABASE')
+            database_parameters = var_tree.get_branch_values([component, 'DATABASE'])
+
+        LOGGER.debug('Component parmeters: %s', component_parameters)
+        LOGGER.debug('Database parmeters: %s', database_parameters)
+
+        return ETLComponentParameters(database=database_parameters, variables=component_parameters)
+
+
+class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
+    def _handle_exception(self, exception: ETLException) -> (int, dict):
+        LOGGER.error('Handling ETL task exception: %s', exception)
+
+    def _generate_response(self) -> (int, dict):
+        LOGGER.info('ETL task has finished')
