@@ -283,6 +283,20 @@ module "endpoint_default" {
 }
 
 
+module "authorize" {
+    source = "./authorize"
+
+    project             = var.project
+    function_name       = local.function_names.authorizer
+    task_class          = local.task_classes.authorizer
+    region              = local.region
+    account_id          = data.aws_caller_identity.account.account_id
+    role                = aws_iam_role.lambda_role.arn
+    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    passport_url        = var.passport_url         
+}
+
+
 module "etl_convert" {
     source = "./etl"
 
@@ -416,6 +430,7 @@ locals {
         bundlepdf                   = "${var.project}BundlePDF"
         ingestion_etl_router        = "${var.project}IngestionRouter"
         processed_etl_router        = "${var.project}ProcessedRouter"
+        authorizer                  = "${var.project}Authorizer" 
     }
     task_classes = {
         descriptor                  = "datalabs.access.cpt.api.descriptor.DescriptorEndpointTask"
@@ -432,5 +447,6 @@ locals {
         pdfs                        = "datalabs.access.cpt.api.pdf.PDFsEndpointTask"
         releases                    = "datalabs.access.cpt.api.release.ReleasesEndpointTask"
         default                     = "datalabs.access.cpt.api.default.DefaultEndpointTask"
+        authorizer                  = "datalabs.access.task.authorize.AuthorizerTask"
     }
 }

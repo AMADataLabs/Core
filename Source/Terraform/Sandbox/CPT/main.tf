@@ -11,6 +11,7 @@ module "cpt" {
     rds_storage_type    = "gp2"
     database_name       = "sample"
     project             = local.project
+    passport_url        = "https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI"
 }
 
 

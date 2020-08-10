@@ -31,6 +31,12 @@ variable "database_name" {
 }
 
 
+variable "passport_url" {
+    description = "Passport Url"
+    type        = string 
+}
+
+
 data "aws_caller_identity" "account" {}
 
 

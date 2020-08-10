@@ -6,16 +6,6 @@ import datalabs.task as task
 
 
 class TaskWrapper(task.TaskWrapper, ABC):
-    def run(self):
-        status_code, headers, body = super().run()
-
-        return {
-            "statusCode": status_code,
-            "headers": headers,
-            "body": json.dumps(body),
-            "isBase64Encoded": False,
-        }
-
     @abstractmethod
     def _get_task_parameters(self):
         pass
