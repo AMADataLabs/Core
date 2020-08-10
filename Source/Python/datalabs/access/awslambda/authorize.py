@@ -6,9 +6,6 @@ from datalabs.awslambda import TaskWrapper
 
 
 class AuthorizerLambdaTaskWrapper(TaskWrapper):
-    def run(self):
-        return super().run()
-
     def _get_task_parameters(self):
         return AuthorizerParameters(
             token=self._parameters.get('authorizationToken'),

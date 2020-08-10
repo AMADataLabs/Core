@@ -95,7 +95,7 @@ class APIEndpointParametersGetterMixin(task.TaskWrapper):
         )
 
 
-class APIEndpointResponseHandlerMixin(task.TaskWrapper):
+class APIEndpointTaskWrapper(APIEndpointParametersGetterMixin, task.TaskWrapper):
     def _generate_response(self) -> (int, dict):
         return self._task.status_code, self._task.headers, self._task.response_body
 
@@ -104,9 +104,3 @@ class APIEndpointResponseHandlerMixin(task.TaskWrapper):
         body = dict(message=exception.message)
 
         return status_code, dict(), body
-
-
-class APIEndpointTaskWrapper(
-    APIEndpointParametersGetterMixin, APIEndpointResponseHandlerMixin, task.TaskWrapper
-):
-    pass
