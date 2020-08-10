@@ -6,6 +6,9 @@ from datalabs.awslambda import TaskWrapper
 
 
 class AuthorizerLambdaTaskWrapper(TaskWrapper):
+    def run(self):
+        return super().run()
+
     def _get_task_parameters(self):
         return AuthorizerParameters(
             token=self._parameters.get('authorizationToken'),
@@ -14,10 +17,7 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
         )
 
     def _handle_exception(self, exception: AuthorizerTaskException) -> (int, dict):
-        status_code = exception.status_code
-        body = dict(message=exception.message)
-
-        return status_code, dict(), body
+        return dict(message=exception.message)
 
     def _generate_response(self) -> (int, dict):
-        return self._task.status_code, self._task.headers, self._task.response_body
+        return self._task.policy_document

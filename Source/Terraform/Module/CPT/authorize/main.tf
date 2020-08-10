@@ -21,11 +21,51 @@ resource "aws_lambda_function" "authorizer_lambda" {
 }
 
 
+resource "aws_iam_role" "invocation_role" {
+  name = "DataLabs${var.project}Authorizer"
+  path = "/"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "apigateway.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "invocation_policy" {
+  name = "DataLabs${var.project}AuthorizerInvocation"
+  role = aws_iam_role.invocation_role.id
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "lambda:InvokeFunction",
+      "Effect": "Allow",
+      "Resource": "${aws_lambda_function.authorizer_lambda.arn}"
+    }
+  ]
+}
+EOF
+}
+
+
 resource "aws_api_gateway_authorizer" "api_gateway_authorizer"{
     name             = "gateway_authorizer"
     rest_api_id      = var.api_gateway_id
     authorizer_uri   = aws_lambda_function.authorizer_lambda.invoke_arn
-
+    authorizer_credentials = aws_iam_role.invocation_role.arn
 }
 
 

@@ -16,26 +16,16 @@ class AuthorizerParameters:
 class AuthorizerTask(Task, ABC):
     def __init__(self, parameters: AuthorizerParameters):
         super().__init__(parameters)
-        self._status_code = 200
-        self._response_body = dict()
-        self._headers = dict()
+        self._policy_document = dict()
         self._session = requests.Session()
 
     @property
-    def status_code(self):
-        return self._status_code
-
-    @property
-    def response_body(self):
-        return self._response_body
+    def policy_document(self):
+        return self._policy_document
 
     @property
     def generate_session(self):
         return self._session
-
-    @property
-    def headers(self):
-        return self._headers
 
     def run(self):
         response = self._session.post(
@@ -45,9 +35,9 @@ class AuthorizerTask(Task, ABC):
 
         if response.status_code == 200:
             subscriptions = json.loads(response.text).get('subscriptionsList')
-            self._response_body = self._authorize(subscriptions)
+            self._policy_document = self._authorize(subscriptions)
         else:
-            raise AuthorizerTaskException(f'Unable to authorize: {response.text}', status_code=response.status_code)
+            raise AuthorizerTaskException(f'Unable to authorize: {response.text}')
 
     def _authorize(self, result):
         policy = None
@@ -76,14 +66,7 @@ class AuthorizerTask(Task, ABC):
 
 
 class AuthorizerTaskException(TaskException):
-    def __init__(self, message, status_code=None):
-        super().__init__(message)
-
-        self._status_code = status_code or 400  # Invalid request
-
-    @property
-    def status_code(self):
-        return self._status_code
+    pass
 
 
 class TokenNotFound(AuthorizerTaskException):
