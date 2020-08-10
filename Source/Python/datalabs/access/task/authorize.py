@@ -1,7 +1,8 @@
+from   abc import abstractmethod, ABC
+from   dataclasses import dataclass
 import json
 import requests
-from abc import abstractmethod, ABC
-from dataclasses import dataclass
+
 from datalabs.task import Task, TaskException
 
 
