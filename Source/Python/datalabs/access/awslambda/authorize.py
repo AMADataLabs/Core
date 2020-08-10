@@ -19,5 +19,5 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
 
         return status_code, dict(), body
 
-    def _generate_response(self, task) -> (int, dict):
-        return task.status_code, task.headers, task.response_body
+    def _generate_response(self) -> (int, dict):
+        return self._task.status_code, self._task.headers, self._task.response_body
