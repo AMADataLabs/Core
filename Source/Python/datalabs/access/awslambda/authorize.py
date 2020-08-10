@@ -6,10 +6,10 @@ from datalabs.awslambda import TaskWrapper
 
 
 class AuthorizerLambdaTaskWrapper(TaskWrapper):
-    def _get_task_parameters(self, event: dict):
+    def _get_task_parameters(self):
         return AuthorizerParameters(
-            token=event.get('authorizationToken'),
-            endpoint=event.get('methodArn'),
+            token=self._parameters.get('authorizationToken'),
+            endpoint=self._parameters.get('methodArn'),
             passport_url=os.environ.get('PASSPORT_URL')
         )
 
