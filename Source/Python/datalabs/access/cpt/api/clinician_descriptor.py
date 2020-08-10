@@ -4,7 +4,7 @@ import logging
 
 from   sqlalchemy import or_
 
-from   datalabs.access.task import APIEndpointTask, ResourceNotFound
+from   datalabs.access.task.api import APIEndpointTask, ResourceNotFound
 from   datalabs.etl.cpt.dbmodel import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
 
 logging.basicConfig()

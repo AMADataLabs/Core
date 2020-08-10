@@ -1,10 +1,10 @@
 """ API endpoint-specific Lambda function Task wrapper. """
-import datalabs.access.task as task
+import datalabs.access.task.api as api
 from   datalabs.awslambda import TaskWrapper
 
 
 class APIEndpointTaskWrapper(
-    task.APIEndpointParametersGetterMixin, task.APIEndpointResponseHandlerMixin, TaskWrapper
+    api.APIEndpointParametersGetterMixin, api.APIEndpointResponseHandlerMixin, TaskWrapper
 ):
     def _get_task_parameters(self):
         self._parameters['query'] = self._parameters.get('queryStringParameters') or dict()

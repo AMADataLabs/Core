@@ -1,18 +1,18 @@
-""" source: datalabs.access.task """
+""" source: datalabs.access.task.api """
 import pytest
 
 import mock
 
-import datalabs.access.task as apitask
+import datalabs.access.task.api as api
 
 
 # pylint: disable=abstract-method
-class BadTask(apitask.APIEndpointTask):
+class BadTask(api.APIEndpointTask):
     pass
 
 
 # pylint: disable=protected-access
-class GoodTask(apitask.APIEndpointTask):
+class GoodTask(api.APIEndpointTask):
     def _run(self, session):
         GoodTask._run.called = True
 
@@ -42,28 +42,28 @@ def test_task_runs_with_database(parameters):
 
 
 def test_api_endpoint_exceptions_have_status_and_message():
-    exception = apitask.APIEndpointException('failed', -1)
+    exception = api.APIEndpointException('failed', -1)
 
     assert exception.status_code == -1
     assert exception.message == 'failed'
 
 
 def test_default_api_endpoint_exception_status_code_is_400():
-    exception = apitask.APIEndpointException('failed')
+    exception = api.APIEndpointException('failed')
 
     assert exception.status_code == 400
     assert exception.message == 'failed'
 
 
 def test_invalid_request_status_is_400():
-    exception = apitask.InvalidRequest('failed')
+    exception = api.InvalidRequest('failed')
 
     assert exception.status_code == 400
     assert exception.message == 'failed'
 
 
 def test_resource_not_found_is_404():
-    exception = apitask.ResourceNotFound('failed')
+    exception = api.ResourceNotFound('failed')
 
     assert exception.status_code == 404
     assert exception.message == 'failed'
@@ -71,7 +71,7 @@ def test_resource_not_found_is_404():
 
 @pytest.fixture
 def parameters():
-    return apitask.APIEndpointParameters(
+    return api.APIEndpointParameters(
         path=None,
         query=None,
         database=dict(name=None, backend=None, host=None, username=None, password=None),

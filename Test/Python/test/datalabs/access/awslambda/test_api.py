@@ -2,8 +2,8 @@
 import os
 import pytest
 
-from   datalabs.access.awslambda import APIEndpointTaskWrapper
-import datalabs.access.task as apitask
+from   datalabs.access.awslambda.api import APIEndpointTaskWrapper
+import datalabs.access.task.api as api
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -17,7 +17,7 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
     wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
-    status_code, headers, body = wrapper._handle_exception(apitask.APIEndpointException('failed'))
+    status_code, headers, body = wrapper._handle_exception(api.APIEndpointException('failed'))
 
     assert status_code == 400
     assert body == dict(message='failed')
@@ -33,14 +33,14 @@ def test_task_wrapper_generate_response(event):
     assert body == dict()
 
 
-class MockTask(apitask.APIEndpointTask):
+class MockTask(api.APIEndpointTask):
     def _run(self, session):
         pass
 
 
 @pytest.fixture
 def expected_parameters():
-    return apitask.APIEndpointParameters(
+    return api.APIEndpointParameters(
         path=dict(foo='bar'),
         query=dict(ping='pong'),
         database=dict(
