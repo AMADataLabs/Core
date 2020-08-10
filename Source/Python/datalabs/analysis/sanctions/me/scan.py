@@ -8,7 +8,7 @@ import settings
 
 
 class SanctionsMEScan:
-    def __init__(self, server):
+    def __init__(self, host):
         self._marklogic_username = None
         self._marklogic_password = None
         self._aims_source_name = None
@@ -16,10 +16,10 @@ class SanctionsMEScan:
         self._aims_password = None
 
         self._marklogic_con = None
-        self._server = server
+        self._host = host
         self._aims_con = None
 
-    def _set_environment_variables(self):
+    def _load_environment_variables(self):
         self._marklogic_username = os.environ.get('CREDENTIALS_MARKLOGIC_USERNAME')
         self._marklogic_password = os.environ.get('CREDENTIALS_MARKLOGIC_PASSWORD')
         self._aims_source_name = os.environ.get('DATABASE_NAME_AIMS')
@@ -27,7 +27,7 @@ class SanctionsMEScan:
         self._aims_username = os.environ.get('CREDENTIALS_AIMS_PASSWORD')
 
     def _set_database_connections(self):
-        self._marklogic_con = MarkLogic(server='prod')
+        self._marklogic_con = MarkLogic()
 
         self._aims_con = jaydebeapi.connect(
             'com/informix/jdbc/IfxConnection',
@@ -55,7 +55,7 @@ class SanctionsMEScan:
             self._scan_uri(uri)
 
     def _scan_uri(self, uri: str):
-        # download the json file for this URI
+        # get the json file for this URI
         json_data = json.loads(self._marklogic_con.get_file(uri=uri))
 
         if self._needs_me(json_data) and self._is_searchable(json_data):
@@ -64,14 +64,18 @@ class SanctionsMEScan:
             last = json_data['sanction']['physician']['name_last']
             state = self._get_state(uri)
 
-            me_nbr = self._get_me_nbr(first=first,
-                                      last=last,
-                                      state=state,
-                                      lic_nbr=lic_nbr)
+            me_nbr = self._get_me_nbr(
+                first=first,
+                last=last,
+                state=state,
+                lic_nbr=lic_nbr
+            )
             if me_nbr is not None:
-                self._marklogic_con.set_me_nbr(uri=uri,
-                                               json_file=json_data,
-                                               me_nbr=me_nbr)
+                self._marklogic_con.set_me_number(
+                    uri=uri,
+                    json_file=json_data,
+                    me_nbr=me_nbr
+                )
 
     @classmethod
     def _is_null(cls, value):
@@ -82,7 +86,7 @@ class SanctionsMEScan:
         try:
             me_nbr = json_data['sanction']['physician']['me']
             return cls._is_null(me_nbr)
-        except:  # json_data not formatted properly
+        except KeyError:  # json_data not formatted properly
             return False
 
     def _is_searchable(self, json_data):
@@ -94,7 +98,7 @@ class SanctionsMEScan:
 
     def _get_me_nbr(self, first, last, state, lic_nbr):
         """
-        initial search is just on first + last because I was getting some weird errors / unexpected behavior when
+        Initial search is just on first + last because I was getting some weird errors / unexpected behavior when
         using state_cd to compare to state in the SQL query. Final matching on state and license number are done
         once the initial results are in a DataFrame.
         """
@@ -121,7 +125,7 @@ class SanctionsMEScan:
         return me_nbr
 
     def run(self):
-        self._set_environment_variables()
+        self._load_environment_variables()
         self._set_database_connections()
         uris = self._marklogic_con.get_file_uris()
         self._scan_uris(uris=uris)

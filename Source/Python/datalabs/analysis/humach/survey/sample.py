@@ -1,23 +1,25 @@
-import pandas as pd
-import os
+from dataclasses import dataclass
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import logging
+import os
+import pandas as pd
+
+from datalabs.access.aims import AIMS
+from datalabs.analysis.humach.survey.archive import HumachResultsArchive
+
+from filter_bad_phones import get_good_bad_phones  # /Sandbox/CommonCode/filter_bad_phones.py
+import settings
+
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-from datalabs.analysis.humach.survey.archive import HumachResultsArchive
-from datalabs.access.aims import AIMS
 
-from filter_bad_phones import get_good_bad_phones
-
-import settings
-
-
+@dataclass
 class AIMSData:
-    no_contacts = pd.DataFrame()
-    pe_descriptions = pd.DataFrame()
+    no_contacts: pd.DataFrame = pd.DataFrame()
+    pe_descriptions: pd.DataFrame = pd.DataFrame()
 
 
 class HumachSampleGenerator:
@@ -53,7 +55,7 @@ class HumachSampleGenerator:
         self._target_sample_vars = self._archive.sample_cols
         self._months_me_block = os.environ.get('MONTHS_ME_BLOCK')
         self._months_phone_block = os.environ.get('MONTHS_PHONE_BLOCK')
-        self._sample_size = os.environ.get('SAMPLE_SIZE')
+        self._sample_size = os.environ.get(f'SAMPLE_SIZE_{self._survey_type.upper()}')
 
     def _get_population_data(self):
         ppd = self._load_ppd()
@@ -61,6 +63,14 @@ class HumachSampleGenerator:
 
         data = self._prepare_population_data(data=ppd, aims_data=aims_data)
         return data
+
+    def _make_sample(self, population_data: pd.DataFrame, size):
+        sample = population_data.sample(n=min(int(size), len(population_data))).reset_index()
+
+        sample = self._add_sample_info_columns(sample)
+        sample = self._format_sample_columns(sample)
+
+        self._save_sample_and_deliverable(sample)
 
     def _load_ppd(self):
         ppd = pd.read_csv(self._ppd_filename, dtype=str)
@@ -83,14 +93,33 @@ class HumachSampleGenerator:
         data = self._add_pe_description(data=data, aims_data=aims_data)
         return data
 
-    def _make_sample(self, population_data: pd.DataFrame, size):
-        sample = population_data.sample(n=min(int(size),
-                                              len(population_data))).reset_index()
+    def _add_sample_info_columns(self, data):
+        sample_id = self._archive.get_latest_sample_id() + 1
 
-        sample = self._add_sample_info_columns(sample)
-        sample = self._format_sample_columns(sample)
+        data['SAMPLE_ID'] = sample_id
+        data['ROW_ID'] = data.index + 1
+        data['SURVEY_TYPE'] = self._survey_type.upper()
+        data['SURVEY_MONTH'] = self._survey_date.month
+        data['SURVEY_YEAR'] = self._survey_date.year
+        data['SAMPLE_SOURCE'] = 'MF'
 
-        self._save_sample_and_deliverable(sample)
+        return data
+
+    def _format_sample_columns(self, data: pd.DataFrame):
+        data.columns = [col.upper() for col in data.columns.values]  # uppercase DataFrame column names
+        cols = [col.upper() for col in self._target_sample_vars]  # target sample file column names
+        data.rename(columns={'PREFERRED_PHONE_COMM_ID': 'PHONE_COMM_ID'}, inplace=True)  # expected name in the DB table
+
+        # re-orders DataFrame columns to match order specified in self._target_sample_vars
+        sample = pd.DataFrame()
+        for col in cols:
+            sample[col] = data[col]
+
+        return sample
+
+    def _save_sample_and_deliverable(self, sample):
+        self._load_sample_to_archive(sample)
+        self._make_deliverable_sample(sample)
 
     @classmethod
     def _filter_to_dpc(cls, data: pd.DataFrame):
@@ -104,8 +133,12 @@ class HumachSampleGenerator:
         return data
 
     def _filter_no_contacts(self, data: pd.DataFrame, aims_data: AIMSData):
-        data = self._filter_data(data=data, data_col='ENTITY_ID',
-                                 filter_data=aims_data.no_contacts, filter_col='entity_id')
+        data = self._filter_data(
+            data=data,
+            data_col='ENTITY_ID',
+            filter_data=aims_data.no_contacts,
+            filter_col='entity_id'
+        )
         return data
 
     def _filter_recent_phones(self, data: pd.DataFrame):
@@ -116,56 +149,34 @@ class HumachSampleGenerator:
 
     def _filter_recent_me(self, data: pd.DataFrame):
         previous_n_months_data = self._archive.get_sample_data_past_n_months(self._months_me_block)
-        data = self._filter_data(data=data, data_col='ME',
-                                 filter_data=previous_n_months_data, filter_col='me')
+        data = self._filter_data(
+            data=data,
+            data_col='ME',
+            filter_data=previous_n_months_data,
+            filter_col='me'
+        )
         return data
-
-    @classmethod
-    def _filter_data(cls, data: pd.DataFrame, data_col: str,
-                     filter_data: pd.DataFrame, filter_col: str) -> pd.DataFrame:
-        result = data[~data[data_col].isin(filter_data[filter_col])]
-        return result
 
     @classmethod
     def _add_pe_description(cls, data: pd.DataFrame, aims_data: AIMSData):
         data = data.merge(aims_data.pe_descriptions, left_on='PE_CD', right_on='present_emp_cd', how='left')
         return data
 
-    def _add_sample_info_columns(self, data):
-        sample_id = self._archive.get_latest_sample_id() + 1
-
-        data['SAMPLE_ID'] = sample_id
-        data['ROW_ID'] = data.index + 1
-        data['SURVEY_TYPE'] = self._survey_type
-        data['SURVEY_MONTH'] = self._survey_date.month
-        data['SURVEY_YEAR'] = self._survey_date.year
-        data['SAMPLE_SOURCE'] = 'MF'
-
-        return data
-
-    def _format_sample_columns(self, data):
-        data.columns = [col.upper() for col in data.columns.values]  # uppercase DataFrame column names
-
-        cols = [col.upper() for col in self._target_sample_vars]  # target sample file column names
-
-        data.rename(columns={'PREFERRED_PHONE_COMM_ID': 'PHONE_COMM_ID'}, inplace=True)  # expected name in the DB table
-
-        # re-orders DataFrame columns to match order specified in self._target_sample_vars
-        sample = pd.DataFrame()
-        for col in cols:
-            sample[col] = data[col]
-
-        return sample
-
-    def _save_sample_and_deliverable(self, sample):
-        LOGGER.info('ADDING SAMPLE TO DATABASE')
-        self._load_sample_to_archive(sample)
-
-        self._make_deliverable_sample(sample)
+    def _load_sample_to_archive(self, sample):
+        self._archive.ingest_sample_data(sample)
 
     def _make_deliverable_sample(self, sample):
-        deliverable = sample.drop(columns=['SURVEY_TYPE', 'SURVEY_MONTH', 'SURVEY_YEAR', 'SAMPLE_SOURCE',
-                                           'PHONE_COMM_ID', 'ENTITY_ID', 'POLO_COMM_ID'])
+        deliverable = sample.drop(
+            columns=[
+                'SURVEY_TYPE',
+                'SURVEY_MONTH',
+                'SURVEY_YEAR',
+                'SAMPLE_SOURCE',
+                'PHONE_COMM_ID',
+                'ENTITY_ID',
+                'POLO_COMM_ID'
+            ]
+        )
         sample_name = f'\\{self._today_date}_Masterfile_Random_Sample.xlsx'
         sample_save_path = self._save_dir + sample_name
         writer = pd.ExcelWriter(sample_save_path, engine='xlsxwriter')
@@ -174,5 +185,6 @@ class HumachSampleGenerator:
         deliverable.to_excel(excel_writer=writer, index=None)
         writer.save()
 
-    def _load_sample_to_archive(self, sample):
-        self._archive.ingest_sample_data(sample)
+    @classmethod
+    def _filter_data(cls, data: pd.DataFrame, data_col: str, filter_data: pd.DataFrame, filter_col: str):
+        return data[~data[data_col].isin(filter_data[filter_col])]

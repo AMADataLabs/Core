@@ -24,7 +24,9 @@ STANDARD_RESULTS_COLUMNS = [
     'present_employment_updated',
     'comments',
     'source',
-    'source_date']
+    'source_date'
+]
+
 VALIDATION_RESULTS_COLUMNS = [
     'sample_id',
     'row_id',
@@ -63,7 +65,9 @@ VALIDATION_RESULTS_COLUMNS = [
     'lastcall',
     'adcid',
     'secondattempt',
-    'result_of_call']
+    'result_of_call'
+]
+
 SAMPLE_COLUMNS = [
     'sample_id',
     'row_id',
@@ -88,7 +92,8 @@ SAMPLE_COLUMNS = [
     'prim_spec_cd',
     'description',
     'pe_cd',
-    'fax_number']
+    'fax_number'
+]
 
 # column names of Excel files sent/received to/from Humach
 STANDARD_RESULTS_COLUMNS_EXPECTED = [
@@ -116,7 +121,10 @@ STANDARD_RESULTS_COLUMNS_EXPECTED = [
     'PRESENT EMPLOYMENT UPDATED',
     'COMMENTS',
     'SOURCE',
-    'SOURCE DATE']
+    'SOURCE DATE'
+
+]
+
 VALIDATION_RESULTS_COLUMNS_EXPECTED = [
     'SAMPLE_ID',
     'ROW_ID',
@@ -155,7 +163,9 @@ VALIDATION_RESULTS_COLUMNS_EXPECTED = [
     'LASTCALL',
     'ADCID',
     'SECONDATTEMPT',
-    'RESULT_OF_CALL']
+    'RESULT_OF_CALL'
+]
+
 SAMPLE_COLUMNS_EXPECTED = [
     'SAMPLE_ID',
     'ROW_ID',
@@ -180,4 +190,6 @@ SAMPLE_COLUMNS_EXPECTED = [
     'PRIM_SPEC_CD',
     'DESCRIPTION',
     'PE_CD',
-    'FAX_NUMBER']
+    'FAX_NUMBER'
+
+]

@@ -1,7 +1,7 @@
-from sqlite3 import Connection
-import pandas as pd
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import pandas as pd
+from sqlite3 import Connection
 
 from datalabs.analysis.humach.survey.column_definitions import *
 
@@ -15,7 +15,7 @@ class HumachResultsArchive:
         self.validation_results_cols = VALIDATION_RESULTS_COLUMNS
         self.sample_cols = SAMPLE_COLUMNS
 
-        # column names of Excel files sent/received to/from Humach
+        # column names of Excel files of samples sent to and results received from Humach
         self.standard_results_cols_expected = STANDARD_RESULTS_COLUMNS_EXPECTED
         self.validation_results_cols_expected = VALIDATION_RESULTS_COLUMNS_EXPECTED
         self.sample_cols_expected = SAMPLE_COLUMNS_EXPECTED
@@ -34,16 +34,19 @@ class HumachResultsArchive:
     def insert_row(self, table, vals):
         cols = self.table_columns[table]
 
-        sql = \
-            "INSERT INTO {}({}) VALUES({});".format(table, ','.join(cols), ','.join(['"' + str(v) + '"' for v in vals]))
+        sql = "INSERT INTO {}({}) VALUES({});".format(
+                table,
+                ','.join(cols),
+                ','.join(['"' + str(v) + '"' for v in vals])
+        )
 
         self.connection.execute(sql)
 
     def validate_cols(self, table, cols):
         cols_set = set(cols)
         expected_set = self.expected_file_columns[table]
-        if not cols_set == expected_set:
-            raise
+        if cols_set != expected_set:
+            raise ValueError('Columns provided do not match columns expected.')
 
     def ingest_result_file(self, table, file_path):
         if table == 'results_standard':
@@ -51,7 +54,7 @@ class HumachResultsArchive:
         elif table == 'results_validation':
             data = self._preprocess_validation_result_file(file_path)
         else:
-            raise
+            raise ValueError('Table {} could not be processed.'.format(table))
 
         for i, r in data.iterrows():
             self.insert_row(table=table, vals=[v for v in r.values])
@@ -98,13 +101,12 @@ class HumachResultsArchive:
         return data
 
     def get_sample_data_past_n_months(self, n, as_of_date: datetime.date = datetime.now().date()):
-        sql = \
-            """SELECT * FROM samples"""
+        sql = """SELECT * FROM samples"""
         data = pd.read_sql(sql=sql, con=self.connection)
 
-        data['survey_date'] = [f'{year}-{("0" + str(month))[-2:]}-01' for year,
-                                                                          month in zip(data['survey_year'].values,
-                                                                                       data['survey_month'].values)]
+        data['survey_date'] = [f'{year}-{("0" + str(month))[-2:]}-01' for year, month in zip(
+            data['survey_year'].values,
+            data['survey_month'].values)]
         data['survey_date'] = pd.to_datetime(data['survey_date'])
         data['survey_date'] = data['survey_date'].apply(lambda x: x.date())
 
@@ -118,8 +120,7 @@ class HumachResultsArchive:
         return data
 
     def get_latest_sample_id(self):
-        sql = \
-            """SELECT MAX(sample_id) FROM samples;"""
+        sql = """SELECT MAX(sample_id) FROM samples;"""
         result = self.connection.execute(sql).fetchone()[0]
         return result
 

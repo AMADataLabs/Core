@@ -10,9 +10,9 @@ from datalabs.access.credentials import Credentials
 
 class MarkLogic(Datastore):
     def __init(self, credentials: Credentials = None, url=None):
-        super().__init__(credentials, key='MARKLOGIC')
         self.url = url  # url takes the following form: "http://address:port/version"
-        self.auth = HTTPDigestAuth(credentials.username, credentials.password)
+        self.auth = HTTPDigestAuth(self._credentials.username, self._credentials.password)
+        super().__init__(credentials, key='MARKLOGIC')
 
     def connect(self):
         self._connection = requests.Session()
@@ -32,24 +32,21 @@ class MarkLogic(Datastore):
         uris = []
         page_results = page_length
 
-        # iterate through each page of results
-        while page_results > 0:
-            url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \
-                  f'pageLength={page_length}&database={database}'
-            search = self._connection.get(url, auth=self.auth)
-
-            page_result_uris = self._get_search_result_uris(search)
+        # iterate through each page of results, building a list of URIs
+        while page_results == page_length:  # if the results page for the previous search is full, search next page
+            page_result = self._get_page_search_result(query, collection, start, page_length, database)
+            page_result_uris = self._get_search_result_uris(page_result)
             uris.extend(page_result_uris)
-
             page_results = len(page_result_uris)
             start += page_length
         return uris
 
-    @classmethod
-    def _get_results_from_search(cls, response):
-        xml_doc = minidom.parse(response.content)
-        results = xml_doc.getElementsByTagName('search:result')
-        return results
+    def _get_page_search_result(self, query, collection, start, page_length, database):
+        url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \
+              f'pageLength={page_length}&database={database}'
+        search = self._connection.get(url, auth=self.auth)
+        search.raise_for_status()
+        return search
 
     def _get_search_result_uris(self, response):
         uris = []
@@ -60,19 +57,28 @@ class MarkLogic(Datastore):
             uris.append(uri)
         return uris
 
+    @classmethod
+    def _get_results_from_search(cls, response):
+        xml_doc = minidom.parse(response.content)
+        results = xml_doc.getElementsByTagName('search:result')
+        return results
+
     def get_file(self, uri, database='PhysicianSanctions'):
         url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
 
         response = self._connection.get(url=url, auth=self.auth)
         response.raise_for_status()
-
         return response.content
 
     # downloads a file specified by URI to local environment
     def download_file(self, uri, database='PhysicianSanctions', save_dir=''):
         data = self.get_file(uri=uri, database=database)
+        self.write_file(data, file_name=uri, save_dir=save_dir)
 
-        file = (save_dir + uri).replace('/', '\\').replace('\\\\', '\\')
+    @classmethod
+    def write_file(cls, data, file_name, save_dir=''):
+        """ File names by default are the URI of the file, which themselves often contain relative paths. """
+        file = (save_dir + file_name).replace('/', '\\').replace('\\\\', '\\')
         file_dir = file[:file.rindex('\\') if '\\' in file else '']
 
         if not os.path.exists(file_dir):
