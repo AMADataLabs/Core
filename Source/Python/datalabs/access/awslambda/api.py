@@ -3,7 +3,7 @@ import datalabs.access.task.api as api
 from   datalabs.awslambda import TaskWrapper
 
 
-class APIEndpointTaskWrapper(APIEndpointParametersGetterMixin, task.TaskWrapper):
+class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
     def _get_task_parameters(self):
         self._parameters['query'] = self._parameters.get('queryStringParameters') or dict()
         self._parameters['query'].update(self._parameters.get('multiValueQueryStringParameters') or dict())
@@ -19,7 +19,7 @@ class APIEndpointTaskWrapper(APIEndpointParametersGetterMixin, task.TaskWrapper)
             "isBase64Encoded": False,
         }
 
-    def _handle_exception(self, exception: APIEndpointException) -> (int, dict):
+    def _handle_exception(self, exception: api.APIEndpointException) -> (int, dict):
         return {
             "statusCode": exception.status_code,
             "headers": dict(),
