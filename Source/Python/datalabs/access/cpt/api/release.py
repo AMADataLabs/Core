@@ -1,7 +1,7 @@
 """ Release endpoint classes. """
 import logging
 
-from   datalabs.access.task import APIEndpointTask, InvalidRequest
+from   datalabs.access.task.api import APIEndpointTask, InvalidRequest
 from   datalabs.etl.cpt.dbmodel import Release
 
 logging.basicConfig()

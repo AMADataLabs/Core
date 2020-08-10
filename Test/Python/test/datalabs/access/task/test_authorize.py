@@ -1,6 +1,6 @@
 import pytest
 import mock
-import datalabs.access.authorize as authorizer
+import datalabs.access.task.authorize as authorizer
 
 
 def test_authorized(authorized_passport_response):

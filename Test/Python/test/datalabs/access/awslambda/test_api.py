@@ -2,8 +2,8 @@
 import os
 import pytest
 
-from   datalabs.access.awslambda import APIEndpointTaskWrapper, APIEndpointException
-from   datalabs.access.task import APIEndpointTask, APIEndpointParameters
+from   datalabs.access.awslambda.api import APIEndpointTaskWrapper, APIEndpointException
+from   datalabs.access.task.api import APIEndpointTask, APIEndpointParameters
 
 
 # pylint: disable=redefined-outer-name, protected-access

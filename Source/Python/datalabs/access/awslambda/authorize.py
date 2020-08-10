@@ -1,7 +1,7 @@
 """ API endpoint-specific Lambda function Task wrapper. """
 import os
 
-from datalabs.access.authorize import AuthorizerParameters, AuthorizerTaskException
+from datalabs.access.task.authorize import AuthorizerParameters, AuthorizerTaskException
 from datalabs.awslambda import TaskWrapper
 
 

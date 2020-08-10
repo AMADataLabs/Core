@@ -1,7 +1,7 @@
 """ API endpoint-specific Lambda function Task wrapper. """
 import os
 
-from   datalabs.access.task import APIEndpointParameters, APIEndpointException
+from   datalabs.access.task.api import APIEndpointParameters, APIEndpointException
 from   datalabs.awslambda import TaskWrapper
 
 
