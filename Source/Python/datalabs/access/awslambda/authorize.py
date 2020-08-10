@@ -10,8 +10,6 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
         return AuthorizerParameters(
             token=event.get('authorizationToken'),
             endpoint=event.get('methodArn'),
-            # TODO: this needs to be configurable
-            # passport_url='https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI'
             passport_url=os.environ.get('PASSPORT_URL')
         )
 
