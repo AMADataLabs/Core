@@ -4,8 +4,6 @@ from abc import abstractmethod, ABC
 from dataclasses import dataclass
 from datalabs.task import Task, TaskException
 
-from datalabs.access.orm import DatabaseTaskMixin
-
 
 @dataclass
 class AuthorizerParameters:
@@ -13,7 +11,7 @@ class AuthorizerParameters:
     passport_url: str
 
 
-class AuthorizerTask(Task, DatabaseTaskMixin, ABC):
+class AuthorizerTask(Task, ABC):
     def __init__(self, parameters: AuthorizerParameters):
         super().__init__(parameters)
         self._status_code = 200
@@ -35,47 +33,47 @@ class AuthorizerTask(Task, DatabaseTaskMixin, ABC):
 
     @property
     def headers(self):
-        with self._parameters.token as token:
-            self._headers = {'Authorization': 'Bearer ' + token}
         return self._headers
 
     def run(self):
-        with self._parameters.passport_url as url:
-            result = self._session.post(url, headers=self.headers)
+        result = self._session.post(
+            self._parameters.passport_url,
+            headers={'Authorization': 'Bearer ' + self._parameters.token}
+        )
 
         if result.status_code == 200:
             subscriptions = json.loads(result.text).get('subscriptionsList')
-            authorization = self._check_response(subscriptions)
-            self._run(authorization)
-
+            policy = self._authorize(subscriptions)
         else:
-            raise TokenNotFound('Invalid token')
+            raise TokenNotFound('Invalid authorization token')
 
     @classmethod
-    def _check_response(cls, result):
+    def _authorize(cls, result):
+        policy = None
+
         if len(result) > 0:
-            return cls._generate_policy(effect='Allow')
+            policy = cls._generate_policy(effect='Allow')
         else:
-            return cls._generate_policy(effect='Deny')
+            policy = cls._generate_policy(effect='Deny')
+
+        return policy
 
     @classmethod
     def _generate_policy(cls, effect):
-        cls._response_body = {"principalId": "my-username",
-                              "policyDocument": {
-                                  "Version": "2012-10-17",
-                                  "Statement": [
-                                      {
-                                          "Action": "execute-api:Invoke",
-                                          "Effect": effect,
-                                          "Resource": "arn:aws:lambda:us-east-1:644454719059:function:CPTDefault"
-                                      }]
-                              }
-                              }
-        return cls._response_body
-
-    @abstractmethod
-    def _run(self, session):
-        pass
+        return {
+            "principalId": "my-username",
+            "policyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Action": "execute-api:Invoke",
+                        "Effect": effect,
+                        # TODO: this needs to be the dynamically-created ARN of the endpoint we're authorizing
+                        "Resource": "arn:aws:lambda:us-east-1:644454719059:function:CPTDefault"
+                    }
+                ]
+            }
+        }
 
 
 class AuthorizerTaskException(TaskException):
