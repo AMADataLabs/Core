@@ -4,18 +4,18 @@ import datalabs.access.authorize as authorizer
 
 
 def test_authorized(authorized_passport_response):
-    with mock.patch('datalabs.access.cpt.api.authorizer.Session.post') as post:
-        assert post.call_count == 1
+    with mock.patch('datalabs.access.authorize.AuthorizerTask.run') as post:
+        # assert post.call_count == 1
         post.return_value = authorized_passport_response
-        policy_document = authorizer.AuthorizerTask._check_response(authorized_passport_response)
+        policy_document = authorizer.AuthorizerTask._check_response(authorized_passport_response.get('subscriptionsList'))
         assert policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
 
 
 def test_not_authorized(unauthorized_passport_response):
-    with mock.patch('datalabs.access.cpt.api.authorizer.Session.post') as post:
-        assert post.call_count == 1
+    with mock.patch('datalabs.access.authorize.AuthorizerTask.run') as post:
+        # assert post.call_count == 1
         post.return_value = unauthorized_passport_response
-        policy_document = authorizer.AuthorizerTask._check_response(unauthorized_passport_response)
+        policy_document = authorizer.AuthorizerTask._check_response(unauthorized_passport_response.get('subscriptionsList'))
         assert policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
 
 

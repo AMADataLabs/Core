@@ -19,7 +19,7 @@ class AuthorizerTask(Task, DatabaseTaskMixin, ABC):
         self._status_code = 200
         self._response_body = dict()
         self._headers = dict()
-        self.session = requests.Session()
+        self._session = requests.Session()
 
     @property
     def status_code(self):
@@ -31,7 +31,7 @@ class AuthorizerTask(Task, DatabaseTaskMixin, ABC):
 
     @property
     def generate_session(self):
-        return self.session
+        return self._session
 
     @property
     def headers(self):
@@ -41,31 +41,37 @@ class AuthorizerTask(Task, DatabaseTaskMixin, ABC):
 
     def run(self):
         with self._parameters.passport_url as url:
-            result = self.session.post(url, headers=self.headers)
+            result = self._session.post(url, headers=self.headers)
 
-        authorization = self._check_response(result)
-        self._run(authorization)
+        if result.status_code == 200:
+            subscriptions = json.loads(result.text).get('subscriptionsList')
+            authorization = self._check_response(subscriptions)
+            self._run(authorization)
+
+        else:
+            raise TokenNotFound('Invalid token')
 
     @classmethod
     def _check_response(cls, result):
-        if result.status_code == 200 and len(json.loads(result.text).get('subscriptionsList')) > 0:
+        if len(result) > 0:
             return cls._generate_policy(effect='Allow')
         else:
             return cls._generate_policy(effect='Deny')
 
-    def _generate_policy(self, effect):
-        self._response_body = {"principalId": "my-username",
-                               "policyDocument": {
-                                   "Version": "2012-10-17",
-                                   "Statement": [
-                                       {
-                                           "Action": "execute-api:Invoke",
-                                           "Effect": effect,
-                                           "Resource": "arn:aws:lambda:us-east-1:644454719059:function:CPTDefault"
-                                       }]
-                               }
-                               }
-        return self._response_body
+    @classmethod
+    def _generate_policy(cls, effect):
+        cls._response_body = {"principalId": "my-username",
+                              "policyDocument": {
+                                  "Version": "2012-10-17",
+                                  "Statement": [
+                                      {
+                                          "Action": "execute-api:Invoke",
+                                          "Effect": effect,
+                                          "Resource": "arn:aws:lambda:us-east-1:644454719059:function:CPTDefault"
+                                      }]
+                              }
+                              }
+        return cls._response_body
 
     @abstractmethod
     def _run(self, session):
@@ -81,3 +87,8 @@ class AuthorizerTaskException(TaskException):
     @property
     def status_code(self):
         return self._status_code
+
+
+class TokenNotFound(AuthorizerTaskException):
+    def __init__(self, message):
+        super().__init__(message, 400)
