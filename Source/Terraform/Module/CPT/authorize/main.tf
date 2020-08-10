@@ -11,7 +11,7 @@ resource "aws_lambda_function" "authorizer_lambda" {
 
     environment {
         variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.AuthorizerLambdaTaskWrapper"
+            TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.authorize.AuthorizerLambdaTaskWrapper"
             TASK_CLASS              = var.task_class
             PASSPORT_URL            = var.passport_url
         }

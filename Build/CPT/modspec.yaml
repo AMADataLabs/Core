@@ -12,10 +12,10 @@ modspec:
       - credentials
       - database
       - datastore
-      - awslambda
       - orm
-      - task
+  - package: datalabs.access.awslambda
   - package: datalabs.access.cpt.api
+  - package: datalabs.access.task
   - package: datalabs.curate
     include:
       - parse
