@@ -43,12 +43,17 @@ class AuthorizerTask(Task, DatabaseTaskMixin, ABC):
         with self._parameters.passport_url as url:
             result = self.session.post(url, headers=self.headers)
 
-        if result.status_code == 200 and len(json.loads(result.text).get('subscriptionsList')) > 0:
-            return self.generate_policy(effect='Allow')
-        else:
-            return self.generate_policy(effect='Deny')
+        authorization = self._check_response(result)
+        self._run(authorization)
 
-    def generate_policy(self, effect):
+    @classmethod
+    def _check_response(cls, result):
+        if result.status_code == 200 and len(json.loads(result.text).get('subscriptionsList')) > 0:
+            return cls._generate_policy(effect='Allow')
+        else:
+            return cls._generate_policy(effect='Deny')
+
+    def _generate_policy(self, effect):
         self._response_body = {"principalId": "my-username",
                                "policyDocument": {
                                    "Version": "2012-10-17",
@@ -76,17 +81,3 @@ class AuthorizerTaskException(TaskException):
     @property
     def status_code(self):
         return self._status_code
-
-
-class InvalidRequest(AuthorizerTaskException):
-    pass
-
-
-class ResourceNotFound(AuthorizerTaskException):
-    def __init__(self, message):
-        super().__init__(message, 404)
-
-
-class InternalServerError(AuthorizerTaskException):
-    def __init__(self, message):
-        super().__init__(message, 500)

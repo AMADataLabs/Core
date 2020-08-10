@@ -2,43 +2,37 @@ import pytest
 import mock
 import datalabs.access.authorize as authorizer
 
+
 def test_authorized(authorized_passport_response):
     with mock.patch('datalabs.access.cpt.api.authorizer.Session.post') as post:
         assert post.call_count == 1
         post.return_value = authorized_passport_response
-        policy_document = authorizer.generate_policy()
-        policy_document['policyDocument']...[] == 'Allow'
+        policy_document = authorizer.AuthorizerTask._check_response(authorized_passport_response)
+        assert policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
+
 
 def test_not_authorized(unauthorized_passport_response):
     with mock.patch('datalabs.access.cpt.api.authorizer.Session.post') as post:
         assert post.call_count == 1
         post.return_value = unauthorized_passport_response
-        policy_document = blah.some_method()
-        policy_document['policyDocument']...[] == 'Deny'
+        policy_document = authorizer.AuthorizerTask._check_response(unauthorized_passport_response)
+        assert policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
+
+
+@pytest.fixture
+def unauthorized_passport_response():
+    return {
+        "returnCode": 0,
+        "returnMessage": "SUCCESS",
+        "customerNumber": "000003570999",
+        "customerName": "Cahaba Medical Center - Maplesville",
+        "responseId": "7d7e2836-1c2d-4a13-a0fe-8bd58c92d7c5",
+        "subscriptionsList": []
+    }
 
 
 @pytest.fixture
 def authorized_passport_response():
-    return {
-        "entilementsList": [
-            {}
-        ]
-    }
-
-
-@pytest.fixture
-def not_authorized_passport_response():
-    return {
-    "returnCode": 0,
-    "returnMessage": "SUCCESS",
-    "customerNumber": "000003570999",
-    "customerName": "Cahaba Medical Center - Maplesville",
-    "responseId": "7d7e2836-1c2d-4a13-a0fe-8bd58c92d7c5",
-    "subscriptionsList": []
-    }
-
-@pytest.fixture
-def unauthorized_passport_response():
     return {
         "returnCode": 0,
         "returnMessage": "SUCCESS",
