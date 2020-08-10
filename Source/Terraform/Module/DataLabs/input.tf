@@ -1,3 +1,8 @@
+variable "project" {
+    description     = "Project name used in tags and names to distinguish resources."
+    type            = string
+}
+
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
 }

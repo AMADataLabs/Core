@@ -4,7 +4,7 @@ import datalabs.access.task.authorize as authorizer
 
 
 def test_authorized(authorized_passport_response):
-    with mock.patch('datalabs.access.authorize.AuthorizerTask.run') as post:
+    with mock.patch('datalabs.access.task.authorize.AuthorizerTask.run') as post:
         # assert post.call_count == 1
         post.return_value = authorized_passport_response
         policy_document = authorizer.AuthorizerTask._check_response(authorized_passport_response.get('subscriptionsList'))
@@ -12,7 +12,7 @@ def test_authorized(authorized_passport_response):
 
 
 def test_not_authorized(unauthorized_passport_response):
-    with mock.patch('datalabs.access.authorize.AuthorizerTask.run') as post:
+    with mock.patch('datalabs.access.task.authorize.AuthorizerTask.run') as post:
         # assert post.call_count == 1
         post.return_value = unauthorized_passport_response
         policy_document = authorizer.AuthorizerTask._check_response(unauthorized_passport_response.get('subscriptionsList'))

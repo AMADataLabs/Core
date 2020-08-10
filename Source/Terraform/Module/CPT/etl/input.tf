@@ -1,3 +1,8 @@
+variable "project" {
+    description     = "Project name used in names to distinguish resources."
+    type            = string
+}
+
 variable "function_name" {
     description = "AWS region"
     type        = string
@@ -63,4 +68,11 @@ variable "trigger_bucket" {
 
 variable "parent_function" {
     description = "Reference to the Lambda function allowed to invoke ETLs"
+}
+
+
+variable "timeout" {
+    description = "Timeout in seconds for Lambda functions"
+    type        = number
+    default     = 30
 }

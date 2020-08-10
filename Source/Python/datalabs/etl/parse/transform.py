@@ -9,7 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class CPTFileToCSVTransformerTask(TransformerTask):
+class ParseToCSVTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug('Data to transform: %s', self._parameters.data)
         _, data = zip(*self._parameters.data)  # unpack the list of (filename, data) tuples

@@ -103,10 +103,21 @@ class ExpandedPPDLoader:
             'MOST_RECENT_FORMER_FIRST_NAME',
             'NEXT_MOST_RECENT_FORMER_LAST',
             'NEXT_MOST_RECENT_FORMER_MIDDLE',
-            'NEXT_MOST_RECENT_FORMER_FIRST']
-        self._data = pd.DataFrame()
+            'NEXT_MOST_RECENT_FORMER_FIRST'
+    ]
 
-    def _set_environment_variables(self):
+    def run(self):
+        self._load_environment_variables()
+        latest_raw_file = self._get_latest_file(dir=self._raw_dir, extension='txt')
+        latest_raw_date = self._get_file_date(latest_raw_file)
+        latest_loaded_file = self._get_latest_file(dir=self._archive_dir, extension='csv')
+        latest_loaded_date = self._get_file_date(latest_loaded_file)
+        # if there is no archived file or if there is a newer raw file than we've got already
+        if latest_loaded_file is None or latest_raw_date > latest_loaded_date:
+            data = self._load_data(latest_raw_file)
+            self._save_data(data)
+
+    def _load_environment_variables(self):
         self._raw_dir = os.environ.get('RAW_DIR')
         self._save_dir = os.environ.get('SAVE_DIR')
         self._archive_dir = os.environ.get('ARCHIVE_DIR')
@@ -131,31 +142,22 @@ class ExpandedPPDLoader:
         date = pd.to_datetime(date).date()
         return date
 
-    def _load_file(self, filename: str):
-        self._data = pd.read_csv(filename,
-                                 sep='|',
-                                 dtype=str,
-                                 encoding='LATIN',
-                                 names=self._columns,
-                                 index_col=False)
+    def _load_data(self, filename: str):
+        return pd.read_csv(
+            filename,
+             sep='|',
+             dtype=str,
+             encoding='LATIN',
+             names=self._columns,
+             index_col=False
+        )
 
-    def _save_data(self):
+    def _save_data(self, data):
         filename = self._filename[self._filename.rindex('\\') + 1:].replace('.txt', '.csv')  # archive version w/ date
         filename_dateless = filename[:filename.rindex('_')] + '.csv'  # removes date
 
         save_path = f"{self._save_dir}\\{filename_dateless}"  # newest file name will be persistent
         archive_path = f"{self._archive_dir}\\{filename}"
 
-        self._data.to_csv(save_path, index=False)
-        self._data.to_csv(archive_path, index=False)
-
-    def run(self):
-        self._set_environment_variables()
-        latest_raw_file = self._get_latest_file(dir=self._raw_dir, extension='txt')
-        latest_loaded_file = self._get_latest_file(dir=self._archive_dir, extension='csv')
-        # if there is no archived file or if there is a newer raw file than we've got already
-        if latest_loaded_file is None or \
-                self._get_file_date(latest_raw_file) > self._get_file_date(latest_loaded_file):
-            self._load_file(latest_raw_file)
-            self._save_data()
-
+        data.to_csv(save_path, index=False)
+        data.to_csv(archive_path, index=False)

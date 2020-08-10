@@ -74,5 +74,6 @@ def parameters():
     return api.APIEndpointParameters(
         path=None,
         query=None,
-        database=dict(name=None, backend=None, host=None, username=None, password=None)
+        database=dict(name=None, backend=None, host=None, username=None, password=None),
+        bucket=None
     )

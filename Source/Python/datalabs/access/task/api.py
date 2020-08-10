@@ -1,9 +1,15 @@
 """ API endpoint task classes. """
-from abc import abstractmethod
-from dataclasses import dataclass
-from datalabs.task import Task, TaskException
+from   abc import abstractmethod
+from   dataclasses import dataclass
+import logging
+import os
 
-from datalabs.access.orm import DatabaseTaskMixin
+from   datalabs.access.orm import DatabaseTaskMixin
+import datalabs.task as task
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @dataclass
@@ -14,7 +20,32 @@ class APIEndpointParameters:
     bucket: dict
 
 
-class APIEndpointTask(Task, DatabaseTaskMixin):
+class APIEndpointException(task.TaskException):
+    def __init__(self, message, status_code=None):
+        super().__init__(message)
+
+        self._status_code = status_code or 400  # Invalid request
+
+    @property
+    def status_code(self):
+        return self._status_code
+
+
+class InvalidRequest(APIEndpointException):
+    pass
+
+
+class ResourceNotFound(APIEndpointException):
+    def __init__(self, message):
+        super().__init__(message, 404)
+
+
+class InternalServerError(APIEndpointException):
+    def __init__(self, message):
+        super().__init__(message, 500)
+
+
+class APIEndpointTask(task.Task, DatabaseTaskMixin):
     def __init__(self, parameters: APIEndpointParameters):
         super().__init__(parameters)
         self._status_code = 200
@@ -42,26 +73,40 @@ class APIEndpointTask(Task, DatabaseTaskMixin):
         pass
 
 
-class APIEndpointException(TaskException):
-    def __init__(self, message, status_code=None):
-        super().__init__(message)
+class APIEndpointParametersGetterMixin(task.TaskWrapper):
+    def _get_task_parameters(self):
+        query_parameters = self._parameters.get('query') or dict()
 
-        self._status_code = status_code or 400  # Invalid request
+        return APIEndpointParameters(
+            path=self._parameters.get('path') or dict(),
+            query=query_parameters,
+            database=dict(
+                name=os.getenv('DATABASE_NAME'),
+                backend=os.getenv('DATABASE_BACKEND'),
+                host=os.getenv('DATABASE_HOST'),
+                username=os.getenv('DATABASE_USERNAME'),
+                password=os.getenv('DATABASE_PASSWORD')
+            ),
+            bucket=dict(
+                name=os.getenv('BUCKET_NAME'),
+                base_path=os.getenv('BUCKET_BASE_PATH'),
+                url_duration=os.getenv('BUCKET_URL_DURATION'),
+            )
+        )
 
-    @property
-    def status_code(self):
-        return self._status_code
+
+class APIEndpointResponseHandlerMixin(task.TaskWrapper):
+    def _generate_response(self) -> (int, dict):
+        return self._task.status_code, self._task.headers, self._task.response_body
+
+    def _handle_exception(self, exception: APIEndpointException) -> (int, dict):
+        status_code = exception.status_code
+        body = dict(message=exception.message)
+
+        return status_code, dict(), body
 
 
-class InvalidRequest(APIEndpointException):
+class APIEndpointTaskWrapper(
+    APIEndpointParametersGetterMixin, APIEndpointResponseHandlerMixin, task.TaskWrapper
+):
     pass
-
-
-class ResourceNotFound(APIEndpointException):
-    def __init__(self, message):
-        super().__init__(message, 404)
-
-
-class InternalServerError(APIEndpointException):
-    def __init__(self, message):
-        super().__init__(message, 500)
