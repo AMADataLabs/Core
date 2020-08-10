@@ -9,6 +9,7 @@ from datalabs.task import Task, TaskException
 class AuthorizerParameters:
     token: str
     passport_url: str
+    endpoint: str
 
 
 class AuthorizerTask(Task, ABC):
@@ -36,40 +37,37 @@ class AuthorizerTask(Task, ABC):
         return self._headers
 
     def run(self):
-        result = self._session.post(
+        response = self._session.post(
             self._parameters.passport_url,
             headers={'Authorization': 'Bearer ' + self._parameters.token}
         )
 
-        if result.status_code == 200:
-            subscriptions = json.loads(result.text).get('subscriptionsList')
-            policy = self._authorize(subscriptions)
+        if response.status_code == 200:
+            subscriptions = json.loads(response.text).get('subscriptionsList')
+            self._response_body = self._authorize(subscriptions)
         else:
-            raise TokenNotFound('Invalid authorization token')
+            raise AuthorizerTaskException(f'Unable to authorize: {response.text}', status_code=response.status_code)
 
-    @classmethod
-    def _authorize(cls, result):
+    def _authorize(self, result):
         policy = None
 
         if len(result) > 0:
-            policy = cls._generate_policy(effect='Allow')
+            policy = self._generate_policy(effect='Allow')
         else:
-            policy = cls._generate_policy(effect='Deny')
+            policy = self._generate_policy(effect='Deny')
 
         return policy
 
-    @classmethod
-    def _generate_policy(cls, effect):
+    def _generate_policy(self, effect):
         return {
-            "principalId": "my-username",
+            "principalId": "username",
             "policyDocument": {
                 "Version": "2012-10-17",
                 "Statement": [
                     {
                         "Action": "execute-api:Invoke",
                         "Effect": effect,
-                        # TODO: this needs to be the dynamically-created ARN of the endpoint we're authorizing
-                        "Resource": "arn:aws:lambda:us-east-1:644454719059:function:CPTDefault"
+                        "Resource": self._parameters.endpoint
                     }
                 ]
             }

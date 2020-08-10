@@ -1,22 +1,27 @@
 import pytest
 import mock
-import datalabs.access.task.authorize as authorizer
+from   datalabs.access.task.authorize import AuthorizerTask, AuthorizerParameters
 
 
-def test_authorized(authorized_passport_response):
-    with mock.patch('datalabs.access.task.authorize.AuthorizerTask.run') as post:
-        # assert post.call_count == 1
-        post.return_value = authorized_passport_response
-        policy_document = authorizer.AuthorizerTask._authorize(authorized_passport_response.get('subscriptionsList'))
-        assert policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
+def test_authorized(authorized_passport_response, parameters):
+    authorizer = AuthorizerTask(parameters)
+    policy_document = authorizer._authorize(authorized_passport_response.get('subscriptionsList'))
+    assert policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
 
 
-def test_not_authorized(unauthorized_passport_response):
-    with mock.patch('datalabs.access.task.authorize.AuthorizerTask.run') as post:
-        # assert post.call_count == 1
-        post.return_value = unauthorized_passport_response
-        policy_document = authorizer.AuthorizerTask._authorize(unauthorized_passport_response.get('subscriptionsList'))
-        assert policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
+def test_not_authorized(unauthorized_passport_response, parameters):
+    authorizer = AuthorizerTask(parameters)
+    policy_document = authorizer._authorize(unauthorized_passport_response.get('subscriptionsList'))
+    assert policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
+
+
+@pytest.fixture
+def parameters():
+    return AuthorizerParameters(
+        token=None,
+        passport_url=None,
+        endpoint='arn:whatever'
+    )
 
 
 @pytest.fixture

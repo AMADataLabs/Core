@@ -7,13 +7,12 @@ from datalabs.awslambda import TaskWrapper
 
 class AuthorizerLambdaTaskWrapper(TaskWrapper):
     def _get_task_parameters(self, event: dict):
-        query_parameters = event.get('queryStringParameters') or dict()
-        query_parameters.update(event.get('multiValueQueryStringParameters') or dict())
-
         return AuthorizerParameters(
-            token=event.get('bearerToken') or None,
+            token=event.get('authorizationToken'),
+            endpoint=event.get('methodArn'),
             # TODO: this needs to be configurable
-            passport_url='https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI'
+            # passport_url='https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI'
+            passport_url=os.environ.get('PASSPORT_URL')
         )
 
     def _handle_exception(self, exception: AuthorizerTaskException) -> (int, dict):
