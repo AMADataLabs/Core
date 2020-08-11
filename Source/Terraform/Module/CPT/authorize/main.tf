@@ -61,14 +61,6 @@ EOF
 }
 
 
-resource "aws_api_gateway_authorizer" "api_gateway_authorizer"{
-    name             = "gateway_authorizer"
-    rest_api_id      = var.api_gateway_id
-    authorizer_uri   = aws_lambda_function.authorizer_lambda.invoke_arn
-    authorizer_credentials = aws_iam_role.invocation_role.arn
-}
-
-
 data "aws_ssm_parameter" "lambda_code_bucket" {
     name = "/DataLabs/lambda_code_bucket"
 }

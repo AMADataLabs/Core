@@ -7,7 +7,7 @@ from datalabs.awslambda import TaskWrapper
 
 class AuthorizerLambdaTaskWrapper(TaskWrapper):
     def _get_task_parameters(self):
-        token = self._parameters.get('authorizationToken')
+        token = self._parameters.get('authorizationToken').strip()
 
         if not token.startswith('Bearer '):
             raise AuthorizerTaskException('Invalid bearer token: "{token}"')

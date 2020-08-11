@@ -82,8 +82,7 @@ paths:
         '404':
           description: No descriptor found for the given CPT Code.
       security:
-        - cpt_auth:
-            - 'read:cpt'
+        - gateway_authorizer: []
   /descriptors:
     get:
       tags:
@@ -138,8 +137,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:cpt'
+        - gateway_authorizer: []
   '/consumer/descriptor/{code}':
     get:
       tags:
@@ -175,8 +173,7 @@ paths:
         '404':
           description: No Consumer Descriptor found for the given CPT code.
       security:
-        - cpt_auth:
-            - 'read:descriptors'
+        - gateway_authorizer: []
   /consumer/descriptors:
     get:
       tags:
@@ -223,8 +220,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:descriptors'
+        - gateway_authorizer: []
   /clinician/descriptors:
     get:
       tags:
@@ -271,8 +267,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:descriptors'
+        - gateway_authorizer: []
   '/clinician/descriptors/{code}':
     get:
       tags:
@@ -312,8 +307,7 @@ paths:
         '404':
           description: No Clinician Descriptors found for the given CPT code
       security:
-        - cpt_auth:
-            - 'read:descriptors'
+        - gateway_authorizer: []
   '/pla/details/{code}':
     get:
       tags:
@@ -349,8 +343,7 @@ paths:
         '404':
           description: No PLA details found for the given PLA code
       security:
-        - cpt_auth:
-            - 'read:pla'
+        - gateway_authorizer: []
   /pla/details:
     get:
       tags:
@@ -399,8 +392,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:pla'
+        - gateway_authorizer: []
   '/modifier/{code}':
     get:
       tags:
@@ -437,8 +429,7 @@ paths:
         '404':
           description: No data exists for the given modifier.
       security:
-        - cpt_auth:
-            - 'read:modifier'
+        - gateway_authorizer: []
   /modifiers:
     get:
       tags:
@@ -476,8 +467,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:modifier'
+        - gateway_authorizer: []
   /pdfs/{release}:
     get:
       tags:
@@ -510,8 +500,7 @@ paths:
         '404':
           description: No PDFs found for the given release.
       security:
-        - cpt_auth:
-            - 'read:pdf'
+        - gateway_authorizer: []
   /pdfs:
     get:
       tags:
@@ -536,8 +525,7 @@ paths:
               schema:
                 type: "string"
       security:
-        - cpt_auth:
-            - 'read:pdf'
+        - gateway_authorizer: []
   /releases:
     get:
       tags:
@@ -574,8 +562,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:release'
+        - gateway_authorizer: []
   /{proxy+}:
     get:
       parameters:
@@ -706,22 +693,15 @@ components:
           type: string
           format: byte
   securitySchemes:
-    cpt_auth:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: 'http://cptAPI.swagger.io/oauth/dialog'
-          scopes:
-            'read:cpt': read cpt table
-            'read:descriptors': read clinical descriptor table
-            'read:pla': read pla codes table
-            'read:modifier' : read modifier table
-            'read:pdf': read pdf url
-            'read:release': read release date table
-    api_key:
+    gateway_authorizer:
       type: apiKey
-      name: api_key
+      name: Authorization
       in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+          type: token
+          authorizerUri : ${authorizer_uri}
+          authorizerCredentials" : ${authorizer_credentials}
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'

@@ -47,6 +47,8 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
             # lambda_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.pdfs}",
             lambda_releases_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.releases}",
             lambda_return404_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.default}",
+            authorizer_uri = module.authorize.authorizer_uri,
+            authorizer_credentials = module.authorize.authorizer_credentials,
         }
     )
 
@@ -293,7 +295,7 @@ module "authorize" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    passport_url        = var.passport_url         
+    passport_url        = var.passport_url
 }
 
 
@@ -430,7 +432,7 @@ locals {
         bundlepdf                   = "${var.project}BundlePDF"
         ingestion_etl_router        = "${var.project}IngestionRouter"
         processed_etl_router        = "${var.project}ProcessedRouter"
-        authorizer                  = "${var.project}Authorizer" 
+        authorizer                  = "${var.project}Authorizer"
     }
     task_classes = {
         descriptor                  = "datalabs.access.cpt.api.descriptor.DescriptorEndpointTask"
