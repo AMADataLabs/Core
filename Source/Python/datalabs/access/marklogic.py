@@ -10,9 +10,9 @@ from datalabs.access.credentials import Credentials
 
 class MarkLogic(Datastore):
     def __init(self, credentials: Credentials = None, url=None):
+        super().__init__(credentials, key='MARKLOGIC')
         self.url = url  # url takes the following form: "http://address:port/version"
         self.auth = HTTPDigestAuth(self._credentials.username, self._credentials.password)
-        super().__init__(credentials, key='MARKLOGIC')
 
     def connect(self):
         self._connection = requests.Session()
@@ -41,6 +41,30 @@ class MarkLogic(Datastore):
             start += page_length
         return uris
 
+    # downloads a file specified by URI to local environment
+    def download_file(self, uri, database='PhysicianSanctions', save_dir=''):
+        data = self.get_file(uri=uri, database=database)
+        self.write_file(data, file_name=uri, save_dir=save_dir)
+
+    def get_file(self, uri, database='PhysicianSanctions'):
+        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
+
+        response = self._connection.get(url=url, auth=self.auth)
+        response.raise_for_status()
+        return response.content
+
+    @classmethod
+    def write_file(cls, data, file_name, save_dir=''):
+        """ File names by default are the URI of the file, which themselves often contain relative paths. """
+        file = (save_dir + file_name).replace('/', '\\').replace('\\\\', '\\')
+        file_dir = file[:file.rindex('\\') if '\\' in file else '']
+
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
+
+        with open(file, 'wb+') as f:
+            f.write(data)
+
     def _get_page_search_result(self, query, collection, start, page_length, database):
         url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \
               f'pageLength={page_length}&database={database}'
@@ -62,27 +86,3 @@ class MarkLogic(Datastore):
         xml_doc = minidom.parse(response.content)
         results = xml_doc.getElementsByTagName('search:result')
         return results
-
-    def get_file(self, uri, database='PhysicianSanctions'):
-        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
-
-        response = self._connection.get(url=url, auth=self.auth)
-        response.raise_for_status()
-        return response.content
-
-    # downloads a file specified by URI to local environment
-    def download_file(self, uri, database='PhysicianSanctions', save_dir=''):
-        data = self.get_file(uri=uri, database=database)
-        self.write_file(data, file_name=uri, save_dir=save_dir)
-
-    @classmethod
-    def write_file(cls, data, file_name, save_dir=''):
-        """ File names by default are the URI of the file, which themselves often contain relative paths. """
-        file = (save_dir + file_name).replace('/', '\\').replace('\\\\', '\\')
-        file_dir = file[:file.rindex('\\') if '\\' in file else '']
-
-        if not os.path.exists(file_dir):
-            os.makedirs(file_dir)
-
-        with open(file, 'wb+') as f:
-            f.write(data)
