@@ -1,4 +1,5 @@
 """ source: datalabs.access.awslambda """
+import json
 import os
 import pytest
 
@@ -17,20 +18,20 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
     wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
-    status_code, headers, body = wrapper._handle_exception(api.APIEndpointException('failed'))
+    response = wrapper._handle_exception(api.APIEndpointException('failed'))
 
-    assert status_code == 400
-    assert body == dict(message='failed')
+    assert response['statusCode'] == 400
+    assert response['body'] == json.dumps(dict(message='failed'))
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_generate_response(event):
     wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
     wrapper.run()
-    status_code, headers, body = wrapper._generate_response()
+    response = wrapper._generate_response()
 
-    assert status_code == 200
-    assert body == dict()
+    assert response['statusCode'] == 200
+    assert response['body'] == json.dumps(dict())
 
 
 class MockTask(api.APIEndpointTask):

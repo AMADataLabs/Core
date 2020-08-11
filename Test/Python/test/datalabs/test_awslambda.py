@@ -22,16 +22,14 @@ def test_task_wrapper_succeeds_as_expected():
     wrapper = GoodTaskWrapper(MockTask, parameters=dict(fail=False))
     response = wrapper.run()
 
-    assert response['statusCode'] == 200
-    assert response['body'] == '"succeeded"'
+    assert response == 'succeeded'
 
 
 def test_task_wrapper_fails_as_expected():
     wrapper = GoodTaskWrapper(MockTask, dict(fail=True))
     response = wrapper.run()
 
-    assert response['statusCode'] == 400
-    assert response['body'] == '"failed"'
+    assert response == 'failed'
 
 
 # pylint: disable=abstract-method
@@ -44,10 +42,10 @@ class GoodTaskWrapper(TaskWrapper):
         return self._parameters
 
     def _generate_response(self) -> (int, dict):
-        return 200, None, 'succeeded'
+        return 'succeeded'
 
     def _handle_exception(self, exception: Exception) -> (int, dict):
-        return 400, None, 'failed'
+        return 'failed'
 
 
 class MockTask(Task):

@@ -13,7 +13,7 @@ def test_authorized(authorized_passport_response, parameters):
         post.return_value = authorized_passport_response
         authorizer.run()
 
-        assert authorizer.response_body.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
+        assert authorizer.policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
 
 
 def test_not_authorized(unauthorized_passport_response, parameters):
@@ -23,7 +23,7 @@ def test_not_authorized(unauthorized_passport_response, parameters):
         post.return_value = unauthorized_passport_response
         authorizer.run()
 
-        assert authorizer.response_body.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
+        assert authorizer.policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
 
 
 @pytest.fixture

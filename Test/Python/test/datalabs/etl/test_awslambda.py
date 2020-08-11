@@ -17,21 +17,18 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
     wrapper = ETLTaskWrapper(MockTask)
-    status_code, headers, body = wrapper._handle_exception(etl.ETLException('failed'))
+    exception = etl.ETLException('failed')
+    response = wrapper._handle_exception(exception)
 
-    assert status_code == 400
-    assert headers == dict()
-    assert body == dict(message='failed')
+    assert response == f'Failed: {str(exception)}'
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_generate_response():
     wrapper = ETLTaskWrapper(MockTask)
-    status_code, headers, body = wrapper._generate_response()
+    response = wrapper._generate_response()
 
-    assert status_code == 200
-    assert headers == dict()
-    assert body == dict()
+    assert response == "Success"
 
 
 class MockTask(etl.ETLTask):
