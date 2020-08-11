@@ -700,8 +700,8 @@ components:
       x-amazon-apigateway-authtype: "custom"
       x-amazon-apigateway-authorizer:
           type: token
-          authorizerUri : ${authorizer_uri}
-          authorizerCredentials" : ${authorizer_credentials}
+          authorizerUri: ${authorizer_uri}
+          authorizerCredentials: ${authorizer_credentials}
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
