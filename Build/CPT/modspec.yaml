@@ -27,4 +27,5 @@ modspec:
   - package: datalabs.etl.cpt
   - package: datalabs.etl.cpt.api
   - package: datalabs.etl.cpt.ingest
+  - package: datalabs.etl.parse
   - package: datalabs.etl.s3
