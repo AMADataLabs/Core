@@ -60,7 +60,7 @@ def event():
     os.environ['DATABASE_USERNAME'] = 'username'
     os.environ['DATABASE_PASSWORD'] = 'password'
     os.environ['BUCKET_NAME'] = 'mybucket'
-    os.environ['BUCKET_BASE_PATH'] = 'AMA/SOMETHING'
+    os.environ['BUCKET_PATH'] = 'AMA/SOMETHING'
     os.environ['BUCKET_URL_DURATION'] = '30'
 
     yield dict(
