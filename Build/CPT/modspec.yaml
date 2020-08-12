@@ -12,6 +12,7 @@ modspec:
       - credentials
       - database
       - datastore
+      - environment
       - orm
   - package: datalabs.access.awslambda
   - package: datalabs.access.cpt.api

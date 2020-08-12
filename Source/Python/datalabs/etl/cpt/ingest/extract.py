@@ -12,9 +12,9 @@ class CPTTextDataExtractorTask(S3WindowsTextExtractorTask):
     def _extract(self):
         data = super()._extract()
         release_date = self._extract_release_date()
-        release_schedule = json.loads(self._parameters.variables['RELEASE_SCHEDULE'])
+        release_schedule = json.loads(self._parameters.variables['SCHEDULE'])
         release_source_path = os.path.join(
-            self._parameters.variables['BASE_PATH'], release_date.strftime('%Y%m%d')
+            self._parameters.variables['PATH'], release_date.strftime('%Y%m%d')
         )
 
         data.insert(0, (release_source_path, self._generate_release_details(release_schedule, release_date)))
