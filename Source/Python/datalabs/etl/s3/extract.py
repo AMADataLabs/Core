@@ -111,6 +111,12 @@ class S3FileExtractorTask(ExtractorTask):
         return [a['Key'] for a in search_results['Contents'] if a['Key'].endswith(file_path_parts[1])]
 
 
+class S3UnicodeTextExtractorTask(S3FileExtractorTask):
+    @classmethod
+    def _decode_data(cls, data):
+        return data.decode('utf-8')
+
+
 class S3WindowsTextExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):

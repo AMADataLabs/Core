@@ -50,6 +50,12 @@ class LocalFileExtractorTask(ExtractorTask):
         return data
 
 
+class LocalUnicodeTextExtractorTask(LocalFileExtractorTask):
+    @classmethod
+    def _decode_data(cls, data):
+        return data.decode('utf-8')
+
+
 class LocalWindowsTextExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):

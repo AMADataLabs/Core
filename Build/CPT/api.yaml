@@ -585,6 +585,8 @@ paths:
       responses:
         '404':
           description: Invalid resource.
+      security:
+        - gateway_authorizer: []
 components:
   schemas:
     Descriptor:

@@ -1,6 +1,6 @@
 #!/bin/bash
 
 
-for FUNCTION_NAME in CPTGetDescriptor CPTGetDescriptors CPTGetConsumerDescriptor CPTGetConsumerDescriptors CPTGetClinicianDescriptors CPTGetAllClinicianDescriptors CPTGetModifier CPTGetModifiers CPTGetPLADetails CPTGetAllPLADetails CPTGetLatestPDFs CPTGetReleases Return404 CPTConvert CPTLoad; do
+for FUNCTION_NAME in CPTGetDescriptor CPTGetDescriptors CPTGetConsumerDescriptor CPTGetConsumerDescriptors CPTGetClinicianDescriptors CPTGetAllClinicianDescriptors CPTGetModifier CPTGetModifiers CPTGetPLADetails CPTGetAllPLADetails CPTGetLatestPDFs CPTGetReleases CPTDefault CPTConvert CPTLoad; do
   aws --no-verify-ssl lambda update-function-code --function-name $FUNCTION_NAME --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip
 done

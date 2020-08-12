@@ -6,13 +6,13 @@ resource "aws_lambda_function" "endpoint_lambda" {
     role            = var.role
     handler         = "awslambda.handler"
     runtime         = "python3.7"
-    timeout         = 5
+    timeout         = 15
     memory_size     = 1024
     kms_key_arn     = data.aws_kms_key.cpt.arn
 
     environment {
         variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.APIEndpointTaskWrapper"
+            TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.api.APIEndpointTaskWrapper"
             TASK_CLASS              = var.task_class
             DATABASE_NAME           = var.database_name
             DATABASE_BACKEND        = var.database_backend
