@@ -16,7 +16,7 @@
 
     {
         BUCKET="some-bucket-name",
-        BASE_PATH="AMA/CPT",
+        PATH="AMA/CPT",
         FILES="standard/MEDU.txt,standard/SHORTU.txt",
     }
 
@@ -48,11 +48,11 @@ class S3FileExtractorTask(ExtractorTask):
             release_folders = sorted(
                 self._listdir(
                     self._parameters.variables['BUCKET'],
-                    self._parameters.variables['BASE_PATH']
+                    self._parameters.variables['PATH']
                 )
             )
 
-            self._latest_path = '/'.join((self._parameters.variables['BASE_PATH'], release_folders[-1]))
+            self._latest_path = '/'.join((self._parameters.variables['PATH'], release_folders[-1]))
 
         return self._latest_path
 
@@ -109,6 +109,12 @@ class S3FileExtractorTask(ExtractorTask):
         file_path_parts = wildcard_file_path.split('*')
         search_results =  self._s3.list_objects_v2(Bucket=self._parameters.variables['BUCKET'], Prefix=file_path_parts[0])
         return [a['Key'] for a in search_results['Contents'] if a['Key'].endswith(file_path_parts[1])]
+
+
+class S3UnicodeTextExtractorTask(S3FileExtractorTask):
+    @classmethod
+    def _decode_data(cls, data):
+        return data.decode('utf-8')
 
 
 class S3WindowsTextExtractorTask(S3FileExtractorTask):

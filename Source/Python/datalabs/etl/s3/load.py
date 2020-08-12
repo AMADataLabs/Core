@@ -28,7 +28,7 @@ class S3FileLoaderTask(LoaderTask):
     def _get_current_path(self):
         current_date = datetime.utcnow().date().strftime('%Y%m%d')
 
-        return '/'.join((self._parameters.variables['BASE_PATH'], current_date))
+        return '/'.join((self._parameters.variables['PATH'], current_date))
 
     def _load_file(self, base_path, file, data):
         file_path = '/'.join((base_path, file))
@@ -44,6 +44,11 @@ class S3FileLoaderTask(LoaderTask):
 
     def _encode(self, data):
         return data
+
+
+class S3UnicodeTextLoaderTask(S3FileLoaderTask):
+    def _encode(self, data):
+        return data.encode('utf-8')
 
 
 class S3WindowsTextLoaderTask(S3FileLoaderTask):

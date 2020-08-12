@@ -3,7 +3,7 @@ from   datalabs.etl.load import LoaderTask
 
 class LocalFileLoaderTask(LoaderTask):
     def _load(self):
-        base_path = self._parameters.varialbes['BASE_PATH']
+        base_path = self._parameters.variables['PATH']
         files = self._parameters.variables['FILES'].split(',')
 
         for file, data in zip(files, self._parameters.data):

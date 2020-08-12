@@ -13,7 +13,7 @@ class LocalFileExtractorTask(ExtractorTask):
         return [(file, self._extract_file(file)) for file in files]
 
     def _get_files(self):
-        base_path = self._parameters.variables['BASE_PATH']
+        base_path = self._parameters.variables['PATH']
         unresolved_files = [os.path.join((base_path, file)) for file in self._parameters.variables['FILES'].split(',')]
         resolved_files = []
 
@@ -48,6 +48,12 @@ class LocalFileExtractorTask(ExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data
+
+
+class LocalUnicodeTextExtractorTask(LocalFileExtractorTask):
+    @classmethod
+    def _decode_data(cls, data):
+        return data.decode('utf-8')
 
 
 class LocalWindowsTextExtractorTask(LocalFileExtractorTask):
