@@ -8,7 +8,7 @@ import pandas
 import datalabs.etl.s3.extract as extract
 
 
-class CPTTextDataExtractorTask(extract.S3UnicodeTextExtractorTask):
+class CPTTextDataExtractorTask(extract.S3WindowsTextExtractorTask):
     def _extract(self):
         data = super()._extract()
         release_date = self._extract_release_date()
