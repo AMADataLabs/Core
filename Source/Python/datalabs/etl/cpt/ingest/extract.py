@@ -5,10 +5,10 @@ import os
 
 import pandas
 
-from datalabs.etl.s3.extract import S3WindowsTextExtractorTask
+import datalabs.etl.s3.extract as extract
 
 
-class CPTTextDataExtractorTask(S3UnicodeTextExtractorTask):
+class CPTTextDataExtractorTask(extract.S3UnicodeTextExtractorTask):
     def _extract(self):
         data = super()._extract()
         release_date = self._extract_release_date()
