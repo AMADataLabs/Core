@@ -53,10 +53,10 @@ class LocalFileExtractorTask(ExtractorTask):
 class LocalUnicodeTextExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
-        return data.decode('utf-8')
+        return data.decode('utf-8', errors='replace')
 
 
 class LocalWindowsTextExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
-        return data.decode('cp1252')
+        return data.decode('cp1252', errors='replace')
