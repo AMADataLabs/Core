@@ -262,14 +262,14 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         manufacturer_table = pla_details[['manufacturer']].rename(columns=columns)
         manufacturer_table['deleted'] = False
 
-        return manufacturer_table
+        return manufacturer_table.dropna()
 
     @classmethod
     def _generate_pla_manufacturer_code_mapping_table(cls, pla_details):
         columns = {'pla_code': 'code'}
         mapping_table = pla_details[['pla_code', 'manufacturer']].rename(columns=columns)
 
-        return mapping_table
+        return mapping_table.dropna()
 
     @classmethod
     def _generate_pla_lab_table(cls, pla_details):
