@@ -1,5 +1,5 @@
 # RepositorySettings
-DATALABS_PYTHONPATH=/home/plane/Development/hsg-data-labs/Source/Python:/home/plane/Development/hsg-data-labs/Sandbox/CommonCode:/home/plane/Development/hsg-data-labs/Sandbox/CommonModelCode
+DATALABS_PYTHONPATH={{ pythonpath }}
 
 
 # ProjectSettings

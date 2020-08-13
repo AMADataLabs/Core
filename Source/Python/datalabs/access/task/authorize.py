@@ -33,7 +33,7 @@ class AuthorizerTask(Task, ABC):
             headers={'Authorization': 'Bearer ' + self._parameters.token}
         )
 
-        if response.status_code == 200:
+        if response.status_code == 200 or response.status_code == 401:
             subscriptions = json.loads(response.text).get('subscriptionsList')
             self._policy_document = self._authorize(subscriptions)
         else:
@@ -42,7 +42,7 @@ class AuthorizerTask(Task, ABC):
     def _authorize(self, result):
         policy = None
 
-        if len(result) > 0:
+        if result and len(result) > 0:
             policy = self._generate_policy(effect='Allow')
         else:
             policy = self._generate_policy(effect='Deny')
@@ -50,6 +50,8 @@ class AuthorizerTask(Task, ABC):
         return policy
 
     def _generate_policy(self, effect):
+        resource = self._parameters.endpoint.split('/', 1)[0] +  "/*/GET/"
+
         return {
             "principalId": "username",
             "policyDocument": {
@@ -58,7 +60,7 @@ class AuthorizerTask(Task, ABC):
                     {
                         "Action": "execute-api:Invoke",
                         "Effect": effect,
-                        "Resource": self._parameters.endpoint
+                        "Resource": resource
                     }
                 ]
             }
