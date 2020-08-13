@@ -50,7 +50,7 @@ class AuthorizerTask(Task, ABC):
         return policy
 
     def _generate_policy(self, effect):
-        resource = self._parameters.endpoint.split('/', 1)[0] +  "/*/*/"
+        resource = self._parameters.endpoint.split('/', 1)[0] +  "/*/GET/*"
 
         return {
             "principalId": "username",
