@@ -32,40 +32,40 @@ class ETLTask(task.Task):
             self._extractor = self._instantiate_component(self._parameters.extractor)
         except Exception as exception:
             LOGGER.exception('Unable to instantiate ETL extractor sub-task')
-            raise ETLException(f'Unable to instantiate ETL extractor sub-task: {exception}')
+            raise ETLException(f'Unable to instantiate ETL extractor sub-task: {exception}') from exception
 
         LOGGER.info('Extracting...')
         try:
             self._extractor.run()
         except Exception as exception:
             LOGGER.exception('Unable to run ETL extractor sub-task')
-            raise ETLException(f'Unable to run ETL extractor sub-task: {exception}')
+            raise ETLException(f'Unable to run ETL extractor sub-task: {exception}') from exception
 
         try:
             self._transformer = self._instantiate_component(self._parameters.transformer, self._extractor.data)
         except Exception as exception:
             LOGGER.exception('Unable to instantiate ETL transformer sub-task')
-            raise ETLException(f'Unable to instantiate ETL transformer sub-task: {exception}')
+            raise ETLException(f'Unable to instantiate ETL transformer sub-task: {exception}') from exception
 
         LOGGER.info('Transforming...')
         try:
             self._transformer.run()
         except Exception as exception:
-            LOGGER.error('Unable to run ETL transformer sub-task')
-            raise ETLException(f'Unable to run ETL transformer sub-task: {exception}')
+            LOGGER.exception('Unable to run ETL transformer sub-task')
+            raise ETLException(f'Unable to run ETL transformer sub-task: {exception}') from exception
 
         try:
             self._loader = self._instantiate_component(self._parameters.loader, self._transformer.data)
         except Exception as exception:
-            LOGGER.error('Unable to instantiate ETL loader sub-task')
-            raise ETLException(f'Unable to instantiate ETL loader sub-task: {exception}')
+            LOGGER.exception('Unable to instantiate ETL loader sub-task')
+            raise ETLException(f'Unable to instantiate ETL loader sub-task: {exception}') from exception
 
         LOGGER.info('Loading...')
         try:
             self._loader.run()
         except Exception as exception:
-            LOGGER.error('Unable to run ETL loader sub-task')
-            raise ETLException(f'Unable to run ETL loader sub-task: {exception}')
+            LOGGER.exception('Unable to run ETL loader sub-task')
+            raise ETLException(f'Unable to run ETL loader sub-task: {exception}') from exception
 
     @classmethod
     def _instantiate_component(cls, parameters, data=None):
@@ -114,17 +114,21 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
 
     @classmethod
     def _get_component_parameters(cls, var_tree, component):
-        component_parameters = var_tree.get_branch_values([component])
+        component_variables = var_tree.get_branch_values([component])
+        database_variables = None
         database_parameters = None
 
         if 'DATABASE' in var_tree.get_branches([component]):
-            component_parameters.pop('DATABASE')
-            database_parameters = var_tree.get_branch_values([component, 'DATABASE'])
+            component_variables.pop('DATABASE')
+            database_variables = var_tree.get_branch_values([component, 'DATABASE'])
+            database_parameters = {key.lower():value for key, value in database_variables.items()}
 
-        LOGGER.debug('Component parmeters: %s', component_parameters)
-        LOGGER.debug('Database parmeters: %s', database_parameters)
+        LOGGER.debug('Component variables: %s', component_variables)
+        LOGGER.debug('Database variables: %s', database_variables)
 
-        return ETLComponentParameters(database=database_parameters, variables=component_parameters)
+        return ETLComponentParameters(
+            database=database_parameters,
+            variables=component_variables)
 
 
 class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):

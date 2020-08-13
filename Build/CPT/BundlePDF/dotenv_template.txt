@@ -1,5 +1,5 @@
 # Repository Settings
-DATALABS_PYTHONPATH='{{ pythonpath }}'
+DATALABS_PYTHONPATH={{ pythonpath }}
 
 
 # ProjectSettings
