@@ -81,4 +81,23 @@ FILE_RESULT_COLUMNS = [
     'Notes for AMA'
 ]
 
-TABLE_RESULTS_COLUMNS = [c.lower() for c in FILE_RESULT_COLUMNS]
+TABLE_RESULTS_COLUMNS = [
+    'sample_id',
+    'row_id',
+    'last_name',
+    'first_name',
+    'middle_name',
+    'medschool_grad_year',
+    'medschool_name',
+    'degree_type',
+    'specialty',
+    'polo_city',
+    'polo_state',
+    'polo_zip',
+    'lic_state',
+    'lic_nbr',
+    'phone_number',
+    'fax_number',
+    'email',
+    'notes'
+]
