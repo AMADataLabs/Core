@@ -304,12 +304,13 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
     def _dedupe_modifiers(cls, modifiers):
         asc_modifiers = modifiers.modifier[modifiers.type == 'Ambulatory Service Center'].tolist()
         general_modifiers = modifiers.modifier[modifiers.type == 'Category I'].tolist()
+        general_asc_modifiers = modifiers[(modifiers.type == 'Ambulatory Service Center')
+                                        & modifiers.modifier.isin(general_modifiers)]
         duplicate_modifiers = modifiers[(modifiers.type == 'Category I') & modifiers.modifier.isin(asc_modifiers)]
 
+        modifiers.loc[modifiers['modifier'].isin(general_asc_modifiers), 'general'] = True
         modifiers.loc[modifiers['modifier'].isin(asc_modifiers), 'type'] = 'Category I'
         modifiers.loc[modifiers['modifier'].isin(asc_modifiers), 'ambulatory_service_center'] = True
-        modifiers.loc[modifiers['modifier'].isin(duplicate_modifiers), 'general'] = True
         modifiers.loc[modifiers['modifier'].isin(general_modifiers), 'general'] = True
 
         return modifiers.drop(index=duplicate_modifiers.index)
-
