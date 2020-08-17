@@ -22,4 +22,4 @@ LOADER_CLASS=datalabs.etl.s3.load.S3FileLoaderTask
 LOADER_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
 LOADER_FILES=pdfs.zip
 LOADER_PATH=AMA/CPT
->>>>>>> 83bf29683a5fb56132595fbaa7719e20f228b1df
+
