@@ -78,7 +78,12 @@ class S3FileExtractorTask(ExtractorTask):
                 f"Unable to get file '{file_path}' from S3 bucket '{self._parameters.variables['BUCKET']}': {exception}"
             )
 
-        return self._decode_data(response['Body'].read())
+        try:
+            decoded_data = self._decode_data(response['Body'].read())
+        except Exception as exception:
+            raise ETLException(f'Unable to decode S3 object {file_path}: {exception}')
+
+        return decoded_data
 
     def _listdir(self, bucket, base_path):
         response = self._s3.list_objects_v2(Bucket=bucket, Prefix=base_path)
@@ -114,10 +119,11 @@ class S3FileExtractorTask(ExtractorTask):
 class S3UnicodeTextExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
-        return data.decode('utf-8')
+        return data.decode('utf-8', errors='backslashreplace')
 
 
 class S3WindowsTextExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
-        return data.decode('cp1252')
+        return data.decode('cp1252', errors='backslashreplace')
+

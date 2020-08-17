@@ -135,6 +135,7 @@ class TableUpdater:
 
     def _merge_data(self, current_data, data):
         current_data = self._remove_modified_date(current_data)  # set programmatically
+
         merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
 
         merged_data = self._delete_if_missing(merged_data)
@@ -274,6 +275,9 @@ class ReleaseTableUpdater(TableUpdater):
 
         self._current_models.sort(key=lambda x: x.effective_date)
 
+        current_data.effective_date = current_data.effective_date.astype(str)
+        current_data.publish_date = current_data.publish_date.astype(str)
+
         return self._current_models, current_data
 
     def _add_data(self, data):
@@ -362,3 +366,4 @@ class OneToManyTableUpdater(TableUpdater):
             id_map[lookup_object.name] = lookup_object.id
 
         return id_map
+

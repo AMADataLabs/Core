@@ -1,13 +1,13 @@
 """ CPT ETL Transformer classes """
-from dataclasses import dataclass
-from datetime import datetime, date
+from   dataclasses import dataclass
+from   datetime import datetime, date
 import io
 import logging
 
 import numpy as np
 import pandas
 
-from datalabs.etl.transform import TransformerTask
+from   datalabs.etl.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -59,12 +59,14 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         return self._generate_tables(input_data)
 
     def _generate_tables(self, input_data):
+
         codes = self._generate_code_table(input_data.short_descriptor, input_data.pla)
 
         tables = OutputData(
             release=self._generate_release_table(input_data.code_history),
             code=codes,
-            release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history,codes),
+            release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history,
+                                                                           codes),
             short_descriptor=self._generate_descriptor_table(
                 'short_descriptor',
                 input_data.short_descriptor,
@@ -264,12 +266,17 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         manufacturer_table = pla_details[['manufacturer']].rename(columns=columns)
         manufacturer_table['deleted'] = False
 
+        manufacturer_table = manufacturer_table.dropna()
+        manufacturer_table = manufacturer_table.drop_duplicates('name')
+
         return manufacturer_table
 
     @classmethod
     def _generate_pla_manufacturer_code_mapping_table(cls, pla_details):
         columns = {'pla_code': 'code'}
         mapping_table = pla_details[['pla_code', 'manufacturer']].rename(columns=columns)
+
+        mapping_table = mapping_table.dropna()
 
         return mapping_table
 
@@ -279,12 +286,17 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         lab_table = pla_details[['lab']].rename(columns=columns)
         lab_table['deleted'] = False
 
+        lab_table = lab_table.dropna()
+        lab_table = lab_table.drop_duplicates('name')
+
         return lab_table
 
     @classmethod
     def _generate_pla_lab_code_mapping_table(cls, pla_details):
         columns = {'pla_code': 'code'}
         mapping_table = pla_details[['pla_code', 'lab']].rename(columns=columns)
+
+        mapping_table = mapping_table.dropna()
 
         return mapping_table
 
@@ -300,3 +312,4 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         modifiers.loc[modifiers['modifier'].isin(general_modifiers), 'general'] = True
 
         return modifiers.drop(index=duplicate_modifiers.index)
+

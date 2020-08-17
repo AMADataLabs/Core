@@ -40,15 +40,15 @@ class MockTask(etl.ETLTask):
 def expected_parameters():
     return etl.ETLParameters(
         extractor=etl.ETLComponentParameters(
-            database=dict(HOST='r2d2.droid.com'),
+            database=dict(host='r2d2.droid.com'),
             variables=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing='True')
         ),
         transformer=etl.ETLComponentParameters(
-            database=dict(HOST='c3po.droid.com'),
+            database=dict(host='c3po.droid.com'),
             variables=dict(CLASS='test.datalabs.etl.test_transform.Transformer')
         ),
         loader=etl.ETLComponentParameters(
-            database=dict(HOST='l337.droid.com'),
+            database=dict(host='l337.droid.com'),
             variables=dict(CLASS='test.datalabs.etl.test_load.Loader')
         )
     )
@@ -69,3 +69,4 @@ def event():
 
     os.environ.clear()
     os.environ.update(current_env)
+>>>>>>> 83bf29683a5fb56132595fbaa7719e20f228b1df
