@@ -239,13 +239,14 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_modifier_type_table(cls, modifiers):
-        return pandas.DataFrame(dict(name=modifiers.type.unique()))
+        modifier_types = pandas.DataFrame(dict(name=modifiers.type.unique()))
+        modifier_types.drop(index=2, inplace=True)
+
+        return modifier_types
 
     def _generate_modifier_table(self, modifiers):
-        modifiers['ambulatory_service_center'] = ''
-        modifiers['general'] = ''
-        "Delete after alembic migration of database"
-
+        modifiers['general'] = False
+        modifiers['ambulatory_service_center'] = False
         modifiers = self._dedupe_modifiers(modifiers)
         modifiers['deleted'] = False
 
