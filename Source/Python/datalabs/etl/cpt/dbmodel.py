@@ -121,6 +121,8 @@ class Modifier(Base):
     type = sa.Column(sa.Integer, sa.ForeignKey("cpt.modifier_type.id"), nullable=False)
     descriptor = sa.Column(sa.String, nullable=False)
     modified_date = sa.Column(sa.Date, nullable=False)
+    general = sa.Column(sa.Boolean, nullable=True, default=False)
+    ambulatory_service_center = sa.Column(sa.Boolean, nullable=True, default=False)
     deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
