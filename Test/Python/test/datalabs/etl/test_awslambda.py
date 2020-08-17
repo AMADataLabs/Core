@@ -69,4 +69,3 @@ def event():
 
     os.environ.clear()
     os.environ.update(current_env)
->>>>>>> 83bf29683a5fb56132595fbaa7719e20f228b1df
