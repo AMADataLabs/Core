@@ -1,39 +1,57 @@
+from dataclasses import dataclass
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
+import logging
 import os
-import pandas as pd
 from sqlite3 import Connection
+
+from dateutil.relativedelta import relativedelta
+import pandas as pd
 
 from datalabs.analysis.humach.survey.column_definitions import *
 import settings
 
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
+
+@dataclass
+class ExpectedFileColumns:
+    standard_results = STANDARD_RESULTS_COLUMNS_EXPECTED
+    validation_results = VALIDATION_RESULTS_COLUMNS_EXPECTED
+    samples = SAMPLE_COLUMNS_EXPECTED
+    dict = {
+        'results_standard': standard_results,
+        'results_validation': validation_results,
+        'samples': samples
+    }
+
+
+@dataclass
+class TableColumns:
+    standard_results = STANDARD_RESULTS_COLUMNS
+    validation_results = VALIDATION_RESULTS_COLUMNS
+    samples = SAMPLE_COLUMNS
+    dict = {
+            'results_standard': standard_results,
+            'results_validation': validation_results,
+            'samples': samples
+    }
+
+
 class HumachResultsArchive:
-    def __init__(self, database=None):
+    def __init__(self, database_path=None):
+        self._database_path = database_path
         self.connection = None
-        if database is not None:
-            self.connection = Connection(database)
+        if self._database_path is not None:
+            self.connection = Connection(self._database_path)
 
         # column names of tables in database
-        self.standard_results_cols = STANDARD_RESULTS_COLUMNS
-        self.validation_results_cols = VALIDATION_RESULTS_COLUMNS
-        self.sample_cols = SAMPLE_COLUMNS
+        self.table_columns = TableColumns()
 
         # column names of Excel files of samples sent to and results received from Humach
-        self.standard_results_cols_expected = STANDARD_RESULTS_COLUMNS_EXPECTED
-        self.validation_results_cols_expected = VALIDATION_RESULTS_COLUMNS_EXPECTED
-        self.sample_cols_expected = SAMPLE_COLUMNS_EXPECTED
-
-        self.table_columns = {
-            'results_standard': self.standard_results_cols,
-            'results_validation': self.validation_results_cols,
-            'samples': self.sample_cols
-        }
-        self.expected_file_columns = {
-            'results_standard': self.standard_results_cols_expected,
-            'results_validation': self.validation_results_cols_expected,
-            'samples': self.sample_cols_expected
-        }
+        self.expected_file_columns = ExpectedFileColumns()
 
         self._comment_end_dt_map = {
             'COMPLETE': False,
@@ -55,7 +73,7 @@ class HumachResultsArchive:
         self._batch_load_save_dir = None
 
     def insert_row(self, table, vals):
-        cols = self.table_columns[table]
+        cols = self.table_columns.dict[table]
 
         sql = "INSERT INTO {}({}) VALUES({});".format(
                 table,
@@ -67,7 +85,7 @@ class HumachResultsArchive:
 
     def validate_cols(self, table, cols):
         cols_set = set(cols)
-        expected_set = self.expected_file_columns[table]
+        expected_set = set(self.expected_file_columns.dict[table])
         if cols_set != expected_set:
             raise ValueError('Columns provided do not match columns expected.')
 
@@ -99,7 +117,7 @@ class HumachResultsArchive:
 
     def get_sample_data(self, sample_ids: [str]) -> pd.DataFrame:
         table = 'samples'
-        data = self._get_table_data_for_sample_ids(table=table, sample_ids=sample_ids)
+        data = self.get_table_data_for_sample_ids(table=table, sample_ids=sample_ids)
         return data
 
     def get_sample_data_past_n_months(self, n, as_of_date: datetime.date = datetime.now().date()):
@@ -144,6 +162,7 @@ class HumachResultsArchive:
         return result
 
     def make_standard_batch_load_for_latest_result_sample_id(self):
+        self._load_environment_variables()
         sample_id = self.get_latest_survey_results_sample_id(survey_type='standard')
         self.make_standard_batch_load([sample_id])
 
@@ -177,23 +196,23 @@ class HumachResultsArchive:
             columns=sample_data.columns.values,
             prefix='sample',
             exclude_list=match_cols,
-            exclude_prefixes=['sample', 'survey']
+            exclude_prefixes=['sample', 'survey', 'row']
         )
         result_data.columns = self._add_column_prefixes(
             columns=result_data.columns.values,
             prefix='result',
             exclude_list=match_cols,
-            exclude_prefixes=['sample', 'survey']
+            exclude_prefixes=['sample', 'survey', 'row']
         )
+
         data = sample_data.merge(result_data, on=match_cols, how='inner')
         return data
 
     def get_result_data(self, sample_type: str, sample_ids: [str]) -> pd.DataFrame:
-        data = self._get_table_data_for_sample_ids(table=f'results_{sample_type}', sample_ids=sample_ids)
+        data = self.get_table_data_for_sample_ids(table=f'results_{sample_type}', sample_ids=sample_ids)
         return data
 
-
-    def _get_table_data_for_sample_ids(self, table: str, sample_ids: [str]) -> pd.DataFrame:
+    def get_table_data_for_sample_ids(self, table: str, sample_ids: [str]) -> pd.DataFrame:
         sql = \
             """
             SELECT *
@@ -212,7 +231,7 @@ class HumachResultsArchive:
     def _load_environment_variables(self):
         self._batch_load_save_dir = os.environ.get('BATCH_LOAD_SAVE_DIR')
         if self.connection is None:
-            self.connection = os.environ.get('SURVEY_DB_PATH')
+            self.connection = Connection(os.environ.get('ARCHIVE_DB_PATH'))
 
     def _preprocess_standard_result_file(self, filename: str) -> pd.DataFrame:
         data = pd.read_excel(filename, dtye=str)
@@ -221,7 +240,7 @@ class HumachResultsArchive:
         return data
 
     def _preprocess_validation_result_file(self, filename: str) -> pd.DataFrame:
-        data = pd.DataFrame(columns=self.validation_results_cols_expected)
+        data = pd.DataFrame(columns=self.expected_file_columns.validation_results)
         sheet_names = ['ValidatedCorrect', 'ValidatedIncorrect', 'NotValidated', 'Unfinalized']
         for sheet_name in sheet_names:
             sheet_df = pd.read_excel(filename, sheet_name=sheet_name)
@@ -245,7 +264,7 @@ class HumachResultsArchive:
             exclude_prefixes = []
         renamed = []
         for col in columns:
-            if col not in exclude_list or any([col.startswith(prefix) for prefix in exclude_prefixes]):
+            if col not in exclude_list or not any([col.startswith(prefix) for prefix in exclude_prefixes]):
                 col = f'{prefix}_{col}'
             renamed.append(col)
         return renamed
@@ -273,3 +292,5 @@ class HumachResultsArchive:
         data.to_csv(save_path, index=False)
 
 
+gen = HumachResultsArchive()
+gen.make_standard_batch_load_for_latest_result_sample_id()

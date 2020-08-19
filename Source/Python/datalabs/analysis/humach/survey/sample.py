@@ -52,7 +52,7 @@ class HumachSampleGenerator:
         self._save_dir = os.environ.get('SAVE_DIR')
         self._ppd_filename = os.environ.get('EXPANDED_PPD_FILE')
         self._archive = HumachResultsArchive(os.environ.get('SURVEY_DB_PATH'))
-        self._target_sample_vars = self._archive.sample_cols
+        self._target_sample_vars = self._archive.table_columns.samples
         self._months_me_block = os.environ.get('MONTHS_ME_BLOCK')
         self._months_phone_block = os.environ.get('MONTHS_PHONE_BLOCK')
         self._sample_size = os.environ.get(f'SAMPLE_SIZE_{self._survey_type.upper()}')
