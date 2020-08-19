@@ -14,7 +14,7 @@ from datalabs.messaging.outlook import Outlook
 
 class AMCAddressFlagger:
     def __init__(self):
-        self.logger = logging.getLogger('info')
+        self.logger = logging.getLogger(__name__)
 
         self._today_date = str(datetime.now().date())
 
