@@ -126,4 +126,3 @@ class S3WindowsTextExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252', errors='backslashreplace')
-

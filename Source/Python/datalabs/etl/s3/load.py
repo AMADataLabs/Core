@@ -60,4 +60,3 @@ class S3UnicodeTextLoaderTask(S3FileLoaderTask):
 class S3WindowsTextLoaderTask(S3FileLoaderTask):
     def _encode(self, data):
         return data.encode('cp1252', errors='backslashreplace')
-
