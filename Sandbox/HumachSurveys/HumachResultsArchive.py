@@ -1,6 +1,7 @@
 from sqlite3 import Connection
 import pandas as pd
 
+
 class HumachResultsArchive:
     def __init__(self, database):
         self.connection = Connection(database)
@@ -164,7 +165,7 @@ class HumachResultsArchive:
                                      'SURVEY_MONTH',
                                      'SURVEY_YEAR',
                                      'SURVEY_TYPE',
-                                     'SURVEY_SOURCE',
+                                     'SAMPLE_SOURCE',
                                      'ME',
                                      'ENTITY_ID',
                                      'FIRST_NAME',
@@ -232,7 +233,6 @@ class HumachResultsArchive:
         self.connection.commit()
 
     def ingest_sample_file(self, file_path):
-
         df = pd.read_excel(file_path, dtype=str)
         df_cols = df.columns.values
         self.validate_cols(table='samples', cols=df_cols)
