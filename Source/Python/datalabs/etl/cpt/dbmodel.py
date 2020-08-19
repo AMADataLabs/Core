@@ -43,8 +43,8 @@ class ReleaseCodeMapping(Base):
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), nullable=True)
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False)
+    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), nullable=False)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False, unique=True)
 
 
 class ShortDescriptor(Base):
