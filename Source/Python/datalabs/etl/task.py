@@ -137,4 +137,3 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
 
     def _generate_response(self) -> (int, dict):
         LOGGER.info('ETL task has finished')
-

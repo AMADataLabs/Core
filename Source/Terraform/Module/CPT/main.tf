@@ -452,4 +452,3 @@ locals {
         authorizer                  = "datalabs.access.task.authorize.AuthorizerTask"
     }
 }
-

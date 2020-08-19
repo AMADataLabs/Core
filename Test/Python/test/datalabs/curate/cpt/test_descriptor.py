@@ -164,4 +164,3 @@ def clinician_descriptor_text():
 1002798\t00100\t10000002\tAnesthesia for procedure on salivary gland with biopsy
 1002798\t00100\t10031990\tAnesthesia for procedure on salivary gland
 """.encode('utf-8').replace(b'\n', b'\r\n').decode('utf-8')
-

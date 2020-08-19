@@ -74,4 +74,3 @@ class AuthorizerTaskException(TaskException):
 class TokenNotFound(AuthorizerTaskException):
     def __init__(self, message):
         super().__init__(message, 400)
-

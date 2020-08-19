@@ -46,4 +46,3 @@ ETL_LOADCPT_TRANSFORMER=datalabs.etl.cpt.transform.CSVToRelationalTablesTransfor
 
 ETL_LOADCPT_LOADER=datalabs.etl.cpt.load.CPTRelationalTableLoaderTask
 ETL_LOADCPT_LOADER_DATABASE=ORM
-

@@ -366,4 +366,3 @@ class OneToManyTableUpdater(TableUpdater):
             id_map[lookup_object.name] = lookup_object.id
 
         return id_map
-
