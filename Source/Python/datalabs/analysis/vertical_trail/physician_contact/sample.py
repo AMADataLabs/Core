@@ -60,7 +60,6 @@ class VTPhysicianContactSampleGenerator:
         LOGGER.info('CREATING SAMPLE')
         self._make_sample(population_data, size=self._sample_size)
 
-
     def _load_environment_variables(self):
         self._save_dir = os.environ.get('SAVE_DIR')
         self._ppd_filename = os.environ.get('EXPANDED_PPD_FILE')
@@ -87,12 +86,8 @@ class VTPhysicianContactSampleGenerator:
         sample = self._add_sample_info_columns(sample)
         sample = self._format_sample_columns(sample)
 
-        #self._archive.ingest_vt_sample(sample)  # not yet implemented
+        # self._archive.ingest_vt_sample(sample)  # not yet implemented
         self._make_deliverable_sample(sample)
-
-    def _load_ppd(self):
-        ppd = pd.read_csv(self._ppd_filename, dtype=str)
-        return ppd
 
     def _load_aims_data(self):
         aims_data = AIMSData()
@@ -112,6 +107,10 @@ class VTPhysicianContactSampleGenerator:
             edw_data.party_key_data = edw.get_party_keys_by_type(party_key_type=PartyKeyType.School)
         return edw_data
 
+    def _load_ppd(self):
+        ppd = pd.read_csv(self._ppd_filename, dtype=str)
+        return ppd
+
     def _prepare_population_data(self, data: pd.DataFrame):
         data = self._filter_to_dpc(data=data)
         LOGGER.info('filter_dpc', len(data))
@@ -127,7 +126,7 @@ class VTPhysicianContactSampleGenerator:
         LOGGER.info('add_medschool_data', len(data))
         data = self._add_degree_and_specialty_data(data=data)
         LOGGER.info('add_degree_and_specialty_data', len(data))
-        data = self._get_deduped_physician_medschool_data(data)
+        data = self._get_deduped_physician_medschool_data(data=data)
         LOGGER.info('get_deduped_physician_medschool_data', len(data))
         return data
 
@@ -205,7 +204,6 @@ class VTPhysicianContactSampleGenerator:
         return sample
 
     def _get_old_phone_data(self, historical_phone_data, entity_ids):
-        """ Disgusting old function from common code. It works and will take some time to clean up. """
         temp_phone_dict = self._get_temp_phone_dict(historical_phone_data, entity_ids)
         max_phones = temp_phone_dict['max']
         del temp_phone_dict['max']
@@ -227,7 +225,8 @@ class VTPhysicianContactSampleGenerator:
         oldphone_name_list = ['oldphone' + str(i + 1) for i in range(max_phones)]
         return old_phone_data, oldphone_name_list
 
-    def _get_temp_phone_dict(self, historical_phone_data, entity_ids):
+    @classmethod
+    def _get_temp_phone_dict(cls, historical_phone_data, entity_ids):
         temp_phone_dict = {}
         max_phones = 0  # the maximum number of old phones found for any one individual
         for i in range(len(entity_ids)):
@@ -271,7 +270,8 @@ class VTPhysicianContactSampleGenerator:
             sample[col] = data[col]
         return sample
 
-    def _filter_to_no_phone(self, data: pd.DataFrame):
+    @classmethod
+    def _filter_to_no_phone(cls, data: pd.DataFrame):
         data = data[data['TELEPHONE_NUMBER'].isna()]
         return data
 
@@ -304,7 +304,7 @@ class VTPhysicianContactSampleGenerator:
         return data
 
     def _load_sample_to_archive(self, sample):
-        #self._archive.ingest_vt_sample(sample)
+        # self._archive.ingest_vt_sample(sample)
         pass
 
     def _make_deliverable_sample(self, sample):
