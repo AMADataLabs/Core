@@ -41,7 +41,10 @@ class BaseModifierEndpointTask(APIEndpointTask):
             dict(
                 code=row.Modifier.modifier,
                 descriptor=row.Modifier.descriptor,
-                type=row.ModifierType.name)
+                type=row.ModifierType.name,
+                general_use=row.Modifier.general,
+                ambulatory_service_center=row.Modifier.ambulatory_service_center
+            )
             for row in rows
         ]
 

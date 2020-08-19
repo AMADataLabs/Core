@@ -41,5 +41,5 @@ variable "api_gateway_id" {
 
 variable "passport_url" {
 	description = "Passport Url"
-	type        = string 
+	type        = string
 }
