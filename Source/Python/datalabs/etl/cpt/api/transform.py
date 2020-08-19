@@ -65,8 +65,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         tables = OutputData(
             release=self._generate_release_table(input_data.code_history),
             code=codes,
-            release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history,
-                                                                           codes),
+            release_code_mapping=self._generate_release_code_mapping_table( input_data.code_history, codes),
             short_descriptor=self._generate_descriptor_table(
                 'short_descriptor',
                 input_data.short_descriptor,
@@ -169,21 +168,20 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_release_code_mapping_table(cls, code_history, codes):
-        mapping_table = code_history[['date', 'cpt_code', 'change_type']].rename(columns=dict(date='release',
-                                                                                              cpt_code='code',
-                                                                                              change_type='change'))
+        mapping_table = code_history[['date', 'cpt_code', 'change_type']].rename(
+            columns=dict(date='release', cpt_code='code', change_type='change')
+        )
 
-        mapping_table = mapping_table.loc[mapping_table['code'].isin(codes.code)]
-        mapping_table = mapping_table.loc[mapping_table['change'] == 'ADDED']
-        mapping_table = mapping_table.replace(['Pre-1982', 'Pre-1990'], '19900101')
+        mapping_table = mapping_table.loc[mapping_table.code.isin(codes.code)]
+        mapping_table = mapping_table.loc[mapping_table.change == 'ADDED']
+        mapping_table = mapping_table.loc[~mapping_table.release.str.startswith('Pre')]
 
         mapping_table.release = mapping_table.release.apply(
             lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
 
         mapping_table = mapping_table.drop(columns=['change'])
-        mapping_table.reset_index(drop=True)
-
-        mapping_table['id'] = list(range(len(mapping_table)))
+        mapping_table.drop_duplicates(subset='code', keep='last', inplace=True)
+        mapping_table.reset_index(drop=True, inplace=True)
 
         return mapping_table
 
@@ -239,9 +237,13 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_modifier_type_table(cls, modifiers):
-        return pandas.DataFrame(dict(name=modifiers.type.unique()))
+        modifier_types = pandas.DataFrame(dict(name=modifiers.type.unique()))
+
+        return modifier_types[modifier_types.name != 'Ambulatory Service Center']
 
     def _generate_modifier_table(self, modifiers):
+        modifiers['general'] = False
+        modifiers['ambulatory_service_center'] = False
         modifiers = self._dedupe_modifiers(modifiers)
         modifiers['deleted'] = False
 
@@ -299,6 +301,14 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
     @classmethod
     def _dedupe_modifiers(cls, modifiers):
         asc_modifiers = modifiers.modifier[modifiers.type == 'Ambulatory Service Center'].tolist()
+        general_modifiers = modifiers.modifier[modifiers.type == 'Category I'].tolist()
+        general_asc_modifiers = modifiers[(modifiers.type == 'Ambulatory Service Center')
+                                        & modifiers.modifier.isin(general_modifiers)]
         duplicate_modifiers = modifiers[(modifiers.type == 'Category I') & modifiers.modifier.isin(asc_modifiers)]
+
+        modifiers.loc[modifiers.modifier.isin(general_asc_modifiers), 'general'] = True
+        modifiers.loc[modifiers.modifier.isin(asc_modifiers), 'type'] = 'Category I'
+        modifiers.loc[modifiers.modifier.isin(asc_modifiers), 'ambulatory_service_center'] = True
+        modifiers.loc[modifiers.modifier.isin(general_modifiers), 'general'] = True
 
         return modifiers.drop(index=duplicate_modifiers.index)

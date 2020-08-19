@@ -43,8 +43,8 @@ class ReleaseCodeMapping(Base):
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), nullable=True)
-    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False)
+    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), nullable=False)
+    code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False, unique=True)
 
 
 class ShortDescriptor(Base):
@@ -121,6 +121,8 @@ class Modifier(Base):
     type = sa.Column(sa.Integer, sa.ForeignKey("cpt.modifier_type.id"), nullable=False)
     descriptor = sa.Column(sa.String, nullable=False)
     modified_date = sa.Column(sa.Date, nullable=False)
+    general = sa.Column(sa.Boolean, nullable=True, default=False)
+    ambulatory_service_center = sa.Column(sa.Boolean, nullable=True, default=False)
     deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
 

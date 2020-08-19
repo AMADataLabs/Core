@@ -44,7 +44,8 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
         TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
 
         ReleaseCodeMappingTableUpdater(
-            self._session, dbmodel.ReleaseCodeMapping, 'code', dbmodel.Release, 'release').update(data.release_code_mapping)
+            self._session, dbmodel.ReleaseCodeMapping, 'id', dbmodel.Release, 'release'
+        ).update(data.release_code_mapping)
 
         TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
 
@@ -293,7 +294,7 @@ class ReleaseTableUpdater(TableUpdater):
 class ReleaseCodeMappingTableUpdater(TableUpdater):
     # pylint: disable=too-many-arguments
     def __init__(self, session, model_class: type, primary_key, many_model_class, many_key):
-        super().__init__(session, model_class, primary_key)
+        super().__init__(session, model_class, primary_key, match_column='code')
 
         self._many_model_class = many_model_class
         self._many_key = many_key
