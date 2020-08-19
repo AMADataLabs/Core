@@ -7,6 +7,7 @@ import logging
 import boto3
 
 from datalabs.etl.load import LoaderTask
+from datalabs.etl.task import ETLException
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -28,11 +29,16 @@ class S3FileLoaderTask(LoaderTask):
     def _get_current_path(self):
         current_date = datetime.utcnow().date().strftime('%Y%m%d')
 
-        return '/'.join((self._parameters.variables['BASE_PATH'], current_date))
+        return '/'.join((self._parameters.variables['PATH'], current_date))
 
     def _load_file(self, base_path, file, data):
         file_path = '/'.join((base_path, file))
-        body = self._encode(data)
+
+        try:
+            body = self._encode(data)
+        except Exception as exception:
+            raise ETLException(f'Unable to encode S3 object {file_path}: {exception}')
+
         md5_hash = hashlib.md5(body).digest()
         b64_md5_hash = base64.b64encode(md5_hash)
 
@@ -46,6 +52,11 @@ class S3FileLoaderTask(LoaderTask):
         return data
 
 
+class S3UnicodeTextLoaderTask(S3FileLoaderTask):
+    def _encode(self, data):
+        return data.encode('utf-8', errors='backslashreplace')
+
+
 class S3WindowsTextLoaderTask(S3FileLoaderTask):
     def _encode(self, data):
-        return data.encode('cp1252')
+        return data.encode('cp1252', errors='backslashreplace')

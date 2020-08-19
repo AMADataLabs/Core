@@ -28,10 +28,11 @@ def test_feature_enabled_when_variable_set(feature_name):
 @pytest.fixture
 def feature_name():
     feature_name = 'BOGUS_FEATURE_NAME_314159265358979323846'
-    current_environ = os.environ.copy()
+    current_environment = os.environ.copy()
 
     os.environ['ENABLE_FEATURE_' + feature_name] = 'False'
 
     yield feature_name
 
-    os.environ = current_environ
+    os.environ.clear()
+    os.environ.update(current_environment)

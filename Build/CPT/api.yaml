@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: CPT API
   description: CPT API Phase I
-  version: "1.3.0"
+  version: "1.4.0"
   termsOfService: 'http://swagger.io/terms/'
   contact:
     email: datalabs@ama-assn.org
@@ -82,8 +82,7 @@ paths:
         '404':
           description: No descriptor found for the given CPT Code.
       security:
-        - cpt_auth:
-            - 'read:cpt'
+        - gateway_authorizer: []
   /descriptors:
     get:
       tags:
@@ -138,8 +137,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:cpt'
+        - gateway_authorizer: []
   '/consumer/descriptor/{code}':
     get:
       tags:
@@ -175,8 +173,7 @@ paths:
         '404':
           description: No Consumer Descriptor found for the given CPT code.
       security:
-        - cpt_auth:
-            - 'read:descriptors'
+        - gateway_authorizer: []
   /consumer/descriptors:
     get:
       tags:
@@ -223,8 +220,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:descriptors'
+        - gateway_authorizer: []
   /clinician/descriptors:
     get:
       tags:
@@ -271,8 +267,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:descriptors'
+        - gateway_authorizer: []
   '/clinician/descriptors/{code}':
     get:
       tags:
@@ -312,8 +307,7 @@ paths:
         '404':
           description: No Clinician Descriptors found for the given CPT code
       security:
-        - cpt_auth:
-            - 'read:descriptors'
+        - gateway_authorizer: []
   '/pla/details/{code}':
     get:
       tags:
@@ -349,8 +343,7 @@ paths:
         '404':
           description: No PLA details found for the given PLA code
       security:
-        - cpt_auth:
-            - 'read:pla'
+        - gateway_authorizer: []
   /pla/details:
     get:
       tags:
@@ -399,8 +392,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:pla'
+        - gateway_authorizer: []
   '/modifier/{code}':
     get:
       tags:
@@ -437,8 +429,7 @@ paths:
         '404':
           description: No data exists for the given modifier.
       security:
-        - cpt_auth:
-            - 'read:modifier'
+        - gateway_authorizer: []
   /modifiers:
     get:
       tags:
@@ -476,8 +467,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:modifier'
+        - gateway_authorizer: []
   /pdfs/{release}:
     get:
       tags:
@@ -510,8 +500,7 @@ paths:
         '404':
           description: No PDFs found for the given release.
       security:
-        - cpt_auth:
-            - 'read:pdf'
+        - gateway_authorizer: []
   /pdfs:
     get:
       tags:
@@ -536,8 +525,7 @@ paths:
               schema:
                 type: "string"
       security:
-        - cpt_auth:
-            - 'read:pdf'
+        - gateway_authorizer: []
   /releases:
     get:
       tags:
@@ -574,8 +562,7 @@ paths:
         '400':
           description: Invalid query parameter
       security:
-        - cpt_auth:
-            - 'read:release'
+        - gateway_authorizer: []
   /{proxy+}:
     get:
       parameters:
@@ -598,6 +585,8 @@ paths:
       responses:
         '404':
           description: Invalid resource.
+      security:
+        - gateway_authorizer: []
 components:
   schemas:
     Descriptor:
@@ -649,40 +638,24 @@ components:
       type: object
       required:
         - code
-        - effective_date
-        - lab_name
-        - manufacturer_name
-        - publish_date
-        - test_name
+        - status
+        - test
+        - manufacturer
+        - lab
       properties:
         code:
           type: string
           format: byte
-        long_descriptor:
+        status:
           type: string
           format: byte
-        medium_descriptor:
+        test:
           type: string
           format: byte
-        short_descriptor:
+        manufacturer:
           type: string
           format: byte
-        code_status:
-          type: string
-          format: byte
-        effective_date:
-          type: string
-          format: byte
-        lab_name:
-          type: string
-          format: byte
-        manufacturer_name:
-          type: string
-          format: byte
-        published_date:
-          type: string
-          format: byte
-        test_name:
+        lab:
           type: string
           format: byte
     Modifier:
@@ -722,24 +695,17 @@ components:
           type: string
           format: byte
   securitySchemes:
-    cpt_auth:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: 'http://cptAPI.swagger.io/oauth/dialog'
-          scopes:
-            'read:cpt': read cpt table
-            'read:descriptors': read clinical descriptor table
-            'read:pla': read pla codes table
-            'read:modifier' : read modifier table
-            'read:pdf': read pdf url
-            'read:release': read release date table
-    api_key:
+    gateway_authorizer:
       type: apiKey
-      name: api_key
+      name: Authorization
       in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+          type: token
+          authorizerUri: ${authorizer_uri}
+          authorizerCredentials: ${authorizer_credentials}
 externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
 servers:
-  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.3.0'
+  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.4.0'

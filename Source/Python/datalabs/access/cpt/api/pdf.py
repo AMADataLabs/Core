@@ -3,7 +3,7 @@ import logging
 
 import boto3
 
-from   datalabs.access.task import APIEndpointTask, APIEndpointParameters, InternalServerError
+from   datalabs.access.task.api import APIEndpointTask, APIEndpointParameters, InternalServerError
 from   datalabs.etl.cpt.dbmodel import Release
 
 logging.basicConfig()
@@ -34,7 +34,8 @@ class LatestPDFsEndpointTask(APIEndpointTask):
             LOGGER.error(e)
             raise InternalServerError(f'Unable to get PDF archive URL: {str(e)}')
 
-        self._response_body['url'] = pdfs_archive_url
+        self._status_code = 303
+        self._headers['Location'] = pdfs_archive_url
 
     def _get_pdf_archive_path(self):
         release_folders = sorted(

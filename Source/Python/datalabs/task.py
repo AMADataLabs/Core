@@ -4,7 +4,7 @@ import logging
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class Task(ABC):
@@ -22,3 +22,38 @@ class TaskException(BaseException):
     @property
     def message(self):
         return self.args[0]  # pylint: disable=unsubscriptable-object
+
+
+class TaskWrapper(ABC):
+    def __init__(self, task_class, parameters=None):
+        self._task_class = task_class
+        self._parameters = parameters
+        self._task = None
+
+        if not hasattr(self._task_class, 'run'):
+            raise TypeError('Task class does not have a "run" method.')
+
+    def run(self):
+        task_parameters = self._get_task_parameters()
+        self._task = self._task_class(task_parameters)
+
+        try:
+            self._task.run()
+
+            response = self._generate_response()
+        except TaskException as exception:
+            response = self._handle_exception(exception)
+
+        return response
+
+    @abstractmethod
+    def _get_task_parameters(self):
+        pass
+
+    @abstractmethod
+    def _generate_response(self) -> (int, dict):
+        pass
+
+    @abstractmethod
+    def _handle_exception(self, exception: Exception) -> (int, dict):
+        pass

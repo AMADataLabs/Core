@@ -10,20 +10,9 @@ module "cpt" {
     rds_instance_class  = "db.t2.micro"
     rds_storage_type    = "gp2"
     database_name       = "sample"
+    project             = local.project
+    passport_url        = "https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI"
 }
-
-
-data "aws_ssm_parameter" "account_environment" {
-    name = "/DataLabs/account_environment"
-}
-
-
-data "aws_ssm_parameter" "contact" {
-    name = "/DataLabs/contact"
-}
-
-
-variable "password" {}
 
 
 locals {
@@ -31,8 +20,9 @@ locals {
     na                  = "N/A"
     budget_code         = "PBW"
     owner               = "DataLabs"
+    project             = "CPT"
     tags                = {
-        Name = "Data Labs CPT Parameter"
+        Name                = "Data Labs CPT Parameter"
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
         SystemTier          = local.system_tier
@@ -42,6 +32,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
+        Project             = local.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

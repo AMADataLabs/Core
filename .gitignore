@@ -4,7 +4,11 @@
 **/.env
 **/.idea/
 **/.ipynb_checkpoints
+**/.terraform
+Source/Terraform/**/tfplan
+Source/Terraform/**/terraform.tfvars
 Environment/*
+*.zip
 
 .idea
 venv

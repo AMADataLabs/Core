@@ -1,3 +1,8 @@
+variable "project" {
+    description     = "Project name used in tags and names to distinguish resources."
+    type            = string
+}
+
 variable "rds_instance_name" {
     description = "RDS instance identifier"
     type        = string
@@ -23,4 +28,77 @@ variable "database_name" {
     description = "database name"
     type        = string
     default     = "cpt-api"
+}
+
+
+variable "passport_url" {
+    description = "Passport Url"
+    type        = string 
+}
+
+
+data "aws_caller_identity" "account" {}
+
+
+data "aws_ssm_parameter" "database_username" {
+    name = "/DataLabs/${var.project}/RDS/username"
+}
+
+
+data "aws_ssm_parameter" "database_password" {
+    name = "/DataLabs/${var.project}/RDS/password"
+}
+
+
+data "aws_ssm_parameter" "account_environment" {
+    name = "/DataLabs/account_environment"
+}
+
+
+data "aws_ssm_parameter" "s3_base_path" {
+    name  = "/DataLabs/${var.project}/s3/base_path"
+}
+
+
+data "aws_ssm_parameter" "raw_data_files" {
+    name  = "/DataLabs/${var.project}/data/raw_files"
+}
+
+
+data "aws_ssm_parameter" "release_schedule" {
+    name  = "/DataLabs/${var.project}/release/schedule"
+}
+
+
+data "aws_ssm_parameter" "raw_data_parsers" {
+    name  = "/DataLabs/${var.project}/data/parsers"
+}
+
+
+data "aws_ssm_parameter" "converted_data_files" {
+    name  = "/DataLabs/${var.project}/data/converted_files"
+}
+
+data "aws_ssm_parameter" "raw_csv_files" {
+    name  = "/DataLabs/${var.project}/data/raw_csv_files"
+}
+
+
+data "aws_ssm_parameter" "pdf_files" {
+    name  = "/DataLabs/${var.project}/data/pdf_files"
+}
+
+
+data "aws_ssm_parameter" "contact" {
+    name = "/DataLabs/contact"
+}
+
+
+data "aws_ssm_parameter" "ingestion_bucket" {
+    name = "/DataLabs/DataLake/ingestion_bucket"
+}
+
+
+data "aws_ssm_parameter" "processed_bucket" {
+    name = "/DataLabs/DataLake/processed_bucket"
 }

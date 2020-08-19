@@ -1,3 +1,8 @@
+variable "project" {
+    description     = "Project name used in tags and names to distinguish resources."
+    type            = string
+}
+
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
 }
@@ -9,12 +14,12 @@ data "aws_ssm_parameter" "contact" {
 
 
 data "aws_ssm_parameter" "ingestion_bucket" {
-    name = "/DataLabs/DataLake/ingestion_bucket"
+    name = "/DataLabs/${var.project}/ingestion_bucket"
 }
 
 
 data "aws_ssm_parameter" "processed_bucket" {
-    name = "/DataLabs/DataLake/processed_bucket"
+    name = "/DataLabs/${var.project}/processed_bucket"
 }
 
 
@@ -36,6 +41,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
+        Project             = var.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

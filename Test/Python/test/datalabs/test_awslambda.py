@@ -13,25 +13,23 @@ def test_task_wrapper_is_abstract():
 # pylint: disable=protected-access
 def test_task_wrapper_is_not_abstract():
     wrapper = GoodTaskWrapper(MockTask)
-    wrapper._get_task_parameters(None)
+    wrapper._get_task_parameters()
     wrapper._handle_exception(None)
-    wrapper._generate_response(None)
+    wrapper._generate_response()
 
 
 def test_task_wrapper_succeeds_as_expected():
-    wrapper = GoodTaskWrapper(MockTask)
-    response = wrapper.run(dict(fail=False))
+    wrapper = GoodTaskWrapper(MockTask, parameters=dict(fail=False))
+    response = wrapper.run()
 
-    assert response['statusCode'] == 200
-    assert response['body'] == '"succeeded"'
+    assert response == 'succeeded'
 
 
 def test_task_wrapper_fails_as_expected():
-    wrapper = GoodTaskWrapper(MockTask)
-    response = wrapper.run(dict(fail=True))
+    wrapper = GoodTaskWrapper(MockTask, dict(fail=True))
+    response = wrapper.run()
 
-    assert response['statusCode'] == 400
-    assert response['body'] == '"failed"'
+    assert response == 'failed'
 
 
 # pylint: disable=abstract-method
@@ -40,14 +38,14 @@ class BadTaskWrapper(TaskWrapper):
 
 
 class GoodTaskWrapper(TaskWrapper):
-    def _get_task_parameters(self, event: dict):
-        return event
+    def _get_task_parameters(self):
+        return self._parameters
 
-    def _generate_response(self, task) -> (int, dict):
-        return 200, 'succeeded'
+    def _generate_response(self) -> (int, dict):
+        return 'succeeded'
 
     def _handle_exception(self, exception: Exception) -> (int, dict):
-        return 400, 'failed'
+        return 'failed'
 
 
 class MockTask(Task):

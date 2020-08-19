@@ -1,7 +1,7 @@
-""" source: datalabs.etl.cpt.transform """
+""" source: datalabs.etl.parse.transform """
 import logging
 
-from   datalabs.etl.cpt.ingest.transform import CPTFileToCSVTransformerTask
+from   datalabs.etl.parse.transform import ParseToCSVTransformerTask
 from   datalabs.etl.task import ETLComponentParameters
 
 logging.basicConfig()
@@ -17,10 +17,10 @@ def test_transforming_cpt_files_to_csv():
         variables=dict(
             PARSERS=','.join((parser_class, parser_class))
         ),
-        data=['Hello, there!', 'Dear John']
+        data=[('HelloThere.txt', 'Hello, there!'), ('DearJohn.txt', 'Dear John')]
     )
 
-    transformer = CPTFileToCSVTransformerTask(parameters)
+    transformer = ParseToCSVTransformerTask(parameters)
 
     data = transformer._transform()
 

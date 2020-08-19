@@ -6,13 +6,13 @@ resource "aws_lambda_function" "endpoint_lambda" {
     role            = var.role
     handler         = "awslambda.handler"
     runtime         = "python3.7"
-    timeout         = 5
+    timeout         = 15
     memory_size     = 1024
     kms_key_arn     = data.aws_kms_key.cpt.arn
 
     environment {
         variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.APIEndpointTaskWrapper"
+            TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.api.APIEndpointTaskWrapper"
             TASK_CLASS              = var.task_class
             DATABASE_NAME           = var.database_name
             DATABASE_BACKEND        = var.database_backend
@@ -25,22 +25,22 @@ resource "aws_lambda_function" "endpoint_lambda" {
         }
     }
 
-    tags = merge(local.tags, {Name = "CPT API Endpoint Lambda Function"})
+    tags = merge(local.tags, {Name = "${var.project} API Endpoint Lambda Function"})
 }
 
 
 data "aws_kms_key" "cpt" {
-  key_id = "alias/DataLabs/CPT"
+  key_id = "alias/DataLabs/${var.project}"
 }
 
 
 data "aws_ssm_parameter" "database_username" {
-    name = "/DataLabs/CPT/RDS/username"
+    name = "/DataLabs/${var.project}/RDS/username"
 }
 
 
 data "aws_ssm_parameter" "database_password" {
-    name = "/DataLabs/CPT/RDS/password"
+    name = "/DataLabs/${var.project}/RDS/password"
 }
 
 
@@ -55,7 +55,7 @@ data "aws_ssm_parameter" "lambda_code_bucket" {
 
 
 data "aws_ssm_parameter" "s3_base_path" {
-    name  = "/DataLabs/CPT/s3/base_path"
+    name  = "/DataLabs/${var.project}/s3/base_path"
 }
 
 
@@ -85,6 +85,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
+        Project             = var.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na
