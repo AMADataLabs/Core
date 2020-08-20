@@ -31,7 +31,7 @@ def parameters():
     return AuthorizerParameters(
         token='fj9d0ayf40y04tyq0yfdaso',
         passport_url=None,
-        endpoint='arn:whatever'
+        endpoint='arn:aws:execute-api:us-east-1:123456789012:abcdef1234/ESTestInvoke-stage/GET/Function'
     )
 
 

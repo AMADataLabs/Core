@@ -50,9 +50,8 @@ class AuthorizerTask(Task, ABC):
         return policy
 
     def _generate_policy(self, effect):
-        # Example endoint ARN: arn:aws:execute-api:us-east-1:<account #>:ew1ea3aqg5/test/GET/clinician/descriptors
-        base, deployment, stage, action, path = self._parameters.endpoint.split('/', 3)
-        resource = '/'.join(base, deployment, stage, action, '*')
+        base, stage, action, path = self._parameters.endpoint.split('/', 3)
+        resource = '/'.join((base, stage, action, '*'))
 
         return {
             "principalId": "username",
