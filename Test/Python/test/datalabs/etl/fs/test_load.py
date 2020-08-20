@@ -1,3 +1,4 @@
+from   datetime import datetime
 from   glob import glob
 import logging
 import os
@@ -31,6 +32,15 @@ def test_loader_loads_two_files(etl, loader_directory):
 
     files = glob(os.path.join(loader_directory, '*'))
     assert len(files) == 2
+
+
+def test_loader_properly_adds_datestamp(etl, loader_directory):
+    etl.run()
+
+    files = sorted(glob(os.path.join(loader_directory, '*')), key=len)
+    expected_filename = datetime.utcnow().strftime('PhysicianProfessionalDataFile_%Y-%m-%d.csv')
+    expected_path = os.path.join(loader_directory, expected_filename)
+    assert expected_path == files[1]
 
 
 @pytest.fixture

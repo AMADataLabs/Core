@@ -56,7 +56,7 @@ class LocalUnicodeTextFileExtractorTask(LocalFileExtractorTask):
         return data.decode('utf-8', errors='replace')
 
 
-class LocalUnicodeTextFileExtractorTask(LocalFileExtractorTask):
+class LocalWindowsTextFileExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252', errors='backslashreplace')
