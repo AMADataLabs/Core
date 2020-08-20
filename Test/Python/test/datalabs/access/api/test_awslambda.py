@@ -3,8 +3,8 @@ import json
 import os
 import pytest
 
-from   datalabs.access.awslambda.api import APIEndpointTaskWrapper
-import datalabs.access.task.api as api
+from   datalabs.access.api.awslambda import APIEndpointTaskWrapper
+import datalabs.access.api.task as api
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -60,7 +60,7 @@ def event():
     os.environ['DATABASE_USERNAME'] = 'username'
     os.environ['DATABASE_PASSWORD'] = 'password'
     os.environ['BUCKET_NAME'] = 'mybucket'
-    os.environ['BUCKET_PATH'] = 'AMA/SOMETHING'
+    os.environ['BUCKET_BASE_PATH'] = 'AMA/SOMETHING'
     os.environ['BUCKET_URL_DURATION'] = '30'
 
     yield dict(

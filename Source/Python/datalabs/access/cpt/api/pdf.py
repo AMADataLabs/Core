@@ -3,7 +3,7 @@ import logging
 
 import boto3
 
-from   datalabs.access.task.api import APIEndpointTask, APIEndpointParameters, InternalServerError
+from   datalabs.access.api.task import APIEndpointTask, APIEndpointParameters, InternalServerError
 from   datalabs.etl.cpt.dbmodel import Release
 
 logging.basicConfig()
