@@ -1,4 +1,5 @@
 from   datetime import datetime
+import os
 
 from   datalabs.etl.load import LoaderTask
 
@@ -7,7 +8,7 @@ class LocalFileLoaderTask(LoaderTask):
     def _load(self):
         base_path = self._parameters.variables['PATH']
         files = self._parameters.variables['FILES'].split(',')
-		timestamped_files = self._resolve_timestamps(files)
+        timestamped_files = self._resolve_timestamps(files)
 
         for file, data in zip(timestamped_files, self._parameters.data):
             self._load_file(base_path, file, data)
@@ -19,7 +20,7 @@ class LocalFileLoaderTask(LoaderTask):
         return [datetime.strftime(now, file) for file in files]
 
     def _load_file(self, base_path, filename, data):
-        file_path = os.path.join((base_path, filename))
+        file_path = os.path.join(base_path, filename)
 
         data = self._encode_data(data)
 
@@ -34,13 +35,13 @@ class LocalFileLoaderTask(LoaderTask):
         return data
 
 
-class LocalUnicodeFileLoaderTask(LocalFileExtractorTask):
+class LocalUnicodeTextFileLoaderTask(LocalFileLoaderTask):
     @classmethod
     def _encode_data(cls, data):
         return data.encode('utf-8', errors='backslashreplace')
 
 
-class LocalWindowsFileLoaderTask(LocalFileExtractorTask):
+class LocalWindowsTextFileLoaderTask(LocalFileLoaderTask):
     @classmethod
     def _encode_data(cls, data):
         return data.encode('cp1252', errors='backslashreplace')
