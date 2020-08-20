@@ -3,8 +3,8 @@ import json
 import os
 import pytest
 
-from   datalabs.access.awslambda.api import APIEndpointTaskWrapper
-import datalabs.access.task.api as api
+from   datalabs.access.api.awslambda import APIEndpointTaskWrapper
+import datalabs.access.api.task as api
 
 
 # pylint: disable=redefined-outer-name, protected-access

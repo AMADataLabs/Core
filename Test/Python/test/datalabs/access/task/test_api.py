@@ -1,9 +1,9 @@
-""" source: datalabs.access.task.api """
+""" source: datalabs.access.api.task """
 import pytest
 
 import mock
 
-import datalabs.access.task.api as api
+import datalabs.access.api.task as api
 
 
 # pylint: disable=abstract-method

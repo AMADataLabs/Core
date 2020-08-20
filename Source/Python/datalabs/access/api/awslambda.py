@@ -1,7 +1,7 @@
 """ API endpoint-specific Lambda function Task wrapper. """
 import json
 
-import datalabs.access.task.api as api
+import datalabs.access.api.task as api
 from   datalabs.awslambda import TaskWrapper
 
 

@@ -3,7 +3,7 @@ import mock
 
 import pytest
 
-from   datalabs.access.task.authorize import AuthorizerTask, AuthorizerParameters
+from   datalabs.access.authorize.task import AuthorizerTask, AuthorizerParameters
 
 
 def test_authorized(authorized_passport_response, parameters):
