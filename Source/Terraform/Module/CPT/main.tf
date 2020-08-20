@@ -449,6 +449,6 @@ locals {
         pdfs                        = "datalabs.access.cpt.api.pdf.PDFsEndpointTask"
         releases                    = "datalabs.access.cpt.api.release.ReleasesEndpointTask"
         default                     = "datalabs.access.cpt.api.default.DefaultEndpointTask"
-        authorizer                  = "datalabs.access.task.authorize.AuthorizerTask"
+        authorizer                  = "datalabs.access.authorize.task.AuthorizerTask"
     }
 }

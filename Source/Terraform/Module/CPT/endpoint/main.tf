@@ -12,7 +12,7 @@ resource "aws_lambda_function" "endpoint_lambda" {
 
     environment {
         variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.access.awslambda.api.APIEndpointTaskWrapper"
+            TASK_WRAPPER_CLASS      = "datalabs.access.api.awslambda.APIEndpointTaskWrapper"
             TASK_CLASS              = var.task_class
             DATABASE_NAME           = var.database_name
             DATABASE_BACKEND        = var.database_backend
