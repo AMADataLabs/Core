@@ -74,6 +74,7 @@ resource "aws_neptune_cluster" "linage_cluster" {
 }
 
 resource "aws_neptune_cluster_instance" "lineage" {
+    identifier                          = "lineage"
     cluster_identifier                  = aws_neptune_cluster.linage_cluster.id
     instance_class                      = "db.t3.medium"
     apply_immediately                   = true
