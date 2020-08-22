@@ -1,6 +1,6 @@
 resource "aws_key_pair" "bastion_key" {
     key_name   = "DataLakeBastionKey"
-    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC1hAjzoPEq0TgzOms2U0AGSZwsLo64tE41PXD99DlKZIB9dZM4/tkIqvQ0a1k/MrJT+O7qB8T3ad8T6M4nHCfKIThG6rqhkK/DSKw8o8B4ZvejYRulSAzfdamgHdr4RXnP/3qPwu5mz7sWGlvJezbb5tx/rw1nIqvFArB7PFQ23rFwqvZn6FlchKkjGLhIfXwUYH4Sm+COaR/kavIsl6W5sLzWwjF02gRqvTdb4AZljWVGG7meDJUI9yxAUPkI5oKOen4k912iJq5mjbtZ23etV4uahl19K3q8aVgwSnCfaDG+CDoTAkIi+iRMaUIEv4f0eZct77jLH0YdbQ9LLLAf"
+    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDMdCgPAcG2MsIQF7Zds/qaGTMNjWNeYIQXdwb+HvtSqJrtRDXo/XZUu6m4MUrFs0n6vDleSfAafp3xZ9VLLQN/6vVIuJW9GDRiJl1fqPessQxKKFGqJuSv+TrZ20RiUkUpGOmUKcBB6N1Hwkqped2DfTYIX9If3i4OKgdFETg8U2jlxFixvOtruSosm8g/xsHC2Xmnvv4VTc1DwWECARVYGRFUIdIdy/PNkIhzWGNp1aDs5ALzpZ5WhtqkzSBr49tYbALORs/DcN5CV6RSZ3vaVvcXoQrweDl6Cd5eCTiPxU8xsZGZFFPwWK9VXXrLJkpSMeqZmHacPNRAp+zd2zOZ"
 
     tags = merge(local.tags, {Name = "Data Lake Bastion Key"})
 }
@@ -11,20 +11,28 @@ resource "aws_security_group" "bastion_ssh" {
   description = "Allow SSH inbound traffic to bastions"
   vpc_id      = aws_vpc.datalake.id
 
-  ingress {
-    description = "SSH from VPC"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+    ingress {
+        description = "SSH"
+        from_port   = 22
+        to_port     = 22
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+    ingress {
+      description = "SNMP"
+      from_port   = 161
+      to_port     = 161
+      protocol    = "udp"
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    egress {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
 
     tags = merge(local.tags, {Name = "Bastion SG"})
 }
@@ -39,12 +47,19 @@ resource "aws_subnet" "bastion" {
 }
 
 
+resource "aws_route_table_association" "bastion" {
+    subnet_id      = aws_subnet.bastion.id
+    route_table_id = aws_vpc.datalake.default_route_table_id
+}
+
+
 resource "aws_instance" "bastion" {
-    ami                     = data.aws_ami.ubuntu.id
-    instance_type           = "t2.micro"
-    key_name                = aws_key_pair.bastion_key.key_name
-    subnet_id               = aws_subnet.bastion.id
-    vpc_security_group_ids  = [aws_security_group.bastion_ssh.id]
+    ami                             = data.aws_ami.ubuntu.id
+    instance_type                   = "t2.micro"
+    key_name                        = aws_key_pair.bastion_key.key_name
+    subnet_id                       = aws_subnet.bastion.id
+    vpc_security_group_ids          = [aws_security_group.bastion_ssh.id]
+    associate_public_ip_address     = true
 
     tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
 }

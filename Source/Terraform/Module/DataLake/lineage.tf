@@ -32,12 +32,24 @@ resource "aws_subnet" "lineage_frontend" {
 }
 
 
+resource "aws_route_table_association" "lineage_frontend" {
+    subnet_id      = aws_subnet.lineage_frontend.id
+    route_table_id = aws_vpc.datalake.default_route_table_id
+}
+
+
 resource "aws_subnet" "lineage_backend" {
     vpc_id            = aws_vpc.datalake.id
     cidr_block        = "172.31.1.0/24"
     availability_zone = "us-east-1b"
 
     tags = merge(local.tags, {Name = "Data Lake Lineage Backend Subnet"})
+}
+
+
+resource "aws_route_table_association" "lineage_backend" {
+    subnet_id      = aws_subnet.lineage_backend.id
+    route_table_id = aws_vpc.datalake.default_route_table_id
 }
 
 
