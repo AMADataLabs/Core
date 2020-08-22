@@ -2,6 +2,7 @@ import os
 
 import pytest
 
+from gremlin_python.process.traversal import Bindings
 from neptune_python_utils.gremlin_utils import GremlinUtils
 
 
