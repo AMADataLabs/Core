@@ -63,7 +63,7 @@ def test_connection(lineage):
 @pytest.fixture
 def lineage():
     os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = 'datalabs-lineage.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
-    os.environ['NEPTUNE_CLUSTER_PORT'] = 'datalabs-lineage.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
+    os.environ['NEPTUNE_CLUSTER_PORT'] = 8182
     GremlinUtils.init_statics(globals())
     gremlin_utils = GremlinUtils()
     connection = gremlin_utils.remote_connection()
