@@ -7,24 +7,29 @@ from neptune_python_utils.gremlin_utils import GremlinUtils
 
 
 def test_connection(lineage):
-    raw_dataset = lineage.addV('dataset').property(
-        'location', 's3://hsg-datalabs-datalake-ingestion-sandbox/AMA/CPT/20200131'
+    lineage.V().hasLabel('dataset-test').outE().drop().iterate()
+    lineage.V().hasLabel('dataset-test').drop().iterate()
+    lineage.V().hasLabel('data-test').outE().drop().iterate()
+    lineage.V().hasLabel('data-test').drop().iterate()
+
+    raw_dataset = lineage.addV('dataset-test').property(
+        'location', 's3://hsg-datalabs-datalake-ingestion-sandbox/AMA/BOGUS/20200131'
     ).next()
 
-    pdf1 = lineage.addV('data').property(
-        'location', 's3://ama-hsg-datalabs-datalake-ingestion-sandbox/AMA/CPT/20200131/CPT Link Release Notes 20200131.pdf'
+    pdf1 = lineage.addV('data-test').property(
+        'location', 's3://ama-hsg-datalabs-datalake-ingestion-sandbox/AMA/BOGUS/20200131/BOGUS Link Release Notes 20200131.pdf'
     ).next()
 
-    pdf2 = lineage.addV('data').property(
-        'location', 's3://ama-hsg-datalabs-datalake-ingestion-sandbox/AMA/CPT/20200131/standard/AnesthesiaGuidelines.pdf'
+    pdf2 = lineage.addV('data-test').property(
+        'location', 's3://ama-hsg-datalabs-datalake-ingestion-sandbox/AMA/BOGUS/20200131/standard/AnesthesiaGuidelines.pdf'
     ).next()
 
-    processed_dataset = lineage.addV('dataset').property(
-        'location', 's3://hsg-datalabs-datalake-processed-sandbox/AMA/CPT/20200820'
+    processed_dataset = lineage.addV('dataset-test').property(
+        'location', 's3://hsg-datalabs-datalake-processed-sandbox/AMA/BOGUS/20200820'
     ).next()
 
-    pdf_zip = lineage.addV('data').property(
-        'location', 's3://ama-hsg-datalabs-datalake-processed-sandbox/AMA/CPT/20200820/pdfs.zip'
+    pdf_zip = lineage.addV('data-test').property(
+        'location', 's3://ama-hsg-datalabs-datalake-processed-sandbox/AMA/BOGUS/20200820/pdfs.zip'
     ).next()
 
     lineage.V(Bindings.of('id', raw_dataset)).addE('ParentOf').to(processed_dataset).property(
@@ -51,8 +56,24 @@ def test_connection(lineage):
         'timestamp', '20200820T21:38:32+00:00'
     ).iterate()
 
-    lineage.V().drop().iterate()
-    lineage.E().drop().iterate()
+    assert len(lineage.V().hasLabel('dataset-test').toList()) == 2
+
+    assert len(lineage.V().hasLabel('data-test').toList()) == 3
+
+    edge_count = len(lineage.E().toList())
+
+    lineage.V().hasLabel('dataset-test').outE().drop().iterate()
+    assert len(lineage.E().toList()) == (edge_count - 4)
+
+    lineage.V().hasLabel('data-test').outE().drop().iterate()
+    assert len(lineage.E().toList()) == (edge_count - 6)
+
+    lineage.V().hasLabel('dataset-test').drop().iterate()
+    assert len(lineage.V().hasLabel('dataset-test').toList()) == 0
+
+    lineage.V().hasLabel('data-test').drop().iterate()
+    assert len(lineage.V().hasLabel('data-test').toList()) == 0
+
 
 @pytest.fixture
 def lineage():
