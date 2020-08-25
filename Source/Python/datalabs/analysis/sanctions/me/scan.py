@@ -28,7 +28,7 @@ class SanctionsMEScan:
         self._aims_password = os.environ.get('CREDENTIALS_AIMS_PASSWORD')
 
     def _set_database_connections(self):
-        self._marklogic_con = MarkLogic(key='MARKLOGIC_TEST')
+        self._marklogic_con = MarkLogic(key='MARKLOGIC_PROD')
         self._marklogic_con.connect()
 
         # if using pyodbc
