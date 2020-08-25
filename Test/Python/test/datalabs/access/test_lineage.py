@@ -6,6 +6,10 @@ from gremlin_python.process.traversal import Bindings
 from neptune_python_utils.gremlin_utils import GremlinUtils
 
 
+@pytest.mark.skipif(
+    os.getenv('RUN_INTEGRATION_TESTS') != 'True',
+    reason="Normally skip integration tests to increase testing speed."
+)
 def test_connection(lineage):
     lineage.V().hasLabel('dataset-test').outE().drop().iterate()
     lineage.V().hasLabel('dataset-test').drop().iterate()

@@ -33,7 +33,7 @@ class LocalFileExtractorTask(ExtractorTask):
             with open(file_path, 'rb') as file:
                 data = file.read()
         except Exception as exception:
-            raise ETLException(f"Unable to read file '{file_path}'": {exception}")
+            raise ETLException(f"Unable to read file '{file_path}'") from exception
 
         return self._decode_data(data)
 
@@ -50,13 +50,13 @@ class LocalFileExtractorTask(ExtractorTask):
         return data
 
 
-class LocalUnicodeTextExtractorTask(LocalFileExtractorTask):
+class LocalUnicodeTextFileExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('utf-8', errors='replace')
 
 
-class LocalWindowsTextExtractorTask(LocalFileExtractorTask):
+class LocalWindowsTextFileExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252', errors='backslashreplace')
