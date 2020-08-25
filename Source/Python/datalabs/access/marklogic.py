@@ -10,9 +10,11 @@ from datalabs.access.credentials import Credentials
 
 class MarkLogic(Datastore):
     def __init(self, credentials: Credentials = None, url=None):
-        super().__init__(credentials, key='MARKLOGIC')
+        super().__init__(credentials, key='MARKLOGIC_TEST')
         self.url = url  # url takes the following form: "http://address:port/version"
         self.auth = HTTPDigestAuth(self._credentials.username, self._credentials.password)
+        self._connection = None
+        self.connect()
 
     def connect(self):
         self._connection = requests.Session()
