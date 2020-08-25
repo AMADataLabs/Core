@@ -12,9 +12,9 @@ BUILD_PATH=
 
 
 main() {
-    process_arguments $*
+    process_arguments "$@"
 
-    initialize_alembic 
+    initialize_alembic
 
     generate_configuration_files
 }
@@ -117,4 +117,4 @@ render_alembic_env() {
     ${RENDER} -t ${TEMPLATE_PATH} -f ${RENDERING_PATH} -v schema=${SCHEMA},model_module=${MODEL_MODULE}
 }
 
-main $*
+main "$@"

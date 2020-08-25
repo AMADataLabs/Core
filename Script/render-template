@@ -7,7 +7,7 @@ RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 
 main() {
-    $RUN ${SCRIPT_BASE_PATH}/bundle_project.py "$@"
+    $RUN ${SCRIPT_BASE_PATH}/render_template.py "$@"
 }
 
 
