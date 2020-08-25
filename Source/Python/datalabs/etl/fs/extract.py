@@ -14,7 +14,7 @@ class LocalFileExtractorTask(ExtractorTask):
 
     def _get_files(self):
         base_path = self._parameters.variables['PATH']
-        unresolved_files = [os.path.join((base_path, file)) for file in self._parameters.variables['FILES'].split(',')]
+        unresolved_files = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
         resolved_files = []
 
         for file in unresolved_files:

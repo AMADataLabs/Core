@@ -52,11 +52,11 @@ class S3FileLoaderTask(LoaderTask):
         return data
 
 
-class S3UnicodeTextLoaderTask(S3FileLoaderTask):
+class S3UnicodeTextFileLoaderTask(S3FileLoaderTask):
     def _encode(self, data):
         return data.encode('utf-8', errors='backslashreplace')
 
 
-class S3WindowsTextLoaderTask(S3FileLoaderTask):
+class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
     def _encode(self, data):
         return data.encode('cp1252', errors='backslashreplace')

@@ -205,11 +205,11 @@ install_terraform() {
     echo 'deb [arch=amd64] https://tjend.github.io/repo_terraform stable main' > /etc/apt/sources.list.d/terraform.list
     apt update
 
-    apt install -y terraform
+    apt install -y terraform=0.12.29
 }
 
 
 remove_terraform() {
     echo "### Removing Terraform ###"
-    apt remove -y terraform
+    apt remove -y terraform=0.12.29
 }
