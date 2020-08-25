@@ -8,7 +8,7 @@ PROJECT_NAME=
 
 
 main() {
-    process_arguments $*
+    process_arguments "$@"
 
     create_environment_directory
 
@@ -62,4 +62,4 @@ setup_virtual_environment() {
     setup_python_virtual_environment ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
 }
 
-main $*
+main "$@"
