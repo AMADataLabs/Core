@@ -6,8 +6,12 @@ import logging
 
 import numpy as np
 import pandas
+import sqlalchemy as sa
 
 from   datalabs.etl.transform import TransformerTask
+from   datalabs.access.orm import DatabaseTaskMixin
+from   datalabs.etl.load import LoaderTask
+import datalabs.etl.cpt.dbmodel as dbmodel
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -65,7 +69,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         tables = OutputData(
             release=self._generate_release_table(input_data.code_history),
             code=codes,
-            release_code_mapping=self._generate_release_code_mapping_table( input_data.code_history, codes),
+            release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history, codes),
             short_descriptor=self._generate_descriptor_table(
                 'short_descriptor',
                 input_data.short_descriptor,
@@ -100,52 +104,60 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_release_table(cls, code_history):
-        history = code_history.date.unique()
-        history_unique = np.delete(history, [0, 7])
+        history = code_history[['date', 'cpt_code', 'change_type']].rename(
+            columns=dict(date='release', cpt_code='code', change_type='change')
+        )
+        history = history.loc[history.change == 'ADDED']
+        history = history.loc[~history.release.str.startswith('Pre')]
+        history_unique = history.release.unique()
         effective_dates = [datetime.strptime(date, '%Y%m%d').date().strftime('%Y-%m-%d') for date in history_unique]
 
-        release_types = [cls._generate_release_type(datetime.strptime(date, '%Y%m%d')) for date in history_unique]
-        publish_dates = [cls._generate_release_publish_date(datetime.strptime(date, '%Y%m%d')) for date in
-                         history_unique]
+        release_schedule = cls._generate_release_schedule()
+        release_types = [cls._generate_release_type(datetime.strptime(date, '%Y%m%d'), release_schedule)
+                         for date in history_unique]
+        publish_dates = [cls._generate_release_publish_date(datetime.strptime(date, '%Y%m%d'), release_schedule)
+                         for date in history_unique]
 
         releases = pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
 
         releases.reset_index(drop=True)
-        return releases
+
+        return history
 
     @classmethod
-    def _generate_release_type(cls, release_date):
+    def _generate_release_schedule(cls):
+        df = CPTRelationalTableLoaderTask(DatabaseTaskMixin, dbmodel.ReleaseType)
+        # df = df[df.type != 'OTHER']
+        # df = df[df.type != 'PLA-Q4']
+        # dataframe_dictionary  = df.set_index('type').T.to_dict('list')
+        # for key, value in dataframe_dictionary.items():
+        #     dataframe_dictionary[key] = [str(value[2]) + '-' + value[3], str(value[0]) + '-' + value[1]]
+
+        # remove after database configuration works
         release_schedule = {"ANNUAL": ["1-Sep", "1-Jan"], "PLA-Q1": ["1-Jan", "1-Apr"], "PLA-Q2": ["1-Apr", "1-Jul"],
                             "PLA-Q3": ["1-Jul", "1-Oct"], "PLA-Q4": ["1-Oct", "1-Jan"]}
-
-        release_types = list(release_schedule.keys())
-        release_types.append('OTHER')
-
-        release_date_for_lookup = date(1900, release_date.month, release_date.day)
 
         for release_type in release_schedule:
             release_schedule[release_type] = [datetime.strptime(datestamp, '%d-%b').date() for datestamp in
                                               release_schedule[release_type]]
 
-        types = {dates[0]: type for type, dates in release_schedule.items()}
+        return release_schedule
+
+    @classmethod
+    def _generate_release_type(cls, release_date, release_schedule):
+        release_date_for_lookup = date(1900, release_date.month, release_date.day)
+        types = {dates[1]: type for type, dates in release_schedule.items()}
 
         date_type = types.get(release_date_for_lookup, 'OTHER')
 
         return date_type
 
     @classmethod
-    def _generate_release_publish_date(cls, release_date):
-        release_schedule = {"ANNUAL": ["1-Sep", "1-Jan"], "PLA-Q1": ["1-Jan", "1-Apr"], "PLA-Q2": ["1-Apr", "1-Jul"],
-                            "PLA-Q3": ["1-Jul", "1-Oct"], "PLA-Q4": ["1-Oct", "1-Jan"]}
-
+    def _generate_release_publish_date(cls, release_date, release_schedule):
         release_date_for_lookup = date(1900, release_date.month, release_date.day)
 
-        for release_type in release_schedule:
-            release_schedule[release_type] = [datetime.strptime(datestamp, '%d-%b').date() for datestamp in
-                                              release_schedule[release_type]]
-
-        publish_date = {dates: type for type, dates in release_schedule.values()}
+        publish_date = {effective_dates: publish_dates for publish_dates, effective_dates in release_schedule.values()}
 
         date_type = publish_date.get(release_date_for_lookup, release_date)
         date_type = date(release_date.year, date_type.month, date_type.day).strftime('%Y-%m-%d')
@@ -303,7 +315,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         asc_modifiers = modifiers.modifier[modifiers.type == 'Ambulatory Service Center'].tolist()
         general_modifiers = modifiers.modifier[modifiers.type == 'Category I'].tolist()
         general_asc_modifiers = modifiers[(modifiers.type == 'Ambulatory Service Center')
-                                        & modifiers.modifier.isin(general_modifiers)]
+                                          & modifiers.modifier.isin(general_modifiers)]
         duplicate_modifiers = modifiers[(modifiers.type == 'Category I') & modifiers.modifier.isin(asc_modifiers)]
 
         modifiers.loc[modifiers.modifier.isin(general_asc_modifiers), 'general'] = True
@@ -312,3 +324,25 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         modifiers.loc[modifiers.modifier.isin(general_modifiers), 'general'] = True
 
         return modifiers.drop(index=duplicate_modifiers.index)
+
+
+class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
+    def __init__(self, parameters, table):
+        super().__init__(parameters)
+        self._session = None
+        self.table = table
+
+    def _load(self):
+        with self._get_database(self._parameters.database) as database:
+            self._session = database.session  # pylint: disable=no-member
+            self.get_tables()
+
+    def get_tables(self):
+        mapper = sa.inspect(self.table)
+        columns = [column.key for column in mapper.attrs]
+
+        # results = self.table.query.all
+        #
+        # df = pandas.DataFrame({column: [getattr(result, column) for result in results] for column in columns})
+
+        return columns
