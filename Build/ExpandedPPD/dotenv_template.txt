@@ -11,11 +11,14 @@ TASK_CLASS=datalabs.etl.task.ETLTask
 TASK_WRAPPER_CLASS=datalabs.etl.task.ETLTaskWrapper
 
 EXTRACTOR_CLASS=datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask
-EXTRACTOR_PATH=/mnt/u/Source Files/Data Analytics/Baseline/data/expanded
-EXTRACTOR_FILES=ppd_analysis_file_*
+# EXTRACTOR_PATH=/mnt/c/Source Files/Data Analytics/Baseline/data/expanded
+EXTRACTOR_PATH=/mnt/c/Users/plane/OneDrive - American Medical Association/Documents/Data/PPD/Expanded
+EXTRACTOR_FILES=ppd_analysis_file_*.txt
 
 TRANSFORMER_CLASS=datalabs.etl.ppd.expanded.transform.ParseToPPDTransformerTask
+TRANSFORMER_PARSERS=datalabs.curate.ppd.expanded.parse.ExpandedPPDParser
 
 LOADER_CLASS=datalabs.etl.fs.load.LocalUnicodeTextFileLoaderTask
-LOADER_PATH=/mnt/u/Source Files/Data Analytics/Data-Science/Data/PPD/Expanded
+# LOADER_PATH=/mnt/u/Source Files/Data Analytics/Data-Science/Data/PPD/Expanded
+LOADER_PATH=/mnt/c/Users/plane/OneDrive - American Medical Association/Documents/Data/PPD/Expanded
 LOADER_FILES=ppd_analysis_file.csv,archive/ppd_analysis_file_%Y-%m-%d.csv
