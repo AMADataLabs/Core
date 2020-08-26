@@ -5,6 +5,10 @@ resource "aws_s3_bucket" "datalake_ingestion_bucket" {
         prevent_destroy = true
     }
 
+    versioning {
+    enabled = true
+    }
+
     tags = merge(local.tags, {Name = "Data Labs Data Lake Ingestion Bucket"})
 }
 
@@ -40,5 +44,5 @@ resource "aws_s3_bucket_public_access_block" "datalake_processed_bucket_public_a
     ignore_public_acls      = true
     restrict_public_buckets = true
 
-        depends_on = [aws_s3_bucket.datalake_processed_bucket]
+    depends_on = [aws_s3_bucket.datalake_processed_bucket]
 }

@@ -7,7 +7,7 @@ PROJECT_NAME=$1
 
 
 main() {
-    process_arguments $*
+    process_arguments "$@"
 
     pylint_project_directory
 }
@@ -50,4 +50,4 @@ print_usage() {
 }
 
 
-main $*
+main "$@"

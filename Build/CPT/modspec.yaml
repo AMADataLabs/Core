@@ -14,9 +14,9 @@ modspec:
       - datastore
       - environment
       - orm
-  - package: datalabs.access.awslambda
+  - package: datalabs.access.api
+  - package: datalabs.access.authorize
   - package: datalabs.access.cpt.api
-  - package: datalabs.access.task
   - package: datalabs.curate
     include:
       - parse

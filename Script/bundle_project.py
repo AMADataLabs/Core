@@ -50,6 +50,9 @@ class LocalProjectBundler(ProjectBundler):
         LOGGER.info('=== Copying Lambda Function Handler ===')
         self._copy_lambda_function_handler(target_path)
 
+        LOGGER.info('=== Copying Local Task Script ===')
+        self._copy_local_task_script(target_path)
+
         LOGGER.info('=== Creating Zip Archive ===')
         self._zip_bundle_directory(project, target_path)
 
@@ -66,6 +69,9 @@ class LocalProjectBundler(ProjectBundler):
 
     def _copy_lambda_function_handler(self, target_path):
         shutil.copy(os.path.join(self._build_path, 'Master', 'awslambda.py'), os.path.join(target_path, 'awslambda.py'))
+
+    def _copy_local_task_script(self, target_path):
+        shutil.copy(os.path.join(self._build_path, 'Master', 'task.py'), os.path.join(target_path, 'task.py'))
 
     def _zip_bundle_directory(self, project, target_path):
         archive_path = target_path.parent.joinpath(f'{project}.zip')

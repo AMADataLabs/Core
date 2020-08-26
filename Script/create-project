@@ -14,7 +14,7 @@ SANDBOX=false
 
 
 main() {
-    process_arguments $*
+    process_arguments "$@"
 
     create_project_directories
 
@@ -250,4 +250,4 @@ slug() {
 }
 
 
-main $*
+main "$@"

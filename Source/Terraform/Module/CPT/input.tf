@@ -33,7 +33,7 @@ variable "database_name" {
 
 variable "passport_url" {
     description = "Passport Url"
-    type        = string 
+    type        = string
 }
 
 
