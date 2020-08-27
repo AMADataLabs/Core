@@ -127,7 +127,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
         releases.reset_index(drop=True)
 
-        return history
+        return releases
 
     def _extract_release_schedule(self):
         release_schedule = {}
