@@ -109,21 +109,18 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
         return tables
 
-    @classmethod
-    def _generate_release_table(cls, code_history):
+    def _generate_release_table(self, code_history):
         history = code_history[['date', 'cpt_code', 'change_type']].rename(
             columns=dict(date='release', cpt_code='code', change_type='change')
         )
         history = history.loc[history.change == 'ADDED']
         history = history.loc[~history.release.str.startswith('Pre')]
         history_unique = history.release.unique()
-        effective_dates = [datetime.strptime(date, '%Y%m%d').date().strftime('%Y-%m-%d') for date in history_unique]
+        effective_dates = [datetime.strptime(date, '%Y%m%d').date() for date in history_unique]
+        release_schedule = self._extract_release_schedule()
 
-        release_schedule = cls._extract_release_schedule()
-        release_types = [cls._generate_release_type(datetime.strptime(date, '%Y%m%d'), release_schedule)
-                         for date in history_unique]
-        publish_dates = [cls._generate_release_publish_date(datetime.strptime(date, '%Y%m%d'), release_schedule)
-                         for date in history_unique]
+        release_types = [self._generate_release_type(date, release_schedule) for date in effective_dates]
+        publish_dates = [self._generate_release_publish_date(date, release_schedule) for date in effective_dates]
 
         releases = pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
@@ -133,9 +130,10 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         return history
 
     def _extract_release_schedule(self):
+        release_schedule = {}
+
         with self._get_database(self._parameters.database) as database:
             release_types = database.session.query(dbmodel.ReleaseType).all()
-            release_schedule = {}
 
             for row in release_types:
                 if row.type != 'PLA-Q4':  # Explicitly skip PLA-Q4 for now since it clashes with ANNUAL
@@ -149,23 +147,21 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
     @classmethod
     def _generate_release_type(cls, release_date, release_schedule):
-        release_date_for_lookup = date(1900, release_date.month, release_date.day)
-        types = {dates[1]: type for type, dates in release_schedule.items()}
+        release_date_for_lookup = date(1900, release_date.month, release_date.day).strftime('%-d-%b')
+        default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
 
-        date_type = types.get(release_date_for_lookup, 'OTHER')
-
-        return date_type
+        return release_schedule.get(release_date_for_lookup, default_release_schedule).type
 
     @classmethod
     def _generate_release_publish_date(cls, release_date, release_schedule):
-        release_date_for_lookup = date(1900, release_date.month, release_date.day)
+        release_date_for_lookup = date(1900, release_date.month, release_date.day).strftime('%-d-%b')
+        default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
+        publish_date = release_schedule.get(release_date_for_lookup, default_release_schedule).publish_date
 
-        publish_date = {effective_dates: publish_dates for publish_dates, effective_dates in release_schedule.values()}
+        if not publish_date:
+            publish_date = release_date
 
-        date_type = publish_date.get(release_date_for_lookup, release_date)
-        date_type = date(release_date.year, date_type.month, date_type.day).strftime('%Y-%m-%d')
-
-        return date_type
+        return publish_date
 
     @classmethod
     def _generate_code_table(cls, descriptors, pla_details):
