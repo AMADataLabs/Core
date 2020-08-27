@@ -52,9 +52,24 @@ class SFTP(Datastore):
             cnopts=cnopts
         )
 
-    def ls(self, path: str):
+    def ls(self, path: str, filter: str=None):
         with self._connection.cd(path):
-            return self._connection.listdir_attr()
+             files = self._connection.listdir()
+
+        return self._filter_files(files, filter)
+
+    @classmethod
+    def _filter_files(cls, files: list, filter: str) -> list:
+        filtered_files = files
+
+        if filter and '*' in filter:
+            filter_parts = filter.split('*')
+            prefix = filter_parts[0]
+            suffix = filter_parts[-1]
+            filtered_files = [file for file in files if file.startswith(prefix) and file.endswith(suffix)]
+
+        return filtered_files
+
 
     def read(self, sql: str, **kwargs):
         return pandas.read_sql(sql, self._connection, **kwargs)
@@ -67,3 +82,7 @@ class SFTP(Datastore):
             raise ValueError('Invalid configuration object.')
 
         return configuration
+
+
+class SFTPException(Exception):
+    pass

@@ -6,12 +6,14 @@ from datalabs.access.sftp import SFTP
 import pytest
 
 
-@pytest.mark.skip(reason="Example Usage")
+# @pytest.mark.skip(reason="Example Usage")
 def test_sftp_ls(sftp):
-    info = sftp.ls('Data Analytics/Peter')
+    files = sftp.ls('Data Analytics/Baseline/data', filter='PhysicianProfessionalDataFile_*')
 
-    assert len(info) > 0
-    assert info[0].filename == 'foo'
+    assert len(files) > 0
+
+    for file in files:
+        assert file.startswith('PhysicianProfessionalDataFile_')
 
 
 @pytest.fixture
