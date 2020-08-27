@@ -288,6 +288,7 @@ def create_product_main_table(product_sales_coded):
 
 
 def create_product_remainder_table(product_sales_coded):
+    //TODO: Add budget description
     main_product_names = ['CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
     main_product_indices = product_sales_coded['Product Names'].str.contains('|'.join(main_product_names))
     product_remainder = product_sales_coded[~main_product_indices]
@@ -383,7 +384,7 @@ def clean_up_customer(customer):
 def create_email_campaign_table(email_campaign):
     email_campaign_columns = ['MESSAGE_NAME', 'EVENT_DATE', 'PROD_DESC', 'TOTAL_OPENS', 'TOTAL_CLICKS',
                               'TOTAL_BOUNCES', 'TOTAL_UNSUBS', 'TOTAL_SENDS', 'OPEN_RATE', 'CLICK_RATE',
-                              'BOUNCE_RATE', 'UNSUB_RATE', 'DELIVERY_RATE']
+                              'BOUNCE_RATE', 'UNSUB_RATE', 'DELIVERY_RATE', 'PROD_DESC']
     email_campaign = email_campaign[email_campaign_columns]
     new_email_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), email_campaign_columns)]
     email_campaign = email_campaign.rename(columns=dict(zip(email_campaign_columns,
@@ -426,6 +427,7 @@ def main():
     product_main.to_csv(output_directory + 'product_main.csv', index=False)
     product_remainder.to_csv(output_directory + 'product_remainder.csv', index=False)
     customer_clean.to_csv(output_directory + 'customer.csv')
+    //TODO: add catalog description. possibly make new function
     direct_mail.to_csv(output_directory + 'direct_mail.csv')
     fax.to_csv(output_directory + 'fax.csv')
     email_campaign.to_csv(output_directory + 'email_campaign.csv')
