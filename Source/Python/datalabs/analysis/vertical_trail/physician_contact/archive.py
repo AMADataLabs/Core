@@ -53,8 +53,8 @@ class VTPhysicianContactArchive:
         sql = """SELECT * FROM vertical_trail_samples"""
         data = pd.read_sql(sql=sql, con=self.connection)
 
-        #data['survey_date'] = pd.to_datetime(data['survey_date'])
-        #data['survey_date'] = data['survey_date'].apply(lambda x: x.date())
+        data['sample_date'] = pd.to_datetime(data['sample_date'])
+        data['sample_date'] = data['sample_date'].apply(lambda x: x.date())
 
         data['month_diff'] = [relativedelta(as_of_date, sample_date) for sample_date in data['sample_date'].values]
         data['month_diff'] = data['month_diff'].apply(lambda x: x.months)
@@ -65,9 +65,48 @@ class VTPhysicianContactArchive:
 
         return data
 
+    def ingest_sample_data(self, data: pd.DataFrame):
+        data.fillna('', inplace=True)
+
+        for i, r in data.iterrows():
+            self.insert_row(table='vertical_trail_samples', vals=[v for v in r.values])
+        self.connection.commit()
+
+    def ingest_result_file(self, file_path: str):
+        data = pd.read_excel(file_path, dtype=str)
+        data = data[
+            ['SAMPLE_ID',
+             'ROW_ID',
+             'OFFICE 1 PHONE NUMBER - GENERAL',
+             'OFFICE 1 FAX NUMBER',
+             'OFFICE 1 EMAIL',
+             'Notes for AMA'
+             ]
+        ]
+        self.ingest_sample_data(data=data)
+
+    def ingest_result_data(self, data: pd.DataFrame):
+        data.fillna('', inplace=True)
+
+        for i, r in data.iterrows():
+            self.insert_row(table='vertical_trail_results', vals=[v for v in r.values])
+        self.connection.commit()
+
+    def insert_row(self, table, vals):
+        cols = self.table_columns.dict[table]
+
+        sql = "INSERT INTO {}({}) VALUES({});".format(
+                table,
+                ','.join(cols),
+                ','.join(['"' + str(v) + '"' for v in vals])
+        )
+
+        self.connection.execute(sql)
+
     def _load_environment_variables(self):
         self._batch_load_save_dir = os.environ.get('BATCH_LOAD_SAVE_DIR')
         if self.database_path is None:
             self.database_path = os.environ.get('ARCHIVE_DB_PATH')
         if self.connection is None:
             self.connection = Connection(self.database_path)
+
