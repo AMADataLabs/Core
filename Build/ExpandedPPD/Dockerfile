@@ -2,6 +2,8 @@
 #    docker build -t expanded-ppd -f ./Build/ExpandedPPD/Dockerfile ./
 
 FROM python:3.7
+ARG sftp_username
+ARG sftp_password
 WORKDIR /ExpandedPPD
 ENV PYTHONPATH=/ExpandedPPD
 
@@ -17,7 +19,7 @@ RUN ./Script/bundle-project -i --directory ./ ExpandedPPD
 RUN ./Script/render-template \
     --template ./Build/ExpandedPPD/dotenv_template.txt \
     --file ./.env \
-    --vars pythonpath=/ExpandedPPD
+    --vars pythonpath=/ExpandedPPD,sftp_username=${sftp_username},sftp_password=${sftp_password}
 
 RUN rm -rf ./Script
 RUN rm -rf ./Build

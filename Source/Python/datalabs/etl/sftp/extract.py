@@ -1,23 +1,36 @@
 """ Local file system extractors """
+import io
+import logging
 import os
 
+from   datalabs.access.sftp import SFTP, SFTPTaskMixin
 from   datalabs.etl.extract import ExtractorTask
 from   datalabs.etl.task import ETLException
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
-class LocalFileExtractorTask(ExtractorTask):
+
+class SFTPFileExtractorTask(ExtractorTask, SFTPTaskMixin):
     def _extract(self):
-        files = self._get_files()
+        data = None
 
-        return [(file, self._extract_file(file)) for file in files]
+        with self._get_sftp(self._parameters.variables) as sftp:
+            files = self._get_files(sftp)
+            logging.info('Extracting the following files via SFTP: %s', files)
 
-    def _get_files(self):
+            data = [(file, self._extract_file(sftp, file)) for file in files]
+
+        return data
+
+    def _get_files(self, sftp):
         base_path = self._parameters.variables['PATH']
         unresolved_files = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
         resolved_files = []
 
         for file in unresolved_files:
-            files = self._resolve_filename(file)
+            files = self._resolve_filename(sftp, file)
 
             if isinstance(files, str):
                 resolved_files.append(files)
@@ -26,18 +39,20 @@ class LocalFileExtractorTask(ExtractorTask):
 
         return resolved_files
 
-    def _extract_file(self, file_path):
-        data = None
+    def _extract_file(self, sftp, file_path):
+        buffer = io.BytesIO()
+
         try:
-            with open(file_path, 'rb') as file:
-                data = file.read()
+            sftp.get(file_path, buffer)
         except Exception as exception:
             raise ETLException(f"Unable to read file '{file_path}'") from exception
 
-        return self._decode_data(data)
+        return self._decode_data(bytes(buffer.getbuffer()))
 
-    def _resolve_filename(self, file_path):
-        file_paths = glob(file_path)
+    def _resolve_filename(self, sftp, file_path):
+        base_path = os.path.dirname(file_path)
+        unresolved_file = os.path.basename(file_path)
+        file_paths = [os.path.join(base_path, file) for file in sftp.ls(base_path, filter=unresolved_file)]
 
         if len(file_paths) == 0:
             raise FileNotFoundError(f"Unable to find file '{file_path}'")
@@ -49,13 +64,13 @@ class LocalFileExtractorTask(ExtractorTask):
         return data
 
 
-class LocalUnicodeTextFileExtractorTask(LocalFileExtractorTask):
+class SFTPUnicodeTextFileExtractorTask(SFTPFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
-        return data.decode('utf-8', errors='replace')
+        return data.decode('utf-8', errors='backslashreplace')
 
 
-class LocalWindowsTextFileExtractorTask(LocalFileExtractorTask):
+class SFTPWindowsTextFileExtractorTask(SFTPFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252', errors='backslashreplace')

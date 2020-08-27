@@ -10,10 +10,15 @@ PROJECT_NAME='ExpandedPPD'
 TASK_CLASS=datalabs.etl.task.ETLTask
 TASK_WRAPPER_CLASS=datalabs.etl.task.ETLTaskWrapper
 
-EXTRACTOR_CLASS=datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask
+# EXTRACTOR_CLASS=datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask
+EXTRACTOR_CLASS=datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask
 # EXTRACTOR_PATH=/mnt/c/Source Files/Data Analytics/Baseline/data/expanded
-EXTRACTOR_PATH=/mnt/c/Users/plane/OneDrive - American Medical Association/Documents/Data/PPD/Expanded
+# EXTRACTOR_PATH=/mnt/c/Users/plane/OneDrive - American Medical Association/Documents/Data/PPD/Expanded
+EXTRACTOR_PATH=Data Analytics/Baseline/data/expanded
 EXTRACTOR_FILES=ppd_analysis_file_*.txt
+EXTRACTOR_USERNAME={{ sftp_username }}
+EXTRACTOR_PASSWORD={{ sftp_password }}
+EXTRACTOR_HOST=eft.ama-assn.org
 
 TRANSFORMER_CLASS=datalabs.etl.ppd.expanded.transform.ParseToPPDTransformerTask
 TRANSFORMER_PARSERS=datalabs.curate.ppd.expanded.parse.ExpandedPPDParser
