@@ -37,6 +37,6 @@ class DatabaseTaskMixin:
                 password=parameters['password']
             )
         except KeyError as exception:
-            raise db.ConfigurationException(f'Missing expected database parameter {exception}'.)
+            raise db.ConfigurationException(f'Missing expected database parameter {exception}.')
 
         return Database(config, credentials)
