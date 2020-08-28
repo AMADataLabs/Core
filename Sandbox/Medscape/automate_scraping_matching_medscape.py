@@ -84,7 +84,7 @@ def grab_data():
         location = 'None'
         try:
             link = paragraph.find('a')['href']
-        except TypeError:
+        except (KeyError, TypeError):
             no_link_count += 1
         try:
             info_text = paragraph.text.replace('\n', '').replace('\xa0', '')
@@ -343,7 +343,13 @@ def clean_other(xx):
     YY = xx[['ME', 'DATE']]
     dict__list = []
     for row in xx.itertuples():
-        me=row.ME
+        if 'SLEPIAN' in row.NAME_twitter.upper() or 'SLEPIAN' in row.NAME_hero.upper():
+            continue
+        elif "fights-for-life" in row.LINK_twitter:
+            continue
+        me = row.ME
+        if me == '04201730096':
+            continue
         if row.NAME_twitter=='None':
             name = row.NAME_hero
             first_name = row.FIRST_NAME_hero
@@ -483,6 +489,8 @@ INTERSECT_US = list(pd.merge(US_DATA_SPLIT, US_DATA_YESTERDAY, on=['NAME',
                                                                    'COUNTRY'
                                                                    ])['NAME'])
 US_DELTA = US_DATA_SPLIT[US_DATA_SPLIT.NAME.isin(INTERSECT_US) == False]
+US_DELTA = US_DELTA.fillna('None')
+USE_DELTA = US_DELTA[US_DELTA.NAME!='None']
 
 INTERSECT_ALL = list(pd.merge(ALL_DATA, ALL_DATA_YESTERDAY, on=['NAME',
                                                                 'AGE',
@@ -493,6 +501,8 @@ INTERSECT_ALL = list(pd.merge(ALL_DATA, ALL_DATA_YESTERDAY, on=['NAME',
                                                                 'COUNTRY'
                                                                 ])['NAME'])
 ALL_DELTA = ALL_DATA[ALL_DATA.NAME.isin(INTERSECT_ALL) == False]
+ALL_DELTA = ALL_DELTA.fillna('None')
+ALL_DELTA = ALL_DELTA[ALL_DELTA.NAME!='None']
 
 US_DELTA.to_csv(f'{OUT_DIRECTORY}/Memorium_USA_Delta_{TODAY}.csv', index=False)
 ALL_DELTA.to_csv(f'{OUT_DIRECTORY}/Memorium_World_Delta_{TODAY}.csv', index=False)
