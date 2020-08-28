@@ -6,7 +6,7 @@ from datalabs.access.sftp import SFTP
 import pytest
 
 
-# @pytest.mark.skip(reason="Example Usage")
+@pytest.mark.skip(reason="Example Usage")
 def test_sftp_ls(sftp):
     files = sftp.ls('Data Analytics/Baseline/data', filter='PhysicianProfessionalDataFile_*')
 
