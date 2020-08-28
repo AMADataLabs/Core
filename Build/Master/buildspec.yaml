@@ -8,6 +8,10 @@ phases:
     commands:
       - export GIT_SHORT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
       - export ENV=$(echo $CODEBUILD_INITIATOR | grep -o '[^-]*$' | tr '[:upper:]' '[:lower:]')
+      - . Source/Bash/environment/development/setup.sh
+      - install_pip
+      - install_python3_7
+      - install_venv
       - Script/setup-virtual-environment Master
   pre_build:
     commands:
