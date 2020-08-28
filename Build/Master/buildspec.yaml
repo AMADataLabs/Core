@@ -1,0 +1,16 @@
+version: 0.2
+env:
+  variables:
+    PYTHONPATH: Source/Python/
+
+phases:
+  install:
+    commands:
+      - export GIT_SHORT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+      - export ENV=$(echo $CODEBUILD_INITIATOR | grep -o '[^-]*$' | tr '[:upper:]' '[:lower:]')
+  pre_build:
+    commands:
+      - make lint
+  build:
+    commands:
+      - make test
