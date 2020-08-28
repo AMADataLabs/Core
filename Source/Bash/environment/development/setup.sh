@@ -24,7 +24,7 @@ remove_msodbcsql17_driver() {
 install_core_dependencies() {
     apt update
 
-    echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections
+    echo '* libraries/restart-without-asking boolean true' | debconf-set-selections
 
     apt install -y software-properties-common build-essential curl
 }
@@ -201,7 +201,7 @@ remove_aws_cli() {
 
 install_terraform() {
     echo "### Installing Terraform ###"
-    curl https://tjend.github.io/repo_terraform/repo_terraform.key | sudo apt-key add -
+    curl https://tjend.github.io/repo_terraform/repo_terraform.key | apt-key add -
     echo 'deb [arch=amd64] https://tjend.github.io/repo_terraform stable main' > /etc/apt/sources.list.d/terraform.list
     apt update
 

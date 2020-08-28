@@ -10,7 +10,7 @@ phases:
       - export ENV=$(echo $CODEBUILD_INITIATOR | grep -o '[^-]*$' | tr '[:upper:]' '[:lower:]')
       - export SCRIPT_BASE_PATH=$(pwd)/Script
       - apt update
-      - echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections
+      - echo '* libraries/restart-without-asking boolean true' | debconf-set-selections
       - apt install -y software-properties-common build-essential curl
       - . ./Source/Bash/environment/development/setup.sh
       - echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
