@@ -47,7 +47,7 @@ class VerticalTrailResult(Base):
     __tablename__ = 'vertical_trail_results'
     __table_args__ = {'schema': 'operations_archive'}
 
-    sample_id = sa.Column(sa.Integer, sa.ForeignKey("vertical_trail.vertical_trail_samples.sample_id"))
+    sample_id = sa.Column(sa.Integer, sa.ForeignKey("operations_archive.vertical_trail_samples.sample_id"))
     row_id = sa.Column(sa.Integer, nullable=False)
     sample_date = sa.Column(sa.Date, nullable=False)
     phone_number = sa.Column(sa.String, nullable=True)
