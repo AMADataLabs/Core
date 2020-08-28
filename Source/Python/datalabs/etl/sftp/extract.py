@@ -17,14 +17,14 @@ class SFTPFileExtractorTask(ExtractorTask, SFTPTaskMixin):
         data = None
 
         with self._get_sftp(self._parameters.variables) as sftp:
-            files = self._get_files(sftp)
-            logging.info('Extracting the following files via SFTP: %s', files)
+            file_paths = self._get_file_paths(sftp)
+            logging.info('Extracting the following files via SFTP: %s', file_paths)
 
-            data = [(file, self._extract_file(sftp, file)) for file in files]
+            data = [(file, self._extract_file(sftp, file)) for file in file_paths]
 
         return data
 
-    def _get_files(self, sftp):
+    def _get_file_paths(self, sftp):
         base_path = self._parameters.variables['PATH']
         unresolved_files = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
         resolved_files = []

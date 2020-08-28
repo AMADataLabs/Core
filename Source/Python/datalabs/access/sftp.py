@@ -91,8 +91,9 @@ class SFTP(Datastore):
 
     @classmethod
     def _status_callback(cls, bytes_transfered, total_bytes):
-        percent_transfered = round(bytes_transfered / total_bytes * 100)
-        LOGGER.debug('Transfered %s bytes of %s (%d %%)', bytes_transfered, total_bytes, percent_transfered)
+        if total_bytes > 0:
+            percent_transfered = round(bytes_transfered / total_bytes * 100)
+            LOGGER.debug('Transfered %s bytes of %s (%d %%)', bytes_transfered, total_bytes, percent_transfered)
 
 
     def read(self, sql: str, **kwargs):
