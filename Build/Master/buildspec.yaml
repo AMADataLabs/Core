@@ -11,16 +11,19 @@ phases:
       - export SCRIPT_BASE_PATH=$(pwd)/Script
       - apt update
       - echo '* libraries/restart-without-asking boolean true' | debconf-set-selections
+      # - apt install -y software-properties-common build-essential curl
       - . ./Source/Bash/environment/development/setup.sh
       - echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
       - apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
-      - apt install -y software-properties-common build-essential python3.7 python3-pip python3.7-venv
+      - apt install -y python3.7 python3-pip python3.7-venv
       - /usr/bin/python3.7 -m pip install --upgrade pip
-      - /usr/bin/pip3 install -r Build/Master/requirements.txt
+      - Script/setup-virtual-environment Master
   # pre_build:
   #   commands:
   #     - Script/start-virtual-environment Master
   build:
     commands:
+      - export VIRTUAL_ENV=$(pwd)/Environment/Master
+      - export PATH="$VIRTUAL_ENV/bin:$PATH"
       - make test
       - make lint
