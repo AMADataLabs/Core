@@ -27,4 +27,4 @@ phases:
             - export PATH="${VIRTUAL_ENV}/bin:${PATH}"
             - export RUN="python $(pwd)/Script/run.py"
             - ${RUN} python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
-            - ${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/* ${CWD}/Test/Python/*
+            - ${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy $(pwd)/Source/Python/* ${CWD}/Test/Python/*
