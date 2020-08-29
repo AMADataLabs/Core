@@ -14,7 +14,7 @@ phases:
             - echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
             - apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
             - apt update
-            - apt install -y python3.7 python3-pip python3.7-dev python3.7-venv
+            - apt install -y python3.7 python3-pip python3.7-dev python3.7-venv unixodbc-dev
             - Script/setup-virtual-environment Master
     # pre_build:
     #   commands:
@@ -25,9 +25,5 @@ phases:
             - export VIRTUAL_ENV="$(pwd)/Environment/Master"
             - export PATH="${VIRTUAL_ENV}/bin:${PATH}"
             - export RUN="python $(pwd)/Script/run.py"
-            - printenv
-            - which pip
-            - pip freeze
-            - which python
             - ${RUN} python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
             - ${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/* ${CWD}/Test/Python/*

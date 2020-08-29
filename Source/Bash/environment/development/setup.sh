@@ -115,12 +115,12 @@ install_python3_7() {
     echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
     apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
 
-    apt install -y python3.7
+    apt install -y python3.7 python3.7-dev
 }
 
 
 remove_python3_7() {
-    apt remove -y python3.7
+    apt remove -y python3.7 python3.7-dev
     apt -y autoremove
 
     add-apt-repository -r -y ppa:deadsnakes/ppa
