@@ -1,7 +1,7 @@
 version: 0.2
-env:
-    variables:
-        PYTHONPATH: Source/Python/
+# env:
+#     variables:
+#         PYTHONPATH: Source/Python/
 
 phases:
     install:
@@ -21,8 +21,12 @@ phases:
     #     - Script/start-virtual-environment Master
     build:
         commands:
+            - export PYTHONPATH="$(cwd)/Source/Python"
             - export VIRTUAL_ENV="$(pwd)/Environment/Master"
             - export PATH="${VIRTUAL_ENV}/bin:${PATH}"
             - export RUN="python $(pwd)/Script/run.py"
+            - printenv
+            - which pip
+            - pip freeze
             - ${RUN} python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
             - ${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/* ${CWD}/Test/Python/*
