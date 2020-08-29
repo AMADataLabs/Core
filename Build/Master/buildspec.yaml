@@ -1,25 +1,28 @@
 version: 0.2
 env:
-  variables:
-    PYTHONPATH: Source/Python/
+    variables:
+        PYTHONPATH: Source/Python/
 
 phases:
-  install:
-    commands:
-      - export GIT_SHORT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
-      - export ENV=$(echo $CODEBUILD_INITIATOR | grep -o '[^-]*$' | tr '[:upper:]' '[:lower:]')
-      - export SCRIPT_BASE_PATH=$(pwd)/Script
-      - echo '* libraries/restart-without-asking boolean true' | debconf-set-selections
-      # - apt install -y software-properties-common build-essential curl
-      - echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
-      - apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
-      - apt update
-      - apt install -y python3.7 python3-pip python3.7-venv
-      - Script/setup-virtual-environment Master
-  # pre_build:
-  #   commands:
-  #     - Script/start-virtual-environment Master
-  build:
-    commands:
-      - make test
-      - make lint
+    install:
+        commands:
+            - export GIT_SHORT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+            - export ENV=$(echo $CODEBUILD_INITIATOR | grep -o '[^-]*$' | tr '[:upper:]' '[:lower:]')
+            - export SCRIPT_BASE_PATH=$(pwd)/Script
+            - echo '* libraries/restart-without-asking boolean true' | debconf-set-selections
+            # - apt install -y software-properties-common build-essential curl
+            - echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
+            - apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
+            - apt update
+            - apt install -y python3.7 python3-pip python3.7-venv
+            - Script/setup-virtual-environment Master
+    # pre_build:
+    #   commands:
+    #     - Script/start-virtual-environment Master
+    build:
+        commands:
+            - export VIRTUAL_ENV=${CWD}/Environment/Master
+            - export PATH="${VIRTUAL_ENV}/bin:${PATH}"
+            - export RUN=python ${CWD}/Script/run.py
+            - ${RUN} ${VIRTUAL_ENV}/bin/python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+            - ${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/* ${CWD}/Test/Python/*
