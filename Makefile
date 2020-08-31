@@ -1,5 +1,7 @@
 CWD=$(shell realpath .)
-RUN=env VIRTUAL_ENV="${CWD}/Environment/Master" python ${CWD}/Script/run.py
+VIRTUAL_ENV=${CWD}/Environment/Master
+RUN=env PATH="${VIRTUAL_ENV}/bin:${PATH}" python ${CWD}/Script/run.py
+#RUN=env VIRTUAL_ENV="${CWD}/Environment/Master" python ${CWD}/Script/run.py
 TEMPLATE_FILES=${CWD}/Build/Master/requirements_template.txt ${CWD}/Build/Master/Pipfile_template.txt ${CWD}/Build/Master/conda_requirements_template.txt
 
 .PHONY: test
@@ -8,7 +10,7 @@ setup:
 	./Script/setup_development_environment
 
 test: setup_test_files
-	${RUN} python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+	${RUN} ${VIRTUAL_ENV}/bin/python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
 
 setup_test_files: ${TEMPLATE_FILES}
 	cp ${TEMPLATE_FILES} ${CWD}/Test/Python/test/datalabs/environment/
