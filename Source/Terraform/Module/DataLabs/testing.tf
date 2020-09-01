@@ -70,3 +70,44 @@ resource "aws_iam_role_policy" "codebuild" {
 }
 EOF
 }
+
+
+resource "aws_codebuild_project" "testing" {
+    name = "HSGDataLabsTest"
+    service_role = aws_iam_role.codebuild.arn
+
+    source {
+      type              = "BITBUCKET"
+      location          = "https://hsgdatalabs@bitbucket.org/hsdatalabs/hsg-data-labs.git"
+      buildspec         = "Build/Master/buildspec.yaml"
+      git_clone_depth = 1
+
+      git_submodules_config {
+        fetch_submodules = false
+      }
+    }
+
+    environment {
+        compute_type                = "BUILD_GENERAL1_MEDIUM"
+        image                       = "aws/codebuild/standard:4.0"
+        type                        = "LINUX_CONTAINER"
+        image_pull_credentials_type = "CODEBUILD"
+    }
+
+    artifacts {
+      type = "NO_ARTIFACTS"
+    }
+
+    logs_config {
+        cloudwatch_logs {
+            group_name  = var.project
+            status      = "ENABLED"
+            stream_name = "Test"
+        }
+
+        s3_logs {
+            status              = "DISABLED"
+            encryption_disabled = false
+        }
+    }
+}
