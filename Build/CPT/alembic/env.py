@@ -9,7 +9,7 @@ from alembic import context
 from datalabs.access.credentials import Credentials
 from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
-from datalabs.etl.cpt.dbmodel import Base
+from datalabs.model.cpt.api import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

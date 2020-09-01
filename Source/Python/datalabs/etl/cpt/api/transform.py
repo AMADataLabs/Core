@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from   datalabs.etl.transform import TransformerTask
 from   datalabs.access.orm import DatabaseTaskMixin
 from   datalabs.etl.load import LoaderTask
-import datalabs.etl.cpt.dbmodel as dbmodel
+import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

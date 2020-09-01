@@ -4,7 +4,7 @@ import logging
 import boto3
 
 from   datalabs.access.api.task import APIEndpointTask, APIEndpointParameters, InternalServerError
-from   datalabs.etl.cpt.dbmodel import Release
+from   datalabs.model.cpt.api import Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
