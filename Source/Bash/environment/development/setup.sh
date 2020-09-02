@@ -36,23 +36,19 @@ remove_core_dependencies() {
 
 
 install_python_tools() {
-    install_pip
-
     install_python3_7
+
+    install_pip
 
     install_venv
 
     # install_pipenv
 
     install_dev_libraries
-
-    create_base_virtual_environment
 }
 
 
 remove_python_tools() {
-    # remove_base_virtual_environments
-
     remove_dev_libraries
 
     # remove_pipenv
