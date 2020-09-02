@@ -2,7 +2,7 @@
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
-from   datalabs.etl.cpt.dbmodel import Release
+from   datalabs.model.cpt.api import Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

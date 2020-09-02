@@ -21,11 +21,14 @@ class ReleaseType(Base):
 
 class Release(Base):
     __tablename__ = 'release'
-    __table_args__ = {"schema": "cpt"}
+    __table_args__ = (
+        sa.UniqueConstraint('effective_date', 'publish_date', name='uq_release_dates'),
+        {"schema": "cpt"},
+    )
 
     id = sa.Column(sa.Integer, primary_key=True)
     publish_date = sa.Column(sa.Date, nullable=False)
-    effective_date = sa.Column(sa.Date, nullable=False)
+    effective_date = sa.Column(sa.Date, nullable=False, unique=True)
     type = sa.Column(sa.String(6), sa.ForeignKey("cpt.release_type.type"), nullable=False)
 
 

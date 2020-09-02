@@ -7,7 +7,7 @@ import pandas
 import pytest
 
 from   datalabs.etl.cpt.api.transform import CSVToRelationalTablesTransformerTask
-import datalabs.etl.cpt.dbmodel as model
+import datalabs.model.cpt.api as model
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

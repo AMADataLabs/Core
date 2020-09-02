@@ -8,7 +8,7 @@ Create Date: 2020-06-16 20:41:20.986583+00:00
 from alembic import op
 import sqlalchemy as sa
 
-import datalabs.etl.cpt.dbmodel as model
+import datalabs.model.cpt.api as model
 
 
 # revision identifiers, used by Alembic.
