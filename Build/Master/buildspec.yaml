@@ -6,6 +6,7 @@ version: 0.2
 phases:
     install:
         commands:
+            - echo $CODEBUILD_RESOLVED_SOURCE_VERSION
             - export GIT_SHORT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
             - export ENV=$(echo $CODEBUILD_INITIATOR | grep -o '[^-]*$' | tr '[:upper:]' '[:lower:]')
             - Script/setup-development-environment
