@@ -7,7 +7,7 @@ import mock
 import pytest
 
 from   datalabs.access.cpt.api.descriptor import DescriptorEndpointTask
-import datalabs.etl.cpt.dbmodel as dbmodel
+import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

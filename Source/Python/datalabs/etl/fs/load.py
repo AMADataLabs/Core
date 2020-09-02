@@ -2,6 +2,7 @@ from   datetime import datetime
 import os
 
 from   datalabs.etl.load import LoaderTask
+from   datalabs.etl.task import ETLException
 
 
 class LocalFileLoaderTask(LoaderTask):

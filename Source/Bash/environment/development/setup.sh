@@ -24,7 +24,7 @@ remove_msodbcsql17_driver() {
 install_core_dependencies() {
     apt update
 
-    echo '* libraries/restart-without-asking boolean true' | sudo debconf-set-selections
+    echo '* libraries/restart-without-asking boolean true' | debconf-set-selections
 
     apt install -y software-properties-common build-essential curl
 }
@@ -36,23 +36,19 @@ remove_core_dependencies() {
 
 
 install_python_tools() {
-    install_pip
-
     install_python3_7
+
+    install_pip
 
     install_venv
 
     # install_pipenv
 
     install_dev_libraries
-
-    create_base_virtual_environment
 }
 
 
 remove_python_tools() {
-    # remove_base_virtual_environments
-
     remove_dev_libraries
 
     # remove_pipenv
@@ -115,12 +111,12 @@ install_python3_7() {
     echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
     apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
 
-    apt install -y python3.7
+    apt install -y python3.7 python3.7-dev
 }
 
 
 remove_python3_7() {
-    apt remove -y python3.7
+    apt remove -y python3.7 python3.7-dev
     apt -y autoremove
 
     add-apt-repository -r -y ppa:deadsnakes/ppa
@@ -201,7 +197,7 @@ remove_aws_cli() {
 
 install_terraform() {
     echo "### Installing Terraform ###"
-    curl https://tjend.github.io/repo_terraform/repo_terraform.key | sudo apt-key add -
+    curl https://tjend.github.io/repo_terraform/repo_terraform.key | apt-key add -
     echo 'deb [arch=amd64] https://tjend.github.io/repo_terraform stable main' > /etc/apt/sources.list.d/terraform.list
     apt update
 
