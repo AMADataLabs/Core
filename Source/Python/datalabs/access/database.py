@@ -50,13 +50,25 @@ class Database(Datastore):
 
     @property
     def url(self):
-        return "{}://{}:{}@{}/{}".format(
-            self._configuration.backend,
-            self._credentials.username,
-            self._credentials.password,
-            self._configuration.host,
-            self._configuration.name,
-        )
+        url = None
+
+        if self._credentials.username and self._credentials.password:
+            url = "{}://{}:{}@{}/{}".format(
+                self._configuration.backend,
+                self._credentials.username,
+                self._credentials.password,
+                self._configuration.host,
+                self._configuration.name,
+            )
+        else:
+            url = "{}://{}/{}".format(
+                self._configuration.backend,
+                self._configuration.host,
+                self._configuration.name,
+            )
+
+        return url
+
 
     @abstractmethod
     def connect(self):

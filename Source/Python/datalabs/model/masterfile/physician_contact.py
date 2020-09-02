@@ -7,13 +7,15 @@ Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
 
 class VerticalTrailSample(Base):
-    __tablename__ = 'vertical_trail_samples'
-    __table_args__ = {'schema': 'operations_archive'}
+    __tablename__ = 'vertical_trail_sample'
+    __table_args__ = (
+        sa.PrimaryKeyConstraint('sample_id', 'row_id', name='pk_sample_rows'),
+    )
 
     sample_id = sa.Column(sa.Integer, nullable=False)
     row_id = sa.Column(sa.Integer, nullable=False)
     sample_date = sa.Column(sa.Date, nullable=False)
-    me = sa.Column(sa.String(11), nullable=False)
+    medical_education_number = sa.Column(sa.String(11), nullable=False)
     last_name = sa.Column(sa.String, nullable=False)
     first_name = sa.Column(sa.String, nullable=False)
     middle_name = sa.Column(sa.String, nullable=True)
@@ -24,8 +26,8 @@ class VerticalTrailSample(Base):
     polo_city = sa.Column(sa.String, nullable=True)
     polo_state = sa.Column(sa.String, nullable=True)
     polo_zip = sa.Column(sa.String, nullable=True)
-    lic_state = sa.Column(sa.String, nullable=True)
-    lic_nbr = sa.Column(sa.String, nullable=True)
+    license_state = sa.Column(sa.String, nullable=True)
+    license_number = sa.Column(sa.String, nullable=True)
     oldphone1 = sa.Column(sa.String, nullable=True)
     oldphone2 = sa.Column(sa.String, nullable=True)
     oldphone3 = sa.Column(sa.String, nullable=True)
@@ -40,20 +42,17 @@ class VerticalTrailSample(Base):
     oldphone12 = sa.Column(sa.String, nullable=True)
     oldphone13 = sa.Column(sa.String, nullable=True)
 
-    sa.UniqueConstraint('sample_id', 'row_id')
-
 
 class VerticalTrailResult(Base):
-    __tablename__ = 'vertical_trail_results'
-    __table_args__ = {'schema': 'operations_archive'}
+    __tablename__ = 'vertical_trail_result'
+    __table_args__ = (
+        sa.PrimaryKeyConstraint('sample_id', 'row_id', name='pk_sample_rows'),
+    )
 
-    sample_id = sa.Column(sa.Integer, sa.ForeignKey("operations_archive.vertical_trail_samples.sample_id"))
+    sample_id = sa.Column(sa.Integer, sa.ForeignKey("vertical_trail_sample.sample_id"))
     row_id = sa.Column(sa.Integer, nullable=False)
     sample_date = sa.Column(sa.Date, nullable=False)
     phone_number = sa.Column(sa.String, nullable=True)
     fax_number = sa.Column(sa.String, nullable=True)
     email = sa.Column(sa.String, nullable=True)
     notes = sa.Column(sa.String, nullable=True)
-
-    sa.UniqueConstraint('sample_id', 'row_id')
-
