@@ -72,6 +72,14 @@ EOF
 }
 
 
+resource "aws_codebuild_source_credential" "codebuild" {
+  auth_type   = "BASIC_AUTH"
+  server_type = "BITBUCKET"
+  user_name   = var.bitbucket_username
+  token       = var.bitbucket_app_password
+}
+
+
 resource "aws_codebuild_project" "testing" {
     name = "HSGDataLabsTest"
     service_role = aws_iam_role.codebuild.arn
@@ -84,6 +92,11 @@ resource "aws_codebuild_project" "testing" {
 
       git_submodules_config {
         fetch_submodules = false
+      }
+
+      auth {
+          type          = "OAUTH"
+          resource      = aws_codebuild_source_credential.codebuild.arn
       }
     }
 
@@ -110,4 +123,6 @@ resource "aws_codebuild_project" "testing" {
             encryption_disabled = false
         }
     }
+
+    tags = merge(local.tags, {Name = "Data Labs CodeBuild testing project"})
 }

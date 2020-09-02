@@ -3,7 +3,22 @@ variable "project" {
     type            = string
 }
 
+
+variable "bitbucket_username" {
+    description     = "BitBucket username used for pulling code."
+    type            = string
+    default         = "hsgdatalabs"
+}
+
+
+variable "bitbucket_app_password" {
+    description     = "BitBucket App password used for pulling code."
+    type            = string
+}
+
+
 data "aws_caller_identity" "account" {}
+
 
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
