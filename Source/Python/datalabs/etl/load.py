@@ -25,5 +25,8 @@ class ConsoleLoaderTask(LoaderTask):
         self._logger.setLevel(logging.INFO)
 
     def _load(self):
-        for datum in self._parameters.data:
-            self._logger.info(datum)
+        try:
+            for datum in self._parameters.data:
+                self._logger.info(datum)
+        except:
+            self._logger.info(self._parameters.data)

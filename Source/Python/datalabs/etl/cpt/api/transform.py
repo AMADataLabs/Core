@@ -6,8 +6,12 @@ import logging
 
 import numpy as np
 import pandas
+import sqlalchemy as sa
 
 from   datalabs.etl.transform import TransformerTask
+from   datalabs.access.orm import DatabaseTaskMixin
+from   datalabs.etl.load import LoaderTask
+import datalabs.etl.cpt.dbmodel as dbmodel
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -51,7 +55,14 @@ class OutputData:
     lab_pla_code_mapping: pandas.DataFrame
 
 
-class CSVToRelationalTablesTransformerTask(TransformerTask):
+@dataclass
+class ReleaseSchedule:
+    type: str
+    publish_date: str
+    effective_date: str
+
+
+class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
     def _transform(self):
         _, data = zip(*self._parameters.data)  # unpack the (filename, data) tuples
         input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
@@ -65,7 +76,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         tables = OutputData(
             release=self._generate_release_table(input_data.code_history),
             code=codes,
-            release_code_mapping=self._generate_release_code_mapping_table( input_data.code_history, codes),
+            release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history, codes),
             short_descriptor=self._generate_descriptor_table(
                 'short_descriptor',
                 input_data.short_descriptor,
@@ -98,59 +109,59 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
 
         return tables
 
-    @classmethod
-    def _generate_release_table(cls, code_history):
-        history = code_history.date.unique()
-        history_unique = np.delete(history, [0, 7])
-        effective_dates = [datetime.strptime(date, '%Y%m%d').date().strftime('%Y-%m-%d') for date in history_unique]
+    def _generate_release_table(self, code_history):
+        history = code_history[['date', 'cpt_code', 'change_type']].rename(
+            columns=dict(date='release', cpt_code='code', change_type='change')
+        )
+        history = history.loc[history.change == 'ADDED']
+        history = history.loc[~history.release.str.startswith('Pre')]
+        history_unique = history.release.unique()
+        effective_dates = [datetime.strptime(date, '%Y%m%d').date() for date in history_unique]
+        release_schedule = self._extract_release_schedule()
 
-        release_types = [cls._generate_release_type(datetime.strptime(date, '%Y%m%d')) for date in history_unique]
-        publish_dates = [cls._generate_release_publish_date(datetime.strptime(date, '%Y%m%d')) for date in
-                         history_unique]
+        release_types = [self._generate_release_type(date, release_schedule) for date in effective_dates]
+        publish_dates = [self._generate_release_publish_date(date, release_schedule) for date in effective_dates]
 
         releases = pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
 
         releases.reset_index(drop=True)
+
         return releases
 
-    @classmethod
-    def _generate_release_type(cls, release_date):
-        release_schedule = {"ANNUAL": ["1-Sep", "1-Jan"], "PLA-Q1": ["1-Jan", "1-Apr"], "PLA-Q2": ["1-Apr", "1-Jul"],
-                            "PLA-Q3": ["1-Jul", "1-Oct"], "PLA-Q4": ["1-Oct", "1-Jan"]}
+    def _extract_release_schedule(self):
+        release_schedule = {}
 
-        release_types = list(release_schedule.keys())
-        release_types.append('OTHER')
+        with self._get_database(self._parameters.database) as database:
+            release_types = database.session.query(dbmodel.ReleaseType).all()
 
-        release_date_for_lookup = date(1900, release_date.month, release_date.day)
+            for row in release_types:
+                if row.type != 'PLA-Q4':  # Explicitly skip PLA-Q4 for now since it clashes with ANNUAL
+                    release_schedule[f'{row.effective_day}-{row.effective_month}'] = ReleaseSchedule(
+                        type=row.type,
+                        publish_date=f'{row.publish_day}-{row.publish_month}',
+                        effective_date=f'{row.effective_day}-{row.effective_month}'
+                    )
 
-        for release_type in release_schedule:
-            release_schedule[release_type] = [datetime.strptime(datestamp, '%d-%b').date() for datestamp in
-                                              release_schedule[release_type]]
-
-        types = {dates[0]: type for type, dates in release_schedule.items()}
-
-        date_type = types.get(release_date_for_lookup, 'OTHER')
-
-        return date_type
+        return release_schedule
 
     @classmethod
-    def _generate_release_publish_date(cls, release_date):
-        release_schedule = {"ANNUAL": ["1-Sep", "1-Jan"], "PLA-Q1": ["1-Jan", "1-Apr"], "PLA-Q2": ["1-Apr", "1-Jul"],
-                            "PLA-Q3": ["1-Jul", "1-Oct"], "PLA-Q4": ["1-Oct", "1-Jan"]}
+    def _generate_release_type(cls, release_date, release_schedule):
+        release_date_for_lookup = date(1900, release_date.month, release_date.day).strftime('%-d-%b')
+        default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
 
-        release_date_for_lookup = date(1900, release_date.month, release_date.day)
+        return release_schedule.get(release_date_for_lookup, default_release_schedule).type
 
-        for release_type in release_schedule:
-            release_schedule[release_type] = [datetime.strptime(datestamp, '%d-%b').date() for datestamp in
-                                              release_schedule[release_type]]
+    @classmethod
+    def _generate_release_publish_date(cls, release_date, release_schedule):
+        release_date_for_lookup = date(1900, release_date.month, release_date.day).strftime('%-d-%b')
+        default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
+        publish_date = release_schedule.get(release_date_for_lookup, default_release_schedule).publish_date
 
-        publish_date = {dates: type for type, dates in release_schedule.values()}
+        if not publish_date:
+            publish_date = release_date
 
-        date_type = publish_date.get(release_date_for_lookup, release_date)
-        date_type = date(release_date.year, date_type.month, date_type.day).strftime('%Y-%m-%d')
-
-        return date_type
+        return publish_date
 
     @classmethod
     def _generate_code_table(cls, descriptors, pla_details):
@@ -303,7 +314,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         asc_modifiers = modifiers.modifier[modifiers.type == 'Ambulatory Service Center'].tolist()
         general_modifiers = modifiers.modifier[modifiers.type == 'Category I'].tolist()
         general_asc_modifiers = modifiers[(modifiers.type == 'Ambulatory Service Center')
-                                        & modifiers.modifier.isin(general_modifiers)]
+                                          & modifiers.modifier.isin(general_modifiers)]
         duplicate_modifiers = modifiers[(modifiers.type == 'Category I') & modifiers.modifier.isin(asc_modifiers)]
 
         modifiers.loc[modifiers.modifier.isin(general_asc_modifiers), 'general'] = True
