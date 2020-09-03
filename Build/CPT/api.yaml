@@ -468,39 +468,6 @@ paths:
           description: Invalid query parameter
       security:
         - gateway_authorizer: []
-  /pdfs/{release}:
-    get:
-      tags:
-        - PDF
-      summary: Zip archive of the PDFs from the specified release
-      description: Provides a time-limited URL to a zip archive of the PDFs from the specified release
-      operationId: getPDFLinkForRelease
-      parameters:
-        - name: release
-          in: path
-          description: release in the form YYYY-['Y' | 'Q1' | 'Q2' | 'Q3' | 'Q4']
-          required: true
-          schema:
-            type: string
-      x-amazon-apigateway-integration:
-        responses:
-          default:
-            statusCode: "200"
-        requestTemplates:
-          application/json: "{\"statusCode\": 200}"
-        passthroughBehavior: "when_no_match"
-        type: "mock"
-      responses:
-        '303':
-          description: successful creation of a time-limited download URL
-          headers:
-            Location:
-              schema:
-                type: "string"
-        '404':
-          description: No PDFs found for the given release.
-      security:
-        - gateway_authorizer: []
   /pdfs:
     get:
       tags:

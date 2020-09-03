@@ -1,0 +1,24 @@
+version: 0.2
+# env:
+#     variables:
+#         PYTHONPATH: Source/Python/
+
+phases:
+    install:
+        commands:
+            - echo $CODEBUILD_RESOLVED_SOURCE_VERSION
+            - export GIT_SHORT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+            - export ENV=$(echo $CODEBUILD_INITIATOR | grep -o '[^-]*$' | tr '[:upper:]' '[:lower:]')
+            - Script/setup-development-environment
+            - Script/setup-virtual-environment Master
+    # pre_build:
+    #   commands:
+    #     - Script/start-virtual-environment Master
+    build:
+        commands:
+            - export PYTHONPATH="$(cwd)/Source/Python"
+            - export VIRTUAL_ENV="$(pwd)/Environment/Master"
+            - export PATH="${VIRTUAL_ENV}/bin:${PATH}"
+            - export RUN="python $(pwd)/Script/run.py"
+            - ${RUN} python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+            - ${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy $(pwd)/Source/Python/* ${CWD}/Test/Python/*

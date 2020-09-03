@@ -9,7 +9,7 @@ import sqlalchemy as sa
 
 from   datalabs.access.orm import DatabaseTaskMixin
 from   datalabs.etl.load import LoaderTask
-import datalabs.etl.cpt.dbmodel as dbmodel
+import datalabs.model.cpt.api as dbmodel
 import datalabs.etl.cpt.api.transform as transform
 
 logging.basicConfig()
@@ -262,6 +262,9 @@ class ReleaseTableUpdater(TableUpdater):
         return self._release_id
 
     def update(self, data):
+        data.effective_date = data.effective_date.astype(str)
+        data.publish_date = data.publish_date.astype(str)
+
         super().update(data)
 
         self._session.commit()
