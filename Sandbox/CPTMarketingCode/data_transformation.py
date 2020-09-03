@@ -288,8 +288,7 @@ def create_product_main_table(product_sales_coded):
 
 
 def create_product_remainder_table(product_sales_coded):
-    //TODO: Add budget description
-    main_product_names = ['CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
+    main_product_names = ['BUDGET_DESC','CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
     main_product_indices = product_sales_coded['Product Names'].str.contains('|'.join(main_product_names))
     product_remainder = product_sales_coded[~main_product_indices]
     return (product_remainder)
@@ -391,6 +390,14 @@ def create_email_campaign_table(email_campaign):
                                                             new_email_campaign_columns)))
     return email_campaign
 
+def create_direct_mail_table(direct_mail):
+    direct_mail_campaign_columns = ['CATALOG_DESC']
+    direct_mail_campaign = direct_mail[direct_mail_campaign_columns]
+    new_direct_mail_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), direct_mail_campaign_columns)]
+    direct_mail_campaign = direct_mail_campaign.rename(columns=dict(zip(direct_mail_campaign_columns,
+                                                            new_direct_mail_campaign_columns)))
+    return direct_mail_campaign
+
 
 def main():
     # define file paths
@@ -417,7 +424,7 @@ def main():
     customer = create_customer_table(pbd_items_table, tables['contacts'], tables['aims_overlay'])
     customer_clean = clean_up_customer(customer)
     pbd_orders = tables['pbd_orders']
-    direct_mail = pbd_orders[pbd_orders['ORDER_TYPE'] == 'Mail']
+    direct_mail = create_email_campaign_table(pbd_orders[pbd_orders['ORDER_TYPE'] == 'Mail'])
     fax = pbd_orders[pbd_orders['ORDER_TYPE'] == 'FAX']
     email_campaign = create_email_campaign_table(tables['emailcampaign'])
     # export tables
@@ -427,7 +434,6 @@ def main():
     product_main.to_csv(output_directory + 'product_main.csv', index=False)
     product_remainder.to_csv(output_directory + 'product_remainder.csv', index=False)
     customer_clean.to_csv(output_directory + 'customer.csv')
-    //TODO: add catalog description. possibly make new function
     direct_mail.to_csv(output_directory + 'direct_mail.csv')
     fax.to_csv(output_directory + 'fax.csv')
     email_campaign.to_csv(output_directory + 'email_campaign.csv')
