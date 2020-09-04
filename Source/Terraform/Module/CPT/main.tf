@@ -87,6 +87,8 @@ module "endpoint_descriptor" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -102,6 +104,8 @@ module "endpoint_all_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -117,6 +121,8 @@ module "endpoint_consumer_descriptor" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -132,6 +138,8 @@ module "endpoint_consumer_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -147,6 +155,8 @@ module "endpoint_clinician_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -162,6 +172,8 @@ module "endpoint_all_clinician_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -177,6 +189,8 @@ module "endpoint_pla_details" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -192,6 +206,8 @@ module "endpoint_all_pla_details" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -207,6 +223,8 @@ module "endpoint_modifier" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -222,6 +240,8 @@ module "endpoint_modifiers" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -237,6 +257,8 @@ module "endpoint_latest_pdfs" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -267,6 +289,8 @@ module "endpoint_releases" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 
@@ -282,6 +306,8 @@ module "endpoint_default" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    timeout             = var.endpoint_timeout
+    memory_size         = var.endpoint_memory_size
 }
 
 

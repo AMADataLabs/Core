@@ -56,3 +56,15 @@ variable "database_host" {
     description = "API RDS host"
     type        = string
 }
+
+variable "timeout" {
+    description = "timeout in seconds"
+    type        = number
+    default     = 15
+}
+
+variable "memory_size" {
+    description = "lambda function memory size in Mb"
+    type        = number
+    default     = 1024
+}
