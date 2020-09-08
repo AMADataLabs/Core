@@ -130,7 +130,7 @@ def get_clean_AMC_data(aims_conn):
             ON pn.entity_id = ecu.entity_id
 
         WHERE 
-            ecu.comm_usage = 'AMC' AND
+            ecu.comm_usage = 'amc' AND
             ecu.end_dt is null     AND
             pn.name_type ='LN'     AND
             pn.end_dt is null      AND
@@ -138,7 +138,7 @@ def get_clean_AMC_data(aims_conn):
         """
 
     # Execute the query (takes about 3-5 minutes)
-    print('Querying AIMS for active AMC data.')
+    print('Querying AIMS for active amc data.')
     df = pd.read_sql(query, aims_conn, coerce_float=False)
     print('Query complete. Cleaning data.')
 
@@ -246,7 +246,7 @@ def get_flagged_AMC_data(df, check_line1=False):
     # Make the column from any_flags
     df['any_flag'] = any_flags
 
-    results_summary += 'Count of all flagged AMC-sourced addresses: {}'.format(len(df[df['any_flag']]))
+    results_summary += 'Count of all flagged amc-sourced addresses: {}'.format(len(df[df['any_flag']]))
     results_summary += '\nSpecific breakdown: (addresses can be flagged by multiple fields, ' \
                        'so the sum of these could exceed count above)'
     for f in flags:
@@ -341,7 +341,7 @@ if __name__ == '__main__':
     body = \
         """Hello,
     
-Attached are the results for today's AMC flagging script:
+Attached are the results for today's amc flagging script:
 {}
         
 This report and email were generated automatically.
@@ -361,9 +361,9 @@ Thanks!
     cc = ['Anthony.Liu@ama-assn.org', 'Debbie.Kidd@ama-assn.org', 'Garrett.Lappe@ama-assn.org']
 
     # TODO: Edit email with correct recipients and cc
-    send_email(recipients=['Garrett.Lappe@ama-assn.org'],
+    send_email(to=['Garrett.Lappe@ama-assn.org'],
                cc=[],
-               subject='AMC Sweep {}'.format(date),
+               subject='AMC Sweep Results - {}'.format(date),
                body=body,
                attachments=[output_file_path])
 

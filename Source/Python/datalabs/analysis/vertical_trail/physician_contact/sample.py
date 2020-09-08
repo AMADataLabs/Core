@@ -24,11 +24,11 @@ class AIMSData:
     specialty_descriptions: pd.DataFrame = pd.DataFrame()
     entity_comm_phone_data: pd.DataFrame = pd.DataFrame()
 
+
 @dataclass
 class EDWData:
     medschool_names: pd.DataFrame = pd.DataFrame()
     party_key_data: pd.DataFrame = pd.DataFrame()
-
 
 class VTPhysicianContactSampleGenerator:
     def __init__(self, archive: VTPhysicianContactArchive = None, survey_type: str = None):
@@ -70,8 +70,8 @@ class VTPhysicianContactSampleGenerator:
         self._sample_size = os.environ.get(f'SAMPLE_SIZE_VERTICAL_TRAIL')
 
     def _load_database_data(self):
-        self._load_aims_data()
         self._load_edw_data()
+        self._load_aims_data()
 
     def _get_population_data(self):
         ppd = self._load_ppd()
@@ -85,8 +85,8 @@ class VTPhysicianContactSampleGenerator:
 
         sample = self._add_sample_info_columns(sample)
         sample = self._format_sample_columns(sample)
-
-        # self._archive.ingest_vt_sample(sample)  # not yet implemented
+        LOGGER.info('Ingesting sample to archive')
+        self._archive.ingest_sample_data(sample)
         self._make_deliverable_sample(sample)
 
     def _load_aims_data(self):
@@ -99,13 +99,12 @@ class VTPhysicianContactSampleGenerator:
             aims_data.entity_comm_phone_data = aims.get_entity_comm_phones()
         self.aims_data = aims_data
 
-    @classmethod
-    def _load_edw_data(cls):
+    def _load_edw_data(self):
         edw_data = EDWData()
         with EDW() as edw:
             edw_data.medschool_names = edw.get_active_medical_school_map()
             edw_data.party_key_data = edw.get_party_keys_by_type(party_key_type=PartyKeyType.School)
-        return edw_data
+        self.edw_data = edw_data
 
     def _load_ppd(self):
         ppd = pd.read_csv(self._ppd_filename, dtype=str)
@@ -113,21 +112,29 @@ class VTPhysicianContactSampleGenerator:
 
     def _prepare_population_data(self, data: pd.DataFrame):
         data = self._filter_to_dpc(data=data)
-        LOGGER.info('filter_dpc', len(data))
+        size = str(len(data))
+        LOGGER.info(f'filter_dpc: {size}')
         data = self._filter_to_no_phone(data=data)
-        LOGGER.info('filter_no_phone', len(data))
+        size = str(len(data))
+        LOGGER.info(f'filter_no_phone: {size}')
         data = self._filter_no_contacts(data=data)
-        LOGGER.info('filter_no_contacts', len(data))
+        size = str(len(data))
+        LOGGER.info(f'filter_no_contacts: {size}')
         data = self._filter_recent_me(data=data)
-        LOGGER.info('filter_recent_me', len(data))
+        size = str(len(data))
+        LOGGER.info(f'filter_recent_me: {size}')
         data = self._add_license_info(data=data)
-        LOGGER.info('add_license_info', len(data))
+        size = str(len(data))
+        LOGGER.info(f'add_license_info: {size}')
         data = self._add_medschool_data(data=data)
-        LOGGER.info('add_medschool_data', len(data))
+        size = str(len(data))
+        LOGGER.info(f'add_medschool_data: {size}')
         data = self._add_degree_and_specialty_data(data=data)
-        LOGGER.info('add_degree_and_specialty_data', len(data))
+        size = str(len(data))
+        LOGGER.info(f'add_degree_and_specialty_data: {size}')
         data = self._get_deduped_physician_medschool_data(data=data)
-        LOGGER.info('get_deduped_physician_medschool_data', len(data))
+        size = str(len(data))
+        LOGGER.info(f'get_deduped_physician_medschool_data: {size}')
         return data
 
     def _add_license_info(self, data):
@@ -140,9 +147,11 @@ class VTPhysicianContactSampleGenerator:
         return data
 
     def _add_medschool_data(self, data):
+        data['MEDSCHOOL_ID'] = data['MEDSCHOOL_ID'].astype(str)
         data['medschool_key'] = data['MEDSCHOOL_STATE'] + data['MEDSCHOOL_ID']
-        data.rename(columns={'PARTY_ID': 'PHYSICIAN_PARTY_ID'}, inplace=True)
 
+        data.rename(columns={'PARTY_ID': 'PHYSICIAN_PARTY_ID'}, inplace=True)
+        self.edw_data.party_key_data['KEY_VAL'] = self.edw_data.party_key_data['KEY_VAL'].astype(str)
         data = data.merge(
             self.edw_data.party_key_data,
             how='inner',
@@ -200,6 +209,8 @@ class VTPhysicianContactSampleGenerator:
             historical_phone_data=filtered_entity_comm_data,
             entity_ids=entity_ids
         )
+        old_phone_data['entity_id'] = old_phone_data['entity_id'].astype(str)
+        sample['entity_id'] = sample['entity_id'].astype(str)
         sample = sample.merge(old_phone_data, on='entity_id', how='left')
         return sample
 
@@ -303,10 +314,6 @@ class VTPhysicianContactSampleGenerator:
         data = data.merge(self.aims_data.pe_descriptions, left_on='PE_CD', right_on='present_emp_cd', how='left')
         return data
 
-    def _load_sample_to_archive(self, sample):
-        # self._archive.ingest_vt_sample(sample)
-        pass
-
     def _make_deliverable_sample(self, sample):
         deliverable = sample.drop(
             columns=[
@@ -327,4 +334,3 @@ class VTPhysicianContactSampleGenerator:
     @classmethod
     def _filter_data(cls, data: pd.DataFrame, data_col: str, filter_data: pd.DataFrame, filter_col: str):
         return data[~data[data_col].isin(filter_data[filter_col])]
-

@@ -5,7 +5,7 @@ import logging
 from   sqlalchemy import or_
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
-import datalabs.etl.cpt.dbmodel as dbmodel
+import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

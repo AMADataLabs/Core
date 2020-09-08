@@ -29,3 +29,4 @@ modspec:
   - package: datalabs.etl.cpt.ingest
   - package: datalabs.etl.parse
   - package: datalabs.etl.s3
+  - package: datalabs.model.cpt

@@ -4,7 +4,6 @@ SQL_TEMPLATE = \
         ek.key_type_val,
         nm.first_nm,
         nm.last_nm,
-        lic.lic_nbr,
         lic.state_cd
     FROM
         person_name_et nm

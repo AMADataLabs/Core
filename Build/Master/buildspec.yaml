@@ -6,15 +6,9 @@ version: 0.2
 phases:
     install:
         commands:
+            - echo $CODEBUILD_RESOLVED_SOURCE_VERSION
             - export GIT_SHORT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
             - export ENV=$(echo $CODEBUILD_INITIATOR | grep -o '[^-]*$' | tr '[:upper:]' '[:lower:]')
-            # - export SCRIPT_BASE_PATH=$(pwd)/Script
-            # - echo '* libraries/restart-without-asking boolean true' | debconf-set-selections
-            # - apt install -y software-properties-common build-essential curl
-            # - echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
-            # - apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
-            # - apt update
-            # - apt install -y python3.7 python3-pip python3.7-dev python3.7-venv unixodbc-dev
             - Script/setup-development-environment
             - Script/setup-virtual-environment Master
     # pre_build:

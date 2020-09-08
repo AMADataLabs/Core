@@ -37,6 +37,19 @@ variable "passport_url" {
 }
 
 
+variable "endpoint_timeout" {
+    description = "timeout in seconds"
+    type        = number
+    default     = 15
+}
+
+variable "endpoint_memory_size" {
+    description = "memory size in Mb"
+    type        = number
+    default     = 1024
+}
+
+
 data "aws_caller_identity" "account" {}
 
 
@@ -102,3 +115,4 @@ data "aws_ssm_parameter" "ingestion_bucket" {
 data "aws_ssm_parameter" "processed_bucket" {
     name = "/DataLabs/DataLake/processed_bucket"
 }
+

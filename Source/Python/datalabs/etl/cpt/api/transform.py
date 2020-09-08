@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from   datalabs.etl.transform import TransformerTask
 from   datalabs.access.orm import DatabaseTaskMixin
 from   datalabs.etl.load import LoaderTask
-import datalabs.etl.cpt.dbmodel as dbmodel
+import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -116,11 +116,13 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         history = history.loc[history.change == 'ADDED']
         history = history.loc[~history.release.str.startswith('Pre')]
         history_unique = history.release.unique()
-        effective_dates = [datetime.strptime(date, '%Y%m%d').date() for date in history_unique]
+
         release_schedule = self._extract_release_schedule()
 
+        effective_dates = [datetime.strptime(date, '%Y%m%d').date() for date in history_unique]
         release_types = [self._generate_release_type(date, release_schedule) for date in effective_dates]
         publish_dates = [self._generate_release_publish_date(date, release_schedule) for date in effective_dates]
+
 
         releases = pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
@@ -154,9 +156,12 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
     @classmethod
     def _generate_release_publish_date(cls, release_date, release_schedule):
-        release_date_for_lookup = date(1900, release_date.month, release_date.day).strftime('%-d-%b')
+        release_date_for_lookup = date(release_date.year, release_date.month, release_date.day).strftime('%-d-%b')
         default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
+
         publish_date = release_schedule.get(release_date_for_lookup, default_release_schedule).publish_date
+        publish_date = datetime.strptime(publish_date, '%d-%b').date()
+        publish_date = date(release_date.year, publish_date.month, publish_date.day)
 
         if not publish_date:
             publish_date = release_date

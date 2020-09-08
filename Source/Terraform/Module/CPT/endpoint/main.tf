@@ -6,8 +6,8 @@ resource "aws_lambda_function" "endpoint_lambda" {
     role            = var.role
     handler         = "awslambda.handler"
     runtime         = "python3.7"
-    timeout         = 15
-    memory_size     = 1024
+    timeout         = var.timeout
+    memory_size     = var.memory_size
     kms_key_arn     = data.aws_kms_key.cpt.arn
 
     environment {

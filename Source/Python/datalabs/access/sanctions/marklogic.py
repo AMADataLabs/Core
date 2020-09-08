@@ -7,7 +7,7 @@ from datalabs.access import marklogic as ml
 class MarkLogic(ml.MarkLogic):
     def __init__(self, key=None, host=None):
         if host is None:
-            host = os.environ[f'DATABASE_{self._key.upper()}_HOST']
+            host = os.environ[f'DATABASE_{key.upper()}_HOST']
 
         self.url = f'http://{host}:8000/LATEST'
         super().__init__(credentials=None, key=key)

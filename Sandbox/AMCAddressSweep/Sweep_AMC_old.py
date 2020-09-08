@@ -1,7 +1,7 @@
-# AMC Address Sweep
+# amc Address Sweep
 # Garrett Lappe - September 2019
 #
-# Queries addresses sourced from AMC and flags records which are suspected of being invalid / inappropriate.
+# Queries addresses sourced from amc and flags records which are suspected of being invalid / inappropriate.
 # Results are exported to CSV for manual review.
 
 import pyodbc
@@ -213,7 +213,7 @@ if __name__ == '__main__':
             ON pn.entity_id = ecu.entity_id
 
         WHERE 
-            ecu.comm_usage = 'AMC' AND
+            ecu.comm_usage = 'amc' AND
             ecu.end_dt is null     AND
             pn.name_type ='LN'     AND
             pn.end_dt is null      AND
@@ -232,7 +232,7 @@ if __name__ == '__main__':
         df[col] = df[col].astype(str).apply(lambda x: x.strip())
     print('Pre-processing complete. Beginning analysis...')
 
-    print('Number of active AMC records:', len(df))
+    print('Number of active amc records:', len(df))
 
     flagword_file_path = 'U:\\Source Files\\Data Analytics\\Data-Science' \
                          '\\Code-Library\\AMC_Address_Sweep\\AMC_flag_words.xlsx'
