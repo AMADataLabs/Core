@@ -53,10 +53,9 @@ def create_pbd_table(pbd_orders, pbd_returns, pbd_cancels):  # staging table
                     pbd_table (pandas dataframe): table of PBD orders without canceled and refunded transactions
     '''
     import pandas as pd
-    pbd_order_columns = ['EMPPID', 'ORDER_NO', 'ORDER_DATE', 'ORDTDOL', 'ORDITEMQTY', 'ORDCOST',
-                         'PAYMENT_DESC', 'PROMOCD', 'ORDER_TYPE', 'ORDCHANNEL']
-    pbd_cancels_columns = ['EMPPID', 'ORDER_NO']
-    pbd_returns_columns = ['EMPPID', 'ORDER_NO']
+    pbd_order_columns = os.environ['PBD_ORDER_COLUMNS']
+    pbd_cancels_columns = os.environ['PBD_CANCELS_COLUMNS']
+    pbd_returns_columns = os.environ['PBD_RETURNS_COLUMNS']
     # subset columns
     pbd_orders = pbd_orders[pbd_order_columns]
     pbd_returns = pbd_returns[pbd_returns_columns]
@@ -124,7 +123,7 @@ def create_olsub_sales_table(olsub_orders):  # staging table
                     sales (pandas dataframe): table of olsub orders with aggregated transactions
 
     '''
-    olsub_order_columns = ['EMPPID', 'ORDER_ID', 'SUB_DATE', 'ORDITEMQTY', 'ORDTDOL']
+    olsub_order_columns = os.environ['OLSUB_ORDER_COLUMNS']
 
     # subset columns
     olsub_orders = olsub_orders[olsub_order_columns]
@@ -199,8 +198,7 @@ def create_pbd_items_table(pbd_table, pbd_items):  # staging table
 
     '''
     # subset columns
-    pbd_items_columns = ['EMPPID', 'ORDER_NO', 'ORDER_DATE', 'PRODUCT_NO', 'PRODUCT_DESC', 'ITEMEXTPRICE',
-                         'ITEMEXTCOST']
+    pbd_items_columns =  os.environ['PBD_ITEMS_COLUMNS']
     pbd_items = pbd_items[pbd_items_columns]
     pbd_items['ORDER_DATE'] = pd.to_datetime(pbd_items['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
 
@@ -307,9 +305,8 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
                     customer (pandas dataframe): dataframe at a customer level
 
     '''
-    contacts_columns = ['EMPPID', 'BUSTITLE', 'STATE', 'GENDER', 'TITLE_DESC', 'INDUSTRY_DESC', 'IS_PHYSICIAN',
-                        'ORG_NAME']
-    aims_overlay_columns = ['EMPPID', 'BIRTHYEAR', 'TOPCODE', 'PECODE', 'PRIMSPCCD', 'YRSPRACTICE']
+    contacts_columns = os.environ['CONTACTS_COLUMNS']
+    aims_overlay_columns = os.environ['AIMS_OVERLAY_COLUMNS']
     # subset columns for contacts and aims_overlay
     contacts = contacts[contacts_columns]
     aims_overlay = aims_overlay[aims_overlay_columns]
@@ -330,11 +327,7 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
     customer = temp1.merge(temp2, on='EMPPID', how='inner')
 
     # rename columns
-    new_column_names = ['Customer ID', 'Monetary Value', 'Recent Purchase Date', 'Frequency', 'Business Title', 'State',
-                        'Gender', 'Title Description', 'Industry Description',
-                        'Is Physician', 'Organization', 'Year of Birth', 'Type of Practice', 'Present Employment',
-                        'Primary Specialty',
-                        'Years of Practice']
+    new_column_names = os.environ['NEW_COLUMN_NAMES']
     customer = customer.rename(columns=dict(zip(customer.columns.tolist(),
                                                 new_column_names)))
     customer['Recency'] = pd.Timestamp('today').normalize() - customer['Recent Purchase Date']
@@ -381,9 +374,7 @@ def clean_up_customer(customer):
 
 
 def create_email_campaign_table(email_campaign):
-    email_campaign_columns = ['MESSAGE_NAME', 'EVENT_DATE', 'PROD_DESC', 'TOTAL_OPENS', 'TOTAL_CLICKS',
-                              'TOTAL_BOUNCES', 'TOTAL_UNSUBS', 'TOTAL_SENDS', 'OPEN_RATE', 'CLICK_RATE',
-                              'BOUNCE_RATE', 'UNSUB_RATE', 'DELIVERY_RATE', 'PROD_DESC']
+    email_campaign_columns = os.environ['EMAIL_CAMPAIGN_COLUMNS']
     email_campaign = email_campaign[email_campaign_columns]
     new_email_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), email_campaign_columns)]
     email_campaign = email_campaign.rename(columns=dict(zip(email_campaign_columns,
