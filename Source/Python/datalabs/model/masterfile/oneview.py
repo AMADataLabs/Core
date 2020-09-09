@@ -242,7 +242,7 @@ class Ethnicity(Base):
     __tablename__ = 'ethnicity'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
+    id = sa.Column(sa.Integer, primary_key=True, nullable=False, unique=True)
     description = sa.Column(sa.String, nullable=False)
 
 
@@ -252,14 +252,14 @@ class PhysicianEthnicity(Base):
 
     medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          primary_key=True, nullable=False)
-    ethnicity_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.ethinicity.id"), nullable=False,
-                             unique=True)
+    ethnicity_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.ethnicity.id"), nullable=False)
 
 
 class Places(Base):
     __tablename__ = 'places'
     __table_args__ = {"schema": "oneview"}
 
+    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     customer_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_customer.id"), nullable=False)
     residency_program_institution_id = sa.Column(sa.Integer,
                                                  sa.ForeignKey("oneview.residency_program_institution.id"),
