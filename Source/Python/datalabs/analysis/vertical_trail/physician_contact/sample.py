@@ -30,6 +30,7 @@ class EDWData:
     medschool_names: pd.DataFrame = pd.DataFrame()
     party_key_data: pd.DataFrame = pd.DataFrame()
 
+
 class VTPhysicianContactSampleGenerator:
     def __init__(self, archive: VTPhysicianContactArchive = None, survey_type: str = None):
         self._survey_type = survey_type

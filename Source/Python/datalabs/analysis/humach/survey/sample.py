@@ -7,6 +7,7 @@ import pandas as pd
 
 from datalabs.access.aims import AIMS
 from datalabs.analysis.humach.survey.archive import HumachResultsArchive
+from datalabs.analysis.vertical_trail.physician_contact.archive import VTPhysicianContactArchive
 
 from filter_bad_phones import get_good_bad_phones  # /Sandbox/CommonCode/filter_bad_phones.py
 import settings
@@ -23,13 +24,18 @@ class AIMSData:
 
 
 class HumachSampleGenerator:
-    def __init__(self, archive: HumachResultsArchive = None, survey_type: str = None):
+    def __init__(
+            self,
+            archive: HumachResultsArchive = None,
+            vt_archive: VTPhysicianContactArchive = None,
+            survey_type: str = None):
         self._survey_type = survey_type
         self._target_sample_vars = []
 
         self._sample_size = None
         self._save_dir = None
         self._archive = archive
+        self._vt_archive = vt_archive
         self._ppd_filename = None
 
         """ Exclusion time periods """
@@ -40,22 +46,59 @@ class HumachSampleGenerator:
         self._today_date = datetime.now().date()
         self._survey_date = self._today_date + relativedelta(months=1)
 
-    def run(self):
+        self.source_filename_map = {
+            'MF': 'Masterfile_Random_Sample',
+            'VT': 'VT_VerificationSample'
+        }
+
+    def create_masterfile_random_sample(self):
         LOGGER.info('SETTING VARIABLES AND CONNECTIONS')
         self._load_environment_variables()
         LOGGER.info('CREATING POPULATION DATA')
         population_data = self._get_population_data()
         LOGGER.info('CREATING SAMPLE')
-        self._make_sample(population_data, size=self._sample_size)
+        self._make_sample(population_data, size=self._sample_size, source='MF')
+
+    def create_vertical_trail_verification_sample(self):
+        LOGGER.info('SETTING VARIABLES AND CONNECTIONS')
+        self._load_environment_variables()
+        LOGGER.info('GETTING LATEST VERTICAL TRAIL RESULTS')
+        latest_result_sample_id = self._vt_archive.get_latest_results_sample_id()
+        LOGGER.info('LATEST SAMPLE ID - {}'.format(latest_result_sample_id))
+        latest_result_data = self._vt_archive.get_results_for_sample_id(latest_result_sample_id)
+        LOGGER.info('CREATING POPULATION DATA')
+        population_data = self._get_vertical_trail_verification_population_data(result_data=latest_result_data)
+        LOGGER.info('CREATING SAMPLE')
+        self._make_sample(population_data, size=len(population_data), source='VT')
+
+    def _get_vertical_trail_results(self, sample_ids: list = None) -> pd.DataFrame:
+        if sample_ids is None:
+            sample_ids = [self._vt_archive.get_latest_sample_id()]
+        if not isinstance(sample_ids, (list, set)):
+            sample_ids = [sample_ids]
+
+        data = self._vt_archive.get_results_for_sample_ids(sample_ids)
+        return data
+
+    def _get_vertical_trail_verification_population_data(self, result_data: pd.DataFrame):
+        ppd = self._load_ppd()
+        aims_data = self._load_aims_data()
+
+        result_data.columns = ['VT_' + col.upper() for col in result_data.columns.values]
+        data = ppd.merge(result_data, left_on='ME', right_on='VT_ME', how='inner')
+
+        data = self._prepare_vertical_trail_verification_population_data(data, aims_data=aims_data)
+        return data
 
     def _load_environment_variables(self):
         self._save_dir = os.environ.get('SAVE_DIR')
         self._ppd_filename = os.environ.get('EXPANDED_PPD_FILE')
-        self._archive = HumachResultsArchive(os.environ.get('SURVEY_DB_PATH'))
+        self._archive = HumachResultsArchive(os.environ.get('ARCHIVE_DB_PATH'))
+        self._vt_archive = VTPhysicianContactArchive(os.environ.get('ARCHIVE_DB_PATH'))
         self._target_sample_vars = self._archive.table_columns.samples
         self._months_me_block = os.environ.get('MONTHS_ME_BLOCK')
         self._months_phone_block = os.environ.get('MONTHS_PHONE_BLOCK')
-        self._sample_size = os.environ.get(f'SAMPLE_SIZE_{self._survey_type.upper()}')
+        self._sample_size = os.environ.get(f'SAMPLE_SIZE_{self._survey_type}')
 
     def _get_population_data(self):
         ppd = self._load_ppd()
@@ -64,13 +107,18 @@ class HumachSampleGenerator:
         data = self._prepare_population_data(data=ppd, aims_data=aims_data)
         return data
 
-    def _make_sample(self, population_data: pd.DataFrame, size):
+    def _make_sample(self, population_data: pd.DataFrame, size, source='MF'):
+        if size is None:
+            size = len(population_data)
+
+        filename = self.source_filename_map[source]
+
         sample = population_data.sample(n=min(int(size), len(population_data))).reset_index()
 
-        sample = self._add_sample_info_columns(sample)
-        sample = self._format_sample_columns(sample)
+        sample = self._add_sample_info_columns(data=sample, source=source)
+        sample = self._format_sample_columns(data=sample)
 
-        self._save_sample_and_deliverable(sample)
+        self._save_sample_and_deliverable(sample, filename=filename)
 
     def _load_ppd(self):
         ppd = pd.read_csv(self._ppd_filename, dtype=str)
@@ -93,7 +141,17 @@ class HumachSampleGenerator:
         data = self._add_pe_description(data=data, aims_data=aims_data)
         return data
 
-    def _add_sample_info_columns(self, data):
+    def _prepare_vertical_trail_verification_population_data(self, data: pd.DataFrame, aims_data: AIMSData):
+        # filter out physicians which already have phone number
+        data = data[data['TELEPHONE_NUMBER'].apply(lambda x: self._isna(x))]
+        data['TELEPHONE_NUMBER'] = data['VT_PHONE_NUMBER']  # replace PPD phone with VT phone
+        data = data[data['TELEPHONE_NUMBER'].apply(lambda x: self._isna(x))]  # VT results can be null
+        data = self._filter_no_contacts(data=data, aims_data=aims_data)
+        data = self._filter_recent_phones(data=data)
+        data = self._add_pe_description(data=data, aims_data=aims_data)
+        return data
+
+    def _add_sample_info_columns(self, data, source='MF'):
         sample_id = self._archive.get_latest_sample_id() + 1
 
         data['SAMPLE_ID'] = sample_id
@@ -101,7 +159,7 @@ class HumachSampleGenerator:
         data['SURVEY_TYPE'] = self._survey_type.upper()
         data['SURVEY_MONTH'] = self._survey_date.month
         data['SURVEY_YEAR'] = self._survey_date.year
-        data['SAMPLE_SOURCE'] = 'MF'
+        data['SAMPLE_SOURCE'] = source
 
         return data
 
@@ -117,9 +175,9 @@ class HumachSampleGenerator:
 
         return sample
 
-    def _save_sample_and_deliverable(self, sample):
-        self._load_sample_to_archive(sample)
-        self._make_deliverable_sample(sample)
+    def _save_sample_and_deliverable(self, sample, filename):
+        #self._load_sample_to_archive(sample)
+        self._make_deliverable_sample(sample, filename=filename)
 
     @classmethod
     def _filter_to_dpc(cls, data: pd.DataFrame):
@@ -165,7 +223,7 @@ class HumachSampleGenerator:
     def _load_sample_to_archive(self, sample):
         self._archive.ingest_sample_data(sample)
 
-    def _make_deliverable_sample(self, sample):
+    def _make_deliverable_sample(self, sample, filename='Masterfile_Random_Sample'):
         deliverable = sample.drop(
             columns=[
                 'SURVEY_TYPE',
@@ -177,7 +235,7 @@ class HumachSampleGenerator:
                 'POLO_COMM_ID'
             ]
         )
-        sample_name = f'\\{self._today_date}_Masterfile_Random_Sample.xlsx'
+        sample_name = f'\\{self._today_date}_{filename}.xlsx'
         sample_save_path = self._save_dir + sample_name
         writer = pd.ExcelWriter(sample_save_path, engine='xlsxwriter')
 
@@ -188,3 +246,16 @@ class HumachSampleGenerator:
     @classmethod
     def _filter_data(cls, data: pd.DataFrame, data_col: str, filter_data: pd.DataFrame, filter_col: str):
         return data[~data[data_col].isin(filter_data[filter_col])]
+
+    @classmethod
+    def _isna(cls, text):
+        is_na = False
+        if text is None:
+            is_na = True
+        if str(text).upper().strip() in ('', 'NONE', 'NAN', 'NA'):
+            is_na = True
+        return is_na
+
+
+gen = HumachSampleGenerator(survey_type='VERTICAL_TRAIL')
+gen.create_vertical_trail_verification_sample()
