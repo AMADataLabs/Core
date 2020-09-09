@@ -92,8 +92,8 @@ class Physician(Base):
     npi = sa.Column(sa.Integer, nullable=False)
 
 
-class MedicalEducationProgramAddresses(Base):
-    __tablename__ = 'medical_education_program_addresses'
+class ResidencyProgramAddresses(Base):
+    __tablename__ = 'residency_program_addresses'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True)
@@ -109,12 +109,12 @@ class MedicalEducationProgramAddresses(Base):
     zipcode = sa.Column(sa.String, nullable=False)
 
 
-class MedicalEducationProgramPersonnelMember(Base):
-    __tablename__ = 'medical_education_program_personnel_member'
+class ResidencyProgramPersonnelMember(Base):
+    __tablename__ = 'residency__program_personnel_member'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    program_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.medical_education_program_addresses.id"), nullable=False)
+    program_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_addresses.id"), nullable=False)
     personnel_type = sa.Column(sa.String, nullable=False)
     aamc_id = sa.Column(sa.Integer, nullable=False, unique=True)
     first_name = sa.Column(sa.String, nullable=False)
@@ -128,12 +128,12 @@ class MedicalEducationProgramPersonnelMember(Base):
     email = sa.Column(sa.String, nullable=False)
 
 
-class MedicalEducationProgramInstitution(Base):
-    __tablename__ = 'medical_education_program_institution'
+class ResidencyProgramInstitution(Base):
+    __tablename__ = 'residency_program_institution'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    program_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.medical_education_program_addresses.id"))
+    program_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_addresses.id"))
 
 
 class Business(Base):
@@ -142,7 +142,7 @@ class Business(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     name = sa.Column(sa.String, nullable=False)
-    dba = sa.Column(sa.String, nullable=False)
+    doing_business_as = sa.Column(sa.String, nullable=False)
     physical_address_one = sa.Column(sa.String, nullable=False)
     physical_address_two = sa.Column(sa.String, nullable=False)
     physical_city = sa.Column(sa.String, nullable=False)
@@ -191,7 +191,7 @@ class ProviderAffiliation(Base):
     business_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.business.id"))
     provider_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.provider.id"))
     description = sa.Column(sa.String, nullable=False)
-    indicator = sa.Column(sa.String, nullable=False)
+    primary = sa.Column(sa.Boolean, default=False)
     rank = sa.Column(sa.String, nullable=False)
 
 
@@ -225,7 +225,7 @@ class CredentialingProduct(Base):
     description = sa.Column(sa.String, nullable=False)
 
 
-class CredentialingOrder (Base):
+class CredentialingOrder(Base):
     __tablename__ = 'credentialing_order '
     __table_args__ = {"schema": "oneview"}
 
@@ -261,9 +261,9 @@ class Places(Base):
     __table_args__ = {"schema": "oneview"}
 
     customer_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_customer.id"), nullable=False)
-    medical_education_program_institution_id = sa.Column(sa.Integer,
-                                                         sa.ForeignKey("oneview.medical_education_program_institution.id"),
-                                                         nullable=False)
+    residency_program_institution_id = sa.Column(sa.Integer,
+                                                 sa.ForeignKey("oneview.residency_program_institution.id"),
+                                                 nullable=False)
     business_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.business.id"), nullable=False)
 
 
@@ -271,6 +271,7 @@ class MedicalEducationPhysician(Base):
     __tablename__ = 'medical_education_physician'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, sa.ForeignKey("oneview.program_personnel_member.aamc_id"), primary_key=True,
+    id = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency__program_personnel_member.aamc_id"), primary_key=True,
                    nullable=False)
-    medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"), nullable=False)
+    medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
+                                         nullable=False)
