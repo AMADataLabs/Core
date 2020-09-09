@@ -1,0 +1,11 @@
+
+# Table Names
+PBD_TABLE='pbd_table_order.csv'
+SALES_PBD='sales.csv'
+SALES_KPI='sales_kpi.csv'
+PRODUCT_MAIN='product_main.csv'
+PRODUCT_REMAINDER='product_remainder.csv'
+CUSTOMER_CLEAN='customer.csv'
+DIRECT_MAIL='direct_mail.csv'
+FAX='fax.csv'
+EMAIL_CAMPAIGN='email_campaign.csv'

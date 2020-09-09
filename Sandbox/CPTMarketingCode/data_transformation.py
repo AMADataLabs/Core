@@ -398,19 +398,18 @@ def create_direct_mail_table(direct_mail):
                                                             new_direct_mail_campaign_columns)))
     return direct_mail_campaign
 
+def export_tables(output_directory):
+    pbd_table.to_csv(output_directory + os.environ['PBD_TABLE'], index=False)
+    sales_pbd.to_csv(output_directory + os.environ['SALES_PBD'], index=False)
+    sales_kpi.to_csv(output_directory + os.environ['SALES_KPI'])
+    product_main.to_csv(output_directory + os.environ['PRODUCT_MAIN'], index=False)
+    product_remainder.to_csv(output_directory + os.environ['PRODUCT_REMAINDER'], index=False)
+    customer_clean.to_csv(output_directory + os.environ['CUSTOMER_CLEAN'])
+    direct_mail.to_csv(output_directory + os.environ['DIRECT_MAIL'])
+    fax.to_csv(output_directory + os.environ['FAX'])
+    email_campaign.to_csv(output_directory + os.environ['EMAIL_CAMPAIGN'])
 
-def main():
-    # define file paths
-    file_paths = create_file_paths()
-    # create tables using file paths
-    tables = create_tables(file_paths)
-    # define input and output directories
-    input_directory = file_paths['input_directory']
-    output_directory = file_paths['output_directory']
-    # import budget code
-    budget_code = pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
-                                usecols=['Item Number', 'Budget Code'])
-    # transform tables
+def transform_tables(tables):
     pbd_table = create_pbd_table(tables['pbd_orders'], tables['pbd_returns'], tables['pbd_cancels'])
     sales_pbd = create_pbd_sales_table(pbd_table)
     sales_olsub = create_olsub_sales_table(tables['olsub_orders'])
@@ -427,16 +426,22 @@ def main():
     direct_mail = create_email_campaign_table(pbd_orders[pbd_orders['ORDER_TYPE'] == 'Mail'])
     fax = pbd_orders[pbd_orders['ORDER_TYPE'] == 'FAX']
     email_campaign = create_email_campaign_table(tables['emailcampaign'])
+
+def main():
+    # define file paths
+    file_paths = create_file_paths()
+    # create tables using file paths
+    tables = create_tables(file_paths)
+    # define input and output directories
+    input_directory = file_paths['input_directory']
+    output_directory = file_paths['output_directory']
+    # import budget code
+    budget_code = pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
+                                usecols=['Item Number', 'Budget Code'])
+    # transform tables
+    transform_tables(tables)
     # export tables
-    pbd_table.to_csv(output_directory + 'pbd_table_order.csv', index=False)
-    sales_pbd.to_csv(output_directory + 'sales.csv', index=False)
-    sales_kpi.to_csv(output_directory + 'sales_kpi.csv')
-    product_main.to_csv(output_directory + 'product_main.csv', index=False)
-    product_remainder.to_csv(output_directory + 'product_remainder.csv', index=False)
-    customer_clean.to_csv(output_directory + 'customer.csv')
-    direct_mail.to_csv(output_directory + 'direct_mail.csv')
-    fax.to_csv(output_directory + 'fax.csv')
-    email_campaign.to_csv(output_directory + 'email_campaign.csv')
+    export_tables(output_directory)
 
 
 if __name__ == '__main__':
