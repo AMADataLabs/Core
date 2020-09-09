@@ -119,3 +119,13 @@ class VerticalTrailResult(Base):
     fax_number = sa.Column(sa.String, nullable=True)
     email = sa.Column(sa.String, nullable=True)
     notes = sa.Column(sa.String, nullable=True)
+
+
+class SampleReference(Base):
+    __tablename__ = 'sample_reference'
+    __table_args__ = (
+        sa.PrimaryKeyConstraint('humach_sample_id', 'other_sample_id', name='pk_sample_id')
+    )
+
+    humach_sample_id = sa.Column(sa.Integer, sa.ForeignKey('humach_sample.sample_id'))
+    other_sample_id = sa.Column(sa.Integer, nullable=False)
