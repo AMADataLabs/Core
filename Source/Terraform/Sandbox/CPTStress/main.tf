@@ -9,6 +9,8 @@ module "cpt" {
     rds_instance_name   = lower(local.project)
     rds_instance_class  = "db.m5.large"
     rds_storage_type    = "gp2"
+    endpoint_timeout    = 15
+    endpoint_memory_size= 2048
     database_name       = format("%s_api", lower(local.project))
     project             = local.project
     passport_url        = "https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI"
