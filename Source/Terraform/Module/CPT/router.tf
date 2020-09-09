@@ -52,7 +52,7 @@ resource "aws_lambda_function" "ingestion_etl_router" {
     role                = aws_iam_role.lambda_role.arn
     handler             = "main.lambda_handler"
     runtime             = "python3.7"
-    timeout             = 5
+    timeout             = 10
     memory_size         = 1024
 
     environment {
