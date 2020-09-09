@@ -191,5 +191,9 @@ SAMPLE_COLUMNS_EXPECTED = [
     'DESCRIPTION',
     'PE_CD',
     'FAX_NUMBER'
+]
 
+reference_table_columns = [
+    'humach_sample_id',
+    'other_sample_id'
 ]

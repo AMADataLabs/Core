@@ -28,7 +28,7 @@ class HumachSampleGenerator:
             self,
             archive: HumachResultsArchive = None,
             vt_archive: VTPhysicianContactArchive = None,
-            survey_type: str = None):
+            survey_type='STANDARD'):
         self._survey_type = survey_type
         self._target_sample_vars = []
 
@@ -69,7 +69,7 @@ class HumachSampleGenerator:
         LOGGER.info('CREATING POPULATION DATA')
         population_data = self._get_vertical_trail_verification_population_data(result_data=latest_result_data)
         LOGGER.info('CREATING SAMPLE')
-        self._make_sample(population_data, size=len(population_data), source='VT')
+        self._make_sample(population_data, size=len(population_data), source='VT', reference_sample_id=None)
 
     def _get_vertical_trail_results(self, sample_ids: list = None) -> pd.DataFrame:
         if sample_ids is None:
@@ -107,7 +107,7 @@ class HumachSampleGenerator:
         data = self._prepare_population_data(data=ppd, aims_data=aims_data)
         return data
 
-    def _make_sample(self, population_data: pd.DataFrame, size, source='MF'):
+    def _make_sample(self, population_data: pd.DataFrame, size, source='MF', reference_sample_id=None):
         if size is None:
             size = len(population_data)
 
@@ -115,7 +115,7 @@ class HumachSampleGenerator:
 
         sample = population_data.sample(n=min(int(size), len(population_data))).reset_index()
 
-        sample = self._add_sample_info_columns(data=sample, source=source)
+        sample = self._add_sample_info_columns(data=sample, source=source, reference_sample_id=None)
         sample = self._format_sample_columns(data=sample)
 
         self._save_sample_and_deliverable(sample, filename=filename)
@@ -151,8 +151,14 @@ class HumachSampleGenerator:
         data = self._add_pe_description(data=data, aims_data=aims_data)
         return data
 
-    def _add_sample_info_columns(self, data, source='MF'):
+    def _add_sample_info_columns(self, data, source='MF', reference_sample_id=None):
         sample_id = self._archive.get_latest_sample_id() + 1
+
+        if reference_sample_id is not None:
+            self._archive.insert_humach_sample_reference(
+                humach_sample_id=sample_id,
+                other_sample_id=reference_sample_id
+            )
 
         data['SAMPLE_ID'] = sample_id
         data['ROW_ID'] = data.index + 1
@@ -250,12 +256,16 @@ class HumachSampleGenerator:
     @classmethod
     def _isna(cls, text):
         is_na = False
-        if text is None:
-            is_na = True
-        if str(text).upper().strip() in ('', 'NONE', 'NAN', 'NA'):
+        if text is None or str(text).upper().strip() in ('', 'NONE', 'NAN', 'NA'):
             is_na = True
         return is_na
 
 
-gen = HumachSampleGenerator(survey_type='VERTICAL_TRAIL')
-gen.create_vertical_trail_verification_sample()
+def make_standard_survey():
+    gen = HumachSampleGenerator(survey_type='STANDARD')
+    gen.create_masterfile_random_sample()
+
+def make_vertical_trail_verification_sample():
+    gen = HumachSampleGenerator(survey_type='VERTICAL_TRAIL')
+    gen.create_vertical_trail_verification_sample()
+
