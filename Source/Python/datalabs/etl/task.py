@@ -114,9 +114,9 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
 
     @classmethod
     def _get_component_parameters(cls, var_tree, component):
-        component_variables = var_tree.get_branch_values([component])
+        component_variables = var_tree.get_branch_values([component]) or {}
         database_variables = None
-        database_parameters = None
+        database_parameters = {}
 
         if 'DATABASE' in var_tree.get_branches([component]):
             component_variables.pop('DATABASE')

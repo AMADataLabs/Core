@@ -5,7 +5,7 @@ import logging
 from   sqlalchemy import or_
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
-from   datalabs.etl.cpt.dbmodel import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
+from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

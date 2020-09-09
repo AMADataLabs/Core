@@ -26,14 +26,17 @@ class Database(db.Database):
 class DatabaseTaskMixin:
     @classmethod
     def _get_database(cls, parameters):
-        config = db.Configuration(
-            name=parameters['name'],
-            backend=parameters['backend'],
-            host=parameters['host']
-        )
-        credentials = Credentials(
-            username=parameters['username'],
-            password=parameters['password']
-        )
+        try:
+            config = db.Configuration(
+                name=parameters['name'],
+                backend=parameters['backend'],
+                host=parameters['host']
+            )
+            credentials = Credentials(
+                username=parameters['username'],
+                password=parameters['password']
+            )
+        except KeyError as exception:
+            raise db.ConfigurationException(f'Missing expected database parameter {exception}.')
 
         return Database(config, credentials)
