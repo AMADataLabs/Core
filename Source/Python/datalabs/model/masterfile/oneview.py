@@ -110,7 +110,7 @@ class ResidencyProgramAddresses(Base):
 
 
 class ResidencyProgramPersonnelMember(Base):
-    __tablename__ = 'residency__program_personnel_member'
+    __tablename__ = 'residency_program_personnel_member'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
@@ -267,11 +267,11 @@ class Places(Base):
     business_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.business.id"), nullable=False)
 
 
-class MedicalEducationPhysician(Base):
+class ResidencyProgramPhysician(Base):
     __tablename__ = 'medical_education_physician'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency__program_personnel_member.aamc_id"), primary_key=True,
+    id = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_personnel_member.aamc_id"), primary_key=True,
                    nullable=False)
     medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
