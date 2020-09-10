@@ -132,10 +132,10 @@ class VTPhysicianContactArchive:
         data = pd.read_sql(sql=sql, con=self.connection)
         return data
 
-    def insert_humach_sample_reference(self, humach_sample_id, other_sample_id):
-        sql = f"INSERT INTO sample_reference(humach_sample_id, other_sample_id) " + \
-              f"VALUES ({humach_sample_id}, {other_sample_id})"
-        self.connection.execute(sql=sql)
+    def insert_humach_sample_reference(self, humach_sample_id, other_sample_id, other_sample_source):
+        sql = f"INSERT INTO sample_reference(humach_sample_id, other_sample_id, other_sample_source) " + \
+              f"VALUES ({humach_sample_id}, {other_sample_id}, '{other_sample_source}')"
+        self.connection.execute(sql)
         self.connection.commit()
 
     def _load_environment_variables(self):

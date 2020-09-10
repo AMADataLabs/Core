@@ -63,7 +63,8 @@ MAKE_TABLE_REFERENCE = \
     """
     CREATE TABLE IF NOT EXISTS sample_reference(
         humach_sample_id INTEGER NOT NULL,
-        other_sample_id INTEGER NOT NULL
+        other_sample_id INTEGER NOT NULL,
+        other_sample_source VARCHAR NOT NULL
     );
     """
 

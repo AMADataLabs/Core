@@ -60,4 +60,7 @@ class ArchiveMaker:
 
 if __name__ == '__main__':
     archive = ArchiveMaker()
-    archive.initialize_tables()
+    #archive.initialize_tables()
+    archive._load_environment_variables()
+    archive._drop_table_reference()
+    archive._make_table_reference()
