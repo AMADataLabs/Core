@@ -149,8 +149,8 @@ def save_insurance():
     '''Save'''
     today = str(date.today())
     insurance = get_insurance()
-    filtered_insurance = filter_insurance(insurance)
     insurance.to_csv(f'C:/Users/vigrose/Data/AMAIA/Unfiltered_Insurance_{today}.csv', index=False)
+    filtered_insurance = filter_insurance(insurance)
     print('Saving...')
     filtered_insurance.to_csv(f'C:/Users/vigrose/Data/AMAIA/Insurance_{today}.csv', index=False)
 

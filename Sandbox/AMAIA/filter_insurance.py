@@ -1,5 +1,5 @@
 '''
-This script merges insurance data with Masterfile data and selects those records that 
+This script merges insurance data with Masterfile data and selects those records that
 are significant different
 '''
 import pandas as pd
@@ -15,9 +15,10 @@ def sum_it_up(df):
                 if row.CITY != row.CITY_PPMA and row.CITY != row.CITY_POLO:
                     if row.ZIP != row.ZIP_PPMA and row.ZIP != row.ZIP_POLO:
                         if row.ADDR_1 != row.ADDR_1_PPMA and row.ADDR_1 != row.ADDR_1_POLO:
-                            keep =True
+                            keep = True
         keep_list.append(keep)
-    df['NEW'] = keep_list   
+    df['NEW'] = keep_list
+    df = df[df.NEW==True]  
     return df
 
 def get_zip_distance(zip1, zip2, dist):
