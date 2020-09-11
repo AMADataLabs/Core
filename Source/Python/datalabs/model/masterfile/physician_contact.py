@@ -8,8 +8,10 @@ Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
 class VerticalTrailSample(Base):
     __tablename__ = 'vertical_trail_sample'
+    __table_args__ = {"schema": "cpt"}
     __table_args__ = (
         sa.PrimaryKeyConstraint('sample_id', 'row_id', name='pk_sample_rows'),
+        {"schema": "verification"}
     )
 
     sample_id = sa.Column(sa.Integer, nullable=False)
@@ -46,11 +48,17 @@ class VerticalTrailSample(Base):
 class VerticalTrailResult(Base):
     __tablename__ = 'vertical_trail_result'
     __table_args__ = (
-        sa.PrimaryKeyConstraint('sample_id', 'row_id', name='pk_sample_rows'),
+        sa.PrimaryKeyConstraint('sample_id', 'row_id', name='pk_result_sample_rows'),
+        sa.ForeignKeyConstraint(
+            ['sample_id', 'row_id'],
+            ['verification.vertical_trail_sample.sample_id', 'verification.vertical_trail_sample.row_id'],
+            name='fk_result_sample_rows'
+        ),
+        {"schema": "verification"}
     )
 
-    sample_id = sa.Column(sa.Integer, sa.ForeignKey("vertical_trail_sample.sample_id"))
-    row_id = sa.Column(sa.Integer, nullable=False)
+    sample_id = sa.Column(sa.Integer)
+    row_id = sa.Column(sa.Integer)
     sample_date = sa.Column(sa.Date, nullable=False)
     phone_number = sa.Column(sa.String, nullable=True)
     fax_number = sa.Column(sa.String, nullable=True)
