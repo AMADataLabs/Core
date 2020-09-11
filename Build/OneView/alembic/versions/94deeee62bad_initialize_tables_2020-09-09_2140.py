@@ -1,8 +1,8 @@
-"""Initial oneview configuration
+"""initialize tables
 
-Revision ID: 37c32d7b2d1e
+Revision ID: 94deeee62bad
 Revises: 
-Create Date: 2020-09-08 06:38:55.171613+00:00
+Create Date: 2020-09-09 21:40:25.813650+00:00
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '37c32d7b2d1e'
+revision = '94deeee62bad'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,7 +21,7 @@ def upgrade():
     op.create_table('business',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
-    sa.Column('dba', sa.String(), nullable=False),
+    sa.Column('doing_business_as', sa.String(), nullable=False),
     sa.Column('physical_address_one', sa.String(), nullable=False),
     sa.Column('physical_address_two', sa.String(), nullable=False),
     sa.Column('physical_city', sa.String(), nullable=False),
@@ -40,8 +40,8 @@ def upgrade():
     sa.PrimaryKeyConstraint('id', name=op.f('pk_business')),
     schema='oneview'
     )
-    op.create_table('customer',
-    sa.Column('key', sa.Integer(), nullable=False),
+    op.create_table('credentialing_customer',
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('number', sa.String(), nullable=False),
     sa.Column('isell_login', sa.String(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
@@ -57,7 +57,20 @@ def upgrade():
     sa.Column('zipcode', sa.String(), nullable=False),
     sa.Column('phone_number', sa.String(), nullable=False),
     sa.Column('company_name', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('key', name=op.f('pk_customer')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_credentialing_customer')),
+    schema='oneview'
+    )
+    op.create_table('credentialing_product',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('description', sa.String(), nullable=False),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_credentialing_product')),
+    schema='oneview'
+    )
+    op.create_table('ethnicity',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('description', sa.String(), nullable=False),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_ethnicity')),
+    sa.UniqueConstraint('id', name=op.f('uq_ethnicity_id')),
     schema='oneview'
     )
     op.create_table('physician',
@@ -139,16 +152,11 @@ def upgrade():
     sa.Column('gme_status', sa.String(), nullable=False),
     sa.Column('membership_status', sa.String(), nullable=False),
     sa.Column('membership_product_code', sa.String(), nullable=False),
+    sa.Column('npi', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('medical_education_number', name=op.f('pk_physician')),
     schema='oneview'
     )
-    op.create_table('product',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('description', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_product')),
-    schema='oneview'
-    )
-    op.create_table('program_information',
+    op.create_table('residency_program_addresses',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('web_address', sa.String(), nullable=False),
@@ -160,55 +168,28 @@ def upgrade():
     sa.Column('city', sa.String(), nullable=False),
     sa.Column('state', sa.String(), nullable=False),
     sa.Column('zipcode', sa.String(), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_program_information')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_residency_program_addresses')),
     schema='oneview'
     )
-    op.create_table('ethnicity',
-    sa.Column('identity_detail_code', sa.Integer(), nullable=False),
-    sa.Column('medical_education_number', sa.Integer(), nullable=False),
-    sa.Column('identity_description', sa.String(), nullable=False),
-    sa.ForeignKeyConstraint(['medical_education_number'], ['oneview.physician.medical_education_number'], name=op.f('fk_ethnicity_medical_education_number_physician')),
-    sa.PrimaryKeyConstraint('identity_detail_code', 'medical_education_number', name=op.f('pk_ethnicity')),
-    sa.UniqueConstraint('identity_detail_code', name=op.f('uq_ethnicity_identity_detail_code')),
-    schema='oneview'
-    )
-    op.create_table('fact_eprofile_order',
+    op.create_table('credentialing_order ',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('key', sa.Integer(), nullable=False),
+    sa.Column('customer_id', sa.Integer(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
     sa.Column('number', sa.String(), nullable=False),
     sa.Column('medical_education_number', sa.Integer(), nullable=False),
     sa.Column('date', sa.String(), nullable=False),
-    sa.ForeignKeyConstraint(['key'], ['oneview.customer.key'], name=op.f('fk_fact_eprofile_order_key_customer')),
-    sa.ForeignKeyConstraint(['medical_education_number'], ['oneview.physician.medical_education_number'], name=op.f('fk_fact_eprofile_order_medical_education_number_physician')),
-    sa.ForeignKeyConstraint(['product_id'], ['oneview.product.id'], name=op.f('fk_fact_eprofile_order_product_id_product')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_fact_eprofile_order')),
+    sa.ForeignKeyConstraint(['customer_id'], ['oneview.credentialing_customer.id'], name=op.f('fk_credentialing_order _customer_id_credentialing_customer')),
+    sa.ForeignKeyConstraint(['medical_education_number'], ['oneview.physician.medical_education_number'], name=op.f('fk_credentialing_order _medical_education_number_physician')),
+    sa.ForeignKeyConstraint(['product_id'], ['oneview.credentialing_product.id'], name=op.f('fk_credentialing_order _product_id_credentialing_product')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_credentialing_order ')),
     schema='oneview'
     )
-    op.create_table('program_institution',
-    sa.Column('institution_id', sa.Integer(), nullable=False),
-    sa.Column('program_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['program_id'], ['oneview.program_information.id'], name=op.f('fk_program_institution_program_id_program_information')),
-    sa.PrimaryKeyConstraint('institution_id', name=op.f('pk_program_institution')),
-    schema='oneview'
-    )
-    op.create_table('program_personnel_member',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('program_id', sa.Integer(), nullable=False),
-    sa.Column('personnel_type', sa.String(), nullable=False),
-    sa.Column('aamc_id', sa.Integer(), nullable=False),
-    sa.Column('first_name', sa.String(), nullable=False),
-    sa.Column('middle_name', sa.String(), nullable=False),
-    sa.Column('last_name', sa.String(), nullable=False),
-    sa.Column('suffix_name', sa.String(), nullable=False),
-    sa.Column('degree_one', sa.String(), nullable=False),
-    sa.Column('degree_two', sa.String(), nullable=False),
-    sa.Column('degree_three', sa.String(), nullable=False),
-    sa.Column('phone_number', sa.String(), nullable=False),
-    sa.Column('email', sa.String(), nullable=False),
-    sa.ForeignKeyConstraint(['program_id'], ['oneview.program_information.id'], name=op.f('fk_program_personnel_member_program_id_program_information')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_program_personnel_member')),
-    sa.UniqueConstraint('aamc_id', name=op.f('uq_program_personnel_member_aamc_id')),
+    op.create_table('physician_ethnicity',
+    sa.Column('medical_education_number', sa.Integer(), nullable=False),
+    sa.Column('ethnicity_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['ethnicity_id'], ['oneview.ethnicity.id'], name=op.f('fk_physician_ethnicity_ethnicity_id_ethnicity')),
+    sa.ForeignKeyConstraint(['medical_education_number'], ['oneview.physician.medical_education_number'], name=op.f('fk_physician_ethnicity_medical_education_number_physician')),
+    sa.PrimaryKeyConstraint('medical_education_number', name=op.f('pk_physician_ethnicity')),
     schema='oneview'
     )
     op.create_table('provider',
@@ -224,52 +205,68 @@ def upgrade():
     sa.Column('primary_specialty', sa.String(), nullable=False),
     sa.Column('secondary_specialty', sa.String(), nullable=False),
     sa.Column('tertiary_specialty', sa.String(), nullable=False),
-    sa.Column('primary_professional_code', sa.String(), nullable=False),
-    sa.Column('primary_professional_description', sa.String(), nullable=False),
+    sa.Column('primary_profession_code', sa.String(), nullable=False),
+    sa.Column('primary_profession_description', sa.String(), nullable=False),
     sa.Column('status_description', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['medical_education_number'], ['oneview.physician.medical_education_number'], name=op.f('fk_provider_medical_education_number_physician')),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_provider')),
     schema='oneview'
     )
-    op.create_table('aamc_code_value',
-    sa.Column('identity_detail_code', sa.Integer(), nullable=False),
-    sa.Column('identity_description', sa.String(), nullable=False),
-    sa.ForeignKeyConstraint(['identity_detail_code'], ['oneview.ethnicity.identity_detail_code'], name=op.f('fk_aamc_code_value_identity_detail_code_ethnicity')),
-    sa.PrimaryKeyConstraint('identity_detail_code', name=op.f('pk_aamc_code_value')),
+    op.create_table('residency__program_personnel_member',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('program_id', sa.Integer(), nullable=False),
+    sa.Column('personnel_type', sa.String(), nullable=False),
+    sa.Column('aamc_id', sa.Integer(), nullable=False),
+    sa.Column('first_name', sa.String(), nullable=False),
+    sa.Column('middle_name', sa.String(), nullable=False),
+    sa.Column('last_name', sa.String(), nullable=False),
+    sa.Column('suffix_name', sa.String(), nullable=False),
+    sa.Column('degree_one', sa.String(), nullable=False),
+    sa.Column('degree_two', sa.String(), nullable=False),
+    sa.Column('degree_three', sa.String(), nullable=False),
+    sa.Column('phone_number', sa.String(), nullable=False),
+    sa.Column('email', sa.String(), nullable=False),
+    sa.ForeignKeyConstraint(['program_id'], ['oneview.residency_program_addresses.id'], name=op.f('fk_residency__program_personnel_member_program_id_residency_program_addresses')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_residency__program_personnel_member')),
+    sa.UniqueConstraint('aamc_id', name=op.f('uq_residency__program_personnel_member_aamc_id')),
+    schema='oneview'
+    )
+    op.create_table('residency_program_institution',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('program_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['program_id'], ['oneview.residency_program_addresses.id'], name=op.f('fk_residency_program_institution_program_id_residency_program_addresses')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_residency_program_institution')),
+    schema='oneview'
+    )
+    op.create_table('medical_education_physician',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('medical_education_number', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['id'], ['oneview.residency__program_personnel_member.aamc_id'], name=op.f('fk_medical_education_physician_id_residency__program_personnel_member')),
+    sa.ForeignKeyConstraint(['medical_education_number'], ['oneview.physician.medical_education_number'], name=op.f('fk_medical_education_physician_medical_education_number_physician')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_medical_education_physician')),
     schema='oneview'
     )
     op.create_table('places',
-    sa.Column('npi', sa.Integer(), nullable=False),
-    sa.Column('customer_key', sa.Integer(), nullable=False),
-    sa.Column('institution_id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('customer_id', sa.Integer(), nullable=False),
+    sa.Column('residency_program_institution_id', sa.Integer(), nullable=False),
     sa.Column('business_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['business_id'], ['oneview.business.id'], name=op.f('fk_places_business_id_business')),
-    sa.ForeignKeyConstraint(['customer_key'], ['oneview.customer.key'], name=op.f('fk_places_customer_key_customer')),
-    sa.ForeignKeyConstraint(['institution_id'], ['oneview.program_institution.institution_id'], name=op.f('fk_places_institution_id_program_institution')),
-    sa.PrimaryKeyConstraint('npi', name=op.f('pk_places')),
+    sa.ForeignKeyConstraint(['customer_id'], ['oneview.credentialing_customer.id'], name=op.f('fk_places_customer_id_credentialing_customer')),
+    sa.ForeignKeyConstraint(['residency_program_institution_id'], ['oneview.residency_program_institution.id'], name=op.f('fk_places_residency_program_institution_id_residency_program_institution')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_places')),
     schema='oneview'
     )
-    op.create_table('provider_affiliation_fact',
+    op.create_table('provider_affiliation',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('business_id', sa.Integer(), nullable=True),
-    sa.Column('professional_id', sa.Integer(), nullable=True),
+    sa.Column('provider_id', sa.Integer(), nullable=True),
     sa.Column('description', sa.String(), nullable=False),
-    sa.Column('ind', sa.String(), nullable=False),
+    sa.Column('primary', sa.Boolean(), nullable=True),
     sa.Column('rank', sa.String(), nullable=False),
-    sa.ForeignKeyConstraint(['business_id'], ['oneview.business.id'], name=op.f('fk_provider_affiliation_fact_business_id_business')),
-    sa.ForeignKeyConstraint(['professional_id'], ['oneview.provider.id'], name=op.f('fk_provider_affiliation_fact_professional_id_provider')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_provider_affiliation_fact')),
-    schema='oneview'
-    )
-    op.create_table('people',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('medical_education_number', sa.Integer(), nullable=False),
-    sa.Column('aamc_id', sa.Integer(), nullable=False),
-    sa.Column('npi', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['aamc_id'], ['oneview.program_personnel_member.aamc_id'], name=op.f('fk_people_aamc_id_program_personnel_member')),
-    sa.ForeignKeyConstraint(['medical_education_number'], ['oneview.physician.medical_education_number'], name=op.f('fk_people_medical_education_number_physician')),
-    sa.ForeignKeyConstraint(['npi'], ['oneview.places.npi'], name=op.f('fk_people_npi_places')),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_people')),
+    sa.ForeignKeyConstraint(['business_id'], ['oneview.business.id'], name=op.f('fk_provider_affiliation_business_id_business')),
+    sa.ForeignKeyConstraint(['provider_id'], ['oneview.provider.id'], name=op.f('fk_provider_affiliation_provider_id_provider')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_provider_affiliation')),
     schema='oneview'
     )
     # ### end Alembic commands ###
@@ -277,18 +274,18 @@ def upgrade():
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table('people', schema='oneview')
-    op.drop_table('provider_affiliation_fact', schema='oneview')
+    op.drop_table('provider_affiliation', schema='oneview')
     op.drop_table('places', schema='oneview')
-    op.drop_table('aamc_code_value', schema='oneview')
+    op.drop_table('medical_education_physician', schema='oneview')
+    op.drop_table('residency_program_institution', schema='oneview')
+    op.drop_table('residency__program_personnel_member', schema='oneview')
     op.drop_table('provider', schema='oneview')
-    op.drop_table('program_personnel_member', schema='oneview')
-    op.drop_table('program_institution', schema='oneview')
-    op.drop_table('fact_eprofile_order', schema='oneview')
-    op.drop_table('ethnicity', schema='oneview')
-    op.drop_table('program_information', schema='oneview')
-    op.drop_table('product', schema='oneview')
+    op.drop_table('physician_ethnicity', schema='oneview')
+    op.drop_table('credentialing_order ', schema='oneview')
+    op.drop_table('residency_program_addresses', schema='oneview')
     op.drop_table('physician', schema='oneview')
-    op.drop_table('customer', schema='oneview')
+    op.drop_table('ethnicity', schema='oneview')
+    op.drop_table('credentialing_product', schema='oneview')
+    op.drop_table('credentialing_customer', schema='oneview')
     op.drop_table('business', schema='oneview')
     # ### end Alembic commands ###
