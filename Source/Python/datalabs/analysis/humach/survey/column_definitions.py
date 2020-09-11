@@ -196,5 +196,5 @@ SAMPLE_COLUMNS_EXPECTED = [
 reference_table_columns = [
     'humach_sample_id',
     'other_sample_id',
-    'other_sample_type'
+    'other_sample_source'
 ]

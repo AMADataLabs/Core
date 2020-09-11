@@ -129,3 +129,4 @@ class SampleReference(Base):
 
     humach_sample_id = sa.Column(sa.Integer, sa.ForeignKey('humach_sample.sample_id'))
     other_sample_id = sa.Column(sa.Integer, nullable=False)
+    other_sample_source = sa.Column(sa.String, nullable=False)
