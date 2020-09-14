@@ -98,8 +98,11 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
             prefix = code[0]
             suffix = code[1]
 
-            filter_condition = [ClinicianDescriptor.code.like(f'{prefix}%'),
-                                ClinicianDescriptor.code.ilike(f'%{suffix}')]
+            filter_condition = [
+                ClinicianDescriptor.code.like(f'{prefix}%'),
+                ClinicianDescriptor.code.ilike(f'%{suffix}')
+            ]
+
             query = query.filter(and_(*filter_condition))
 
         return query
