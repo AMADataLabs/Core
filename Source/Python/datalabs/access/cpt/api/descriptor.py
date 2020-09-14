@@ -2,7 +2,7 @@
 from   abc import abstractmethod
 import logging
 
-from   sqlalchemy import or_
+from   sqlalchemy import or_, and_
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 import datalabs.model.cpt.api as dbmodel
@@ -97,10 +97,13 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
         lengths = self._parameters.query.get('length')
+        code = self._parameters.query.get('code')
 
         query = self._filter_for_release(query, since)
 
         query = self._filter_for_keywords(query, keywords, lengths)
+
+        query = self._filter_for_wildcard(query, code)
 
         return query
 
@@ -123,3 +126,17 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
             filter_conditions += [(length_dict.get(length).descriptor.ilike('%{}%'.format(word))) for word in keywords]
 
         return query.filter(or_(*filter_conditions))
+
+    @classmethod
+    def _filter_for_wildcard(cls, query, code):
+        if code is not None:
+            code = code.split('*')
+            prefix = code[0]
+            suffix = code[1]
+            filter_condition = [dbmodel.Code.code.like(f'{prefix}%')]
+
+            if suffix.isalpha() or suffix.isnumeric():
+                filter_condition.append(dbmodel.Code.code.ilike(f'%{suffix}'))
+            query = query.filter(and_(*filter_condition))
+
+        return query
