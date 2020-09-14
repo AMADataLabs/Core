@@ -1,11 +1,11 @@
 """ Consumer Descriptor endpoint classes. """
-from abc import abstractmethod
+from   abc import abstractmethod
 import logging
 
-from sqlalchemy import or_, and_
+from   sqlalchemy import or_, and_
 
-from datalabs.access.api.task import APIEndpointTask, ResourceNotFound
-from datalabs.model.cpt.api import ConsumerDescriptor, Release
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+from   datalabs.model.cpt.api import ConsumerDescriptor, Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
