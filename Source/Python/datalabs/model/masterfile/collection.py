@@ -41,6 +41,13 @@ class VerticalTrailSample(Base):
     oldphone11 = sa.Column(sa.String, nullable=True)
     oldphone12 = sa.Column(sa.String, nullable=True)
     oldphone13 = sa.Column(sa.String, nullable=True)
+    oldphone14 = sa.Column(sa.String, nullable=True)
+    oldphone15 = sa.Column(sa.String, nullable=True)
+    oldphone16 = sa.Column(sa.String, nullable=True)
+    oldphone17 = sa.Column(sa.String, nullable=True)
+    oldphone18 = sa.Column(sa.String, nullable=True)
+    oldphone19 = sa.Column(sa.String, nullable=True)
+    oldphone20 = sa.Column(sa.String, nullable=True)
 
 
 class VerticalTrailResult(Base):
@@ -56,3 +63,4 @@ class VerticalTrailResult(Base):
     fax_number = sa.Column(sa.String, nullable=True)
     email = sa.Column(sa.String, nullable=True)
     notes = sa.Column(sa.String, nullable=True)
+
