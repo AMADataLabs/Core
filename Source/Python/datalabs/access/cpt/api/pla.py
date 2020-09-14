@@ -127,10 +127,8 @@ class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask):
             code = code.split('*')
             prefix = code[0]
             suffix = code[1]
-            filter_condition = [dbmodel.PLADetails.code.like(f'{prefix}%')]
 
-            if suffix.isalpha() or suffix.isnumeric():
-                filter_condition.append(dbmodel.PLADetails.code.ilike(f'%{suffix}'))
+            filter_condition = [dbmodel.PLADetails.code.like(f'{prefix}%'), dbmodel.PLADetails.code.ilike(f'%{suffix}')]
             query = query.filter(and_(*filter_condition))
 
         return query

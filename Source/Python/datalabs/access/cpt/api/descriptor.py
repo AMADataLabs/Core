@@ -133,10 +133,8 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
             code = code.split('*')
             prefix = code[0]
             suffix = code[1]
-            filter_condition = [dbmodel.Code.code.like(f'{prefix}%')]
 
-            if suffix.isalpha() or suffix.isnumeric():
-                filter_condition.append(dbmodel.Code.code.ilike(f'%{suffix}'))
+            filter_condition = [dbmodel.Code.code.like(f'{prefix}%'), dbmodel.Code.code.ilike(f'%{suffix}')]
             query = query.filter(and_(*filter_condition))
 
         return query

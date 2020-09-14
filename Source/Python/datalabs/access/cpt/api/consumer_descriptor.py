@@ -95,10 +95,8 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
             code = code.split('*')
             prefix = code[0]
             suffix = code[1]
-            filter_condition = [ConsumerDescriptor.code.like(f'{prefix}%')]
 
-            if suffix.isalpha() or suffix.isnumeric():
-                filter_condition.append(ConsumerDescriptor.code.ilike(f'%{suffix}'))
+            filter_condition = [ConsumerDescriptor.code.like(f'{prefix}%'), ConsumerDescriptor.code.ilike(f'%{suffix}')]
             query = query.filter(and_(*filter_condition))
 
         return query
