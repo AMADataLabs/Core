@@ -49,6 +49,11 @@ class VTPhysicianContactArchive:
         result = self.connection.execute(sql).fetchone()[0]
         return result
 
+    def get_latest_results_sample_id(self):
+        sql = "SELECT MAX(sample_id) FROM vertical_trail_results;"
+        result = self.connection.execute(sql).fetchone()[0]
+        return result
+
     def get_vt_sample_data_past_n_months(self, n, as_of_date=datetime.now().date()):
         sql = """SELECT * FROM vertical_trail_samples"""
         data = pd.read_sql(sql=sql, con=self.connection)
@@ -65,6 +70,10 @@ class VTPhysicianContactArchive:
 
         return data
 
+    def ingest_sample_file(self, file_path: str):
+        data = pd.read_excel(file_path, dtype=str)
+        self.ingest_sample_data(data)
+
     def ingest_sample_data(self, data: pd.DataFrame):
         data.fillna('', inplace=True)
 
@@ -73,7 +82,7 @@ class VTPhysicianContactArchive:
         self.connection.commit()
 
     def ingest_result_file(self, file_path: str):
-        data = pd.read_excel(file_path, dtype=str)
+        data = pd.read_csv(file_path, dtype=str)
         data = data[
             ['SAMPLE_ID',
              'ROW_ID',
@@ -83,7 +92,7 @@ class VTPhysicianContactArchive:
              'Notes for AMA'
              ]
         ]
-        self.ingest_sample_data(data=data)
+        self.ingest_result_data(data=data)
 
     def ingest_result_data(self, data: pd.DataFrame):
         data.fillna('', inplace=True)
@@ -102,6 +111,32 @@ class VTPhysicianContactArchive:
         )
 
         self.connection.execute(sql)
+
+    def get_results_for_sample_ids(self, sample_ids):
+        results = []
+        if not isinstance(sample_ids, (list, set)):
+            sample_ids = [sample_ids]
+
+        for sample_id in sample_ids:
+            data = self.get_results_for_sample_id(sample_id)
+            results.append(data)
+
+        return pd.concat(results)
+
+    def get_results_for_sample_id(self, sample_id: int):
+        sql = f"SELECT * FROM " +\
+              f"vertical_trail_samples s INNER JOIN vertical_trail_results r " +\
+              f"ON (s.sample_id = r.sample_id AND s.row_id = r.row_id) " +\
+              f"WHERE s.sample_id = {sample_id}"
+
+        data = pd.read_sql(sql=sql, con=self.connection)
+        return data
+
+    def insert_humach_sample_reference(self, humach_sample_id, other_sample_id, other_sample_source):
+        sql = f"INSERT INTO sample_reference(humach_sample_id, other_sample_id, other_sample_source) " + \
+              f"VALUES ({humach_sample_id}, {other_sample_id}, '{other_sample_source}')"
+        self.connection.execute(sql)
+        self.connection.commit()
 
     def _load_environment_variables(self):
         self._batch_load_save_dir = os.environ.get('BATCH_LOAD_SAVE_DIR')

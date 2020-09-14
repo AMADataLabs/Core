@@ -5,7 +5,7 @@ DATALABS_PYTHONPATH={{ pythonpath }}
 PROJECT_NAME=CPT
 
 # APIEndpointSettings
-TASK_WRAPPER_CLASS=datalabs.access.awslambda.APIEndpointTaskWrapper
+TASK_WRAPPER_CLASS=datalabs.access.api.awslambda.APIEndpointTaskWrapper
 # TASK_CLASS=datalabs.access.cpt.api.descriptor.DescriptorEndpointTask
 DATABASE_HOST={{ database_host }}
 DATABASE_NAME={{ database_name }}

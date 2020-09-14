@@ -27,7 +27,14 @@ TABLE_SAMPLE_COLUMNS = [
     'oldphone10',
     'oldphone11',
     'oldphone12',
-    'oldphone13'
+    'oldphone13',
+    'oldphone14',
+    'oldphone15',
+    'oldphone16',
+    'oldphone17',
+    'oldphone18',
+    'oldphone19',
+    'oldphone20'
 ]
 
 FILE_SAMPLE_COLUMNS = [
@@ -57,7 +64,14 @@ FILE_SAMPLE_COLUMNS = [
     'oldphone10',
     'oldphone11',
     'oldphone12',
-    'oldphone13'
+    'oldphone13',
+    'oldphone14',
+    'oldphone15',
+    'oldphone16',
+    'oldphone17',
+    'oldphone18',
+    'oldphone19',
+    'oldphone20'
 ]
 
 FILE_RESULT_COLUMNS = [

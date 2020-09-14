@@ -26,10 +26,17 @@ MAKE_TABLE_SAMPLES = \
         oldphone7 VARCHAR,
         oldphone8 VARCHAR,
         oldphone9 VARCHAR,
-        oldphone10, VARCHAR,
+        oldphone10 VARCHAR,
         oldphone11 VARCHAR,
         oldphone12 VARCHAR,
-        oldphone13 VARCHAR
+        oldphone13 VARCHAR,
+        oldphone14 VARCHAR,
+        oldphone15 VARCHAR,
+        oldphone16 VARCHAR,
+        oldphone17 VARCHAR,
+        oldphone18 VARCHAR,
+        oldphone19 VARCHAR,
+        oldphone20 VARCHAR
     );
     """.strip()
 

@@ -228,6 +228,12 @@ class HumachResultsArchive:
         data = pd.read_sql(sql=sql, con=self.connection)
         return data
 
+    def insert_humach_sample_reference(self, humach_sample_id, other_sample_id, other_sample_source):
+        sql = f"INSERT INTO sample_reference(humach_sample_id, other_sample_id, other_sample_source) " + \
+              f"VALUES ({humach_sample_id}, {other_sample_id}, '{other_sample_source}')"
+        self.connection.execute(sql)
+        self.connection.commit()
+
     def _load_environment_variables(self):
         self._batch_load_save_dir = os.environ.get('BATCH_LOAD_SAVE_DIR')
         if self.connection is None:
@@ -290,7 +296,3 @@ class HumachResultsArchive:
         save_path = self._batch_load_save_dir + '/' + file_name
 
         data.to_csv(save_path, index=False)
-
-
-gen = HumachResultsArchive()
-gen.make_standard_batch_load_for_latest_result_sample_id()
