@@ -1,7 +1,7 @@
 import re
 import pandas as pd
 from glob import glob
-
+import columns
 
 def create_file_paths():
     '''
@@ -53,9 +53,9 @@ def create_pbd_table(pbd_orders, pbd_returns, pbd_cancels):  # staging table
                     pbd_table (pandas dataframe): table of PBD orders without canceled and refunded transactions
     '''
     import pandas as pd
-    pbd_order_columns = os.environ['PBD_ORDER_COLUMNS']
-    pbd_cancels_columns = os.environ['PBD_CANCELS_COLUMNS']
-    pbd_returns_columns = os.environ['PBD_RETURNS_COLUMNS']
+    pbd_order_columns = columns.PBD_ORDER_COLUMNS
+    pbd_cancels_columns = columns.PBD_CANCELS_COLUMNS
+    pbd_returns_columns = columns.PBD_RETURNS_COLUMNS
     # subset columns
     pbd_orders = pbd_orders[pbd_order_columns]
     pbd_returns = pbd_returns[pbd_returns_columns]
@@ -123,7 +123,7 @@ def create_olsub_sales_table(olsub_orders):  # staging table
                     sales (pandas dataframe): table of olsub orders with aggregated transactions
 
     '''
-    olsub_order_columns = os.environ['OLSUB_ORDER_COLUMNS']
+    olsub_order_columns = columns.OLSUB_ORDER_COLUMNS
 
     # subset columns
     olsub_orders = olsub_orders[olsub_order_columns]
@@ -198,7 +198,7 @@ def create_pbd_items_table(pbd_table, pbd_items):  # staging table
 
     '''
     # subset columns
-    pbd_items_columns =  os.environ['PBD_ITEMS_COLUMNS']
+    pbd_items_columns =  columns.PBD_ITEMS_COLUMNS
     pbd_items = pbd_items[pbd_items_columns]
     pbd_items['ORDER_DATE'] = pd.to_datetime(pbd_items['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
 
@@ -305,8 +305,8 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
                     customer (pandas dataframe): dataframe at a customer level
 
     '''
-    contacts_columns = os.environ['CONTACTS_COLUMNS']
-    aims_overlay_columns = os.environ['AIMS_OVERLAY_COLUMNS']
+    contacts_columns = columns.CONTACTS_COLUMNS
+    aims_overlay_columns = columns.AIMS_OVERLAY_COLUMNS
     # subset columns for contacts and aims_overlay
     contacts = contacts[contacts_columns]
     aims_overlay = aims_overlay[aims_overlay_columns]
@@ -327,7 +327,7 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
     customer = temp1.merge(temp2, on='EMPPID', how='inner')
 
     # rename columns
-    new_column_names = os.environ['NEW_COLUMN_NAMES']
+    new_column_names = columns.NEW_COLUMN_NAMES
     customer = customer.rename(columns=dict(zip(customer.columns.tolist(),
                                                 new_column_names)))
     customer['Recency'] = pd.Timestamp('today').normalize() - customer['Recent Purchase Date']
@@ -374,7 +374,7 @@ def clean_up_customer(customer):
 
 
 def create_email_campaign_table(email_campaign):
-    email_campaign_columns = os.environ['EMAIL_CAMPAIGN_COLUMNS']
+    email_campaign_columns = columns.EMAIL_CAMPAIGN_COLUMNS
     email_campaign = email_campaign[email_campaign_columns]
     new_email_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), email_campaign_columns)]
     email_campaign = email_campaign.rename(columns=dict(zip(email_campaign_columns,
