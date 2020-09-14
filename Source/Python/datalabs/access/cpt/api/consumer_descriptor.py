@@ -2,7 +2,7 @@
 from   abc import abstractmethod
 import logging
 
-from   sqlalchemy import or_
+from   sqlalchemy import or_, and_
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.model.cpt.api import ConsumerDescriptor, Release
@@ -63,10 +63,13 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
+        code = self._parameters.query.get('code')
 
         query = self._filter_for_release(query, since)
 
         query = self._filter_for_keywords(query, keywords)
+
+        query = self._filter_for_wildcard(query, code)
 
         return query
 
@@ -85,3 +88,15 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
         filter_conditions = [(ConsumerDescriptor.descriptor.ilike('%{}%'.format(word))) for word in keywords]
 
         return query.filter(or_(*filter_conditions))
+
+    @classmethod
+    def _filter_for_wildcard(cls, query, code):
+        if code is not None:
+            code = code.split('*')
+            prefix = code[0]
+            suffix = code[1]
+
+            filter_condition = [ConsumerDescriptor.code.like(f'{prefix}%'), ConsumerDescriptor.code.ilike(f'%{suffix}')]
+            query = query.filter(and_(*filter_condition))
+
+        return query
