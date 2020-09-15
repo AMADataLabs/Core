@@ -43,10 +43,18 @@ variable "endpoint_timeout" {
     default     = 15
 }
 
+
 variable "endpoint_memory_size" {
     description = "memory size in Mb"
     type        = number
     default     = 1024
+}
+
+
+variable "s3_base_path" {
+    description = "Base path for CPT data in S3"
+    type        = string
+    default     = "AMA/CPT"
 }
 
 
@@ -65,11 +73,6 @@ data "aws_ssm_parameter" "database_password" {
 
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
-}
-
-
-data "aws_ssm_parameter" "s3_base_path" {
-    name  = "/DataLabs/${var.project}/s3/base_path"
 }
 
 
@@ -115,4 +118,3 @@ data "aws_ssm_parameter" "ingestion_bucket" {
 data "aws_ssm_parameter" "processed_bucket" {
     name = "/DataLabs/DataLake/processed_bucket"
 }
-

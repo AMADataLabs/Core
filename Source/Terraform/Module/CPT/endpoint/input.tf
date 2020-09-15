@@ -57,14 +57,22 @@ variable "database_host" {
     type        = string
 }
 
+
 variable "timeout" {
     description = "timeout in seconds"
     type        = number
     default     = 15
 }
 
+
 variable "memory_size" {
     description = "lambda function memory size in Mb"
     type        = number
     default     = 1024
+}
+
+
+variable "s3_base_path" {
+    description = "Base path for CPT data in S3"
+    type        = string
 }

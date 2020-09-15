@@ -66,11 +66,6 @@ data "aws_ssm_parameter" "lambda_code_bucket" {
 }
 
 
-data "aws_ssm_parameter" "s3_base_path" {
-    name  = "/DataLabs/${var.project}/s3/base_path"
-}
-
-
 data "aws_caller_identity" "account" {}
 
 

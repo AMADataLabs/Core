@@ -89,6 +89,7 @@ module "endpoint_descriptor" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -106,6 +107,7 @@ module "endpoint_all_descriptors" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -123,6 +125,7 @@ module "endpoint_consumer_descriptor" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -140,6 +143,7 @@ module "endpoint_consumer_descriptors" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -157,6 +161,7 @@ module "endpoint_clinician_descriptors" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -174,6 +179,7 @@ module "endpoint_all_clinician_descriptors" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -191,6 +197,7 @@ module "endpoint_pla_details" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -208,6 +215,7 @@ module "endpoint_all_pla_details" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -225,6 +233,7 @@ module "endpoint_modifier" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -242,6 +251,7 @@ module "endpoint_modifiers" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -259,6 +269,7 @@ module "endpoint_latest_pdfs" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -274,6 +285,7 @@ module "endpoint_latest_pdfs" {
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
 #     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
+#     s3_base_path        = var.s3_base_path
 # }
 
 
@@ -291,6 +303,7 @@ module "endpoint_releases" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -308,6 +321,7 @@ module "endpoint_default" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
+    s3_base_path        = var.s3_base_path
 }
 
 
@@ -341,9 +355,9 @@ module "etl_convert" {
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
-        EXTRACTOR_PATH         = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_PATH              = var.s3_base_path
         EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_data_files.value
-        EXTRACTOR_SCHEDULE  = data.aws_ssm_parameter.release_schedule.value
+        EXTRACTOR_SCHEDULE          = data.aws_ssm_parameter.release_schedule.value
 
         TRANSFORMER_CLASS           = "datalabs.etl.parse.transform.ParseToCSVTransformerTask"
         TRANSFORMER_PARSERS         = data.aws_ssm_parameter.raw_data_parsers.value
@@ -351,7 +365,7 @@ module "etl_convert" {
         LOADER_CLASS                = "datalabs.etl.s3.load.S3UnicodeTextLoaderTask"
         LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
         LOADER_FILES                = data.aws_ssm_parameter.converted_data_files.value
-        LOADER_PATH            = data.aws_ssm_parameter.s3_base_path.value
+        LOADER_PATH                 = var.s3_base_path
     }
 }
 
@@ -372,14 +386,14 @@ module "etl_bundle_pdf" {
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3FileExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
-        EXTRACTOR_PATH         = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_PATH              = var.s3_base_path
         EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.value
 
         TRANSFORMER_CLASS           = "datalabs.etl.archive.transform.ZipTransformerTask"
 
         LOADER_CLASS                = "datalabs.etl.s3.load.S3FileLoaderTask"
         LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
-        LOADER_PATH            = data.aws_ssm_parameter.s3_base_path.value
+        LOADER_PATH                 = var.s3_base_path
         LOADER_FILES                = "pdfs.zip"
     }
 }
@@ -402,7 +416,7 @@ module "etl_load" {
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3UnicodeTextExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.value
-        EXTRACTOR_PATH         = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_PATH              = var.s3_base_path
         EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.value
 
         TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
