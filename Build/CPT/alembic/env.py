@@ -9,7 +9,7 @@ from alembic import context
 from datalabs.access.credentials import Credentials
 from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
-from datalabs.model.cpt.api import Base
+import datalabs.model.cpt.api as api
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -33,12 +33,14 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = Base.metadata
+target_metadata = [api.Base.metadata,]
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+schema = "cpt"
 
 
 def run_migrations_offline():
@@ -87,20 +89,20 @@ def run_migrations_online():
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
-            version_table_schema="cpt",
+            version_table_schema=schema,
             include_schemas=True,
             include_object = include_object,
             compare_type=True,
         )
 
-        connection.execute("CREATE SCHEMA IF NOT EXISTS cpt")
+        connection.execute(f"CREATE SCHEMA IF NOT EXISTS {schema}")
 
         with context.begin_transaction():
             context.run_migrations()
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    return not hasattr(object, 'schema') or object.schema == "cpt"
+    return not hasattr(object, 'schema') or object.schema == schema
 
 
 if context.is_offline_mode():
