@@ -94,7 +94,7 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
     @classmethod
     def _filter_for_wildcard(cls, query, code):
         if code is not None:
-            code = code.split('*')
+            code = code[0].split('*')
             prefix = code[0]
             suffix = code[1]
 
