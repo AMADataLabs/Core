@@ -3,14 +3,40 @@ import pandas as pd
 from glob import glob
 import columns
 
-def create_file_paths():
+def main():
+
+    input_directory, output_directory = directory_setup()
+
+    budget_code = import_budget_code(input_directory)
+
+    transform_tables(tables)
+
+    export_tables(output_directory)
+
+def directory_setup():
+    # define file paths
+    file_paths = get_file_paths()
+    # create tables using file paths
+    tables = create_tables(file_paths)
+    # define input and output directories
+    input_directory = file_paths['input_directory']
+    output_directory = file_paths['output_directory']
+
+    return(input_directory,output_directory)
+
+def import_budget_code(input_directory):
+    # import budget code
+    budget_code = pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
+                                usecols=['Item Number', 'Budget Code'])
+
+def get_file_paths():
     '''
     Returns a dictionary of three important file paths
     '''
-    file_paths = {'input_directory': 'U:/Source Files/Data Analytics/Data Engineering/SFMC/SFMC-7.3.20/',
-                  'input_table_pattern': 'U:/Source Files/Data Analytics/Data Engineering/SFMC/SFMC-7.3.20/*.txt',
-                  'output_directory': 'U:/Source Files/Data Analytics/Data Engineering/SFMC/SFMC-7.3.20/'}
-    return (file_paths)
+    file_paths = {'input_directory': os.environ['SFMC_FILE'],
+                  'input_table_pattern': os.environ['SFMC_TXT_FILE'],
+                  'output_directory': os.environ['SFMC_FILE']}
+    return file_paths
 
 
 def create_tables(file_paths):
@@ -52,14 +78,10 @@ def create_pbd_table(pbd_orders, pbd_returns, pbd_cancels):  # staging table
             Returns:
                     pbd_table (pandas dataframe): table of PBD orders without canceled and refunded transactions
     '''
-    import pandas as pd
-    pbd_order_columns = columns.PBD_ORDER_COLUMNS
-    pbd_cancels_columns = columns.PBD_CANCELS_COLUMNS
-    pbd_returns_columns = columns.PBD_RETURNS_COLUMNS
     # subset columns
-    pbd_orders = pbd_orders[pbd_order_columns]
-    pbd_returns = pbd_returns[pbd_returns_columns]
-    pbd_cancels = pbd_cancels[pbd_cancels_columns]
+    pbd_orders = pbd_orders[columns.PBD_ORDER]
+    pbd_returns = pbd_returns[columns.PBD_CANCELS]
+    pbd_cancels = pbd_cancels[columns.PBD_RETURNS]
 
     # merge all pbd tables using left join to combine all histories of Print/Book/Digital transactions
     pbd_table = pbd_orders[~pbd_orders.ORDER_NO.isin(pbd_cancels.ORDER_NO)]
@@ -123,7 +145,7 @@ def create_olsub_sales_table(olsub_orders):  # staging table
                     sales (pandas dataframe): table of olsub orders with aggregated transactions
 
     '''
-    olsub_order_columns = columns.OLSUB_ORDER_COLUMNS
+    olsub_order_columns = columns.OLSUB_ORDER
 
     # subset columns
     olsub_orders = olsub_orders[olsub_order_columns]
@@ -198,7 +220,7 @@ def create_pbd_items_table(pbd_table, pbd_items):  # staging table
 
     '''
     # subset columns
-    pbd_items_columns =  columns.PBD_ITEMS_COLUMNS
+    pbd_items_columns =  columns.PBD_ITEMS
     pbd_items = pbd_items[pbd_items_columns]
     pbd_items['ORDER_DATE'] = pd.to_datetime(pbd_items['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
 
@@ -305,8 +327,8 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
                     customer (pandas dataframe): dataframe at a customer level
 
     '''
-    contacts_columns = columns.CONTACTS_COLUMNS
-    aims_overlay_columns = columns.AIMS_OVERLAY_COLUMNS
+    contacts_columns = columns.CONTACTS
+    aims_overlay_columns = columns.AIMS_OVERLAY
     # subset columns for contacts and aims_overlay
     contacts = contacts[contacts_columns]
     aims_overlay = aims_overlay[aims_overlay_columns]
@@ -374,7 +396,7 @@ def clean_up_customer(customer):
 
 
 def create_email_campaign_table(email_campaign):
-    email_campaign_columns = columns.EMAIL_CAMPAIGN_COLUMNS
+    email_campaign_columns = columns.EMAIL_CAMPAIGN
     email_campaign = email_campaign[email_campaign_columns]
     new_email_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), email_campaign_columns)]
     email_campaign = email_campaign.rename(columns=dict(zip(email_campaign_columns,
@@ -418,21 +440,7 @@ def transform_tables(tables):
     fax = pbd_orders[pbd_orders['ORDER_TYPE'] == 'FAX']
     email_campaign = create_email_campaign_table(tables['emailcampaign'])
 
-def main():
-    # define file paths
-    file_paths = create_file_paths()
-    # create tables using file paths
-    tables = create_tables(file_paths)
-    # define input and output directories
-    input_directory = file_paths['input_directory']
-    output_directory = file_paths['output_directory']
-    # import budget code
-    budget_code = pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
-                                usecols=['Item Number', 'Budget Code'])
-    # transform tables
-    transform_tables(tables)
-    # export tables
-    export_tables(output_directory)
+
 
 
 if __name__ == '__main__':

@@ -10,3 +10,6 @@ DIRECT_MAIL='direct_mail.csv'
 FAX='fax.csv'
 EMAIL_CAMPAIGN='email_campaign.csv'
 
+# Hard Coded File Names
+SFMC_FILE='U:/Source Files/Data Analytics/Data Engineering/SFMC/SFMC-7.3.20/'
+SFMC_TXT_FILE='U:/Source Files/Data Analytics/Data Engineering/SFMC/SFMC-7.3.20/*.txt'
