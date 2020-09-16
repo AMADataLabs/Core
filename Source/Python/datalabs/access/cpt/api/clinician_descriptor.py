@@ -94,13 +94,13 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
     @classmethod
     def _filter_for_wildcard(cls, query, code):
         if code is not None:
-            code = code.split('*')
+            code = code[0].split('*')
             prefix = code[0]
             suffix = code[1]
 
             filter_condition = [
-                ClinicianDescriptor.code.like(f'{prefix}%'),
-                ClinicianDescriptor.code.ilike(f'%{suffix}')
+                ClinicianDescriptorCodeMapping.code.like(f'{prefix}%'),
+                ClinicianDescriptorCodeMapping.code.ilike(f'%{suffix}')
             ]
 
             query = query.filter(and_(*filter_condition))
