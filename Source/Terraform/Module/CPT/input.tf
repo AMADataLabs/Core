@@ -51,13 +51,6 @@ variable "endpoint_memory_size" {
 }
 
 
-variable "s3_base_path" {
-    description = "Base path for CPT data in S3"
-    type        = string
-    default     = "AMA/CPT"
-}
-
-
 data "aws_caller_identity" "account" {}
 
 
@@ -73,6 +66,11 @@ data "aws_ssm_parameter" "database_password" {
 
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
+}
+
+
+data "aws_ssm_parameter" "s3_base_path" {
+    name  = "/DataLabs/${var.project}/s3/base_path"
 }
 
 
