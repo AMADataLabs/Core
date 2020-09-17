@@ -22,7 +22,7 @@ def directory_setup():
     input_directory = file_paths['input_directory']
     output_directory = file_paths['output_directory']
 
-    return(input_directory,output_directory)
+    return input_directory,output_directory
 
 def import_budget_code(input_directory):
     # import budget code
@@ -63,7 +63,7 @@ def create_tables(file_paths):
 
     # dynamic naming of tables
     tables = dict(zip(tablenames, files))
-    return (tables)
+    return tables
 
 
 def create_pbd_table(pbd_orders, pbd_returns, pbd_cancels):  # staging table
@@ -297,21 +297,21 @@ def match_budget_codes(product_sales, budget_code):  # helper function
     # fill up the remaining budget codes
     product_sales_unmatched['Budget Code'] = product_sales_unmatched.apply(unmatched_budget_codes, axis=1)
     product_sales_coded = pd.concat([product_sales_matched, product_sales_unmatched])
-    return (product_sales_coded)
+    return product_sales_coded
 
 
 def create_product_main_table(product_sales_coded):
     main_product_names = ['CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
     main_product_indices = product_sales_coded['Product Names'].str.contains('|'.join(main_product_names))
     product_main = product_sales_coded[main_product_indices]
-    return (product_main)
+    return product_main
 
 
 def create_product_remainder_table(product_sales_coded):
     main_product_names = ['BUDGET_DESC','CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
     main_product_indices = product_sales_coded['Product Names'].str.contains('|'.join(main_product_names))
     product_remainder = product_sales_coded[~main_product_indices]
-    return (product_remainder)
+    return product_remainder
 
 
 def create_customer_table(pbd_table, contacts, aims_overlay):
