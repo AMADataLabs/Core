@@ -1,3 +1,9 @@
+provider "aws" {
+    region = "us-east-1"
+    version = "~> 3.0"
+}
+
+
 resource "aws_ssm_parameter" "account_environment" {
     name  = "/DataLabs/account_environment"
     type  = "String"
