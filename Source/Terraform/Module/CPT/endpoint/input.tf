@@ -76,3 +76,41 @@ variable "s3_base_path" {
     description = "Base path for CPT data in S3"
     type        = string
 }
+
+
+data "aws_kms_key" "cpt" {
+  key_id = "alias/DataLabs/${var.project}"
+}
+
+
+data "aws_ssm_parameter" "database_username" {
+    name = "/DataLabs/${var.project}/RDS/username"
+}
+
+
+data "aws_ssm_parameter" "database_password" {
+    name = "/DataLabs/${var.project}/RDS/password"
+}
+
+
+data "aws_ssm_parameter" "processed_bucket" {
+    name = "/DataLabs/DataLake/processed_bucket"
+}
+
+
+data "aws_ssm_parameter" "lambda_code_bucket" {
+    name = "/DataLabs/lambda_code_bucket"
+}
+
+
+data "aws_caller_identity" "account" {}
+
+
+data "aws_ssm_parameter" "account_environment" {
+    name = "/DataLabs/account_environment"
+}
+
+
+data "aws_ssm_parameter" "contact" {
+    name = "/DataLabs/contact"
+}

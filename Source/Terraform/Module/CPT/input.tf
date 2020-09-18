@@ -116,3 +116,18 @@ data "aws_ssm_parameter" "ingestion_bucket" {
 data "aws_ssm_parameter" "processed_bucket" {
     name = "/DataLabs/DataLake/processed_bucket"
 }
+
+
+data "aws_kms_key" "cpt" {
+  key_id = "alias/DataLabs/${var.project}"
+}
+
+
+data "aws_sns_topic" "ingestion" {
+    name = "IngestionBucketNotification"
+}
+
+
+data "aws_sns_topic" "processed" {
+    name = "ProcessedBucketNotification"
+}

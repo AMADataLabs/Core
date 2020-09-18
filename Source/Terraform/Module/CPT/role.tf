@@ -65,8 +65,8 @@ resource "aws_iam_policy" "lambda_kms_access" {
             ],
             "Resource": [
                 "arn:aws:ssm:${local.region}:${data.aws_caller_identity.account.account_id}:parameter/DataLabs/DataLake/*",
-                "arn:aws:ssm:${local.region}:${data.aws_caller_identity.account.account_id}:parameter/DataLabs/${var.project.value}/*"
-            ]
+                "arn:aws:ssm:${local.region}:${data.aws_caller_identity.account.account_id}:parameter/DataLabs/${var.project}/*"
+            ],
             "Effect": "Allow"
         },
         {
@@ -151,9 +151,4 @@ EOF
 resource "aws_iam_role_policy_attachment" "parent_lambda" {
     role       = aws_iam_role.lambda_role.name
     policy_arn = aws_iam_policy.parent_lambda.arn
-}
-
-
-data "aws_kms_key" "cpt" {
-  key_id = "alias/DataLabs/${var.project}"
 }
