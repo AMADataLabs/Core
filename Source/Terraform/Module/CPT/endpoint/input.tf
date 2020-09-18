@@ -72,14 +72,8 @@ variable "memory_size" {
 }
 
 
-variable "s3_base_path" {
-    description = "Base path for CPT data in S3"
-    type        = string
-}
-
-
 data "aws_kms_key" "cpt" {
-  key_id = "alias/DataLabs/${var.project}"
+    key_id = "alias/DataLabs/${var.project}"
 }
 
 
@@ -100,6 +94,11 @@ data "aws_ssm_parameter" "processed_bucket" {
 
 data "aws_ssm_parameter" "lambda_code_bucket" {
     name = "/DataLabs/lambda_code_bucket"
+}
+
+
+data "aws_ssm_parameter" "s3_base_path" {
+    name = "/DataLabs/${var.project}/s3/base_path"
 }
 
 

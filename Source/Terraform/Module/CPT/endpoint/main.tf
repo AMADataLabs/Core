@@ -20,7 +20,7 @@ resource "aws_lambda_function" "endpoint_lambda" {
             DATABASE_USERNAME       = data.aws_ssm_parameter.database_username.value
             DATABASE_PASSWORD       = data.aws_ssm_parameter.database_password.value
             BUCKET_NAME             = data.aws_ssm_parameter.processed_bucket.value
-            BUCKET_BASE_PATH        = var.s3_base_path
+            BUCKET_BASE_PATH        = data.aws_ssm_parameter.s3_base_path.value
             BUCKET_URL_DURATION     = "600"
         }
     }

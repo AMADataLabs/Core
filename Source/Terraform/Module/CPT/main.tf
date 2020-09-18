@@ -89,7 +89,6 @@ module "endpoint_descriptor" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -107,7 +106,6 @@ module "endpoint_all_descriptors" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -125,7 +123,6 @@ module "endpoint_consumer_descriptor" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -143,7 +140,6 @@ module "endpoint_consumer_descriptors" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -161,7 +157,6 @@ module "endpoint_clinician_descriptors" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -179,7 +174,6 @@ module "endpoint_all_clinician_descriptors" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -197,7 +191,6 @@ module "endpoint_pla_details" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -215,7 +208,6 @@ module "endpoint_all_pla_details" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -233,7 +225,6 @@ module "endpoint_modifier" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -251,7 +242,6 @@ module "endpoint_modifiers" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -269,7 +259,6 @@ module "endpoint_latest_pdfs" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -285,7 +274,6 @@ module "endpoint_latest_pdfs" {
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
 #     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
-#     s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 # }
 
 
@@ -303,7 +291,6 @@ module "endpoint_releases" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
@@ -321,7 +308,6 @@ module "endpoint_default" {
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
-    s3_base_path        = data.aws_ssm_parameter.s3_base_path.value
 }
 
 
