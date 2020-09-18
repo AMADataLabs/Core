@@ -5,7 +5,7 @@ provider "aws" {
 
 
 module "cpt" {
-    source = "../../../Module/CPT"
+    source = "../../Module/CPT"
 
     rds_instance_name   = "database-test-ui"
     rds_instance_class  = "db.t2.micro"
