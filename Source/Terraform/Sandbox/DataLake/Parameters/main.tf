@@ -4,27 +4,33 @@ provider "aws" {
 }
 
 
-module "datalabs_terraform_state" {
-    source                      = "../../Module/DataLabs"
-    project                     = "DataLabs"
-    bitbucket_username          = "hsgdatalabs"
-    bitbucket_app_password      = var.bitbucket_app_password
+resource "aws_ssm_parameter" "ingestion_bucket" {
+    name  = "/DataLabs/${local.project}/ingestion_bucket"
+    type  = "String"
+    value = format("ama-hsg-datalabs-%s-ingestion-sandbox", lower(local.project))
+    tags = local.tags
+}
+
+
+resource "aws_ssm_parameter" "processed_bucket" {
+    name  = "/DataLabs/${local.project}/processed_bucket"
+    type  = "String"
+    value = format("ama-hsg-datalabs-%s-processed-sandbox", lower(local.project))
+    tags = local.tags
 }
 
 
 locals {
-    account_environment = "Sandbox"
-    contact             = "DataLabs@ama-assn.org"
     system_tier         = "Application"
     na                  = "N/A"
     budget_code         = "PBW"
     owner               = "DataLabs"
     notes               = ""
-    project             = "DataLabs"
+    project             = "DataLake"
     tags                = {
         Name = "Data Labs Data Lake Parameter"
-        Env                 = "Sandbox"
-        Contact             = local.contact
+        Env                 = data.aws_ssm_parameter.account_environment.value
+        Contact             = data.aws_ssm_parameter.contact.value
         SystemTier          = local.system_tier
         DRTier              = local.na
         DataClassification  = local.na

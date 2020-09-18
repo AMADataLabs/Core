@@ -90,10 +90,6 @@ resource "aws_codebuild_project" "testing" {
       buildspec         = "Build/Master/buildspec.yaml"
       git_clone_depth = 1
 
-      git_submodules_config {
-        fetch_submodules = false
-      }
-
       auth {
           type          = "OAUTH"
           resource      = aws_codebuild_source_credential.codebuild.arn

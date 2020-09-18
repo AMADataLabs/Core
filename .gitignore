@@ -5,6 +5,8 @@
 **/.idea/
 **/.ipynb_checkpoints
 **/.terraform
+*.backup
+*.tfstate
 Source/Terraform/**/tfplan
 Source/Terraform/**/terraform.tfvars
 Environment/*

@@ -119,13 +119,3 @@ resource "aws_sns_topic_subscription" "processed_etl_router" {
   protocol  = "lambda"
   endpoint  = aws_lambda_function.processed_etl_router.arn
 }
-
-
-data "aws_sns_topic" "ingestion" {
-    name = "IngestionBucketNotification"
-}
-
-
-data "aws_sns_topic" "processed" {
-    name = "ProcessedBucketNotification"
-}
