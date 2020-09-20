@@ -23,9 +23,12 @@ def lambda_handler(event, context):
             key = sqs_record['s3']['object']['key']
             print(f'Object updated: {key}')
 
-            match = re.match('AMA/CPT/([0-9]{8})/..*ETL_TRIGGER', key)
+            match = re.match('AMA/CPT/([0-9]{8})/.*ETL_TRIGGER', key)
             if match:
+                print(f'Triggering with execution date: {match.group(1)}')
                 _trigger_etls(match.group(1))
+            else:
+                print(f'Ignoring non-trigger file update: {key}')
 
     return 200, None
 
@@ -40,7 +43,7 @@ def _trigger_etls(execution_date):
         response = client.invoke(
             FunctionName = f'arn:aws:lambda:{region}:{account}:function:{function}',
             InvocationType = 'RequestResponse',
-            Payload = json.dumps(dict(execution_time=f'{run_date}T00:00:00+00:00'))
+            Payload = json.dumps(dict(execution_time=f'{execution_date}T00:00:00+00:00'))
         )
 EOF
   }
