@@ -41,15 +41,25 @@ def expected_parameters():
     return etl.ETLParameters(
         extractor=etl.ETLComponentParameters(
             database=dict(host='r2d2.droid.com'),
-            variables=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing='True')
+            variables=dict(
+                CLASS='test.datalabs.etl.test_extract.Extractor',
+                thing='True',
+                EXECUTION_TIME='20200615T12:24:38+02:30'
+            )
         ),
         transformer=etl.ETLComponentParameters(
             database=dict(host='c3po.droid.com'),
-            variables=dict(CLASS='test.datalabs.etl.test_transform.Transformer')
+            variables=dict(
+                CLASS='test.datalabs.etl.test_transform.Transformer',
+                EXECUTION_TIME='20200615T12:24:38+02:30'
+            )
         ),
         loader=etl.ETLComponentParameters(
             database=dict(host='l337.droid.com'),
-            variables=dict(CLASS='test.datalabs.etl.test_load.Loader')
+            variables=dict(
+                CLASS='test.datalabs.etl.test_load.Loader',
+                EXECUTION_TIME='20200615T12:24:38+02:30'
+            )
         )
     )
 
@@ -65,7 +75,7 @@ def event():
     os.environ['LOADER_CLASS'] = 'test.datalabs.etl.test_load.Loader'
     os.environ['LOADER_DATABASE_HOST'] = 'l337.droid.com'
 
-    yield os.environ
+    yield dict(execution_time='20200615T12:24:38+02:30')
 
     os.environ.clear()
     os.environ.update(current_env)

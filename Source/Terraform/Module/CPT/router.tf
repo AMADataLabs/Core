@@ -7,6 +7,7 @@ data "archive_file" "etl_router" {
         content     = <<EOF
 import json
 import os
+import re
 
 import boto3
 
@@ -22,12 +23,13 @@ def lambda_handler(event, context):
             key = sqs_record['s3']['object']['key']
             print(f'Object updated: {key}')
 
-            if key.startswith('AMA/CPT/') and key.endswith('ETL_TRIGGER'):
-                _trigger_etls(key)
+            match = re.match('AMA/CPT/([0-9]{8})/..*ETL_TRIGGER', key)
+            if match:
+                _trigger_etls(match.group(1))
 
     return 200, None
 
-def _trigger_etls(trigger_file):
+def _trigger_etls(execution_date):
     region = os.environ['REGION']
     account = os.environ['ACCOUNT']
     functions = os.environ['FUNCTIONS'].split(',')
@@ -38,7 +40,7 @@ def _trigger_etls(trigger_file):
         response = client.invoke(
             FunctionName = f'arn:aws:lambda:{region}:{account}:function:{function}',
             InvocationType = 'RequestResponse',
-            Payload = json.dumps(dict(trigger_file=trigger_file))
+            Payload = json.dumps(dict(execution_time=f'{run_date}T00:00:00+00:00'))
         )
 EOF
   }
