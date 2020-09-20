@@ -54,7 +54,7 @@ class S3FileLoaderTask(LoaderTask):
         execution_date = None
 
         if execution_time:
-            execution_date = isoparse(execution_time).date()
+            execution_date = isoparse(execution_time).date().strftime('%Y%m%d')
 
         return execution_date
 

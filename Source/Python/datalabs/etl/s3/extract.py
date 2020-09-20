@@ -35,7 +35,6 @@ class S3FileExtractorTask(ExtractorTask):
         super().__init__(parameters)
 
         self._s3 = boto3.client('s3')
-        self._latest_path = None
 
     def _extract(self):
         latest_path = self._get_latest_path()
@@ -44,7 +43,9 @@ class S3FileExtractorTask(ExtractorTask):
         return [(file, self._extract_file(file)) for file in files]
 
     def _get_latest_path(self):
-        if self._latest_path is None:
+        release_folder = self._get_execution_date()
+
+        if release_folder is None:
             release_folders = sorted(
                 self._listdir(
                     self._parameters.variables['BUCKET'],
@@ -52,9 +53,9 @@ class S3FileExtractorTask(ExtractorTask):
                 )
             )
 
-            self._latest_path = '/'.join((self._parameters.variables['PATH'], release_folders[-1]))
+            release_folder = release_folders[-1]
 
-        return self._latest_path
+        return '/'.join((self._parameters.variables['PATH'], release_folder))
 
     def _get_files(self, base_path):
         unresolved_files = ['/'.join((base_path, file)) for file in self._parameters.variables['FILES'].split(',')]
@@ -84,6 +85,15 @@ class S3FileExtractorTask(ExtractorTask):
             raise ETLException(f'Unable to decode S3 object {file_path}: {exception}')
 
         return decoded_data
+
+    def _get_execution_date(self):
+        execution_time = self._parameters.variables.get('EXECUTION_TIME')
+        execution_date = None
+
+        if execution_time:
+            execution_date = isoparse(execution_time).date().strftime('%Y%m%d')
+
+        return execution_date
 
     def _listdir(self, bucket, base_path):
         response = self._s3.list_objects_v2(Bucket=bucket, Prefix=base_path)
