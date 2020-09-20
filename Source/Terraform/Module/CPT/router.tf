@@ -23,11 +23,11 @@ def lambda_handler(event, context):
             print(f'Object updated: {key}')
 
             if key.startswith('AMA/CPT/') and key.endswith('ETL_TRIGGER'):
-                _trigger_etls()
+                _trigger_etls(key)
 
     return 200, None
 
-def _trigger_etls():
+def _trigger_etls(trigger_file):
     region = os.environ['REGION']
     account = os.environ['ACCOUNT']
     functions = os.environ['FUNCTIONS'].split(',')
@@ -38,7 +38,7 @@ def _trigger_etls():
         response = client.invoke(
             FunctionName = f'arn:aws:lambda:{region}:{account}:function:{function}',
             InvocationType = 'RequestResponse',
-            Payload = json.dumps({})
+            Payload = json.dumps(dict(trigger_file=trigger_file))
         )
 EOF
   }
