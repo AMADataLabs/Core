@@ -15,7 +15,7 @@ class CPTTextDataExtractorTask(extract.S3UnicodeTextFileExtractorTask):
         release_datestamp = self._get_execution_date() or self._extract_release_date()
         release_date = isoparse(release_datestamp).date()
         release_schedule = json.loads(self._parameters.variables['SCHEDULE'])
-        release_source_path = os.path.join(self._parameters.variables['PATH'], release_date)
+        release_source_path = os.path.join(self._parameters.variables['PATH'], release_datestamp)
 
         data.insert(0, (release_source_path, self._generate_release_details(release_schedule, release_date)))
 
