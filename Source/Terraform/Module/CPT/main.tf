@@ -348,7 +348,7 @@ module "etl_convert" {
         TRANSFORMER_CLASS           = "datalabs.etl.parse.transform.ParseToCSVTransformerTask"
         TRANSFORMER_PARSERS         = data.aws_ssm_parameter.raw_data_parsers.value
 
-        LOADER_CLASS                = "datalabs.etl.s3.load.S3UnicodeTextLoaderTask"
+        LOADER_CLASS                = "datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask"
         LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
         LOADER_FILES                = data.aws_ssm_parameter.converted_data_files.value
         LOADER_PATH                 = data.aws_ssm_parameter.s3_base_path.value
@@ -400,7 +400,7 @@ module "etl_load" {
     timeout                 = 300
 
     variables               = {
-        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3UnicodeTextExtractorTask"
+        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3UnicodeTextFileExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.value
         EXTRACTOR_PATH              = data.aws_ssm_parameter.s3_base_path.value
         EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.value

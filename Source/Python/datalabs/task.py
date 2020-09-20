@@ -27,7 +27,7 @@ class TaskException(BaseException):
 class TaskWrapper(ABC):
     def __init__(self, task_class, parameters=None):
         self._task_class = task_class
-        self._parameters = parameters
+        self._parameters = parameters or {}
         self._task = None
 
         if not hasattr(self._task_class, 'run'):
@@ -46,9 +46,8 @@ class TaskWrapper(ABC):
 
         return response
 
-    @abstractmethod
     def _get_task_parameters(self):
-        pass
+        return self._parameters
 
     @abstractmethod
     def _generate_response(self) -> (int, dict):
