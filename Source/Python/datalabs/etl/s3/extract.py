@@ -25,9 +25,10 @@
     AMA/CPT/20200401/standard/SHORTU.txt
 """
 import boto3
+from   dateutil.parser import isoparse
 
-from datalabs.etl.extract import ExtractorTask
-from datalabs.etl.task import ETLException
+from   datalabs.etl.extract import ExtractorTask
+from   datalabs.etl.task import ETLException
 
 
 class S3FileExtractorTask(ExtractorTask):
