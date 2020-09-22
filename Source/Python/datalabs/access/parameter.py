@@ -11,22 +11,25 @@ class ParameterStoreEnvironmentLoader:
         self._ssm = boto3.client('ssm', verify=verify_ssl_certs)
 
     def load(self, environment: dict=None):
-        environment = environment or os.environ
-        parameter_store_keys = list(self._parameters.keys())
+        if self._parameters:
+            environment = environment or os.environ
 
-        parameter_values = self._get_parameters_from_parameter_store(parameter_store_keys)
+            parameter_store_keys = list(self._parameters.keys())
 
-        environment_variables = self._map_parameters_to_environment_variables(parameter_values)
+            parameter_values = self._get_parameters_from_parameter_store(parameter_store_keys)
 
-        environment.update(environment_variables)
+            environment_variables = self._map_parameters_to_environment_variables(parameter_values)
+
+            environment.update(environment_variables)
 
     @classmethod
     def from_environ(cls):
+        verify_ssl_certs = str(os.environ.get('VERIFY_SSL_CERTS')).upper() != 'FALSE'
         arn_variables =  {key:value for key, value in os.environ.items() if value.startswith('arn:')}
 
         parameter_variables = cls._get_parameter_store_arn_variables(arn_variables)
 
-        return ParameterStoreEnvironmentLoader(parameter_variables)
+        return ParameterStoreEnvironmentLoader(parameter_variables, verify_ssl_certs=verify_ssl_certs)
 
     def _get_parameters_from_parameter_store(self, parameter_store_keys):
         response = self._ssm.get_parameters(Names=parameter_store_keys, WithDecryption=True)
