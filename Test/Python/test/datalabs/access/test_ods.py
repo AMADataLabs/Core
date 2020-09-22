@@ -1,3 +1,5 @@
+import os
+
 import jaydebeapi
 import pytest
 import sqlalchemy as sa
@@ -13,7 +15,7 @@ def test_jdbc_connction():
     ods = jaydebeapi.connect(
         'com.ibm.db2.jcc.DB2Jcc',
         'jdbc:db2://rdbp1190.ama-assn.org:54150/eprdods',
-        ['AMA_DOMAIN_USERNAME', 'AMA_DOMAIN_PASSWORD'],
+        [os.getenv('DATABASE_ODS_USERNAME'), os.getenv('DATABASE_ODS_PASSWORD')],
         './db2jcc4.jar'
     )
 
@@ -30,7 +32,9 @@ def test_jdbc_connction():
 
 @pytest.mark.skip(reason="Example SQLAlchemy Usage")
 def test_sqlalchemy_connection():
-    engine = sa.create_engine("ibmi://AMA_DOMAIN_USERNAME:AMA_DOMAIN_PASSWORD@rdbp1190.ama-assn.org:54150/eprdods")
+    username = os.getenv('DATABASE_ODS_USERNAME')
+    password = os.getenv('DATABASE_ODS_PASSWORD')
+    engine = sa.create_engine(f"ibmi://{username}:{password}@rdbp1190.ama-assn.org:54150/eprdods")
     connection = engine.connect()
     metadata = sa.MetaData()
 
