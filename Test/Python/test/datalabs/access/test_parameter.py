@@ -8,6 +8,7 @@ import pytest
 from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
 
 
+# pylint: disable=redefined-outer-name
 def test_get_parameters_from_parameter_store(parameter_values):
     with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
         mock_boto3.client.return_value.get_parameters.return_value = parameter_values
@@ -24,6 +25,14 @@ def test_get_parameters_from_parameter_store(parameter_values):
         assert 'DATABASE_FOOBAR_PASSWORD' in os.environ
         assert os.getenv('DATABASE_FOOBAR_USERNAME') == 'mrtwinkles'
         assert os.getenv('DATABASE_FOOBAR_PASSWORD') == 'ligo123'
+
+
+# pylint: disable=redefined-outer-name,protected-access
+def test_from_environ(environment):
+    loader = ParameterStoreEnvironmentLoader.from_environ()
+
+    assert '/DataLabs/CPT/FooBar/username' in loader._parameters
+    assert '/DataLabs/CPT/FooBar/password' in loader._parameters
 
 
 @pytest.mark.skip(reason="Example Boto3 Usage")
@@ -69,3 +78,15 @@ def parameter_values():
         ],
         'InvalidParameters': []
     }
+
+@pytest.fixture
+def environment():
+    current_environment = os.environ.copy()
+
+    os.environ['DATABASE_FOOBAR_USERNAME'] = 'arn:aws:ssm:us-east-1:644454719059:parameter/DataLabs/CPT/FooBar/username'
+    os.environ['DATABASE_FOOBAR_PASSWORD'] = 'arn:aws:ssm:us-east-1:644454719059:parameter/DataLabs/CPT/FooBar/password'
+
+    yield os.environ
+
+    os.environ.clear()
+    os.environ.update(current_environment)
