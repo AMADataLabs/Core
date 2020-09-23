@@ -1,0 +1,120 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: airflow-persistent-template
+message: |-
+    The following service(s) have been created in your project: ${AIRFLOW_SERVICE_NAME}.
+
+    Connection URL: https:/${AIRFLOW_SERVICE_NAME}/
+metadata:
+  name: airflow-persistent
+  namespace: hsg-data-labs-dev
+  annotations:
+    description: |-
+      Airflow scheduler and webserver with a persistent PostgreSQL metadata backend.
+    iconClass: airbnb
+    openshift.io/display-name: Airflow
+    openshift.io/documentation-url: https://airflow.apache.org/
+    openshift.io/long-description: This template provides a standalone Airflow scheduler and webserver.  It includes
+      a PostgreSQL database for metadata storage. All services are backed by a persistent volume.
+    openshift.io/provider-display-name: HSG Data Labs
+    tags: object,storage,s3
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${AIRFLOW_SERVICE_NAME}-ui
+    annotations:
+      template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
+  spec:
+    ports:
+    - name: http
+      nodePort: 0
+      port: 8080
+      protocol: TCP
+      targetPort: http
+    selector:
+      name: ${AIRFLOW_SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${AIRFLOW_SERVICE_NAME}-route
+    annotations:
+      template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
+  spec:
+    host: ${AIRFLOW_SERVICE_NAME}.apps.openshifttest.ama-assn.org
+    port:
+      targetPort: http
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: ${AIRFLOW_SERVICE_NAME}-ui
+      weight: 100
+    wildcardPolicy: None
+    selector:
+      name: ${AIRFLOW_SERVICE_NAME}
+  status:
+    ingress: null
+# - apiVersion: v1
+#   kind: PersistentVolumeClaim
+#   metadata:
+#     name: ${AIRFLOW_SERVICE_NAME}
+#   spec:
+#     accessModes:
+#     - ReadWriteOnce
+#     resources:
+#       requests:
+#         storage: ${VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${AIRFLOW_SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      name: ${AIRFLOW_SERVICE_NAME}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: ${AIRFLOW_SERVICE_NAME}
+      spec:
+        containers:
+        - capabilities: {}
+          command:
+          - /entrypoint.sh
+          image: "hsg-data-labs-dev/airflow"
+          imagePullPolicy: IfNotPresent
+          name: airflow
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          terminationMessagePath: /dev/termination-log
+          # volumeMounts:
+          # - mountPath: /var/lib/airflow/data
+          #   name: ${AIRFLOW_SERVICE_NAME}-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        # volumes:
+        # - name: ${AIRFLOW_SERVICE_NAME}-data
+        #   persistentVolumeClaim:
+        #     claimName: ${AIRFLOW_SERVICE_NAME}
+parameters:
+- description: The OpenShift Namespace where the ImageStream resides.
+  displayName: Namespace
+  name: NAMESPACE
+  value: hsg-data-labs-dev
+- description: The name of the OpenShift Service exposed for the database.
+  displayName: Airflow Service Name
+  name: AIRFLOW_SERVICE_NAME
+  value: airflow
+- description: Volume space available for data, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  name: VOLUME_CAPACITY
+  value: 1Gi
