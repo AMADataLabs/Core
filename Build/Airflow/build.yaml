@@ -1,0 +1,45 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: Airflow scheduler and web server
+    openshift.io/display-name: HSGDataLabsAirflow
+  creationTimestamp: null
+  labels:
+    app: HSGDataLabsAirflow
+  name: hsg-data-labs-airflow
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: hsg-data-labs-airflow:latest
+      namespace: hsg-data-labs-dev
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
+      ref: story/DL-1053
+    sourceSecret:
+      name: bitbucketprd
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Build/Airflow/Dockerfile
+      from:
+        kind: ImageStreamTag
+        name: python:3.7
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - github:
+      secret: qZJ_ZEvW9lhY8yGoSkpg
+    type: GitHub
+  - generic:
+      secret: jVit3toJB5LPjRMAIrXw
+    type: Generic
+  - type: ConfigChange
+    type: ImageChange
