@@ -1,6 +1,6 @@
 import os
 from sqlite3 import Connection
-from sql_statements import *
+from datalabs.analysis.vertical_trail.physician_contact.sql_statements import *
 
 import settings
 
