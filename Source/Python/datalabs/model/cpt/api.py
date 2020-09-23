@@ -28,7 +28,7 @@ class Release(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     publish_date = sa.Column(sa.Date, nullable=False)
-    effective_date = sa.Column(sa.Date, nullable=False, unique=True)
+    effective_date = sa.Column(sa.Date, nullable=False)
     type = sa.Column(sa.String(6), sa.ForeignKey("cpt.release_type.type"), nullable=False)
 
 
