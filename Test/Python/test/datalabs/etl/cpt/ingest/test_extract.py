@@ -30,7 +30,7 @@ def test_datestamp_conversion():
 def test_extract_release_date(get_latest_path):
     get_latest_path.return_value = 'AMA/CPT/20200131'
     extractor = CPTTextDataExtractorTask(None)
-    expected_release_date = date(2020, 1, 31)
+    expected_release_date = '20200131'
     release_date = extractor._extract_release_date()
 
     assert get_latest_path.call_count == 1

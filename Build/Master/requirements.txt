@@ -1,5 +1,6 @@
 setuptools==41.0.0
 alembic==1.4.2
+arnparse==0.0.2
 boto3==1.12.45
 coverage==5.1
 docker==4.2.1
