@@ -126,12 +126,16 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         publish_dates = [self._generate_release_publish_date(date, release_schedule) for date in effective_dates]
 
         pla_effective_dates, pla_publish_dates, pla_release_types = self._generate_pla_release(pla)
-        for date in effective_dates: effective_dates.append(date)
-        for date in pla_publish_dates: publish_dates.append(date)
-        for date in pla_release_types: release_types.append(date)
+        for date in pla_effective_dates:
+            effective_dates.append(date)
+        for date in pla_publish_dates:
+            publish_dates.append(date)
+        for date in pla_release_types:
+            release_types.append(date)
 
         releases = pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
+        releases = releases.drop_duplicates(ignore_index=True)
 
         return releases
 
@@ -235,7 +239,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         cpt_mapping_table = cpt_mapping_table.drop(columns=['change'])
         cpt_mapping_table.drop_duplicates(subset='code', keep='last', inplace=True)
 
-        pla_mapping_table = pla[['published_date', 'pla_code']].rename(columns=dict(published_date='release',
+        pla_mapping_table = pla[['effective_date', 'pla_code']].rename(columns=dict(effective_date='release',
                                                                                     pla_code='code'))
         pla_mapping_table = pla_mapping_table.loc[pla_mapping_table.code.isin(codes.code)]
 
