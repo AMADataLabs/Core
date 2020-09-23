@@ -3,19 +3,19 @@ kind: BuildConfig
 metadata:
   annotations:
     openshift.io/description: Airflow scheduler and web server
-    openshift.io/display-name: HSGDataLabsAirflow
+    openshift.io/display-name: Airflow
   creationTimestamp: null
   labels:
-    app: HSGDataLabsAirflow
-  name: hsg-data-labs-airflow
+    app: Airflow
+  name: airflow
+  namespace: hsg-data-labs-dev
 spec:
   failedBuildsHistoryLimit: 5
   nodeSelector: null
   output:
     to:
       kind: ImageStreamTag
-      name: hsg-data-labs-airflow:latest
-      namespace: hsg-data-labs-dev
+      name: airflow:latest
   postCommit: {}
   resources: {}
   runPolicy: Serial
@@ -35,11 +35,4 @@ spec:
     type: Docker
   successfulBuildsHistoryLimit: 5
   triggers:
-  - github:
-      secret: qZJ_ZEvW9lhY8yGoSkpg
-    type: GitHub
-  - generic:
-      secret: jVit3toJB5LPjRMAIrXw
-    type: Generic
   - type: ConfigChange
-    type: ImageChange
