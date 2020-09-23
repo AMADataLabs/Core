@@ -1,6 +1,7 @@
 """ AWS S3 Loader """
 import base64
 from   datetime import datetime
+from   dateutil.parser import isoparse
 import hashlib
 import logging
 
@@ -27,7 +28,7 @@ class S3FileLoaderTask(LoaderTask):
         return [self._load_file(current_path, file, data) for file, data in zip(files, self._parameters.data)]
 
     def _get_current_path(self):
-        current_date = datetime.utcnow().date().strftime('%Y%m%d')
+        current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
 
         return '/'.join((self._parameters.variables['PATH'], current_date))
 
@@ -47,6 +48,15 @@ class S3FileLoaderTask(LoaderTask):
             Key=file_path,
             Body=body,
             ContentMD5=b64_md5_hash.decode('utf-8'))
+
+    def _get_execution_date(self):
+        execution_time = self._parameters.variables.get('EXECUTION_TIME')
+        execution_date = None
+
+        if execution_time:
+            execution_date = isoparse(execution_time).date().strftime('%Y%m%d')
+
+        return execution_date
 
     def _encode(self, data):
         return data

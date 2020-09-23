@@ -229,12 +229,17 @@ class VTPhysicianContactSampleGenerator:
             phone_list = temp_phone_dict[entity_id]['old_phones']
             entity_id_index = old_phone_data[old_phone_data['entity_id'] == entity_id].index[0]
 
-            for i in range(len(phone_list)):
+            for i in range(min(20, len(phone_list))):
                 phone = phone_list[i]
                 name = 'oldphone' + str(i + 1)
                 old_phone_data.loc[entity_id_index, name] = phone
 
+        max_phones = 20
         oldphone_name_list = ['oldphone' + str(i + 1) for i in range(max_phones)]
+
+        for col in oldphone_name_list:
+            if col not in old_phone_data:
+                old_phone_data[col] = ''
         return old_phone_data, oldphone_name_list
 
     @classmethod
@@ -335,3 +340,7 @@ class VTPhysicianContactSampleGenerator:
     @classmethod
     def _filter_data(cls, data: pd.DataFrame, data_col: str, filter_data: pd.DataFrame, filter_col: str):
         return data[~data[data_col].isin(filter_data[filter_col])]
+
+
+gen = VTPhysicianContactSampleGenerator()
+gen.run()
