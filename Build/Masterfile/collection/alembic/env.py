@@ -9,7 +9,7 @@ from alembic import context
 from datalabs.access.credentials import Credentials
 from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
-import datalabs.model.cpt.api as api
+from datalabs.model.masterfile.collection import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -25,22 +25,22 @@ config.set_main_option(
     database.url
 )
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
-fileConfig(config.config_file_name)
-
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = [api.Base.metadata,]
+target_metadata = Base.metadata
+
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
+fileConfig(config.config_file_name)
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-schema = "cpt"
+schema = 'collection'
 
 
 def run_migrations_offline():
@@ -63,7 +63,7 @@ def run_migrations_offline():
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         include_schemas=True,
-        include_object = include_object,
+        include_object=include_object,
         compare_type=True,
     )
 
@@ -91,7 +91,7 @@ def run_migrations_online():
             target_metadata=target_metadata,
             version_table_schema=schema,
             include_schemas=True,
-            include_object = include_object,
+            include_object=include_object,
             compare_type=True,
         )
 

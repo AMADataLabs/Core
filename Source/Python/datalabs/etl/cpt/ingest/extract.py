@@ -1,5 +1,6 @@
 """ Extractor class for CPT standard release text data from the S3 ingestion bucket. """
 from   datetime import date, datetime
+from   dateutil.parser import isoparse
 import json
 import os
 
@@ -8,14 +9,13 @@ import pandas
 import datalabs.etl.s3.extract as extract
 
 
-class CPTTextDataExtractorTask(extract.S3UnicodeTextExtractorTask):
+class CPTTextDataExtractorTask(extract.S3UnicodeTextFileExtractorTask):
     def _extract(self):
         data = super()._extract()
-        release_date = self._extract_release_date()
+        release_datestamp = self._get_execution_date() or self._extract_release_date()
+        release_date = isoparse(release_datestamp).date()
         release_schedule = json.loads(self._parameters.variables['SCHEDULE'])
-        release_source_path = os.path.join(
-            self._parameters.variables['PATH'], release_date.strftime('%Y%m%d')
-        )
+        release_source_path = os.path.join(self._parameters.variables['PATH'], release_datestamp)
 
         data.insert(0, (release_source_path, self._generate_release_details(release_schedule, release_date)))
 
@@ -23,9 +23,8 @@ class CPTTextDataExtractorTask(extract.S3UnicodeTextExtractorTask):
 
     def _extract_release_date(self):
         latest_release_path = self._get_latest_path()
-        release_datestamp = latest_release_path.rsplit('/', 1)[1]
 
-        return datetime.strptime(release_datestamp, '%Y%m%d').date()
+        return latest_release_path.rsplit('/', 1)[1]
 
     @classmethod
     def _generate_release_types(cls, release_schedule):

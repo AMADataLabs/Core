@@ -7,6 +7,7 @@ data "archive_file" "etl_router" {
         content     = <<EOF
 import json
 import os
+import re
 
 import boto3
 
@@ -22,12 +23,16 @@ def lambda_handler(event, context):
             key = sqs_record['s3']['object']['key']
             print(f'Object updated: {key}')
 
-            if key.startswith('AMA/CPT/') and key.endswith('ETL_TRIGGER'):
-                _trigger_etls()
+            match = re.match('AMA/CPT/([0-9]{8})/.*ETL_TRIGGER', key)
+            if match:
+                print(f'Triggering with execution date: {match.group(1)}')
+                _trigger_etls(match.group(1))
+            else:
+                print(f'Ignoring non-trigger file update: {key}')
 
     return 200, None
 
-def _trigger_etls():
+def _trigger_etls(execution_date):
     region = os.environ['REGION']
     account = os.environ['ACCOUNT']
     functions = os.environ['FUNCTIONS'].split(',')
@@ -38,7 +43,7 @@ def _trigger_etls():
         response = client.invoke(
             FunctionName = f'arn:aws:lambda:{region}:{account}:function:{function}',
             InvocationType = 'RequestResponse',
-            Payload = json.dumps({})
+            Payload = json.dumps(dict(execution_time=f'{execution_date}T00:00:00+00:00'))
         )
 EOF
   }
@@ -118,14 +123,4 @@ resource "aws_sns_topic_subscription" "processed_etl_router" {
   topic_arn = data.aws_sns_topic.processed.arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.processed_etl_router.arn
-}
-
-
-data "aws_sns_topic" "ingestion" {
-    name = "IngestionBucketNotification"
-}
-
-
-data "aws_sns_topic" "processed" {
-    name = "ProcessedBucketNotification"
 }

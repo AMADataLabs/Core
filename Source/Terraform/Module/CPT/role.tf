@@ -57,22 +57,32 @@ resource "aws_iam_policy" "lambda_kms_access" {
 
     policy = <<EOF
 {
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": [
-        "kms:DescribeKey",
-        "kms:GetKeyPolicy",
-        "kms:GetKeyRotationStatus",
-        "kms:GetPublicKey",
-        "kms:ListKeys",
-        "kms:ListAliases",
-        "kms:ListKeyPolicies"
-      ],
-      "Resource": "${data.aws_kms_key.cpt.arn}",
-      "Effect": "Allow"
-    }
-  ]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "ssm:GetParameters"
+            ],
+            "Resource": [
+                "arn:aws:ssm:${local.region}:${data.aws_caller_identity.account.account_id}:parameter/DataLabs/DataLake/*",
+                "arn:aws:ssm:${local.region}:${data.aws_caller_identity.account.account_id}:parameter/DataLabs/${var.project}/*"
+            ],
+            "Effect": "Allow"
+        },
+        {
+            "Action": [
+                "kms:DescribeKey",
+                "kms:GetKeyPolicy",
+                "kms:GetKeyRotationStatus",
+                "kms:GetPublicKey",
+                "kms:ListKeys",
+                "kms:ListAliases",
+                "kms:ListKeyPolicies"
+            ],
+            "Resource": "${data.aws_kms_key.cpt.arn}",
+            "Effect": "Allow"
+        }
+    ]
 }
 EOF
 }
@@ -141,9 +151,4 @@ EOF
 resource "aws_iam_role_policy_attachment" "parent_lambda" {
     role       = aws_iam_role.lambda_role.name
     policy_arn = aws_iam_policy.parent_lambda.arn
-}
-
-
-data "aws_kms_key" "cpt" {
-  key_id = "alias/DataLabs/${var.project}"
 }

@@ -1,21 +1,12 @@
 provider "aws" {
     region = "us-east-1"
+    version = "~> 3.0"
 }
 
 
 module "datalabs_terraform_state" {
     source  = "../../Module/DataLake"
     project = "DataLake"
-}
-
-
-data "aws_ssm_parameter" "account_environment" {
-    name = "/DataLabs/account_environment"
-}
-
-
-data "aws_ssm_parameter" "contact" {
-    name = "/DataLabs/contact"
 }
 
 

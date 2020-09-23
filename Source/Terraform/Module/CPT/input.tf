@@ -43,6 +43,7 @@ variable "endpoint_timeout" {
     default     = 15
 }
 
+
 variable "endpoint_memory_size" {
     description = "memory size in Mb"
     type        = number
@@ -116,3 +117,17 @@ data "aws_ssm_parameter" "processed_bucket" {
     name = "/DataLabs/DataLake/processed_bucket"
 }
 
+
+data "aws_kms_key" "cpt" {
+  key_id = "alias/DataLabs/${var.project}"
+}
+
+
+data "aws_sns_topic" "ingestion" {
+    name = "IngestionBucketNotification"
+}
+
+
+data "aws_sns_topic" "processed" {
+    name = "ProcessedBucketNotification"
+}

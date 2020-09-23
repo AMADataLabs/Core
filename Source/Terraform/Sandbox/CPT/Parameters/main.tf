@@ -1,6 +1,12 @@
+provider "aws" {
+    region = "us-east-1"
+    version = "~> 3.0"
+}
+
+
 resource "aws_kms_key" "cpt" {
   description   = "${local.project} KMS key"
-  tags          = local.tags
+  tags          = merge(local.tags, {Name = "${local.project} parameter encryption key"})
 }
 
 
@@ -21,7 +27,7 @@ resource "aws_ssm_parameter" "database_username" {
 resource "aws_ssm_parameter" "database_password" {
     name    = "/DataLabs/${local.project}/RDS/password"
     type    = "SecureString"
-    key_id  = data.aws_kms_key.cpt.key_id
+    key_id  = aws_kms_alias.cpt.name
     value   = var.database_password
     tags    = local.tags
 }
@@ -80,4 +86,29 @@ resource "aws_ssm_parameter" "pdf_files" {
     type  = "String"
     value = "CPT Link Release Notes *.pdf,standard/AnesthesiaGuidelines.pdf,standard/AppendixB.pdf,standard/AppendixN.pdf,standard/AppendixO.pdf,standard/CategoryIIGuidelines.pdf,standard/CategoryIIIGuidelines.pdf,standard/CPT * README.pdf,standard/EvalManagementGuidelines.pdf,standard/MedicineGuidelines.pdf,standard/PathLabGuidelines.pdf,standard/RadiologyGuidelines.pdf,standard/Clinician Descriptors/* Clinician Descriptors README.pdf,standard/Consumer Friendly Descriptors/* Consumer Friendly Descriptors README.pdf,standard/SurgeryGuidelines.pdf"
     tags = local.tags
+}
+
+
+locals {
+    system_tier         = "Application"
+    na                  = "N/A"
+    budget_code         = "PBW"
+    owner               = "DataLabs"
+    project             = "CPT"
+    tags                = {
+        Name                = "Data Labs CPT Parameter"
+        Env                 = data.aws_ssm_parameter.account_environment.value
+        Contact             = data.aws_ssm_parameter.contact.value
+        SystemTier          = local.system_tier
+        DRTier              = local.na
+        DataClassification  = local.na
+        BudgetCode          = local.budget_code
+        Owner               = local.owner
+        Group               = local.owner
+        Department          = "HSG"
+        Project             = local.project
+        OS                  = local.na
+        EOL                 = local.na
+        MaintenanceWindow   = local.na
+    }
 }
