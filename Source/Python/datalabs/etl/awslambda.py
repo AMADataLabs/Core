@@ -1,6 +1,5 @@
 """ REPLACE WITH DOCSTRING """
 import logging
-import os
 
 import datalabs.awslambda as awslambda
 import datalabs.etl.task as task
