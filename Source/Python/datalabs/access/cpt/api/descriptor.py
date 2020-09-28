@@ -128,13 +128,18 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
         return query.filter(or_(*filter_conditions))
 
     @classmethod
-    def _filter_for_wildcard(cls, query, code):
-        if code is not None:
-            code = code[0].split('*')
-            prefix = code[0]
-            suffix = code[1]
+    def _filter_for_wildcard(cls, query, codes):
+        filter_condition = []
 
-            filter_condition = [dbmodel.Code.code.like(f'{prefix}%'), dbmodel.Code.code.ilike(f'%{suffix}')]
-            query = query.filter(and_(*filter_condition))
+        if codes is not None:
+            for code in codes:
+                code = code.split('*')
+                prefix = code[0]
+                suffix = code[1]
+
+                filter_condition.append(and_(dbmodel.Code.code.like(f'{prefix}%'),
+                                             dbmodel.Code.code.ilike(f'%{suffix}')))
+
+            query = query.filter(or_(*filter_condition))
 
         return query
