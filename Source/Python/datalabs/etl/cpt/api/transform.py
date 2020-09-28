@@ -1,4 +1,5 @@
 """ CPT ETL Transformer classes """
+from enum import Enum
 from   dataclasses import dataclass
 from   datetime import datetime, date
 import io
@@ -61,6 +62,10 @@ class ReleaseSchedule:
     publish_date: str
     effective_date: str
 
+class ReleaseSchedulePrefix(Enum):
+    NonPLA = 'ANNUAL'
+    PLA = 'PLA'
+
 
 class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
     def _transform(self):
@@ -70,7 +75,6 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         return self._generate_tables(input_data)
 
     def _generate_tables(self, input_data):
-
         codes = self._generate_code_table(input_data.short_descriptor, input_data.pla)
 
         tables = OutputData(
@@ -114,7 +118,6 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         return tables
 
     def _generate_release_table(self, code_history, pla):
-
         non_pla_release = self._generate_non_pla_releases(code_history)
         pla_release = self._generate_pla_releases(pla)
 
@@ -128,7 +131,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
         effective_dates = [datetime.strptime(date, '%Y%m%d').date() for date in history_unique]
         publish_dates = self._generate_release_publish_dates(effective_dates)
-        release_types = self._generate_release_types(effective_dates, 'NON-PLA')
+        release_types = self._generate_release_types(effective_dates, ReleaseSchedulePrefix.NonPLA)
 
         return pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
@@ -147,7 +150,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
     def _generate_release_publish_dates(self, release_dates):
         publish_dates = []
-        release_schedule = self._generate_release_schedule_from_types('NON-PLA')
+        release_schedule = self._generate_release_schedule_from_types(ReleaseSchedulePrefix.NonPLA)
 
         for release_date in release_dates:
             release_date_for_lookup = date(release_date.year, release_date.month, release_date.day).strftime('%-d-%b')
@@ -175,13 +178,12 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
         return release_types
 
-    def _generate_release_schedule_from_types(self, code_type):
-        exclude_type = {'PLA': 'ANNUAL', 'NON-PLA': 'PLA'}
+    def _generate_release_schedule_from_types(self, schedule_prefix):
         release_schedule = {}
         release_types = self._extract_release_schedule()
 
         for row in release_types:
-            if exclude_type.get(code_type) not in row.type:
+            if schedule_prefix.value not in row.type not in row.type:
                 release_schedule[f'{row.effective_day}-{row.effective_month}'] = ReleaseSchedule(
                     type=row.type,
                     publish_date=f'{row.publish_day}-{row.publish_month}',
@@ -200,7 +202,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
         effective_dates, publish_dates = self._generate_pla_release_dates(pla_details)
 
-        release_types = self._generate_release_types(publish_dates, 'PLA')
+        release_types = self._generate_release_types(publish_dates, ReleaseSchedulePrefix.PLA)
 
         return pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
