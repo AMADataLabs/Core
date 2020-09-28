@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 from   datalabs.access.environment import VariableTree
+from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
 import datalabs.task as task
 import datalabs.plugin as plugin
 
@@ -104,6 +105,9 @@ class ETLComponentParameters:
 
 class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
+        parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
+        parameter_loader.load()
+
         var_tree = VariableTree.generate()
 
         return ETLParameters(
