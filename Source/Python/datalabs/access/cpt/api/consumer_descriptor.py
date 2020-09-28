@@ -90,13 +90,18 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
         return query.filter(or_(*filter_conditions))
 
     @classmethod
-    def _filter_for_wildcard(cls, query, code):
-        if code is not None:
-            code = code[0].split('*')
-            prefix = code[0]
-            suffix = code[1]
+    def _filter_for_wildcard(cls, query, codes):
+        filter_condition = []
 
-            filter_condition = [ConsumerDescriptor.code.like(f'{prefix}%'), ConsumerDescriptor.code.ilike(f'%{suffix}')]
-            query = query.filter(and_(*filter_condition))
+        if codes is not None:
+            for code in codes:
+                code = code.split('*')
+                prefix = code[0]
+                suffix = code[1]
+
+                filter_condition.append(and_(ConsumerDescriptor.code.like(f'{prefix}%'),
+                                             ConsumerDescriptor.code.ilike(f'%{suffix}')))
+
+            query = query.filter(or_(*filter_condition))
 
         return query

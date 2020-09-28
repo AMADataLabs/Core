@@ -116,6 +116,15 @@ paths:
             type: array
             items:
               type: string
+        - name: code
+          in: query
+          description: >-
+            Filters for wildcard search across all the codes.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_descriptors_arn}/invocations"
         responses:
@@ -199,6 +208,15 @@ paths:
             type: array
             items:
               type: string
+        - name: code
+          in: query
+          description: >-
+            Filters for wildcard search across all the codes.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_consumer_descriptors_arn}/invocations"
         responses:
@@ -241,6 +259,15 @@ paths:
           in: query
           description: >-
             Filters new codes since a date ("YYYY-MM-DD").
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: code
+          in: query
+          description: >-
+            Filters for wildcard search across all the codes.
           required: false
           schema:
             type: array
@@ -366,6 +393,15 @@ paths:
           description: >-
             Filters new codes since a date ("YYYY-MM-DD")
             ("quarterly").
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: code
+          in: query
+          description: >-
+            Filters for wildcard search across all the codes.
           required: false
           schema:
             type: array
