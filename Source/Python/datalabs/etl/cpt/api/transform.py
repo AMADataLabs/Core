@@ -76,8 +76,11 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         tables = OutputData(
             release=self._generate_release_table(input_data.code_history, input_data.pla),
             code=codes,
-            release_code_mapping=self._generate_release_code_mapping_table(input_data.code_history, codes,
-                                                                           input_data.pla),
+            release_code_mapping=self._generate_release_code_mapping_table(
+                input_data.code_history,
+                codes,
+                input_data.pla
+            ),
             short_descriptor=self._generate_descriptor_table(
                 'short_descriptor',
                 input_data.short_descriptor,
@@ -111,49 +114,55 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         return tables
 
     def _generate_release_table(self, code_history, pla):
+
+        non_pla_release = self._generate_non_pla_releases(code_history)
+        pla_release = self._generate_pla_releases(pla)
+
+        releases = non_pla_release.append(pla_release, ignore_index=True)
+        releases = releases.drop_duplicates(ignore_index=True)
+        import pdb
+        pdb.set_trace()
+        return releases
+
+    def _generate_non_pla_releases(self, code_history):
         history = code_history[['date', 'cpt_code', 'change_type']].rename(
             columns=dict(date='release', cpt_code='code', change_type='change')
         )
         history = history.loc[history.change == 'ADDED']
         history = history.loc[~history.release.str.startswith('Pre')]
-        history = history.loc[~history.code.str.endswith('U', na=False )]
+        history = history.loc[~history.code.str.endswith('U', na=False)]
         history_unique = history.release.unique()
 
-        release_schedule = self._extract_release_schedule()
+        release_schedule = self._generate_release_schedule_from_types('NON-PLA')
 
         effective_dates = [datetime.strptime(date, '%Y%m%d').date() for date in history_unique]
         release_types = [self._generate_release_type(date, release_schedule) for date in effective_dates]
         publish_dates = [self._generate_release_publish_date(date, release_schedule) for date in effective_dates]
 
-        pla_effective_dates, pla_publish_dates, pla_release_types = self._generate_pla_release(pla)
-        for date in pla_effective_dates:
-            effective_dates.append(date)
-        for date in pla_publish_dates:
-            publish_dates.append(date)
-        for date in pla_release_types:
-            release_types.append(date)
-
-        releases = pandas.DataFrame(
+        return pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
-        releases = releases.drop_duplicates(ignore_index=True)
 
-        return releases
+
+    def _generate_release_schedule_from_types(self, release_type):
+        exclude_type = {'PLA': 'ANNUAL', 'NON-PLA': 'PLA'}
+        release_schedule = {}
+        release_types = self._extract_release_schedule()
+
+        for row in release_types:
+            if exclude_type.get(release_type) not in row.type:
+                release_schedule[f'{row.effective_day}-{row.effective_month}'] = ReleaseSchedule(
+                    type=row.type,
+                    publish_date=f'{row.publish_day}-{row.publish_month}',
+                    effective_date=f'{row.effective_day}-{row.effective_month}'
+
+                )
+        return release_schedule
 
     def _extract_release_schedule(self):
-        release_schedule = {}
-
         with self._get_database(self._parameters.database) as database:
             release_types = database.session.query(dbmodel.ReleaseType).all()
 
-            for row in release_types:
-                if not row.type.startswith('PLA'):  # Explicitly skip PLA-Q4 for now since it clashes with ANNUAL
-                    release_schedule[f'{row.effective_day}-{row.effective_month}'] = ReleaseSchedule(
-                        type=row.type,
-                        publish_date=f'{row.publish_day}-{row.publish_month}',
-                        effective_date=f'{row.effective_day}-{row.effective_month}'
-                    )
-
-        return release_schedule
+        return release_types
 
     @classmethod
     def _generate_release_type(cls, release_date, release_schedule):
@@ -176,42 +185,36 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
         return publish_date
 
-    def _generate_pla_release(self, pla_detail):
-        pla = pla_detail[['effective_date', 'published_date']].rename(
+    def _generate_pla_releases(self, pla_details):
+
+        effective_dates, publish_dates = self._generate_pla_release_dates(pla_details)
+
+        release_types = self._generate_pla_release_types(publish_dates)
+
+        return pandas.DataFrame(
+            {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
+
+    def _generate_pla_release_dates(self,pla_details):
+        pla = pla_details[['effective_date', 'published_date']].rename(
             columns=dict(published_date='publish_date')
         )
-        pla_release = pla.drop_duplicates(ignore_index=True)
-        pla_release_schedule = self._extract_pla_release_schedule()
+        pla_releases = pla.drop_duplicates(ignore_index=True)
 
-        effective_date = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_release.effective_date]
-        publish_date = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_release.publish_date]
-        release_types = [self._generate_pla_release_type(pla_release_schedule, date) for date in publish_date]
+        effective_dates = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.effective_date]
+        publish_dates = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.publish_date]
 
-        return effective_date, publish_date, release_types
+        return effective_dates,publish_dates
 
-    def _extract_pla_release_schedule(self):
-        release_schedule = {}
+    def _generate_pla_release_types(self, release_dates):
+        release_types = []
+        pla_release_schedule = self._generate_release_schedule_from_types('PLA')
 
-        with self._get_database(self._parameters.database) as database:
-            release_types = database.session.query(dbmodel.ReleaseType).all()
+        for release_date in release_dates:
+            release_date_for_lookup = date(1900, release_date.month, release_date.day).strftime('%-d-%b')
+            default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
+            release_types.append(release_schedule.get(release_date_for_lookup, default_release_schedule).type)
 
-            for row in release_types:
-                if row.type != 'ANNUAL':
-                    release_schedule[f'{row.effective_day}-{row.effective_month}'] = ReleaseSchedule(
-                        type=row.type,
-                        publish_date=f'{row.publish_day}-{row.publish_month}',
-                        effective_date=f'{row.effective_day}-{row.effective_month}'
-
-                    )
-
-        return release_schedule
-
-    @classmethod
-    def _generate_pla_release_type(cls, release_schedule, release_date):
-        release_date_for_lookup = date(1900, release_date.month, release_date.day).strftime('%-d-%b')
-        default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
-
-        return release_schedule.get(release_date_for_lookup, default_release_schedule).type
+        return release_types
 
     @classmethod
     def _generate_code_table(cls, descriptors, pla_details):
@@ -229,27 +232,37 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
     @classmethod
     def _generate_release_code_mapping_table(cls, code_history, codes, pla):
-        cpt_mapping_table = code_history[['date', 'cpt_code', 'change_type']].rename(
+        non_pla_mappings = self._generate_non_pla_release_code_mappings(...)
+
+        pla_mappings = self._generate_pla_release_code_mappings(...)
+
+        return non_pla_mappings.append(pla_mappings, ignore_index=True)
+
+    def _generate_non_pla_mapping(self, code_history, codes):
+        non_pla_mapping_table = code_history[['date', 'cpt_code', 'change_type']].rename(
             columns=dict(date='release', cpt_code='code', change_type='change')
         )
-        cpt_mapping_table = cpt_mapping_table.loc[cpt_mapping_table.code.isin(codes.code)]
-        cpt_mapping_table = cpt_mapping_table.loc[cpt_mapping_table.change == 'ADDED']
-        cpt_mapping_table = cpt_mapping_table.loc[~cpt_mapping_table.release.str.startswith('Pre')]
-        cpt_mapping_table = cpt_mapping_table.loc[~cpt_mapping_table.code.str.endswith('U')]
-        cpt_mapping_table = cpt_mapping_table.drop(columns=['change'])
-        cpt_mapping_table.drop_duplicates(subset='code', keep='last', inplace=True)
+        non_pla_mapping_table = non_pla_mapping_table.loc[non_pla_mapping_table.code.isin(codes.code)]
+        non_pla_mapping_table = non_pla_mapping_table.loc[non_pla_mapping_table.change == 'ADDED']
+        non_pla_mapping_table = non_pla_mapping_table.loc[~non_pla_mapping_table.release.str.startswith('Pre')]
+        non_pla_mapping_table = non_pla_mapping_table.loc[~non_pla_mapping_table.code.str.endswith('U')]
+        non_pla_mapping_table = non_pla_mapping_table.drop(columns=['change'])
+        non_pla_mapping_table.drop_duplicates(subset='code', keep='last', inplace=True)
 
+        non_pla_mapping_table.release = non_pla_mapping_table.release.apply(
+            lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
+
+        return non_pla_mapping_table
+
+    def _generate_pla_mapping(self, pla_details):
         pla_mapping_table = pla[['effective_date', 'pla_code']].rename(columns=dict(effective_date='release',
                                                                                     pla_code='code'))
         pla_mapping_table = pla_mapping_table.loc[pla_mapping_table.code.isin(codes.code)]
 
         pla_mapping_table.release = pla_mapping_table.release.apply(
             lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d'))
-        cpt_mapping_table.release = cpt_mapping_table.release.apply(
-            lambda x: datetime.strptime(x, '%Y%m%d').strftime('%Y-%m-%d'))
 
-        mapping_table = cpt_mapping_table.append(pla_mapping_table, ignore_index=True)
-        return mapping_table
+        return pla_mapping_table
 
     @classmethod
     def _generate_descriptor_table(cls, name, descriptors, pla_details):
