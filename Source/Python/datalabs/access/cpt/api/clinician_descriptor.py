@@ -1,11 +1,11 @@
 """ Clinician Descriptor endpoints """
-from   abc import abstractmethod
+from abc import abstractmethod
 import logging
 
-from   sqlalchemy import or_, and_
+from sqlalchemy import or_, and_
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
-from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
+from datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+from datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -92,17 +92,18 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
         return query.filter(or_(*filter_conditions))
 
     @classmethod
-    def _filter_for_wildcard(cls, query, code):
-        if code is not None:
-            code = code[0].split('*')
-            prefix = code[0]
-            suffix = code[1]
+    def _filter_for_wildcard(cls, query, codes):
+        filter_condition = []
+        if codes is not None:
 
-            filter_condition = [
-                ClinicianDescriptorCodeMapping.code.like(f'{prefix}%'),
-                ClinicianDescriptorCodeMapping.code.ilike(f'%{suffix}')
-            ]
+            for code in codes:
+                code = code.split('*')
+                prefix = code[0]
+                suffix = code[1]
 
-            query = query.filter(and_(*filter_condition))
+                filter_condition.append(and_(ClinicianDescriptorCodeMapping.code.like(f'{prefix}%'),
+                                             ClinicianDescriptorCodeMapping.code.ilike(f'%{suffix}')))
+
+            query = query.filter(or_(*filter_condition))
 
         return query
