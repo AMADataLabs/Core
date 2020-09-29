@@ -2,58 +2,45 @@ import win32com.client as win32
 import errno
 import os
 from datetime import datetime, date
-
-outlook = win32.Dispatch('outlook.application')
-# TODAY = str(datetime.now()).split('.')[0].replace(' ', '_').replace(':', '')
-TODAY = str(date.today())
 import settings 
-# Sends an email.
-# Requirements
-#    outlook: win32com.client.Dispatch('outlook.application')
-#    The following parameters MUST be defined:
-#       * recipients
-#       * subject
-#       * body
-# Warning
-#    There is no check on the validity of email addresses.
-#    Email address data in recipients and cc must be verified by caller.
-#    Method will fail if attachments are specified but not found.
-# Parameters
-#    recipients:    list of email addresses (strings)
-#    cc:            list of email addresses (strings)
-#    subject:       email message subject (string)
-#    body:          email message body text (string)
-#    attachments:   list of paths to desired email attachments.
-#      Ex: ['C:\\Documents\\file_A.csv', 'C:\\Documents\\file_B.csv']
-#    auto_send:     whether or not the method sends the email (if not, message will display in Outlook)
-OUT = os.environ.get('OUT_DIR')
-OUT_DIRECTORY = f'{OUT}{str(date.today())}'
-# C:\Users\nkhatri\OneDrive - American Medical Association\Documents\Task-Scheduled\2020-04-08
-# OUT_DIRECTORY = f'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/Task-Scheduled/{TODAY}'
-file1 = f'{OUT_DIRECTORY}/Other_Physicians_Unprocessed_{TODAY}.xlsx'
-file2 = f'{OUT_DIRECTORY}/Memorium_USA_Physicians_Unprocessed_{TODAY}.xlsx'
-full = ['Chris.Mathews@ama-assn.org', 'Clint.Sheffer@ama-assn.org', 'victoria.grose@ama-assn.org', 'sandeep.dhamale@ama-assn.org']
-meonly = ['victoria.grose@ama-assn.org']
-def send_email(recipients= full, cc=meonly,
-               subject='COVID-19 Mortality Data – ' + ' ' + TODAY,
-               body='Hi,\nThis is an automated email from DataLabs. Please find all new content in attachments.\n\n\nNOTE: The scraping activity happens every morning at 8:55 am and the results are emailed at 9:00 am. If you would like the results at another time or would like to stop this service, kindly reply to this email.\n\nThank you!\nDataLabs',
-               attachments=[file1, file2], auto_send=True):
+
+def get_parameters():
+    '''Get email parameters'''
+    today = str(date.today())
+    out = os.environ.get('OUT_DIR')
+    out_directory = f'{out}{today}'
+    file1 = f'{out_directory}/Other_Physicians_Unprocessed_{today}.xlsx'
+    file2 = f'{out_directory}/Memorium_USA_Physicians_Unprocessed_{today}.xlsx'
+    full = ['Chris.Mathews@ama-assn.org', 'Clint.Sheffer@ama-assn.org', 'sandeep.dhamale@ama-assn.org']
+    meonly = ['victoria.grose@ama-assn.org']
+    subject = f'COVID-19 Mortality Data –  {today}'
+    body = '''Hi,
+
+    This is an automated email from DataLabs. Please find all new content in attachments.
+    
+    
+    NOTE: The scraping activity happens every morning at 8:55 am and the results are emailed at 9:00 am. 
+    If you would like the results at another time or would like to stop this service, kindly reply to this email.
+    
+    Thank you!
+    DataLabs
+    '''
+    attachments = [file1, file2]
+    return (full, meonly, subject, body, attachments)
+
+def send_email(auto_send=True):
+    '''Send le email'''
+    outlook = win32.Dispatch('outlook.application')
+    recipients, cc, subject, body, attachments = get_parameters()
     if len(recipients) == 0 or len(subject) == 0 or len(body) == 0:
         raise ValueError('recipients, subject, and body must be defined.')
-
     msg = outlook.CreateItem(0)
-
     to = '; '.join(recipients)
     msg.To = to
-
     cc = '; '.join(cc)
     msg.Cc = cc
-
     msg.Subject = subject
-
     msg.Body = body
-
-    # Attachments
     for a in attachments:
         if os.path.exists(a):
             msg.Attachments.Add(a)
@@ -61,14 +48,10 @@ def send_email(recipients= full, cc=meonly,
             msg.Delete()
             raise FileNotFoundError(
                 errno.ENOENT, os.strerror(errno.ENOENT), a)
-
-    # If you don't want to automatically send the email from this script,
-    # you can opt to display the email in Outlook on the desktop for
-    # you to review and hit 'Send' manually as you would with a normal email.
     if auto_send:
         msg.Send()
     else:
         msg.Display(True)
 
-
-send_email()
+if __name__ == "__main__":
+    send_email()
