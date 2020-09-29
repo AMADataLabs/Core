@@ -335,23 +335,22 @@ module "etl_convert" {
     database_name           = aws_db_instance.cpt_api_database.name
     database_host           = aws_db_instance.cpt_api_database.address
     data_pipeline_ingestion = true
-    trigger_bucket          = data.aws_ssm_parameter.ingestion_bucket.value
     parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
-        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
-        EXTRACTOR_PATH              = data.aws_ssm_parameter.s3_base_path.value
-        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_data_files.value
-        EXTRACTOR_SCHEDULE          = data.aws_ssm_parameter.release_schedule.value
+        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.arn
+        EXTRACTOR_PATH              = data.aws_ssm_parameter.s3_base_path.arn
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_data_files.arn
+        EXTRACTOR_SCHEDULE          = data.aws_ssm_parameter.release_schedule.arn
 
         TRANSFORMER_CLASS           = "datalabs.etl.parse.transform.ParseToCSVTransformerTask"
-        TRANSFORMER_PARSERS         = data.aws_ssm_parameter.raw_data_parsers.value
+        TRANSFORMER_PARSERS         = data.aws_ssm_parameter.raw_data_parsers.arn
 
         LOADER_CLASS                = "datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask"
-        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
-        LOADER_FILES                = data.aws_ssm_parameter.converted_data_files.value
-        LOADER_PATH                 = data.aws_ssm_parameter.s3_base_path.value
+        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.arn
+        LOADER_FILES                = data.aws_ssm_parameter.converted_data_files.arn
+        LOADER_PATH                 = data.aws_ssm_parameter.s3_base_path.arn
     }
 }
 
@@ -366,7 +365,6 @@ module "etl_bundle_pdf" {
     database_name           = aws_db_instance.cpt_api_database.name
     database_host           = aws_db_instance.cpt_api_database.address
     data_pipeline_ingestion = true
-    trigger_bucket          = data.aws_ssm_parameter.ingestion_bucket.value
     parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
@@ -395,7 +393,6 @@ module "etl_load" {
     database_name           = aws_db_instance.cpt_api_database.name
     database_host           = aws_db_instance.cpt_api_database.address
     data_pipeline_api       = true
-    trigger_bucket          = data.aws_ssm_parameter.processed_bucket.value
     parent_function         = aws_lambda_function.processed_etl_router
     timeout                 = 300
 
