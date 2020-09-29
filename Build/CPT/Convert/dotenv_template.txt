@@ -12,7 +12,7 @@ TASK_CLASS=datalabs.etl.task.ETLTask
 
 EXTRACTOR_CLASS=datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask
 EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-ingestion-sandbox
-EXTRACTOR_PATH=AMA/CPT
+EXTRACTOR_BASEPATH=AMA/CPT
 EXTRACTOR_FILES='standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/Consumer Friendly Descriptors/ConsumerDescriptor.txt,standard/Clinician Descriptors/ClinicianDescriptor.txt,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA,CPT Link/history/Deleted_DTK_tab.txt,CPT Link/history/HistoryModifiers_DTK_tab.txt,CPT Link/history/History_DTK_tab.txt'
 EXTRACTOR_SCHEDULE='{"ANNUAL":["1-Sep","1-Jan"],"Q1":["1-Jan","1-Apr"],"Q2":["1-Apr","1-Jul"],"Q3":["1-Jul","1-Oct"],"Q4":["1-Oct","1-Jan"]}'
 
@@ -22,4 +22,4 @@ TRANSFORMER_PARSERS=datalabs.curate.parse.CSVParser,datalabs.curate.cpt.descript
 LOADER_CLASS=datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask
 LOADER_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
 LOADER_FILES=standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv,CPT Link/history/Deleted_DTK_tab.csv,CPT Link/history/HistoryModifiers_DTK_tab.csv,CPT Link/history/History_DTK_tab.csv
-LOADER_PATH=AMA/CPT
+LOADER_BASEPATH=AMA/CPT
