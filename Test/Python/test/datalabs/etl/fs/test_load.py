@@ -78,13 +78,13 @@ def environment(extractor_file, loader_directory):
     os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
 
     os.environ['EXTRACTOR_CLASS'] = 'datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask'
-    os.environ['EXTRACTOR_PATH'] = os.path.dirname(extractor_file)
+    os.environ['EXTRACTOR_BASEPATH'] = os.path.dirname(extractor_file)
     os.environ['EXTRACTOR_FILES'] = 'PhysicianProfessionalDataFile_*'
 
     os.environ['TRANSFORMER_CLASS'] = 'test.datalabs.etl.fs.transform.FilenameStripperTransformerTask'
 
     os.environ['LOADER_CLASS'] = 'datalabs.etl.fs.load.LocalUnicodeTextFileLoaderTask'
-    os.environ['LOADER_PATH'] = loader_directory
+    os.environ['LOADER_BASEPATH'] = loader_directory
     os.environ['LOADER_FILES'] = 'PhysicianProfessionalDataFile.csv,PhysicianProfessionalDataFile_%Y-%m-%d.csv'
 
     yield os.environ

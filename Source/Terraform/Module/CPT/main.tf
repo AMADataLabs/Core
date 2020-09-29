@@ -340,7 +340,7 @@ module "etl_convert" {
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.arn
-        EXTRACTOR_PATH              = data.aws_ssm_parameter.s3_base_path.arn
+        EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.arn
         EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_data_files.arn
         EXTRACTOR_SCHEDULE          = data.aws_ssm_parameter.release_schedule.arn
 
@@ -350,7 +350,7 @@ module "etl_convert" {
         LOADER_CLASS                = "datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask"
         LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.arn
         LOADER_FILES                = data.aws_ssm_parameter.converted_data_files.arn
-        LOADER_PATH                 = data.aws_ssm_parameter.s3_base_path.arn
+        LOADER_BASEPATH             = data.aws_ssm_parameter.s3_base_path.arn
     }
 }
 
@@ -370,14 +370,14 @@ module "etl_bundle_pdf" {
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3FileExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
-        EXTRACTOR_PATH              = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.value
         EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.value
 
         TRANSFORMER_CLASS           = "datalabs.etl.archive.transform.ZipTransformerTask"
 
         LOADER_CLASS                = "datalabs.etl.s3.load.S3FileLoaderTask"
         LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
-        LOADER_PATH                 = data.aws_ssm_parameter.s3_base_path.value
+        LOADER_BASEPATH             = data.aws_ssm_parameter.s3_base_path.value
         LOADER_FILES                = "pdfs.zip"
     }
 }
@@ -399,7 +399,7 @@ module "etl_load" {
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3UnicodeTextFileExtractorTask"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.value
-        EXTRACTOR_PATH              = data.aws_ssm_parameter.s3_base_path.value
+        EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.value
         EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.value
 
         TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"

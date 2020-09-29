@@ -23,8 +23,10 @@ def test_get_parameters_from_parameter_store(parameter_values):
 
         assert 'DATABASE_FOOBAR_USERNAME' in os.environ
         assert 'DATABASE_FOOBAR_PASSWORD' in os.environ
+        assert 'PATH' in os.environ
         assert os.getenv('DATABASE_FOOBAR_USERNAME') == 'mrtwinkles'
         assert os.getenv('DATABASE_FOOBAR_PASSWORD') == 'ligo123'
+        assert os.getenv('PATH') != 'mrtwinkles'
 
 
 # pylint: disable=redefined-outer-name,protected-access
@@ -85,6 +87,7 @@ def environment():
 
     os.environ['DATABASE_FOOBAR_USERNAME'] = 'arn:aws:ssm:us-east-1:644454719059:parameter/DataLabs/CPT/FooBar/username'
     os.environ['DATABASE_FOOBAR_PASSWORD'] = 'arn:aws:ssm:us-east-1:644454719059:parameter/DataLabs/CPT/FooBar/password'
+    os.environ['PATH'] = 'arn:aws:ssm:us-east-1:644454719059:parameter/DataLabs/CPT/FooBar/username'
 
     yield os.environ
 
