@@ -1,10 +1,27 @@
+#Change the paths and run setup_repository.py
 # Repository Settings
-DATALABS_PYTHONPATH='C://Users//vigrose//hsg-data-labs//Source//Python'
+DATALABS_PYTHONPATH='{{ pythonpath }}'
 
+<<<<<<< HEAD
 DATABASE_EDW_NAME='PRDDW'
 CREDENTIALS_EDW_USERNAME='vigrose'
 CREDENTIALS_EDW_PASSWORD='slytherin10946'
 
+=======
+DATABASE_NAME_EDW='PRDDW'
+CREDENTIALS_EDW_USERNAME={{edw_username}}
+CREDENTIALS_EDW_PASSWORD={{edw_password}}
+>>>>>>> story/DL-571
 
 # Project Settings
 PROJECT_NAME='Medscape'
+
+#PPD Directory
+PPD_FILE = 'U:/Source Files/Data Analytics/Data-Science/Data/PPD/ppd_data_20200404.csv'
+
+#Out Directory
+OUT_DIR = 'C:/Users/nkhatri/OneDrive - American Medical Association/Documents/Task-Scheduled/'
+
+#Specialty Table
+SPEC_FILE = 'U:/Source Files/Data Analytics/Data-Science/Data/Medscape/specialty_id.csv'
+
