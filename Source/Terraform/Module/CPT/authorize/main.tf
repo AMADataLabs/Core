@@ -13,7 +13,7 @@ resource "aws_lambda_function" "authorizer_lambda" {
         variables = {
             TASK_WRAPPER_CLASS      = "datalabs.access.authorize.awslambda.AuthorizerLambdaTaskWrapper"
             TASK_CLASS              = var.task_class
-            PASSPORT_URL            = var.passport_url
+            PASSPORT_URL            = data.aws_ssm_parameter.passport_url.arn
         }
     }
 
