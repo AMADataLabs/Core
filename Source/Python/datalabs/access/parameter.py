@@ -1,8 +1,13 @@
+import logging
 import os
 
 from   arnparse import arnparse
 from   arnparse.arnparse import MalformedArnError
 import boto3
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class ParameterStoreEnvironmentLoader:
@@ -49,7 +54,9 @@ class ParameterStoreEnvironmentLoader:
 
                 if arn.service == 'ssm' and arn.resource_type == 'parameter':
                     parameter_variables[f'/{arn.resource}'] = key
+
+                LOGGER.info('Loaded value for Parameter Store parameter /%s', arn.resource)
             except MalformedArnError:
-                pass
+                LOGGER.warn('Got Malformed ARN when processing Parameter Store environment variables: %s', value)
 
         return parameter_variables
