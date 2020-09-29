@@ -402,6 +402,11 @@ module "etl_load" {
         EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.arn
 
         TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
+        TRANSFORMER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
+        TRANSFORMER_DATABASE_BACKEND     = "postgresql+psycopg2"
+        TRANSFORMER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
+        TRANSFORMER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
+        TRANSFORMER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
 
         LOADER_CLASS                = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
         LOADER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
