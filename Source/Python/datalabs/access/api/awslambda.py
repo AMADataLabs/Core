@@ -2,7 +2,6 @@
 import json
 
 import datalabs.access.api.task as api
-from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
 from   datalabs.awslambda import TaskWrapper
 
 
