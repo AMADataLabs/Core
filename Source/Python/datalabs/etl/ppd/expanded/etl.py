@@ -11,7 +11,6 @@ class ExpandedPPDLoader:
         self._save_dir = None
         self._archive_dir = None
 
-        self._filename = str()
         self._columns = [
             'ME',
             'PARTY_ID',
@@ -108,6 +107,7 @@ class ExpandedPPDLoader:
 
     def run(self):
         self._load_environment_variables()
+        # print(self._raw_dir)
         latest_raw_file = self._get_latest_file(dir=self._raw_dir, extension='txt')
         latest_raw_date = self._get_file_date(latest_raw_file)
         latest_loaded_file = self._get_latest_file(dir=self._archive_dir, extension='csv')
@@ -115,49 +115,45 @@ class ExpandedPPDLoader:
         # if there is no archived file or if there is a newer raw file than we've got already
         if latest_loaded_file is None or latest_raw_date > latest_loaded_date:
             data = self._load_data(latest_raw_file)
-            self._save_data(data)
+            self._save_data(data=data, filename=latest_raw_file)
 
     def _load_environment_variables(self):
         self._raw_dir = os.environ.get('RAW_DIR')
         self._save_dir = os.environ.get('SAVE_DIR')
         self._archive_dir = os.environ.get('ARCHIVE_DIR')
 
-    def _get_latest_file(self, dir, extension) -> str:
+    @classmethod
+    def _get_latest_file(cls, dir, extension) -> str:
         latest_file = None
         files = glob(dir + f'/*.{extension}')
         if len(files) > 0:
-            latest_file = files[0]
-            latest_date = self._get_file_date(latest_file)
-            for file in files:
-                date = self._get_file_date(file)
-                if date > latest_date:
-                    latest_file = file
-                    latest_date = date
-            self._filename = latest_file
+            latest_file = sorted(files)[-1]
         return latest_file
 
     @classmethod
     def _get_file_date(cls, filename: str):
-        date = filename[filename.rindex('_') + 1:filename.rindex('.')]
-        date = pd.to_datetime(date).date()
+        date = None
+        if filename is not None:
+            date = filename[filename.rindex('_') + 1:filename.rindex('.')]
+            date = pd.to_datetime(date).date()
         return date
 
     def _load_data(self, filename: str):
         return pd.read_csv(
             filename,
-             sep='|',
-             dtype=str,
-             encoding='LATIN',
-             names=self._columns,
-             index_col=False
+            sep='|',
+            dtype=str,
+            encoding='LATIN',
+            names=self._columns,
+            index_col=False
         )
 
-    def _save_data(self, data):
-        filename = self._filename[self._filename.rindex('\\') + 1:].replace('.txt', '.csv')  # archive version w/ date
+    def _save_data(self, data, filename):
+        filename = filename[filename.rindex('\\') + 1:].replace('.txt', '.csv')  # archive version w/ date
         filename_dateless = filename[:filename.rindex('_')] + '.csv'  # removes date
-
+        # print(filename, filename_dateless)
         save_path = f"{self._save_dir}\\{filename_dateless}"  # newest file name will be persistent
         archive_path = f"{self._archive_dir}\\{filename}"
-
+        # print(save_path, archive_path)
         data.to_csv(save_path, index=False)
         data.to_csv(archive_path, index=False)
