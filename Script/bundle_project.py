@@ -74,8 +74,7 @@ class LocalProjectBundler(ProjectBundler):
         shutil.copy(os.path.join(self._build_path, 'Master', 'task.py'), os.path.join(target_path, 'task.py'))
 
     def _zip_bundle_directory(self, project, target_path):
-        import pdb; pdb.set_trace()
-        archive_path = target_path.parent.joinpath(f'{project}.zip')
+        archive_path = target_path.with_suffix('.zip')
 
         if os.path.exists(archive_path):
             os.remove(archive_path)
