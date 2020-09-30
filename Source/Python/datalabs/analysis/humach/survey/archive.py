@@ -24,7 +24,7 @@ class ExpectedFileColumns:
     dict = {
         'results_standard': standard_results,
         'results_validation': validation_results,
-        'samples': samples
+        'humach_sample': samples
     }
 
 
@@ -36,7 +36,7 @@ class TableColumns:
     dict = {
             'results_standard': standard_results,
             'results_validation': validation_results,
-            'samples': samples
+            'humach_sample': samples
     }
 
 
@@ -78,7 +78,7 @@ class HumachResultsArchive:
         sql = "INSERT INTO {}({}) VALUES({});".format(
                 table,
                 ','.join(cols),
-                ','.join(['"' + str(v) + '"' for v in vals])
+                ','.join(['"' + str(v).replace(',', '').replace('"', '') + '"' for v in vals])
         )
 
         self.connection.execute(sql)
@@ -98,7 +98,7 @@ class HumachResultsArchive:
             raise ValueError('Table {} could not be processed.'.format(table))
 
         for i, r in data.iterrows():
-            self.insert_row(table=table, vals=[v for v in r.values])
+            self.insert_row(table='humach_result', vals=[v for v in r.values])
 
         self.connection.commit()
 
@@ -108,20 +108,20 @@ class HumachResultsArchive:
 
     def ingest_sample_data(self, data: pd.DataFrame):
         df_cols = data.columns.values
-        self.validate_cols(table='samples', cols=df_cols)
+        self.validate_cols(table='humach_sample', cols=df_cols)
         data.fillna('', inplace=True)
 
         for i, r in data.iterrows():
-            self.insert_row(table='samples', vals=[v for v in r.values])
+            self.insert_row(table='humach_sample', vals=[v for v in r.values])
         self.connection.commit()
 
     def get_sample_data(self, sample_ids: [str]) -> pd.DataFrame:
-        table = 'samples'
+        table = 'humach_sample'
         data = self.get_table_data_for_sample_ids(table=table, sample_ids=sample_ids)
         return data
 
     def get_sample_data_past_n_months(self, n, as_of_date: datetime.date = datetime.now().date()):
-        sql = """SELECT * FROM samples"""
+        sql = """SELECT * FROM humach_sample"""
         data = pd.read_sql(sql=sql, con=self.connection)
 
         data['survey_date'] = [f'{year}-{("0" + str(month))[-2:]}-01' for year, month in zip(
@@ -140,12 +140,12 @@ class HumachResultsArchive:
         return data
 
     def get_latest_sample_id(self):
-        sql = """SELECT MAX(sample_id) FROM samples;"""
+        sql = """SELECT MAX(sample_id) FROM humach_sample;"""
         result = self.connection.execute(sql).fetchone()[0]
         return result
 
     def get_latest_standard_sample_id(self):
-        sql = "SELECT MAX(sample_id) FROM samples WHERE survey_type = 'STANDARD';"
+        sql = "SELECT MAX(sample_id) FROM humach_sample WHERE survey_type = 'STANDARD';"
         result = self.connection.execute(sql).fetchone()[0]
         return result
 

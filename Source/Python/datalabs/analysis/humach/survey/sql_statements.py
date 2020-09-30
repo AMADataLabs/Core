@@ -1,6 +1,6 @@
-MAKE_TABLE_SAMPLES = \
+MAKE_TABLE_RESULTS = \
     """
-    CREATE TABLE IF NOT EXISTS humach_sample(
+    CREATE TABLE IF NOT EXISTS humach_result(
         sample_id INTEGER NOT NULL,
         row_id INTEGER NOT NULL,
         physician_me_number VARCHAR,
@@ -29,9 +29,9 @@ MAKE_TABLE_SAMPLES = \
     );
     """.strip()
 
-MAKE_TABLE_RESULTS = \
+MAKE_TABLE_SAMPLES = \
     """
-    CREATE TABLE IF NOT EXISTS humach_result(
+    CREATE TABLE IF NOT EXISTS humach_sample(
         sample_id INTEGER NOT NULL,
         row_id INTEGER NOT NULL,
         survey_month INTEGER NOT NULL,
