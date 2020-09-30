@@ -12,7 +12,7 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
 
         self._load_configuration()
 
-        return _authorize(token)
+        return self._authorize(token)
 
     def _get_authorization_token(self):
         token = self._parameters.get('authorizationToken').strip()
@@ -22,6 +22,7 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
 
         return token
 
+    @classmethod
     def _load_configuration(cls):
         parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
         parameter_loader.load()
