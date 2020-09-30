@@ -31,12 +31,6 @@ variable "database_name" {
 }
 
 
-variable "passport_url" {
-    description = "Passport Url"
-    type        = string
-}
-
-
 variable "endpoint_timeout" {
     description = "timeout in seconds"
     type        = number

@@ -39,7 +39,6 @@ variable "api_gateway_id" {
 }
 
 
-variable "passport_url" {
-	description = "Passport Url"
-	type        = string
+data "aws_ssm_parameter" "passport_url" {
+    name  = "/DataLabs/${var.project}/auth/passport_url"
 }

@@ -50,13 +50,13 @@ class S3FileExtractorTask(ExtractorTask):
             release_folders = sorted(
                 self._listdir(
                     self._parameters.variables['BUCKET'],
-                    self._parameters.variables['PATH']
+                    self._parameters.variables['BASEPATH']
                 )
             )
 
             release_folder = release_folders[-1]
 
-        return '/'.join((self._parameters.variables['PATH'], release_folder))
+        return '/'.join((self._parameters.variables['BASEPATH'], release_folder))
 
     def _get_files(self, base_path):
         unresolved_files = ['/'.join((base_path, file)) for file in self._parameters.variables['FILES'].split(',')]

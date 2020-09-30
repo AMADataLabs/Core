@@ -321,7 +321,6 @@ module "authorize" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    passport_url        = var.passport_url
 }
 
 
@@ -335,23 +334,22 @@ module "etl_convert" {
     database_name           = aws_db_instance.cpt_api_database.name
     database_host           = aws_db_instance.cpt_api_database.address
     data_pipeline_ingestion = true
-    trigger_bucket          = data.aws_ssm_parameter.ingestion_bucket.value
     parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
-        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
-        EXTRACTOR_PATH              = data.aws_ssm_parameter.s3_base_path.value
-        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_data_files.value
-        EXTRACTOR_SCHEDULE          = data.aws_ssm_parameter.release_schedule.value
+        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.arn
+        EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.arn
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_data_files.arn
+        EXTRACTOR_SCHEDULE          = data.aws_ssm_parameter.release_schedule.arn
 
         TRANSFORMER_CLASS           = "datalabs.etl.parse.transform.ParseToCSVTransformerTask"
-        TRANSFORMER_PARSERS         = data.aws_ssm_parameter.raw_data_parsers.value
+        TRANSFORMER_PARSERS         = data.aws_ssm_parameter.raw_data_parsers.arn
 
         LOADER_CLASS                = "datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask"
-        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
-        LOADER_FILES                = data.aws_ssm_parameter.converted_data_files.value
-        LOADER_PATH                 = data.aws_ssm_parameter.s3_base_path.value
+        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.arn
+        LOADER_FILES                = data.aws_ssm_parameter.converted_data_files.arn
+        LOADER_BASEPATH             = data.aws_ssm_parameter.s3_base_path.arn
     }
 }
 
@@ -366,20 +364,19 @@ module "etl_bundle_pdf" {
     database_name           = aws_db_instance.cpt_api_database.name
     database_host           = aws_db_instance.cpt_api_database.address
     data_pipeline_ingestion = true
-    trigger_bucket          = data.aws_ssm_parameter.ingestion_bucket.value
     parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3FileExtractorTask"
-        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.value
-        EXTRACTOR_PATH              = data.aws_ssm_parameter.s3_base_path.value
-        EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.value
+        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.arn
+        EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.arn
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.arn
 
         TRANSFORMER_CLASS           = "datalabs.etl.archive.transform.ZipTransformerTask"
 
         LOADER_CLASS                = "datalabs.etl.s3.load.S3FileLoaderTask"
-        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.value
-        LOADER_PATH                 = data.aws_ssm_parameter.s3_base_path.value
+        LOADER_BUCKET               = data.aws_ssm_parameter.processed_bucket.arn
+        LOADER_BASEPATH             = data.aws_ssm_parameter.s3_base_path.arn
         LOADER_FILES                = "pdfs.zip"
     }
 }
@@ -395,24 +392,28 @@ module "etl_load" {
     database_name           = aws_db_instance.cpt_api_database.name
     database_host           = aws_db_instance.cpt_api_database.address
     data_pipeline_api       = true
-    trigger_bucket          = data.aws_ssm_parameter.processed_bucket.value
     parent_function         = aws_lambda_function.processed_etl_router
     timeout                 = 300
 
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3UnicodeTextFileExtractorTask"
-        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.value
-        EXTRACTOR_PATH              = data.aws_ssm_parameter.s3_base_path.value
-        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.value
+        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.arn
+        EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.arn
+        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.arn
 
         TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
+        TRANSFORMER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
+        TRANSFORMER_DATABASE_BACKEND     = "postgresql+psycopg2"
+        TRANSFORMER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
+        TRANSFORMER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
+        TRANSFORMER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
 
         LOADER_CLASS                = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
         LOADER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
         LOADER_DATABASE_BACKEND     = "postgresql+psycopg2"
         LOADER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
-        LOADER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.value
-        LOADER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.value
+        LOADER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
+        LOADER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
     }
 }
 

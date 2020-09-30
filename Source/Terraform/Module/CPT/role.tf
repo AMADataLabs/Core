@@ -77,7 +77,8 @@ resource "aws_iam_policy" "lambda_kms_access" {
                 "kms:GetPublicKey",
                 "kms:ListKeys",
                 "kms:ListAliases",
-                "kms:ListKeyPolicies"
+                "kms:ListKeyPolicies",
+                "kms:Decrypt"
             ],
             "Resource": "${data.aws_kms_key.cpt.arn}",
             "Effect": "Allow"
