@@ -6,7 +6,7 @@ from varname import nameof
 
 def main():
 
-    input_directory, output_directory, tables = directory_setup()
+    input_directory, output_directory, tables = setup_directory()
 
     budget_code = import_budget_code(input_directory)
 
@@ -14,19 +14,18 @@ def main():
 
     export_tables(output_directory, new_tables)
 
-def directory_setup():
-    # define file paths
+def setup_directory():
+
     file_paths = get_file_paths()
-    # create tables using file paths
+
     tables = create_tables(file_paths)
-    # define input and output directories
+
     input_directory = file_paths['input_directory']
     output_directory = file_paths['output_directory']
 
     return input_directory, output_directory, tables
 
 def import_budget_code(input_directory):
-    # import budget code
     return pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
                                 usecols=['Item Number', 'Budget Code'])
 
@@ -149,7 +148,6 @@ def pbd_merge_columns(pbd_orders, pbd_returns, pbd_cancels):
     return pbd_table
 
 def create_date_columns(pbd_table):
-    # Create Date columns
     pbd_table['ORDER_DATE'] = pd.to_datetime(pbd_table['ORDER_DATE']).dt.date
     pbd_table['ORDER_DATE'] = pd.to_datetime(pbd_table['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
     pbd_table['ORDER_MONTH'] = pd.DatetimeIndex(pbd_table['ORDER_DATE']).month
