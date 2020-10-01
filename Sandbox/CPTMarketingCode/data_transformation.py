@@ -23,23 +23,23 @@ def directory_setup():
     input_directory = file_paths['input_directory']
     output_directory = file_paths['output_directory']
 
-    return input_directory,output_directory, tables
+    return input_directory, output_directory, tables
 
 def import_budget_code(input_directory):
     # import budget code
     return pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
                                 usecols=['Item Number', 'Budget Code'])
 
-def transform_tables(tables,budget_code):
+def transform_tables(tables, budget_code):
     new_tables = []
 
     pbd_table = create_pbd_table(tables['pbd_orders'], tables['pbd_returns'], tables['pbd_cancels'])
     new_tables.append(create_sales_tables(pbd_table))
 
     pbd_items_table = create_pbd_items_table(pbd_table, tables['pbd_items'])
-    new_tables.append(create_product_tables(pbd_items_table,budget_code))
+    new_tables.append(create_product_tables(pbd_items_table, budget_code))
 
-    new_tables.append(create_customer_tables(pbd_items_table,tables['contacts'], tables['aims_overlay']))
+    new_tables.append(create_customer_tables(pbd_items_table, tables['contacts'], tables['aims_overlay']))
 
     pbd_orders = tables['pbd_orders']
     new_tables.append(create_order_tables(pbd_orders))
@@ -51,17 +51,17 @@ def create_sales_tables(pbd_table):
     sales_olsub = create_olsub_sales_table(tables['olsub_orders'])
     sales = pd.concat([sales_pbd, sales_olsub], axis=0)
     sales_kpi = create_sales_kpi(sales, pbd_table)
-    return [sales_pbd,sales_olsub,sales_kpi]
+    return [sales_pbd, sales_olsub, sales_kpi]
 
-def create_product_tables(pbd_items_table,budget_code):
+def create_product_tables(pbd_items_table, budget_code):
     product_sales = create_product_sales_table(pbd_items_table)
     product_sales_coded = match_budget_codes(product_sales, budget_code)
     product_main = create_product_main_table(product_sales_coded)
     product_remainder = create_product_remainder_table(product_sales_coded)
-    return [product_sales,product_main,product_remainder]
+    return [product_sales, product_main, product_remainder]
 
-def create_customer_tables(pbd_items_table,contacts,aims_overlay):
-    customer = create_customer_table(pbd_items_table,contacts,aims_overlay)
+def create_customer_tables(pbd_items_table, contacts, aims_overlay):
+    customer = create_customer_table(pbd_items_table, contacts, aims_overlay)
     customer_clean = clean_up_customer(customer)
     return customer_clean
 
@@ -69,9 +69,9 @@ def create_order_tables(pbd_orders):
     direct_mail = create_email_campaign_table(pbd_orders[pbd_orders['ORDER_TYPE'] == 'Mail'])
     fax = pbd_orders[pbd_orders['ORDER_TYPE'] == 'FAX']
     email_campaign = create_email_campaign_table(tables['emailcampaign'])
-    return [direct_mail,fax,email_campaign]
+    return [direct_mail, fax, email_campaign]
 
-def export_tables(output_directory,new_tables):
+def export_tables(output_directory, new_tables):
     for item in new_tables:
         item.to_csv(output_directory + os.environ[nameof(item).upper()])
 
@@ -138,11 +138,11 @@ def create_pbd_table(pbd_orders, pbd_returns, pbd_cancels):  # staging table
     pbd_returns = pbd_returns[columns.PBD_CANCELS]
     pbd_cancels = pbd_cancels[columns.PBD_RETURNS]
 
-    pbd_table = create_date_columns(pbd_merge_columns(pbd_orders,pbd_returns,pbd_cancels))
+    pbd_table = create_date_columns(pbd_merge_columns(pbd_orders, pbd_returns, pbd_cancels))
 
     return pbd_table
 
-def pbd_merge_columns(pbd_orders,pbd_returns,pbd_cancels):
+def pbd_merge_columns(pbd_orders, pbd_returns, pbd_cancels):
     # merge all pbd tables using left join to combine all histories of Print/Book/Digital transactions
     pbd_table = pbd_orders[~pbd_orders.ORDER_NO.isin(pbd_cancels.ORDER_NO)]
     pbd_table = pbd_table[~pbd_table.ORDER_NO.isin(pbd_returns.ORDER_NO)]
@@ -233,21 +233,21 @@ def create_sales_kpi(sales, pbd_table):  # final table
     # Number of Unique Order
     sales_kpi['Number of Unique Orders'] = sales.groupby('Date')['Order ID'].nunique()
 
-    sales_kpi, pbd_table = calculate_monthly_total_sales(sales_kpi,sales,pbd_table)
+    sales_kpi, pbd_table = calculate_monthly_total_sales(sales_kpi, sales, pbd_table)
 
-    sales_kpi = calculate_sales_customers(sales_kpi,pbd_table)
+    sales_kpi = calculate_sales_customers(sales_kpi, pbd_table)
 
-    sales_kpi = calculate_sales_averages(no_unique_order,no_unique_customers,total_sales,no_unique_customers,sales_kpi)
+    sales_kpi = calculate_sales_averages(no_unique_order, no_unique_customers, total_sales, no_unique_customers, sales_kpi)
 
     return sales_kpi
 
-def calculate_monthly_total_sales(sales_kpi,sales,pbd_table):
+def calculate_monthly_total_sales(sales_kpi, sales, pbd_table):
     # Monthly Total Sales
     sales_kpi['Total Sales'] = sales.groupby('Date')['Revenue'].sum()
     pbd_table['Date'] = pd.to_datetime(pbd_table['ORDER_YEAR'].astype(str) + '-' + pbd_table['ORDER_MONTH'].astype(str))
     return sales_kpi, pbd_table
 
-def calculate_sales_customers(sales_kpi,pbd_table):
+def calculate_sales_customers(sales_kpi, pbd_table):
     # Number of Unique Customers
     sales_kpi['Number of Unique Customers'] = pbd_table.groupby('Date')['EMPPID'].nunique()
     # Subset for every customer the first order date
@@ -256,7 +256,7 @@ def calculate_sales_customers(sales_kpi,pbd_table):
     sales_kpi['Number of New Customers'] = first_orders.groupby('Date')['EMPPID'].nunique()
     return sales_kpi
 
-def calculate_sales_averages(no_unique_order,no_unique_customers,total_sales,no_unique_customers,sales_kpi):
+def calculate_sales_averages(no_unique_order, no_unique_customers, total_sales, no_unique_customers, sales_kpi):
     # Average Sale Value per Order
     sales_kpi['Average Sale'] = total_sales / no_unique_order
     # Average Purchase Frequency
@@ -267,7 +267,7 @@ def calculate_sales_averages(no_unique_order,no_unique_customers,total_sales,no_
     sales_kpi['Average Customer Value'] = avg_spending_per_customer / avg_purchase_frequency
     return sales_kpi
 
-    return average_sale_per_order,avg_purchase_frequency,avg_spending_per_customer,avg_customer_value
+    return average_sale_per_order, avg_purchase_frequency, avg_spending_per_customer, avg_customer_value
 
 def create_pbd_items_table(pbd_table, pbd_items):  # staging table
     '''
@@ -372,7 +372,7 @@ def create_product_main_table(product_sales_coded):
 
 
 def create_product_remainder_table(product_sales_coded):
-    main_product_names = ['BUDGET_DESC','CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
+    main_product_names = ['BUDGET_DESC', 'CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
     main_product_indices = product_sales_coded['Product Names'].str.contains('|'.join(main_product_names))
     product_remainder = product_sales_coded[~main_product_indices]
     return product_remainder
@@ -398,13 +398,13 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
     # combined columns of interest from contacts and aims_overlay
     final_columns = contacts_columns + aims_overlay_columns[1:]
 
-    customer = merge_customer_tables(pbd_table,contacts,aims_overlay)
+    customer = merge_customer_tables(pbd_table, contacts, aims_overlay)
 
     customer = rename_customer_columns(customer)
 
     return customer
 
-def merge_customer_tables(pbd_table,contacts,aims_overlay):
+def merge_customer_tables(pbd_table, contacts, aims_overlay):
     # merge the tables
     customer = pd.merge(pbd_table, contacts, how='left', on='EMPPID').merge(aims_overlay, how='left', on='EMPPID')
     temp1 = customer.groupby(['EMPPID']).agg({'ITEMEXTPRICE': 'sum',
