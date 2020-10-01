@@ -251,7 +251,7 @@ class TableUpdater:
 
 class ReleaseTableUpdater(TableUpdater):
     def __init__(self, session):
-        super().__init__(session, dbmodel.Release, 'id', match_column='effective_date')
+        super().__init__(session, dbmodel.Release, 'id', match_column=['publish_date', 'effective_date'])
 
         self._current_models = None
         self._new_models = None
