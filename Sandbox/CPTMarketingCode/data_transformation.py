@@ -94,15 +94,15 @@ def create_tables(file_paths):
             Returns:
                 list of pandas dataframes of all the raw input tables
     '''
-    files, filenames = calculate_filenames(file_paths)
+    files, filenames = generate_filenames(file_paths)
 
-    tablenames = calculate_table_names(filenames)
+    tablenames = generate_table_names(filenames)
 
     # dynamic naming of tables
     tables = dict(zip(tablenames, files))
     return tables
 
-def calculate_filenames(file_paths):
+def generate_filenames(file_paths):
     # create a list of text flat file names in the directory
     filenames = glob(file_paths['input_table_pattern'])
 
@@ -111,7 +111,7 @@ def calculate_filenames(file_paths):
 
     return files, filenames
 
-def calculate_table_names(filenames):
+def generate_table_names(filenames):
     # create a list of table names
     start = 'SFMC_'
     end = '_2020'
