@@ -53,7 +53,7 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
 
         TableUpdater(self._session, dbmodel.LongDescriptor, 'code').update(data.long_descriptor)
 
-        TableUpdater(self._session, dbmodel.ModifierType, 'id', match_column='name').update(data.modifier_type)
+        TableUpdater(self._session, dbmodel.ModifierType, 'id', match_columns='name').update(data.modifier_type)
 
         ModifierTableUpdater(self._session).update(data.modifier)
 
@@ -67,9 +67,9 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
 
         TableUpdater(self._session, dbmodel.PLADetails, 'code').update(data.pla_details)
 
-        TableUpdater(self._session, dbmodel.Manufacturer, 'id', match_column='name').update(data.manufacturer)
+        TableUpdater(self._session, dbmodel.Manufacturer, 'id', match_columns='name').update(data.manufacturer)
 
-        TableUpdater(self._session, dbmodel.Lab, 'id', match_column='name').update(data.lab)
+        TableUpdater(self._session, dbmodel.Lab, 'id', match_columns='name').update(data.lab)
 
         OneToManyTableUpdater(
             self._session, dbmodel.ManufacturerPLACodeMapping, 'code', dbmodel.Manufacturer, 'manufacturer'
@@ -85,11 +85,11 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
 
 
 class TableUpdater:
-    def __init__(self, session, model_class: type, primary_key, match_column: str = None):
+    def __init__(self, session, model_class: type, primary_key: list, match_columns: str = None):
         self._session = session
         self._model_class = model_class
-        self._primary_key = primary_key
-        self._match_column = match_column or self._primary_key
+        self._primary_key = self._force_list(primary_key)
+        self._match_columns = self._force_list(match_columns) or self._primary_key
 
         mapper = sa.inspect(self._model_class)
         self._columns = [column.key for column in mapper.attrs]
@@ -103,6 +103,13 @@ class TableUpdater:
         self._update_data(current_models, old_data)
 
         self._add_data(new_data)
+
+    @classmethod
+    def _force_list(cls, value):
+        if value is not None and not hasattr(value, 'append'):
+            value = [value]
+
+        return value
 
     def _get_current_data(self):
         results = self._session.query(self._model_class).all()
@@ -137,7 +144,7 @@ class TableUpdater:
     def _merge_data(self, current_data, data):
         current_data = self._remove_modified_date(current_data)  # set programmatically
 
-        merged_data = pandas.merge(current_data, data, on=self._match_column, how='outer', suffixes=['_CURRENT', ''])
+        merged_data = pandas.merge(current_data, data, on=self._match_columns, how='outer', suffixes=['_CURRENT', ''])
 
         merged_data = self._delete_if_missing(merged_data)
         LOGGER.debug('Merged data: %s', merged_data)
@@ -168,8 +175,9 @@ class TableUpdater:
         return data
 
     def _sync_primary_key(self, data):
-        current_primary_key = self._primary_key + '_CURRENT'
-        if current_primary_key in data and self._primary_key != self._match_column:
+        current_primary_key = [part + '_CURRENT' for part in self._primary_key]
+
+        if all(part in data for part in current_primary_key) and self._primary_key != self._match_columns:
             data[self._primary_key] = data[current_primary_key]
 
         return data
@@ -187,9 +195,10 @@ class TableUpdater:
         return filtered_data
 
     def _get_matching_models(self, models, filtered_data):
-        model_map = {getattr(model, self._primary_key): model for model in models}
+        model_map = {tuple(getattr(model, part) for part in self._primary_key): model for model in models}
+        keys = (getattr(filtered_data, part).tolist() for part in self._primary_key)
 
-        return [model_map[key] for key in getattr(filtered_data, self._primary_key)]
+        return [model_map[key] for key in zip(*keys)]
 
     def _update_models(self, models, data):
         LOGGER.info('    Updating %d existing rows...', len(models))
@@ -209,10 +218,10 @@ class TableUpdater:
     def _get_changeable_columns(self):
         columns = self._get_model_columns()
 
-        columns.remove(self._primary_key)
+        [columns.remove(part) for part in self._primary_key]
 
-        if self._match_column in columns:
-            columns.remove(self._match_column)
+        if all(column in columns for column in self._match_columns):
+            [columns.remove(part) for part in self._match_columns]
 
         return columns
 
@@ -228,11 +237,11 @@ class TableUpdater:
         columns = self._get_model_columns()
         parameters = {column: getattr(row, column) for column in columns}
         model = self._model_class(**parameters)
-        primary_key = getattr(row, self._primary_key)
+        primary_key = [getattr(row, part) for part in self._primary_key]
 
         # pylint: disable=comparison-with-itself
-        if primary_key != primary_key:  # test for NaN
-            setattr(model, self._primary_key, None)
+        if any(part != part for part in primary_key):  # test for NaN
+            [setattr(model, part, None) for part in self._primary_key]
 
         if hasattr(model, 'modified_date'):
             model.modified_date = datetime.utcnow().date()
@@ -251,7 +260,7 @@ class TableUpdater:
 
 class ReleaseTableUpdater(TableUpdater):
     def __init__(self, session):
-        super().__init__(session, dbmodel.Release, 'id', match_column='effective_date')
+        super().__init__(session, dbmodel.Release, 'id', match_columns=['publish_date', 'effective_date'])
 
         self._current_models = None
         self._new_models = None
@@ -297,7 +306,7 @@ class ReleaseTableUpdater(TableUpdater):
 class ReleaseCodeMappingTableUpdater(TableUpdater):
     # pylint: disable=too-many-arguments
     def __init__(self, session, model_class: type, primary_key, many_model_class, many_key):
-        super().__init__(session, model_class, primary_key, match_column='code')
+        super().__init__(session, model_class, primary_key, match_columns=['code'])
 
         self._many_model_class = many_model_class
         self._many_key = many_key
