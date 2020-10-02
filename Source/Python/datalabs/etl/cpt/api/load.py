@@ -283,16 +283,6 @@ class ReleaseTableUpdater(TableUpdater):
         else:
             self._release_id = self._current_models[-1].id
 
-    # def _merge_data(self, current_data, data):
-    #     current_data = self._remove_modified_date(current_data)  # set programmatically
-    #
-    #     merged_data = pandas.merge(current_data, data, on=self._match_columns, how='outer', suffixes=['_CURRENT', ''])
-    #
-    #     merged_data = self._delete_if_missing(merged_data)
-    #     LOGGER.debug('Merged data: %s', merged_data)
-    #
-    #     return self._sync_primary_key(merged_data)
-
     def _get_current_data(self):
         self._current_models, current_data = super()._get_current_data()
 
