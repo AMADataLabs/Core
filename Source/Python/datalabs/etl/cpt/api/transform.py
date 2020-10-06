@@ -1,5 +1,5 @@
 """ CPT ETL Transformer classes """
-from enum import Enum
+from   enum import Enum
 from   dataclasses import dataclass
 from   datetime import datetime, date
 import io
