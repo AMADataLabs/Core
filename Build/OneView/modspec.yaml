@@ -12,8 +12,8 @@ modspec:
   - package: datalabs
     include:
       - plugin
+      - etl
   - package: datalabs.access
     exclude:
-      - ods
       - aims
       - edw
