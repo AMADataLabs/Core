@@ -2,7 +2,12 @@ import pandas as pd
 import os
 from glob import glob
 
+from logging import Logger
+
 import settings
+
+LOGGER = Logger(__name__)
+LOGGER.setLevel('INFO')
 
 
 class ExpandedPPDLoader:
@@ -106,15 +111,20 @@ class ExpandedPPDLoader:
     ]
 
     def run(self):
+        LOGGER.info('Loading environment variables')
         self._load_environment_variables()
         # print(self._raw_dir)
         latest_raw_file = self._get_latest_file(dir=self._raw_dir, extension='txt')
         latest_raw_date = self._get_file_date(latest_raw_file)
+        LOGGER.info('Latest RAW file date:', latest_raw_date)
         latest_loaded_file = self._get_latest_file(dir=self._archive_dir, extension='csv')
         latest_loaded_date = self._get_file_date(latest_loaded_file)
+        LOGGER.info('Latest LOADED file date:', latest_loaded_date)
         # if there is no archived file or if there is a newer raw file than we've got already
         if latest_loaded_file is None or latest_raw_date > latest_loaded_date:
+            LOGGER.info('LOADING NEW FILE DATA')
             data = self._load_data(latest_raw_file)
+            LOGGER.info('SAVING DATA')
             self._save_data(data=data, filename=latest_raw_file)
 
     def _load_environment_variables(self):
@@ -153,7 +163,13 @@ class ExpandedPPDLoader:
         filename_dateless = filename[:filename.rindex('_')] + '.csv'  # removes date
         # print(filename, filename_dateless)
         save_path = f"{self._save_dir}\\{filename_dateless}"  # newest file name will be persistent
+        LOGGER.info('UPDATING SNAPSHOT AT', save_path)
         archive_path = f"{self._archive_dir}\\{filename}"
+        LOGGER.info('ADDING DATE-STAMPED ARCHIVE AT', archive_path)
         # print(save_path, archive_path)
         data.to_csv(save_path, index=False)
         data.to_csv(archive_path, index=False)
+
+
+# etl = ExpandedPPDLoader()
+# etl.run()
