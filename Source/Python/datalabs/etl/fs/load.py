@@ -7,7 +7,7 @@ from   datalabs.etl.task import ETLException
 
 class LocalFileLoaderTask(LoaderTask):
     def _load(self):
-        base_path = self._parameters.variables['PATH']
+        base_path = self._parameters.variables['BASEPATH']
         files = self._parameters.variables['FILES'].split(',')
         timestamped_files = self._resolve_timestamps(files)
 

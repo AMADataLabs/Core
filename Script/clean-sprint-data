@@ -1,0 +1,55 @@
+#!/bin/bash
+
+
+SCRIPT=`realpath $0`
+SCRIPT_PATH=`dirname $SCRIPT`
+DATA_FILE=
+
+
+main() {
+    process_arguments "$@"
+
+    pylint_project_directory
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        *)
+            if [[ "$DATA_FILE" == "" ]]; then
+                DATA_FILE="$@"
+            fi
+            shift
+            ;;
+      esac
+    done
+
+    if [[ "$DATA_FILE" == "" ]]; then
+        echo "Error: The name of the Jira XML data file was not specified."
+        exit 1
+    fi
+}
+
+
+pylint_project_directory() {
+    # sed -e '/  *<link>/d' -e '/  *<type id/d' -e '/  *<\/\?custom/d' -e '/  *<!\[CDATA/d' "$DATA_FILE"
+    # sed -e '/  *<link>/d' -e '/  *<\/\?comment/d' "$DATA_FILE"
+    sed -n -e '/^<\/\?rss/p;/^  *<\/\?channel/p;/^  *<item/,/^  *<\/item/{/  *<\/\?item/p;/  *<title/p;/  *<link/p;}' "$DATA_FILE"
+}
+
+
+print_usage() {
+    echo "Usage: clean-sprint-data [OPTIONS]... <data file>"
+    echo "Remove problem elements from exported Jira sprint XML data."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+}
+
+
+main "$@"

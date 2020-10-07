@@ -15,24 +15,31 @@ def test_get_parameters_from_parameter_store(parameter_values):
 
         loader =  ParameterStoreEnvironmentLoader(
             {
-                '/DataLabs/FooBar/RDS/username': 'DATABASE_FOOBAR_USERNAME',
-                '/DataLabs/FooBar/RDS/password': 'DATABASE_FOOBAR_PASSWORD'
+                'DATABASE_FOOBAR_USERNAME': '/DataLabs/FooBar/RDS/username',
+                'DATABASE_FOOBAR_PASSWORD': '/DataLabs/FooBar/RDS/password',
+                'NICKNAME': '/DataLabs/FooBar/RDS/username',
             }
         )
         loader.load()
 
         assert 'DATABASE_FOOBAR_USERNAME' in os.environ
         assert 'DATABASE_FOOBAR_PASSWORD' in os.environ
+        assert 'NICKNAME' in os.environ
         assert os.getenv('DATABASE_FOOBAR_USERNAME') == 'mrtwinkles'
         assert os.getenv('DATABASE_FOOBAR_PASSWORD') == 'ligo123'
+        assert os.getenv('NICKNAME') == 'mrtwinkles'
 
 
 # pylint: disable=redefined-outer-name,protected-access
 def test_from_environ(environment):
     loader = ParameterStoreEnvironmentLoader.from_environ()
+    values = loader._parameters.values()
 
-    assert '/DataLabs/CPT/FooBar/username' in loader._parameters
-    assert '/DataLabs/CPT/FooBar/password' in loader._parameters
+    assert 'DATABASE_FOOBAR_USERNAME' in loader._parameters
+    assert 'DATABASE_FOOBAR_PASSWORD' in loader._parameters
+    assert 'NICKNAME' in loader._parameters
+    assert '/DataLabs/CPT/FooBar/username' in values
+    assert '/DataLabs/CPT/FooBar/password' in values
 
 
 @pytest.mark.skip(reason="Example Boto3 Usage")
@@ -85,6 +92,7 @@ def environment():
 
     os.environ['DATABASE_FOOBAR_USERNAME'] = 'arn:aws:ssm:us-east-1:644454719059:parameter/DataLabs/CPT/FooBar/username'
     os.environ['DATABASE_FOOBAR_PASSWORD'] = 'arn:aws:ssm:us-east-1:644454719059:parameter/DataLabs/CPT/FooBar/password'
+    os.environ['NICKNAME'] = 'arn:aws:ssm:us-east-1:644454719059:parameter/DataLabs/CPT/FooBar/username'
 
     yield os.environ
 

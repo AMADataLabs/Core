@@ -16,7 +16,7 @@ class SFTPFileLoaderTask(LoaderTask, SFTPTaskMixin):
                 self._load_file(sftp, data, file)
 
     def _get_file_paths(self):
-        base_path = self._parameters.variables['PATH']
+        base_path = self._parameters.variables['BASEPATH']
         file_paths = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
 
         return self._resolve_timestamps(file_paths)

@@ -7,7 +7,7 @@ import datalabs.task as task
 
 class TaskWrapper(task.TaskWrapper, ABC):
     @abstractmethod
-    def _generate_response(self, task) -> (int, dict):
+    def _generate_response(self) -> (int, dict):
         pass
 
     @abstractmethod

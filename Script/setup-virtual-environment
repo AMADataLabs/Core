@@ -53,7 +53,7 @@ link_to_requirements_file() {
     BUILD_REQUIREMENTS=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}/requirements.txt
     ENVIRONMENT_REQUIREMENTS=${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}/requirements.txt
 
-    rm ${ENVIRONMENT_REQUIREMENTS}
+    rm -f ${ENVIRONMENT_REQUIREMENTS}
     ln -s ${BUILD_REQUIREMENTS} ${ENVIRONMENT_REQUIREMENTS}
 }
 

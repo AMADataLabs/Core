@@ -30,7 +30,7 @@ class S3FileLoaderTask(LoaderTask):
     def _get_current_path(self):
         current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
 
-        return '/'.join((self._parameters.variables['PATH'], current_date))
+        return '/'.join((self._parameters.variables['BASEPATH'], current_date))
 
     def _load_file(self, base_path, file, data):
         file_path = '/'.join((base_path, file))
