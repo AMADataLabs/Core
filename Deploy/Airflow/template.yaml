@@ -23,6 +23,24 @@ objects:
 - apiVersion: v1
   kind: Service
   metadata:
+    name: ${AIRFLOW_SERVICE_NAME}-db
+    annotations:
+      template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
+  spec:
+    ports:
+    - name: postgresql
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      name: ${AIRFLOW_SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
     name: ${AIRFLOW_SERVICE_NAME}-ui
     annotations:
       template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
@@ -42,7 +60,7 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: ${AIRFLOW_SERVICE_NAME}-route
+    name: ${AIRFLOW_SERVICE_NAME}-ui
     annotations:
       template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
   spec:
@@ -60,20 +78,34 @@ objects:
       name: ${AIRFLOW_SERVICE_NAME}
   status:
     ingress: null
-# - apiVersion: v1
-#   kind: PersistentVolumeClaim
-#   metadata:
-#     name: ${AIRFLOW_SERVICE_NAME}
-#   spec:
-#     accessModes:
-#     - ReadWriteOnce
-#     resources:
-#       requests:
-#         storage: ${VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${AIRFLOW_SERVICE_NAME}-metadata
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-database_name: '{.data[''database-name'']}'
+      template.openshift.io/expose-password: '{.data[''database-password'']}'
+      template.openshift.io/expose-username: '{.data[''database-user'']}'
+    name: ${AIRFLOW_SERVICE_NAME}
+  stringData:
+    database-name: ${DATABASE_NAME}
+    database-password: ${DATABASE_PASSWORD}
+    database-user: ${DATABASE_USER}
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: ${AIRFLOW_SERVICE_NAME}
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    name: ${AIRFLOW_SERVICE_NAME}-db
   spec:
     replicas: 1
     selector:
@@ -87,34 +119,155 @@ objects:
       spec:
         containers:
         - capabilities: {}
-          command:
-          - /entrypoint.sh
-          image: "hsg-data-labs-dev/airflow"
+          env:
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: ${AIRFLOW_SERVICE_NAME}
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: ${AIRFLOW_SERVICE_NAME}
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: ${AIRFLOW_SERVICE_NAME}
+          image: ' '
           imagePullPolicy: IfNotPresent
-          name: airflow
+          livenessProbe:
+            exec:
+              command:
+              - /usr/libexec/check-container
+              - --live
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+          name: postgresql
           ports:
-          - containerPort: 8080
+          - containerPort: 5432
             protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /usr/libexec/check-container
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          securityContext:
+            capabilities: {}
+            privileged: false
           terminationMessagePath: /dev/termination-log
-          # volumeMounts:
-          # - mountPath: /var/lib/airflow/data
-          #   name: ${AIRFLOW_SERVICE_NAME}-data
+          volumeMounts:
+          - mountPath: /var/lib/pgsql/data
+            name: ${AIRFLOW_SERVICE_NAME}-metadata
         dnsPolicy: ClusterFirst
         restartPolicy: Always
-        # volumes:
-        # - name: ${AIRFLOW_SERVICE_NAME}-data
-        #   persistentVolumeClaim:
-        #     claimName: ${AIRFLOW_SERVICE_NAME}
+        volumes:
+        - name: ${AIRFLOW_SERVICE_NAME}-metadata
+          persistentVolumeClaim:
+            claimName: ${AIRFLOW_SERVICE_NAME}
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - postgresql
+        from:
+          kind: ImageStreamTag
+          name: postgresql:9.6
+          namespace: ${DATABASE_IMAGE_NAMESPACE}
+        lastTriggeredImage: ""
+      type: ImageChange
+    - type: ConfigChange
+  status: {}
+# - apiVersion: v1
+#   kind: DeploymentConfig
+#   metadata:
+#     name: ${AIRFLOW_SERVICE_NAME}-scheduler
+#   spec:
+#     replicas: 1
+#     selector:
+#       name: ${AIRFLOW_SERVICE_NAME}
+#     strategy:
+#       type: Recreate
+#     template:
+#       metadata:
+#         labels:
+#           name: ${AIRFLOW_SERVICE_NAME}
+#       spec:
+#         containers:
+#         - capabilities: {}
+#           command:
+#           - /airflow/scheduler.sh
+#           env:
+#           - name: DATABASE_USER
+#             valueFrom:
+#               secretKeyRef:
+#                 key: database-user
+#                 name: ${AIRFLOW_SERVICE_NAME}
+#           - name: DATABASE_PASSWORD
+#             valueFrom:
+#               secretKeyRef:
+#                 key: database-password
+#                 name: ${AIRFLOW_SERVICE_NAME}
+#           - name: DATABASE_NAME
+#             valueFrom:
+#               secretKeyRef:
+#                 key: database-name
+#                 name: ${AIRFLOW_SERVICE_NAME}
+#           - name: AIRFLOW_HOME
+#             value: /airflow
+#           - name: AIRFLOW_GPL_UNIDECODE
+#             value: yes
+#           - name: AIRFLOW__CORE__FERNET_KEY
+#             value: yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ=
+#           - name: AIRFLOW__CORE__LOAD_EXAMPLES
+#             value: False
+#           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+#             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${AIRFLOW_SERVICE_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+#           image: "hsg-data-labs-dev/airflow"
+#           imagePullPolicy: IfNotPresent
+#           name: airflow
+#           ports:
+#           - containerPort: 8080
+#             protocol: TCP
+#           terminationMessagePath: /dev/termination-log
+#           # volumeMounts:
+#           # - mountPath: /var/lib/airflow/data
+#           #   name: ${AIRFLOW_SERVICE_NAME}-data
+#         dnsPolicy: ClusterFirst
+#         restartPolicy: Always
+#         # volumes:
+#         # - name: ${AIRFLOW_SERVICE_NAME}-data
+#         #   persistentVolumeClaim:
+#         #     claimName: ${AIRFLOW_SERVICE_NAME}
 parameters:
-- description: The OpenShift Namespace where the ImageStream resides.
+- name: DATABASE_IMAGE_NAMESPACE
+  description: The OpenShift Namespace where the ImageStream resides.
   displayName: Namespace
-  name: NAMESPACE
-  value: hsg-data-labs-dev
-- description: The name of the OpenShift Service exposed for the database.
+  value: openshift
+- name: AIRFLOW_SERVICE_NAME
+  description: The name of the OpenShift Service exposed for the database.
   displayName: Airflow Service Name
-  name: AIRFLOW_SERVICE_NAME
   value: airflow
-- description: Volume space available for data, e.g. 512Mi, 2Gi.
+- name: VOLUME_CAPACITY
+  description: Volume space available for data, e.g. 512Mi, 2Gi.
   displayName: Volume Capacity
-  name: VOLUME_CAPACITY
   value: 1Gi
+- name: DATABASE_USER
+  description: Username for PostgreSQL user that will be used for accessing the database.
+  displayName: PostgreSQL Connection Username
+  generate: expression
+  required: true
+  value: airflow
+- name: DATABASE_PASSWORD
+  description: Password for the PostgreSQL connection user.
+  displayName: PostgreSQL Connection Password
+  from: '[a-zA-Z0-9]{16}'
+  generate: expression
+  required: true
+- name: DATABASE_NAME
+  description: Name of the PostgreSQL database accessed.
+  displayName: PostgreSQL Database Name
+  required: true
+  value: airflow
