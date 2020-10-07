@@ -120,17 +120,17 @@ objects:
         containers:
         - capabilities: {}
           env:
-          - name: DATABASE_USER
+          - name: POSTGRESQL_USER
             valueFrom:
               secretKeyRef:
                 key: database-user
                 name: ${AIRFLOW_SERVICE_NAME}
-          - name: DATABASE_PASSWORD
+          - name: POSTGRESQL_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: database-password
                 name: ${AIRFLOW_SERVICE_NAME}
-          - name: DATABASE_NAME
+          - name: POSTGRESQL_DATABASE
             valueFrom:
               secretKeyRef:
                 key: database-name
@@ -166,7 +166,7 @@ objects:
         volumes:
         - name: ${AIRFLOW_SERVICE_NAME}-metadata
           persistentVolumeClaim:
-            claimName: ${AIRFLOW_SERVICE_NAME}
+            claimName: ${AIRFLOW_SERVICE_NAME}-metadata
     triggers:
     - imageChangeParams:
         automatic: true
