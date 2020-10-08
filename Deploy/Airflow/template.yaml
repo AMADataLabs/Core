@@ -226,14 +226,14 @@ objects:
           - name: AIRFLOW_HOME
             value: /airflow
           - name: AIRFLOW_GPL_UNIDECODE
-            value: yes
+            value: "yes"
           - name: AIRFLOW__CORE__FERNET_KEY
-            value: yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ=
+            value: "yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ="
           - name: AIRFLOW__CORE__LOAD_EXAMPLES
-            value: False
+            value: "False"
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${AIRFLOW_SERVICE_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
-          image: "hsg-data-labs-dev/airflow"
+          image: " "
           imagePullPolicy: IfNotPresent
           name: airflow
           ports:
@@ -249,6 +249,18 @@ objects:
         # - name: ${AIRFLOW_SERVICE_NAME}-metadata
         #   persistentVolumeClaim:
         #     claimName: ${AIRFLOW_SERVICE_NAME}
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${AIRFLOW_SERVICE_NAME}-scheduler
+        from:
+          kind: ImageStreamTag
+          name: airflow:latest
+          namespace: hsg-data-labs-dev
+        lastTriggeredImage: ""
+      type: ImageChange
+    - type: ConfigChange
 
 
 parameters:
