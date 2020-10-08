@@ -259,7 +259,7 @@ def create_sales_kpi(sales, pbd_table):  # final table
 
     sales_kpi = calculate_sales_customers(sales_kpi, pbd_table)
 
-    sales_kpi = calculate_sales_averages(no_unique_order, no_unique_customers, total_sales, no_unique_customers, sales_kpi)
+    sales_kpi = calculate_sales_averages(sales_kpi['Number of Unique Orders'], sales_kpi['Number of Unique Customers'], sales_kpi['Total Sales'], sales_kpi['Number of Unique Customers'], sales_kpi)
 
     return sales_kpi
 
