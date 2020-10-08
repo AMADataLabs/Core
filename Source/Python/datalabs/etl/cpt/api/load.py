@@ -121,8 +121,13 @@ class TableUpdater:
 
         old_data = merged_data[~merged_data.isnull().any(axis=1)]
 
-        new_data = merged_data[merged_data.isnull().any(axis=1)]
-        new_data = self._remove_missing_rows(new_data)
+        partial_data = merged_data[merged_data.isnull().any(axis=1)]
+
+        new_data = self._remove_missing_rows(partial_data)
+
+        if 'deleted' in data:
+            soft_deleted_data = partial_data[(partial_data.deleted_CURRENT == False) & (partial_data.deleted == True)]
+            old_data = pandas.concat([old_data, self._sync_soft_deleted_rows(soft_deleted_data)])
 
         return old_data, new_data
 
@@ -152,35 +157,11 @@ class TableUpdater:
         return self._sync_primary_key(merged_data)
 
     def _remove_missing_rows(self, data):
-        current_columns = [column.name + '_CURRENT' for column in self._model_class.__table__.columns]
-        drop_columns = [column for column in current_columns if column in data]
-        reduced_data = data.drop(drop_columns, axis=1)
+        reduced_data = self._drop_current_columns(data)
+
         reduced_data = reduced_data.drop(self._primary_key, axis=1)
-        delete_indices = reduced_data.isnull().any(axis=1)
 
-        return data.drop(data.index[delete_indices])
-
-    @classmethod
-    def _remove_modified_date(cls, data):
-        if 'modified_date' in data:
-            data = data.drop('modified_date', axis=1)
-
-        return data
-
-    @classmethod
-    def _delete_if_missing(cls, data):
-        if 'deleted' in data:
-            data.loc[data.deleted.isnull(), 'deleted'] = True
-
-        return data
-
-    def _sync_primary_key(self, data):
-        current_primary_key = [part + '_CURRENT' for part in self._primary_key]
-
-        if all(part in data for part in current_primary_key) and self._primary_key != self._match_columns:
-            data[self._primary_key] = data[current_primary_key]
-
-        return data
+        return self._drop_rows_with_null_values(data, reduced_data)
 
     def _filter_out_unchanged_data(self, data):
         columns = self._get_changeable_columns()
@@ -206,6 +187,48 @@ class TableUpdater:
 
         for model, row in zip(models, data.itertuples()):
             self._update_model(model, row, columns)
+
+    @classmethod
+    def _remove_modified_date(cls, data):
+        if 'modified_date' in data:
+            data = data.drop('modified_date', axis=1)
+
+        return data
+
+    @classmethod
+    def _delete_if_missing(cls, data):
+        if 'deleted' in data:
+            data.loc[data.deleted.isnull(), 'deleted'] = True
+
+        return data
+
+    def _sync_primary_key(self, data):
+        current_primary_key = [part + '_CURRENT' for part in self._primary_key]
+
+        if all(part in data for part in current_primary_key) and self._primary_key != self._match_columns:
+            data[self._primary_key] = data[current_primary_key]
+
+        return data
+
+    def _sync_soft_deleted_rows(self, data):
+        current_columns = {column.name + '_CURRENT': column.name for column in self._model_class.__table__.columns if column.name != 'deleted'}
+        source_columns = [key for key in current_columns.keys() if key in data]
+        target_columns = [current_columns[column] for column in source_columns]
+
+        data[target_columns] = data[source_columns]
+
+        return data
+
+    def _drop_current_columns(self, data):
+        current_columns = [column.name + '_CURRENT' for column in self._model_class.__table__.columns]
+        drop_columns = [column for column in current_columns if column in data]
+
+        return data.drop(drop_columns, axis=1)
+
+    def _drop_rows_with_null_values(self, data, reduced_data):
+        delete_indices = reduced_data.isnull().any(axis=1)
+
+        return data.drop(data.index[delete_indices])
 
     def _create_models(self, data):
         return [self._create_model(row) for row in data.itertuples(index=False)]
