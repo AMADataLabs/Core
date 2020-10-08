@@ -19,6 +19,8 @@ metadata:
       a PostgreSQL database for metadata storage. All services are backed by a persistent volume.
     openshift.io/provider-display-name: HSG Data Labs
     tags: object,storage,s3
+
+
 objects:
 - apiVersion: v1
   kind: Service
@@ -38,6 +40,7 @@ objects:
     type: ClusterIP
   status:
     loadBalancer: {}
+
 - apiVersion: v1
   kind: Service
   metadata:
@@ -57,6 +60,7 @@ objects:
     type: ClusterIP
   status:
     loadBalancer: {}
+
 - apiVersion: v1
   kind: Route
   metadata:
@@ -78,6 +82,7 @@ objects:
       name: ${AIRFLOW_SERVICE_NAME}
   status:
     ingress: null
+
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -88,6 +93,7 @@ objects:
     resources:
       requests:
         storage: ${VOLUME_CAPACITY}
+
 - apiVersion: v1
   kind: Secret
   metadata:
@@ -100,6 +106,7 @@ objects:
     database-name: ${DATABASE_NAME}
     database-password: ${DATABASE_PASSWORD}
     database-user: ${DATABASE_USER}
+
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -180,67 +187,70 @@ objects:
       type: ImageChange
     - type: ConfigChange
   status: {}
-# - apiVersion: v1
-#   kind: DeploymentConfig
-#   metadata:
-#     name: ${AIRFLOW_SERVICE_NAME}-scheduler
-#   spec:
-#     replicas: 1
-#     selector:
-#       name: ${AIRFLOW_SERVICE_NAME}
-#     strategy:
-#       type: Recreate
-#     template:
-#       metadata:
-#         labels:
-#           name: ${AIRFLOW_SERVICE_NAME}
-#       spec:
-#         containers:
-#         - capabilities: {}
-#           command:
-#           - /airflow/scheduler.sh
-#           env:
-#           - name: DATABASE_USER
-#             valueFrom:
-#               secretKeyRef:
-#                 key: database-user
-#                 name: ${AIRFLOW_SERVICE_NAME}
-#           - name: DATABASE_PASSWORD
-#             valueFrom:
-#               secretKeyRef:
-#                 key: database-password
-#                 name: ${AIRFLOW_SERVICE_NAME}
-#           - name: DATABASE_NAME
-#             valueFrom:
-#               secretKeyRef:
-#                 key: database-name
-#                 name: ${AIRFLOW_SERVICE_NAME}
-#           - name: AIRFLOW_HOME
-#             value: /airflow
-#           - name: AIRFLOW_GPL_UNIDECODE
-#             value: yes
-#           - name: AIRFLOW__CORE__FERNET_KEY
-#             value: yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ=
-#           - name: AIRFLOW__CORE__LOAD_EXAMPLES
-#             value: False
-#           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-#             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${AIRFLOW_SERVICE_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
-#           image: "hsg-data-labs-dev/airflow"
-#           imagePullPolicy: IfNotPresent
-#           name: airflow
-#           ports:
-#           - containerPort: 8080
-#             protocol: TCP
-#           terminationMessagePath: /dev/termination-log
-#           # volumeMounts:
-#           # - mountPath: /var/lib/airflow/data
-#           #   name: ${AIRFLOW_SERVICE_NAME}-data
-#         dnsPolicy: ClusterFirst
-#         restartPolicy: Always
-#         # volumes:
-#         # - name: ${AIRFLOW_SERVICE_NAME}-data
-#         #   persistentVolumeClaim:
-#         #     claimName: ${AIRFLOW_SERVICE_NAME}
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${AIRFLOW_SERVICE_NAME}-scheduler
+  spec:
+    replicas: 1
+    selector:
+      name: ${AIRFLOW_SERVICE_NAME}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: ${AIRFLOW_SERVICE_NAME}
+      spec:
+        containers:
+        - capabilities: {}
+          command:
+          - /airflow/scheduler.sh
+          env:
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: ${AIRFLOW_SERVICE_NAME}
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: ${AIRFLOW_SERVICE_NAME}
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: ${AIRFLOW_SERVICE_NAME}
+          - name: AIRFLOW_HOME
+            value: /airflow
+          - name: AIRFLOW_GPL_UNIDECODE
+            value: yes
+          - name: AIRFLOW__CORE__FERNET_KEY
+            value: yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ=
+          - name: AIRFLOW__CORE__LOAD_EXAMPLES
+            value: False
+          - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${AIRFLOW_SERVICE_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+          image: "hsg-data-labs-dev/airflow"
+          imagePullPolicy: IfNotPresent
+          name: airflow
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          terminationMessagePath: /dev/termination-log
+          # volumeMounts:
+          # - mountPath: /var/lib/airflow/data
+          #   name: ${AIRFLOW_SERVICE_NAME}-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        # volumes:
+        # - name: ${AIRFLOW_SERVICE_NAME}-metadata
+        #   persistentVolumeClaim:
+        #     claimName: ${AIRFLOW_SERVICE_NAME}
+
+
 parameters:
 - name: DATABASE_IMAGE_NAMESPACE
   description: The OpenShift Namespace where the ImageStream resides.
