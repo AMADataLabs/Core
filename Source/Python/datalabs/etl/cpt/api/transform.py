@@ -335,12 +335,11 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
     @classmethod
     def _generate_pla_details_table(cls, pla_details):
-        codes = pla_details[['pla_code', 'status', 'test']].rename(
+        pla_details_table = pla_details[['pla_code', 'status', 'test']].rename(
             columns=dict(pla_code='code', test='test_name')
         )
-        codes['deleted'] = False
 
-        return codes
+        return pla_details_table
 
     @classmethod
     def _generate_pla_manufacturer_table(cls, pla_details):

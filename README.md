@@ -10,6 +10,10 @@ Additional details about each of these folders follows.
 
 This folder stores configuration files related to building deployable code. One can think about this in terms of building a Docker container and what is required to setup a proper runtime environment and local source tree for a particular project in that container. Included in this are teamplates for Dockerfiles, virtual environment requirements files, configuration files, and minimal bootstrap code.
 
+## Deploy
+
+This folder stores configuration files and scripts related to deploying code. Typically deployments are either to AWS or to the on-premises OpenShift cluster.
+
 ## Environment
 
 This directory contains virtual environments used when developing. Refer to the `setup-virtual-environment` and `start-virtual-environment` scripts for details.

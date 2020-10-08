@@ -1,0 +1,158 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: minio-persistent-template
+message: |-
+    The following service(s) have been created in your project: ${MINIO_SERVICE_NAME}.
+
+         Access Key: ${MINIO_ACCESS_KEY}
+         Secret Key: ${MINIO_SECRET_KEY}
+    Connection URL: s3:/${MINIO_SERVICE_NAME}/
+metadata:
+  name: minio-persistent
+  namespace: hsg-data-labs-dev
+  annotations:
+    description: |-
+      Minio object storage service with persistent storage.
+    iconClass: box-open
+    openshift.io/display-name: MinIO
+    openshift.io/documentation-url: https://min.io/
+    openshift.io/long-description: This template provides a standalone MinIO object storage service compatible with the
+      AWS S3 API.  Objects are stored on a persistent volume.  The access key and secret key required to access the
+      service are chosen via parameters when provisioning this service.
+    openshift.io/provider-display-name: HSG Data Labs
+    tags: object,storage,s3
+objects:
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/expose-access_key: '{.data[''access-key'']}'
+      template.openshift.io/expose-secret_key: '{.data[''secret-key'']}'
+    name: ${MINIO_SERVICE_NAME}-secret
+  stringData:
+    access-key: ${MINIO_ACCESS_KEY}
+    secret-key: ${MINIO_SECRET_KEY}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${MINIO_SERVICE_NAME}-service
+    annotations:
+      template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
+  spec:
+    ports:
+    - name: minio
+      nodePort: 0
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+    selector:
+      name: ${MINIO_SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${MINIO_SERVICE_NAME}-route
+    annotations:
+      template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
+  spec:
+    host: ${MINIO_SERVICE_NAME}.apps.openshifttest.ama-assn.org
+    port:
+      targetPort: 9000
+      containerPort: 9000
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: ${MINIO_SERVICE_NAME}-service
+      weight: 100
+    wildcardPolicy: None
+    selector:
+      name: ${MINIO_SERVICE_NAME}
+  status:
+    ingress: null
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${MINIO_SERVICE_NAME}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${MINIO_SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      name: ${MINIO_SERVICE_NAME}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: ${MINIO_SERVICE_NAME}
+      spec:
+        containers:
+        - capabilities: {}
+          command:
+          - minio
+          args:
+          - server
+          - /var/lib/minio/data
+          env:
+          - name: MINIO_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                key: access-key
+                name: ${MINIO_SERVICE_NAME}-secret
+          - name: MINIO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: secret-key
+                name: ${MINIO_SERVICE_NAME}-secret
+          image: "minio/minio"
+          imagePullPolicy: IfNotPresent
+          name: minio
+          ports:
+          - containerPort: 9000
+            protocol: TCP
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /var/lib/minio/data
+            name: ${MINIO_SERVICE_NAME}-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        volumes:
+        - name: ${MINIO_SERVICE_NAME}-data
+          persistentVolumeClaim:
+            claimName: ${MINIO_SERVICE_NAME}
+parameters:
+- description: The OpenShift Namespace where the ImageStream resides.
+  displayName: Namespace
+  name: NAMESPACE
+  value: hsg-data-labs-dev
+- description: The name of the OpenShift Service exposed for the database.
+  displayName: MinIO Service Name
+  name: MINIO_SERVICE_NAME
+  value: minio
+- description: Access key that will be used for accessing the service.
+  displayName: MinIO Access Key
+  from: "[A-Z0-9]{20}"
+  generate: expression
+  name: MINIO_ACCESS_KEY
+- description: Secret key that will be used for accessing the service.
+  displayName: MinIO Secret Key
+  from: "[a-zA-Z0-9]{40}"
+  generate: expression
+  name: MINIO_SECRET_KEY
+- description: Volume space available for data, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  name: VOLUME_CAPACITY
+  value: 1Gi
