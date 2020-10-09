@@ -11,7 +11,7 @@ RUN useradd -ms /bin/bash -d ${AIRFLOW_HOME} --uid ${USER_ID} -G 0 airflow
 RUN pip install --no-cache-dir apache-airflow['crypto','kubernetes','postgres']==${AIRFLOW_VERSION}
 
 COPY Build/Airflow/scheduler.sh ${AIRFLOW_HOME}/scheduler.sh
-RUN chmod +x ${AIRFLOW_HOME}/scheduler.sh
+RUN chmod gu+rwx ${AIRFLOW_HOME}/scheduler.sh
 
 COPY Build/Airflow/webserver.sh ${AIRFLOW_HOME}/webserver.sh
 RUN chmod gu+rwx ${AIRFLOW_HOME}/webserver.sh

@@ -95,6 +95,17 @@ objects:
         storage: ${VOLUME_CAPACITY}
 
 - apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${AIRFLOW_SERVICE_NAME}-dags
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+
+- apiVersion: v1
   kind: Secret
   metadata:
     annotations:
@@ -110,9 +121,7 @@ objects:
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    annotations:
-      template.alpha.openshift.io/wait-for-ready: "true"
-    name: ${AIRFLOW_SERVICE_NAME}-db
+    name: ${AIRFLOW_SERVICE_NAME}
   spec:
     replicas: 1
     selector:
@@ -125,7 +134,9 @@ objects:
           name: ${AIRFLOW_SERVICE_NAME}
       spec:
         containers:
-        - capabilities: {}
+        - name: postgresql
+          image: ' '
+          imagePullPolicy: IfNotPresent
           env:
           - name: POSTGRESQL_USER
             valueFrom:
@@ -142,8 +153,6 @@ objects:
               secretKeyRef:
                 key: database-name
                 name: ${AIRFLOW_SERVICE_NAME}
-          image: ' '
-          imagePullPolicy: IfNotPresent
           livenessProbe:
             exec:
               command:
@@ -151,7 +160,6 @@ objects:
               - --live
             initialDelaySeconds: 120
             timeoutSeconds: 10
-          name: postgresql
           ports:
           - containerPort: 5432
             protocol: TCP
@@ -168,43 +176,10 @@ objects:
           volumeMounts:
           - mountPath: /var/lib/pgsql/data
             name: ${AIRFLOW_SERVICE_NAME}-metadata
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        volumes:
-        - name: ${AIRFLOW_SERVICE_NAME}-metadata
-          persistentVolumeClaim:
-            claimName: ${AIRFLOW_SERVICE_NAME}-metadata
-    triggers:
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - postgresql
-        from:
-          kind: ImageStreamTag
-          name: postgresql:9.6
-          namespace: ${DATABASE_IMAGE_NAMESPACE}
-        lastTriggeredImage: ""
-      type: ImageChange
-    - type: ConfigChange
-  status: {}
 
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    name: ${AIRFLOW_SERVICE_NAME}-scheduler
-  spec:
-    replicas: 1
-    selector:
-      name: ${AIRFLOW_SERVICE_NAME}
-    strategy:
-      type: Recreate
-    template:
-      metadata:
-        labels:
-          name: ${AIRFLOW_SERVICE_NAME}
-      spec:
-        containers:
-        - capabilities: {}
+        - name: airflow-scheduler
+          image: ' '
+          imagePullPolicy: IfNotPresent
           command:
           - /airflow/scheduler.sh
           env:
@@ -227,33 +202,109 @@ objects:
             value: /airflow
           - name: AIRFLOW_GPL_UNIDECODE
             value: "yes"
-          - name: AIRFLOW__CORE__FERNET_KEY
-            value: "yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ="
-          - name: AIRFLOW__CORE__LOAD_EXAMPLES
-            value: "False"
+          - name: AIRFLOW__CORE__EXECUTOR
+            value: KubernetesExecutor
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${AIRFLOW_SERVICE_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+          - name: AIRFLOW__CORE__LOAD_EXAMPLES
+            value: "False"
+          - name: AIRFLOW__CORE__FERNET_KEY
+            value: "yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ="
+          - name: AIRFLOW__WEBSERVER__RBAC
+            value: "True"
+          - name: AIRFLOW__KUBERNETES__GIT_REPO
+            value: git@bitbucket.org:hsdatalabs/hsg-data-labs.git
+          - name: AIRFLOW__KUBERNETES__GIT_BRANCH
+            value: master
+          - name: AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT
+            value: /airflow/dags
+          - name: AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH
+            value: Source/Python/datalabs/dag
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /airflow/dags
+            name: ${AIRFLOW_SERVICE_NAME}-dags
+airflow.exceptions.AirflowConfigException: In kubernetes mode the following must be set in the `kubernetes` config section: `dags_volume_claim` or `dags_volume_host` or `dags_in_image` or `git_repo and git_branch and git_dags_folder_mount_point`
+
+        - name: airflow-git-sync
+          image: k8s.gcr.io/git-sync:v3.1.2
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+          - mountPath: /airflow/dags
+            name: ${AIRFLOW_SERVICE_NAME}-dags
+
+        - name: airflow-webserver
           image: ' '
           imagePullPolicy: IfNotPresent
-          name: airflow
+          command:
+          - /airflow/webserver.sh
+          env:
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: ${AIRFLOW_SERVICE_NAME}
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: ${AIRFLOW_SERVICE_NAME}
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: ${AIRFLOW_SERVICE_NAME}
+          - name: AIRFLOW_HOME
+            value: /airflow
+          - name: AIRFLOW_GPL_UNIDECODE
+            value: "yes"
+          - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${AIRFLOW_SERVICE_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+          - name: AIRFLOW__CORE__FERNET_KEY
+            value: "yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ="
+          - name: AIRFLOW__WEBSERVER__RBAC
+            value: "True"
           ports:
           - containerPort: 8080
             protocol: TCP
           terminationMessagePath: /dev/termination-log
-          # volumeMounts:
-          # - mountPath: /var/lib/airflow/data
-          #   name: ${AIRFLOW_SERVICE_NAME}-data
+          volumeMounts:
+          - mountPath: /airflow/dags
+            name: ${AIRFLOW_SERVICE_NAME}-dags
         dnsPolicy: ClusterFirst
         restartPolicy: Always
-        # volumes:
-        # - name: ${AIRFLOW_SERVICE_NAME}-metadata
-        #   persistentVolumeClaim:
-        #     claimName: ${AIRFLOW_SERVICE_NAME}
+        volumes:
+        - name: ${AIRFLOW_SERVICE_NAME}-metadata
+          persistentVolumeClaim:
+            claimName: ${AIRFLOW_SERVICE_NAME}-metadata
+        - name: ${AIRFLOW_SERVICE_NAME}-dags
+          persistentVolumeClaim:
+            claimName: ${AIRFLOW_SERVICE_NAME}-dags
     triggers:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - airflow
+        - postgresql
+        from:
+          kind: ImageStreamTag
+          name: postgresql:9.6
+          namespace: ${DATABASE_IMAGE_NAMESPACE}
+        lastTriggeredImage: ""
+      type: ImageChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - airflow-scheduler
+        from:
+          kind: ImageStreamTag
+          name: airflow:latest
+          namespace: hsg-data-labs-dev
+        lastTriggeredImage: ""
+      type: ImageChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - airflow-webserver
         from:
           kind: ImageStreamTag
           name: airflow:latest
