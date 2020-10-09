@@ -53,7 +53,7 @@ objects:
       nodePort: 0
       port: 8080
       protocol: TCP
-      targetPort: http
+      targetPort: 8080
     selector:
       name: ${AIRFLOW_SERVICE_NAME}
     sessionAffinity: None
@@ -70,7 +70,7 @@ objects:
   spec:
     host: ${AIRFLOW_SERVICE_NAME}.apps.openshifttest.ama-assn.org
     port:
-      targetPort: http
+      targetPort: 8080
     tls:
       termination: edge
     to:
@@ -220,11 +220,24 @@ objects:
             value: /airflow/dags
           - name: AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH
             value: Source/Python/datalabs/dag
+          - name: AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL
+            value: "60"
+          - name: AIRFLOW__KUBERNETES__NAMESPACE
+            value: hsg-data-labs-dev
+          - name: AIRFLOW__KUBERNETES__IN_CLUSTER
+            value: "True"
+          - name: AIRFLOW__KUBERNETES__DELETE_WORKER_PODS
+            value: "True"
+          - name: AIRFLOW__KUBERNETES__WORKER_SERVICE_ACCOUNT_NAME
+            value: airflow
+          - name: AIRFLOW__KUBERNETES__GIT_SSH_KEY_SECRET_NAME
+            value: bitbucketprd
+          # - name: KUBECONFIG
+          #   value: /airflow/kubeconfig
           terminationMessagePath: /dev/termination-log
           volumeMounts:
           - mountPath: /airflow/dags
             name: ${AIRFLOW_SERVICE_NAME}-dags
-airflow.exceptions.AirflowConfigException: In kubernetes mode the following must be set in the `kubernetes` config section: `dags_volume_claim` or `dags_volume_host` or `dags_in_image` or `git_repo and git_branch and git_dags_folder_mount_point`
 
         - name: airflow-git-sync
           image: k8s.gcr.io/git-sync:v3.1.2
@@ -232,6 +245,23 @@ airflow.exceptions.AirflowConfigException: In kubernetes mode the following must
           volumeMounts:
           - mountPath: /airflow/dags
             name: ${AIRFLOW_SERVICE_NAME}-dags
+          env:
+          - name: GIT_SYNC_REPO
+            value: git@bitbucket.org:hsdatalabs/hsg-data-labs.git
+          - name: GIT_BRANCH
+            value: master
+          - name: GIT_SUBPATH
+            value: Source/Python/datalabs/dag
+          - name: GIT_SSH_KEY_SECRET_NAME
+            value: bitbucketprd
+          - name: GIT_DAGS_FOLDER_MOUNT_POINT
+            value: /airflow/dags
+          - name: GIT_SYNC_CONTAINER_REPOSITORY
+            value: k8s.gcr.io/git-sync
+          - name: GIT_SYNC_CONTAINER_TAG
+            value: v3.1.2
+          - name: GIT_SYNC_INIT_CONTAINER_NAME
+            value: airflow-git-sync
 
         - name: airflow-webserver
           image: ' '

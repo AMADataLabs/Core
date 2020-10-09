@@ -17,7 +17,7 @@ COPY Build/Airflow/webserver.sh ${AIRFLOW_HOME}/webserver.sh
 RUN chmod gu+rwx ${AIRFLOW_HOME}/webserver.sh
 
 RUN chown -R airflow:root ${AIRFLOW_HOME}
-RUN chmod gu+rws /airflow
+RUN chmod +rws /airflow
 
 USER ${USER_ID}
 WORKDIR ${AIRFLOW_HOME}
