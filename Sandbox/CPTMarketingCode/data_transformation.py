@@ -4,6 +4,7 @@ from glob import glob
 import columns
 import os
 from varname import nameof
+import settings
 
 def main():
 
@@ -54,6 +55,9 @@ def get_file_paths():
     '''
     Returns a dictionary of three important file paths
     '''
+    print("!!!!!!!!!!!!!!!")
+    print(os.environ)
+    print(os.environ.get('FAX'))
     return {
         'input_directory': os.environ.get('SFMC_FILE'),
         'input_table_pattern': os.environ.get('SFMC_TXT_FILE'),
