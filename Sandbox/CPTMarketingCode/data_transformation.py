@@ -3,7 +3,7 @@ import pandas as pd
 from glob import glob
 import columns
 import os
-#from varname import nameof
+from varname import nameof
 
 def main():
 
@@ -48,16 +48,16 @@ def transform_tables(tables, budget_code):
 
 def export_tables(output_directory, new_tables):
     for item in new_tables:
-        item.to_csv(output_directory + "")#os.environ[nameof(item).upper()])
+        item.to_csv(output_directory + os.environ[nameof(item).upper()])
 
 def get_file_paths():
     '''
     Returns a dictionary of three important file paths
     '''
     return {
-        'input_directory': os.environ['SFMC_FILE'],
-        'input_table_pattern': os.environ['SFMC_TXT_FILE'],
-        'output_directory': os.environ['SFMC_FILE']
+        'input_directory': os.environ.get('SFMC_FILE'),
+        'input_table_pattern': os.environ.get('SFMC_TXT_FILE'),
+        'output_directory': os.environ.get('SFMC_FILE')
     }
 
 def create_tables(file_paths):
