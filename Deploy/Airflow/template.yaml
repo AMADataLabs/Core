@@ -233,7 +233,7 @@ objects:
             value: "False"
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${AIRFLOW_SERVICE_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
-          image: " "
+          image: ' '
           imagePullPolicy: IfNotPresent
           name: airflow
           ports:
@@ -253,7 +253,7 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - ${AIRFLOW_SERVICE_NAME}-scheduler
+        - airflow
         from:
           kind: ImageStreamTag
           name: airflow:latest
