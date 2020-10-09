@@ -2,7 +2,8 @@ import re
 import pandas as pd
 from glob import glob
 import columns
-from varname import nameof
+import os
+#from varname import nameof
 
 def main():
 
@@ -47,7 +48,7 @@ def transform_tables(tables, budget_code):
 
 def export_tables(output_directory, new_tables):
     for item in new_tables:
-        item.to_csv(output_directory + os.environ[nameof(item).upper()])
+        item.to_csv(output_directory + "")#os.environ[nameof(item).upper()])
 
 def get_file_paths():
     '''
@@ -259,7 +260,7 @@ def create_sales_kpi(sales, pbd_table):  # final table
 
     sales_kpi = calculate_sales_customers(sales_kpi, pbd_table)
 
-    sales_kpi = calculate_sales_averages(sales_kpi['Number of Unique Orders'], sales_kpi['Number of Unique Customers'], sales_kpi['Total Sales'], sales_kpi['Number of Unique Customers'], sales_kpi)
+    sales_kpi = calculate_sales_averages(sales_kpi['Number of Unique Orders'],sales_kpi['Number of Unique Customers'],sales_kpi['Total Sales'],sales_kpi)
 
     return sales_kpi
 
@@ -267,7 +268,7 @@ def calculate_monthly_total_sales(sales_kpi, sales, pbd_table):
     # Monthly Total Sales
     sales_kpi['Total Sales'] = sales.groupby('Date')['Revenue'].sum()
     pbd_table['Date'] = pd.to_datetime(pbd_table['ORDER_YEAR'].astype(str) + '-' + pbd_table['ORDER_MONTH'].astype(str))
-    return sales_kpi, pbd_table
+    return sales_kpi, pbd_tablef
 
 def calculate_sales_customers(sales_kpi, pbd_table):
     # Number of Unique Customers
@@ -278,7 +279,7 @@ def calculate_sales_customers(sales_kpi, pbd_table):
     sales_kpi['Number of New Customers'] = first_orders.groupby('Date')['EMPPID'].nunique()
     return sales_kpi
 
-def calculate_sales_averages(no_unique_order, no_unique_customers, total_sales, no_unique_customers, sales_kpi):
+def calculate_sales_averages(no_unique_order, no_unique_customers, total_sales, sales_kpi):
     # Average Sale Value per Order
     sales_kpi['Average Sale'] = total_sales / no_unique_order
     # Average Purchase Frequency
@@ -311,7 +312,7 @@ def create_product_sales_table(pbd_items_table):  # staging table
                                                           new_column_names)))
     return product_sales
 
-def format_product_items_table_dates(pbd_items_table)
+def format_product_items_table_dates(pbd_items_table):
     pbd_items_table['ORDER_DATE'] = pd.to_datetime(pbd_items_table['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
     pbd_items_table['ORDER_MONTH'] = pd.DatetimeIndex(pbd_items_table['ORDER_DATE']).month
     pbd_items_table['ORDER_YEAR'] = pd.DatetimeIndex(pbd_items_table['ORDER_DATE']).year
