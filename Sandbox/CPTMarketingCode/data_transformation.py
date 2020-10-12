@@ -139,6 +139,8 @@ def create_product_tables(pbd_items_table, budget_code):
 
 def create_customer_tables(pbd_items_table, contacts, aims_overlay):
     customer = create_customer_table(pbd_items_table, contacts, aims_overlay)
+    print("!!!!!")
+    print(customer)
     customer_clean = clean_up_customer(customer)
     return customer_clean
 
@@ -399,7 +401,13 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
 
     customer = merge_customer_tables(pbd_table, contacts, aims_overlay, final_columns)
 
+    print("one")
+    print(customer)
+
     customer = rename_customer_columns(customer)
+
+    print("two")
+    print(customer)
 
     return customer
 
@@ -417,9 +425,8 @@ def rename_customer_columns(customer):
     # rename columns
     customer = customer.rename(columns=dict(zip(customer.columns.tolist(),
                                                 columns.NEW_COLUMN_NAMES)))
-    print(customer.columns)
-    print("!!!!!!!")
     customer['RECENCY'] = pd.Timestamp('today').normalize() - customer['RECENT PURCHASE DATE']
+    return customer
 
 def clean_up_customer(customer):
     '''
@@ -437,6 +444,9 @@ def clean_up_customer(customer):
     return customer
 
 def clean_up_customer_title(customer):
+    print(customer)
+    print(customer.columns)
+    print("!!!!!!!")
     # fill up NaN with 'Unknown'
     customer['TITLE DESCRIPTION'] = customer['TITLE DESCRIPTION'].fillna('Unknown')
     # recode phyisican, doctor, etc
@@ -468,10 +478,12 @@ def clean_up_customer_industry(customer):
     return customer
 
 def create_email_campaign_table(email_campaign):
-    email_campaign_columns = columns.EMAIL_CAMPAIGN
-    email_campaign = email_campaign[email_campaign_columns]
-    new_email_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), email_campaign_columns)]
-    email_campaign = email_campaign.rename(columns=dict(zip(email_campaign_columns,
+    print("emailemailemailemail")
+    print(email_campaign)
+    print(email_campaign.columns)
+    email_campaign = email_campaign[columns.EMAIL_CAMPAIGN]
+    new_email_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), columns.EMAIL_CAMPAIGN)]
+    email_campaign = email_campaign.rename(columns=dict(zip(columns.EMAIL_CAMPAIGN,
                                                             new_email_campaign_columns)))
     return email_campaign
 
