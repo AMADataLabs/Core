@@ -32,24 +32,41 @@ def import_budget_code(input_directory):
                                 usecols=['Item Number', 'Budget Code'])
 
 def transform_tables(tables, budget_code):
-    new_tables = []
+    new_tables = {}
 
     pbd_table = create_pbd_table(tables['pbd_orders'], tables['pbd_returns'], tables['pbd_cancels'])
-    new_tables.append(create_sales_tables(pbd_table, tables))
+    new_tables["pbd_table_order"] = pbd_table
+
+    new_tables = create_sales_tables(pbd_table, tables, new_tables)
 
     pbd_items_table = create_pbd_items_table(pbd_table, tables['pbd_items'])
-    new_tables.append(create_product_tables(pbd_items_table, budget_code))
+    new_tables = create_product_tables(pbd_items_table, budget_code, new_tables)
 
-    new_tables.append(create_customer_tables(pbd_items_table, tables['contacts'], tables['aims_overlay']))
+    new_tables["customer_clean"] = create_customer_tables(pbd_items_table, tables['contacts'], tables['aims_overlay'])
 
     pbd_orders = tables['pbd_orders']
-    new_tables.append(create_order_tables(pbd_orders))
+    new_tables = create_order_tables(pbd_orders, tables, new_tables)
 
     return new_tables
 
 def export_tables(output_directory, new_tables):
-    for item in new_tables:
-        item.to_csv(output_directory + os.environ[nameof(item).upper()])
+    for key, val in new_tables.items():
+
+        val.to_csv(output_directory + key + ".csv")
+
+    """print("tablestbalestbaleatbales")
+    print(type(new_tables))
+    print(new_tables)
+
+    pbd_table.to_csv(output_directory + os.environ['PBD_TABLE'], index=False)
+    sales_pbd.to_csv(output_directory + os.environ['SALES_PBD'], index=False)
+    sales_kpi.to_csv(output_directory + os.environ['SALES_KPI'])
+    product_main.to_csv(output_directory + os.environ['PRODUCT_MAIN'], index=False)
+    product_remainder.to_csv(output_directory + os.environ['PRODUCT_REMAINDER'], index=False)
+    customer_clean.to_csv(output_directory + os.environ['CUSTOMER_CLEAN'])
+    direct_mail.to_csv(output_directory + os.environ['DIRECT_MAIL'])
+    fax.to_csv(output_directory + os.environ['FAX'])
+    email_campaign.to_csv(output_directory + os.environ['EMAIL_CAMPAIGN'])"""
 
 def get_file_paths():
     '''
@@ -123,32 +140,40 @@ def create_pbd_items_table(pbd_table, pbd_items):  # staging table
 
     return pbd_items_table
 
-def create_sales_tables(pbd_table, tables):
+def create_sales_tables(pbd_table, tables, new_tables):
     sales_pbd = create_pbd_sales_table(pbd_table)
     sales_olsub = create_olsub_sales_table(tables['olsub_orders'])
     sales = pd.concat([sales_pbd, sales_olsub], axis=0)
     sales_kpi = create_sales_kpi(sales, pbd_table)
-    return [sales_pbd, sales_olsub, sales_kpi]
 
-def create_product_tables(pbd_items_table, budget_code):
+    new_tables["sales"] = sales_pbd
+    new_tables["sales_kpi"] = sales_kpi
+    return new_tables
+
+def create_product_tables(pbd_items_table, budget_code, new_tables):
     product_sales = create_product_sales_table(pbd_items_table)
     product_sales_coded = match_budget_codes(product_sales, budget_code)
     product_main = create_product_main_table(product_sales_coded)
     product_remainder = create_product_remainder_table(product_sales_coded)
-    return [product_sales, product_main, product_remainder]
+
+    new_tables["product_main"] = product_main
+    new_tables["product_remainder"] = product_remainder
+    return new_tables
 
 def create_customer_tables(pbd_items_table, contacts, aims_overlay):
     customer = create_customer_table(pbd_items_table, contacts, aims_overlay)
-    print("!!!!!")
-    print(customer)
     customer_clean = clean_up_customer(customer)
     return customer_clean
 
-def create_order_tables(pbd_orders):
+def create_order_tables(pbd_orders, tables, new_tables):
     direct_mail = create_email_campaign_table(pbd_orders[pbd_orders['ORDER_TYPE'] == 'Mail'])
     fax = pbd_orders[pbd_orders['ORDER_TYPE'] == 'FAX']
     email_campaign = create_email_campaign_table(tables['emailcampaign'])
-    return [direct_mail, fax, email_campaign]
+
+    new_tables["direct_mail"] = direct_mail
+    new_tables["fax"] = fax
+    new_tables["email_campaign"] = email_campaign
+    return new_tables
 
 def generate_filenames(file_paths):
     # create a list of text flat file names in the directory
@@ -401,13 +426,7 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
 
     customer = merge_customer_tables(pbd_table, contacts, aims_overlay, final_columns)
 
-    print("one")
-    print(customer)
-
     customer = rename_customer_columns(customer)
-
-    print("two")
-    print(customer)
 
     return customer
 
@@ -444,9 +463,6 @@ def clean_up_customer(customer):
     return customer
 
 def clean_up_customer_title(customer):
-    print(customer)
-    print(customer.columns)
-    print("!!!!!!!")
     # fill up NaN with 'Unknown'
     customer['TITLE DESCRIPTION'] = customer['TITLE DESCRIPTION'].fillna('Unknown')
     # recode phyisican, doctor, etc
@@ -478,10 +494,7 @@ def clean_up_customer_industry(customer):
     return customer
 
 def create_email_campaign_table(email_campaign):
-    print("emailemailemailemail")
-    print(email_campaign)
-    print(email_campaign.columns)
-    email_campaign = email_campaign[columns.EMAIL_CAMPAIGN]
+    #email_campaign = email_campaign[columns.EMAIL_CAMPAIGN]
     new_email_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), columns.EMAIL_CAMPAIGN)]
     email_campaign = email_campaign.rename(columns=dict(zip(columns.EMAIL_CAMPAIGN,
                                                             new_email_campaign_columns)))
