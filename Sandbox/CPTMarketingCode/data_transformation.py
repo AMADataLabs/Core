@@ -35,7 +35,7 @@ def transform_tables(tables, budget_code):
     new_tables = []
 
     pbd_table = create_pbd_table(tables['pbd_orders'], tables['pbd_returns'], tables['pbd_cancels'])
-    new_tables.append(create_sales_tables(pbd_table))
+    new_tables.append(create_sales_tables(pbd_table, tables))
 
     pbd_items_table = create_pbd_items_table(pbd_table, tables['pbd_items'])
     new_tables.append(create_product_tables(pbd_items_table, budget_code))
@@ -123,7 +123,7 @@ def create_pbd_items_table(pbd_table, pbd_items):  # staging table
 
     return pbd_items_table
 
-def create_sales_tables(pbd_table):
+def create_sales_tables(pbd_table, table):
     sales_pbd = create_pbd_sales_table(pbd_table)
     sales_olsub = create_olsub_sales_table(tables['olsub_orders'])
     sales = pd.concat([sales_pbd, sales_olsub], axis=0)
