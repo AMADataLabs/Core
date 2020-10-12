@@ -269,7 +269,7 @@ def calculate_monthly_total_sales(sales_kpi, sales, pbd_table):
     # Monthly Total Sales
     sales_kpi['Total Sales'] = sales.groupby('Date')['Revenue'].sum()
     pbd_table['Date'] = pd.to_datetime(pbd_table['ORDER_YEAR'].astype(str) + '-' + pbd_table['ORDER_MONTH'].astype(str))
-    return sales_kpi, pbd_tablef
+    return sales_kpi, pbd_table
 
 def calculate_sales_customers(sales_kpi, pbd_table):
     # Number of Unique Customers
@@ -288,10 +288,9 @@ def calculate_sales_averages(no_unique_order, no_unique_customers, total_sales, 
     # Average Spending per Customer
     sales_kpi['Average Spending Per Customer'] = total_sales / no_unique_customers
     # Average Customer Value
-    sales_kpi['Average Customer Value'] = avg_spending_per_customer / avg_purchase_frequency
+    sales_kpi['Average Customer Value'] = sales_kpi['Average Spending Per Customer'] / sales_kpi['Average Purchase Frequency']
     return sales_kpi
 
-    return average_sale_per_order, avg_purchase_frequency, avg_spending_per_customer, avg_customer_value
 
 
 def create_product_sales_table(pbd_items_table):  # staging table
@@ -396,15 +395,15 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
     aims_overlay = aims_overlay[columns.AIMS_OVERLAY].groupby(['EMPPID']).first()
 
     # combined columns of interest from contacts and aims_overlay
-    final_columns = contacts_columns + aims_overlay_columns[1:]
+    final_columns = columns.CONTACTS + columns.AIMS_OVERLAY[1:]
 
-    customer = merge_customer_tables(pbd_table, contacts, aims_overlay)
+    customer = merge_customer_tables(pbd_table, contacts, aims_overlay, final_columns)
 
     customer = rename_customer_columns(customer)
 
     return customer
 
-def merge_customer_tables(pbd_table, contacts, aims_overlay):
+def merge_customer_tables(pbd_table, contacts, aims_overlay, final_columns):
     # merge the tables
     customer = pd.merge(pbd_table, contacts, how='left', on='EMPPID').merge(aims_overlay, how='left', on='EMPPID')
     temp1 = customer.groupby(['EMPPID']).agg({'ITEMEXTPRICE': 'sum',
@@ -414,11 +413,13 @@ def merge_customer_tables(pbd_table, contacts, aims_overlay):
     customer = temp1.merge(temp2, on='EMPPID', how='inner')
     return customer
 
-def rename_customer_columns():
+def rename_customer_columns(customer):
     # rename columns
     customer = customer.rename(columns=dict(zip(customer.columns.tolist(),
                                                 columns.NEW_COLUMN_NAMES)))
-    customer['Recency'] = pd.Timestamp('today').normalize() - customer['Recent Purchase Date']
+    print(customer.columns)
+    print("!!!!!!!")
+    customer['RECENCY'] = pd.Timestamp('today').normalize() - customer['RECENT PURCHASE DATE']
 
 def clean_up_customer(customer):
     '''
@@ -437,16 +438,16 @@ def clean_up_customer(customer):
 
 def clean_up_customer_title(customer):
     # fill up NaN with 'Unknown'
-    customer['Title Description'] = customer['Title Description'].fillna('Unknown')
+    customer['TITLE DESCRIPTION'] = customer['TITLE DESCRIPTION'].fillna('Unknown')
     # recode phyisican, doctor, etc
-    customer['Title Description'] = customer['Title Description'].replace('Other (Specify)', 'Other').replace(
+    customer['TITLE DESCRIPTION'] = customer['TITLE DESCRIPTION'].replace('Other (Specify)', 'Other').replace(
         'Purchasing Agent', 'Purchasing Agent/Buyer').replace(
         ['DR/ MD/ PHYSICIAN', 'Dr/MD/Physician', 'DR/MD/PHYSICIAN', 'Dr, MD, Physician'], 'Physician').replace(
         'Billing Manager/Sup/Director', 'Billing Manager/Supervisor/Director').replace(
         ['NURSE (RN/LPN/RNP)', 'Nurse (RN,LPN,RNP)', 'Nurse (RN,LPN,RNP)', 'NURSE RN/LPN/RNP', 'Nurse (RN LPN RNP)'],
         'NURSE')
     # Title strings
-    customer['Title Description'] = customer['Title Description'].str.title().replace(
+    customer['TITLE DESCRIPTION'] = customer['TITLE DESCRIPTION'].str.title().replace(
         ['General Management/Ceo/Cfo', 'General Management/Ceo/Coo/Cfo'], 'General Management/CEO/COO/CFO').replace(
         'Description Unknown', 'Unknown').replace('Medical Records/Doc Manager',
                                                   'Medical Records/Documentation Manager').replace(
@@ -456,9 +457,9 @@ def clean_up_customer_title(customer):
     return customer
 
 def clean_up_customer_industry(customer):
-    customer['Industry Description'] = customer['Industry Description'].str.title()
-    customer['Industry Description'] = customer['Industry Description'].fillna('Unknown')
-    customer['Industry Description'] = customer['Industry Description'].replace(
+    customer['INDUSTRY DESCRIPTION'] = customer['INDUSTRY DESCRIPTION'].str.title()
+    customer['INDUSTRY DESCRIPTION'] = customer['INDUSTRY DESCRIPTION'].fillna('Unknown')
+    customer['INDUSTRY DESCRIPTION'] = customer['INDUSTRY DESCRIPTION'].replace(
         ['Hospital/Med Cntr/VA Hospital', 'Hospital/Med Center/Va Hosp'], 'Hospital/Med Center/VA Hosp').replace(
         ['Group Practice [3+ Physicians]', 'Insurance Co', '2-Yr/4-Yr College', 'Wgerber@Aol.Com',
          'Billing Company/Claims Processing', 'Hmo/Ppo/Managed Care', 'Description Unknown'],
