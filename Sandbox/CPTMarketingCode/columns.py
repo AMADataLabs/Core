@@ -6,7 +6,9 @@ PBD_ITEMS = [
     'PRODUCT_NO', 
     'PRODUCT_DESC', 
     'ITEMEXTPRICE',
-    'ITEMEXTCOST'
+    'ITEMEXTCOST',
+    'PRICE_EACH',
+    'CAMPAIGN_CODE'
 ]
 OLSUB_ORDER = [
     'EMPPID', 
