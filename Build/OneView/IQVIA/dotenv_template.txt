@@ -1,0 +1,28 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+
+# Project Settings
+PROJECT_NAME='OneView'
+
+
+TASK_CLASS=datalabs.etl.task.ETLTask
+TASK_WRAPPER_CLASS=datalabs.etl.awslambda.ETLTaskWrapper
+
+EXTRACTOR_DATABASE_NAME='eprdods'       # Test: etstods
+EXTRACTOR_DATABASE_USERNAME='{{ ODS_username }}'
+EXTRACTOR_DATABASE_PASSWORD='{{ ODS_password }}'
+EXTRACTOR_DATABASE_HOST='{{ ODS_host }}'
+EXTRACTOR_DATABASE_PORT='54150'
+
+#IQVIA Extractor
+EXTRACTOR_SQL = '{{queries}}'
+EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
+EXTRACTOR_DRIVER_TYPE = db2
+EXTRACTOR_CLASS=datalabs.etl.jdbc.JDBCExtractorTask
+
+#IQVIA Transformer
+
+#IQVIA Loader
+LOADER_minio_placeholder = '{{placeholder}}'
+
