@@ -40,6 +40,8 @@ def transform_tables(tables, budget_code):
     new_tables = create_sales_tables(pbd_table, tables, new_tables)
 
     pbd_items_table = create_pbd_items_table(pbd_table, tables['pbd_items'])
+
+    new_tables["pbd_items_table"] = pbd_items_table
     new_tables = create_product_tables(pbd_items_table, budget_code, new_tables)
 
     new_tables["customer_clean"] = create_customer_tables(pbd_items_table, tables['contacts'], tables['aims_overlay'])
