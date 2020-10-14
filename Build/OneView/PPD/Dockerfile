@@ -14,8 +14,8 @@ ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
 RUN unzip ./Db2JdbcDriver.zip
 
 COPY ./Script ./Script
-COPY ./Build/Master ./Build/OneView/PPD
-COPY ./Build/OneView ./Build/OneView
+COPY ./Build/Master ./Build/Master
+COPY ./Build/OneView/PPD ./Build/OneView/PPD
 COPY ./Source ./Source
 RUN ./Script/bundle-project -i --directory ./ OneView
 
