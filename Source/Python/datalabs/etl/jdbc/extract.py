@@ -15,8 +15,9 @@ class JDBCExtractor(ExtractorTask):
         return dataframe
 
     def _jdbc_connect(self):
-        url = 'jdbc:%s://%s:%s/%s' % ((self._parameters.variable['DRIVER_TYPE']), self._parameters.database['HOST'],
-                                      self._parameters.database['PORT'], self._parameters.database['NAME'])
+        url = f"jdbc:{self._parameters.variable['DRIVER_TYPE']}://{self._parameters.database['HOST']}:" \
+              f"{self._parameters.database['PORT']}/{self._parameters.database['NAME']}"
+
         ods = jaydebeapi.connect(self._parameters.variable['DRIVER'],
                                  url,
                                  [self._parameters.database['username'], self._parameters.database['password']],
@@ -30,9 +31,13 @@ class JDBCExtractor(ExtractorTask):
         results = {}
         queries = self._split_queries(self._parameters.variable['SQL'])
 
-        if all(query.split(' ')[0].lower() == 'select' for query in queries):
-            for query in queries:
+        # if all(query.split(' ')[0].lower() == 'select' for query in queries):
+
+        for query in queries:
+            try:
                 results.update({query.split(' ')[3]: pandas.read_sql(query, ods)})
+            except Exception as exception:
+                raise ETLException(f"Invalid Query '{query}'") from exception
 
         return results
 
