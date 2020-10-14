@@ -9,9 +9,9 @@ import datalabs.etl.task as task
 
 @pytest.mark.skip(reason="Input Credentials")
 def test_jdbc_connection(parameters):
-    dataframes_dict = JDBCExtractor._extract()
+    dataframes_list = JDBCExtractor._extract()
 
-    assert list(dataframes_dict.keys())[0] == 'ODS.ODS_PPD_FILE'
+    assert dataframes_list[0].columns[0] == 'medical_education_number '
 
 
 @pytest.fixture
