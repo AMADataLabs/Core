@@ -31,10 +31,10 @@ class JDBCExtractor(ExtractorTask):
 
         return connection
 
-    def _read_queries(self, ods):
+    def _read_queries(self, connection):
         queries = self._split_queries(self._parameters.variable['SQL'])
 
-        return [pandas.read_sql(query, ods) for query in queries]
+        return [pandas.read_sql(query, connection) for query in queries]
 
     @classmethod
     def _split_queries(cls, queries):
