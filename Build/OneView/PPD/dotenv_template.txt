@@ -1,0 +1,24 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+
+EXTACTOR_DATABASE_NAME='eprdods'       # Test: etstods
+EXTACTOR_DATABASE_USERNAME='{{ ODS_username }}'
+EXTACTOR_DATABASE_PASSWORD='{{ ODS_password }}'
+EXTACTOR_DATABASE_HOST='{{ ODS_host }}'
+EXTACTOR_DATABASE_PORT='54150'
+
+
+#PPD Extractor
+EXTRACTOR_SQL = '{{query}}'
+EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
+EXTRACTOR_TYPE = db2
+EXTRACTOR_ETL=datalabs.etl.jdbc.JDBCExtractorTask
+
+#PPD Transformer
+
+#PPD Loader
+LOADER_Minio_Placeholder = '{{placeholder}}'
+
+# Project Settings
+PROJECT_NAME='OneView'
