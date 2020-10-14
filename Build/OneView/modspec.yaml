@@ -11,9 +11,25 @@
 modspec:
   - package: datalabs
     include:
+      - feature
+      - awslambda
       - plugin
       - etl
+      - sqlalchemy
+      - task
   - package: datalabs.access
     exclude:
       - aims
       - edw
+    include:
+      - credentials
+      - database
+      - datastore
+      - environment
+      - orm
+      - parameter
+  - package: datalabs.etl.jdbc
+  - package: datalabs.etl.oneview.ppd
+  - package: datalabs.curate
+    include:
+      - parse
