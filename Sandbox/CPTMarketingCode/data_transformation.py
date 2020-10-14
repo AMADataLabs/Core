@@ -52,9 +52,13 @@ def transform_tables(tables, budget_code):
     return new_tables
 
 def export_tables(output_directory, new_tables):
+    no_index_files = ["pbd_table_order", "sales", "product_remainder", "product_main"]
     for key, val in new_tables.items():
 
-        val.to_csv(output_directory + key + ".csv")
+        if key in no_index_files:
+            val.to_csv(output_directory + key + ".csv", index = False)
+        else:    
+            val.to_csv(output_directory + key + ".csv")
 
     """print("tablestbalestbaleatbales")
     print(type(new_tables))
