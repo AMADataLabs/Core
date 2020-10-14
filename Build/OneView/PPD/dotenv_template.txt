@@ -10,7 +10,7 @@ EXTACTOR_DATABASE_PORT='54150'
 
 
 #PPD Extractor
-EXTRACTOR_SQL = '{{query}}'
+EXTRACTOR_SQL = '{{queries}}'
 EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
 EXTRACTOR_TYPE = db2
 EXTRACTOR_ETL=datalabs.etl.jdbc.JDBCExtractorTask
