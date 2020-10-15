@@ -12,7 +12,7 @@ class Physician(Base):
     __table_args__ = {"schema": "oneview"}
 
     medical_education_number = sa.Column(sa.Integer, primary_key=True)
-    address_type = sa.Column(sa.Integer, primary_key=True)
+    address_type = sa.Column(sa.String, nullable=False)
     mailing_name = sa.Column(sa.String, nullable=False)
     last_name = sa.Column(sa.String, nullable=False)
     first_name = sa.Column(sa.String, nullable=False)
@@ -281,6 +281,5 @@ class ResidencyProgramPhysician(Base):
 
     personnel_member = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_personnel_member.id"),
                                  primary_key=True, nullable=False)
-    aamc_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_personnel_member.aamc_id"), nullable=False)
     medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
