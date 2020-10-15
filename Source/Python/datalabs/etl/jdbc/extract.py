@@ -23,11 +23,12 @@ class JDBCExtractor(ExtractorTask):
         url = f"jdbc:{self._parameters.variable['DRIVER_TYPE']}://{self._parameters.database['HOST']}:" \
               f"{self._parameters.database['PORT']}/{self._parameters.database['NAME']}"
 
-        connection = jaydebeapi.connect(self._parameters.variable['DRIVER'],
-                                        url,
-                                        [self._parameters.database['username'], self._parameters.database['password']],
-                                        self.variables['JAR_PATH']
-                                        )
+        connection = jaydebeapi.connect(
+            self._parameters.variable['DRIVER'],
+            url,
+            [self._parameters.database['username'], self._parameters.database['password']],
+            self.variables['JAR_PATH']
+        )
 
         return connection
 
