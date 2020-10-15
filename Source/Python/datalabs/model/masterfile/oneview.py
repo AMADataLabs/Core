@@ -178,7 +178,7 @@ class Provider(Base):
     primary_specialty = sa.Column(sa.String, nullable=False)
     secondary_specialty = sa.Column(sa.String, nullable=False)
     tertiary_specialty = sa.Column(sa.String, nullable=False)
-    primary_profession_code = sa.Column(sa.String, nullable=False)
+    primary_profession = sa.Column(sa.String, nullable=False)
     primary_profession_description = sa.Column(sa.String, nullable=False)
     status_description = sa.Column(sa.String, nullable=False)
 
