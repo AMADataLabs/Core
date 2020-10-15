@@ -93,7 +93,7 @@ class Physician(Base):
     npi = sa.Column(sa.Integer, nullable=False)
 
 
-class ResidencyProgramAddresses(Base):
+class ResidencyProgram(Base):
     __tablename__ = 'residency_program_addresses'
     __table_args__ = {"schema": "oneview"}
 
@@ -108,6 +108,7 @@ class ResidencyProgramAddresses(Base):
     city = sa.Column(sa.String, nullable=False)
     state = sa.Column(sa.String, nullable=False)
     zipcode = sa.Column(sa.String, nullable=False)
+    institution = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_institution.id"), nullable=False)
 
 
 class ResidencyProgramPersonnelMember(Base):
@@ -134,7 +135,6 @@ class ResidencyProgramInstitution(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    program = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_addresses.id"))
 
 
 class Business(Base):
