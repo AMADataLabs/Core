@@ -281,6 +281,5 @@ class ResidencyProgramPhysician(Base):
 
     personnel_member = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_personnel_member.id"),
                                  primary_key=True, nullable=False)
-    aamc_id = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_personnel_member.aamc_id"), nullable=False)
     medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
