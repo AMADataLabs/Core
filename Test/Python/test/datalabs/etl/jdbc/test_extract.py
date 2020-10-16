@@ -3,7 +3,7 @@ import os
 import jaydebeapi
 import pytest
 
-from datalabs.etl.jdbc.extractor import JDBCExtractor
+from datalabs.etl.jdbc.extract import JDBCExtractor
 import datalabs.etl.task as task
 
 
@@ -11,7 +11,7 @@ import datalabs.etl.task as task
 def test_jdbc_connection(parameters):
     dataframes_list = JDBCExtractor._extract()
 
-    assert dataframes_list[0].columns[0] == 'medical_education_number '
+    assert dataframes_list[0].columns[0] == 'ME_NUMBER'
 
 
 @pytest.fixture
