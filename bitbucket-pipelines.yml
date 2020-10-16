@@ -1,0 +1,8 @@
+image: gradle:6.7.0-jre14
+
+pipelines:
+    branches:
+        master:
+            - step:
+                script:
+                    - ./Script/bitbucket-pipelines-build
