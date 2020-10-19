@@ -9,7 +9,7 @@ def get_query():
     iqvia_query = \
         """ 
         SELECT DISTINCT 
-        B.BUSINESS_NAME,
+        B.BUSINESS_NAME as "Oooh",
         B.DBA_NAME,
         B.PHONE,
         B.PHYSICAL_ADDR_1,

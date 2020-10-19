@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class PPDDataFrameToCSVText(TransformerTask, ParseToCSVTransformerTask):
+class PPDDataFramesToCSVText(ParseToCSVTransformerTask):
     def _transform(self):
         dataframe = self.parse(self._parameters.data)
         csv_data = self.to_csv(dataframe)

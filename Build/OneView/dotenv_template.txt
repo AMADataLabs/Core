@@ -1,7 +1,14 @@
 # Repository Settings
 DATALABS_PYTHONPATH='{{ pythonpath }}'
 
+
 # Database Settings
+DATABASE_ORM_HOST='{{ orm_database_host }}'
+DATABASE_ORM_NAME='{{ orm_database_name }}'
+DATABASE_ORM_BACKEND='postgresql+psycopg2'
+CREDENTIALS_ORM_USERNAME='{{ orm_username }}'
+CREDENTIALS_ORM_PASSWORD='{{ orm_password }}'
+
 DATABASE_AIMS_NAME='aims_prod'
 CREDENTIALS_AIMS_USERNAME='{{ aims_username }}'
 CREDENTIALS_AIMS_PASSWORD='{{ aims_password }}'
