@@ -22,7 +22,7 @@ class ExpectedFileColumns:
     validation_results = VALIDATION_RESULTS_COLUMNS_EXPECTED
     samples = SAMPLE_COLUMNS_EXPECTED
     dict = {
-        'results_standard': standard_results,
+        'humach_result': standard_results,
         'results_validation': validation_results,
         'humach_sample': samples
     }
@@ -34,7 +34,7 @@ class TableColumns:
     validation_results = VALIDATION_RESULTS_COLUMNS
     samples = SAMPLE_COLUMNS
     dict = {
-            'results_standard': standard_results,
+            'humach_result': standard_results,
             'results_validation': validation_results,
             'humach_sample': samples
     }
@@ -90,12 +90,12 @@ class HumachResultsArchive:
             raise ValueError('Columns provided do not match columns expected.')
 
     def ingest_result_file(self, table, file_path):
-        if table == 'results_standard':
+        if table == 'humach_result':
             data = self._preprocess_standard_result_file(file_path)
-        elif table == 'results_validation':
+        elif table == 'validation_result':
             data = self._preprocess_validation_result_file(file_path)
         else:
-            raise ValueError('Table {} could not be processed.'.format(table))
+            raise ValueError(f'Table {table} could not be processed.')
 
         for i, r in data.iterrows():
             self.insert_row(table='humach_result', vals=[v for v in r.values])
@@ -242,16 +242,29 @@ class HumachResultsArchive:
     def _preprocess_standard_result_file(self, filename: str) -> pd.DataFrame:
         data = pd.read_excel(filename, dtye=str)
         cols = data.columns.values
-        self.validate_cols(table='results_standard', cols=cols)
-        return data
+
+        formatted_data = pd.DataFrame()
+        for col in self.expected_file_columns.standard_results:
+            formatted_data[col] = data[col]
+
+        self.validate_cols(table='humach_result', cols=cols)
+        formatted_data = formatted_data[formatted_data['SAMPLE_ID'].isna() == False]
+        return formatted_data
 
     def _preprocess_validation_result_file(self, filename: str) -> pd.DataFrame:
-        data = pd.DataFrame(columns=self.expected_file_columns.validation_results)
         sheet_names = ['ValidatedCorrect', 'ValidatedIncorrect', 'NotValidated', 'Unfinalized']
+        sheet_dataframes = []
         for sheet_name in sheet_names:
             sheet_df = pd.read_excel(filename, sheet_name=sheet_name)
-            data = data.append(sheet_df, ignore_index=True)
-        return data
+            formatted_sheet_df = pd.DataFrame()
+            for col in self.expected_file_columns.validation_results:
+                formatted_sheet_df[col] = sheet_df[col]
+
+            sheet_dataframes.append(sheet_df)
+
+        formatted_data = pd.concat(sheet_dataframes)
+        self.validate_cols(table='validation_result', cols=formatted_data.columns.values)
+        return formatted_data
 
     def _phone_needs_end_dt(self, given: str, received: str, comment: str) -> bool:
         needs_end_dt = False
