@@ -20,6 +20,8 @@ EXTRACTOR_SQL = '{{queries}}'
 EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
 EXTRACTOR_TYPE = db2
 EXTRACTOR_CLASS=datalabs.etl.jdbc.JDBCExtractorTask
+EXTRACTOR_TYPE='db2'
+EXTRACTOR_JAR_PATH='jars file'
 
 #PPD Transformer
 
