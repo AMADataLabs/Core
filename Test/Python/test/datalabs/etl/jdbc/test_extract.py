@@ -58,7 +58,7 @@ def environment_variables():
     os.environ['EXTRACTOR_DATABASE_HOST'] = 'rdbp1190'
     os.environ['EXTRACTOR_DATABASE_PORT'] = '54150'
 
-    os.environ['EXTRACTOR_SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE;'
+    os.environ['EXTRACTOR_SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE LIMIT 20;'
     os.environ['EXTRACTOR_DRIVER'] = 'com.ibm.db2.jcc.DB2Driver'
     os.environ['EXTRACTOR_TYPE'] = 'db2'
     os.environ['EXTRACTOR_JAR_PATH'] = './db2jcc4.jar'
