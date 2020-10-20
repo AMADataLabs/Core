@@ -1,6 +1,6 @@
-MAKE_TABLE_SAMPLES = \
+MAKE_TABLE_RESULTS = \
     """
-    CREATE TABLE IF NOT EXISTS humach_sample(
+    CREATE TABLE IF NOT EXISTS humach_result(
         sample_id INTEGER NOT NULL,
         row_id INTEGER NOT NULL,
         physician_me_number VARCHAR,
@@ -29,9 +29,9 @@ MAKE_TABLE_SAMPLES = \
     );
     """.strip()
 
-MAKE_TABLE_RESULTS = \
+MAKE_TABLE_SAMPLES = \
     """
-    CREATE TABLE IF NOT EXISTS humach_result(
+    CREATE TABLE IF NOT EXISTS humach_sample(
         sample_id INTEGER NOT NULL,
         row_id INTEGER NOT NULL,
         survey_month INTEGER NOT NULL,
@@ -68,8 +68,54 @@ MAKE_TABLE_REFERENCE = \
     );
     """
 
+MAKE_TABLE_VALIDATION_RESULT = \
+    """
+    CREATE TABLE IF NOT EXISTS validation_result(
+        sample_id INTEGER NOT NULL,
+        row_id INTEGER NOT NULL,
+        study_cd VARCHAR,
+        me_no VARCHAR,
+        fname VARCHAR,
+        mname VARCHAR,
+        lname VARCHAR,
+        suffix VARCHAR,
+        degree VARCHAR,
+        lable_name VARCHAR,
+        office_phone VARCHAR,
+        polo_addr_line_0 VARCHAR,
+        polo_addr_line_1 VARCHAR,
+        polo_addr_line_2 VARCHAR,
+        polo_city VARCHAR,
+        polo_state VARCHAR,
+        polo_zip VARCHAR,
+        polo_zipext VARCHAR,
+        original_phone VARCHAR,
+        correct_phone VARCHAR,
+        reason_phone_incorrect VARCHAR,
+        reason_phone_other VARCHAR,
+        captured_number VARCHAR,
+        correct_address VARCHAR,
+        reason_addr_incorrect VARCHAR,
+        reason_addr_other VARCHAR,
+        no_longer_at_addr_comment VARCHAR,
+        captured_add0 VARCHAR,
+        captured_add1 VARCHAR,
+        captured_add2 VARCHAR,
+        captured_city VARCHAR,
+        captured_state VARCHAR,
+        captured_zip VARCHAR,
+        captured_zipext VARCHAR,
+        lastcall VARCHAR,
+        adcid VARCHAR,
+        secondattempt VARCHAR,
+        result_of_call VARCHAR
+    );
+    """
+
 DROP_TABLE_SAMPLES = "DROP TABLE IF EXISTS humach_sample"
 
 DROP_TABLE_RESULTS = "DROP TABLE IF EXISTS humach_result"
 
 DROP_TABLE_REFERENCE = "DROP TABLE IF EXISTS sample_reference"
+
+DROP_TABLE_VALIDATION_RESULT = "DROP TABLE IF EXISTS validation_result"

@@ -1,5 +1,6 @@
+import os
 from glob import glob
-from HumachSurveys.HumachResultsArchive import HumachResultsArchive
+from datalabs.analysis.humach.survey.archive import HumachResultsArchive
 import logging
 logging.basicConfig(level=logging.INFO)
 import settings
@@ -37,30 +38,24 @@ class HumachResultsIngester:
     # ingest_standard and ingest_validation are different because standard and validation result files have
     # different file types (xls vs xlsx)
     def ingest_standard(self):
-
         files = self.get_standard_result_files()
 
         for file in files:
-            try:
-                self.logger.info(f'PROCESSING FILE: {file}')
-                self.archive.ingest_result_file(table='results_standard', file_path=file)
-                self.logger.info('SUCCESS.')
-            except Exception as e:
-                self.logger.info('FAILED:', e)
+            self.logger.info(f'PROCESSING FILE: {file}')
+            self.archive.ingest_result_file(table='humach_result', file_path=file)
+            self.logger.info('SUCCESS.')
 
     def ingest_validation(self):
-
         files = self.get_validation_result_files()
         for file in files:
             try:
                 self.logger.info(f'PROCESSING FILE: {file}')
-                self.archive.ingest_result_file(table='results_validation', file_path=file)
+                self.archive.ingest_result_file(table='humach_result', file_path=file)
                 self.logger.info('SUCCESS.')
             except Exception as e:
                 self.logger.info('FAILED:', e)
 
     def ingest_samples(self):
-
         files = self.get_sample_files()
         for file in files:
             try:
@@ -71,10 +66,9 @@ class HumachResultsIngester:
                 self.logger.info('FAILED:', e)
 
 
-
-archive = HumachResultsArchive(database='HumachSurveys.db')
-
+archive = HumachResultsArchive()
+archive._load_environment_variables()
+os.environ['ARCHIVE_DB_PATH'] = 'C://Users/glappe/PycharmProjects/hsg-data-labs/Sandbox/HumachSurveys/HumachSurveys.db'
 ingester = HumachResultsIngester(archive=archive)
-ingester.ingest_samples()
-
+# ingester.ingest_standard()
 
