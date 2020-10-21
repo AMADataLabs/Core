@@ -23,7 +23,9 @@ EXTRACTOR_TYPE = db2
 EXTRACTOR_JAR_PATH='jars file'
 
 #IQVIA Transformer
+TRANSFORMER_CLASS=datalabs.etl.oneview.iqvia.transform
 
 #IQVIA Loader
+LOADER_CLASS=datalabs.etl.oneview.iqvia.load
 LOADER_minio_placeholder = '{{placeholder}}'
 
