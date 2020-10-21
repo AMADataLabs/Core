@@ -1,7 +1,10 @@
 """ Oneview PPD Transformer"""
 import logging
-import datalabs.etl.oneview.columns as columns
 
+from   datalabs.etl.oneview.ppd.columns import names
+from   datalabs.etl.oneview.ppd.columns import columns
+
+from datalabs.etl.oneview.column import UpdateColumns
 from datalabs.etl.transform import TransformerTask
 from datalabs.etl.task import ETLException
 
@@ -15,18 +18,13 @@ class PPDDataFramesToCSVText(TransformerTask):
         LOGGER.debug('Data to transform: %s', self._parameters.data)
 
         try:
-            updated_df = [self._update_column_names(data) for data in self._parameters.data]
-            updated_csv = [self._dataframe_to_csv(data) for data in updated_df]
+            updated_df = UpdateColumns.change_names(self._parameters.data, names, columns)
+            updated_csv = self._dataframe_to_csv(updated_df)
 
         except Exception as exception:
             raise ETLException("Invalid data") from exception
 
         return updated_csv
-
-    @classmethod
-    def _update_column_names(cls, data):
-        data.columns = columns
-        return data
 
     @classmethod
     def _dataframe_to_csv(cls, data):

@@ -16,14 +16,15 @@ EXTACTOR_DATABASE_HOST='{{ ODS_host }}'
 EXTACTOR_DATABASE_PORT='54150'
 
 #PPD Extractor
+EXTRACTOR_CLASS=datalabs.etl.jdbc.extract.JDBCExtractorTask
 EXTRACTOR_SQL = '{{queries}}'
 EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
 EXTRACTOR_TYPE = db2
-EXTRACTOR_CLASS=datalabs.etl.jdbc.JDBCExtractorTask
 EXTRACTOR_TYPE='db2'
 EXTRACTOR_JAR_PATH='jars file'
 
 #PPD Transformer
+TRANSFORMER_CLASS=datalabs.etl.oneview.ppd.transform.PPDDataFramesToCSVText
 
 #PPD Loader
 LOADER_Minio_Placeholder = '{{placeholder}}'
