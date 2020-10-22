@@ -28,8 +28,8 @@ def components():
         variables=dict(
             CLASS='test.datalabs.etl.jdbc.test_extract.JDBCExtractor',
             thing=True,
-            SQL='SELECT * FROM ODS.ODS_PPD_FILE LIMIT 5;',
-            DRIVER='com.ibm.db2.jcc.DB2Driver',
+            SQL='SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;',
+            DRIVER='com.ibm.db2.jcc.DB2Jcc',
             TYPE='db2',
             JAR_PATH='./db2jcc4.jar')
         )
@@ -46,8 +46,8 @@ def environment_variables():
     os.environ['EXTRACTOR_DATABASE_HOST'] = 'rdbp1190'
     os.environ['EXTRACTOR_DATABASE_PORT'] = '54150'
 
-    os.environ['EXTRACTOR_SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE LIMIT 5;'
-    os.environ['EXTRACTOR_DRIVER'] = 'com.ibm.db2.jcc.DB2Driver'
+    os.environ['EXTRACTOR_SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;'
+    os.environ['EXTRACTOR_DRIVER'] = 'com.ibm.db2.jcc.DB2Jcc'
     os.environ['EXTRACTOR_TYPE'] = 'db2'
     os.environ['EXTRACTOR_JAR_PATH'] = './db2jcc4.jar'
 
