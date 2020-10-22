@@ -138,10 +138,56 @@ class VTPhysicianContactArchive:
         self.connection.execute(sql)
         self.connection.commit()
 
+    def create_batch_load_file(self, sample_id=None):
+        if sample_id is None:
+            sample_id = self.get_latest_results_sample_id()
+
+        # load results for sample ID
+        sql = \
+            f"""
+            SELECT 
+                s.sample_id,
+                s.row_id,
+                s.me,
+                r.phone_number
+            FROM
+                vertical_trail_samples s
+                INNER JOIN
+                vertical_trail_results r
+                ON (r.sample_id = s.sample_id AND r.row_id = s.row_id)
+            WHERE
+                s.sample_id = {sample_id}
+            """.strip()
+        data = pd.read_sql(con=self.connection, sql=sql)
+
+        # filter to valid phone results
+        data = data[data['phone_number'].notna()]
+        data = data[data['phone_number'] != 'None']
+
+        # format data
+        batchload_data = pd.DataFrame()
+
+        batchload_file_date = str(datetime.now().date())
+        # batchload_cols = ['me', 'phone_number', 'fax', 'source', 'verified_date', 'load_type']
+
+        batchload_data['me'] = data['me']
+        batchload_data['phone_number'] = data['phone_number']
+        batchload_data['fax'] = ''  # not provided in results but required for batch load file
+        batchload_data['source'] = 'WEBVRTR'
+        batchload_data['verified_data'] = batchload_file_date
+        batchload_data['load_type'] = 'A'  # 'A' for 'Append'
+
+        batchload_data.drop_duplicates(inplace=True)
+
+        # save file to target directory
+        batchload_filename = f'HSG_PHYS_WEBVRTR_PHONE_{batchload_file_date}.csv'
+        batchload_save_path = f'{self._batch_load_save_dir}/{batchload_filename}'
+        print(batchload_save_path)
+        return batchload_data
+
     def _load_environment_variables(self):
         self._batch_load_save_dir = os.environ.get('BATCH_LOAD_SAVE_DIR')
-        if self.database_path is None:
-            self.database_path = os.environ.get('ARCHIVE_DB_PATH')
+        if self._database_path is None:
+            self._database_path = os.environ.get('ARCHIVE_DB_PATH')
         if self.connection is None:
-            self.connection = Connection(self.database_path)
-
+            self.connection = Connection(self._database_path)
