@@ -6,6 +6,7 @@ from minio import Minio
 
 from datalabs.etl.load import LoaderTask
 from datalabs.etl.task import ETLException
+from datalabs.etl.s3.load import S3UnicodeTextFileLoaderTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -34,7 +35,10 @@ class PPDFileLoader(LoaderTask):
     def _upload_file(self, client):
         self._make_bucket(client)
 
-        for data, table in self._parameters.data, self._parameters.variables['TABLE_NAMES']:
+        Encoder = S3UnicodeTextFileLoaderTask()
+        encoded_data = Encoder._encode(self._parameters.data)
+
+        for data, table in encoded_data, self._parameters.variables['TABLE_NAMES']:
             client.put_object(
                 self._paramters.database['BUCKET'],
                 table,
