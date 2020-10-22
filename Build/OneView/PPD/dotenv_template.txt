@@ -17,10 +17,9 @@ EXTACTOR_DATABASE_PORT='54150'
 
 #PPD Extractor
 EXTRACTOR_CLASS=datalabs.etl.jdbc.extract.JDBCExtractorTask
-EXTRACTOR_SQL = '{{queries}}'
+EXTRACTOR_SQL = SELECT * FROM ODS.ODS_PPD_FILE
 EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
 EXTRACTOR_TYPE = db2
-EXTRACTOR_TYPE='db2'
 EXTRACTOR_JAR_PATH='jars file'
 
 #PPD Transformer
