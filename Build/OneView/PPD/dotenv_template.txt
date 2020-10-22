@@ -24,4 +24,10 @@ EXTRACTOR_CLASS=datalabs.etl.jdbc.JDBCExtractorTask
 #PPD Transformer
 
 #PPD Loader
-LOADER_Minio_Placeholder = '{{placeholder}}'
+LOADER_DATABASE_ACCESS_KEY=7YBCA8X7JKED4CT6KICX
+LOADER_DATABASE_SECRET_KEY=CEHVmDVyI5m6wJjVwOMUb30L1EFO0dmVsSOWU0cE
+LOADER_DATABSE_BUCKET=PPD
+LOADER_DATABASE_ENDPOINT=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+
+LOADER_TABLE_NAMES=['ppd.csv']
+LOADER_CLASS=datalabs.etl.oneview.load
