@@ -30,7 +30,7 @@ def components():
             thing=True,
             SQL='SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;',
             DRIVER='com.ibm.db2.jcc.DB2Jcc',
-            TYPE='db2',
+            DRIVER_TYPE='db2',
             JAR_PATH='./db2jcc4.jar')
         )
 
@@ -48,7 +48,7 @@ def environment_variables():
 
     os.environ['EXTRACTOR_SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;'
     os.environ['EXTRACTOR_DRIVER'] = 'com.ibm.db2.jcc.DB2Jcc'
-    os.environ['EXTRACTOR_TYPE'] = 'db2'
+    os.environ['EXTRACTOR_DRIVER_TYPE'] = 'db2'
     os.environ['EXTRACTOR_JAR_PATH'] = './db2jcc4.jar'
 
     yield os.environ

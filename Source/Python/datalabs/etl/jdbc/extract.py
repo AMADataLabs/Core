@@ -20,7 +20,7 @@ class JDBCExtractor(ExtractorTask):
         return tables
 
     def _connect(self):
-        url = f"jdbc:{self._parameters.variables['TYPE']}://{self._parameters.database['HOST']}:" \
+        url = f"jdbc:{self._parameters.variables['DRIVER_TYPE']}://{self._parameters.database['HOST']}:" \
               f"{self._parameters.database['PORT']}/{self._parameters.database['NAME']}"
 
         connection = jaydebeapi.connect(
