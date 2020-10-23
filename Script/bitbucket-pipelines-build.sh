@@ -33,6 +33,8 @@ echo "Commit range: $COMMIT_RANGE"
 if [[ -f $(git rev-parse --git-dir)/shallow ]]; then
     if [[ ${LAST_SUCCESSFUL_COMMIT} == "null" ]]; then
         git fetch --unshallow
+        git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        git fetch origin
     else
         DEPTH=1
         until git show ${LAST_SUCCESSFUL_COMMIT} > /dev/null 2>&1
