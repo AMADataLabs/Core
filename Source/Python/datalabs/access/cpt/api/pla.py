@@ -81,8 +81,9 @@ class PLADetailsEndpointTask(BasePLADetailsEndpointTask):
 
     def _filter(self, query):
         code = self._parameters.path.get('code')
+        query = self._filter_by_code(query, code)
 
-        return self._filter_by_code(query, code)
+        return query.filter(dbmodel.PLADetails.status == 'EXISTING')
 
     @classmethod
     def _filter_by_code(cls, query, code):
@@ -110,6 +111,9 @@ class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask):
 
             for date in since:
                 query = query.filter(dbmodel.Release.effective_date >= date)
+
+        else:
+            query = query.filter(dbmodel.PLADetails.status == 'EXISTING')
 
         return query
 

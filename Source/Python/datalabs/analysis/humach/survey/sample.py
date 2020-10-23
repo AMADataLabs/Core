@@ -28,7 +28,8 @@ class HumachSampleGenerator:
             self,
             archive: HumachResultsArchive = None,
             vt_archive: VTPhysicianContactArchive = None,
-            survey_type='STANDARD'):
+            survey_type='STANDARD',
+            custom_exclusion_file_list=None):
         self._survey_type = survey_type
         self._target_sample_vars = []
 
@@ -37,6 +38,7 @@ class HumachSampleGenerator:
         self._archive = archive
         self._vt_archive = vt_archive
         self._ppd_filename = None
+        self._custom_exclusion_file_list = custom_exclusion_file_list
 
         """ Exclusion time periods """
         self._months_me_block = None
@@ -49,6 +51,11 @@ class HumachSampleGenerator:
         self.source_filename_map = {
             'MF': 'Masterfile_Random_Sample',
             'VT': 'VT_VerificationSample'
+        }
+        self.survey_type_filename_map = {
+            'VERTICAL_TRAIL': 'VT_Verification_Sample',
+            'STANDARD': 'Masterfile_Random_Sample',
+            'VALIDATION': 'Validation_Sample'
         }
 
     def create_masterfile_random_sample(self):
@@ -116,16 +123,15 @@ class HumachSampleGenerator:
         if size is None:
             size = len(population_data)
 
-        filename = self.source_filename_map[source]
-
         sample = population_data.sample(n=min(int(size), len(population_data))).reset_index()
 
         sample = self._add_sample_info_columns(data=sample, source=source, reference_sample_id=reference_sample_id)
         sample = self._format_sample_columns(data=sample)
 
-        self._save_sample_and_deliverable(sample, filename=filename)
+        self._save_sample_and_deliverable(sample)
 
     def _load_ppd(self):
+        LOGGER.info(f'Loading PPD: {self._ppd_filename}')
         ppd = pd.read_csv(self._ppd_filename, dtype=str)
         return ppd
 
@@ -143,6 +149,7 @@ class HumachSampleGenerator:
         data = self._filter_no_contacts(data=data, aims_data=aims_data)
         data = self._filter_recent_me(data=data)
         data = self._filter_recent_phones(data=data)
+        data = self._filter_me_from_custom_files(data=data, file_list=self._custom_exclusion_file_list)
         data = self._add_pe_description(data=data, aims_data=aims_data)
         return data
 
@@ -153,11 +160,15 @@ class HumachSampleGenerator:
         data = data[data['TELEPHONE_NUMBER'].apply(lambda x: not self._isna(x))]  # VT results can be null
         data = self._filter_no_contacts(data=data, aims_data=aims_data)
         data = self._filter_recent_phones(data=data)
+        data = self._filter_me_from_custom_files(data=data, file_list=self._custom_exclusion_file_list)
         data = self._add_pe_description(data=data, aims_data=aims_data)
         return data
 
     def _add_sample_info_columns(self, data, source='MF', reference_sample_id=None):
-        sample_id = self._archive.get_latest_sample_id() + 1
+        latest_id = self._archive.get_latest_sample_id()
+        if latest_id is None:
+            latest_id = 1
+        sample_id = latest_id + 1
 
         if reference_sample_id is not None:
             print('REFERENCE - ', reference_sample_id)
@@ -188,8 +199,9 @@ class HumachSampleGenerator:
 
         return sample
 
-    def _save_sample_and_deliverable(self, sample, filename):
-        #self._load_sample_to_archive(sample)
+    def _save_sample_and_deliverable(self, sample):
+        filename = self.survey_type_filename_map[self._survey_type]
+        self._load_sample_to_archive(sample)
         self._make_deliverable_sample(sample, filename=filename)
 
     @classmethod
@@ -226,6 +238,21 @@ class HumachSampleGenerator:
             filter_data=previous_n_months_data,
             filter_col='me'
         )
+        return data
+
+    def _filter_me_from_custom_files(self, data, file_list):
+        if file_list is not None:
+            data_list = []
+            for file in file_list:
+                to_filter = pd.read_excel(file, dtype=str, usecols=['ME'])
+                data_list.append(to_filter)
+            to_filter = pd.concat(data_list)
+            data = self._filter_data(
+                data=data,
+                data_col='ME',
+                filter_data=to_filter,
+                filter_col='ME'
+            )
         return data
 
     @classmethod
@@ -273,6 +300,12 @@ def make_standard_survey():
     gen.create_masterfile_random_sample()
 
 
+def make_validation_survey():
+    gen = HumachSampleGenerator(survey_type='VALIDATION')
+    gen.create_masterfile_random_sample()
+
+
 def make_vertical_trail_verification_sample():
     gen = HumachSampleGenerator(survey_type='VERTICAL_TRAIL')
     gen.create_vertical_trail_verification_sample()
+

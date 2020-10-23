@@ -60,8 +60,9 @@ class ModifierEndpointTask(BaseModifierEndpointTask):
 
     def _filter(self, query):
         code = self._parameters.path.get('code')
+        query = self._filter_by_code(query, code)
 
-        return self._filter_by_code(query, code)
+        return query.filter(Modifier.deleted == False)
 
     @classmethod
     def _filter_by_code(cls, query, code):
@@ -89,6 +90,9 @@ class AllModifiersEndpointTask(BaseModifierEndpointTask):
 
             for date in since:
                 query = query.filter(Release.effective_date >= date)
+
+        else:
+            query = query.filter(Modifier.deleted == False)
 
         return query
 
