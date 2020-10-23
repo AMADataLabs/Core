@@ -5,10 +5,10 @@ pipelines:
         master:
         - step:
             script:
-            - echo $BUTBUCKET_USER
+            - echo $BITBUCKET_USER
             - echo $BITBUCKET_PASSWORD
             - printenv
-            - env BUTBUCKET_USER=$BUTBUCKET_USER BITBUCKET_PASSWORD=$BITBUCKET_PASSWORD bash Script/bitbucket-pipelines-build.sh
+            - env BITBUCKET_USER=$BITBUCKET_USER BITBUCKET_PASSWORD=$BITBUCKET_PASSWORD bash Script/bitbucket-pipelines-build.sh
     custom:
         Test:
         - step:
