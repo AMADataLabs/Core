@@ -6,14 +6,16 @@ pipelines:
         - step:
             script:
             - ./Script/bitbucket-pipelines-build
-              variables:
+            - variables:
                   BUTBUCKET_USER: $BUTBUCKET_USER
-                  BUTBUCKET_USER: $BITBUCKET_PASSWORD
+                  BITBUCKET_PASSWORD: $BITBUCKET_PASSWORD
     custom:
         Test:
         - step:
             name: Unit Tests
-            script: make test
+            script:
+            - make test
         - step:
             name: Lint
-            script: make lint
+            script:
+            - make lint
