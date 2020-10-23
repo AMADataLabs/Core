@@ -5,7 +5,7 @@ pipelines:
         master:
         - step:
             script:
-            - ./Script/bitbucket-pipelines-build
+            - bash Script/bitbucket-pipelines-build.sh
             - variables:
                   BUTBUCKET_USER: $BUTBUCKET_USER
                   BITBUCKET_PASSWORD: $BITBUCKET_PASSWORD
