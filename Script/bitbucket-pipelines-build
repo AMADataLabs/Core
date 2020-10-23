@@ -17,7 +17,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Configuration with default values
 : "${CI_TOOL:=bitbucket}"
-: "${CI_PLUGIN:=$DIR/../plugins/${CI_TOOL}.sh}"
+: "${CI_PLUGIN:=$DIR/plugins/${CI_TOOL}.sh}"
 
 # Resolve commit range for current build
 LAST_SUCCESSFUL_COMMIT=$(${CI_PLUGIN} hash last)
