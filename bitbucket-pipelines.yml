@@ -1,4 +1,4 @@
-image: gradle:6.7.0-jre14
+image: atlassian/default-image:2
 
 pipelines:
     branches:
@@ -9,7 +9,7 @@ pipelines:
             - echo $BITBUCKET_USER
             - echo $BITBUCKET_PASSWORD
             - printenv
-            - env BITBUCKET_USER=$BITBUCKET_USER BITBUCKET_PASSWORD=$BITBUCKET_PASSWORD bash Script/bitbucket-pipelines-build.sh
+            - bash Script/bitbucket-pipelines-build.sh
     custom:
         Test:
         - step:
