@@ -6,6 +6,9 @@ pipelines:
         - step:
             script:
             - ./Script/bitbucket-pipelines-build
+              variables:
+                  BUTBUCKET_USER: $BUTBUCKET_USER
+                  BUTBUCKET_USER: $BITBUCKET_PASSWORD
     custom:
         Test:
         - step:
