@@ -103,4 +103,4 @@ for PROJECT in $(echo -e "$CHANGED_PROJECTS"); do
 done
 
 # Print output
-echo -e "$PROJECTS_TO_BUILD"
+echo -e "Test\n$PROJECTS_TO_BUILD"

@@ -3,6 +3,14 @@ image: gradle:6.7.0-jre14
 pipelines:
     branches:
         master:
-            - step:
-                script:
-                    - ./Script/bitbucket-pipelines-build
+        - step:
+            script:
+            - ./Script/bitbucket-pipelines-build
+    custom:
+        Test:
+        - step:
+            name: Unit Tests
+            script: make test
+        - step:
+            name: Lint
+            script: make lint
