@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # Documentation
 read -r -d '' USAGE_TEXT << EOM
 Usage: bitbucket.sh command [<param>...]
@@ -243,7 +245,7 @@ case $1 in
                 fail "Unknown hash position $2"
                 ;;
         esac
-        ;;        
+        ;;
     *)
         fail "Unknown command $1"
         ;;

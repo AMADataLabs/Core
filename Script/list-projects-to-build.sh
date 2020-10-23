@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # Documentation
 read -r -d '' USAGE_TEXT << EOM
 Usage:
