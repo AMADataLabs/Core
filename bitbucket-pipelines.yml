@@ -5,6 +5,7 @@ pipelines:
         master:
         - step:
             script:
+            - echo $TEST_EM_MY_VARIABLE
             - echo $BITBUCKET_USER
             - echo $BITBUCKET_PASSWORD
             - printenv
