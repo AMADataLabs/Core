@@ -34,8 +34,6 @@ fi
 # Find script directory (no support for symlinks)
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-echo $(git branch -r)
-
 # Look for changes in given revision range
 CHANGED_PATHS=$(git diff --name-status $COMMIT_RANGE --)
 #echo -e "Changed paths:\n$CHANGED_PATHS"
