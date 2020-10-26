@@ -1,10 +1,11 @@
 """Oneview Physician Table Columns"""
+
 columns = {
     'ME_NUMBER': 'medical_education_number',
     'ADDRESS_TYPE': 'address_type',
     'MAILING_NAME': 'mailing_name',
     'LAST_NAME': 'last_name',
-    'FIRST_NAMES': 'first_name',
+    'FIRST_NAME': 'first_name',
     'MIDDLE_NAME': 'middle_name',
     'SUFFIX_CODE': 'name_suffix',
     'PREFERRED_ADDR2': 'preferred_address_2',
@@ -15,8 +16,8 @@ columns = {
     'PREFERRED_PLUS4': 'sector',
     'PREFERRED_CARRIERROUTE': 'carrier_route',
     'UNDELIVER_FLAG': 'address_undeliverable',
-    'FIPS_county': 'federal_information_processing_standard_county',
-    'FIPS_state': 'federal_information_processing_standard_state',
+    'FIPS_COUNTY': 'federal_information_processing_standard_county',
+    'FIPS_STATE': 'federal_information_processing_standard_state',
     'PRINTER_CONTROLCODE_BEGIN': 'printer_control_code_begin',
     'BARCODE_ZIP': 'barcode_zipcode',
     'BARCODE_PLUS4': 'barcode_zipcode_plus_4',
@@ -80,25 +81,3 @@ columns = {
     'NEXTMOSTRECENTFORMERMIDDLENAME': 'next_most_recent_former_middle_name',
     'NEXTMOSTRECENTFORMERFIRSTNAME': 'next_most_recent_former_first_name'
 }
-
-names = ['ME_NUMBER', 'ADDRESS_TYPE', 'MAILING_NAME',
-         'LAST_NAME', 'FIRST_NAME', 'MIDDLE_NAME', 'SUFFIX_CODE',
-         'PREFERRED_ADDR2', 'PREFERRED_ADDR1', 'PREFERRED_CITY',
-         'PREFERRED_STATE', 'PREFERRED_ZIP', 'PREFERRED_PLUS4',
-         'PREFERRED_CARRIERROUTE', 'UNDELIVER_FLAG', 'FIPS_COUNTY', 'FIPS_STATE',
-         'PRINTER_CONTROLCODE_BEGIN', 'BARCODE_ZIP', 'BARCODE_PLUS4',
-         'DELIVERYPOINTCODE', 'CHECKDIGIT', 'PRINTER_CONTROLCODE_END', 'REGION',
-         'DIVISION', 'GROUP', 'TRACT', 'SUFFIX', 'BLOCKGROUP', 'MSA_POPULATION',
-         'MICRO_METRO_IND', 'CBSA', 'CBSA_DIVISION', 'DEGREE_TYPE', 'BIRTH_YEAR',
-         'BIRTH_CITY', 'BIRTH_STATE', 'BIRTH_COUNTRY', 'GENDER',
-         'PREFERREDPHONENUMBER', 'PENDINGDEAD_IND', 'FAXNUMBER', 'TOPCODE',
-         'PECODE', 'PRIMSPECIALTY', 'SECONDARYSPECIALTY', 'MPACODE',
-         'PRAAWARDRECIPIENT', 'PRAEXPIRATIONDATE', 'GMECONFIRMFLAG', 'FROMDATE',
-         'ENDDATE', 'YEARINPROGRAM', 'POSTGRADYEAR', 'GMEPRIMSPECIALTY',
-         'GMESECSPECIALTY', 'TRAINING_TYPE', 'GMEHOSPITALSTATE', 'GMEHOSPITALID',
-         'GRADSCHOOLSTATE', 'GRADSCHOOLCODE', 'GRADYEAR', 'NOCONTACT_IND',
-         'NOWEBIND', 'PDRP_FLAG', 'PDRP_DATE', 'POLO_ADDR2', 'POLO_ADDR1',
-         'POLO_CITY', 'POLO_STATE', 'POLO_ZIP', 'POLO_PLUS4', 'POLOCARRIERROUTE',
-         'MOSTRECENTFORMERLASTNAME', 'MOSTRECENTFORMERMIDDLENAME',
-         'MOSTRECENTFORMERFIRSTNAME', 'NEXTMOSTRECENTFORMERLASTNAME',
-         'NEXTMOSTRECENTFORMERMIDDLENAME', 'NEXTMOSTRECENTFORMERFIRSTNAME']

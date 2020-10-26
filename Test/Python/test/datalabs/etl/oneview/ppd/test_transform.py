@@ -14,7 +14,6 @@ LOGGER.setLevel(logging.DEBUG)
 def test_jdbc_connection(components):
     transformer = PPDDataFramesToCSVText(components)
     csv_list = transformer._transform()
-
     assert csv_list.split(',')[0] == 'medical_education_number'
 
 
@@ -158,7 +157,7 @@ def dataframe():
             'CURRENT_BATCH_FLAG': {0: None, 1: None, 2: None, 3: None, 4: None},
             'BATCH_BUSINESS_DATE': {0: None, 1: None, 2: None, 3: None, 4: None}}
 
-    return pandas.DataFrame.from_dict(data)
+    return [pandas.DataFrame.from_dict(data)]
 
 
 @pytest.fixture
