@@ -225,6 +225,7 @@ def ingest_result_file(file_path):
 
     gen.ingest_result_file(file_path=file_path)
 
+
 def create_batchload_file_for_latest_results():
     gen = VTPhysicianContactArchive()
     gen._load_environment_variables()
