@@ -66,10 +66,17 @@ This reverses (most) of the changes made by *setup-development-environment*. It 
 
 Shared source code should be put into the language sub-folder of *Source/* (i.e. Python code lives in *Source/Python/*).
 
+### Bash
+
+Reusable Bash functions for scripts.
+
+### JavaScript
+
+Currently only JavaScript plugins for Postman reside here.
+
 ### Python
 
 Python package folders should all start with *Source/Python/datalabs/* (i.e. all Data Labs packages start with *datalabs.*).
-
 
 ### Terraform
 
