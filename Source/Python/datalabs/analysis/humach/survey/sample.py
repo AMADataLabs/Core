@@ -73,6 +73,7 @@ class HumachSampleGenerator:
         latest_result_sample_id = self._vt_archive.get_latest_results_sample_id()
         LOGGER.info('LATEST SAMPLE ID - {}'.format(latest_result_sample_id))
         latest_result_data = self._vt_archive.get_results_for_sample_id(latest_result_sample_id)
+        LOGGER.info('LATEST SAMPLE RESULTS SIZE - {}'.format(len(latest_result_data)))
         LOGGER.info('CREATING POPULATION DATA')
         population_data = self._get_vertical_trail_verification_population_data(result_data=latest_result_data)
         LOGGER.info('CREATING SAMPLE')
@@ -158,9 +159,14 @@ class HumachSampleGenerator:
         data = data[data['TELEPHONE_NUMBER'].apply(lambda x: self._isna(x))]
         data['TELEPHONE_NUMBER'] = data['VT_PHONE_NUMBER']  # replace PPD phone with VT phone
         data = data[data['TELEPHONE_NUMBER'].apply(lambda x: not self._isna(x))]  # VT results can be null
+        len1 = len(data)
+        LOGGER.info(f'SIZE PRE-NO_CONTACT FILTER: {len1}')
         data = self._filter_no_contacts(data=data, aims_data=aims_data)
-        data = self._filter_recent_phones(data=data)
-        data = self._filter_me_from_custom_files(data=data, file_list=self._custom_exclusion_file_list)
+        len2 = len(data)
+        LOGGER.info(f'SIZE POST-NO_CONTACT FILTER: {len2}')
+        LOGGER.info(f'FILTERED OUT {len1-len2} RECORDS')
+        #data = self._filter_recent_phones(data=data)
+        #data = self._filter_me_from_custom_files(data=data, file_list=self._custom_exclusion_file_list)
         data = self._add_pe_description(data=data, aims_data=aims_data)
         return data
 
