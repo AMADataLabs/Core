@@ -1,0 +1,57 @@
+import os
+
+import jaydebeapi
+import pytest
+
+from datalabs.etl.jdbc.extract import JDBCExtractor
+import datalabs.etl.task as task
+
+
+# @pytest.mark.skip(reason="Input Credentials")
+def test_jdbc_connection(components):
+    extractor = JDBCExtractor(components)
+    dataframes_list = extractor._extract()
+
+    assert dataframes_list[0].columns[0] == 'ME_NUMBER'
+
+
+@pytest.fixture
+def components():
+    return task.ETLComponentParameters(
+        database=dict(
+            NAME='eprdods',
+            PORT='54150',
+            HOST='rdbp1190',
+            username='dlabs',
+            password='L@bs2020'
+        ),
+        variables=dict(
+            CLASS='test.datalabs.etl.jdbc.test_extract.JDBCExtractor',
+            thing=True,
+            SQL='SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;',
+            DRIVER='com.ibm.db2.jcc.DB2Jcc',
+            DRIVER_TYPE='db2',
+            JAR_PATH='./db2jcc4.jar')
+        )
+
+
+@pytest.fixture
+def environment_variables():
+    current_env = os.environ.copy()
+
+    os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.jdbc.test_extract.JDBCExtractor'
+    os.environ['EXTRACTOR_DATABASE_NAME'] = 'eprdods'
+    os.environ['EXTRACTOR_DATABASE_username'] = 'dlabs'
+    os.environ['EXTRACTOR_DATABASE_password'] = 'L@bs2020'
+    os.environ['EXTRACTOR_DATABASE_HOST'] = 'rdbp1190'
+    os.environ['EXTRACTOR_DATABASE_PORT'] = '54150'
+
+    os.environ['EXTRACTOR_SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;'
+    os.environ['EXTRACTOR_DRIVER'] = 'com.ibm.db2.jcc.DB2Jcc'
+    os.environ['EXTRACTOR_DRIVER_TYPE'] = 'db2'
+    os.environ['EXTRACTOR_JAR_PATH'] = './db2jcc4.jar'
+
+    yield os.environ
+
+    os.environ.clear()
+    os.environ.update(current_env)

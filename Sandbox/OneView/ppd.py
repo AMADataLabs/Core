@@ -9,7 +9,7 @@ def get_query():
     """
     SELECT *
     FROM
-    ODS.ODS_PPD_FILE PE
+    ODS.ODS_PPD_FILE
     """
     return query
 

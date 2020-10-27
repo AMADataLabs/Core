@@ -184,6 +184,7 @@ class AMCAddressFlagger:
         self.logger.info('\t\tflagwords')
         data['contains_flag_word'] = data['address'].apply(lambda x: self._contains_flagword(x, flag_words))
 
+        data.drop_duplicates(inplace=True)
         self.logger.info('\tGetting flag type counts.')
 
         # flag type ounts
@@ -216,13 +217,13 @@ class AMCAddressFlagger:
 
         data['any_flag'] = any_flags
         results_summary = ''
-        results_summary += f"Count of all flagged amc-sourced addresses:{len(data[data['any_flag']])}"
-        results_summary += '\nFlagging summary: (addresses can be flagged by multiple fields, ' \
-                           'so the sum of these could exceed count above)'
+        results_summary += f"<br>Count of all flagged amc-sourced addresses: {len(data[data['any_flag']])}"
+        results_summary += '<br>Flagging summary: (addresses can be flagged by multiple fields, ' \
+                           'so the sum of these counts may exceed count above)'
         for f in flags:
-            val = flags[f]
-            if val > 0:
-                results_summary += '\n\t{}: {}'.format(f, val)
+            count = flags[f]
+            if count > 0:
+                results_summary += f'<br>{"&nbsp"*13}  {f}: {count}'
 
         data.drop(columns='address', axis=1, inplace=True)  # delete temp column
 
@@ -232,7 +233,7 @@ class AMCAddressFlagger:
         return flagged_data, results_summary
 
     def _save_output(self, data: pd.DataFrame):
-        excel.save_formatted_output(data, self._output_file, 'amc Address Sweep')
+        excel.save_formatted_output(data, self._output_file, 'AMC Address Sweep')
         excel.add_password_to_xlsx(self._output_file, self._output_file_password)
 
     def _get_env_variables(self):
@@ -255,22 +256,22 @@ class AMCAddressFlagger:
         self.logger.info('Querying active amc-sourced address data.')
         data = self._get_amc_address_data()
         self.logger.info('Cleaning data.')
-        data = self._clean_str_data(data)
+        data = self._clean_str_data(data).drop_duplicates()
 
         flagged_data, summary = self._get_flagged_data_and_summary(data)
+        flagged_data.drop_duplicates(inplace=True)
         self.logger.info('Saving results.')
         self._save_output(flagged_data)
 
         self.logger.info('Creating email report.')
         report_body = \
-        'Hello!\n\n' + \
-        'Attached are the latest results of the amc address flagging script.\n\n' + \
-        'Password: Survey20\n\n' + \
-        'Results summary:\n' + \
-        summary + \
-        '\n\nThis report and email were generated automatically.\n' + \
-        'If you believe there are errors or if you have questions or suggestions, please contact Garrett.\n\n' + \
-        'Thanks!'
+            '<p>Hello!' + \
+            '<br>Attached are the latest results of the AMC address flagging script.' + \
+            '<br>Password: Survey20' + '</p>' + \
+            '<p>Results summary:' + \
+            summary + '</p>' + \
+            '<p>This report and email were generated automatically.' + \
+            '<br>If you believe there are errors or if you have questions or suggestions, please contact Garrett.</p>'
 
         outlook = Outlook()
         outlook.send_email(to=self._report_recipients,
