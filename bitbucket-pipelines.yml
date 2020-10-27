@@ -1,0 +1,22 @@
+image: hub.docker.com/muffinspawn/pipelines:1
+
+pipelines:
+    branches:
+        master:
+        - step:
+            script:
+            - echo $TEST_EM_MY_VARIABLE
+            - echo $BITBUCKET_USER
+            - echo $BITBUCKET_PASSWORD
+            - printenv
+            - bash Script/bitbucket-pipelines-build.sh
+    custom:
+        Test:
+        - step:
+            name: Unit Tests
+            script:
+            - make test
+        - step:
+            name: Lint
+            script:
+            - make lint
