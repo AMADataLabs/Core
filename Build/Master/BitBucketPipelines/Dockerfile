@@ -1,22 +1,24 @@
-FROM ubuntu:18.04 as Python
+# Build from Build/Master
 
-RUN apt update
-RUN apt install -y gnupg
+FROM ubuntu:18.04 as DevEnv
+WORKDIR /Build
 
-RUN echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
-RUN apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
+ENV TZ=America/Chicago
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-RUN apt update
-RUN apt install -y python3.7 python3.7-dev python3-pip
-
-
-FROM Python as Requirements
-
-RUN pip3 install --upgrade pip
-RUN pip3 install PyYAML==5.3.1
+COPY ./Script ./Script
+COPY ./Source/Bash ./Source/Bash
+RUN ./Script/setup-development-environment
 
 
-FROM Requirements as Tools
+FROM DevEnv as VirtualEnv
+WORKDIR /Build
+
+COPY ./Build ./Build
+RUN ./Script/setup-virtual-environment Master
+
+
+FROM VirtualEnv as Tools
 
 RUN apt install -y xvfb curl openjdk-8-jdk jq git
 
