@@ -106,6 +106,10 @@ class VTPhysicianContactArchive:
         LOGGER.info(f'Result data records: {len(data)}')
         self.ingest_result_data(data=data)
 
+        # If ingesting the results immediately on return, we can simply integrate the batch file creation with ingestion
+        sample_id = data['SAMPLE_ID'].drop_duplicates().values[0]
+        self.create_batch_load_file(sample_id=sample_id)
+
     def ingest_result_data(self, data: pd.DataFrame):
         data.fillna('', inplace=True)
 
