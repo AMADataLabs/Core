@@ -29,7 +29,7 @@ fi
 # Find script directory (no support for symlinks)
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-export VIRTUAL_ENV="${DIR}/../hsg-data-labs/Environment/Master"
+export VIRTUAL_ENV="/Build/Environment/Master"
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Look for changes in given revision range
