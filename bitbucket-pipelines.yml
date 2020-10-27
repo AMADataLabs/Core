@@ -1,4 +1,4 @@
-image: hub.docker.com/muffinspawn/pipelines:1
+image: muffinspawn/pipelines:1
 
 pipelines:
     branches:
