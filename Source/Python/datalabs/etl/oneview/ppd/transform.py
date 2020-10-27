@@ -13,7 +13,7 @@ class PPDDataFramesToCSVText(TransformerTask):
     def _transform(self):
         csv = super()._transform()
 
-        return csv[0]
+        return csv
 
     def _get_columns(self):
         return [columns]

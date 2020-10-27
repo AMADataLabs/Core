@@ -14,7 +14,9 @@ LOGGER.setLevel(logging.DEBUG)
 def test_jdbc_connection(components):
     transformer = PPDDataFramesToCSVText(components)
     csv_list = transformer._transform()
-    assert csv_list.split(',')[0] == 'medical_education_number'
+
+    assert len(csv_list) == 1
+    assert csv_list[0].split(',')[0] == 'medical_education_number'
 
 
 @pytest.fixture
