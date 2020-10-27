@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+import logging
 import os
 from sqlite3 import Connection
 
@@ -8,6 +9,11 @@ import pandas as pd
 
 from datalabs.analysis.vertical_trail.physician_contact.column_definitions import *
 import settings
+
+
+LOGGER = logging.Logger(__name__)
+LOGGER.setLevel(logging.INFO)
+
 
 @dataclass
 class ExpectedFileColumns:
@@ -47,11 +53,13 @@ class VTPhysicianContactArchive:
     def get_latest_sample_id(self):
         sql = "SELECT MAX(sample_id) FROM vertical_trail_samples;"
         result = self.connection.execute(sql).fetchone()[0]
+        LOGGER.info(f'Latest existing sample_id: {result}')
         return result
 
     def get_latest_results_sample_id(self):
         sql = "SELECT MAX(sample_id) FROM vertical_trail_results;"
         result = self.connection.execute(sql).fetchone()[0]
+        LOGGER.info(f'Latest existing sample_id of results: {result}')
         return result
 
     def get_vt_sample_data_past_n_months(self, n, as_of_date=datetime.now().date()):
@@ -71,7 +79,9 @@ class VTPhysicianContactArchive:
         return data
 
     def ingest_sample_file(self, file_path: str):
+        LOGGER.info(f'Ingesting sample file located at: {file_path}')
         data = pd.read_excel(file_path, dtype=str)
+        LOGGER.info(f'Sample data records: {len(data)}')
         self.ingest_sample_data(data)
 
     def ingest_sample_data(self, data: pd.DataFrame):
@@ -82,6 +92,7 @@ class VTPhysicianContactArchive:
         self.connection.commit()
 
     def ingest_result_file(self, file_path: str):
+        LOGGER.info(f'Ingesting result file at: {file_path}')
         data = pd.read_csv(file_path, dtype=str)
         data = data[
             ['SAMPLE_ID',
@@ -92,6 +103,7 @@ class VTPhysicianContactArchive:
              'Notes for AMA'
              ]
         ]
+        LOGGER.info(f'Result data records: {len(data)}')
         self.ingest_result_data(data=data)
 
     def ingest_result_data(self, data: pd.DataFrame):
@@ -135,10 +147,12 @@ class VTPhysicianContactArchive:
     def insert_humach_sample_reference(self, humach_sample_id, other_sample_id, other_sample_source):
         sql = f"INSERT INTO sample_reference(humach_sample_id, other_sample_id, other_sample_source) " + \
               f"VALUES ({humach_sample_id}, {other_sample_id}, '{other_sample_source}')"
+        LOGGER.info(f'Created reference sample record -- Humach: {humach_sample_id} -- Other: {other_sample_id}')
         self.connection.execute(sql)
         self.connection.commit()
 
     def create_batch_load_file(self, sample_id=None):
+        LOGGER.info(f'Creating IT Batch Load file for sample_id: {sample_id}')
         if sample_id is None:
             sample_id = self.get_latest_results_sample_id()
 
@@ -182,12 +196,32 @@ class VTPhysicianContactArchive:
         # save file to target directory
         batchload_filename = f'HSG_PHYS_WEBVRTR_PHONE_{batchload_file_date}.csv'
         batchload_save_path = f'{self._batch_load_save_dir}/{batchload_filename}'
-        print(batchload_save_path)
+
+        batchload_data.to_csv(batchload_save_path, index=False)
+        LOGGER.info(f'Saved IT Batch Load file to: {batchload_save_path}')
         return batchload_data
 
     def _load_environment_variables(self):
+        LOGGER.info('Loading environment variables for paths and connections')
         self._batch_load_save_dir = os.environ.get('BATCH_LOAD_SAVE_DIR')
         if self._database_path is None:
             self._database_path = os.environ.get('ARCHIVE_DB_PATH')
         if self.connection is None:
             self.connection = Connection(self._database_path)
+
+
+def ingest_result_file(file_path):
+    gen = VTPhysicianContactArchive()
+    gen._load_environment_variables()
+
+    # example:
+    # file_dir = 'U:/Source Files/Data Analytics/Data-Science/Data/Vertical_Trail/Response/'
+    # file_name = '2020-10-13_30000_VT_Sample_response_10_22_2020_10_39.csv'
+    # file_path = file_dir + file_name
+
+    gen.ingest_result_file(file_path=file_path)
+
+def create_batchload_file_for_latest_results():
+    gen = VTPhysicianContactArchive()
+    gen._load_environment_variables()
+    gen.create_batch_load_file(sample_id=gen.get_latest_results_sample_id())
