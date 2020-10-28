@@ -26,10 +26,10 @@ EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
 TRANSFORMER_CLASS=datalabs.etl.oneview.ppd.transform.PPDDataFramesToCSVText
 
 #PPD Loader
-LOADER_DATABASE_ACCESS_KEY=7YBCA8X7JKED4CT6KICX
-LOADER_DATABASE_SECRET_KEY=CEHVmDVyI5m6wJjVwOMUb30L1EFO0dmVsSOWU0cE
-LOADER_DATABSE_BUCKET=PPD
-LOADER_DATABASE_ENDPOINT=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
-
-LOADER_TABLE_NAMES=['ppd.csv']
+LOADER_ACCESS_KEY=7YBCA8X7JKED4CT6KICX
+LOADER_SECRET_KEY=CEHVmDVyI5m6wJjVwOMUb30L1EFO0dmVsSOWU0cE
+LOADER_BUCKET=PPD
+LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+LOADER_BASEPATH=AMA/Oneview
+LOADER_FILES='physician.csv'
 LOADER_CLASS=datalabs.etl.oneview.load
