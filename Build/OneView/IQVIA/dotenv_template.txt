@@ -26,12 +26,11 @@ EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
 TRANSFORMER_CLASS=datalabs.etl.oneview.iqvia.transform
 
 #IQVIA Loader
-LOADER_ACCESS_KEY=7YBCA8X7JKED4CT6KICX
-LOADER_SECRET_KEY=CEHVmDVyI5m6wJjVwOMUb30L1EFO0dmVsSOWU0cE
+LOADER_ACCESS_KEY='{{key}}'
+LOADER_SECRET_KEY=''{{secret}}''
 LOADER_BUCKET=IQVIA
 LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
-
-LOADER_TABLE_NAMES=['Business.csv', 'Provider.csv', 'ProviderAffiliation.csv']
+LOADER_FILES=['Business.csv', 'Provider.csv', 'ProviderAffiliation.csv']
 LOADER_CLASS=datalabs.etl.oneview.load
 
 
