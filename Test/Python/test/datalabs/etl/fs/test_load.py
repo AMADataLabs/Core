@@ -4,6 +4,7 @@ import logging
 import os
 import tempfile
 
+import mock
 import pandas
 import pytest
 
@@ -23,7 +24,8 @@ def test_data_setup_correctly(extractor_file):
 
 
 def test_loader_loads_two_files(etl, loader_directory):
-    etl.run()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        etl.run()
 
     data = etl._task._loader.data
 
@@ -35,7 +37,8 @@ def test_loader_loads_two_files(etl, loader_directory):
 
 
 def test_loader_properly_adds_datestamp(etl, loader_directory):
-    etl.run()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        etl.run()
 
     files = sorted(glob(os.path.join(loader_directory, '*')), key=len)
     expected_filename = datetime.utcnow().strftime('PhysicianProfessionalDataFile_%Y-%m-%d.csv')

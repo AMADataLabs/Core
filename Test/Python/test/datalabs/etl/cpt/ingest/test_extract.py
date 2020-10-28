@@ -28,18 +28,20 @@ def test_datestamp_conversion():
 @mock.patch('datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask._get_latest_path')
 # pylint: disable=redefined-outer-name, protected-access
 def test_extract_release_date(get_latest_path):
-    get_latest_path.return_value = 'AMA/CPT/20200131'
-    extractor = CPTTextDataExtractorTask(None)
-    expected_release_date = '20200131'
-    release_date = extractor._extract_release_date()
+    with mock.patch('datalabs.etl.s3.extract.boto3') as mock_boto3:
+        get_latest_path.return_value = 'AMA/CPT/20200131'
+        extractor = CPTTextDataExtractorTask(None)
+        expected_release_date = '20200131'
+        release_date = extractor._extract_release_date()
 
     assert get_latest_path.call_count == 1
     assert release_date == expected_release_date
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_generate_release_types(release_schedule):
-    extractor = CPTTextDataExtractorTask(None)
-    release_types = extractor._generate_release_types(release_schedule)
+    with mock.patch('datalabs.etl.s3.extract.boto3') as mock_boto3:
+        extractor = CPTTextDataExtractorTask(None)
+        release_types = extractor._generate_release_types(release_schedule)
 
     assert len(release_types.columns.values) == 1
     assert 'type' in release_types
@@ -48,19 +50,21 @@ def test_generate_release_types(release_schedule):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_get_release_type(release_schedule):
-    extractor = CPTTextDataExtractorTask(None)
-    release_date = date(2020, 7, 1)
-    expected_release_type = 'Q3'
-    release_type = extractor._get_release_type(release_schedule, release_date)
+    with mock.patch('datalabs.etl.s3.extract.boto3') as mock_boto3:
+        extractor = CPTTextDataExtractorTask(None)
+        release_date = date(2020, 7, 1)
+        expected_release_type = 'Q3'
+        release_type = extractor._get_release_type(release_schedule, release_date)
 
     assert release_type == expected_release_type
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_generate_release_details(release_schedule):
-    extractor = CPTTextDataExtractorTask(None)
-    release_date = date(2020, 7, 1)
-    effective_date = date(2020, 10, 1)
-    release_details = pandas.read_csv(io.StringIO(extractor._generate_release_details(release_schedule, release_date)))
+    with mock.patch('datalabs.etl.s3.extract.boto3') as mock_boto3:
+        extractor = CPTTextDataExtractorTask(None)
+        release_date = date(2020, 7, 1)
+        effective_date = date(2020, 10, 1)
+        release_details = pandas.read_csv(io.StringIO(extractor._generate_release_details(release_schedule, release_date)))
 
     assert len(release_details.columns.values) == 3
     assert all([c in release_details for c in ['publish_date', 'effective_date', 'type']])
