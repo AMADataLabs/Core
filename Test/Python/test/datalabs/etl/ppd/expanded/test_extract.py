@@ -2,6 +2,7 @@ import logging
 import os
 import tempfile
 
+import mock
 import pandas
 import pytest
 
@@ -21,7 +22,8 @@ def test_data_setup_correctly(extractor_file):
 
 
 def test_extractor_data_is_reasonable(etl):
-    etl.run()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        etl.run()
 
     extractor = etl._task._extractor
 

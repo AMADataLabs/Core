@@ -32,8 +32,9 @@ def test_get_parameters_from_parameter_store(parameter_values):
 
 # pylint: disable=redefined-outer-name,protected-access
 def test_from_environ(environment):
-    loader = ParameterStoreEnvironmentLoader.from_environ()
-    values = loader._parameters.values()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        loader = ParameterStoreEnvironmentLoader.from_environ()
+        values = loader._parameters.values()
 
     assert 'DATABASE_FOOBAR_USERNAME' in loader._parameters
     assert 'DATABASE_FOOBAR_PASSWORD' in loader._parameters

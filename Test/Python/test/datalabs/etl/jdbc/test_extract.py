@@ -7,7 +7,7 @@ from datalabs.etl.jdbc.extract import JDBCExtractor
 import datalabs.etl.task as task
 
 
-# @pytest.mark.skip(reason="Input Credentials")
+@pytest.mark.skip(reason="Integration test. Input Credentials")
 def test_jdbc_connection(components):
     extractor = JDBCExtractor(components)
     dataframes_list = extractor._extract()
@@ -22,8 +22,8 @@ def components():
             NAME='eprdods',
             PORT='54150',
             HOST='rdbp1190',
-            username='dlabs',
-            password='L@bs2020'
+            username=os.getenv('EXTRACTOR_DATABASE_USERNAME'),
+            password=os.getenv('EXTRACTOR_DATABASE_PASSWORD')
         ),
         variables=dict(
             CLASS='test.datalabs.etl.jdbc.test_extract.JDBCExtractor',
@@ -41,8 +41,8 @@ def environment_variables():
 
     os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.jdbc.test_extract.JDBCExtractor'
     os.environ['EXTRACTOR_DATABASE_NAME'] = 'eprdods'
-    os.environ['EXTRACTOR_DATABASE_username'] = 'dlabs'
-    os.environ['EXTRACTOR_DATABASE_password'] = 'L@bs2020'
+    # os.environ['EXTRACTOR_DATABASE_USERNAME'] = <set manually in environment>
+    # os.environ['EXTRACTOR_DATABASE_PASSWORD'] = <set manually in environment>
     os.environ['EXTRACTOR_DATABASE_HOST'] = 'rdbp1190'
     os.environ['EXTRACTOR_DATABASE_PORT'] = '54150'
 
