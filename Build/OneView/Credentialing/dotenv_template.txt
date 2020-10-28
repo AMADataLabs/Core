@@ -1,0 +1,29 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+
+# Project Settings
+PROJECT_NAME='OneView'
+
+
+TASK_CLASS=datalabs.etl.task.ETLTask
+TASK_WRAPPER_CLASS=datalabs.etl.awslambda.ETLTaskWrapper
+
+EXTACTOR_DATABASE_NAME='eprdods'       # Test: etstods
+EXTACTOR_DATABASE_USERNAME='{{ ODS_username }}'
+EXTACTOR_DATABASE_PASSWORD='{{ ODS_password }}'
+EXTACTOR_DATABASE_HOST='{{ ODS_host }}'
+EXTACTOR_DATABASE_PORT='54150'
+
+#Credentialing Extractor
+EXTRACTOR_CLASS=datalabs.etl.jdbc.extract.JDBCExtractorTask
+EXTRACTOR_SQL =
+EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
+EXTRACTOR_DRIVER_TYPE = db2
+EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
+
+#Credentialing Transformer
+TRANSFORMER_CLASS=datalabs.etl.oneview
+
+#Credentialing Loader
+LOADER_Minio_Placeholder = '{{placeholder}}'
