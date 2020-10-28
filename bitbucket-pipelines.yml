@@ -5,10 +5,8 @@ pipelines:
         master:
         - step:
             script:
-            - echo $TEST_EM_MY_VARIABLE
-            - echo $BITBUCKET_USER
-            - echo $BITBUCKET_PASSWORD
-            - printenv
+            - export VIRTUAL_ENV=/Build/Environment/Master
+            - export PATH="$VIRTUAL_ENV/bin:$PATH"
             - bash Script/bitbucket-pipelines-build.sh
     custom:
         Test:
