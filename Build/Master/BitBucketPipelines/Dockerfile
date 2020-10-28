@@ -1,4 +1,4 @@
-# Build from Build/Master
+# Build from repository root
 
 FROM ubuntu:18.04 as DevEnv
 WORKDIR /Build
@@ -14,8 +14,9 @@ RUN ./Script/setup-development-environment
 FROM DevEnv as VirtualEnv
 WORKDIR /Build
 
-COPY ./Build ./Build
+COPY ./Build/Master ./Build/Master
 RUN ./Script/setup-virtual-environment Master
+RUN rm -rf ./Build ./Script ./Source
 
 
 FROM VirtualEnv as Tools
