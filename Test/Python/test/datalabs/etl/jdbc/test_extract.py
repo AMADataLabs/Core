@@ -41,8 +41,8 @@ def environment_variables():
 
     os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.jdbc.test_extract.JDBCExtractor'
     os.environ['EXTRACTOR_DATABASE_NAME'] = 'eprdods'
-    os.environ['EXTRACTOR_DATABASE_username'] = os.getenv('EXTRACTOR_DATABASE_USERNAME')
-    os.environ['EXTRACTOR_DATABASE_password'] = os.getenv('EXTRACTOR_DATABASE_PASSWORD')
+    # os.environ['EXTRACTOR_DATABASE_USERNAME'] = <set manually in environment>
+    # os.environ['EXTRACTOR_DATABASE_PASSWORD'] = <set manually in environment>
     os.environ['EXTRACTOR_DATABASE_HOST'] = 'rdbp1190'
     os.environ['EXTRACTOR_DATABASE_PORT'] = '54150'
 
