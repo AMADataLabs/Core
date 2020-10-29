@@ -5,6 +5,7 @@ resource "aws_ecs_service" "datanow" {
     task_definition         = aws_ecs_task_definition.datanow.arn
     launch_type             = "FARGATE"
     cluster                 = aws_ecs_cluster.datalake.id
+    desired_count           = 1
 
     network_configuration {
         assign_public_ip    = false
