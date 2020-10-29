@@ -1,5 +1,7 @@
 """ source: datalabs.etl.task """
 import os
+
+import mock
 import pytest
 
 import datalabs.etl.task as task
@@ -18,9 +20,10 @@ def test_etl_task(parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_etl_task_wrapper(environment_variables):
-    wrapper = task.ETLTaskWrapper(task.ETLTask)
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        wrapper = task.ETLTaskWrapper(task.ETLTask)
 
-    wrapper.run()
+        wrapper.run()
 
     assert wrapper._task._extractor.data == 'True'
     assert wrapper._task._transformer.data == 'True'

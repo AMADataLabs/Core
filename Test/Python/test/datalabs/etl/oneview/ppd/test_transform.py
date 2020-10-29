@@ -11,6 +11,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@pytest.mark.skip(reason="Integration test. Input Credentials")
 def test_jdbc_connection(components):
     transformer = PPDDataFramesToCSVText(components)
     csv_list = transformer._transform()
@@ -171,8 +172,8 @@ def environment(extractor_file, loader_directory):
 
     os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.jdbc.test_extract.Extractor'
     os.environ['EXTRACTOR_DATABASE_NAME'] = 'eprdods'
-    os.environ['EXTRACTOR_DATABASE_USERNAME'] = 'dlabs'
-    os.environ['EXTRACTOR_DATABASE_PASSWORD'] = 'L@bs2020'
+    # os.environ['EXTRACTOR_DATABASE_USERNAME'] = <set manually in environment>
+    # os.environ['EXTRACTOR_DATABASE_PASSWORD'] = <set manually in environment>
     os.environ['EXTRACTOR_DATABASE_HOST'] = 'rdbp1190'
     os.environ['EXTRACTOR_DATABASE_PORT'] = '54150'
 
