@@ -9,11 +9,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class IQVIADataFramesToCSVText(TransformerTask):
-    def _transform(self):
-        csv = super()._transform()
-
-        return csv
-
+class IQVIATransformer(TransformerTask):
     def _get_columns(self):
         return columns
