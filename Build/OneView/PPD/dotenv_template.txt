@@ -26,10 +26,12 @@ EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
 TRANSFORMER_CLASS=datalabs.etl.oneview.ppd.transform.PPDDataFramesToCSVText
 
 #PPD Loader
+LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
 LOADER_ACCESS_KEY='{{key}}'
 LOADER_SECRET_KEY='{{secret}}'
+LOADER_REGION_NAME=''{{region}}''
 LOADER_BUCKET=OneView
 LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
 LOADER_BASEPATH=AMA/Oneview/IQVIA
 LOADER_FILES='physician.csv'
-LOADER_CLASS=datalabs.etl.oneview.load
+
