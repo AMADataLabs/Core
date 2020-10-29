@@ -62,7 +62,7 @@ remove_python_tools() {
 
 
 install_node() {
-    echo "Function 'remove_node not implemented'"
+    echo "Function 'install_node not implemented'"
 
     return 0
 

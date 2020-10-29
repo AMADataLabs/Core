@@ -1,8 +1,8 @@
-openapi: 3.0.3
+openapi: 3.0.2
 info:
   title: CPT API
   description: CPT API Phase I
-  version: "1.4.0"
+  version: "1.0.0"
   termsOfService: 'http://swagger.io/terms/'
   contact:
     email: datalabs@ama-assn.org
@@ -711,4 +711,4 @@ externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
 servers:
-  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.4.0'
+  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.0.0'
