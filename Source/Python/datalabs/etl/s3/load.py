@@ -1,14 +1,14 @@
 """ AWS S3 Loader """
 import base64
-from datetime import datetime
-from dateutil.parser import isoparse
+from   datetime import datetime
+from   dateutil.parser import isoparse
 import hashlib
 import logging
 
 import boto3
 
-from datalabs.etl.load import LoaderTask
-from datalabs.etl.task import ETLException
+from   datalabs.etl.load import LoaderTask
+from   datalabs.etl.task import ETLException
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -19,12 +19,13 @@ class S3FileLoaderTask(LoaderTask):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-        self._s3 = boto3.client('s3',
-                                endpoint_url=self._parameters.variables.get('ENDPOINT_URL'),
-                                aws_access_key_id=self._parameters.get('ACCESS_KEY'),
-                                aws_secret_access_key=self._parameters.get('SECRET_KEY'),
-                                region_name=self._parameters.get('REGION_NAME')
-                                )
+        self._s3 = boto3.client(
+            's3',
+            endpoint_url=self._parameters.variables.get('ENDPOINT_URL'),
+            aws_access_key_id=self._parameters.get('ACCESS_KEY'),
+            aws_secret_access_key=self._parameters.get('SECRET_KEY'),
+            region_name=self._parameters.get('REGION_NAME')
+        )
 
     def _load(self):
         current_path = self._get_current_path()
