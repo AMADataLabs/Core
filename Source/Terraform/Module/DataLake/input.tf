@@ -34,6 +34,16 @@ data "aws_caller_identity" "account" {}
 data "aws_region" "current" {}
 
 
+data "aws_route53_zone" "amaaws" {
+    name = "amaaws.org"
+}
+
+
+data "aws_acm_certificate" "amaaws" {
+    domain = "*.amaaws.org"
+}
+
+
 locals {
     system_tier         = "Application"
     na                  = "N/A"
