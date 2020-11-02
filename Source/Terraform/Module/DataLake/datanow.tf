@@ -6,7 +6,7 @@ resource "aws_ecs_service" "datanow" {
     launch_type                         = "FARGATE"
     cluster                             = aws_ecs_cluster.datalake.id
     desired_count                       = 1
-    platform_version                    = "LATEST"
+    platform_version                    = "1.4.0"
     health_check_grace_period_seconds   = 0
 
     deployment_controller {
@@ -50,9 +50,9 @@ resource "aws_ecs_task_definition" "datanow" {
     memory                      = 8192
     requires_compatibilities    = ["FARGATE"]
     network_mode                = "awsvpc"
-    execution_role_arn = aws_iam_role.datanow.arn
+    execution_role_arn          = aws_iam_role.datanow.arn
 
-    container_definitions = <<EOF
+    container_definitions       = <<EOF
 [
     {
         "name": "datanow",
@@ -107,7 +107,7 @@ resource "aws_cloudwatch_log_group" "datanow" {
 resource "aws_iam_role" "datanow" {
     name                = "${var.project}DataNow"
 
-    assume_role_policy = <<EOF
+    assume_role_policy  = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
