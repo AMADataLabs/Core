@@ -34,4 +34,5 @@ LOADER_BUCKET=OneView
 LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
 LOADER_BASEPATH=AMA/Oneview/IQVIA
 LOADER_FILES='physician.csv'
+LOADER_TABLE=physician
 
