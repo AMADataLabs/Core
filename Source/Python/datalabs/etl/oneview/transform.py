@@ -1,6 +1,6 @@
 """ Oneview Transformer"""
-from  abc import ABC, abstractmethod
-from  datalabs.etl.task import ETLException
+from   abc import ABC, abstractmethod
+from   datalabs.etl.task import ETLException
 
 import datalabs.etl.transform as etl
 import logging
