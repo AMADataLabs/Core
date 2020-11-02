@@ -25,14 +25,21 @@ EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
 #PPD Transformer
 TRANSFORMER_CLASS=datalabs.etl.oneview.ppd.transform.PPDDataFramesToCSVText
 
-#PPD Loader
-LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
-LOADER_ACCESS_KEY='{{key}}'
-LOADER_SECRET_KEY='{{secret}}'
-LOADER_REGION_NAME=''{{region}}''
-LOADER_BUCKET=OneView
-LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
-LOADER_BASEPATH=AMA/Oneview/IQVIA
-LOADER_FILES='physician.csv'
-LOADER_TABLE=physician
+# #PPD S3 Loader
+# LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
+# LOADER_ACCESS_KEY='{{key}}'
+# LOADER_SECRET_KEY='{{secret}}'
+# LOADER_BUCKET=PPD
+# LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+# LOADER_BASEPATH=AMA/Oneview
+# LOADER_FILES='physician.csv'
+
+#PPD ORM Loader
+LOADER_CLASS=datalabs.etl.orm.load
+LOADER_DATABASE_NAME={{ database_name }}
+LOADER_DATABASE_BACKEND=postgresql+psycopg2
+LOADER_DATABASE_HOST={{ database_host }}
+LOADER_DATABASE_USERNAME={{ database_username }}
+LOADER_DATABASE_PASSWORD={{ database_password }}
+LOADER_TABLES=physician
 
