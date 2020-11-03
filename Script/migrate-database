@@ -83,7 +83,7 @@ process_arguments() {
     elif [[ "$PROJECT_NAME" == "" ]]; then
         echo "Error: The name of the project to create was not specified."
         print_usage
-    elif [[ "$COMMAND" == "plan" || "$MESSAGE" == "" ]]; then
+    elif [[ "$COMMAND" == "create" && "$MESSAGE" == "" ]]; then
         echo "Error: No migration message was specified."
         print_usage
     elif [[ "$HOST" == "" ]]; then
