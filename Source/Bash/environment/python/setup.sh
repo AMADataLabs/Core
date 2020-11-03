@@ -12,7 +12,7 @@ setup_python_virtual_environment() {
 create_python_virtual_environment() {
     environment_path=$1
 
-    /usr/bin/python3.7 -m venv $environment_path
+    python3.7 -m venv $environment_path
 }
 
 
