@@ -1,5 +1,5 @@
 """OneView ETL ORM Loader"""
-
+import logging
 import pandas
 
 from   datalabs.access.orm import DatabaseTaskMixin
