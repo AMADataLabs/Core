@@ -12,3 +12,4 @@ RUN rm requirements.txt
 COPY ./Build/CPT/alembic ./alembic
 COPY ./Build/CPT/alembic.ini ./alembic.ini
 COPY ./Source/Python/datalabs ./datalabs
+COPY ./Script/migrate-database ./migrate-database
