@@ -511,20 +511,20 @@ paths:
       summary: Zip archive of PDFs from the most recent release
       description: >-
           Provides a time-limited URL to a zip archive of the PDFs from the most recent release. In particular,
-              CPT Link Release Notes YYYYMMDD.pdf
-              standard/AnesthesiaGuidelines.pdf
-              standard/AppendixB.pdf,standard/AppendixN.pdf
-              standard/AppendixO.pdf
-              standard/CategoryIIGuidelines.pdf
-              standard/CategoryIIIGuidelines.pdf
-              standard/CPT YYYY README.pdf
-              standard/EvalManagementGuidelines.pdf
-              standard/MedicineGuidelines.pdf
-              standard/PathLabGuidelines.pdf
-              standard/RadiologyGuidelines.pdf
-              standard/Clinician Descriptors/YYYY Clinician Descriptors README.pdf
-              standard/Consumer Friendly Descriptors/YYYY Consumer Friendly Descriptors README.pdf
-              standard/SurgeryGuidelines.pdf
+              CPT Link Release Notes YYYYMMDD.pdf,
+              standard/AnesthesiaGuidelines.pdf,
+              standard/AppendixB.pdf,standard/AppendixN.pdf,
+              standard/AppendixO.pdf,
+              standard/CategoryIIGuidelines.pdf,
+              standard/CategoryIIIGuidelines.pdf,
+              standard/CPT YYYY README.pdf,
+              standard/EvalManagementGuidelines.pdf,
+              standard/MedicineGuidelines.pdf,
+              standard/PathLabGuidelines.pdf,
+              standard/RadiologyGuidelines.pdf,
+              standard/Clinician Descriptors/YYYY Clinician Descriptors README.pdf,
+              standard/Consumer Friendly Descriptors/YYYY Consumer Friendly Descriptors README.pdf, and
+              standard/SurgeryGuidelines.pdf.
       operationId: getPDFLink
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_latest_pdfs_arn}/invocations"
