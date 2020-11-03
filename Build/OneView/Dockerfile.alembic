@@ -13,6 +13,7 @@ sqlalchemy==1.3.13
 
 COPY ./Build/OneView/alembic /Build/OneView/alembic
 COPY ./Build/OneView/alembic.ini /Build/OneView/alembic.ini
+COPY ./Source/Python/datalabs/access ./datalabs/access
 COPY ./Source/Python/datalabs/model/masterfile/oneview.py ./datalabs/model/masterfile/oneview.py
 COPY ./Script/migrate-database ./migrate-database
 COPY ./Script/run.py ./run.py
