@@ -61,6 +61,11 @@ process_arguments() {
             shift
             shift
             ;;
+        -v|--version)
+            TARGET_VERSION=$2
+            shift
+            shift
+            ;;
         *)
             if [[ "$COMMAND" == "" ]]; then
                 COMMAND=$1
@@ -132,14 +137,19 @@ print_usage() {
     echo "Perform database migration tasks for the configuration in...Build/<project>/."
     echo
     echo "Commands"
-    echo "  create                     Generate a migration script from changes made to the"
-    echo "                             project's table model classes."
-    echo "  downgrade                  Run migration scripts to downgrade the database schema."
-    echo "  upgrade                    Run migration scripts to upgrade the database schema."
+    echo "  create                      Generate a migration script from changes made to the"
+    echo "                              project's table model classes."
+    echo "  downgrade                   Run migration scripts to downgrade the database schema."
+    echo "  upgrade                     Run migration scripts to upgrade the database schema."
     echo
     echo "Options:"
-    echo "  -h|--help                  Print usage."
-    echo "  -m|--message <module>      Set the message associated with the migration script."
+    echo "  -h|--help                   Print usage."
+    echo "  -H|--host <DB host>         The database host."
+    echo "  -m|--message <module>       The message associated with the migration script."
+    echo "  -n|--name <DB name>         The database name."
+    echo "  -p|--password <DB password> The database password."
+    echo "  -u|--user <DB user>         The database user."
+    echo "  -v|--version <DB version>   The database target version (default 'head')."
 
     exit 1
 }
