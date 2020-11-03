@@ -1,15 +1,15 @@
 # Build Example:
-#    docker build -t cpt -f ./Build/CPT/Dockerfile.alembic ./
+#    docker build -t OneView -f ./Build/OneView/Dockerfile.alembic ./
 
 FROM python:3.7
-WORKDIR /CPT
-ENV PYTHONPATH=/CPT
+WORKDIR /OneView
+ENV PYTHONPATH=/OneView
 
-COPY ./Build/CPT/requirements.txt .
+COPY ./Build/OneView/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 RUN rm requirements.txt
 
-COPY ./Build/CPT/alembic ./alembic
-COPY ./Build/CPT/alembic.ini ./alembic.ini
+COPY ./Build/OneView/alembic /Build/OneView/alembic
+COPY ./Build/OneView/alembic.ini /Build/OneView/alembic.ini
 COPY ./Source/Python/datalabs ./datalabs
 COPY ./Script/migrate-database ./migrate-database
