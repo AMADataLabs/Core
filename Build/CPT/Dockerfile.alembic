@@ -7,6 +7,8 @@ ENV PYTHONPATH=/CPT
 
 COPY ./Build/CPT/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+RUN rm requirements.txt
 
-COPY ./Build/CPT ./CPT
+COPY ./Build/CPT/alembic ./alembic
+COPY ./Build/CPT/alembic.ini ./alembic.ini
 COPY ./Source/Python/datalabs ./datalabs
