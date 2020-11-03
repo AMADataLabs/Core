@@ -4,7 +4,7 @@ import pandas
 import pytest
 
 import datalabs.etl.task as task
-from datalabs.etl.oneview.ppd.transform import PPDDataFramesToCSVText
+from   datalabs.etl.oneview.ppd.transform import PPDTransformer
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -13,7 +13,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 @pytest.mark.skip(reason="Integration test. Input Credentials")
 def test_jdbc_connection(components):
-    transformer = PPDDataFramesToCSVText(components)
+    transformer = PPDTransformer(components)
     csv_list = transformer._transform()
 
     assert len(csv_list) == 1
@@ -24,7 +24,7 @@ def test_jdbc_connection(components):
 def components(dataframe):
     return task.ETLComponentParameters(
             database={},
-            variables=dict(CLASS='datalabs.etl.oneview.ppd.transform.PPDDataFramesToCSVText', thing=True),
+            variables=dict(CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformer', thing=True),
             data=dataframe
         )
 
@@ -182,7 +182,7 @@ def environment(extractor_file, loader_directory):
     os.environ['EXTRACTOR_DRIVER_TYPE'] = 'db2'
     os.environ['EXTRACTOR_JAR_PATH'] = './db2jcc4.jar'
 
-    os.environ['TRANSFORMER_CLASS'] = 'datalabs.etl.oneview.ppd.transform.PPDDataFramesToCSVText'
+    os.environ['TRANSFORMER_CLASS'] = 'datalabs.etl.oneview.ppd.transform.PPDTransformer'
 
     yield os.environ
 
