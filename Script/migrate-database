@@ -1,15 +1,16 @@
 #!/bin/bash
 
-
-#!/bin/bash
-
-
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+MESSAGE=
+HOST=
+NAME=
+USERNAME=
+PASSWORD=
+TARGET_VERSION="head"
 COMMAND=
 PROJECT_NAME=
-MESSAGE=
-TARGET_VERSION="head"
+
 
 main() {
     process_arguments "$@"
@@ -114,21 +115,21 @@ setup_environment() {
 
 
 generate_migration_script() {
-    python ${SCRIPT_BASE_PATH}/run.py alembic revision --autogenerate -m "$MESSAGE"
+    ${SCRIPT_BASE_PATH}/run.py alembic revision --autogenerate -m "$MESSAGE"
 }
 
 
 upgrade_database() {
     cd ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
 
-    python ${SCRIPT_BASE_PATH}/run.py alembic upgrade $TARGET_VERSION
+    ${SCRIPT_BASE_PATH}/run.py alembic upgrade $TARGET_VERSION
 }
 
 
 downgrade_database() {
     cd ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
 
-    python ${SCRIPT_BASE_PATH}/run.py alembic downgrade $TARGET_VERSION
+    ${SCRIPT_BASE_PATH}/run.py alembic downgrade $TARGET_VERSION
 }
 
 
