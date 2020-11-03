@@ -42,7 +42,7 @@ paths:
       tags:
         - Descriptor
       summary: CPT descriptor by CPT Code
-      description: Returns all lengths of the descriptor for a particular CPT Code.
+      description: Returns all descriptor lengths for a particular CPT Code.
       operationId: getDescriptor
       parameters:
         - name: code
@@ -87,8 +87,8 @@ paths:
     get:
       tags:
         - Descriptor
-      summary: All CPT descriptors
-      description: 'Returns the CPT Code descriptor in short, medium, and long forms.'
+      summary: All CPT descriptor lengths
+      description: Returns the CPT Code descriptor in short, medium, and long forms for the full code set.
       operationId: getDescriptors
       parameters:
         - name: length
@@ -151,8 +151,8 @@ paths:
     get:
       tags:
         - Consumer Descriptor
-      summary: Consumer-friendly descriptor by CPT Code
-      description: Returns the Consumer-friendly CPT descriptor by CPT Code.
+      summary: Consumer Friendly Descriptor by CPT Code
+      description: Returns the Consumer Friendly Descriptor by CPT Code.
       operationId: getConsumerDescriptor
       parameters:
         - name: code
@@ -187,8 +187,8 @@ paths:
     get:
       tags:
         - Consumer Descriptor
-      summary: All consumer-friendly descriptors
-      description: Returns all Consumer-friendly CPT descriptors.
+      summary: Code set Consumer Friendly Descriptors
+      description: Returns Consumer Friendly Descriptors for the full CPT code set.
       operationId: getConsumerDescriptors
       parameters:
         - name: keyword
@@ -243,8 +243,8 @@ paths:
     get:
       tags:
         - Clinician Descriptor
-      summary: All clinician descriptors
-      description: Returns all Clinician CPT descriptors.
+      summary: Code set Clinician Descriptor IDs and text
+      description: Returns Clinician Descriptors for the full CPT code set.
       operationId: getClinicianDescriptors
       parameters:
         - name: keyword
@@ -299,8 +299,8 @@ paths:
     get:
       tags:
         - Clinician Descriptor
-      summary: All clinician descriptors by CPT Code
-      description: Returns all Clinician CPT descriptors.
+      summary: All Clinician Descriptor IDs and text by CPT Code
+      description: Returns all Clinician Descriptors by CPT Code.
       operationId: getClinicianDescriptorsByCode
       parameters:
         - name: code
@@ -340,7 +340,7 @@ paths:
       tags:
         - PLA
       summary: PLA Code details
-      description: Returns the details of a PLA Code.
+      description: Returns the full details by PLA Code (code, test, lab, and manufacturer).
       operationId: getPLADetails
       parameters:
         - name: code
@@ -376,7 +376,7 @@ paths:
       tags:
         - PLA
       summary: All PLA Code details
-      description: ALL PLA codes
+      description: Returns full PLA details for all PLA Codes (code, test, lab, and manufacturer).
       operationId: getAllPLADetails
       parameters:
         - name: keyword
@@ -508,8 +508,23 @@ paths:
     get:
       tags:
         - PDF
-      summary: Zip archive of the most recent PDFs
-      description: Provides a time-limited URL to a zip archive of the PDFs from the most recent release
+      summary: Zip archive of PDFs from the most recent release
+      description: >-
+          Provides a time-limited URL to a zip archive of the PDFs from the most recent release. In particular,
+              CPT Link Release Notes YYYYMMDD.pdf
+              standard/AnesthesiaGuidelines.pdf
+              standard/AppendixB.pdf,standard/AppendixN.pdf
+              standard/AppendixO.pdf
+              standard/CategoryIIGuidelines.pdf
+              standard/CategoryIIIGuidelines.pdf
+              standard/CPT YYYY README.pdf
+              standard/EvalManagementGuidelines.pdf
+              standard/MedicineGuidelines.pdf
+              standard/PathLabGuidelines.pdf
+              standard/RadiologyGuidelines.pdf
+              standard/Clinician Descriptors/YYYY Clinician Descriptors README.pdf
+              standard/Consumer Friendly Descriptors/YYYY Consumer Friendly Descriptors README.pdf
+              standard/SurgeryGuidelines.pdf
       operationId: getPDFLink
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_latest_pdfs_arn}/invocations"
