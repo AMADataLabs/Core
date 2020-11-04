@@ -52,44 +52,68 @@ resource "aws_ecs_task_definition" "datanow" {
     network_mode                = "awsvpc"
     execution_role_arn          = aws_iam_role.datanow.arn
 
-    container_definitions       = <<EOF
-[
-    {
-        "name": "datanow",
-        "image": "${data.aws_caller_identity.account.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/datanow:1.0.0",
+    container_definitions       = jsonencode([
+        {
+            name                    = "datanow"
+            image                   = "${data.aws_caller_identity.account.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/datanow:1.0.0"
+            cpu                     = 0
+            environment             = []
+            essential               = true
+            volumesFrom             = []
 
-        "ulimits": [
-            {
-                "name": "nofile",
-                "softLimit": 65536,
-                "hardLimit": 1048576
-            }
-        ],
+            ulimits = [
+                {
+                    name            = "nofile",
+                    softLimit       = 65536,
+                    hardLimit       = 1048576
+                }
+            ]
 
-        "portMappings": [
-            {
-                "containerPort": 9047
-            },
-            {
-                "containerPort": 31010
-            },
-            {
-                "containerPort": 45678
-            }
-        ],
+            portMappings = [
+                {
+                    containerPort   = 9047
+                    hostPort        = 9047
+                    protocol        = "tcp"
+                },
+                {
+                    containerPort   = 31010
+                    hostPort        = 31010
+                    protocol        = "tcp"
+                },
+                {
+                    containerPort   = 45678
+                    hostPort        = 45678
+                    protocol        = "tcp"
+                }
+            ]
 
-        "logConfiguration": {
-            "logDriver": "awslogs",
+            mountPoints = [
+                {
+                    sourceVolume    = "DataNow",
+                    containerPath   = "/opt/dremio/data"
+                }
+            ]
 
-            "options": {
-                "awslogs-region": "${data.aws_region.current.name}",
-                "awslogs-group": "/ecs/datanow",
-                "awslogs-stream-prefix": "ecs"
+            logConfiguration = {
+                logDriver                   = "awslogs"
+
+                options = {
+                    awslogs-region          = data.aws_region.current.name
+                    awslogs-group           = "/ecs/datanow"
+                    awslogs-stream-prefix   = "ecs"
+                }
             }
         }
+    ])
+
+    volume {
+        name                        = "DataNow"
+
+        efs_volume_configuration {
+            file_system_id          = aws_efs_file_system.datanow.id
+            root_directory          = "/opt/dremio/data"
+        }
     }
-]
-EOF
 
     tags = merge(local.tags, {Name = "Data Lake DataNow ECS Task"})
 }
@@ -141,6 +165,37 @@ resource "aws_efs_file_system" "datanow" {
     tags = merge(local.tags, {Name = "Data Lake DataNow Persistent Storage"})
 }
 
+
+resource "aws_efs_mount_target" "datanow" {
+  file_system_id = aws_efs_file_system.datanow.id
+  subnet_id      = aws_subnet.datanow_frontend.id
+}
+
+
+resource "aws_efs_file_system_policy" "datanow" {
+  file_system_id = aws_efs_file_system.datanow.id
+
+  policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Id": "DataNow",
+    "Statement": [
+        {
+            "Sid": "DataNow",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "${aws_iam_role.datanow.arn}"
+            },
+            "Resource": "${aws_efs_file_system.datanow.arn}",
+            "Action": [
+                "elasticfilesystem:ClientMount",
+                "elasticfilesystem:ClientWrite"
+            ]
+        }
+    ]
+}
+POLICY
+}
 
 ########## Networking ##########
 
