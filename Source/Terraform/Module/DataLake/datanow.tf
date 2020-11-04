@@ -166,9 +166,15 @@ resource "aws_efs_file_system" "datanow" {
 }
 
 
-resource "aws_efs_mount_target" "datanow" {
+resource "aws_efs_mount_target" "frontend" {
   file_system_id = aws_efs_file_system.datanow.id
   subnet_id      = aws_subnet.datanow_frontend.id
+}
+
+
+resource "aws_efs_mount_target" "backend" {
+  file_system_id = aws_efs_file_system.datanow.id
+  subnet_id      = aws_subnet.datanow_backend.id
 }
 
 
@@ -232,6 +238,14 @@ resource "aws_security_group" "datanow" {
         description = "ODBC/JDBC Client"
         from_port   = 31010
         to_port     = 31010
+        protocol    = "tcp"
+        cidr_blocks = ["0.0.0.0/0"]
+    }
+
+    ingress {
+        description = "EFS"
+        from_port   = 2049
+        to_port     = 2049
         protocol    = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
