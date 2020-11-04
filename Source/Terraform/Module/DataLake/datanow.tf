@@ -131,7 +131,18 @@ resource "aws_iam_role_policy_attachment" "ecs-task-execution-role" {
 }
 
 
-# Networking
+########## Persistent Storage ##########
+
+resource "aws_efs_file_system" "datanow" {
+    lifecycle_policy {
+        transition_to_ia = "AFTER_30_DAYS"
+    }
+
+    tags = merge(local.tags, {Name = "Data Lake DataNow Persistent Storage"})
+}
+
+
+########## Networking ##########
 
 resource "aws_security_group" "datanow" {
     name        = "Data Lake DataNow"
