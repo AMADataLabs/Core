@@ -38,15 +38,15 @@ def components(dataframe):
     return task.ETLComponentParameters(
         database=dict(
             NAME='oneview',
-            PORT='5432',
             HOST='10.104.16.31',
+            backend='postgresql+psycopg2',
             username='postgres',
             password='datalabs'
         ),
         variables=dict(
             CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformer',
             thing=True,
-            TABLES='physician'
+            TABLES='Physician'
         ),
         data=dataframe
     )
