@@ -9,21 +9,36 @@ PROJECT_NAME='OneView'
 TASK_CLASS=datalabs.etl.task.ETLTask
 TASK_WRAPPER_CLASS=datalabs.etl.awslambda.ETLTaskWrapper
 
-EXTACTOR_DATABASE_NAME='eprdods'       # Test: etstods
-EXTACTOR_DATABASE_USERNAME='{{ ODS_username }}'
-EXTACTOR_DATABASE_PASSWORD='{{ ODS_password }}'
-EXTACTOR_DATABASE_HOST='{{ ODS_host }}'
-EXTACTOR_DATABASE_PORT='54150'
+EXTRACTOR_DATABASE_NAME='eprdods'       # Test: etstods
+EXTRACTOR_DATABASE_USERNAME='{{ ODS_username }}'
+EXTRACTOR_DATABASE_PASSWORD='{{ ODS_password }}'
+EXTRACTOR_DATABASE_HOST='{{ ODS_host }}'
+EXTRACTOR_DATABASE_PORT='54150'
 
-#Credentialing Extractor
+# Credentialing Extractor
 EXTRACTOR_CLASS=datalabs.etl.jdbc.extract.JDBCExtractorTask
 EXTRACTOR_SQL =
 EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
 EXTRACTOR_DRIVER_TYPE = db2
 EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
 
-#Credentialing Transformer
-TRANSFORMER_CLASS=datalabs.etl.oneview
+# Credentialing Transformer
+TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform
 
-#Credentialing Loader
-LOADER_Minio_Placeholder = '{{placeholder}}'
+# Credentialing Loader
+# LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
+# LOADER_ACCESS_KEY='{{key}}'
+# LOADER_SECRET_KEY=''{{secret}}''
+# LOADER_BUCKET=OneView
+# LOADER_BASEPATH=AMA/Oneview/IQVIA
+# LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+# LOADER_FILES='Customer.csv', 'Product.csv', 'Order.csv'
+
+# Credentialing ORM Loader
+LOADER_CLASS=datalabs.etl.orm.load
+LOADER_DATABASE_NAME={{ database_name }}
+LOADER_DATABASE_BACKEND=postgresql+psycopg2
+LOADER_DATABASE_HOST={{ database_host }}
+LOADER_DATABASE_USERNAME={{ database_username }}
+LOADER_DATABASE_PASSWORD={{ database_password }}
+LOADER_TABLES=credentialing_customer,credentialing_product,credentialing_order
