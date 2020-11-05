@@ -40,6 +40,8 @@ def transform_tables(tables, budget_code):
     new_tables = create_sales_tables(pbd_table, tables, new_tables)
 
     pbd_items_table = create_pbd_items_table(pbd_table, tables['pbd_items'])
+
+    new_tables["pbd_items_table"] = pbd_items_table
     new_tables = create_product_tables(pbd_items_table, budget_code, new_tables)
 
     new_tables["customer_clean"] = create_customer_tables(pbd_items_table, tables['contacts'], tables['aims_overlay'])
@@ -50,9 +52,13 @@ def transform_tables(tables, budget_code):
     return new_tables
 
 def export_tables(output_directory, new_tables):
+    no_index_files = ["pbd_table_order", "sales", "product_remainder", "product_main", "pbd_items_table"]
     for key, val in new_tables.items():
 
-        val.to_csv(output_directory + key + ".csv")
+        if key in no_index_files:
+            val.to_csv(output_directory + key + ".csv", index = False)
+        else:    
+            val.to_csv(output_directory + key + ".csv")
 
     """print("tablestbalestbaleatbales")
     print(type(new_tables))

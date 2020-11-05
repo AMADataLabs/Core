@@ -1,6 +1,8 @@
 """ source: datalabs.access.awslambda """
 import json
 import os
+
+import mock
 import pytest
 
 from   datalabs.access.api.awslambda import APIEndpointTaskWrapper
@@ -9,8 +11,9 @@ import datalabs.access.api.task as api
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
-    wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
-    parameters = wrapper._get_task_parameters()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
+        parameters = wrapper._get_task_parameters()
 
     assert expected_parameters == parameters
 
@@ -26,9 +29,10 @@ def test_task_wrapper_handle_exception():
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_generate_response(event):
-    wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
-    wrapper.run()
-    response = wrapper._generate_response()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
+        wrapper.run()
+        response = wrapper._generate_response()
 
     assert response['statusCode'] == 200
     assert response['body'] == json.dumps(dict())

@@ -2,6 +2,7 @@ import logging
 import os
 import tempfile
 
+import mock
 import pandas
 import pytest
 
@@ -21,7 +22,8 @@ def test_data_setup_correctly(extractor_file):
 
 
 def test_transformer_produces_two_datasets(etl):
-    etl.run()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        etl.run()
 
     transformer = etl._task._transformer
 
@@ -30,7 +32,8 @@ def test_transformer_produces_two_datasets(etl):
 
 
 def test_transformer_data_has_three_data_rows(etl):
-    etl.run()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        etl.run()
 
     transformer = etl._task._transformer
     rows = transformer.data[0].split('\n')

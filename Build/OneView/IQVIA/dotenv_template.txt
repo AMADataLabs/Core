@@ -16,13 +16,20 @@ EXTRACTOR_DATABASE_HOST='{{ ODS_host }}'
 EXTRACTOR_DATABASE_PORT='54150'
 
 #IQVIA Extractor
-EXTRACTOR_SQL = '{{queries}}'
+EXTRACTOR_CLASS=datalabs.etl.jdbc.JDBCExtractorTask
+EXTRACTOR_SQL = SELECT * FROM ODS.ODS_IMS_BUSINESS;SELECT * FROM ODS.ODS_IMS_PROFESSIONAL;SELECT P.AFFIL_TYPE_ID, P.IMS_ORG_ID,P.PROFESSIONAL_ID,A.AFFIL_TYPE_DESC,P.AFFIL_IND,P.AFFIL_RANK FROM ODS.ODS_IMS_PROVIDER_AFFILIATION_FACT P, ODS.ODS_IMS_AFFILIATION_TYPE A WHERE P.AFFIL_TYPE_ID = A.AFFIL_TYPE_ID;
 EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
 EXTRACTOR_DRIVER_TYPE = db2
-EXTRACTOR_CLASS=datalabs.etl.jdbc.JDBCExtractorTask
+EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
 
 #IQVIA Transformer
+TRANSFORMER_CLASS=datalabs.etl.oneview.iqvia.transform
 
 #IQVIA Loader
-LOADER_minio_placeholder = '{{placeholder}}'
-
+LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
+LOADER_ACCESS_KEY='{{key}}'
+LOADER_SECRET_KEY=''{{secret}}''
+LOADER_BUCKET=OneView
+LOADER_BASEPATH=AMA/Oneview/IQVIA
+LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+LOADER_FILES='Business.csv', 'Provider.csv', 'ProviderAffiliation.csv'

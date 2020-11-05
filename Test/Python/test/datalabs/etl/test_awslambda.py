@@ -1,5 +1,7 @@
 """ source: datalabs.etl.awslambda """
 import os
+
+import mock
 import pytest
 
 from   datalabs.etl.awslambda import ETLTaskWrapper
@@ -8,25 +10,28 @@ import datalabs.etl.task as etl
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
-    wrapper = ETLTaskWrapper(MockTask, parameters=event)
-    parameters = wrapper._get_task_parameters()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        wrapper = ETLTaskWrapper(MockTask, parameters=event)
+        parameters = wrapper._get_task_parameters()
 
     assert expected_parameters == parameters
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
-    wrapper = ETLTaskWrapper(MockTask)
-    exception = etl.ETLException('failed')
-    response = wrapper._handle_exception(exception)
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        wrapper = ETLTaskWrapper(MockTask)
+        exception = etl.ETLException('failed')
+        response = wrapper._handle_exception(exception)
 
     assert response == f'Failed: {str(exception)}'
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_generate_response():
-    wrapper = ETLTaskWrapper(MockTask)
-    response = wrapper._generate_response()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        wrapper = ETLTaskWrapper(MockTask)
+        response = wrapper._generate_response()
 
     assert response == "Success"
 

@@ -62,7 +62,7 @@ remove_python_tools() {
 
 
 install_node() {
-    echo "Function 'remove_node not implemented'"
+    echo "Function 'install_node not implemented'"
 
     return 0
 
@@ -98,7 +98,7 @@ remove_aws_tools() {
 install_pip() {
     apt install -y python3-pip
 
-    /usr/bin/python3.7 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
+    python3.7 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
 }
 
 
@@ -137,7 +137,7 @@ remove_venv() {
 
 
 install_pipenv() {
-    /usr/bin/python3.7 -m pip install pipenv
+    python3.7 -m pip install pipenv
 }
 
 
@@ -174,12 +174,6 @@ create_base_virtual_environment() {
     ln -s ${BUILD_REQUIREMENTS} ${ENVIRONMENT_REQUIREMENTS}
 
     setup_python_virtual_environment Environment/Master
-}
-
-
-remove_base_virtual_environments() {
-    rm -rf /home/lane/Development/Python3.6
-    rm -rf /home/lane/Development/Python3.7
 }
 
 
