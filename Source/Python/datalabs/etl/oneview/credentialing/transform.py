@@ -1,9 +1,12 @@
 """Oneview Credentialing Table Columns"""
 
 import logging
+import os
+import pandas
 
-from   datalabs.etl.oneview.ppd.column import customer_columns, product_columns, order_columns
-from   datalabs.etl.oneview.transform import TransformerTask
+from datalabs.etl.task import ETLException
+from datalabs.etl.oneview.ppd.column import customer_columns, product_columns, order_columns
+from datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -11,5 +14,25 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class CredentialingTransformer(TransformerTask):
+    def _transform(self):
+        LOGGER.info(self._parameters.data)
+        try:
+            selected_data = self._select_columns(self._parameters.data)
+            renamed_data = self._rename_columns(selected_data)
+            merged_data = self._merge_data(renamed_data)
+            csv_data = [self._dataframe_to_csv(data) for data in merged_data]
+
+        except Exception as exception:
+            raise ETLException("Invalid data") from exception
+
+        return csv_data
+
     def _get_columns(self):
         return [customer_columns, product_columns, order_columns]
+
+    def _merge_data(self, data):
+        address_file = os.environ.get('CREDENTIALING_ADDRESSES')
+        addresses = pandas.read_csv(address_file)
+        data[0] = pandas.merge(data[0], addresses, on='number')
+
+        return data
