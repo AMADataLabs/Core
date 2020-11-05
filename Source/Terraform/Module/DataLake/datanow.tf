@@ -50,7 +50,8 @@ resource "aws_ecs_task_definition" "datanow" {
     memory                      = 8192
     requires_compatibilities    = ["FARGATE"]
     network_mode                = "awsvpc"
-    execution_role_arn          = aws_iam_role.datanow.arn
+    task_role_arn               = aws_iam_role.datanow_assume.arn
+    execution_role_arn          = aws_iam_role.datanow_execution.arn
 
     container_definitions       = jsonencode([
         {
@@ -91,6 +92,7 @@ resource "aws_ecs_task_definition" "datanow" {
                 {
                     sourceVolume    = "DataNow",
                     containerPath   = "/opt/dremio/data"
+                    readOnly        = false
                 }
             ]
 
@@ -111,7 +113,13 @@ resource "aws_ecs_task_definition" "datanow" {
 
         efs_volume_configuration {
             file_system_id          = aws_efs_file_system.datanow.id
-            root_directory          = "/opt/dremio/data"
+            root_directory          = "/"
+            transit_encryption      = "ENABLED"
+
+            authorization_config {
+                access_point_id     = aws_efs_access_point.dremio.id
+                iam                 = "ENABLED"
+            }
         }
     }
 
@@ -128,8 +136,28 @@ resource "aws_cloudwatch_log_group" "datanow" {
 
 ########## Permissions ##########
 
-resource "aws_iam_role" "datanow" {
-    name                = "${var.project}DataNow"
+resource "aws_iam_role" "datanow_assume" {
+    name                = "${var.project}DataNowAssumeRole"
+
+    assume_role_policy  = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ecs-tasks.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role" "datanow_execution" {
+    name                = "${var.project}DataNowExecutionRole"
 
     assume_role_policy  = <<EOF
 {
@@ -149,8 +177,8 @@ EOF
 }
 
 
-resource "aws_iam_role_policy_attachment" "ecs-task-execution-role" {
-    role        = aws_iam_role.datanow.name
+resource "aws_iam_role_policy_attachment" "datanow_execution" {
+    role        = aws_iam_role.datanow_execution.name
     policy_arn  = data.aws_iam_policy.ecs_task_execution.arn
 }
 
@@ -167,14 +195,22 @@ resource "aws_efs_file_system" "datanow" {
 
 
 resource "aws_efs_mount_target" "frontend" {
-  file_system_id = aws_efs_file_system.datanow.id
-  subnet_id      = aws_subnet.datanow_frontend.id
+    file_system_id = aws_efs_file_system.datanow.id
+    subnet_id      = aws_subnet.datanow_frontend.id
+
+    security_groups = [
+        aws_security_group.datanow.id
+    ]
 }
 
 
 resource "aws_efs_mount_target" "backend" {
-  file_system_id = aws_efs_file_system.datanow.id
-  subnet_id      = aws_subnet.datanow_backend.id
+    file_system_id = aws_efs_file_system.datanow.id
+    subnet_id      = aws_subnet.datanow_backend.id
+
+    security_groups = [
+        aws_security_group.datanow.id
+    ]
 }
 
 
@@ -190,7 +226,7 @@ resource "aws_efs_file_system_policy" "datanow" {
             "Sid": "DataNow",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "${aws_iam_role.datanow.arn}"
+                "AWS": "${aws_iam_role.datanow_assume.arn}"
             },
             "Resource": "${aws_efs_file_system.datanow.arn}",
             "Action": [
@@ -201,6 +237,29 @@ resource "aws_efs_file_system_policy" "datanow" {
     ]
 }
 POLICY
+}
+
+
+resource "aws_efs_access_point" "dremio" {
+    file_system_id      = aws_efs_file_system.datanow.id
+
+    posix_user {
+        uid             = 999
+        gid             = 999
+        secondary_gids  = []
+    }
+
+    root_directory {
+        path = "/dremio"
+
+        creation_info {
+            owner_uid   = 999
+            owner_gid   = 999
+            permissions = "0755"
+        }
+    }
+
+    tags = merge(local.tags, {Name = "Data Lake DataNow Dremio Access Point"})
 }
 
 ########## Networking ##########
