@@ -25,11 +25,21 @@ EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
 #IQVIA Transformer
 TRANSFORMER_CLASS=datalabs.etl.oneview.iqvia.transform
 
-#IQVIA Loader
-LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
-LOADER_ACCESS_KEY='{{key}}'
-LOADER_SECRET_KEY=''{{secret}}''
-LOADER_BUCKET=OneView
-LOADER_BASEPATH=AMA/Oneview/IQVIA
-LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
-LOADER_FILES='Business.csv', 'Provider.csv', 'ProviderAffiliation.csv'
+# #IQVIA S3 Loader
+# LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
+# LOADER_ACCESS_KEY='{{key}}'
+# LOADER_SECRET_KEY=''{{secret}}''
+# LOADER_BUCKET=OneView
+# LOADER_BASEPATH=AMA/Oneview/IQVIA
+# LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+# LOADER_FILES='Business.csv', 'Provider.csv', 'ProviderAffiliation.csv'
+
+#IQVIA ORM Loader
+LOADER_CLASS=datalabs.etl.orm.load
+LOADER_DATABASE_NAME={{ database_name }}
+LOADER_DATABASE_BACKEND=postgresql+psycopg2
+LOADER_DATABASE_HOST={{ database_host }}
+LOADER_DATABASE_USERNAME={{ database_username }}
+LOADER_DATABASE_PASSWORD={{ database_password }}
+LOADER_TABLES=business,provider,provider_affiliation
+

@@ -3,7 +3,7 @@ import os
 import jaydebeapi
 import pytest
 
-from datalabs.etl.jdbc.extract import JDBCExtractor
+from   datalabs.etl.jdbc.extract import JDBCExtractor
 import datalabs.etl.task as task
 
 
