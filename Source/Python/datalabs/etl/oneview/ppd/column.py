@@ -50,7 +50,7 @@ columns = {
     'MPACODE': 'major_professional_activity',
     'PRAAWARDRECIPIENT': 'physician_recognition_award_recipient',
     'PRAEXPIRATIONDATE': 'physician_recognition_award_expiration_date',
-    'GMECONFIRMFLAG': 'graduate_medical_education_confirmed',
+    'GMECONFIRMFLAG': 'graduate_medical_education_confirm',
     'FROMDATE': 'from_date',
     'ENDDATE': 'end_date',
     'YEARINPROGRAM': 'year_in_program',
