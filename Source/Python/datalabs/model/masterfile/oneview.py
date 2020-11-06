@@ -55,8 +55,8 @@ class Physician(Base):
     fax_number = sa.Column(sa.String)
     type_of_practice_code = sa.Column(sa.String, sa.ForeignKey("oneview.type_of_practice_code.id"))
     present_employment = sa.Column(sa.String, sa.ForeignKey("oneview.present_employment.id"))
-    primary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.speciality.id"))
-    secondary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.speciality.id"))
+    primary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.specialty.id"))
+    secondary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.specialty.id"))
     major_professional_activity = sa.Column(sa.String, sa.ForeignKey("oneview.major_professional_activity.id"))
     physician_recognition_award_recipient = sa.Column(sa.String)
     physician_recognition_award_expiration_date = sa.Column(sa.String)
@@ -138,8 +138,8 @@ class CoreBasedStatisticalAreaDivision(Base):
     description = sa.Column(sa.String, nullable=False)
 
 
-class Speciality(Base):
-    __tablename__ = 'speciality'
+class Specialty(Base):
+    __tablename__ = 'specialty'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
