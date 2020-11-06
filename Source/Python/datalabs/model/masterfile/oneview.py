@@ -130,14 +130,6 @@ class FederalInformationProcessingStandardCounty(Base):
     description = sa.Column(sa.String, nullable=False)
 
 
-class FederalInformationProcessingStandardState(Base):
-    __tablename__ = 'federal_information_processing_standard_state'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    zip = sa.Column(sa.String, nullable=False)
-
-
 class CoreBasedStatisticalAreaDivision(Base):
     __tablename__ = 'core_based_statistical_area'
     __table_args__ = {"schema": "oneview"}
