@@ -23,7 +23,7 @@ EXTRACTOR_DRIVER_TYPE = db2
 EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
 
 # Credentialing Transformer
-TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform
+TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform.CredentialingTransformer
 
 # Credentialing Loader
 # LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
@@ -35,7 +35,7 @@ TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform
 # LOADER_FILES='Customer.csv', 'Product.csv', 'Order.csv'
 
 # Credentialing ORM Loader
-LOADER_CLASS=datalabs.etl.orm.load
+LOADER_CLASS=datalabs.etl.orm.loadORMLoader
 LOADER_DATABASE_NAME={{ database_name }}
 LOADER_DATABASE_BACKEND=postgresql+psycopg2
 LOADER_DATABASE_HOST={{ database_host }}
