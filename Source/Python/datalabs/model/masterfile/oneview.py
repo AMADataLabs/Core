@@ -106,7 +106,7 @@ class PresentEmployment(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
-    zip = sa.Column(sa.String, nullable=False)
+    zipcode = sa.Column(sa.String, nullable=False)
     state = sa.Column(sa.String, nullable=False)
     city = sa.Column(sa.String, nullable=False)
     area = sa.Column(sa.String, nullable=False)
