@@ -36,7 +36,6 @@ TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform.CredentialingTran
 
 # Credentialing ORM Loader
 LOADER_CLASS=datalabs.etl.orm.loadORMLoader
-LODER_MODEL_CLASS=datalabs.model.masterfile.oneview.CredentialingCustomer,datalabs.model.masterfile.oneview.CredentialingProduct,datalabs.model.masterfile.oneview.CredentialingOrder
 LOADER_DATABASE_NAME={{ database_name }}
 LOADER_DATABASE_BACKEND=postgresql+psycopg2
 LOADER_DATABASE_HOST={{ database_host }}

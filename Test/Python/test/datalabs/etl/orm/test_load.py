@@ -7,7 +7,7 @@ from   datalabs.etl.oneview.ppd.transform import PPDTransformer
 from   datalabs.etl.orm.load import ORMLoader
 from   datalabs.access.orm import DatabaseTaskMixin
 
-import datalabs.model.masterfile.oneview as dbmodel
+import datalabs.model.cpt.api as dbmodel
 import datalabs.etl.task as task
 
 logging.basicConfig()
@@ -23,13 +23,13 @@ def test_orm_loader(components):
     loader = ORMLoader(components)
     loader._load()
 
-    credentials = DatabaseTaskMixin()
+    credentials = DatabaseTaskMixin(components)
     with credentials._get_database(components.database) as database:
         session = database.session
         query = session.query(dbmodel.Physician)
 
     rows = query.all()
-    LOGGER.info(rows)
+    LOGGER.info(rows[0])
     assert rows[0].medical_education_number == '03503191317'
 
 
@@ -45,7 +45,6 @@ def components(dataframe):
         ),
         variables=dict(
             CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformer',
-            MODEL_CLASS='datalabs.model.masterfile.oneview.Physician',
             thing=True,
             TABLES='Physician'
         ),
@@ -182,8 +181,7 @@ def dataframe():
                                               4: None},
             'JOB_ID': {0: None, 1: None, 2: None, 3: None, 4: None},
             'CURRENT_BATCH_FLAG': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'BATCH_BUSINESS_DATE': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'npi': {0: None, 1: None, 2: None, 3: None, 4: None}}
+            'BATCH_BUSINESS_DATE': {0: None, 1: None, 2: None, 3: None, 4: None}}
 
     return [pandas.DataFrame.from_dict(data)]
 
