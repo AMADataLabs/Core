@@ -36,7 +36,7 @@ TRANSFORMER_CLASS=datalabs.etl.oneview.iqvia.transform
 
 #IQVIA ORM Loader
 LOADER_CLASS=datalabs.etl.orm.load
-LODER_MODEL_CLASS=datalabs.model.masterfile.oneview.Business,datalabs.model.masterfile.oneview.Provider,datalabs.model.masterfile.oneview.ProviderAffiliation
+LODER_MODEL_CLASSES=datalabs.model.masterfile.oneview.Business,datalabs.model.masterfile.oneview.Provider,datalabs.model.masterfile.oneview.ProviderAffiliation
 LOADER_DATABASE_NAME={{ database_name }}
 LOADER_DATABASE_BACKEND=postgresql+psycopg2
 LOADER_DATABASE_HOST={{ database_host }}

@@ -15,19 +15,17 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ORMLoader(LoaderTask, DatabaseTaskMixin):
     def _load(self):
-        Tables = [import_plugin(table) for table in self._parameter.variables['MODEL_CLASS'].split(',')]
+        Tables = [import_plugin(table) for table in self._parameter.variables['MODEL_CLASSES'].split(',')]
 
         with self._get_database(self._parameters.database) as database:
-            self._session = database.session
-
             for dataframe, table, model_class in zip(self._get_dataframes(),
                                                      self._parameters.variables['TABLES'].split(','),
                                                      Tables):
                 models = [self._create_model(row, model_class) for row in dataframe.itertuples(index=False)]
                 for model in models:
-                    self._session.add(model)
+                    database.session.add(model)
 
-            self._session.commit()
+            database.session.commit()
 
     def _get_dataframes(self):
         return [pandas.read_csv(io.StringIO(data)) for data in self._parameters.data]
