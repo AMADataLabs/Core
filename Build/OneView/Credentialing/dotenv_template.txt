@@ -27,3 +27,4 @@ TRANSFORMER_CLASS=datalabs.etl.oneview
 
 #Credentialing Loader
 LOADER_Minio_Placeholder = '{{placeholder}}'
+LODER_MODEL_CLASS=datalabs.model.masterfile.oneview.CredentialingCustomer,datalabs.model.masterfile.oneview.CredentialingProduct,datalabs.model.masterfile.oneview.CredentialingOrder

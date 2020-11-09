@@ -7,7 +7,7 @@ from   datalabs.etl.oneview.ppd.transform import PPDTransformer
 from   datalabs.etl.orm.load import ORMLoader
 from   datalabs.access.orm import DatabaseTaskMixin
 
-import datalabs.model.cpt.api as dbmodel
+import datalabs.model.masterfile.oneview as dbmodel
 import datalabs.etl.task as task
 
 logging.basicConfig()
@@ -23,13 +23,13 @@ def test_orm_loader(components):
     loader = ORMLoader(components)
     loader._load()
 
-    credentials = DatabaseTaskMixin(components)
+    credentials = DatabaseTaskMixin()
     with credentials._get_database(components.database) as database:
         session = database.session
         query = session.query(dbmodel.Physician)
 
     rows = query.all()
-    LOGGER.info(rows[0])
+    LOGGER.info(rows)
     assert rows[0].medical_education_number == '03503191317'
 
 
@@ -45,6 +45,7 @@ def components(dataframe):
         ),
         variables=dict(
             CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformer',
+            MODEL_CLASS='datalabs.model.masterfile.oneview.Physician',
             thing=True,
             TABLES='Physician'
         ),
