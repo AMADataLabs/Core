@@ -24,6 +24,7 @@ EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
 
 # Credentialing Transformer
 TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform.CredentialingTransformer
+TRANSFORMER_CREDENTIALING_ADDRESS='{{path_to_csv}}'
 
 # Credentialing Loader
 # LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
