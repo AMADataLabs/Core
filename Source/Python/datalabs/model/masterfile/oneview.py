@@ -106,12 +106,7 @@ class PresentEmployment(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
-    zipcode = sa.Column(sa.String, nullable=False)
-    state = sa.Column(sa.String, nullable=False)
-    city = sa.Column(sa.String, nullable=False)
-    area = sa.Column(sa.String, nullable=False)
-    msa = sa.Column(sa.String, nullable=False)
-    pmsa = sa.Column(sa.String, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
 
 
 class MajorProfessionalActivity(Base):
@@ -130,12 +125,13 @@ class FederalInformationProcessingStandardCounty(Base):
     description = sa.Column(sa.String, nullable=False)
 
 
-class CoreBasedStatisticalAreaDivision(Base):
+class CoreBasedStatisticalArea(Base):
     __tablename__ = 'core_based_statistical_area'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     description = sa.Column(sa.String, nullable=False)
+    type = sa.Column(sa.String, nullable=False)
 
 
 class Specialty(Base):
