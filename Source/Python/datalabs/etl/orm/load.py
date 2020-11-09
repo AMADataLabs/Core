@@ -4,9 +4,9 @@ import logging
 import pandas
 import sqlalchemy as sa
 
-from datalabs.access.orm import DatabaseTaskMixin
-from datalabs.etl.load import LoaderTask
-import datalabs.model.masterfile.oneview as dbmodel
+from   datalabs.access.orm import DatabaseTaskMixin
+from   datalabs.etl.load import LoaderTask
+from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -15,16 +15,32 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ORMLoader(LoaderTask, DatabaseTaskMixin):
     def _load(self):
+        Tables = [import_plugin(table) for table in self._parameter.variables['MODEL_CLASS'].split(',')]
+
         with self._get_database(self._parameters.database) as database:
-            self._connect = database.session
+            self._session = database.session
 
-            for dataframe, table in zip(self._to_dataframe(), self._parameters.variables['TABLES'].split(',')):
-                query = sa.insert(dbmodel.Physician)
-                import pdb
-                pdb.set_trace()
-                self._connect.execute(query, dataframe)
+            for dataframe, table, model_class in zip(self._get_dataframes(),
+                                                     self._parameters.variables['TABLES'].split(','),
+                                                     Tables):
+                models = [self._create_model(row, model_class) for row in dataframe.itertuples(index=False)]
+                for model in models:
+                    self._session.add(model)
 
-                # dataframe.to_sql(table, self._connect, if_exists='replace')
+            self._session.commit()
 
-    def _to_dataframe(self):
+    def _get_dataframes(self):
         return [pandas.read_csv(io.StringIO(data)) for data in self._parameters.data]
+
+    def _create_model(self, row, model_class):
+        columns = self._get_model_columns(model_class)
+        parameters = {column: getattr(row, column) for column in columns}
+        model = model_class(**parameters)
+
+        return model
+
+    def _get_model_columns(self, model_class):
+        mapper = sa.inspect(model_class)
+        columns = [column.key for column in mapper.attrs]
+
+        return columns

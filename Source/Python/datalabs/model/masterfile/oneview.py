@@ -1,8 +1,8 @@
 """ SQLAlchemy models for OneView """
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import declarative_base
+from   sqlalchemy.ext.declarative import declarative_base
 
-from datalabs.sqlalchemy import metadata
+from   datalabs.sqlalchemy import metadata
 
 Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
@@ -11,7 +11,7 @@ class Physician(Base):
     __tablename__ = 'physician'
     __table_args__ = {"schema": "oneview"}
 
-    medical_education_number = sa.Column(sa.Integer, primary_key=True)
+    medical_education_number = sa.Column(sa.String, primary_key=True)
     address_type = sa.Column(sa.String)
     mailing_name = sa.Column(sa.String)
     last_name = sa.Column(sa.String)
@@ -90,7 +90,7 @@ class Physician(Base):
     next_most_recent_former_last_name = sa.Column(sa.String)
     next_most_recent_former_middle_name = sa.Column(sa.String)
     next_most_recent_former_first_name = sa.Column(sa.String)
-    npi = sa.Column(sa.Integer)
+    # npi = sa.Column(sa.Integer)
 
 
 class ResidencyProgram(Base):
@@ -166,7 +166,7 @@ class Provider(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
     first_name = sa.Column(sa.String, nullable=False)
     middle_name = sa.Column(sa.String, nullable=False)
@@ -226,14 +226,14 @@ class CredentialingProduct(Base):
 
 
 class CredentialingOrder(Base):
-    __tablename__ = 'credentialing_order '
+    __tablename__ = 'credentialing_order'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     customer = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_customer.id"), nullable=False)
     product = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_product.id"), nullable=False)
     number = sa.Column(sa.String, nullable=False)
-    medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
     date = sa.Column(sa.String, nullable=False)
 
@@ -250,7 +250,7 @@ class PhysicianEthnicity(Base):
     __tablename__ = 'physician_ethnicity'
     __table_args__ = {"schema": "oneview"}
 
-    medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          primary_key=True, nullable=False)
     ethnicity = sa.Column(sa.Integer, sa.ForeignKey("oneview.ethnicity.id"), nullable=False)
 
@@ -276,10 +276,10 @@ class CredentialingCustomerBusiness(Base):
 
 
 class ResidencyProgramPhysician(Base):
-    __tablename__ = 'medical_education_physician'
+    __tablename__ = 'residency_program_physician'
     __table_args__ = {"schema": "oneview"}
 
     personnel_member = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_personnel_member.id"),
                                  primary_key=True, nullable=False)
-    medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
