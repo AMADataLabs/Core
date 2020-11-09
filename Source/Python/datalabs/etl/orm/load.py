@@ -15,7 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ORMLoader(LoaderTask, DatabaseTaskMixin):
     def _load(self):
-        Tables = [import_plugin(table) for table in self._parameter.variables['MODEL_CLASS'].split(',')]
+        Tables = [import_plugin(table) for table in self._parameters.variables['MODEL_CLASS'].split(',')]
 
         with self._get_database(self._parameters.database) as database:
             self._session = database.session
