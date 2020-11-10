@@ -1,0 +1,40 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: Data Labs DataNow Service
+    openshift.io/display-name: DataNow
+  creationTimestamp: null
+  labels:
+    app: DataNow
+  name: datanow
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: datanow:latest
+      namespace: hsg-data-labs-dev
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/datanow.git
+      ref: full-build
+    sourceSecret:
+      name: bitbucketprd
+    type: Git
+  strategy:
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - github:
+      secret: qZJ_ZEvW9lhY8yGoSkpg
+    type: GitHub
+  - generic:
+      secret: jVit3toJB5LPjRMAIrXw
+    type: Generic
+  - type: ConfigChange
+    type: ImageChange
