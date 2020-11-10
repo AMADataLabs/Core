@@ -12,85 +12,134 @@ class Physician(Base):
     __table_args__ = {"schema": "oneview"}
 
     medical_education_number = sa.Column(sa.Integer, primary_key=True)
-    address_type = sa.Column(sa.String, nullable=False)
-    mailing_name = sa.Column(sa.String, nullable=False)
-    last_name = sa.Column(sa.String, nullable=False)
-    first_name = sa.Column(sa.String, nullable=False)
-    middle_name = sa.Column(sa.String, nullable=False)
-    name_suffix = sa.Column(sa.String, nullable=False)
-    preferred_address_2 = sa.Column(sa.String, nullable=False)
-    preferred_address_1 = sa.Column(sa.String, nullable=False)
-    city = sa.Column(sa.String, nullable=False)
-    state = sa.Column(sa.String, nullable=False)
-    zipcode = sa.Column(sa.String, nullable=False)
-    sector = sa.Column(sa.String, nullable=False)
-    carrier_route = sa.Column(sa.String, nullable=False)
-    address_undeliverable = sa.Column(sa.String, nullable=False)
-    federal_information_processing_standard_county = sa.Column(sa.String, nullable=False)
-    federal_information_processing_standard_state = sa.Column(sa.String, nullable=False)
-    printer_control_code_begin = sa.Column(sa.String, nullable=False)
-    barcode_zipcode = sa.Column(sa.String, nullable=False)
-    barcode_zipcode_plus_4 = sa.Column(sa.String, nullable=False)
-    delivery_point = sa.Column(sa.String, nullable=False)
-    check_digit = sa.Column(sa.String, nullable=False)
-    printer_control_code_end = sa.Column(sa.String, nullable=False)
-    region = sa.Column(sa.String, nullable=False)
-    division = sa.Column(sa.String, nullable=False)
-    group = sa.Column(sa.String, nullable=False)
-    tract = sa.Column(sa.String, nullable=False)
-    suffix = sa.Column(sa.String, nullable=False)
-    block_group = sa.Column(sa.String, nullable=False)
-    metropolitan_statistical_area_population = sa.Column(sa.String, nullable=False)
-    micro_metro_indicator = sa.Column(sa.String, nullable=False)
-    core_based_statistical_area = sa.Column(sa.String, nullable=False)
-    core_based_statistical_area_division = sa.Column(sa.String, nullable=False)
-    degree_type = sa.Column(sa.String, nullable=False)
-    birth_year = sa.Column(sa.String, nullable=False)
-    birth_city = sa.Column(sa.String, nullable=False)
-    birth_state = sa.Column(sa.String, nullable=False)
-    birth_country = sa.Column(sa.String, nullable=False)
-    gender = sa.Column(sa.String, nullable=False)
-    telephone_number = sa.Column(sa.String, nullable=False)
-    presumed_dead = sa.Column(sa.String, nullable=False)
-    fax_number = sa.Column(sa.String, nullable=False)
-    type_of_practice_code = sa.Column(sa.String, nullable=False)
-    present_employment = sa.Column(sa.String, nullable=False)
-    primary_specialty = sa.Column(sa.String, nullable=False)
-    secondary_specialty = sa.Column(sa.String, nullable=False)
-    major_professional_activity = sa.Column(sa.String, nullable=False)
-    physician_recognition_award_recipient = sa.Column(sa.String, nullable=False)
-    physician_recognition_award_expiration_date = sa.Column(sa.String, nullable=False)
-    graduate_medical_education_confirm = sa.Column(sa.String, nullable=False)
-    from_date = sa.Column(sa.String, nullable=False)
-    end_date = sa.Column(sa.String, nullable=False)
-    year_in_program = sa.Column(sa.String, nullable=False)
-    post_graduate_year = sa.Column(sa.String, nullable=False)
-    graduate_medical_education_primary_specialty = sa.Column(sa.String, nullable=False)
-    graduate_medical_education_secondary_specialty = sa.Column(sa.String, nullable=False)
-    training_type = sa.Column(sa.String, nullable=False)
-    graduate_medical_education_hospital_state = sa.Column(sa.String, nullable=False)
-    graduate_medical_education_hospital = sa.Column(sa.String, nullable=False)
-    medical_school_state = sa.Column(sa.String, nullable=False)
-    medical_school = sa.Column(sa.String, nullable=False)
-    medical_school_graduation_year = sa.Column(sa.String, nullable=False)
-    no_contact_type = sa.Column(sa.String, nullable=False)
-    no_web = sa.Column(sa.String, nullable=False)
-    physician_data_restriction_program = sa.Column(sa.String, nullable=False)
-    physician_data_restriction_program_date = sa.Column(sa.String, nullable=False)
-    polo_address_2 = sa.Column(sa.String, nullable=False)
-    polo_address_1 = sa.Column(sa.String, nullable=False)
-    polo_city = sa.Column(sa.String, nullable=False)
-    polo_state = sa.Column(sa.String, nullable=False)
-    polo_zipcode = sa.Column(sa.String, nullable=False)
-    polo_sector = sa.Column(sa.String, nullable=False)
-    polo_carrier_route = sa.Column(sa.String, nullable=False)
-    most_recent_former_last_name = sa.Column(sa.String, nullable=False)
-    most_recent_former_middle_name = sa.Column(sa.String, nullable=False)
-    most_recent_former_first_name = sa.Column(sa.String, nullable=False)
-    next_most_recent_former_last_name = sa.Column(sa.String, nullable=False)
-    next_most_recent_former_middle_name = sa.Column(sa.String, nullable=False)
-    next_most_recent_former_first_name = sa.Column(sa.String, nullable=False)
-    npi = sa.Column(sa.Integer, nullable=False)
+    address_type = sa.Column(sa.String)
+    mailing_name = sa.Column(sa.String)
+    last_name = sa.Column(sa.String)
+    first_name = sa.Column(sa.String)
+    middle_name = sa.Column(sa.String)
+    name_suffix = sa.Column(sa.String)
+    preferred_address_2 = sa.Column(sa.String)
+    preferred_address_1 = sa.Column(sa.String)
+    city = sa.Column(sa.String)
+    state = sa.Column(sa.String)
+    zipcode = sa.Column(sa.String)
+    sector = sa.Column(sa.String)
+    carrier_route = sa.Column(sa.String)
+    address_undeliverable = sa.Column(sa.String)
+    federal_information_processing_standard_county = sa.Column(sa.String, sa.ForeignKey("oneview.federal_information_processing_standard_county.id"))
+    federal_information_processing_standard_state = sa.Column(sa.String)
+    printer_control_code_begin = sa.Column(sa.String)
+    barcode_zipcode = sa.Column(sa.String)
+    barcode_zipcode_plus_4 = sa.Column(sa.String)
+    delivery_point = sa.Column(sa.String)
+    check_digit = sa.Column(sa.String)
+    printer_control_code_end = sa.Column(sa.String)
+    region = sa.Column(sa.String)
+    division = sa.Column(sa.String)
+    group = sa.Column(sa.String)
+    tract = sa.Column(sa.String)
+    suffix = sa.Column(sa.String)
+    block_group = sa.Column(sa.String)
+    metropolitan_statistical_area_population = sa.Column(sa.String)
+    micro_metro_indicator = sa.Column(sa.String)
+    core_based_statistical_area = sa.Column(sa.String, sa.ForeignKey("oneview.core_based_statistical_area.id"))
+    core_based_statistical_area_division = sa.Column(sa.String)
+    degree_type = sa.Column(sa.String)
+    birth_year = sa.Column(sa.String)
+    birth_city = sa.Column(sa.String)
+    birth_state = sa.Column(sa.String)
+    birth_country = sa.Column(sa.String)
+    gender = sa.Column(sa.String)
+    telephone_number = sa.Column(sa.String)
+    presumed_dead = sa.Column(sa.String)
+    fax_number = sa.Column(sa.String)
+    type_of_practice_code = sa.Column(sa.String, sa.ForeignKey("oneview.type_of_practice_code.id"))
+    present_employment = sa.Column(sa.String, sa.ForeignKey("oneview.present_employment.id"))
+    primary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.specialty.id"))
+    secondary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.specialty.id"))
+    major_professional_activity = sa.Column(sa.String, sa.ForeignKey("oneview.major_professional_activity.id"))
+    physician_recognition_award_recipient = sa.Column(sa.String)
+    physician_recognition_award_expiration_date = sa.Column(sa.String)
+    graduate_medical_education_confirm = sa.Column(sa.String)
+    from_date = sa.Column(sa.String)
+    end_date = sa.Column(sa.String)
+    year_in_program = sa.Column(sa.String)
+    post_graduate_year = sa.Column(sa.String)
+    graduate_medical_education_primary_specialty = sa.Column(sa.String)
+    graduate_medical_education_secondary_specialty = sa.Column(sa.String)
+    training_type = sa.Column(sa.String)
+    graduate_medical_education_hospital_state = sa.Column(sa.String)
+    graduate_medical_education_hospital = sa.Column(sa.String)
+    medical_school_state = sa.Column(sa.String)
+    medical_school = sa.Column(sa.String)
+    medical_school_graduation_year = sa.Column(sa.String)
+    no_contact_type = sa.Column(sa.String)
+    no_web = sa.Column(sa.String)
+    physician_data_restriction_program = sa.Column(sa.String)
+    physician_data_restriction_program_date = sa.Column(sa.String)
+    polo_address_2 = sa.Column(sa.String)
+    polo_address_1 = sa.Column(sa.String)
+    polo_city = sa.Column(sa.String)
+    polo_state = sa.Column(sa.String)
+    polo_zipcode = sa.Column(sa.String)
+    polo_sector = sa.Column(sa.String)
+    polo_carrier_route = sa.Column(sa.String)
+    most_recent_former_last_name = sa.Column(sa.String)
+    most_recent_former_middle_name = sa.Column(sa.String)
+    most_recent_former_first_name = sa.Column(sa.String)
+    next_most_recent_former_last_name = sa.Column(sa.String)
+    next_most_recent_former_middle_name = sa.Column(sa.String)
+    next_most_recent_former_first_name = sa.Column(sa.String)
+    npi = sa.Column(sa.Integer)
+
+
+class TypeOfPractice(Base):
+    __tablename__ = 'type_of_practice'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class PresentEmployment(Base):
+    __tablename__ = 'present_employment'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class MajorProfessionalActivity(Base):
+    __tablename__ = 'major_professional_activity'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class FederalInformationProcessingStandardCounty(Base):
+    __tablename__ = 'federal_information_processing_standard_county'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class CoreBasedStatisticalArea(Base):
+    __tablename__ = 'core_based_statistical_area'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+    type = sa.Column(sa.String, nullable=False)
+
+
+class Specialty(Base):
+    __tablename__ = 'specialty'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
 
 
 class ResidencyProgram(Base):

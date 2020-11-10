@@ -13,7 +13,7 @@ class JDBCExtractor(ExtractorTask):
         connection = self._connect()
 
         try:
-            tables = self._read_queries_into_dataframe(connection)
+            tables = self._read_queries(connection)
         except Exception as exception:
             raise ETLException("Invalid SQL Statement") from exception
 
