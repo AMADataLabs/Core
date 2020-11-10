@@ -38,6 +38,7 @@ modspec:
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.oneview
   - package: datalabs.etl.oneview.ppd
+  - package: datalabs.etl.oneview.iqvia
   - package: datalabs.etl.orm
   - package: datalabs.model.masterfile
   - package: datalabs.curate

@@ -32,8 +32,8 @@ provider_columns = {
     'PRIMARY_SPEC': 'primary_specialty',
     'SECONDARY_SPEC': 'secondary_specialty',
     'TERTIARY_SPEC': 'tertiary_specialty',
-    'PRIMARY_PROF_CODE': 'primary_professional_code',
-    'PRIMARY_PROF_DESC': 'primary_professional_description',
+    'PRIMARY_PROF_CODE': 'primary_profession',
+    'PRIMARY_PROF_DESC': 'primary_profession_description',
     'STATUS_DESC': 'status_description'
 }
 provider_affiliation_columns = {

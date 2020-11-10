@@ -140,7 +140,7 @@ class Business(Base):
     __tablename__ = 'business'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, primary_key=True)
+    id = sa.Column(sa.String, primary_key=True)
     name = sa.Column(sa.String, nullable=False)
     doing_business_as = sa.Column(sa.String, nullable=False)
     physical_address_1 = sa.Column(sa.String, nullable=False)
@@ -164,7 +164,7 @@ class Provider(Base):
     __tablename__ = 'provider'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
     first_name = sa.Column(sa.String, nullable=False)
@@ -186,9 +186,9 @@ class ProviderAffiliation(Base):
     __tablename__ = 'provider_affiliation'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    business = sa.Column(sa.Integer, sa.ForeignKey("oneview.business.id"))
-    provider = sa.Column(sa.Integer, sa.ForeignKey("oneview.provider.id"))
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
+    provider = sa.Column(sa.String, sa.ForeignKey("oneview.provider.id"))
     description = sa.Column(sa.String, nullable=False)
     primary = sa.Column(sa.Boolean, default=False)
     rank = sa.Column(sa.String, nullable=False)
@@ -271,7 +271,7 @@ class CredentialingCustomerBusiness(Base):
 
     customer = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_customer.id"), primary_key=True,
                          nullable=False)
-    business = sa.Column(sa.Integer, sa.ForeignKey("oneview.business.id"), nullable=False)
+    business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), nullable=False)
 
 
 class ResidencyProgramPhysician(Base):
