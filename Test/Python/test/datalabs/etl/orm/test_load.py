@@ -7,7 +7,7 @@ from   datalabs.etl.oneview.ppd.transform import PPDTransformer
 from   datalabs.etl.orm.load import ORMLoader
 from   datalabs.access.orm import DatabaseTaskMixin
 
-import datalabs.model.cpt.api as dbmodel
+import datalabs.model.masterfile.oneview as dbmodel
 import datalabs.etl.task as task
 
 logging.basicConfig()
@@ -15,6 +15,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@pytest.mark.skip(reason="Integration test.")
 def test_orm_loader(components):
     transformer = PPDTransformer(components)
     components.data = transformer._transform()
@@ -23,13 +24,13 @@ def test_orm_loader(components):
     loader = ORMLoader(components)
     loader._load()
 
-    credentials = DatabaseTaskMixin(components)
+    credentials = DatabaseTaskMixin()
     with credentials._get_database(components.database) as database:
         session = database.session
         query = session.query(dbmodel.Physician)
 
     rows = query.all()
-    LOGGER.info(rows[0])
+    LOGGER.info(rows)
     assert rows[0].medical_education_number == '03503191317'
 
 
@@ -40,11 +41,12 @@ def components(dataframe):
             NAME='oneview',
             HOST='10.104.16.31',
             backend='postgresql+psycopg2',
-            username='postgres',
-            password='datalabs'
+            username=os.getenv('LOADER_DATABASE_USERNAME'),
+            password=os.getenv('LOADER_DATABASE_PASSWORD')
         ),
         variables=dict(
             CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformer',
+            MODEL_CLASS='datalabs.model.masterfile.oneview.Physician',
             thing=True,
             TABLES='Physician'
         ),

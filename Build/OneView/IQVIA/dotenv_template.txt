@@ -17,25 +17,26 @@ EXTRACTOR_DATABASE_PORT='54150'
 
 #IQVIA Extractor
 EXTRACTOR_CLASS=datalabs.etl.jdbc.JDBCExtractorTask
-EXTRACTOR_SQL = SELECT * FROM ODS.ODS_IMS_BUSINESS;SELECT * FROM ODS.ODS_IMS_PROFESSIONAL;SELECT P.AFFIL_TYPE_ID, P.IMS_ORG_ID,P.PROFESSIONAL_ID,A.AFFIL_TYPE_DESC,P.AFFIL_IND,P.AFFIL_RANK FROM ODS.ODS_IMS_PROVIDER_AFFILIATION_FACT P, ODS.ODS_IMS_AFFILIATION_TYPE A WHERE P.AFFIL_TYPE_ID = A.AFFIL_TYPE_ID;
-EXTRACTOR_DRIVER = com.ibm.db2.jcc.DB2Jcc
-EXTRACTOR_DRIVER_TYPE = db2
-EXTRACTOR_JAR_PATH='{{driver_jar_path}}'
+EXTRACTOR_SQL=SELECT * FROM ODS.ODS_IMS_BUSINESS;SELECT * FROM ODS.ODS_IMS_PROFESSIONAL;SELECT P.AFFIL_TYPE_ID, P.IMS_ORG_ID,P.PROFESSIONAL_ID,A.AFFIL_TYPE_DESC,P.AFFIL_IND,P.AFFIL_RANK FROM ODS.ODS_IMS_PROVIDER_AFFILIATION_FACT P, ODS.ODS_IMS_AFFILIATION_TYPE A WHERE P.AFFIL_TYPE_ID = A.AFFIL_TYPE_ID;
+EXTRACTOR_DRIVER=com.ibm.db2.jcc.DB2Jcc
+EXTRACTOR_DRIVERTYPE=db2
+EXTRACTOR_JARPATH='{{driver_jar_path}}'
 
 #IQVIA Transformer
-TRANSFORMER_CLASS=datalabs.etl.oneview.iqvia.transform
+TRANSFORMER_CLASS=datalabs.etl.oneview.iqvia.transform.IQVIATransformer
 
 # #IQVIA S3 Loader
 # LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
 # LOADER_ACCESS_KEY='{{key}}'
 # LOADER_SECRET_KEY=''{{secret}}''
 # LOADER_BUCKET=OneView
-# LOADER_BASEPATH=AMA/Oneview/IQVIA
+# LOADER_BASEPATH=AMA/Oneview/
 # LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
 # LOADER_FILES='Business.csv', 'Provider.csv', 'ProviderAffiliation.csv'
 
 #IQVIA ORM Loader
-LOADER_CLASS=datalabs.etl.orm.load
+LOADER_CLASS=datalabs.etl.orm.load.ORMLoader
+LODER_MODELCLASSES=datalabs.model.masterfile.oneview.Business,datalabs.model.masterfile.oneview.Provider,datalabs.model.masterfile.oneview.ProviderAffiliation
 LOADER_DATABASE_NAME={{ database_name }}
 LOADER_DATABASE_BACKEND=postgresql+psycopg2
 LOADER_DATABASE_HOST={{ database_host }}
