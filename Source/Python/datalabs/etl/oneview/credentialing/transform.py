@@ -4,9 +4,9 @@ import logging
 import os
 import pandas
 
-from datalabs.etl.task import ETLException
-from datalabs.etl.oneview.ppd.column import customer_columns, product_columns, order_columns
-from datalabs.etl.oneview.transform import TransformerTask
+from   datalabs.etl.task import ETLException
+from   datalabs.etl.oneview.credentialing.column import customer_columns, product_columns, order_columns
+from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -31,8 +31,13 @@ class CredentialingTransformer(TransformerTask):
         return [customer_columns, product_columns, order_columns]
 
     def _merge_data(self, data):
-        address_file = os.environ.get('CREDENTIALING_ADDRESSES')
-        addresses = pandas.read_csv(address_file)
-        data[0] = pandas.merge(data[0], addresses, on='number')
+        address_file = self._parameters.variables['CREDENTIALINGADDRESS']
+        addresses = pandas.read_excel(address_file,
+                                      usecols=['number', 'company_name', 'street_one', 'street_two', 'street_three',
+                                               'city', 'state', 'zipcode', 'phone_number'])
+        addresses.columns = ['number', 'company_name', 'address_1', 'address_2', 'address_3', 'city', 'state',
+                             'zipcode', 'phone_number']
+        data[0].number = data[0].number.astype("int64")
+        data[0] = pandas.merge(data[0], addresses, on='number', how='left')
 
         return data
