@@ -142,7 +142,7 @@ class Specialty(Base):
 
 
 class ResidencyProgram(Base):
-    __tablename__ = 'residency_program_addresses'
+    __tablename__ = 'residency_program'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True)
