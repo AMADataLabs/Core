@@ -35,12 +35,14 @@ modspec:
       - awslambda
       - transform
       - load
+  - package: datalabs.etl.fs
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.oneview
   - package: datalabs.etl.oneview.ppd
   - package: datalabs.etl.oneview.iqvia
   - package: datalabs.etl.oneview.iqvia
   - package: datalabs.etl.oneview.credentialing
+  - package: datalabs.etl.oneview.residency
   - package: datalabs.etl.orm
   - package: datalabs.model.masterfile
   - package: datalabs.curate
