@@ -53,7 +53,7 @@ class Physician(Base):
     telephone_number = sa.Column(sa.String)
     presumed_dead = sa.Column(sa.String)
     fax_number = sa.Column(sa.String)
-    type_of_practice_code = sa.Column(sa.String, sa.ForeignKey("oneview.type_of_practice_code.id"))
+    type_of_practice = sa.Column(sa.String, sa.ForeignKey("oneview.type_of_practice.id"))
     present_employment = sa.Column(sa.String, sa.ForeignKey("oneview.present_employment.id"))
     primary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.specialty.id"))
     secondary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.specialty.id"))
@@ -143,7 +143,7 @@ class Specialty(Base):
 
 
 class ResidencyProgram(Base):
-    __tablename__ = 'residency_program_addresses'
+    __tablename__ = 'residency_program'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True)
@@ -165,7 +165,7 @@ class ResidencyProgramPersonnelMember(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    program = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program_addresses.id"), nullable=False)
+    program = sa.Column(sa.Integer, sa.ForeignKey("oneview.residency_program.id"), nullable=False)
     personnel_type = sa.Column(sa.String, nullable=False)
     aamc_id = sa.Column(sa.Integer, nullable=False, unique=True)
     first_name = sa.Column(sa.String, nullable=False)
@@ -287,21 +287,13 @@ class CredentialingOrder(Base):
     date = sa.Column(sa.String, nullable=False)
 
 
-class Ethnicity(Base):
-    __tablename__ = 'ethnicity'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.Integer, primary_key=True, nullable=False, unique=True)
-    description = sa.Column(sa.String, nullable=False)
-
-
-class PhysicianEthnicity(Base):
-    __tablename__ = 'physician_ethnicity'
+class PhysicianRaceEthnicity(Base):
+    __tablename__ = 'physician_race_ethnicity'
     __table_args__ = {"schema": "oneview"}
 
     medical_education_number = sa.Column(sa.Integer, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          primary_key=True, nullable=False)
-    ethnicity = sa.Column(sa.Integer, sa.ForeignKey("oneview.ethnicity.id"), nullable=False)
+    race_ethnicity = sa.Column(sa.String, nullable=False)
 
 
 class CredentialingCustomerInstitution(Base):
