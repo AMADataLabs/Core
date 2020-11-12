@@ -23,7 +23,7 @@ class ExpectedFileColumns:
     samples = SAMPLE_COLUMNS_EXPECTED
     dict = {
         'humach_result': standard_results,
-        'results_validation': validation_results,
+        'validation_result': validation_results,
         'humach_sample': samples
     }
 
@@ -35,7 +35,7 @@ class TableColumns:
     samples = SAMPLE_COLUMNS
     dict = {
             'humach_result': standard_results,
-            'results_validation': validation_results,
+            'validation_result': validation_results,
             'humach_sample': samples
     }
 
@@ -84,22 +84,39 @@ class HumachResultsArchive:
         self.connection.execute(sql)
 
     def validate_cols(self, table, cols):
-        cols_set = set(cols)
-        expected_set = set(self.expected_file_columns.dict[table])
+        """
+        cols_set = sorted(set(cols))
+        expected_set = sorted(set(self.expected_file_columns.dict[table]))
         if cols_set != expected_set:
+            print(sorted(cols_set))
+            print(sorted(expected_set))
             raise ValueError('Columns provided do not match columns expected.')
+        """
+        for col in self.expected_file_columns.dict[table]:
+            assert col in cols, col
+
 
     def ingest_result_file(self, table, file_path):
         if table == 'humach_result':
             data = self._preprocess_standard_result_file(file_path)
+
+            for i, r in data.iterrows():
+                self.insert_row(table='humach_result', vals=[v for v in r.values])
+
         elif table == 'validation_result':
             data = self._preprocess_validation_result_file(file_path)
+
+            for i, r in data.iterrows():
+                self.insert_row(table='validation_result', vals=[v for v in r.values])
+
         else:
             raise ValueError(f'Table {table} could not be processed.')
 
+        self.connection.commit()
+
+    def ingest_result_data(self, data: pd.DataFrame):
         for i, r in data.iterrows():
             self.insert_row(table='humach_result', vals=[v for v in r.values])
-
         self.connection.commit()
 
     def ingest_sample_file(self, file_path: str):
@@ -166,6 +183,18 @@ class HumachResultsArchive:
         sample_id = self.get_latest_survey_results_sample_id(survey_type='standard')
         self.make_standard_batch_load([sample_id])
 
+    def make_standard_batch_load_for_results_in_survey_month_year(self, month, year):
+        self._load_environment_variables()
+        sql = \
+            f"""
+            SELECT DISTINCT(r.sample_id) FROM humach_result r
+            INNER JOIN humach_sample s ON (r.sample_id = s.sample_id AND r.row_id = s.row_id) 
+            WHERE s.survey_month = {month} AND s.survey_year = {year}
+            """
+        sample_ids = [sample_id[0] for sample_id in self.connection.execute(sql).fetchall()]
+        LOGGER.info(f'Creating batch load for SAMPLE IDs: {sample_ids}')
+        self.make_standard_batch_load(sample_ids=sample_ids)
+
     def make_standard_batch_load(self, sample_ids: [str]):
         self._load_environment_variables()
         data = self.get_merged_survey_data(sample_type='standard', sample_ids=sample_ids)
@@ -209,7 +238,13 @@ class HumachResultsArchive:
         return data
 
     def get_result_data(self, sample_type: str, sample_ids: [str]) -> pd.DataFrame:
-        data = self.get_table_data_for_sample_ids(table=f'results_{sample_type}', sample_ids=sample_ids)
+        if sample_type == 'standard':
+            table_name = 'humach_result'
+        elif sample_type == 'validation':
+            table_name = 'validation_result'
+        else:
+            raise ValueError('table_name not supported for sample_type:', sample_type)
+        data = self.get_table_data_for_sample_ids(table=table_name, sample_ids=sample_ids)
         return data
 
     def get_table_data_for_sample_ids(self, table: str, sample_ids: [str]) -> pd.DataFrame:
@@ -241,6 +276,13 @@ class HumachResultsArchive:
 
     def _preprocess_standard_result_file(self, filename: str) -> pd.DataFrame:
         data = pd.read_excel(filename, dtye=str)
+
+        if 'SPECIALTY' not in data.columns.values:
+            data['SPECIALTY'] = 0
+            data['SPECIALTY UPDATED'] = 0
+            data['PRESENT EMPLOYMENT UPDATED'] = 0
+            data['COMMENTS'] = 'FAIL'
+
         cols = data.columns.values
 
         formatted_data = pd.DataFrame()

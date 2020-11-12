@@ -28,8 +28,21 @@ modspec:
       - environment
       - orm
       - parameter
+  - package: datalabs.etl
+    include:
+      - task
+      - extract
+      - awslambda
+      - transform
+      - load
   - package: datalabs.etl.jdbc
+  - package: datalabs.etl.oneview
   - package: datalabs.etl.oneview.ppd
+  - package: datalabs.etl.oneview.iqvia
+  - package: datalabs.etl.oneview.iqvia
+  - package: datalabs.etl.oneview.credentialing
+  - package: datalabs.etl.orm
+  - package: datalabs.model.masterfile
   - package: datalabs.curate
     include:
       - parse
