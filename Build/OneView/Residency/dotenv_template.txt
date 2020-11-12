@@ -13,7 +13,7 @@ TASK_WRAPPER_CLASS=datalabs.etl.awslambda.ETLTaskWrapper
 #Residency Extractor
 EXTRACTOR_CLASS=datalabs.etl.oneview.residency.extract.ResidencyExtractor
 EXTRACTOR_BASEPATH='{{base_path}}'
-EXTRACTOR_FILES=program,addresses,personel,institution
+EXTRACTOR_FILES=Program Information table - Active.txt,Program Address table - Active.txt,Program Personnel table - Active.txt,Institution Information - Active.txt
 
 #Residency Transformer
 TRANSFORMER_CLASS=datalabs.etl.oneview.residency.transform.ResidencyTransformer
