@@ -58,6 +58,15 @@ class VTPhysicianContactSampleGenerator:
         self._load_database_data()
         LOGGER.info('CREATING POPULATION DATA')
         population_data = self._get_population_data()
+
+        size = len(population_data)
+        if int(size) <= int(self._sample_size):
+            print('##################################################')
+            print('WARNING! POPULATION SIZE IS SMALLER THAN TARGETED SAMPLE SIZE')
+            proceed = input('PROCEED? Y/N').capitalize()
+            if proceed != 'Y':
+                print('EXITING.')
+                quit()
         LOGGER.info('CREATING SAMPLE')
         self._make_sample(population_data, size=self._sample_size)
 
@@ -82,11 +91,12 @@ class VTPhysicianContactSampleGenerator:
 
     def _make_sample(self, population_data: pd.DataFrame, size):
         # as population_data can have multiple rows for a single physician, sample must be based on physician level
-        me_numbers = population_data['me'].drop_duplicates().dropna()
+        print(population_data.columns.values)
+        me_numbers = population_data['ME'].drop_duplicates().dropna()
         sample_me_numbers = me_numbers.sample(n=min(int(size), len(me_numbers)))  # sample N physicians
 
         # sample data is data from population for those with ME numbers within sample_me_numbers
-        sample = population_data[population_data['me'].isin(sample_me_numbers)].reset_index()
+        sample = population_data[population_data['ME'].isin(sample_me_numbers)].reset_index()
 
         sample = self._add_old_phone_data(sample=sample)
         sample = self._add_sample_info_columns(sample)
@@ -121,6 +131,7 @@ class VTPhysicianContactSampleGenerator:
         data = self._filter_to_dpc(data=data)
         size = str(len(data))
         LOGGER.info(f'filter_dpc: {size}')
+        print(f'filter_dpc: {size}')
         data = self._filter_to_no_phone(data=data)
         size = str(len(data))
         LOGGER.info(f'filter_no_phone: {size}')
@@ -142,7 +153,11 @@ class VTPhysicianContactSampleGenerator:
         data = self._get_deduped_physician_medschool_data(data=data)
         size = str(len(data))
         LOGGER.info(f'get_deduped_physician_medschool_data: {size}')
-        return data.drop_duplicates()
+        data.drop_duplicates(inplace=True)
+
+        size = str(len(data))
+        LOGGER.info('Final population size:', size)
+        return data
 
     def _add_license_info(self, data) -> pd.DataFrame:
         license_data = self.aims_data.active_licenses.sort_values(
@@ -150,7 +165,7 @@ class VTPhysicianContactSampleGenerator:
             ascending=False
         ).groupby('entity_id').first().reset_index()
         license_data['entity_id'] = license_data['entity_id'].astype(str)
-        data = data.merge(license_data, left_on='ENTITY_ID', right_on='entity_id', how='inner')
+        data = data.merge(license_data, left_on='ENTITY_ID', right_on='entity_id', how='left')
         return data
 
     def _add_medschool_data(self, data) -> pd.DataFrame:
@@ -161,13 +176,13 @@ class VTPhysicianContactSampleGenerator:
         self.edw_data.party_key_data['KEY_VAL'] = self.edw_data.party_key_data['KEY_VAL'].astype(str)
         data = data.merge(
             self.edw_data.party_key_data,
-            how='inner',
+            how='left',
             left_on='medschool_key',
             right_on='KEY_VAL'
         )
         self.edw_data.medschool_names.rename(columns={'PARTY_ID': 'MEDSCHOOL_PARTY_ID'}, inplace=True)
 
-        data = data.merge(self.edw_data.medschool_names, left_on='PARTY_ID', right_on='MEDSCHOOL_PARTY_ID', how='inner')
+        data = data.merge(self.edw_data.medschool_names, left_on='PARTY_ID', right_on='MEDSCHOOL_PARTY_ID', how='left')
 
         return data
 
@@ -180,7 +195,7 @@ class VTPhysicianContactSampleGenerator:
             self.aims_data.specialty_descriptions,
             left_on='PRIM_SPEC_CD',
             right_on='spec_cd',
-            how='inner'
+            how='left'
         )
         data.rename(columns={'description': 'spec_description'}, inplace=True)
         data['specialty'] = data['spec_description']
@@ -351,3 +366,6 @@ class VTPhysicianContactSampleGenerator:
 def make_physician_contact_request_sample():
     sample_generator = VTPhysicianContactSampleGenerator()
     sample_generator.run()
+
+
+make_physician_contact_request_sample()
