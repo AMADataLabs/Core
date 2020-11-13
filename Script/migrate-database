@@ -4,6 +4,7 @@ SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 MESSAGE=
 HOST=
+PORT=
 NAME=
 USERNAME=
 PASSWORD=
@@ -44,6 +45,11 @@ process_arguments() {
             ;;
         -H|--host)
             HOST=$2
+            shift
+            shift
+            ;;
+        -P|--port)
+            PORT=$2
             shift
             shift
             ;;
@@ -105,6 +111,7 @@ process_arguments() {
 
 setup_environment() {
     export DATABASE_ORM_HOST=$HOST
+    export DATABASE_ORM_PORT=$PORT
     export DATABASE_ORM_BACKEND='postgresql+psycopg2'
     export DATABASE_ORM_NAME=$NAME
     export CREDENTIALS_ORM_USERNAME=$USERNAME
@@ -146,6 +153,7 @@ print_usage() {
     echo "Options:"
     echo "  -h|--help                   Print usage."
     echo "  -H|--host <DB host>         The database host."
+    echo "  -P|--port <DB port>         The database port (default is 5432)."
     echo "  -m|--message <module>       The message associated with the migration script."
     echo "  -n|--name <DB name>         The database name."
     echo "  -p|--password <DB password> The database password."

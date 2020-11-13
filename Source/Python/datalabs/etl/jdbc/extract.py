@@ -4,8 +4,8 @@ import os
 import jaydebeapi
 import pandas
 
-from datalabs.etl.extract import ExtractorTask
-from datalabs.etl.task import ETLException
+from   datalabs.etl.extract import ExtractorTask
+from   datalabs.etl.task import ETLException
 
 
 class JDBCExtractor(ExtractorTask):
@@ -20,14 +20,14 @@ class JDBCExtractor(ExtractorTask):
         return tables
 
     def _connect(self):
-        url = f"jdbc:{self._parameters.variables['DRIVER_TYPE']}://{self._parameters.database['HOST']}:" \
-              f"{self._parameters.database['PORT']}/{self._parameters.database['NAME']}"
+        url = f"jdbc:{self._parameters.variables['DRIVERTYPE']}://{self._parameters.database['host']}:" \
+              f"{self._parameters.database['port']}/{self._parameters.database['name']}"
 
         connection = jaydebeapi.connect(
             self._parameters.variables['DRIVER'],
             url,
             [self._parameters.database['username'], self._parameters.database['password']],
-            self._parameters.variables['JAR_PATH']
+            self._parameters.variables['JARPATH']
         )
 
         return connection

@@ -2,15 +2,15 @@
 from   glob import glob
 import os
 
-from   datalabs.etl.extract import ExtractorTask
+from   datalabs.etl.extract import FileExtractorTask
 from   datalabs.etl.task import ETLException
 
 
-class LocalFileExtractorTask(ExtractorTask):
+class LocalFileExtractorTask(FileExtractorTask):
     def _extract(self):
         files = self._get_files()
 
-        return [(file, self._extract_file(file)) for file in files]
+        return self._extract_files(None, files)
 
     def _get_files(self):
         base_path = self._parameters.variables['BASEPATH']
@@ -27,7 +27,7 @@ class LocalFileExtractorTask(ExtractorTask):
 
         return resolved_files
 
-    def _extract_file(self, file_path):
+    def _extract_file(self, connection, file_path):
         data = None
         try:
             with open(file_path, 'rb') as file:
@@ -35,7 +35,7 @@ class LocalFileExtractorTask(ExtractorTask):
         except Exception as exception:
             raise ETLException(f"Unable to read file '{file_path}'") from exception
 
-        return self._decode_data(data)
+        return data
 
     def _resolve_filename(self, file_path):
         file_paths = glob(file_path)
