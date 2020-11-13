@@ -49,7 +49,7 @@ def expected_parameters():
         path=dict(foo='bar'),
         query=dict(ping='pong'),
         database=dict(
-            name='name', backend='postgresql+psycopg2', host='host', username='username', password='password'
+            name='name', backend='postgresql+psycopg2', host='host', port='5432', username='username', password='password'
         ),
         bucket=dict(name='mybucket', base_path='AMA/SOMETHING', url_duration='30')
     )
@@ -61,6 +61,7 @@ def event():
     os.environ['DATABASE_NAME'] = 'name'
     os.environ['DATABASE_BACKEND'] = 'postgresql+psycopg2'
     os.environ['DATABASE_HOST'] = 'host'
+    os.environ['DATABASE_PORT'] = '5432'
     os.environ['DATABASE_USERNAME'] = 'username'
     os.environ['DATABASE_PASSWORD'] = 'password'
     os.environ['BUCKET_NAME'] = 'mybucket'

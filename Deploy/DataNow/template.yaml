@@ -60,16 +60,16 @@ objects:
       name: ${SERVICE_NAME}
   status:
     ingress: null
-# - apiVersion: v1
-#   kind: PersistentVolumeClaim
-#   metadata:
-#     name: ${SERVICE_NAME}
-#   spec:
-#     accessModes:
-#     - ReadWriteOnce
-#     resources:
-#       requests:
-#         storage: ${VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${SERVICE_NAME}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -89,22 +89,24 @@ objects:
         - capabilities: {}
           # command:
           # - /entrypoint.sh
-          image: docker-registry.default.svc:5000/hsg-data-labs-dev/datanow
+          image: harbor.ama-assn.org/hsg-data-labs/datanow:1.0.3
           imagePullPolicy: IfNotPresent
           name: datanow
           ports:
           - containerPort: 9047
             protocol: TCP
+          imagePullSecrets:
+            - name: harbor
           terminationMessagePath: /dev/termination-log
-          # volumeMounts:
-          # - mountPath: /var/lib/datanow/data
-          #   name: ${SERVICE_NAME}-data
+          volumeMounts:
+          - mountPath: /opt/dremio/data
+            name: ${SERVICE_NAME}-data
         dnsPolicy: ClusterFirst
         restartPolicy: Always
-        # volumes:
-        # - name: ${SERVICE_NAME}-data
-        #   persistentVolumeClaim:
-        #     claimName: ${SERVICE_NAME}
+        volumes:
+        - name: ${SERVICE_NAME}-data
+          persistentVolumeClaim:
+            claimName: ${SERVICE_NAME}
 parameters:
 - description: The OpenShift Namespace where the ImageStream resides.
   displayName: Namespace

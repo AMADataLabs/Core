@@ -14,6 +14,7 @@ class Configuration:
     name: str
     backend: str = None
     host: str = None
+    port: str = None
 
     @classmethod
     def load(cls, key: str):
@@ -24,8 +25,9 @@ class Configuration:
         name = cls._load_varaible(key, 'NAME')
         backend = cls._load_varaible(key, 'BACKEND')
         host = cls._load_varaible(key, 'HOST')
+        port = cls._load_varaible(key, 'PORT')
 
-        return Configuration(name, backend, host)
+        return Configuration(name, backend, host, port)
 
     @classmethod
     def _load_varaible(cls, key, credential_type):
@@ -53,17 +55,19 @@ class Database(Datastore):
         url = None
 
         if self._credentials.username and self._credentials.password:
-            url = "{}://{}:{}@{}/{}".format(
+            url = "{}://{}:{}@{}:{}/{}".format(
                 self._configuration.backend,
                 self._credentials.username,
                 self._credentials.password,
                 self._configuration.host,
+                self._configuration.port,
                 self._configuration.name,
             )
         else:
-            url = "{}://{}/{}".format(
+            url = "{}://{}:{}/{}".format(
                 self._configuration.backend,
                 self._configuration.host,
+                self._configuration.port,
                 self._configuration.name,
             )
 
