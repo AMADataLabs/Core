@@ -22,5 +22,5 @@ RUN rm -rf ./Source
 
 # COPY ./Test/Python/ .
 
-COPY ./Build/OneView/Credentialing/Addresses.env .
+COPY ./Build/OneView/Credentialing/Addresses/.env .
 COPY ./Build/OneView/credentials ${AWS_SHARED_CREDENTIALS_FILE}
