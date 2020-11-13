@@ -2,7 +2,7 @@
 
 import logging
 
-from datalabs.etl.sftp.extract import SFTPUnicodeTextFileExtractorTask
+from   datalabs.etl.sftp.extract import SFTPUnicodeTextFileExtractorTask
 
 
 class CredentialingAddressesExtractor(SFTPUnicodeTextFileExtractorTask):
