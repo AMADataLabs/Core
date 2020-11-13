@@ -27,12 +27,12 @@ TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform.CredentialingTran
 
 
 # Credentialing DB2 Loader
-LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
-LOADER_ACCESS_KEY='{{key}}'
-LOADER_SECRET_KEY=''{{secret}}''
-LOADER_BUCKET=OneView
-LOADER_BASEPATH=AMA/Oneview/Credentialing
-LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+LOADER_CLASS=datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask
+LOADER_ACCESSKEY='{{key}}'
+LOADER_SECRETKEY=''{{secret}}''
+LOADER_BUCKET=oneview
+LOADER_BASEPATH=oneview/credentialing
+LOADER_ENDPOINTURL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
 LOADER_FILES='Customer', 'Product', 'Order'
 
 # # Credentialing ORM Loader
