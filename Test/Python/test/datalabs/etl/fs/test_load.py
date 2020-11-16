@@ -83,6 +83,7 @@ def environment(extractor_file, loader_directory):
     os.environ['EXTRACTOR_CLASS'] = 'datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask'
     os.environ['EXTRACTOR_BASEPATH'] = os.path.dirname(extractor_file)
     os.environ['EXTRACTOR_FILES'] = 'PhysicianProfessionalDataFile_*'
+    os.environ['EXTRACTOR_INCLUDENAMES'] = 'True'
 
     os.environ['TRANSFORMER_CLASS'] = 'test.datalabs.etl.fs.transform.FilenameStripperTransformerTask'
 

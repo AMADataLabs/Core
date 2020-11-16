@@ -49,7 +49,8 @@ def expected_parameters():
             variables=dict(
                 CLASS='test.datalabs.etl.test_extract.Extractor',
                 thing='True',
-                EXECUTION_TIME='20200615T12:24:38+02:30'
+                EXECUTION_TIME='20200615T12:24:38+02:30',
+                INCLUDENAMES='True'
             )
         ),
         transformer=etl.ETLComponentParameters(
@@ -75,6 +76,7 @@ def event():
     os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
     os.environ['EXTRACTOR_thing'] = 'True'
     os.environ['EXTRACTOR_DATABASE_HOST'] = 'r2d2.droid.com'
+    os.environ['EXTRACTOR_INCLUDENAMES'] = 'True'
     os.environ['TRANSFORMER_CLASS'] = 'test.datalabs.etl.test_transform.Transformer'
     os.environ['TRANSFORMER_DATABASE_HOST'] = 'c3po.droid.com'
     os.environ['LOADER_CLASS'] = 'test.datalabs.etl.test_load.Loader'

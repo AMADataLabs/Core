@@ -1,0 +1,32 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+
+# Project Settings
+PROJECT_NAME='OneView'
+
+
+TASK_CLASS=datalabs.etl.task.ETLTask
+TASK_WRAPPER_CLASS=datalabs.etl.awslambda.ETLTaskWrapper
+
+
+# CredentialingAddresses Extractor
+EXTRACTOR_CLASS=datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask
+EXTRACTOR_BASEPATH="Data Analytics\Data-Science\Data\Masterfile_OneVIew"
+EXTRACTOR_FILES=Org_Addresses.xlsx,
+EXTRACTOR_USERNAME='{{user}}'
+EXTRACTOR_PASSWORD='{{password}}'
+EXTRACTOR_HOST=eft.ama-assn.org
+
+# CredentialingAddresses Transformer
+TRANSFORMER_CLASS=datalabs.etl.transform.PassThroughTransformerTask
+
+# CredentialingAddresses Loader
+LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
+LOADER_ACCESSKEY='{{key}}'
+LOADER_SECRETKEY=''{{secret}}''
+LOADER_BUCKET=oneview
+LOADER_BASEPATH=oneview/credentialing/%Y%m%d
+LOADER_ENDPOINTURL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+LOADER_FILES='Addresses'
+

@@ -4,7 +4,7 @@ import logging
 import os
 
 from   datalabs.access.sftp import SFTP, SFTPTaskMixin
-from   datalabs.etl.extract import ExtractorTask
+from   datalabs.etl.extract import FileExtractorTask
 from   datalabs.etl.task import ETLException
 
 logging.basicConfig()
@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class SFTPFileExtractorTask(ExtractorTask, SFTPTaskMixin):
+class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
     def _extract(self):
         data = None
 
@@ -20,7 +20,7 @@ class SFTPFileExtractorTask(ExtractorTask, SFTPTaskMixin):
             file_paths = self._get_file_paths(sftp)
             logging.info('Extracting the following files via SFTP: %s', file_paths)
 
-            data = [(file, self._extract_file(sftp, file)) for file in file_paths]
+            data = self._extract_files(sftp, file_paths)
 
         return data
 
@@ -47,7 +47,7 @@ class SFTPFileExtractorTask(ExtractorTask, SFTPTaskMixin):
         except Exception as exception:
             raise ETLException(f"Unable to read file '{file_path}'") from exception
 
-        return self._decode_data(bytes(buffer.getbuffer()))
+        return sbytes(buffer.getbuffer())
 
     def _resolve_filename(self, sftp, file_path):
         base_path = os.path.dirname(file_path)
