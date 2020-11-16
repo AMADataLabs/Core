@@ -62,7 +62,6 @@ RUN chown -Rf 1001 ${HOME}
 RUN chmod go+rwx ${HOME}
 
 
-
 ENV PYTHONPATH=/OneView:/OneView/site-packages
 ENV AWS_SHARED_CREDENTIALS_FILE=/OneView/.aws/credentials
 ENV AWS_DEFAULT_REGION=us-east-1
@@ -82,8 +81,3 @@ RUN ./Script/bundle-project -i --directory ./ OneView
 RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
-
-# COPY ./Test/Python/ .
-
-COPY ./Build/OneView/PPD/.env .
-COPY ./Build/OneView/credentials ${AWS_SHARED_CREDENTIALS_FILE}
