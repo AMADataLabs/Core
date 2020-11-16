@@ -1,4 +1,4 @@
-image: muffinspawn/pipelines:1
+image: muffinspawn/pipelines:2
 
 pipelines:
     branches:
@@ -22,3 +22,13 @@ pipelines:
             - export VIRTUAL_ENV=/Build/Environment/Master
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
             - ./Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/* ${CWD}/Test/Python/*
+        # CPT:
+        # - step:
+        #     name: Build Bundle
+        #     script:
+        #     - ./Script/setup-virtual-environment CPT
+        #     -
+        # - step:
+        #     name: Upload Bundle
+        # - step:
+        #     name: Update Lambda Functions

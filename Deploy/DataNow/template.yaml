@@ -1,0 +1,122 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: datanow-persistent-template
+message: |-
+    The following service(s) have been created in your project: ${SERVICE_NAME}.
+
+    Connection URL: https:/${SERVICE_NAME}/
+metadata:
+  name: datanow-persistent
+  namespace: hsg-data-labs-dev
+  annotations:
+    description: |-
+      Dremio 4.3.1 customized for Data Labs with a persistent data volume.
+    iconClass: database
+    openshift.io/display-name: DataNow
+    openshift.io/documentation-url: https://datanow.apache.org/
+    openshift.io/long-description: This template provides a Dremio 4.3.1 service customized for Data Labs as DataNow.
+        It is backed by a persistent volume.
+    openshift.io/provider-display-name: HSG Data Labs
+    tags: object,storage,s3
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${SERVICE_NAME}
+    annotations:
+      template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
+  spec:
+    ports:
+    - name: http
+      nodePort: 0
+      port: 9047
+      protocol: TCP
+      targetPort: 9047
+    selector:
+      name: ${SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${SERVICE_NAME}
+    annotations:
+      template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
+  spec:
+    host: ${SERVICE_NAME}.apps.openshifttest.ama-assn.org
+    port:
+      targetPort: 9047
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: ${SERVICE_NAME}
+      weight: 100
+    wildcardPolicy: None
+    selector:
+      name: ${SERVICE_NAME}
+  status:
+    ingress: null
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${SERVICE_NAME}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      name: ${SERVICE_NAME}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: ${SERVICE_NAME}
+      spec:
+        containers:
+        - capabilities: {}
+          # command:
+          # - /entrypoint.sh
+          image: harbor.ama-assn.org/hsg-data-labs/datanow:1.0.3
+          imagePullPolicy: IfNotPresent
+          name: datanow
+          ports:
+          - containerPort: 9047
+            protocol: TCP
+          imagePullSecrets:
+            - name: harbor
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /opt/dremio/data
+            name: ${SERVICE_NAME}-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        volumes:
+        - name: ${SERVICE_NAME}-data
+          persistentVolumeClaim:
+            claimName: ${SERVICE_NAME}
+parameters:
+- description: The OpenShift Namespace where the ImageStream resides.
+  displayName: Namespace
+  name: NAMESPACE
+  value: hsg-data-labs-dev
+- description: The name of the OpenShift Service exposed for the database.
+  displayName: DataNow Service Name
+  name: SERVICE_NAME
+  value: datanow
+- description: Volume space available for data, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  name: VOLUME_CAPACITY
+  value: 1Gi
