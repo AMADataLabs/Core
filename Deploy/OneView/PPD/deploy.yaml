@@ -5,45 +5,43 @@ metadata:
 spec:
   template:
     spec:
-      template:
-        spec:
-          containers:
-          - name: ppd-oneview-etl
-            image: >-
-              docker-registry.default.svc:5000/hsg-data-labs-dev/ppd-oneview-etl
-            imagePullPolicy: Always
-            command:
-            - /OneView/entrypoint.sh
-            args:
-            # - /bin/bash
-            # - -c
-            # - --
-            # - "while true; do sleep 30; done;"
-            - python
-            - -c
-            - "import awslambda; print(awslambda.handler(None, None))"
-            env:
-            - name: EXTRACTOR_DATABASE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: hsg-data-labs-ods
-                  key: username
-            - name: EXTRACTOR_DATABASE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: hsg-data-labs-ods
-                  key: password
-            - name: LOADER_DATABASE_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: hsg-data-labs-postgres
-                  key: username
-            - name: LOADER_DATABASE_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: hsg-data-labs-postgres
-                  key: password
-            envFrom:
-            - configMapRef:
-                name: oneview-etl
-          restartPolicy: Never
+      containers:
+      - name: ppd-oneview-etl
+        image: >-
+          docker-registry.default.svc:5000/hsg-data-labs-dev/ppd-oneview-etl:latest
+        imagePullPolicy: Always
+        command:
+        - /OneView/entrypoint.sh
+        args:
+        - /bin/bash
+        - -c
+        - --
+        - "while true; do sleep 30; done;"
+        # - python
+        # - -c
+        # - "'import awslambda; print(awslambda.handler(None, None))'"
+        env:
+        - name: EXTRACTOR_DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: hsg-data-labs-ods
+              key: username
+        - name: EXTRACTOR_DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hsg-data-labs-ods
+              key: password
+        - name: LOADER_DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: hsg-data-labs-postgres
+              key: username
+        - name: LOADER_DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hsg-data-labs-postgres
+              key: password
+        envFrom:
+        - configMapRef:
+            name: ppd-oneview-etl
+      restartPolicy: Never
