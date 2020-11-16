@@ -17,19 +17,7 @@ def test_sftp_ls(sftp):
 
 
 @pytest.fixture
-def environment():
-    current_environment = os.environ.copy()
-
-    os.environ['CREDENTIALS_DEFAULT_USERNAME'] = '{{ username }}'
-    os.environ['CREDENTIALS_DEFAULT_PASSWORD'] = '{{ password }}'
-
-    yield os.environ
-
-    os.environ.clear()
-    os.environ.update(current_environment)
-
-
-@pytest.fixture
-def sftp(environment):
+def sftp():
+    ''' Connect to SFTP using CREDENTIALS_SFTP_USERNAME and CREDENTIALS_SFTP_PASSWORD ```
     with SFTP() as sftp:
         yield sftp
