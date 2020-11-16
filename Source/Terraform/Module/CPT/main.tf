@@ -333,6 +333,7 @@ module "etl_convert" {
 
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
+        EXTRACTOR_INCLUDENAMES      = "True"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.arn
         EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.arn
         EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_data_files.arn
@@ -363,6 +364,7 @@ module "etl_bundle_pdf" {
 
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3FileExtractorTask"
+        EXTRACTOR_INCLUDENAMES      = "True"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.ingestion_bucket.arn
         EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.arn
         EXTRACTOR_FILES             = data.aws_ssm_parameter.pdf_files.arn
@@ -392,6 +394,7 @@ module "etl_load" {
 
     variables               = {
         EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3UnicodeTextFileExtractorTask"
+        EXTRACTOR_INCLUDENAMES      = "True"
         EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.arn
         EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.arn
         EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.arn

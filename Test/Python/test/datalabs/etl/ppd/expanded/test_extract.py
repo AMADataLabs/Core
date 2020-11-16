@@ -71,6 +71,7 @@ def environment(extractor_file, loader_directory):
     os.environ['EXTRACTOR_CLASS'] = 'datalabs.etl.ppd.expanded.extract.LocalPPDExtractorTask'
     os.environ['EXTRACTOR_BASEPATH'] = os.path.dirname(extractor_file)
     os.environ['EXTRACTOR_FILES'] = 'PhysicianProfessionalDataFile_*'
+    os.environ['EXTRACTOR_INCLUDENAMES'] = 'True'
 
     os.environ['TRANSFORMER_CLASS'] = 'datalabs.etl.transform.PassThroughTransformerTask'
 

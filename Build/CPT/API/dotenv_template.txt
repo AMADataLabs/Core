@@ -15,3 +15,4 @@ DATABASE_PASSWORD={{ database_password }}
 PDF_BUCKET=ama-hsg-datalabs-datalake-processed-sandbox
 BUCKET_PATH=AMA/CPT
 BUCKET_URL_DURATION=600
+EXTRACTOR_INCLUDEFILES=True

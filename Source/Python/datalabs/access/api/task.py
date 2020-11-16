@@ -88,6 +88,7 @@ class APIEndpointParametersGetterMixin(task.TaskWrapper):
                 name=os.getenv('DATABASE_NAME'),
                 backend=os.getenv('DATABASE_BACKEND'),
                 host=os.getenv('DATABASE_HOST'),
+                port=os.getenv('DATABASE_PORT'),
                 username=os.getenv('DATABASE_USERNAME'),
                 password=os.getenv('DATABASE_PASSWORD')
             ),
