@@ -24,8 +24,9 @@ TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform.RaceEthnicityTran
 # LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
 # LOADER_ACCESS_KEY='{{key}}'
 # LOADER_SECRET_KEY=''{{secret}}''
-# LOADER_BUCKET=oneview
-# LOADER_BASEPATH=AMA/oneview/raceethnicty
+# LOADER_BUCKET=ama/oneview
+# LOADER_BASEPATH=ama/oneview/raceethnicty/%Y%m%d
+# LOADER_EXECUTION_TIME=''{ISO-8601 timestamp}}'
 # LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
 # LOADER_FILES='Race_Ethnicity.csv'
 
