@@ -56,7 +56,7 @@ class S3FileLoaderTask(LoaderTask):
             ContentMD5=b64_md5_hash.decode('utf-8'))
 
     def _get_execution_date(self):
-        execution_time = self._parameters.variables.get('EXECUTIONTIME')
+        execution_time = self._parameters.variables.get('EXECUTION_TIME')
         execution_date = None
 
         if execution_time:
