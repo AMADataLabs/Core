@@ -83,7 +83,7 @@ class S3FileExtractorTask(FileExtractorTask):
         return response['Body'].read()
 
     def _get_execution_date(self):
-        execution_time = self._parameters.variables.get('EXECUTIONTIME')
+        execution_time = self._parameters.variables.get('EXECUTION_TIME')
         execution_date = None
 
         if execution_time:

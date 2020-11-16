@@ -15,32 +15,33 @@ EXTRACTOR_DATABASE_PASSWORD='{{ ODS_password }}'
 EXTRACTOR_DATABASE_HOST='{{ ODS_host }}'
 EXTRACTOR_DATABASE_PORT='54050'
 
-# Credentialing Extractor
+# Credentialing DB2 Extractor
 EXTRACTOR_CLASS=datalabs.etl.jdbc.extract.JDBCExtractorTask
 EXTRACTOR_SQL=SELECT DISTINCT C.CUSTOMER_KEY, C.CUSTOMER_NBR, C.CUSTOMER_ISELL_LOGIN, C.CUSTOMER_NAME, C.CUSTOMER_TYPE_DESC, C.CUSTOMER_TYPE, C.CUSTOMER_CATEGORY, C.CUSTOMER_CATEGORY_DESC FROM AMADM.dim_customer C;SELECT DISTINCT P.PRODUCT_ID, P.PRODUCT_DESC FROM AMADM.DIM_PRODUCT P;SELECT DISTINCT O.FACT_EPROFILE_KEY, O.ORDER_NUMBER, O.CUSTOMER_KEY, O.ORDER_PRODUCT_ID, H.MED_EDU_NBR, D.FULL_DT, AMADM.FACT_EPROFILE_ORDERS O, AMADM.DIM_PHYSICIAN_HIST H WHERE D.DATE_KEY = O.ORDER_DT_KEY AND H.PHYSICIAN_HIST_KEY = O.ORDER_PHYSICIAN_HIST_KEY;
 EXTRACTOR_DRIVER=com.ibm.db2.jcc.DB2Jcc
 EXTRACTOR_DRIVERTYPE=db2
 EXTRACTOR_JARPATH='{{driver_jar_path}}'
 
-# Credentialing Transformer
+# Credentialing DB2 Transformer
 TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform.CredentialingTransformer
-TRANSFORMER_CREDENTIALINGADDRESS='{{path_to_csv}}'
 
-# Credentialing Loader
-# LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
-# LOADER_ACCESS_KEY='{{key}}'
-# LOADER_SECRET_KEY=''{{secret}}''
-# LOADER_BUCKET=OneView
-# LOADER_BASEPATH=AMA/Oneview/IQVIA
-# LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
-# LOADER_FILES='Customer.csv', 'Product.csv', 'Order.csv'
 
-# Credentialing ORM Loader
-LOADER_CLASS=datalabs.etl.orm.load.ORMLoader
-LOADER_MODELCLASSES=datalabs.model.masterfile.oneview.CredentialingCustomer,datalabs.model.masterfile.oneview.CredentialingProduct,datalabs.model.masterfile.oneview.CredentialingOrder
-LOADER_DATABASE_NAME={{ database_name }}
-LOADER_DATABASE_BACKEND=postgresql+psycopg2
-LOADER_DATABASE_HOST={{ database_host }}
-LOADER_DATABASE_USERNAME={{ database_username }}
-LOADER_DATABASE_PASSWORD={{ database_password }}
-LOADER_TABLES=credentialing_customer,credentialing_product,credentialing_order
+# Credentialing DB2 Loader
+LOADER_CLASS=datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask
+LOADER_ACCESSKEY='{{key}}'
+LOADER_SECRETKEY=''{{secret}}''
+LOADER_BUCKET=ama/oneview
+LOADER_BASEPATH=ama/oneview/credentialing/%Y%m%d
+LOADER_EXECUTION_TIME=''{ISO-8601 timestamp}}'
+LOADER_ENDPOINTURL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+LOADER_FILES='Customer', 'Product', 'Order'
+
+# # Credentialing ORM Loader
+# LOADER_CLASS=datalabs.etl.orm.load.ORMLoader
+# LOADER_MODELCLASSES=datalabs.model.masterfile.oneview.CredentialingCustomer,datalabs.model.masterfile.oneview.CredentialingProduct,datalabs.model.masterfile.oneview.CredentialingOrder
+# LOADER_DATABASE_NAME={{ database_name }}
+# LOADER_DATABASE_BACKEND=postgresql+psycopg2
+# LOADER_DATABASE_HOST={{ database_host }}
+# LOADER_DATABASE_USERNAME={{ database_username }}
+# LOADER_DATABASE_PASSWORD={{ database_password }}
+# LOADER_TABLES=credentialing_customer,credentialing_product,credentialing_order
