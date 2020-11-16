@@ -6,7 +6,6 @@ WORKDIR /OneView
 ENV PYTHONPATH=/OneView:/OneView/site-packages
 ENV AWS_SHARED_CREDENTIALS_FILE=/OneView/.aws/credentials
 ENV AWS_DEFAULT_REGION=us-east-1
-ENV CLASSPATH=./
 
 COPY ./Build/OneView/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
