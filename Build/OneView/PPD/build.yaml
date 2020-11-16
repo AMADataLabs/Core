@@ -36,12 +36,12 @@ spec:
         - name: SFTP_USERNAME
           valueFrom:
             secretKeyRef:
-              name: ppd-oneview-etl
+              name: scheduled-job-poc
               key: username
         - name: SFTP_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: ppd-oneview-etl
+              name: scheduled-job-poc
               key: password
     type: Docker
   successfulBuildsHistoryLimit: 5

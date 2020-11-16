@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ppd-oneview-etl
+spec:
+  template:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: ppd-oneview-etl
+            command:
+            - /OneView/entrypoint.sh
+            args:
+            # - /bin/bash
+            # - -c
+            # - --
+            # - "while true; do sleep 30; done;"
+            - python
+            - -c
+            - "import awslambda; import os; os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.awslambda.ETLTaskWrapper'; os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'; print(awslambda.handler(None, None)) /bin/bash"
+            image: >-
+              docker-registry.default.svc:5000/hsg-data-labs-dev/ppd-oneview-etl
+            imagePullPolicy: Always
+          restartPolicy: Never
