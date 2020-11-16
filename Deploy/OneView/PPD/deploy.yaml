@@ -21,7 +21,7 @@ spec:
             # - "while true; do sleep 30; done;"
             - python
             - -c
-            - "import awslambda; import os; os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.awslambda.ETLTaskWrapper'; os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'; print(awslambda.handler(None, None)) /bin/bash"
+            - "import awslambda; print(awslambda.handler(None, None))"
             env:
             - name: EXTRACTOR_DATABASE_USERNAME
               valueFrom:
