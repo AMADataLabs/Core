@@ -2,14 +2,14 @@
 
 import pandas
 
-from   datalabs.etl.fs.extract import LocalUnicodeTextFileExtractorTask
+from   datalabs.etl.sftp.extract import SFTPUnicodeTextFileExtractorTask
 
 
-class ResidencyExtractor(LocalUnicodeTextFileExtractorTask):
+class ResidencyExtractor(SFTPUnicodeTextFileExtractorTask):
     def _extract(self):
-        residency_files = super()._get_files()
+        residency_data = super()._extract()
 
-        return [self._to_dataframe(file) for file in residency_files]
+        return [self._to_dataframe(data) for data in residency_data]
 
     def _to_dataframe(self, file):
         dataframe = pandas.read_csv(file, sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
