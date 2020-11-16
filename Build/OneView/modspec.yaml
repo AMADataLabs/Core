@@ -35,6 +35,7 @@ modspec:
       - awslambda
       - transform
       - load
+      - s3
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.oneview
   - package: datalabs.etl.oneview.ppd
@@ -42,6 +43,9 @@ modspec:
   - package: datalabs.etl.oneview.credentialing
   - package: datalabs.etl.oneview.credentialing.addresses
   - package: datalabs.etl.orm
+  - package: datalabs.etl.s3
+    include:
+      - load
   - package: datalabs.etl.sftp
   - package: datalabs.access
     include:

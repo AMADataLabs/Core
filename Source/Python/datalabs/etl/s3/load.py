@@ -21,10 +21,10 @@ class S3FileLoaderTask(LoaderTask):
 
         self._s3 = boto3.client(
             's3',
-            endpoint_url=self._parameters.variables.get('ENDPOINT_URL'),
-            aws_access_key_id=self._parameters.get('ACCESS_KEY'),
-            aws_secret_access_key=self._parameters.get('SECRET_KEY'),
-            region_name=self._parameters.get('REGION_NAME')
+            endpoint_url=self._parameters.variables.get('ENDPOINTURL'),
+            aws_access_key_id=self._parameters.variables.get('ACCESSKEY'),
+            aws_secret_access_key=self._parameters.variables.get('SECRETKEY'),
+            region_name=self._parameters.variables.get('REGIONNAME')
         )
 
     def _load(self):
