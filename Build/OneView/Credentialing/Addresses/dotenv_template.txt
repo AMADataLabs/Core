@@ -25,8 +25,8 @@ TRANSFORMER_CLASS=datalabs.etl.transform.PassThroughTransformerTask
 LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
 LOADER_ACCESSKEY='{{key}}'
 LOADER_SECRETKEY=''{{secret}}''
-LOADER_BUCKET=oneview
-LOADER_BASEPATH=oneview/credentialing/%Y%m%d
+LOADER_BUCKET=ama-hsg-datalabs-datalake-ingestion-onprem
+LOADER_BASEPATH=AMA/OneView/%Y%m%d
 LOADER_ENDPOINTURL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
-LOADER_FILES='Addresses'
+LOADER_FILES='credentialing_addresses.csv'
 
