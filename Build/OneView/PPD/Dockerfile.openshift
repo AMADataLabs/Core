@@ -1,0 +1,83 @@
+# Build Example:
+#    docker build -t one-view -f ./Build/OneView/PPD/Dockerfile ./
+
+FROM python:3.7
+WORKDIR /OneView
+
+COPY ./Build/OneView/requirements.txt .
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+
+# Python binary and source dependencies
+
+RUN apt update
+RUN apt-get update -qq && \
+ DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
+ tini \
+ build-essential \
+ ca-certificates \
+ cmake \
+ curl \
+ git \
+ make \
+ locales \
+ locales-all \
+ libcurl4-openssl-dev \
+ libffi-dev \
+ libsqlite3-dev \
+ libzmq3-dev \
+ pandoc \
+ sqlite3 \
+ texlive-fonts-recommended \
+ texlive-latex-base \
+ texlive-latex-extra \
+ zlib1g-dev \
+ vim \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US.UTF-8
+
+# Install nss_wrapper.
+RUN curl -SL -o nss_wrapper.tar.gz https://ftp.samba.org/pub/cwrap/nss_wrapper-1.1.2.tar.gz && \
+ mkdir nss_wrapper && \
+ tar -xC nss_wrapper --strip-components=1 -f nss_wrapper.tar.gz && \
+ rm nss_wrapper.tar.gz && \
+ mkdir nss_wrapper/obj && \
+ (cd nss_wrapper/obj && \
+ cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DLIB_SUFFIX=64 .. && \
+ make && \
+ make install) && \
+ rm -rf nss_wrapper
+
+ENV HOME /OneView
+
+RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "OneView" mockuser
+
+COPY ./Build/OneView/entrypoint.sh entrypoint.sh
+RUN chmod +x ${HOME}/entrypoint.sh
+
+RUN chown -Rf 1001 ${HOME}
+RUN chmod go+rwx ${HOME}
+
+
+ENV PYTHONPATH=/OneView:/OneView/site-packages
+ENV AWS_SHARED_CREDENTIALS_FILE=/OneView/.aws/credentials
+ENV AWS_DEFAULT_REGION=us-east-1
+
+RUN apt-get update && apt-get install -y openjdk-11-jre
+ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
+RUN unzip ./Db2JdbcDriver.zip
+RUN touch DB2JccConfiguration.properties
+RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+
+COPY ./Script ./Script
+COPY ./Build/Master ./Build/Master
+COPY ./Build/OneView ./Build/OneView
+COPY ./Source ./Source
+RUN ./Script/bundle-project -i --directory ./ OneView
+
+RUN rm -rf ./Script
+RUN rm -rf ./Build
+RUN rm -rf ./Source

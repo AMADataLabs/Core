@@ -1,0 +1,56 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: Push a file to the U-drive to test job scheduling.
+    openshift.io/display-name: PPDOneViewETL
+  creationTimestamp: null
+  labels:
+    app: PPDOneViewETL
+  name: ppd-oneview-etl
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: ppd-oneview-etl:latest
+      namespace: hsg-data-labs-dev
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
+      ref: story/DL-1215
+    sourceSecret:
+      name: bitbucketprd
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Build/OneView/PPD/Dockerfile.openshift
+      from:
+        kind: ImageStreamTag
+        name: python:3.7
+      env:
+        - name: SFTP_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: scheduled-job-poc
+              key: username
+        - name: SFTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: scheduled-job-poc
+              key: password
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - github:
+      secret: qZJ_ZEvW9lhY8yGoSkpg
+    type: GitHub
+  - generic:
+      secret: jVit3toJB5LPjRMAIrXw
+    type: Generic
+  - type: ConfigChange
+    type: ImageChange
