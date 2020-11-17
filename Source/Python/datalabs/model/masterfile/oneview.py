@@ -234,7 +234,7 @@ class ProviderAffiliation(Base):
     __tablename__ = 'provider_affiliation'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
+    id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, nullable=False)
     # sa.ForeignKey("oneview.business.id")
     business = sa.Column(sa.String)
     # sa.ForeignKey("oneview.provider.id")
