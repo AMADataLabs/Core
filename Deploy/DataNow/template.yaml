@@ -89,7 +89,7 @@ objects:
         - capabilities: {}
           # command:
           # - /entrypoint.sh
-          image: harbor.ama-assn.org/hsg-data-labs/datanow:1.0.3
+          image: harbor.ama-assn.org/hsg-data-labs/datanow:1.0.4
           imagePullPolicy: IfNotPresent
           name: datanow
           ports:
