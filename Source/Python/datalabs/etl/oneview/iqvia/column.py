@@ -37,7 +37,7 @@ provider_columns = {
     'STATUS_DESC': 'status_description'
 }
 provider_affiliation_columns = {
-    'AFFIL_TYPE_ID': 'id',
+    'AFFIL_TYPE_ID': 'type',
     'IMS_ORG_ID': 'business',
     'PROFESSIONAL_ID': 'provider',
     'AFFIL_TYPE_DESC': 'description',
