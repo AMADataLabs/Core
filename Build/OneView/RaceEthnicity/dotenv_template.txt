@@ -18,7 +18,7 @@ EXTRACTOR_USERNAME='{{username}}'
 EXTRACTOR_PASSWORD='{{password}}'
 
 # RaceEthnicity Transformer
-TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform.RaceEthnicityTransformer
+TRANSFORMER_CLASS=datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformer
 
 # RaceEthnicity Loader
 # LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
@@ -38,4 +38,5 @@ LOADER_DATABASE_BACKEND=postgresql+psycopg2
 LOADER_DATABASE_HOST={{ database_host }}
 LOADER_DATABASE_USERNAME={{ database_username }}
 LOADER_DATABASE_PASSWORD={{ database_password }}
+LOADER_DATABASE_PORT='5432'
 LOADER_TABLES=physician_race_ethnicity
