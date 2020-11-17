@@ -29,10 +29,10 @@ TRANSFORMER_CLASS=datalabs.etl.oneview.iqvia.transform.IQVIATransformer
 # LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
 # LOADER_ACCESS_KEY='{{key}}'
 # LOADER_SECRET_KEY=''{{secret}}''
-# LOADER_BUCKET=OneView
-# LOADER_BASEPATH=AMA/Oneview/
+# LOADER_BUCKET=ama-hsg-datalabs-datalake-ingestion-onprem
+# LOADER_BASEPATH=AMA/OneView/%Y%m%d
 # LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
-# LOADER_FILES='Business.csv', 'Provider.csv', 'ProviderAffiliation.csv'
+# LOADER_FILES='iqvia_business.csv', 'iqvia_provider.csv', 'iqvia_provider_affiliation.csv'
 
 #IQVIA ORM Loader
 LOADER_CLASS=datalabs.etl.orm.load.ORMLoader

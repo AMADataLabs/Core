@@ -25,10 +25,10 @@ TRANSFORMER_CLASS=datalabs.etl.oneview.residency.transform.ResidencyTransformer
 # LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
 # LOADER_ACCESS_KEY='{{key}}'
 # LOADER_SECRET_KEY='{{secret}}'
-# LOADER_BUCKET=Residency
+# LOADER_BUCKET=ama-hsg-datalabs-datalake-ingestion-onprem
 # LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
-# LOADER_BASEPATH=AMA/Oneview
-# LOADER_FILES='program.csv','program_personnel_member.csv','program_institution.csv'
+# LOADER_BASEPATH=AMA/OneView/%Y%m%d
+# LOADER_FILES='residency_program.csv','residency_program_personnel_member.csv','residency_program_institution.csv'
 
 #Residency ORM Loader
 LOADER_CLASS=datalabs.etl.orm.load.ORMLoader
