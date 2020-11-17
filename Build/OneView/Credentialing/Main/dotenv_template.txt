@@ -30,8 +30,9 @@ TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform.CredentialingTran
 LOADER_CLASS=datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask
 LOADER_ACCESSKEY='{{key}}'
 LOADER_SECRETKEY=''{{secret}}''
-LOADER_BUCKET=oneview
-LOADER_BASEPATH=oneview/credentialing
+LOADER_BUCKET=ama/oneview
+LOADER_BASEPATH=ama/oneview/credentialing/%Y%m%d
+LOADER_EXECUTION_TIME=''{ISO-8601 timestamp}}'
 LOADER_ENDPOINTURL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
 LOADER_FILES='Customer', 'Product', 'Order'
 
