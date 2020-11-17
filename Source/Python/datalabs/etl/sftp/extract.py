@@ -36,6 +36,8 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
                 resolved_files.append(files)
             else:
                 resolved_files += files
+        import pdb
+        pdb.set_trace()
 
         return resolved_files
 
@@ -47,7 +49,7 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
         except Exception as exception:
             raise ETLException(f"Unable to read file '{file_path}'") from exception
 
-        return sbytes(buffer.getbuffer())
+        return bytes(buffer.getbuffer())
 
     def _resolve_filename(self, sftp, file_path):
         base_path = os.path.dirname(file_path)
