@@ -11,7 +11,7 @@ TASK_WRAPPER_CLASS=datalabs.etl.awslambda.ETLTaskWrapper
 
 # RaceEthnicity Extractor
 EXTRACTOR_CLASS=datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask
-EXTRACTOR_BASEPATH="Data Analytics\Data-Science\Data\Masterfile_OneVIew"
+EXTRACTOR_BASEPATH="Data Analytics\Data-Science\Data\Masterfile_OneView"
 EXTRACTOR_FILES=PhysicianRaceEthnicity.csv
 EXTRACTOR_HOST=eft.ama-assn.org
 EXTRACTOR_USERNAME='{{username}}'

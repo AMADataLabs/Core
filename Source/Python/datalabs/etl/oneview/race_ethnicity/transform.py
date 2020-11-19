@@ -2,6 +2,8 @@
 import logging
 import pandas
 
+from   io import StringIO
+
 from   datalabs.etl.oneview.race_ethnicity.column import race_ethnicity_columns
 from   datalabs.etl.oneview.transform import TransformerTask
 
@@ -18,7 +20,7 @@ class RaceEthnicityTransformer(TransformerTask):
         return race_ethnicity_data
 
     def _to_dataframe(self, file):
-        dataframe = pandas.read_csv(file)
+        dataframe = pandas.read_csv(StringIO(file))
         return dataframe
 
     def _get_columns(self):
