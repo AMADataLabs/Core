@@ -36,10 +36,8 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
                 resolved_files.append(files)
             else:
                 resolved_files += files
-        import pdb
-        pdb.set_trace()
 
-        return resolved_files
+        return unresolved_files
 
     def _extract_file(self, sftp, file_path):
         buffer = io.BytesIO()
