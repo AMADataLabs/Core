@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: airflow-git-sync
+    namespace: hsg-data-labs-dev
+data:
+    GIT_SYNC_REPO: git@bitbucket.org:hsdatalabs/hsg-data-labs.git
+    GIT_BRANCH: master
+    GIT_SUBPATH: Source/Python/datalabs/dag
+    GIT_SSH_KEY_SECRET_NAME: bitbucketprd
+    GIT_DAGS_FOLDER_MOUNT_POINT: /airflow/dags
+    GIT_SYNC_CONTAINER_REPOSITORY: k8s.gcr.io/git-sync
+    GIT_SYNC_CONTAINER_TAG: v3.1.2
+    GIT_SYNC_INIT_CONTAINER_NAME: airflow-git-sync
