@@ -16,8 +16,7 @@ RUN chmod gu+rwx ${AIRFLOW_HOME}/scheduler.sh
 COPY Build/Airflow/webserver.sh ${AIRFLOW_HOME}/webserver.sh
 RUN chmod gu+rwx ${AIRFLOW_HOME}/webserver.sh
 
-RUN chown -R airflow:root ${AIRFLOW_HOME}
-RUN chmod +rws /airflow
+RUN chown -R airflow:0 ${AIRFLOW_HOME} && chmod -R g+rwx,o-w ${AIRFLOW_HOME}
 
 USER ${USER_ID}
 WORKDIR ${AIRFLOW_HOME}
