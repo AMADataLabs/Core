@@ -23,115 +23,112 @@ metadata:
 
 objects:
 # Metadata Database
-- apiVersion: v1
-  kind: Service
-  metadata:
-    name: ${APPLICATION_NAME}-db
-    annotations:
-      template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
-  spec:
-    ports:
-    - name: postgresql
-      port: 5432
-      protocol: TCP
-      targetPort: 5432
-    selector:
-      name: ${APPLICATION_NAME}
-    sessionAffinity: None
-    type: ClusterIP
-  status:
-    loadBalancer: {}
-
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: ${APPLICATION_NAME}-metadata
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: ${VOLUME_CAPACITY}
-
-- apiVersion: v1
-  kind: DeploymentConfig
-  metadata:
-    name: ${APPLICATION_NAME}-db
-  spec:
-    replicas: 1
-    selector:
-      name: ${APPLICATION_NAME}
-    strategy:
-      type: Recreate
-    template:
-      metadata:
-        labels:
-          name: ${APPLICATION_NAME}
-      spec:
-        containers:
-        - name: postgresql
-          image: ' '
-          imagePullPolicy: IfNotPresent
-          env:
-          - name: POSTGRESQL_USER
-            valueFrom:
-              secretKeyRef:
-                key: database-user
-                name: ${APPLICATION_NAME}
-          - name: POSTGRESQL_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: database-password
-                name: ${APPLICATION_NAME}
-          - name: POSTGRESQL_DATABASE
-            valueFrom:
-              secretKeyRef:
-                key: database-name
-                name: ${APPLICATION_NAME}
-          livenessProbe:
-            exec:
-              command:
-              - /usr/libexec/check-container
-              - --live
-            initialDelaySeconds: 120
-            timeoutSeconds: 10
-          ports:
-          - containerPort: 5432
-            protocol: TCP
-          readinessProbe:
-            exec:
-              command:
-              - /usr/libexec/check-container
-            initialDelaySeconds: 5
-            timeoutSeconds: 1
-          securityContext:
-            capabilities: {}
-            privileged: false
-          terminationMessagePath: /dev/termination-log
-          volumeMounts:
-          - mountPath: /var/lib/pgsql/data
-            name: ${APPLICATION_NAME}-metadata
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        volumes:
-        - name: ${APPLICATION_NAME}-metadata
-          persistentVolumeClaim:
-            claimName: ${APPLICATION_NAME}-metadata
-        - name: ${APPLICATION_NAME}-dags
-          persistentVolumeClaim:
-            claimName: ${APPLICATION_NAME}-dags
-    triggers:
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - postgresql
-        from:
-          kind: ImageStreamTag
-          name: postgresql:9.6
-          namespace: ${DATABASE_IMAGE_NAMESPACE}
-        lastTriggeredImage: ""
-    - type: ConfigChange
+# - apiVersion: v1
+#   kind: Service
+#   metadata:
+#     name: ${APPLICATION_NAME}-db
+#     annotations:
+#       template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
+#   spec:
+#     ports:
+#     - name: postgresql
+#       port: 5432
+#       protocol: TCP
+#       targetPort: 5432
+#     selector:
+#       name: ${APPLICATION_NAME}
+#     sessionAffinity: None
+#     type: ClusterIP
+#   status:
+#     loadBalancer: {}
+#
+# - apiVersion: v1
+#   kind: PersistentVolumeClaim
+#   metadata:
+#     name: ${APPLICATION_NAME}-metadata
+#   spec:
+#     accessModes:
+#     - ReadWriteOnce
+#     resources:
+#       requests:
+#         storage: ${VOLUME_CAPACITY}
+#
+# - apiVersion: v1
+#   kind: DeploymentConfig
+#   metadata:
+#     name: ${APPLICATION_NAME}-db
+#   spec:
+#     replicas: 1
+#     selector:
+#       name: ${APPLICATION_NAME}
+#     strategy:
+#       type: Recreate
+#     template:
+#       metadata:
+#         labels:
+#           name: ${APPLICATION_NAME}
+#       spec:
+#         containers:
+#         - name: postgresql
+#           image: ' '
+#           imagePullPolicy: IfNotPresent
+#           env:
+#           - name: POSTGRESQL_USER
+#             valueFrom:
+#               secretKeyRef:
+#                 key: database-user
+#                 name: ${APPLICATION_NAME}
+#           - name: POSTGRESQL_PASSWORD
+#             valueFrom:
+#               secretKeyRef:
+#                 key: database-password
+#                 name: ${APPLICATION_NAME}
+#           - name: POSTGRESQL_DATABASE
+#             valueFrom:
+#               secretKeyRef:
+#                 key: database-name
+#                 name: ${APPLICATION_NAME}
+#           livenessProbe:
+#             exec:
+#               command:
+#               - /usr/libexec/check-container
+#               - --live
+#             initialDelaySeconds: 120
+#             timeoutSeconds: 10
+#           ports:
+#           - containerPort: 5432
+#             protocol: TCP
+#           readinessProbe:
+#             exec:
+#               command:
+#               - /usr/libexec/check-container
+#             initialDelaySeconds: 5
+#             timeoutSeconds: 1
+#           securityContext:
+#             capabilities: {}
+#             privileged: false
+#           terminationMessagePath: /dev/termination-log
+#           volumeMounts:
+#           - mountPath: /var/lib/pgsql/data
+#             name: ${APPLICATION_NAME}-metadata
+#         dnsPolicy: ClusterFirst
+#         restartPolicy: Always
+#         volumes:
+#         - name: ${APPLICATION_NAME}-metadata
+#           persistentVolumeClaim:
+#             claimName: ${APPLICATION_NAME}-metadata
+#     triggers:
+#     - type: ImageChange
+#       imageChangeParams:
+#         automatic: true
+#         containerNames:
+#         - postgresql
+#         from:
+#           kind: ImageStreamTag
+#           name: postgresql:9.6
+#           namespace: ${DATABASE_IMAGE_NAMESPACE}
+#         lastTriggeredImage: ""
+#     - type: ConfigChange
 
 # Airflow
 - apiVersion: v1
@@ -233,17 +230,17 @@ objects:
           volumeMounts:
           - mountPath: /airflow/dags
             name: ${APPLICATION_NAME}-dags
-
-        - name: airflow-git-sync
-          image: k8s.gcr.io/git-sync:v3.1.2
-          imagePullPolicy: IfNotPresent
-          volumeMounts:
-          - mountPath: /airflow/dags
-            name: ${APPLICATION_NAME}-dags
-          envFrom:
-          - configMapRef:
-              name: airflow-git-sync
-
+        #
+        # - name: airflow-git-sync
+        #   image: k8s.gcr.io/git-sync:v3.1.2
+        #   imagePullPolicy: IfNotPresent
+        #   volumeMounts:
+        #   - mountPath: /airflow/dags
+        #     name: ${APPLICATION_NAME}-dags
+        #   envFrom:
+        #   - configMapRef:
+        #       name: airflow-git-sync
+        #
         - name: airflow-webserver
           image: ' '
           imagePullPolicy: IfNotPresent
@@ -277,12 +274,10 @@ objects:
           volumeMounts:
           - mountPath: /airflow/dags
             name: ${APPLICATION_NAME}-dags
+
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         volumes:
-        - name: ${APPLICATION_NAME}-metadata
-          persistentVolumeClaim:
-            claimName: ${APPLICATION_NAME}-metadata
         - name: ${APPLICATION_NAME}-dags
           persistentVolumeClaim:
             claimName: ${APPLICATION_NAME}-dags
