@@ -228,7 +228,7 @@ objects:
               name: airflow-scheduler
           terminationMessagePath: /dev/termination-log
           volumeMounts:
-          - mountPath: /airflow/dags
+          - mountPath: /airflow/shared
             name: ${APPLICATION_NAME}-dags
         #
         # - name: airflow-git-sync
@@ -272,7 +272,7 @@ objects:
             protocol: TCP
           terminationMessagePath: /dev/termination-log
           volumeMounts:
-          - mountPath: /airflow/dags
+          - mountPath: /airflow/shared
             name: ${APPLICATION_NAME}-dags
 
         dnsPolicy: ClusterFirst

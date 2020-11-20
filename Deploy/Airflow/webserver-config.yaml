@@ -7,9 +7,11 @@ data:
     AIRFLOW_HOME: /airflow
     AIRFLOW_GPL_UNIDECODE: "yes"
     AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
+    AIRFLOW__CORE__LOAD_EXAMPLES: "False"
     AIRFLOW__CORE__FERNET_KEY: yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ=
+    AIRFLOW__CORE__HOSTNAME_CALLABLE: socket:gethostname
     AIRFLOW__WEBSERVER__RBAC: "True"
     AIRFLOW__KUBERNETES__GIT_REPO: git@bitbucket.org:hsdatalabs/hsg-data-labs.git
     AIRFLOW__KUBERNETES__GIT_BRANCH: master
-    AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: ./airflow/dags
+    AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: /airflow/dags
     AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag
