@@ -223,6 +223,10 @@ objects:
                 name: ${APPLICATION_NAME}
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+          - name: AIRFLOW__KUBERNETES__LOGS_VOLUME_CLAIM
+            value: ${APPLICATION_NAME}-shared
+          - name: AIRFLOW__KUBERNETES__DAGS_VOLUME_CLAIM
+            value: ${APPLICATION_NAME}-shared
           envFrom:
           - configMapRef:
               name: airflow-scheduler
@@ -275,6 +279,8 @@ objects:
           - mountPath: /airflow/shared
             name: ${APPLICATION_NAME}-shared
 
+        securityContext:
+            fsGroup: 1000280000
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         volumes:
