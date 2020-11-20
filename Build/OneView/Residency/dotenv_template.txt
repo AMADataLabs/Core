@@ -1,0 +1,42 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+
+# Project Settings
+PROJECT_NAME='OneView'
+
+
+TASK_CLASS=datalabs.etl.task.ETLTask
+TASK_WRAPPER_CLASS=datalabs.etl.awslambda.ETLTaskWrapper
+
+
+#Residency Extractor
+EXTRACTOR_CLASS=datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask
+EXTRACTOR_BASEPATH="Data Analytics\Data-Science\Data\Masterfile_OneVIew"
+EXTRACTOR_FILES=Program Information table - Active.txt,Program Address table - Active.txt,Program Personnel table - Active.txt,Institution Information - Active.txt
+EXTRACTOR_USERNAME='{{user}}'
+EXTRACTOR_PASSWORD='{{password}}'
+EXTRACTOR_HOST=eft.ama-assn.org
+
+#Residency Transformer
+TRANSFORMER_CLASS=datalabs.etl.oneview.residency.transform.ResidencyTransformer
+
+# #Residency S3 Loader
+# LOADER_CLASS=datalabs.etl.s3.S3UnicodeTextFileLoaderTask
+# LOADER_ACCESS_KEY='{{key}}'
+# LOADER_SECRET_KEY='{{secret}}'
+# LOADER_BUCKET=ama-hsg-datalabs-datalake-ingestion-onprem
+# LOADER_ENDPOINT_URL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+# LOADER_BASEPATH=AMA/OneView/%Y%m%d
+# LOADER_FILES='residency_program.csv','residency_program_personnel_member.csv','residency_program_institution.csv'
+
+#Residency ORM Loader
+LOADER_CLASS=datalabs.etl.orm.load.ORMLoader
+LOADER_MODELCLASSES=datalabs.model.masterfile.oneview.ResidencyProgram,datalabs.model.masterfile.oneview.ResidencyProgramPersonnelMember,datalabs.model.masterfile.oneview.ResidencyProgramInstitution
+LOADER_DATABASE_NAME={{ database_name }}
+LOADER_DATABASE_BACKEND=postgresql+psycopg2
+LOADER_DATABASE_HOST={{ database_host }}
+LOADER_DATABASE_USERNAME={{ database_username }}
+LOADER_DATABASE_PASSWORD={{ database_password }}
+LOADER_TABLES=residency_program,residency_program_personnel_member,residency_program_institution
+

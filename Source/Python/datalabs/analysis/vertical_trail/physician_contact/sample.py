@@ -58,6 +58,15 @@ class VTPhysicianContactSampleGenerator:
         self._load_database_data()
         LOGGER.info('CREATING POPULATION DATA')
         population_data = self._get_population_data()
+
+        size = len(population_data)
+        if int(size) <= int(self._sample_size):
+            print('##################################################')
+            print('WARNING! POPULATION SIZE IS SMALLER THAN TARGETED SAMPLE SIZE')
+            proceed = input('PROCEED? Y/N').capitalize()
+            if proceed != 'Y':
+                print('EXITING.')
+                quit()
         LOGGER.info('CREATING SAMPLE')
         self._make_sample(population_data, size=self._sample_size)
 
@@ -74,18 +83,25 @@ class VTPhysicianContactSampleGenerator:
         self._load_edw_data()
         self._load_aims_data()
 
-    def _get_population_data(self):
+    def _get_population_data(self) -> pd.DataFrame:
         ppd = self._load_ppd()
 
         data = self._prepare_population_data(data=ppd)
         return data
 
     def _make_sample(self, population_data: pd.DataFrame, size):
-        sample = population_data.sample(n=min(int(size), len(population_data))).reset_index()
-        sample = self._add_old_phone_data(sample=sample)
+        # as population_data can have multiple rows for a single physician, sample must be based on physician level
+        print(population_data.columns.values)
+        me_numbers = population_data['ME'].drop_duplicates().dropna()
+        sample_me_numbers = me_numbers.sample(n=min(int(size), len(me_numbers)))  # sample N physicians
 
+        # sample data is data from population for those with ME numbers within sample_me_numbers
+        sample = population_data[population_data['ME'].isin(sample_me_numbers)].reset_index()
+
+        sample = self._add_old_phone_data(sample=sample)
         sample = self._add_sample_info_columns(sample)
         sample = self._format_sample_columns(sample)
+
         LOGGER.info('Ingesting sample to archive')
         self._archive.ingest_sample_data(sample)
         self._make_deliverable_sample(sample)
@@ -107,14 +123,15 @@ class VTPhysicianContactSampleGenerator:
             edw_data.party_key_data = edw.get_party_keys_by_type(party_key_type=PartyKeyType.School)
         self.edw_data = edw_data
 
-    def _load_ppd(self):
+    def _load_ppd(self) -> pd.DataFrame:
         ppd = pd.read_csv(self._ppd_filename, dtype=str)
         return ppd
 
-    def _prepare_population_data(self, data: pd.DataFrame):
+    def _prepare_population_data(self, data: pd.DataFrame) -> pd.DataFrame:
         data = self._filter_to_dpc(data=data)
         size = str(len(data))
         LOGGER.info(f'filter_dpc: {size}')
+        print(f'filter_dpc: {size}')
         data = self._filter_to_no_phone(data=data)
         size = str(len(data))
         LOGGER.info(f'filter_no_phone: {size}')
@@ -136,18 +153,22 @@ class VTPhysicianContactSampleGenerator:
         data = self._get_deduped_physician_medschool_data(data=data)
         size = str(len(data))
         LOGGER.info(f'get_deduped_physician_medschool_data: {size}')
+        data.drop_duplicates(inplace=True)
+
+        size = str(len(data))
+        LOGGER.info('Final population size:', size)
         return data
 
-    def _add_license_info(self, data):
+    def _add_license_info(self, data) -> pd.DataFrame:
         license_data = self.aims_data.active_licenses.sort_values(
             'lic_exp_dt',
             ascending=False
         ).groupby('entity_id').first().reset_index()
         license_data['entity_id'] = license_data['entity_id'].astype(str)
-        data = data.merge(license_data, left_on='ENTITY_ID', right_on='entity_id', how='inner')
+        data = data.merge(license_data, left_on='ENTITY_ID', right_on='entity_id', how='left')
         return data
 
-    def _add_medschool_data(self, data):
+    def _add_medschool_data(self, data) -> pd.DataFrame:
         data['MEDSCHOOL_ID'] = data['MEDSCHOOL_ID'].astype(str)
         data['medschool_key'] = data['MEDSCHOOL_STATE'] + data['MEDSCHOOL_ID']
 
@@ -155,17 +176,17 @@ class VTPhysicianContactSampleGenerator:
         self.edw_data.party_key_data['KEY_VAL'] = self.edw_data.party_key_data['KEY_VAL'].astype(str)
         data = data.merge(
             self.edw_data.party_key_data,
-            how='inner',
+            how='left',
             left_on='medschool_key',
             right_on='KEY_VAL'
         )
         self.edw_data.medschool_names.rename(columns={'PARTY_ID': 'MEDSCHOOL_PARTY_ID'}, inplace=True)
 
-        data = data.merge(self.edw_data.medschool_names, left_on='PARTY_ID', right_on='MEDSCHOOL_PARTY_ID', how='inner')
+        data = data.merge(self.edw_data.medschool_names, left_on='PARTY_ID', right_on='MEDSCHOOL_PARTY_ID', how='left')
 
         return data
 
-    def _add_degree_and_specialty_data(self, data: pd.DataFrame):
+    def _add_degree_and_specialty_data(self, data: pd.DataFrame) -> pd.DataFrame:
         data['degree_type'] = 'MD'
         do_ndx = data['MD_DO_CODE'] == 2
         data.loc[do_ndx, 'degree_type'] = 'DO'
@@ -174,14 +195,14 @@ class VTPhysicianContactSampleGenerator:
             self.aims_data.specialty_descriptions,
             left_on='PRIM_SPEC_CD',
             right_on='spec_cd',
-            how='inner'
+            how='left'
         )
         data.rename(columns={'description': 'spec_description'}, inplace=True)
         data['specialty'] = data['spec_description']
         return data
 
     @classmethod
-    def _get_deduped_physician_medschool_data(cls, data: pd.DataFrame):
+    def _get_deduped_physician_medschool_data(cls, data: pd.DataFrame) -> pd.DataFrame:
         data = data.groupby(
             ['FIRST_NAME',
              'LAST_NAME',
@@ -191,7 +212,7 @@ class VTPhysicianContactSampleGenerator:
         ).apply(lambda x: x.sample(1)).reset_index(drop=True)
         return data
 
-    def _add_old_phone_data(self, sample: pd.DataFrame):
+    def _add_old_phone_data(self, sample: pd.DataFrame) -> pd.DataFrame:
         filtered_entity_comm_data = self.aims_data.entity_comm_phone_data[
             self.aims_data.entity_comm_phone_data['entity_id'].isin(sample['entity_id'])
         ]
@@ -215,7 +236,7 @@ class VTPhysicianContactSampleGenerator:
         sample = sample.merge(old_phone_data, on='entity_id', how='left')
         return sample
 
-    def _get_old_phone_data(self, historical_phone_data, entity_ids):
+    def _get_old_phone_data(self, historical_phone_data, entity_ids) -> (pd.DataFrame, list):
         temp_phone_dict = self._get_temp_phone_dict(historical_phone_data, entity_ids)
         max_phones = temp_phone_dict['max']
         del temp_phone_dict['max']
@@ -243,7 +264,7 @@ class VTPhysicianContactSampleGenerator:
         return old_phone_data, oldphone_name_list
 
     @classmethod
-    def _get_temp_phone_dict(cls, historical_phone_data, entity_ids):
+    def _get_temp_phone_dict(cls, historical_phone_data, entity_ids) -> dict:
         temp_phone_dict = {}
         max_phones = 0  # the maximum number of old phones found for any one individual
         for i in range(len(entity_ids)):
@@ -261,7 +282,7 @@ class VTPhysicianContactSampleGenerator:
         temp_phone_dict['max'] = max_phones
         return temp_phone_dict
 
-    def _add_sample_info_columns(self, data):
+    def _add_sample_info_columns(self, data) -> pd.DataFrame:
         latest_sample_id = self._archive.get_latest_sample_id()
         if latest_sample_id is None:
             latest_sample_id = 0
@@ -271,7 +292,7 @@ class VTPhysicianContactSampleGenerator:
         data['SAMPLE_DATE'] = self._today_date
         return data
 
-    def _format_sample_columns(self, data: pd.DataFrame):
+    def _format_sample_columns(self, data: pd.DataFrame) -> pd.DataFrame:
         data.columns = [col.upper() for col in data.columns.values]
         data.rename(
             columns={
@@ -288,16 +309,16 @@ class VTPhysicianContactSampleGenerator:
         return sample
 
     @classmethod
-    def _filter_to_no_phone(cls, data: pd.DataFrame):
+    def _filter_to_no_phone(cls, data: pd.DataFrame) -> pd.DataFrame:
         data = data[data['TELEPHONE_NUMBER'].isna()]
         return data
 
     @classmethod
-    def _filter_to_dpc(cls, data: pd.DataFrame):
+    def _filter_to_dpc(cls, data: pd.DataFrame) -> pd.DataFrame:
         data = data[data['TOP_CD'] == '020']
         return data
 
-    def _filter_no_contacts(self, data: pd.DataFrame):
+    def _filter_no_contacts(self, data: pd.DataFrame) -> pd.DataFrame:
         data = self._filter_data(
             data=data,
             data_col='ENTITY_ID',
@@ -306,7 +327,7 @@ class VTPhysicianContactSampleGenerator:
         )
         return data
 
-    def _filter_recent_me(self, data: pd.DataFrame):
+    def _filter_recent_me(self, data: pd.DataFrame) -> pd.DataFrame:
         previous_n_months_data = self._archive.get_vt_sample_data_past_n_months(self._months_me_block)
         data = self._filter_data(
             data=data,
@@ -316,7 +337,7 @@ class VTPhysicianContactSampleGenerator:
         )
         return data
 
-    def _add_pe_description(self, data: pd.DataFrame):
+    def _add_pe_description(self, data: pd.DataFrame) -> pd.DataFrame:
         data = data.merge(self.aims_data.pe_descriptions, left_on='PE_CD', right_on='present_emp_cd', how='left')
         return data
 
@@ -338,9 +359,13 @@ class VTPhysicianContactSampleGenerator:
         writer.save()
 
     @classmethod
-    def _filter_data(cls, data: pd.DataFrame, data_col: str, filter_data: pd.DataFrame, filter_col: str):
+    def _filter_data(cls, data: pd.DataFrame, data_col, filter_data: pd.DataFrame, filter_col) -> pd.DataFrame:
         return data[~data[data_col].isin(filter_data[filter_col])]
 
 
-gen = VTPhysicianContactSampleGenerator()
-gen.run()
+def make_physician_contact_request_sample():
+    sample_generator = VTPhysicianContactSampleGenerator()
+    sample_generator.run()
+
+
+make_physician_contact_request_sample()

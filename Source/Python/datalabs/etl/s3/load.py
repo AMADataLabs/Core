@@ -7,8 +7,8 @@ import logging
 
 import boto3
 
-from datalabs.etl.load import LoaderTask
-from datalabs.etl.task import ETLException
+from   datalabs.etl.load import LoaderTask
+from   datalabs.etl.task import ETLException
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -19,7 +19,13 @@ class S3FileLoaderTask(LoaderTask):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-        self._s3 = boto3.client('s3')
+        self._s3 = boto3.client(
+            's3',
+            endpoint_url=self._parameters.variables.get('ENDPOINTURL'),
+            aws_access_key_id=self._parameters.variables.get('ACCESSKEY'),
+            aws_secret_access_key=self._parameters.variables.get('SECRETKEY'),
+            region_name=self._parameters.variables.get('REGIONNAME')
+        )
 
     def _load(self):
         current_path = self._get_current_path()

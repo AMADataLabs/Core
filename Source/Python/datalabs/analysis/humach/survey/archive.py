@@ -22,9 +22,9 @@ class ExpectedFileColumns:
     validation_results = VALIDATION_RESULTS_COLUMNS_EXPECTED
     samples = SAMPLE_COLUMNS_EXPECTED
     dict = {
-        'results_standard': standard_results,
-        'results_validation': validation_results,
-        'samples': samples
+        'humach_result': standard_results,
+        'validation_result': validation_results,
+        'humach_sample': samples
     }
 
 
@@ -34,9 +34,9 @@ class TableColumns:
     validation_results = VALIDATION_RESULTS_COLUMNS
     samples = SAMPLE_COLUMNS
     dict = {
-            'results_standard': standard_results,
-            'results_validation': validation_results,
-            'samples': samples
+            'humach_result': standard_results,
+            'validation_result': validation_results,
+            'humach_sample': samples
     }
 
 
@@ -78,28 +78,45 @@ class HumachResultsArchive:
         sql = "INSERT INTO {}({}) VALUES({});".format(
                 table,
                 ','.join(cols),
-                ','.join(['"' + str(v) + '"' for v in vals])
+                ','.join(['"' + str(v).replace(',', '').replace('"', '') + '"' for v in vals])
         )
 
         self.connection.execute(sql)
 
     def validate_cols(self, table, cols):
-        cols_set = set(cols)
-        expected_set = set(self.expected_file_columns.dict[table])
+        """
+        cols_set = sorted(set(cols))
+        expected_set = sorted(set(self.expected_file_columns.dict[table]))
         if cols_set != expected_set:
+            print(sorted(cols_set))
+            print(sorted(expected_set))
             raise ValueError('Columns provided do not match columns expected.')
+        """
+        for col in self.expected_file_columns.dict[table]:
+            assert col in cols, col
+
 
     def ingest_result_file(self, table, file_path):
-        if table == 'results_standard':
+        if table == 'humach_result':
             data = self._preprocess_standard_result_file(file_path)
-        elif table == 'results_validation':
+
+            for i, r in data.iterrows():
+                self.insert_row(table='humach_result', vals=[v for v in r.values])
+
+        elif table == 'validation_result':
             data = self._preprocess_validation_result_file(file_path)
+
+            for i, r in data.iterrows():
+                self.insert_row(table='validation_result', vals=[v for v in r.values])
+
         else:
-            raise ValueError('Table {} could not be processed.'.format(table))
+            raise ValueError(f'Table {table} could not be processed.')
 
+        self.connection.commit()
+
+    def ingest_result_data(self, data: pd.DataFrame):
         for i, r in data.iterrows():
-            self.insert_row(table=table, vals=[v for v in r.values])
-
+            self.insert_row(table='humach_result', vals=[v for v in r.values])
         self.connection.commit()
 
     def ingest_sample_file(self, file_path: str):
@@ -108,20 +125,20 @@ class HumachResultsArchive:
 
     def ingest_sample_data(self, data: pd.DataFrame):
         df_cols = data.columns.values
-        self.validate_cols(table='samples', cols=df_cols)
+        self.validate_cols(table='humach_sample', cols=df_cols)
         data.fillna('', inplace=True)
 
         for i, r in data.iterrows():
-            self.insert_row(table='samples', vals=[v for v in r.values])
+            self.insert_row(table='humach_sample', vals=[v for v in r.values])
         self.connection.commit()
 
     def get_sample_data(self, sample_ids: [str]) -> pd.DataFrame:
-        table = 'samples'
+        table = 'humach_sample'
         data = self.get_table_data_for_sample_ids(table=table, sample_ids=sample_ids)
         return data
 
     def get_sample_data_past_n_months(self, n, as_of_date: datetime.date = datetime.now().date()):
-        sql = """SELECT * FROM samples"""
+        sql = """SELECT * FROM humach_sample"""
         data = pd.read_sql(sql=sql, con=self.connection)
 
         data['survey_date'] = [f'{year}-{("0" + str(month))[-2:]}-01' for year, month in zip(
@@ -140,12 +157,12 @@ class HumachResultsArchive:
         return data
 
     def get_latest_sample_id(self):
-        sql = """SELECT MAX(sample_id) FROM samples;"""
+        sql = """SELECT MAX(sample_id) FROM humach_sample;"""
         result = self.connection.execute(sql).fetchone()[0]
         return result
 
     def get_latest_standard_sample_id(self):
-        sql = "SELECT MAX(sample_id) FROM samples WHERE survey_type = 'STANDARD';"
+        sql = "SELECT MAX(sample_id) FROM humach_sample WHERE survey_type = 'STANDARD';"
         result = self.connection.execute(sql).fetchone()[0]
         return result
 
@@ -165,6 +182,18 @@ class HumachResultsArchive:
         self._load_environment_variables()
         sample_id = self.get_latest_survey_results_sample_id(survey_type='standard')
         self.make_standard_batch_load([sample_id])
+
+    def make_standard_batch_load_for_results_in_survey_month_year(self, month, year):
+        self._load_environment_variables()
+        sql = \
+            f"""
+            SELECT DISTINCT(r.sample_id) FROM humach_result r
+            INNER JOIN humach_sample s ON (r.sample_id = s.sample_id AND r.row_id = s.row_id) 
+            WHERE s.survey_month = {month} AND s.survey_year = {year}
+            """
+        sample_ids = [sample_id[0] for sample_id in self.connection.execute(sql).fetchall()]
+        LOGGER.info(f'Creating batch load for SAMPLE IDs: {sample_ids}')
+        self.make_standard_batch_load(sample_ids=sample_ids)
 
     def make_standard_batch_load(self, sample_ids: [str]):
         self._load_environment_variables()
@@ -209,7 +238,13 @@ class HumachResultsArchive:
         return data
 
     def get_result_data(self, sample_type: str, sample_ids: [str]) -> pd.DataFrame:
-        data = self.get_table_data_for_sample_ids(table=f'results_{sample_type}', sample_ids=sample_ids)
+        if sample_type == 'standard':
+            table_name = 'humach_result'
+        elif sample_type == 'validation':
+            table_name = 'validation_result'
+        else:
+            raise ValueError('table_name not supported for sample_type:', sample_type)
+        data = self.get_table_data_for_sample_ids(table=table_name, sample_ids=sample_ids)
         return data
 
     def get_table_data_for_sample_ids(self, table: str, sample_ids: [str]) -> pd.DataFrame:
@@ -241,17 +276,37 @@ class HumachResultsArchive:
 
     def _preprocess_standard_result_file(self, filename: str) -> pd.DataFrame:
         data = pd.read_excel(filename, dtye=str)
+
+        if 'SPECIALTY' not in data.columns.values:
+            data['SPECIALTY'] = 0
+            data['SPECIALTY UPDATED'] = 0
+            data['PRESENT EMPLOYMENT UPDATED'] = 0
+            data['COMMENTS'] = 'FAIL'
+
         cols = data.columns.values
-        self.validate_cols(table='results_standard', cols=cols)
-        return data
+
+        formatted_data = pd.DataFrame()
+        for col in self.expected_file_columns.standard_results:
+            formatted_data[col] = data[col]
+
+        self.validate_cols(table='humach_result', cols=cols)
+        formatted_data = formatted_data[formatted_data['SAMPLE_ID'].isna() == False]
+        return formatted_data
 
     def _preprocess_validation_result_file(self, filename: str) -> pd.DataFrame:
-        data = pd.DataFrame(columns=self.expected_file_columns.validation_results)
         sheet_names = ['ValidatedCorrect', 'ValidatedIncorrect', 'NotValidated', 'Unfinalized']
+        sheet_dataframes = []
         for sheet_name in sheet_names:
             sheet_df = pd.read_excel(filename, sheet_name=sheet_name)
-            data = data.append(sheet_df, ignore_index=True)
-        return data
+            formatted_sheet_df = pd.DataFrame()
+            for col in self.expected_file_columns.validation_results:
+                formatted_sheet_df[col] = sheet_df[col]
+
+            sheet_dataframes.append(sheet_df)
+
+        formatted_data = pd.concat(sheet_dataframes)
+        self.validate_cols(table='validation_result', cols=formatted_data.columns.values)
+        return formatted_data
 
     def _phone_needs_end_dt(self, given: str, received: str, comment: str) -> bool:
         needs_end_dt = False

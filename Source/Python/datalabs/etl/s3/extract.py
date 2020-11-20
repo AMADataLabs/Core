@@ -27,11 +27,11 @@
 import boto3
 from   dateutil.parser import isoparse
 
-from   datalabs.etl.extract import ExtractorTask
+from   datalabs.etl.extract import FileExtractorTask
 from   datalabs.etl.task import ETLException
 
 
-class S3FileExtractorTask(ExtractorTask):
+class S3FileExtractorTask(FileExtractorTask):
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -41,7 +41,7 @@ class S3FileExtractorTask(ExtractorTask):
         latest_path = self._get_latest_path()
         files = self._get_files(latest_path)
 
-        return [(file, self._extract_file(file)) for file in files]
+        return self._extract_files(self._s3, files)
 
     def _get_latest_path(self):
         release_folder = self._get_execution_date()
@@ -72,20 +72,15 @@ class S3FileExtractorTask(ExtractorTask):
 
         return resolved_files
 
-    def _extract_file(self, file_path):
+    def _extract_file(self, s3, file_path):
         try:
-            response = self._s3.get_object(Bucket=self._parameters.variables['BUCKET'], Key=file_path)
+            response = s3.get_object(Bucket=self._parameters.variables['BUCKET'], Key=file_path)
         except Exception as exception:
             raise ETLException(
                 f"Unable to get file '{file_path}' from S3 bucket '{self._parameters.variables['BUCKET']}': {exception}"
             )
 
-        try:
-            decoded_data = self._decode_data(response['Body'].read())
-        except Exception as exception:
-            raise ETLException(f'Unable to decode S3 object {file_path}: {exception}')
-
-        return decoded_data
+        return response['Body'].read()
 
     def _get_execution_date(self):
         execution_time = self._parameters.variables.get('EXECUTION_TIME')

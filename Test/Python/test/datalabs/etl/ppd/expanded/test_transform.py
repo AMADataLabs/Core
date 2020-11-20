@@ -2,6 +2,7 @@ import logging
 import os
 import tempfile
 
+import mock
 import pandas
 import pytest
 
@@ -21,7 +22,8 @@ def test_data_setup_correctly(extractor_file):
 
 
 def test_transformer_produces_two_datasets(etl):
-    etl.run()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        etl.run()
 
     transformer = etl._task._transformer
 
@@ -30,7 +32,8 @@ def test_transformer_produces_two_datasets(etl):
 
 
 def test_transformer_data_has_three_data_rows(etl):
-    etl.run()
+    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+        etl.run()
 
     transformer = etl._task._transformer
     rows = transformer.data[0].split('\n')
@@ -75,6 +78,7 @@ def environment(extractor_file, loader_directory):
     os.environ['EXTRACTOR_CLASS'] = 'datalabs.etl.ppd.expanded.extract.LocalPPDExtractorTask'
     os.environ['EXTRACTOR_BASEPATH'] = os.path.dirname(extractor_file)
     os.environ['EXTRACTOR_FILES'] = 'PhysicianProfessionalDataFile_*'
+    os.environ['EXTRACTOR_INCLUDENAMES'] = 'True'
 
     os.environ['TRANSFORMER_CLASS'] = 'datalabs.etl.ppd.expanded.transform.ParseToPPDTransformerTask'
     os.environ['TRANSFORMER_PARSERS'] = 'datalabs.curate.ppd.expanded.parse.ExpandedPPDParser'

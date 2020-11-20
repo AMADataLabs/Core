@@ -1,9 +1,11 @@
+import os
 from glob import glob
-from HumachSurveys.HumachResultsArchive import HumachResultsArchive
+from datalabs.analysis.humach.survey.archive import HumachResultsArchive
 import logging
-logging.basicConfig(level=logging.INFO)
 import settings
 
+LOGGER = logging.Logger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 class HumachResultsIngester:
     def __init__(self, archive: HumachResultsArchive):
@@ -16,8 +18,6 @@ class HumachResultsIngester:
 
         self.file_input_directory_samples = 'U:/Source Files/Data Analytics/Data-Science/Data/HumachSurveys/samples'
         self.file_input_directory_samples_archive = 'U:/Source Files/Data Analytics/Data-Science/Data/HumachSurveys/samples/archive'
-
-        self.logger = logging.getLogger('info')
 
     def get_standard_result_files(self):
         files = glob(self.file_input_directory_standard + '/*.xls')
@@ -37,44 +37,37 @@ class HumachResultsIngester:
     # ingest_standard and ingest_validation are different because standard and validation result files have
     # different file types (xls vs xlsx)
     def ingest_standard(self):
-
         files = self.get_standard_result_files()
 
         for file in files:
-            try:
-                self.logger.info(f'PROCESSING FILE: {file}')
-                self.archive.ingest_result_file(table='results_standard', file_path=file)
-                self.logger.info('SUCCESS.')
-            except Exception as e:
-                self.logger.info('FAILED:', e)
+            print(file)
+            LOGGER.info(f'PROCESSING FILE: {file}')
+            self.archive.ingest_result_file(table='humach_result', file_path=file)
+            LOGGER.info('SUCCESS.')
 
     def ingest_validation(self):
-
         files = self.get_validation_result_files()
         for file in files:
-            try:
-                self.logger.info(f'PROCESSING FILE: {file}')
-                self.archive.ingest_result_file(table='results_validation', file_path=file)
-                self.logger.info('SUCCESS.')
-            except Exception as e:
-                self.logger.info('FAILED:', e)
+            print(file)
+            LOGGER.info(f'PROCESSING FILE: {file}')
+            self.archive.ingest_result_file(table='validation_result', file_path=file)
+            LOGGER.info('SUCCESS.')
 
     def ingest_samples(self):
-
         files = self.get_sample_files()
         for file in files:
             try:
-                self.logger.info(f'PROCESSING FILE: {file}')
+                LOGGER.info(f'PROCESSING FILE: {file}')
                 self.archive.ingest_sample_file(file_path=file)
-                self.logger.info('SUCCESS.')
+                LOGGER.info('SUCCESS.')
             except Exception as e:
-                self.logger.info('FAILED:', e)
+                LOGGER.info('FAILED:', e)
 
 
-
-archive = HumachResultsArchive(database='HumachSurveys.db')
-
+archive = HumachResultsArchive()
+archive._load_environment_variables()
+os.environ['ARCHIVE_DB_PATH'] = 'C://Users/glappe/PycharmProjects/hsg-data-labs/Sandbox/HumachSurveys/HumachSurveys.db'
 ingester = HumachResultsIngester(archive=archive)
-ingester.ingest_samples()
-
+# ingester.ingest_standard()
+# ingester.ingest_validation()
 

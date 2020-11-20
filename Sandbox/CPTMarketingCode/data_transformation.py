@@ -1,17 +1,88 @@
 import re
 import pandas as pd
 from glob import glob
+import columns
+import os
+from varname import nameof
+import settings
 
+def main():
 
-def create_file_paths():
+    input_directory, output_directory, tables = setup_directory()
+
+    budget_code = import_budget_code(input_directory)
+
+    new_tables = transform_tables(tables, budget_code)
+
+    export_tables(output_directory, new_tables)
+
+def setup_directory():
+
+    file_paths = get_file_paths()
+
+    tables = create_tables(file_paths)
+
+    input_directory = file_paths['input_directory']
+    output_directory = file_paths['output_directory']
+
+    return input_directory, output_directory, tables
+
+def import_budget_code(input_directory):
+    return pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
+                                usecols=['Item Number', 'Budget Code'])
+
+def transform_tables(tables, budget_code):
+    new_tables = {}
+
+    pbd_table = create_pbd_table(tables['pbd_orders'], tables['pbd_returns'], tables['pbd_cancels'])
+    new_tables["pbd_table_order"] = pbd_table
+
+    new_tables = create_sales_tables(pbd_table, tables, new_tables)
+
+    pbd_items_table = create_pbd_items_table(pbd_table, tables['pbd_items'])
+
+    new_tables["pbd_items_table"] = pbd_items_table
+    new_tables = create_product_tables(pbd_items_table, budget_code, new_tables)
+
+    new_tables["customer_clean"] = create_customer_tables(pbd_items_table, tables['contacts'], tables['aims_overlay'])
+
+    pbd_orders = tables['pbd_orders']
+    new_tables = create_order_tables(pbd_orders, tables, new_tables)
+
+    return new_tables
+
+def export_tables(output_directory, new_tables):
+    no_index_files = ["pbd_table_order", "sales", "product_remainder", "product_main", "pbd_items_table"]
+    for key, val in new_tables.items():
+
+        if key in no_index_files:
+            val.to_csv(output_directory + key + ".csv", index = False)
+        else:    
+            val.to_csv(output_directory + key + ".csv")
+
+    """print("tablestbalestbaleatbales")
+    print(type(new_tables))
+    print(new_tables)
+
+    pbd_table.to_csv(output_directory + os.environ['PBD_TABLE'], index=False)
+    sales_pbd.to_csv(output_directory + os.environ['SALES_PBD'], index=False)
+    sales_kpi.to_csv(output_directory + os.environ['SALES_KPI'])
+    product_main.to_csv(output_directory + os.environ['PRODUCT_MAIN'], index=False)
+    product_remainder.to_csv(output_directory + os.environ['PRODUCT_REMAINDER'], index=False)
+    customer_clean.to_csv(output_directory + os.environ['CUSTOMER_CLEAN'])
+    direct_mail.to_csv(output_directory + os.environ['DIRECT_MAIL'])
+    fax.to_csv(output_directory + os.environ['FAX'])
+    email_campaign.to_csv(output_directory + os.environ['EMAIL_CAMPAIGN'])"""
+
+def get_file_paths():
     '''
     Returns a dictionary of three important file paths
     '''
-    file_paths = {'input_directory': 'U:/Source Files/Data Analytics/Data Engineering/SFMC/SFMC-7.3.20/',
-                  'input_table_pattern': 'U:/Source Files/Data Analytics/Data Engineering/SFMC/SFMC-7.3.20/*.txt',
-                  'output_directory': 'U:/Source Files/Data Analytics/Data Engineering/SFMC/SFMC-7.3.20/'}
-    return (file_paths)
-
+    return {
+        'input_directory': os.environ.get('SFMC_FILE'),
+        'input_table_pattern': os.environ.get('SFMC_TXT_FILE'),
+        'output_directory': os.environ.get('SFMC_FILE')
+    }
 
 def create_tables(file_paths):
     '''
@@ -22,23 +93,13 @@ def create_tables(file_paths):
             Returns:
                 list of pandas dataframes of all the raw input tables
     '''
-    # create a list of text flat file names in the directory
-    filenames = glob(file_paths['input_table_pattern'])
+    files, filenames = generate_filenames(file_paths)
 
-    # import all the files in the directory
-    files = [pd.read_csv(file, delimiter="\t", encoding="ISO-8859-1") for file in filenames]
-
-    # create a list of table names
-    start = 'SFMC_'
-    end = '_2020'
-    tablenames = [name[name.find(start) + len(start):name.rfind(end)].lower() for name in filenames]
-
-    tablenames = [re.sub(r'_\d{8}.tx', '', name) for name in tablenames]
+    tablenames = generate_table_names(filenames)
 
     # dynamic naming of tables
     tables = dict(zip(tablenames, files))
-    return (tables)
-
+    return tables
 
 def create_pbd_table(pbd_orders, pbd_returns, pbd_cancels):  # staging table
     '''
@@ -52,28 +113,105 @@ def create_pbd_table(pbd_orders, pbd_returns, pbd_cancels):  # staging table
             Returns:
                     pbd_table (pandas dataframe): table of PBD orders without canceled and refunded transactions
     '''
-    import pandas as pd
-    pbd_order_columns = ['EMPPID', 'ORDER_NO', 'ORDER_DATE', 'ORDTDOL', 'ORDITEMQTY', 'ORDCOST',
-                         'PAYMENT_DESC', 'PROMOCD', 'ORDER_TYPE', 'ORDCHANNEL']
-    pbd_cancels_columns = ['EMPPID', 'ORDER_NO']
-    pbd_returns_columns = ['EMPPID', 'ORDER_NO']
     # subset columns
-    pbd_orders = pbd_orders[pbd_order_columns]
-    pbd_returns = pbd_returns[pbd_returns_columns]
-    pbd_cancels = pbd_cancels[pbd_cancels_columns]
+    pbd_orders = pbd_orders[columns.PBD_ORDER]
+    pbd_returns = pbd_returns[columns.PBD_CANCELS]
+    pbd_cancels = pbd_cancels[columns.PBD_RETURNS]
 
+    pbd_table = create_date_columns(pbd_merge_columns(pbd_orders, pbd_returns, pbd_cancels))
+
+    return pbd_table
+
+def create_pbd_items_table(pbd_table, pbd_items):  # staging table
+    '''
+    Returns PBD sales table at an item level
+
+            Parameters:
+                    pbd_table (pandas dataframe): dataframe from above
+                    pbd_items (pandas dataframe): pbd_items dataframe from above
+
+            Returns:
+                    pbd_items_table (pandas dataframe): pbd sales table at item level
+
+    '''
+    # subset columns
+    pbd_items = pbd_items[columns.PBD_ITEMS]
+    pbd_items['ORDER_DATE'] = pd.to_datetime(pbd_items['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
+
+    # merge with item table
+    pbd_items_table = pd.merge(pbd_table, pbd_items, on=['ORDER_NO', 'ORDER_DATE'], how='inner')
+
+    # drop columns
+    pbd_items_table = pbd_items_table.drop(['EMPPID_y'], axis=1).rename(columns={'EMPPID_x': 'EMPPID'})
+
+    return pbd_items_table
+
+def create_sales_tables(pbd_table, tables, new_tables):
+    sales_pbd = create_pbd_sales_table(pbd_table)
+    sales_olsub = create_olsub_sales_table(tables['olsub_orders'])
+    sales = pd.concat([sales_pbd, sales_olsub], axis=0)
+    sales_kpi = create_sales_kpi(sales, pbd_table)
+
+    new_tables["sales"] = sales_pbd
+    new_tables["sales_kpi"] = sales_kpi
+    return new_tables
+
+def create_product_tables(pbd_items_table, budget_code, new_tables):
+    product_sales = create_product_sales_table(pbd_items_table)
+    product_sales_coded = match_budget_codes(product_sales, budget_code)
+    product_main = create_product_main_table(product_sales_coded)
+    product_remainder = create_product_remainder_table(product_sales_coded)
+
+    new_tables["product_main"] = product_main
+    new_tables["product_remainder"] = product_remainder
+    return new_tables
+
+def create_customer_tables(pbd_items_table, contacts, aims_overlay):
+    customer = create_customer_table(pbd_items_table, contacts, aims_overlay)
+    customer_clean = clean_up_customer(customer)
+    return customer_clean
+
+def create_order_tables(pbd_orders, tables, new_tables):
+    direct_mail = create_email_campaign_table(pbd_orders[pbd_orders['ORDER_TYPE'] == 'Mail'])
+    fax = pbd_orders[pbd_orders['ORDER_TYPE'] == 'FAX']
+    email_campaign = create_email_campaign_table(tables['emailcampaign'])
+
+    new_tables["direct_mail"] = direct_mail
+    new_tables["fax"] = fax
+    new_tables["email_campaign"] = email_campaign
+    return new_tables
+
+def generate_filenames(file_paths):
+    # create a list of text flat file names in the directory
+    filenames = glob(file_paths['input_table_pattern'])
+
+    # import all the files in the directory
+    files = [pd.read_csv(file, delimiter="\t", encoding="ISO-8859-1") for file in filenames]
+
+    return files, filenames
+
+def generate_table_names(filenames):
+    # create a list of table names
+    start = 'SFMC_'
+    end = '_2020'
+    tablenames = [name[name.find(start) + len(start):name.rfind(end)].lower() for name in filenames]
+
+    tablenames = [re.sub(r'_\d{8}.tx', '', name) for name in tablenames]
+
+    return tablenames
+
+def pbd_merge_columns(pbd_orders, pbd_returns, pbd_cancels):
     # merge all pbd tables using left join to combine all histories of Print/Book/Digital transactions
     pbd_table = pbd_orders[~pbd_orders.ORDER_NO.isin(pbd_cancels.ORDER_NO)]
     pbd_table = pbd_table[~pbd_table.ORDER_NO.isin(pbd_returns.ORDER_NO)]
+    return pbd_table
 
-    # Create Date columns
+def create_date_columns(pbd_table):
     pbd_table['ORDER_DATE'] = pd.to_datetime(pbd_table['ORDER_DATE']).dt.date
     pbd_table['ORDER_DATE'] = pd.to_datetime(pbd_table['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
     pbd_table['ORDER_MONTH'] = pd.DatetimeIndex(pbd_table['ORDER_DATE']).month
     pbd_table['ORDER_YEAR'] = pd.DatetimeIndex(pbd_table['ORDER_DATE']).year
-
     return pbd_table
-
 
 def create_pbd_sales_table(pbd_table):  # staging table
     '''
@@ -89,8 +227,7 @@ def create_pbd_sales_table(pbd_table):  # staging table
     sales = pbd_table.groupby(['ORDER_NO', 'ORDER_YEAR', 'ORDER_MONTH'])['ORDTDOL'].sum().reset_index()
     new_column_names = ['Order ID', 'Year', 'Month', 'Revenue']
     sales = sales.rename(columns=dict(zip(sales.columns.tolist(),
-                                          new_column_names)))
-    sales = sales.sort_values(by=['Year', 'Month'])
+                                          new_column_names))).sort_values(by=['Year', 'Month'])
     sales['Type'] = 'PBD'
     return sales
 
@@ -124,20 +261,14 @@ def create_olsub_sales_table(olsub_orders):  # staging table
                     sales (pandas dataframe): table of olsub orders with aggregated transactions
 
     '''
-    olsub_order_columns = ['EMPPID', 'ORDER_ID', 'SUB_DATE', 'ORDITEMQTY', 'ORDTDOL']
-
-    # subset columns
-    olsub_orders = olsub_orders[olsub_order_columns]
-
     # create month and year columns
-    olsub_orders = create_month_and_year_columns(olsub_orders, 'SUB_DATE')
+    olsub_orders = create_month_and_year_columns(olsub_orders[columns.OLSUB_ORDER], 'SUB_DATE')
 
     # merge two tables using left join to combine all histories of online transactions
     sales = olsub_orders.groupby(['ORDER_ID', 'YEAR', 'MONTH'])['ORDTDOL'].sum().reset_index()
     new_column_names = ['Order ID', 'Year', 'Month', 'Revenue']
     sales = sales.rename(columns=dict(zip(sales.columns.tolist(),
-                                          new_column_names)))
-    sales = sales.sort_values(by=['Year', 'Month'])
+                                          new_column_names))).sort_values(by=['Year', 'Month'])
     sales['Type'] = 'OLSub'
     return sales
 
@@ -154,63 +285,45 @@ def create_sales_kpi(sales, pbd_table):  # final table
                     sales_kpi (pandas dataframe): dataframe with monthly KPI's
 
     '''
+    sales_kpi = pd.DataFrame()
     sales['Date'] = pd.to_datetime(sales[['Year', 'Month']].assign(DAY=1))
     # Number of Unique Order
-    no_unique_order = sales.groupby('Date')['Order ID'].nunique()
+    sales_kpi['Number of Unique Orders'] = sales.groupby('Date')['Order ID'].nunique()
+
+    sales_kpi, pbd_table = calculate_monthly_total_sales(sales_kpi, sales, pbd_table)
+
+    sales_kpi = calculate_sales_customers(sales_kpi, pbd_table)
+
+    sales_kpi = calculate_sales_averages(sales_kpi['Number of Unique Orders'],sales_kpi['Number of Unique Customers'],sales_kpi['Total Sales'],sales_kpi)
+
+    return sales_kpi
+
+def calculate_monthly_total_sales(sales_kpi, sales, pbd_table):
     # Monthly Total Sales
-    total_sales = sales.groupby('Date')['Revenue'].sum()
-    # Average Sale Value per Order
-    average_sale_per_order = total_sales / no_unique_order
+    sales_kpi['Total Sales'] = sales.groupby('Date')['Revenue'].sum()
     pbd_table['Date'] = pd.to_datetime(pbd_table['ORDER_YEAR'].astype(str) + '-' + pbd_table['ORDER_MONTH'].astype(str))
+    return sales_kpi, pbd_table
+
+def calculate_sales_customers(sales_kpi, pbd_table):
     # Number of Unique Customers
-    no_unique_customers = pbd_table.groupby('Date')['EMPPID'].nunique()
+    sales_kpi['Number of Unique Customers'] = pbd_table.groupby('Date')['EMPPID'].nunique()
     # Subset for every customer the first order date
     first_orders = pbd_table.groupby('EMPPID')['Date'].min().reset_index()
     # Number of New Customers
-    no_new_customers = first_orders.groupby('Date')['EMPPID'].nunique()
-    # Average Purchase Frequency
-    avg_purchase_frequency = no_unique_order / no_unique_customers
-    # Average Spending per Customer
-    avg_spending_per_customer = total_sales / no_unique_customers
-    # Average Customer Value
-    avg_customer_value = avg_spending_per_customer / avg_purchase_frequency
-    # Put together
-    sales_kpi = pd.DataFrame({'Number of Unique Orders': no_unique_order,
-                              'Total Sales': total_sales,
-                              'Average Sale': average_sale_per_order,
-                              'Number of Unique Customers': no_unique_customers,
-                              'Number of New Customers': no_new_customers,
-                              'Average Purchase Frequency': avg_purchase_frequency,
-                              'Average Spending Per Customer': avg_spending_per_customer,
-                              'Average Customer Value': avg_customer_value})
+    sales_kpi['Number of New Customers'] = first_orders.groupby('Date')['EMPPID'].nunique()
     return sales_kpi
 
+def calculate_sales_averages(no_unique_order, no_unique_customers, total_sales, sales_kpi):
+    # Average Sale Value per Order
+    sales_kpi['Average Sale'] = total_sales / no_unique_order
+    # Average Purchase Frequency
+    sales_kpi['Average Purchase Frequency'] = no_unique_order / no_unique_customers
+    # Average Spending per Customer
+    sales_kpi['Average Spending Per Customer'] = total_sales / no_unique_customers
+    # Average Customer Value
+    sales_kpi['Average Customer Value'] = sales_kpi['Average Spending Per Customer'] / sales_kpi['Average Purchase Frequency']
+    return sales_kpi
 
-def create_pbd_items_table(pbd_table, pbd_items):  # staging table
-    '''
-    Returns PBD sales table at an item level
-
-            Parameters:
-                    pbd_table (pandas dataframe): dataframe from above
-                    pbd_items (pandas dataframe): pbd_items dataframe from above
-
-            Returns:
-                    pbd_items_table (pandas dataframe): pbd sales table at item level
-
-    '''
-    # subset columns
-    pbd_items_columns = ['EMPPID', 'ORDER_NO', 'ORDER_DATE', 'PRODUCT_NO', 'PRODUCT_DESC', 'ITEMEXTPRICE',
-                         'ITEMEXTCOST']
-    pbd_items = pbd_items[pbd_items_columns]
-    pbd_items['ORDER_DATE'] = pd.to_datetime(pbd_items['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
-
-    # merge with item table
-    pbd_items_table = pd.merge(pbd_table, pbd_items, on=['ORDER_NO', 'ORDER_DATE'], how='inner')
-
-    # drop columns
-    pbd_items_table = pbd_items_table.drop(['EMPPID_y'], axis=1).rename(columns={'EMPPID_x': 'EMPPID'})
-
-    return pbd_items_table
 
 
 def create_product_sales_table(pbd_items_table):  # staging table
@@ -224,9 +337,7 @@ def create_product_sales_table(pbd_items_table):  # staging table
                     product_sales (pandas dataframe): cleaned columns
 
     '''
-    pbd_items_table['ORDER_DATE'] = pd.to_datetime(pbd_items_table['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
-    pbd_items_table['ORDER_MONTH'] = pd.DatetimeIndex(pbd_items_table['ORDER_DATE']).month
-    pbd_items_table['ORDER_YEAR'] = pd.DatetimeIndex(pbd_items_table['ORDER_DATE']).year
+    pbd_items_table = format_product_items_table_dates(pbd_items_table)
     product_sales = pbd_items_table.groupby(['PRODUCT_NO', 'PRODUCT_DESC', 'ORDER_YEAR', 'ORDER_MONTH'])[
         'ITEMEXTPRICE'].sum().reset_index()
     new_column_names = ['Item Number', 'Product Names', 'Year', 'Month', 'Revenue']
@@ -234,6 +345,11 @@ def create_product_sales_table(pbd_items_table):  # staging table
                                                           new_column_names)))
     return product_sales
 
+def format_product_items_table_dates(pbd_items_table):
+    pbd_items_table['ORDER_DATE'] = pd.to_datetime(pbd_items_table['ORDER_DATE'], format='%Y/%m/%d %H:%M:%S')
+    pbd_items_table['ORDER_MONTH'] = pd.DatetimeIndex(pbd_items_table['ORDER_DATE']).month
+    pbd_items_table['ORDER_YEAR'] = pd.DatetimeIndex(pbd_items_table['ORDER_DATE']).year
+    return pbd_items_table
 
 def unmatched_budget_codes(row):  # helper function
     '''
@@ -277,21 +393,21 @@ def match_budget_codes(product_sales, budget_code):  # helper function
     # fill up the remaining budget codes
     product_sales_unmatched['Budget Code'] = product_sales_unmatched.apply(unmatched_budget_codes, axis=1)
     product_sales_coded = pd.concat([product_sales_matched, product_sales_unmatched])
-    return (product_sales_coded)
+    return product_sales_coded
 
 
 def create_product_main_table(product_sales_coded):
     main_product_names = ['CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
     main_product_indices = product_sales_coded['Product Names'].str.contains('|'.join(main_product_names))
     product_main = product_sales_coded[main_product_indices]
-    return (product_main)
+    return product_main
 
 
 def create_product_remainder_table(product_sales_coded):
-    main_product_names = ['CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
+    main_product_names = ['BUDGET_DESC', 'CPT PROFESSIONAL', 'CPT CHANGES', 'ICD-10-PCS', 'ICD-10-CM' 'HCPCS']
     main_product_indices = product_sales_coded['Product Names'].str.contains('|'.join(main_product_names))
     product_remainder = product_sales_coded[~main_product_indices]
-    return (product_remainder)
+    return product_remainder
 
 
 def create_customer_table(pbd_table, contacts, aims_overlay):
@@ -307,20 +423,20 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
                     customer (pandas dataframe): dataframe at a customer level
 
     '''
-    contacts_columns = ['EMPPID', 'BUSTITLE', 'STATE', 'GENDER', 'TITLE_DESC', 'INDUSTRY_DESC', 'IS_PHYSICIAN',
-                        'ORG_NAME']
-    aims_overlay_columns = ['EMPPID', 'BIRTHYEAR', 'TOPCODE', 'PECODE', 'PRIMSPCCD', 'YRSPRACTICE']
-    # subset columns for contacts and aims_overlay
-    contacts = contacts[contacts_columns]
-    aims_overlay = aims_overlay[aims_overlay_columns]
-
     # retain only the very first information from contacts and aims_overlay
-    contacts = contacts.groupby(['EMPPID']).first()
-    aims_overlay = aims_overlay.groupby(['EMPPID']).first()
+    contacts = contacts[columns.CONTACTS].groupby(['EMPPID']).first()
+    aims_overlay = aims_overlay[columns.AIMS_OVERLAY].groupby(['EMPPID']).first()
 
     # combined columns of interest from contacts and aims_overlay
-    final_columns = contacts_columns + aims_overlay_columns[1:]
+    final_columns = columns.CONTACTS + columns.AIMS_OVERLAY[1:]
 
+    customer = merge_customer_tables(pbd_table, contacts, aims_overlay, final_columns)
+
+    customer = rename_customer_columns(customer)
+
+    return customer
+
+def merge_customer_tables(pbd_table, contacts, aims_overlay, final_columns):
     # merge the tables
     customer = pd.merge(pbd_table, contacts, how='left', on='EMPPID').merge(aims_overlay, how='left', on='EMPPID')
     temp1 = customer.groupby(['EMPPID']).agg({'ITEMEXTPRICE': 'sum',
@@ -328,19 +444,14 @@ def create_customer_table(pbd_table, contacts, aims_overlay):
                                               'ORDER_NO': 'count'}).reset_index()
     temp2 = customer[final_columns].groupby(['EMPPID']).first().reset_index()
     customer = temp1.merge(temp2, on='EMPPID', how='inner')
-
-    # rename columns
-    new_column_names = ['Customer ID', 'Monetary Value', 'Recent Purchase Date', 'Frequency', 'Business Title', 'State',
-                        'Gender', 'Title Description', 'Industry Description',
-                        'Is Physician', 'Organization', 'Year of Birth', 'Type of Practice', 'Present Employment',
-                        'Primary Specialty',
-                        'Years of Practice']
-    customer = customer.rename(columns=dict(zip(customer.columns.tolist(),
-                                                new_column_names)))
-    customer['Recency'] = pd.Timestamp('today').normalize() - customer['Recent Purchase Date']
-
     return customer
 
+def rename_customer_columns(customer):
+    # rename columns
+    customer = customer.rename(columns=dict(zip(customer.columns.tolist(),
+                                                columns.NEW_COLUMN_NAMES)))
+    customer['RECENCY'] = pd.Timestamp('today').normalize() - customer['RECENT PURCHASE DATE']
+    return customer
 
 def clean_up_customer(customer):
     '''
@@ -352,26 +463,35 @@ def clean_up_customer(customer):
             Returns:
                     customer (pandas dataframe): customer dataframe cleaned up (Title and Industry descriptions)
     '''
+    customer = clean_up_customer_title(customer)
+    customer = clean_up_customer_industry(customer)
+
+    return customer
+
+def clean_up_customer_title(customer):
     # fill up NaN with 'Unknown'
-    customer['Title Description'] = customer['Title Description'].fillna('Unknown')
+    customer['TITLE DESCRIPTION'] = customer['TITLE DESCRIPTION'].fillna('Unknown')
     # recode phyisican, doctor, etc
-    customer['Title Description'] = customer['Title Description'].replace('Other (Specify)', 'Other').replace(
+    customer['TITLE DESCRIPTION'] = customer['TITLE DESCRIPTION'].replace('Other (Specify)', 'Other').replace(
         'Purchasing Agent', 'Purchasing Agent/Buyer').replace(
         ['DR/ MD/ PHYSICIAN', 'Dr/MD/Physician', 'DR/MD/PHYSICIAN', 'Dr, MD, Physician'], 'Physician').replace(
         'Billing Manager/Sup/Director', 'Billing Manager/Supervisor/Director').replace(
         ['NURSE (RN/LPN/RNP)', 'Nurse (RN,LPN,RNP)', 'Nurse (RN,LPN,RNP)', 'NURSE RN/LPN/RNP', 'Nurse (RN LPN RNP)'],
         'NURSE')
     # Title strings
-    customer['Title Description'] = customer['Title Description'].str.title().replace(
+    customer['TITLE DESCRIPTION'] = customer['TITLE DESCRIPTION'].str.title().replace(
         ['General Management/Ceo/Cfo', 'General Management/Ceo/Coo/Cfo'], 'General Management/CEO/COO/CFO').replace(
         'Description Unknown', 'Unknown').replace('Medical Records/Doc Manager',
                                                   'Medical Records/Documentation Manager').replace(
         ['Coding Manager/Sup/Director', 'Coding/Manager/Supervisor/Director'],
         'Coding Manager/Supervisor/Director').replace('Nurse(Rn/Lpn/Rnp)', 'Nurse').replace(
         'Coders/Claims/Record Processors', 'Claims/Record Processor/Coder')
-    customer['Industry Description'] = customer['Industry Description'].str.title()
-    customer['Industry Description'] = customer['Industry Description'].fillna('Unknown')
-    customer['Industry Description'] = customer['Industry Description'].replace(
+    return customer
+
+def clean_up_customer_industry(customer):
+    customer['INDUSTRY DESCRIPTION'] = customer['INDUSTRY DESCRIPTION'].str.title()
+    customer['INDUSTRY DESCRIPTION'] = customer['INDUSTRY DESCRIPTION'].fillna('Unknown')
+    customer['INDUSTRY DESCRIPTION'] = customer['INDUSTRY DESCRIPTION'].replace(
         ['Hospital/Med Cntr/VA Hospital', 'Hospital/Med Center/Va Hosp'], 'Hospital/Med Center/VA Hosp').replace(
         ['Group Practice [3+ Physicians]', 'Insurance Co', '2-Yr/4-Yr College', 'Wgerber@Aol.Com',
          'Billing Company/Claims Processing', 'Hmo/Ppo/Managed Care', 'Description Unknown'],
@@ -379,79 +499,20 @@ def clean_up_customer(customer):
          'Billing Company/Claims Processor', 'HMO/PPO/Managed Care', 'Unknown'])
     return customer
 
-
 def create_email_campaign_table(email_campaign):
-    email_campaign_columns = ['MESSAGE_NAME', 'EVENT_DATE', 'PROD_DESC', 'TOTAL_OPENS', 'TOTAL_CLICKS',
-                              'TOTAL_BOUNCES', 'TOTAL_UNSUBS', 'TOTAL_SENDS', 'OPEN_RATE', 'CLICK_RATE',
-                              'BOUNCE_RATE', 'UNSUB_RATE', 'DELIVERY_RATE']
-    email_campaign = email_campaign[email_campaign_columns]
-    new_email_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), email_campaign_columns)]
-    email_campaign = email_campaign.rename(columns=dict(zip(email_campaign_columns,
+    #email_campaign = email_campaign[columns.EMAIL_CAMPAIGN]
+    new_email_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), columns.EMAIL_CAMPAIGN)]
+    email_campaign = email_campaign.rename(columns=dict(zip(columns.EMAIL_CAMPAIGN,
                                                             new_email_campaign_columns)))
     return email_campaign
 
-
-def main():
-    # define file paths
-    file_paths = create_file_paths()
-    # create tables using file paths
-    tables = create_tables(file_paths)
-    # define input and output directories
-    input_directory = file_paths['input_directory']
-    output_directory = file_paths['output_directory']
-    # import budget code
-    budget_code = pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
-                                usecols=['Item Number', 'Budget Code'])
-    # transform tables
-    pbd_table = create_pbd_table(tables['pbd_orders'], tables['pbd_returns'], tables['pbd_cancels'])
-    sales_pbd = create_pbd_sales_table(pbd_table)
-    sales_olsub = create_olsub_sales_table(tables['olsub_orders'])
-    sales = pd.concat([sales_pbd, sales_olsub], axis=0)
-    sales_kpi = create_sales_kpi(sales, pbd_table)
-    pbd_items_table = create_pbd_items_table(pbd_table, tables['pbd_items'])
-    product_sales = create_product_sales_table(pbd_items_table)
-    product_sales_coded = match_budget_codes(product_sales, budget_code)
-    product_main = create_product_main_table(product_sales_coded)
-    product_remainder = create_product_remainder_table(product_sales_coded)
-    customer = create_customer_table(pbd_items_table, tables['contacts'], tables['aims_overlay'])
-    customer_clean = clean_up_customer(customer)
-    pbd_orders = tables['pbd_orders']
-    direct_mail = pbd_orders[pbd_orders['ORDER_TYPE'] == 'Mail']
-    fax = pbd_orders[pbd_orders['ORDER_TYPE'] == 'FAX']
-    email_campaign = create_email_campaign_table(tables['emailcampaign'])
-    # export tables
-    pbd_table.to_csv(output_directory + 'pbd_table_order.csv', index=False)
-    sales_pbd.to_csv(output_directory + 'sales.csv', index=False)
-    sales_kpi.to_csv(output_directory + 'sales_kpi.csv')
-    product_main.to_csv(output_directory + 'product_main.csv', index=False)
-    product_remainder.to_csv(output_directory + 'product_remainder.csv', index=False)
-    customer_clean.to_csv(output_directory + 'customer.csv')
-    direct_mail.to_csv(output_directory + 'direct_mail.csv')
-    fax.to_csv(output_directory + 'fax.csv')
-    email_campaign.to_csv(output_directory + 'email_campaign.csv')
-
+def create_direct_mail_table(direct_mail):
+    direct_mail_campaign_columns = ['CATALOG_DESC']
+    direct_mail_campaign = direct_mail[direct_mail_campaign_columns]
+    new_direct_mail_campaign_columns = [*map(lambda x: x.title().replace('_', ' '), direct_mail_campaign_columns)]
+    direct_mail_campaign = direct_mail_campaign.rename(columns=dict(zip(direct_mail_campaign_columns,
+                                                            new_direct_mail_campaign_columns)))
+    return direct_mail_campaign
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

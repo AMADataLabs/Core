@@ -16,3 +16,4 @@ Environment/*
 venv
 get-pip.py
 Build/CPT/credentials
+Build/OneView/credentials
