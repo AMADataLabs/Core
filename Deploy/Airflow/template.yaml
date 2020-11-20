@@ -230,17 +230,17 @@ objects:
           volumeMounts:
           - mountPath: /airflow/shared
             name: ${APPLICATION_NAME}-dags
-        #
+
         # - name: airflow-git-sync
         #   image: k8s.gcr.io/git-sync:v3.1.2
         #   imagePullPolicy: IfNotPresent
-        #   volumeMounts:
-        #   - mountPath: /airflow/dags
-        #     name: ${APPLICATION_NAME}-dags
         #   envFrom:
         #   - configMapRef:
         #       name: airflow-git-sync
-        #
+        #   volumeMounts:
+        #   - mountPath: /dags
+        #     name: ${APPLICATION_NAME}-dags
+
         - name: airflow-webserver
           image: ' '
           imagePullPolicy: IfNotPresent
