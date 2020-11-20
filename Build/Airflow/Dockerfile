@@ -23,6 +23,6 @@ RUN mkdir -p shared \
     && ln -s shared dags \
     && ln -s shared logs
 
-RUN chown -R airflow:0 ${AIRFLOW_HOME} && chmod -R g+rwx,o-w ${AIRFLOW_HOME}
+RUN chown -R airflow:0 ${AIRFLOW_HOME} && chmod -R 777 ${AIRFLOW_HOME}
 
 USER ${USER_ID}
