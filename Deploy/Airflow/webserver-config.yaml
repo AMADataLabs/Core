@@ -11,6 +11,7 @@ data:
     AIRFLOW__CORE__FERNET_KEY: yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ=
     AIRFLOW__CORE__HOSTNAME_CALLABLE: socket:gethostname
     AIRFLOW__WEBSERVER__RBAC: "True"
+    AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: "true"
     AIRFLOW__KUBERNETES__GIT_REPO: git@bitbucket.org:hsdatalabs/hsg-data-labs.git
     AIRFLOW__KUBERNETES__GIT_BRANCH: master
     AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: /airflow/dags
