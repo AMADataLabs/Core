@@ -1,0 +1,21 @@
+FROM k8s.gcr.io/git-sync:v3.1.2
+
+# ENV GIT_SYNC_REPO git@bitbucket.org:hsdatalabs/hsg-data-labs.git
+# ENV GIT_SYNC_BRANCH master
+# ENV GIT_SUBPATH Source/Python/datalabs/dag
+# ENV GIT_SYNC_SSH true
+# ENV GIT_SSH_KEY_FILE /tmp/id_rsa
+# ENV GIT_SSH_KNOWN_HOSTS_FILE /tmp/known_hosts
+# ENV GIT_SYNC_WAIT 30
+ENV AIRFLOW_PATH /airflow/logs
+
+USER root
+# COPY ./id_rsa /tmp/id_rsa
+# COPY ./known_hosts /tmp/known_hosts
+# RUN mkdir -p /tmp/git
+# RUN chown git-sync /tmp/*
+RUN mkdir -p ${AIRFLOW_PATH}/logs \
+    && chown -R 1001:0 ${AIRFLOW_PATH} \
+    && chmod -R g+rwx,o-w ${AIRFLOW_PATH}
+
+USER 1001
