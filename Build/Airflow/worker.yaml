@@ -55,10 +55,11 @@ spec:
       imagePullPolicy: IfNotPresent
       ports: []
       volumeMounts:
-        - mountPath: /Airflow/hsg-data-labs
-          name: hsg-data-labs
-        - mountPath: "/Airflow/logs"
-          name: airflow-logs
+        - name: hsg-data-labs
+          mountPath: /Airflow/hsg-data-labs
+        - name: airflow-logs
+          mountPath: "/Airflow/logs"
+
   hostNetwork: false
   restartPolicy: Never
   securityContext:
@@ -81,7 +82,7 @@ spec:
     #   name: airflow-config
     # - configMap:
     #     name: RELEASE-NAME-airflow-config
-      name: airflow-local-settings
+      # name: airflow-local-settings
     - name: git-ssh
       secret:
         defaultMode: 420
