@@ -62,7 +62,8 @@ spec:
   hostNetwork: false
   restartPolicy: Never
   securityContext:
-    runAsUser: 50000
+    runAsUser: 1000280000
+    fsGroup: 1000280000
   nodeSelector:
     {}
   affinity:

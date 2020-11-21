@@ -13,8 +13,6 @@ RUN pip install --no-cache-dir apache-airflow['crypto','kubernetes','postgres']=
 
 WORKDIR ${AIRFLOW_HOME}
 
-COPY Build/Airflow/worker.yaml .
-
 COPY Build/Airflow/scheduler.sh .
 RUN chmod gu+rwx scheduler.sh
 
@@ -24,6 +22,8 @@ RUN chmod gu+rwx webserver.sh
 RUN mkdir -p shared \
     && ln -s shared dags \
     && ln -s shared logs
+
+COPY Build/Airflow/worker.yaml .
 
 RUN chown -R airflow:0 ${AIRFLOW_HOME} && chmod -R 777 ${AIRFLOW_HOME}
 
