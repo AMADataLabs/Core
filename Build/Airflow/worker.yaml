@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: dummy-name
+  name: hsg-data-labs-worker
 spec:
   initContainers:
     - name: repo-sync
@@ -34,25 +34,9 @@ spec:
       env:
         - name: AIRFLOW__CORE__EXECUTOR
           value: LocalExecutor
-        # Hard Coded Airflow Envs
-        # - name: AIRFLOW__CORE__FERNET_KEY
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: RELEASE-NAME-fernet-key
-        #       key: fernet-key
-        # - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: RELEASE-NAME-airflow-metadata
-        #       key: connection
-        # - name: AIRFLOW_CONN_AIRFLOW_DB
-        #   valueFrom:
-        #     secretKeyRef:
-        #       name: RELEASE-NAME-airflow-metadata
-        #       key: connection
       envFrom: []
-      image: dummy_image
-      imagePullPolicy: IfNotPresent
+      image: $(WORKER_CONTAINER_REPOSITORY):$(WORKER_CONTAINER_TAG)
+      imagePullPolicy: $(WORKER_CONTAINER_IMAGE_PULL_POLICY)
       ports: []
       volumeMounts:
         - name: hsg-data-labs
@@ -71,18 +55,11 @@ spec:
     {}
   tolerations:
     []
-  # serviceAccountName: 'RELEASE-NAME-worker-serviceaccount'
   volumes:
     - name: hsg-data-labs
       emptyDir: {}
     - name: airflow-logs
       emptyDir: {}
-    # - configMap:
-    #     name: RELEASE-NAME-airflow-config
-    #   name: airflow-config
-    # - configMap:
-    #     name: RELEASE-NAME-airflow-config
-      # name: airflow-local-settings
     - name: git-ssh
       secret:
         defaultMode: 420
