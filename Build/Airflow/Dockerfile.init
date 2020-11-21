@@ -1,16 +1,10 @@
-FROM k8s.gcr.io/git-sync:v3.1.2
-
-USER root
-WORKDIR /tmp
-
-ENV TINI_VERSION v0.19.0
-ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /tini
-RUN chmod +x /tini
+FROM python:3.7
+WORKDIR /Airflow
 
 # Python binary and source dependencies
 RUN apt-get update -qq && \
  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
- # tini \
+ tini \
  build-essential \
  ca-certificates \
  cmake \
@@ -48,10 +42,18 @@ RUN curl -SL -o nss_wrapper.tar.gz https://ftp.samba.org/pub/cwrap/nss_wrapper-1
  make install) && \
  rm -rf nss_wrapper
 
-RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "MockUser" mockuser
+ENV HOME /Airflow
+
+RUN adduser --disabled-password --uid 1001 --gid 0 --home ${HOME} --no-create-home --gecos "Airflow" airflow
 
 COPY ./Build/Airflow/entrypoint.sh entrypoint.sh
 RUN chmod +x ${HOME}/entrypoint.sh
 
-USER mockuser
-ENTRYPOINT ["/tmp/entrypoint.sh", "/git-sync"]
+# COPY ./Build/Airflow/ssh_config.txt ssh_config
+# RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > id_rsa
+# ENV GIT_SSH_COMMAND "ssh -o StrictHostKeyChecking=no -i ${HOME}/id_rsa"
+
+RUN chown -Rf 1001 ${HOME}
+RUN chmod go+rwx ${HOME}
+
+USER 1001
