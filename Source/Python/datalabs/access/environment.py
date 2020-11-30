@@ -1,3 +1,4 @@
+"""Class for loading environment"""
 import logging
 import os
 
@@ -33,7 +34,7 @@ class VariableTree:
         for next_branch in branches:
             branch = branch[next_branch]['branches']
 
-        return [key for key in branch.keys()]
+        return list(branch.keys())
 
     def get_branch_values(self, branches: list):
         branch = self._root

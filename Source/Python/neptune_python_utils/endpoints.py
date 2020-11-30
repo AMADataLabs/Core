@@ -17,7 +17,6 @@ from botocore.credentials import Credentials
 from botocore.credentials import RefreshableCredentials
 
 def synchronized_method(method):
-    
     outer_lock = threading.Lock()
     lock_name = "__"+method.__name__+"_lock"+"__"
     
@@ -88,14 +87,14 @@ class Endpoint:
             'access_key': role['Credentials']['AccessKeyId'],
             'secret_key': role['Credentials']['SecretAccessKey'], 
             'token': role['Credentials']['SessionToken'],
-             'expiry_time': role['Credentials']['Expiration'].isoformat()
+            'expiry_time': role['Credentials']['Expiration'].isoformat()
         }
         
     def value(self):
         return '{}://{}:{}/{}'.format(self.protocol, self.neptune_endpoint, self.neptune_port, self.suffix)
         
     def prepare_request(self, method='GET', payload='', querystring={}):
-        credentials =  self._get_credentials()
+        credentials = self._get_credentials()
         access_key = credentials.access_key
         secret_key = credentials.secret_key
         session_token = credentials.token

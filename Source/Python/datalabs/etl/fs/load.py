@@ -1,3 +1,4 @@
+"""Local file system loader"""
 from   datetime import datetime
 import os
 

@@ -1,6 +1,6 @@
 """Oneview Residency Table Columns"""
 
-program_columns = {
+PROGRAM_COLUMNS = {
     'pgm_id': 'id',
     'pgm_name': 'name',
     'pgm_web_address': 'web_address',
@@ -15,7 +15,7 @@ program_columns = {
     'inst_id': 'institution',
 }
 
-member_columns = {
+MEMBER_COLUMNS = {
     'pgm_id': 'program',
     'pers_type': 'personnel_type',
     'aamc_id': 'aamc_id',
@@ -31,6 +31,6 @@ member_columns = {
 
 }
 
-institution_columns = {
+INSTITUTION_COLUMNS = {
     'inst_id': 'id'
 }

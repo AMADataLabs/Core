@@ -1,3 +1,4 @@
+"""SFTP loader class"""
 from   datetime import datetime
 import io
 import os

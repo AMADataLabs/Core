@@ -26,7 +26,9 @@ class Physician(Base):
     sector = sa.Column(sa.String)
     carrier_route = sa.Column(sa.String)
     address_undeliverable = sa.Column(sa.String)
-    federal_information_processing_standard_county = sa.Column(sa.String, sa.ForeignKey("oneview.federal_information_processing_standard_county.id"))
+    federal_information_processing_standard_county = sa.Column(sa.String, sa.ForeignKey(
+        "oneview.federal_information_processing_standard_county.id")
+                                                               )
     federal_information_processing_standard_state = sa.Column(sa.String)
     printer_control_code_begin = sa.Column(sa.String)
     barcode_zipcode = sa.Column(sa.String)

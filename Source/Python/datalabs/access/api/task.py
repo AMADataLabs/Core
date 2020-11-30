@@ -101,9 +101,11 @@ class APIEndpointParametersGetterMixin(task.TaskWrapper):
 
 
 class APIEndpointTaskWrapper(APIEndpointParametersGetterMixin, task.TaskWrapper):
+    # pylint: disable=W0223
     def _generate_response(self) -> (int, dict):
         return self._task.status_code, self._task.headers, self._task.response_body
 
+    # pylint: disable=W0223
     def _handle_exception(self, exception: APIEndpointException) -> (int, dict):
         status_code = exception.status_code
         body = dict(message=exception.message)

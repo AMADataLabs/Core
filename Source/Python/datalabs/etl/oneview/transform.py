@@ -1,9 +1,10 @@
 """ Oneview Transformer"""
 from   abc import ABC, abstractmethod
-from   datalabs.etl.task import ETLException
 
-import datalabs.etl.transform as etl
 import logging
+
+from   datalabs.etl.task import ETLException
+from   datalabs.etl.transform import etl
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

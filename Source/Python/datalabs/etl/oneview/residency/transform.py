@@ -2,7 +2,7 @@
 import logging
 import pandas
 
-from   datalabs.etl.oneview.residency.column import program_columns, member_columns, institution_columns
+from   datalabs.etl.oneview.residency.column import PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -28,4 +28,4 @@ class ResidencyTransformer(TransformerTask):
         return [new_df, self._parameters.data[2], self._parameters.data[3]]
 
     def _get_columns(self):
-        return [program_columns, member_columns, institution_columns]
+        return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]

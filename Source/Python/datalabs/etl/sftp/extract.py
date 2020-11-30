@@ -3,7 +3,7 @@ import io
 import logging
 import os
 
-from   datalabs.access.sftp import SFTP, SFTPTaskMixin
+from   datalabs.access.sftp import SFTPTaskMixin
 from   datalabs.etl.extract import FileExtractorTask
 from   datalabs.etl.task import ETLException
 
@@ -47,7 +47,7 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
         except Exception as exception:
             raise ETLException(f"Unable to read file '{file_path}'") from exception
 
-        return sbytes(buffer.getbuffer())
+        return bytes(buffer.getbuffer())
 
     def _resolve_filename(self, sftp, file_path):
         base_path = os.path.dirname(file_path)

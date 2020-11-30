@@ -53,7 +53,7 @@ class ConsumerDescriptorEndpointTask(BaseConsumerDescriptorEndpointTask):
         code = self._parameters.path.get('code')
         query = self._filter_by_code(query, code)
 
-        return query.filter(ConsumerDescriptor.deleted == False)
+        return query.filter(not ConsumerDescriptor.deleted)
 
     @classmethod
     def _filter_by_code(cls, query, code):
@@ -83,7 +83,7 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
                 query = query.filter(Release.effective_date >= date)
 
         else:
-            query = query.filter(ConsumerDescriptor.deleted == False)
+            query = query.filter(not ConsumerDescriptor.deleted)
 
         return query
 

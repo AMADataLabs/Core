@@ -1,6 +1,6 @@
 """Oneview Credentialing Table Columns"""
 
-customer_columns = {
+CUSTOMER_COLUMNS = {
     'CUSTOMER_KEY': 'id',
     'CUSTOMER_NBR': 'number',
     'CUSTOMER_ISELL_LOGIN': 'isell_username',
@@ -11,12 +11,12 @@ customer_columns = {
     'CUSTOMER_CATEGORY_DESC': 'category_description'
 }
 
-product_columns = {
+PRODUCT_COLUMNS = {
     'PRODUCT_ID': 'id',
     'PRODUCT_DESC': 'description'
 }
 
-order_columns = {
+ORDER_COLUMNS = {
     'FACT_EPROFILE_KEY': 'id',
     'CUSTOMER_KEY': 'customer',
     'ORDER_PRODUCT_ID': 'product',

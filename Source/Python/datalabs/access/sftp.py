@@ -1,9 +1,7 @@
 """ Secure FTP object """
 from   dataclasses import dataclass
-from   abc import abstractmethod
 import logging
 import os
-
 import pandas
 import pysftp
 
@@ -17,7 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 @dataclass
 class Configuration:
-    host: str='eft.ama-assn.org'
+    host: str = 'eft.ama-assn.org'
 
     @classmethod
     def load(cls, key: str):
@@ -57,11 +55,11 @@ class SFTP(Datastore):
             cnopts=cnopts
         )
 
-    def ls(self, path: str, filter: str=None):
+    def ls_files(self, path: str, filtering: str = None):
         with self._connection.cd(path):
-             files = self._connection.listdir()
+            files = self._connection.listdir()
 
-        return self._filter_files(files, filter)
+        return self._filter_files(files, filtering)
 
     def get(self, path: str, file):
         base_path = os.path.dirname(path)
@@ -78,11 +76,11 @@ class SFTP(Datastore):
             self._connection.putfo(file, filename, callback=self._status_callback)
 
     @classmethod
-    def _filter_files(cls, files: list, filter: str) -> list:
+    def _filter_files(cls, files: list, filtering: str) -> list:
         filtered_files = files
 
-        if filter and '*' in filter:
-            filter_parts = filter.split('*')
+        if filtering and '*' in filtering:
+            filter_parts = filtering.split('*')
             prefix = filter_parts[0]
             suffix = filter_parts[-1]
             filtered_files = [file for file in files if file.startswith(prefix) and file.endswith(suffix)]

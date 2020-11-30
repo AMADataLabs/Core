@@ -1,6 +1,5 @@
 """ Base Lambda function Task wrapper class. """
 from   abc import ABC, abstractmethod
-import json
 
 import datalabs.task as task
 

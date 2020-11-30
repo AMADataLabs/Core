@@ -40,7 +40,8 @@ class DeletionHistoryParser(CPTLinkParser):
 class CodeHistoryParser(CPTLinkParser):
     def __init__(self):
         super().__init__(
-            ['date', 'change_type', 'concept_id', 'cpt_code', 'level', 'prior_value', 'current_value', 'instruction'], header=None
+            ['date', 'change_type', 'concept_id', 'cpt_code', 'level', 'prior_value', 'current_value', 'instruction'],
+            header=None
         )
 
 

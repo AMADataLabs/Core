@@ -2,16 +2,15 @@
 from   enum import Enum
 from   dataclasses import dataclass
 from   datetime import datetime, date
+
 import io
 import logging
 
-import numpy as np
 import pandas
-import sqlalchemy as sa
 
 from   datalabs.etl.transform import TransformerTask
 from   datalabs.access.orm import DatabaseTaskMixin
-from   datalabs.etl.load import LoaderTask
+
 import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()
@@ -61,6 +60,7 @@ class ReleaseSchedule:
     type: str
     publish_date: str
     effective_date: str
+
 
 class ReleaseSchedulePrefix(Enum):
     NonPLA = 'ANNUAL'
@@ -208,16 +208,17 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
 
     @classmethod
-    def _generate_pla_release_dates(self,pla_details):
+    def _generate_pla_release_dates(cls, pla_details):
         pla = pla_details[['effective_date', 'published_date']].rename(
             columns=dict(published_date='publish_date')
         )
         pla_releases = pla.drop_duplicates(ignore_index=True)
 
-        effective_dates = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.effective_date]
+        effective_dates = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in
+                           pla_releases.effective_date]
         publish_dates = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.publish_date]
 
-        return effective_dates,publish_dates
+        return effective_dates, publish_dates
 
     @classmethod
     def _generate_code_table(cls, descriptors, pla_details):
@@ -260,9 +261,9 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         return non_pla_mapping_table
 
     @classmethod
-    def _generate_pla_release_code_mappings(cls, pla_details, codes):
+    def _generate_pla_release_code_mappings(cls, pla_details):
         pla_mapping_table = pla_details[['effective_date', 'pla_code']].rename(columns=dict(effective_date='release',
-                                                                                    pla_code='code'))
+                                                                                            pla_code='code'))
 
         pla_mapping_table.release = pla_mapping_table.release.apply(
             lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d'))
@@ -290,7 +291,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
         orphaned_codes = list(descriptor_table.code[~descriptor_table.code.isin(codes.code)])
         if len(orphaned_codes) > 0:
-            LOGGER.warn('Ignoring Consumer Descriptors for the following missing codes: %s', orphaned_codes)
+            LOGGER.warning('Ignoring Consumer Descriptors for the following missing codes: %s', orphaned_codes)
 
         return descriptor_table[descriptor_table.code.isin(codes.code)]
 
@@ -315,7 +316,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
         orphaned_codes = list(mapping_table.code[~mapping_table.code.isin(codes.code)])
         if len(orphaned_codes) > 0:
-            LOGGER.warn('Ignoring Clinician Descriptor mappings for the following missing codes: %s', orphaned_codes)
+            LOGGER.warning('Ignoring Clinician Descriptor mappings for the following missing codes: %s', orphaned_codes)
 
         return mapping_table[mapping_table.code.isin(codes.code)]
 

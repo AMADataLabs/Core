@@ -1,3 +1,4 @@
+"""Masterfile verification data model"""
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
 

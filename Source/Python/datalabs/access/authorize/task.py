@@ -1,9 +1,10 @@
-from   abc import abstractmethod, ABC
+"""Authorize Task"""
+from   abc import ABC
 from   dataclasses import dataclass
 import json
 import requests
 
-from datalabs.task import Task, TaskException
+from   datalabs.task import Task, TaskException
 
 
 @dataclass

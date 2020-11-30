@@ -1,3 +1,4 @@
+"""Expanded PPD columns"""
 NAMES = [
     'ME',
     'PARTY_ID',

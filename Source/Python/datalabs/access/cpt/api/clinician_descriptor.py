@@ -1,11 +1,11 @@
 """ Clinician Descriptor endpoints """
-from abc import abstractmethod
+from   abc import abstractmethod
 import logging
 
-from sqlalchemy import or_, and_
+from   sqlalchemy import or_, and_
 
-from datalabs.access.api.task import APIEndpointTask, ResourceNotFound
-from datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
         code = self._parameters.path.get('code')
         query = self._filter_by_code(query, code)
 
-        return query.filter(ClinicianDescriptor.deleted == False)
+        return query.filter(not ClinicianDescriptor.deleted)
 
     @classmethod
     def _filter_by_code(cls, query, code):
@@ -85,7 +85,7 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
                 query = query.filter(Release.effective_date >= date)
 
         else:
-            query = query.filter(ClinicianDescriptor.deleted == False)
+            query = query.filter(not ClinicianDescriptor.deleted)
 
         return query
 

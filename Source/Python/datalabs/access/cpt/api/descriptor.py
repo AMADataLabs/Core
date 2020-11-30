@@ -86,7 +86,7 @@ class DescriptorEndpointTask(BaseDescriptorEndpointTask):
         code = self._parameters.path.get('code')
         query = self._filter_by_code(query, code)
 
-        return query.filter(dbmodel.Code.deleted == False)
+        return query.filter(not dbmodel.Code.deleted)
 
     @classmethod
     def _filter_by_code(cls, query, code):
@@ -117,7 +117,7 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
                 query = query.filter(dbmodel.Release.effective_date >= date)
 
         else:
-            query = query.filter(dbmodel.Code.deleted == False)
+            query = query.filter(not dbmodel.Code.deleted)
 
         return query
 

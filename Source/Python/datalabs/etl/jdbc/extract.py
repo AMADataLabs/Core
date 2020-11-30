@@ -1,6 +1,4 @@
 """JDBC Extractor"""
-import os
-
 import jaydebeapi
 import pandas
 

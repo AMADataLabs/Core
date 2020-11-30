@@ -1,3 +1,4 @@
+"""Lineage initializing"""
 from datalabs.access.lineage.base import \
     Configuration, \
     ConfigurationException, \
