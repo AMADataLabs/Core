@@ -71,3 +71,6 @@ spec:
             mode: 288
             path: known_hosts
         secretName: airflow-init
+    - configMap:
+        name: airflow-scheduler
+      name: airflow-scheduler
