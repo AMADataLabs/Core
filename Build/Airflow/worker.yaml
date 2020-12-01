@@ -39,8 +39,8 @@ spec:
         # - name: AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG
         #   value: master-python3.7
       envFrom:
-    - configMapRef:
-        name: airflow-scheduler
+          - configMapRef:
+              name: airflow-scheduler
       # image: dummy_image
       imagePullPolicy: IfNotPresent
       ports: []
