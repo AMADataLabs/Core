@@ -35,8 +35,8 @@ spec:
         - name: AIRFLOW__CORE__EXECUTOR
           value: LocalExecutor
       envFrom: []
-      image: $(WORKER_CONTAINER_REPOSITORY):$(WORKER_CONTAINER_TAG)
-      imagePullPolicy: $(WORKER_CONTAINER_IMAGE_PULL_POLICY)
+      image: "$(WORKER_CONTAINER_REPOSITORY):$(WORKER_CONTAINER_TAG)"
+      imagePullPolicy: "$(CONTAINER_IMAGE_PULL_POLICY)"
       ports: []
       volumeMounts:
         - name: hsg-data-labs
