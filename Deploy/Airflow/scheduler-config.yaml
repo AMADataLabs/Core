@@ -21,6 +21,8 @@ data:
     AIRFLOW__KUBERNETES__POD_TEMPLATE_FILE: /airflow/worker.yaml
     AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: apache/airflow
     AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: master-python3.7
+    # worker_container_repository
+    # worker_container_tag
     AIRFLOW__KUBERNETES__ENV_FROM_CONFIGMAP_REF: airflow-scheduler
     # AIRFLOW__KUBERNETES__WORKER_CONTAINER_IMAGE_PULL_POLICY: "IfNotPresent"
     # AIRFLOW__KUBERNETES__WORKER_SERVICE_ACCOUNT_NAME: default

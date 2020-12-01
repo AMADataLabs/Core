@@ -35,7 +35,7 @@ spec:
         - name: AIRFLOW__CORE__EXECUTOR
           value: LocalExecutor
       envFrom: []
-      image: dummy_image
+      # image: dummy_image
       imagePullPolicy: IfNotPresent
       ports: []
       volumeMounts:
