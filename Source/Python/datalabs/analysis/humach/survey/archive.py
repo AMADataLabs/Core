@@ -93,8 +93,8 @@ class HumachResultsArchive:
             raise ValueError('Columns provided do not match columns expected.')
         """
         for col in self.expected_file_columns.dict[table]:
-            assert col in cols, col
-
+            if 'VERIFIED/UPDATED' not in col:
+                assert col in cols, col
 
     def ingest_result_file(self, table, file_path):
         if table == 'humach_result':
@@ -287,6 +287,9 @@ class HumachResultsArchive:
 
         formatted_data = pd.DataFrame()
         for col in self.expected_file_columns.standard_results:
+            if 'VERIFIED/UPDATED' in col and 'VERIFIED/UPDATED' not in data.columns.values:
+                data[col] = data[col.replace('VERIFIED/UPDATED', 'VERIFIED UPDATED')]
+                print(col)
             formatted_data[col] = data[col]
 
         self.validate_cols(table='humach_result', cols=cols)
