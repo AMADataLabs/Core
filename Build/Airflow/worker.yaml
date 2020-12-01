@@ -41,7 +41,7 @@ spec:
       envFrom:
           - configMapRef:
               name: airflow-scheduler
-      # image: dummy_image
+      image: dummy_image
       imagePullPolicy: IfNotPresent
       ports: []
       volumeMounts:
