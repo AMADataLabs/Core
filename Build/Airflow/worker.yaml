@@ -115,18 +115,18 @@ spec:
         - name: AIRFLOW__CORE__FERNET_KEY
           valueFrom:
             secretKeyRef:
-              name: RELEASE-NAME-fernet-key
+              name: airflow
               key: fernet-key
         - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
           valueFrom:
             secretKeyRef:
-              name: RELEASE-NAME-airflow-metadata
-              key: connection
-        - name: AIRFLOW_CONN_AIRFLOW_DB
-          valueFrom:
-            secretKeyRef:
-              name: RELEASE-NAME-airflow-metadata
-              key: connection
+              name: airflow
+              key: db-connection
+        # - name: AIRFLOW_CONN_AIRFLOW_DB
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: airflow
+        #       key: db-connection
         - name: HOME
           value: /home/airflow
       envFrom: []
@@ -158,17 +158,17 @@ spec:
     {}
   tolerations:
     []
-  serviceAccountName: 'RELEASE-NAME-worker-serviceaccount'
+  # serviceAccountName: 'RELEASE-NAME-worker-serviceaccount'
   volumes:
     - name: dags
       emptyDir: {}
     - emptyDir: {}
       name: airflow-logs
     - configMap:
-        name: RELEASE-NAME-airflow-config
+        name: airflow-scheduler
       name: airflow-config
     - configMap:
-        name: RELEASE-NAME-airflow-config
+        name: airflow-scheduler
       name: airflow-local-settings
     - name: hsg-data-labs
       emptyDir: {}
