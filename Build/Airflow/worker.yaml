@@ -34,14 +34,7 @@ spec:
       env:
         - name: AIRFLOW__CORE__EXECUTOR
           value: LocalExecutor
-        - name: AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY
-          value: apache/airflow
-        - name: AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG
-          value: master-python3.7
-      # envFrom:
-      #     - configMapRef:
-      #         name: airflow-scheduler
-      image: dummy_image
+      image: apache/airflow:master-python3.7
       imagePullPolicy: IfNotPresent
       ports: []
       volumeMounts:
