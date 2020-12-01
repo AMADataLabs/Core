@@ -1,7 +1,85 @@
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: hsg-data-labs-worker
+# spec:
+#   initContainers:
+#     - name: repo-sync
+#       image: "harbor.ama-assn.org/hsg-data-labs/init:1.0.1"
+#       command:
+#         - /Airflow/entrypoint.sh
+#       args:
+#         - git
+#         - clone
+#         - --single-branch
+#         - -b
+#         - $(REPO_SYNC_BRANCH)
+#         - ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
+#       env:
+#         - name: REPO_SYNC_BRANCH
+#           value: "master"
+#       volumeMounts:
+#         - name: git-ssh
+#           mountPath: /Airflow/.ssh/id_rsa
+#           subPath: id_rsa
+#         - name: git-ssh
+#           mountPath: /Airflow/.ssh/known_hosts
+#           subPath: known_hosts
+#         - name: hsg-data-labs
+#           mountPath: /Airflow/hsg-data-labs
+#   containers:
+#     - name: base
+#       command: []
+#       args: []
+#       env:
+#         - name: AIRFLOW__CORE__EXECUTOR
+#           value: LocalExecutor
+#         - name: HOME
+#           value: /home/airflow
+#       image: apache/airflow:master-python3.7
+#       imagePullPolicy: IfNotPresent
+#       ports: []
+#       volumeMounts:
+#         - name: hsg-data-labs
+#           mountPath: /Airflow/hsg-data-labs
+#         - name: airflow-logs
+#           mountPath: "/Airflow/logs"
+#
+#   hostNetwork: false
+#   restartPolicy: Never
+#   securityContext:
+#     runAsUser: 1000280000
+#     fsGroup: 1000280000
+#   nodeSelector:
+#     {}
+#   affinity:
+#     {}
+#   tolerations:
+#     []
+#   volumes:
+#     - name: hsg-data-labs
+#       emptyDir: {}
+#     - name: airflow-logs
+#       emptyDir: {}
+#     - name: git-ssh
+#       secret:
+#         defaultMode: 420
+#         items:
+#           - key: id_rsa
+#             mode: 288
+#             path: id_rsa
+#           - key: known_hosts
+#             mode: 288
+#             path: known_hosts
+#         secretName: airflow-init
+
+
+
+# [START git_sync_template]
 apiVersion: v1
 kind: Pod
 metadata:
-  name: hsg-data-labs-worker
+  name: dummy-name
 spec:
   initContainers:
     - name: repo-sync
@@ -28,23 +106,47 @@ spec:
         - name: hsg-data-labs
           mountPath: /Airflow/hsg-data-labs
   containers:
-    - name: base
+    - args: []
       command: []
-      args: []
       env:
         - name: AIRFLOW__CORE__EXECUTOR
           value: LocalExecutor
+        # Hard Coded Airflow Envs
+        - name: AIRFLOW__CORE__FERNET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: RELEASE-NAME-fernet-key
+              key: fernet-key
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          valueFrom:
+            secretKeyRef:
+              name: RELEASE-NAME-airflow-metadata
+              key: connection
+        - name: AIRFLOW_CONN_AIRFLOW_DB
+          valueFrom:
+            secretKeyRef:
+              name: RELEASE-NAME-airflow-metadata
+              key: connection
         - name: HOME
           value: /home/airflow
-      image: apache/airflow:1.10.12
+      envFrom: []
+      image: dummy_image
       imagePullPolicy: IfNotPresent
+      name: base
       ports: []
       volumeMounts:
+        - mountPath: "/opt/airflow/logs"
+          name: airflow-logs
+        - mountPath: /opt/airflow/dags
+          name: airflow-dags
+          readOnly: false
+        - mountPath: /opt/airflow/dags
+          name: airflow-dags
+          readOnly: true
         - name: hsg-data-labs
           mountPath: /Airflow/hsg-data-labs
         - name: airflow-logs
           mountPath: "/Airflow/logs"
-
   hostNetwork: false
   restartPolicy: Never
   securityContext:
@@ -56,10 +158,19 @@ spec:
     {}
   tolerations:
     []
+  serviceAccountName: 'RELEASE-NAME-worker-serviceaccount'
   volumes:
-    - name: hsg-data-labs
+    - name: dags
       emptyDir: {}
-    - name: airflow-logs
+    - emptyDir: {}
+      name: airflow-logs
+    - configMap:
+        name: RELEASE-NAME-airflow-config
+      name: airflow-config
+    - configMap:
+        name: RELEASE-NAME-airflow-config
+      name: airflow-local-settings
+    - name: hsg-data-labs
       emptyDir: {}
     - name: git-ssh
       secret:
@@ -72,3 +183,4 @@ spec:
             mode: 288
             path: known_hosts
         secretName: airflow-init
+# [END git_sync_template]
