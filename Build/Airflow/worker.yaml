@@ -34,7 +34,7 @@ spec:
       env:
         - name: AIRFLOW__CORE__EXECUTOR
           value: LocalExecutor
-      image: apache/airflow:master-python3.7
+      image: apache/airflow:1.10.12
       imagePullPolicy: IfNotPresent
       ports: []
       volumeMounts:
