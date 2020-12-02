@@ -27,7 +27,7 @@ from   neptune_python_utils.endpoints import Endpoints
 class BulkLoad:
     def __init__(self,
                  source,
-                 format='csv',
+                 source_format='csv',
                  role=None,
                  mode='AUTO',
                  region=None,
@@ -39,7 +39,7 @@ class BulkLoad:
                  endpoints=None):
 
         self.source = source
-        self.format = format
+        self.format = source_format
 
         if role is None:
             assert ('NEPTUNE_LOAD_FROM_S3_ROLE_ARN' in os.environ), 'role is missing.'

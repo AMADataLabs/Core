@@ -24,4 +24,3 @@ ORDER_COLUMNS = {
     'MED_EDU_NBR': 'medical_education_number',
     'FULL_DT': 'date'
 }
-

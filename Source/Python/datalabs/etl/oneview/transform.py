@@ -4,7 +4,7 @@ from   abc import ABC, abstractmethod
 import logging
 
 from   datalabs.etl.task import ETLException
-from   datalabs.etl.transform import etl
+import datalabs.etl.transform as etl
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

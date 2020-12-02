@@ -3,7 +3,7 @@ from   datetime import datetime
 import io
 import os
 
-from   datalabs.access.sftp import SFTP, SFTPTaskMixin
+from   datalabs.access.sftp import SFTPTaskMixin
 from   datalabs.etl.load import LoaderTask
 from   datalabs.etl.task import ETLException
 
