@@ -1,11 +1,11 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 labels:
-  template: airflow-persistent-template
+  template: airflow-persistent
 message: |-
-    The following service(s) have been created in your project: ${AIRFLOW_SERVICE_NAME}.
+    The following service(s) have been created in your project: ${APPLICATION_NAME}.
 
-    Connection URL: https:/${AIRFLOW_SERVICE_NAME}/
+    Connection URL: https:/${APPLICATION_NAME}/
 metadata:
   name: airflow-persistent
   namespace: hsg-data-labs-dev
@@ -19,11 +19,122 @@ metadata:
       a PostgreSQL database for metadata storage. All services are backed by a persistent volume.
     openshift.io/provider-display-name: HSG Data Labs
     tags: object,storage,s3
+
+
 objects:
+# Metadata Database
+# - apiVersion: v1
+#   kind: Service
+#   metadata:
+#     name: ${APPLICATION_NAME}-db
+#     annotations:
+#       template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
+#   spec:
+#     ports:
+#     - name: postgresql
+#       port: 5432
+#       protocol: TCP
+#       targetPort: 5432
+#     selector:
+#       name: ${APPLICATION_NAME}
+#     sessionAffinity: None
+#     type: ClusterIP
+#   status:
+#     loadBalancer: {}
+#
+# - apiVersion: v1
+#   kind: PersistentVolumeClaim
+#   metadata:
+#     name: ${APPLICATION_NAME}-metadata
+#   spec:
+#     accessModes:
+#     - ReadWriteOnce
+#     resources:
+#       requests:
+#         storage: ${VOLUME_CAPACITY}
+#
+# - apiVersion: v1
+#   kind: DeploymentConfig
+#   metadata:
+#     name: ${APPLICATION_NAME}-db
+#   spec:
+#     replicas: 1
+#     selector:
+#       name: ${APPLICATION_NAME}
+#     strategy:
+#       type: Recreate
+#     template:
+#       metadata:
+#         labels:
+#           name: ${APPLICATION_NAME}
+#       spec:
+#         containers:
+#         - name: postgresql
+#           image: ' '
+#           imagePullPolicy: IfNotPresent
+#           env:
+#           - name: POSTGRESQL_USER
+#             valueFrom:
+#               secretKeyRef:
+#                 key: database-user
+#                 name: ${APPLICATION_NAME}
+#           - name: POSTGRESQL_PASSWORD
+#             valueFrom:
+#               secretKeyRef:
+#                 key: database-password
+#                 name: ${APPLICATION_NAME}
+#           - name: POSTGRESQL_DATABASE
+#             valueFrom:
+#               secretKeyRef:
+#                 key: database-name
+#                 name: ${APPLICATION_NAME}
+#           livenessProbe:
+#             exec:
+#               command:
+#               - /usr/libexec/check-container
+#               - --live
+#             initialDelaySeconds: 120
+#             timeoutSeconds: 10
+#           ports:
+#           - containerPort: 5432
+#             protocol: TCP
+#           readinessProbe:
+#             exec:
+#               command:
+#               - /usr/libexec/check-container
+#             initialDelaySeconds: 5
+#             timeoutSeconds: 1
+#           securityContext:
+#             capabilities: {}
+#             privileged: false
+#           terminationMessagePath: /dev/termination-log
+#           volumeMounts:
+#           - mountPath: /var/lib/pgsql/data
+#             name: ${APPLICATION_NAME}-metadata
+#         dnsPolicy: ClusterFirst
+#         restartPolicy: Always
+#         volumes:
+#         - name: ${APPLICATION_NAME}-metadata
+#           persistentVolumeClaim:
+#             claimName: ${APPLICATION_NAME}-metadata
+#     triggers:
+#     - type: ImageChange
+#       imageChangeParams:
+#         automatic: true
+#         containerNames:
+#         - postgresql
+#         from:
+#           kind: ImageStreamTag
+#           name: postgresql:9.6
+#           namespace: ${DATABASE_IMAGE_NAMESPACE}
+#         lastTriggeredImage: ""
+#     - type: ConfigChange
+
+# Airflow
 - apiVersion: v1
   kind: Service
   metadata:
-    name: ${AIRFLOW_SERVICE_NAME}-ui
+    name: ${APPLICATION_NAME}-ui
     annotations:
       template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
   spec:
@@ -32,89 +143,201 @@ objects:
       nodePort: 0
       port: 8080
       protocol: TCP
-      targetPort: http
+      targetPort: 8080
     selector:
-      name: ${AIRFLOW_SERVICE_NAME}
+      name: ${APPLICATION_NAME}
     sessionAffinity: None
     type: ClusterIP
   status:
     loadBalancer: {}
+
 - apiVersion: v1
   kind: Route
   metadata:
-    name: ${AIRFLOW_SERVICE_NAME}-route
+    name: ${APPLICATION_NAME}-ui
     annotations:
       template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
   spec:
-    host: ${AIRFLOW_SERVICE_NAME}.apps.openshifttest.ama-assn.org
+    host: ${APPLICATION_NAME}.apps.openshifttest.ama-assn.org
     port:
-      targetPort: http
+      targetPort: 8080
     tls:
       termination: edge
     to:
       kind: Service
-      name: ${AIRFLOW_SERVICE_NAME}-ui
+      name: ${APPLICATION_NAME}-ui
       weight: 100
     wildcardPolicy: None
     selector:
-      name: ${AIRFLOW_SERVICE_NAME}
+      name: ${APPLICATION_NAME}
   status:
     ingress: null
-# - apiVersion: v1
-#   kind: PersistentVolumeClaim
-#   metadata:
-#     name: ${AIRFLOW_SERVICE_NAME}
-#   spec:
-#     accessModes:
-#     - ReadWriteOnce
-#     resources:
-#       requests:
-#         storage: ${VOLUME_CAPACITY}
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${APPLICATION_NAME}-shared
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
-    name: ${AIRFLOW_SERVICE_NAME}
+    name: ${APPLICATION_NAME}
   spec:
     replicas: 1
     selector:
-      name: ${AIRFLOW_SERVICE_NAME}
+      name: ${APPLICATION_NAME}
     strategy:
       type: Recreate
     template:
       metadata:
         labels:
-          name: ${AIRFLOW_SERVICE_NAME}
+          name: ${APPLICATION_NAME}
       spec:
         containers:
-        - capabilities: {}
-          command:
-          - /entrypoint.sh
-          image: "hsg-data-labs-dev/airflow"
+        - name: airflow-scheduler
+          image: ' '
           imagePullPolicy: IfNotPresent
-          name: airflow
+          command:
+          - /airflow/scheduler.sh
+          env:
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: ${APPLICATION_NAME}
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: ${APPLICATION_NAME}
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: ${APPLICATION_NAME}
+          - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+          # - name: AIRFLOW__KUBERNETES__LOGS_VOLUME_CLAIM
+          #   value: ${APPLICATION_NAME}-shared
+          # - name: AIRFLOW__KUBERNETES__DAGS_VOLUME_CLAIM
+          #   value: ${APPLICATION_NAME}-shared
+          envFrom:
+          - configMapRef:
+              name: airflow-scheduler
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /airflow/shared
+            name: ${APPLICATION_NAME}-shared
+
+        # - name: airflow-git-sync
+        #   image: k8s.gcr.io/git-sync:v3.1.2
+        #   imagePullPolicy: IfNotPresent
+        #   envFrom:
+        #   - configMapRef:
+        #       name: airflow-git-sync
+        #   volumeMounts:
+        #   - mountPath: /dags
+        #     name: ${APPLICATION_NAME}-shared
+
+        - name: airflow-webserver
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          command:
+          - /airflow/webserver.sh
+          env:
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: ${APPLICATION_NAME}
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: ${APPLICATION_NAME}
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: ${APPLICATION_NAME}
+          - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+          envFrom:
+          - configMapRef:
+              name: airflow-webserver
           ports:
           - containerPort: 8080
             protocol: TCP
           terminationMessagePath: /dev/termination-log
-          # volumeMounts:
-          # - mountPath: /var/lib/airflow/data
-          #   name: ${AIRFLOW_SERVICE_NAME}-data
+          volumeMounts:
+          - mountPath: /airflow/shared
+            name: ${APPLICATION_NAME}-shared
+
+        securityContext:
+            fsGroup: 1000280000
         dnsPolicy: ClusterFirst
         restartPolicy: Always
-        # volumes:
-        # - name: ${AIRFLOW_SERVICE_NAME}-data
-        #   persistentVolumeClaim:
-        #     claimName: ${AIRFLOW_SERVICE_NAME}
+        volumes:
+        - name: ${APPLICATION_NAME}-shared
+          persistentVolumeClaim:
+            claimName: ${APPLICATION_NAME}-shared
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - airflow-scheduler
+        from:
+          kind: ImageStreamTag
+          name: airflow:latest
+          namespace: hsg-data-labs-dev
+        lastTriggeredImage: ""
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - airflow-webserver
+        from:
+          kind: ImageStreamTag
+          name: airflow:latest
+          namespace: hsg-data-labs-dev
+        lastTriggeredImage: ""
+    - type: ConfigChange
+
+
 parameters:
-- description: The OpenShift Namespace where the ImageStream resides.
+- name: DATABASE_IMAGE_NAMESPACE
+  description: The OpenShift Namespace where the ImageStream resides.
   displayName: Namespace
-  name: NAMESPACE
-  value: hsg-data-labs-dev
-- description: The name of the OpenShift Service exposed for the database.
+  value: openshift
+- name: APPLICATION_NAME
+  description: The name of the OpenShift Service exposed for the database.
   displayName: Airflow Service Name
-  name: AIRFLOW_SERVICE_NAME
-  value: airflow
-- description: Volume space available for data, e.g. 512Mi, 2Gi.
+  value: hsg-data-labs-airflow
+- name: VOLUME_CAPACITY
+  description: Volume space available for data, e.g. 512Mi, 2Gi.
   displayName: Volume Capacity
-  name: VOLUME_CAPACITY
   value: 1Gi
+# - name: DATABASE_USER
+#   description: Username for PostgreSQL user that will be used for accessing the database.
+#   displayName: PostgreSQL Connection Username
+#   generate: expression
+#   required: true
+#   value: airflow
+# - name: DATABASE_PASSWORD
+#   description: Password for the PostgreSQL connection user.
+#   displayName: PostgreSQL Connection Password
+#   from: '[a-zA-Z0-9]{16}'
+#   generate: expression
+#   required: true
+# - name: DATABASE_NAME
+#   description: Name of the PostgreSQL database accessed.
+#   displayName: PostgreSQL Database Name
+#   required: true
+#   value: airflow
