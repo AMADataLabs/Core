@@ -1,0 +1,33 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+
+# Project Settings
+PROJECT_NAME='OneView'
+
+
+TASK_CLASS=datalabs.etl.task.ETLTask
+TASK_WRAPPER_CLASS=datalabs.etl.awslambda.ETLTaskWrapper
+
+
+# CredentialingFinal Extractor
+EXTRACTOR_CLASS=datalabs.etl.s3.extract.S3UnicodeFileExtractorTask
+EXTRACTOR_BASEPATH=AMA/OneView/%Y%m%d
+EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-ingestion-onprem
+EXTRACTOR_FILES=credentialing_addresses.csv,credentialing_customer.csv,credentialing_product.csv,credentialing_order.csv
+EXTRACTOR_ACCESSKEY='{{key}}'
+EXTRACTOR_SECRETKEY=''{{secret}}''
+EXTRACTOR_ENDPOINTURL=https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org/minio
+
+# CredentialingFinal Transformer
+TRANSFORMER_CLASS=datalabs.etl.oneview.credentialing.transform.CredentialingFinalTransformerTask
+
+# CredentialingFinal ORM Loader
+LOADER_CLASS=datalabs.etl.orm.load.ORMLoader
+LOADER_MODELCLASSES=datalabs.model.masterfile.oneview.CredentialingCustomer,datalabs.model.masterfile.oneview.CredentialingProduct,datalabs.model.masterfile.oneview.CredentialingOrder
+LOADER_DATABASE_NAME={{ database_name }}
+LOADER_DATABASE_BACKEND=postgresql+psycopg2
+LOADER_DATABASE_HOST={{ database_host }}
+LOADER_DATABASE_USERNAME={{ database_username }}
+LOADER_DATABASE_PASSWORD={{ database_password }}
+LOADER_TABLES=credentialing_customer,credentialing_product,credentialing_order
