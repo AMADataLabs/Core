@@ -130,7 +130,7 @@ spec:
         - name: HOME
           value: /home/airflow
       envFrom: []
-      image: "harbor.ama-assn.org/hsg-data-labs/airflow-worker:1.0.1"
+      image: "harbor.ama-assn.org/hsg-data-labs/airflow-worker:1.0.2"
       imagePullPolicy: IfNotPresent
       name: base
       ports: []

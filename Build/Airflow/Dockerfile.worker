@@ -1,8 +1,20 @@
-FROM apache/airflow:1.10.12
+FROM python:3.7
 
-USER root
+ARG AIRFLOW_VERSION=1.10.12
 
 ENV HOME /home/airflow
+ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
+ENV USER=airflow
+ENV USER_ID=1000280000
+
+# RUN useradd -ms /bin/bash -d ${HOME} --uid ${USER_ID} -G 0 airflow
+
+RUN pip install --no-cache-dir apache-airflow['crypto','kubernetes','postgres']==${AIRFLOW_VERSION} \
+    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-1.10.12/constraints-3.8.txt"
+
+# FROM apache/airflow:1.10.12
+
+# USER root
 
 WORKDIR ${HOME}
 
@@ -54,9 +66,9 @@ RUN curl -SL -o nss_wrapper.tar.gz https://ftp.samba.org/pub/cwrap/nss_wrapper-1
 # RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > id_rsa
 # ENV GIT_SSH_COMMAND "ssh -o StrictHostKeyChecking=no -i ${HOME}/id_rsa"
 
-RUN chown -Rf 1000280000 ${HOME}
+RUN chown -Rf ${USER_ID} ${HOME}
 RUN chmod go+rwx ${HOME}
-RUN echo "runner:x:1000280000:0:Airflow,,,:/home/airflow:/usr/sbin/nologin" >> /etc/passwd
+RUN echo "runner:x:${USER_ID}:0:Airflow,,,:/home/airflow:/usr/sbin/nologin" >> /etc/passwd
 
-USER 1000280000
+USER ${USER_ID}
 ENTRYPOINT ["/home/airflow/entrypoint.sh"]
