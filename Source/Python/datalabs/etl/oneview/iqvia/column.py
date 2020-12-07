@@ -20,6 +20,7 @@ BUSINESS_COLUMNS = {
     'OWNER_STATUS': 'owner_status',
     'PROFIT_STATUS': 'profit_status'
 }
+
 PROVIDER_COLUMNS = {
     'PROFESSIONAL_ID': 'id',
     'ME': 'medical_education_number',
@@ -37,6 +38,7 @@ PROVIDER_COLUMNS = {
     'PRIMARY_PROF_DESC': 'primary_profession_description',
     'STATUS_DESC': 'status_description'
 }
+
 PROVIDER_AFFILIATION_COLUMNS = {
     'AFFIL_TYPE_ID': 'id',
     'IMS_ORG_ID': 'business',

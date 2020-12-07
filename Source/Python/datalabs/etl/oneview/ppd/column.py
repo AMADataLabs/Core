@@ -43,7 +43,7 @@ PPD_COLUMNS = {
     'PREFERREDPHONENUMBER': 'telephone_number',
     'PENDINGDEAD_IND': 'presumed_dead',
     'FAXNUMBER': 'fax_number',
-    'TOPCODE': 'type_of_practice_code',
+    'TOPCODE': 'type_of_practice',
     'PECODE': 'present_employment',
     'PRIMSPECIALTY': 'primary_specialty',
     'SECONDARYSPECIALTY': 'secondary_specialty',

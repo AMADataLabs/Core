@@ -1,16 +1,17 @@
 """Oneview Credentialing Table Columns"""
 import logging
+import pandas
 
-from datalabs.etl.oneview.credentialing.column import \
+from   datalabs.etl.oneview.credentialing.column import \
     CUSTOMER_COLUMNS, PRODUCT_COLUMNS, ORDER_COLUMNS, CUSTOMER_ADDRESSES_COLUMNS
-from datalabs.etl.oneview.transform import TransformerTask
+from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class CredentialingTransformer(TransformerTask):
+class CredentialingTransformerTask(TransformerTask):
     def _get_columns(self):
         return [CUSTOMER_COLUMNS, PRODUCT_COLUMNS, ORDER_COLUMNS]
 

@@ -1,4 +1,5 @@
 """ Oneview Residency Transformer"""
+from   io import StringIO
 import logging
 import pandas
 
@@ -10,22 +11,27 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class ResidencyTransformer(TransformerTask):
+class ResidencyTransformerTask(TransformerTask):
     def _transform(self):
-        self._parameters.data = [self._to_dataframe(data) for data in self._parameters.data]
-        self._parameters.data = self._merge_dataframe()
+        df_data = [self._to_dataframe(data) for data in self._parameters.data]
+        self._parameters.data = self._merge_dataframe(df_data)
         data = super()._transform()
 
         return data
 
     def _to_dataframe(self, file):
-        dataframe = pandas.read_csv(file, sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
+        dataframe = pandas.read_csv(StringIO(file), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
+
         return dataframe
 
-    def _merge_dataframe(self):
-        self._parameters.data[1].pgm_id = self._parameters.data[1].pgm_id.astype(str)
-        new_df = pandas.merge(self._parameters.data[0], self._parameters.data[1], on='pgm_id')
-        return [new_df, self._parameters.data[2], self._parameters.data[3]]
+    def _merge_dataframe(self, dataframes):
+        dataframes[1].pgm_id = dataframes[1].pgm_id.astype(str)
+        dataframes[2].pgm_id = dataframes[2].pgm_id.astype(str)
+
+        merged_df = pandas.merge(dataframes[0], dataframes[1], on='pgm_id')
+        merged_df = pandas.merge(merged_df, dataframes[2], on='pgm_id')
+
+        return [merged_df, dataframes[3], dataframes[4]]
 
     def _get_columns(self):
         return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]

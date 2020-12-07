@@ -11,24 +11,23 @@ PROGRAM_COLUMNS = {
     'addr3': 'address_3',
     'city': 'city',
     'state': 'state',
-    'zip+4': 'zipcode',
-    'inst_id': 'institution',
+    'Zip+4': 'zipcode',
+    'ins_id': 'institution',
 }
 
 MEMBER_COLUMNS = {
     'pgm_id': 'program',
     'pers_type': 'personnel_type',
     'aamc_id': 'aamc_id',
-    'person_name_first': 'first_name',
-    'pers_name_mi': 'middle_name',
+    'pers_name_first': 'first_name',
+    'pers_name_mid': 'middle_name',
     'pers_name_last': 'last',
     'pers_name_sfx': 'suffix',
     'pers_deg1': 'degree_1',
     'pers_deg2': 'degree_2',
     'pers_deg3': 'degree_3',
-    'pers_ph_number': 'phone_number',
-    'pers_email': 'email'
-
+    'pers_ph_num': 'phone_number',
+    'pers_e-mail': 'email'
 }
 
 INSTITUTION_COLUMNS = {

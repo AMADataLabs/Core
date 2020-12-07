@@ -9,6 +9,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class IQVIATransformer(TransformerTask):
+class IQVIATransformerTask(TransformerTask):
     def _get_columns(self):
         return [BUSINESS_COLUMNS, PROVIDER_COLUMNS, PROVIDER_AFFILIATION_COLUMNS]

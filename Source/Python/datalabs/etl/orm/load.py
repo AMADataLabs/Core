@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class ORMLoader(LoaderTask, DatabaseTaskMixin):
+class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _load(self):
         tables = [import_plugin(table) for table in self._parameters.variables['MODELCLASSES'].split(',')]
 
@@ -32,7 +32,7 @@ class ORMLoader(LoaderTask, DatabaseTaskMixin):
 
     def _create_model(self, row, model_class):
         columns = self._get_model_columns(model_class)
-        parameters = {column: getattr(row, column) for column in columns}
+        parameters = {column: getattr(row, column) for column in columns if hasattr(row, column)}
         model = model_class(**parameters)
 
         return model
