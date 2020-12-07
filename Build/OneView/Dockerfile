@@ -7,6 +7,8 @@ ENV PYTHONPATH=/OneView
 
 COPY ./Build/OneView/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
+RUN unzip ./InformixJdbcDriver.zip
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
