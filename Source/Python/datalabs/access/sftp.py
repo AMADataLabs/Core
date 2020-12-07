@@ -1,12 +1,12 @@
 """ Secure FTP object """
-from   dataclasses import dataclass
+from dataclasses import dataclass
 import logging
 import os
 import pandas
 import pysftp
 
-from   datalabs.access.credentials import Credentials
-from   datalabs.access.datastore import Datastore
+from datalabs.access.credentials import Credentials
+from datalabs.access.datastore import Datastore
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -55,20 +55,21 @@ class SFTP(Datastore):
             cnopts=cnopts
         )
 
-    def ls_files(self, path: str, filtering: str = None):
+    # pylint: disable=redefined-builtin
+    def list_files(self, path: str, filter: str = None):
         with self._connection.cd(path):
             files = self._connection.listdir()
 
-        return self._filter_files(files, filtering)
+        return self._filter_files(files, filter)
 
-    def get(self, path: str, file):
+    def get_files(self, path: str, file):
         base_path = os.path.dirname(path)
         filename = os.path.basename(path)
 
         with self._connection.cd(base_path):
             self._connection.getfo(filename, file, callback=self._status_callback)
 
-    def put(self, file, path: str):
+    def put_files(self, file, path: str):
         base_path = os.path.dirname(path)
         filename = os.path.basename(path)
 
@@ -92,7 +93,6 @@ class SFTP(Datastore):
         if total_bytes > 0:
             percent_transfered = round(bytes_transfered / total_bytes * 100)
             LOGGER.debug('Transfered %s bytes of %s (%d %%)', bytes_transfered, total_bytes, percent_transfered)
-
 
     def read(self, sql: str, **kwargs):
         return pandas.read_sql(sql, self._connection, **kwargs)

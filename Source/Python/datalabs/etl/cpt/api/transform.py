@@ -214,8 +214,9 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         )
         pla_releases = pla.drop_duplicates(ignore_index=True)
 
-        effective_dates = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in
-                           pla_releases.effective_date]
+        effective_dates = [
+            datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.effective_date
+        ]
         publish_dates = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.publish_date]
 
         return effective_dates, publish_dates
@@ -262,8 +263,9 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
     @classmethod
     def _generate_pla_release_code_mappings(cls, pla_details):
-        pla_mapping_table = pla_details[['effective_date', 'pla_code']].rename(columns=dict(effective_date='release',
-                                                                                            pla_code='code'))
+        pla_mapping_table = pla_details[['effective_date', 'pla_code']].rename(
+            columns=dict(effective_date='release', pla_code='code')
+        )
 
         pla_mapping_table.release = pla_mapping_table.release.apply(
             lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d'))

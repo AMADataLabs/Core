@@ -1,4 +1,3 @@
-"""Neptune python utils intializer"""
 # Copyright 2020 Amazon.com, Inc. or its affiliates.
 # All Rights Reserved.
 #

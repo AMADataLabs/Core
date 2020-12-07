@@ -242,10 +242,12 @@ class TableUpdater:
     def _get_changeable_columns(self):
         columns = self._get_model_columns()
 
-        columns = [columns.remove(part) for part in self._primary_key]
+        for part in self._primary_key:
+            columns.remove(part)
 
         if all(column in columns for column in self._match_columns):
-            columns = [columns.remove(part) for part in self._match_columns]
+            for part in self._primary_key:
+                columns.remove(part)
 
         return columns
 
@@ -265,7 +267,8 @@ class TableUpdater:
 
         # pylint: disable=comparison-with-itself
         if any(part != part for part in primary_key):  # test for NaN
-            model = [setattr(model, part, None) for part in self._primary_key]
+            for part in self._primary_key:
+                setattr(model, part, None)
 
         if hasattr(model, 'modified_date'):
             model.modified_date = datetime.utcnow().date()
