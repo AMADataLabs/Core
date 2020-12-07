@@ -1,8 +1,8 @@
 """ Oneview Major Professional Activity Transformer"""
 import logging
 
-from   datalabs.etl.oneview.ppd.column import MPA_COLUMNS
-from   datalabs.etl.oneview.transform import TransformerTask
+from datalabs.etl.oneview.ppd.column import MPA_COLUMNS
+from datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
