@@ -12,12 +12,7 @@ class JDBCExtractorTask(ExtractorTask):
     def _extract(self):
         connection = self._connect()
 
-        try:
-            tables = self._read_queries(connection)
-        except Exception as exception:
-            raise ETLException("Invalid SQL Statement") from exception
-
-        return tables
+        return self._read_queries(connection)
 
     def _connect(self):
         url = f"jdbc:{self._parameters.variables['DRIVERTYPE']}://{self._parameters.database['host']}:" \
