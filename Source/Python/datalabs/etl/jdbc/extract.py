@@ -8,7 +8,7 @@ from   datalabs.etl.extract import ExtractorTask
 from   datalabs.etl.task import ETLException
 
 
-class JDBCExtractor(ExtractorTask):
+class JDBCExtractorTask(ExtractorTask):
     def _extract(self):
         connection = self._connect()
 

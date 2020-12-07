@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class ORMLoader(LoaderTask, DatabaseTaskMixin):
+class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _load(self):
         Tables = [import_plugin(table) for table in self._parameters.variables['MODELCLASSES'].split(',')]
 

@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class ResidencyTransformer(TransformerTask):
+class ResidencyTransformerTask(TransformerTask):
     def _transform(self):
         df_data = [self._to_dataframe(data) for data in self._parameters.data]
         self._parameters.data = self._merge_dataframe(df_data)
