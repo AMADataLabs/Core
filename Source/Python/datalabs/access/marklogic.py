@@ -59,14 +59,14 @@ class MarkLogic(Datastore):
     @classmethod
     def write_file(cls, data, file_name, save_dir=''):
         """ File names by default are the URI of the file, which themselves often contain relative paths. """
-        file = (save_dir + file_name).replace('/', '\\').replace('\\\\', '\\')
-        file_dir = file[:file.rindex('\\') if '\\' in file else '']
+        file_path = (save_dir + file_name).replace('/', '\\').replace('\\\\', '\\')
+        file_dir = file_path[:file_path.rindex('\\') if '\\' in file_path else '']
 
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
 
-        with open(file, 'wb+') as open_file:
-            open_file.write(data)
+        with open(file_path, 'wb+') as file:
+            file.write(data)
 
     def _get_page_search_result(self, query, collection, start, page_length, database):
         url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \

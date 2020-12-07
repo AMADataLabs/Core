@@ -6,7 +6,7 @@ import json
 import os
 import pandas
 
-from   datalabs.etl.s3.extract import extract
+import datalabs.etl.s3.extract as extract
 
 
 class CPTTextDataExtractorTask(extract.S3UnicodeTextFileExtractorTask):

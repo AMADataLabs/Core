@@ -6,19 +6,14 @@ from   datalabs.access.environment import VariableTree
 
 
 # pylint: disable=redefined-outer-name
-def test_get_branches(tree):
+def test_get_values(tree):
     assert tree.get_value(['ONE', 'TWO', 'BUCKLE']) == 'foo'
     assert tree.get_value(['ONE', 'TWO', 'MY']) == 'bar'
     assert tree.get_value(['ONE', 'TWO', 'SHOE']) == 'party'
 
-    branches = ['BUCKLE', 'MY', 'SHOE']
-
-    for branch in branches:
-        assert branch in branches
-
 
 # pylint: disable=redefined-outer-name
-def test_get_branch(tree):
+def test_get_branches(tree):
     branches = tree.get_branches(['ONE', 'TWO'])
 
     for branch in ['BUCKLE', 'MY', 'SHOE']:
