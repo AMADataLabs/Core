@@ -19,7 +19,7 @@ clean-test:
 	rm -f ${CWD}/Test/Python/test/datalabs/environment/*_template.txt
 
 lint:
-	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/* ${CWD}/Test/Python/*
+	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/datalabs/* ${CWD}/Test/Python/datalabs/*
 
 lint-source:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/*

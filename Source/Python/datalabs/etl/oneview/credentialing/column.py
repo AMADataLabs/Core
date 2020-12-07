@@ -24,3 +24,22 @@ ORDER_COLUMNS = {
     'MED_EDU_NBR': 'medical_education_number',
     'FULL_DT': 'date'
 }
+
+CUSTOMER_ADDRESSES_COLUMNS = {
+    'id': 'id',
+    'number': 'number',
+    'isell_username': 'isell_username',
+    'name': 'name',
+    'type': 'type',
+    'type_description': 'type_description',
+    'category': 'category',
+    'category_description': 'category_description',
+    'street_one': 'address_1',
+    'street_two': 'address_2',
+    'street_three': 'address_3',
+    'city': 'city',
+    'state': 'state',
+    'zipcode': 'zipcode',
+    'phone_number': 'phone_number',
+    'company_name': 'company_name'
+}

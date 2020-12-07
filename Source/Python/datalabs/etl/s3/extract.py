@@ -35,7 +35,13 @@ class S3FileExtractorTask(FileExtractorTask):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-        self._s3 = boto3.client('s3')
+        self._s3 = boto3.client(
+            's3',
+            endpoint_url=self._parameters.variables.get('ENDPOINTURL'),
+            aws_access_key_id=self._parameters.variables.get('ACCESSKEY'),
+            aws_secret_access_key=self._parameters.variables.get('SECRETKEY'),
+            region_name=self._parameters.variables.get('REGIONNAME')
+        )
 
     def _extract(self):
         latest_path = self._get_latest_path()
