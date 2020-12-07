@@ -25,7 +25,7 @@ lint-source:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/datalabs/*
 
 lint-test:
-	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Test/Python/datalabs/*
+	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Test/Python/*
 
 coverage:
 	${RUN} coverage run -m pytest Test/Python/ -W ignore::DeprecationWarning
