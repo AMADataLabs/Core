@@ -1,4 +1,3 @@
-"""GLue neptune connection information"""
 # Copyright 2020 Amazon.com, Inc. or its affiliates.
 # All Rights Reserved.
 #
@@ -13,17 +12,15 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
-from   urllib.parse import urlparse
-import boto3
-
-from   neptune_python_utils.endpoints import Endpoints
-
+import sys, boto3
+from urllib.parse import urlparse
+from neptune_python_utils.endpoints import Endpoints
 
 class GlueNeptuneConnectionInfo:
 
     def __init__(self, region, role_arn):
-        self.region = region
-        self.role_arn = role_arn
+            self.region = region
+            self.role_arn = role_arn
 
     def neptune_endpoints(self, connection_name):
         """Gets Neptune endpoint information from the Glue Data Catalog.

@@ -1,4 +1,3 @@
-"""Neptune endpoints"""
 # Copyright 2020 Amazon.com, Inc. or its affiliates.
 # All Rights Reserved.
 #
@@ -13,32 +12,23 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
-import os
-import datetime
-import hashlib
-import hmac
-import boto3
-import urllib
-import uuid
-import threading
-
-from   botocore.credentials import RefreshableCredentials
-
+import sys, os, base64, datetime, hashlib, hmac, boto3, urllib, uuid, threading
+from botocore.credentials import Credentials
+from botocore.credentials import RefreshableCredentials
 
 def synchronized_method(method):
+
     outer_lock = threading.Lock()
-    lock_name = "__" + method.__name__ + "_lock" + "__"
+    lock_name = "__"+method.__name__+"_lock"+"__"
 
     def sync_method(self, *args, **kws):
         with outer_lock:
-            if not hasattr(self, lock_name):
-                setattr(self, lock_name, threading.Lock())
+            if not hasattr(self, lock_name): setattr(self, lock_name, threading.Lock())
             lock = getattr(self, lock_name)
             with lock:
                 return method(self, *args, **kws)
 
     return sync_method
-
 
 class RequestParameters:
 
@@ -46,7 +36,6 @@ class RequestParameters:
         self.uri = uri
         self.querystring = querystring
         self.headers = headers
-
 
 class Endpoint:
 
@@ -99,14 +88,14 @@ class Endpoint:
             'access_key': role['Credentials']['AccessKeyId'],
             'secret_key': role['Credentials']['SecretAccessKey'],
             'token': role['Credentials']['SessionToken'],
-            'expiry_time': role['Credentials']['Expiration'].isoformat()
+             'expiry_time': role['Credentials']['Expiration'].isoformat()
         }
 
     def value(self):
         return '{}://{}:{}/{}'.format(self.protocol, self.neptune_endpoint, self.neptune_port, self.suffix)
 
     def prepare_request(self, method='GET', payload='', querystring={}):
-        credentials = self._get_credentials()
+        credentials =  self._get_credentials()
         access_key = credentials.access_key
         secret_key = credentials.secret_key
         session_token = credentials.token
@@ -115,13 +104,13 @@ class Endpoint:
         algorithm = 'AWS4-HMAC-SHA256'
 
         request_parameters = urllib.parse.urlencode(querystring, quote_via=urllib.parse.quote)
-        request_parameters = request_parameters.replace('%27', '%22')
+        request_parameters = request_parameters.replace('%27','%22')
 
         canonical_querystring = self.__normalize_query_string(request_parameters)
 
-        time = datetime.datetime.utcnow()
-        amzdate = time.strftime('%Y%m%dT%H%M%SZ')
-        datestamp = time.strftime('%Y%m%d')
+        t = datetime.datetime.utcnow()
+        amzdate = t.strftime('%Y%m%dT%H%M%SZ')
+        datestamp = t.strftime('%Y%m%d')
         canonical_headers = 'host:{}:{}\nx-amz-date:{}\n'.format(
             self.neptune_endpoint,
             self.neptune_port,
@@ -152,7 +141,7 @@ class Endpoint:
             credential_scope,
             signed_headers,
             signature)
-        headers = {'x-amz-date': amzdate, 'Authorization': authorization_header}
+        headers = {'x-amz-date':amzdate, 'Authorization':authorization_header}
         if session_token:
             headers['x-amz-security-token'] = session_token
         return RequestParameters(
@@ -162,23 +151,23 @@ class Endpoint:
         )
 
     def __normalize_query_string(self, query):
-        split_query = (list(map(str.strip, s.split("=")))
+        kv = (list(map(str.strip, s.split("=")))
               for s in query.split('&')
               if len(s) > 0)
 
         normalized = '&'.join('%s=%s' % (p[0], p[1] if len(p) > 1 else '')
-                              for p in sorted(split_query))
+                              for p in sorted(kv))
         return normalized
 
     def __sign(self, key, msg):
         return hmac.new(key, msg.encode('utf-8'), hashlib.sha256).digest()
 
-    def __get_signature_key(self, key, date_stamp, region_name, service_name):
-        k_date = self.__sign(('AWS4' + key).encode('utf-8'), date_stamp)
-        k_region = self.__sign(k_date, region_name)
-        k_service = self.__sign(k_region, service_name)
-        k_signing = self.__sign(k_service, 'aws4_request')
-        return k_signing
+    def __get_signature_key(self, key, dateStamp, regionName, serviceName):
+        kDate = self.__sign(('AWS4' + key).encode('utf-8'), dateStamp)
+        kRegion = self.__sign(kDate, regionName)
+        kService = self.__sign(kRegion, serviceName)
+        kSigning = self.__sign(kService, 'aws4_request')
+        return kSigning
 
 
 class Endpoints:
@@ -205,6 +194,7 @@ class Endpoints:
             self.credentials = session.get_credentials() if role_arn is None else None
         else:
             self.credentials = credentials
+
 
     def gremlin_endpoint(self):
         return self.__endpoint('wss', self.neptune_endpoint, self.neptune_port, 'gremlin')

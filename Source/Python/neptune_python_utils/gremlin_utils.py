@@ -1,4 +1,3 @@
-"""Gremlin Utils"""
 # Copyright 2020 Amazon.com, Inc. or its affiliates.
 # All Rights Reserved.
 #
@@ -13,22 +12,24 @@
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
 
+import os
 import uuid
 
-from   neptune_python_utils.endpoints import Endpoints
-from   gremlin_python.driver.client import Client
-from   gremlin_python.driver.serializer import Processor, GraphSONMessageSerializer
-from   gremlin_python.structure.io import graphsonV3d0
-from   gremlin_python.driver import request
-from   gremlin_python.process import traversal
-from   gremlin_python import statics
-from   gremlin_python.process.anonymous_traversal import *
-from   gremlin_python.process.strategies import *
-from   gremlin_python.driver.driver_remote_connection import DriverRemoteConnection
-from   gremlin_python.process.traversal import *
-from   tornado.httpclient import HTTPError
-from   tornado import httpclient
-
+from neptune_python_utils.endpoints import Endpoints
+from gremlin_python.driver.client import Client
+from gremlin_python.driver.serializer import Processor, GraphSONMessageSerializer
+from gremlin_python.structure.io import graphsonV3d0
+from gremlin_python.driver import request
+from gremlin_python.process import traversal
+from gremlin_python import statics
+from gremlin_python.structure.graph import Graph
+from gremlin_python.process.graph_traversal import __
+from gremlin_python.process.anonymous_traversal import *
+from gremlin_python.process.strategies import *
+from gremlin_python.driver.driver_remote_connection import DriverRemoteConnection
+from gremlin_python.process.traversal import *
+from tornado.httpclient import HTTPError
+from tornado import httpclient
 
 class GremlinUtils:
 
@@ -74,7 +75,7 @@ class GremlinUtils:
             except HTTPError as e:
                 exc_info = sys.exc_info()
                 if retry_count < 3:
-                    retry_count += 1
+                    retry_count+=1
                     print('Connection timeout. Retrying...')
                 else:
                     raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
@@ -117,7 +118,6 @@ class Session(Processor):
     def close(self, args):
         return args
 
-
 class ExtendedGraphSONSerializersV3d0(GraphSONMessageSerializer):
 
     def __init__(self):
@@ -126,7 +126,6 @@ class ExtendedGraphSONSerializersV3d0(GraphSONMessageSerializer):
         version = b"application/vnd.gremlin-v3.0+json"
         super(ExtendedGraphSONSerializersV3d0, self).__init__(reader, writer, version)
         self.session = Session(writer)
-
 
 class SessionedClient(Client):
     
@@ -162,11 +161,12 @@ class SessionedClient(Client):
 
     def close(self):
         message = request.RequestMessage(
-            processor='session',
-            op='close',
-            args={'session': self._session_id,
-                  'manageTransaction': False,
-                  'force': False})
+                processor='session',
+                op='close',
+                args={'session': self._session_id,
+                      'manageTransaction': False,
+                      'force': False})
         conn = self._pool.get(True)
         conn.write(message).result()
         super(SessionedClient, self).close()
+

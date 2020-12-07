@@ -1,4 +1,3 @@
-"""Neptune python utils bulkload"""
 # Copyright 2020 Amazon.com, Inc. or its affiliates.
 # All Rights Reserved.
 #
@@ -18,28 +17,26 @@ import urllib.request
 import os
 import sys
 import time
-
-from   urllib.error import HTTPError
-
-from   neptune_python_utils.endpoints import Endpoints
-
+from neptune_python_utils.endpoints import Endpoints
+from urllib.error import HTTPError
 
 class BulkLoad:
+
     def __init__(self,
-                 source,
-                 source_format='csv',
-                 role=None,
-                 mode='AUTO',
-                 region=None,
-                 fail_on_error=False,
-                 parallelism='OVERSUBSCRIBE',
-                 base_uri='http://aws.amazon.com/neptune/default',
-                 named_graph_uri='http://aws.amazon.com/neptune/vocab/v01/DefaultNamedGraph',
-                 update_single_cardinality_properties=False,
-                 endpoints=None):
+        source,
+        format='csv',
+        role=None,
+        mode='AUTO',
+        region=None,
+        fail_on_error=False,
+        parallelism='OVERSUBSCRIBE',
+        base_uri='http://aws.amazon.com/neptune/default',
+        named_graph_uri='http://aws.amazon.com/neptune/vocab/v01/DefaultNamedGraph',
+        update_single_cardinality_properties=False,
+        endpoints=None):
 
         self.source = source
-        self.format = source_format
+        self.format = format
 
         if role is None:
             assert ('NEPTUNE_LOAD_FROM_S3_ROLE_ARN' in os.environ), 'role is missing.'
@@ -68,19 +65,19 @@ class BulkLoad:
 
     def __load_from(self, source):
         return {
-            'source': source,
-            'format': self.format,
-            'iamRoleArn': self.role,
-            'mode': self.mode,
-            'region': self.region,
-            'failOnError': self.fail_on_error,
-            'parallelism': self.parallelism,
-            'parserConfiguration': {
-                'baseUri': self.base_uri,
-                'namedGraphUri': self.named_graph_uri
-            },
-            'updateSingleCardinalityProperties': self.update_single_cardinality_properties
-        }
+              'source' : source,
+              'format' : self.format,
+              'iamRoleArn' : self.role,
+              'mode': self.mode,
+              'region' : self.region,
+              'failOnError' : self.fail_on_error,
+              'parallelism' : self.parallelism,
+              'parserConfiguration': {
+                  'baseUri': self.base_uri,
+                  'namedGraphUri': self.named_graph_uri
+              },
+              'updateSingleCardinalityProperties': self.update_single_cardinality_properties
+            }
 
     def __load(self, loader_endpoint, data):
 
@@ -93,10 +90,10 @@ class BulkLoad:
             response = urllib.request.urlopen(req)
             json_response = json.loads(response.read().decode('utf8'))
             return json_response['payload']['loadId']
-        except HTTPError as exception:
+        except HTTPError as e:
             exc_info = sys.exc_info()
-            if exception.code == 500:
-                raise Exception(json.loads(exception.read().decode('utf8'))) from None
+            if e.code == 500:
+                raise Exception(json.loads(e.read().decode('utf8'))) from None
             else:
                 raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
 
@@ -114,7 +111,6 @@ class BulkLoad:
         status = self.load_async()
         print('status_uri: {}'.format(status.load_status_endpoint))
         status.wait(interval)
-
 
 class BulkLoadStatus:
 
@@ -135,10 +131,10 @@ class BulkLoadStatus:
             json_response = json.loads(response.read().decode('utf8'))
             status = json_response['payload']['overallStatus']['status']
             return (status, json_response)
-        except HTTPError as exception:
+        except HTTPError as e:
             exc_info = sys.exc_info()
-            if exception.code == 500:
-                raise Exception(json.loads(exception.read().decode('utf8'))) from None
+            if e.code == 500:
+                raise Exception(json.loads(e.read().decode('utf8'))) from None
             else:
                 raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
 
@@ -152,8 +148,7 @@ class BulkLoadStatus:
                 print('load completed')
                 break
             if status == 'LOAD_IN_PROGRESS':
-                print(
-                    'loading... {} records inserted'.format(json_response['payload']['overallStatus']['totalRecords']))
+                print('loading... {} records inserted'.format(json_response['payload']['overallStatus']['totalRecords']))
                 time.sleep(interval)
             else:
                 raise Exception(json_response)

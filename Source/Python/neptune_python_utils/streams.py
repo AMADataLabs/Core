@@ -1,4 +1,3 @@
-"""Neptune streams"""
 # Copyright 2020 Amazon.com, Inc. or its affiliates.
 # All Rights Reserved.
 #
@@ -18,9 +17,7 @@ import json
 import urllib.request
 import urllib.error
 import ipywidgets as widgets
-
-from   IPython.display import display, HTML, clear_output
-
+from IPython.display import display, HTML, clear_output
 
 class EventId:
     def __init__(self, commit_num=1, op_num=1):
@@ -31,7 +28,6 @@ class EventId:
         if event_id is not None:
             self.commit_num = event_id.commit_num
             self.op_num = event_id.op_num
-
 
 class StreamViewer:
 
@@ -54,8 +50,7 @@ class StreamViewer:
 
     def get_events(self, commit_num, op_num, iterator):
         try:
-            req = urllib.request.Request(
-                '{}?iteratorType={}&commitNum={}&opNum={}'.format(self.stream_uri(), iterator, commit_num, op_num))
+            req = urllib.request.Request('{}?iteratorType={}&commitNum={}&opNum={}'.format(self.stream_uri(), iterator, commit_num, op_num))
             response = urllib.request.urlopen(req)
             jsonresponse = json.loads(response.read().decode('utf8'))
 
@@ -63,9 +58,9 @@ class StreamViewer:
             first_event = EventId(records[0]['eventId']['commitNum'], records[0]['eventId']['opNum'])
             last_event = EventId(jsonresponse['lastEventId']['commitNum'], jsonresponse['lastEventId']['opNum'])
 
-            return records, first_event, last_event
+            return (records, first_event, last_event)
         except urllib.error.HTTPError as e:
-            return [], None, None
+            return ([], None, None)
 
     def show_records(self, records):
 
@@ -78,8 +73,7 @@ class StreamViewer:
             if commit_num is None or current_commit_num != commit_num:
                 commit_num = current_commit_num
                 html += '<tr style="border: 1px solid black; background-color: gainsboro ; font-weight: bold;">'
-                html += '<td style="border: 1px solid black; vertical-align: top; text-align: left;" ' \
-                        'colspan="3">{}</td>'.format(commit_num)
+                html += '<td style="border: 1px solid black; vertical-align: top; text-align: left;" colspan="3">{}</td>'.format(commit_num)
                 html += '</tr><tr style="border: 1px solid black;">'
 
             html += '<tr style="border: 1px solid black; background-color: white;">'
@@ -134,6 +128,7 @@ class StreamViewer:
         self.last_event_id.update(last_event)
         self.update_slider_min_max()
 
+
     def update_slider_min_max(self):
         last = self.get_last_commit_num()
         first = self.get_first_commit_num()
@@ -144,6 +139,7 @@ class StreamViewer:
         else:
             self.slider.max = last
             self.slider.min = first
+
 
     def on_slider_changed(self, commit_num):
         if commit_num == self.last_event_id.commit_num:
