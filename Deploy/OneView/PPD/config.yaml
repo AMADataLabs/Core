@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: ppd-oneview-etl
+    namespace: hsg-data-labs-dev
+data:
+    TASK_CLASS: datalabs.etl.task.ETLTask
+    TASK_WRAPPER_CLASS: datalabs.etl.awslambda.ETLTaskWrapper
+    EXTRACTOR_DATABASE_NAME: eprdods
+    EXTRACTOR_DATABASE_HOST: rdbp1190.ama-assn.org
+    EXTRACTOR_DATABASE_PORT: "54150"
+    EXTRACTOR_CLASS: datalabs.etl.jdbc.extract.JDBCExtractor
+    EXTRACTOR_SQL: SELECT * FROM ODS.ODS_PPD_FILE;
+    EXTRACTOR_DRIVER: com.ibm.db2.jcc.DB2Jcc
+    EXTRACTOR_DRIVERTYPE: db2
+    EXTRACTOR_JARPATH: ./db2jcc4.jar
+    TRANSFORMER_CLASS: datalabs.etl.oneview.ppd.transform.PPDTransformer
+    LOADER_CLASS: datalabs.etl.orm.load.ORMLoader
+    LOADER_MODELCLASSES: datalabs.model.masterfile.oneview.Physician
+    LOADER_DATABASE_BACKEND: postgresql+psycopg2
+    LOADER_DATABASE_HOST: hsg-data-labs-db.hsg-data-labs-dev.svc.cluster.local
+    LOADER_DATABASE_PORT: "5432"
+    LOADER_DATABASE_NAME: datalabs
+    LOADER_TABLES: physician

@@ -33,7 +33,7 @@ class ORMLoader(LoaderTask, DatabaseTaskMixin):
 
     def _create_model(self, row, model_class):
         columns = self._get_model_columns(model_class)
-        parameters = {column: getattr(row, column) for column in columns}
+        parameters = {column: getattr(row, column) for column in columns if hasattr(row, column)}
         model = model_class(**parameters)
 
         return model

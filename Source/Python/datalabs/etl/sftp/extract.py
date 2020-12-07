@@ -37,7 +37,7 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
             else:
                 resolved_files += files
 
-        return resolved_files
+        return unresolved_files
 
     def _extract_file(self, sftp, file_path):
         buffer = io.BytesIO()
@@ -47,7 +47,7 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
         except Exception as exception:
             raise ETLException(f"Unable to read file '{file_path}'") from exception
 
-        return sbytes(buffer.getbuffer())
+        return bytes(buffer.getbuffer())
 
     def _resolve_filename(self, sftp, file_path):
         base_path = os.path.dirname(file_path)
