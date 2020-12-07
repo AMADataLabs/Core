@@ -113,7 +113,6 @@ resource "aws_secretsmanager_secret_version" "database" {
         username = "DataLabs_UI"
         password = var.database_password
         engine = "postgres"
-        host = "database-test-ui.c3mn4zysffxi.us-east-1.rds.amazonaws.com"
         port = 5432
         dbname = "sample"
         dbinstanceIdentifier = "database-test-ui"

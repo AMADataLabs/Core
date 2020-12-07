@@ -1,19 +1,20 @@
 resource "aws_db_instance" "cpt_api_database" {
-    identifier                    = var.rds_instance_name
+    identifier                    = local.rds_instance_name
     instance_class                = var.rds_instance_class
     storage_type                  = var.rds_storage_type
-    name                          = var.database_name
+    port                          = local.rds_port
+    name                          = local.database_name
     allocated_storage             = 20
-    engine                        = "postgres"
-    engine_version                = "11.5"
+    engine                        = local.rds_engine
+    engine_version                = "11.8"
     parameter_group_name          = "default.postgres11"
     max_allocated_storage         = 1000
     publicly_accessible           = true
     copy_tags_to_snapshot         = true
     performance_insights_enabled  = true
     skip_final_snapshot           = true
-    username                      = data.aws_ssm_parameter.database_username.value
-    password                      = data.aws_ssm_parameter.database_password.value
+    username                      = local.database_username
+    password                      = local.database_password
 
     tags = merge(local.tags, {Name = "${var.project} API Database"})
 }
@@ -403,15 +404,17 @@ module "etl_load" {
         TRANSFORMER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
         TRANSFORMER_DATABASE_BACKEND     = "postgresql+psycopg2"
         TRANSFORMER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
-        TRANSFORMER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
-        TRANSFORMER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
+        # TRANSFORMER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
+        # TRANSFORMER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
+        TRANSFORMER_DATABASE_SECRET      = data.aws_secretsmanager_secret.database.arn
 
         LOADER_CLASS                = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
         LOADER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
         LOADER_DATABASE_BACKEND     = "postgresql+psycopg2"
         LOADER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
-        LOADER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
-        LOADER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
+        # LOADER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
+        # LOADER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
+        LOADER_DATABASE_SECRET      = data.aws_secretsmanager_secret.database.arn
     }
 }
 
@@ -422,6 +425,13 @@ locals {
     spec_description    = "${var.project} API Phase I"
     na                  = "N/A"
     owner               = "DataLabs"
+    database_secret     = jsondecode(data.aws_secretsmanager_secret_version.database.secret_string)
+    rds_instance_name   = local.database_secret["dbinstanceIdentifier"]
+    rds_engine          = local.database_secret["engine"]
+    rds_port          = local.database_secret["port"]
+    database_name       = local.database_secret["dbname"]
+    database_username   = local.database_secret["username"]
+    database_password   = local.database_secret["password"]
     tags = {
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
