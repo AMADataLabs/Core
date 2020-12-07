@@ -9,7 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class RaceEthnicityTransformer(TransformerTask):
+class RaceEthnicityTransformerTask(TransformerTask):
     def _transform(self):
         self._parameters.data = [self._to_dataframe(data) for data in self._parameters.data]
         race_ethnicity_data = super()._transform()

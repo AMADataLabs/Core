@@ -9,6 +9,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class PPDTransformer(TransformerTask):
+class PPDTransformerTask(TransformerTask):
     def _get_columns(self):
         return [columns]
