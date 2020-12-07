@@ -1,6 +1,6 @@
 """Oneview Major Professional Activity Table Columns"""
 
-mpa_columns = {
+MPA_COLUMNS = {
     'mpa_cd': 'id',
     'description': 'description',
 }
