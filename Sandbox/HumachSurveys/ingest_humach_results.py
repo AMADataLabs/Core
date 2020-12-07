@@ -68,6 +68,6 @@ archive = HumachResultsArchive()
 archive._load_environment_variables()
 os.environ['ARCHIVE_DB_PATH'] = 'C://Users/glappe/PycharmProjects/hsg-data-labs/Sandbox/HumachSurveys/HumachSurveys.db'
 ingester = HumachResultsIngester(archive=archive)
-# ingester.ingest_standard()
+ingester.ingest_standard()
 # ingester.ingest_validation()
 
