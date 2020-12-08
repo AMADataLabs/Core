@@ -15,7 +15,7 @@ EXTRACTOR_BUCKET=ama-hsg-datalabs-datalake-ingestion-sandbox
 EXTRACTOR_BASEPATH=AMA/CPT
 EXTRACTOR_FILES='standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/Consumer Friendly Descriptors/ConsumerDescriptor.txt,standard/Clinician Descriptors/ClinicianDescriptor.txt,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA,CPT Link/history/Deleted_DTK_tab.txt,CPT Link/history/HistoryModifiers_DTK_tab.txt,CPT Link/history/History_DTK_tab.txt'
 EXTRACTOR_SCHEDULE='{"ANNUAL":["1-Sep","1-Jan"],"Q1":["1-Jan","1-Apr"],"Q2":["1-Apr","1-Jul"],"Q3":["1-Jul","1-Oct"],"Q4":["1-Oct","1-Jan"]}'
-EXTRACTOR_INCLUDEFILES=True
+EXTRACTOR_INCLUDENAMES=True
 
 TRANSFORMER_CLASS=datalabs.etl.parse.transform.ParseToCSVTransformerTask
 TRANSFORMER_PARSERS=datalabs.curate.parse.CSVParser,datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser,datalabs.curate.cpt.pla.PLAParser,datalabs.curate.cpt.link.history.DeletionHistoryParser,datalabs.curate.cpt.link.history.ModifierHistoryParser,datalabs.curate.cpt.link.history.CodeHistoryParser
