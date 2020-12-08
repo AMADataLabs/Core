@@ -6,6 +6,7 @@ import os
 
 from   datalabs.access.orm import DatabaseTaskMixin
 from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
+from   datalabs.access.secret import SecretsManagerEnvironmentLoader
 import datalabs.task as task
 
 logging.basicConfig()
@@ -80,6 +81,9 @@ class APIEndpointParametersGetterMixin(task.TaskWrapper):
 
         parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
         parameter_loader.load()
+
+        secrets_loader = SecretsManagerEnvironmentLoader.from_environ()
+        secrets_loader.load()
 
         return APIEndpointParameters(
             path=self._parameters.get('path') or dict(),

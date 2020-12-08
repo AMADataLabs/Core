@@ -3,6 +3,7 @@ import os
 
 from   datalabs.access.authorize.task import AuthorizerParameters, AuthorizerTaskException
 from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
+from   datalabs.access.secret import SecretsManagerEnvironmentLoader
 from   datalabs.awslambda import TaskWrapper
 
 
@@ -26,6 +27,9 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
     def _load_configuration(cls):
         parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
         parameter_loader.load()
+
+        secrets_loader = SecretsManagerEnvironmentLoader.from_environ()
+        secrets_loader.load()
 
     def _authorize(self, token):
         return AuthorizerParameters(

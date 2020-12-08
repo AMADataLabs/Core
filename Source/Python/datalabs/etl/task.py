@@ -5,6 +5,7 @@ from typing import Any
 
 from   datalabs.access.environment import VariableTree
 from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
+from   datalabs.access.secret import SecretsManagerEnvironmentLoader
 import datalabs.task as task
 import datalabs.plugin as plugin
 
@@ -107,6 +108,9 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
         parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
         parameter_loader.load()
+
+        secrets_loader = SecretsManagerEnvironmentLoader.from_environ()
+        secrets_loader.load()
 
         var_tree = VariableTree.generate()
 
