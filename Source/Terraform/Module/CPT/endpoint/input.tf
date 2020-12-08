@@ -58,6 +58,12 @@ variable "database_host" {
 }
 
 
+variable "database_port" {
+    description = "API RDS port"
+    type        = string
+}
+
+
 variable "timeout" {
     description = "timeout in seconds"
     type        = number
@@ -76,14 +82,8 @@ data "aws_kms_key" "cpt" {
     key_id = "alias/DataLabs/${var.project}"
 }
 
-
-data "aws_ssm_parameter" "database_username" {
-    name = "/DataLabs/${var.project}/RDS/username"
-}
-
-
-data "aws_ssm_parameter" "database_password" {
-    name = "/DataLabs/${var.project}/RDS/password"
+data "aws_secretsmanager_secret" "database" {
+  name = "DataLabs/${var.project}/API/database"
 }
 
 

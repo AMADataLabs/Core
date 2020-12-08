@@ -79,12 +79,6 @@ class APIEndpointParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
         query_parameters = self._parameters.get('query') or dict()
 
-        parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
-        parameter_loader.load()
-
-        secrets_loader = SecretsManagerEnvironmentLoader.from_environ()
-        secrets_loader.load()
-
         return APIEndpointParameters(
             path=self._parameters.get('path') or dict(),
             query=query_parameters,

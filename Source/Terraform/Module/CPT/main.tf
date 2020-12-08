@@ -209,6 +209,7 @@ module "endpoint_all_pla_details" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -398,27 +399,25 @@ module "etl_load" {
     timeout                 = 300
 
     variables               = {
-        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3UnicodeTextFileExtractorTask"
-        EXTRACTOR_INCLUDENAMES      = "True"
-        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.arn
-        EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.arn
-        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.arn
+        EXTRACTOR_CLASS                 = "datalabs.etl.s3.extract.S3UnicodeTextFileExtractorTask"
+        EXTRACTOR_INCLUDENAMES          = "True"
+        EXTRACTOR_BUCKET                = data.aws_ssm_parameter.processed_bucket.arn
+        EXTRACTOR_BASEPATH              = data.aws_ssm_parameter.s3_base_path.arn
+        EXTRACTOR_FILES                 = data.aws_ssm_parameter.raw_csv_files.arn
 
-        TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
-        TRANSFORMER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
-        TRANSFORMER_DATABASE_BACKEND     = "postgresql+psycopg2"
-        TRANSFORMER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
-        # TRANSFORMER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
-        # TRANSFORMER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
-        TRANSFORMER_DATABASESECRET  = data.aws_secretsmanager_secret.database.arn
+        TRANSFORMER_CLASS               = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
+        TRANSFORMER_DATABASE_NAME       = aws_db_instance.cpt_api_database.name
+        TRANSFORMER_DATABASE_BACKEND    = "postgresql+psycopg2"
+        TRANSFORMER_DATABASE_HOST       = aws_db_instance.cpt_api_database.address
+        TRANSFORMER_DATABASE_PORT       = aws_db_instance.cpt_api_database.port
+        TRANSFORMER_DATABASESECRET      = data.aws_secretsmanager_secret.database.arn
 
-        LOADER_CLASS                = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
-        LOADER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
-        LOADER_DATABASE_BACKEND     = "postgresql+psycopg2"
-        LOADER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
-        # LOADER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
-        # LOADER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
-        LOADER_DATABASESECRET       = data.aws_secretsmanager_secret.database.arn
+        LOADER_CLASS                    = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
+        LOADER_DATABASE_NAME            = aws_db_instance.cpt_api_database.name
+        LOADER_DATABASE_BACKEND         = "postgresql+psycopg2"
+        LOADER_DATABASE_HOST            = aws_db_instance.cpt_api_database.address
+        LOADER_DATABASE_PORT            = aws_db_instance.cpt_api_database.port
+        LOADER_DATABASESECRET           = data.aws_secretsmanager_secret.database.arn
     }
 }
 
