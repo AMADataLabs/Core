@@ -76,6 +76,8 @@ class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
         prefix = name.replace('_DATABASESECRET', '_') + 'DATABASE_'
         secret = json.loads(secret_string)
         variables = {
+            prefix+'NAME': secret.get('dbname'),
+            prefix+'PORT': str(secret.get('port')),
             prefix+'USERNAME': secret.get('username'),
             prefix+'PASSWORD': secret.get('password')
         }

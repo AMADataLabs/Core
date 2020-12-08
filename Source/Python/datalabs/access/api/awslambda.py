@@ -61,6 +61,8 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
     def _get_database_parameters_from_secret(cls, name, secret_string):
         secret = json.loads(secret_string)
         variables = dict(
+            DATABASE_NAME=secret.get('dbname'),
+            DATABASE_PORT=str(secret.get('port')),
             DATABASE_USERNAME=secret.get('username'),
             DATABASE_PASSWORD=secret.get('password')
         )
