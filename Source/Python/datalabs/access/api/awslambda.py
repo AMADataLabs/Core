@@ -60,12 +60,16 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
     @classmethod
     def _get_database_parameters_from_secret(cls, name, secret_string):
         secret = json.loads(secret_string)
+        engine = secret.get('engine')
         variables = dict(
             DATABASE_NAME=secret.get('dbname'),
             DATABASE_PORT=str(secret.get('port')),
             DATABASE_USERNAME=secret.get('username'),
             DATABASE_PASSWORD=secret.get('password')
         )
+
+        if engine == 'postgres':
+            variables['DATABASE_BACKEND'] = 'postgresql+psycopg2'
 
         os.environ.pop(name)
 

@@ -16,17 +16,9 @@ EXTRACTOR_FILES=standard/release.csv,standard/SHORTU.csv,standard/MEDU.csv,stand
 EXTRACTOR_INCLUDENAMES=True
 
 TRANSFORMER_CLASS=datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask
-TRANSFORMER_DATABASE_NAME={{ database_name }}
-TRANSFORMER_DATABASE_BACKEND=postgresql+psycopg2
 TRANSFORMER_DATABASE_HOST={{ database_host }}
-TRANSFORMER_DATABASE_USERNAME={{ database_username }}
-TRANSFORMER_DATABASE_PASSWORD={{ database_password }}
 TRANSFORMER_DATABASESECRET=arn:aws:secretsmanager:us-east-1:644454719059:secret:DataLabs/CPT/API/database-y9x74o
 
 LOADER_CLASS=datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask
-LOADER_DATABASE_NAME={{ database_name }}
-LOADER_DATABASE_BACKEND=postgresql+psycopg2
 LOADER_DATABASE_HOST={{ database_host }}
-LOADER_DATABASE_USERNAME={{ database_username }}
-LOADER_DATABASE_PASSWORD={{ database_password }}
 LOADER_DATABASESECRET=arn:aws:secretsmanager:us-east-1:644454719059:secret:DataLabs/CPT/API/database-y9x74o

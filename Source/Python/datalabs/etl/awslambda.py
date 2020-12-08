@@ -75,12 +75,17 @@ class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
     def _get_database_parameters_from_secret(cls, name, secret_string):
         prefix = name.replace('_DATABASESECRET', '_') + 'DATABASE_'
         secret = json.loads(secret_string)
+        engine = secret.get('engine')
         variables = {
             prefix+'NAME': secret.get('dbname'),
             prefix+'PORT': str(secret.get('port')),
             prefix+'USERNAME': secret.get('username'),
             prefix+'PASSWORD': secret.get('password')
         }
+
+        if engine == 'postgres':
+            variables[prefix+'BACKEND'] = 'postgresql+psycopg2'
+
 
         os.environ.pop(name)
 

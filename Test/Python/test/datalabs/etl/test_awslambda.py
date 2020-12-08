@@ -51,7 +51,14 @@ class MockTask(etl.ETLTask):
 def expected_parameters():
     return etl.ETLParameters(
         extractor=etl.ETLComponentParameters(
-            database=dict(host='r2d2.droid.com', username='mrkitty', password='prettyboy59'),
+            database=dict(
+                host='r2d2.droid.com',
+                port='5432',
+                name='mydatabase',
+                backend='postgresql+psycopg2',
+                username='mrkitty',
+                password='prettyboy59'
+            ),
             variables=dict(
                 CLASS='test.datalabs.etl.test_extract.Extractor',
                 thing='True',
@@ -82,7 +89,8 @@ def event():
     os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
     os.environ['EXTRACTOR_thing'] = 'True'
     os.environ['EXTRACTOR_DATABASE_HOST'] = 'r2d2.droid.com'
-    os.environ['EXTRACTOR_DATABASESECRET'] = '{"username":"mrkitty", "password":"prettyboy59"}'
+    os.environ['EXTRACTOR_DATABASESECRET'] = '{"username":"mrkitty", "password":"prettyboy59", "port":5432, ' \
+                                             '"dbname":"mydatabase", "engine": "postgres"}'
     os.environ['EXTRACTOR_INCLUDENAMES'] = 'True'
     os.environ['TRANSFORMER_CLASS'] = 'test.datalabs.etl.test_transform.Transformer'
     os.environ['TRANSFORMER_DATABASE_HOST'] = 'c3po.droid.com'

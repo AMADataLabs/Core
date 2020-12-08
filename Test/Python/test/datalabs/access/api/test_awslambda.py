@@ -58,11 +58,9 @@ def expected_parameters():
 @pytest.fixture
 def event():
     current_env = os.environ.copy()
-    os.environ['DATABASE_NAME'] = 'name'
-    os.environ['DATABASE_BACKEND'] = 'postgresql+psycopg2'
     os.environ['DATABASE_HOST'] = 'host'
-    os.environ['DATABASE_PORT'] = '5432'
-    os.environ['DATABASE_SECRET'] = '{"username":"username", "password":"password"}'
+    os.environ['DATABASE_SECRET'] = '{"username":"username", "password":"password", "port":5432, ' \
+                                             '"dbname":"name", "engine": "postgres"}'
     os.environ['BUCKET_NAME'] = 'mybucket'
     os.environ['BUCKET_BASE_PATH'] = 'AMA/SOMETHING'
     os.environ['BUCKET_URL_DURATION'] = '30'
