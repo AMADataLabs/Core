@@ -56,20 +56,20 @@ class SFTP(Datastore):
         )
 
     # pylint: disable=redefined-builtin
-    def list_files(self, path: str, filter: str = None):
+    def list(self, path: str, filter: str = None):
         with self._connection.cd(path):
             files = self._connection.listdir()
 
         return self._filter_files(files, filter)
 
-    def get_files(self, path: str, file):
+    def get(self, path: str, file):
         base_path = os.path.dirname(path)
         filename = os.path.basename(path)
 
         with self._connection.cd(base_path):
             self._connection.getfo(filename, file, callback=self._status_callback)
 
-    def put_files(self, file, path: str):
+    def put(self, file, path: str):
         base_path = os.path.dirname(path)
         filename = os.path.basename(path)
 
@@ -77,11 +77,11 @@ class SFTP(Datastore):
             self._connection.putfo(file, filename, callback=self._status_callback)
 
     @classmethod
-    def _filter_files(cls, files: list, filtering: str) -> list:
+    def _filter_files(cls, files: list, filter: str) -> list:
         filtered_files = files
 
-        if filtering and '*' in filtering:
-            filter_parts = filtering.split('*')
+        if filter and '*' in filter:
+            filter_parts = filter.split('*')
             prefix = filter_parts[0]
             suffix = filter_parts[-1]
             filtered_files = [file for file in files if file.startswith(prefix) and file.endswith(suffix)]
