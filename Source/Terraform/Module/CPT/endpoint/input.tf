@@ -39,27 +39,8 @@ variable "api_gateway_id" {
 }
 
 
-variable "database_name" {
-    description = "API database name"
-    type        = string
-}
-
-
-variable "database_backend" {
-    description = "API database backend"
-    type        = string
-    default     = "postgresql+psycopg2"
-}
-
-
 variable "database_host" {
     description = "API RDS host"
-    type        = string
-}
-
-
-variable "database_port" {
-    description = "API RDS port"
     type        = string
 }
 

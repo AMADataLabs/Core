@@ -81,9 +81,7 @@ module "endpoint_descriptor" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -99,9 +97,7 @@ module "endpoint_all_descriptors" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -117,9 +113,7 @@ module "endpoint_consumer_descriptor" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -135,9 +129,7 @@ module "endpoint_consumer_descriptors" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -153,9 +145,7 @@ module "endpoint_clinician_descriptors" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -171,9 +161,7 @@ module "endpoint_all_clinician_descriptors" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -189,9 +177,7 @@ module "endpoint_pla_details" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -207,9 +193,7 @@ module "endpoint_all_pla_details" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -225,9 +209,7 @@ module "endpoint_modifier" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -243,9 +225,7 @@ module "endpoint_modifiers" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -261,9 +241,7 @@ module "endpoint_latest_pdfs" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -279,9 +257,7 @@ module "endpoint_latest_pdfs" {
 #     account_id          = data.aws_caller_identity.account.account_id
 #     role                = aws_iam_role.lambda_role.arn
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-#     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
-#     database_port       = aws_db_instance.cpt_api_database.port
 # }
 
 
@@ -295,9 +271,7 @@ module "endpoint_releases" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -313,9 +287,7 @@ module "endpoint_default" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
-    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -406,17 +378,11 @@ module "etl_load" {
         EXTRACTOR_FILES                 = data.aws_ssm_parameter.raw_csv_files.arn
 
         TRANSFORMER_CLASS               = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
-        TRANSFORMER_DATABASE_NAME       = aws_db_instance.cpt_api_database.name
-        TRANSFORMER_DATABASE_BACKEND    = "postgresql+psycopg2"
         TRANSFORMER_DATABASE_HOST       = aws_db_instance.cpt_api_database.address
-        TRANSFORMER_DATABASE_PORT       = aws_db_instance.cpt_api_database.port
         TRANSFORMER_DATABASESECRET      = data.aws_secretsmanager_secret.database.arn
 
         LOADER_CLASS                    = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
-        LOADER_DATABASE_NAME            = aws_db_instance.cpt_api_database.name
-        LOADER_DATABASE_BACKEND         = "postgresql+psycopg2"
         LOADER_DATABASE_HOST            = aws_db_instance.cpt_api_database.address
-        LOADER_DATABASE_PORT            = aws_db_instance.cpt_api_database.port
         LOADER_DATABASESECRET           = data.aws_secretsmanager_secret.database.arn
     }
 }
