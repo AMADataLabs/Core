@@ -15,6 +15,7 @@ modspec:
       - environment
       - orm
       - parameter
+      - secret
   - package: datalabs.access.api
   - package: datalabs.access.authorize
   - package: datalabs.access.cpt.api
