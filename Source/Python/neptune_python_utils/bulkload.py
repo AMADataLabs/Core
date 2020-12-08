@@ -21,55 +21,55 @@ from neptune_python_utils.endpoints import Endpoints
 from urllib.error import HTTPError
 
 class BulkLoad:
-
-    def __init__(self,
-        source,
-        format='csv',
-        role=None,
+    
+    def __init__(self, 
+        source, 
+        format='csv', 
+        role=None, 
         mode='AUTO',
-        region=None,
-        fail_on_error=False,
+        region=None, 
+        fail_on_error=False, 
         parallelism='OVERSUBSCRIBE',
         base_uri='http://aws.amazon.com/neptune/default',
         named_graph_uri='http://aws.amazon.com/neptune/vocab/v01/DefaultNamedGraph',
         update_single_cardinality_properties=False,
         endpoints=None):
-
+        
         self.source = source
         self.format = format
-
+        
         if role is None:
             assert ('NEPTUNE_LOAD_FROM_S3_ROLE_ARN' in os.environ), 'role is missing.'
             self.role = os.environ['NEPTUNE_LOAD_FROM_S3_ROLE_ARN']
         else:
             self.role = role
-
+            
         self.mode = mode
-
+            
         if region is None:
             assert ('AWS_REGION' in os.environ), 'region is missing.'
             self.region = os.environ['AWS_REGION']
         else:
             self.region = region
-
+        
         if endpoints is None:
             self.endpoints = Endpoints()
         else:
             self.endpoints = endpoints
-
+            
         self.fail_on_error = 'TRUE' if fail_on_error else 'FALSE'
         self.parallelism = parallelism
         self.base_uri = base_uri
         self.named_graph_uri = named_graph_uri
         self.update_single_cardinality_properties = 'TRUE' if update_single_cardinality_properties else 'FALSE'
-
+            
     def __load_from(self, source):
-        return {
-              'source' : source,
-              'format' : self.format,
-              'iamRoleArn' : self.role,
+        return { 
+              'source' : source, 
+              'format' : self.format,  
+              'iamRoleArn' : self.role, 
               'mode': self.mode,
-              'region' : self.region,
+              'region' : self.region, 
               'failOnError' : self.fail_on_error,
               'parallelism' : self.parallelism,
               'parserConfiguration': {
@@ -78,9 +78,9 @@ class BulkLoad:
               },
               'updateSingleCardinalityProperties': self.update_single_cardinality_properties
             }
-
-    def __load(self, loader_endpoint, data):
-
+    
+    def __load(self, loader_endpoint, data):  
+        
         json_string = json.dumps(data)
         json_bytes = json_string.encode('utf8')
         request_parameters = loader_endpoint.prepare_request('POST', json_string)
@@ -96,7 +96,7 @@ class BulkLoad:
                 raise Exception(json.loads(e.read().decode('utf8'))) from None
             else:
                 raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
-
+    
     def load_async(self):
         localised_source = self.source.replace('${AWS_REGION}', self.region)
         loader_endpoint = self.endpoints.loader_endpoint()
@@ -106,20 +106,20 @@ class BulkLoad:
     {} -d \'{}\''''.format(loader_endpoint, json.dumps(json_payload, indent=4)))
         load_id = self.__load(loader_endpoint, json_payload)
         return BulkLoadStatus(self.endpoints.load_status_endpoint(load_id))
-
+    
     def load(self, interval=2):
         status = self.load_async()
         print('status_uri: {}'.format(status.load_status_endpoint))
         status.wait(interval)
 
 class BulkLoadStatus:
-
+    
     def __init__(self, load_status_endpoint):
         self.load_status_endpoint = load_status_endpoint
-
+        
     def status(self, details=False, errors=False, page=1, errors_per_page=10):
         params = {
-            'errors': 'TRUE' if errors else 'FALSE',
+            'errors': 'TRUE' if errors else 'FALSE', 
             'details': 'TRUE' if details else 'FALSE',
             'page': page,
             'errorsPerPage': errors_per_page
@@ -137,10 +137,10 @@ class BulkLoadStatus:
                 raise Exception(json.loads(e.read().decode('utf8'))) from None
             else:
                 raise exc_info[0].with_traceback(exc_info[1], exc_info[2])
-
+    
     def uri(self):
         return self.load_status_endpoint
-
+    
     def wait(self, interval=2):
         while True:
             status, json_response = self.status()
