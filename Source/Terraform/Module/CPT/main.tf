@@ -83,6 +83,7 @@ module "endpoint_descriptor" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -100,6 +101,7 @@ module "endpoint_all_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -117,6 +119,7 @@ module "endpoint_consumer_descriptor" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -134,6 +137,7 @@ module "endpoint_consumer_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -151,6 +155,7 @@ module "endpoint_clinician_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -168,6 +173,7 @@ module "endpoint_all_clinician_descriptors" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -185,6 +191,7 @@ module "endpoint_pla_details" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -219,6 +226,7 @@ module "endpoint_modifier" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -236,6 +244,7 @@ module "endpoint_modifiers" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -253,6 +262,7 @@ module "endpoint_latest_pdfs" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -270,6 +280,7 @@ module "endpoint_latest_pdfs" {
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
 #     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
+#     database_port       = aws_db_instance.cpt_api_database.port
 # }
 
 
@@ -285,6 +296,7 @@ module "endpoint_releases" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -302,6 +314,7 @@ module "endpoint_default" {
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
     database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
+    database_port       = aws_db_instance.cpt_api_database.port
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
 }
@@ -327,9 +340,6 @@ module "etl_convert" {
     function_name           = local.function_names.convert
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    database_name           = aws_db_instance.cpt_api_database.name
-    database_host           = aws_db_instance.cpt_api_database.address
-    data_pipeline_ingestion = true
     parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
@@ -358,9 +368,6 @@ module "etl_bundle_pdf" {
     function_name           = local.function_names.bundlepdf
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    database_name           = aws_db_instance.cpt_api_database.name
-    database_host           = aws_db_instance.cpt_api_database.address
-    data_pipeline_ingestion = true
     parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
@@ -387,9 +394,6 @@ module "etl_load" {
     function_name           = local.function_names.loaddb
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    database_name           = aws_db_instance.cpt_api_database.name
-    database_host           = aws_db_instance.cpt_api_database.address
-    data_pipeline_api       = true
     parent_function         = aws_lambda_function.processed_etl_router
     timeout                 = 300
 
@@ -406,7 +410,7 @@ module "etl_load" {
         TRANSFORMER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
         # TRANSFORMER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
         # TRANSFORMER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
-        TRANSFORMER_DATABASE_SECRET      = data.aws_secretsmanager_secret.database.arn
+        TRANSFORMER_DATABASESECRET  = data.aws_secretsmanager_secret.database.arn
 
         LOADER_CLASS                = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
         LOADER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
@@ -414,7 +418,7 @@ module "etl_load" {
         LOADER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
         # LOADER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
         # LOADER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
-        LOADER_DATABASE_SECRET      = data.aws_secretsmanager_secret.database.arn
+        LOADER_DATABASESECRET       = data.aws_secretsmanager_secret.database.arn
     }
 }
 

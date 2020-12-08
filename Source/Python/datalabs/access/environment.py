@@ -10,6 +10,9 @@ class VariableTree:
     def __init__(self, root):
         self._root = root
 
+    def __repr__(self):
+        return str(self._root)
+
     @classmethod
     def generate(cls):
         root = dict()

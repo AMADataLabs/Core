@@ -27,25 +27,6 @@ variable "account_id" {
 }
 
 
-variable "database_name" {
-    description = "API database name"
-    type        = string
-}
-
-
-variable "database_backend" {
-    description = "API database backend"
-    type        = string
-    default     = "postgresql+psycopg2"
-}
-
-
-variable "database_host" {
-    description = "API RDS host"
-    type        = string
-}
-
-
 variable "data_pipeline_ingestion" {
     description = "Indicates an ingestion-side data pipeline ETL"
     type        = bool
