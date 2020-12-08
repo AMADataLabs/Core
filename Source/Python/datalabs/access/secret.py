@@ -48,7 +48,7 @@ class SecretsManagerEnvironmentLoader:
                 arn = arnparse(value)
 
                 if arn.service == 'secretsmanager' and arn.resource_type == 'secret':
-                    secret_variables[key] = arn.resource
+                    secret_variables[key] = arn.resource.rsplit('-', 1)[0]
             except MalformedArnError:
                 LOGGER.warn('Got Malformed ARN when processing Parameter Store environment variables: %s', value)
 
