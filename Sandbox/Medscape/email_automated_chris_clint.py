@@ -1,7 +1,7 @@
 import win32com.client as win32
 import errno
 import os
-from datetime import datetime, date
+from datetime import date
 import settings 
 
 def get_parameters():

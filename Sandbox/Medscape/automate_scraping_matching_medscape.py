@@ -271,6 +271,8 @@ def append_me(roster_df, spec_df, ppd):
                 if len(new_df) > 1:
                     if from_twitter:
                         print(f'{row.NAME} potentially matched to multiple ME numbers.')
+                        temp_first = f'{row.FIRST_NAME}E'
+                        new_df = ppd[(ppd.LAST_NAME == last) & (ppd.BIRTH_YEAR.isin(years))& (ppd.FIRST_NAME == temp_first)]
                     else:
                         new_df = new_df[new_df.CITY == row.CITY.upper()]
             elif len(new_df) > 1 and len(years) > 0:
@@ -294,12 +296,14 @@ def append_me(roster_df, spec_df, ppd):
 
 def clean_other(other):
     '''Clean other data'''
-    ither = other.fillna('None')
+    other = other.fillna('None')
     other = other.drop_duplicates()
     me_date = other[['ME', 'DATE']]
     dict__list = []
     for row in other.itertuples():
         if 'SLEPIAN' in row.NAME_twitter.upper() or 'SLEPIAN' in row.NAME_hero.upper():
+            continue
+        if 'Dr. William "Bill" Cohen' in row.NAME_twitter:
             continue
         elif "fights-for-life" in row.LINK_twitter:
             continue

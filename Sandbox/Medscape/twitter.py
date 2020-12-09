@@ -1,25 +1,20 @@
 '''Tweets'''
+import GetOldTweets3 as got
 import pandas as pd
 from nameparser import HumanName
-from bs4 import BeautifulSoup
-import requests
-from dateutil.relativedelta import relativedelta
-from datetime import datetime
-
-def get_url():
-    today_date = datetime.today()
-    since = (today_date - relativedelta(days=5)).strftime("%Y-%m-%d")
-    url = f'https://mobile.twitter.com/search?f=live&q=(from%3ACTZebra)%20since%3A{since}%20-filter%3Areplies'
-    return url
 
 def get_tweets():
     '''Get tweets'''
-    url = get_url()
-    response = requests.get(url)
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, 'html.parser')
-    tweets = soup.find_all(class_='tweet')
-    return tweets
+    username = 'CTZebra'
+    count = 2000
+    # Creation of query object
+    tweetCriteria = got.manager.TweetCriteria().setUsername(username)\
+                                        .setMaxTweets(count)
+    # Creation of list that contains all tweets
+    tweets = got.manager.TweetManager.getTweets(tweetCriteria)
+    # Creating list of chosen tweet data
+    user_tweets = [[tweet.date, tweet.text] for tweet in tweets]
+    return user_tweets
 
 def split_names(roster_df):
     #Splits name column into components
@@ -40,6 +35,18 @@ def split_names(roster_df):
     name_df = pd.DataFrame(dict_list)
     new_df = pd.merge(name_df, roster_df, on='NAME')
     return new_df
+
+def get_state_list():
+    '''List of state names and abbreviations'''
+    return ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
+                    "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", 
+                    "Illinois","Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", 
+                    "Maryland","Massachusetts", "Michigan", "Minnesota", "Mississippi", 
+                    "Missouri", "Montana","Nebraska", "Nevada", "New Hampshire", "New Jersey", 
+                    "New Mexico", "New York","North Carolina", "North Dakota", "Ohio", "Oklahoma", 
+                    "Oregon", "Pennsylvania","Rhode Island", "South Carolina", "South Dakota", 
+                    "Tennessee", "Texas", "Utah","Puerto Rico", "Vermont", "Virginia", "Washington", 
+                    "West Virginia", "Wisconsin","Wyoming"]
 
 def get_state_dict():
     '''Dictionary of state names and abbreviations'''
@@ -102,39 +109,19 @@ def get_state_dict():
         'Wyoming': 'WY'
     }
 
-def get_tweet_text(tweets):
-    '''Extract info from tweet html'''
-    dict_list = []
-    for twit in tweets:
-        date = twit.find(class_='timestamp').text.replace('\n','')
-        tweet_text = twit.find(class_='tweet-text').text.replace('\n','').replace('  ','')
-        if tweet_text[0]==' ':
-            tweet_text = tweet_text[1:]
-        try:
-            link = twit.find(class_='twitter_external_link')['data-expanded-url']
-        except:
-            link = 'None'
-        new_dict = {
-            'Date': date,
-            'Tweet_Text': tweet_text,
-            'Link': link
-        }
-        dict_list.append(new_dict)
-    return dict_list
-
-def parse_tweets(tweet_dict_list):
+def parse_tweets(tweet_list):
     '''Parse tweet list'''
+    states = get_state_list()
     state_dict = get_state_dict()
-    states = list(state_dict.keys()) + list(state_dict.values())
     dict_list = []
-    for twit in tweet_dict_list:
+    for tweet in tweet_list:
         name = 'None'
         age = 'None'
-        date = twit['Date']
-        link = twit['Link']
+        date = 'None'
+        link = 'None'
         state = 'None'
-        tweet = twit['Tweet_Text']
-        name_split = tweet.split(',')
+        date = tweet[0].strftime('%m-%d-%Y')
+        name_split = tweet[1].split(',')
         if len(name_split) > 1:
             name = name_split[0]
             try:
@@ -148,7 +135,7 @@ def parse_tweets(tweet_dict_list):
             age = name_split[1][1:3]
             if age.isnumeric() == False:
                 age = 'None'
-        sentence_list = tweet.split(' ')
+        sentence_list = tweet[1].split(' ')
         for word in sentence_list:
             if 'http' in word:
                 link = word
@@ -172,14 +159,9 @@ def parse_tweets(tweet_dict_list):
 def twitter_scrape():
     '''Scrape Twitter'''
     tweet_list = get_tweets()
-    tweet_dict_list = get_tweet_text(tweet_list)
-    tweet_dict_list = parse_tweets(tweet_dict_list)
+    tweet_dict_list = parse_tweets(tweet_list)
     tweet_df = pd.DataFrame(tweet_dict_list)
     tweet_df = tweet_df[tweet_df['NAME'] != 'None']
     split_tweets = split_names(tweet_df).drop_duplicates()
     doctor_tweets = split_tweets[(split_tweets['TITLE'] == 'DR.')]
     return (split_tweets, doctor_tweets)
-
-# if __name__ == "__main__":
-#     tweet_df, split_tweets, doctor_tweets = twitter_scrape()
-#     tweet_df.to_csv('C:/Users/vigrose/Data/Medscape/twitter_check.csv', index=False)
