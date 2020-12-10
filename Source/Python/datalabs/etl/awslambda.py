@@ -77,14 +77,14 @@ class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
         secret = json.loads(secret_string)
         engine = secret.get('engine')
         variables = {
-            prefix+'NAME': secret.get('dbname'),
-            prefix+'PORT': str(secret.get('port')),
-            prefix+'USERNAME': secret.get('username'),
-            prefix+'PASSWORD': secret.get('password')
+            prefix+'NAME': os.getenv(prefix+'NAME') or secret.get('dbname'),
+            prefix+'PORT': os.getenv(prefix+'PORT') or str(secret.get('port')),
+            prefix+'USERNAME': os.getenv(prefix+'USERNAME') or secret.get('username'),
+            prefix+'PASSWORD': os.getenv(prefix+'PASSWORD') or secret.get('password')
         }
 
         if engine == 'postgres':
-            variables[prefix+'BACKEND'] = 'postgresql+psycopg2'
+            variables[prefix+'BACKEND'] = os.getenv(prefix+'BACKEND') or 'postgresql+psycopg2'
 
 
         os.environ.pop(name)

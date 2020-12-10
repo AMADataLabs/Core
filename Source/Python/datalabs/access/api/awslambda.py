@@ -62,14 +62,14 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
         secret = json.loads(secret_string)
         engine = secret.get('engine')
         variables = dict(
-            DATABASE_NAME=secret.get('dbname'),
-            DATABASE_PORT=str(secret.get('port')),
-            DATABASE_USERNAME=secret.get('username'),
-            DATABASE_PASSWORD=secret.get('password')
+            DATABASE_NAME=os.getenv('DATABASE_NAME') or secret.get('dbname'),
+            DATABASE_PORT=os.getenv('DATABASE_PORT') or str(secret.get('port')),
+            DATABASE_USERNAME=os.getenv('DATABASE_USERNAME') or secret.get('username'),
+            DATABASE_PASSWORD=os.getenv('DATABASE_PASSWORD') or secret.get('password')
         )
 
         if engine == 'postgres':
-            variables['DATABASE_BACKEND'] = 'postgresql+psycopg2'
+            variables['DATABASE_BACKEND'] = os.getenv('DATABASE_BACKEND') or 'postgresql+psycopg2'
 
         os.environ.pop(name)
 
