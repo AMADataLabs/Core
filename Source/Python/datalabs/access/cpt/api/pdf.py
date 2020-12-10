@@ -1,10 +1,8 @@
-""" Release endpoint classes. """
+""" Release endpoint classes."""
+import boto3
 import logging
 
-import boto3
-
 from   datalabs.access.api.task import APIEndpointTask, APIEndpointParameters, InternalServerError
-from   datalabs.model.cpt.api import Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -30,9 +28,9 @@ class LatestPDFsEndpointTask(APIEndpointTask):
                 },
                 ExpiresIn=self._parameters.bucket['url_duration']
             )
-        except ClientError as e:
-            LOGGER.error(e)
-            raise InternalServerError(f'Unable to get PDF archive URL: {str(e)}')
+        except ClientError as exception:
+            LOGGER.error(exception)
+            raise InternalServerError(f'Unable to get PDF archive URL: {str(exception)}')
 
         self._status_code = 303
         self._headers['Location'] = pdfs_archive_url

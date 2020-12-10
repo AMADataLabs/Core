@@ -1,9 +1,6 @@
-import os
-
-from datalabs.access.sftp import SFTP
-
-
+""" source: datalabs.access.environment """
 import pytest
+from   datalabs.access.sftp import SFTP
 
 
 @pytest.mark.skip(reason="Example Usage")
@@ -18,6 +15,6 @@ def test_sftp_ls(sftp):
 
 @pytest.fixture
 def sftp():
-    ''' Connect to SFTP using CREDENTIALS_SFTP_USERNAME and CREDENTIALS_SFTP_PASSWORD '''
+    """ Connect to SFTP using CREDENTIALS_SFTP_USERNAME and CREDENTIALS_SFTP_PASSWORD """
     with SFTP() as sftp:
         yield sftp

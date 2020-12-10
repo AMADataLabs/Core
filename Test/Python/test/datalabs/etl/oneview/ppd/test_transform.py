@@ -1,3 +1,4 @@
+""" source: datalabs.etl.oneview.transform """
 import logging
 import os
 import pandas
@@ -23,10 +24,10 @@ def test_jdbc_connection(components):
 @pytest.fixture
 def components(dataframe):
     return task.ETLComponentParameters(
-            database={},
-            variables=dict(CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformer', thing=True),
-            data=dataframe
-        )
+        database={},
+        variables=dict(CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformer', thing=True),
+        data=dataframe
+    )
 
 
 @pytest.fixture

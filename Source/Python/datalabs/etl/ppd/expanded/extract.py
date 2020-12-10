@@ -1,3 +1,4 @@
+"""Expanded PPD extractor"""
 from datalabs.etl.fs.extract import LocalUnicodeTextFileExtractorTask
 
 

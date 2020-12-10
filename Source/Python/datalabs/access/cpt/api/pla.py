@@ -4,7 +4,7 @@ import logging
 
 from   sqlalchemy import or_, and_
 
-from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()

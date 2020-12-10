@@ -1,6 +1,6 @@
 """Oneview Physician Table Columns"""
 
-business_columns = {
+BUSINESS_COLUMNS = {
     'IMS_ORG_ID': 'id',
     'BUSINESS_NAME': 'name',
     'DBA_NAME': 'doing_business_as',
@@ -18,8 +18,10 @@ business_columns = {
     'FAX': 'fax',
     'WEBSITE': 'website',
     'OWNER_STATUS': 'owner_status',
-    'PROFIT_STATUS': 'profit_status'}
-provider_columns = {
+    'PROFIT_STATUS': 'profit_status'
+}
+
+PROVIDER_COLUMNS = {
     'PROFESSIONAL_ID': 'id',
     'ME': 'medical_education_number',
     'FIRST_NAME': 'first_name',
@@ -36,8 +38,9 @@ provider_columns = {
     'PRIMARY_PROF_DESC': 'primary_profession_description',
     'STATUS_DESC': 'status_description'
 }
-provider_affiliation_columns = {
-    'AFFIL_TYPE_ID': 'type',
+
+PROVIDER_AFFILIATION_COLUMNS = {
+    'AFFIL_TYPE_ID': 'id',
     'IMS_ORG_ID': 'business',
     'PROFESSIONAL_ID': 'provider',
     'AFFIL_TYPE_DESC': 'description',

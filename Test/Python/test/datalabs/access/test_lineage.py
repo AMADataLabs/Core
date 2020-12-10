@@ -1,9 +1,9 @@
+""" source: datalabs.access.environment """
 import os
-
 import pytest
 
-from gremlin_python.process.traversal import Bindings
-from neptune_python_utils.gremlin_utils import GremlinUtils
+from   gremlin_python.process.traversal import Bindings
+from   neptune_python_utils.gremlin_utils import GremlinUtils
 
 
 @pytest.mark.skipif(
@@ -21,11 +21,13 @@ def test_connection(lineage):
     ).next()
 
     pdf1 = lineage.addV('data-test').property(
-        'location', 's3://ama-hsg-datalabs-datalake-ingestion-sandbox/AMA/BOGUS/20200131/BOGUS Link Release Notes 20200131.pdf'
+        'location', 's3://ama-hsg-datalabs-datalake-ingestion-sandbox/AMA/BOGUS/20200131/'
+                    'BOGUS Link Release Notes 20200131.pdf'
     ).next()
 
     pdf2 = lineage.addV('data-test').property(
-        'location', 's3://ama-hsg-datalabs-datalake-ingestion-sandbox/AMA/BOGUS/20200131/standard/AnesthesiaGuidelines.pdf'
+        'location', 's3://ama-hsg-datalabs-datalake-ingestion-sandbox/AMA/BOGUS/20200131/'
+                    'standard/AnesthesiaGuidelines.pdf'
     ).next()
 
     processed_dataset = lineage.addV('dataset-test').property(

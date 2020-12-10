@@ -1,3 +1,4 @@
+""" source: datalabs.access.ods """
 import os
 
 import jaydebeapi
@@ -39,6 +40,6 @@ def test_sqlalchemy_connection():
     metadata = sa.MetaData()
 
     query = connection.execute("select * from ODS.ODS_PPD_FILE LIMIT 10")
-    result = result.fetchall()
+    result = query.fetchall()
 
     print(result)

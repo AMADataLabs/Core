@@ -3,7 +3,7 @@ import io
 import logging
 import os
 
-from   datalabs.access.sftp import SFTP, SFTPTaskMixin
+from   datalabs.access.sftp import SFTPTaskMixin
 from   datalabs.etl.extract import FileExtractorTask
 from   datalabs.etl.task import ETLException
 

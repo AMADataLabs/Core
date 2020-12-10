@@ -3,7 +3,6 @@ from   abc import ABC, abstractmethod
 import csv
 import logging
 
-from   datalabs.etl.task import ETLException
 import datalabs.etl.transform as etl
 
 logging.basicConfig()

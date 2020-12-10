@@ -21,7 +21,7 @@ class LineageLogger(Datastore):
 @dataclass
 class Configuration:
     host: str
-    port: int=8182
+    port: int = 8182
 
     @classmethod
     def load(cls, key: str):
@@ -53,24 +53,24 @@ class LineageException(Exception):
 # pylint: disable=abstract-method
 class LineageTaskMixin:
     @classmethod
-    def _get_Lineage(cls, parameters):
+    def _get_lineage(cls, parameters):
         config = Configuration(
             host=parameters['HOST'],
             port=parameters['PORT']
         )
 
-        return Lineage(config)
+        return LineageLogger(config)
 
 
 def register_logger(key: str, logger_class: LineageLogger):
     LOGGERS[key.upper()] = logger_class
 
 
-def get_logger(key: str, configuration: Configuration = None, credentials: Credentials=None):
+def get_logger(key: str, configuration: Configuration = None, credentials: Credentials = None):
     key = key.upper()
 
     if key not in LOGGERS:
-        raise LineageException("No Lineage Logger registered for key '%s'.", key)
+        raise LineageException("No Lineage Logger registered for key '%s'." % key)
 
     return LOGGERS[key](configuration=configuration, credentials=credentials, key=key)
 

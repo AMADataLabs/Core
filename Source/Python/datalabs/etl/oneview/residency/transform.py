@@ -1,10 +1,9 @@
 """ Oneview Residency Transformer"""
+from   io import StringIO
 import logging
 import pandas
 
-from   io import StringIO
-
-from   datalabs.etl.oneview.residency.column import program_columns, member_columns, institution_columns
+from   datalabs.etl.oneview.residency.column import PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -35,4 +34,4 @@ class ResidencyTransformerTask(TransformerTask):
         return [merged_df, dataframes[3], dataframes[4]]
 
     def _get_columns(self):
-        return [program_columns, member_columns, institution_columns]
+        return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]

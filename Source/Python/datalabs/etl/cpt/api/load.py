@@ -126,7 +126,7 @@ class TableUpdater:
         new_data = self._remove_missing_rows(partial_data)
 
         if 'deleted' in data:
-            soft_deleted_data = partial_data[(partial_data.deleted_CURRENT == False) & (partial_data.deleted == True)]
+            soft_deleted_data = partial_data[(not partial_data.deleted_CURRENT) & partial_data.deleted]
             old_data = pandas.concat([old_data, self._sync_soft_deleted_rows(soft_deleted_data)])
 
         return old_data, new_data
@@ -211,7 +211,8 @@ class TableUpdater:
         return data
 
     def _sync_soft_deleted_rows(self, data):
-        current_columns = {column.name + '_CURRENT': column.name for column in self._model_class.__table__.columns if column.name != 'deleted'}
+        current_columns = {column.name + '_CURRENT': column.name for column in self._model_class.__table__.columns
+                           if column.name != 'deleted'}
         source_columns = [key for key in current_columns.keys() if key in data]
         target_columns = [current_columns[column] for column in source_columns]
 
@@ -241,10 +242,12 @@ class TableUpdater:
     def _get_changeable_columns(self):
         columns = self._get_model_columns()
 
-        [columns.remove(part) for part in self._primary_key]
+        for part in self._primary_key:
+            columns.remove(part)
 
         if all(column in columns for column in self._match_columns):
-            [columns.remove(part) for part in self._match_columns]
+            for part in self._primary_key:
+                columns.remove(part)
 
         return columns
 
@@ -264,7 +267,8 @@ class TableUpdater:
 
         # pylint: disable=comparison-with-itself
         if any(part != part for part in primary_key):  # test for NaN
-            [setattr(model, part, None) for part in self._primary_key]
+            for part in self._primary_key:
+                setattr(model, part, None)
 
         if hasattr(model, 'modified_date'):
             model.modified_date = datetime.utcnow().date()

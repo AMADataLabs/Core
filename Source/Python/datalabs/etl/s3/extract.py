@@ -124,7 +124,11 @@ class S3FileExtractorTask(FileExtractorTask):
 
     def _find_s3_object(self, wildcard_file_path):
         file_path_parts = wildcard_file_path.split('*')
-        search_results =  self._s3.list_objects_v2(Bucket=self._parameters.variables['BUCKET'], Prefix=file_path_parts[0])
+        search_results = self._s3.list_objects_v2(
+            Bucket=self._parameters.variables['BUCKET'],
+            Prefix=file_path_parts[0]
+        )
+
         return [a['Key'] for a in search_results['Contents'] if a['Key'].endswith(file_path_parts[1])]
 
 

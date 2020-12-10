@@ -1,9 +1,11 @@
+"""Access environmental parameters"""
+import boto3
 import logging
 import os
 
 from   arnparse import arnparse
 from   arnparse.arnparse import MalformedArnError
-import boto3
+
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -15,7 +17,7 @@ class ParameterStoreEnvironmentLoader:
         self._parameters = parameters
         self._ssm = boto3.client('ssm', verify=verify_ssl_certs)
 
-    def load(self, environment: dict=None):
+    def load(self, environment: dict = None):
         if self._parameters:
             environment = environment or os.environ
 
@@ -28,7 +30,7 @@ class ParameterStoreEnvironmentLoader:
     @classmethod
     def from_environ(cls):
         verify_ssl_certs = str(os.environ.get('VERIFY_SSL_CERTS')).upper() != 'FALSE'
-        arn_variables =  {key:value for key, value in os.environ.items() if value.startswith('arn:')}
+        arn_variables = {key:value for key, value in os.environ.items() if value.startswith('arn:')}
 
         parameter_variables = cls._get_parameter_store_arn_variables(arn_variables)
         LOGGER.info('Loaded values for the following Parameter Store parameters: %s', parameter_variables)
@@ -55,6 +57,6 @@ class ParameterStoreEnvironmentLoader:
                 if arn.service == 'ssm' and arn.resource_type == 'parameter':
                     parameter_variables[key] = f'/{arn.resource}'
             except MalformedArnError:
-                LOGGER.warn('Got Malformed ARN when processing Parameter Store environment variables: %s', value)
+                LOGGER.warning('Got Malformed ARN when processing Parameter Store environment variables: %s', value)
 
         return parameter_variables

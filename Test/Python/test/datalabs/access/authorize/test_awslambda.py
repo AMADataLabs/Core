@@ -1,3 +1,4 @@
+""" source: datalabs.access.authorize.awslambda """
 from   collections import namedtuple
 import mock
 

@@ -1,6 +1,6 @@
+""" source: datalabs.etl.jdbc.extract """
 import os
 
-import jaydebeapi
 import pytest
 
 from   datalabs.etl.jdbc.extract import JDBCExtractor

@@ -1,9 +1,9 @@
 """ Extractor class for CPT standard release text data from the S3 ingestion bucket. """
 from   datetime import date, datetime
 from   dateutil.parser import isoparse
+
 import json
 import os
-
 import pandas
 
 import datalabs.etl.s3.extract as extract

@@ -1,6 +1,6 @@
 """Oneview Physician Table Columns"""
 
-columns = {
+PPD_COLUMNS = {
     'ME_NUMBER': 'medical_education_number',
     'ADDRESS_TYPE': 'address_type',
     'MAILING_NAME': 'mailing_name',

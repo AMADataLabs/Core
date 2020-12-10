@@ -1,13 +1,10 @@
 """ source: datalabs.etl.cpt.transform """
-from dataclasses import dataclass
-from datetime import datetime, date
+from   dataclasses import dataclass
 import logging
 
-import pandas
 import pytest
 
 from   datalabs.etl.cpt.api.transform import CSVToRelationalTablesTransformerTask
-import datalabs.model.cpt.api as model
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

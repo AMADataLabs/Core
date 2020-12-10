@@ -1,3 +1,4 @@
+""" source: datalabs.access.environment """
 from   datetime import datetime
 import os
 
@@ -13,7 +14,7 @@ def test_get_parameters_from_parameter_store(parameter_values):
     with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
         mock_boto3.client.return_value.get_parameters.return_value = parameter_values
 
-        loader =  ParameterStoreEnvironmentLoader(
+        loader = ParameterStoreEnvironmentLoader(
             {
                 'DATABASE_FOOBAR_USERNAME': '/DataLabs/FooBar/RDS/username',
                 'DATABASE_FOOBAR_PASSWORD': '/DataLabs/FooBar/RDS/password',

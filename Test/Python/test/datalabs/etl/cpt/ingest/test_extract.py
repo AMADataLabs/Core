@@ -64,7 +64,9 @@ def test_generate_release_details(release_schedule):
         extractor = CPTTextDataExtractorTask(None)
         release_date = date(2020, 7, 1)
         effective_date = date(2020, 10, 1)
-        release_details = pandas.read_csv(io.StringIO(extractor._generate_release_details(release_schedule, release_date)))
+        release_details = pandas.read_csv(
+            io.StringIO(extractor._generate_release_details(release_schedule, release_date))
+        )
 
     assert len(release_details.columns.values) == 3
     assert all([c in release_details for c in ['publish_date', 'effective_date', 'type']])
