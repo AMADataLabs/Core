@@ -48,7 +48,8 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
 
         secrets_loader.load()
 
-        cls._populate_database_parameters_from_secret()
+        if 'DATABASE_SECRET' in os.environ:
+            cls._populate_database_parameters_from_secret()
 
     @classmethod
     def _populate_database_parameters_from_secret(cls):
