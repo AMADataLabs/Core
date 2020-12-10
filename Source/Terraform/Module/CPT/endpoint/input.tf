@@ -39,19 +39,6 @@ variable "api_gateway_id" {
 }
 
 
-variable "database_name" {
-    description = "API database name"
-    type        = string
-}
-
-
-variable "database_backend" {
-    description = "API database backend"
-    type        = string
-    default     = "postgresql+psycopg2"
-}
-
-
 variable "database_host" {
     description = "API RDS host"
     type        = string
@@ -76,14 +63,8 @@ data "aws_kms_key" "cpt" {
     key_id = "alias/DataLabs/${var.project}"
 }
 
-
-data "aws_ssm_parameter" "database_username" {
-    name = "/DataLabs/${var.project}/RDS/username"
-}
-
-
-data "aws_ssm_parameter" "database_password" {
-    name = "/DataLabs/${var.project}/RDS/password"
+data "aws_secretsmanager_secret" "database" {
+  name = "DataLabs/${var.project}/API/database"
 }
 
 

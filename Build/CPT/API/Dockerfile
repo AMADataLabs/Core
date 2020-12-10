@@ -22,5 +22,6 @@ RUN rm -rf ./Source
 
 # COPY ./Test/Python/ .
 
+COPY ./Build/Master/settings.py /CPT
 COPY ./Build/CPT/API/.env .
 COPY ./Build/CPT/credentials ${AWS_SHARED_CREDENTIALS_FILE}

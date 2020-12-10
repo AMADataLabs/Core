@@ -16,23 +16,6 @@ resource "aws_kms_alias" "cpt" {
 }
 
 
-resource "aws_ssm_parameter" "database_username" {
-    name  = "/DataLabs/${local.project}/RDS/username"
-    type  = "String"
-    value = "DataLabs_UI"
-    tags  = local.tags
-}
-
-
-resource "aws_ssm_parameter" "database_password" {
-    name    = "/DataLabs/${local.project}/RDS/password"
-    type    = "SecureString"
-    key_id  = aws_kms_alias.cpt.name
-    value   = var.database_password
-    tags    = local.tags
-}
-
-
 resource "aws_ssm_parameter" "s3_base_path" {
     name  = "/DataLabs/${local.project}/s3/base_path"
     type  = "String"
@@ -92,10 +75,50 @@ resource "aws_ssm_parameter" "pdf_files" {
 resource "aws_ssm_parameter" "passport_url" {
     name  = "/DataLabs/${local.project}/auth/passport_url"
     type  = "String"
-    value = "https://amapassport-staging.ama-assn.org/auth/entitlements/list/CPTAPI"
+    # value = "https://amapassport-staging.ama-assn.org/auth/entitlements/list/CPTAPI"
+    value = "https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI"
     tags = local.tags
 }
 
+
+resource "aws_ssm_parameter" "database_username" {
+    name  = "/DataLabs/${local.project}/RDS/username"
+    type  = "String"
+    value = "DataLabs_UI"
+    tags  = local.tags
+}
+
+
+resource "aws_ssm_parameter" "database_password" {
+    name    = "/DataLabs/${local.project}/RDS/password"
+    type    = "SecureString"
+    key_id  = aws_kms_alias.cpt.name
+    value   = var.database_password
+    tags    = local.tags
+}
+
+
+resource "aws_secretsmanager_secret" "database" {
+    name        = "DataLabs/CPT/API/database"
+    description = "CPT API database credentials"
+    kms_key_id  = aws_kms_key.cpt.arn
+
+    tags = merge(local.tags, {Name = "Data Labs ${local.project} Database Secret"})
+}
+
+resource "aws_secretsmanager_secret_version" "database" {
+  secret_id     = aws_secretsmanager_secret.database.id
+  secret_string = jsonencode(
+    {
+        username = "DataLabs_UI"
+        password = var.database_password
+        engine = "postgres"
+        port = 5432
+        dbname = "sample"
+        dbinstanceIdentifier = "database-test-ui"
+    }
+  )
+}
 
 locals {
     system_tier         = "Application"
@@ -104,7 +127,7 @@ locals {
     owner               = "DataLabs"
     project             = "CPT"
     tags                = {
-        Name                = "Data Labs CPT Parameter"
+        Name                = "Data Labs ${local.project} Parameter"
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value
         SystemTier          = local.system_tier
