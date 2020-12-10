@@ -151,7 +151,6 @@ def extra_file(insurance, usage):
     all_that['me#'] = fix_me(all_that['me#'])
     return all_that
 
-
 def create_file(insurance):
     '''Create final file'''
     usage = get_other_usages()

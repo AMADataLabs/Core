@@ -154,7 +154,7 @@ def save_insurance():
     filtered_insurance = filter_insurance(insurance)
     print('Saving...')
     filtered_insurance.to_csv(f'C:/Users/vigrose/Data/AMAIA/Insurance_{today}.csv', index=False)
-    formatted_file = create_file(insurance)
+    formatted_file = create_file(filtered_insurance)
     formatted_file.to_csv(f'C:/Users/vigrose/Data/AMAIA/AMAIA_LOAD_{today}.csv', index=False)
 
 
