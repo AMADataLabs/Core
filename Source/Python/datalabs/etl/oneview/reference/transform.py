@@ -1,7 +1,7 @@
 """ OneView Reference Transformer"""
 import logging
 
-from   datalabs.etl.oneview.ppd.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS
+from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
