@@ -20,7 +20,7 @@ class JDBCExtractorTask(ExtractorTask):
             self._parameters.variables['DRIVER'],
             url,
             [self._parameters.database['username'], self._parameters.database['password']],
-            self._parameters.variables['JARPATH']
+            self._parameters.variables['JARPATH'].split(',')
         )
 
         return connection
