@@ -1,0 +1,393 @@
+openapi: 3.0.2
+info:
+  title: OneView API
+  description: Masterfile OneView
+  version: "1.0.0"
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: datalabs@ama-assn.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Physician
+    description: >-
+      Masterfile data for a physician.
+paths:
+  '/physician/{me_number}':
+    get:
+      tags:
+        - Physician
+      summary: Physician data (PPD) by Medical Education number
+      description: Returns all Masterfile data (PPD) for a physician.
+      operationId: getPhysician
+      parameters:
+        - name: me_number
+          in: path
+          description: Medical Education number
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_physician_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Physician'
+        '400':
+          description: Invalid query parameter
+        '404':
+          description: No physician data found for the given ME number.
+      security:
+        - gateway_authorizer: []
+  # /physicians?first_name=JOHN&last_name=SMITH&fields=first_name,last_name,me,polo_state
+  /physicians:
+    get:
+      tags:
+        - Physician
+      summary: All physician data
+      description: Returns Masterfile data for all physicians.
+      operationId: getPhysicians
+      parameters:
+        - name: first_name
+          in: query
+          description: 'Filter by a physicians first name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: last_name
+          in: query
+          description: 'Filter by a physicians last name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: fields
+          in: query
+          description: Restrict the results to the specified fields.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_physicians_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Physician'
+        '400':
+          description: Invalid query parameter
+      security:
+        - gateway_authorizer: []
+  /{proxy+}:
+    get:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_return404_arn}/invocations"
+        responses:
+          default:
+            statusCode: 200
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        cacheNamespace: "www3v9"
+        cacheKeyParameters:
+          - "method.request.path.proxy"
+        type: "aws_proxy"
+      responses:
+        '404':
+          description: Invalid resource.
+      security:
+        - gateway_authorizer: []
+components:
+  schemas:
+    Physician:
+      type: object
+      required:
+        - medical_education_number
+      properties:
+        medical_education_number:
+          type: string
+          format: byte
+        address_type:
+          type: string
+          format: byte
+        mailing_name:
+          type: string
+          format: byte
+        last_name:
+          type: string
+          format: byte
+        first_name:
+          type: string
+          format: byte
+        middle_name:
+          type: string
+          format: byte
+        name_suffix:
+          type: string
+          format: byte
+        preferred_address_2:
+          type: string
+          format: byte
+        preferred_address_1:
+          type: string
+          format: byte
+        city:
+          type: string
+          format: byte
+        state:
+          type: string
+          format: byte
+        zipcode:
+          type: string
+          format: byte
+        sector:
+          type: string
+          format: byte
+        carrier_route:
+          type: string
+          format: byte
+        address_undeliverable:
+          type: string
+          format: byte
+        federal_information_processing_standard_county:
+          type: string
+          format: byte
+        federal_information_processing_standard_state:
+          type: string
+          format: byte
+        printer_control_code_begin:
+          type: string
+          format: byte
+        barcode_zipcode:
+          type: string
+          format: byte
+        barcode_zipcode_plus_4:
+          type: string
+          format: byte
+        delivery_point:
+          type: string
+          format: byte
+        check_digit:
+          type: string
+          format: byte
+        printer_control_code_end:
+          type: string
+          format: byte
+        region:
+          type: string
+          format: byte
+        division:
+          type: string
+          format: byte
+        group:
+          type: string
+          format: byte
+        tract:
+          type: string
+          format: byte
+        suffix:
+          type: string
+          format: byte
+        block_group:
+          type: string
+          format: byte
+        metropolitan_statistical_area_population:
+          type: string
+          format: byte
+        micro_metro_indicator:
+          type: string
+          format: byte
+        core_based_statistical_area:
+          type: string
+          format: byte
+        core_based_statistical_area_division:
+          type: string
+          format: byte
+        degree_type:
+          type: string
+          format: byte
+        birth_year:
+          type: string
+          format: byte
+        birth_city:
+          type: string
+          format: byte
+        birth_state:
+          type: string
+          format: byte
+        birth_country:
+          type: string
+          format: byte
+        gender:
+          type: string
+          format: byte
+        telephone_number:
+          type: string
+          format: byte
+        presumed_dead:
+          type: string
+          format: byte
+        fax_number:
+          type: string
+          format: byte
+        type_of_practice:
+          type: string
+          format: byte
+        present_employment:
+          type: string
+          format: byte
+        primary_specialty:
+          type: string
+          format: byte
+        secondary_specialty:
+          type: string
+          format: byte
+        major_professional_activity:
+          type: string
+          format: byte
+        physician_recognition_award_recipient:
+          type: string
+          format: byte
+        physician_recognition_award_expiration_date:
+          type: string
+          format: byte
+        graduate_medical_education_confirm:
+          type: string
+          format: byte
+        from_date:
+          type: string
+          format: byte
+        end_date:
+          type: string
+          format: byte
+        year_in_program:
+          type: string
+          format: byte
+        post_graduate_year:
+          type: string
+          format: byte
+        graduate_medical_education_primary_specialty:
+          type: string
+          format: byte
+        graduate_medical_education_secondary_specialty:
+          type: string
+          format: byte
+        training_type:
+          type: string
+          format: byte
+        graduate_medical_education_hospital_state:
+          type: string
+          format: byte
+        graduate_medical_education_hospital:
+          type: string
+          format: byte
+        medical_school_state:
+          type: string
+          format: byte
+        medical_school:
+          type: string
+          format: byte
+        medical_school_graduation_year:
+          type: string
+          format: byte
+        no_contact_type:
+          type: string
+          format: byte
+        no_web:
+          type: string
+          format: byte
+        physician_data_restriction_program:
+          type: string
+          format: byte
+        physician_data_restriction_program_date:
+          type: string
+          format: byte
+        polo_address_2:
+          type: string
+          format: byte
+        polo_address_1:
+          type: string
+          format: byte
+        polo_city:
+          type: string
+          format: byte
+        polo_state:
+          type: string
+          format: byte
+        polo_zipcode:
+          type: string
+          format: byte
+        polo_sector:
+          type: string
+          format: byte
+        polo_carrier_route:
+          type: string
+          format: byte
+        most_recent_former_last_name:
+          type: string
+          format: byte
+        most_recent_former_middle_name:
+          type: string
+          format: byte
+        most_recent_former_first_name:
+          type: string
+          format: byte
+        next_most_recent_former_last_name:
+          type: string
+          format: byte
+        next_most_recent_former_middle_name:
+          type: string
+          format: byte
+        next_most_recent_former_first_name:
+          type: string
+          format: byte
+  securitySchemes:
+    gateway_authorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+          type: token
+          authorizerUri: ${authorizer_uri}
+          authorizerCredentials: ${authorizer_credentials}
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+servers:
+  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/OneView/1.0.0'
