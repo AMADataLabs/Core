@@ -1,9 +1,8 @@
-"""JDBC Extractor"""
+""" JDBC Extractor """
 import jaydebeapi
 import pandas
 
 from   datalabs.etl.extract import ExtractorTask
-from   datalabs.etl.task import ETLException
 
 
 class JDBCExtractorTask(ExtractorTask):
