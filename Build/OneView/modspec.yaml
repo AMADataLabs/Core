@@ -43,6 +43,7 @@ modspec:
   - package: datalabs.etl.oneview.residency
   - package: datalabs.etl.oneview.race_ethnicity
   - package: datalabs.etl.orm
+  - package: datalabs.etl.oneview.reference
   - package: datalabs.etl.s3
     include:
       - load
