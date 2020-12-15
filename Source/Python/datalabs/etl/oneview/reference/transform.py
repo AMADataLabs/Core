@@ -1,7 +1,7 @@
 """ OneView Reference Transformer"""
 import logging
 
-from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS
+from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -22,3 +22,8 @@ class TypeOfPracticeTransformerTask(TransformerTask):
 class PresentEmployment(TransformerTask):
     def _get_columns(self):
         return [PE_COLUMNS]
+
+
+class CoreBasedStatisticalArea(TransformerTask):
+    def _get_columns(self):
+        return [CBSA_COLUMNS]
