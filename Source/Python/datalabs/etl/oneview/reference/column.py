@@ -15,3 +15,7 @@ CBSA_COLUMNS = {
     'CBSA Code': 'id',
     'CBSA Name': 'description'
 }
+SPECIALTY_COLUMNS = {
+    'spec_cd': 'id',
+    'description': 'id'
+}

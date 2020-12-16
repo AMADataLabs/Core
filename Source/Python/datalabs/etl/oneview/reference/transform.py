@@ -4,7 +4,7 @@ import pandas
 
 from   io import StringIO
 
-from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS
+from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, SPECIALTY_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -39,3 +39,8 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
 
     def _get_columns(self):
         return [CBSA_COLUMNS]
+
+
+class SpecialtyTransformerTask(TransformerTask):
+    def _get_columns(self):
+        return [SPECIALTY_COLUMNS]
