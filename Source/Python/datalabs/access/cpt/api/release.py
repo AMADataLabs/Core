@@ -43,7 +43,7 @@ class ReleasesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _query_for_releases(cls, session):
-        return session.query(Release)
+        return session.query(Release).order_by(Release.effective_date.desc())
 
     def _filter_for_max_results(self, query):
         max_results = self._parameters.query.get('results')
