@@ -8,6 +8,7 @@ import datalabs.curate.ppd.expanded.column as column
 
 
 class ExpandedPPDParser(Parser):
+    # pylint: disable=arguments-differ
     def parse(self, data: bytes) -> pandas.DataFrame:
         return pandas.read_csv(
             io.StringIO(data),

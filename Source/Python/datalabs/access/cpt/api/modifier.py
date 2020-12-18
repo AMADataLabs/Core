@@ -13,12 +13,12 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class BaseModifierEndpointTask(APIEndpointTask):
-    def _run(self, session):
+    def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
-        query = self._query_for_modifiers(session)
+        query = self._query_for_modifiers(database)
 
         query = self._filter(query)
 
@@ -28,8 +28,8 @@ class BaseModifierEndpointTask(APIEndpointTask):
         pass
 
     @classmethod
-    def _query_for_modifiers(cls, session):
-        return session.query(Modifier, ModifierType).join(ModifierType)
+    def _query_for_modifiers(cls, database):
+        return database.query(Modifier, ModifierType).join(ModifierType)
 
     @abstractmethod
     def _filter(self, query):
@@ -50,8 +50,8 @@ class BaseModifierEndpointTask(APIEndpointTask):
 
 
 class ModifierEndpointTask(BaseModifierEndpointTask):
-    def _run(self, session):
-        super()._run(session)
+    def _run(self, database):
+        super()._run(database)
 
         if not self._response_body:
             raise ResourceNotFound('No data exists for the given modifier')
@@ -62,7 +62,8 @@ class ModifierEndpointTask(BaseModifierEndpointTask):
         code = self._parameters.path.get('code')
         query = self._filter_by_code(query, code)
 
-        return query.filter(not Modifier.deleted)
+        # pylint: disable=singleton-comparison
+        return query.filter(Modifier.deleted == False)
 
     @classmethod
     def _filter_by_code(cls, query, code):
@@ -92,7 +93,8 @@ class AllModifiersEndpointTask(BaseModifierEndpointTask):
                 query = query.filter(Release.effective_date >= date)
 
         else:
-            query = query.filter(not Modifier.deleted)
+            # pylint: disable=singleton-comparison
+            query = query.filter(Modifier.deleted == False)
 
         return query
 

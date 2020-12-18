@@ -19,12 +19,14 @@ class ResidencyTransformerTask(TransformerTask):
 
         return data
 
-    def _to_dataframe(self, file):
+    @classmethod
+    def _to_dataframe(cls, file):
         dataframe = pandas.read_csv(StringIO(file), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
 
         return dataframe
 
-    def _merge_dataframe(self, dataframes):
+    @classmethod
+    def _merge_dataframe(cls, dataframes):
         dataframes[1].pgm_id = dataframes[1].pgm_id.astype(str)
         dataframes[2].pgm_id = dataframes[2].pgm_id.astype(str)
 

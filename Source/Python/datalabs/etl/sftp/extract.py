@@ -39,6 +39,7 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
 
         return unresolved_files
 
+    # pylint: disable=arguments-differ
     def _extract_file(self, sftp, file_path):
         buffer = io.BytesIO()
 
@@ -49,7 +50,8 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
 
         return bytes(buffer.getbuffer())
 
-    def _resolve_filename(self, sftp, file_path):
+    @classmethod
+    def _resolve_filename(cls, sftp, file_path):
         base_path = os.path.dirname(file_path)
         unresolved_file = os.path.basename(file_path)
         file_paths = [os.path.join(base_path, file) for file in sftp.ls(base_path, filter=unresolved_file)]
@@ -64,12 +66,14 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
         return data
 
 
+# pylint: disable=too-many-ancestors
 class SFTPUnicodeTextFileExtractorTask(SFTPFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('utf-8', errors='backslashreplace')
 
 
+# pylint: disable=too-many-ancestors
 class SFTPWindowsTextFileExtractorTask(SFTPFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):

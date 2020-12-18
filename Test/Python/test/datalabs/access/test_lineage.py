@@ -6,6 +6,7 @@ from   gremlin_python.process.traversal import Bindings
 from   neptune_python_utils.gremlin_utils import GremlinUtils
 
 
+# pylint: disable=redefined-outer-name
 @pytest.mark.skipif(
     os.getenv('RUN_INTEGRATION_TESTS') != 'True',
     reason="Normally skip integration tests to increase testing speed."

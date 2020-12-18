@@ -3,10 +3,11 @@ import os
 
 import pytest
 
-from   datalabs.etl.jdbc.extract import JDBCExtractor
+from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 import datalabs.etl.task as task
 
 
+# pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.skip(reason="Integration test. Input Credentials")
 def test_jdbc_connection(components):
     extractor = JDBCExtractor(components)

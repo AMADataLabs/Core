@@ -1,9 +1,9 @@
 """ AWS S3 Loader """
 import base64
-import boto3
 import hashlib
 import logging
 
+import boto3
 from   datetime import datetime
 from   dateutil.parser import isoparse
 
@@ -64,6 +64,7 @@ class S3FileLoaderTask(LoaderTask):
 
         return execution_date
 
+    # pylint: disable=no-self-use
     def _encode(self, data):
         return data
 

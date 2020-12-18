@@ -5,13 +5,14 @@ import pandas
 import pytest
 
 import datalabs.etl.task as task
-from   datalabs.etl.oneview.ppd.transform import PPDTransformer
+from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.skip(reason="Integration test. Input Credentials")
 def test_jdbc_connection(components):
     transformer = PPDTransformer(components)
@@ -21,11 +22,12 @@ def test_jdbc_connection(components):
     assert csv_list[0].split(',')[0] == 'medical_education_number'
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def components(dataframe):
     return task.ETLComponentParameters(
         database={},
-        variables=dict(CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformer', thing=True),
+        variables=dict(CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask', thing=True),
         data=dataframe
     )
 

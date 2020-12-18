@@ -84,7 +84,7 @@ class EDW(ODBCDatabase):
             chunk_size = 100000
 
         while not chunk.empty:
-            LOGGER.debug(f'Query {caller} chunk at offset: %s', offset)
+            LOGGER.debug(f'Query %s chunk at offset: %s', caller, offset)
             chunk = self.read(
                 sql +
                 (' ' if order_by is None else f" ORDER BY {order_by} ") +

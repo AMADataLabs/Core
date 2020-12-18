@@ -27,6 +27,7 @@ class LocalFileExtractorTask(FileExtractorTask):
 
         return resolved_files
 
+    #pylint: disable=arguments-differ
     def _extract_file(self, connection, file_path):
         data = None
         try:
@@ -37,7 +38,8 @@ class LocalFileExtractorTask(FileExtractorTask):
 
         return data
 
-    def _resolve_filename(self, file_path):
+    @classmethod
+    def _resolve_filename(cls, file_path):
         file_paths = glob(file_path)
 
         if len(file_paths) == 0:

@@ -1,6 +1,6 @@
 """ Generic database object intended to be subclassed by specific databases. """
 from   dataclasses import dataclass
-from   abc import abstractmethod
+from   abc import ABC, abstractmethod
 import os
 
 import pandas
@@ -53,30 +53,33 @@ class Database(Datastore):
     @property
     def url(self):
         url = None
+        credentials = ''
+        port = ''
+        name = ''
 
         if self._credentials.username and self._credentials.password:
-            url = "{}://{}:{}@{}:{}/{}".format(
-                self._configuration.backend,
-                self._credentials.username,
-                self._credentials.password,
-                self._configuration.host,
-                self._configuration.port,
-                self._configuration.name,
-            )
-        else:
-            url = "{}://{}:{}/{}".format(
-                self._configuration.backend,
-                self._configuration.host,
-                self._configuration.port,
-                self._configuration.name,
-            )
+            credentials = f'{self._credentials.username}:{self._credentials.password}@'
+
+        if self._configuration.port:
+            port = f':{self._configuration.port}'
+
+        if self._configuration.name:
+            name = f'/{self._configuration.name}'
+
+
+        url = "{}://{}{}{}{}".format(
+            self._configuration.backend,
+            credentials,
+            self._configuration.host or '',
+            port,
+            name,
+        )
 
         return url
 
-
     @abstractmethod
     def connect(self):
-        pass
+        return self._connection
 
     def read(self, sql: str, **kwargs):
         return pandas.read_sql(sql, self._connection, **kwargs)
@@ -94,3 +97,91 @@ class Database(Datastore):
             raise ValueError('Invalid configuration object.')
 
         return configuration
+
+    @classmethod
+    def from_parameters(cls, parameters):
+        config = Configuration(
+            name=parameters.get('name') or parameters.get('NAME'),
+            backend=parameters.get('backend') or parameters.get('BACKEND'),
+            host=parameters.get('host') or parameters.get('HOST'),
+            port=parameters.get('port') or parameters.get('PORT')
+        )
+        credentials = Credentials(
+            username=parameters.get('username') or parameters.get('USERNAME'),
+            password=parameters.get('password') or parameters.get('PASSWORD')
+        )
+
+        return cls(config, credentials)
+
+
+### Python Database API (PEP 249) Objects ###
+
+class Connection(ABC):
+    @abstractmethod
+    def close(self):
+        pass
+
+    @abstractmethod
+    def commit(self):
+        pass
+
+    @abstractmethod
+    def rollback(self):
+        pass
+
+    @abstractmethod
+    def cursor(self):
+        pass
+
+
+class Cursor(ABC):
+    @property
+    @abstractmethod
+    def arraysize(self, size=None):
+        pass
+
+    @property
+    @abstractmethod
+    def description(self):
+        pass
+
+    @property
+    @abstractmethod
+    def rowcount(self):
+        pass
+
+    def callproc(self, procname, **kwargs):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def close(self):
+        pass
+
+    @abstractmethod
+    def execute(self, operation, **kwargs):
+        pass
+
+    @abstractmethod
+    def executemany(self, operation, seq_of_parameters):
+        pass
+
+    @abstractmethod
+    def fetchone(self):
+        pass
+
+    @abstractmethod
+    def fetchmany(self, size=None):
+        pass
+
+    @abstractmethod
+    def fetchall(self):
+        pass
+
+    def nextset():
+        raise NotImplementedError()
+
+    def setinputsizes(self, sizes):
+        pass
+
+    def setoutputsizes(self, sizes, column=None):
+        pass

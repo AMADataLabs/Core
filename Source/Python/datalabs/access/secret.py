@@ -1,3 +1,4 @@
+""" AWS Secrets Manager access """
 import json
 import logging
 import os
@@ -16,7 +17,7 @@ class SecretsManagerEnvironmentLoader:
         self._secrets = secrets
         self._secrets_manager = boto3.client('secretsmanager', verify=verify_ssl_certs)
 
-    def load(self, environment: dict=None):
+    def load(self, environment: dict = None):
         if self._secrets:
             environment = environment or os.environ
 
@@ -29,7 +30,7 @@ class SecretsManagerEnvironmentLoader:
     @classmethod
     def from_environ(cls):
         verify_ssl_certs = str(os.environ.get('VERIFY_SSL_CERTS')).upper() != 'FALSE'
-        arn_variables =  {key:value for key, value in os.environ.items() if value.startswith('arn:')}
+        arn_variables = {key:value for key, value in os.environ.items() if value.startswith('arn:')}
 
         secret_variables = cls._get_secrets_manager_arn_variables(arn_variables)
         LOGGER.info('Loaded values for the following Secrets Manager secrets: %s', secret_variables)
@@ -50,10 +51,11 @@ class SecretsManagerEnvironmentLoader:
                 if arn.service == 'secretsmanager' and arn.resource_type == 'secret':
                     secret_variables[key] = arn.resource.rsplit('-', 1)[0]
             except MalformedArnError:
-                LOGGER.warn('Got Malformed ARN when processing Parameter Store environment variables: %s', value)
+                LOGGER.warning('Got Malformed ARN when processing Parameter Store environment variables: %s', value)
 
         return secret_variables
 
+    # pylint: disable=redefined-builtin, invalid-name
     def _get_secret_from_secrets_manager(self, id):
         response = self._secrets_manager.get_secret_value(SecretId=id)
 

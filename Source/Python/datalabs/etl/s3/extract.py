@@ -78,6 +78,7 @@ class S3FileExtractorTask(FileExtractorTask):
 
         return resolved_files
 
+    # pylint: disable=arguments-differ
     def _extract_file(self, s3, file_path):
         try:
             response = s3.get_object(Bucket=self._parameters.variables['BUCKET'], Key=file_path)

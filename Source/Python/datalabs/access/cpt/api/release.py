@@ -10,14 +10,14 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class ReleasesEndpointTask(APIEndpointTask):
-    def _run(self, session):
+    def _run(self, database):
         self._set_parameter_defaults()
 
         max_results = self._parameters.query.get('results')
         if not self._max_results_is_valid(max_results):
             raise InvalidRequest(f'Invalid query parameter: results={max_results}')
 
-        query = self._query_for_releases(session)
+        query = self._query_for_releases(database)
 
         query = self._filter_for_max_results(query)
 
@@ -42,8 +42,8 @@ class ReleasesEndpointTask(APIEndpointTask):
         return valid
 
     @classmethod
-    def _query_for_releases(cls, session):
-        return session.query(Release).order_by(Release.effective_date.desc())
+    def _query_for_releases(cls, database):
+        return database.query(Release).order_by(Release.effective_date.desc())
 
     def _filter_for_max_results(self, query):
         max_results = self._parameters.query.get('results')

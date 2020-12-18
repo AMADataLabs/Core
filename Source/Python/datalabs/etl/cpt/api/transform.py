@@ -194,6 +194,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
     def _extract_release_schedule(self):
         with self._get_database(self._parameters.database) as database:
+            # pylint: disable=no-member
             release_types = database.session.query(dbmodel.ReleaseType).all()
 
         return release_types
@@ -235,6 +236,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
 
         return codes
 
+    # pylint: disable=too-many-function-args
     @classmethod
     def _generate_release_code_mapping_table(cls, code_history, codes, pla):
         non_pla_mappings = cls._generate_non_pla_release_code_mappings(code_history, codes)
