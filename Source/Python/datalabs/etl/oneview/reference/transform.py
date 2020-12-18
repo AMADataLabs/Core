@@ -51,7 +51,8 @@ class SpecialtyMergeTransformerTask(TransformerTask):
     def _transform(self):
         csv_to_df = [self._dataframe_to_csv(csv) for csv in self._parameters.data]
         filtered_dataframe = csv_to_df[0].loc[csv_to_df[0].id.isin(csv_to_df[1].primary_specialty) |
-                                        csv_to_df[0].id.isin(csv_to_df[1].secondary_specialty)].reset_index(drop=True)
+                                              csv_to_df[0].id.isin(csv_to_df[1].secondary_specialty)].reset_index(
+            drop=True)
 
         self._parameters.data = filtered_dataframe
 
