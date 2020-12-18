@@ -1,16 +1,15 @@
+""" source: datalabs.access.database """
 import logging
-import os
 import tempfile
 
-import pandas
 import pytest
 import sqlalchemy as sa
-from   sqlalchemy.ext.declarative import declarative_base
 from   sqlalchemy.orm import sessionmaker
 
 from   datalabs.access.database import Database
 
-from   test.datalabs.access.model import Base, Foo, Bar, Pow
+# pylint: disable=wrong-import-order
+from   test.datalabs.access.model import Base, Foo, Bar, Poof
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -23,6 +22,7 @@ def file():
         yield database_file.name
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def parameters(file):
     return dict(
@@ -35,29 +35,31 @@ def parameters(file):
     )
 
 
+# pylint: disable=redefined-outer-name, protected-access
 @pytest.fixture
 def database(parameters):
     class SQLAlchemyDatabase(Database):
         def connect(self):
             engine = sa.create_engine(self.url, echo=True)
-            Session = sessionmaker(bind=engine)
+            Session = sessionmaker(bind=engine)  # pylint: disable=invalid-name
 
             self._connection = Session()
 
         def add(self, model, **kwargs):
-            self._connection.add(model)
+            self._connection.add(model, **kwargs)
 
         def commit(self):
             self._connection.commit()
 
 
-    db = SQLAlchemyDatabase.from_parameters(parameters)
-    with db:
-        Base.metadata.create_all(db._connection.get_bind())
+    database = SQLAlchemyDatabase.from_parameters(parameters)
+    with database:
+        Base.metadata.create_all(database._connection.get_bind())
 
-        yield db
+        yield database
 
 
+# pylint: disable=redefined-outer-name
 def test_adding_objects(database, file):
 
     models = [
@@ -66,7 +68,7 @@ def test_adding_objects(database, file):
         Foo(this='pong', that='buff'),
         Bar(one=11, two='swish'),
         Bar(one=42, two='swish'),
-        Pow(a=30, b=True),
+        Poof(a=30, b=True),
     ]
 
     for model in models:
@@ -75,7 +77,7 @@ def test_adding_objects(database, file):
     database.commit()
 
     engine = sa.create_engine(f'sqlite:///{file}', echo=True)
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=engine)  # pylint: disable=invalid-name
     session = Session()
 
     foos = session.query(Foo).all()
@@ -86,6 +88,6 @@ def test_adding_objects(database, file):
     LOGGER.debug('Bars: %s', bars)
     assert len(bars) == 2
 
-    pows = session.query(Pow).all()
-    LOGGER.debug('Pows: %s', pows)
-    assert len(pows) == 1
+    poofs = session.query(Poof).all()
+    LOGGER.debug('Poofs: %s', poofs)
+    assert len(poofs) == 1

@@ -81,7 +81,7 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
             self._database, dbmodel.LabPLACodeMapping, 'code', dbmodel.Lab, 'lab'
         ).update(data.lab_pla_code_mapping)
 
-        self._database.commit()
+        self._database.commit()  # pylint: disable=no-member
 
 
 class TableUpdater:
@@ -126,6 +126,7 @@ class TableUpdater:
         new_data = self._remove_missing_rows(partial_data)
 
         if 'deleted' in data:
+            # pylint: disable=singleton-comparison
             soft_deleted_data = partial_data[(partial_data.deleted_CURRENT == False) & (partial_data.deleted == True)]
             old_data = pandas.concat([old_data, self._sync_soft_deleted_rows(soft_deleted_data)])
 

@@ -6,7 +6,7 @@ class ETLTaskWrapper(etl.ETLTaskWrapper):
     def __init__(self, task_class, parameters=None):
         super().__init__(task_class, parameters=parameters)
 
-        self._exception=None
+        self._exception = None
         self._data = None
 
     @property
@@ -22,7 +22,7 @@ class ETLTaskWrapper(etl.ETLTaskWrapper):
 
     def _generate_response(self):
         self._data = dict(
-            extractor=self._extractor.data,
-            transformer=self._transformer.data,
-            loader=self._loader.data
+            extractor=self._task._extractor.data,
+            transformer=self._task._transformer.data,
+            loader=self._task._loader.data
         )

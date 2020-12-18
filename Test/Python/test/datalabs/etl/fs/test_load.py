@@ -14,6 +14,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name
 def test_data_setup_correctly(extractor_file):
     with open(extractor_file) as file:
         data = file.read()
@@ -22,8 +23,9 @@ def test_data_setup_correctly(extractor_file):
     assert len(data) > 0
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_loader_loads_two_files(etl, loader_directory):
-    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+    with mock.patch('datalabs.access.parameter.boto3'):
         etl.run()
 
     data = etl._task._loader.data
@@ -35,8 +37,9 @@ def test_loader_loads_two_files(etl, loader_directory):
     assert len(files) == 2
 
 
+# pylint: disable=redefined-outer-name
 def test_loader_properly_adds_datestamp(etl, loader_directory):
-    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+    with mock.patch('datalabs.access.parameter.boto3'):
         etl.run()
 
     files = sorted(glob(os.path.join(loader_directory, '*')), key=len)
@@ -51,7 +54,7 @@ def extractor_directory():
         yield temp_directory
 
 
-# pylint: disable=line-too-long
+# pylint: disable=redefined-outer-name, line-too-long
 @pytest.fixture
 def extractor_file(extractor_directory):
     prefix = 'PhysicianProfessionalDataFile_20201201'
@@ -59,10 +62,7 @@ def extractor_file(extractor_directory):
     with tempfile.NamedTemporaryFile(dir=extractor_directory, prefix=prefix):
         with tempfile.NamedTemporaryFile(dir=extractor_directory, prefix=prefix) as file:
             file.write(
-                """98765432109|A|1|2|MICHAEL A FOX MD|FOX|MICHAEL|ANDREW|||1234 SOMELANE LN|SOMETOWN|AL|35242|7463|R077||117|01|!|35242|7463|99|6|!|3|6|5|0127|03|1|B|1|13820||1|1972|SOMETOWN|AL|US1|1||||020|011|EM|FM|OFF|||Y||06302003||||||11|0440|001|02|2000|||Y|11122009||||||||||||||
-98765432108|A|1|3|EDWARD J OLMOS MD|OLMOS|EDWARD|JAMES|||1234 SOMEDRIVE DR|SOMETOWN|NC|27617|7408|R077||183|37|!|27617|7408|01|7|!|3|5|6|0537|09|3|A|1|39580||1|1955|SOMETOWN|GA|US1|2||||100|110|FOP|US|NCL|||||10312006||||||48|9502|001|02|2001||||||1234 SOMEDRIVE DR|SOMETOWN|NC|27617|7408|R077|||||||
-98765432107|A|1|1|J MICHAEL STRACZYNSKI MD|STRACZYNSKI|JOSEPH|MICHAEL|||1234 SOMEBOULEVARD BLVD|SOMETOWN|NC|28203|5812|C007||119|37|!|28203|5812|00|9|!|3|5|6|0035|00|1|A|1|16740||1|1973|SOMETOWN|MS|US1|1|8282544337||8282522245|020|030|PD|US|OFF|||Y||06302003||||||36|0291|001|02|2000|||||AAA PEDIATRIC ASSOC|1234 SOMEDRIVE DR|SOMETOWN|NC|28805|1262|C082|||||||
-""".encode('UTF-8')
+                """We all live in a yellow submarine...""".encode('UTF-8')
             )
             file.flush()
 
@@ -75,6 +75,7 @@ def loader_directory():
         yield temp_directory
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def environment(extractor_file, loader_directory):
     current_environment = os.environ.copy()
@@ -99,10 +100,11 @@ def environment(extractor_file, loader_directory):
     os.environ.update(current_environment)
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def etl(environment):
-    task_class = import_plugin(os.getenv('TASK_CLASS'))
-    task_wrapper_class = import_plugin(os.getenv('TASK_WRAPPER_CLASS'))
+    task_class = import_plugin(environment.get('TASK_CLASS'))
+    task_wrapper_class = import_plugin(environment.get('TASK_WRAPPER_CLASS'))
     task_wrapper = task_wrapper_class(task_class, parameters={})
 
     return task_wrapper

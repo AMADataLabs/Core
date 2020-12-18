@@ -1,10 +1,10 @@
 """ AWS S3 Loader """
 import base64
+from   datetime import datetime
 import hashlib
 import logging
 
 import boto3
-from   datetime import datetime
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.load import LoaderTask

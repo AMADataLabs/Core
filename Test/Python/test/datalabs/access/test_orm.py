@@ -1,14 +1,12 @@
+""" source: datalabs.access.orm """
 import logging
-import os
 import tempfile
 
-import pandas
 import pytest
-import sqlalchemy as sa
 from   sqlalchemy.orm import sessionmaker
 
 from   datalabs.access.orm import Database
-from   test.datalabs.access.model import Base, Foo, Bar, Pow
+from   test.datalabs.access.model import Base, Foo, Bar, Poof  # pylint: disable=wrong-import-order
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -21,6 +19,7 @@ def file():
         yield database_file.name
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def parameters(file):
     return dict(
@@ -33,14 +32,16 @@ def parameters(file):
     )
 
 
+# pylint: disable=protected-access
 @pytest.fixture
 def database(parameters):
-    with Database.from_parameters(parameters) as db:
-        Base.metadata.create_all(db._connection.get_bind())
+    with Database.from_parameters(parameters) as database:
+        Base.metadata.create_all(database._connection.get_bind())
 
-        yield db
+        yield database
 
 
+# pylint: disable=protected-access
 def test_adding_objects(database):
     models = [
         Foo(this='ping', that='biff'),
@@ -48,7 +49,7 @@ def test_adding_objects(database):
         Foo(this='pong', that='buff'),
         Bar(one=11, two='swish'),
         Bar(one=42, two='swish'),
-        Pow(a=30, b=True),
+        Poof(a=30, b=True),
     ]
 
     for model in models:
@@ -56,7 +57,7 @@ def test_adding_objects(database):
 
     database.commit()
 
-    Session = sessionmaker(bind=database._connection.get_bind())
+    Session = sessionmaker(bind=database._connection.get_bind())  # pylint: disable=invalid-name
     session = Session()
 
     foos = session.query(Foo).all()
@@ -67,6 +68,6 @@ def test_adding_objects(database):
     LOGGER.debug('Bars: %s', bars)
     assert len(bars) == 2
 
-    pows = session.query(Pow).all()
-    LOGGER.debug('Pows: %s', pows)
-    assert len(pows) == 1
+    poofs = session.query(Poof).all()
+    LOGGER.debug('Poofs: %s', poofs)
+    assert len(poofs) == 1

@@ -2,7 +2,6 @@
 import sqlalchemy
 from   sqlalchemy.orm import sessionmaker
 
-from   datalabs.access.credentials import Credentials
 import datalabs.access.database as db
 
 

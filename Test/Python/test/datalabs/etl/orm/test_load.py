@@ -1,27 +1,24 @@
-""" ORM loader task tests """
+""" source: datalabs.etl.orm.load """
 import logging
-import os
 import tempfile
 
 import pandas
 import pytest
-import sqlalchemy
-from   sqlalchemy.orm import sessionmaker
 
 from   datalabs.access.orm import Database
 from   datalabs.access.orm import DatabaseTaskMixin
 from   datalabs.etl.orm.load import ORMLoaderTask
 import datalabs.etl.task as task
-# import datalabs.model.masterfile.oneview as dbmodel
-from   test.datalabs.access.model import Base, Foo, Bar, Pow
+
+from   test.datalabs.access.model import Base, Foo, Bar, Poof
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# @pytest.mark.skip(reason="Integration test.")
-def test_orm_loader(database, file, components):
+# pylint: disable=redefined-outer-name, protected-access
+def test_orm_loader(components):
     loader = ORMLoaderTask(components)
     loader._load()
 
@@ -37,12 +34,13 @@ def test_orm_loader(database, file, components):
         assert bars[0].one == 11
         assert bars[1].two == 'swash'
 
-        pows = database.query(Pow).all()
-        assert len(pows) == 1
-        assert pows[0].a == 30
-        assert pows[0].b
+        poofs = database.query(Poof).all()
+        assert len(poofs) == 1
+        assert poofs[0].a == 30
+        assert poofs[0].b
 
 
+# pylint: disable=redefined-outer-name, unused-argument
 @pytest.fixture
 def components(database, file, data):
     return task.ETLComponentParameters(
@@ -56,13 +54,14 @@ def components(database, file, data):
         ),
         variables=dict(
             CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
-            MODELCLASSES='test.datalabs.access.model.Foo,test.datalabs.access.model.Bar,test.datalabs.access.model.Pow',
+            MODELCLASSES='test.datalabs.access.model.Foo,test.datalabs.access.model.Bar,test.datalabs.access.model.Poof',
             thing=True,
         ),
         data=data
     )
 
 
+# pylint: disable=blacklisted-name
 @pytest.fixture
 def data():
     foo = dict(
@@ -75,12 +74,13 @@ def data():
         two={0: 'swish', 1: 'swash'}
     )
 
-    pow = dict(
+
+    poof = dict(
         a={0: 30},
         b={0: True}
     )
 
-    return list([pandas.DataFrame.from_dict(data).to_csv() for data in (foo, bar, pow)])
+    return list([pandas.DataFrame.from_dict(data).to_csv() for data in (foo, bar, poof)])
 
 
 @pytest.fixture
@@ -89,6 +89,7 @@ def file():
         yield database_file.name
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def parameters(file):
     return dict(
@@ -101,9 +102,10 @@ def parameters(file):
     )
 
 
+# pylint: disable=redefined-outer-name, protected-access
 @pytest.fixture
 def database(parameters):
-    with Database.from_parameters(parameters) as db:
-        Base.metadata.create_all(db._connection.get_bind())
+    with Database.from_parameters(parameters) as database:
+        Base.metadata.create_all(database._connection.get_bind())
 
-        yield db
+        yield database

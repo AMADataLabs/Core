@@ -27,11 +27,11 @@ class Bar(Base):
         return "<Bar(one={}, two='{}')>".format(self.one, self.two)
 
 
-class Pow(Base):
-    __tablename__ = 'pow'
+class Poof(Base):
+    __tablename__ = 'poof'
 
     a = sa.Column(sa.Integer, primary_key=True)
     b = sa.Column(sa.Boolean, nullable=False)
 
     def __repr__(self):
-        return "<Pow(a={}, b={})>".format(self.a, self.b)
+        return "<Poof(a={}, b={})>".format(self.a, self.b)

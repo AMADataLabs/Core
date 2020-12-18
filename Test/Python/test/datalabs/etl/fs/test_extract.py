@@ -13,6 +13,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_data_setup_correctly(extractor_file):
     with open(extractor_file) as file:
         data = file.read()
@@ -21,8 +22,9 @@ def test_data_setup_correctly(extractor_file):
     assert len(data) > 0
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_extractor_loads_correct_file(etl):
-    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+    with mock.patch('datalabs.access.parameter.boto3'):
         etl.run()
 
     extractor = etl._task._extractor
@@ -36,7 +38,7 @@ def extractor_directory():
         yield temp_directory
 
 
-# pylint: disable=line-too-long
+# pylint: disable=redefined-outer-name, line-too-long
 @pytest.fixture
 def extractor_file(extractor_directory):
     prefix = 'PhysicianProfessionalDataFile_20201201'
@@ -60,6 +62,7 @@ def loader_directory():
         yield temp_directory
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def environment(extractor_file, loader_directory):
     current_environment = os.environ.copy()
@@ -81,10 +84,11 @@ def environment(extractor_file, loader_directory):
     os.environ.update(current_environment)
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def etl(environment):
-    task_class = import_plugin(os.getenv('TASK_CLASS'))
-    task_wrapper_class = import_plugin(os.getenv('TASK_WRAPPER_CLASS'))
+    task_class = import_plugin(environment.get('TASK_CLASS'))
+    task_wrapper_class = import_plugin(environment.get('TASK_WRAPPER_CLASS'))
     task_wrapper = task_wrapper_class(task_class, parameters={})
 
     return task_wrapper
