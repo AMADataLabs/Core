@@ -54,7 +54,7 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
     def _resolve_filename(cls, sftp, file_path):
         base_path = os.path.dirname(file_path)
         unresolved_file = os.path.basename(file_path)
-        file_paths = [os.path.join(base_path, file) for file in sftp.ls(base_path, filter=unresolved_file)]
+        file_paths = [os.path.join(base_path, file) for file in sftp.list(base_path, filter=unresolved_file)]
 
         if len(file_paths) == 0:
             raise FileNotFoundError(f"Unable to find file '{file_path}'")

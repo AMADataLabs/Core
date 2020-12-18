@@ -11,3 +11,11 @@ PE_COLUMNS = {
     'present_emp_cd': 'id',
     'description': 'description'
 }
+CBSA_COLUMNS = {
+    'CBSA Code': 'id',
+    'CBSA Name': 'description'
+}
+SPECIALTY_COLUMNS = {
+    'spec_cd': 'id',
+    'description': 'id'
+}

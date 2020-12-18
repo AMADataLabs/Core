@@ -1,4 +1,4 @@
-"""JDBC Extractor"""
+""" JDBC Extractor """
 import jaydebeapi
 import pandas
 
