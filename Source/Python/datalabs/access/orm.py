@@ -18,8 +18,8 @@ class Database(db.Database):
     def commit(self):
         self._connection.commit()
 
-    def query(self, model, **kwargs):
-        return self._connection.query(model, **kwargs)
+    def query(self, *models, **kwargs):
+        return self._connection.query(*models, **kwargs)
 
 
 # pylint: disable=abstract-method
