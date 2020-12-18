@@ -113,8 +113,9 @@ class AIMS(ODBCDatabase):
 
         return chunks
 
+    #pylint: disable=too-many-arguments
     def _read_chunk(self, sql, offset, size, order_by, caller):
-        LOGGER.debug(f'Querying {caller} chunk at offset: %s', offset)
+        LOGGER.debug('Querying %s chunk at offset: %s', caller, offset)
         chunk_sql = re.sub('SELECT ', f"SELECT SKIP {offset} FIRST {size} ", sql, flags=re.I) \
             + ('' if order_by is None else f" ORDER BY {order_by}")
 

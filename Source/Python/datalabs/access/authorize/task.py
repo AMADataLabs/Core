@@ -51,7 +51,7 @@ class AuthorizerTask(Task, ABC):
         return policy
 
     def _generate_policy(self, effect):
-        base, stage, action, path = self._parameters.endpoint.split('/', 3)
+        base, stage, action, _ = self._parameters.endpoint.split('/', 3)
         resource = '/'.join((base, stage, action, '*'))
 
         return {

@@ -5,8 +5,6 @@ import logging
 import os
 
 from   datalabs.access.orm import DatabaseTaskMixin
-from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
-from   datalabs.access.secret import SecretsManagerEnvironmentLoader
 import datalabs.task as task
 
 logging.basicConfig()
@@ -68,13 +66,14 @@ class APIEndpointTask(task.Task, DatabaseTaskMixin):
 
     def run(self):
         with self._get_database(self._parameters.database) as database:
-            self._run(database.session)  # pylint: disable=no-member
+            self._run(database)  # pylint: disable=no-member
 
     @abstractmethod
-    def _run(self, session):
+    def _run(self, database):
         pass
 
 
+# pylint: disable=abstract-method
 class APIEndpointParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
         query_parameters = self._parameters.get('query') or dict()

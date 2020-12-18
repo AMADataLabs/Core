@@ -32,12 +32,9 @@ def test_task_is_not_abstract():
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_runs_with_database(parameters):
     with mock.patch('datalabs.access.orm.Database') as database:
-        database.return_value.session = True
         task = GoodTask(parameters)
         task.run()
 
-        assert database.call_count == 1
-        assert database.return_value.session
         assert GoodTask._run.called
 
 

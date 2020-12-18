@@ -31,9 +31,9 @@ def test_get_parameters_from_parameter_store(parameter_values):
         assert os.getenv('NICKNAME') == 'mrtwinkles'
 
 
-# pylint: disable=redefined-outer-name,protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_from_environ(environment):
-    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+    with mock.patch('datalabs.access.parameter.boto3'):
         loader = ParameterStoreEnvironmentLoader.from_environ()
         values = loader._parameters.values()
 

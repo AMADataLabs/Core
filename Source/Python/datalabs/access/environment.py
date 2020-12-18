@@ -18,6 +18,7 @@ class VariableTree:
     def generate(cls):
         root = dict()
 
+        # pylint: disable=protected-access
         for name, value in os.environ._data.items():
             cls._create_branch(root, name.decode('utf-8'), value.decode('utf-8'))
 
@@ -27,9 +28,10 @@ class VariableTree:
         branch = self._root
 
         for next_branch in branches:
+            value = branch[next_branch]['value']
             branch = branch[next_branch]['branches']
 
-        return branch['value']
+        return value
 
     def get_branches(self, branches: list):
         branch = self._root

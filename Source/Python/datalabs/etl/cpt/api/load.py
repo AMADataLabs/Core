@@ -29,64 +29,64 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
         self._release = None
         self._codes = None
         self._pla_codes = None
-        self._session = None
+        self._database = None
 
     def _load(self):
         with self._get_database(self._parameters.database) as database:
-            self._session = database.session  # pylint: disable=no-member
+            self._database = database
 
             self._update_tables(self._parameters.data)
 
     def _update_tables(self, data: transform.OutputData):
-        release_table_updater = ReleaseTableUpdater(self._session)
+        release_table_updater = ReleaseTableUpdater(self._database)
         release_table_updater.update(data.release)
 
-        TableUpdater(self._session, dbmodel.Code, 'code').update(data.code)
+        TableUpdater(self._database, dbmodel.Code, 'code').update(data.code)
 
         ReleaseCodeMappingTableUpdater(
-            self._session, dbmodel.ReleaseCodeMapping, 'id', dbmodel.Release, 'release'
+            self._database, dbmodel.ReleaseCodeMapping, 'id', dbmodel.Release, 'release'
         ).update(data.release_code_mapping)
 
-        TableUpdater(self._session, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
+        TableUpdater(self._database, dbmodel.ShortDescriptor, 'code').update(data.short_descriptor)
 
-        TableUpdater(self._session, dbmodel.MediumDescriptor, 'code').update(data.medium_descriptor)
+        TableUpdater(self._database, dbmodel.MediumDescriptor, 'code').update(data.medium_descriptor)
 
-        TableUpdater(self._session, dbmodel.LongDescriptor, 'code').update(data.long_descriptor)
+        TableUpdater(self._database, dbmodel.LongDescriptor, 'code').update(data.long_descriptor)
 
-        TableUpdater(self._session, dbmodel.ModifierType, 'id', match_columns='name').update(data.modifier_type)
+        TableUpdater(self._database, dbmodel.ModifierType, 'id', match_columns='name').update(data.modifier_type)
 
-        ModifierTableUpdater(self._session).update(data.modifier)
+        ModifierTableUpdater(self._database).update(data.modifier)
 
-        TableUpdater(self._session, dbmodel.ConsumerDescriptor, 'code').update(data.consumer_descriptor)
+        TableUpdater(self._database, dbmodel.ConsumerDescriptor, 'code').update(data.consumer_descriptor)
 
-        TableUpdater(self._session, dbmodel.ClinicianDescriptor, 'id').update(data.clinician_descriptor)
+        TableUpdater(self._database, dbmodel.ClinicianDescriptor, 'id').update(data.clinician_descriptor)
 
-        TableUpdater(self._session, dbmodel.ClinicianDescriptorCodeMapping, 'clinician_descriptor').update(
+        TableUpdater(self._database, dbmodel.ClinicianDescriptorCodeMapping, 'clinician_descriptor').update(
             data.clinician_descriptor_code_mapping
         )
 
-        TableUpdater(self._session, dbmodel.PLADetails, 'code').update(data.pla_details)
+        TableUpdater(self._database, dbmodel.PLADetails, 'code').update(data.pla_details)
 
-        TableUpdater(self._session, dbmodel.Manufacturer, 'id', match_columns='name').update(data.manufacturer)
+        TableUpdater(self._database, dbmodel.Manufacturer, 'id', match_columns='name').update(data.manufacturer)
 
-        TableUpdater(self._session, dbmodel.Lab, 'id', match_columns='name').update(data.lab)
+        TableUpdater(self._database, dbmodel.Lab, 'id', match_columns='name').update(data.lab)
 
         OneToManyTableUpdater(
-            self._session, dbmodel.ManufacturerPLACodeMapping, 'code', dbmodel.Manufacturer, 'manufacturer'
+            self._database, dbmodel.ManufacturerPLACodeMapping, 'code', dbmodel.Manufacturer, 'manufacturer'
         ).update(
             data.manufacturer_pla_code_mapping
         )
 
         OneToManyTableUpdater(
-            self._session, dbmodel.LabPLACodeMapping, 'code', dbmodel.Lab, 'lab'
+            self._database, dbmodel.LabPLACodeMapping, 'code', dbmodel.Lab, 'lab'
         ).update(data.lab_pla_code_mapping)
 
-        self._session.commit()
+        self._database.commit()  # pylint: disable=no-member
 
 
 class TableUpdater:
     def __init__(self, session, model_class: type, primary_key: list, match_columns: str = None):
-        self._session = session
+        self._database = session
         self._model_class = model_class
         self._primary_key = self._force_list(primary_key)
         self._match_columns = self._force_list(match_columns) or self._primary_key
@@ -112,7 +112,7 @@ class TableUpdater:
         return value
 
     def _get_current_data(self):
-        results = self._session.query(self._model_class).all()
+        results = self._database.query(self._model_class).all()
 
         return results, self._get_query_results_data(results)
 
@@ -126,7 +126,8 @@ class TableUpdater:
         new_data = self._remove_missing_rows(partial_data)
 
         if 'deleted' in data:
-            soft_deleted_data = partial_data[(not partial_data.deleted_CURRENT) & partial_data.deleted]
+            # pylint: disable=singleton-comparison
+            soft_deleted_data = partial_data[(partial_data.deleted_CURRENT == False) & (partial_data.deleted == True)]
             old_data = pandas.concat([old_data, self._sync_soft_deleted_rows(soft_deleted_data)])
 
         return old_data, new_data
@@ -226,7 +227,8 @@ class TableUpdater:
 
         return data.drop(drop_columns, axis=1)
 
-    def _drop_rows_with_null_values(self, data, reduced_data):
+    @classmethod
+    def _drop_rows_with_null_values(cls, data, reduced_data):
         delete_indices = reduced_data.isnull().any(axis=1)
 
         return data.drop(data.index[delete_indices])
@@ -237,7 +239,7 @@ class TableUpdater:
     def _add_models(self, models):
         LOGGER.info('    Adding %d new rows...', len(models))
         for model in models:
-            self._session.add(model)
+            self._database.add(model)
 
     def _get_changeable_columns(self):
         columns = self._get_model_columns()
@@ -303,7 +305,7 @@ class ReleaseTableUpdater(TableUpdater):
 
         super().update(data)
 
-        self._session.commit()
+        self._database.commit()
 
         if self._new_models:
             self._release_id = self._new_models[-1].id
@@ -343,7 +345,7 @@ class ReleaseCodeMappingTableUpdater(TableUpdater):
         super().update(data)
 
     def _resolve_key_values_to_ids(self, data):
-        lookup_data = self._session.query(self._many_model_class).all()
+        lookup_data = self._database.query(self._many_model_class).all()
         id_map = self._map_key_values_to_ids(lookup_data)
         data.loc[:, self._many_key] = data[self._many_key].apply(id_map.get)
 
@@ -365,7 +367,7 @@ class ModifierTableUpdater(TableUpdater):
         self._modifier_types = None
 
     def _get_current_data(self):
-        self._modifier_types = {type_.name: type_.id for type_ in self._session.query(dbmodel.ModifierType).all()}
+        self._modifier_types = {type_.name: type_.id for type_ in self._database.query(dbmodel.ModifierType).all()}
 
         return super()._get_current_data()
 
@@ -391,7 +393,7 @@ class OneToManyTableUpdater(TableUpdater):
         super().update(data)
 
     def _resolve_key_values_to_ids(self, data):
-        lookup_data = self._session.query(self._many_model_class).all()
+        lookup_data = self._database.query(self._many_model_class).all()
         id_map = self._map_key_values_to_ids(lookup_data)
 
         data.loc[:, self._many_key] = data[self._many_key].apply(id_map.get)

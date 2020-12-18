@@ -23,7 +23,8 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
         return merged_dataframes
 
-    def _merge_dataframes(self, dataframes):
+    @classmethod
+    def _merge_dataframes(cls, dataframes):
         new_df = pandas.merge(dataframes[1], dataframes[0], on='number')
         return [new_df, dataframes[2], dataframes[3]]
 
