@@ -1,6 +1,5 @@
 """ source: datalabs.access.orm """
 import logging
-import tempfile
 
 import pytest
 from   sqlalchemy.orm import sessionmaker
@@ -13,35 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-@pytest.fixture
-def file():
-    with tempfile.NamedTemporaryFile(suffix='.db', delete=True) as database_file:
-        yield database_file.name
-
-
-# pylint: disable=redefined-outer-name
-@pytest.fixture
-def parameters(file):
-    return dict(
-        backend='sqlite',
-        name=file,
-        host='',
-        port='',
-        username='',
-        password=''
-    )
-
-
-# pylint: disable=protected-access
-@pytest.fixture
-def database(parameters):
-    with Database.from_parameters(parameters) as database:
-        Base.metadata.create_all(database._connection.get_bind())
-
-        yield database
-
-
-# pylint: disable=protected-access
+# pylint: disable=redefined-outer-name, protected-access
 def test_adding_objects(database):
     models = [
         Foo(this='ping', that='biff'),
@@ -71,3 +42,12 @@ def test_adding_objects(database):
     poofs = session.query(Poof).all()
     LOGGER.debug('Poofs: %s', poofs)
     assert len(poofs) == 1
+
+
+# pylint: disable=protected-access
+@pytest.fixture
+def database(database_parameters):
+    with Database.from_parameters(database_parameters) as database:
+        Base.metadata.create_all(database._connection.get_bind())
+
+        yield database
