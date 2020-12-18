@@ -4,7 +4,7 @@ import pandas
 
 from   io import StringIO
 
-from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, SPECIALTY_COLUMNS
+from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, SPECIALTY_COLUMNS, SPECIALTY_MERGED_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -61,3 +61,6 @@ class SpecialtyMergeTransformerTask(TransformerTask):
     @classmethod
     def _to_dataframe(cls, file):
         return pandas.read_csv(StringIO(file))
+
+    def _get_columns(self):
+        return [SPECIALTY_MERGED_COLUMNS]

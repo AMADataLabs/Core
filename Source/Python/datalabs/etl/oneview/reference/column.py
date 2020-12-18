@@ -17,5 +17,9 @@ CBSA_COLUMNS = {
 }
 SPECIALTY_COLUMNS = {
     'spec_cd': 'id',
-    'description': 'id'
+    'description': 'description'
+}
+SPECIALTY_MERGED_COLUMNS = {
+    'id': 'id',
+    'description': 'description'
 }
