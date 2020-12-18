@@ -20,6 +20,7 @@ class ETLTaskWrapper(etl.ETLTaskWrapper):
     def _handle_exception(self, exception: etl.ETLException):
         self._exception = exception
 
+    # pylint: disable=protected-access
     def _generate_response(self):
         self._data = dict(
             extractor=self._task._extractor.data,

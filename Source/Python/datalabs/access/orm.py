@@ -8,7 +8,7 @@ import datalabs.access.database as db
 class Database(db.Database):
     def connect(self):
         engine = sqlalchemy.create_engine(self.url, echo=True)
-        Session = sessionmaker(bind=engine)
+        Session = sessionmaker(bind=engine)  # pylint: disable=invalid-name
 
         self._connection = Session()
 

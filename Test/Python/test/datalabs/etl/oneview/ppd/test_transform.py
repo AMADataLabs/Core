@@ -1,6 +1,5 @@
 """ source: datalabs.etl.oneview.transform """
 import logging
-import os
 import pandas
 import pytest
 

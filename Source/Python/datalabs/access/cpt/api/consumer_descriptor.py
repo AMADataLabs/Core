@@ -84,8 +84,7 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
                 query = query.filter(Release.effective_date >= date)
 
         else:
-            # pylint: disable=singleton-comparison
-            query = query.filter(ConsumerDescriptor.deleted == False)
+            query = query.filter(ConsumerDescriptor.deleted == False)  # pylint: disable=singleton-comparison
 
         return query
 

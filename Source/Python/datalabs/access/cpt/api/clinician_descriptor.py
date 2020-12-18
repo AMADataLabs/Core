@@ -86,8 +86,7 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
                 query = query.filter(Release.effective_date >= date)
 
         else:
-            # pylint: disable=singleton-comparison
-            query = query.filter(ClinicianDescriptor.deleted == False)
+            query = query.filter(ClinicianDescriptor.deleted == False)  # pylint: disable=singleton-comparison
 
         return query
 

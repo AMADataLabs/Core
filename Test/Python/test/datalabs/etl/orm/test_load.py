@@ -10,7 +10,7 @@ from   datalabs.access.orm import DatabaseTaskMixin
 from   datalabs.etl.orm.load import ORMLoaderTask
 import datalabs.etl.task as task
 
-from   test.datalabs.access.model import Base, Foo, Bar, Poof
+from   test.datalabs.access.model import Base, Foo, Bar, Poof  # pylint: disable=wrong-import-order
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -54,7 +54,9 @@ def components(database, file, data):
         ),
         variables=dict(
             CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
-            MODELCLASSES='test.datalabs.access.model.Foo,test.datalabs.access.model.Bar,test.datalabs.access.model.Poof',
+            MODELCLASSES='test.datalabs.access.model.Foo,'
+                         'test.datalabs.access.model.Bar,'
+                         'test.datalabs.access.model.Poof',
             thing=True,
         ),
         data=data

@@ -118,8 +118,7 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
                 query = query.filter(dbmodel.Release.effective_date >= date)
 
         else:
-            # pylint: disable=singleton-comparison
-            query = query.filter(dbmodel.Code.deleted == False)
+            query = query.filter(dbmodel.Code.deleted == False)  # pylint: disable=singleton-comparison
 
         return query
 

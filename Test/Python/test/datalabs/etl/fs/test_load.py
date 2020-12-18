@@ -1,3 +1,4 @@
+""" source: datalabs.etl.fs.load """
 from datetime import datetime
 from glob import glob
 import logging
@@ -57,12 +58,14 @@ def extractor_directory():
 # pylint: disable=redefined-outer-name, line-too-long
 @pytest.fixture
 def extractor_file(extractor_directory):
-    prefix = 'PhysicianProfessionalDataFile_20201201'
+    prefix = 'PhysicianProfessionalDataFile_2020120'
 
-    with tempfile.NamedTemporaryFile(dir=extractor_directory, prefix=prefix):
-        with tempfile.NamedTemporaryFile(dir=extractor_directory, prefix=prefix) as file:
+    with tempfile.NamedTemporaryFile(dir=extractor_directory, prefix=prefix+'1'):
+        with tempfile.NamedTemporaryFile(dir=extractor_directory, prefix=prefix+'2') as file:
             file.write(
-                """We all live in a yellow submarine...""".encode('UTF-8')
+                """Driving west at dusk,
+                The surest death is sunlight.
+                Beautiful sunset.""".encode('UTF-8')
             )
             file.flush()
 
