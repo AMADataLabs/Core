@@ -17,5 +17,9 @@ CBSA_COLUMNS = {
 }
 SPECIALTY_COLUMNS = {
     'spec_cd': 'id',
-    'description': 'id'
+    'description': 'description'
+}
+FIPSC_COLUMNS = {
+    'County Code (FIPS)': 'id',
+    'Area Name (including legal/statistical area description)': 'description'
 }
