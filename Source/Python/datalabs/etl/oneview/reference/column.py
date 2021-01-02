@@ -20,6 +20,6 @@ SPECIALTY_COLUMNS = {
     'description': 'description'
 }
 FIPSC_COLUMNS = {
-    'County Code (FIPS)': 'id',
+    'FIPS_Code': 'id',
     'Area Name (including legal/statistical area description)': 'description'
 }
