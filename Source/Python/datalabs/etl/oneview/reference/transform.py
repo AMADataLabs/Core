@@ -46,7 +46,7 @@ class SpecialtyTransformerTask(TransformerTask):
         return [SPECIALTY_COLUMNS]
 
 
-class FederalInformationProcessingStandardCountyTask(TransformerTask):
+class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     def _transform(self):
         fips_dataframe = self._to_dataframe()
         self._parameters.data = [self.append_column(df) for df in fips_dataframe]
@@ -64,6 +64,9 @@ class FederalInformationProcessingStandardCountyTask(TransformerTask):
             (dataframe['Summary Level'] == 40) |
             (dataframe['Summary Level'] == 10)
         ].reset_index(drop=True)
+
+        dataframe['State Code (FIPS)'] = dataframe['State Code (FIPS)'].astype(str)
+        dataframe['County Code (FIPS)'] = dataframe['County Code (FIPS)'].astype(str)
 
         dataframe['FIPS_Code'] = dataframe['State Code (FIPS)'] + dataframe['County Code (FIPS)']
 
