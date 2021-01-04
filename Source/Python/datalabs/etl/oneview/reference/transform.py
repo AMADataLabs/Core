@@ -1,10 +1,11 @@
 """ OneView Reference Transformer"""
+from   io import StringIO
+
 import logging
 import pandas
 
-from   io import StringIO
-
-from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, SPECIALTY_COLUMNS, SPECIALTY_MERGED_COLUMNS
+from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, \
+    SPECIALTY_COLUMNS, SPECIALTY_MERGED_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -34,9 +35,8 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
 
         return core_based_statistical_area_data
 
-    @classmethod
-    def _to_dataframe(cls):
-        return [pandas.read_csv(StringIO(file)) for file in cls._parameters.data]
+    def _to_dataframe(self):
+        return [pandas.read_csv(StringIO(file)) for file in self._parameters.data]
 
     def _get_columns(self):
         return [CBSA_COLUMNS]
@@ -51,8 +51,8 @@ class SpecialtyMergeTransformerTask(TransformerTask):
     def _transform(self):
         csv_to_df = [self._dataframe_to_csv(csv) for csv in self._parameters.data]
         filtered_dataframe = csv_to_df[0].loc[csv_to_df[0].id.isin(csv_to_df[1].primary_specialty) |
-                                              csv_to_df[0].id.isin(csv_to_df[1].secondary_specialty)].reset_index(
-            drop=True)
+                                              csv_to_df[0].id.isin(csv_to_df[1].secondary_specialty)
+                                              ].reset_index(drop=True)
 
         self._parameters.data = filtered_dataframe
 
