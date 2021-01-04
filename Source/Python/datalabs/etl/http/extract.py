@@ -15,7 +15,7 @@ class HTTPFileExtractorTask(FileExtractorTask):
         with requests.Session() as http:
             text = http.get(url)
 
-        return self._decode_data(text.content)
+        return text.content
 
     @classmethod
     def _decode_data(cls, data):
