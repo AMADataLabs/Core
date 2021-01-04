@@ -19,7 +19,12 @@ SPECIALTY_COLUMNS = {
     'spec_cd': 'id',
     'description': 'description'
 }
+SPECIALTY_MERGED_COLUMNS = {
+    'id': 'id',
+    'description': 'description'
+}
 FIPSC_COLUMNS = {
     'FIPS_Code': 'id',
     'Area Name (including legal/statistical area description)': 'description'
 }
+
