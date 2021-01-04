@@ -10,6 +10,7 @@ class HTTPFileExtractorTask(FileExtractorTask):
 
         return data
 
+    # pylint: disable=arguments-differ
     def _extract_file(self, url):
         with requests.Session() as http:
             text = http.get(url)
