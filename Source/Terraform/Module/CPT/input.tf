@@ -3,12 +3,6 @@ variable "project" {
     type            = string
 }
 
-variable "rds_instance_name" {
-    description = "RDS instance identifier"
-    type        = string
-    default     = "datalabs-api-backend"
-}
-
 
 variable "rds_instance_class" {
     description = "RDS instance class"
@@ -21,13 +15,6 @@ variable "rds_storage_type" {
     description = "RDS storage type"
     type        = string
     default     = "gp2"
-}
-
-
-variable "database_name" {
-    description = "database name"
-    type        = string
-    default     = "cpt-api"
 }
 
 
@@ -48,13 +35,12 @@ variable "endpoint_memory_size" {
 data "aws_caller_identity" "account" {}
 
 
-data "aws_ssm_parameter" "database_username" {
-    name = "/DataLabs/${var.project}/RDS/username"
+data "aws_secretsmanager_secret" "database" {
+  name = "DataLabs/${var.project}/API/database"
 }
 
-
-data "aws_ssm_parameter" "database_password" {
-    name = "/DataLabs/${var.project}/RDS/password"
+data "aws_secretsmanager_secret_version" "database" {
+  secret_id = data.aws_secretsmanager_secret.database.id
 }
 
 

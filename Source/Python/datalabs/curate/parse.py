@@ -1,5 +1,5 @@
 """ Parser abstract base class """
-from abc import ABC, abstractmethod
+from   abc import ABC, abstractmethod
 import io
 
 import pandas

@@ -14,11 +14,8 @@ resource "aws_lambda_function" "endpoint_lambda" {
         variables = {
             TASK_WRAPPER_CLASS      = "datalabs.access.api.awslambda.APIEndpointTaskWrapper"
             TASK_CLASS              = var.task_class
-            DATABASE_NAME           = var.database_name
-            DATABASE_BACKEND        = var.database_backend
             DATABASE_HOST           = var.database_host
-            DATABASE_USERNAME       = data.aws_ssm_parameter.database_username.arn
-            DATABASE_PASSWORD       = data.aws_ssm_parameter.database_password.arn
+            DATABASE_SECRET         = data.aws_secretsmanager_secret.database.arn
             BUCKET_NAME             = data.aws_ssm_parameter.processed_bucket.arn
             BUCKET_BASE_PATH        = data.aws_ssm_parameter.s3_base_path.arn
             BUCKET_URL_DURATION     = "600"

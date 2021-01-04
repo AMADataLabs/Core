@@ -1,0 +1,1017 @@
+openapi: 3.0.2
+info:
+  title: OneView API
+  description: Masterfile OneView
+  version: "1.0.0"
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: datalabs@ama-assn.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Physician
+    description: >-
+      Masterfile data for a physician.
+paths:
+  '/physician/{me_number}':
+    get:
+      tags:
+        - Physician
+      summary: Physician data (PPD) by Medical Education number
+      description: Returns all Masterfile data (PPD) for a physician.
+      operationId: getPhysician
+      parameters:
+        - name: me_number
+          in: path
+          description: Medical Education number
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+        - name: fields
+          in: query
+          description: Restrict the result to the specified fields.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_physician_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Physician'
+        '400':
+          description: Invalid query parameter
+        '404':
+          description: No physician data found for the given ME number.
+      security:
+        - gateway_authorizer: []
+  # /physicians?first_name=JOHN&last_name=SMITH&fields=first_name,last_name,me,polo_state
+  /physicians:
+    get:
+      tags:
+        - Physician
+      summary: All physician data
+      description: Returns Masterfile data for all physicians.
+      operationId: getPhysicians
+      parameters:
+        - name: medical_education_number
+          in: query
+          description: 'Filter by medical_education_number.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: address_type
+          in: query
+          description: 'Filter by address_type.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: mailing_name
+          in: query
+          description: 'Filter by mailing_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: last_name
+          in: query
+          description: 'Filter by last_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: first_name
+          in: query
+          description: 'Filter by first_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: middle_name
+          in: query
+          description: 'Filter by middle_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: name_suffix
+          in: query
+          description: 'Filter by name_suffix.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: preferred_address_2
+          in: query
+          description: 'Filter by preferred_address_2.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: preferred_address_1
+          in: query
+          description: 'Filter by preferred_address_1.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: city
+          in: query
+          description: 'Filter by city.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: state
+          in: query
+          description: 'Filter by state.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: zipcode
+          in: query
+          description: 'Filter by zipcode.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: sector
+          in: query
+          description: 'Filter by sector.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: carrier_route
+          in: query
+          description: 'Filter by carrier_route.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: address_undeliverable
+          in: query
+          description: 'Filter by address_undeliverable.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: federal_information_processing_standard_county
+          in: query
+          description: 'Filter by federal_information_processing_standard_county.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: federal_information_processing_standard_state
+          in: query
+          description: 'Filter by federal_information_processing_standard_state.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: printer_control_code_begin
+          in: query
+          description: 'Filter by printer_control_code_begin.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: barcode_zipcode
+          in: query
+          description: 'Filter by barcode_zipcode.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: barcode_zipcode_plus_4
+          in: query
+          description: 'Filter by barcode_zipcode_plus_4.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: delivery_point
+          in: query
+          description: 'Filter by delivery_point.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: check_digit
+          in: query
+          description: 'Filter by check_digit.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: printer_control_code_end
+          in: query
+          description: 'Filter by printer_control_code_end.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: region
+          in: query
+          description: 'Filter by region.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: division
+          in: query
+          description: 'Filter by division.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: group
+          in: query
+          description: 'Filter by group.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: tract
+          in: query
+          description: 'Filter by tract.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: suffix
+          in: query
+          description: 'Filter by suffix.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: block_group
+          in: query
+          description: 'Filter by block_group.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: metropolitan_statistical_area_population
+          in: query
+          description: 'Filter by metropolitan_statistical_area_population.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: micro_metro_indicator
+          in: query
+          description: 'Filter by micro_metro_indicator.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: core_based_statistical_area
+          in: query
+          description: 'Filter by core_based_statistical_area.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: core_based_statistical_area_division
+          in: query
+          description: 'Filter by core_based_statistical_area_division.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: degree_type
+          in: query
+          description: 'Filter by degree_type.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: birth_year
+          in: query
+          description: 'Filter by birth_year.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: birth_city
+          in: query
+          description: 'Filter by birth_city.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: birth_state
+          in: query
+          description: 'Filter by birth_state.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: birth_country
+          in: query
+          description: 'Filter by birth_country.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: gender
+          in: query
+          description: 'Filter by gender.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: telephone_number
+          in: query
+          description: 'Filter by telephone_number.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: presumed_dead
+          in: query
+          description: 'Filter by presumed_dead.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: fax_number
+          in: query
+          description: 'Filter by fax_number.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: type_of_practice
+          in: query
+          description: 'Filter by type_of_practice.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: present_employment
+          in: query
+          description: 'Filter by present_employment.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: primary_specialty
+          in: query
+          description: 'Filter by primary_specialty.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: secondary_specialty
+          in: query
+          description: 'Filter by secondary_specialty.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: major_professional_activity
+          in: query
+          description: 'Filter by major_professional_activity.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: physician_recognition_award_recipient
+          in: query
+          description: 'Filter by physician_recognition_award_recipient.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: physician_recognition_award_expiration_date
+          in: query
+          description: 'Filter by physician_recognition_award_expiration_date.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: graduate_medical_education_confirm
+          in: query
+          description: 'Filter by graduate_medical_education_confirm.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: from_date
+          in: query
+          description: 'Filter by from_date.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: end_date
+          in: query
+          description: 'Filter by end_date.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: year_in_program
+          in: query
+          description: 'Filter by year_in_program.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: post_graduate_year
+          in: query
+          description: 'Filter by post_graduate_year.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: graduate_medical_education_primary_specialty
+          in: query
+          description: 'Filter by graduate_medical_education_primary_specialty.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: graduate_medical_education_secondary_specialty
+          in: query
+          description: 'Filter by graduate_medical_education_secondary_specialty.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: training_type
+          in: query
+          description: 'Filter by training_type.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: graduate_medical_education_hospital_state
+          in: query
+          description: 'Filter by graduate_medical_education_hospital_state.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: graduate_medical_education_hospital
+          in: query
+          description: 'Filter by graduate_medical_education_hospital.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: medical_school_state
+          in: query
+          description: 'Filter by medical_school_state.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: medical_school
+          in: query
+          description: 'Filter by medical_school.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: medical_school_graduation_year
+          in: query
+          description: 'Filter by medical_school_graduation_year.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: no_contact_type
+          in: query
+          description: 'Filter by no_contact_type.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: no_web
+          in: query
+          description: 'Filter by no_web.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: physician_data_restriction_program
+          in: query
+          description: 'Filter by physician_data_restriction_program.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: physician_data_restriction_program_date
+          in: query
+          description: 'Filter by physician_data_restriction_program_date.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: polo_address_2
+          in: query
+          description: 'Filter by polo_address_2.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: polo_address_1
+          in: query
+          description: 'Filter by polo_address_1.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: polo_city
+          in: query
+          description: 'Filter by polo_city.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: polo_state
+          in: query
+          description: 'Filter by polo_state.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: polo_zipcode
+          in: query
+          description: 'Filter by polo_zipcode.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: polo_sector
+          in: query
+          description: 'Filter by polo_sector.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: polo_carrier_route
+          in: query
+          description: 'Filter by polo_carrier_route.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: most_recent_former_last_name
+          in: query
+          description: 'Filter by most_recent_former_last_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: most_recent_former_middle_name
+          in: query
+          description: 'Filter by most_recent_former_middle_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: most_recent_former_first_name
+          in: query
+          description: 'Filter by most_recent_former_first_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: next_most_recent_former_last_name
+          in: query
+          description: 'Filter by next_most_recent_former_last_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: next_most_recent_former_middle_name
+          in: query
+          description: 'Filter by next_most_recent_former_middle_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: next_most_recent_former_first_name
+          in: query
+          description: 'Filter by next_most_recent_former_first_name.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: fields
+          in: query
+          description: Restrict the results to the specified fields.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_physicians_arn}/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Physician'
+        '400':
+          description: Invalid query parameter
+      security:
+        - gateway_authorizer: []
+  /{proxy+}:
+    get:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_return404_arn}/invocations"
+        responses:
+          default:
+            statusCode: 200
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        cacheNamespace: "www3v9"
+        cacheKeyParameters:
+          - "method.request.path.proxy"
+        type: "aws_proxy"
+      responses:
+        '404':
+          description: Invalid resource.
+      security:
+        - gateway_authorizer: []
+components:
+  schemas:
+    Physician:
+      type: object
+      required:
+        - medical_education_number
+      properties:
+        medical_education_number:
+          type: string
+          format: byte
+        address_type:
+          type: string
+          format: byte
+        mailing_name:
+          type: string
+          format: byte
+        last_name:
+          type: string
+          format: byte
+        first_name:
+          type: string
+          format: byte
+        middle_name:
+          type: string
+          format: byte
+        name_suffix:
+          type: string
+          format: byte
+        preferred_address_2:
+          type: string
+          format: byte
+        preferred_address_1:
+          type: string
+          format: byte
+        city:
+          type: string
+          format: byte
+        state:
+          type: string
+          format: byte
+        zipcode:
+          type: string
+          format: byte
+        sector:
+          type: string
+          format: byte
+        carrier_route:
+          type: string
+          format: byte
+        address_undeliverable:
+          type: string
+          format: byte
+        federal_information_processing_standard_county:
+          type: string
+          format: byte
+        federal_information_processing_standard_state:
+          type: string
+          format: byte
+        printer_control_code_begin:
+          type: string
+          format: byte
+        barcode_zipcode:
+          type: string
+          format: byte
+        barcode_zipcode_plus_4:
+          type: string
+          format: byte
+        delivery_point:
+          type: string
+          format: byte
+        check_digit:
+          type: string
+          format: byte
+        printer_control_code_end:
+          type: string
+          format: byte
+        region:
+          type: string
+          format: byte
+        division:
+          type: string
+          format: byte
+        group:
+          type: string
+          format: byte
+        tract:
+          type: string
+          format: byte
+        suffix:
+          type: string
+          format: byte
+        block_group:
+          type: string
+          format: byte
+        metropolitan_statistical_area_population:
+          type: string
+          format: byte
+        micro_metro_indicator:
+          type: string
+          format: byte
+        core_based_statistical_area:
+          type: string
+          format: byte
+        core_based_statistical_area_division:
+          type: string
+          format: byte
+        degree_type:
+          type: string
+          format: byte
+        birth_year:
+          type: string
+          format: byte
+        birth_city:
+          type: string
+          format: byte
+        birth_state:
+          type: string
+          format: byte
+        birth_country:
+          type: string
+          format: byte
+        gender:
+          type: string
+          format: byte
+        telephone_number:
+          type: string
+          format: byte
+        presumed_dead:
+          type: string
+          format: byte
+        fax_number:
+          type: string
+          format: byte
+        type_of_practice:
+          type: string
+          format: byte
+        present_employment:
+          type: string
+          format: byte
+        primary_specialty:
+          type: string
+          format: byte
+        secondary_specialty:
+          type: string
+          format: byte
+        major_professional_activity:
+          type: string
+          format: byte
+        physician_recognition_award_recipient:
+          type: string
+          format: byte
+        physician_recognition_award_expiration_date:
+          type: string
+          format: byte
+        graduate_medical_education_confirm:
+          type: string
+          format: byte
+        from_date:
+          type: string
+          format: byte
+        end_date:
+          type: string
+          format: byte
+        year_in_program:
+          type: string
+          format: byte
+        post_graduate_year:
+          type: string
+          format: byte
+        graduate_medical_education_primary_specialty:
+          type: string
+          format: byte
+        graduate_medical_education_secondary_specialty:
+          type: string
+          format: byte
+        training_type:
+          type: string
+          format: byte
+        graduate_medical_education_hospital_state:
+          type: string
+          format: byte
+        graduate_medical_education_hospital:
+          type: string
+          format: byte
+        medical_school_state:
+          type: string
+          format: byte
+        medical_school:
+          type: string
+          format: byte
+        medical_school_graduation_year:
+          type: string
+          format: byte
+        no_contact_type:
+          type: string
+          format: byte
+        no_web:
+          type: string
+          format: byte
+        physician_data_restriction_program:
+          type: string
+          format: byte
+        physician_data_restriction_program_date:
+          type: string
+          format: byte
+        polo_address_2:
+          type: string
+          format: byte
+        polo_address_1:
+          type: string
+          format: byte
+        polo_city:
+          type: string
+          format: byte
+        polo_state:
+          type: string
+          format: byte
+        polo_zipcode:
+          type: string
+          format: byte
+        polo_sector:
+          type: string
+          format: byte
+        polo_carrier_route:
+          type: string
+          format: byte
+        most_recent_former_last_name:
+          type: string
+          format: byte
+        most_recent_former_middle_name:
+          type: string
+          format: byte
+        most_recent_former_first_name:
+          type: string
+          format: byte
+        next_most_recent_former_last_name:
+          type: string
+          format: byte
+        next_most_recent_former_middle_name:
+          type: string
+          format: byte
+        next_most_recent_former_first_name:
+          type: string
+          format: byte
+  securitySchemes:
+    gateway_authorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+          type: token
+          authorizerUri: ${authorizer_uri}
+          authorizerCredentials: ${authorizer_credentials}
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+servers:
+  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/OneView/1.0.0'

@@ -179,3 +179,7 @@ def twitter_scrape():
     split_tweets = split_names(tweet_df).drop_duplicates()
     doctor_tweets = split_tweets[(split_tweets['TITLE'] == 'DR.')]
     return (split_tweets, doctor_tweets)
+
+# if __name__ == "__main__":
+#     tweet_df, split_tweets, doctor_tweets = twitter_scrape()
+#     tweet_df.to_csv('C:/Users/vigrose/Data/Medscape/twitter_check.csv', index=False)

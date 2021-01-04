@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 
 from datalabs.etl.task import ETLComponentTask
+from datalabs.etl.task import ETLException
 
 
 class ExtractorTask(ETLComponentTask, ABC):
@@ -19,7 +20,7 @@ class FileExtractorTask(ExtractorTask, ABC):
         data = [self._extract_file(connection, file) for file in files]
 
         decoded_data = []
-        for index,datum in enumerate(data):
+        for index, datum in enumerate(data):
             try:
                 decoded_data.append(self._decode_data(datum))
             except Exception as exception:

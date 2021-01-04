@@ -1,15 +1,16 @@
-import requests
-from requests.auth import HTTPDigestAuth
+"""Class for accessing marklogic"""
 import os
-import json
-from xml.dom import minidom
+from   xml.dom import minidom
 
-from datalabs.access.datastore import Datastore
-from datalabs.access.credentials import Credentials
+import requests
+from   requests.auth import HTTPDigestAuth
+
+from   datalabs.access.datastore import Datastore
+from   datalabs.access.credentials import Credentials
 
 
 class MarkLogic(Datastore):
-    def __init(self, credentials: Credentials = None, url=None):
+    def __init__(self, credentials: Credentials = None, url=None):
         super().__init__(credentials, key='MARKLOGIC_TEST')
         self.url = url  # url takes the following form: "http://address:port/version"
         self.auth = HTTPDigestAuth(self._credentials.username, self._credentials.password)
@@ -58,15 +59,16 @@ class MarkLogic(Datastore):
     @classmethod
     def write_file(cls, data, file_name, save_dir=''):
         """ File names by default are the URI of the file, which themselves often contain relative paths. """
-        file = (save_dir + file_name).replace('/', '\\').replace('\\\\', '\\')
-        file_dir = file[:file.rindex('\\') if '\\' in file else '']
+        file_path = (save_dir + file_name).replace('/', '\\').replace('\\\\', '\\')
+        file_dir = file_path[:file_path.rindex('\\') if '\\' in file_path else '']
 
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
 
-        with open(file, 'wb+') as f:
-            f.write(data)
+        with open(file_path, 'wb+') as file:
+            file.write(data)
 
+    # pylint: disable=too-many-arguments
     def _get_page_search_result(self, query, collection, start, page_length, database):
         url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \
               f'pageLength={page_length}&database={database}'
@@ -78,8 +80,8 @@ class MarkLogic(Datastore):
         uris = []
 
         results = self._get_results_from_search(response)
-        for r in results:
-            uri = r.attributes['uri'].value
+        for result in results:
+            uri = result.attributes['uri'].value
             uris.append(uri)
         return uris
 

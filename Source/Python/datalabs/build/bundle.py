@@ -8,7 +8,7 @@ import yaml
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class SourceBundle:
@@ -93,6 +93,10 @@ class SourceBundle:
     @classmethod
     def _get_files_in_directory(cls, path):
         LOGGER.debug('Files path: %s', path)
-        _, _, all_files = next(os.walk(path))
+
+        try:
+            _, _, all_files = next(os.walk(path))
+        except StopIteration:
+            LOGGER.warning('Unable to to find package files in directory {path}.')
 
         return all_files

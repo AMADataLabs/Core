@@ -1,3 +1,4 @@
+""" source: datalabs.access.ods """
 import os
 
 import jaydebeapi
@@ -36,9 +37,8 @@ def test_sqlalchemy_connection():
     password = os.getenv('DATABASE_ODS_PASSWORD')
     engine = sa.create_engine(f"ibmi://{username}:{password}@rdbp1190.ama-assn.org:54150/eprdods")
     connection = engine.connect()
-    metadata = sa.MetaData()
 
     query = connection.execute("select * from ODS.ODS_PPD_FILE LIMIT 10")
-    result = result.fetchall()
+    result = query.fetchall()
 
     print(result)

@@ -4,7 +4,7 @@ import logging
 
 from   sqlalchemy import or_, and_
 
-from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()
@@ -13,12 +13,12 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class BasePLADetailsEndpointTask(APIEndpointTask):
-    def _run(self, session):
+    def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
-        query = self._query_for_descriptors(session)
+        query = self._query_for_descriptors(database)
 
         query = self._filter(query)
 
@@ -28,8 +28,8 @@ class BasePLADetailsEndpointTask(APIEndpointTask):
         self._parameters.query['keyword'] = self._parameters.query.get('keyword') or []
 
     @classmethod
-    def _query_for_descriptors(cls, session):
-        query = session.query(
+    def _query_for_descriptors(cls, database):
+        query = database.query(
             dbmodel.PLADetails,
             dbmodel.Manufacturer,
             dbmodel.Lab
@@ -71,8 +71,8 @@ class BasePLADetailsEndpointTask(APIEndpointTask):
 
 
 class PLADetailsEndpointTask(BasePLADetailsEndpointTask):
-    def _run(self, session):
-        super()._run(session)
+    def _run(self, database):
+        super()._run(database)
 
         if not self._response_body:
             raise ResourceNotFound('No PLA details found for the given PLA code')

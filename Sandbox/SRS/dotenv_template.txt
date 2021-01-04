@@ -1,0 +1,26 @@
+#Change the paths and run setup_repository.py
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+DATABASE_EDW_NAME='PRDDW'
+CREDENTIALS_EDW_USERNAME='vigrose'
+CREDENTIALS_EDW_PASSWORD='Hufflepuff10946'
+
+# Project Settings
+PROJECT_NAME='SRS'
+
+#Login
+LOGIN = 'cmathews'
+PASSWORD = 'Agr8actr1!@'
+
+#URLs
+URL = 'https://apps.aamc.org/account/#/login?gotoUrl=https:%2F%2Fservices.aamc.org%2Fdsportal2%2Findex.cfm%3Ffuseaction%3Dlogin.login%26thread%3Djump.SRS'
+
+#Download Folder
+DOWNLOAD_FOLDER = 'C:/Users/vigrose/Downloads
+
+#Out Directory
+OUT_DIR = 'C:/Users/vigrose/Data/SRS/'
+
+#Executable path
+DRIVER_PATH = 'C:/Users/vigrose/Jupyter Notebooks/chromedriver.exe'

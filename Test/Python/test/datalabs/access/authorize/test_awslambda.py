@@ -1,3 +1,4 @@
+""" source: datalabs.access.authorize.awslambda """
 from   collections import namedtuple
 import mock
 
@@ -6,6 +7,7 @@ import pytest
 from   datalabs.access.authorize.task import AuthorizerTask, AuthorizerParameters
 
 
+# pylint: disable=redefined-outer-name
 def test_authorized(authorized_passport_response, parameters):
     authorizer = AuthorizerTask(parameters)
 
@@ -16,6 +18,7 @@ def test_authorized(authorized_passport_response, parameters):
         assert authorizer.policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
 
 
+# pylint: disable=redefined-outer-name
 def test_not_authorized(unauthorized_passport_response, parameters):
     authorizer = AuthorizerTask(parameters)
 

@@ -15,7 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 class BaseDescriptorEndpointTask(APIEndpointTask):
     LENGTH_MODEL_NAMES = dict(short='ShortDescriptor', medium='MediumDescriptor', long='LongDescriptor')
 
-    def _run(self, session):
+    def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
@@ -25,7 +25,7 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         if not self._lengths_are_valid(lengths):
             raise InvalidRequest(f"Invalid query parameter: length={lengths}")
 
-        query = self._query_for_descriptors(session)
+        query = self._query_for_descriptors(database)
 
         query = self._filter(query)
 
@@ -40,8 +40,8 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         return all(length in cls.LENGTH_MODEL_NAMES.keys() for length in lengths)
 
     @classmethod
-    def _query_for_descriptors(cls, session):
-        query = session.query(
+    def _query_for_descriptors(cls, database):
+        query = database.query(
             dbmodel.Code,
             dbmodel.LongDescriptor,
             dbmodel.MediumDescriptor,
@@ -74,8 +74,8 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
 
 
 class DescriptorEndpointTask(BaseDescriptorEndpointTask):
-    def _run(self, session):
-        super()._run(session)
+    def _run(self, database):
+        super()._run(database)
 
         if not self._response_body:
             raise ResourceNotFound('No descriptor found for the given CPT Code')
@@ -86,6 +86,7 @@ class DescriptorEndpointTask(BaseDescriptorEndpointTask):
         code = self._parameters.path.get('code')
         query = self._filter_by_code(query, code)
 
+        # pylint: disable=singleton-comparison
         return query.filter(dbmodel.Code.deleted == False)
 
     @classmethod
@@ -117,7 +118,7 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
                 query = query.filter(dbmodel.Release.effective_date >= date)
 
         else:
-            query = query.filter(dbmodel.Code.deleted == False)
+            query = query.filter(dbmodel.Code.deleted == False)  # pylint: disable=singleton-comparison
 
         return query
 

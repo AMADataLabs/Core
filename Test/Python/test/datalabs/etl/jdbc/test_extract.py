@@ -1,15 +1,16 @@
+""" source: datalabs.etl.jdbc.extract """
 import os
 
-import jaydebeapi
 import pytest
 
-from   datalabs.etl.jdbc.extract import JDBCExtractor
+from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 import datalabs.etl.task as task
 
 
+# pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.skip(reason="Integration test. Input Credentials")
 def test_jdbc_connection(components):
-    extractor = JDBCExtractor(components)
+    extractor = JDBCExtractorTask(components)
     dataframes_list = extractor._extract()
 
     assert dataframes_list[0].columns[0] == 'ME_NUMBER'

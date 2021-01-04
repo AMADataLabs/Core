@@ -1,9 +1,7 @@
 """ Main BitBucket sync application module. """
 
 import logging
-import os
-from   pathlib import Path
-import subprocess
+
 
 from flask import Flask
 

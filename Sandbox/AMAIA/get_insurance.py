@@ -6,6 +6,7 @@ import pandas as pd
 import settings
 from datalabs.access.edw import EDW
 from filter_insurance import filter_insurance
+from create_file import create_file
 
 def get_amaia_query():
     '''Define insurance query'''
@@ -153,6 +154,9 @@ def save_insurance():
     filtered_insurance = filter_insurance(insurance)
     print('Saving...')
     filtered_insurance.to_csv(f'C:/Users/vigrose/Data/AMAIA/Insurance_{today}.csv', index=False)
+    formatted_file = create_file(filtered_insurance)
+    formatted_file.to_csv(f'C:/Users/vigrose/Data/AMAIA/AMAIA_LOAD_{today}.csv', index=False)
+
 
 if __name__ == "__main__":
     save_insurance()

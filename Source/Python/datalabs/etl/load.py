@@ -28,5 +28,5 @@ class ConsoleLoaderTask(LoaderTask):
         try:
             for datum in self._parameters.data:
                 self._logger.info(datum)
-        except:
+        except Exception:  # pylint: disable=broad-except
             self._logger.info(self._parameters.data)

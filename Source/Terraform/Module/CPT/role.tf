@@ -153,3 +153,31 @@ resource "aws_iam_role_policy_attachment" "parent_lambda" {
     role       = aws_iam_role.lambda_role.name
     policy_arn = aws_iam_policy.parent_lambda.arn
 }
+
+
+resource "aws_iam_policy" "lambda_secrets_manager_access" {
+    name        = "DataLabs${var.project}LambdaSecretsManagerAccess"
+    path        = "/"
+    description = "IAM policy for accessing Secrets Manager secrets from a lambda"
+
+    policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "secretsmanager:GetSecretValue"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
+}
+EOF
+}
+
+
+resource "aws_iam_role_policy_attachment" "lambda_secrets_manager_access" {
+    role       = aws_iam_role.lambda_role.name
+    policy_arn = aws_iam_policy.lambda_secrets_manager_access.arn
+}

@@ -1,3 +1,4 @@
+"""Masterfile collection data model"""
 import sqlalchemy as sa
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -71,4 +72,3 @@ class VerticalTrailResult(Base):
     fax_number = sa.Column(sa.String, nullable=True)
     email = sa.Column(sa.String, nullable=True)
     notes = sa.Column(sa.String, nullable=True)
-

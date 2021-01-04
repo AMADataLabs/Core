@@ -3,7 +3,7 @@ import io
 import logging
 import os
 
-from   datalabs.access.sftp import SFTP, SFTPTaskMixin
+from   datalabs.access.sftp import SFTPTaskMixin
 from   datalabs.etl.extract import FileExtractorTask
 from   datalabs.etl.task import ETLException
 
@@ -37,8 +37,9 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
             else:
                 resolved_files += files
 
-        return resolved_files
+        return unresolved_files
 
+    # pylint: disable=arguments-differ
     def _extract_file(self, sftp, file_path):
         buffer = io.BytesIO()
 
@@ -47,12 +48,13 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
         except Exception as exception:
             raise ETLException(f"Unable to read file '{file_path}'") from exception
 
-        return sbytes(buffer.getbuffer())
+        return bytes(buffer.getbuffer())
 
-    def _resolve_filename(self, sftp, file_path):
+    @classmethod
+    def _resolve_filename(cls, sftp, file_path):
         base_path = os.path.dirname(file_path)
         unresolved_file = os.path.basename(file_path)
-        file_paths = [os.path.join(base_path, file) for file in sftp.ls(base_path, filter=unresolved_file)]
+        file_paths = [os.path.join(base_path, file) for file in sftp.list(base_path, filter=unresolved_file)]
 
         if len(file_paths) == 0:
             raise FileNotFoundError(f"Unable to find file '{file_path}'")
@@ -64,12 +66,14 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
         return data
 
 
+# pylint: disable=too-many-ancestors
 class SFTPUnicodeTextFileExtractorTask(SFTPFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('utf-8', errors='backslashreplace')
 
 
+# pylint: disable=too-many-ancestors
 class SFTPWindowsTextFileExtractorTask(SFTPFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):

@@ -1,11 +1,11 @@
 """ Clinician Descriptor endpoints """
-from abc import abstractmethod
+from   abc import abstractmethod
 import logging
 
-from sqlalchemy import or_, and_
+from   sqlalchemy import or_, and_
 
-from datalabs.access.api.task import APIEndpointTask, ResourceNotFound
-from datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -13,12 +13,12 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
-    def _run(self, session):
+    def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
-        query = self._query_for_descriptors(session)
+        query = self._query_for_descriptors(database)
 
         query = self._filter(query)
 
@@ -28,8 +28,8 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
         self._parameters.query['keyword'] = self._parameters.query.get('keyword') or []
 
     @classmethod
-    def _query_for_descriptors(cls, session):
-        return session.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping)
+    def _query_for_descriptors(cls, database):
+        return database.query(ClinicianDescriptor, ClinicianDescriptorCodeMapping).join(ClinicianDescriptorCodeMapping)
 
     @abstractmethod
     def _filter(self, query):
@@ -43,8 +43,8 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
 
 
 class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
-    def _run(self, session):
-        super()._run(session)
+    def _run(self, database):
+        super()._run(database)
 
         if not self._response_body:
             raise ResourceNotFound('No Clinician Descriptors found for the given CPT code')
@@ -55,6 +55,7 @@ class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
         code = self._parameters.path.get('code')
         query = self._filter_by_code(query, code)
 
+        # pylint: disable=singleton-comparison
         return query.filter(ClinicianDescriptor.deleted == False)
 
     @classmethod
@@ -85,7 +86,7 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
                 query = query.filter(Release.effective_date >= date)
 
         else:
-            query = query.filter(ClinicianDescriptor.deleted == False)
+            query = query.filter(ClinicianDescriptor.deleted == False)  # pylint: disable=singleton-comparison
 
         return query
 

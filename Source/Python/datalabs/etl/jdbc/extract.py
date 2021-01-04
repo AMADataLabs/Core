@@ -1,23 +1,15 @@
-"""JDBC Extractor"""
-import os
-
+""" JDBC Extractor """
 import jaydebeapi
 import pandas
 
 from   datalabs.etl.extract import ExtractorTask
-from   datalabs.etl.task import ETLException
 
 
-class JDBCExtractor(ExtractorTask):
+class JDBCExtractorTask(ExtractorTask):
     def _extract(self):
         connection = self._connect()
 
-        try:
-            tables = self._read_queries(connection)
-        except Exception as exception:
-            raise ETLException("Invalid SQL Statement") from exception
-
-        return tables
+        return self._read_queries(connection)
 
     def _connect(self):
         url = f"jdbc:{self._parameters.variables['DRIVERTYPE']}://{self._parameters.database['host']}:" \
@@ -27,7 +19,7 @@ class JDBCExtractor(ExtractorTask):
             self._parameters.variables['DRIVER'],
             url,
             [self._parameters.database['username'], self._parameters.database['password']],
-            self._parameters.variables['JARPATH']
+            self._parameters.variables['JARPATH'].split(',')
         )
 
         return connection

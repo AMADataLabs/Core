@@ -1,4 +1,4 @@
-
+"""Expanded PPD settings"""
 import os
 import sys
 

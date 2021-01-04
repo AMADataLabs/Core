@@ -1,3 +1,4 @@
+"""Class for loading environment"""
 import logging
 import os
 
@@ -10,10 +11,14 @@ class VariableTree:
     def __init__(self, root):
         self._root = root
 
+    def __repr__(self):
+        return str(self._root)
+
     @classmethod
     def generate(cls):
         root = dict()
 
+        # pylint: disable=protected-access
         for name, value in os.environ._data.items():
             cls._create_branch(root, name.decode('utf-8'), value.decode('utf-8'))
 
@@ -23,9 +28,10 @@ class VariableTree:
         branch = self._root
 
         for next_branch in branches:
+            value = branch[next_branch]['value']
             branch = branch[next_branch]['branches']
 
-        return branch['value']
+        return value
 
     def get_branches(self, branches: list):
         branch = self._root
@@ -33,7 +39,7 @@ class VariableTree:
         for next_branch in branches:
             branch = branch[next_branch]['branches']
 
-        return [key for key in branch.keys()]
+        return list(branch.keys())
 
     def get_branch_values(self, branches: list):
         branch = self._root

@@ -1,19 +1,20 @@
 resource "aws_db_instance" "cpt_api_database" {
-    identifier                    = var.rds_instance_name
+    identifier                    = local.rds_instance_name
     instance_class                = var.rds_instance_class
     storage_type                  = var.rds_storage_type
-    name                          = var.database_name
+    port                          = local.rds_port
+    name                          = local.database_name
     allocated_storage             = 20
-    engine                        = "postgres"
-    engine_version                = "11.5"
+    engine                        = local.rds_engine
+    engine_version                = "11.8"
     parameter_group_name          = "default.postgres11"
     max_allocated_storage         = 1000
     publicly_accessible           = true
     copy_tags_to_snapshot         = true
     performance_insights_enabled  = true
     skip_final_snapshot           = true
-    username                      = data.aws_ssm_parameter.database_username.value
-    password                      = data.aws_ssm_parameter.database_password.value
+    username                      = local.database_username
+    password                      = local.database_password
 
     tags = merge(local.tags, {Name = "${var.project} API Database"})
 }
@@ -80,7 +81,6 @@ module "endpoint_descriptor" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -97,7 +97,6 @@ module "endpoint_all_descriptors" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -114,7 +113,6 @@ module "endpoint_consumer_descriptor" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -131,7 +129,6 @@ module "endpoint_consumer_descriptors" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -148,7 +145,6 @@ module "endpoint_clinician_descriptors" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -165,7 +161,6 @@ module "endpoint_all_clinician_descriptors" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -182,7 +177,6 @@ module "endpoint_pla_details" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -199,7 +193,6 @@ module "endpoint_all_pla_details" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -216,7 +209,6 @@ module "endpoint_modifier" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -233,7 +225,6 @@ module "endpoint_modifiers" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -250,7 +241,6 @@ module "endpoint_latest_pdfs" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -267,7 +257,6 @@ module "endpoint_latest_pdfs" {
 #     account_id          = data.aws_caller_identity.account.account_id
 #     role                = aws_iam_role.lambda_role.arn
 #     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-#     database_name       = aws_db_instance.cpt_api_database.name
 #     database_host       = aws_db_instance.cpt_api_database.address
 # }
 
@@ -282,7 +271,6 @@ module "endpoint_releases" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -299,7 +287,6 @@ module "endpoint_default" {
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-    database_name       = aws_db_instance.cpt_api_database.name
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -326,9 +313,6 @@ module "etl_convert" {
     function_name           = local.function_names.convert
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    database_name           = aws_db_instance.cpt_api_database.name
-    database_host           = aws_db_instance.cpt_api_database.address
-    data_pipeline_ingestion = true
     parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
@@ -357,9 +341,6 @@ module "etl_bundle_pdf" {
     function_name           = local.function_names.bundlepdf
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    database_name           = aws_db_instance.cpt_api_database.name
-    database_host           = aws_db_instance.cpt_api_database.address
-    data_pipeline_ingestion = true
     parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
@@ -386,32 +367,23 @@ module "etl_load" {
     function_name           = local.function_names.loaddb
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    database_name           = aws_db_instance.cpt_api_database.name
-    database_host           = aws_db_instance.cpt_api_database.address
-    data_pipeline_api       = true
     parent_function         = aws_lambda_function.processed_etl_router
     timeout                 = 300
 
     variables               = {
-        EXTRACTOR_CLASS             = "datalabs.etl.s3.extract.S3UnicodeTextFileExtractorTask"
-        EXTRACTOR_INCLUDENAMES      = "True"
-        EXTRACTOR_BUCKET            = data.aws_ssm_parameter.processed_bucket.arn
-        EXTRACTOR_BASEPATH          = data.aws_ssm_parameter.s3_base_path.arn
-        EXTRACTOR_FILES             = data.aws_ssm_parameter.raw_csv_files.arn
+        EXTRACTOR_CLASS                 = "datalabs.etl.s3.extract.S3UnicodeTextFileExtractorTask"
+        EXTRACTOR_INCLUDENAMES          = "True"
+        EXTRACTOR_BUCKET                = data.aws_ssm_parameter.processed_bucket.arn
+        EXTRACTOR_BASEPATH              = data.aws_ssm_parameter.s3_base_path.arn
+        EXTRACTOR_FILES                 = data.aws_ssm_parameter.raw_csv_files.arn
 
-        TRANSFORMER_CLASS           = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
-        TRANSFORMER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
-        TRANSFORMER_DATABASE_BACKEND     = "postgresql+psycopg2"
-        TRANSFORMER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
-        TRANSFORMER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
-        TRANSFORMER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
+        TRANSFORMER_CLASS               = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
+        TRANSFORMER_DATABASE_HOST       = aws_db_instance.cpt_api_database.address
+        TRANSFORMER_DATABASESECRET      = data.aws_secretsmanager_secret.database.arn
 
-        LOADER_CLASS                = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
-        LOADER_DATABASE_NAME        = aws_db_instance.cpt_api_database.name
-        LOADER_DATABASE_BACKEND     = "postgresql+psycopg2"
-        LOADER_DATABASE_HOST        = aws_db_instance.cpt_api_database.address
-        LOADER_DATABASE_USERNAME    = data.aws_ssm_parameter.database_username.arn
-        LOADER_DATABASE_PASSWORD    = data.aws_ssm_parameter.database_password.arn
+        LOADER_CLASS                    = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
+        LOADER_DATABASE_HOST            = aws_db_instance.cpt_api_database.address
+        LOADER_DATABASESECRET           = data.aws_secretsmanager_secret.database.arn
     }
 }
 
@@ -422,6 +394,13 @@ locals {
     spec_description    = "${var.project} API Phase I"
     na                  = "N/A"
     owner               = "DataLabs"
+    database_secret     = jsondecode(data.aws_secretsmanager_secret_version.database.secret_string)
+    rds_instance_name   = local.database_secret["dbinstanceIdentifier"]
+    rds_engine          = local.database_secret["engine"]
+    rds_port          = local.database_secret["port"]
+    database_name       = local.database_secret["dbname"]
+    database_username   = local.database_secret["username"]
+    database_password   = local.database_secret["password"]
     tags = {
         Env                 = data.aws_ssm_parameter.account_environment.value
         Contact             = data.aws_ssm_parameter.contact.value

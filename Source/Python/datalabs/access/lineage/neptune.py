@@ -1,7 +1,7 @@
+"""Neptune lineage class"""
 import logging
 import os
 
-from   gremlin_python.process.traversal import Bindings
 from   neptune_python_utils.gremlin_utils import GremlinUtils
 
 from   datalabs.access.credentials import Credentials
@@ -12,8 +12,9 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=abstract-method
 class NeptuneLineageLogger(LineageLogger):
-    def __init__(self, configuration: Configuration = None, credentials: Credentials=None, key: str = None):
+    def __init__(self, configuration: Configuration = None, credentials: Credentials = None, key: str = None):
         super().__init__(credentials, key)
 
         self._configuration = self._load_or_verify_configuration(configuration, self._key)

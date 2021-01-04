@@ -35,7 +35,13 @@ class S3FileExtractorTask(FileExtractorTask):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-        self._s3 = boto3.client('s3')
+        self._s3 = boto3.client(
+            's3',
+            endpoint_url=self._parameters.variables.get('ENDPOINTURL'),
+            aws_access_key_id=self._parameters.variables.get('ACCESSKEY'),
+            aws_secret_access_key=self._parameters.variables.get('SECRETKEY'),
+            region_name=self._parameters.variables.get('REGIONNAME')
+        )
 
     def _extract(self):
         latest_path = self._get_latest_path()
@@ -72,6 +78,7 @@ class S3FileExtractorTask(FileExtractorTask):
 
         return resolved_files
 
+    # pylint: disable=arguments-differ
     def _extract_file(self, s3, file_path):
         try:
             response = s3.get_object(Bucket=self._parameters.variables['BUCKET'], Key=file_path)
@@ -118,7 +125,11 @@ class S3FileExtractorTask(FileExtractorTask):
 
     def _find_s3_object(self, wildcard_file_path):
         file_path_parts = wildcard_file_path.split('*')
-        search_results =  self._s3.list_objects_v2(Bucket=self._parameters.variables['BUCKET'], Prefix=file_path_parts[0])
+        search_results = self._s3.list_objects_v2(
+            Bucket=self._parameters.variables['BUCKET'],
+            Prefix=file_path_parts[0]
+        )
+
         return [a['Key'] for a in search_results['Contents'] if a['Key'].endswith(file_path_parts[1])]
 
 

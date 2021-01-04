@@ -1,14 +1,12 @@
 """ Secure FTP object """
-from   dataclasses import dataclass
-from   abc import abstractmethod
+from dataclasses import dataclass
 import logging
 import os
-
 import pandas
 import pysftp
 
-from   datalabs.access.credentials import Credentials
-from   datalabs.access.datastore import Datastore
+from datalabs.access.credentials import Credentials
+from datalabs.access.datastore import Datastore
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -17,7 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 @dataclass
 class Configuration:
-    host: str='eft.ama-assn.org'
+    host: str = 'eft.ama-assn.org'
 
     @classmethod
     def load(cls, key: str):
@@ -57,9 +55,10 @@ class SFTP(Datastore):
             cnopts=cnopts
         )
 
-    def ls(self, path: str, filter: str=None):
+    # pylint: disable=redefined-builtin
+    def list(self, path: str, filter: str = None):
         with self._connection.cd(path):
-             files = self._connection.listdir()
+            files = self._connection.listdir()
 
         return self._filter_files(files, filter)
 
@@ -94,7 +93,6 @@ class SFTP(Datastore):
         if total_bytes > 0:
             percent_transfered = round(bytes_transfered / total_bytes * 100)
             LOGGER.debug('Transfered %s bytes of %s (%d %%)', bytes_transfered, total_bytes, percent_transfered)
-
 
     def read(self, sql: str, **kwargs):
         return pandas.read_sql(sql, self._connection, **kwargs)
