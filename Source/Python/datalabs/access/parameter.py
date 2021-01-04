@@ -1,10 +1,10 @@
 """Access environmental parameters"""
-import boto3
 import logging
 import os
 
 from   arnparse import arnparse
 from   arnparse.arnparse import MalformedArnError
+import boto3
 
 
 logging.basicConfig()

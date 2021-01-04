@@ -1,10 +1,10 @@
 """ AWS S3 Loader """
 import base64
-import boto3
+from   datetime import datetime
 import hashlib
 import logging
 
-from   datetime import datetime
+import boto3
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.load import LoaderTask
@@ -64,6 +64,7 @@ class S3FileLoaderTask(LoaderTask):
 
         return execution_date
 
+    # pylint: disable=no-self-use
     def _encode(self, data):
         return data
 

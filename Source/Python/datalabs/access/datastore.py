@@ -20,7 +20,7 @@ class Datastore(ABC):
 
     @abstractmethod
     def connect(self):
-        self._connection = None
+        return self._connection
 
     def close(self):
         self._connection.close()

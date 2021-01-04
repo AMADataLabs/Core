@@ -1,6 +1,7 @@
 """ Generic database object intended to be subclassed by specific databases. """
 import os
 
+# pylint: disable=import-error
 import pyodbc
 
 from   datalabs.access.database import Database

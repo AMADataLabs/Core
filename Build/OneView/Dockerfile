@@ -1,5 +1,5 @@
 # Build Example:
-#    docker build -t one-view -f ./Build/OneView/Dockerfile --build-arg template_file=template.env --build-arg template_vars='user=bob,password=foo' './
+#    docker build -t one-view -f ./Build/OneView/Dockerfile --build-arg template_file=template.env --build-arg template_vars='user=bob,password=foo' ./
 
 FROM python:3.7
 WORKDIR /OneView

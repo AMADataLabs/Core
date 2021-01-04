@@ -13,8 +13,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class LineageLogger(Datastore):
+    # pylint: disable=redefined-builtin
     @abstractmethod
-    def log(parent_uri, child_uri, type=None):
+    def log(self, parent_uri, child_uri, type=None):
         pass
 
 
@@ -50,7 +51,6 @@ class LineageException(Exception):
     pass
 
 
-# pylint: disable=abstract-method
 class LineageTaskMixin:
     @classmethod
     def _get_lineage(cls, parameters):
@@ -59,7 +59,7 @@ class LineageTaskMixin:
             port=parameters['PORT']
         )
 
-        return LineageLogger(config)
+        return cls(config)
 
 
 def register_logger(key: str, logger_class: LineageLogger):

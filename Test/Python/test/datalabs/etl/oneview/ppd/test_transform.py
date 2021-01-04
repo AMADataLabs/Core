@@ -1,31 +1,32 @@
 """ source: datalabs.etl.oneview.transform """
 import logging
-import os
 import pandas
 import pytest
 
 import datalabs.etl.task as task
-from   datalabs.etl.oneview.ppd.transform import PPDTransformer
+from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.skip(reason="Integration test. Input Credentials")
 def test_jdbc_connection(components):
-    transformer = PPDTransformer(components)
+    transformer = PPDTransformerTask(components)
     csv_list = transformer._transform()
 
     assert len(csv_list) == 1
     assert csv_list[0].split(',')[0] == 'medical_education_number'
 
 
+# pylint: disable=redefined-outer-name
 @pytest.fixture
 def components(dataframe):
     return task.ETLComponentParameters(
         database={},
-        variables=dict(CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformer', thing=True),
+        variables=dict(CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask', thing=True),
         data=dataframe
     )
 
@@ -162,30 +163,3 @@ def dataframe():
             'BATCH_BUSINESS_DATE': {0: None, 1: None, 2: None, 3: None, 4: None}}
 
     return [pandas.DataFrame.from_dict(data)]
-
-
-@pytest.fixture
-def environment(extractor_file, loader_directory):
-    current_environment = os.environ.copy()
-
-    os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.task.ETLTaskWrapper'
-    os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
-
-    os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.jdbc.test_extract.Extractor'
-    os.environ['EXTRACTOR_DATABASE_NAME'] = 'eprdods'
-    # os.environ['EXTRACTOR_DATABASE_USERNAME'] = <set manually in environment>
-    # os.environ['EXTRACTOR_DATABASE_PASSWORD'] = <set manually in environment>
-    os.environ['EXTRACTOR_DATABASE_HOST'] = 'rdbp1190'
-    os.environ['EXTRACTOR_DATABASE_PORT'] = '54150'
-
-    os.environ['EXTRACTOR_SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE LIMIT 20;'
-    os.environ['EXTRACTOR_DRIVER'] = 'com.ibm.db2.jcc.DB2Driver'
-    os.environ['EXTRACTOR_DRIVER_TYPE'] = 'db2'
-    os.environ['EXTRACTOR_JAR_PATH'] = './db2jcc4.jar'
-
-    os.environ['TRANSFORMER_CLASS'] = 'datalabs.etl.oneview.ppd.transform.PPDTransformer'
-
-    yield os.environ
-
-    os.environ.clear()
-    os.environ.update(current_environment)

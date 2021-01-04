@@ -1,16 +1,16 @@
 """Class for accessing marklogic"""
 import os
-import requests
-
-from   requests.auth import HTTPDigestAuth
 from   xml.dom import minidom
+
+import requests
+from   requests.auth import HTTPDigestAuth
 
 from   datalabs.access.datastore import Datastore
 from   datalabs.access.credentials import Credentials
 
 
 class MarkLogic(Datastore):
-    def __init(self, credentials: Credentials = None, url=None):
+    def __init__(self, credentials: Credentials = None, url=None):
         super().__init__(credentials, key='MARKLOGIC_TEST')
         self.url = url  # url takes the following form: "http://address:port/version"
         self.auth = HTTPDigestAuth(self._credentials.username, self._credentials.password)
@@ -68,6 +68,7 @@ class MarkLogic(Datastore):
         with open(file_path, 'wb+') as file:
             file.write(data)
 
+    # pylint: disable=too-many-arguments
     def _get_page_search_result(self, query, collection, start, page_length, database):
         url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \
               f'pageLength={page_length}&database={database}'

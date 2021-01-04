@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=abstract-method
 class NeptuneLineageLogger(LineageLogger):
     def __init__(self, configuration: Configuration = None, credentials: Credentials = None, key: str = None):
         super().__init__(credentials, key)

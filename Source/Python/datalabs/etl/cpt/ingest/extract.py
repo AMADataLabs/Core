@@ -1,14 +1,15 @@
 """ Extractor class for CPT standard release text data from the S3 ingestion bucket. """
 from   datetime import date, datetime
-from   dateutil.parser import isoparse
-
 import json
 import os
+
+from   dateutil.parser import isoparse
 import pandas
 
 import datalabs.etl.s3.extract as extract
 
 
+# pylint: disable=too-many-ancestors
 class CPTTextDataExtractorTask(extract.S3UnicodeTextFileExtractorTask):
     def _extract(self):
         data = super()._extract()

@@ -11,6 +11,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.skip(reason="Used only for debugging")
 def test_get_release_schedule(task):
     release_schedule = task._extract_release_schedule()
