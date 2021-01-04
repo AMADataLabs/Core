@@ -27,7 +27,7 @@ class LocalFileExtractorTask(FileExtractorTask):
 
         return resolved_files
 
-    #pylint: disable=arguments-differ
+    # pylint: disable=arguments-differ
     def _extract_file(self, connection, file_path):
         data = None
         try:
