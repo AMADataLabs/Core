@@ -121,12 +121,14 @@ class VTPhysicianContactArchive:
         cols = self.table_columns.dict[table]
 
         sql = "INSERT INTO {}({}) VALUES({});".format(
-                table,
-                ','.join(cols),
-                ','.join(['"' + str(v) + '"' for v in vals])
+            table,
+            ','.join(cols),
+            ','.join(['"' + str(v) + '"' for v in vals])
         )
-
-        self.connection.execute(sql)
+        try:
+            self.connection.execute(sql)
+        except:
+            print(sql)
 
     def get_results_for_sample_ids(self, sample_ids):
         results = []
