@@ -267,7 +267,7 @@ class AMCAddressFlagger:
         report_body = \
             '<p>Hello!' + \
             '<br>Attached are the latest results of the AMC address flagging script.' + \
-            '<br>Password: Survey20' + '</p>' + \
+            '<br>Password: Survey21' + '</p>' + \
             '<p>Results summary:' + \
             summary + '</p>' + \
             '<p>This report and email were generated automatically.' + \
