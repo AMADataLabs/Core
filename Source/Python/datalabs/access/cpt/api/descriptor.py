@@ -5,6 +5,7 @@ import logging
 from   sqlalchemy import or_, and_
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
+from   datalabs.access.cpt.api.filter import WildcardFilterMixin
 import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()
@@ -94,7 +95,7 @@ class DescriptorEndpointTask(BaseDescriptorEndpointTask):
         return query.filter(dbmodel.Code.code == code)
 
 
-class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
+class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask, WildcardFilterMixin):
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
@@ -105,7 +106,7 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
 
         query = self._filter_for_keywords(query, keywords, lengths)
 
-        query = self._filter_for_wildcard(query, code)
+        query = self._filter_for_wildcard(dbmodel.Code, query, code)
 
         return query
 
@@ -131,20 +132,3 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
             filter_conditions += [(length_dict.get(length).descriptor.ilike('%{}%'.format(word))) for word in keywords]
 
         return query.filter(or_(*filter_conditions))
-
-    @classmethod
-    def _filter_for_wildcard(cls, query, codes):
-        filter_condition = []
-
-        if codes is not None:
-            for code in codes:
-                code = code.split('*')
-                prefix = code[0]
-                suffix = code[1]
-
-                filter_condition.append(and_(dbmodel.Code.code.like(f'{prefix}%'),
-                                             dbmodel.Code.code.ilike(f'%{suffix}')))
-
-            query = query.filter(or_(*filter_condition))
-
-        return query

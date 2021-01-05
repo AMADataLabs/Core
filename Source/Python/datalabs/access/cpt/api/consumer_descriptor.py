@@ -5,6 +5,7 @@ import logging
 from   sqlalchemy import or_, and_
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterMixin
 from   datalabs.model.cpt.api import ConsumerDescriptor, Release
 
 logging.basicConfig()
@@ -61,7 +62,7 @@ class ConsumerDescriptorEndpointTask(BaseConsumerDescriptorEndpointTask):
         return query.filter(ConsumerDescriptor.code == code)
 
 
-class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
+class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask, KeywordFilterMixin, WildcardFilterMixin):
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
@@ -69,9 +70,9 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
 
         query = self._filter_for_release(query, since)
 
-        query = self._filter_for_keywords(query, keywords)
+        query = self._filter_for_keywords([ConsumerDescriptor.descriptor], query, keywords)
 
-        query = self._filter_for_wildcard(query, code)
+        query = self._filter_for_wildcard(ConsumerDescriptor, query, code)
 
         return query
 
@@ -85,28 +86,5 @@ class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask):
 
         else:
             query = query.filter(ConsumerDescriptor.deleted == False)  # pylint: disable=singleton-comparison
-
-        return query
-
-    @classmethod
-    def _filter_for_keywords(cls, query, keywords):
-        filter_conditions = [(ConsumerDescriptor.descriptor.ilike('%{}%'.format(word))) for word in keywords]
-
-        return query.filter(or_(*filter_conditions))
-
-    @classmethod
-    def _filter_for_wildcard(cls, query, codes):
-        filter_condition = []
-
-        if codes is not None:
-            for code in codes:
-                code = code.split('*')
-                prefix = code[0]
-                suffix = code[1]
-
-                filter_condition.append(and_(ConsumerDescriptor.code.like(f'{prefix}%'),
-                                             ConsumerDescriptor.code.ilike(f'%{suffix}')))
-
-            query = query.filter(or_(*filter_condition))
 
         return query

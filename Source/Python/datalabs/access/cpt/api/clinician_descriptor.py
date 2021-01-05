@@ -5,6 +5,7 @@ import logging
 from   sqlalchemy import or_, and_
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterMixin
 from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
 
 logging.basicConfig()
@@ -63,7 +64,7 @@ class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
         return query.filter(ClinicianDescriptorCodeMapping.code == code)
 
 
-class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
+class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask, KeywordFilterMixin, WildcardFilterMixin):
     # pylint: disable=no-self-use
     def _filter(self, query):
         since = self._parameters.query.get('since')
@@ -72,9 +73,9 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
 
         query = self._filter_for_release(query, since)
 
-        query = self._filter_for_keywords(query, keywords)
+        query = self._filter_for_keywords([ClinicianDescriptor.descriptor], query, keywords)
 
-        query = self._filter_for_wildcard(query, code)
+        query = self._filter_for_wildcard(ClinicianDescriptorCodeMapping, query, code)
 
         return query
 
@@ -87,28 +88,5 @@ class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
 
         else:
             query = query.filter(ClinicianDescriptor.deleted == False)  # pylint: disable=singleton-comparison
-
-        return query
-
-    @classmethod
-    def _filter_for_keywords(cls, query, keywords):
-        filter_conditions = [(ClinicianDescriptor.descriptor.ilike('%{}%'.format(word))) for word in keywords]
-
-        return query.filter(or_(*filter_conditions))
-
-    @classmethod
-    def _filter_for_wildcard(cls, query, codes):
-        filter_condition = []
-        if codes is not None:
-
-            for code in codes:
-                code = code.split('*')
-                prefix = code[0]
-                suffix = code[1]
-
-                filter_condition.append(and_(ClinicianDescriptorCodeMapping.code.like(f'{prefix}%'),
-                                             ClinicianDescriptorCodeMapping.code.ilike(f'%{suffix}')))
-
-            query = query.filter(or_(*filter_condition))
 
         return query
