@@ -82,14 +82,16 @@ class AllClinicianDescriptorsEndpointTask(
 
         return query
 
-    def _filter_for_release(self, query, since):
+    @classmethod
+    def _filter_for_release(cls, query, since):
         if since is not None:
-            query = query.add_column(Release.effective_date)
-
             for date in since:
-                query = query.filter(Release.effective_date >= date)
-
-        else:
-            query = query.filter(ClinicianDescriptor.deleted == False)  # pylint: disable=singleton-comparison
+                query = query.filter(and_(
+                    dbmodel.ClinicianDescriptorCodeMapping.code == dbmodel.Code.code,
+                    dbmodel.ClinicianDescriptorCodeMapping.clinician_descriptor == dbmodel.ClinicianDescriptor.id,
+                    dbmodel.ReleaseCodeMapping.code == dbmodel.Code.code,
+                    dbmodel.ReleaseCodeMapping.release == dbmodel.Release.id,
+                    dbmodel.Release.effective_date >= date
+                ))
 
         return query
