@@ -2,9 +2,12 @@
 from   abc import abstractmethod
 import logging
 
+from   sqlalchemy import and_
+
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterMixin
-from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
+from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping
+from   datalabs.model.cpt.api import Code, Release, ReleaseCodeMapping
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -87,11 +90,11 @@ class AllClinicianDescriptorsEndpointTask(
         if since is not None:
             for date in since:
                 query = query.filter(and_(
-                    dbmodel.ClinicianDescriptorCodeMapping.code == dbmodel.Code.code,
-                    dbmodel.ClinicianDescriptorCodeMapping.clinician_descriptor == dbmodel.ClinicianDescriptor.id,
-                    dbmodel.ReleaseCodeMapping.code == dbmodel.Code.code,
-                    dbmodel.ReleaseCodeMapping.release == dbmodel.Release.id,
-                    dbmodel.Release.effective_date >= date
+                    ClinicianDescriptorCodeMapping.code == Code.code,
+                    ClinicianDescriptorCodeMapping.clinician_descriptor == ClinicianDescriptor.id,
+                    ReleaseCodeMapping.code == Code.code,
+                    ReleaseCodeMapping.release == Release.id,
+                    Release.effective_date >= date
                 ))
 
         return query

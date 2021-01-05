@@ -2,7 +2,7 @@
 from   abc import abstractmethod
 import logging
 
-from   sqlalchemy import and_, or_
+from   sqlalchemy import or_
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, WildcardFilterMixin
@@ -95,6 +95,7 @@ class DescriptorEndpointTask(BaseDescriptorEndpointTask):
         return query.filter(dbmodel.Code.code == code)
 
 
+# pylint: disable=too-many-ancestors
 class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask, ReleaseFilterMixin, WildcardFilterMixin):
     def _filter(self, query):
         since = self._parameters.query.get('since')

@@ -4,7 +4,7 @@ import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin
-from   datalabs.model.cpt.api import ConsumerDescriptor, Release
+from   datalabs.model.cpt.api import ConsumerDescriptor
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -62,10 +62,10 @@ class ConsumerDescriptorEndpointTask(BaseConsumerDescriptorEndpointTask):
 
 # pylint: disable=too-many-ancestors
 class AllConsumerDescriptorsEndpointTask(
-    BaseConsumerDescriptorEndpointTask,
-    ReleaseFilterMixin,
-    KeywordFilterMixin,
-    WildcardFilterMixin
+        BaseConsumerDescriptorEndpointTask,
+        ReleaseFilterMixin,
+        KeywordFilterMixin,
+        WildcardFilterMixin
 ):
     def _filter(self, query):
         since = self._parameters.query.get('since')

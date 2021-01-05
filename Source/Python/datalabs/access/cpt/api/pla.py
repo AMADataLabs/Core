@@ -90,7 +90,12 @@ class PLADetailsEndpointTask(BasePLADetailsEndpointTask):
 
 
 # pylint: disable=too-many-ancestors
-class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask, ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin):
+class AllPLADetailsEndpointTask(
+        BasePLADetailsEndpointTask,
+        ReleaseFilterMixin,
+        KeywordFilterMixin,
+        WildcardFilterMixin
+):
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
