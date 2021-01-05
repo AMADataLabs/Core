@@ -2,8 +2,6 @@
 from   abc import abstractmethod
 import logging
 
-from   sqlalchemy import or_, and_
-
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterMixin
 import datalabs.model.cpt.api as dbmodel
@@ -91,6 +89,7 @@ class PLADetailsEndpointTask(BasePLADetailsEndpointTask):
         return query.filter(dbmodel.PLADetails.code == code)
 
 
+# pylint: disable=too-many-ancestors
 class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask, KeywordFilterMixin, WildcardFilterMixin):
     def _filter(self, query):
         since = self._parameters.query.get('since')

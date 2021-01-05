@@ -2,8 +2,6 @@
 from   abc import abstractmethod
 import logging
 
-from   sqlalchemy import or_, and_
-
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterMixin
 from   datalabs.model.cpt.api import ConsumerDescriptor, Release
@@ -62,6 +60,7 @@ class ConsumerDescriptorEndpointTask(BaseConsumerDescriptorEndpointTask):
         return query.filter(ConsumerDescriptor.code == code)
 
 
+# pylint: disable=too-many-ancestors
 class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask, KeywordFilterMixin, WildcardFilterMixin):
     def _filter(self, query):
         since = self._parameters.query.get('since')

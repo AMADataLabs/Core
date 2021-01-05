@@ -2,7 +2,7 @@
 from   abc import abstractmethod
 import logging
 
-from   sqlalchemy import or_, and_
+from   sqlalchemy import or_
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 from   datalabs.access.cpt.api.filter import WildcardFilterMixin

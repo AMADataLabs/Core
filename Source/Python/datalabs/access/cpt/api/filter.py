@@ -1,6 +1,6 @@
-from   sqlalchemy import or_, and_
+""" CPT API endpoint query filter mixings. """
 
-import datalabs.model.cpt.api as dbmodel
+from   sqlalchemy import or_, and_
 
 
 class KeywordFilterMixin:
@@ -12,7 +12,6 @@ class KeywordFilterMixin:
             filter_conditions.extend(field.ilike('%{}%'.format(word)) for word in keywords)
 
         return query.filter(or_(*filter_conditions))
-
 
 
 class WildcardFilterMixin:

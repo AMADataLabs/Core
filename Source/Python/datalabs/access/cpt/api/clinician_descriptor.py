@@ -2,8 +2,6 @@
 from   abc import abstractmethod
 import logging
 
-from   sqlalchemy import or_, and_
-
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterMixin
 from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping, Release
@@ -64,7 +62,12 @@ class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
         return query.filter(ClinicianDescriptorCodeMapping.code == code)
 
 
-class AllClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask, KeywordFilterMixin, WildcardFilterMixin):
+# pylint: disable=too-many-ancestors
+class AllClinicianDescriptorsEndpointTask(
+        BaseClinicianDescriptorsEndpointTask,
+        KeywordFilterMixin,
+        WildcardFilterMixin
+):
     # pylint: disable=no-self-use
     def _filter(self, query):
         since = self._parameters.query.get('since')
