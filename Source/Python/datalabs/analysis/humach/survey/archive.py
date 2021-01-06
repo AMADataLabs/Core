@@ -93,9 +93,13 @@ class HumachResultsArchive:
             raise ValueError('Columns provided do not match columns expected.')
         """
         cols = data.columns.values
-        for col in ['SAMPLE_ID', 'ROW_ID', 'SURVEY_MONTH', 'SURVEY_YEAR']:
+        for col in ['SAMPLE_ID', 'ROW_ID']:
             assert col in cols  # these columns must exist and not be null.
             assert not data[col].isna().any(), data[col].isna().any()
+
+        if 'sample' in table:
+            for col in ['SURVEY_MONTH', 'SURVEY_YEAR']:
+                assert col in cols  # these columns are required for sample data
 
         for col in self.expected_file_columns.dict[table]:
             if 'VERIFIED/UPDATED' not in col:
@@ -304,10 +308,15 @@ class HumachResultsArchive:
             data['COMMENTS'] = 'FAIL'
 
         formatted_data = pd.DataFrame()
+        for col in data.columns.values:
+            if 'VERIFIED UPDATED' in col:
+                data[col.replace('VERIFIED UPDATED', 'VERIFIED/UPDATED')] = data[col]
+                del data[col]
+
         for col in self.expected_file_columns.standard_results:
-            if 'VERIFIED/UPDATED' in col and 'VERIFIED/UPDATED' not in data.columns.values:
-                data[col] = data[col.replace('VERIFIED/UPDATED', 'VERIFIED UPDATED')]
-                print(col)
+            #if 'VERIFIED/UPDATED' in col and 'VERIFIED/UPDATED' not in data.columns.values:
+            #    data[col] = data[col.replace('VERIFIED/UPDATED', 'VERIFIED UPDATED')]
+            #    print(col)
             formatted_data[col] = data[col]
 
         self.validate_cols(table='humach_result', data=data)
