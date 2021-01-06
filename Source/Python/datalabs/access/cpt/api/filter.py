@@ -2,6 +2,21 @@
 
 from   sqlalchemy import or_, and_
 
+from   datalabs.model.cpt.api import Release, ReleaseCodeMapping
+
+class ReleaseFilterMixin:
+    @classmethod
+    def _filter_for_release(cls, model, query, since):
+        if since is not None:
+            for date in since:
+                query = query.filter(and_(
+                    ReleaseCodeMapping.code == model.code,
+                    ReleaseCodeMapping.release == Release.id,
+                    Release.effective_date >= date
+                ))
+
+        return query
+
 
 class KeywordFilterMixin:
     @classmethod

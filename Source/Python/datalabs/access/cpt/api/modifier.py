@@ -75,10 +75,7 @@ class AllModifiersEndpointTask(BaseModifierEndpointTask):
         self._parameters.query['type'] = self._parameters.query.get('type') or []
 
     def _filter(self, query):
-        since = self._parameters.query.get('since')
         types = self._parameters.query.get('type')
-
-        query = self._filter_for_release(query, since)
 
         query = self._filter_for_type(query, types)
 

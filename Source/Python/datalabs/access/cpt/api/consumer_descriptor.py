@@ -3,8 +3,8 @@ from   abc import abstractmethod
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
-from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterMixin
-from   datalabs.model.cpt.api import ConsumerDescriptor, Release
+from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin
+from   datalabs.model.cpt.api import ConsumerDescriptor
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -61,29 +61,21 @@ class ConsumerDescriptorEndpointTask(BaseConsumerDescriptorEndpointTask):
 
 
 # pylint: disable=too-many-ancestors
-class AllConsumerDescriptorsEndpointTask(BaseConsumerDescriptorEndpointTask, KeywordFilterMixin, WildcardFilterMixin):
+class AllConsumerDescriptorsEndpointTask(
+        BaseConsumerDescriptorEndpointTask,
+        ReleaseFilterMixin,
+        KeywordFilterMixin,
+        WildcardFilterMixin
+):
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
         code = self._parameters.query.get('code')
 
-        query = self._filter_for_release(query, since)
+        query = self._filter_for_release(ConsumerDescriptor, query, since)
 
         query = self._filter_for_keywords([ConsumerDescriptor.descriptor], query, keywords)
 
         query = self._filter_for_wildcard(ConsumerDescriptor, query, code)
-
-        return query
-
-    @classmethod
-    def _filter_for_release(cls, query, since):
-        if since is not None:
-            query = query.add_column(Release.effective_date)
-
-            for date in since:
-                query = query.filter(Release.effective_date >= date)
-
-        else:
-            query = query.filter(ConsumerDescriptor.deleted == False)  # pylint: disable=singleton-comparison
 
         return query
