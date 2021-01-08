@@ -4,6 +4,7 @@ from   collections import namedtuple
 import logging
 import os
 from   pathlib import Path
+import shutil
 import subprocess
 import tempfile
 from   urllib.parse import urlparse
@@ -15,11 +16,10 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-ValidatedData = namedtuple('ValidatedData', 'actor project repository branch action')
-Configuration = namedtuple('Configuration', 'clone_url branch dags_path ')
+Configuration = namedtuple('Configuration', 'clone_url branch dag_source_path dag_target_path')
 
 
-class AiflowDagSynchronizer():
+class Synchronizer():
     def __init__(self, url: str):
         self._config = config
         clone_url = urlparse(self._config.clone_url)
@@ -54,4 +54,4 @@ class AiflowDagSynchronizer():
         subprocess.call(command.split(' '))
 
     def _copy_dags(self):
-        # Copy <repo_root>/Source/Python/datalabs/airflow/dag to /home/airflow/dags
+        shutil.copytree(self._config.dag_source_path, self._config.dag_source_path)
