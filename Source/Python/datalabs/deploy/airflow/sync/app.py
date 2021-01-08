@@ -1,5 +1,6 @@
 from   datetime import datetime, timedelta
 import os
+from   threading import Thread, Event
 
 import daemon
 
@@ -9,6 +10,7 @@ import datalabs.deploy.airflow.sync.dag as dag
 class SyncLooper(Thread):
     def __init__(self, event):
         Thread.__init__(self)
+
         self.stopped = event
 
     def run(self):
@@ -21,23 +23,28 @@ class SyncLooper(Thread):
         )
 
         while not self.stopped.wait(duration):
-            sync(dag_sync_config)
+            self._sync(dag_sync_config)
 
-            duration = self.calculate_next_run_duration()
+            duration = self._calculate_next_run_duration()
 
     @classmethod
-    def sync(cls, config):
+    def _sync(cls, config):
         synchronizer = dag.Synchronizer(config)
 
-        synchronizer.start()
+        synchronizer.sync()
 
     @classmethod
-    def calculate_next_run_duration(cls):
+    def _calculate_next_run_duration(cls):
         return 15
 
 
 def main():
-    with daemon.DaemonContext():
-        sync_looper = SyncLooper()
+    # with daemon.DaemonContext():
+    stop_event = Event()
+    sync_looper = SyncLooper(stop_event)
 
-        sync_looper.run()
+    sync_looper.start()
+
+print(__name__)
+if __name__ == "__main__":
+    main()

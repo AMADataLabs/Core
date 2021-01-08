@@ -4,9 +4,6 @@ ENV HOME=/Sync
 WORKDIR ${HOME}
 
 # Python binary and source dependencies
-COPY ./Build/CPT/requirements.txt .
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
-
 RUN apt-get update -qq && \
  DEBIAN_FRONTEND=noninteractive apt-get install -yq --no-install-recommends \
  tini \
@@ -35,6 +32,10 @@ ENV LC_ALL en_US.UTF-8
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US.UTF-8
 
+COPY ./Build/Airflow/Sync/requirements.txt .
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+
+
 # Install nss_wrapper.
 RUN curl -SL -o nss_wrapper.tar.gz https://ftp.samba.org/pub/cwrap/nss_wrapper-1.1.2.tar.gz && \
  mkdir nss_wrapper && \
@@ -53,9 +54,9 @@ COPY ./Build/Airflow/entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 
 # Save Git SSH key
-COPY ./Build/Airflow/Sync/ssh_config.txt ssh_config
-RUN printenv GIT_SSH_KEY | sed 's/\\n/\n/g' > id_rsa
-ENV GIT_SSH_COMMAND "ssh -o StrictHostKeyChecking=no -i ${HOME}/id_rsa"
+# COPY ./Build/Airflow/Sync/ssh_config.txt ssh_config
+# RUN printenv GIT_SSH_KEY | sed 's/\\n/\n/g' > id_rsa
+# ENV GIT_SSH_COMMAND "ssh -o StrictHostKeyChecking=no -i ${HOME}/id_rsa"
 
 # Bundle the app code
 COPY ./Script ./Script
@@ -73,7 +74,10 @@ RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
 
+ENV PYTHONPATH ${HOME}
+
 RUN chown -Rf 1001 ${HOME}
 RUN chmod go+rwx ${HOME}
+# RUN chmod 0440 id_rsa
 
 USER 1001
