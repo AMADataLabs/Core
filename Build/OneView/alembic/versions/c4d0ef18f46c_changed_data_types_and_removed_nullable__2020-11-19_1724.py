@@ -1,7 +1,7 @@
 """Changed data types and removed nullable constraint for residency
 
 Revision ID: c4d0ef18f46c
-Revises: 5ac09acae250
+Revises: 9e4b7596991c
 Create Date: 2020-11-19 17:24:21.432904+00:00
 
 """
