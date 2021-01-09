@@ -1,9 +1,6 @@
 """ Airflow DAG sync application (main loop). """
-from   datetime import datetime, timedelta
 import os
 from   threading import Thread, Event
-
-import daemon
 
 import datalabs.deploy.airflow.sync.dag as dag
 from   datalabs.deploy.ssh.key import load_key_from_variable
@@ -43,7 +40,6 @@ class SyncLooper(Thread):
 
 
 def main():
-    # with daemon.DaemonContext():
     stop_event = Event()
     sync_looper = SyncLooper(stop_event)
 

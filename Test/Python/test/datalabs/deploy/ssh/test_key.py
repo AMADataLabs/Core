@@ -1,13 +1,15 @@
 """ source: datalabs.deploy.ssh.key """
 from   collections import namedtuple
 import os
-import pytest
 import stat
 import tempfile
+
+import pytest
 
 from   datalabs.deploy.ssh.key import load_key_from_variable
 
 
+# pylint: disable=redefined-outer-name
 def test_load_key_from_variable_has_correct_content(variable, path):
     load_key_from_variable(variable.name, path)
 
@@ -17,6 +19,7 @@ def test_load_key_from_variable_has_correct_content(variable, path):
     assert key == variable.value
 
 
+# pylint: disable=redefined-outer-name
 def test_load_key_from_variable_has_correct_permissions(variable, path):
     load_key_from_variable(variable.name, path)
 

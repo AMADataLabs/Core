@@ -5,7 +5,6 @@ from   distutils.dir_util import copy_tree
 import logging
 import os
 from   pathlib import Path
-import shutil
 import subprocess
 import tempfile
 from   urllib.parse import urlparse
