@@ -1,6 +1,7 @@
-""" BitBucket synchronization objects. """
+""" Airflow DAG synchronization class. """
 
 from   collections import namedtuple
+from   distutils.dir_util import copy_tree
 import logging
 import os
 from   pathlib import Path
@@ -9,7 +10,7 @@ import subprocess
 import tempfile
 from   urllib.parse import urlparse
 
-logging.basicConfig()
+logging.basicConfig(format='%(asctime)-15s %(levelname)s: %(message)s')
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
@@ -28,14 +29,11 @@ class Synchronizer():
         LOGGER.debug('BitBucket repository URL: %s', self._config.clone_url)
 
     def sync(self):
-        # import pdb; pdb.set_trace()
         with tempfile.TemporaryDirectory() as temp_directory:
             os.chdir(temp_directory)
 
             LOGGER.info('-- Cloning --')
             self._clone_repository()
-
-            # os.chdir(Path(temp_directory).joinpath(data.repository))
 
             LOGGER.info('-- Syncing --')
             self._copy_dags()
@@ -53,4 +51,4 @@ class Synchronizer():
         subprocess.call(command.split(' '))
 
     def _copy_dags(self):
-        shutil.copytree(self._config.dag_source_path, self._config.dag_source_path)
+        copy_tree(self._config.dag_source_path, self._config.dag_target_path)

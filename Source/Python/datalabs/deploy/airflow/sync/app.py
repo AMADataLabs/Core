@@ -1,3 +1,4 @@
+""" Airflow DAG sync application (main loop). """
 from   datetime import datetime, timedelta
 import os
 from   threading import Thread, Event
@@ -5,6 +6,7 @@ from   threading import Thread, Event
 import daemon
 
 import datalabs.deploy.airflow.sync.dag as dag
+from   datalabs.deploy.ssh.key import load_key_from_variable
 
 
 class SyncLooper(Thread):
@@ -22,6 +24,8 @@ class SyncLooper(Thread):
             os.getenv('DAG_TARGET_PATH')
         )
 
+        load_key_from_variable('GIT_SSH_KEY', '/Sync/id_rsa')
+
         while not self.stopped.wait(duration):
             self._sync(dag_sync_config)
 
@@ -35,7 +39,7 @@ class SyncLooper(Thread):
 
     @classmethod
     def _calculate_next_run_duration(cls):
-        return 15
+        return float(os.getenv('SYNC_INTERVAL'))
 
 
 def main():

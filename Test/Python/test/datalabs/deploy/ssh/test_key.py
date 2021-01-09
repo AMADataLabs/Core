@@ -2,18 +2,27 @@
 from   collections import namedtuple
 import os
 import pytest
+import stat
 import tempfile
 
 from   datalabs.deploy.ssh.key import load_key_from_variable
 
 
-def test_load_key_from_variable(variable, path):
+def test_load_key_from_variable_has_correct_content(variable, path):
     load_key_from_variable(variable.name, path)
 
     with open(path) as file:
         key = file.read()
 
     assert key == variable.value
+
+
+def test_load_key_from_variable_has_correct_permissions(variable, path):
+    load_key_from_variable(variable.name, path)
+
+    mode = stat.S_IMODE(os.stat(path).st_mode)
+
+    assert mode == 0o400
 
 
 @pytest.fixture

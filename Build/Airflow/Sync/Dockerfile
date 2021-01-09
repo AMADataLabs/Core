@@ -1,5 +1,6 @@
 FROM python:3.7
 
+ENV AIRFLOW_HOME=/home/airflow
 ENV HOME=/Sync
 WORKDIR ${HOME}
 
@@ -54,9 +55,9 @@ COPY ./Build/Airflow/entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 
 # Save Git SSH key
-# COPY ./Build/Airflow/Sync/ssh_config.txt ssh_config
+COPY ./Build/Airflow/Sync/ssh_config.txt ssh_config
 # RUN printenv GIT_SSH_KEY | sed 's/\\n/\n/g' > id_rsa
-# ENV GIT_SSH_COMMAND "ssh -o StrictHostKeyChecking=no -i ${HOME}/id_rsa"
+ENV GIT_SSH_COMMAND "ssh -o StrictHostKeyChecking=no -i ${HOME}/id_rsa"
 
 # Bundle the app code
 COPY ./Script ./Script
@@ -78,6 +79,9 @@ ENV PYTHONPATH ${HOME}
 
 RUN chown -Rf 1001 ${HOME}
 RUN chmod go+rwx ${HOME}
-# RUN chmod 0440 id_rsa
+
+RUN mkdir -p ${AIRFLOW_HOME}/dags
+RUN chown -Rf 1001 ${AIRFLOW_HOME}/dags
+RUN chmod go+rwx ${AIRFLOW_HOME}/dags
 
 USER 1001
