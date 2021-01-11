@@ -22,7 +22,7 @@ spec:
   source:
     git:
       uri: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
-      # ref: story/DL-884
+      ref: story/DL-1258
     sourceSecret:
       name: bitbucketprd
     type: Git
