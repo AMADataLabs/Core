@@ -9,12 +9,15 @@ Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
 class Physician(Base):
     __tablename__ = 'physician'
-    __table_args__ = (sa.ForeignKeyConstraint(
-        ['federal_information_processing_standard_state',
-         'federal_information_processing_standard_county'],
-        ['FederalInformationProcessingStandardCounty.state',
-         'FederalInformationProcessingStandardCounty.county']
-    ), {"schema": "oneview"})
+    __table_args__ = (
+        sa.ForeignKeyConstraint(
+            ['federal_information_processing_standard_state',
+             'federal_information_processing_standard_county'],
+            ['oneview.federal_information_processing_standard_county.state',
+             'oneview.federal_information_processing_standard_county.county']
+        ),
+        {"schema": "oneview"}
+    )
 
     medical_education_number = sa.Column(sa.String, primary_key=True)
     address_type = sa.Column(sa.String)
