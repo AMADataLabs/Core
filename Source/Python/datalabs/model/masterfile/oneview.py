@@ -12,8 +12,8 @@ class Physician(Base):
     __table_args__ = (sa.ForeignKeyConstraint(
         ['federal_information_processing_standard_state',
          'federal_information_processing_standard_county'],
-        ['federal_information_processing_standard_county.state',
-         'federal_information_processing_standard_county.county']
+        ['FederalInformationProcessingStandardCounty.state',
+         'FederalInformationProcessingStandardCounty.county']
     ), {"schema": "oneview"})
 
     medical_education_number = sa.Column(sa.String, primary_key=True)
