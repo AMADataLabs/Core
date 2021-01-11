@@ -36,7 +36,7 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
         return core_based_statistical_area_data
 
     def _to_dataframe(self):
-        return [pandas.read_csv(StringIO(file) for file in self._parameters.data)]
+        return [pandas.read_csv(BytesIO(file) for file in self._parameters.data)]
 
     def _get_columns(self):
         return [CBSA_COLUMNS]
