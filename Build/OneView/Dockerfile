@@ -13,7 +13,6 @@ RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r
 RUN apt-get update && apt-get install -y openjdk-11-jre
 ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
 RUN unzip ./Db2JdbcDriver.zip
-RUN touch DB2JccConfiguration.properties
 RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
 RUN unzip ./InformixJdbcDriver.zip
