@@ -223,10 +223,6 @@ objects:
                 name: ${APPLICATION_NAME}
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
-          # - name: AIRFLOW__KUBERNETES__LOGS_VOLUME_CLAIM
-          #   value: ${APPLICATION_NAME}-shared
-          # - name: AIRFLOW__KUBERNETES__DAGS_VOLUME_CLAIM
-          #   value: ${APPLICATION_NAME}-shared
           envFrom:
           - configMapRef:
               name: airflow-scheduler
@@ -235,21 +231,45 @@ objects:
           - mountPath: /home/airflow/shared
             name: ${APPLICATION_NAME}-shared
 
-        # - name: airflow-git-sync
-        #   image: k8s.gcr.io/git-sync:v3.1.2
-        #   imagePullPolicy: IfNotPresent
-        #   envFrom:
-        #   - configMapRef:
-        #       name: airflow-git-sync
-        #   volumeMounts:
-        #   - mountPath: /dags
-        #     name: ${APPLICATION_NAME}-shared
-
-        - name: airflow-webserver
+        - name: airflow-sync
           image: ' '
           imagePullPolicy: IfNotPresent
           command:
-          - /home/airflow/webserver.sh
+          - python
+          args:
+          - datalabs/deploy/airflow/sync/app.py
+          env:
+          - name: CLONE_URL
+            value: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
+          - name: BRANCH
+            value: master
+          - name: DAG_SOURCE_PATH
+            value: hsg-data-labs/Source/Python/datalabs/airflow/dag
+          - name: DAG_TARGET_PATH
+            value: /home/airflow/dags
+          - name: SYNC_INTERVAL
+            value: 900.0
+          - name: GIT_SSH_KEY
+            valueFrom:
+              secretKeyRef:
+                key: bitbucketprd
+                name: ssh-privatekey
+          envFrom:
+          - configMapRef:
+              name: airflow-webserver
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /home/airflow/dags
+            name: ${APPLICATION_NAME}-shared
+
+        - name: airflow-scheduler
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          command:
+          - /home/airflow/scheduler.sh
           env:
           - name: DATABASE_USER
             valueFrom:
@@ -270,10 +290,7 @@ objects:
             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
           envFrom:
           - configMapRef:
-              name: airflow-webserver
-          ports:
-          - containerPort: 8080
-            protocol: TCP
+              name: airflow-scheduler
           terminationMessagePath: /dev/termination-log
           volumeMounts:
           - mountPath: /home/airflow/shared
@@ -306,6 +323,16 @@ objects:
         from:
           kind: ImageStreamTag
           name: airflow:latest
+          namespace: hsg-data-labs-dev
+        lastTriggeredImage: ""
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - airflow-sync
+        from:
+          kind: ImageStreamTag
+          name: airflow-sync:latest
           namespace: hsg-data-labs-dev
         lastTriggeredImage: ""
     - type: ConfigChange

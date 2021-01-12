@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-    name: oneview-database-setup
-    namespace: hsg-data-labs-dev
-data:
-    DATABASE_HOST: rdbp1190.ama-assn.org
-    DATABASE_PORT: "5432"

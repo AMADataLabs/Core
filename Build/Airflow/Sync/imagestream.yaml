@@ -12,7 +12,7 @@ spec:
   - annotations: null
     from:
       kind: DockerImage
-      name: airflow:latest
+      name: airflow-sync:latest
     generation: 1
     importPolicy: {}
     name: latest
