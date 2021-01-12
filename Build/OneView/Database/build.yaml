@@ -27,7 +27,7 @@ spec:
     type: Git
   strategy:
     dockerStrategy:
-      dockerfilePath: Build/Airflow/Sync/Dockerfile
+      dockerfilePath: Build/OneView/Database/Dockerfile
       from:
         kind: ImageStreamTag
         name: python:3.7
