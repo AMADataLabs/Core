@@ -12,10 +12,22 @@ spec:
         imagePullPolicy: Always
         command:
         - /OneView/migrate-database
-        args: ["-H $(DATABASE_HOST) -P $(DATABASE_PORT) -n $(DATABASE_NAME) -u $(DATABASE_USERNAME) -p $(DATABASE_PASSWORD) upgrade OneView"]
+        args:
+        - -H
+        - $(DATABASE_HOST)
+        - -P
+        - $(DATABASE_PORT)
+        - -n
+        - $(DATABASE_NAME)
+        - -u
+        - $(DATABASE_USERNAME)
+        - -p
+        - $(DATABASE_PASSWORD)
+        - upgrade
+        - OneView
         env:
         - name: DATABASE_HOST
-          value: hsg-data-labs-airflow-db.hsg-data-labs-dev.svc.cluster.local
+          value: hsg-data-labs-db.hsg-data-labs-dev.svc.cluster.local
         - name: DATABASE_PORT
           value: "5432"
         - name: DATABASE_NAME
