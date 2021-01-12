@@ -12,8 +12,8 @@ psycopg2-binary==2.8.5 \
 setuptools==41.0.0 \
 sqlalchemy==1.3.13
 
-COPY ./Build/OneView/alembic ./Build/OneView/alembic
-COPY ./Build/OneView/alembic.ini ./Build/OneView/alembic.ini
+COPY ./Build/OneView/alembic /Build/OneView/alembic
+COPY ./Build/OneView/alembic.ini /Build/OneView/alembic.ini
 COPY ./Source/Python/datalabs/access ./datalabs/access
 COPY ./Source/Python/datalabs/model/masterfile/oneview.py ./datalabs/model/masterfile/oneview.py
 COPY ./Source/Python/datalabs/__init__.py ./datalabs/a__init__.py
