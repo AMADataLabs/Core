@@ -4,7 +4,7 @@ metadata:
     name: airflow-scheduler
     namespace: hsg-data-labs-dev
 data:
-    AIRFLOW_HOME: /airflow
+    AIRFLOW_HOME: /home/airflow
     AIRFLOW_GPL_UNIDECODE: "yes"
     AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
     # AIRFLOW__CORE__EXECUTOR: LocalExecutor
@@ -18,7 +18,7 @@ data:
     AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-dev
     AIRFLOW__KUBERNETES__IN_CLUSTER: "True"
     AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: "False"
-    AIRFLOW__KUBERNETES__POD_TEMPLATE_FILE: /airflow/worker.yaml
+    AIRFLOW__KUBERNETES__POD_TEMPLATE_FILE: /home/airflow/worker.yaml
     AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: apache/airflow
     AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: master-python3.7
     # worker_container_repository
