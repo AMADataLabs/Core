@@ -381,19 +381,6 @@ resource "aws_alb" "datanow" {
 }
 
 
-resource "aws_route53_record" "datanow" {
-    zone_id         = data.aws_route53_zone.amaaws.zone_id
-    name            = "datanow.amaaws.org"
-    type            = "A"
-
-    alias {
-        name                    = aws_alb.datanow.dns_name
-        zone_id                 = aws_alb.datanow.zone_id
-        evaluate_target_health  = true
-    }
-}
-
-
 resource "aws_lb_target_group" "datanow" {
     name        = "${var.project}DataNow"
     port        = 9047
