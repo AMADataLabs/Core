@@ -1,3 +1,9 @@
+########## Image Repository ##########
+
+resource "aws_ecr_repository" "datanow" {
+    name = "datanow"
+}
+
 ########## Fargate Service ##########
 
 resource "aws_ecs_service" "datanow" {
