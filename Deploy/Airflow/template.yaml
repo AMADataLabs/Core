@@ -127,8 +127,9 @@ objects:
           image: ' '
           imagePullPolicy: IfNotPresent
           command:
-          - python
+          - /Sync/entrypoint.sh
           args:
+          - python
           - datalabs/deploy/airflow/sync/app.py
           env:
           - name: CLONE_URL
@@ -144,8 +145,8 @@ objects:
           - name: GIT_SSH_KEY
             valueFrom:
               secretKeyRef:
-                key: bitbucketprd
-                name: ssh-privatekey
+                name: bitbucketprd
+                key: ssh-privatekey
           envFrom:
           - configMapRef:
               name: airflow-webserver
@@ -166,18 +167,18 @@ objects:
           - name: DATABASE_USER
             valueFrom:
               secretKeyRef:
-                key: database-user
                 name: ${APPLICATION_NAME}
+                key: database-user
           - name: DATABASE_PASSWORD
             valueFrom:
               secretKeyRef:
-                key: database-password
                 name: ${APPLICATION_NAME}
+                key: database-password
           - name: DATABASE_NAME
             valueFrom:
               secretKeyRef:
-                key: database-name
                 name: ${APPLICATION_NAME}
+                key: database-name
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
           envFrom:
@@ -208,6 +209,16 @@ objects:
         from:
           kind: ImageStreamTag
           name: airflow:latest
+          namespace: hsg-data-labs-dev
+        lastTriggeredImage: ""
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - airflow-sync
+        from:
+          kind: ImageStreamTag
+          name: airflow-sync:latest
           namespace: hsg-data-labs-dev
         lastTriggeredImage: ""
     - type: ImageChange
