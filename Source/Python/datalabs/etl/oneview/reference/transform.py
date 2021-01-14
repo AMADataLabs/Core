@@ -30,13 +30,14 @@ class PresentEmploymentTransformerTask(TransformerTask):
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
     def _transform(self):
-        self._parameters.data = self._to_dataframe()
+        self._parameters.data = [self._to_dataframe(file) for file in self._parameters.data]
         core_based_statistical_area_data = super()._transform()
 
         return core_based_statistical_area_data
 
-    def _to_dataframe(self):
-        return [pandas.read_csv(BytesIO(file) for file in self._parameters.data)]
+    @classmethod
+    def _to_dataframe(cls, file):
+        return pandas.read_csv(BytesIO(file))
 
     def _get_columns(self):
         return [CBSA_COLUMNS]
@@ -49,10 +50,10 @@ class SpecialtyTransformerTask(TransformerTask):
 
 class SpecialtyMergeTransformerTask(TransformerTask):
     def _transform(self):
-        csv_to_df = [self._dataframe_to_csv(csv) for csv in self._parameters.data]
-        filtered_dataframe = csv_to_df[0].loc[csv_to_df[0].id.isin(csv_to_df[1].primary_specialty) |
-                                              csv_to_df[0].id.isin(csv_to_df[1].secondary_specialty)
-                                              ].reset_index(drop=True)
+        dataframe = [self._to_dataframe(csv) for csv in self._parameters.data]
+        filtered_dataframe = [dataframe[0].loc[dataframe[0].id.isin(dataframe[1].primary_specialty) |
+                                               dataframe[0].id.isin(dataframe[1].secondary_specialty)
+                                               ].reset_index(drop=True)]
 
         self._parameters.data = filtered_dataframe
 
