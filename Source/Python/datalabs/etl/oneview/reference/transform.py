@@ -69,7 +69,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     def _transform(self):
         fips_dataframe = self._to_dataframe()
-        self._parameters.data = [self.append_column(df) for df in fips_dataframe]
+        self._parameters.data = [self.set_columns(df) for df in fips_dataframe]
         federal_information_processing_standard_county = super()._transform()
 
         return federal_information_processing_standard_county
@@ -78,17 +78,12 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
         return [pandas.read_excel(BytesIO(file), skiprows=4) for file in self._parameters.data]
 
     @classmethod
-    def append_column(cls, dataframe):
+    def set_columns(cls, dataframe):
         dataframe = dataframe.loc[
             (dataframe['Summary Level'] == 50) |
             (dataframe['Summary Level'] == 40) |
             (dataframe['Summary Level'] == 10)
         ].reset_index(drop=True)
-
-        dataframe['State Code (FIPS)'] = dataframe['State Code (FIPS)'].astype(str)
-        dataframe['County Code (FIPS)'] = dataframe['County Code (FIPS)'].astype(str)
-
-        dataframe['FIPS_Code'] = dataframe['State Code (FIPS)'] + dataframe['County Code (FIPS)']
 
         return dataframe
 
