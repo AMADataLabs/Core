@@ -1,3 +1,11 @@
+########## Image Repository ##########
+
+resource "aws_ecr_repository" "datanow" {
+    name = "datanow"
+
+    tags = merge(local.tags, {Name = "Data Labs Data Lake DataNow Container Repository"})
+}
+
 ########## Fargate Service ##########
 
 resource "aws_ecs_service" "datanow" {
@@ -370,19 +378,6 @@ resource "aws_alb" "datanow" {
     tags = merge(local.tags, {Name = "Data Lake DataNow Load Balancer"})
 
     depends_on = [aws_internet_gateway.datalake]
-}
-
-
-resource "aws_route53_record" "datanow" {
-    zone_id         = data.aws_route53_zone.amaaws.zone_id
-    name            = "datanow.amaaws.org"
-    type            = "A"
-
-    alias {
-        name                    = aws_alb.datanow.dns_name
-        zone_id                 = aws_alb.datanow.zone_id
-        evaluate_target_health  = true
-    }
 }
 
 

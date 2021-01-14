@@ -2,12 +2,12 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   annotations:
-    openshift.io/description: Airflow scheduler and web server
-    openshift.io/display-name: Airflow
+    openshift.io/description: OneView Database Setup
+    openshift.io/display-name: OneView Database Setup
   creationTimestamp: null
   labels:
-    app: Airflow
-  name: airflow
+    app: OneViewDatabaseSetup
+  name: oneview-database-setup
   namespace: hsg-data-labs-dev
 spec:
   failedBuildsHistoryLimit: 5
@@ -15,20 +15,19 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: airflow:latest
+      name: oneview-database-setup:latest
   postCommit: {}
   resources: {}
   runPolicy: Serial
   source:
     git:
       uri: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
-      # ref: story/DL-1259
     sourceSecret:
       name: bitbucketprd
     type: Git
   strategy:
     dockerStrategy:
-      dockerfilePath: Build/Airflow/Dockerfile
+      dockerfilePath: Build/OneView/Database/Dockerfile
       from:
         kind: ImageStreamTag
         name: python:3.7
