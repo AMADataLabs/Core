@@ -16,8 +16,6 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
     def _transform(self):
         dataframes = [self._to_dataframe(csv) for csv in self._parameters.data]
         self._parameters.data = [self._linking_data(df) for df in dataframes]
-        matched_data = [self._linking_data()]
-        self._parameters.data = matched_data
 
         return super()._transform()
 
