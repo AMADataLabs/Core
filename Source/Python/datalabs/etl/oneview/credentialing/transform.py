@@ -1,4 +1,5 @@
 """Oneview Credentialing Table Columns"""
+from   io import BytesIO
 import logging
 import pandas
 
@@ -18,15 +19,23 @@ class CredentialingTransformerTask(TransformerTask):
 
 class CredentialingFinalTransformerTask(TransformerTask):
     def _transform(self):
-        dataframes = [self._dataframe_to_csv(csv) for csv in self._parameters.data]
-        merged_dataframes = [self._merge_dataframes(dataframes)]
+        dataframes = self._to_dataframe(self._parameters.data)
+        self._parameters.data = self._merge_dataframes(dataframes)
 
-        return merged_dataframes
+        data = super()._transform()
+
+        return data
+
+    @classmethod
+    def _to_dataframe(cls, data):
+        main_dataframe = pandas.read_csv(BytesIO(data[1]))
+        address_dataframe = pandas.read_excel(BytesIO(data[0]))
+        return [address_dataframe, main_dataframe]
 
     @classmethod
     def _merge_dataframes(cls, dataframes):
-        new_df = pandas.merge(dataframes[1], dataframes[0], on='number')
-        return [new_df, dataframes[2], dataframes[3]]
+        new_df = dataframes[1].merge(dataframes[0], how='left', on='number')
+        return [new_df]
 
     def _get_columns(self):
-        return [CUSTOMER_COLUMNS, PRODUCT_COLUMNS, ORDER_COLUMNS, CUSTOMER_ADDRESSES_COLUMNS]
+        return [CUSTOMER_ADDRESSES_COLUMNS]
