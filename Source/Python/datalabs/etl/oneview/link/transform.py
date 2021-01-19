@@ -21,9 +21,10 @@ class CredentialingCustomerInstitution(TransformerTask):
 
     @classmethod
     def _linking_data(cls, data):
-        dmatches = pandas.merge(data[0], data[1], left_on=['Street 1ST', 'City', 'State'],
-                                right_on=['ins_pers_add1', 'ins_pers_city', 'ins_pers_state'])
-        matches = dmatches[['Customer Number', 'ins_id']]
+        matches = pandas.merge(data[0], data[1], left_on=['address_1', 'city', 'state'],
+                               right_on=['address_1', 'city', 'state'])
+        matches = matches[['number', 'institution']]
+
         return matches
 
     @classmethod
