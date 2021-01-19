@@ -48,8 +48,5 @@ modspec:
   - package: datalabs.etl.oneview.reference
   - package: datalabs.etl.http
   - package: datalabs.etl.s3
-    include:
-      - load
-      - extract
   - package: datalabs.etl.sftp
   - package: datalabs.model.masterfile
