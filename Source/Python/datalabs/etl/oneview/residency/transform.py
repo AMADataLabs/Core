@@ -27,10 +27,11 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_dataframe(cls, dataframes):
+        directors = dataframes[0][(dataframes[0].pers_type == 'D')]
         dataframes[1].pgm_id = dataframes[1].pgm_id.astype(str)
         dataframes[2].pgm_id = dataframes[2].pgm_id.astype(str)
 
-        merged_df = pandas.merge(dataframes[0], dataframes[1], on='pgm_id')
+        merged_df = pandas.merge(directors, dataframes[1], on='pgm_id')
         merged_df = pandas.merge(merged_df, dataframes[2], on='pgm_id')
 
         return [merged_df, dataframes[3], dataframes[4]]
