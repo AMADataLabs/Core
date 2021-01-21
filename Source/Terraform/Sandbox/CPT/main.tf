@@ -7,9 +7,10 @@ provider "aws" {
 module "cpt" {
     source = "../../Module/CPT"
 
-    rds_instance_class  = "db.m5.large"
-    rds_storage_type    = "gp2"
-    project             = local.project
+    rds_instance_class      = "db.m5.large"
+    rds_storage_type        = "gp2"
+    project                 = local.project
+    endpoint_memory_size    = 3072
 }
 
 
