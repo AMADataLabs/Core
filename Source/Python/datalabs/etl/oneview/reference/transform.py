@@ -30,13 +30,14 @@ class PresentEmploymentTransformerTask(TransformerTask):
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
     def _transform(self):
-        self._parameters.data = self._to_dataframe()
+        self._parameters.data = [self._to_dataframe(file) for file in self._parameters.data]
         core_based_statistical_area_data = super()._transform()
 
         return core_based_statistical_area_data
 
-    def _to_dataframe(self):
-        return [pandas.read_csv(StringIO(file) for file in self._parameters.data)]
+    @classmethod
+    def _to_dataframe(cls, file):
+        return pandas.read_csv(BytesIO(file))
 
     def _get_columns(self):
         return [CBSA_COLUMNS]
@@ -49,10 +50,10 @@ class SpecialtyTransformerTask(TransformerTask):
 
 class SpecialtyMergeTransformerTask(TransformerTask):
     def _transform(self):
-        csv_to_df = [self._dataframe_to_csv(csv) for csv in self._parameters.data]
-        filtered_dataframe = csv_to_df[0].loc[csv_to_df[0].id.isin(csv_to_df[1].primary_specialty) |
-                                              csv_to_df[0].id.isin(csv_to_df[1].secondary_specialty)
-                                              ].reset_index(drop=True)
+        dataframe = [self._to_dataframe(csv) for csv in self._parameters.data]
+        filtered_dataframe = [dataframe[0].loc[dataframe[0].id.isin(dataframe[1].primary_specialty) |
+                                               dataframe[0].id.isin(dataframe[1].secondary_specialty)
+                                               ].reset_index(drop=True)]
 
         self._parameters.data = filtered_dataframe
 
@@ -69,7 +70,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     def _transform(self):
         fips_dataframe = self._to_dataframe()
-        self._parameters.data = [self.append_column(df) for df in fips_dataframe]
+        self._parameters.data = [self.set_columns(df) for df in fips_dataframe]
         federal_information_processing_standard_county = super()._transform()
 
         return federal_information_processing_standard_county
@@ -78,17 +79,12 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
         return [pandas.read_excel(BytesIO(file), skiprows=4) for file in self._parameters.data]
 
     @classmethod
-    def append_column(cls, dataframe):
+    def set_columns(cls, dataframe):
         dataframe = dataframe.loc[
             (dataframe['Summary Level'] == 50) |
             (dataframe['Summary Level'] == 40) |
             (dataframe['Summary Level'] == 10)
         ].reset_index(drop=True)
-
-        dataframe['State Code (FIPS)'] = dataframe['State Code (FIPS)'].astype(str)
-        dataframe['County Code (FIPS)'] = dataframe['County Code (FIPS)'].astype(str)
-
-        dataframe['FIPS_Code'] = dataframe['State Code (FIPS)'] + dataframe['County Code (FIPS)']
 
         return dataframe
 
