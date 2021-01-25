@@ -1,8 +1,10 @@
-# [START git_sync_template]
+# [START airflow_worker_template]
 apiVersion: v1
 kind: Pod
 metadata:
   name: dummy-name
+  annotations:
+      image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"airflow-woker:latest","namespace":"hsg-data-labs-dev"},"fieldPath":"spec.template.spec.containers[?(@.name==\"base\")].image"}]'
 spec:
   containers:
     - args: []
@@ -29,7 +31,7 @@ spec:
         - name: HOME
           value: /home/airflow
       envFrom: []
-      image: ' '
+      image:
       imagePullPolicy: IfNotPresent
       name: base
       ports: []
@@ -74,15 +76,4 @@ spec:
             mode: 288
             path: known_hosts
         secretName: airflow-init
-  triggers:
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - airflow-worker
-        from:
-          kind: ImageStreamTag
-          name: airflow-worker:latest
-          namespace: hsg-data-labs-dev
-        lastTriggeredImage: ""
-# [END git_sync_template]
+# [END airflow_worker_template]
