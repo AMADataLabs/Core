@@ -168,7 +168,7 @@ class HumachResultsArchive:
         data['survey_date'] = [f'{year}-{("0" + str(month))[-2:]}-01' for year, month in zip(
             data['survey_year'].values,
             data['survey_month'].values)]
-        data['survey_date'] = pd.to_datetime(data['survey_date'])
+        data['survey_date'] = pd.to_datetime(data['survey_date'], errors='coerce')
         data['survey_date'] = data['survey_date'].apply(lambda x: x.date())
 
         data['month_diff'] = [relativedelta(as_of_date, survey_date) for survey_date in data['survey_date'].values]
