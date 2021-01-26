@@ -21,7 +21,7 @@ spec:
   runPolicy: Serial
   source:
     git:
-      uri: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/datanow.git
+      uri: git@bitbucket.org:amaappdev/hs-datalabs.git
       ref: full-build
     sourceSecret:
       name: bitbucketprd
