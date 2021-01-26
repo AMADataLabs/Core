@@ -59,12 +59,27 @@ RUN curl -SL -o nss_wrapper.tar.gz https://ftp.samba.org/pub/cwrap/nss_wrapper-1
  make install) && \
  rm -rf nss_wrapper
 
- COPY ./Build/Airflow/entrypoint.sh entrypoint.sh
- RUN chmod +x ${HOME}/entrypoint.sh
+COPY ./Build/Airflow/entrypoint.sh ${HOME}/entrypoint.sh
+RUN chmod +x ${HOME}/entrypoint.sh
 
-# COPY ./Build/Airflow/ssh_config.txt ssh_config
-# RUN printenv BITBUCKET_SSH_KEY | sed 's/\\n/\n/g' > id_rsa
-# ENV GIT_SSH_COMMAND "ssh -o StrictHostKeyChecking=no -i ${HOME}/id_rsa"
+ENV PYTHONPATH ${HOME}
+ENV CLASSPATH=${HOME}
+
+RUN apt-get update && apt-get install -y openjdk-11-jre
+ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
+RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
+RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
+RUN unzip ./InformixJdbcDriver.zip && rm ./InformixJdbcDriver.zip
+
+COPY ./Build/OneView/requirements.txt .
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+
+COPY ./Source/Python/datalabs datalabs
+COPY ./Source/Python/neptune_python_utils neptune_python_utils
+
+# ENV DAG_SOURCE_PATH ${HOME}/datalabs/airflow/dag
+# ENV DAG_TARGET_PATH ${HOME}/dags
 
 RUN chown -Rf ${USER_ID} ${HOME}
 RUN chmod go+rwx ${HOME}
