@@ -3,8 +3,6 @@ import json
 import os
 
 import datalabs.access.api.task as api
-from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
-from   datalabs.access.secret import SecretsManagerEnvironmentLoader
 from   datalabs.awslambda import TaskWrapper
 
 
@@ -13,10 +11,6 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
         self._parameters['query'] = self._parameters.get('queryStringParameters') or dict()
         self._parameters['query'].update(self._parameters.get('multiValueQueryStringParameters') or dict())
         self._parameters['path'] = self._parameters.get('pathParameters') or dict()
-
-        self._resolve_parameter_store_environment_variables()
-
-        self._resolve_secrets_manager_environment_variables()
 
         return super()._get_task_parameters()
 
@@ -37,16 +31,8 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
         }
 
     @classmethod
-    def _resolve_parameter_store_environment_variables(cls):
-        parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
-
-        parameter_loader.load()
-
-    @classmethod
     def _resolve_secrets_manager_environment_variables(cls):
-        secrets_loader = SecretsManagerEnvironmentLoader.from_environ()
-
-        secrets_loader.load()
+        super()._resolve_secrets_manager_environment_variables()
 
         if 'DATABASE_SECRET' in os.environ:
             cls._populate_database_parameters_from_secret()

@@ -104,6 +104,8 @@ class ETLComponentParameters:
 
 class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
+        super()._get_task_parameters()
+
         var_tree = VariableTree.generate()
 
         return ETLParameters(
