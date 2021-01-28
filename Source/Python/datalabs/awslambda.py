@@ -1,5 +1,4 @@
 """ Base Lambda function Task wrapper class. """
-from   abc import ABC
 import logging
 
 from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
@@ -11,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class TaskWrapper(task.TaskWrapper, ABC):
+class TaskWrapper(task.TaskWrapper):
     def _get_task_parameters(self):
         ''' Resolve ARNs in environment variables that point Parameter Store and
         Secrets Manager resources. Overrides of this method should super() it
