@@ -1,5 +1,7 @@
 # Build Example:
-#    docker build -t one-view -f ./Build/OneView/Dockerfile --build-arg template_file=template.env --build-arg template_vars='user=bob,password=foo' ./
+#    docker build -t one-view -f ./Build/OneView/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
+# Run Example:
+#    docker run -ti one-view -e DOTENV_PATH=ppd.env python -c "import awslambda; print(awslambda.handler(None, None))"
 
 FROM python:3.7
 WORKDIR /OneView
@@ -23,14 +25,14 @@ COPY ./Build/Master ./Build/Master
 COPY ./Build/OneView ./Build/OneView
 COPY ./Source ./Source
 
-ARG template_file
 ARG template_vars
-RUN echo $template_file
 RUN echo $template_vars
-RUN ./Script/render-template \
-    --template ./Build/OneView/$template_file \
-    --file ./.env \
-    --vars pythonpath=/OneView,$template_vars
+RUN find ./Build/OneView -name "*.env" -exec \
+    ./Script/render-template \
+    --template {} \
+    --file {} \
+    --vars pythonpath=/OneView,$template_vars \;
+COPY ./Build/OneView/*.env ./
 RUN ./Script/bundle-project -i --directory ./ OneView
 
 RUN rm -rf ./Script

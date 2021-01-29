@@ -5,6 +5,7 @@ import sys
 import dotenv
 
 dotenv_path = os.environ.get('DOTENV_PATH')
+print(f'Dotenv Path: {dotenv_path}')
 if dotenv_path:
     dotenv.load_dotenv(dotenv_path=dotenv_path)
 else:

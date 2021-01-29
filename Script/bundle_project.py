@@ -59,7 +59,7 @@ class LocalProjectBundler(ProjectBundler):
     def _copy_build_files(self, project, target_path):
         self._copy_alembic_files(project, target_path)
 
-        shutil.copy(os.path.join(self._build_path, project, 'settings.py'), os.path.join(target_path, 'settings.py'))
+        shutil.copy(os.path.join(self._build_path, 'Master', 'settings.py'), os.path.join(target_path, 'settings.py'))
 
     def _copy_source_files(self, project, target_path):
         modspec_path = os.path.join(self._build_path, project, 'modspec.yaml')
