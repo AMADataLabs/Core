@@ -4,7 +4,8 @@ from datalabs.analysis.humach.survey.archive import HumachResultsArchive
 import logging
 import settings
 
-LOGGER = logging.Logger(__name__)
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 class HumachResultsIngester:
@@ -55,6 +56,7 @@ class HumachResultsIngester:
 
     def ingest_samples(self):
         files = self.get_sample_files()
+        print(files)
         for file in files:
             try:
                 LOGGER.info(f'PROCESSING FILE: {file}')
