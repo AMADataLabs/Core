@@ -4,7 +4,7 @@ metadata:
     name: airflow-webserver
     namespace: hsg-data-labs-dev
 data:
-    AIRFLOW_HOME: /airflow
+    AIRFLOW_HOME: /home/airflow
     AIRFLOW_GPL_UNIDECODE: "yes"
     AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
     AIRFLOW__CORE__LOAD_EXAMPLES: "False"
@@ -14,5 +14,5 @@ data:
     AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: "true"
     AIRFLOW__KUBERNETES__GIT_REPO: git@bitbucket.org:hsdatalabs/hsg-data-labs.git
     AIRFLOW__KUBERNETES__GIT_BRANCH: master
-    AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: /airflow/dags
+    AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: /home/airflow/dags
     AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag

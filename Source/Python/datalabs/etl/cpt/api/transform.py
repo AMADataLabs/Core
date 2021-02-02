@@ -195,7 +195,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
     def _extract_release_schedule(self):
         with self._get_database(self._parameters.database) as database:
             # pylint: disable=no-member
-            release_types = database.session.query(dbmodel.ReleaseType).all()
+            release_types = database.query(dbmodel.ReleaseType).all()
 
         return release_types
 
@@ -240,7 +240,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
     @classmethod
     def _generate_release_code_mapping_table(cls, code_history, codes, pla):
         non_pla_mappings = cls._generate_non_pla_release_code_mappings(code_history, codes)
-        pla_mappings = cls._generate_pla_release_code_mappings(pla, code_history)
+        pla_mappings = cls._generate_pla_release_code_mappings(pla)
 
         mapping_table = non_pla_mappings.append(pla_mappings, ignore_index=True)
 

@@ -1,0 +1,77 @@
+# [START airflow_worker_template]
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dummy-name
+spec:
+  containers:
+    - args: []
+      command: []
+      env:
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: LocalExecutor
+        # Hard Coded Airflow Envs
+        - name: AIRFLOW__CORE__FERNET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: airflow
+              key: fernet-key
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          valueFrom:
+            secretKeyRef:
+              name: airflow
+              key: db-connection
+        # - name: AIRFLOW_CONN_AIRFLOW_DB
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: airflow
+        #       key: db-connection
+        - name: HOME
+          value: /home/airflow
+      envFrom: []
+      image: docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:latest
+      imagePullPolicy: IfNotPresent
+      name: base
+      ports: []
+      volumeMounts:
+        - name: hsg-data-labs
+          mountPath: /Airflow/hsg-data-labs
+        - name: airflow-logs
+          mountPath: "/Airflow/logs"
+  hostNetwork: false
+  restartPolicy: Never
+  securityContext:
+    runAsUser: 1000280000
+    fsGroup: 1000280000
+  nodeSelector:
+    {}
+  affinity:
+    {}
+  tolerations:
+    []
+  # serviceAccountName: 'RELEASE-NAME-worker-serviceaccount'
+  volumes:
+    - name: dags
+      emptyDir: {}
+    - emptyDir: {}
+      name: airflow-logs
+    - configMap:
+        name: airflow-scheduler
+      name: airflow-config
+    - configMap:
+        name: airflow-scheduler
+      name: airflow-local-settings
+    - name: hsg-data-labs
+      emptyDir: {}
+    - name: git-ssh
+      secret:
+        defaultMode: 420
+        items:
+          - key: id_rsa
+            mode: 288
+            path: id_rsa
+          - key: known_hosts
+            mode: 288
+            path: known_hosts
+        secretName: airflow-init
+# [END airflow_worker_template]

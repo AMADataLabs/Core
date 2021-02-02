@@ -2,9 +2,8 @@
 from   abc import abstractmethod
 import logging
 
-from   sqlalchemy import or_, and_
-
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin
 import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()
@@ -90,54 +89,23 @@ class PLADetailsEndpointTask(BasePLADetailsEndpointTask):
         return query.filter(dbmodel.PLADetails.code == code)
 
 
-class AllPLADetailsEndpointTask(BasePLADetailsEndpointTask):
+# pylint: disable=too-many-ancestors
+class AllPLADetailsEndpointTask(
+        BasePLADetailsEndpointTask,
+        ReleaseFilterMixin,
+        KeywordFilterMixin,
+        WildcardFilterMixin
+):
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
         code = self._parameters.query.get('code')
+        keyword_fields = [dbmodel.PLADetails.test_name, dbmodel.Manufacturer.name, dbmodel.Lab.name]
 
-        query = self._filter_for_release(query, since)
+        query = self._filter_for_release(dbmodel.PLADetails, query, since)
 
-        query = self._filter_for_keywords(query, keywords)
+        query = self._filter_for_keywords(keyword_fields, query, keywords)
 
-        query = self._filter_for_wildcard(query, code)
-
-        return query
-
-    @classmethod
-    def _filter_for_release(cls, query, since):
-        if since is not None:
-            query = query.add_column(dbmodel.Release.effective_date)
-
-            for date in since:
-                query = query.filter(dbmodel.Release.effective_date >= date)
-
-        else:
-            query = query.filter(dbmodel.PLADetails.status == 'EXISTING')
-
-        return query
-
-    @classmethod
-    def _filter_for_keywords(cls, query, keywords):
-        filter_conditions = [dbmodel.PLADetails.test_name.ilike('%{}%'.format(word)) for word in keywords]
-        filter_conditions += [dbmodel.Manufacturer.name.ilike('%{}%'.format(word)) for word in keywords]
-        filter_conditions += [dbmodel.Lab.name.ilike('%{}%'.format(word)) for word in keywords]
-
-        return query.filter(or_(*filter_conditions))
-
-    @classmethod
-    def _filter_for_wildcard(cls, query, codes):
-        filter_condition = []
-
-        if codes is not None:
-            for code in codes:
-                code = code.split('*')
-                prefix = code[0]
-                suffix = code[1]
-
-                filter_condition.append(and_(dbmodel.PLADetails.code.like(f'{prefix}%'),
-                                             dbmodel.PLADetails.code.ilike(f'%{suffix}')))
-
-            query = query.filter(or_(*filter_condition))
+        query = self._filter_for_wildcard(dbmodel.PLADetails, query, code)
 
         return query

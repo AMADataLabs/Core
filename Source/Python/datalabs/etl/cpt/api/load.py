@@ -248,7 +248,7 @@ class TableUpdater:
             columns.remove(part)
 
         if all(column in columns for column in self._match_columns):
-            for part in self._primary_key:
+            for part in self._match_columns:
                 columns.remove(part)
 
         return columns

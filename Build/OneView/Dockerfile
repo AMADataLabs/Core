@@ -4,6 +4,7 @@
 FROM python:3.7
 WORKDIR /OneView
 ENV PYTHONPATH=/OneView:/OneView/site-packages
+ENV CLASSPATH=/OneView
 ENV AWS_SHARED_CREDENTIALS_FILE=/OneView/.aws/credentials
 ENV AWS_DEFAULT_REGION=us-east-1
 
@@ -12,11 +13,10 @@ RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r
 
 RUN apt-get update && apt-get install -y openjdk-11-jre
 ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
-RUN unzip ./Db2JdbcDriver.zip
-RUN touch DB2JccConfiguration.properties
-ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
-RUN unzip ./InformixJdbcDriver.zip
+RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
 RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
+RUN unzip ./InformixJdbcDriver.zip && rm ./InformixJdbcDriver.zip
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master

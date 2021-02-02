@@ -22,115 +22,6 @@ metadata:
 
 
 objects:
-# Metadata Database
-# - apiVersion: v1
-#   kind: Service
-#   metadata:
-#     name: ${APPLICATION_NAME}-db
-#     annotations:
-#       template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
-#   spec:
-#     ports:
-#     - name: postgresql
-#       port: 5432
-#       protocol: TCP
-#       targetPort: 5432
-#     selector:
-#       name: ${APPLICATION_NAME}
-#     sessionAffinity: None
-#     type: ClusterIP
-#   status:
-#     loadBalancer: {}
-#
-# - apiVersion: v1
-#   kind: PersistentVolumeClaim
-#   metadata:
-#     name: ${APPLICATION_NAME}-metadata
-#   spec:
-#     accessModes:
-#     - ReadWriteOnce
-#     resources:
-#       requests:
-#         storage: ${VOLUME_CAPACITY}
-#
-# - apiVersion: v1
-#   kind: DeploymentConfig
-#   metadata:
-#     name: ${APPLICATION_NAME}-db
-#   spec:
-#     replicas: 1
-#     selector:
-#       name: ${APPLICATION_NAME}
-#     strategy:
-#       type: Recreate
-#     template:
-#       metadata:
-#         labels:
-#           name: ${APPLICATION_NAME}
-#       spec:
-#         containers:
-#         - name: postgresql
-#           image: ' '
-#           imagePullPolicy: IfNotPresent
-#           env:
-#           - name: POSTGRESQL_USER
-#             valueFrom:
-#               secretKeyRef:
-#                 key: database-user
-#                 name: ${APPLICATION_NAME}
-#           - name: POSTGRESQL_PASSWORD
-#             valueFrom:
-#               secretKeyRef:
-#                 key: database-password
-#                 name: ${APPLICATION_NAME}
-#           - name: POSTGRESQL_DATABASE
-#             valueFrom:
-#               secretKeyRef:
-#                 key: database-name
-#                 name: ${APPLICATION_NAME}
-#           livenessProbe:
-#             exec:
-#               command:
-#               - /usr/libexec/check-container
-#               - --live
-#             initialDelaySeconds: 120
-#             timeoutSeconds: 10
-#           ports:
-#           - containerPort: 5432
-#             protocol: TCP
-#           readinessProbe:
-#             exec:
-#               command:
-#               - /usr/libexec/check-container
-#             initialDelaySeconds: 5
-#             timeoutSeconds: 1
-#           securityContext:
-#             capabilities: {}
-#             privileged: false
-#           terminationMessagePath: /dev/termination-log
-#           volumeMounts:
-#           - mountPath: /var/lib/pgsql/data
-#             name: ${APPLICATION_NAME}-metadata
-#         dnsPolicy: ClusterFirst
-#         restartPolicy: Always
-#         volumes:
-#         - name: ${APPLICATION_NAME}-metadata
-#           persistentVolumeClaim:
-#             claimName: ${APPLICATION_NAME}-metadata
-#     triggers:
-#     - type: ImageChange
-#       imageChangeParams:
-#         automatic: true
-#         containerNames:
-#         - postgresql
-#         from:
-#           kind: ImageStreamTag
-#           name: postgresql:9.6
-#           namespace: ${DATABASE_IMAGE_NAMESPACE}
-#         lastTriggeredImage: ""
-#     - type: ConfigChange
-
-# Airflow
 - apiVersion: v1
   kind: Service
   metadata:
@@ -200,11 +91,12 @@ objects:
           name: ${APPLICATION_NAME}
       spec:
         containers:
+
         - name: airflow-scheduler
           image: ' '
           imagePullPolicy: IfNotPresent
           command:
-          - /airflow/scheduler.sh
+          - /home/airflow/scheduler.sh
           env:
           - name: DATABASE_USER
             valueFrom:
@@ -223,49 +115,70 @@ objects:
                 name: ${APPLICATION_NAME}
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
-          # - name: AIRFLOW__KUBERNETES__LOGS_VOLUME_CLAIM
-          #   value: ${APPLICATION_NAME}-shared
-          # - name: AIRFLOW__KUBERNETES__DAGS_VOLUME_CLAIM
-          #   value: ${APPLICATION_NAME}-shared
           envFrom:
           - configMapRef:
               name: airflow-scheduler
           terminationMessagePath: /dev/termination-log
           volumeMounts:
-          - mountPath: /airflow/shared
+          - mountPath: /home/airflow/shared
             name: ${APPLICATION_NAME}-shared
 
-        # - name: airflow-git-sync
-        #   image: k8s.gcr.io/git-sync:v3.1.2
-        #   imagePullPolicy: IfNotPresent
-        #   envFrom:
-        #   - configMapRef:
-        #       name: airflow-git-sync
-        #   volumeMounts:
-        #   - mountPath: /dags
-        #     name: ${APPLICATION_NAME}-shared
+        - name: airflow-sync
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          command:
+          - /Sync/entrypoint.sh
+          args:
+          - python
+          - datalabs/deploy/airflow/sync/app.py
+          env:
+          - name: CLONE_URL
+            value: ssh://git@bitbucket.ama-assn.org:7999/hsg-data-labs/hsg-data-labs.git
+          - name: BRANCH
+            value: master
+          - name: DAG_SOURCE_PATH
+            value: hsg-data-labs/Source/Python/datalabs/airflow/dag
+          - name: DAG_TARGET_PATH
+            value: /home/airflow/dags
+          - name: SYNC_INTERVAL
+            value: "900.0"
+          - name: GIT_SSH_KEY
+            valueFrom:
+              secretKeyRef:
+                name: bitbucketprd
+                key: ssh-privatekey
+          envFrom:
+          - configMapRef:
+              name: airflow-webserver
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /home/airflow/dags
+            name: ${APPLICATION_NAME}-shared
 
         - name: airflow-webserver
           image: ' '
           imagePullPolicy: IfNotPresent
           command:
-          - /airflow/webserver.sh
+          - /home/airflow/webserver.sh
           env:
           - name: DATABASE_USER
             valueFrom:
               secretKeyRef:
-                key: database-user
                 name: ${APPLICATION_NAME}
+                key: database-user
           - name: DATABASE_PASSWORD
             valueFrom:
               secretKeyRef:
-                key: database-password
                 name: ${APPLICATION_NAME}
+                key: database-password
           - name: DATABASE_NAME
             valueFrom:
               secretKeyRef:
-                key: database-name
                 name: ${APPLICATION_NAME}
+                key: database-name
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
             value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
           envFrom:
@@ -276,7 +189,7 @@ objects:
             protocol: TCP
           terminationMessagePath: /dev/termination-log
           volumeMounts:
-          - mountPath: /airflow/shared
+          - mountPath: /home/airflow/shared
             name: ${APPLICATION_NAME}-shared
 
         securityContext:
@@ -296,6 +209,16 @@ objects:
         from:
           kind: ImageStreamTag
           name: airflow:latest
+          namespace: hsg-data-labs-dev
+        lastTriggeredImage: ""
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - airflow-sync
+        from:
+          kind: ImageStreamTag
+          name: airflow-sync:latest
           namespace: hsg-data-labs-dev
         lastTriggeredImage: ""
     - type: ImageChange
@@ -324,20 +247,3 @@ parameters:
   description: Volume space available for data, e.g. 512Mi, 2Gi.
   displayName: Volume Capacity
   value: 1Gi
-# - name: DATABASE_USER
-#   description: Username for PostgreSQL user that will be used for accessing the database.
-#   displayName: PostgreSQL Connection Username
-#   generate: expression
-#   required: true
-#   value: airflow
-# - name: DATABASE_PASSWORD
-#   description: Password for the PostgreSQL connection user.
-#   displayName: PostgreSQL Connection Password
-#   from: '[a-zA-Z0-9]{16}'
-#   generate: expression
-#   required: true
-# - name: DATABASE_NAME
-#   description: Name of the PostgreSQL database accessed.
-#   displayName: PostgreSQL Database Name
-#   required: true
-#   value: airflow

@@ -7,11 +7,10 @@ provider "aws" {
 module "cpt" {
     source = "../../Module/CPT"
 
-    # rds_instance_name   = "database-test-ui"
-    rds_instance_class  = "db.t2.micro"
-    rds_storage_type    = "gp2"
-    # database_name       = "sample"
-    project             = local.project
+    rds_instance_class      = "db.m5.large"
+    rds_storage_type        = "gp2"
+    project                 = local.project
+    endpoint_memory_size    = 3072
 }
 
 

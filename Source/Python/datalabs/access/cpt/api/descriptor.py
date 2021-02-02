@@ -2,9 +2,10 @@
 from   abc import abstractmethod
 import logging
 
-from   sqlalchemy import or_, and_
+from   sqlalchemy import or_
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
+from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, WildcardFilterMixin
 import datalabs.model.cpt.api as dbmodel
 
 logging.basicConfig()
@@ -94,31 +95,19 @@ class DescriptorEndpointTask(BaseDescriptorEndpointTask):
         return query.filter(dbmodel.Code.code == code)
 
 
-class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
+# pylint: disable=too-many-ancestors
+class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask, ReleaseFilterMixin, WildcardFilterMixin):
     def _filter(self, query):
         since = self._parameters.query.get('since')
         keywords = self._parameters.query.get('keyword')
         lengths = self._parameters.query.get('length')
         code = self._parameters.query.get('code')
 
-        query = self._filter_for_release(query, since)
+        query = self._filter_for_release(dbmodel.Code, query, since)
 
         query = self._filter_for_keywords(query, keywords, lengths)
 
-        query = self._filter_for_wildcard(query, code)
-
-        return query
-
-    @classmethod
-    def _filter_for_release(cls, query, since):
-        if since is not None:
-            query = query.add_column(dbmodel.Release.effective_date)
-
-            for date in since:
-                query = query.filter(dbmodel.Release.effective_date >= date)
-
-        else:
-            query = query.filter(dbmodel.Code.deleted == False)  # pylint: disable=singleton-comparison
+        query = self._filter_for_wildcard(dbmodel.Code, query, code)
 
         return query
 
@@ -131,20 +120,3 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask):
             filter_conditions += [(length_dict.get(length).descriptor.ilike('%{}%'.format(word))) for word in keywords]
 
         return query.filter(or_(*filter_conditions))
-
-    @classmethod
-    def _filter_for_wildcard(cls, query, codes):
-        filter_condition = []
-
-        if codes is not None:
-            for code in codes:
-                code = code.split('*')
-                prefix = code[0]
-                suffix = code[1]
-
-                filter_condition.append(and_(dbmodel.Code.code.like(f'{prefix}%'),
-                                             dbmodel.Code.code.ilike(f'%{suffix}')))
-
-            query = query.filter(or_(*filter_condition))
-
-        return query

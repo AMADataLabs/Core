@@ -9,7 +9,15 @@ Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
 class Physician(Base):
     __tablename__ = 'physician'
-    __table_args__ = {"schema": "oneview"}
+    __table_args__ = (
+        sa.ForeignKeyConstraint(
+            ['federal_information_processing_standard_state',
+             'federal_information_processing_standard_county'],
+            ['oneview.federal_information_processing_standard_county.state',
+             'oneview.federal_information_processing_standard_county.county']
+        ),
+        {"schema": "oneview"}
+    )
 
     medical_education_number = sa.Column(sa.String, primary_key=True)
     address_type = sa.Column(sa.String)
@@ -42,7 +50,7 @@ class Physician(Base):
     block_group = sa.Column(sa.String)
     metropolitan_statistical_area_population = sa.Column(sa.String)
     micro_metro_indicator = sa.Column(sa.String)
-    core_based_statistical_area = sa.Column(sa.String)
+    core_based_statistical_area = sa.Column(sa.String, sa.ForeignKey("oneview.core_based_statistical_area.id"))
     core_based_statistical_area_division = sa.Column(sa.String)
     degree_type = sa.Column(sa.String)
     birth_year = sa.Column(sa.String)
@@ -53,11 +61,11 @@ class Physician(Base):
     telephone_number = sa.Column(sa.String)
     presumed_dead = sa.Column(sa.String)
     fax_number = sa.Column(sa.String)
-    type_of_practice = sa.Column(sa.String)
-    present_employment = sa.Column(sa.String)
-    primary_specialty = sa.Column(sa.String)
-    secondary_specialty = sa.Column(sa.String)
-    major_professional_activity = sa.Column(sa.String)
+    type_of_practice = sa.Column(sa.String, sa.ForeignKey("oneview.type_of_practice.id"))
+    present_employment = sa.Column(sa.String, sa.ForeignKey("oneview.present_employment.id"))
+    primary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.specialty.id"))
+    secondary_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.specialty.id"))
+    major_professional_activity = sa.Column(sa.String, sa.ForeignKey("oneview.major_professional_activity.id"))
     physician_recognition_award_recipient = sa.Column(sa.String)
     physician_recognition_award_expiration_date = sa.Column(sa.String)
     graduate_medical_education_confirm = sa.Column(sa.String)
@@ -120,7 +128,8 @@ class FederalInformationProcessingStandardCounty(Base):
     __tablename__ = 'federal_information_processing_standard_county'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    state = sa.Column(sa.String, primary_key=True, nullable=False)
+    county = sa.Column(sa.String, primary_key=True, nullable=False)
     description = sa.Column(sa.String, nullable=False)
 
 
@@ -130,7 +139,6 @@ class CoreBasedStatisticalArea(Base):
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     description = sa.Column(sa.String, nullable=False)
-    type = sa.Column(sa.String, nullable=False)
 
 
 class Specialty(Base):
@@ -156,8 +164,7 @@ class ResidencyProgram(Base):
     city = sa.Column(sa.String)
     state = sa.Column(sa.String)
     zipcode = sa.Column(sa.String)
-    #sa.ForeignKey("oneview.residency_program_institution.id")
-    institution = sa.Column(sa.String)
+    institution = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program_institution.id"))
 
 
 class ResidencyProgramPersonnelMember(Base):
@@ -215,7 +222,7 @@ class Provider(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
-    medical_education_number = sa.Column(sa.String)
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"))
     first_name = sa.Column(sa.String)
     middle_name = sa.Column(sa.String)
     last_name = sa.Column(sa.String)
@@ -236,10 +243,8 @@ class ProviderAffiliation(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, nullable=False)
-    # sa.ForeignKey("oneview.business.id")
-    business = sa.Column(sa.String)
-    # sa.ForeignKey("oneview.provider.id")
-    provider = sa.Column(sa.String)
+    business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
+    provider = sa.Column(sa.String, sa.ForeignKey("oneview.provider.id"))
     type = sa.Column(sa.String)
     description = sa.Column(sa.String)
     primary = sa.Column(sa.String)

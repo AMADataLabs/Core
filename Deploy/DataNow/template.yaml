@@ -61,6 +61,46 @@ objects:
   status:
     ingress: null
 - apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${SERVICE_NAME}-coordinator
+    annotations:
+      template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
+  spec:
+    ports:
+    - name: http
+      nodePort: 0
+      port: 31010
+      protocol: TCP
+      targetPort: 31010
+    selector:
+      name: ${SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${SERVICE_NAME}-coordinator
+    annotations:
+      template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
+  spec:
+    host: ${SERVICE_NAME}-coordinator.apps.openshifttest.ama-assn.org
+    port:
+      targetPort: 31010
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: ${SERVICE_NAME}-coordinator
+      weight: 100
+    wildcardPolicy: None
+    selector:
+      name: ${SERVICE_NAME}
+  status:
+    ingress: null
+- apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     name: ${SERVICE_NAME}

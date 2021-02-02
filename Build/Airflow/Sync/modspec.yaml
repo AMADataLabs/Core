@@ -1,0 +1,4 @@
+---
+modspec:
+  - package: datalabs.deploy.airflow.sync
+  - package: datalabs.deploy.ssh

@@ -1,7 +1,7 @@
 """Changed data types and removed nullable constraint for residency
 
 Revision ID: c4d0ef18f46c
-Revises: 5ac09acae250
+Revises: 9e4b7596991c
 Create Date: 2020-11-19 17:24:21.432904+00:00
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'c4d0ef18f46c'
-down_revision = '5ac09acae250'
+down_revision = '9e4b7596991c'
 branch_labels = None
 depends_on = None
 

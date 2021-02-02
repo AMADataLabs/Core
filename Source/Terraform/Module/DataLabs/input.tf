@@ -4,19 +4,6 @@ variable "project" {
 }
 
 
-variable "bitbucket_username" {
-    description     = "BitBucket username used for pulling code."
-    type            = string
-    default         = "hsgdatalabs"
-}
-
-
-variable "bitbucket_app_password" {
-    description     = "BitBucket App password used for pulling code."
-    type            = string
-}
-
-
 data "aws_caller_identity" "account" {}
 
 
@@ -61,6 +48,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
+        Project             = var.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na
