@@ -2,8 +2,8 @@
 import os
 
 from   datalabs.access.authorize.task import AuthorizerParameters, AuthorizerTaskException
-from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
-from   datalabs.access.secret import SecretsManagerEnvironmentLoader
+from   datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
+from   datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
 from   datalabs.awslambda import TaskWrapper
 
 

@@ -6,7 +6,7 @@ import boto3
 import mock
 import pytest
 
-from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
+from   datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
 
 
 # pylint: disable=redefined-outer-name

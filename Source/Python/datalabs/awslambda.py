@@ -1,8 +1,8 @@
 """ Base Lambda function Task wrapper class. """
 import logging
 
-from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
-from   datalabs.access.secret import SecretsManagerEnvironmentLoader
+from   datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
+from   datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
 import datalabs.task as task
 
 logging.basicConfig()
