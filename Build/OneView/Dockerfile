@@ -27,12 +27,12 @@ COPY ./Source ./Source
 
 ARG template_vars
 RUN echo $template_vars
-RUN find ./Build/OneView -name "*.env" -exec \
+COPY ./Build/OneView/*.env ./
+RUN find ./ -name "*.env" -exec \
     ./Script/render-template \
     --template {} \
     --file {} \
     --vars pythonpath=/OneView,$template_vars \;
-COPY ./Build/OneView/*.env ./
 RUN ./Script/bundle-project -i --directory ./ OneView
 
 RUN rm -rf ./Script
