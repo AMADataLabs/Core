@@ -75,8 +75,8 @@ resource "aws_ssm_parameter" "pdf_files" {
 resource "aws_ssm_parameter" "passport_url" {
     name  = "/DataLabs/${local.project}/auth/passport_url"
     type  = "String"
-    # value = "https://amapassport-staging.ama-assn.org/auth/entitlements/list/CPTAPI"
-    value = "https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI"
+    value = "https://amapassport-staging.ama-assn.org/auth/entitlements/list/CPTAPI"
+    # value = "https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI"
     tags = local.tags
 }
 
