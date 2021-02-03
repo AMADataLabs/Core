@@ -1,9 +1,14 @@
 """ Airflow DAG sync application (main loop). """
+import logging
 import os
 from   threading import Thread, Event
 
 import datalabs.deploy.airflow.sync.dag as dag
 from   datalabs.deploy.ssh.key import load_key_from_variable
+
+logging.basicConfig(format='%(asctime)-15s %(levelname)s: %(message)s')
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class SyncLooper(Thread):
