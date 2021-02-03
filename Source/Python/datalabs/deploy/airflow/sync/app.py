@@ -11,6 +11,13 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+def main():
+    stop_event = Event()
+    sync_looper = SyncLooper(stop_event)
+
+    sync_looper.start()
+
+
 class SyncLooper(Thread):
     def __init__(self, event):
         Thread.__init__(self)
@@ -46,12 +53,6 @@ class SyncLooper(Thread):
     def _calculate_next_run_duration(cls):
         return float(os.getenv('SYNC_INTERVAL'))
 
-
-def main():
-    stop_event = Event()
-    sync_looper = SyncLooper(stop_event)
-
-    sync_looper.start()
 
 print(__name__)
 if __name__ == "__main__":
