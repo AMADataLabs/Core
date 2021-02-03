@@ -133,7 +133,7 @@ objects:
           - datalabs/deploy/airflow/sync/app.py
           env:
           - name: CLONE_URL
-            value: git@bitbucket.org:hsdatalabs/hsg-data-labs.git
+            value: git@bitbucket.org:amaappdev/hs-datalabs.git
           - name: BRANCH
             value: master
           - name: DAG_SOURCE_PATH
