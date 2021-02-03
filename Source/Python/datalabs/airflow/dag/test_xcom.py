@@ -27,4 +27,4 @@ with DAG(
         task_id="pod_task_xcom_result",
     )
 
-    write_xcom >> pod_task_xcom_result
+write_xcom >> pod_task_xcom_result
