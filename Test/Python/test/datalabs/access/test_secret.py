@@ -7,7 +7,7 @@ import boto3
 import mock
 import pytest
 
-from   datalabs.access.secret import SecretsManagerEnvironmentLoader
+from   datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
 
 
 # pylint: disable=redefined-outer-name
