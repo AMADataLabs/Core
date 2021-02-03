@@ -24,7 +24,10 @@ class SyncLooper(Thread):
         load_key_from_variable('GIT_SSH_KEY', '/Sync/id_rsa')
 
         while not self.stopped.wait(duration):
-            self._sync(dag_sync_config)
+            try:
+                self._sync(dag_sync_config)
+            except Exception as e:
+                LOGGER.exception(f"Failed to sync DAGs.")
 
             duration = self._calculate_next_run_duration()
 
