@@ -182,7 +182,6 @@ spec:
     {}
   tolerations:
     []
-  serviceAccountName: 'worker-serviceaccount'
   volumes:
     - name: dags
       emptyDir: {}
