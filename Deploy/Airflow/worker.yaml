@@ -186,10 +186,10 @@ spec:
       emptyDir: {}
     - name: airflow-config
       configMap:
-        name: airflow-config
+        name: airflow-scheduler
     - name: airflow-local-settings
       configMap:
-        name: airflow-config
+        name: airflow-scheduler
     - name: git-ssh-key
       secret:
         secretName: airflow-init
