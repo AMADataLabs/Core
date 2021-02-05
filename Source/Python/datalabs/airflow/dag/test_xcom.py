@@ -13,8 +13,6 @@ with DAG(
 ) as dag:
     write_xcom = KubernetesPodOperator(
         namespace='hsg-data-labs',
-        # pod_template_file='/home/airflow/worker.yaml',
-        image='alpine',
         cmds=["sh", "-c", "mkdir -p /airflow/xcom/;echo '[1,2,3,4]' > /airflow/xcom/return.json"],
         name="write-xcom",
         do_xcom_push=True,

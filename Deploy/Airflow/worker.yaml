@@ -132,14 +132,14 @@ spec:
         - name: git-ssh-key
           subPath: known_hosts
           mountPath: /home/airflow/.ssh/known_hosts
-        - name: git
-          mountPath: /home/airflow/git
+        - name: repo
+          mountPath: /home/airflow/repo
   containers:
     - args: []
       command: []
       env:
         - name: AIRFLOW__CORE__DAGS_FOLDER
-          value: /home/airflow/git/hsg-datalabs/datalabs/airflow/dag
+          value: /home/airflow/repo/hsg-datalabs/Source/Python/datalabs/airflow/dag
         - name: AIRFLOW__CORE__EXECUTOR
           value: LocalExecutor
         # Hard Coded Airflow Envs
@@ -166,8 +166,8 @@ spec:
       volumeMounts:
         - name: airflow-logs
           mountPath: /home/airflow/logs
-        - name: git
-          mountPath: /home/airflow/git
+        - name: repo
+          mountPath: /home/airflow/repo
           readOnly: true
   hostNetwork: false
   restartPolicy: Never
@@ -181,7 +181,7 @@ spec:
   tolerations:
     []
   volumes:
-    - name: airflow-dags
+    - name: repo
       emptyDir: {}
     - name: airflow-logs
       emptyDir: {}
