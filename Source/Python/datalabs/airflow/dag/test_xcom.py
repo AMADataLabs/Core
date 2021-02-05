@@ -19,8 +19,7 @@ with DAG(
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="write-xcom",
-        get_logs=True,
-        full_pod_spec=True
+        get_logs=True
     )
 
     pod_task_xcom_result = BashOperator(
