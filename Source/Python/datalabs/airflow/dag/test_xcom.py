@@ -8,7 +8,7 @@ with DAG(
     default_args={'owner': 'airflow'},
     schedule_interval=None,
     start_date=days_ago(2),
-    tags=['example'],
+    tags=['testing'],
 ) as dag:
     write_xcom = KubernetesPodOperator(
         namespace='hsg-data-labs',
