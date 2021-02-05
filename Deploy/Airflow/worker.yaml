@@ -97,8 +97,7 @@
 #             mode: 288
 #             path: known_hosts
 #         secretName: airflow-init
-
-
+--
 apiVersion: v1
 kind: Pod
 metadata:
@@ -111,7 +110,7 @@ spec:
         - name: GIT_SYNC_REV
           value: "HEAD"
         - name: GIT_SYNC_BRANCH
-          value: "v1-10-stable"
+          value: "v2-0-stable"
         - name: GIT_SYNC_REPO
           value: "git@bitbucket.org:amaappdev/hs-datalabs.git"
         - name: GIT_SYNC_DEPTH
