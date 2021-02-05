@@ -1,5 +1,5 @@
 setuptools==41.0.0
-apache-airflow[kubernetes]==1.10.12
+apache-airflow[kubernetes]==2.0.0
 alembic==1.4.2
 arnparse==0.0.2
 boto3==1.12.45
