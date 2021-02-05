@@ -97,7 +97,7 @@
 #             mode: 288
 #             path: known_hosts
 #         secretName: airflow-init
---
+---
 apiVersion: v1
 kind: Pod
 metadata:

@@ -1,4 +1,5 @@
 from airflow import DAG
+from kubernetes.client import models as k8s
 from airflow.operators.bash import BashOperator
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.utils.dates import days_ago
@@ -21,7 +22,18 @@ with DAG(
         in_cluster=True,
         task_id="write-xcom",
         get_logs=True,
-        executor_config={"pod_template_file": "/home/airflow/worker.yaml"},
+        executor_config={
+            "pod_override": k8s.V1Pod(
+                spec=k8s.V1PodSpec(
+                    containers=[
+                        k8s.V1Container(
+                            name="base",
+                            image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker"
+                        )
+                    ]
+                )
+            ),
+        },
     )
 
     pod_task_xcom_result = BashOperator(
