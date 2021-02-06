@@ -36,7 +36,7 @@ with DAG(
 
     do_it_again = PythonOperator(
         task_id="do-it-again",
-        python_callable=do_it
+        python_callable=do_it,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
