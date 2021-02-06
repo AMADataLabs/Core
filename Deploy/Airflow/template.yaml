@@ -143,9 +143,11 @@ objects:
           volumeMounts:
           - mountPath: /home/airflow/shared
             name: ${APPLICATION_NAME}-shared
+          - name: repo
+            mountPath: /home/airflow/repo
 
         - name: git-sync
-          image: "k8s.gcr.io/git-sync:v3.2.2"
+          image: "k8s.gcr.io/git-sync:v3.1.6"
           env:
           - name: GIT_SYNC_REV
             value: "HEAD"
@@ -245,6 +247,8 @@ objects:
           volumeMounts:
           - name: ${APPLICATION_NAME}-shared
             mountPath: /home/airflow/shared
+          - name: repo
+            mountPath: /home/airflow/repo
 
         securityContext:
             fsGroup: 1000280000
