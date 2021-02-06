@@ -172,10 +172,10 @@ objects:
           volumeMounts:
             - name: git-ssh
               subPath: id_rsa
-              mountPath: /tmp/.ssh/id_rsa
+              mountPath: /.ssh/id_rsa
             - name: git-ssh
               subPath: known_hosts
-              mountPath: /tmp/.ssh/known_hosts
+              mountPath: /.ssh/known_hosts
             - name: repo
               mountPath: /home/airflow/repo
         #
