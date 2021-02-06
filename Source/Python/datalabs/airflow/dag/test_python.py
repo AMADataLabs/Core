@@ -19,7 +19,7 @@ with DAG(
 ) as dag:
     do_it = PythonOperator(
         task_id="do-it",
-        python_callable=do_it
+        python_callable=do_it,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
