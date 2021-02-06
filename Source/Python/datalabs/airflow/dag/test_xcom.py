@@ -19,7 +19,7 @@ with DAG(
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="write-xcom",
-        get_logs=False,
+        get_logs=True,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
