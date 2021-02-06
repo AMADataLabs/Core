@@ -162,7 +162,7 @@ spec:
               key: db-connection
       envFrom: []
       image: dummy_image
-      imagePullPolicy: Always
+      imagePullPolicy: IfNotPresent
       name: base
       ports: []
       volumeMounts:
