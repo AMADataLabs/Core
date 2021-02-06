@@ -167,17 +167,13 @@ objects:
             value: "60"
           - name: GIT_SYNC_MAX_SYNC_FAILURES
             value: "0"
-          - name: GIT_SSH_KEY_FILE
-            value: /home/airflow/.ssh/id_rsa
-          - name: GIT_SSH_KNOWN_HOSTS_FILE
-            value: /home/airflow/.ssh/known_hosts
           volumeMounts:
             - name: git-ssh
               subPath: id_rsa
-              mountPath: /home/airflow/.ssh/id_rsa
+              mountPath: /tmp/.ssh/id_rsa
             - name: git-ssh
               subPath: known_hosts
-              mountPath: /home/airflow/.ssh/known_hosts
+              mountPath: /tmp/.ssh/known_hosts
             - name: repo
               mountPath: /home/airflow/repo
         #
