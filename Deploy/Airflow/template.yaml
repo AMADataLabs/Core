@@ -145,7 +145,7 @@ objects:
             name: ${APPLICATION_NAME}-shared
 
         - name: git-sync
-          image: "k8s.gcr.io/git-sync:v3.1.6"
+          image: "k8s.gcr.io/git-sync:v3.2.2"
           env:
           - name: GIT_SYNC_REV
             value: "HEAD"
