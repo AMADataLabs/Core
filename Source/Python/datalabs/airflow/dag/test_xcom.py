@@ -12,21 +12,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-with DAG(
-    dag_id='test_pod_xcom',
-    default_args={'owner': 'airflow'},
-    schedule_interval=None,
-    start_date=days_ago(2),
-    tags=['testing'],
-) as dag:
-from pprint import pprint
-
-from airflow import DAG
-from kubernetes.client import models as k8s
-from airflow.operators.python import PythonOperator
-from airflow.utils.dates import days_ago
-
-
 def write_xcom(datestamp, **kwargs):
     task_id = kwargs['task'].task_id
     pprint(kwargs)
