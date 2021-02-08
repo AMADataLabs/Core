@@ -34,33 +34,9 @@ with DAG(
     start_date=days_ago(2),
     tags=['testing'],
 ) as dag:
-    write_xcom_task = PythonOperator(
-        task_id="write_xcom",
-        python_callable=write_xcom,
-        executor_config={
-            "pod_override": k8s.V1Pod(
-                spec=k8s.V1PodSpec(
-                    containers=[
-                        k8s.V1Container(
-                            name="base",
-                            image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.0"
-                        )
-                    ]
-                )
-            ),
-        },
-    )
-
-
-    # write_xcom = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     cmds=["sh", "-c", "mkdir -p /airflow/xcom/;echo '[1,2,3,4]' > /airflow/xcom/return.json"],
-    #     name="write-xcom",
-    #     do_xcom_push=True,
-    #     is_delete_operator_pod=True,
-    #     in_cluster=True,
-    #     task_id="write-xcom",
-    #     get_logs=True,
+    # write_xcom_task = PythonOperator(
+    #     task_id="write_xcom",
+    #     python_callable=write_xcom,
     #     executor_config={
     #         "pod_override": k8s.V1Pod(
     #             spec=k8s.V1PodSpec(
@@ -76,9 +52,15 @@ with DAG(
     # )
 
 
-    read_xcom_task = PythonOperator(
-        task_id="read_xcom",
-        python_callable=read_xcom,
+    write_xcom_task = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        cmds=["sh", "-c", "mkdir -p /airflow/xcom/;echo '[1,2,3,4]' > /airflow/xcom/return.json"],
+        name="write-xcom",
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="write-xcom",
+        get_logs=True,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
@@ -92,11 +74,30 @@ with DAG(
             ),
         },
     )
+
     #
-    # pod_task_xcom_result = BashOperator(
-    #     bash_command="echo \"{{ task_instance.xcom_pull('write-xcom')[0] }}\"",
-    #     task_id="pod_task_xcom_result",
+    # read_xcom_task = PythonOperator(
+    #     task_id="read_xcom",
+    #     python_callable=read_xcom,
+    #     executor_config={
+    #         "pod_override": k8s.V1Pod(
+    #             spec=k8s.V1PodSpec(
+    #                 containers=[
+    #                     k8s.V1Container(
+    #                         name="base",
+    #                         image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.0"
+    #                     )
+    #                 ]
+    #             )
+    #         ),
+    #     },
     # )
+
+
+    read_xcom_task = BashOperator(
+        bash_command="echo \"{{ task_instance.xcom_pull('write-xcom')[0] }}\"",
+        task_id="pod_task_xcom_result",
+    )
 
 
 write_xcom_task >> read_xcom_task
