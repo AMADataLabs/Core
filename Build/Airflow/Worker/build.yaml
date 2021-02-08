@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: airflow-worker:latest
+      name: airflow-worker:1.0.0
   postCommit: {}
   resources: {}
   runPolicy: Serial
