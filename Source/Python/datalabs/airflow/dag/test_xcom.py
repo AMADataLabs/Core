@@ -37,7 +37,6 @@ with DAG(
     write_xcom_task = PythonOperator(
         task_id="write_xcom",
         python_callable=write_xcom,
-        provide_context=True,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
@@ -80,7 +79,6 @@ with DAG(
     read_xcom_task = PythonOperator(
         task_id="read_xcom",
         python_callable=read_xcom,
-        provide_context=True,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
