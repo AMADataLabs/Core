@@ -67,7 +67,7 @@ with DAG(
                     containers=[
                         k8s.V1Container(
                             name="base",
-                            image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.0"
+                            image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.1"
                         )
                     ]
                 )
