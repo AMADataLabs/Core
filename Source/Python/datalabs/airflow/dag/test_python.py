@@ -5,9 +5,10 @@ from kubernetes.client import models as k8s
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
-def print_that(ds, **kwargs):
+def print_that(datestamp, **kwargs):
     pprint(kwargs)
-    print(ds)
+    print(datestamp)
+
     return "Foobiddy Doobiddy"
 
 with DAG(
@@ -20,6 +21,7 @@ with DAG(
     do_it = PythonOperator(
         task_id="do-it",
         python_callable=print_that,
+        provide_context=True,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
@@ -37,6 +39,7 @@ with DAG(
     do_it_again = PythonOperator(
         task_id="do-it-again",
         python_callable=print_that,
+        provide_context=True,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
