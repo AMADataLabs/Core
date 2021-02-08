@@ -22,6 +22,33 @@ metadata:
 
 
 objects:
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: Role
+  metadata:
+    name: airflow
+    namespace: hsg-data-labs-dev
+  rules:
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["pods"]
+    verbs: ["get", "watch", "list", "create", "delete", "patch"]
+  - apiGroups: [""] # "" indicates the core API group
+    resources: ["pods/log"]
+    verbs: ["get", "watch", "list"]
+
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: airflow
+    namespace: hsg-data-labs-dev
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: airflow
+  subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: hsg-data-labs-dev
+
 - apiVersion: v1
   kind: Service
   metadata:
@@ -122,41 +149,76 @@ objects:
           volumeMounts:
           - mountPath: /home/airflow/shared
             name: ${APPLICATION_NAME}-shared
+          - name: repo
+            mountPath: /home/airflow/repo
 
-        - name: airflow-sync
-          image: ' '
-          imagePullPolicy: IfNotPresent
-          command:
-          - /Sync/entrypoint.sh
-          args:
-          - python
-          - datalabs/deploy/airflow/sync/app.py
+        - name: git-sync
+          image: "k8s.gcr.io/git-sync:v3.1.6"
           env:
-          - name: CLONE_URL
-            value: git@bitbucket.org:amaappdev/hs-datalabs.git
-          - name: BRANCH
-            value: master
-          - name: DAG_SOURCE_PATH
-            value: hs-datalabs/Source/Python/datalabs/airflow/dag
-          - name: DAG_TARGET_PATH
-            value: /home/airflow/dags
-          - name: SYNC_INTERVAL
-            value: "900.0"
-          - name: GIT_SSH_KEY
-            valueFrom:
-              secretKeyRef:
-                name: bitbucketprd
-                key: ssh-privatekey
-          envFrom:
-          - configMapRef:
-              name: airflow-webserver
-          ports:
-          - containerPort: 8080
-            protocol: TCP
-          terminationMessagePath: /dev/termination-log
+          - name: GIT_SYNC_REV
+            value: "HEAD"
+          - name: GIT_SYNC_BRANCH
+            value: "master"
+          - name: GIT_SYNC_REPO
+            value: "git@bitbucket.org:amaappdev/hs-datalabs.git"
+          - name: GIT_SYNC_DEPTH
+            value: "1"
+          - name: GIT_SYNC_SUBMODULES
+            value: 'off'
+          - name: GIT_SYNC_ROOT
+            value: "/home/airflow/repo"
+          - name: GIT_SYNC_DEST
+            value: "hs-datalabs"
+          - name: GIT_SYNC_ADD_USER
+            value: "true"
+          - name: GIT_SYNC_WAIT
+            value: "60"
+          - name: GIT_SYNC_MAX_SYNC_FAILURES
+            value: "0"
           volumeMounts:
-          - mountPath: /home/airflow/dags
-            name: ${APPLICATION_NAME}-shared
+            - name: git-ssh
+              subPath: id_rsa
+              mountPath: /.ssh/id_rsa
+            - name: git-ssh
+              subPath: known_hosts
+              mountPath: /.ssh/known_hosts
+            - name: repo
+              mountPath: /home/airflow/repo
+        #
+        # - name: airflow-sync
+        #   image: ' '
+        #   imagePullPolicy: IfNotPresent
+        #   command:
+        #   - /Sync/entrypoint.sh
+        #   args:
+        #   - python
+        #   - datalabs/deploy/airflow/sync/app.py
+        #   env:
+        #   - name: CLONE_URL
+        #     value: git@bitbucket.org:amaappdev/hs-datalabs.git
+        #   - name: BRANCH
+        #     value: master
+        #   - name: DAG_SOURCE_PATH
+        #     value: hs-datalabs/Source/Python/datalabs/airflow/dag
+        #   - name: DAG_TARGET_PATH
+        #     value: /home/airflow/dags
+        #   - name: SYNC_INTERVAL
+        #     value: "900.0"
+        #   - name: GIT_SSH_KEY
+        #     valueFrom:
+        #       secretKeyRef:
+        #         name: bitbucketprd
+        #         key: ssh-privatekey
+        #   envFrom:
+        #   - configMapRef:
+        #       name: airflow-webserver
+        #   ports:
+        #   - containerPort: 8080
+        #     protocol: TCP
+        #   terminationMessagePath: /dev/termination-log
+        #   volumeMounts:
+        #   - mountPath: /home/airflow/dags
+        #     name: ${APPLICATION_NAME}-shared
 
         - name: airflow-webserver
           image: ' '
@@ -189,14 +251,29 @@ objects:
             protocol: TCP
           terminationMessagePath: /dev/termination-log
           volumeMounts:
-          - mountPath: /home/airflow/shared
-            name: ${APPLICATION_NAME}-shared
+          - name: ${APPLICATION_NAME}-shared
+            mountPath: /home/airflow/shared
+          - name: repo
+            mountPath: /home/airflow/repo
 
         securityContext:
             fsGroup: 1000280000
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         volumes:
+        - name: repo
+          emptyDir: {}
+        - name: git-ssh
+          secret:
+              secretName: airflow-init
+              defaultMode: 420
+              items:
+                - key: id_rsa
+                  mode: 288
+                  path: id_rsa
+                - key: known_hosts
+                  mode: 288
+                  path: known_hosts
         - name: ${APPLICATION_NAME}-shared
           persistentVolumeClaim:
             claimName: ${APPLICATION_NAME}-shared

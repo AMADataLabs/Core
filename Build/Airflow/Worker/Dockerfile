@@ -1,6 +1,6 @@
 FROM python:3.7
 
-ARG AIRFLOW_VERSION=1.10.12
+ARG AIRFLOW_VERSION=2.0.0
 
 ENV HOME /home/airflow
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
@@ -10,7 +10,7 @@ ENV USER_ID=1000280000
 # RUN useradd -ms /bin/bash -d ${HOME} --uid ${USER_ID} -G 0 airflow
 
 RUN pip install --no-cache-dir apache-airflow['crypto','kubernetes','postgres']==${AIRFLOW_VERSION} \
-    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-1.10.12/constraints-3.8.txt"
+    --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-3.8.txt"
 
 # FROM apache/airflow:1.10.12
 
