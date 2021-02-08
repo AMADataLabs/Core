@@ -42,7 +42,7 @@ spec:
           mountPath: /home/airflow/repo
   containers:
     - name: base
-      image: docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:latest
+      image: dummy_image
       args: []
       command: []
       env:
