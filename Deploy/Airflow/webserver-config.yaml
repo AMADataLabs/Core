@@ -4,12 +4,18 @@ metadata:
     name: airflow-webserver
     namespace: hsg-data-labs-dev
 data:
+    AIRFLOW_GPL_UNIDECODE: 'yes'
     AIRFLOW_HOME: /home/airflow
-    AIRFLOW_GPL_UNIDECODE: "yes"
+    AIRFLOW__CORE__DAGS_FOLDER: /home/airflow/repo/hs-datalabs/Source/Python/datalabs/airflow/dag
     AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
-    AIRFLOW__CORE__LOAD_EXAMPLES: "False"
     AIRFLOW__CORE__FERNET_KEY: yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ=
     AIRFLOW__CORE__HOSTNAME_CALLABLE: socket.gethostname
-    AIRFLOW__WEBSERVER__RBAC: "True"
-    AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: "true"
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
     AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag
+    AIRFLOW__KUBERNETES__GIT_BRANCH: master
+    AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: /home/airflow/dags
+    AIRFLOW__KUBERNETES__GIT_REPO: 'git@bitbucket.org:hsdatalabs/hsg-data-labs.git'
+    AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-dev
+    AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: 'true'
+    AIRFLOW__WEBSERVER__LOG_FETCH_TIMEOUT_SEC: '30'
+    AIRFLOW__WEBSERVER__RBAC: 'True'

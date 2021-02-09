@@ -2,12 +2,12 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   annotations:
-    openshift.io/description: Airflow worker
-    openshift.io/display-name: Airflow
+    openshift.io/description: DataLabs master
+    openshift.io/display-name: DataLabs
   creationTimestamp: null
   labels:
-    app: Airflow
-  name: airflow-worker
+    app: DataLabs
+  name: datalabs-master
   namespace: hsg-data-labs-dev
 spec:
   failedBuildsHistoryLimit: 5
@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: airflow-worker:1.0.3
+      name: datalabs-master:1.0.0
   postCommit: {}
   resources: {}
   runPolicy: Serial
@@ -28,7 +28,7 @@ spec:
     type: Git
   strategy:
     dockerStrategy:
-      dockerfilePath: Build/Airflow/Worker/Dockerfile
+      dockerfilePath: Build/Airflow/Master/Dockerfile
       from:
         kind: ImageStreamTag
         name: python:3.7
