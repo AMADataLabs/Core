@@ -5,11 +5,25 @@ from kubernetes.client import models as k8s
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
+
 def print_that(datestamp, **kwargs):
     pprint(kwargs)
     print(datestamp)
 
     return "Foobiddy Doobiddy"
+
+
+def on_failure_callback(context):
+    dag_run = context.get('dag_run')
+    task_instances = dag_run.get_task_instances()
+    print(f'Failure: {task_instances}')
+
+
+def on_success_callback(context):
+    dag_run = context.get('dag_run')
+    task_instances = dag_run.get_task_instances()
+    print(f'Success: {task_instances}')
+
 
 with DAG(
     dag_id='test_python',
@@ -21,6 +35,8 @@ with DAG(
     do_it = PythonOperator(
         task_id="do-it",
         python_callable=print_that,
+        on_failure_callback=on_failure_callback,
+        on_success_callback=on_success_callback,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
@@ -34,6 +50,7 @@ with DAG(
             ),
         },
     )
+
 
     do_it_again = PythonOperator(
         task_id="do-it-again",
@@ -51,5 +68,6 @@ with DAG(
             ),
         },
     )
+
 
 do_it >> do_it_again

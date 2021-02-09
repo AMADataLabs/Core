@@ -46,9 +46,12 @@ spec:
       args: []
       command: []
       env:
+        # Hard Coded Airflow Envs
         - name: AIRFLOW__CORE__EXECUTOR
           value: LocalExecutor
-        # Hard Coded Airflow Envs
+        - name: AIRFLOW__LOGGING__LOGGING_LEVEL
+          value: DEBUG
+        # ConfigMap Airflow Envs
         - name: AIRFLOW__CORE__FERNET_KEY
           valueFrom:
             secretKeyRef:
