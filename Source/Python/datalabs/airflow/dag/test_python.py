@@ -6,9 +6,9 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
 
-def print_that(datestamp, **kwargs):
+def print_that(**kwargs):
     pprint(kwargs)
-    print(datestamp)
+    print(kwargs['ds'])
 
     return "Foobiddy Doobiddy"
 
