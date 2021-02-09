@@ -31,12 +31,12 @@ with DAG(
     schedule_interval=None,
     start_date=days_ago(2),
     tags=['testing'],
+    on_failure_callback=on_failure_callback,
+    on_success_callback=on_success_callback,
 ) as dag:
     do_it = PythonOperator(
         task_id="do-it",
         python_callable=print_that,
-        on_failure_callback=on_failure_callback,
-        on_success_callback=on_success_callback,
         executor_config={
             "pod_override": k8s.V1Pod(
                 spec=k8s.V1PodSpec(
