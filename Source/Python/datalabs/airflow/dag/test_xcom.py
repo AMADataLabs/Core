@@ -54,25 +54,26 @@ with DAG(
 
     write_xcom_task = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
+        image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.1",
         cmds=["sh", "-c", "mkdir -p /airflow/xcom/;echo '[1,2,3,4]' > /airflow/xcom/return.json"],
         name="write-xcom",
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
         task_id="write-xcom",
-        get_logs=True,
-        executor_config={
-            "pod_override": k8s.V1Pod(
-                spec=k8s.V1PodSpec(
-                    containers=[
-                        k8s.V1Container(
-                            name="base",
-                            image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.1"
-                        )
-                    ]
-                )
-            ),
-        },
+        get_logs=True
+        # executor_config={
+        #     "pod_override": k8s.V1Pod(
+        #         spec=k8s.V1PodSpec(
+        #             containers=[
+        #                 k8s.V1Container(
+        #                     name="base",
+        #                     image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.1"
+        #                 )
+        #             ]
+        #         )
+        #     ),
+        # },
     )
 
     #
