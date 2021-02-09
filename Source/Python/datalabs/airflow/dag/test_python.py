@@ -37,36 +37,12 @@ with DAG(
     do_it = PythonOperator(
         task_id="do-it",
         python_callable=print_that,
-        executor_config={
-            "pod_override": k8s.V1Pod(
-                spec=k8s.V1PodSpec(
-                    containers=[
-                        k8s.V1Container(
-                            name="base",
-                            image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.1"
-                        )
-                    ]
-                )
-            ),
-        },
     )
 
 
     do_it_again = PythonOperator(
         task_id="do-it-again",
         python_callable=print_that,
-        executor_config={
-            "pod_override": k8s.V1Pod(
-                spec=k8s.V1PodSpec(
-                    containers=[
-                        k8s.V1Container(
-                            name="base",
-                            image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.1"
-                        )
-                    ]
-                )
-            ),
-        },
     )
 
 

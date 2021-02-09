@@ -34,27 +34,9 @@ with DAG(
     start_date=days_ago(2),
     tags=['testing'],
 ) as dag:
-    # write_xcom_task = PythonOperator(
-    #     task_id="write_xcom",
-    #     python_callable=write_xcom,
-    #     executor_config={
-    #         "pod_override": k8s.V1Pod(
-    #             spec=k8s.V1PodSpec(
-    #                 containers=[
-    #                     k8s.V1Container(
-    #                         name="base",
-    #                         image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.0"
-    #                     )
-    #                 ]
-    #             )
-    #         ),
-    #     },
-    # )
-
-
     write_xcom_task = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
-        image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.1",
+        image="docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0",
         cmds=["sh", "-c", "mkdir -p /airflow/xcom/;echo '[1,2,3,4]' > /airflow/xcom/return.json"],
         name="write-xcom",
         do_xcom_push=True,
@@ -62,37 +44,19 @@ with DAG(
         in_cluster=True,
         task_id="write-xcom",
         get_logs=True,
-        executor_config={
-            "pod_override": k8s.V1Pod(
-                spec=k8s.V1PodSpec(
-                    containers=[
-                        k8s.V1Container(
-                            name="base",
-                            image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.1"
-                        )
-                    ]
-                )
-            ),
-        },
+        # executor_config={
+        #     "pod_override": k8s.V1Pod(
+        #         spec=k8s.V1PodSpec(
+        #             containers=[
+        #                 k8s.V1Container(
+        #                     name="base",
+        #                     image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.2"
+        #                 )
+        #             ]
+        #         )
+        #     ),
+        # },
     )
-
-    #
-    # read_xcom_task = PythonOperator(
-    #     task_id="read_xcom",
-    #     python_callable=read_xcom,
-    #     executor_config={
-    #         "pod_override": k8s.V1Pod(
-    #             spec=k8s.V1PodSpec(
-    #                 containers=[
-    #                     k8s.V1Container(
-    #                         name="base",
-    #                         image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.0"
-    #                     )
-    #                 ]
-    #             )
-    #         ),
-    #     },
-    # )
 
 
     read_xcom_task = BashOperator(
