@@ -26,7 +26,7 @@ def test_data_setup_correctly(extractor_file):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_loader_loads_two_files(etl, loader_directory):
-    with mock.patch('datalabs.access.parameter.boto3'):
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
     data = etl._task._loader.data
@@ -40,7 +40,7 @@ def test_loader_loads_two_files(etl, loader_directory):
 
 # pylint: disable=redefined-outer-name
 def test_loader_properly_adds_datestamp(etl, loader_directory):
-    with mock.patch('datalabs.access.parameter.boto3'):
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
     files = sorted(glob(os.path.join(loader_directory, '*')), key=len)

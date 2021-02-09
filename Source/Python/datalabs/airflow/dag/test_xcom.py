@@ -44,18 +44,6 @@ with DAG(
         in_cluster=True,
         task_id="write-xcom",
         get_logs=True,
-        # executor_config={
-        #     "pod_override": k8s.V1Pod(
-        #         spec=k8s.V1PodSpec(
-        #             containers=[
-        #                 k8s.V1Container(
-        #                     name="base",
-        #                     image="docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker:1.0.2"
-        #                 )
-        #             ]
-        #         )
-        #     ),
-        # },
     )
 
 

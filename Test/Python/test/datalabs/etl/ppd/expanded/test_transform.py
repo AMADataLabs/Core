@@ -23,7 +23,7 @@ def test_data_setup_correctly(extractor_file):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_transformer_produces_two_datasets(etl):
-    with mock.patch('datalabs.access.parameter.boto3'):
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
     transformer = etl._task._transformer
@@ -34,7 +34,7 @@ def test_transformer_produces_two_datasets(etl):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_transformer_data_has_three_data_rows(etl):
-    with mock.patch('datalabs.access.parameter.boto3'):
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
     transformer = etl._task._transformer

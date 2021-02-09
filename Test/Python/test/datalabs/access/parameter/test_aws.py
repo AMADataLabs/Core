@@ -11,7 +11,7 @@ from   datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
 
 # pylint: disable=redefined-outer-name
 def test_get_parameters_from_parameter_store(parameter_values):
-    with mock.patch('datalabs.access.parameter.boto3') as mock_boto3:
+    with mock.patch('datalabs.access.parameter.aws.boto3') as mock_boto3:
         mock_boto3.client.return_value.get_parameters.return_value = parameter_values
 
         loader = ParameterStoreEnvironmentLoader(
@@ -33,7 +33,7 @@ def test_get_parameters_from_parameter_store(parameter_values):
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_from_environ(environment):
-    with mock.patch('datalabs.access.parameter.boto3'):
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
         loader = ParameterStoreEnvironmentLoader.from_environ()
         values = loader._parameters.values()
 

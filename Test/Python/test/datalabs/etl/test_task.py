@@ -20,7 +20,7 @@ def test_etl_task(parameters):
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_etl_task_wrapper(environment_variables):
-    with mock.patch('datalabs.access.parameter.boto3'):
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
         wrapper = task.ETLTaskWrapper(task.ETLTask)
 
         wrapper.run()

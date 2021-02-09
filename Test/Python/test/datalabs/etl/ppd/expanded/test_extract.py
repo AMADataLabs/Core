@@ -23,7 +23,7 @@ def test_data_setup_correctly(extractor_file):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_extractor_data_is_reasonable(etl):
-    with mock.patch('datalabs.access.parameter.boto3'):
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
     extractor = etl._task._extractor
