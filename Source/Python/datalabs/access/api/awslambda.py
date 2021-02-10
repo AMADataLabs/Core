@@ -14,7 +14,7 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
 
         return super()._get_task_parameters()
 
-    def _generate_response(self) -> (int, dict):
+    def _handle_success(self) -> (int, dict):
         return {
             "statusCode": self._task.status_code,
             "headers": self._task.headers,

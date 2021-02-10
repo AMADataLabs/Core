@@ -101,7 +101,7 @@ class APIEndpointParametersGetterMixin(task.TaskWrapper):
 
 class APIEndpointTaskWrapper(APIEndpointParametersGetterMixin, task.TaskWrapper):
     # pylint: disable=abstract-method
-    def _generate_response(self) -> (int, dict):
+    def _handle_success(self) -> (int, dict):
         return self._task.status_code, self._task.headers, self._task.response_body
 
     # pylint: disable=abstract-method

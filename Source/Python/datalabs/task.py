@@ -40,7 +40,7 @@ class TaskWrapper(ABC):
         try:
             self._task.run()
 
-            response = self._generate_response()
+            response = self._handle_success()
         except TaskException as exception:
             response = self._handle_exception(exception)
 
@@ -50,7 +50,7 @@ class TaskWrapper(ABC):
         return self._parameters
 
     @abstractmethod
-    def _generate_response(self) -> (int, dict):
+    def _handle_success(self) -> (int, dict):
         pass
 
     @abstractmethod

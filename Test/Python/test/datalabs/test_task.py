@@ -22,7 +22,7 @@ class GoodTaskWrapper(TaskWrapper):
     def _get_task_parameters(self):
         pass
 
-    def _generate_response(self) -> (int, dict):
+    def _handle_success(self) -> (int, dict):
         pass
 
     def _handle_exception(self, exception: Exception) -> (int, dict):

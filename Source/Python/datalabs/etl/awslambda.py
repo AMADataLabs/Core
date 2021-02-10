@@ -20,7 +20,7 @@ class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
 
         return task_parameters
 
-    def _generate_response(self) -> (int, dict):
+    def _handle_success(self) -> (int, dict):
         return "Success"
 
     def _handle_exception(self, exception: task.ETLException) -> (int, dict):

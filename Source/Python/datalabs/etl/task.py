@@ -137,5 +137,5 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
     def _handle_exception(self, exception: ETLException):
         LOGGER.exception('Handling ETL task exception: %s', exception)
 
-    def _generate_response(self):
+    def _handle_success(self):
         LOGGER.info('ETL task has finished')

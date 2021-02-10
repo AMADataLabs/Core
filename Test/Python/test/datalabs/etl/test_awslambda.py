@@ -34,10 +34,10 @@ def test_task_wrapper_handle_exception():
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_task_wrapper_generate_response():
+def test_task_wrapper_handle_success():
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         wrapper = ETLTaskWrapper(MockTask)
-        response = wrapper._generate_response()
+        response = wrapper._handle_success()
 
     assert response == "Success"
 
