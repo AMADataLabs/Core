@@ -16,6 +16,7 @@ resource "aws_ecs_service" "datanow" {
     desired_count                       = 1
     platform_version                    = "1.4.0"
     health_check_grace_period_seconds   = 0
+    propagate_tags                      = "TASK_DEFINITION"
 
     deployment_controller {
         type                = "ECS"
