@@ -44,14 +44,14 @@ def environment(extractor_file, loader_directory):
     os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.task.ETLTaskWrapper'
     os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
 
-    os.environ['EXTRACTOR_CLASS'] = 'datalabs.etl.ppd.expanded.extract.LocalPPDExtractorTask'
-    os.environ['EXTRACTOR_BASEPATH'] = os.path.dirname(extractor_file)
-    os.environ['EXTRACTOR_FILES'] = 'PhysicianProfessionalDataFile_*'
-    os.environ['EXTRACTOR_INCLUDENAMES'] = 'True'
+    os.environ['EXTRACTOR__TASK_CLASS'] = 'datalabs.etl.ppd.expanded.extract.LocalPPDExtractorTask'
+    os.environ['EXTRACTOR__BASE_PATH'] = os.path.dirname(extractor_file)
+    os.environ['EXTRACTOR__FILES'] = 'PhysicianProfessionalDataFile_*'
+    os.environ['EXTRACTOR__INCLUDE_NAMES'] = 'True'
 
-    os.environ['TRANSFORMER_CLASS'] = 'datalabs.etl.transform.PassThroughTransformerTask'
+    os.environ['TRANSFORMER__TASK_CLASS'] = 'datalabs.etl.transform.PassThroughTransformerTask'
 
-    os.environ['LOADER_CLASS'] = 'datalabs.etl.load.ConsoleLoaderTask'
+    os.environ['LOADER__TASK_CLASS'] = 'datalabs.etl.load.ConsoleLoaderTask'
 
     yield os.environ
 

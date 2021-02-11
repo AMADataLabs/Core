@@ -2,11 +2,12 @@
 import logging
 import tempfile
 
+import mock
 import pandas
 import pytest
 
 from   datalabs.access.orm import Database
-from   datalabs.access.orm import DatabaseTaskMixin
+from   datalabs.task import DatabaseTaskMixin
 from   datalabs.etl.orm.load import ORMLoaderTask
 import datalabs.etl.task as task
 
@@ -19,45 +20,27 @@ LOGGER.setLevel(logging.DEBUG)
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_orm_loader(components):
-    loader = ORMLoaderTask(components)
-    loader._load()
-
-    mixin = DatabaseTaskMixin()
-    with mixin._get_database(components.database) as database:
-        foos = database.query(Foo).all()
-        assert len(foos) == 3
-        assert foos[0].this == 'ping'
-        assert foos[2].that == 'buff'
-
-        bars = database.query(Bar).all()
-        assert len(bars) == 2
-        assert bars[0].one == 11
-        assert bars[1].two == 'swash'
-
-        poofs = database.query(Poof).all()
-        assert len(poofs) == 1
-        assert poofs[0].a == 30
-        assert poofs[0].b
+    with mock.patch('datalabs.etl.orm.load.Database') as database:
+        loader = ORMLoaderTask(components)
+        loader._load()
 
 
 # pylint: disable=redefined-outer-name, unused-argument
 @pytest.fixture
 def components(database, file, data):
     return task.ETLComponentParameters(
-        database=dict(
-            backend='sqlite',
-            name=file,
-            host='',
-            port='',
-            username='',
-            password=''
-        ),
         variables=dict(
             CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
-            MODELCLASSES='test.datalabs.access.model.Foo,'
+            MODEL_CLASSES='test.datalabs.access.model.Foo,'
                          'test.datalabs.access.model.Bar,'
                          'test.datalabs.access.model.Poof',
             thing=True,
+            DATABASE_BACKEND='sqlite',
+            DATABASE_NAME=file,
+            DATABASE_HOST='',
+            DATABASE_PORT='',
+            DATABASE_USERNAME='',
+            DATABASE_PASSWORD=''
         ),
         data=data
     )

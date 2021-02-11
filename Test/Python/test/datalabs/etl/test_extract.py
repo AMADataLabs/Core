@@ -14,7 +14,7 @@ def test_extractor_task(extractor):
 
 @pytest.fixture
 def extractor():
-    return Extractor(ETLComponentParameters(database={}, variables=dict(thing=True)))
+    return Extractor(ETLComponentParameters(variables=dict(thing=True)))
 
 
 class Extractor(ExtractorTask):

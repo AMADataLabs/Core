@@ -71,10 +71,10 @@ class ETLTask(task.Task):
     def _instantiate_component(cls, parameters, data=None):
         parameters.data = data
 
-        if 'CLASS' not in parameters.variables:
+        if 'TASK_CLASS' not in parameters.variables:
             raise ETLException(f'..._CLASS parameter not specified in {parameters.variables}')
 
-        Plugin = plugin.import_plugin(parameters.variables['CLASS'])  # pylint: disable=invalid-name
+        Plugin = plugin.import_plugin(parameters.variables['TASK_CLASS'])  # pylint: disable=invalid-name
 
         return Plugin(parameters)
 
@@ -97,7 +97,7 @@ class ETLComponentTask(task.Task):
 
 @dataclass
 class ETLComponentParameters:
-    database: dict
+    # database: dict
     variables: dict
     data: Any = None
 
@@ -120,16 +120,11 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
         database_variables = None
         database_parameters = {}
 
-        if 'DATABASE' in var_tree.get_branches([component]):
-            component_variables.pop('DATABASE')
-            database_variables = var_tree.get_branch_values([component, 'DATABASE'])
-            database_parameters = {key.lower():value for key, value in database_variables.items()}
-
         LOGGER.debug('Component variables: %s', component_variables)
-        LOGGER.debug('Database variables: %s', database_variables)
+        # LOGGER.debug('Database variables: %s', database_variables)
 
         return ETLComponentParameters(
-            database=database_parameters,
+            # database=database_parameters,
             variables=component_variables)
 
 

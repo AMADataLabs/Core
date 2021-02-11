@@ -2,6 +2,8 @@
 from abc import ABC, abstractmethod
 import logging
 
+from datalabs.access.database import Database
+
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -56,3 +58,16 @@ class TaskWrapper(ABC):
     @abstractmethod
     def _handle_exception(self, exception: Exception) -> (int, dict):
         pass
+
+
+# pylint: disable=abstract-method
+class DatabaseTaskMixin:
+    @classmethod
+    def _get_database(cls, database_class: Database, variables: dict):
+        parameters = {}
+
+        for key,value in variables.items():
+            if key.startswith('DATABASE_'):
+                parameters[key.lower()] = value.lower()
+
+        return database_class.from_parameters(parameters)

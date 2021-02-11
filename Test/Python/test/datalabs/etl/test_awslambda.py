@@ -51,33 +51,31 @@ class MockTask(etl.ETLTask):
 def expected_parameters():
     return etl.ETLParameters(
         extractor=etl.ETLComponentParameters(
-            database=dict(
-                host='r2d2.droid.com',
-                port='5432',
-                name='mydatabase',
-                backend='postgresql+psycopg2',
-                username='mrkitty',
-                password='prettyboy59'
-            ),
             variables=dict(
                 CLASS='test.datalabs.etl.test_extract.Extractor',
                 thing='True',
                 EXECUTION_TIME='20200615T12:24:38+02:30',
-                INCLUDENAMES='True'
+                INCLUDE_NAMES='True',
+                DATABASE_HOST='r2d2.droid.com',
+                DATABASE_PORT='5432',
+                DATABASE_NAME='mydatabase',
+                DATABASE_BACKEND='postgresql+psycopg2',
+                DATABASE_USERNAME='mrkitty',
+                DATABASE_PASSWORD='prettyboy59'
             )
         ),
         transformer=etl.ETLComponentParameters(
-            database=dict(host='c3po.droid.com'),
             variables=dict(
                 CLASS='test.datalabs.etl.test_transform.Transformer',
-                EXECUTION_TIME='20200615T12:24:38+02:30'
+                EXECUTION_TIME='20200615T12:24:38+02:30',
+                DATABASE_HOST='c3po.droid.com'
             )
         ),
         loader=etl.ETLComponentParameters(
-            database=dict(host='l337.droid.com'),
             variables=dict(
                 CLASS='test.datalabs.etl.test_load.Loader',
-                EXECUTION_TIME='20200615T12:24:38+02:30'
+                EXECUTION_TIME='20200615T12:24:38+02:30',
+                DATABASE_HOST='l337.droid.com'
             )
         )
     )
@@ -86,16 +84,16 @@ def expected_parameters():
 @pytest.fixture
 def event():
     current_env = os.environ.copy()
-    os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
-    os.environ['EXTRACTOR_thing'] = 'True'
-    os.environ['EXTRACTOR_DATABASE_HOST'] = 'r2d2.droid.com'
-    os.environ['EXTRACTOR_DATABASESECRET'] = '{"username":"mrkitty", "password":"prettyboy59", "port":5432, ' \
+    os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
+    os.environ['EXTRACTOR__thing'] = 'True'
+    os.environ['EXTRACTOR__DATABASE_HOST'] = 'r2d2.droid.com'
+    os.environ['EXTRACTOR__DATABASE_SECRET'] = '{"username":"mrkitty", "password":"prettyboy59", "port":5432, ' \
                                              '"dbname":"mydatabase", "engine": "postgres"}'
-    os.environ['EXTRACTOR_INCLUDENAMES'] = 'True'
-    os.environ['TRANSFORMER_CLASS'] = 'test.datalabs.etl.test_transform.Transformer'
-    os.environ['TRANSFORMER_DATABASE_HOST'] = 'c3po.droid.com'
-    os.environ['LOADER_CLASS'] = 'test.datalabs.etl.test_load.Loader'
-    os.environ['LOADER_DATABASE_HOST'] = 'l337.droid.com'
+    os.environ['EXTRACTOR__INCLUDE_NAMES'] = 'True'
+    os.environ['TRANSFORMER__TASK_CLASS'] = 'test.datalabs.etl.test_transform.Transformer'
+    os.environ['TRANSFORMER__DATABASE_HOST'] = 'c3po.droid.com'
+    os.environ['LOADER__TASK_CLASS'] = 'test.datalabs.etl.test_load.Loader'
+    os.environ['LOADER__DATABASE_HOST'] = 'l337.droid.com'
 
     yield dict(execution_time='20200615T12:24:38+02:30')
 

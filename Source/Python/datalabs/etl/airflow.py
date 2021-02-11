@@ -14,8 +14,8 @@ LOGGER.setLevel(logging.INFO)
 class S3CachingTaskWrapper(task.TaskWrapper):
     def _get_task_parameters(self):
         dag_id, task_id, datestamp = sys.argv[1].split('__')
-        dag_parameters = self._get_dag_parameters_from_environment(dag_id.toupper())
-        task_parameters = self._get_task_parameters_from_environment(dag_id.toupper(), task_id.toupper())
+        dag_parameters = self._get_dag_parameters_from_environment(dag_id.upper())
+        task_parameters = self._get_task_parameters_from_environment(dag_id.upper(), task_id.upper())
         input_data = self._load_data_from_s3(task_parameters.variables[''])
 
         return self._merge_inputs(dag_parameters, task_parameters, input_data)
@@ -28,7 +28,7 @@ class S3CachingTaskWrapper(task.TaskWrapper):
 
     @classmethod
     def _get_dag_parameters_from_environment(cls, dag_id):
-        all_variables = self._get_variables([dag_id.toupper()])
+        all_variables = self._get_variables([dag_id.upper()])
         variables, database_parameters = self._extract_database_parameters(all_variables)
 
         return ETLComponentParameters(
@@ -39,7 +39,7 @@ class S3CachingTaskWrapper(task.TaskWrapper):
 
     @classmethod
     def _get_task_parameters_from_environment(cls, dag_id, task_id):
-        all_variables = self._get_variables([dag_id.toupper(), task_id.toupper()])
+        all_variables = self._get_variables([dag_id.upper(), task_id.upper()])
         variables, database_parameters = self._extract_database_parameters(all_variables)
 
         return ETLComponentParameters(
@@ -57,21 +57,17 @@ class S3CachingTaskWrapper(task.TaskWrapper):
     @classmethod
     def  _merge_inputs(cls, dag_parameters, task_parameters, input_data):
         variables = dag_parameters.variables
-        database_parameters = dag_parameters.database
 
         variables.update(task_parameters.variables)
 
-        database_parameters.update(task_parameters.database)
-
         return ETLComponentParameters(
             variables=variables,
-            database=database_parameters,
             data=input_data
         )
 
     @classmethod
     def _get_variables(cls, branch):
-        var_tree = VariableTree.generate(separator='__')
+        var_tree = VariableTree.generate()
 
         return var_tree.get_branch_values(branch)
 

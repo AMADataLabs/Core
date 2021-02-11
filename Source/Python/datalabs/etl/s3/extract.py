@@ -37,10 +37,10 @@ class S3FileExtractorTask(FileExtractorTask):
 
         self._s3 = boto3.client(
             's3',
-            endpoint_url=self._parameters.variables.get('ENDPOINTURL'),
-            aws_access_key_id=self._parameters.variables.get('ACCESSKEY'),
-            aws_secret_access_key=self._parameters.variables.get('SECRETKEY'),
-            region_name=self._parameters.variables.get('REGIONNAME')
+            endpoint_url=self._parameters.variables.get('ENDPOINT_URL'),
+            aws_access_key_id=self._parameters.variables.get('ACCESS_KEY'),
+            aws_secret_access_key=self._parameters.variables.get('SECRET_KEY'),
+            region_name=self._parameters.variables.get('REGION_NAME')
         )
 
     def _extract(self):
@@ -56,13 +56,13 @@ class S3FileExtractorTask(FileExtractorTask):
             release_folders = sorted(
                 self._listdir(
                     self._parameters.variables['BUCKET'],
-                    self._parameters.variables['BASEPATH']
+                    self._parameters.variables['BASE_PATH']
                 )
             )
 
             release_folder = release_folders[-1]
 
-        return '/'.join((self._parameters.variables['BASEPATH'], release_folder))
+        return '/'.join((self._parameters.variables['BASE_PATH'], release_folder))
 
     def _get_files(self, base_path):
         unresolved_files = ['/'.join((base_path, file)) for file in self._parameters.variables['FILES'].split(',')]

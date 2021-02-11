@@ -52,7 +52,7 @@ class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
     def _populate_database_parameters_from_secret(cls):
         secrets = {
             key: value
-            for name, secret in os.environ.items() if name.endswith('_DATABASESECRET')
+            for name, secret in os.environ.items() if name.endswith('__DATABASE_SECRET')
             for key, value in cls._get_database_parameters_from_secret(name, secret).items()
         }
 
@@ -61,7 +61,7 @@ class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
 
     @classmethod
     def _get_database_parameters_from_secret(cls, name, secret_string):
-        prefix = name.replace('_DATABASESECRET', '_') + 'DATABASE_'
+        prefix = name.replace('__DATABASE_SECRET', '__') + 'DATABASE_'
         secret = json.loads(secret_string)
         engine = secret.get('engine')
         variables = {

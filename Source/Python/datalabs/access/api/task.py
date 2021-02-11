@@ -4,7 +4,7 @@ from   dataclasses import dataclass
 import logging
 import os
 
-from   datalabs.access.orm import DatabaseTaskMixin
+from   datalabs.access.orm import Database
 import datalabs.task as task
 
 logging.basicConfig()
@@ -45,7 +45,7 @@ class InternalServerError(APIEndpointException):
         super().__init__(message, 500)
 
 
-class APIEndpointTask(task.Task, DatabaseTaskMixin):
+class APIEndpointTask(task.Task, task.DatabaseTaskMixin):
     def __init__(self, parameters: APIEndpointParameters):
         super().__init__(parameters)
         self._status_code = 200
@@ -65,7 +65,7 @@ class APIEndpointTask(task.Task, DatabaseTaskMixin):
         return self._headers
 
     def run(self):
-        with self._get_database(self._parameters.database) as database:
+        with Database.from_parameters(self._parameters.database) as database:
             self._run(database)  # pylint: disable=no-member
 
     @abstractmethod

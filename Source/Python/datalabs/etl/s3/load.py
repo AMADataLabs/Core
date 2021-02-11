@@ -21,10 +21,10 @@ class S3FileLoaderTask(LoaderTask):
 
         self._s3 = boto3.client(
             's3',
-            endpoint_url=self._parameters.variables.get('ENDPOINTURL'),
-            aws_access_key_id=self._parameters.variables.get('ACCESSKEY'),
-            aws_secret_access_key=self._parameters.variables.get('SECRETKEY'),
-            region_name=self._parameters.variables.get('REGIONNAME')
+            endpoint_url=self._parameters.variables.get('ENDPOINT_URL'),
+            aws_access_key_id=self._parameters.variables.get('ACCESS_KEY'),
+            aws_secret_access_key=self._parameters.variables.get('SECRET_KEY'),
+            region_name=self._parameters.variables.get('REGION_NAME')
         )
 
     def _load(self):
@@ -36,7 +36,7 @@ class S3FileLoaderTask(LoaderTask):
     def _get_current_path(self):
         current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
 
-        return '/'.join((self._parameters.variables['BASEPATH'], current_date))
+        return '/'.join((self._parameters.variables['BASE_PATH'], current_date))
 
     def _load_file(self, base_path, file, data):
         file_path = '/'.join((base_path, file))

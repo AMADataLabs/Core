@@ -17,7 +17,7 @@ class VariableTree:
     @classmethod
     def generate(cls, separator=None):
         ''' Generate a VariableTree from all current environment variables. '''
-        separator = separator or '_'
+        separator = separator or '__'
         root = dict()
 
         # pylint: disable=protected-access
