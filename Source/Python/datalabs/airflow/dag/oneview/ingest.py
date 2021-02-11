@@ -3,6 +3,8 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
 
+from Source.Python import datalabs
+
 etl_config = [
     k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='oneview-type-of-practice'))
 ]
@@ -26,11 +28,11 @@ with DAG(
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
         cmds=['python', 'task.py'],
         env_from=[etl_config, aims],
-        env=dict(TASK_CLASS="datalabs.etl.jdbc.extract.JDBCExtractorTask"),
+        env=dict(TASK_CLASS=datalabs.etl.jdbc.extract.JDBCExtractorTask),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="write-xcom",
+        task_id="type_of_practice_extractor",
         get_logs=True,
     )
 
@@ -39,11 +41,11 @@ with DAG(
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
         cmds=['python', 'task.py'],
         env_from=etl_config,
-        env=dict(TASK_CLASS="datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask"),
+        env=dict(TASK_CLASS=datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="write-xcom",
+        task_id="type_of_practice_transformer",
         get_logs=True,
     )
 
@@ -52,11 +54,11 @@ with DAG(
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
         cmds=['python', 'task.py'],
         env_from=[etl_config, minio],
-        env=dict(TASK_CLASS="datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask"),
+        env=dict(TASK_CLASS=datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="write-xcom",
+        task_id="type_of_practice_loader",
         get_logs=True,
     )
 
