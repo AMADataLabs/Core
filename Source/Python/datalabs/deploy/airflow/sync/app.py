@@ -1,9 +1,21 @@
 """ Airflow DAG sync application (main loop). """
+import logging
 import os
 from   threading import Thread, Event
 
 import datalabs.deploy.airflow.sync.dag as dag
 from   datalabs.deploy.ssh.key import load_key_from_variable
+
+logging.basicConfig(format='%(asctime)-15s %(levelname)s: %(message)s')
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+
+
+def main():
+    stop_event = Event()
+    sync_looper = SyncLooper(stop_event)
+
+    sync_looper.start()
 
 
 class SyncLooper(Thread):
@@ -24,7 +36,10 @@ class SyncLooper(Thread):
         load_key_from_variable('GIT_SSH_KEY', '/Sync/id_rsa')
 
         while not self.stopped.wait(duration):
-            self._sync(dag_sync_config)
+            try:
+                self._sync(dag_sync_config)
+            except Exception as e:
+                LOGGER.exception(f"Failed to sync DAGs.")
 
             duration = self._calculate_next_run_duration()
 
@@ -38,12 +53,6 @@ class SyncLooper(Thread):
     def _calculate_next_run_duration(cls):
         return float(os.getenv('SYNC_INTERVAL'))
 
-
-def main():
-    stop_event = Event()
-    sync_looper = SyncLooper(stop_event)
-
-    sync_looper.start()
 
 print(__name__)
 if __name__ == "__main__":

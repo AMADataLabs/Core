@@ -18,18 +18,15 @@ modspec:
       - sqlalchemy
       - task
   - package: datalabs.access
-    exclude:
-      - aims
-      - edw
     include:
-      - secret
       - sftp
       - credentials
       - database
       - datastore
       - environment
       - orm
-      - parameter
+  - package: datalabs.access.parameter
+  - package: datalabs.access.secret
   - package: datalabs.etl
     include:
       - task

@@ -1,0 +1,38 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: DataLabs master
+    openshift.io/display-name: DataLabs
+  creationTimestamp: null
+  labels:
+    app: DataLabs
+  name: datalabs-master
+  namespace: hsg-data-labs-dev
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: datalabs-master:1.0.0
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+      # ref: story/DL-1260
+    sourceSecret:
+      name: bitbucketprd
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Build/Airflow/Master/Dockerfile
+      from:
+        kind: ImageStreamTag
+        name: python:3.7
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - type: ConfigChange
