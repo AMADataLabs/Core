@@ -3,7 +3,6 @@ from airflow.contrib.operators.kubernetes_pod_operator import KubernetesPodOpera
 from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
 
-from Source.Python import datalabs
 
 etl_config = [
     k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='oneview-type-of-practice'))
