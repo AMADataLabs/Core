@@ -30,7 +30,7 @@ def test_orm_loader(components):
 def components(database, file, data):
     return task.ETLComponentParameters(
         variables=dict(
-            CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
+            TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
             MODEL_CLASSES='test.datalabs.access.model.Foo,'
                          'test.datalabs.access.model.Bar,'
                          'test.datalabs.access.model.Poof',

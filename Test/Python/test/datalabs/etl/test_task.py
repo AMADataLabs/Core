@@ -34,13 +34,13 @@ def test_etl_task_wrapper(environment_variables):
 def parameters():
     return task.ETLParameters(
         extractor=task.ETLComponentParameters(
-            variables=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing=True)
+            variables=dict(TASK_CLASS='test.datalabs.etl.test_extract.Extractor', thing=True)
         ),
         transformer=task.ETLComponentParameters(
-            variables=dict(CLASS='test.datalabs.etl.test_transform.Transformer')
+            variables=dict(TASK_CLASS='test.datalabs.etl.test_transform.Transformer')
         ),
         loader=task.ETLComponentParameters(
-            variables=dict(CLASS='test.datalabs.etl.test_load.Loader')
+            variables=dict(TASK_CLASS='test.datalabs.etl.test_load.Loader')
         )
     )
 

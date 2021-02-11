@@ -27,7 +27,7 @@ def components():
             password=os.getenv('EXTRACTOR__DATABASE_PASSWORD')
         ),
         variables=dict(
-            CLASS='test.datalabs.etl.jdbc.test_extract.JDBCExtractor',
+            TASK_CLASS='test.datalabs.etl.jdbc.test_extract.JDBCExtractor',
             thing=True,
             SQL='SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;',
             DRIVER='com.ibm.db2.jcc.DB2Jcc',

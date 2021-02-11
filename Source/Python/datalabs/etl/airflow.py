@@ -16,7 +16,7 @@ class S3CachingTaskWrapper(task.TaskWrapper):
         dag_id, task_id, datestamp = sys.argv[1].split('__')
         dag_parameters = self._get_dag_parameters_from_environment(dag_id.upper())
         task_parameters = self._get_task_parameters_from_environment(dag_id.upper(), task_id.upper())
-        input_data = self._load_data_from_s3(task_parameters.variables[''])
+        input_data = self._extract_data_from_s3(task_parameters.variables)
 
         return self._merge_inputs(dag_parameters, task_parameters, input_data)
 
@@ -24,6 +24,8 @@ class S3CachingTaskWrapper(task.TaskWrapper):
         LOGGER.exception('Handling Airflow task exception: %s', exception)
 
     def _handle_success(self):
+        self._load_data_to_s3(self._task.data, self._task.parameters.variables)
+
         LOGGER.info('Airflow task has finished')
 
     @classmethod
@@ -49,10 +51,25 @@ class S3CachingTaskWrapper(task.TaskWrapper):
         )
 
     @classmethod
-    def  _load_data_from_s3(cls, files):
-        ''' Load data from files, assuming is in CSV format.'''
-        # TODO: load data files
-        return None
+    def  _extract_data_from_s3(cls, task_variables):
+        ''' Pull cached data from files on S3, assuming is in CSV format.'''
+        cache_variables = cls._get_cache_variables(task_variables)
+        cache_parameters = ETLComponentParameters(variables=cache_variables)
+        cache_extractor = S3FileExtractorTask(cache_parameters)
+
+        cache_extractor.run()
+
+        return cache_extractor.data
+
+    @classmethod
+    def  _load_data_to_s3(cls, task_output_data, task_variables):
+        cache_variables = cls._get_cache_variables(task_variables)
+        cache_parameters = ETLComponentParameters(variables=cache_variables)
+        cache_loader = S3FileLoaderTask(cache_parameters)
+
+        cache_loader.run()
+
+        return cache_loader.data
 
     @classmethod
     def  _merge_inputs(cls, dag_parameters, task_parameters, input_data):
@@ -83,3 +100,13 @@ class S3CachingTaskWrapper(task.TaskWrapper):
                 task_variables[key] = value
 
         return task_variables, database_parameters
+
+    @classmethod
+    def _get_cache_variables(cls, task_variables):
+        cache_variables = {}
+
+        for key, value in task_variables.items():
+            if key.startswith('CACHE_'):
+                cache_variables[key.replace('CACHE_', '')] = value
+
+        return cache_variables

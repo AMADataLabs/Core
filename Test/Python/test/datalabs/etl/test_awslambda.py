@@ -52,7 +52,7 @@ def expected_parameters():
     return etl.ETLParameters(
         extractor=etl.ETLComponentParameters(
             variables=dict(
-                CLASS='test.datalabs.etl.test_extract.Extractor',
+                TASK_CLASS='test.datalabs.etl.test_extract.Extractor',
                 thing='True',
                 EXECUTION_TIME='20200615T12:24:38+02:30',
                 INCLUDE_NAMES='True',
@@ -66,14 +66,14 @@ def expected_parameters():
         ),
         transformer=etl.ETLComponentParameters(
             variables=dict(
-                CLASS='test.datalabs.etl.test_transform.Transformer',
+                TASK_CLASS='test.datalabs.etl.test_transform.Transformer',
                 EXECUTION_TIME='20200615T12:24:38+02:30',
                 DATABASE_HOST='c3po.droid.com'
             )
         ),
         loader=etl.ETLComponentParameters(
             variables=dict(
-                CLASS='test.datalabs.etl.test_load.Loader',
+                TASK_CLASS='test.datalabs.etl.test_load.Loader',
                 EXECUTION_TIME='20200615T12:24:38+02:30',
                 DATABASE_HOST='l337.droid.com'
             )
