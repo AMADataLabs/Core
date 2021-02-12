@@ -44,6 +44,26 @@ def test_adding_schema_to_dataclass_yields_correct_schema_field_defaults(model_d
     assert model.bar == 'Bar'
 
 
+def test_deserializing_dataclass_with_none_parameter_yields_deserialization_error(model_dataclass):
+    result = model_dataclass.SCHEMA.load(dict(foo=None))
+
+    assert not isinstance(result.data, model_dataclass)
+    assert result.errors is not None
+    assert 'foo' in result.errors
+
+
+def test_deserializing_dataclass_with_none_default_is_ok():
+    @add_schema
+    @dataclass
+    class Model:
+        foo: str = None
+        bar: str = 'Bar'
+
+    model = Model.SCHEMA.load(dict()).data
+
+    assert model.foo is None
+
+
 def test_adding_schema_to_class_yields_correct_schema_fields(model_class):
     assert hasattr(model_class, 'SCHEMA')
     assert hasattr(model_class.SCHEMA, 'fields')

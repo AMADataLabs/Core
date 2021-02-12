@@ -160,5 +160,5 @@ class S3FileExtractorParameters:
     bucket: str
     base_path: str
     files: str
-    execution_time: str
+    execution_time: str = ''
     data: object
