@@ -47,7 +47,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
         plugin_name = 'datalabs.etl.airflow.s3.S3TaskDataCache'
 
         if 'CLASS' in cache_variables:
-            plugin_name = cache_variables['CLASS']
+            plugin_name = cache_variables.pop('CLASS')
 
         Plugin = import_plugin(plugin_name)
 

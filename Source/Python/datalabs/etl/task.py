@@ -134,3 +134,16 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
 
     def _handle_success(self):
         LOGGER.info('ETL task has finished')
+
+
+class ParameterSchemaMixin:
+    def _get_validated_parameters(self, parameter_class):
+        self._parameters.variables['DATA'] = self._parameters or {}
+        parameter_variables = {key.lower():value for key,value in self._parameters.variables.items()}
+        schema = parameter_class.SCHEMA
+        result = schema.load(parameter_variables)
+
+        if result.errors:
+            raise ETLException('Parameter validation failed: %s', str(result.errors))
+
+        return schema.load(parameter_variables).data

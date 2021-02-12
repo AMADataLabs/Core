@@ -25,22 +25,26 @@
     AMA/CPT/20200401/standard/SHORTU.txt
 """
 import boto3
+from   dataclasses import dataclass
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.extract import FileExtractorTask
-from   datalabs.etl.task import ETLException
+from   datalabs.etl.task import ETLException, ParameterSchemaMixin
+from   datalabs.task import add_schema
 
 
-class S3FileExtractorTask(FileExtractorTask):
+class S3FileExtractorTask(FileExtractorTask, ParameterSchemaMixin):
     def __init__(self, parameters):
         super().__init__(parameters)
 
+        self._parameters = self._get_validated_parameters(S3FileExtractorParameters)
+
         self._s3 = boto3.client(
             's3',
-            endpoint_url=self._parameters.variables.get('ENDPOINT_URL'),
-            aws_access_key_id=self._parameters.variables.get('ACCESS_KEY'),
-            aws_secret_access_key=self._parameters.variables.get('SECRET_KEY'),
-            region_name=self._parameters.variables.get('REGION_NAME')
+            endpoint_url=self._parameters.endpoint_url,
+            aws_access_key_id=self._parameters.access_key,
+            aws_secret_access_key=self._parameters.secret_key,
+            region_name=self._parameters.region_name
         )
 
     def _extract(self):
@@ -55,17 +59,17 @@ class S3FileExtractorTask(FileExtractorTask):
         if release_folder is None:
             release_folders = sorted(
                 self._listdir(
-                    self._parameters.variables['BUCKET'],
-                    self._parameters.variables['BASE_PATH']
+                    self._parameters.bucket,
+                    self._parameters.base_path
                 )
             )
 
             release_folder = release_folders[-1]
 
-        return '/'.join((self._parameters.variables['BASE_PATH'], release_folder))
+        return '/'.join((self._parameters.base_path, release_folder))
 
     def _get_files(self, base_path):
-        unresolved_files = ['/'.join((base_path, file)) for file in self._parameters.variables['FILES'].split(',')]
+        unresolved_files = ['/'.join((base_path, file)) for file in self._parameters.files.split(',')]
         resolved_files = []
 
         for file in unresolved_files:
@@ -81,16 +85,16 @@ class S3FileExtractorTask(FileExtractorTask):
     # pylint: disable=arguments-differ
     def _extract_file(self, s3, file_path):
         try:
-            response = s3.get_object(Bucket=self._parameters.variables['BUCKET'], Key=file_path)
+            response = s3.get_object(Bucket=self._parameters.bucket, Key=file_path)
         except Exception as exception:
             raise ETLException(
-                f"Unable to get file '{file_path}' from S3 bucket '{self._parameters.variables['BUCKET']}': {exception}"
+                f"Unable to get file '{file_path}' from S3 bucket '{self._parameters.bucket}': {exception}"
             )
 
         return response['Body'].read()
 
     def _get_execution_date(self):
-        execution_time = self._parameters.variables.get('EXECUTION_TIME')
+        execution_time = self._parameters.execution_time
         execution_date = None
 
         if execution_time:
@@ -126,7 +130,7 @@ class S3FileExtractorTask(FileExtractorTask):
     def _find_s3_object(self, wildcard_file_path):
         file_path_parts = wildcard_file_path.split('*')
         search_results = self._s3.list_objects_v2(
-            Bucket=self._parameters.variables['BUCKET'],
+            Bucket=self._parameters.bucket,
             Prefix=file_path_parts[0]
         )
 
@@ -143,3 +147,17 @@ class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252', errors='backslashreplace')
+
+
+@add_schema
+@dataclass
+class S3FileExtractorParameters:
+    endpoint_url: str
+    access_key: str
+    secret_key: str
+    region_name: str
+    bucket: str
+    base_path: str
+    files: str
+    execution_time: str
+    data: object

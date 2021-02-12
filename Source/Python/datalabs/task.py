@@ -1,6 +1,9 @@
 """ Abstract task base class for use with AWS Lambda and other task-based systems. """
 from abc import ABC, abstractmethod
+import copy
 import logging
+
+import marshmallow
 
 from datalabs.access.database import Database
 
@@ -71,3 +74,40 @@ class DatabaseTaskMixin:
                 parameters[key.lower()] = value.lower()
 
         return database_class.from_parameters(parameters)
+
+
+def add_schema(cls):
+    model_fields = [key for key,value in cls.__dict__.items() if not key.startswith('_')]
+
+    if '__dataclass_fields__' in cls.__dict__:
+        model_fields = [key for key,value in cls.__dataclass_fields__.items() if not key.startswith('_')]
+
+    class Schema(marshmallow.Schema):
+        class Meta:
+            # strict = True
+            fields = copy.deepcopy(model_fields)
+
+        @marshmallow.post_load
+        def make_model(self, data, **kwargs):
+            if '__dataclass_fields__' in cls.__dict__:
+                self._fill_dataclass_defaults(data)
+            else:
+                self._fill_class_defaults(data)
+
+            model = cls(**data)
+
+            return model
+
+        def _fill_dataclass_defaults(self, data):
+            fields = cls.__dict__['__dataclass_fields__']
+
+            for field in self.Meta.fields:
+                dataclass_field = cls.__dict__['__dataclass_fields__'][field]
+
+                if field not in data and dataclass_field.default.__class__.__name__ != '_MISSING_TYPE':
+                    data[field] = dataclass_field.default
+
+
+    cls.SCHEMA = Schema()
+
+    return cls
