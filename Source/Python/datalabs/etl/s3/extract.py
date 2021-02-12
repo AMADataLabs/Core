@@ -153,12 +153,12 @@ class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
 @add_schema
 @dataclass
 class S3FileExtractorParameters:
-    endpoint_url: str
-    access_key: str
-    secret_key: str
-    region_name: str
     bucket: str
     base_path: str
     files: str
-    execution_time: str = ''
-    data: object
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
+    execution_time: str = None
+    data: object = None
