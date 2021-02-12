@@ -24,8 +24,9 @@
     AMA/CPT/20200401/standard/MEDU.txt
     AMA/CPT/20200401/standard/SHORTU.txt
 """
-import boto3
 from   dataclasses import dataclass
+
+import boto3
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.extract import FileExtractorTask
