@@ -30,11 +30,11 @@ import boto3
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.extract import FileExtractorTask
-from   datalabs.etl.task import ETLException, ParameterSchemaMixin
+from   datalabs.etl.task import ETLException, TaskParameterSchemaMixin
 from   datalabs.task import add_schema
 
 
-class S3FileExtractorTask(FileExtractorTask, ParameterSchemaMixin):
+class S3FileExtractorTask(FileExtractorTask, TaskParameterSchemaMixin):
     def __init__(self, parameters):
         super().__init__(parameters)
 

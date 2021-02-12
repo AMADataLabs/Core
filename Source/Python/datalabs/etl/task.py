@@ -136,7 +136,7 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
         LOGGER.info('ETL task has finished')
 
 
-class ParameterSchemaMixin:
+class TaskParameterSchemaMixin:
     def _get_validated_parameters(self, parameter_class):
         self._parameters.variables['DATA'] = self._parameters or {}
         parameter_variables = {key.lower():value for key,value in self._parameters.variables.items()}

@@ -9,7 +9,7 @@ import boto3
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.load import LoaderTask
-from   datalabs.etl.task import ETLException, ParameterSchemaMixin
+from   datalabs.etl.task import ETLException, TaskParameterSchemaMixin
 from   datalabs.task import add_schema
 
 logging.basicConfig()
@@ -17,7 +17,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class S3FileLoaderTask(LoaderTask, ParameterSchemaMixin):
+class S3FileLoaderTask(LoaderTask, TaskParameterSchemaMixin):
     def __init__(self, parameters):
         super().__init__(parameters)
 

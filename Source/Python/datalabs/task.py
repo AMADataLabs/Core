@@ -76,11 +76,11 @@ class DatabaseTaskMixin:
         return database_class.from_parameters(parameters)
 
 
-def add_schema(cls):
-    model_fields = [key for key,value in cls.__dict__.items() if not key.startswith('_')]
+def add_schema(model_class):
+    model_fields = [key for key,value in model_class.__dict__.items() if not key.startswith('_')]
 
-    if '__dataclass_fields__' in cls.__dict__:
-        model_fields = [key for key,value in cls.__dataclass_fields__.items() if not key.startswith('_')]
+    if '__dataclass_fields__' in model_class.__dict__:
+        model_fields = [key for key,value in model_class.__dataclass_fields__.items() if not key.startswith('_')]
 
     class Schema(marshmallow.Schema):
         class Meta:
@@ -89,25 +89,45 @@ def add_schema(cls):
 
         @marshmallow.post_load
         def make_model(self, data, **kwargs):
-            if '__dataclass_fields__' in cls.__dict__:
-                self._fill_dataclass_defaults(data)
-            else:
-                self._fill_class_defaults(data)
+            model = None
 
-            model = cls(**data)
+            if '__dataclass_fields__' in model_class.__dict__:
+                model = self._make_dataclass_model(data)
+            else:
+                model = self._make_class_model(data)
+
+            return model
+
+        def _make_dataclass_model(self, data):
+                self._fill_dataclass_defaults(data)
+
+                return model_class(**data)
+
+        def _make_class_model(self, data):
+            self._fill_class_defaults(data)
+            model = model_class()
+
+            for field in data:
+                setattr(model, field, data[field])
 
             return model
 
         def _fill_dataclass_defaults(self, data):
-            fields = cls.__dict__['__dataclass_fields__']
+            fields = model_class.__dict__['__dataclass_fields__']
 
             for field in self.Meta.fields:
-                dataclass_field = cls.__dict__['__dataclass_fields__'][field]
+                dataclass_field = model_class.__dict__['__dataclass_fields__'][field]
 
                 if field not in data and dataclass_field.default.__class__.__name__ != '_MISSING_TYPE':
                     data[field] = dataclass_field.default
 
+        def _fill_class_defaults(self, data):
+            for field in self.Meta.fields:
+                default = getattr(model_class, field)
 
-    cls.SCHEMA = Schema()
+                if field not in data:
+                    data[field] = default
 
-    return cls
+    model_class.SCHEMA = Schema()
+
+    return model_class
