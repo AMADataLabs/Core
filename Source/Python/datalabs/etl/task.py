@@ -71,10 +71,10 @@ class ETLTask(task.Task):
     def _instantiate_component(cls, parameters, data=None):
         parameters.data = data
 
-        if 'CLASS' not in parameters.variables:
+        if 'TASK_CLASS' not in parameters.variables:
             raise ETLException(f'..._CLASS parameter not specified in {parameters.variables}')
 
-        Plugin = plugin.import_plugin(parameters.variables['CLASS'])  # pylint: disable=invalid-name
+        Plugin = plugin.import_plugin(parameters.variables['TASK_CLASS'])  # pylint: disable=invalid-name
 
         return Plugin(parameters)
 
@@ -97,7 +97,7 @@ class ETLComponentTask(task.Task):
 
 @dataclass
 class ETLComponentParameters:
-    database: dict
+    # database: dict
     variables: dict
     data: Any = None
 
@@ -117,19 +117,10 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
     @classmethod
     def _get_component_parameters(cls, var_tree, component):
         component_variables = var_tree.get_branch_values([component]) or {}
-        database_variables = None
-        database_parameters = {}
-
-        if 'DATABASE' in var_tree.get_branches([component]):
-            component_variables.pop('DATABASE')
-            database_variables = var_tree.get_branch_values([component, 'DATABASE'])
-            database_parameters = {key.lower():value for key, value in database_variables.items()}
 
         LOGGER.debug('Component variables: %s', component_variables)
-        LOGGER.debug('Database variables: %s', database_variables)
 
         return ETLComponentParameters(
-            database=database_parameters,
             variables=component_variables)
 
 
@@ -137,5 +128,14 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
     def _handle_exception(self, exception: ETLException):
         LOGGER.exception('Handling ETL task exception: %s', exception)
 
-    def _generate_response(self):
+    def _handle_success(self):
         LOGGER.info('ETL task has finished')
+
+
+class TaskParameterSchemaMixin:
+    def _get_validated_parameters(self, parameter_class):
+        self._parameters.variables['DATA'] = self._parameters or {}
+        parameter_variables = {key.lower():value for key, value in self._parameters.variables.items()}
+        schema = parameter_class.SCHEMA
+
+        return schema.load(parameter_variables)

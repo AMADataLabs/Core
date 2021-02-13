@@ -4,7 +4,8 @@ import logging
 import pandas
 import sqlalchemy as sa
 
-from   datalabs.access.orm import DatabaseTaskMixin
+from   datalabs.access.orm import Database
+from   datalabs.task import DatabaseTaskMixin
 from   datalabs.etl.load import LoaderTask
 from   datalabs.plugin import import_plugin
 
@@ -15,7 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _load(self):
-        with self._get_database(self._parameters.database) as database:
+        with self._get_database(Database, self._parameters.variables) as database:
             for model_class, data in zip(self._get_model_classes(), self._get_dataframes()):
                 self._add_data(database, model_class, data)
 
@@ -32,7 +33,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
 
     def _get_model_classes(self):
-        return [import_plugin(table) for table in self._parameters.variables['MODELCLASSES'].split(',')]
+        return [import_plugin(table) for table in self._parameters.variables['MODEL_CLASSES'].split(',')]
 
     def _get_dataframes(self):
         return [pandas.read_csv(io.StringIO(data)) for data in self._parameters.data]

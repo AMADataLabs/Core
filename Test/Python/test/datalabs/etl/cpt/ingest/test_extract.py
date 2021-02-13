@@ -28,10 +28,10 @@ def test_datestamp_conversion():
 
 @mock.patch('datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask._get_latest_path')
 # pylint: disable=redefined-outer-name, protected-access
-def test_extract_release_date(get_latest_path):
+def test_extract_release_date(get_latest_path, task_parameters):
     with mock.patch('datalabs.etl.s3.extract.boto3'):
         get_latest_path.return_value = 'AMA/CPT/20200131'
-        extractor = CPTTextDataExtractorTask(ETLComponentParameters(database={}, variables={}))
+        extractor = CPTTextDataExtractorTask(task_parameters)
         expected_release_date = '20200131'
         release_date = extractor._extract_release_date()
 
@@ -39,9 +39,9 @@ def test_extract_release_date(get_latest_path):
     assert release_date == expected_release_date
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_generate_release_types(release_schedule):
+def test_generate_release_types(release_schedule, task_parameters):
     with mock.patch('datalabs.etl.s3.extract.boto3'):
-        extractor = CPTTextDataExtractorTask(ETLComponentParameters(database={}, variables={}))
+        extractor = CPTTextDataExtractorTask(task_parameters)
         release_types = extractor._generate_release_types(release_schedule)
 
     assert len(release_types.columns.values) == 1
@@ -50,9 +50,9 @@ def test_generate_release_types(release_schedule):
     assert release_types.type.to_list() == ['ANNUAL', 'Q1', 'Q2', 'Q3', 'Q4', 'OTHER']
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_get_release_type(release_schedule):
+def test_get_release_type(release_schedule, task_parameters):
     with mock.patch('datalabs.etl.s3.extract.boto3'):
-        extractor = CPTTextDataExtractorTask(ETLComponentParameters(database={}, variables={}))
+        extractor = CPTTextDataExtractorTask(task_parameters)
         release_date = date(2020, 7, 1)
         expected_release_type = 'Q3'
         release_type = extractor._get_release_type(release_schedule, release_date)
@@ -60,9 +60,9 @@ def test_get_release_type(release_schedule):
     assert release_type == expected_release_type
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_generate_release_details(release_schedule):
+def test_generate_release_details(release_schedule, task_parameters):
     with mock.patch('datalabs.etl.s3.extract.boto3'):
-        extractor = CPTTextDataExtractorTask(ETLComponentParameters(database={}, variables={}))
+        extractor = CPTTextDataExtractorTask(task_parameters)
         release_date = date(2020, 7, 1)
         effective_date = date(2020, 10, 1)
         release_details = pandas.read_csv(
@@ -85,3 +85,19 @@ def release_schedule():
         "Q3": ["1-Jul", "1-Oct"],
         "Q4": ["1-Oct", "1-Jan"]
     }
+
+
+@pytest.fixture
+def task_parameters():
+    return ETLComponentParameters(
+        variables=dict(
+            ENDPOINT_URL='https://bogus.host.fqdn/path/file',
+            ACCESS_KEY='nviowaj4902hfisafh9402fdni0ph8',
+            SECRET_KEY='wr9e0afe90afohf90aw',
+            REGION_NAME='us-east-42',
+            BUCKET='jumanji',
+            BASE_PATH='dir1/dir2/dir3',
+            FILES='this_one.csv,that_one.csv,the_other_one.csv',
+            EXECUTION_TIME='19000101'
+        )
+    )

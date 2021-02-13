@@ -14,7 +14,7 @@ def test_loader_task(loader):
 
 @pytest.fixture
 def loader():
-    return Loader(ETLComponentParameters(database={}, variables={}, data=True))
+    return Loader(ETLComponentParameters(variables={}, data=True))
 
 
 class Loader(LoaderTask):

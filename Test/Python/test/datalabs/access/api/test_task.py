@@ -31,7 +31,7 @@ def test_task_is_not_abstract():
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_runs_with_database(parameters):
-    with mock.patch('datalabs.access.orm.Database') as database:
+    with mock.patch('datalabs.access.api.task.Database') as database:
         task = GoodTask(parameters)
         task.run()
 

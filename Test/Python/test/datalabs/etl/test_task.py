@@ -25,25 +25,22 @@ def test_etl_task_wrapper(environment_variables):
 
         wrapper.run()
 
-    assert wrapper._task._extractor.data == 'True'
-    assert wrapper._task._transformer.data == 'True'
-    assert wrapper._task._loader.data == 'True'
+    assert wrapper.task._extractor.data == 'True'
+    assert wrapper.task._transformer.data == 'True'
+    assert wrapper.task._loader.data == 'True'
 
 
 @pytest.fixture
 def parameters():
     return task.ETLParameters(
         extractor=task.ETLComponentParameters(
-            database={},
-            variables=dict(CLASS='test.datalabs.etl.test_extract.Extractor', thing=True)
+            variables=dict(TASK_CLASS='test.datalabs.etl.test_extract.Extractor', thing=True)
         ),
         transformer=task.ETLComponentParameters(
-            database={},
-            variables=dict(CLASS='test.datalabs.etl.test_transform.Transformer')
+            variables=dict(TASK_CLASS='test.datalabs.etl.test_transform.Transformer')
         ),
         loader=task.ETLComponentParameters(
-            database={},
-            variables=dict(CLASS='test.datalabs.etl.test_load.Loader')
+            variables=dict(TASK_CLASS='test.datalabs.etl.test_load.Loader')
         )
     )
 
@@ -52,13 +49,13 @@ def parameters():
 def environment_variables():
     current_env = os.environ.copy()
 
-    os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
-    os.environ['EXTRACTOR_thing'] = 'True'
+    os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
+    os.environ['EXTRACTOR__thing'] = 'True'
 
-    os.environ['TRANSFORMER_CLASS'] = 'test.datalabs.etl.test_transform.Transformer'
+    os.environ['TRANSFORMER__TASK_CLASS'] = 'test.datalabs.etl.test_transform.Transformer'
 
-    os.environ['LOADER_CLASS'] = 'test.datalabs.etl.test_load.Loader'
-    os.environ['EXTRACTOR_DATABASE_HOST'] = 'ping.pong.com'
+    os.environ['LOADER__TASK_CLASS'] = 'test.datalabs.etl.test_load.Loader'
+    os.environ['EXTRACTOR__DATABASE_HOST'] = 'ping.pong.com'
 
     yield os.environ
 

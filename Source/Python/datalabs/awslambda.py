@@ -20,7 +20,7 @@ class TaskWrapper(task.TaskWrapper):
         self._resolve_secrets_manager_environment_variables()
 
 
-    def _generate_response(self) -> (int, dict):
+    def _handle_success(self) -> (int, dict):
         return "Success"
 
     def _handle_exception(self, exception: Exception) -> (int, dict):

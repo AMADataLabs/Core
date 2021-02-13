@@ -16,7 +16,7 @@ class ExtractorTask(ETLComponentTask, ABC):
 
 class FileExtractorTask(ExtractorTask, ABC):
     def _extract_files(self, connection, files):
-        include_filenames = self._parameters.variables.get('INCLUDENAMES')
+        include_filenames = self._parameters.variables.get('INCLUDE_NAMES')
         data = [self._extract_file(connection, file) for file in files]
 
         decoded_data = []
