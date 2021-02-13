@@ -25,9 +25,9 @@ def test_etl_task_wrapper(environment_variables):
 
         wrapper.run()
 
-    assert wrapper._task._extractor.data == 'True'
-    assert wrapper._task._transformer.data == 'True'
-    assert wrapper._task._loader.data == 'True'
+    assert wrapper.task._extractor.data == 'True'
+    assert wrapper.task._transformer.data == 'True'
+    assert wrapper.task._loader.data == 'True'
 
 
 @pytest.fixture

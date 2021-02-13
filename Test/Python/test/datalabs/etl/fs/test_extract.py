@@ -26,7 +26,7 @@ def test_extractor_loads_correct_file(etl):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    extractor = etl._task._extractor
+    extractor = etl.task._extractor
 
     assert len(extractor.data) > 0
 

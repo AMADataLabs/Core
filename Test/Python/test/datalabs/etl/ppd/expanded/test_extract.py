@@ -26,7 +26,7 @@ def test_extractor_data_is_reasonable(etl):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    extractor = etl._task._extractor
+    extractor = etl.task._extractor
 
     LOGGER.debug('Extracted Data: %s', extractor.data)
     assert len(extractor.data) == 1

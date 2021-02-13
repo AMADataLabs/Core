@@ -29,13 +29,16 @@ def read_xcom(datestamp, **kwargs):
     print(kwargs['task_instance'].xcom_pull(task_ids='write_xcom'))
 
 
-with DAG(\
-    dag_id='test_xcom',\
-    default_args={'owner': 'airflow'},\
-    schedule_interval=None,\
-    start_date=days_ago(2),\
-    tags=['testing'],\
-) as dag:
+TEST_XCOM_DAG = DAG(
+    dag_id='test_xcom',
+    default_args={'owner': 'airflow'},
+    schedule_interval=None,
+    start_date=days_ago(2),
+    tags=['testing'],
+)
+
+
+with TEST_XCOM_DAG:
     WRITE_XCOM_TASK = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image="docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0",

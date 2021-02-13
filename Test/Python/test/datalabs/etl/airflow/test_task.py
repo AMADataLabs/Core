@@ -3,11 +3,9 @@ import json
 import logging
 import os
 
-import mock
 import pytest
 
 from   datalabs.etl.airflow.task import AirflowTaskWrapper, TaskDataCache
-import datalabs.etl.task as etl
 from   datalabs.etl.task import ETLComponentTask
 
 logging.basicConfig()
@@ -15,25 +13,28 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_parameters_are_parsed(args, environment):
-        task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
-        parameters = task_wrapper._get_task_parameters()
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    parameters = task_wrapper._get_task_parameters()
 
-        assert 'DAG_VARIABLE' in parameters.variables
-        assert parameters.variables['DAG_VARIABLE'] == 'tootie'
-        assert 'TASK_VARIABLE' in parameters.variables
-        assert parameters.variables['TASK_VARIABLE'] == 'fruity'
+    assert 'DAG_VARIABLE' in parameters.variables
+    assert parameters.variables['DAG_VARIABLE'] == 'tootie'
+    assert 'TASK_VARIABLE' in parameters.variables
+    assert parameters.variables['TASK_VARIABLE'] == 'fruity'
 
 
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_input_data_is_loaded(args, environment):
-        task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
-        parameters = task_wrapper._get_task_parameters()
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    parameters = task_wrapper._get_task_parameters()
 
-        assert parameters.data is not None
-        assert len(parameters.data) == 3
-        assert parameters.data == ['light', 'and', 'smoothie']
+    assert parameters.data is not None
+    assert len(parameters.data) == 3
+    assert parameters.data == ['light', 'and', 'smoothie']
 
 
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_wrapper_runs_successfully(args, environment):
     task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
 

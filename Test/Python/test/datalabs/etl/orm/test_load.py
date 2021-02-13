@@ -7,11 +7,10 @@ import pandas
 import pytest
 
 from   datalabs.access.orm import Database
-from   datalabs.task import DatabaseTaskMixin
 from   datalabs.etl.orm.load import ORMLoaderTask
 import datalabs.etl.task as task
 
-from   test.datalabs.access.model import Base, Foo, Bar, Poof  # pylint: disable=wrong-import-order
+from   test.datalabs.access.model import Base  # pylint: disable=wrong-import-order
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_orm_loader(components):
-    with mock.patch('datalabs.etl.orm.load.Database') as database:
+    with mock.patch('datalabs.etl.orm.load.Database'):
         loader = ORMLoaderTask(components)
         loader._load()
 
@@ -32,8 +31,8 @@ def components(database, file, data):
         variables=dict(
             TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
             MODEL_CLASSES='test.datalabs.access.model.Foo,'
-                         'test.datalabs.access.model.Bar,'
-                         'test.datalabs.access.model.Poof',
+                          'test.datalabs.access.model.Bar,'
+                          'test.datalabs.access.model.Poof',
             thing=True,
             DATABASE_BACKEND='sqlite',
             DATABASE_NAME=file,

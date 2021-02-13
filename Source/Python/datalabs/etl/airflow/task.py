@@ -26,8 +26,8 @@ class AirflowTaskWrapper(task.TaskWrapper):
         LOGGER.exception('Handling Airflow task exception: %s', exception)
 
     def _handle_success(self):
-        cache_plugin = self._get_cache_plugin(self._task._parameters.variables)
-        cache_plugin.load_data(self._task.data)
+        cache_plugin = self._get_cache_plugin(self._task_parameters.variables)  # pylint: disable=no-member
+        cache_plugin.load_data(self.task.data)
 
         LOGGER.info('Airflow task has finished')
 
@@ -47,9 +47,9 @@ class AirflowTaskWrapper(task.TaskWrapper):
         if 'CLASS' in cache_variables:
             plugin_name = cache_variables.pop('CLASS')
 
-        TaskDataCache = import_plugin(plugin_name)  # pylint: disable=invalid-name
+        TaskDataCachePlugin = import_plugin(plugin_name)  # pylint: disable=invalid-name
 
-        return TaskDataCache(cache_variables)
+        return TaskDataCachePlugin(cache_variables)
 
     @classmethod
     def _get_dag_parameters_from_environment(cls, dag_id):

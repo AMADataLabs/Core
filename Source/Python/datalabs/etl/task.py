@@ -137,9 +137,5 @@ class TaskParameterSchemaMixin:
         self._parameters.variables['DATA'] = self._parameters or {}
         parameter_variables = {key.lower():value for key, value in self._parameters.variables.items()}
         schema = parameter_class.SCHEMA
-        result = schema.load(parameter_variables)
-
-        # if result.errors:
-        #     raise ETLException('Parameter validation failed: %s', result.errors)
 
         return schema.load(parameter_variables)

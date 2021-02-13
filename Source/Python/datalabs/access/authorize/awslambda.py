@@ -42,4 +42,4 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
         return dict(message=exception.message)
 
     def _handle_success(self) -> (int, dict):
-        return self._task.policy_document
+        return self.task.policy_document

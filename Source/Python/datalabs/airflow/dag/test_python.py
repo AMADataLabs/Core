@@ -25,15 +25,18 @@ def on_success_callback(context):
     print(f'Success: {task_instances}')
 
 
-with DAG(\
-    dag_id='test_python',\
-    default_args={'owner': 'airflow'},\
-    schedule_interval=None,\
-    start_date=days_ago(2),\
-    tags=['testing'],\
-    on_failure_callback=on_failure_callback,\
-    on_success_callback=on_success_callback,\
-) as dag:
+TEST_PYTHON_DAG = DAG(
+    dag_id='test_python',
+    default_args={'owner': 'airflow'},
+    schedule_interval=None,
+    start_date=days_ago(2),
+    tags=['testing'],
+    on_failure_callback=on_failure_callback,
+    on_success_callback=on_success_callback,
+)
+
+
+with TEST_PYTHON_DAG:
     DO_IT = PythonOperator(
         task_id="do-it",
         python_callable=print_that,

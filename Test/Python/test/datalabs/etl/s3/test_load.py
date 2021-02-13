@@ -1,7 +1,4 @@
 """ source: datalabs.etl.s3.extract """
-import logging
-import os
-
 import mock
 import pytest
 
@@ -9,12 +6,12 @@ import datalabs.etl.s3.load as s3
 import datalabs.etl.task as etl
 
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name, protected-access
 def test_parameters_are_deserialized(parameters):
     with mock.patch('boto3.client'):
         task = s3.S3FileLoaderTask(parameters)
 
-        assert isinstance(task._validated_parameters, s3.S3FileLoaderParameters)
+        assert isinstance(task._parameters, s3.S3FileLoaderParameters)
 
 
 @pytest.fixture

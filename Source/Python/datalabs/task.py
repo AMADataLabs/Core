@@ -31,19 +31,20 @@ class TaskException(BaseException):
 
 class TaskWrapper(ABC):
     def __init__(self, task_class, parameters=None):
-        self._task_class = task_class
+        self.task = None
+        self.task_class = task_class
         self._parameters = parameters or {}
-        self._task = None
+        self._task_parameters = None
 
-        if not hasattr(self._task_class, 'run'):
+        if not hasattr(self.task_class, 'run'):
             raise TypeError('Task class does not have a "run" method.')
 
     def run(self):
-        task_parameters = self._get_task_parameters()
-        self._task = self._task_class(task_parameters)
+        self._task_parameters = self._get_task_parameters()
+        self.task = self.task_class(self._task_parameters)
 
         try:
-            self._task.run()
+            self.task.run()
 
             response = self._handle_success()
         except TaskException as exception:
