@@ -38,14 +38,14 @@ class S3FileExtractorTask(FileExtractorTask, TaskParameterSchemaMixin):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-        self._parameters = self._get_validated_parameters(S3FileExtractorParameters)
+        self._validated_parameters = self._get_validated_parameters(S3FileExtractorParameters)
 
         self._s3 = boto3.client(
             's3',
-            endpoint_url=self._parameters.endpoint_url,
-            aws_access_key_id=self._parameters.access_key,
-            aws_secret_access_key=self._parameters.secret_key,
-            region_name=self._parameters.region_name
+            endpoint_url=self._validated_parameters.endpoint_url,
+            aws_access_key_id=self._validated_parameters.access_key,
+            aws_secret_access_key=self._validated_parameters.secret_key,
+            region_name=self._validated_parameters.region_name
         )
 
     def _extract(self):
@@ -60,17 +60,17 @@ class S3FileExtractorTask(FileExtractorTask, TaskParameterSchemaMixin):
         if release_folder is None:
             release_folders = sorted(
                 self._listdir(
-                    self._parameters.bucket,
-                    self._parameters.base_path
+                    self._validated_parameters.bucket,
+                    self._validated_parameters.base_path
                 )
             )
 
             release_folder = release_folders[-1]
 
-        return '/'.join((self._parameters.base_path, release_folder))
+        return '/'.join((self._validated_parameters.base_path, release_folder))
 
     def _get_files(self, base_path):
-        unresolved_files = ['/'.join((base_path, file)) for file in self._parameters.files.split(',')]
+        unresolved_files = ['/'.join((base_path, file)) for file in self._validated_parameters.files.split(',')]
         resolved_files = []
 
         for file in unresolved_files:
@@ -86,16 +86,16 @@ class S3FileExtractorTask(FileExtractorTask, TaskParameterSchemaMixin):
     # pylint: disable=arguments-differ
     def _extract_file(self, s3, file_path):
         try:
-            response = s3.get_object(Bucket=self._parameters.bucket, Key=file_path)
+            response = s3.get_object(Bucket=self._validated_parameters.bucket, Key=file_path)
         except Exception as exception:
             raise ETLException(
-                f"Unable to get file '{file_path}' from S3 bucket '{self._parameters.bucket}': {exception}"
+                f"Unable to get file '{file_path}' from S3 bucket '{self._validated_parameters.bucket}': {exception}"
             )
 
         return response['Body'].read()
 
     def _get_execution_date(self):
-        execution_time = self._parameters.execution_time
+        execution_time = self._validated_parameters.execution_time
         execution_date = None
 
         if execution_time:
@@ -131,19 +131,21 @@ class S3FileExtractorTask(FileExtractorTask, TaskParameterSchemaMixin):
     def _find_s3_object(self, wildcard_file_path):
         file_path_parts = wildcard_file_path.split('*')
         search_results = self._s3.list_objects_v2(
-            Bucket=self._parameters.bucket,
+            Bucket=self._validated_parameters.bucket,
             Prefix=file_path_parts[0]
         )
 
         return [a['Key'] for a in search_results['Contents'] if a['Key'].endswith(file_path_parts[1])]
 
 
+# pylint: disable=too-many-ancestors
 class S3UnicodeTextFileExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('utf-8', errors='backslashreplace')
 
 
+# pylint: disable=too-many-ancestors
 class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
@@ -152,6 +154,7 @@ class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
 
 @add_schema
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class S3FileExtractorParameters:
     bucket: str
     base_path: str

@@ -117,14 +117,10 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
     @classmethod
     def _get_component_parameters(cls, var_tree, component):
         component_variables = var_tree.get_branch_values([component]) or {}
-        database_variables = None
-        database_parameters = {}
 
         LOGGER.debug('Component variables: %s', component_variables)
-        # LOGGER.debug('Database variables: %s', database_variables)
 
         return ETLComponentParameters(
-            # database=database_parameters,
             variables=component_variables)
 
 
@@ -139,11 +135,11 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
 class TaskParameterSchemaMixin:
     def _get_validated_parameters(self, parameter_class):
         self._parameters.variables['DATA'] = self._parameters or {}
-        parameter_variables = {key.lower():value for key,value in self._parameters.variables.items()}
+        parameter_variables = {key.lower():value for key, value in self._parameters.variables.items()}
         schema = parameter_class.SCHEMA
         result = schema.load(parameter_variables)
 
-        if result.errors:
-            raise ETLException('Parameter validation failed: %s', str(result.errors))
+        # if result.errors:
+        #     raise ETLException('Parameter validation failed: %s', result.errors)
 
-        return schema.load(parameter_variables).data
+        return schema.load(parameter_variables)

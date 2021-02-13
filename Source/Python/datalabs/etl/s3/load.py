@@ -21,26 +21,26 @@ class S3FileLoaderTask(LoaderTask, TaskParameterSchemaMixin):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-        self._parameters = self._get_validated_parameters(S3FileLoaderParameters)
+        self._validated_parameters = self._get_validated_parameters(S3FileLoaderParameters)
 
         self._s3 = boto3.client(
             's3',
-            endpoint_url=self._parameters.endpoint_url,
-            aws_access_key_id=self._parameters.access_key,
-            aws_secret_access_key=self._parameters.secret_key,
-            region_name=self._parameters.region_name
+            endpoint_url=self._validated_parameters.endpoint_url,
+            aws_access_key_id=self._validated_parameters.access_key,
+            aws_secret_access_key=self._validated_parameters.secret_key,
+            region_name=self._validated_parameters.region_name
         )
 
     def _load(self):
         current_path = self._get_current_path()
-        files = self._parameters.files.split(',')
+        files = self._validated_parameters.files.split(',')
 
-        return [self._load_file(current_path, file, data) for file, data in zip(files, self._parameters.data)]
+        return [self._load_file(current_path, file, data) for file, data in zip(files, self._validated_parameters.data)]
 
     def _get_current_path(self):
         current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
 
-        return '/'.join((self._parameters.base_path, current_date))
+        return '/'.join((self._validated_parameters.base_path, current_date))
 
     def _load_file(self, base_path, file, data):
         file_path = '/'.join((base_path, file))
@@ -54,13 +54,13 @@ class S3FileLoaderTask(LoaderTask, TaskParameterSchemaMixin):
         b64_md5_hash = base64.b64encode(md5_hash)
 
         return self._s3.put_object(
-            Bucket=self._parameters.bucket,
+            Bucket=self._validated_parameters.bucket,
             Key=file_path,
             Body=body,
             ContentMD5=b64_md5_hash.decode('utf-8'))
 
     def _get_execution_date(self):
-        execution_time = self._parameters.execution_time
+        execution_time = self._validated_parameters.execution_time
         execution_date = None
 
         if execution_time:
@@ -85,6 +85,7 @@ class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
 
 @add_schema
 @dataclass
+# pylint: disable=too-many-instance-attributes
 class S3FileLoaderParameters:
     bucket: str
     base_path: str

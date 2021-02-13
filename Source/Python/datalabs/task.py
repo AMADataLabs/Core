@@ -69,7 +69,7 @@ class DatabaseTaskMixin:
     def _get_database(cls, database_class: Database, variables: dict):
         parameters = {}
 
-        for key,value in variables.items():
+        for key, value in variables.items():
             if key.startswith('DATABASE_'):
                 parameters[key.lower()] = value.lower()
 
@@ -77,10 +77,10 @@ class DatabaseTaskMixin:
 
 
 def add_schema(model_class):
-    model_fields = [key for key,value in model_class.__dict__.items() if not key.startswith('_')]
+    model_fields = [key for key, value in model_class.__dict__.items() if not key.startswith('_')]
 
     if '__dataclass_fields__' in model_class.__dict__:
-        model_fields = [key for key,value in model_class.__dataclass_fields__.items() if not key.startswith('_')]
+        model_fields = [key for key, value in model_class.__dataclass_fields__.items() if not key.startswith('_')]
 
     class Schema(marshmallow.Schema):
         class Meta:
@@ -88,6 +88,7 @@ def add_schema(model_class):
             fields = copy.deepcopy(model_fields)
 
         @marshmallow.post_load
+        #pylint: disable=unused-argument
         def make_model(self, data, **kwargs):
             model = None
 
@@ -99,9 +100,9 @@ def add_schema(model_class):
             return model
 
         def _make_dataclass_model(self, data):
-                self._fill_dataclass_defaults(data)
+            self._fill_dataclass_defaults(data)
 
-                return model_class(**data)
+            return model_class(**data)
 
         def _make_class_model(self, data):
             self._fill_class_defaults(data)
@@ -113,8 +114,6 @@ def add_schema(model_class):
             return model
 
         def _fill_dataclass_defaults(self, data):
-            fields = model_class.__dict__['__dataclass_fields__']
-
             for field in self.Meta.fields:
                 dataclass_field = model_class.__dict__['__dataclass_fields__'][field]
 

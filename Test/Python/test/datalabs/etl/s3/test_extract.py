@@ -9,9 +9,12 @@ import datalabs.etl.s3.extract as s3
 import datalabs.etl.task as etl
 
 
+# pylint: disable=redefined-outer-name
 def test_parameters_are_deserialized(parameters):
     with mock.patch('boto3.client'):
         task = s3.S3FileExtractorTask(parameters)
+
+        assert isinstance(task._validated_parameters, s3.S3FileExtractorParameters)
 
 
 @pytest.fixture

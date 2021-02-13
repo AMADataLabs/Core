@@ -8,7 +8,7 @@ import pytest
 
 from   datalabs.etl.airflow.task import AirflowTaskWrapper, TaskDataCache
 import datalabs.etl.task as etl
-import datalabs.task as task
+from   datalabs.etl.task import ETLComponentTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -33,7 +33,13 @@ def test_task_input_data_is_loaded(args, environment):
         assert len(parameters.data) == 3
         assert parameters.data == ['light', 'and', 'smoothie']
 
-class TestTask(task.Task):
+
+def test_task_wrapper_runs_successfully(args, environment):
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+
+    task_wrapper.run()
+
+class TestTask(ETLComponentTask):
     def run(self):
         pass
 

@@ -8,7 +8,7 @@ LOGGER.setLevel(logging.INFO)
 
 
 class VariableTree:
-    def __init__(self, root, separator=None):
+    def __init__(self, root):
         self._root = root
 
     def __repr__(self):

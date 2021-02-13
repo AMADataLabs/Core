@@ -1,10 +1,8 @@
+''' TaskWrapper for Airflow tasks providing caching of task data. '''
 from   abc import ABC, abstractmethod
-import json
 import logging
-import os
 
 from   datalabs.access.environment import VariableTree
-import datalabs.awslambda as awslambda
 import datalabs.etl.task as etl
 from   datalabs.plugin import import_plugin
 import datalabs.task as task
@@ -28,14 +26,14 @@ class AirflowTaskWrapper(task.TaskWrapper):
         LOGGER.exception('Handling Airflow task exception: %s', exception)
 
     def _handle_success(self):
-        cache_plugin = self._get_cache_plugin(parameters.variables)
+        cache_plugin = self._get_cache_plugin(self._task._parameters.variables)
         cache_plugin.load_data(self._task.data)
 
         LOGGER.info('Airflow task has finished')
 
     def _get_dag_task_parameters(self):
         args = self._parameters
-        dag_id, task_id, datestamp = args[1].split('__')
+        dag_id, task_id, _ = args[1].split('__')
         dag_parameters = self._get_dag_parameters_from_environment(dag_id.upper())
         task_parameters = self._get_task_parameters_from_environment(dag_id.upper(), task_id.upper())
 
@@ -49,9 +47,9 @@ class AirflowTaskWrapper(task.TaskWrapper):
         if 'CLASS' in cache_variables:
             plugin_name = cache_variables.pop('CLASS')
 
-        Plugin = import_plugin(plugin_name)
+        TaskDataCache = import_plugin(plugin_name)  # pylint: disable=invalid-name
 
-        return Plugin(cache_variables)
+        return TaskDataCache(cache_variables)
 
     @classmethod
     def _get_dag_parameters_from_environment(cls, dag_id):
@@ -90,7 +88,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
         return var_tree.get_branch_values(branch)
 
 
-class TaskDataCache:
+class TaskDataCache(ABC):
     def __init__(self, cache_variables):
         self._variables = cache_variables
 

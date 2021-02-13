@@ -1,10 +1,11 @@
 """ source: datalabs.task """
 from   dataclasses import dataclass
 
+from   marshmallow.exceptions import ValidationError
 import pytest
 
-from datalabs.task import Task, TaskWrapper, add_schema
-
+from   datalabs.task import Task, TaskWrapper, add_schema
+from   marshmallow.exceptions import ValidationError
 
 def test_task_is_abstract():
     with pytest.raises(TypeError):
@@ -38,18 +39,16 @@ def test_adding_schema_to_dataclass_yields_correct_schema_fields(model_dataclass
 
 
 def test_adding_schema_to_dataclass_yields_correct_schema_field_defaults(model_dataclass):
-    model = model_dataclass.SCHEMA.load(dict(foo='Foo')).data
+    model = model_dataclass.SCHEMA.load(dict(foo='Foo'))
 
     assert model.foo == 'Foo'
     assert model.bar == 'Bar'
 
 
 def test_deserializing_dataclass_with_none_parameter_yields_deserialization_error(model_dataclass):
-    result = model_dataclass.SCHEMA.load(dict(foo=None))
+    with pytest.raises(ValidationError):
+        model_dataclass.SCHEMA.load(dict(foo=None))
 
-    assert not isinstance(result.data, model_dataclass)
-    assert result.errors is not None
-    assert 'foo' in result.errors
 
 
 def test_deserializing_dataclass_with_none_default_is_ok():
@@ -59,7 +58,7 @@ def test_deserializing_dataclass_with_none_default_is_ok():
         foo: str = None
         bar: str = 'Bar'
 
-    model = Model.SCHEMA.load(dict()).data
+    model = Model.SCHEMA.load(dict())
 
     assert model.foo is None
 
@@ -73,7 +72,7 @@ def test_adding_schema_to_class_yields_correct_schema_fields(model_class):
 
 
 def test_adding_schema_to_class_yields_correct_schema_field_defaults(model_class):
-    model = model_class.SCHEMA.load(dict(foo='Foo')).data
+    model = model_class.SCHEMA.load(dict(foo='Foo'))
 
     assert model.foo == 'Foo'
     assert model.bar == 'Bar'

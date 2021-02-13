@@ -1,5 +1,4 @@
-from   marshmallow import Schema, fields
-
+''' Task Data Cache implementation for using S3 '''
 from   datalabs.etl.airflow.task import TaskDataCache
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.s3.load import S3FileLoaderTask
