@@ -1,13 +1,13 @@
 TASK_WRAPPER_CLASS=datalabs.etl.task.ETLTaskWrapper
 TASK_CLASS=datalabs.etl.task.ETLTask
 
-EXTRACTOR_CLASS=datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask
-EXTRACTOR_PATH=/mnt/u/Source Files/Data Analytics/Baseline/data
-EXTRACTOR_FILES=PhysicianProfessionalDataFile_*
+EXTRACTOR__CLASS=datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask
+EXTRACTOR__PATH=/mnt/u/Source Files/Data Analytics/Baseline/data
+EXTRACTOR__FILES=PhysicianProfessionalDataFile_*
 
-TRANSFORMER_CLASS=datalabs.etl.ppd.expanded.transform.ParseToPPDTransformerTask
+TRANSFORMER__CLASS=datalabs.etl.ppd.expanded.transform.ParseToPPDTransformerTask
 
-LOADER_CLASS=datalabs.etl.fs.load.LocalUnicodeTextFileLoaderTask
-# LOADER_PATH=/mnt/u/Source Files/Data Analytics/Baseline/data/expanded
-LOADER_PATH=/tmp
-LOADER_FILES=expanded/PhysicianProfessionalDataFile.csv,archive/PhysicianProfessionalDataFile_%Y-%m-%d.csv
+LOADER__CLASS=datalabs.etl.fs.load.LocalUnicodeTextFileLoaderTask
+# LOADER__PATH=/mnt/u/Source Files/Data Analytics/Baseline/data/expanded
+LOADER__PATH=/tmp
+LOADER__FILES=expanded/PhysicianProfessionalDataFile.csv,archive/PhysicianProfessionalDataFile_%Y-%m-%d.csv

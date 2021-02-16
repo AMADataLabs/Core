@@ -26,7 +26,7 @@ def test_extractor_loads_correct_file(etl):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    extractor = etl._task._extractor
+    extractor = etl.task._extractor
 
     assert len(extractor.data) > 0
 
@@ -39,13 +39,13 @@ def environment(extractor_file):
     os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.task.ETLTaskWrapper'
     os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
 
-    os.environ['EXTRACTOR_CLASS'] = 'datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask'
-    os.environ['EXTRACTOR_BASEPATH'] = os.path.dirname(extractor_file)
-    os.environ['EXTRACTOR_FILES'] = 'PhysicianProfessionalDataFile_*'
+    os.environ['EXTRACTOR__TASK_CLASS'] = 'datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask'
+    os.environ['EXTRACTOR__BASE_PATH'] = os.path.dirname(extractor_file)
+    os.environ['EXTRACTOR__FILES'] = 'PhysicianProfessionalDataFile_*'
 
-    os.environ['TRANSFORMER_CLASS'] = 'datalabs.etl.transform.PassThroughTransformerTask'
+    os.environ['TRANSFORMER__TASK_CLASS'] = 'datalabs.etl.transform.PassThroughTransformerTask'
 
-    os.environ['LOADER_CLASS'] = 'datalabs.etl.load.ConsoleLoaderTask'
+    os.environ['LOADER__TASK_CLASS'] = 'datalabs.etl.load.ConsoleLoaderTask'
 
     yield os.environ
 

@@ -30,9 +30,9 @@ RUN find ./ -name "*.env" -exec \
    --vars pythonpath=/ContactID,$template_vars \;
 RUN ./Script/bundle-project -i --directory ./ ContactID
 
+RUN mkdir -p /root/.ssh
+RUN echo "eft.ama-assn.org,10.195.141.136 ssh-rsa AAAAB3NzaC1yc2EAAAABEQAAAQEAqQX4RaqXGy0/QjCSPrDVrmY8jMKwXXVEvD0iB8Q2q8DE/X5wqTuFR2Dg6KZygUo7IERLMMUVYTzsnDwHF/3kXNFtBtB0oOuV81LNSXe7afKBUzmOwHwAWhM99MXrb6R7bQ9XgefXYxGtFlpaPoBGrOs0+YUFiSYAVsl5EBe5QVpY4myfX9aBpjzHcwFXviviC9ytJNunhVxi2WL3ebk3fCkf0XcKPc+pbWfhUzERPuWhHnjDyYI5/GStMdIaGs5i5OYboMQJC60DDhECeHnjuo5MvNxq7P4W+pEUZUuj85z7Kf3SseFy7j1q34sTEn1UsVKimv1BP32f+6vv08m6tw==" > /root/.ssh/known_hosts
+
 RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
-
-
-

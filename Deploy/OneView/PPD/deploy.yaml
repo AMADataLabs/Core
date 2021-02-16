@@ -21,22 +21,22 @@ spec:
         # - -c
         # - "'import awslambda; print(awslambda.handler(None, None))'"
         env:
-        - name: EXTRACTOR_DATABASE_USERNAME
+        - name: EXTRACTOR__DATABASE_USERNAME
           valueFrom:
             secretKeyRef:
               name: hsg-data-labs-ods
               key: username
-        - name: EXTRACTOR_DATABASE_PASSWORD
+        - name: EXTRACTOR__DATABASE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: hsg-data-labs-ods
               key: password
-        - name: LOADER_DATABASE_USERNAME
+        - name: LOADER__DATABASE_USERNAME
           valueFrom:
             secretKeyRef:
               name: hsg-data-labs-postgres
               key: username
-        - name: LOADER_DATABASE_PASSWORD
+        - name: LOADER__DATABASE_PASSWORD
           valueFrom:
             secretKeyRef:
               name: hsg-data-labs-postgres

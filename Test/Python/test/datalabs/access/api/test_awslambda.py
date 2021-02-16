@@ -28,11 +28,11 @@ def test_task_wrapper_handle_exception():
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_task_wrapper_generate_response(event):
+def test_task_wrapper_handle_success(event):
     with mock.patch('datalabs.access.parameter.aws.boto3') as mock_boto3:
         wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
         wrapper.run()
-        response = wrapper._generate_response()
+        response = wrapper._handle_success()
 
     assert response['statusCode'] == 200
     assert response['body'] == json.dumps(dict())

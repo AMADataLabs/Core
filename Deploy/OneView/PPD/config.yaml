@@ -6,19 +6,19 @@ metadata:
 data:
     TASK_CLASS: datalabs.etl.task.ETLTask
     TASK_WRAPPER_CLASS: datalabs.etl.awslambda.ETLTaskWrapper
-    EXTRACTOR_DATABASE_NAME: eprdods
-    EXTRACTOR_DATABASE_HOST: rdbp1190.ama-assn.org
-    EXTRACTOR_DATABASE_PORT: "54150"
-    EXTRACTOR_CLASS: datalabs.etl.jdbc.extract.JDBCExtractor
-    EXTRACTOR_SQL: SELECT * FROM ODS.ODS_PPD_FILE;
-    EXTRACTOR_DRIVER: com.ibm.db2.jcc.DB2Jcc
-    EXTRACTOR_DRIVERTYPE: db2
-    EXTRACTOR_JARPATH: ./db2jcc4.jar
-    TRANSFORMER_CLASS: datalabs.etl.oneview.ppd.transform.PPDTransformer
-    LOADER_CLASS: datalabs.etl.orm.load.ORMLoader
-    LOADER_MODELCLASSES: datalabs.model.masterfile.oneview.Physician
-    LOADER_DATABASE_BACKEND: postgresql+psycopg2
-    LOADER_DATABASE_HOST: hsg-data-labs-db.hsg-data-labs-dev.svc.cluster.local
-    LOADER_DATABASE_PORT: "5432"
-    LOADER_DATABASE_NAME: datalabs
-    LOADER_TABLES: physician
+    EXTRACTOR__DATABASE_NAME: eprdods
+    EXTRACTOR__DATABASE_HOST: rdbp1190.ama-assn.org
+    EXTRACTOR__DATABASE_PORT: "54150"
+    EXTRACTOR__CLASS: datalabs.etl.jdbc.extract.JDBCExtractor
+    EXTRACTOR__SQL: SELECT * FROM ODS.ODS_PPD_FILE;
+    EXTRACTOR__DRIVER: com.ibm.db2.jcc.DB2Jcc
+    EXTRACTOR__DRIVERTYPE: db2
+    EXTRACTOR__JARPATH: ./db2jcc4.jar
+    TRANSFORMER__CLASS: datalabs.etl.oneview.ppd.transform.PPDTransformer
+    LOADER__CLASS: datalabs.etl.orm.load.ORMLoader
+    LOADER__MODELCLASSES: datalabs.model.masterfile.oneview.Physician
+    LOADER__DATABASE_BACKEND: postgresql+psycopg2
+    LOADER__DATABASE_HOST: hsg-data-labs-db.hsg-data-labs-dev.svc.cluster.local
+    LOADER__DATABASE_PORT: "5432"
+    LOADER__DATABASE_NAME: datalabs
+    LOADER__TABLES: physician

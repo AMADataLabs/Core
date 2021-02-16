@@ -25,7 +25,7 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
         return data
 
     def _get_file_paths(self, sftp):
-        base_path = self._parameters.variables['BASEPATH']
+        base_path = self._parameters.variables['BASE_PATH']
         unresolved_files = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
         resolved_files = []
 

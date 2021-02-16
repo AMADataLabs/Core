@@ -23,11 +23,11 @@ def components():
             NAME='eprdods',
             PORT='54150',
             HOST='rdbp1190',
-            username=os.getenv('EXTRACTOR_DATABASE_USERNAME'),
-            password=os.getenv('EXTRACTOR_DATABASE_PASSWORD')
+            username=os.getenv('EXTRACTOR__DATABASE_USERNAME'),
+            password=os.getenv('EXTRACTOR__DATABASE_PASSWORD')
         ),
         variables=dict(
-            CLASS='test.datalabs.etl.jdbc.test_extract.JDBCExtractor',
+            TASK_CLASS='test.datalabs.etl.jdbc.test_extract.JDBCExtractor',
             thing=True,
             SQL='SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;',
             DRIVER='com.ibm.db2.jcc.DB2Jcc',
@@ -40,17 +40,17 @@ def components():
 def environment_variables():
     current_env = os.environ.copy()
 
-    os.environ['EXTRACTOR_CLASS'] = 'test.datalabs.etl.jdbc.test_extract.JDBCExtractor'
-    os.environ['EXTRACTOR_DATABASE_NAME'] = 'eprdods'
-    # os.environ['EXTRACTOR_DATABASE_USERNAME'] = <set manually in environment>
-    # os.environ['EXTRACTOR_DATABASE_PASSWORD'] = <set manually in environment>
-    os.environ['EXTRACTOR_DATABASE_HOST'] = 'rdbp1190'
-    os.environ['EXTRACTOR_DATABASE_PORT'] = '54150'
+    os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.jdbc.test_extract.JDBCExtractor'
+    os.environ['EXTRACTOR__DATABASE_NAME'] = 'eprdods'
+    # os.environ['EXTRACTOR__DATABASE_USERNAME'] = <set manually in environment>
+    # os.environ['EXTRACTOR__DATABASE_PASSWORD'] = <set manually in environment>
+    os.environ['EXTRACTOR__DATABASE_HOST'] = 'rdbp1190'
+    os.environ['EXTRACTOR__DATABASE_PORT'] = '54150'
 
-    os.environ['EXTRACTOR_SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;'
-    os.environ['EXTRACTOR_DRIVER'] = 'com.ibm.db2.jcc.DB2Jcc'
-    os.environ['EXTRACTOR_DRIVER_TYPE'] = 'db2'
-    os.environ['EXTRACTOR_JAR_PATH'] = './db2jcc4.jar'
+    os.environ['EXTRACTOR__SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;'
+    os.environ['EXTRACTOR__DRIVER'] = 'com.ibm.db2.jcc.DB2Jcc'
+    os.environ['EXTRACTOR__DRIVER_TYPE'] = 'db2'
+    os.environ['EXTRACTOR__JAR_PATH'] = './db2jcc4.jar'
 
     yield os.environ
 

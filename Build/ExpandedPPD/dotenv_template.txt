@@ -11,34 +11,34 @@ TASK_CLASS=datalabs.etl.task.ETLTask
 TASK_WRAPPER_CLASS=datalabs.etl.task.ETLTaskWrapper
 
 # ---------- Local Filesystem Extractor -----------
-# EXTRACTOR_CLASS=datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask
-# EXTRACTOR_PATH=/mnt/u/Source Files/Data Analytics/Baseline/data/expanded
+# EXTRACTOR__TASK_CLASS=datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask
+# EXTRACTOR__PATH=/mnt/u/Source Files/Data Analytics/Baseline/data/expanded
 
 # ---------- SFTP Extractor -----------
-EXTRACTOR_CLASS=datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask
-# EXTRACTOR_PATH=Data Analytics/Baseline/data/expanded
-# EXTRACTOR_PATH=Data Analytics/Test/Baseline/data/expanded
-EXTRACTOR_PATH={{ extractor_path }}
-EXTRACTOR_HOST=eft.ama-assn.org
-EXTRACTOR_USERNAME={{ sftp_username }}
-EXTRACTOR_PASSWORD={{ sftp_password }}
+EXTRACTOR__TASK_CLASS=datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask
+# EXTRACTOR__PATH=Data Analytics/Baseline/data/expanded
+# EXTRACTOR__PATH=Data Analytics/Test/Baseline/data/expanded
+EXTRACTOR__PATH={{ extractor_path }}
+EXTRACTOR__HOST=eft.ama-assn.org
+EXTRACTOR__USERNAME={{ sftp_username }}
+EXTRACTOR__PASSWORD={{ sftp_password }}
 
-EXTRACTOR_FILES=ppd_analysis_file_*.txt
+EXTRACTOR__FILES=ppd_analysis_file_*.txt
 
-TRANSFORMER_CLASS=datalabs.etl.ppd.expanded.transform.ParseToPPDTransformerTask
-TRANSFORMER_PARSERS=datalabs.curate.ppd.expanded.parse.ExpandedPPDParser
+TRANSFORMER__TASK_CLASS=datalabs.etl.ppd.expanded.transform.ParseToPPDTransformerTask
+TRANSFORMER__PARSERS=datalabs.curate.ppd.expanded.parse.ExpandedPPDParser
 
 # ---------- Local Filesystem Loader -----------
-# LOADER_CLASS=datalabs.etl.fs.load.LocalUnicodeTextFileLoaderTask
-# LOADER_PATH=/mnt/u/Source Files/Data Analytics/Data-Science/Data/PPD/Expanded
+# LOADER__TASK_CLASS=datalabs.etl.fs.load.LocalUnicodeTextFileLoaderTask
+# LOADER__PATH=/mnt/u/Source Files/Data Analytics/Data-Science/Data/PPD/Expanded
 
 # ---------- SFTP Extractor -----------
-LOADER_CLASS=datalabs.etl.sftp.load.SFTPUnicodeTextFileLoaderTask
-# LOADER_PATH=Data Analytics/Data-Science/Data/PPD/Expanded
-# LOADER_PATH=Data Analytics/Test/Data-Science/Data/PPD/Expanded
-LOADER_PATH={{ loader_path }}
-LOADER_HOST=eft.ama-assn.org
-LOADER_USERNAME={{ sftp_username }}
-LOADER_PASSWORD={{ sftp_password }}
+LOADER__TASK_CLASS=datalabs.etl.sftp.load.SFTPUnicodeTextFileLoaderTask
+# LOADER__PATH=Data Analytics/Data-Science/Data/PPD/Expanded
+# LOADER__PATH=Data Analytics/Test/Data-Science/Data/PPD/Expanded
+LOADER__PATH={{ loader_path }}
+LOADER__HOST=eft.ama-assn.org
+LOADER__USERNAME={{ sftp_username }}
+LOADER__PASSWORD={{ sftp_password }}
 
-LOADER_FILES=ppd_analysis_file.csv,archive/ppd_analysis_file_%Y-%m-%d.csv
+LOADER__FILES=ppd_analysis_file.csv,archive/ppd_analysis_file_%Y-%m-%d.csv

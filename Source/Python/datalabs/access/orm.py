@@ -20,10 +20,3 @@ class Database(db.Database):
 
     def query(self, *models, **kwargs):
         return self._connection.query(*models, **kwargs)
-
-
-# pylint: disable=abstract-method
-class DatabaseTaskMixin:
-    @classmethod
-    def _get_database(cls, parameters):
-        return Database.from_parameters(parameters)

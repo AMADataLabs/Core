@@ -8,8 +8,9 @@ import logging
 
 import pandas
 
+from   datalabs.access.orm import Database
 from   datalabs.etl.transform import TransformerTask
-from   datalabs.access.orm import DatabaseTaskMixin
+import datalabs.task as task
 
 import datalabs.model.cpt.api as dbmodel
 
@@ -67,7 +68,7 @@ class ReleaseScheduleType(Enum):
     PLA = 'PLA'
 
 
-class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
+class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMixin):
     def _transform(self):
         _, data = zip(*self._parameters.data)  # unpack the (filename, data) tuples
         input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
@@ -395,7 +396,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, DatabaseTaskMixin):
         return release_schedules_map
 
     def _extract_release_schedules(self):
-        with self._get_database(self._parameters.database) as database:
+        with self._get_database(Database, self._parameters.variables) as database:
             # pylint: disable=no-member
             release_types = database.query(dbmodel.ReleaseType).all()
 
