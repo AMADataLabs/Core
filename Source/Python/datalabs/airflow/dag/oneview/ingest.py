@@ -20,7 +20,7 @@ sftp = [
     k8s.V1EnvFromSource(secret_ref=k8s.V1ConfigMapEnvSource(name='sftp-secret'))
 ]
 oneview_database = [
-    k8s.V1EnvFromSource(secret_ref=k8s.V1ConfigMapEnvSource(name='sftp-secret'))
+    k8s.V1EnvFromSource(secret_ref=k8s.V1ConfigMapEnvSource(name='final-database-secret'))
 ]
 
 with DAG(
