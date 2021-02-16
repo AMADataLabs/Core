@@ -19,6 +19,9 @@ ods = [
 sftp = [
     k8s.V1EnvFromSource(secret_ref=k8s.V1ConfigMapEnvSource(name='sftp-secret'))
 ]
+oneview_database = [
+    k8s.V1EnvFromSource(secret_ref=k8s.V1ConfigMapEnvSource(name='sftp-secret'))
+]
 
 with DAG(
         dag_id='oneview-etl',
@@ -434,23 +437,44 @@ with DAG(
         get_logs=True,
     )
 
-ppd_extractor >> ppd_transformer
-present_employment_extractor >> present_employment_transformer
-major_professional_activity_extractor >> major_professional_activity_transformer
-federal_information_processing_standard_county_extractor >> federal_information_processing_standard_county_transformer
-core_based_statistical_area_extractor >> core_based_statistical_area_transformer
+    final_database_loader = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="final_database_loader",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[etl_config, oneview_database],
+        env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.orm.load.ORMLoaderTask'),
+        do_xcom_push=True,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="final_database_loader",
+        get_logs=True,
+    )
+
+ppd_extractor >> ppd_transformer >> final_database_loader
+type_of_practice_extractor >> type_of_practice_transformer >> final_database_loader
+present_employment_extractor >> present_employment_transformer >> final_database_loader
+major_professional_activity_extractor >> major_professional_activity_transformer >> final_database_loader
+federal_information_processing_standard_county_extractor >> federal_information_processing_standard_county_transformer >> final_database_loader
+core_based_statistical_area_extractor >> core_based_statistical_area_transformer >> final_database_loader
 specialty_extractor >> specialty_transformer
 ppd_transformer >> specialty_merge_transformer
 specialty_transformer >> specialty_merge_transformer
-residency_extractor >> residency_transformer
-iqvia_extractor >> iqvia_transformer
+specialty_merge_transformer >> final_database_loader
+residency_extractor >> residency_transformer >> final_database_loader
+iqvia_extractor >> iqvia_transformer >> final_database_loader
 credentialing_addresses_extractor >> credentialing_addresses_transformer
 credentialing_main_extractor >> credentialing_main_transformer
 credentialing_addresses_transformer >> credentialing_merge_transformer
 credentialing_main_transformer >> credentialing_merge_transformer
-physician_race_ethnicity_extractor >> physician_race_ethnicity_transformer
+credentialing_merge_transformer >> final_database_loader
+physician_race_ethnicity_extractor >> physician_race_ethnicity_transformer >> final_database_loader
 credentialing_merge_transformer >> credentialing_customer_institution_transformer
 residency_transformer >> credentialing_customer_institution_transformer
-credentialing_merge_transformer >> iqvia_transformer
+credentialing_customer_institution_transformer >> final_database_loader
+credentialing_merge_transformer >> credentialing_customer_business_transformer
+iqvia_transformer >> credentialing_customer_business_transformer
+credentialing_customer_business_transformer >> final_database_loader
 residency_transformer >> residency_program_physician_transformer
 ppd_transformer >> residency_program_physician_transformer
+residency_program_physician_transformer >> final_database_loader
