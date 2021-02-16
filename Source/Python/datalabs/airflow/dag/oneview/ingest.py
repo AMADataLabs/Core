@@ -31,6 +31,7 @@ with DAG(
     ppd_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="ppd_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, ods],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
@@ -44,6 +45,7 @@ with DAG(
     ppd_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="ppd_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, ods],
         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask'),
@@ -57,6 +59,7 @@ with DAG(
     type_of_practice_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="type_of_practice_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
@@ -71,6 +74,7 @@ with DAG(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        name="type_of_practice_transformer",
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
         do_xcom_push=True,
@@ -83,6 +87,7 @@ with DAG(
     present_employment_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="present_employment_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, aims],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
@@ -96,6 +101,7 @@ with DAG(
     present_employment_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name = "present_employment_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, aims],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
@@ -109,6 +115,7 @@ with DAG(
     major_professional_activity_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="major_professional_activity_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
@@ -122,6 +129,7 @@ with DAG(
     major_professional_activity_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="major_professional_activity_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
@@ -135,6 +143,7 @@ with DAG(
     federal_information_processing_standard_county_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="federal_information_processing_standard_county_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.http.extract.HTTPFileExtractorTask'),
@@ -148,6 +157,7 @@ with DAG(
     federal_information_processing_standard_county_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="federal_information_processing_standard_county_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.reference.transform.FederalInformationProcessingStandardCountyTransformerTask'),
@@ -161,6 +171,7 @@ with DAG(
     core_based_statistical_area_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="core_based_statistical_area_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.http.extract.HTTPUnicodeTextFileExtractorTask'),
@@ -174,6 +185,7 @@ with DAG(
     core_based_statistical_area_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="core_based_statistical_area_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
@@ -187,6 +199,7 @@ with DAG(
     specialty_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="specialty_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, aims],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
@@ -200,6 +213,7 @@ with DAG(
     specialty_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="specialty_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
@@ -213,6 +227,7 @@ with DAG(
     specialty_merge_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="specialty_merge_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.reference.transform.SpecialtyMergeTransformerTask'),
@@ -226,6 +241,7 @@ with DAG(
     residency_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="residency_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, sftp],
         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
@@ -239,6 +255,7 @@ with DAG(
     residency_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="residency_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
@@ -252,6 +269,7 @@ with DAG(
     iqvia_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="iqvia_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, ods],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
@@ -265,6 +283,7 @@ with DAG(
     iqvia_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="iqvia_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.iqvia.transform.IQVIATransformerTask'),
@@ -278,6 +297,7 @@ with DAG(
     credentialing_main_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="credentialing_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, ods],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
@@ -291,6 +311,7 @@ with DAG(
     credentialing_main_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="credentialing_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingTransformerTask'),
@@ -304,6 +325,7 @@ with DAG(
     credentialing_addresses_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="credentialing_addresses_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, sftp],
         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
@@ -317,6 +339,7 @@ with DAG(
     credentialing_addresses_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="credentialing_addresses_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.transform.PassThroughTransformerTask'),
@@ -330,6 +353,7 @@ with DAG(
     credentialing_merge_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="credentialing_merge_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingFinalTransformerTask'),
@@ -343,6 +367,7 @@ with DAG(
     physician_race_ethnicity_extractor = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="physician_race_ethnicity_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config,sftp],
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
@@ -356,6 +381,7 @@ with DAG(
     physician_race_ethnicity_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="physician_race_ethnicity_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformerTask'),
@@ -369,6 +395,7 @@ with DAG(
     credentialing_customer_institution_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="credentialing_customer_institution_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerInstitutionTransformerTask'),
@@ -382,6 +409,7 @@ with DAG(
     credentialing_customer_business_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="credentialing_customer_business_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerBusinessTransformerTask'),
@@ -395,6 +423,7 @@ with DAG(
     residency_program_physician_transformer = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
+        name="residency_program_physician_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.link.transform.ResidencyProgramPhysicianTransformerTask'),
