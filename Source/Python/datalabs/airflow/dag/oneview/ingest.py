@@ -5,7 +5,7 @@ from kubernetes.client import models as k8s
 
 
 etl_config = [
-    k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='oneview-type-of-practice'))
+    k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='oneview-etls'))
 ]
 minio = [
     k8s.V1EnvFromSource(secret_ref=k8s.V1ConfigMapEnvSource(name='minio-secret'))
@@ -21,7 +21,7 @@ sftp = [
 ]
 
 with DAG(
-        dag_id='type_of_practice',
+        dag_id='oneview-etl',
         default_args={'owner': 'airflow'},
         schedule_interval=None,
         start_date=days_ago(2),
