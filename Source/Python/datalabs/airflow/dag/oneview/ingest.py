@@ -45,7 +45,7 @@ with DAG(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_from=[etl_config, edw],
+        env_from=[etl_config, ods],
         env=dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
