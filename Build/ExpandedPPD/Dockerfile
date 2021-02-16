@@ -18,10 +18,10 @@ RUN ./Script/bundle-project -i --directory ./ ExpandedPPD
 
 ARG extractor_path="Data Analytics/Baseline/data/expanded"
 # Test: "Data Analytics/Test/Baseline/data/expanded"
-ENV EXTRACTOR_PATH=${extractor_path}
+ENV EXTRACTOR__PATH=${extractor_path}
 ARG loader_path="Data Analytics/Data-Science/Data/PPD/Expanded"
 # Test: "Data Analytics/Test/Data-Science/Data/PPD/Expanded"
-ENV LOADER_PATH=${loader_path}
+ENV LOADER__PATH=${loader_path}
 ARG sftp_username
 ARG sftp_password
 RUN ./Script/render-template \

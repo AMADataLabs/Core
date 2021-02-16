@@ -38,8 +38,8 @@ class SyncLooper(Thread):
         while not self.stopped.wait(duration):
             try:
                 self._sync(dag_sync_config)
-            except Exception as e:
-                LOGGER.exception(f"Failed to sync DAGs.")
+            except Exception:  # pylint: disable=broad-except
+                LOGGER.exception("Failed to sync DAGs.")
 
             duration = self._calculate_next_run_duration()
 

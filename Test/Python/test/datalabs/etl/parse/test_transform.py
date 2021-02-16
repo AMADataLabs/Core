@@ -13,7 +13,6 @@ LOGGER.setLevel(logging.DEBUG)
 def test_transforming_cpt_files_to_csv():
     parser_class = 'test.datalabs.etl.cpt.ingest.parse.TestParser'
     parameters = ETLComponentParameters(
-        database={},
         variables=dict(
             PARSERS=','.join((parser_class, parser_class))
         ),

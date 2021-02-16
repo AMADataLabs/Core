@@ -13,7 +13,7 @@ class LocalFileExtractorTask(FileExtractorTask):
         return self._extract_files(None, files)
 
     def _get_files(self):
-        base_path = self._parameters.variables['BASEPATH']
+        base_path = self._parameters.variables['BASE_PATH']
         unresolved_files = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
         resolved_files = []
 

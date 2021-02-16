@@ -13,7 +13,7 @@ def test_transformer_task(transformer):
 
 
 def test_pass_through_transformer():
-    transformer = PassThroughTransformerTask(ETLComponentParameters(database={}, variables={}, data='True'))
+    transformer = PassThroughTransformerTask(ETLComponentParameters(variables={}, data='True'))
 
     transformer.run()
 
@@ -23,7 +23,7 @@ def test_pass_through_transformer():
 
 @pytest.fixture
 def transformer():
-    return Transformer(ETLComponentParameters(database={}, variables={}, data='True'))
+    return Transformer(ETLComponentParameters(variables={}, data='True'))
 
 
 class Transformer(TransformerTask):

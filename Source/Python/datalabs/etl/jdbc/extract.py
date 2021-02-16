@@ -12,14 +12,14 @@ class JDBCExtractorTask(ExtractorTask):
         return self._read_queries(connection)
 
     def _connect(self):
-        url = f"jdbc:{self._parameters.variables['DRIVERTYPE']}://{self._parameters.database['host']}:" \
-              f"{self._parameters.database['port']}/{self._parameters.database['name']}"
+        url = f"jdbc:{self._parameters.variables['DRIVER_TYPE']}://{self._parameters.variables['DATABASE_HOST']}:" \
+              f"{self._parameters.variables['DATABASE_PORT']}/{self._parameters.variables['DATABASE_NAME']}"
 
         connection = jaydebeapi.connect(
             self._parameters.variables['DRIVER'],
             url,
-            [self._parameters.database['username'], self._parameters.database['password']],
-            self._parameters.variables['JARPATH'].split(',')
+            [self._parameters.variables['DATABASE_USERNAME'], self._parameters.variables['DATABASE_PASSWORD']],
+            self._parameters.variables['JAR_PATH'].split(',')
         )
 
         return connection

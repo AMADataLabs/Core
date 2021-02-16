@@ -14,11 +14,11 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
 
         return super()._get_task_parameters()
 
-    def _generate_response(self) -> (int, dict):
+    def _handle_success(self) -> (int, dict):
         return {
-            "statusCode": self._task.status_code,
-            "headers": self._task.headers,
-            "body": json.dumps(self._task.response_body),
+            "statusCode": self.task.status_code,
+            "headers": self.task.headers,
+            "body": json.dumps(self.task.response_body),
             "isBase64Encoded": False,
         }
 

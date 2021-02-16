@@ -21,9 +21,9 @@ class ETLTaskWrapper(etl.ETLTaskWrapper):
         self._exception = exception
 
     # pylint: disable=protected-access
-    def _generate_response(self):
+    def _handle_success(self):
         self._data = dict(
-            extractor=self._task._extractor.data,
-            transformer=self._task._transformer.data,
-            loader=self._task._loader.data
+            extractor=self.task._extractor.data,
+            transformer=self.task._transformer.data,
+            loader=self.task._loader.data
         )
