@@ -314,14 +314,14 @@ with DAG(
     create_credentialing_customer_product_and_order_tables = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="create_credentialing_table",
+        name="create_credentialing_customer_product_and_order_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="create_credentialing_table",
+        task_id="create_credentialing_customer_product_and_order_tables",
         get_logs=True,
     )
 
@@ -437,44 +437,44 @@ with DAG(
         get_logs=True,
     )
 
-    final_database_loader = KubernetesPodOperator(
+    load_tables_into_database = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="final_database_loader",
+        name="load_tables_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, oneview_database],
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.orm.load.ORMLoaderTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="final_database_loader",
+        task_id="load_tables_into_database",
         get_logs=True,
     )
 
-extract_ppd >> create_physician_table >> final_database_loader
-extract_type_of_practice >> create_type_of_practice_table >> final_database_loader
-extract_present_employment >> create_present_employment_table >> final_database_loader
-extract_major_professional_activity >> create_major_professional_activity_table >> final_database_loader
-extract_federal_information_processing_standard_county >> create_federal_information_processing_standard_county_table >> final_database_loader
-extract_core_based_statistical_area >> create_core_based_statistical_area_table >> final_database_loader
+extract_ppd >> create_physician_table >> load_tables_into_database
+extract_type_of_practice >> create_type_of_practice_table >> load_tables_into_database
+extract_present_employment >> create_present_employment_table >> load_tables_into_database
+extract_major_professional_activity >> create_major_professional_activity_table >> load_tables_into_database
+extract_federal_information_processing_standard_county >> create_federal_information_processing_standard_county_table >> load_tables_into_database
+extract_core_based_statistical_area >> create_core_based_statistical_area_table >> load_tables_into_database
 extract_specialty >> create_specialty_table
 create_physician_table >> remove_unused_specialties
 create_specialty_table >> remove_unused_specialties
-remove_unused_specialties >> final_database_loader
-extract_residency >> create_residency_program_tables >> final_database_loader
-extract_iqvia >> create_business_and_provider_tables >> final_database_loader
+remove_unused_specialties >> load_tables_into_database
+extract_residency >> create_residency_program_tables >> load_tables_into_database
+extract_iqvia >> create_business_and_provider_tables >> load_tables_into_database
 extract_credentialing_addresses >> create_credentialing_addresses_table
 extract_credentialing_main >> create_credentialing_customer_product_and_order_tables
 create_credentialing_addresses_table >> merge_credentialing_addresses_into_customer_table
 create_credentialing_customer_product_and_order_tables >> merge_credentialing_addresses_into_customer_table
-merge_credentialing_addresses_into_customer_table >> final_database_loader
-extract_physician_race_ethnicity >> create_physician_race_ethnicity_table >> final_database_loader
+merge_credentialing_addresses_into_customer_table >> load_tables_into_database
+extract_physician_race_ethnicity >> create_physician_race_ethnicity_table >> load_tables_into_database
 merge_credentialing_addresses_into_customer_table >> create_credentialing_customer_institution_table
 create_residency_program_tables >> create_credentialing_customer_institution_table
-create_credentialing_customer_institution_table >> final_database_loader
+create_credentialing_customer_institution_table >> load_tables_into_database
 merge_credentialing_addresses_into_customer_table >> create_credentialing_customer_business_table
 create_business_and_provider_tables >> create_credentialing_customer_business_table
-create_credentialing_customer_business_table >> final_database_loader
+create_credentialing_customer_business_table >> load_tables_into_database
 create_residency_program_tables >> create_residency_program_physician_table
 create_physician_table >> create_residency_program_physician_table
-create_residency_program_physician_table >> final_database_loader
+create_residency_program_physician_table >> load_tables_into_database
