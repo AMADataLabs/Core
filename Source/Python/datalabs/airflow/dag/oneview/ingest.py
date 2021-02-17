@@ -31,409 +31,409 @@ with DAG(
         tags=['OneView'],
 ) as dag:
 
-    ppd_extractor = KubernetesPodOperator(
+    extract_ppd = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="ppd_extractor",
+        name="extract_ppd",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, ods],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="ppd_extractor",
+        task_id="extract_ppd",
         get_logs=True,
     )
 
-    ppd_transformer = KubernetesPodOperator(
+    create_physician_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="ppd_transformer",
+        name="create_physician_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, ods],
         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="ppd_transformer",
+        task_id="create_physician_table",
         get_logs=True,
     )
 
-    type_of_practice_extractor = KubernetesPodOperator(
+    extract_type_of_practice = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="type_of_practice_extractor",
+        name="extract_type_of_practice",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="type_of_practice_extractor",
+        task_id="extract_type_of_practice",
         get_logs=True,
     )
 
-    type_of_practice_transformer = KubernetesPodOperator(
+    create_type_of_practice_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        name="type_of_practice_transformer",
+        name="create_type_of_practice_table",
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="type_of_practice_transformer",
+        task_id="create_type_of_practice_table",
         get_logs=True,
     )
 
-    present_employment_extractor = KubernetesPodOperator(
+    extract_present_employment = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="present_employment_extractor",
+        name="extract_present_employment",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, aims],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="present_employment_extractor",
+        task_id="extract_present_employment",
         get_logs=True,
     )
 
-    present_employment_transformer = KubernetesPodOperator(
+    create_present_employment_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name = "present_employment_transformer",
+        name = "create_present_employment_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, aims],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="present_employment_transformer",
+        task_id="create_present_employment_table",
         get_logs=True,
     )
 
-    major_professional_activity_extractor = KubernetesPodOperator(
+    extract_major_professional_activity = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="major_professional_activity_extractor",
+        name="extract_major_professional_activity",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="major_professional_activity_extractor",
+        task_id="extract_major_professional_activity",
         get_logs=True,
     )
 
-    major_professional_activity_transformer = KubernetesPodOperator(
+    create_major_professional_activity_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="major_professional_activity_transformer",
+        name="create_major_professional_activity_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="major_professional_activity_transformer",
+        task_id="create_major_professional_activity_table",
         get_logs=True,
     )
 
-    federal_information_processing_standard_county_extractor = KubernetesPodOperator(
+    extract_federal_information_processing_standard_county = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="federal_information_processing_standard_county_extractor",
+        name="extract_federal_information_processing_standard_county",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.http.extract.HTTPFileExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="federal_information_processing_standard_county_extractor",
+        task_id="extract_federal_information_processing_standard_county",
         get_logs=True,
     )
 
-    federal_information_processing_standard_county_transformer = KubernetesPodOperator(
+    create_federal_information_processing_standard_county_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="federal_information_processing_standard_county_transformer",
+        name="create_federal_information_processing_standard_county_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.reference.transform.FederalInformationProcessingStandardCountyTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="federal_information_processing_standard_county_transformer",
+        task_id="create_federal_information_processing_standard_county_table",
         get_logs=True,
     )
 
-    core_based_statistical_area_extractor = KubernetesPodOperator(
+    extract_core_based_statistical_area = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="core_based_statistical_area_extractor",
+        name="extract_core_based_statistical_area",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.http.extract.HTTPUnicodeTextFileExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="core_based_statistical_area_extractor",
+        task_id="extract_core_based_statistical_area",
         get_logs=True,
     )
 
-    core_based_statistical_area_transformer = KubernetesPodOperator(
+    create_core_based_statistical_area_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="core_based_statistical_area_transformer",
+        name="create_core_based_statistical_area_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="core_based_statistical_area_transformer",
+        task_id="create_core_based_statistical_area_table",
         get_logs=True,
     )
 
-    specialty_extractor = KubernetesPodOperator(
+    extract_specialty = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="specialty_extractor",
+        name="extract_specialty",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, aims],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="specialty_extractor",
+        task_id="extract_specialty",
         get_logs=True,
     )
 
-    specialty_transformer = KubernetesPodOperator(
+    create_specialty_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="specialty_transformer",
+        name="create_specialty_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="specialty_transformer",
+        task_id="create_specialty_table",
         get_logs=True,
     )
 
-    specialty_merge_transformer = KubernetesPodOperator(
+    remove_unused_specialties = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="specialty_merge_transformer",
+        name="remove_unused_specialties",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.reference.transform.SpecialtyMergeTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="specialty_merge_transformer",
+        task_id="remove_unused_specialties",
         get_logs=True,
     )
 
-    residency_extractor = KubernetesPodOperator(
+    extract_residency = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="residency_extractor",
+        name="extract_residency",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, sftp],
         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="residency_extractor",
+        task_id="extract_residency",
         get_logs=True,
     )
 
-    residency_transformer = KubernetesPodOperator(
+    create_residency_program_tables = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="residency_transformer",
+        name="create_residency_program_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.kubernetes.ETLComponentTaskWrapper'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="residency_transformer",
+        task_id="create_residency_program_tables",
         get_logs=True,
     )
 
-    iqvia_extractor = KubernetesPodOperator(
+    extract_iqvia = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="iqvia_extractor",
+        name="extract_iqvia",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, ods],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="iqvia_extractor",
+        task_id="extract_iqvia",
         get_logs=True,
     )
 
-    iqvia_transformer = KubernetesPodOperator(
+    create_business_and_provider_tables = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="iqvia_transformer",
+        name="create_business_and_provider_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.iqvia.transform.IQVIATransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="iqvia_transformer",
+        task_id="create_business_and_provider_tables",
         get_logs=True,
     )
 
-    credentialing_main_extractor = KubernetesPodOperator(
+    extract_credentialing_main = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="credentialing_extractor",
+        name="extract_credentialing",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, ods],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="credentialing_extractor",
+        task_id="extract_credentialing",
         get_logs=True,
     )
 
-    credentialing_main_transformer = KubernetesPodOperator(
+    create_credentialing_customer_product_and_order_tables = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="credentialing_transformer",
+        name="create_credentialing_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="credentialing_transformer",
+        task_id="create_credentialing_table",
         get_logs=True,
     )
 
-    credentialing_addresses_extractor = KubernetesPodOperator(
+    extract_credentialing_addresses = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="credentialing_addresses_extractor",
+        name="extract_credentialing_addresses",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config, sftp],
         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="credentialing_addresses_extractor",
+        task_id="extract_credentialing_addresses",
         get_logs=True,
     )
 
-    credentialing_addresses_transformer = KubernetesPodOperator(
+    create_credentialing_addresses_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="credentialing_addresses_transformer",
+        name="create_credentialing_addresses_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.transform.PassThroughTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="credentialing_addresses_transformer",
+        task_id="create_credentialing_addresses_table",
         get_logs=True,
     )
 
-    credentialing_merge_transformer = KubernetesPodOperator(
+    merge_credentialing_addresses_into_customer_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="credentialing_merge_transformer",
+        name="merge_credentialing_addresses_into_customer_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingFinalTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="credentialing_merge_transformer",
+        task_id="merge_credentialing_addresses_into_customer_table",
         get_logs=True,
     )
 
-    physician_race_ethnicity_extractor = KubernetesPodOperator(
+    extract_physician_race_ethnicity = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="physician_race_ethnicity_extractor",
+        name="extract_physician_race_ethnicity",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[etl_config,sftp],
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="physician_race_ethnicity_extractor",
+        task_id="extract_physician_race_ethnicity",
         get_logs=True,
     )
 
-    physician_race_ethnicity_transformer = KubernetesPodOperator(
+    create_physician_race_ethnicity_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="physician_race_ethnicity_transformer",
+        name="create_physician_race_ethnicity_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="physician_race_ethnicity_transformer",
+        task_id="create_physician_race_ethnicity_table",
         get_logs=True,
     )
 
-    credentialing_customer_institution_transformer = KubernetesPodOperator(
+    create_credentialing_customer_institution_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="credentialing_customer_institution_transformer",
+        name="create_credentialing_customer_institution_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerInstitutionTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="credentialing_customer_institution_transformer",
+        task_id="create_credentialing_customer_institution_table",
         get_logs=True,
     )
 
-    credentialing_customer_business_transformer = KubernetesPodOperator(
+    create_credentialing_customer_business_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="credentialing_customer_business_transformer",
+        name="create_credentialing_customer_business_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerBusinessTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="credentialing_customer_business_transformer",
+        task_id="create_credentialing_customer_business_table",
         get_logs=True,
     )
 
-    residency_program_physician_transformer = KubernetesPodOperator(
+    create_residency_program_physician_table = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image='docker-registry.default.svc:5000/hsg-data-labs-dev/datalabs-master:1.0.0',
-        name="residency_program_physician_transformer",
+        name="create_residency_program_physician_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=etl_config,
         env_vars=dict(TASK_WRAPPER_CLASS='datalabs.etl.oneview.link.transform.ResidencyProgramPhysicianTransformerTask'),
         do_xcom_push=True,
         is_delete_operator_pod=True,
         in_cluster=True,
-        task_id="residency_program_physician_transformer",
+        task_id="create_residency_program_physician_table",
         get_logs=True,
     )
 
@@ -451,30 +451,30 @@ with DAG(
         get_logs=True,
     )
 
-ppd_extractor >> ppd_transformer >> final_database_loader
-type_of_practice_extractor >> type_of_practice_transformer >> final_database_loader
-present_employment_extractor >> present_employment_transformer >> final_database_loader
-major_professional_activity_extractor >> major_professional_activity_transformer >> final_database_loader
-federal_information_processing_standard_county_extractor >> federal_information_processing_standard_county_transformer >> final_database_loader
-core_based_statistical_area_extractor >> core_based_statistical_area_transformer >> final_database_loader
-specialty_extractor >> specialty_transformer
-ppd_transformer >> specialty_merge_transformer
-specialty_transformer >> specialty_merge_transformer
-specialty_merge_transformer >> final_database_loader
-residency_extractor >> residency_transformer >> final_database_loader
-iqvia_extractor >> iqvia_transformer >> final_database_loader
-credentialing_addresses_extractor >> credentialing_addresses_transformer
-credentialing_main_extractor >> credentialing_main_transformer
-credentialing_addresses_transformer >> credentialing_merge_transformer
-credentialing_main_transformer >> credentialing_merge_transformer
-credentialing_merge_transformer >> final_database_loader
-physician_race_ethnicity_extractor >> physician_race_ethnicity_transformer >> final_database_loader
-credentialing_merge_transformer >> credentialing_customer_institution_transformer
-residency_transformer >> credentialing_customer_institution_transformer
-credentialing_customer_institution_transformer >> final_database_loader
-credentialing_merge_transformer >> credentialing_customer_business_transformer
-iqvia_transformer >> credentialing_customer_business_transformer
-credentialing_customer_business_transformer >> final_database_loader
-residency_transformer >> residency_program_physician_transformer
-ppd_transformer >> residency_program_physician_transformer
-residency_program_physician_transformer >> final_database_loader
+extract_ppd >> create_physician_table >> final_database_loader
+extract_type_of_practice >> create_type_of_practice_table >> final_database_loader
+extract_present_employment >> create_present_employment_table >> final_database_loader
+extract_major_professional_activity >> create_major_professional_activity_table >> final_database_loader
+extract_federal_information_processing_standard_county >> create_federal_information_processing_standard_county_table >> final_database_loader
+extract_core_based_statistical_area >> create_core_based_statistical_area_table >> final_database_loader
+extract_specialty >> create_specialty_table
+create_physician_table >> remove_unused_specialties
+create_specialty_table >> remove_unused_specialties
+remove_unused_specialties >> final_database_loader
+extract_residency >> create_residency_program_tables >> final_database_loader
+extract_iqvia >> create_business_and_provider_tables >> final_database_loader
+extract_credentialing_addresses >> create_credentialing_addresses_table
+extract_credentialing_main >> create_credentialing_customer_product_and_order_tables
+create_credentialing_addresses_table >> merge_credentialing_addresses_into_customer_table
+create_credentialing_customer_product_and_order_tables >> merge_credentialing_addresses_into_customer_table
+merge_credentialing_addresses_into_customer_table >> final_database_loader
+extract_physician_race_ethnicity >> create_physician_race_ethnicity_table >> final_database_loader
+merge_credentialing_addresses_into_customer_table >> create_credentialing_customer_institution_table
+create_residency_program_tables >> create_credentialing_customer_institution_table
+create_credentialing_customer_institution_table >> final_database_loader
+merge_credentialing_addresses_into_customer_table >> create_credentialing_customer_business_table
+create_business_and_provider_tables >> create_credentialing_customer_business_table
+create_credentialing_customer_business_table >> final_database_loader
+create_residency_program_tables >> create_residency_program_physician_table
+create_physician_table >> create_residency_program_physician_table
+create_residency_program_physician_table >> final_database_loader
