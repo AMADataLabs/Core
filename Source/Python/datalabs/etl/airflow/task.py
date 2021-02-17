@@ -33,8 +33,8 @@ class AirflowTaskWrapper(task.TaskWrapper):
 
     def _get_dag_task_parameters(self):
         args = self._parameters
-        dag_id, task_id, _ = args[1].split('__')
-        dag_parameters = self._get_dag_parameters_from_environment(dag_id.upper())
+        dag_id, task_id, datestamp = args[1].split('__')
+        dag_parameters = self._get_dag_parameters_from_environment(dag_id.upper(), datestamp)
         task_parameters = self._get_task_parameters_from_environment(dag_id.upper(), task_id.upper())
 
         return self._merge_parameters(dag_parameters, task_parameters)
@@ -52,8 +52,11 @@ class AirflowTaskWrapper(task.TaskWrapper):
         return TaskDataCachePlugin(cache_variables)
 
     @classmethod
-    def _get_dag_parameters_from_environment(cls, dag_id):
+    def _get_dag_parameters_from_environment(cls, dag_id, datestamp):
         variables = cls._get_variables([dag_id.upper()])
+
+        variables['EXECUTION_TIME'] = datestamp
+        variables['CACHE_EXECUTION_TIME'] = datestamp
 
         return etl.ETLComponentParameters(variables=variables)
 

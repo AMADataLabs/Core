@@ -22,6 +22,10 @@ def test_task_parameters_are_parsed(args, environment):
     assert parameters.variables['DAG_VARIABLE'] == 'tootie'
     assert 'TASK_VARIABLE' in parameters.variables
     assert parameters.variables['TASK_VARIABLE'] == 'fruity'
+    assert 'EXECUTION_TIME' in parameters.variables
+    assert parameters.variables['EXECUTION_TIME'] == '19000101'
+    assert 'CACHE_EXECUTION_TIME' in parameters.variables
+    assert parameters.variables['CACHE_EXECUTION_TIME'] == '19000101'
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
