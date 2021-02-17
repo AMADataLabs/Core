@@ -1,31 +1,37 @@
 """ JDBC Extractor """
+from   dataclasses import dataclass
+
 import jaydebeapi
 import pandas
 
 from   datalabs.etl.extract import ExtractorTask
+from   datalabs.etl.task import TaskParameterSchemaMixin
+from   datalabs.task import add_schema
 
 
-class JDBCExtractorTask(ExtractorTask):
+class JDBCExtractorTask(ExtractorTask, TaskParameterSchemaMixin):
     def _extract(self):
+        self._parameters = self._get_validated_parameters(JDBCExtractorParameters)
+
         connection = self._connect()
 
         return self._read_queries(connection)
 
     def _connect(self):
-        url = f"jdbc:{self._parameters.variables['DRIVER_TYPE']}://{self._parameters.variables['DATABASE_HOST']}:" \
-              f"{self._parameters.variables['DATABASE_PORT']}/{self._parameters.variables['DATABASE_NAME']}"
+        url = f"jdbc:{self._parameters.driver_type}://{self._parameters.database_host}:" \
+              f"{self._parameters.database_port}/{self._parameters.database_name}"
 
         connection = jaydebeapi.connect(
-            self._parameters.variables['DRIVER'],
+            self._parameters.driver,
             url,
-            [self._parameters.variables['DATABASE_USERNAME'], self._parameters.variables['DATABASE_PASSWORD']],
-            self._parameters.variables['JAR_PATH'].split(',')
+            [self._parameters.database_username, self._parameters.database_password],
+            self._parameters.jar_path.split(',')
         )
 
         return connection
 
     def _read_queries(self, connection):
-        queries = self._split_queries(self._parameters.variables['SQL'])
+        queries = self._split_queries(self._parameters.sql)
 
         return [pandas.read_sql(query, connection) for query in queries]
 
@@ -35,3 +41,18 @@ class JDBCExtractorTask(ExtractorTask):
         queries_split.pop()
 
         return [q.strip() for q in queries_split]
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class JDBCExtractorParameters:
+    driver: str
+    driver_type: str
+    database_host: str
+    database_name: str = None
+    database_username: str = None
+    database_password: str = None
+    jar_path: str = None
+    sql: str = None
+    data: object = None
