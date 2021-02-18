@@ -9,15 +9,16 @@ ENV PYTHONPATH=/ContactID:/ContactID/site-packages
 ENV CLASSPATH=/ContactID
 #ENV AWS_SHARED_CREDENTIALS_FILE=/ContactID/.aws/credentials
 ENV AWS_DEFAULT_REGION=us-east-1
+ENV HOME=/ContactID
 
 COPY ./Build/ContactID/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
-
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/ContactID ./Build/ContactID
 COPY ./Source ./Source
+COPY ./Build/ContactID/known_hosts /root/.ssh/known_hosts
 
 ARG template_vars
 RUN echo $template_vars
