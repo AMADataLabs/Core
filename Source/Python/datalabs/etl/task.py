@@ -72,7 +72,7 @@ class ETLTask(task.Task):
         parameters.data = data
 
         if 'TASK_CLASS' not in parameters.variables:
-            raise ETLException(f'..._CLASS parameter not specified in {parameters.variables}')
+            raise ETLException(f'...__TASK_CLASS parameter not specified in {parameters.variables}')
 
         Plugin = plugin.import_plugin(parameters.variables['TASK_CLASS'])  # pylint: disable=invalid-name
 

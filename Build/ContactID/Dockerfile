@@ -4,20 +4,23 @@
 #    docker run -ti one-view -e DOTENV_PATH=ppd.env python -c "import awslambda; print(awslambda.handler(None, None))"
 
 FROM python:3.7
-WORKDIR /ContactID
 ENV PYTHONPATH=/ContactID:/ContactID/site-packages
 ENV CLASSPATH=/ContactID
 #ENV AWS_SHARED_CREDENTIALS_FILE=/ContactID/.aws/credentials
 ENV AWS_DEFAULT_REGION=us-east-1
+ENV HOME=/ContactID
+WORKDIR $HOME
 
 COPY ./Build/ContactID/requirements.txt .
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
-
+RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt &&\
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/ContactID ./Build/ContactID
 COPY ./Source ./Source
+COPY ./Build/ContactID/known_hosts $HOME/.ssh/known_hosts
 
 ARG template_vars
 RUN echo $template_vars

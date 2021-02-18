@@ -14,11 +14,11 @@ modspec:
       - datastore
       - environment
       - orm
-      - parameter
-      - secret
   - package: datalabs.access.api
   - package: datalabs.access.authorize
   - package: datalabs.access.cpt.api
+  - package: datalabs.access.parameter
+  - package: datalabs.access.secret
   - package: datalabs.curate
     include:
       - parse

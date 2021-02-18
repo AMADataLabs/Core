@@ -1,7 +1,7 @@
 # Build Example:
 #    docker build -t cpt -f ./Build/CPT/Dockerfile --build-arg --build-arg template_vars='user=bob,password=foo' ./
 # Run Example:
-#    docker run -ti cpt -e DOTENV_PATH=get_descriptors.env python -c "import awslambda; print(awslambda.handler(None, None))"
+#    docker run -e DOTENV_PATH=get_descriptors.env -ti cpt python -c "import awslambda; print(awslambda.handler(None, None))"
 
 FROM python:3.7
 

@@ -21,7 +21,11 @@ COPY Script Script
 COPY Build/Master Build/Master
 COPY Build/${PROJECT} Build/${PROJECT}
 COPY Source Source
-RUN pip3.7 install --trusted-host pypi.org --trusted-host files.pythonhosted.org PyYAML
+RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt
+
+RUN cat requirements.txt | grep PyYAML== > bundler-requirements.txt &&\
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r bundler-requirements.txt
 
 RUN pip3.7 install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r Build/${PROJECT}/requirements.txt
 RUN python3.7 ./Script/bundle_project.py --in-place --directory Bundle/ ${PROJECT}
