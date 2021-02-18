@@ -12,7 +12,9 @@ ENV AWS_DEFAULT_REGION=us-east-1
 ENV HOME=/ContactID
 
 COPY ./Build/ContactID/requirements.txt .
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt &&\
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
