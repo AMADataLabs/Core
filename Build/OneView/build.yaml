@@ -1,0 +1,37 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: Airflow jobs for oneview ETLs
+    openshift.io/display-name: oneview-etl
+  creationTimestamp: null
+  labels:
+    app: Oneview
+  name: oneview-etl
+  namespace: hsg-data-labs-dev
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: oneview-etl:latest
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+    sourceSecret:
+      name: bitbucketprd
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Build/OneView/Dockerfile
+      from:
+        kind: ImageStreamTag
+        name: python:3.7
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - type: ConfigChange
