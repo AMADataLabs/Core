@@ -15,19 +15,19 @@ pipelines:
             name: Unit Tests
             script:
             - bash Script/setup-virtual-environment Master
-            - export VIRTUAL_ENV=${CWD}/Environment/Master
+            - export VIRTUAL_ENV=${PWD}/Environment/Master
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
             - ls
-            - echo ${CWD}
+            - echo ${PWD}
             - python --version
             - ./Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
         - step:
             name: Lint
             script:
             - bash Script/setup-virtual-environment Master
-            - export VIRTUAL_ENV=${CWD}/Environment/Master
+            - export VIRTUAL_ENV=${PWD}/Environment/Master
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
-            - ./Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/* ${CWD}/Test/Python/*
+            - ./Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/* ${PWD}/Test/Python/*
         # CPT:
         # - step:
         #     name: Build Bundle
