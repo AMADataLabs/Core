@@ -5,9 +5,9 @@ pipelines:
         master:
         - step:
             script:
-            - bash Script/setup-virtual-environment Master
-            - export VIRTUAL_ENV=/Build/Environment/Master
-            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            # - bash Script/setup-virtual-environment Master
+            # - export VIRTUAL_ENV=/Build/Environment/Master
+            # - export PATH="$VIRTUAL_ENV/bin:$PATH"
             - bash Script/bitbucket-pipelines-build.sh
     custom:
         Test:
@@ -15,14 +15,14 @@ pipelines:
             name: Unit Tests
             script:
             - bash Script/setup-virtual-environment Master
-            - export VIRTUAL_ENV=/Build/Environment/Master
+            - export VIRTUAL_ENV=${CWD}/Build/Environment/Master
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
             - ./Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
         - step:
             name: Lint
             script:
             - bash Script/setup-virtual-environment Master
-            - export VIRTUAL_ENV=/Build/Environment/Master
+            - export VIRTUAL_ENV=${CWD}/Build/Environment/Master
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
             - ./Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${CWD}/Source/Python/* ${CWD}/Test/Python/*
         # CPT:
