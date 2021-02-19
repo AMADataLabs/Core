@@ -6,7 +6,7 @@ metadata:
     openshift.io/display-name: oneview-etl
   creationTimestamp: null
   labels:
-    app: Oneview
+    app: OneView
   name: oneview-etl
   namespace: hsg-data-labs-dev
 spec:
@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: oneview-etl:latest
+      name: oneview-etl:1.0.0
   postCommit: {}
   resources: {}
   runPolicy: Serial
@@ -30,7 +30,7 @@ spec:
       dockerfilePath: Build/OneView/Dockerfile
       from:
         kind: ImageStreamTag
-        name: python:3.7
+        name: oneview-etl:1.0.0
     type: Docker
   successfulBuildsHistoryLimit: 5
   triggers:
