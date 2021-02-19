@@ -16,9 +16,10 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
-        wrapper = ETLTaskWrapper(MockTask, parameters=event)
-        parameters = wrapper._get_task_parameters()
-        LOGGER.debug(parameters)
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = ETLTaskWrapper(MockTask, parameters=event)
+            parameters = wrapper._get_task_parameters()
+            LOGGER.debug(parameters)
 
     assert expected_parameters == parameters
 
@@ -26,9 +27,10 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
     with mock.patch('datalabs.access.parameter.aws.boto3'):
-        wrapper = ETLTaskWrapper(MockTask)
-        exception = etl.ETLException('failed')
-        response = wrapper._handle_exception(exception)
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = ETLTaskWrapper(MockTask)
+            exception = etl.ETLException('failed')
+            response = wrapper._handle_exception(exception)
 
     assert response == f'Failed: {str(exception)}'
 
@@ -36,8 +38,9 @@ def test_task_wrapper_handle_exception():
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_success():
     with mock.patch('datalabs.access.parameter.aws.boto3'):
-        wrapper = ETLTaskWrapper(MockTask)
-        response = wrapper._handle_success()
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = ETLTaskWrapper(MockTask)
+            response = wrapper._handle_success()
 
     assert response == "Success"
 
