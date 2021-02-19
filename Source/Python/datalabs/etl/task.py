@@ -70,13 +70,14 @@ class ETLTask(task.Task):
     @classmethod
     def _instantiate_component(cls, parameters, data=None):
         parameters.data = data
+        task_class = parameters.variables.pop('TASK_CLASS', None)
 
-        if 'TASK_CLASS' not in parameters.variables:
+        if task_class is None:
             raise ETLException(f'...__TASK_CLASS parameter not specified in {parameters.variables}')
 
-        Plugin = plugin.import_plugin(parameters.variables['TASK_CLASS'])  # pylint: disable=invalid-name
+        TaskPlugin = plugin.import_plugin(task_class)  # pylint: disable=invalid-name
 
-        return Plugin(parameters)
+        return TaskPlugin(parameters)
 
 
 class ETLException(task.TaskException):
@@ -134,7 +135,7 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
 
 class TaskParameterSchemaMixin:
     def _get_validated_parameters(self, parameter_class):
-        self._parameters.variables['DATA'] = self._parameters or {}
+        self._parameters.variables['DATA'] = self._parameters.data or {}
         parameter_variables = {key.lower():value for key, value in self._parameters.variables.items()}
         schema = parameter_class.SCHEMA
 

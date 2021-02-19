@@ -14,7 +14,7 @@ from   datalabs.task import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class S3FileLoaderTask(LoaderTask, TaskParameterSchemaMixin):
