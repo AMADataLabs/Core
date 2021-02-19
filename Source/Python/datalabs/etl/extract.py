@@ -1,8 +1,9 @@
 """ Extractor base class """
-from abc import ABC, abstractmethod
+from   abc import ABC, abstractmethod
+from   datetime import datetime
 
-from datalabs.etl.task import ETLComponentTask
-from datalabs.etl.task import ETLException
+from   datalabs.etl.task import ETLComponentTask
+from   datalabs.etl.task import ETLException
 
 
 class ExtractorTask(ETLComponentTask, ABC):
@@ -15,16 +16,26 @@ class ExtractorTask(ETLComponentTask, ABC):
 
 
 class FileExtractorTask(ExtractorTask, ABC):
-    def _extract_files(self, connection, files):
-        include_filenames = self._parameters.variables.get('INCLUDE_NAMES')
-        data = [self._extract_file(connection, file) for file in files]
+    def __init__(self, parameters):
+        super().__init__(parameters)
 
-        decoded_data = []
-        for index, datum in enumerate(data):
-            try:
-                decoded_data.append(self._decode_data(datum))
-            except Exception as exception:
-                raise ETLException(f'Unable to decode {files[index]}') from exception
+        self._client = None
+
+    def _extract(self):
+        include_filenames = self._parameters.variables.get('INCLUDE_NAMES')
+
+        files = self._get_files()
+
+        with self._get_client() as client:
+            self._client = client
+
+            resolved_files = self._resolve_files(files)
+
+            data = self._extract_files(client, resolved_files)
+
+        self._client = None
+
+        decoded_data = self._decode_dataset(data)
 
         if include_filenames and include_filenames.upper() == 'TRUE':
             decoded_data = list(zip(files, decoded_data))
@@ -32,9 +43,58 @@ class FileExtractorTask(ExtractorTask, ABC):
         return decoded_data
 
     @abstractmethod
-    def _extract_file(self, connection, file):
+    def _get_files(self) -> list:
+        return None
+
+    def _resolve_files(self, files):
+        expanded_files = self._resolve_wildcards(files)
+
+        return self._resolve_timestamps(expanded_files)
+
+    @abstractmethod
+    def _get_client(self) -> 'Context Manager':
+        return None
+
+    def _extract_files(self, client, files):
+        data = [self._extract_file(client, file) for file in files]
+
+        return data
+
+    def _decode_dataset(self, dataset):
+        decoded_dataset = []
+
+        for index, data in enumerate(dataset):
+            try:
+                decoded_dataset.append(self._decode_data(data))
+            except Exception as exception:
+                raise ETLException(f'Unable to decode {files[index]}') from exception
+
+        return decoded_dataset
+
+    def _resolve_wildcards(self, files):
+        expanded_files = []
+
+        for file in files:
+            files = self._resolve_wildcard(file)
+
+            expanded_files.append(files)
+
+        return expanded_files
+
+    @classmethod
+    def _resolve_timestamps(cls, files):
+        now = datetime.utcnow()
+
+        return [datetime.strftime(now, file) for file in files]
+
+    @abstractmethod
+    def _extract_file(self, file):
         return []
 
     @classmethod
     def _decode_data(cls, data):
         return data
+
+    @abstractmethod
+    def _resolve_wildcard(self, file):
+        return None
