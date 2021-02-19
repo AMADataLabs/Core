@@ -5,7 +5,7 @@ RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel wget tar 
                    python python3-devel python3-pip git awscli \
                    xvfb jq java-1.8.0-openjdk-devel
 
-RUN rm /usr/bin/python && ln -s /usr/bin/python3.7 /usr/bin/python
+# RUN rm /usr/bin/python && ln -s /usr/bin/python3.7 /usr/bin/python
 
 # COPY Build/Master/BitBucketPipelines/requirements.txt .
 #
