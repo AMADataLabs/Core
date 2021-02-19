@@ -27,17 +27,17 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
     def _get_file_paths(self, sftp):
         base_path = self._parameters.variables['BASE_PATH']
         unresolved_files = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
-        resolved_files = []
+        # resolved_files = []
 
-        for file in unresolved_files:
-            files = self._resolve_filename(sftp, file)
+        # for file in unresolved_files:
+        #     files = self._resolve_filename(sftp, file)
+        #
+        #     if isinstance(files, str):
+        #         resolved_files.append(files)
+        #     else:
+        #         resolved_files += files
 
-            if isinstance(files, str):
-                resolved_files.append(files)
-            else:
-                resolved_files += files
-
-        return unresolved_files
+        return self._resolve_timestamps(unresolved_files)
 
     # pylint: disable=arguments-differ
     def _extract_file(self, sftp, file_path):
@@ -60,6 +60,12 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
             raise FileNotFoundError(f"Unable to find file '{file_path}'")
 
         return file_paths
+
+    @classmethod
+    def _resolve_timestamps(cls, files):
+        now = datetime.utcnow()
+
+        return [datetime.strftime(now, file) for file in files]
 
     @classmethod
     def _decode_data(cls, data):
