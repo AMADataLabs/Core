@@ -6,6 +6,22 @@ pipelines:
         - step:
             script:
             - bash Script/bitbucket-pipelines-build.sh
+        dev:
+        - step:
+            script:
+            - bash Script/bitbucket-pipelines-build.sh
+        test:
+        - step:
+            script:
+            - bash Script/bitbucket-pipelines-build.sh
+        stage:
+        - step:
+            script:
+            - bash Script/bitbucket-pipelines-build.sh
+        prod:
+        - step:
+            script:
+            - bash Script/bitbucket-pipelines-build.sh
     custom:
         Test:
         - step:
@@ -14,7 +30,7 @@ pipelines:
             - bash Script/setup-virtual-environment Master
             - export VIRTUAL_ENV=${PWD}/Environment/Master
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
-            - ./Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+            - ${PWD}/Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
         - step:
             name: Lint
             script:
@@ -22,13 +38,15 @@ pipelines:
             - export VIRTUAL_ENV=${PWD}/Environment/Master
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
             - ./Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
-        # CPT:
-        # - step:
-        #     name: Build Bundle
-        #     script:
-        #     - ./Script/setup-virtual-environment CPT
-        #     -
-        # - step:
-        #     name: Upload Bundle
-        # - step:
-        #     name: Update Lambda Functions
+        CPT:
+        - step:
+            name: Build Bundle
+            script:
+            - bash Script/setup-virtual-environment Master
+            - export VIRTUAL_ENV=${PWD}/Environment/Master
+            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            - ${PWD}/Script/bundle-project CPT
+        - step:
+            name: Upload Bundle
+        - step:
+            name: Update Lambda Functions

@@ -21,7 +21,7 @@ COMMIT_RANGE=$1
 COMMIT_RANGE_FOR_LOG="$(echo $COMMIT_RANGE | sed -e 's/\.\./.../g')"
 
 if [[ -z $COMMIT_RANGE ]]; then
-    echo "ERROR: You need to provide revision range in fomrat HASH1..HASH2 as input parameter"
+    echo "ERROR: You need to provide revision range in format HASH1..HASH2 as input parameter"
     echo "$USAGE_TEXT"
     exit 1
 fi
@@ -29,7 +29,7 @@ fi
 # Find script directory (no support for symlinks)
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-export VIRTUAL_ENV="/Build/Environment/Master"
+export VIRTUAL_ENV="${DIR}/../Environment/Master"
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Look for changes in given revision range
@@ -44,7 +44,7 @@ CHANGED_PROJECTS=""
 CHANGED_DEPENDENCIES=""
 
 ##
-# Recursively look for projects which depends on given project.
+# Recursively look for projects which depend on the given project.
 # Outputs lines of tuples in format PROJECT1 PROJECT2 (separated by space),
 # where PROJECT1 depends on PROJECT2.
 #
@@ -72,18 +72,20 @@ function process_dependants {
     echo -e "$DEPENDENCIES"
 }
 
-# If [rebuild-all] command passed it's enought to take all projects and all dependencies as changed
+# If [rebuild-all] command passed it's enough to take all projects and all dependencies as changed
 if [[ $(git log "$COMMIT_RANGE_FOR_LOG" | grep "\[rebuild-all\]") ]]; then
     CHANGED_PROJECTS="$(${DIR}/list-projects.sh)"
     CHANGED_DEPENDENCIES="$PROJECT_DEPENDENCIES"
 else
     # For all known projects check if there was a change and look for all dependant projects
+    # echo "Changed Paths:\n$CHANGED_PATHS"
     for PROJECT in $(${DIR}/list-projects.sh); do
         PROJECT_NAME=$(basename $PROJECT)
         if [[ $(echo -e "$CHANGED_PATHS" | grep "$PROJECT") ]]; then
             CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT"
             CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT)"
         else
+            # echo "$PROJECT Source Files:\n$(${DIR}/run.py python ${DIR}/list_source_dependencies.py $PROJECT)"
             for SOURCE_FILE in $(${DIR}/run.py python ${DIR}/list_source_dependencies.py $PROJECT); do
                 if [[ $(echo -e "$CHANGED_PATHS" | grep "$SOURCE_FILE") ]]; then
                     CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT"
@@ -103,4 +105,4 @@ for PROJECT in $(echo -e "$CHANGED_PROJECTS"); do
 done
 
 # Print output
-echo -e "Test\n$PROJECTS_TO_BUILD"
+echo -e "Test $PROJECTS_TO_BUILD"
