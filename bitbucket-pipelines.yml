@@ -19,7 +19,7 @@ pipelines:
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
             - ls
             - echo ${CWD}
-            - python version
+            - python --version
             - ./Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
         - step:
             name: Lint
