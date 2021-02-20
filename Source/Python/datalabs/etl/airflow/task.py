@@ -15,10 +15,10 @@ LOGGER.setLevel(logging.INFO)
 class AirflowTaskWrapper(task.TaskWrapper):
     def _get_task_parameters(self):
         parameters = self._get_dag_task_parameters()
-        cache_plugin = self._get_cache_plugin(parameters.variables)
+        cache_plugin = self._get_cache_plugin(parameters)
         input_data = cache_plugin.extract_data()
 
-        parameters.data = input_data
+        parameters['data'] = input_data
 
         return parameters
 
@@ -26,7 +26,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
         LOGGER.exception('Handling Airflow task exception: %s', exception)
 
     def _handle_success(self):
-        cache_plugin = self._get_cache_plugin(self._task_parameters.variables)  # pylint: disable=no-member
+        cache_plugin = self._get_cache_plugin(self._task_parameters)  # pylint: disable=no-member
         cache_plugin.load_data(self.task.data)
 
         LOGGER.info('Airflow task has finished')
@@ -40,60 +40,60 @@ class AirflowTaskWrapper(task.TaskWrapper):
         return self._merge_parameters(dag_parameters, task_parameters)
 
     @classmethod
-    def _get_cache_plugin(cls, task_variables):
-        cache_variables = cls._get_cache_variables(task_variables)
+    def _get_cache_plugin(cls, task_parameters):
+        cache_parameters = cls._get_cache_parameters(task_parameters)
         plugin_name = 'datalabs.etl.airflow.s3.S3TaskDataCache'
 
-        if 'CLASS' in cache_variables:
-            plugin_name = cache_variables.pop('CLASS')
+        if 'CLASS' in cache_parameters:
+            plugin_name = cache_parameters.pop('CLASS')
 
         TaskDataCachePlugin = import_plugin(plugin_name)  # pylint: disable=invalid-name
 
-        return TaskDataCachePlugin(cache_variables)
+        return TaskDataCachePlugin(cache_parameters)
 
     @classmethod
     def _get_dag_parameters_from_environment(cls, dag_id, datestamp):
-        variables = cls._get_variables([dag_id.upper()])
+        parameters = cls._get_parameters([dag_id.upper()])
 
-        variables['EXECUTION_TIME'] = datestamp
-        variables['CACHE_EXECUTION_TIME'] = datestamp
+        parameters['EXECUTION_TIME'] = datestamp
+        parameters['CACHE_EXECUTION_TIME'] = datestamp
 
-        return etl.ETLComponentParameters(variables=variables)
+        return parameters
 
     @classmethod
     def _get_task_parameters_from_environment(cls, dag_id, task_id):
-        variables = cls._get_variables([dag_id.upper(), task_id.upper()])
+        parameters = cls._get_parameters([dag_id.upper(), task_id.upper()])
 
-        return etl.ETLComponentParameters(variables=variables)
+        return parameters
 
     @classmethod
     def  _merge_parameters(cls, dag_parameters, task_parameters):
-        variables = dag_parameters.variables
+        parameters = dag_parameters
 
-        variables.update(task_parameters.variables)
+        parameters.update(task_parameters)
 
-        return etl.ETLComponentParameters(variables=variables)
+        return parameters
 
     @classmethod
-    def _get_cache_variables(cls, task_variables):
-        cache_variables = {}
+    def _get_cache_parameters(cls, task_parameters):
+        cache_parameters = {}
 
-        for key, value in task_variables.items():
+        for key, value in task_parameters.items():
             if key.startswith('CACHE_'):
-                cache_variables[key.replace('CACHE_', '')] = value
+                cache_parameters[key.replace('CACHE_', '')] = value
 
-        return cache_variables
+        return cache_parameters
 
     @classmethod
-    def _get_variables(cls, branch):
+    def _get_parameters(cls, branch):
         var_tree = VariableTree.generate()
 
         return var_tree.get_branch_values(branch)
 
 
 class TaskDataCache(ABC):
-    def __init__(self, cache_variables):
-        self._variables = cache_variables
+    def __init__(self, cache_parameters):
+        self._parameters = cache_parameters
 
     @abstractmethod
     def extract_data(self):

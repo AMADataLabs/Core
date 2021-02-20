@@ -5,14 +5,28 @@ import jaydebeapi
 import pandas
 
 from   datalabs.etl.extract import ExtractorTask
-from   datalabs.etl.task import TaskParameterSchemaMixin
 from   datalabs.task import add_schema
 
 
-class JDBCExtractorTask(ExtractorTask, TaskParameterSchemaMixin):
-    def _extract(self):
-        self._parameters = self._get_validated_parameters(JDBCExtractorParameters)
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class JDBCExtractorParameters:
+    driver: str
+    driver_type: str
+    database_host: str
+    database_name: str = None
+    database_username: str = None
+    database_password: str = None
+    jar_path: str = None
+    sql: str = None
+    data: object = None
 
+
+class JDBCExtractorTask(ExtractorTask):
+    PARAMETER_CLASS = JDBCExtractorParameters
+
+    def _extract(self):
         connection = self._connect()
 
         return self._read_queries(connection)
@@ -41,18 +55,3 @@ class JDBCExtractorTask(ExtractorTask, TaskParameterSchemaMixin):
         queries_split.pop()
 
         return [q.strip() for q in queries_split]
-
-
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class JDBCExtractorParameters:
-    driver: str
-    driver_type: str
-    database_host: str
-    database_name: str = None
-    database_username: str = None
-    database_password: str = None
-    jar_path: str = None
-    sql: str = None
-    data: object = None

@@ -6,7 +6,7 @@ from   datalabs.etl.extract import FileExtractorTask
 
 class HTTPFileExtractorTask(FileExtractorTask):
     def _extract(self):
-        data = [self._extract_file(url) for url in self._parameters.variables['URLS'].split(',')]
+        data = [self._extract_file(url) for url in self._parameters['URLS'].split(',')]
 
         return data
 

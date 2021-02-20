@@ -2,8 +2,7 @@
 from   abc import ABC, abstractmethod
 from   datetime import datetime
 
-from   datalabs.etl.task import ETLComponentTask
-from   datalabs.etl.task import ETLException
+from   datalabs.etl.task import ETLComponentTask, ETLException
 
 
 class ExtractorTask(ETLComponentTask, ABC):
@@ -20,10 +19,14 @@ class FileExtractorTask(ExtractorTask, ABC):
         super().__init__(parameters)
 
         self._client = None
+        self._include_names = False
+
+        if hasattr(self._parameters, 'include_names') and self._parameters.include_names:
+            self._include_names = self._parameters.include_names.upper() == 'TRUE'
+        elif hasattr(self._parameters, 'get'):
+            self._include_names = self._parameters.get('INCLUDE_NAMES', 'false').upper() == 'TRUE'
 
     def _extract(self):
-        include_filenames = self._parameters.variables.get('INCLUDE_NAMES')
-
         files = self._get_files()
 
         with self._get_client() as client:
@@ -37,7 +40,7 @@ class FileExtractorTask(ExtractorTask, ABC):
 
         decoded_data = self._decode_dataset(data)
 
-        if include_filenames and include_filenames.upper() == 'TRUE':
+        if self._include_names:
             decoded_data = list(zip(resolved_files, decoded_data))
 
         return decoded_data

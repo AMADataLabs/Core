@@ -18,22 +18,19 @@ def test_jdbc_connection(components):
 
 @pytest.fixture
 def components():
-    return task.ETLComponentParameters(
-        database=dict(
-            NAME='eprdods',
-            PORT='54150',
-            HOST='rdbp1190',
-            username=os.getenv('EXTRACTOR__DATABASE_USERNAME'),
-            password=os.getenv('EXTRACTOR__DATABASE_PASSWORD')
-        ),
-        variables=dict(
-            TASK_CLASS='test.datalabs.etl.jdbc.test_extract.JDBCExtractor',
-            thing=True,
-            SQL='SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;',
-            DRIVER='com.ibm.db2.jcc.DB2Jcc',
-            DRIVER_TYPE='db2',
-            JAR_PATH='./db2jcc4.jar')
-        )
+    return dict(
+        DATABASE_NAME='eprdods',
+        DATABASE_PORT='54150',
+        DATABASE_HOST='rdbp1190',
+        DATABASE_USERNAME=os.getenv('EXTRACTOR__DATABASE_USERNAME'),
+        DATABASE_PASSWORD=os.getenv('EXTRACTOR__DATABASE_PASSWORD'),
+        TASK_CLASS='test.datalabs.etl.jdbc.test_extract.JDBCExtractor',
+        thing=True,
+        SQL='SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;',
+        DRIVER='com.ibm.db2.jcc.DB2Jcc',
+        DRIVER_TYPE='db2',
+        JAR_PATH='./db2jcc4.jar'
+    )
 
 
 @pytest.fixture

@@ -33,7 +33,7 @@ def test_etl_task_wrapper(environment_variables):
 
 
 def test_get_validated_parameters_returns_proper_object(parameters):
-    parameters.transformer.variables.pop('TASK_CLASS')
+    parameters.transformer.pop('TASK_CLASS')
     task = DummyTask(parameters.transformer)
 
     assert isinstance(task._parameters, TaskParameters)
@@ -46,25 +46,13 @@ def test_get_validated_parameters_returns_proper_object(parameters):
 
 
 def test_get_validated_parameters_preserves_input_data(parameters):
-    parameters.transformer.variables.pop('TASK_CLASS')
-    parameters.transformer.data = ['East', 'Coast', 'Family']
+    parameters.transformer.pop('TASK_CLASS')
+    parameters.transformer['data'] = ['East', 'Coast', 'Family']
     task = DummyTask(parameters.transformer)
 
     assert isinstance(task._parameters, TaskParameters)
     assert hasattr(task._parameters, 'data')
     assert task._parameters.data == ['East', 'Coast', 'Family']
-
-
-
-
-class DummyTask(task.ETLComponentTask, task.TaskParameterSchemaMixin):
-    def __init__(self, parameters):
-        super().__init__(parameters)
-
-        self._parameters = self._get_validated_parameters(TaskParameters)
-
-    def run(self):
-        self._data = self._parameters.data
 
 
 @add_schema
@@ -74,26 +62,30 @@ class TaskParameters:
     cooley: str
     high: str
     harmony: str
-    data: object
+    data: object = None
+
+
+class DummyTask(task.ETLComponentTask):
+    PARAMETER_CLASS = TaskParameters
+
+    def run(self):
+        self._data = self._parameters['data']
 
 
 @pytest.fixture
 def parameters():
     return task.ETLParameters(
-        extractor=task.ETLComponentParameters(
-            variables=dict(TASK_CLASS='test.datalabs.etl.test_extract.Extractor', thing=True)
+        extractor=dict(
+            TASK_CLASS='test.datalabs.etl.test_extract.Extractor',
+            thing=True
         ),
-        transformer=task.ETLComponentParameters(
-            variables=dict(
-                TASK_CLASS='test.datalabs.etl.test_transform.Transformer',
-                COOLEY='Boyz',
-                HIGH='II',
-                HARMONY='Men'
-            )
+        transformer=dict(
+            TASK_CLASS='test.datalabs.etl.test_transform.Transformer',
+            COOLEY='Boyz',
+            HIGH='II',
+            HARMONY='Men'
         ),
-        loader=task.ETLComponentParameters(
-            variables=dict(TASK_CLASS='test.datalabs.etl.test_load.Loader')
-        )
+        loader=dict(TASK_CLASS='test.datalabs.etl.test_load.Loader')
     )
 
 

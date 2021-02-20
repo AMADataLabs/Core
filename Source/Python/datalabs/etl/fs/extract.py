@@ -8,9 +8,9 @@ from   datalabs.etl.task import ETLException
 
 class LocalFileExtractorTask(FileExtractorTask):
     def _get_files(self):
-        base_path = self._parameters.variables['BASE_PATH']
+        base_path = self._parameters['BASE_PATH']
 
-        files = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
+        files = [os.path.join(base_path, file) for file in self._parameters['FILES'].split(',')]
 
         return files
 

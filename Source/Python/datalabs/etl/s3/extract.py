@@ -31,15 +31,28 @@ from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.extract import FileExtractorTask
-from   datalabs.etl.task import ETLException, TaskParameterSchemaMixin
+from   datalabs.etl.task import ETLException
 from   datalabs.task import add_schema
 
 
-class S3FileExtractorTask(FileExtractorTask, TaskParameterSchemaMixin):
-    def __init__(self, parameters):
-        super().__init__(parameters)
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class S3FileExtractorParameters:
+    bucket: str
+    base_path: str
+    files: str
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
+    execution_time: str = None
+    include_names: str = None
+    data: object = None
 
-        self._parameters = self._get_validated_parameters(S3FileExtractorParameters)
+
+class S3FileExtractorTask(FileExtractorTask):
+    PARAMETER_CLASS = S3FileExtractorParameters
 
     def _get_files(self):
         latest_path = self._get_latest_path()
@@ -133,18 +146,3 @@ class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252', errors='backslashreplace')
-
-
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class S3FileExtractorParameters:
-    bucket: str
-    base_path: str
-    files: str
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
-    execution_time: str = None
-    data: object = None

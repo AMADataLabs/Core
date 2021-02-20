@@ -2,7 +2,6 @@
 import logging
 
 from   datalabs.etl.parse.transform import ParseToCSVTransformerTask
-from   datalabs.etl.task import ETLComponentParameters
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -12,10 +11,8 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=protected-access
 def test_transforming_cpt_files_to_csv():
     parser_class = 'test.datalabs.etl.cpt.ingest.parse.TestParser'
-    parameters = ETLComponentParameters(
-        variables=dict(
-            PARSERS=','.join((parser_class, parser_class))
-        ),
+    parameters = dict(
+        PARSERS=','.join((parser_class, parser_class)),
         data=[('HelloThere.txt', 'Hello, there!'), ('DearJohn.txt', 'Dear John')]
     )
 
