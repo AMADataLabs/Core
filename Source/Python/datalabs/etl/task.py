@@ -1,7 +1,6 @@
 """ ETL Task base classes. """
 from   dataclasses import dataclass
 import logging
-from typing import Any
 
 from   datalabs.access.environment import VariableTree
 import datalabs.task as task

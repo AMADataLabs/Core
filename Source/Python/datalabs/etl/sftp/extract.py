@@ -1,6 +1,5 @@
 """ Local file system extractors """
 from   dataclasses import dataclass
-from   datetime import datetime
 import io
 import logging
 import os
@@ -29,6 +28,7 @@ class SFTPFileExtractorParameters:
     data: object = None
 
 
+# pylint: disable=too-many-ancestors
 class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
     PARAMETER_CLASS = SFTPFileExtractorParameters
 
@@ -55,8 +55,9 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
             file_parts = file.split('*')
             base_path = os.path.dirname(file_parts[0])
             unresolved_file = f'{os.path.basename(file_parts[0])}*{file_parts[1]}'
+            matched_files = self._client.list(base_path, filter=unresolved_file)
 
-            resolved_files = [os.path.join(base_path, file) for file in self._client.list(base_path, filter=unresolved_file)]
+            resolved_files = [os.path.join(base_path, file) for file in matched_files]
 
             if len(resolved_files) == 0:
                 raise FileNotFoundError(f"Unable to find file '{file}'")

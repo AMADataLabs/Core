@@ -6,6 +6,7 @@ from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, Executi
 from   datalabs.etl.task import ETLException
 
 
+# pylint: disable=too-many-ancestors
 class LocalFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
     def _get_files(self):
         base_path = self._parameters['BASE_PATH']
@@ -33,24 +34,25 @@ class LocalFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtracto
         return files
 
     def _extract_file(self, file):
-        file_path = file
         data = None
 
         try:
-            with open(file_path, 'rb') as file:
-                data = file.read()
+            with open(file, 'rb') as fileref:
+                data = fileref.read()
         except Exception as exception:
-            raise ETLException(f"Unable to read file '{file_path}'") from exception
+            raise ETLException(f"Unable to read file '{file}'") from exception
 
         return data
 
 
+# pylint: disable=too-many-ancestors
 class LocalUnicodeTextFileExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('utf-8', errors='replace')
 
 
+# pylint: disable=too-many-ancestors
 class LocalWindowsTextFileExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):

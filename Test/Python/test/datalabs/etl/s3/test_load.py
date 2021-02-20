@@ -3,7 +3,6 @@ import mock
 import pytest
 
 import datalabs.etl.s3.load as s3
-import datalabs.etl.task as etl
 
 
 # pylint: disable=redefined-outer-name, protected-access

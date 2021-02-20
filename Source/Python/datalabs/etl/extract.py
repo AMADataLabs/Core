@@ -61,6 +61,7 @@ class FileExtractorTask(ExtractorTask, ABC):
     def _extract(self):
         files = self._get_files()
 
+        # pylint: disable=not-context-manager
         with self._get_client() as client:
             self._client = client
 
@@ -70,7 +71,7 @@ class FileExtractorTask(ExtractorTask, ABC):
 
         self._client = None
 
-        decoded_data = self._decode_dataset(data)
+        decoded_data = self._decode_dataset(data, resolved_files)
 
         if self._include_names:
             decoded_data = list(zip(resolved_files, decoded_data))
@@ -97,7 +98,7 @@ class FileExtractorTask(ExtractorTask, ABC):
 
         return data
 
-    def _decode_dataset(self, dataset):
+    def _decode_dataset(self, dataset, files):
         decoded_dataset = []
 
         for index, data in enumerate(dataset):

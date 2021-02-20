@@ -26,7 +26,6 @@
 """
 from   dataclasses import dataclass
 
-import boto3
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
@@ -51,11 +50,12 @@ class S3FileExtractorParameters:
     data: object = None
 
 
+# pylint: disable=too-many-ancestors
 class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
     PARAMETER_CLASS = S3FileExtractorParameters
 
     def _get_files(self):
-        latest_path = self._get_latest_path()
+        base_path = self._get_latest_path()
 
         return ['/'.join((base_path, file)) for file in self._parameters.files.split(',')]
 
@@ -75,17 +75,17 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             files = self._find_s3_object(file)
 
         if len(files) == 0:
-            raise FileNotFoundError(f"Unable to find S3 object '{file_path}'")
+            raise FileNotFoundError(f"Unable to find S3 object '{file}'")
 
         return files
 
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
         try:
-            response = self._client.get_object(Bucket=self._parameters.bucket, Key=file_path)
+            response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
         except Exception as exception:
             raise ETLException(
-                f"Unable to get file '{file_path}' from S3 bucket '{self._parameters.bucket}': {exception}"
+                f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}': {exception}"
             )
 
         return response['Body'].read()

@@ -3,7 +3,6 @@ import logging
 import pandas
 import pytest
 
-import datalabs.etl.task as task
 from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask
 
 logging.basicConfig()

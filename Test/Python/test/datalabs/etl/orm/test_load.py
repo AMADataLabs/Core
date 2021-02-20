@@ -8,7 +8,6 @@ import pytest
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.orm.load import ORMLoaderTask
-import datalabs.etl.task as task
 
 from   test.datalabs.access.model import Base  # pylint: disable=wrong-import-order
 

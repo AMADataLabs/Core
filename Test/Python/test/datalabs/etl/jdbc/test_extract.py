@@ -4,7 +4,6 @@ import os
 import pytest
 
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
-import datalabs.etl.task as task
 
 
 # pylint: disable=redefined-outer-name, protected-access

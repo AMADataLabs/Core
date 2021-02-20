@@ -62,10 +62,12 @@ class SFTP(Datastore):
         def file_callback(file):
             files.append(file)
 
+        # pylint: disable=unused-argument
         def directory_callback(directory):
             pass
 
-        def unknown_callback(directory):
+        # pylint: disable=unused-argument
+        def unknown_callback(file):
             pass
 
         with self._connection.cd(path):

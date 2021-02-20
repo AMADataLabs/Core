@@ -1,3 +1,4 @@
+''' Simple AWS client context manager. '''
 import boto3
 
 class AWSClient:
