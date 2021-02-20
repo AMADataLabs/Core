@@ -31,14 +31,14 @@ class FileExtractorTask(ExtractorTask, ABC):
 
             resolved_files = self._resolve_files(files)
 
-            data = self._extract_files(client, resolved_files)
+            data = self._extract_files(resolved_files)
 
         self._client = None
 
         decoded_data = self._decode_dataset(data)
 
         if include_filenames and include_filenames.upper() == 'TRUE':
-            decoded_data = list(zip(files, decoded_data))
+            decoded_data = list(zip(resolved_files, decoded_data))
 
         return decoded_data
 
@@ -55,8 +55,8 @@ class FileExtractorTask(ExtractorTask, ABC):
     def _get_client(self) -> 'Context Manager':
         return None
 
-    def _extract_files(self, client, files):
-        data = [self._extract_file(client, file) for file in files]
+    def _extract_files(self, files):
+        data = [self._extract_file(file) for file in files]
 
         return data
 
@@ -75,9 +75,7 @@ class FileExtractorTask(ExtractorTask, ABC):
         expanded_files = []
 
         for file in files:
-            files = self._resolve_wildcard(file)
-
-            expanded_files.append(files)
+            expanded_files.extend(self._resolve_wildcard(file))
 
         return expanded_files
 

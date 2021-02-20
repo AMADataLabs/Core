@@ -19,7 +19,7 @@ class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
 
         return [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
 
-    def _get_client(self):\
+    def _get_client(self):
         return self._get_sftp(self._parameters.variables)
 
     def _resolve_wildcard(self, file):
