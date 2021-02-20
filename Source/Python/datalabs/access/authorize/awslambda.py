@@ -2,8 +2,8 @@
 import os
 
 from   datalabs.access.authorize.task import AuthorizerParameters, AuthorizerTaskException
-from   datalabs.access.parameter import ParameterStoreEnvironmentLoader
-from   datalabs.access.secret import SecretsManagerEnvironmentLoader
+from   datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
+from   datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
 from   datalabs.awslambda import TaskWrapper
 
 
@@ -41,5 +41,5 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
     def _handle_exception(self, exception: AuthorizerTaskException) -> (int, dict):
         return dict(message=exception.message)
 
-    def _generate_response(self) -> (int, dict):
-        return self._task.policy_document
+    def _handle_success(self) -> (int, dict):
+        return self.task.policy_document

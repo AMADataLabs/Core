@@ -15,7 +15,7 @@ def test_task_wrapper_is_not_abstract():
     wrapper = GoodTaskWrapper(MockTask)
     wrapper._get_task_parameters()
     wrapper._handle_exception(None)
-    wrapper._generate_response()
+    wrapper._handle_success()
 
 
 def test_task_wrapper_succeeds_as_expected():
@@ -41,7 +41,7 @@ class GoodTaskWrapper(TaskWrapper):
     def _get_task_parameters(self):
         return self._parameters
 
-    def _generate_response(self) -> (int, dict):
+    def _handle_success(self) -> (int, dict):
         return 'succeeded'
 
     def _handle_exception(self, exception: Exception) -> (int, dict):

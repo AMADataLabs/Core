@@ -50,4 +50,5 @@ class Synchronizer():
         subprocess.call(command.split(' '))
 
     def _copy_dags(self):
+        LOGGER.info('Copying DAGs from %s to %s.', self._config.dag_source_path, self._config.dag_target_path)
         copy_tree(self._config.dag_source_path, self._config.dag_target_path)

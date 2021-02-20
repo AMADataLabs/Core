@@ -1,5 +1,7 @@
 # Build Example:
-#    docker build -t cpt -f ./Build/CPT/Dockerfile --build-arg template_file=template.env --build-arg template_vars='user=bob,password=foo' ./
+#    docker build -t cpt -f ./Build/CPT/Dockerfile --build-arg --build-arg template_vars='user=bob,password=foo' ./
+# Run Example:
+#    docker run -e DOTENV_PATH=get_descriptors.env -ti cpt python -c "import awslambda; print(awslambda.handler(None, None))"
 
 FROM python:3.7
 
@@ -8,7 +10,6 @@ WORKDIR /CPT
 COPY ./Build/CPT/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
-ARG template_file
 ARG template_vars
 ARG event=None
 ARG context=None
@@ -24,12 +25,13 @@ COPY ./Build/Master ./Build/Master
 COPY ./Build/CPT ./Build/CPT
 COPY ./Source ./Source
 
-RUN echo $template_file
 RUN echo $template_vars
-RUN ./Script/render-template \
-    --template ./Build/CPT/$template_file \
-    --file ./.env \
-    --vars pythonpath=/CPT,$template_vars
+COPY ./Build/CPT/*.env ./
+RUN find ./ -name "*.env" -exec \
+    ./Script/render-template \
+    --template {} \
+    --file {} \
+    --vars pythonpath=/CPT,$template_vars \;
 RUN ./Script/bundle-project -i --directory ./ CPT
 
 RUN rm -rf ./Script
@@ -38,4 +40,4 @@ RUN rm -rf ./Source
 
 COPY ./Build/CPT/credentials ${AWS_SHARED_CREDENTIALS_FILE}
 
-ENTRYPOINT python -c "import awslambda; print(awslambda.handler($EVENT, $CONTEXT))"
+# ENTRYPOINT python -c "import awslambda; print(awslambda.handler($EVENT, $CONTEXT))"

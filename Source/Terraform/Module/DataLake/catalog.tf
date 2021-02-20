@@ -7,6 +7,16 @@ resource "aws_glue_crawler" "datalake" {
     name            = lower(var.project)
     schedule        = "cron(0 0 * * ? *)"
     role            = aws_iam_role.glue_crawler.arn
+    configuration = jsonencode(
+        {
+            CrawlerOutput = {
+                Partitions = {
+                    AddOrUpdateBehavior = "InheritFromTable"
+                }
+            }
+            Version = 1
+        }
+    )
 
     s3_target {
         path = "s3://${data.aws_ssm_parameter.ingestion_bucket.value}"

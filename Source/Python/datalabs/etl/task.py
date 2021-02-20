@@ -69,14 +69,15 @@ class ETLTask(task.Task):
 
     @classmethod
     def _instantiate_component(cls, parameters, data=None):
-        parameters.data = data
+        parameters['data'] = data or {}
+        task_class = parameters.pop('TASK_CLASS', None)
 
-        if 'CLASS' not in parameters.variables:
-            raise ETLException(f'..._CLASS parameter not specified in {parameters.variables}')
+        if task_class is None:
+            raise ETLException(f'...__TASK_CLASS parameter not specified in {parameters}')
 
-        Plugin = plugin.import_plugin(parameters.variables['CLASS'])  # pylint: disable=invalid-name
+        TaskPlugin = plugin.import_plugin(task_class)  # pylint: disable=invalid-name
 
-        return Plugin(parameters)
+        return TaskPlugin(parameters)
 
 
 class ETLException(task.TaskException):
@@ -95,15 +96,10 @@ class ETLComponentTask(task.Task):
         return self._data
 
 
-@dataclass
-class ETLComponentParameters:
-    database: dict
-    variables: dict
-    data: Any = None
-
-
 class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
+        super()._get_task_parameters()
+
         var_tree = VariableTree.generate()
 
         return ETLParameters(
@@ -114,26 +110,16 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
 
     @classmethod
     def _get_component_parameters(cls, var_tree, component):
-        component_variables = var_tree.get_branch_values([component]) or {}
-        database_variables = None
-        database_parameters = {}
+        component_parameters = var_tree.get_branch_values([component]) or {}
 
-        if 'DATABASE' in var_tree.get_branches([component]):
-            component_variables.pop('DATABASE')
-            database_variables = var_tree.get_branch_values([component, 'DATABASE'])
-            database_parameters = {key.lower():value for key, value in database_variables.items()}
+        LOGGER.debug('Component parameters: %s', component_parameters)
 
-        LOGGER.debug('Component variables: %s', component_variables)
-        LOGGER.debug('Database variables: %s', database_variables)
-
-        return ETLComponentParameters(
-            database=database_parameters,
-            variables=component_variables)
+        return component_parameters
 
 
 class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
     def _handle_exception(self, exception: ETLException):
         LOGGER.exception('Handling ETL task exception: %s', exception)
 
-    def _generate_response(self):
+    def _handle_success(self):
         LOGGER.info('ETL task has finished')

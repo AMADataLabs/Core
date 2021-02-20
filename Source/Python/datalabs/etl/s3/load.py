@@ -1,5 +1,6 @@
 """ AWS S3 Loader """
 import base64
+from   dataclasses import dataclass
 from   datetime import datetime
 import hashlib
 import logging
@@ -9,34 +10,52 @@ from   dateutil.parser import isoparse
 
 from   datalabs.etl.load import LoaderTask
 from   datalabs.etl.task import ETLException
+from   datalabs.task import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class S3FileLoaderParameters:
+    bucket: str
+    base_path: str
+    files: str
+    data: object
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
+    execution_time: str = None
 
 
 class S3FileLoaderTask(LoaderTask):
+    PARAMETER_CLASS = S3FileLoaderParameters
+
     def __init__(self, parameters):
         super().__init__(parameters)
 
         self._s3 = boto3.client(
             's3',
-            endpoint_url=self._parameters.variables.get('ENDPOINTURL'),
-            aws_access_key_id=self._parameters.variables.get('ACCESSKEY'),
-            aws_secret_access_key=self._parameters.variables.get('SECRETKEY'),
-            region_name=self._parameters.variables.get('REGIONNAME')
+            endpoint_url=self._parameters.endpoint_url,
+            aws_access_key_id=self._parameters.access_key,
+            aws_secret_access_key=self._parameters.secret_key,
+            region_name=self._parameters.region_name
         )
 
     def _load(self):
         current_path = self._get_current_path()
-        files = self._parameters.variables['FILES'].split(',')
+        files = self._parameters.files.split(',')
 
         return [self._load_file(current_path, file, data) for file, data in zip(files, self._parameters.data)]
 
     def _get_current_path(self):
         current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
 
-        return '/'.join((self._parameters.variables['BASEPATH'], current_date))
+        return '/'.join((self._parameters.base_path, current_date))
 
     def _load_file(self, base_path, file, data):
         file_path = '/'.join((base_path, file))
@@ -50,13 +69,13 @@ class S3FileLoaderTask(LoaderTask):
         b64_md5_hash = base64.b64encode(md5_hash)
 
         return self._s3.put_object(
-            Bucket=self._parameters.variables['BUCKET'],
+            Bucket=self._parameters.bucket,
             Key=file_path,
             Body=body,
             ContentMD5=b64_md5_hash.decode('utf-8'))
 
     def _get_execution_date(self):
-        execution_time = self._parameters.variables.get('EXECUTION_TIME')
+        execution_time = self._parameters.execution_time
         execution_date = None
 
         if execution_time:

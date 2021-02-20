@@ -12,13 +12,13 @@ class SFTPFileLoaderTask(LoaderTask, SFTPTaskMixin):
     def _load(self):
         file_paths = self._get_file_paths()
 
-        with self._get_sftp(self._parameters.variables) as sftp:
-            for file, data in zip(file_paths, self._parameters.data):
+        with self._get_sftp(self._parameters) as sftp:
+            for file, data in zip(file_paths, self._parameters['data']):
                 self._load_file(sftp, data, file)
 
     def _get_file_paths(self):
-        base_path = self._parameters.variables['BASEPATH']
-        file_paths = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
+        base_path = self._parameters['BASE_PATH']
+        file_paths = [os.path.join(base_path, file) for file in self._parameters['FILES'].split(',')]
 
         return self._resolve_timestamps(file_paths)
 

@@ -75,26 +75,9 @@ resource "aws_ssm_parameter" "pdf_files" {
 resource "aws_ssm_parameter" "passport_url" {
     name  = "/DataLabs/${local.project}/auth/passport_url"
     type  = "String"
-    # value = "https://amapassport-staging.ama-assn.org/auth/entitlements/list/CPTAPI"
-    value = "https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI"
+    value = "https://amapassport-staging.ama-assn.org/auth/entitlements/list/CPTAPI"
+    # value = "https://amapassport-test.ama-assn.org/auth/entitlements/list/CPTAPI"
     tags = local.tags
-}
-
-
-resource "aws_ssm_parameter" "database_username" {
-    name  = "/DataLabs/${local.project}/RDS/username"
-    type  = "String"
-    value = "DataLabs_UI"
-    tags  = local.tags
-}
-
-
-resource "aws_ssm_parameter" "database_password" {
-    name    = "/DataLabs/${local.project}/RDS/password"
-    type    = "SecureString"
-    key_id  = aws_kms_alias.cpt.name
-    value   = var.database_password
-    tags    = local.tags
 }
 
 
@@ -110,12 +93,12 @@ resource "aws_secretsmanager_secret_version" "database" {
   secret_id     = aws_secretsmanager_secret.database.id
   secret_string = jsonencode(
     {
-        username = "DataLabs_UI"
+        username = "datalabs"
         password = var.database_password
         engine = "postgres"
         port = 5432
-        dbname = "sample"
-        dbinstanceIdentifier = "database-test-ui"
+        dbname = "cpt"
+        dbinstanceIdentifier = "cpt"
     }
   )
 }

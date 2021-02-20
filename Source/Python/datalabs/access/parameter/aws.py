@@ -13,6 +13,8 @@ LOGGER.setLevel(logging.INFO)
 
 
 class ParameterStoreEnvironmentLoader:
+    ''' Replace environment variable values that are AWS Systems Manager
+        Parameter Store resource ARNs with the resource values.'''
     def __init__(self, parameters: dict, verify_ssl_certs=True):
         self._parameters = parameters
         self._ssm = boto3.client('ssm', verify=verify_ssl_certs)

@@ -44,16 +44,6 @@ data "aws_kms_key" "cpt" {
 }
 
 
-data "aws_ssm_parameter" "database_username" {
-    name = "/DataLabs/${var.project}/RDS/username"
-}
-
-
-data "aws_ssm_parameter" "database_password" {
-    name = "/DataLabs/${var.project}/RDS/password"
-}
-
-
 data "aws_ssm_parameter" "lambda_code_bucket" {
     name = "/DataLabs/lambda_code_bucket"
 }

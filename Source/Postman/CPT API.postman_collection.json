@@ -1,0 +1,2263 @@
+{
+	"info": {
+		"_postman_id": "1441e374-73f8-4f78-ac90-b5fd3102c47c",
+		"name": "CPT API",
+		"description": "CPT API Phase I\n\nContact Support:\n Email: datalabs@ama-assn.org",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Initialize",
+			"item": [
+				{
+					"name": "Get Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);\r",
+									"\r",
+									"console.log(jsonData.access_token);\r",
+									"pm.globals.set('access_token', jsonData.access_token);\r",
+									"console.log(pm.globals.get('access_token'));\r",
+									"pm.globals.set('responses', new Map())\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var consumer_token = pm.collectionVariables.get('CONSUMER_KEY') + ':' + pm.collectionVariables.get('CONSUMER_SECRET');\r",
+									"console.log(consumer_token)\r",
+									"var encoded_consumer_token = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(consumer_token))\r",
+									"console.log(encoded_consumer_token)\r",
+									"\r",
+									"pm.globals.set('consumer_token', encoded_consumer_token);\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "apikey",
+							"apikey": [
+								{
+									"key": "value",
+									"value": "Basic {{consumer_token}}",
+									"type": "string"
+								},
+								{
+									"key": "key",
+									"value": "Authorization",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"type": "text",
+								"value": "application/text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{TOKEN_URL}}",
+							"host": [
+								"{{TOKEN_URL}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Descriptors",
+			"item": [
+				{
+					"name": "All CPT Descriptors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Token: \" + pm.globals.get('token'))\r",
+									"console.log(\"Authorization Header: \" + pm.request.headers.get('Authorization'))\r",
+									"console.log(\"Request URL Path: \" + pm.request.url.getPath())\r",
+									"console.log(\"Descriptors Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"short_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"medium_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"long_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(4)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/descriptors",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"descriptors"
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "All CPT Descriptors with keyword filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"var request_path = pm.request.url.getPath().split('/')\r",
+									"var request_name = request_path[request_path.length-1]\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"short_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"medium_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"long_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(4)\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Descriptors have keywords\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        var descriptors = (record.short_descriptor + record.medium_descriptor + record.long_descriptor).toLowerCase();\r",
+									"\r",
+									"        pm.expect(\r",
+									"            descriptors.includes('heart') ||\r",
+									"            descriptors.includes('blood')\r",
+									"        ).to.eql(true)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/descriptors?keyword=heart&keyword=blood",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "heart",
+									"description": "Filter by keyword across descriptors."
+								},
+								{
+									"key": "keyword",
+									"value": "blood"
+								}
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "All CPT Descriptors with length filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"short_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"medium_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(3)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/descriptors?length=short&length=medium",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "length",
+									"value": "short",
+									"description": "Filter by description length. Any of \"short\", \"medium\", or \"long\"."
+								},
+								{
+									"key": "length",
+									"value": "medium"
+								},
+								{
+									"key": "length",
+									"value": "long",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "All CPT Descriptors with wildcard filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"short_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"medium_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"long_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(4)\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Codes match filter criteria\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(record.code.length).to.eql(5);\r",
+									"        pm.expect(\r",
+									"            (record.code.startsWith('0') && record.code.endsWith('U')) ||\r",
+									"            record.code.endsWith('T') ||\r",
+									"            record.code.startsWith('9')\r",
+									"        ).to.eql(true);\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/descriptors?code=0*U&code=*T&code=9*",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "0*U"
+								},
+								{
+									"key": "code",
+									"value": "*T"
+								},
+								{
+									"key": "code",
+									"value": "9*"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All CPT Descriptors with since filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"short_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"medium_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"long_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(4)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/descriptors?since=20200401",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "since",
+									"value": "20200401"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All CPT Descriptors with all filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"short_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"long_descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(3)\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Descriptors have keywords\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        var descriptors = (record.short_descriptor + record.medium_descriptor + record.long_descriptor).toLowerCase();\r",
+									"\r",
+									"        pm.expect(\r",
+									"            descriptors.includes('heart') ||\r",
+									"            descriptors.includes('blood')\r",
+									"        ).to.eql(true)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/descriptors?since=2020-04-01&keyword=heart&keyword=blood&length=short&length=long",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "since",
+									"value": "2020-04-01",
+									"description": "Filter for new codes since a release"
+								},
+								{
+									"key": "keyword",
+									"value": "heart",
+									"description": "Filter by keyword across descriptors."
+								},
+								{
+									"key": "keyword",
+									"value": "blood"
+								},
+								{
+									"key": "length",
+									"value": "short",
+									"description": "Filter by description length. Any of \"short\", \"medium\", or \"long\"."
+								},
+								{
+									"key": "length",
+									"value": "long"
+								}
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "CPT Descriptor by code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is a single dict\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"code\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"short_descriptor\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"medium_descriptor\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"long_descriptor\" in jsonData).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(4)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/descriptor/:code",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"descriptor",
+								":code"
+							],
+							"variable": [
+								{
+									"key": "code",
+									"value": "87426",
+									"type": "string"
+								}
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				},
+				{
+					"name": "CPT Descriptor by code with length filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is a single dict\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"code\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"medium_descriptor\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"long_descriptor\" in jsonData).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(3)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/descriptor/:code?length=medium&length=long",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"descriptor",
+								":code"
+							],
+							"query": [
+								{
+									"key": "length",
+									"value": "medium"
+								},
+								{
+									"key": "length",
+									"value": "long"
+								}
+							],
+							"variable": [
+								{
+									"key": "code",
+									"value": "87426",
+									"type": "string"
+								}
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Clinician Descriptors",
+			"item": [
+				{
+					"name": "All Clinician Descriptors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"id\" in record).to.eql(true)\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(3)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/clinician/descriptors",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"clinician",
+								"descriptors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Clinician Descriptors with keyword filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"id\" in record).to.eql(true)\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(3)\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Descriptors have keywords\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        var descriptor = record.descriptor.toLowerCase()\r",
+									"        pm.expect(\r",
+									"            descriptor.includes('heart') ||\r",
+									"            descriptor.includes('water')\r",
+									"        ).to.eql(true)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/clinician/descriptors?keyword=heart&keyword=water",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"clinician",
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "heart",
+									"description": "Filter by keyword across descriptors."
+								},
+								{
+									"key": "keyword",
+									"value": "water"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Clinician Descriptors with wildcard filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"id\" in record).to.eql(true)\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(3)\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Codes match filter criteria\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(record.code.length).to.eql(5);\r",
+									"        pm.expect(\r",
+									"            record.code.startsWith('0') && record.code.endsWith('5')\r",
+									"        ).to.eql(true);\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/clinician/descriptors?code=0*5",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"clinician",
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "0*5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Clinician Descriptors with since filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"id\" in record).to.eql(true)\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(3)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/clinician/descriptors?since=2020-04-01",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"clinician",
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "since",
+									"value": "2020-04-01"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clinician Descriptors by CPT code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is of expected length\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.length).to.eql(2)\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"id\" in record).to.eql(true)\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(3)\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Clinician Descriptor ID is correct\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    pm.expect(jsonData[0].id).to.eql(10003684)\r",
+									"    pm.expect(jsonData[1].id).to.eql(10003685)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"followOriginalHttpMethod": true,
+						"followRedirects": false
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/clinician/descriptors/:code",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"clinician",
+								"descriptors",
+								":code"
+							],
+							"variable": [
+								{
+									"key": "code",
+									"value": "27062",
+									"type": "string"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Consumer Descriptors",
+			"item": [
+				{
+					"name": "All Consumer Descriptors",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(2)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/consumer/descriptors",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"consumer",
+								"descriptors"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Consumer Descriptors with keyword filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(2)\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Descriptors have keywords\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        var descriptor = record.descriptor.toLowerCase()\r",
+									"        pm.expect(\r",
+									"            descriptor.includes('heart') ||\r",
+									"            descriptor.includes('water')\r",
+									"        ).to.eql(true)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/consumer/descriptors?keyword=heart&keyword=water",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"consumer",
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "heart",
+									"description": "Filter by keyword across descriptors."
+								},
+								{
+									"key": "keyword",
+									"value": "water"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Consumer Descriptors with wildcard filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(2)\r",
+									"    });\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Codes match filter criteria\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(record.code.length).to.eql(5);\r",
+									"        pm.expect(\r",
+									"            record.code.startsWith('0') && record.code.endsWith('5')\r",
+									"        ).to.eql(true);\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/consumer/descriptors?code=0*5",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"consumer",
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "0*5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All Consumer Descriptors with since filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(2)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/consumer/descriptors?since=2020-04-01",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"consumer",
+								"descriptors"
+							],
+							"query": [
+								{
+									"key": "since",
+									"value": "2020-04-01"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consumer Descriptor by code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"pm.test(\"Response is a single dict\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+									"});\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"code\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"descriptor\" in jsonData).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(2)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/consumer/descriptor/:code",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"consumer",
+								"descriptor",
+								":code"
+							],
+							"variable": [
+								{
+									"key": "code",
+									"value": "00100",
+									"type": "string"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Modifiers",
+			"item": [
+				{
+					"name": "All Modifiers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"type\" in record).to.eql(true)\r",
+									"        pm.expect(\"general_use\" in record).to.eql(true)\r",
+									"        pm.expect(\"ambulatory_service_center\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(5)\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/modifiers",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"modifiers"
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "All Modifiers with type filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"descriptor\" in record).to.eql(true)\r",
+									"        pm.expect(\"type\" in record).to.eql(true)\r",
+									"        pm.expect(\"general_use\" in record).to.eql(true)\r",
+									"        pm.expect(\"ambulatory_service_center\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(5)\r",
+									"    })\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Types are correct\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\r",
+									"            record.type == 'Level II' ||\r",
+									"            record.type == 'Anesthesia Physical Status'\r",
+									"        ).to.eql(true)\r",
+									"    })\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/modifiers?type=Level II&type=Anesthesia Physical Status",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"modifiers"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "Level II"
+								},
+								{
+									"key": "type",
+									"value": "Anesthesia Physical Status"
+								}
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "Modifier by code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is a single dict\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"code\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"descriptor\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"type\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"general_use\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"ambulatory_service_center\" in jsonData).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(5)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/modifier/:code",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"modifier",
+								":code"
+							],
+							"variable": [
+								{
+									"key": "code",
+									"value": "P5",
+									"type": "string"
+								}
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "PLA",
+			"item": [
+				{
+					"name": "All PLA details",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"PLA Details Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"test\" in record).to.eql(true)\r",
+									"        pm.expect(\"lab\" in record).to.eql(true)\r",
+									"        pm.expect(\"manufacturer\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(4)\r",
+									"    })\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/pla/details",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"pla",
+								"details"
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "All PLA details with keyword filters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"test\" in record).to.eql(true)\r",
+									"        pm.expect(\"lab\" in record).to.eql(true)\r",
+									"        pm.expect(\"manufacturer\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(4)\r",
+									"    })\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/pla/details?keyword=aspira&keyword=precise&keyword=strips",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"pla",
+								"details"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "aspira"
+								},
+								{
+									"key": "keyword",
+									"value": "precise"
+								},
+								{
+									"key": "keyword",
+									"value": "strips"
+								}
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "All PLA details with wildcard filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"test\" in record).to.eql(true)\r",
+									"        pm.expect(\"lab\" in record).to.eql(true)\r",
+									"        pm.expect(\"manufacturer\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(4)\r",
+									"    })\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Codes match filter criteria\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(record.code.length).to.eql(5);\r",
+									"        pm.expect(\r",
+									"            record.code.startsWith('02') && record.code.endsWith('U')\r",
+									"        ).to.eql(true);\r",
+									"    });\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/pla/details?code=02*U",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"pla",
+								"details"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "02*U"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "All PLA details with since filter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"console.log(\"Results Count: \" + pm.response.json().length)\r",
+									"\r",
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"code\" in record).to.eql(true)\r",
+									"        pm.expect(\"test\" in record).to.eql(true)\r",
+									"        pm.expect(\"lab\" in record).to.eql(true)\r",
+									"        pm.expect(\"manufacturer\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(4)\r",
+									"    })\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/pla/details?since=2020-04-01",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"pla",
+								"details"
+							],
+							"query": [
+								{
+									"key": "since",
+									"value": "2020-04-01"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "PLA details by code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is a single dict\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(false);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"code\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"test\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"lab\" in jsonData).to.eql(true)\r",
+									"    pm.expect(\"manufacturer\" in jsonData).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData).length).to.eql(4)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/pla/details/:code",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"pla",
+								"details",
+								":code"
+							],
+							"variable": [
+								{
+									"key": "code",
+									"value": "0001U",
+									"type": "string"
+								}
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Releases",
+			"item": [
+				{
+					"name": "All releases",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is of expected length\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.length).to.be.above(1)\r",
+									"    // console.log(jsonData.length)\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"\r",
+									"    jsonData.forEach(function(record) {\r",
+									"        pm.expect(\"id\" in record).to.eql(true)\r",
+									"        pm.expect(\"publish_date\" in record).to.eql(true)\r",
+									"        pm.expect(\"effective_date\" in record).to.eql(true)\r",
+									"        pm.expect(\"type\" in record).to.eql(true)\r",
+									"        pm.expect(Object.keys(record).length).to.eql(4)\r",
+									"    })\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/releases",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"releases"
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				},
+				{
+					"name": "Most recent release",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"    var responses = pm.globals.get('responses')\r",
+									"    responses[pm.info.requestName] = pm.response.json()\r",
+									"    pm.globals.set('responses', responses)\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is an array\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(Array.isArray(jsonData)).to.eql(true);\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response is of expected length\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.length).to.eql(1)\r",
+									"    // console.log(jsonData.length)\r",
+									"});\r",
+									"\r",
+									"\r",
+									"pm.test(\"Response contains correct fields\", function () {\r",
+									"    var jsonData = pm.response.json();\r",
+									"    pm.expect(\"id\" in jsonData[0]).to.eql(true)\r",
+									"    pm.expect(\"publish_date\" in jsonData[0]).to.eql(true)\r",
+									"    pm.expect(\"effective_date\" in jsonData[0]).to.eql(true)\r",
+									"    pm.expect(\"type\" in jsonData[0]).to.eql(true)\r",
+									"    pm.expect(Object.keys(jsonData[0]).length).to.eql(4)\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/releases?results=1",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"releases"
+							],
+							"query": [
+								{
+									"key": "results",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Returns the CPT Code descriptor in short, medium, and long forms."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "PDF",
+			"item": [
+				{
+					"name": "Latest PDFs",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+									"//     var responses = pm.globals.get('responses')\r",
+									"//     responses[pm.info.requestName] = pm.response.json()\r",
+									"//     pm.globals.set('responses', responses)\r",
+									"// }\r",
+									"\r",
+									"pm.test(\"Response code indicates success\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/pdfs",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"pdfs"
+							]
+						},
+						"description": "Returns all lengths of the descriptor for a particular CPT Code."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Default",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.collectionVariables.get('SAVE_DATA') == \"true\") {\r",
+							"    var responses = pm.globals.get('responses')\r",
+							"    responses[pm.info.requestName] = pm.response.json()\r",
+							"    pm.globals.set('responses', responses)\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Response code indicates success\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{BASE_URL}}/some/random/endpoint/path",
+					"host": [
+						"{{BASE_URL}}"
+					],
+					"path": [
+						"some",
+						"random",
+						"endpoint",
+						"path"
+					]
+				},
+				"description": "Returns all lengths of the descriptor for a particular CPT Code."
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{access_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "https://api-platform-test.ama-assn.org/CPT/1"
+		},
+		{
+			"key": "PASSPORT_HOST",
+			"value": "amapassport-staging.ama-assn.org"
+		},
+		{
+			"key": "CONSUMER_KEY",
+			"value": ""
+		},
+		{
+			"key": "CONSUMER_SECRET",
+			"value": ""
+		},
+		{
+			"key": "TOKEN_URL",
+			"value": "https://api-platform-test.ama-assn.org/token"
+		}
+	]
+}

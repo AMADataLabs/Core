@@ -7,10 +7,11 @@ import logging
 import pandas
 import sqlalchemy as sa
 
-from   datalabs.access.orm import DatabaseTaskMixin
+from   datalabs.access.orm import Database
+import datalabs.etl.cpt.api.transform as transform
 from   datalabs.etl.load import LoaderTask
 import datalabs.model.cpt.api as dbmodel
-import datalabs.etl.cpt.api.transform as transform
+import datalabs.task as task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ class IDs:
     new: list
 
 
-class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
+class CPTRelationalTableLoaderTask(LoaderTask, task.DatabaseTaskMixin):
     def __init__(self, parameters):
         super().__init__(parameters)
         self._release = None
@@ -32,10 +33,10 @@ class CPTRelationalTableLoaderTask(LoaderTask, DatabaseTaskMixin):
         self._database = None
 
     def _load(self):
-        with self._get_database(self._parameters.database) as database:
+        with self._get_database(Database, self._parameters) as database:
             self._database = database
 
-            self._update_tables(self._parameters.data)
+            self._update_tables(self._parameters['data'])
 
     def _update_tables(self, data: transform.OutputData):
         release_table_updater = ReleaseTableUpdater(self._database)
@@ -248,7 +249,7 @@ class TableUpdater:
             columns.remove(part)
 
         if all(column in columns for column in self._match_columns):
-            for part in self._primary_key:
+            for part in self._match_columns:
                 columns.remove(part)
 
         return columns

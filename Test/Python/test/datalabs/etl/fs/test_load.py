@@ -26,10 +26,10 @@ def test_data_setup_correctly(extractor_file):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_loader_loads_two_files(etl, loader_directory):
-    with mock.patch('datalabs.access.parameter.boto3'):
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    data = etl._task._loader.data
+    data = etl.task._loader.data
 
     LOGGER.debug('Loaded Data: %s', data)
     assert len(data) == 2
@@ -40,7 +40,7 @@ def test_loader_loads_two_files(etl, loader_directory):
 
 # pylint: disable=redefined-outer-name
 def test_loader_properly_adds_datestamp(etl, loader_directory):
-    with mock.patch('datalabs.access.parameter.boto3'):
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
     files = sorted(glob(os.path.join(loader_directory, '*')), key=len)
@@ -63,16 +63,16 @@ def environment(extractor_file, loader_directory):
     os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.task.ETLTaskWrapper'
     os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
 
-    os.environ['EXTRACTOR_CLASS'] = 'datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask'
-    os.environ['EXTRACTOR_BASEPATH'] = os.path.dirname(extractor_file)
-    os.environ['EXTRACTOR_FILES'] = 'PhysicianProfessionalDataFile_*'
-    os.environ['EXTRACTOR_INCLUDENAMES'] = 'True'
+    os.environ['EXTRACTOR__TASK_CLASS'] = 'datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask'
+    os.environ['EXTRACTOR__BASE_PATH'] = os.path.dirname(extractor_file)
+    os.environ['EXTRACTOR__FILES'] = 'PhysicianProfessionalDataFile_*'
+    os.environ['EXTRACTOR__INCLUDE_NAMES'] = 'True'
 
-    os.environ['TRANSFORMER_CLASS'] = 'test.datalabs.etl.fs.transform.FilenameStripperTransformerTask'
+    os.environ['TRANSFORMER__TASK_CLASS'] = 'test.datalabs.etl.fs.transform.FilenameStripperTransformerTask'
 
-    os.environ['LOADER_CLASS'] = 'datalabs.etl.fs.load.LocalUnicodeTextFileLoaderTask'
-    os.environ['LOADER_BASEPATH'] = loader_directory
-    os.environ['LOADER_FILES'] = 'PhysicianProfessionalDataFile.csv,PhysicianProfessionalDataFile_%Y-%m-%d.csv'
+    os.environ['LOADER__TASK_CLASS'] = 'datalabs.etl.fs.load.LocalUnicodeTextFileLoaderTask'
+    os.environ['LOADER__BASE_PATH'] = loader_directory
+    os.environ['LOADER__FILES'] = 'PhysicianProfessionalDataFile.csv,PhysicianProfessionalDataFile_%Y-%m-%d.csv'
 
     yield os.environ
 

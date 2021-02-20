@@ -19,8 +19,8 @@ class CredentialingTransformerTask(TransformerTask):
 
 class CredentialingFinalTransformerTask(TransformerTask):
     def _transform(self):
-        dataframes = self._to_dataframe(self._parameters.data)
-        self._parameters.data = self._merge_dataframes(dataframes)
+        dataframes = self._to_dataframe(self._parameters['data'])
+        self._parameters['data'] = self._merge_dataframes(dataframes)
 
         data = super()._transform()
 
