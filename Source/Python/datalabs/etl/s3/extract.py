@@ -30,7 +30,7 @@ import boto3
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.extract import FileExtractorTask
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, ExecutionTimeMixin
 from   datalabs.etl.task import ETLException
 from   datalabs.task import add_schema
 
@@ -46,12 +46,12 @@ class S3FileExtractorParameters:
     access_key: str = None
     secret_key: str = None
     region_name: str = None
-    execution_time: str = None
     include_names: str = None
+    execution_time: str = None
     data: object = None
 
 
-class S3FileExtractorTask(FileExtractorTask):
+class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
     PARAMETER_CLASS = S3FileExtractorParameters
 
     def _get_files(self):

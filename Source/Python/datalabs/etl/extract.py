@@ -2,6 +2,8 @@
 from   abc import ABC, abstractmethod
 from   datetime import datetime
 
+from   dateutil.parser import isoparse
+
 from   datalabs.etl.task import ETLComponentTask, ETLException
 
 
@@ -14,17 +16,47 @@ class ExtractorTask(ETLComponentTask, ABC):
         pass
 
 
+class IncludeNamesMixin:
+    @property
+    def include_names(self):
+        include_names = False
+
+        if hasattr(self._parameters, 'include_names') and self._parameters.include_names:
+            include_names = self._parameters.include_names.upper() == 'TRUE'
+        elif hasattr(self._parameters, 'get'):
+            include_names = self._parameters.get('INCLUDE_NAMES', 'false').upper() == 'TRUE'
+
+        return include_names
+
+
+class ExecutionTimeMixin:
+    @property
+    def execution_time(self):
+        timestamp = datetime.utcnow().isoformat()
+
+        if hasattr(self._parameters, 'execution_time') and self._parameters.execution_time:
+            timestamp = self._parameters.execution_time
+        elif hasattr(self._parameters, 'get'):
+            timestamp = self._parameters.get('EXECUTION_TIME', timestamp)
+
+        return isoparse(timestamp)
+
+
 class FileExtractorTask(ExtractorTask, ABC):
     def __init__(self, parameters):
         super().__init__(parameters)
 
         self._client = None
-        self._include_names = False
+        self._include_names = self.include_names
+        self._execution_time = self.execution_time
 
-        if hasattr(self._parameters, 'include_names') and self._parameters.include_names:
-            self._include_names = self._parameters.include_names.upper() == 'TRUE'
-        elif hasattr(self._parameters, 'get'):
-            self._include_names = self._parameters.get('INCLUDE_NAMES', 'false').upper() == 'TRUE'
+    @property
+    def include_names(self):
+        return False
+
+    @property
+    def execution_time(self):
+        return datetime.utcnow()
 
     def _extract(self):
         files = self._get_files()
@@ -50,9 +82,11 @@ class FileExtractorTask(ExtractorTask, ABC):
         return None
 
     def _resolve_files(self, files):
-        expanded_files = self._resolve_wildcards(files)
+        timestamped_files = self._resolve_timestamps(files)
 
-        return self._resolve_timestamps(expanded_files)
+        expanded_files = self._resolve_wildcards(timestamped_files)
+
+        return expanded_files
 
     @abstractmethod
     def _get_client(self) -> 'Context Manager':
@@ -82,11 +116,8 @@ class FileExtractorTask(ExtractorTask, ABC):
 
         return expanded_files
 
-    @classmethod
-    def _resolve_timestamps(cls, files):
-        now = datetime.utcnow()
-
-        return [datetime.strftime(now, file) for file in files]
+    def _resolve_timestamps(self, files):
+        return [datetime.strftime(self._execution_time, file) for file in files]
 
     @abstractmethod
     def _extract_file(self, file):

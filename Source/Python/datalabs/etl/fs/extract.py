@@ -2,11 +2,11 @@
 from   glob import glob
 import os
 
-from   datalabs.etl.extract import FileExtractorTask
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, ExecutionTimeMixin
 from   datalabs.etl.task import ETLException
 
 
-class LocalFileExtractorTask(FileExtractorTask):
+class LocalFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
     def _get_files(self):
         base_path = self._parameters['BASE_PATH']
 

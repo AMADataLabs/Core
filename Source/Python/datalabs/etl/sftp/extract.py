@@ -1,38 +1,57 @@
 """ Local file system extractors """
+from   dataclasses import dataclass
 from   datetime import datetime
 import io
 import logging
 import os
 
 import datalabs.access.sftp as sftp
-from   datalabs.etl.extract import FileExtractorTask
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, ExecutionTimeMixin
 from   datalabs.etl.task import ETLException
+from   datalabs.task import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class SFTPFileExtractorTask(FileExtractorTask):
-    def _get_files(self):
-        base_path = self._parameters['BASE_PATH']
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class SFTPFileExtractorParameters:
+    base_path: str
+    files: str
+    host: str
+    username: str
+    password: str
+    execution_time: str = None
+    include_names: str = None
+    data: object = None
 
-        return [os.path.join(base_path, file) for file in self._parameters['FILES'].split(',')]
+
+class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
+    PARAMETER_CLASS = SFTPFileExtractorParameters
+
+    def _get_files(self):
+        base_path = self._parameters.base_path
+
+        return [os.path.join(base_path, file) for file in self._parameters.files.split(',')]
 
     def _get_client(self):
-        config = Configuration(
-            host=parameters['HOST']
+        config = sftp.Configuration(
+            host=self._parameters.host
         )
-        credentials = Credentials(
-            username=parameters['USERNAME'],
-            password=parameters['PASSWORD']
+        credentials = sftp.Credentials(
+            username=self._parameters.username,
+            password=self._parameters.password
         )
 
         return sftp.SFTP(config, credentials)
 
     def _resolve_wildcard(self, file):
-        base_path = os.path.dirname(file)
-        unresolved_file = os.path.basename(file)
+        file_parts = file.split('*')
+        base_path = os.path.dirname(file_parts[0])
+        unresolved_file = f'{os.path.basename(file_parts[0])}*{file_parts[1]}'
 
         resolved_files = [os.path.join(base_path, file) for file in self._client.list(base_path, filter=unresolved_file)]
 
