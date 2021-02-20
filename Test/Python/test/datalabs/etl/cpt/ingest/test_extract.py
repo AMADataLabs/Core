@@ -8,7 +8,6 @@ import pytest
 
 import pandas
 
-from   datalabs.etl.task import ETLComponentParameters
 from   datalabs.etl.cpt.ingest.extract import CPTTextDataExtractorTask
 
 logging.basicConfig()
@@ -89,15 +88,13 @@ def release_schedule():
 
 @pytest.fixture
 def task_parameters():
-    return ETLComponentParameters(
-        variables=dict(
-            ENDPOINT_URL='https://bogus.host.fqdn/path/file',
-            ACCESS_KEY='nviowaj4902hfisafh9402fdni0ph8',
-            SECRET_KEY='wr9e0afe90afohf90aw',
-            REGION_NAME='us-east-42',
-            BUCKET='jumanji',
-            BASE_PATH='dir1/dir2/dir3',
-            FILES='this_one.csv,that_one.csv,the_other_one.csv',
-            EXECUTION_TIME='19000101'
-        )
+    return dict(
+        ENDPOINT_URL='https://bogus.host.fqdn/path/file',
+        ACCESS_KEY='nviowaj4902hfisafh9402fdni0ph8',
+        SECRET_KEY='wr9e0afe90afohf90aw',
+        REGION_NAME='us-east-42',
+        BUCKET='jumanji',
+        BASE_PATH='dir1/dir2/dir3',
+        FILES='this_one.csv,that_one.csv,the_other_one.csv',
+        EXECUTION_TIME='19000101'
     )

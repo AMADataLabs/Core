@@ -32,9 +32,9 @@ class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
     def _add_component_environment_variables_from_event(cls, task_parameters, event):
         environment_variables = {key.upper():str(value) for key, value in event.items()}
         component_variables = [
-            task_parameters.extractor.variables,
-            task_parameters.transformer.variables,
-            task_parameters.loader.variables
+            task_parameters.extractor,
+            task_parameters.transformer,
+            task_parameters.loader
         ]
 
         for variables in component_variables:

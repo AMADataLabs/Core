@@ -9,7 +9,7 @@ import boto3
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.load import LoaderTask
-from   datalabs.etl.task import ETLException, TaskParameterSchemaMixin
+from   datalabs.etl.task import ETLException
 from   datalabs.task import add_schema
 
 logging.basicConfig()
@@ -17,11 +17,26 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class S3FileLoaderTask(LoaderTask, TaskParameterSchemaMixin):
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class S3FileLoaderParameters:
+    bucket: str
+    base_path: str
+    files: str
+    data: object
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
+    execution_time: str = None
+
+
+class S3FileLoaderTask(LoaderTask):
+    PARAMETER_CLASS = S3FileLoaderParameters
+
     def __init__(self, parameters):
         super().__init__(parameters)
-
-        self._parameters = self._get_validated_parameters(S3FileLoaderParameters)
 
         self._s3 = boto3.client(
             's3',
@@ -81,18 +96,3 @@ class S3UnicodeTextFileLoaderTask(S3FileLoaderTask):
 class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
     def _encode(self, data):
         return data.encode('cp1252', errors='backslashreplace')
-
-
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class S3FileLoaderParameters:
-    bucket: str
-    base_path: str
-    files: str
-    data: object
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
-    execution_time: str = None

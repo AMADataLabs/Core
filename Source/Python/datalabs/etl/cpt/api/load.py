@@ -33,10 +33,10 @@ class CPTRelationalTableLoaderTask(LoaderTask, task.DatabaseTaskMixin):
         self._database = None
 
     def _load(self):
-        with self._get_database(Database, self._parameters.variables) as database:
+        with self._get_database(Database, self._parameters) as database:
             self._database = database
 
-            self._update_tables(self._parameters.data)
+            self._update_tables(self._parameters['data'])
 
     def _update_tables(self, data: transform.OutputData):
         release_table_updater = ReleaseTableUpdater(self._database)
