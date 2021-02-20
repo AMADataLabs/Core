@@ -49,14 +49,17 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
         return sftp.SFTP(config, credentials)
 
     def _resolve_wildcard(self, file):
-        file_parts = file.split('*')
-        base_path = os.path.dirname(file_parts[0])
-        unresolved_file = f'{os.path.basename(file_parts[0])}*{file_parts[1]}'
+        resolved_files = [file]
 
-        resolved_files = [os.path.join(base_path, file) for file in self._client.list(base_path, filter=unresolved_file)]
+        if '*' in file:
+            file_parts = file.split('*')
+            base_path = os.path.dirname(file_parts[0])
+            unresolved_file = f'{os.path.basename(file_parts[0])}*{file_parts[1]}'
 
-        if len(resolved_files) == 0:
-            raise FileNotFoundError(f"Unable to find file '{file}'")
+            resolved_files = [os.path.join(base_path, file) for file in self._client.list(base_path, filter=unresolved_file)]
+
+            if len(resolved_files) == 0:
+                raise FileNotFoundError(f"Unable to find file '{file}'")
 
         return resolved_files
 
