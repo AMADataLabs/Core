@@ -8,12 +8,19 @@ from   datalabs.etl.task import ETLException
 
 class LocalFileLoaderTask(LoaderTask):
     def _load(self):
-        base_path = self._parameters['BASE_PATH']
-        files = [file.strip() for file in self._parameters['FILES'].split(',')]
+        files = self._get_files()
+
         timestamped_files = self._resolve_timestamps(files)
 
         for file, data in zip(timestamped_files, self._parameters['data']):
-            self._load_file(base_path, file, data)
+            self._load_file(file, data)
+
+    def _get_files(self):
+        base_path = self._parameters['BASE_PATH']
+
+        files = [os.path.join(base_path, file.strip()) for file in self._parameters['FILES'].split(',')]
+
+        return files
 
     @classmethod
     def _resolve_timestamps(cls, files):
@@ -21,9 +28,7 @@ class LocalFileLoaderTask(LoaderTask):
 
         return [datetime.strftime(now, file) for file in files]
 
-    def _load_file(self, base_path, filename, data):
-        file_path = os.path.join(base_path, filename)
-
+    def _load_file(self, file_path, data):
         data = self._encode_data(data)
 
         try:

@@ -5,7 +5,8 @@ import os
 import mock
 import pytest
 
-from datalabs.plugin import import_plugin
+import datalabs.etl.fs.extract as fs
+from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -29,6 +30,16 @@ def test_extractor_loads_correct_file(etl):
     extractor = etl.task._extractor
 
     assert len(extractor.data) > 0
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_whitespace_removed_from_filenames(parameters):
+    task = fs.LocalFileExtractorTask(parameters)
+
+    files = task._get_files()
+
+    assert len(files) == 3
+    assert files[2] == 'dir1/dir2/dir3/the_other_one.csv'
 
 
 # pylint: disable=redefined-outer-name, unused-argument
@@ -61,3 +72,12 @@ def etl(environment):
     task_wrapper = task_wrapper_class(task_class, parameters={})
 
     return task_wrapper
+
+
+@pytest.fixture
+def parameters():
+    return dict(
+        BASE_PATH='dir1/dir2/dir3',
+        FILES='this_one.csv,that_one.csv,\n       the_other_one.csv     ',
+        EXECUTION_TIME='19000101'
+    )

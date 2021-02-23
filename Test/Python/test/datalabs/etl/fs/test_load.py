@@ -8,6 +8,7 @@ import tempfile
 import mock
 import pytest
 
+import datalabs.etl.fs.load as fs
 from datalabs.plugin import import_plugin
 
 logging.basicConfig()
@@ -49,6 +50,16 @@ def test_loader_properly_adds_datestamp(etl, loader_directory):
     assert expected_path == files[1]
 
 
+# pylint: disable=redefined-outer-name, protected-access
+def test_whitespace_removed_from_filenames(parameters):
+    task = fs.LocalFileLoaderTask(parameters)
+
+    files = task._get_files()
+
+    assert len(files) == 3
+    assert files[2] == 'dir1/dir2/dir3/the_other_one.csv'
+
+
 @pytest.fixture
 def loader_directory():
     with tempfile.TemporaryDirectory() as temp_directory:
@@ -88,3 +99,12 @@ def etl(environment):
     task_wrapper = task_wrapper_class(task_class, parameters={})
 
     return task_wrapper
+
+
+@pytest.fixture
+def parameters():
+    return dict(
+        BASE_PATH='dir1/dir2/dir3',
+        FILES='this_one.csv,that_one.csv,\n       the_other_one.csv     ',
+        EXECUTION_TIME='19000101'
+    )

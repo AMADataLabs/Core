@@ -47,19 +47,16 @@ class S3FileLoaderTask(LoaderTask):
         )
 
     def _load(self):
+        files = self._get_files()
+
+        return [self._load_file(file, data) for file, data in zip(files, self._parameters.data)]
+
+    def _get_files(self):
         current_path = self._get_current_path()
-        files = [file.strip() for file in self._parameters.files.split(',')]
 
-        return [self._load_file(current_path, file, data) for file, data in zip(files, self._parameters.data)]
+        return ['/'.join((current_path, file.strip())) for file in self._parameters.files.split(',')]
 
-    def _get_current_path(self):
-        current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
-
-        return '/'.join((self._parameters.base_path, current_date))
-
-    def _load_file(self, base_path, file, data):
-        file_path = '/'.join((base_path, file))
-
+    def _load_file(self, file, data):
         try:
             body = self._encode(data)
         except Exception as exception:
@@ -70,9 +67,14 @@ class S3FileLoaderTask(LoaderTask):
 
         return self._s3.put_object(
             Bucket=self._parameters.bucket,
-            Key=file_path,
+            Key=file,
             Body=body,
             ContentMD5=b64_md5_hash.decode('utf-8'))
+
+    def _get_current_path(self):
+        current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
+
+        return '/'.join((self._parameters.base_path, current_date))
 
     def _get_execution_date(self):
         execution_time = self._parameters.execution_time
