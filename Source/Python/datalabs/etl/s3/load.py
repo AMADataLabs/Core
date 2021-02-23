@@ -48,7 +48,7 @@ class S3FileLoaderTask(LoaderTask):
 
     def _load(self):
         current_path = self._get_current_path()
-        files = self._parameters.files.split(',')
+        files = [file.strip() for file in self._parameters.files.split(',')]
 
         return [self._load_file(current_path, file, data) for file, data in zip(files, self._parameters.data)]
 

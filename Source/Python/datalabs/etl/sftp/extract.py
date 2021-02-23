@@ -35,7 +35,7 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
     def _get_files(self):
         base_path = self._parameters.base_path
 
-        return [os.path.join(base_path, file) for file in self._parameters.files.split(',')]
+        return [os.path.join(base_path, file.strip()) for file in self._parameters.files.split(',')]
 
     def _get_client(self):
         config = sftp.Configuration(

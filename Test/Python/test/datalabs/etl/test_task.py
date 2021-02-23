@@ -17,7 +17,7 @@ def test_etl_task(parameters):
 
     assert etl._extractor.data
     assert etl._transformer.data == 'True'
-    assert etl._loader.data == 'True'
+    assert etl._loader.data is None
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -29,7 +29,7 @@ def test_etl_task_wrapper(environment_variables):
 
     assert wrapper.task._extractor.data == 'True'
     assert wrapper.task._transformer.data == 'True'
-    assert wrapper.task._loader.data == 'True'
+    assert wrapper.task._loader.data is None
 
 
 def test_get_validated_parameters_returns_proper_object(parameters):

@@ -57,7 +57,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     def _get_files(self):
         base_path = self._get_latest_path()
 
-        return ['/'.join((base_path, file)) for file in self._parameters.files.split(',')]
+        return ['/'.join((base_path, file.strip())) for file in self._parameters.files.split(',')]
 
     def _get_client(self):
         return AWSClient(

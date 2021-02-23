@@ -11,7 +11,7 @@ class LocalFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtracto
     def _get_files(self):
         base_path = self._parameters['BASE_PATH']
 
-        files = [os.path.join(base_path, file) for file in self._parameters['FILES'].split(',')]
+        files = [os.path.join(base_path, file.strip()) for file in self._parameters['FILES'].split(',')]
 
         return files
 
