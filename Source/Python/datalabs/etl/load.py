@@ -8,8 +8,6 @@ from datalabs.etl.task import ETLComponentTask
 
 class LoaderTask(ETLComponentTask, ABC):
     def run(self):
-        self._data = self._parameters['data']
-
         self._load()
 
     @abstractmethod
