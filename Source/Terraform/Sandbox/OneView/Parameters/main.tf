@@ -18,7 +18,7 @@ resource "aws_kms_alias" "oneview" {
 resource "aws_secretsmanager_secret" "database" {
     name        = "DataLabs/OneView/database"
     description = "Oneview database credentials"
-    kms_key_id  = aws_kms_key.cpt.arn
+    kms_key_id  = aws_kms_key.oneview.arn
 
     tags = merge(local.tags, {Name = "Data Labs ${local.project} Database Secret"})
 }
