@@ -17,10 +17,10 @@ def lambda_handler(event, context):
     for sns_record in event['Records']:
         sns_envelope = sns_record['Sns']
         message = json.loads(sns_envelope['Message'])
-        sqs_records = message['Records']
+        s3_records = message['Records']
 
-        for sqs_record in sqs_records:
-            key = sqs_record['s3']['object']['key']
+        for s3_record in s3_records:
+            key = s3_record['s3']['object']['key']
             print(f'Object updated: {key}')
 
             match = re.match('AMA/CPT/([0-9]{8})/.*ETL_TRIGGER', key)
