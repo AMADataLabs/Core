@@ -62,7 +62,9 @@ ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
 RUN unzip ./InformixJdbcDriver.zip && rm ./InformixJdbcDriver.zip
 
 COPY ./Build/OneView/requirements.txt .
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt &&\
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 COPY ./Source/Python/datalabs datalabs
 COPY ./Source/Python/neptune_python_utils neptune_python_utils

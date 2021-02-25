@@ -16,9 +16,10 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
-        wrapper = ETLTaskWrapper(MockTask, parameters=event)
-        parameters = wrapper._get_task_parameters()
-        LOGGER.debug(parameters)
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = ETLTaskWrapper(MockTask, parameters=event)
+            parameters = wrapper._get_task_parameters()
+            LOGGER.debug(parameters)
 
     assert expected_parameters == parameters
 
@@ -26,9 +27,10 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
     with mock.patch('datalabs.access.parameter.aws.boto3'):
-        wrapper = ETLTaskWrapper(MockTask)
-        exception = etl.ETLException('failed')
-        response = wrapper._handle_exception(exception)
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = ETLTaskWrapper(MockTask)
+            exception = etl.ETLException('failed')
+            response = wrapper._handle_exception(exception)
 
     assert response == f'Failed: {str(exception)}'
 
@@ -36,8 +38,9 @@ def test_task_wrapper_handle_exception():
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_success():
     with mock.patch('datalabs.access.parameter.aws.boto3'):
-        wrapper = ETLTaskWrapper(MockTask)
-        response = wrapper._handle_success()
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = ETLTaskWrapper(MockTask)
+            response = wrapper._handle_success()
 
     assert response == "Success"
 
@@ -50,33 +53,27 @@ class MockTask(etl.ETLTask):
 @pytest.fixture
 def expected_parameters():
     return etl.ETLParameters(
-        extractor=etl.ETLComponentParameters(
-            variables=dict(
-                TASK_CLASS='test.datalabs.etl.test_extract.Extractor',
-                thing='True',
-                EXECUTION_TIME='20200615T12:24:38+02:30',
-                INCLUDE_NAMES='True',
-                DATABASE_HOST='r2d2.droid.com',
-                DATABASE_PORT='5432',
-                DATABASE_NAME='mydatabase',
-                DATABASE_BACKEND='postgresql+psycopg2',
-                DATABASE_USERNAME='mrkitty',
-                DATABASE_PASSWORD='prettyboy59'
-            )
+        extractor=dict(
+            TASK_CLASS='test.datalabs.etl.test_extract.Extractor',
+            thing='True',
+            EXECUTION_TIME='20200615T12:24:38+02:30',
+            INCLUDE_NAMES='True',
+            DATABASE_HOST='r2d2.droid.com',
+            DATABASE_PORT='5432',
+            DATABASE_NAME='mydatabase',
+            DATABASE_BACKEND='postgresql+psycopg2',
+            DATABASE_USERNAME='mrkitty',
+            DATABASE_PASSWORD='prettyboy59'
         ),
-        transformer=etl.ETLComponentParameters(
-            variables=dict(
-                TASK_CLASS='test.datalabs.etl.test_transform.Transformer',
-                EXECUTION_TIME='20200615T12:24:38+02:30',
-                DATABASE_HOST='c3po.droid.com'
-            )
+        transformer=dict(
+            TASK_CLASS='test.datalabs.etl.test_transform.Transformer',
+            EXECUTION_TIME='20200615T12:24:38+02:30',
+            DATABASE_HOST='c3po.droid.com'
         ),
-        loader=etl.ETLComponentParameters(
-            variables=dict(
-                TASK_CLASS='test.datalabs.etl.test_load.Loader',
-                EXECUTION_TIME='20200615T12:24:38+02:30',
-                DATABASE_HOST='l337.droid.com'
-            )
+        loader=dict(
+            TASK_CLASS='test.datalabs.etl.test_load.Loader',
+            EXECUTION_TIME='20200615T12:24:38+02:30',
+            DATABASE_HOST='l337.droid.com'
         )
     )
 

@@ -9,19 +9,34 @@ import boto3
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.load import LoaderTask
-from   datalabs.etl.task import ETLException, TaskParameterSchemaMixin
+from   datalabs.etl.task import ETLException
 from   datalabs.task import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
-class S3FileLoaderTask(LoaderTask, TaskParameterSchemaMixin):
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class S3FileLoaderParameters:
+    bucket: str
+    base_path: str
+    files: str
+    data: object
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
+    execution_time: str = None
+
+
+class S3FileLoaderTask(LoaderTask):
+    PARAMETER_CLASS = S3FileLoaderParameters
+
     def __init__(self, parameters):
         super().__init__(parameters)
-
-        self._parameters = self._get_validated_parameters(S3FileLoaderParameters)
 
         self._s3 = boto3.client(
             's3',
@@ -32,19 +47,16 @@ class S3FileLoaderTask(LoaderTask, TaskParameterSchemaMixin):
         )
 
     def _load(self):
+        files = self._get_files()
+
+        return [self._load_file(file, data) for file, data in zip(files, self._parameters.data)]
+
+    def _get_files(self):
         current_path = self._get_current_path()
-        files = self._parameters.files.split(',')
 
-        return [self._load_file(current_path, file, data) for file, data in zip(files, self._parameters.data)]
+        return ['/'.join((current_path, file.strip())) for file in self._parameters.files.split(',')]
 
-    def _get_current_path(self):
-        current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
-
-        return '/'.join((self._parameters.base_path, current_date))
-
-    def _load_file(self, base_path, file, data):
-        file_path = '/'.join((base_path, file))
-
+    def _load_file(self, file, data):
         try:
             body = self._encode(data)
         except Exception as exception:
@@ -55,9 +67,14 @@ class S3FileLoaderTask(LoaderTask, TaskParameterSchemaMixin):
 
         return self._s3.put_object(
             Bucket=self._parameters.bucket,
-            Key=file_path,
+            Key=file,
             Body=body,
             ContentMD5=b64_md5_hash.decode('utf-8'))
+
+    def _get_current_path(self):
+        current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
+
+        return '/'.join((self._parameters.base_path, current_date))
 
     def _get_execution_date(self):
         execution_time = self._parameters.execution_time
@@ -81,18 +98,3 @@ class S3UnicodeTextFileLoaderTask(S3FileLoaderTask):
 class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
     def _encode(self, data):
         return data.encode('cp1252', errors='backslashreplace')
-
-
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class S3FileLoaderParameters:
-    bucket: str
-    base_path: str
-    files: str
-    data: object
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
-    execution_time: str = None

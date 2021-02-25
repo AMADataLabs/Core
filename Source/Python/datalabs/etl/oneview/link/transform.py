@@ -15,47 +15,57 @@ LOGGER.setLevel(logging.DEBUG)
 
 class CredentialingCustomerBusinessTransformerTask(TransformerTask):
     def _transform(self):
-        dataframes = [self._to_dataframe(csv) for csv in self._parameters.data]
-        self._parameters.data = [self._linking_data(df) for df in dataframes]
+        credentialing_customer_data, business_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
+        self._parameters['data'] = self._link_data(credentialing_customer_data, business_data)
 
-        return super()._transform()
+        return [super()._transform()]
 
-    @classmethod
-    def _linking_data(cls, data):
-        data[0] = data[0].fillna('None')
-        data[0]['address_1'] = [x.upper() for x in data[0]['address_1']]
-        data[0]['city'] = [x.upper() for x in data[0]['city']]
-        data[0]['state'] = [x.upper() for x in data[0]['state']]
-
-        matches = pandas.merge(data[0], data[1],
-                               left_on=['address_1', 'city', 'state'],
-                               right_on=['physical_address_1', 'physical_city', 'physical_state'])
-
-        return matches[['number', 'id']]
-
+    def _get_columns(self):
+        return [CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS]
 
     @classmethod
     def _to_dataframe(cls, file):
         return pandas.read_csv(StringIO(file))
 
-    def _get_columns(self):
-        return [CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS]
+    @classmethod
+    def _link_data(cls, credentialing_customer_data, business_data):
+        credentialing_customer_data = cls._prepare_customer_data_for_merging(credentialing_customer_data)
+
+        matches = pandas.merge(
+            credentialing_customer_data,
+            business_data,
+            left_on=['address_1', 'city', 'state'],
+            right_on=['physical_address_1', 'physical_city', 'physical_state']
+        )
+
+        return matches[['number', 'id']]
+
+    @classmethod
+    def _prepare_customer_data_for_merging(cls, credentialing_customer_data):
+        credentialing_customer_data = credentialing_customer_data.fillna('None')
+        credentialing_customer_data['address_1'] = [x.upper() for x in credentialing_customer_data['address_1']]
+        credentialing_customer_data['city'] = [x.upper() for x in credentialing_customer_data['city']]
+        credentialing_customer_data['state'] = [x.upper() for x in credentialing_customer_data['state']]
+
+        return credentialing_customer_data
 
 
 class CredentialingCustomerInstitution(TransformerTask):
     def _transform(self):
-        dataframes = [self._to_dataframe(csv) for csv in self._parameters.data]
-        self._parameters.data = [self._linking_data(df) for df in dataframes]
+        credentialing_customer_data, residency_program_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
+        self._parameters['data'] = self._link_data(credentialing_customer_data, residency_program_data)
 
-        return super()._transform()
+        return [super()._transform()]
 
     @classmethod
-    def _linking_data(cls, data):
-        matches = pandas.merge(data[0], data[1], left_on=['address_1', 'city', 'state'],
-                               right_on=['address_1', 'city', 'state'])
-        matches = matches[['number', 'institution']]
+    def _link_data(cls, credentialing_customer_data, residency_program_data):
+        matches = pandas.merge(
+            credentialing_customer_data, residency_program_data,
+            left_on=['address_1', 'city', 'state'],
+            right_on=['address_1', 'city', 'state']
+        )
 
-        return matches
+        return matches[['number', 'institution']]
 
     @classmethod
     def _to_dataframe(cls, file):

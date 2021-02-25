@@ -15,4 +15,4 @@ class TransformerTask(ETLComponentTask, ABC):
 
 class PassThroughTransformerTask(TransformerTask):
     def _transform(self):
-        return self._parameters.data
+        return self._parameters['data']

@@ -13,14 +13,25 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class Task(ABC):
-    def __init__(self, parameters):
+    PARAMETER_CLASS = None
+
+    def __init__(self, parameters: dict):
         self._parameters = parameters
+
+        if self.PARAMETER_CLASS:
+            self._parameters = self._get_validated_parameters()
 
         LOGGER.debug('%s parameters: %s', self.__class__.__name__, self._parameters)
 
     @abstractmethod
     def run(self):
         pass
+
+    def _get_validated_parameters(self):
+        parameter_variables = {key.lower():value for key, value in self._parameters.items()}
+        schema = self.PARAMETER_CLASS.SCHEMA
+
+        return schema.load(parameter_variables)
 
 
 class TaskException(BaseException):

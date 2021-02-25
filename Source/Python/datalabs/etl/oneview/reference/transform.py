@@ -30,7 +30,7 @@ class PresentEmploymentTransformerTask(TransformerTask):
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
     def _transform(self):
-        self._parameters.data = [self._to_dataframe(file) for file in self._parameters.data]
+        self._parameters['data'] = [self._to_dataframe(file) for file in self._parameters['data']]
         core_based_statistical_area_data = super()._transform()
 
         return core_based_statistical_area_data
@@ -50,14 +50,17 @@ class SpecialtyTransformerTask(TransformerTask):
 
 class SpecialtyMergeTransformerTask(TransformerTask):
     def _transform(self):
-        dataframe = [self._to_dataframe(csv) for csv in self._parameters.data]
-        filtered_dataframe = [dataframe[0].loc[dataframe[0].id.isin(dataframe[1].primary_specialty) |
-                                               dataframe[0].id.isin(dataframe[1].secondary_specialty)
-                                               ].reset_index(drop=True)]
+        specialty_data, physician_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
+        filtered_specialty_data = [
+            specialty_data.loc[
+                specialty_data.id.isin(physician_data.primary_specialty) |
+                specialty_data.id.isin(physician_data.secondary_specialty)
+            ].reset_index(drop=True)
+        ]
 
-        self._parameters.data = filtered_dataframe
+        self._parameters['data'] = filtered_specialty_data
 
-        return super()._transform()
+        return [super()._transform()]
 
     @classmethod
     def _to_dataframe(cls, file):
@@ -69,24 +72,23 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     def _transform(self):
-        fips_dataframe = self._to_dataframe()
-        self._parameters.data = [self.set_columns(df) for df in fips_dataframe]
-        federal_information_processing_standard_county = super()._transform()
+        fips_data = self._to_dataframe()
+        self._parameters['data'] = [self.set_columns(df) for df in fips_data]
 
-        return federal_information_processing_standard_county
+        return super()._transform()
 
     def _to_dataframe(self):
-        return [pandas.read_excel(BytesIO(file), skiprows=4) for file in self._parameters.data]
+        return [pandas.read_excel(BytesIO(file), skiprows=4) for file in self._parameters['data']]
 
     @classmethod
-    def set_columns(cls, dataframe):
-        dataframe = dataframe.loc[
-            (dataframe['Summary Level'] == 50) |
-            (dataframe['Summary Level'] == 40) |
-            (dataframe['Summary Level'] == 10)
+    def set_columns(cls, fips_data):
+        fips_data = fips_data.loc[
+            (fips_data['Summary Level'] == 50) |
+            (fips_data['Summary Level'] == 40) |
+            (fips_data['Summary Level'] == 10)
         ].reset_index(drop=True)
 
-        return dataframe
+        return fips_data
 
     def _get_columns(self):
         return [FIPSC_COLUMNS]

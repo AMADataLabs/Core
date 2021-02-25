@@ -4,11 +4,10 @@ from datalabs.etl.fs.extract import LocalUnicodeTextFileExtractorTask
 
 # pylint: disable=too-many-ancestors
 class LocalPPDExtractorTask(LocalUnicodeTextFileExtractorTask):
-    def _extract(self):
-        candidate_files = super()._get_files()
-        latest_file = self._filter_for_latest_file(candidate_files)
+    def _extract_files(self, files):
+        latest_file = self._filter_for_latest_file(files)
 
-        return self._extract_files(None, [latest_file])
+        return super()._extract_files([latest_file])
 
     @classmethod
     def _filter_for_latest_file(cls, candidate_files):

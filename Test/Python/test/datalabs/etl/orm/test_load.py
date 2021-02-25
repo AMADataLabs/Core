@@ -8,7 +8,6 @@ import pytest
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.orm.load import ORMLoaderTask
-import datalabs.etl.task as task
 
 from   test.datalabs.access.model import Base  # pylint: disable=wrong-import-order
 
@@ -27,20 +26,18 @@ def test_orm_loader(components):
 # pylint: disable=redefined-outer-name, unused-argument
 @pytest.fixture
 def components(database, file, data):
-    return task.ETLComponentParameters(
-        variables=dict(
-            TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
-            MODEL_CLASSES='test.datalabs.access.model.Foo,'
-                          'test.datalabs.access.model.Bar,'
-                          'test.datalabs.access.model.Poof',
-            thing=True,
-            DATABASE_BACKEND='sqlite',
-            DATABASE_NAME=file,
-            DATABASE_HOST='',
-            DATABASE_PORT='',
-            DATABASE_USERNAME='',
-            DATABASE_PASSWORD=''
-        ),
+    return dict(
+        TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
+        MODEL_CLASSES='test.datalabs.access.model.Foo,'
+                      'test.datalabs.access.model.Bar,'
+                      'test.datalabs.access.model.Poof',
+        thing=True,
+        DATABASE_BACKEND='sqlite',
+        DATABASE_NAME=file,
+        DATABASE_HOST='',
+        DATABASE_PORT='',
+        DATABASE_USERNAME='',
+        DATABASE_PASSWORD='',
         data=data
     )
 

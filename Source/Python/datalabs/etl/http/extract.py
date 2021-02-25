@@ -1,27 +1,30 @@
 """ HTTP File Extractor """
 import requests
 
-from   datalabs.etl.extract import FileExtractorTask
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 
 
-class HTTPFileExtractorTask(FileExtractorTask):
-    def _extract(self):
-        data = [self._extract_file(url) for url in self._parameters.variables['URLS'].split(',')]
+class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
+    def _get_files(self):
+        return self._parameters['URLS'].split(',')
 
-        return data
+    def _get_client(self):
+        return requests.Session()
+
+    def _resolve_wildcard(self, file):
+        if '*' in file:
+            raise NotImplementedError
+
+        return file
 
     # pylint: disable=arguments-differ
-    def _extract_file(self, url):
-        with requests.Session() as http:
-            text = http.get(url)
+    def _extract_file(self, file):
+        text = self._client.get(file)
 
         return text.content
 
-    @classmethod
-    def _decode_data(cls, data):
-        return data
 
-
+# pylint: disable=too-many-ancestors
 class HTTPUnicodeTextFileExtractorTask(HTTPFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):

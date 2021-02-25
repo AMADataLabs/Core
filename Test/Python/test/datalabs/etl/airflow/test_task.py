@@ -18,10 +18,14 @@ def test_task_parameters_are_parsed(args, environment):
     task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
     parameters = task_wrapper._get_task_parameters()
 
-    assert 'DAG_VARIABLE' in parameters.variables
-    assert parameters.variables['DAG_VARIABLE'] == 'tootie'
-    assert 'TASK_VARIABLE' in parameters.variables
-    assert parameters.variables['TASK_VARIABLE'] == 'fruity'
+    assert 'DAG_VARIABLE' in parameters
+    assert parameters['DAG_VARIABLE'] == 'tootie'
+    assert 'TASK_VARIABLE' in parameters
+    assert parameters['TASK_VARIABLE'] == 'fruity'
+    assert 'EXECUTION_TIME' in parameters
+    assert parameters['EXECUTION_TIME'] == '19000101'
+    assert 'CACHE_EXECUTION_TIME' in parameters
+    assert parameters['CACHE_EXECUTION_TIME'] == '19000101'
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -29,9 +33,9 @@ def test_task_input_data_is_loaded(args, environment):
     task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
     parameters = task_wrapper._get_task_parameters()
 
-    assert parameters.data is not None
-    assert len(parameters.data) == 3
-    assert parameters.data == ['light', 'and', 'smoothie']
+    assert parameters['data'] is not None
+    assert len(parameters['data']) == 3
+    assert parameters['data'] == ['light', 'and', 'smoothie']
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -47,7 +51,7 @@ class TestTask(ETLComponentTask):
 
 class TestTaskDataCache(TaskDataCache):
     def extract_data(self):
-        return json.loads(self._variables['DATA'])
+        return json.loads(self._parameters['DATA'])
 
     def load_data(self, output_data):
         pass

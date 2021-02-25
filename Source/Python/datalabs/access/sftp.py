@@ -57,8 +57,27 @@ class SFTP(Datastore):
 
     # pylint: disable=redefined-builtin
     def list(self, path: str, filter: str = None):
+        files = []
+
+        def file_callback(file):
+            files.append(file)
+
+        # pylint: disable=unused-argument
+        def directory_callback(directory):
+            pass
+
+        # pylint: disable=unused-argument
+        def unknown_callback(file):
+            pass
+
         with self._connection.cd(path):
-            files = self._connection.listdir()
+            self._connection.walktree(
+                './',
+                file_callback,
+                directory_callback,
+                unknown_callback,
+                recurse=(not filter is None)
+            )
 
         return self._filter_files(files, filter)
 
@@ -84,7 +103,7 @@ class SFTP(Datastore):
             filter_parts = filter.split('*')
             prefix = filter_parts[0]
             suffix = filter_parts[-1]
-            filtered_files = [file for file in files if file.startswith(prefix) and file.endswith(suffix)]
+            filtered_files = [file for file in files if file.startswith('./'+prefix) and file.endswith(suffix)]
 
         return filtered_files
 

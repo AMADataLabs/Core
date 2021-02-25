@@ -12,8 +12,8 @@ LOGGER.setLevel(logging.INFO)
 
 class TransformerTask(etl.TransformerTask, ABC):
     def _transform(self):
-        LOGGER.info(self._parameters.data)
-        selected_data = self._select_columns(self._parameters.data)
+        LOGGER.info(self._parameters['data'])
+        selected_data = self._select_columns(self._parameters['data'])
         renamed_data = self._rename_columns(selected_data)
 
         return [self._dataframe_to_csv(data) for data in renamed_data]
