@@ -1,8 +1,22 @@
 #!/bin/bash
 
-set -e
+set -ex
 
-FUNCTIONS=CPTGetDescriptor CPTGetDescriptors CPTGetConsumerDescriptor CPTGetConsumerDescriptors CPTGetClinicianDescriptors CPTGetAllClinicianDescriptors CPTGetModifier CPTGetModifiers CPTGetPLADetails CPTGetAllPLADetails CPTGetLatestPDFs CPTGetReleases CPTDefault CPTConvert CPTLoad
+FUNCTIONS='CPTGetDescriptor
+           CPTGetDescriptors
+           CPTGetConsumerDescriptor
+           CPTGetConsumerDescriptors
+           CPTGetClinicianDescriptors
+           CPTGetAllClinicianDescriptors
+           CPTGetModifier
+           CPTGetModifiers
+           CPTGetPLADetails
+           CPTGetAllPLADetails
+           CPTGetLatestPDFs
+           CPTGetReleases
+           CPTDefault
+           CPTConvert
+           CPTLoad'
 
 for FUNCTION in ${FUNCTIONS}; do
   aws lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip
