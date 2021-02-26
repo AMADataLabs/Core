@@ -24,43 +24,38 @@ pipelines:
             - bash Script/bitbucket-pipelines-build.sh
     custom:
         Test:
-        - step:
-            name: Setup
-            script:
-            - bash Script/setup-virtual-environment Master
         - parallel:
             - step:
                 name: Unit Tests
                 script:
+                - bash Script/setup-virtual-environment Master
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - ${PWD}/Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+                - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
             - step:
                 name: Lint
                 script:
+                - bash Script/setup-virtual-environment Master
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - ./Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
         CPT-master:
         - step:
-            name: Build Bundle
-            script:
-            - bash ${PWD}/Deploy/CPT/create-bundle
-        - step:
-            name: Upload Bundle
+            name: Update Bundle
             script:
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
             - export AWS_S3_BUCKET='ama-hsg-datalabs-lambda-code-sandbox'
-            - bash ${PWD}/Deploy/CPT/upload-bundle
+            - bash Deploy/CPT/create-bundle
+            - bash Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
             script:
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
-            - bash ${PWD}/Deploy/CPT/update-functions
+            - bash Deploy/CPT/update-functions
         CPT-dev:
         - step:
             name: Placeholder
