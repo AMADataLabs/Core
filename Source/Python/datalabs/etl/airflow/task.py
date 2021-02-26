@@ -54,7 +54,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
 
         LOGGER.info('Airflow task has finished')
 
-    def _get_dag_task_parameters(self, ):
+    def _get_dag_task_parameters(self):
         args = self._parameters
         dag_id, task_id, datestamp = args[1].split('__')
         dag_parameters = self._get_dag_parameters_from_environment(dag_id.upper(), datestamp)

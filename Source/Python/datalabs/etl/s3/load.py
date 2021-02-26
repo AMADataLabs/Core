@@ -60,7 +60,7 @@ class S3FileLoaderTask(LoaderTask):
         try:
             body = self._encode(data)
         except Exception as exception:
-            raise ETLException(f'Unable to encode S3 object {file_path}: {exception}')
+            raise ETLException(f'Unable to encode S3 object {file}: {exception}')
 
         md5_hash = hashlib.md5(body).digest()
         b64_md5_hash = base64.b64encode(md5_hash)
