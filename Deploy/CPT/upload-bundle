@@ -2,6 +2,10 @@
 
 set -ex
 
+export PROJECT=CPT
+
 ls ${PWD}/Bundle.zip
+
 aws s3 cp ${PWD}/Bundle.zip s3://${AWS_S3_BUCKET}/${PROJECT}/${PROJECT}.zip
+
 aws s3 ls s3://${AWS_S3_BUCKET}/${PROJECT}/${PROJECT}.zip
