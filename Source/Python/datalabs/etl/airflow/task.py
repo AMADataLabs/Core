@@ -102,12 +102,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
             match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
 
             if match:
-                if match.group(1):
-                    prefix = f'CACHE_{match.group(1)}'
-                else:
-                    prefix = f'CACHE_'
-
-                cache_parameters[key.replace(prefix, '')] = value
+                cache_parameters[match.group(2)] = value
 
         return cache_parameters
 
