@@ -105,4 +105,4 @@ for PROJECT in $(echo -e "$CHANGED_PROJECTS"); do
 done
 
 # Print output
-echo -e "Test $PROJECTS_TO_BUILD"
+echo -e "$PROJECTS_TO_BUILD"
