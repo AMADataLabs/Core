@@ -24,7 +24,7 @@ pipelines:
             - bash Script/bitbucket-pipelines-build.sh
     custom:
         Test:
-        - setup:
+        - step:
             name: Setup
             script:
             - bash Script/setup-virtual-environment Master
