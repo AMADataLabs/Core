@@ -35,10 +35,12 @@ class TaskDataCache(ABC):
 class AirflowTaskWrapper(task.TaskWrapper):
     def _get_task_parameters(self):
         parameters = self._get_dag_task_parameters()
-        cache_plugin = self._get_cache_plugin(parameters, CacheDirection.Input)
-        input_data = cache_plugin.extract_data()
 
-        parameters['data'] = input_data
+        if parameters:
+            cache_plugin = self._get_cache_plugin(parameters, CacheDirection.Input)
+            input_data = cache_plugin.extract_data()
+
+            parameters['data'] = input_data
 
         return parameters
 
@@ -46,8 +48,9 @@ class AirflowTaskWrapper(task.TaskWrapper):
         LOGGER.exception('Handling Airflow task exception: %s', exception)
 
     def _handle_success(self):
-        cache_plugin = self._get_cache_plugin(self._task_parameters, CacheDirection.Output)  # pylint: disable=no-member
-        cache_plugin.load_data(self.task.data)
+        if self._task_parameters:
+            cache_plugin = self._get_cache_plugin(self._task_parameters, CacheDirection.Output)  # pylint: disable=no-member
+            cache_plugin.load_data(self.task.data)
 
         LOGGER.info('Airflow task has finished')
 
@@ -73,16 +76,26 @@ class AirflowTaskWrapper(task.TaskWrapper):
 
     @classmethod
     def _get_dag_parameters_from_environment(cls, dag_id, datestamp):
-        parameters = cls._get_parameters([dag_id.upper()])
+        parameters = {}
 
-        parameters['EXECUTION_TIME'] = datestamp
-        parameters['CACHE_EXECUTION_TIME'] = datestamp
+        try:
+            parameters = cls._get_parameters([dag_id.upper()])
+
+            parameters['EXECUTION_TIME'] = datestamp
+            parameters['CACHE_EXECUTION_TIME'] = datestamp
+        except KeyError:
+            pass
 
         return parameters
 
     @classmethod
     def _get_task_parameters_from_environment(cls, dag_id, task_id):
-        parameters = cls._get_parameters([dag_id.upper(), task_id.upper()])
+        parameters = {}
+
+        try:
+            parameters = cls._get_parameters([dag_id.upper(), task_id.upper()])
+        except KeyError:
+            pass
 
         return parameters
 

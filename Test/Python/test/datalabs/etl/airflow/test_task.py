@@ -69,10 +69,36 @@ def test_task_input_data_is_loaded(args, environment):
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_no_cache_env_vars_yields_no_cache_parameters(args):
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    parameters = task_wrapper._get_dag_task_parameters()
+
+    assert not parameters
+
+
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_no_cache_input_parameters_skips_cache_pull(args):
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    parameters = task_wrapper._get_task_parameters()
+
+    assert not parameters
+
+
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_wrapper_runs_successfully(args, environment):
     task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
 
     task_wrapper.run()
+
+
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_no_cache_output_parameters_skips_cache_push(args):
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    task_wrapper._get_task_parameters()
+
+    task_wrapper.run()
+
+    task_wrapper._handle_success()
 
 class TestTask(ETLComponentTask):
     def run(self):
