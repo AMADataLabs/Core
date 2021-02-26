@@ -2,6 +2,7 @@
 from   abc import ABC, abstractmethod
 from   enum import Enum
 import logging
+import re
 
 from   datalabs.access.environment import VariableTree
 import datalabs.etl.task as etl
@@ -75,8 +76,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
         parameters = cls._get_parameters([dag_id.upper()])
 
         parameters['EXECUTION_TIME'] = datestamp
-        parameters['CACHE_INPUT_EXECUTION_TIME'] = datestamp
-        parameters['CACHE_OUTPUT_EXECUTION_TIME'] = datestamp
+        parameters['CACHE_EXECUTION_TIME'] = datestamp
 
         return parameters
 
@@ -99,11 +99,14 @@ class AirflowTaskWrapper(task.TaskWrapper):
         cache_parameters = {}
 
         for key, value in task_parameters.items():
-            prefix = f'CACHE_{direction.value}_'
+            match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
 
-            if key == 'CACHE_CLASS':
-                cache_parameters['CLASS'] = value
-            elif key.startswith(prefix):
+            if match:
+                if match.group(1):
+                    prefix = f'CACHE_{match.group(1)}'
+                else:
+                    prefix = f'CACHE_'
+
                 cache_parameters[key.replace(prefix, '')] = value
 
         return cache_parameters
