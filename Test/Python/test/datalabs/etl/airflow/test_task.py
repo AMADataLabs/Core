@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from   datalabs.etl.airflow.task import AirflowTaskWrapper, TaskDataCache
+from   datalabs.etl.airflow.task import AirflowTaskWrapper, TaskDataCache, CacheDirection
 from   datalabs.etl.task import ETLComponentTask
 
 logging.basicConfig()
@@ -29,6 +29,36 @@ def test_task_parameters_are_parsed(args, environment):
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_cache_parameters_are_parsed(args, environment):
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    parameters = task_wrapper._get_task_parameters()
+    input_cache_parameters = task_wrapper._get_cache_parameters(parameters, CacheDirection.Input)
+    output_cache_parameters = task_wrapper._get_cache_parameters(parameters, CacheDirection.Output)
+
+    assert 'EXECUTION_TIME' in input_cache_parameters
+    assert input_cache_parameters['EXECUTION_TIME'] == '19000101'
+    assert 'DATA' in input_cache_parameters
+    assert input_cache_parameters['DATA'] == '["light", "and", "smoothie"]'
+    assert 'EXECUTION_TIME' in output_cache_parameters
+    assert output_cache_parameters['EXECUTION_TIME'] == '19000101'
+    assert 'THING' in output_cache_parameters
+    assert output_cache_parameters['THING'] == 'I am Batman'
+
+
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_cache_parameters_are_overriden(args, environment):
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    parameters = task_wrapper._get_task_parameters()
+    input_cache_parameters = task_wrapper._get_cache_parameters(parameters, CacheDirection.Input)
+    output_cache_parameters = task_wrapper._get_cache_parameters(parameters, CacheDirection.Output)
+
+    assert 'STUFF' in input_cache_parameters
+    assert input_cache_parameters['STUFF'] == 'Hello, there!'
+    assert 'STUFF' in output_cache_parameters
+    assert output_cache_parameters['STUFF'] == 'Dear John'
+
+
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_input_data_is_loaded(args, environment):
     task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
     parameters = task_wrapper._get_task_parameters()
@@ -39,10 +69,36 @@ def test_task_input_data_is_loaded(args, environment):
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_no_cache_env_vars_yields_no_cache_parameters(args):
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    parameters = task_wrapper._get_dag_task_parameters()
+
+    assert not parameters
+
+
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_no_cache_input_parameters_skips_cache_pull(args):
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    parameters = task_wrapper._get_task_parameters()
+
+    assert not parameters
+
+
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_wrapper_runs_successfully(args, environment):
     task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
 
     task_wrapper.run()
+
+
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_no_cache_output_parameters_skips_cache_push(args):
+    task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
+    task_wrapper._get_task_parameters()
+
+    task_wrapper.run()
+
+    task_wrapper._handle_success()
 
 class TestTask(ETLComponentTask):
     def run(self):
@@ -67,8 +123,12 @@ def environment():
 
     os.environ['TEST_DAG__DAG_VARIABLE'] = 'tootie'
     os.environ['TEST_DAG__CACHE_CLASS'] = 'test.datalabs.etl.airflow.test_task.TestTaskDataCache'
+    os.environ['TEST_DAG__CACHE_STUFF'] = 'JIDFSAF9E0RU90FOV9A0FUD'
     os.environ['TEST_DAG__TEST_TASK__TASK_VARIABLE'] = 'fruity'
-    os.environ['TEST_DAG__TEST_TASK__CACHE_DATA'] = '["light", "and", "smoothie"]'
+    os.environ['TEST_DAG__TEST_TASK__CACHE_INPUT_DATA'] = '["light", "and", "smoothie"]'
+    os.environ['TEST_DAG__TEST_TASK__CACHE_INPUT_STUFF'] = 'Hello, there!'
+    os.environ['TEST_DAG__TEST_TASK__CACHE_OUTPUT_THING'] = 'I am Batman'
+    os.environ['TEST_DAG__TEST_TASK__CACHE_OUTPUT_STUFF'] = 'Dear John'
     yield os.environ
 
     os.environ.clear()
