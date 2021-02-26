@@ -38,7 +38,7 @@ pipelines:
             - export VIRTUAL_ENV=${PWD}/Environment/Master
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
             - ./Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
-        CPT:
+        CPT-dev:
         - step:
             name: Build Bundle
             script:
@@ -48,5 +48,17 @@ pipelines:
             - ${PWD}/Script/bundle-project CPT
         - step:
             name: Upload Bundle
+            script:
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - export S3_BUCKET='bbci-example-s3-deploy'
+            - export S3_PATH='artifact'
+            - aws s3 cp ${PWD}/Build/CPT/CPT.zip s3://ama-hsg-datalabs-lambda-code-sandbox/CPT/CPT.zip
         - step:
             name: Update Lambda Functions
+            script:
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - bash ${PWD}/Deploy/CPT/update-functions
