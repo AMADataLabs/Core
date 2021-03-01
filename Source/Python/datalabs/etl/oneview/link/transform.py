@@ -91,17 +91,27 @@ class ResidencyProgramPhysician(TransformerTask):
         directors = cls._get_directors(data)
         physicians = cls._get_physician(data)
 
+        all_match, pure_match = cls._get_matches(physicians, directors)
+        duplicate_matches, duplucates = cls._create_duplicate_matches(all_match, pure_match, directors)
+
+        return cls._filter_out_duplicates(pure_match, duplicate_matches, duplicates)
+
+    def _get_matches(self, physicians, directors):
         all_match = pandas.merge(physicians, directors,
                                  on=['first_name', 'last_name'], suffixes=['_physician', '_residency'])
         pure_match = pandas.merge(physicians,
                                   directors,
                                   on=['first_name', 'last_name'],
                                   suffixes=['_ppd', '_residency']).drop_duplicates('aamc_id', keep=False)
+
+        return all_match, pure_match
+
+    def _create_duplicate_matches(self, all_match, pure_match, directors):
         duplicate_matches = all_match[all_match.aamc_id.isin(pure_match.aamc_id) == False]
         duplicates = directors[directors.aamc_id.isin(duplicate_matches.aamc_id)]
         duplicate_matches = duplicate_matches.fillna('None')
 
-        return cls._filter_out_duplicates(pure_match, duplicate_matches, duplicates)
+        return duplicate_matches, duplicates
 
     @classmethod
     def _get_directors(cls, data):
@@ -123,20 +133,29 @@ class ResidencyProgramPhysician(TransformerTask):
     def _filter_out_duplicates(cls, pure_match, duplicate_matches, duplicates):
         matched_dict_list = []
         for row in duplicates.itertuples():
-            new_df = duplicate_matches[duplicate_matches.aamc_id == row.aamc_id]
-            if row.degree != 'None' and row.degree_one != 'MPH':
-                new_df = new_df[new_df.degree == row.degree_one]
-            if len(new_df) > 1 and row.middle_name_residency != 'None':
-                if len(row.middle_name_residency) == 1:
-                    new_df['middle'] = [x[0] for x in new_df.middle_name_physician]
-                    new_df = new_df[new_df.middle == row.middle_name_residency]
-                else:
-                    new_df = new_df[new_df.middle_name_physician == row.middle_name_residency.upper()]
+            new_df = cls._merge_dataframe(row, duplicate_matches)
+
             if len(new_df) == 1:
                 matched_dict_list.append({'aamc_id': row.aamc_id,
                                           'medical_education_number': list(new_df.medical_education_number)[0]})
 
         return pandas.DataFrame(matched_dict_list)
+
+    @classmethod
+    def _merge_dataframe(cls,row, duplicate_matches):
+        new_df = duplicate_matches[duplicate_matches.aamc_id == row.aamc_id]
+
+        if row.degree != 'None' and row.degree_one != 'MPH':
+            new_df = new_df[new_df.degree == row.degree_one]
+
+        if len(new_df) > 1 and row.middle_name_residency != 'None':
+            if len(row.middle_name_residency) == 1:
+                new_df['middle'] = [x[0] for x in new_df.middle_name_physician]
+                new_df = new_df[new_df.middle == row.middle_name_residency]
+            else:
+                new_df = new_df[new_df.middle_name_physician == row.middle_name_residency.upper()]
+
+        return new_df
 
     def _get_columns(self):
         return [RESIDENCY_PROGRAM_PHYSICIAN_COLUMNS]
