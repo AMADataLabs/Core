@@ -44,6 +44,8 @@ data:
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__SQL: "SELECT DISTINCT P.present_emp_cd, P.description FROM informix.present_emp_pr P;"
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DRIVER: 'com.informix.jdbc.IfxDriver'
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DRIVER_TYPE: 'informix-sqli'
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
+
 
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
