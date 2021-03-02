@@ -48,6 +48,9 @@ if [[ -f $(git rev-parse --git-dir)/shallow ]]; then
     fi
 fi
 
+# Run tests
+CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
+
 # Collect all modified projects
 PROJECTS_TO_BUILD=$($DIR/list-projects-to-build.sh $COMMIT_RANGE)
 
@@ -59,9 +62,6 @@ fi
 
 echo "Following projects need to be built"
 echo -e "$PROJECTS_TO_BUILD"
-
-# Run tests
-CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
 
 # Build all modified projects
 echo -e "$PROJECTS_TO_BUILD" | while read PROJECTS; do
