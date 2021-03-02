@@ -51,6 +51,7 @@ pipelines:
         - step:
             name: Update Bundle
             script:
+            - export ENABLE_FEATURE_DEV=True
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
@@ -60,13 +61,31 @@ pipelines:
         - step:
             name: Update Lambda Functions
             script:
+            - export ENABLE_FEATURE_DEV=True
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
             - bash Deploy/CPT/update-functions
         CPT-dev:
         - step:
-            name: Placeholder
+            name: Update Bundle
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - echo "Hello there!"
+        CPT-test:
+        - step:
+            name: Update Bundle
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - echo "Hello there!"
+        CPT-stage:
+        - step:
+            name: Update Update Bundle
+            script:
+            - echo "Hello there!"
+        CPT-prod:
+        - step:
+            name: Update Bundle
             script:
             - echo "Hello there!"
 definitions:
