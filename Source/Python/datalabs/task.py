@@ -67,6 +67,7 @@ class TaskWrapper(ABC):
 
         return response
 
+    # pylint: disable=no-self-use
     def _setup_environment(self):
         secrets_loader = ReferenceEnvironmentLoader.from_environ()
         secrets_loader.load()
