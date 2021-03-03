@@ -5,7 +5,8 @@ import logging
 
 import marshmallow
 
-from datalabs.access.database import Database
+from   datalabs.access.database import Database
+from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -51,7 +52,10 @@ class TaskWrapper(ABC):
             raise TypeError('Task class does not have a "run" method.')
 
     def run(self):
+        self._setup_environment()
+
         self._task_parameters = self._get_task_parameters()
+
         self.task = self.task_class(self._task_parameters)
 
         try:
@@ -62,6 +66,11 @@ class TaskWrapper(ABC):
             response = self._handle_exception(exception)
 
         return response
+
+    # pylint: disable=no-self-use
+    def _setup_environment(self):
+        secrets_loader = ReferenceEnvironmentLoader.from_environ()
+        secrets_loader.load()
 
     def _get_task_parameters(self):
         return self._parameters

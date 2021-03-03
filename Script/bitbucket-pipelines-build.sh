@@ -49,6 +49,7 @@ if [[ -f $(git rev-parse --git-dir)/shallow ]]; then
 fi
 
 # Run tests
+echo "Running tests..."
 CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
 
 # Collect all modified projects
