@@ -1,4 +1,5 @@
 """ source: datalabs.awslambda """
+import mock
 import pytest
 
 from datalabs.awslambda import TaskWrapper
@@ -19,15 +20,19 @@ def test_task_wrapper_is_not_abstract():
 
 
 def test_task_wrapper_succeeds_as_expected():
-    wrapper = GoodTaskWrapper(MockTask, parameters=dict(fail=False))
-    response = wrapper.run()
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = GoodTaskWrapper(MockTask, parameters=dict(fail=False))
+            response = wrapper.run()
 
     assert response == 'succeeded'
 
 
 def test_task_wrapper_fails_as_expected():
-    wrapper = GoodTaskWrapper(MockTask, dict(fail=True))
-    response = wrapper.run()
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = GoodTaskWrapper(MockTask, dict(fail=True))
+            response = wrapper.run()
 
     assert response == 'failed'
 

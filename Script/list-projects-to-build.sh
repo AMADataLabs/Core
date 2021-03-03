@@ -58,7 +58,7 @@ function process_dependants {
         DEPENDENCY=$(echo "$DEPENDENCY" | cut -d " " -f1)
         if [[ ! $(echo "$CHANGED_PROJECTS" | grep "$DEPENDENCY") ]]; then
             CHANGED_SOURCES=
-            for SOURCE_FILE in $(${DIR}/run.py python ${DIR}/list_source_dependencies.py $PROJECT); do
+            for SOURCE_FILE in $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT); do
                 if [[ $(echo -e "$CHANGED_PATHS" | grep "$SOURCE_FILE") ]]; then
                     CHANGED_SOURCES="$CHANGED_SOURCES\n$SOURCE_FILE"
                 fi
@@ -85,8 +85,8 @@ else
             CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT"
             CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT)"
         else
-            # echo "$PROJECT Source Files:\n$(${DIR}/run.py python ${DIR}/list_source_dependencies.py $PROJECT)"
-            for SOURCE_FILE in $(${DIR}/run.py python ${DIR}/list_source_dependencies.py $PROJECT); do
+            # echo "$PROJECT Source Files:\n$(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT)"
+            for SOURCE_FILE in $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT); do
                 if [[ $(echo -e "$CHANGED_PATHS" | grep -e "$SOURCE_FILE" -e "Build/$PROJECT")  ]]; then
                     CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT"
                     CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT)"
@@ -105,4 +105,4 @@ for PROJECT in $(echo -e "$CHANGED_PROJECTS"); do
 done
 
 # Print output
-echo -e "Test $PROJECTS_TO_BUILD"
+echo -e "$PROJECTS_TO_BUILD"
