@@ -18,6 +18,7 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         with mock.patch('datalabs.access.secret.aws.boto3'):
             wrapper = ETLTaskWrapper(MockTask, parameters=event)
+            wrapper._setup_environment()
             parameters = wrapper._get_task_parameters()
             LOGGER.debug(parameters)
 

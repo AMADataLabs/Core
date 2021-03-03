@@ -11,14 +11,12 @@ LOGGER.setLevel(logging.INFO)
 
 
 class TaskWrapper(task.TaskWrapper):
-    def _get_task_parameters(self):
-        ''' Resolve ARNs in environment variables that point Parameter Store and
-        Secrets Manager resources. Overrides of this method should super() it
-        and actually return parameters.'''
+    def _setup_environment(self):
+        super()._setup_environment()
+
         self._resolve_parameter_store_environment_variables()
 
         self._resolve_secrets_manager_environment_variables()
-
 
     def _handle_success(self) -> (int, dict):
         return "Success"
