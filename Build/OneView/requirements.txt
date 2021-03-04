@@ -8,6 +8,7 @@ gremlinpython==3.4.8
 jinja2==2.11.1
 jpype1==0.6.3
 json5==0.8.5
+marshmallow==3.10.0
 minio==6.0.0
 nameparser==1.0.6
 numpy==1.18.1
