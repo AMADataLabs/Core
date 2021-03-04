@@ -154,9 +154,42 @@ class ResidencyProgram(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
+    specialty = sa.Column(sa.String)
+    # program_state = sa.Column(sa.String)
+    institution_control = sa.Column(sa.String)
+    sequence_number = sa.Column(sa.String)
+    federal_code = sa.Column(sa.String)
+    region_code = sa.Column(sa.String)
+    activity_code = sa.Column(sa.String)
+    accreditation_council_for_graduate_medical_education_accreditation = sa.Column(sa.String)
     name = sa.Column(sa.String)
     web_address = sa.Column(sa.String)
     old_name = sa.Column(sa.String)
+    contact_director = sa.Column(sa.String)
+    accreditation_status = sa.Column(sa.String)
+    accreditation_effective_date = sa.Column(sa.String)
+    initial_accreditation_date = sa.Column(sa.String)
+    accreditation_length = sa.Column(sa.String)
+    years_offered = sa.Column(sa.String)
+    government_affiliation = sa.Column(sa.String)
+    graduate_medical_education_equivalent_years = sa.Column(sa.String)
+    preliminary_positions_offered = sa.Column(sa.String)
+    type = sa.Column(sa.String)
+    change_size = sa.Column(sa.String)
+    percent_at_primary_site = sa.Column(sa.String)
+    primary_site = sa.Column(sa.String)
+    core_program = sa.Column(sa.String)
+    medical_records = sa.Column(sa.String)
+    official_address = sa.Column(sa.String)
+    sf_match = sa.Column(sa.String)
+    other_match_indicator = sa.Column(sa.String)
+    other_match = sa.Column(sa.String)
+    additional_education_accreditation_length = sa.Column(sa.String)
+    last_update_date = sa.Column(sa.String)
+    last_update_type = sa.Column(sa.String)
+    american_osteopathic_association_indicator = sa.Column(sa.String)
+    american_osteopathic_association_indicator_program_id = sa.Column(sa.String)
+    osteopathic_principles = sa.Column(sa.String)
     address_type = sa.Column(sa.String)
     address_1 = sa.Column(sa.String)
     address_2 = sa.Column(sa.String)
@@ -184,6 +217,7 @@ class ResidencyProgramPersonnelMember(Base):
     degree_3 = sa.Column(sa.String)
     phone_number = sa.Column(sa.String)
     email = sa.Column(sa.String)
+    last_update_date = sa.Column(sa.String)
 
 
 class ResidencyProgramInstitution(Base):
@@ -191,6 +225,10 @@ class ResidencyProgramInstitution(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
+    program = sa.Column(sa.String)
+    affiliation = sa.Column(sa.String)
+    primary_clinical_location = sa.Column(sa.String)
+    last_update_date = sa.Column(sa.String)
 
 
 class Business(Base):
@@ -200,6 +238,7 @@ class Business(Base):
     id = sa.Column(sa.String, primary_key=True)
     name = sa.Column(sa.String, nullable=False)
     doing_business_as = sa.Column(sa.String)
+    address_id = sa.Column(sa.String)
     physical_address_1 = sa.Column(sa.String)
     physical_address_2 = sa.Column(sa.String)
     physical_city = sa.Column(sa.String)
@@ -213,8 +252,45 @@ class Business(Base):
     phone = sa.Column(sa.String)
     fax = sa.Column(sa.String)
     website = sa.Column(sa.String)
+    latitude = sa.Column(sa.String)
+    longitude = sa.Column(sa.String)
     owner_status = sa.Column(sa.String)
     profit_status = sa.Column(sa.String)
+    primary_class_of_trade = sa.Column(sa.String)
+    class_of_trade_classification = sa.Column(sa.String)
+    class_of_trade_classification_description = sa.Column(sa.String)
+    class_of_trade_facility_type = sa.Column(sa.String)
+    class_of_trade_facility_type_description = sa.Column(sa.String)
+    class_of_trade_specialty = sa.Column(sa.String)
+    class_of_trade_specialty_description = sa.Column(sa.String)
+    record_type = sa.Column(sa.String)
+    total_licensed_beds = sa.Column(sa.String)
+    total_census_beds = sa.Column(sa.String)
+    total_staffed_beds = sa.Column(sa.String)
+    teaching_hospital = sa.Column(sa.String)
+    commhosp = sa.Column(sa.String)
+    metropolitan_statistical_area = sa.Column(sa.String)
+    federal_information_processing_standard_state = sa.Column(sa.String)
+    federal_information_processing_standard_county = sa.Column(sa.String)
+    number_of_providers = sa.Column(sa.String)
+    corporate_parent_business = sa.Column(sa.String)
+    corporate_parent_business_name = sa.Column(sa.String)
+    owner_subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.owner_subsidiary.id"))
+    electronic_medical_record = sa.Column(sa.String)
+    electronically_prescribe = sa.Column(sa.String)
+    pay_for_performance = sa.Column(sa.String)
+    deactivation_reason = sa.Column(sa.String)
+    replacement_business = sa.Column(sa.String)
+    status_indicator = sa.Column(sa.String)
+    batch_business_date = sa.Column(sa.String)
+
+
+class OwnerSubsidiary(Base):
+    __tablename__ = 'owner_subsidiary'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    name = sa.Column(sa.String, nullable=False)
 
 
 class Provider(Base):
@@ -235,7 +311,10 @@ class Provider(Base):
     tertiary_specialty = sa.Column(sa.String)
     primary_profession = sa.Column(sa.String)
     primary_profession_description = sa.Column(sa.String)
+    universal_provider_identification = sa.Column(sa.String)
+    national_provider_identifier = sa.Column(sa.String)
     status_description = sa.Column(sa.String)
+    batch_business_date = sa.Column(sa.String)
 
 
 class ProviderAffiliation(Base):
@@ -249,6 +328,9 @@ class ProviderAffiliation(Base):
     description = sa.Column(sa.String)
     primary = sa.Column(sa.String)
     rank = sa.Column(sa.String)
+    group = sa.Column(sa.String)
+    group_description = sa.Column(sa.String)
+    batch_business_date = sa.Column(sa.String)
 
 
 class CredentialingCustomer(Base):
@@ -257,12 +339,12 @@ class CredentialingCustomer(Base):
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     number = sa.Column(sa.String, nullable=False)
-    isell_username = sa.Column(sa.String, nullable=False)
     name = sa.Column(sa.String, nullable=False)
     type = sa.Column(sa.String, nullable=False)
     type_description = sa.Column(sa.String, nullable=False)
     category = sa.Column(sa.String, nullable=False)
     category_description = sa.Column(sa.String, nullable=False)
+    current_indicator = sa.Column(sa.String, nullable=False)
     address_1 = sa.Column(sa.String, nullable=False)
     address_2 = sa.Column(sa.String, nullable=False)
     address_3 = sa.Column(sa.String, nullable=False)
@@ -292,6 +374,13 @@ class CredentialingOrder(Base):
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
     date = sa.Column(sa.String, nullable=False)
+    person_id = sa.Column(sa.String, nullable=False)
+    unique_physician_identification_number = sa.Column(sa.String, nullable=False)
+    first_name = sa.Column(sa.String)
+    middle_name = sa.Column(sa.String)
+    last_name = sa.Column(sa.String)
+    suffix = sa.Column(sa.String)
+    former_name = sa.Column(sa.String)
 
 
 class PhysicianRaceEthnicity(Base):
@@ -301,6 +390,8 @@ class PhysicianRaceEthnicity(Base):
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          primary_key=True, nullable=False)
     race_ethnicity = sa.Column(sa.String, nullable=False)
+    gender = sa.Column(sa.String, nullable=False)
+    current_person_type = sa.Column(sa.String, nullable=False)
 
 
 class CredentialingCustomerInstitution(Base):
