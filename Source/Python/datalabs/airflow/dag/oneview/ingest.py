@@ -90,7 +90,7 @@ with ONEVIEW_ETL_DAG:
         env_from=[ETL_CONFIG],
         env_vars=dict(TASK_CLASS='datalabs.etl.http.extract.HTTPUnicodeTextFileExtractorTask'),
         do_xcom_push=True,
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
         in_cluster=True,
         task_id="extract_core_based_statistical_area",
         get_logs=True,

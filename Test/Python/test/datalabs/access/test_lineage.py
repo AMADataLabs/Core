@@ -1,9 +1,18 @@
 """ source: datalabs.access.environment """
 import os
 import pytest
+import ssl
 
+from gremlin_python import statics
+from gremlin_python.structure.graph import Graph
+from gremlin_python.process.strategies import *
+from gremlin_python.driver.driver_remote_connection import DriverRemoteConnection
+from gremlin_python.driver.transport import AbstractBaseTransport
+from gremlin_python.process.anonymous_traversal import traversal
 from   gremlin_python.process.traversal import Bindings
 from   neptune_python_utils.gremlin_utils import GremlinUtils
+from tornado import ioloop, websocket
+from tornado import httpclient
 
 
 # pylint: disable=redefined-outer-name
@@ -84,14 +93,14 @@ def test_connection(lineage):
 
 @pytest.fixture
 def lineage():
-    os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = 'datalabs-lineage.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
+    # os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = 'datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
+    hostname = 'datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
+    os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = hostname
     os.environ['NEPTUNE_CLUSTER_PORT'] = '8182'
     GremlinUtils.init_statics(globals())
     gremlin_utils = GremlinUtils()
     connection = gremlin_utils.remote_connection()
-    # host = 'datalabs-lineage.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
-    # connection = DriverRemoteConnection(f'wss://{host}:8182/gremlin','g')
 
-    yield gremlin_utils.traversal_source(connection=connection)
+    yield traversal().withRemote(connection)
 
     connection.close()

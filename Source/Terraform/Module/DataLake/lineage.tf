@@ -53,32 +53,53 @@ resource "aws_route_table_association" "lineage_backend" {
 }
 
 
-resource "aws_neptune_subnet_group" "lineage" {
-    name       = "datalabs-datalake-lineage"
-    subnet_ids = [aws_subnet.lineage_frontend.id, aws_subnet.lineage_backend.id]
+module "lineage_database" {
+    source                  = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-neptune-cluster.git"
+    app_name                = lower("datalabs-${var.project}-lineage")
+    neptune_subnet_list     = [aws_subnet.lineage_frontend.id, aws_subnet.lineage_backend.id]
+    security_group_ids      = [aws_security_group.lineage.id]
 
-    tags = merge(local.tags, {Name = "Data Lake Lineage Subnet Group"})
+    tag_name = "Data Labs ${var.project} Lineage Graph Database"
+    tag_environment = local.aws_environment
+    tag_contact = local.contact
+    tag_systemtier = "N/A"
+    tag_drtier = "N/A"
+    tag_dataclassification = "N/A"
+    tag_budgetcode = local.budget_code
+    tag_owner = local.owner
+    tag_projectname = var.project
+    tag_notes = ""
+    tag_eol = "N/A"
+    tag_maintwindow = "N/A"
 }
-
-
-resource "aws_neptune_cluster" "linage_cluster" {
-    cluster_identifier                  = "datalabs-lineage"
-    skip_final_snapshot                 = true
-    iam_database_authentication_enabled = true
-    apply_immediately                   = true
-    deletion_protection                 = false
-    vpc_security_group_ids              = [aws_security_group.lineage.id]
-    neptune_subnet_group_name           = aws_neptune_subnet_group.lineage.name
-
-    tags = merge(local.tags, {Name = "Data Labs Data Lake Lineage DB Cluster"})
-}
-
-resource "aws_neptune_cluster_instance" "lineage" {
-    identifier                          = "lineage"
-    cluster_identifier                  = aws_neptune_cluster.linage_cluster.id
-    instance_class                      = "db.t3.medium"
-    apply_immediately                   = true
-    neptune_subnet_group_name           = aws_neptune_subnet_group.lineage.name
-
-    tags = merge(local.tags, {Name = "Data Labs Data Lake Lineage DB Instance"})
-}
+#
+#
+# resource "aws_neptune_subnet_group" "lineage" {
+#     name       = "datalabs-datalake-lineage"
+#     subnet_ids = [aws_subnet.lineage_frontend.id, aws_subnet.lineage_backend.id]
+#
+#     tags = merge(local.tags, {Name = "Data Lake Lineage Subnet Group"})
+# }
+#
+#
+# resource "aws_neptune_cluster" "linage_cluster" {
+#     cluster_identifier                  = "datalabs-lineage"
+#     skip_final_snapshot                 = true
+#     iam_database_authentication_enabled = true
+#     apply_immediately                   = true
+#     deletion_protection                 = false
+#     vpc_security_group_ids              = [aws_security_group.lineage.id]
+#     neptune_subnet_group_name           = aws_neptune_subnet_group.lineage.name
+#
+#     tags = merge(local.tags, {Name = "Data Labs Data Lake Lineage DB Cluster"})
+# }
+#
+# resource "aws_neptune_cluster_instance" "lineage" {
+#     identifier                          = "lineage"
+#     cluster_identifier                  = aws_neptune_cluster.linage_cluster.id
+#     instance_class                      = "db.t3.medium"
+#     apply_immediately                   = true
+#     neptune_subnet_group_name           = aws_neptune_subnet_group.lineage.name
+#
+#     tags = merge(local.tags, {Name = "Data Labs Data Lake Lineage DB Instance"})
+# }
