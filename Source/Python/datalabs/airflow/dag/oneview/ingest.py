@@ -15,7 +15,7 @@ DATABASE_SECRET = Secret('env', None, 'oneview-etl-database')
 DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.0.1'
 
 ONEVIEW_ETL_DAG = DAG(
-    dag_id='oneview-etl',
+    dag_id='oneview',
     default_args={'owner': 'airflow'},
     schedule_interval=None,
     start_date=days_ago(2),
