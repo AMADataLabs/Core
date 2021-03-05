@@ -14,7 +14,7 @@ data:
     ONEVIEW__EXTRACT_PPD__DRIVER_TYPE: 'db2'
     ONEVIEW__EXTRACT_PPD__JAR_PATH: './db2jcc4.jar'
 
-    ONEVIEW__EXTRACT_PPD__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_PPD__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_PPD__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_PPD__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_PPD__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -30,7 +30,7 @@ data:
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DRIVER_TYPE: 'informix-sqli'
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
 
-    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -47,7 +47,7 @@ data:
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
 
 
-    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_BASEPATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -63,7 +63,7 @@ data:
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DRIVER_TYPE: 'informix-sqli'
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
 
-    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -74,7 +74,7 @@ data:
     # FederalInformationProcessingStandardCounty Extractor
     ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__URLS: 'https://www2.census.gov/programs-surveys/popest/geographies/2018/all-geocodes-v2018.xlsx'
 
-    ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -85,7 +85,7 @@ data:
     # CoreBasedStatisticalArea Extractor
     ONEVIEW__EXTRACT_CORE_BASED_STATISTICAL_AREA__URLS: 'https://www2.census.gov/programs-surveys/popest/geographies/2018/all-geocodes-v2018.xlsx'
 
-    ONEVIEW__EXTRACT_CORE_BASED_STATISTICAL_AREA__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_CORE_BASED_STATISTICAL_AREA__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_CORE_BASED_STATISTICAL_AREA__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_CORE_BASED_STATISTICAL_AREA__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_CORE_BASED_STATISTICAL_AREA__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -101,7 +101,7 @@ data:
     ONEVIEW__EXTRACT_SPECIALTY__DRIVER_TYPE: 'informix-sqli'
     ONEVIEW__EXTRACT_SPECIALTY__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
 
-    ONEVIEW__EXTRACT_SPECIALTY__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_SPECIALTY__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_SPECIALTY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_SPECIALTY__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_SPECIALTY__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -110,7 +110,7 @@ data:
     ONEVIEW__EXTRACT_SPECIALTY__CACHE_OUTPUT_FILES: 'specialty.csv'
 
     # SpecialtyMerge Transformer
-    ONEVIEW__REMOVE_UNUSED_SPECIALTIES__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__REMOVE_UNUSED_SPECIALTIES__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__REMOVE_UNUSED_SPECIALTIES__CACHE_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__REMOVE_UNUSED_SPECIALTIES__CACHE_BASE_PATH: 'AMA/OneView'
     ONEVIEW__REMOVE_UNUSED_SPECIALTIES__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -125,7 +125,7 @@ data:
     ONEVIEW__EXTRACT_RESIDENCY__FILES: 'Program Information table - Active.txt,Program Institution.txt,Program Address table - Active.txt,Program Personnel table - Active.txt,Institution Information - Active.txt'
     ONEVIEW__EXTRACT_RESIDENCY__HOST: "eft.ama-assn.org"
 
-    ONEVIEW__EXTRACT_RESIDENCY__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_RESIDENCY__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -141,7 +141,7 @@ data:
     ONEVIEW__EXTRACT_IQVIA__DRIVER_TYPE: 'db2'
     ONEVIEW__EXTRACT_IQVIA__JAR_PATH: './db2jcc4.jar'
 
-    ONEVIEW__EXTRACT_IQVIA__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_IQVIA__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_IQVIA__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_IQVIA__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_IQVIA__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -157,7 +157,7 @@ data:
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DRIVER_TYPE: 'db2'
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__JAR_PATH: './db2jcc4.jar'
 
-    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -170,7 +170,7 @@ data:
     ONEVIEW__EXTRACT_CREDENTIALING_ADDRESSES__FILES: 'Org_Addresses.xlsx'
     ONEVIEW__EXTRACT_CREDENTIALING_ADDRESSES__HOST: "eft.ama-assn.org"
 
-    ONEVIEW__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -183,7 +183,7 @@ data:
     ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_ACCESS_KEY: ${ACCESS_KEY}
     ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_SECRET_KEY: ${SECRET_KEY}
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
 
     ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_OUTPUT_FILES: 'credentialing_addresses.xlsx,credentialing_customer.csv'
@@ -195,7 +195,7 @@ data:
     ONEVIEW__EXTRACT_RACE_ETHNICITY__FILES: 'PhysicianRaceEthnicity.csv'
     ONEVIEW__EXTRACT_RACE_ETHNICITY__HOST: "eft.ama-assn.org"
 
-    ONEVIEW__EXTRACT_RACE_ETHNICITY__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_RACE_ETHNICITY__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_RACE_ETHNICITY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_RACE_ETHNICITY__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_RACE_ETHNICITY__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -209,7 +209,7 @@ data:
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_INSTITUTION__CACHE_ACCESS_KEY: ${ACCESS_KEY}
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_INSTITUTION__CACHE_SECRET_KEY: ${SECRET_KEY}
 
-    ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_INSTITUTION__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_INSTITUTION__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_INSTITUTION__CACHE_INPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_INSTITUTION__CACHE_INPUT_FILES: 'credentialing_customer_merged.csv,residency_program.csv'
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_INSTITUTION__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
@@ -218,7 +218,7 @@ data:
     # CredentialingCustomerBusiness Extractor
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_BUSINESS__CACHE_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_BUSINESS__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
-    ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_BUSINESS__CACHE_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_BUSINESS__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_BUSINESS__CACHE_ACCESS_KEY: ${ACCESS_KEY}
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_BUSINESS__CACHE_SECRET_KEY: ${SECRET_KEY}
 
@@ -228,7 +228,7 @@ data:
     ONEVIEW__EXTRACT_CREDENTIALING_CUSTOMER_BUSINESS__CACHE_OUTPUT_FILES: 'credentialing_customer_business.csv'
 
     # FinalDatabase Loader
-    ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_CLASS: 'datalabs.etl.airflow.S3CachingTaskWrapper'
+    ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
