@@ -19,6 +19,7 @@ modspec:
       - task
   - package: datalabs.access
     include:
+      - aws
       - sftp
       - credentials
       - database
