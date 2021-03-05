@@ -268,7 +268,7 @@ class Business(Base):
     total_census_beds = sa.Column(sa.String)
     total_staffed_beds = sa.Column(sa.String)
     teaching_hospital = sa.Column(sa.String)
-    commhosp = sa.Column(sa.String)
+    hospital_care = sa.Column(sa.String)
     metropolitan_statistical_area = sa.Column(sa.String)
     federal_information_processing_standard_state = sa.Column(sa.String)
     federal_information_processing_standard_county = sa.Column(sa.String)
