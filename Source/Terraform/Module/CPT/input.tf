@@ -111,3 +111,7 @@ data "aws_sns_topic" "ingestion" {
 data "aws_sns_topic" "processed" {
     name = "ProcessedBucketNotification"
 }
+
+data "aws_ssm_parameter" "lambda_code_bucket" {
+    name = "/DataLabs/lambda_code_bucket"
+}
