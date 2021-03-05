@@ -2,7 +2,9 @@
 import os
 import pytest
 
+from   gremlin_python.process.anonymous_traversal import traversal
 from   gremlin_python.process.traversal import Bindings
+
 from   neptune_python_utils.gremlin_utils import GremlinUtils
 
 
@@ -84,14 +86,13 @@ def test_connection(lineage):
 
 @pytest.fixture
 def lineage():
-    os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = 'datalabs-lineage.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
+    hostname = 'datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
+    os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = hostname
     os.environ['NEPTUNE_CLUSTER_PORT'] = '8182'
     GremlinUtils.init_statics(globals())
     gremlin_utils = GremlinUtils()
     connection = gremlin_utils.remote_connection()
-    # host = 'datalabs-lineage.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
-    # connection = DriverRemoteConnection(f'wss://{host}:8182/gremlin','g')
 
-    yield gremlin_utils.traversal_source(connection=connection)
+    yield traversal().withRemote(connection)
 
     connection.close()

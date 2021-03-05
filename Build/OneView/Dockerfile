@@ -7,7 +7,6 @@ FROM python:3.7
 WORKDIR /OneView
 ENV PYTHONPATH=/OneView:/OneView/site-packages
 ENV CLASSPATH=/OneView
-ENV AWS_SHARED_CREDENTIALS_FILE=/OneView/.aws/credentials
 ENV AWS_DEFAULT_REGION=us-east-1
 
 COPY ./Build/OneView/requirements.txt .
@@ -38,5 +37,3 @@ RUN ./Script/bundle-project -i --directory ./ OneView
 RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
-
-COPY ./Build/OneView/credentials ${AWS_SHARED_CREDENTIALS_FILE}
