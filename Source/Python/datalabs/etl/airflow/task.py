@@ -33,11 +33,17 @@ class TaskDataCache(ABC):
 
 
 class AirflowTaskWrapper(task.TaskWrapper):
+    def __init__(self, task_class, parameters=None):
+        super().__init__(task_class, parameters)
+
+        self._cache_parameters = {}
+
     def _get_task_parameters(self):
         parameters = self._get_dag_task_parameters()
+        parameters = self._extract_cache_parameters(parameters)
 
         if parameters:
-            cache_plugin = self._get_cache_plugin(parameters, CacheDirection.Input)
+            cache_plugin = self._get_cache_plugin(CacheDirection.Input)
             input_data = cache_plugin.extract_data()
 
             parameters['data'] = input_data
@@ -49,7 +55,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
 
     def _handle_success(self):
         if self._task_parameters:
-            cache_plugin = self._get_cache_plugin(self._task_parameters, CacheDirection.Output)  # pylint: disable=no-member
+            cache_plugin = self._get_cache_plugin(CacheDirection.Output)  # pylint: disable=no-member
             cache_plugin.load_data(self.task.data)
 
         LOGGER.info('Airflow task has finished')
@@ -62,9 +68,24 @@ class AirflowTaskWrapper(task.TaskWrapper):
 
         return self._merge_parameters(dag_parameters, task_parameters)
 
-    @classmethod
-    def _get_cache_plugin(cls, task_parameters: dict, direction: CacheDirection) -> TaskDataCache:
-        cache_parameters = cls._get_cache_parameters(task_parameters, direction)
+    def _extract_cache_parameters(self, task_parameters):
+        self._cache_parameters[CacheDirection.Input] = self._get_cache_parameters(
+            task_parameters,
+            CacheDirection.Input
+        )
+        self._cache_parameters[CacheDirection.Output] = self._get_cache_parameters(
+            task_parameters,
+            CacheDirection.Output
+        )
+        cache_keys = [key for key in task_parameters if key.startswith('CACHE_')]
+
+        for key in cache_keys:
+            task_parameters.pop(key)
+
+        return task_parameters
+
+    def _get_cache_plugin(self, direction: CacheDirection) -> TaskDataCache:
+        cache_parameters = self._cache_parameters[direction]
         plugin_name = 'datalabs.etl.airflow.s3.S3TaskDataCache'
 
         if 'CLASS' in cache_parameters:

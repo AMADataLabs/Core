@@ -1,3 +1,5 @@
+""" CPT API ETL router for actions due to S3 data updates. """
+
 from   dataclasses import dataclass
 import json
 import logging
@@ -33,7 +35,7 @@ class RouterTaskWrapper(task.TaskWrapper):
 
         return parameters
 
-    def _handle_exception(self, exception: ETLException):
+    def _handle_exception(self, exception: Exception):
         LOGGER.exception('Handling CPT ETL Router task exception: %s', exception)
 
     def _handle_success(self):
@@ -53,25 +55,29 @@ class RouterTask(task.Task):
                 key = s3_record['s3']['object']['key']
                 base_path = self._parameters.base_path
 
-                LOGGER.info(f'Object updated: %s', key)
+                LOGGER.info('Object updated: %s', key)
 
                 match = re.match(base_path+'/([0-9]{8})/.*ETL_TRIGGER', key)
                 if match:
-                    LOGGER.info(f'Triggering with execution date: {match.group(1)}')
+                    LOGGER.info('Triggering with execution date: %s', match.group(1))
                     self._trigger_etls(match.group(1))
                 else:
-                    LOGGER.info(f'Ignoring non-trigger file update: {key}')
+                    LOGGER.info('Ignoring non-trigger file update: %s', key)
 
         return 200, None
 
-    def _trigger_etls(execution_date):
+    def _trigger_etls(self, execution_date):
         client = boto3.client('lambda')
+        region = self._parameters.region
+        account = self._parameters.account
 
         for function in self._parameters.functions:
-            LOGGER.info(f'Invoking function: {function}')
+            LOGGER.info('Invoking function: %s', function)
 
             response = client.invoke(
-                FunctionName = f'arn:aws:lambda:{self._parameters.region}:{self._parameters.account}:function:{function}',
-                InvocationType = 'RequestResponse',
-                Payload = json.dumps(dict(execution_time=f'{execution_date}T00:00:00+00:00'))
+                FunctionName=f'arn:aws:lambda:{region}:{account}:function:{function}',
+                InvocationType='RequestResponse',
+                Payload=json.dumps(dict(execution_time=f'{execution_date}T00:00:00+00:00'))
             )
+
+        return response
