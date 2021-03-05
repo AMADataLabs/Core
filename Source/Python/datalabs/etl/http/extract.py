@@ -15,7 +15,7 @@ class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
         if '*' in file:
             raise NotImplementedError
 
-        return file
+        return [file]
 
     # pylint: disable=arguments-differ
     def _extract_file(self, file):

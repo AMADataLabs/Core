@@ -42,8 +42,8 @@ class AirflowTaskWrapper(task.TaskWrapper):
         parameters = self._get_dag_task_parameters()
         parameters = self._extract_cache_parameters(parameters)
 
-        if parameters:
-            cache_plugin = self._get_cache_plugin(CacheDirection.Input)
+        cache_plugin = self._get_cache_plugin(CacheDirection.Input)
+        if cache_plugin:
             input_data = cache_plugin.extract_data()
 
             parameters['data'] = input_data
@@ -54,8 +54,8 @@ class AirflowTaskWrapper(task.TaskWrapper):
         LOGGER.exception('Handling Airflow task exception: %s', exception)
 
     def _handle_success(self):
-        if self._task_parameters:
-            cache_plugin = self._get_cache_plugin(CacheDirection.Output)  # pylint: disable=no-member
+        cache_plugin = self._get_cache_plugin(CacheDirection.Output)  # pylint: disable=no-member
+        if cache_plugin:
             cache_plugin.load_data(self.task.data)
 
         LOGGER.info('Airflow task has finished')
@@ -86,14 +86,19 @@ class AirflowTaskWrapper(task.TaskWrapper):
 
     def _get_cache_plugin(self, direction: CacheDirection) -> TaskDataCache:
         cache_parameters = self._cache_parameters[direction]
-        plugin_name = 'datalabs.etl.airflow.s3.S3TaskDataCache'
+        plugin = None
 
-        if 'CLASS' in cache_parameters:
-            plugin_name = cache_parameters.pop('CLASS')
+        if len(cache_parameters) > 1:
+            plugin_name = 'datalabs.etl.airflow.s3.S3TaskDataCache'
 
-        TaskDataCachePlugin = import_plugin(plugin_name)  # pylint: disable=invalid-name
+            if 'CLASS' in cache_parameters:
+                plugin_name = cache_parameters.pop('CLASS')
 
-        return TaskDataCachePlugin(cache_parameters)
+            TaskDataCachePlugin = import_plugin(plugin_name)  # pylint: disable=invalid-name
+
+            plugin = TaskDataCachePlugin(cache_parameters)
+
+        return plugin
 
     @classmethod
     def _get_dag_parameters_from_environment(cls, dag_id, datestamp):
@@ -131,11 +136,12 @@ class AirflowTaskWrapper(task.TaskWrapper):
     @classmethod
     def _get_cache_parameters(cls, task_parameters: dict, direction: CacheDirection) -> dict:
         cache_parameters = {}
+        other_direction = [d[1] for d in CacheDirection.__members__.items() if d[1] != direction][0]
 
         for key, value in task_parameters.items():
             match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
 
-            if match:
+            if match and not match.group(2).startswith(other_direction.value+'_'):
                 cache_parameters[match.group(2)] = value
 
         return cache_parameters

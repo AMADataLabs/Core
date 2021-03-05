@@ -37,3 +37,5 @@ RUN ./Script/bundle-project -i --directory ./ OneView
 RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
+
+RUN apt-get install -y vim
