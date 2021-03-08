@@ -36,12 +36,14 @@ pipelines:
                 script:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - python --version
                 - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
             - step:
                 name: Lint
                 script:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - python --version
                 - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
         CPT-master:
         - step:
