@@ -2,21 +2,25 @@
 
 set -ex
 
-FUNCTIONS='CPTGetDescriptor
-           CPTGetDescriptors
-           CPTGetConsumerDescriptor
-           CPTGetConsumerDescriptors
-           CPTGetClinicianDescriptors
-           CPTGetAllClinicianDescriptors
-           CPTGetModifier
-           CPTGetModifiers
-           CPTGetPLADetails
-           CPTGetAllPLADetails
-           CPTGetLatestPDFs
-           CPTGetReleases
-           CPTDefault
-           CPTConvert
-           CPTLoad'
+PROJECT="${PROJECT:-CPT}"
+
+FUNCTIONS="${PROJECT}GetDescriptor
+           ${PROJECT}GetDescriptors
+           ${PROJECT}GetConsumerDescriptor
+           ${PROJECT}GetConsumerDescriptors
+           ${PROJECT}GetClinicianDescriptors
+           ${PROJECT}GetAllClinicianDescriptors
+           ${PROJECT}GetModifier
+           ${PROJECT}GetModifiers
+           ${PROJECT}GetPLADetails
+           ${PROJECT}GetAllPLADetails
+           ${PROJECT}GetLatestPDFs
+           ${PROJECT}GetReleases
+           ${PROJECT}Default
+           ${PROJECT}Convert
+           ${PROJECT}Load
+           ${PROJECT}IngestionRouter
+           ${PROJECT}ProcessedRouter"
 
 for FUNCTION in ${FUNCTIONS}; do
   aws lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip
