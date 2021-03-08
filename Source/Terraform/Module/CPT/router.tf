@@ -3,7 +3,7 @@ resource "aws_lambda_function" "ingestion_etl_router" {
     s3_key              = "CPT/CPT.zip"
     function_name       = local.function_names.ingestion_etl_router
     role                = aws_iam_role.lambda_role.arn
-    handler             = "main.lambda_handler"
+    handler             = "awslambda.handler"
     runtime             = "python3.7"
     timeout             = 10
     memory_size         = 1024
@@ -44,7 +44,7 @@ resource "aws_lambda_function" "processed_etl_router" {
     s3_key              = "CPT/CPT.zip"
     function_name       = local.function_names.processed_etl_router
     role                = aws_iam_role.lambda_role.arn
-    handler             = "main.lambda_handler"
+    handler             = "awslambda.handler"
     runtime             = "python3.7"
     timeout             = 5
     memory_size         = 1024
