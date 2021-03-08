@@ -33,16 +33,12 @@ pipelines:
         - parallel:
             - step:
                 name: Unit Tests
-                caches:
-                  - venv
                 script:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
                 - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
             - step:
                 name: Lint
-                caches:
-                  - venv
                 script:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
