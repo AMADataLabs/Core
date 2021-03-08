@@ -161,31 +161,31 @@ class ResidencyProgram(Base):
     federal_code = sa.Column(sa.String)
     region_code = sa.Column(sa.String)
     activity_code = sa.Column(sa.String)
-    accreditation_council_for_graduate_medical_education_accreditation = sa.Column(sa.String)
+    acgme_accredited = sa.Column(sa.String)
     name = sa.Column(sa.String)
     web_address = sa.Column(sa.String)
     old_name = sa.Column(sa.String)
     contact_director = sa.Column(sa.String)
     accreditation_status = sa.Column(sa.String)
-    accreditation_effective_date = sa.Column(sa.String)
-    initial_accreditation_date = sa.Column(sa.String)
+    accreditation_effective_date = sa.Column(sa.Date)
+    initial_accreditation_date = sa.Column(sa.Date)
     accreditation_length = sa.Column(sa.String)
-    years_offered = sa.Column(sa.String)
-    government_affiliation = sa.Column(sa.String)
+    duration = sa.Column(sa.String)
+    government_affiliated = sa.Column(sa.Boolean)
     graduate_medical_education_equivalent_years = sa.Column(sa.String)
-    preliminary_positions_offered = sa.Column(sa.String)
+    preliminary_positions_offered = sa.Column(sa.Boolean)
     type = sa.Column(sa.String)
-    change_size = sa.Column(sa.String)
+    max_residents_accepted_increase = sa.Column(sa.Integer)
     percent_at_primary_site = sa.Column(sa.String)
     primary_site = sa.Column(sa.String)
     core_program = sa.Column(sa.String)
     medical_records = sa.Column(sa.String)
     official_address = sa.Column(sa.String)
-    sf_match = sa.Column(sa.String)
+    uses_sfmatch = sa.Column(sa.Boolean)
     other_match_indicator = sa.Column(sa.String)
     other_match = sa.Column(sa.String)
     additional_education_accreditation_length = sa.Column(sa.String)
-    last_update_date = sa.Column(sa.String)
+    last_update_date = sa.Column(sa.Date)
     last_update_type = sa.Column(sa.String)
     american_osteopathic_association_indicator = sa.Column(sa.String)
     american_osteopathic_association_indicator_program_id = sa.Column(sa.String)
@@ -217,7 +217,7 @@ class ResidencyProgramPersonnelMember(Base):
     degree_3 = sa.Column(sa.String)
     phone_number = sa.Column(sa.String)
     email = sa.Column(sa.String)
-    last_update_date = sa.Column(sa.String)
+    last_update_date = sa.Column(sa.Date)
 
 
 class ResidencyProgramInstitution(Base):
@@ -226,9 +226,9 @@ class ResidencyProgramInstitution(Base):
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     program = sa.Column(sa.String)
-    affiliation = sa.Column(sa.String)
+    sponsors_residents = sa.Column(sa.Boolean)
     primary_clinical_location = sa.Column(sa.String)
-    last_update_date = sa.Column(sa.String)
+    last_update_date = sa.Column(sa.Date)
 
 
 class Business(Base):
@@ -238,7 +238,7 @@ class Business(Base):
     id = sa.Column(sa.String, primary_key=True)
     name = sa.Column(sa.String, nullable=False)
     doing_business_as = sa.Column(sa.String)
-    address_id = sa.Column(sa.String)
+    iqvia_address_id = sa.Column(sa.String)
     physical_address_1 = sa.Column(sa.String)
     physical_address_2 = sa.Column(sa.String)
     physical_city = sa.Column(sa.String)
@@ -273,8 +273,7 @@ class Business(Base):
     federal_information_processing_standard_state = sa.Column(sa.String)
     federal_information_processing_standard_county = sa.Column(sa.String)
     number_of_providers = sa.Column(sa.String)
-    corporate_parent_business = sa.Column(sa.String)
-    corporate_parent_business_name = sa.Column(sa.String)
+    corporate_parent_business = sa.Column(sa.String, sa.ForeignKey("oneview.corporate_parent_business.id"))
     owner_subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.owner_subsidiary.id"))
     electronic_medical_record = sa.Column(sa.String)
     electronically_prescribe = sa.Column(sa.String)
@@ -282,7 +281,15 @@ class Business(Base):
     deactivation_reason = sa.Column(sa.String)
     replacement_business = sa.Column(sa.String)
     status_indicator = sa.Column(sa.String)
-    batch_business_date = sa.Column(sa.String)
+    batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
+
+
+class CorporateParentBusiness(Base):
+    __tablename__ = 'corporate_parent_business'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    name = sa.Column(sa.String, nullable=False)
 
 
 class OwnerSubsidiary(Base):
@@ -314,7 +321,7 @@ class Provider(Base):
     universal_provider_identification = sa.Column(sa.String)
     national_provider_identifier = sa.Column(sa.String)
     status_description = sa.Column(sa.String)
-    batch_business_date = sa.Column(sa.String)
+    batch_business_date = sa.Column(sa.Date,sa.ForeignKey("oneview.iqvia_update.date"))
 
 
 class ProviderAffiliation(Base):
@@ -330,7 +337,15 @@ class ProviderAffiliation(Base):
     rank = sa.Column(sa.String)
     group = sa.Column(sa.String)
     group_description = sa.Column(sa.String)
-    batch_business_date = sa.Column(sa.String)
+    batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
+
+
+class IqviaUpdate(Base):
+    __tablename__ = 'iqvia_update'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
+    date = sa.Column(sa.Date)
 
 
 class CredentialingCustomer(Base):
@@ -376,11 +391,6 @@ class CredentialingOrder(Base):
     date = sa.Column(sa.String, nullable=False)
     person_id = sa.Column(sa.String, nullable=False)
     unique_physician_identification_number = sa.Column(sa.String, nullable=False)
-    first_name = sa.Column(sa.String)
-    middle_name = sa.Column(sa.String)
-    last_name = sa.Column(sa.String)
-    suffix = sa.Column(sa.String)
-    former_name = sa.Column(sa.String)
 
 
 class PhysicianRaceEthnicity(Base):
