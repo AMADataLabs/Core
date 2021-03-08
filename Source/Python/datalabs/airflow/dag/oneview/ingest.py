@@ -18,7 +18,7 @@ ONEVIEW_ETL_DAG = DAG(
     dag_id='oneview',
     default_args={'owner': 'airflow'},
     schedule_interval=None,
-    # start_date=days_ago(2),
+    start_date=days_ago(2),
     tags=['OneView'],
 )
 
