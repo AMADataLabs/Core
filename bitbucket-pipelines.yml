@@ -24,23 +24,23 @@ pipelines:
             - bash Script/bitbucket-pipelines-build.sh
     custom:
         Test:
-        - step:
-            name: Master Virtual Environment
-            caches:
-              - venv
-            script:
-            - bash Script/setup-virtual-environment Master
         - parallel:
             - step:
                 name: Unit Tests
+                caches:
+                  - unit-test-dependencies
                 script:
+                - bash Script/setup-virtual-environment Master
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
                 - python --version
                 - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
             - step:
                 name: Lint
+                caches:
+                  - lint-test-dependencies
                 script:
+                - bash Script/setup-virtual-environment Master
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
                 - python --version
@@ -88,4 +88,5 @@ pipelines:
             - echo "Hello there!"
 definitions:
   caches:
-    venv: Environment
+    unit-test-dependencies: Environment
+    lint-test-dependencies: Environment
