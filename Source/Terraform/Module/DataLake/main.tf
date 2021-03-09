@@ -6,7 +6,7 @@ resource "aws_s3_bucket" "datalake_ingestion_bucket" {
     }
 
     versioning {
-    enabled = true
+        enabled = true
     }
 
     tags = merge(local.tags, {Name = "Data Labs Data Lake Ingestion Bucket"})
