@@ -306,6 +306,46 @@ module "authorize" {
 }
 
 
+module "task" {
+    source                = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git"
+    function_name         = "${local.project}Task"
+    handler = "awslambda.handler"
+    runtime = local.runtime
+    alias_name = "${local.project}TaskAlias"  # required but not needed, so use a stupid name
+    kms_key_arn = data.aws_kms_key.cpt.arn
+    memory_size = 3072
+    timeout = 30
+    environment = {
+        variables = {
+            TASK_WRAPPER_CLASS      = "datalabs.etl.awslambda.ETLTaskWrapper"
+            # DATABASE_HOST           = var.database_host
+            # DATABASE_SECRET         = data.aws_secretsmanager_secret.database.arn
+            # BUCKET_NAME             = data.aws_ssm_parameter.processed_bucket.arn
+            # BUCKET_BASE_PATH        = data.aws_ssm_parameter.s3_base_path.arn
+            # BUCKET_URL_DURATION     = "600"
+        }
+    }
+
+    lambda_name = "${local.project}Task"
+    api_arn = aws_api_gateway_rest_api.cpt_api_gateway.arn
+
+    tag_name = "CPT API Task"
+    tag_environment = local.aws_environment
+    tag_contact = local.contact
+    tag_systemtier = "N/A"
+    tag_drtier = "N/A"
+    tag_dataclassification = "N/A"
+    tag_budgetcode = local.budget_code
+    tag_owner = local.owner
+    tag_projectname = local.project
+    tag_notes = ""
+    tag_eol = "N/A"
+    tag_maintwindow = "N/A"
+    s3_lambda_bucket = local.lambda_code_bucket
+    s3_lambda_key = local.lambda_code_key
+}
+
+
 module "etl_convert" {
     source = "./etl"
 
@@ -389,6 +429,13 @@ module "etl_load" {
 
 
 locals {
+    aws_environment = data.aws_ssm_parameter.account_environment.value
+    contact = data.aws_ssm_parameter.contact.value
+    budget_code = "PBW"
+    project = "CPT"
+    runtime = "python3.7"
+    lambda_code_bucket = data.aws_ssm_parameter.lambda_code_bucket.value
+    lambda_code_key = "${local.project}/${local.project}.zip"
     region              = "us-east-1"
     spec_title          = "${var.project} API"
     spec_description    = "${var.project} API Phase I"
@@ -407,7 +454,7 @@ locals {
         SystemTier          = "Application"
         DRTier              = local.na
         DataClassification  = local.na
-        BudgetCode          = "PBW"
+        BudgetCode          = local.budget_code
         Owner               = local.owner
         Group               = local.owner
         Project             = var.project
