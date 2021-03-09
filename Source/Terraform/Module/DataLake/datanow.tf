@@ -67,6 +67,8 @@ resource "aws_ecs_task_definition" "datanow" {
         {
             account_id  = data.aws_caller_identity.account.account_id,
             region      = data.aws_region.current.name
+            image       = var.datanow_image
+            tag         = var.datanow_version
         }
     )
 

@@ -1,7 +1,7 @@
 [
     {
         "name": "datanow",
-        "image": "${account_id}.dkr.ecr.${region}.amazonaws.com/datanow:1.0.0",
+        "image": "${account_id}.dkr.ecr.${region}.amazonaws.com/${image}:${tag}",
         "cpu": 0,
         "environment": [],
         "essential": true,

@@ -3,6 +3,20 @@ variable "project" {
     type            = string
 }
 
+
+variable "datanow_image" {
+    description     = "ECR repository (image name) for the DataNow container image."
+    type            = string
+    default         = "datanow"
+}
+
+
+variable "datanow_version" {
+    description     = "Version number of the DataNow container image."
+    type            = string
+}
+
+
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
 }
