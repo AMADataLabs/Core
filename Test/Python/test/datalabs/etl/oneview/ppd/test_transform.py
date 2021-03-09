@@ -3,7 +3,6 @@ import logging
 import pandas
 import pytest
 
-import datalabs.etl.task as task
 from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask
 
 logging.basicConfig()
@@ -24,9 +23,9 @@ def test_jdbc_connection(components):
 # pylint: disable=redefined-outer-name
 @pytest.fixture
 def components(dataframe):
-    return task.ETLComponentParameters(
-        database={},
-        variables=dict(CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask', thing=True),
+    return dict(
+        CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask',
+        thing=True,
         data=dataframe
     )
 

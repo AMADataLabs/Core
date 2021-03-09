@@ -5,7 +5,8 @@ import logging
 
 import marshmallow
 
-from datalabs.access.database import Database
+from   datalabs.access.database import Database
+from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -13,14 +14,25 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class Task(ABC):
-    def __init__(self, parameters):
+    PARAMETER_CLASS = None
+
+    def __init__(self, parameters: dict):
         self._parameters = parameters
+
+        if self.PARAMETER_CLASS:
+            self._parameters = self._get_validated_parameters()
 
         LOGGER.debug('%s parameters: %s', self.__class__.__name__, self._parameters)
 
     @abstractmethod
     def run(self):
         pass
+
+    def _get_validated_parameters(self):
+        parameter_variables = {key.lower():value for key, value in self._parameters.items()}
+        schema = self.PARAMETER_CLASS.SCHEMA
+
+        return schema.load(parameter_variables)
 
 
 class TaskException(BaseException):
@@ -40,7 +52,10 @@ class TaskWrapper(ABC):
             raise TypeError('Task class does not have a "run" method.')
 
     def run(self):
+        self._setup_environment()
+
         self._task_parameters = self._get_task_parameters()
+
         self.task = self.task_class(self._task_parameters)
 
         try:
@@ -51,6 +66,11 @@ class TaskWrapper(ABC):
             response = self._handle_exception(exception)
 
         return response
+
+    # pylint: disable=no-self-use
+    def _setup_environment(self):
+        secrets_loader = ReferenceEnvironmentLoader.from_environ()
+        secrets_loader.load()
 
     def _get_task_parameters(self):
         return self._parameters

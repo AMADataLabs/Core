@@ -8,8 +8,6 @@ from datalabs.etl.task import ETLComponentTask
 
 class LoaderTask(ETLComponentTask, ABC):
     def run(self):
-        self._data = self._parameters.data
-
         self._load()
 
     @abstractmethod
@@ -26,7 +24,7 @@ class ConsoleLoaderTask(LoaderTask):
 
     def _load(self):
         try:
-            for datum in self._parameters.data:
+            for datum in self._parameters['data']:
                 self._logger.info(datum)
         except Exception:  # pylint: disable=broad-except
-            self._logger.info(self._parameters.data)
+            self._logger.info(self._parameters['data'])

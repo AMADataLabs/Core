@@ -12,7 +12,7 @@
 
 set -ex
 
-echo $(python --version)
+echo $(python3.7 --version)
 
 # Find script directory (no support for symlinks)
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -47,6 +47,10 @@ if [[ -f $(git rev-parse --git-dir)/shallow ]]; then
         done
     fi
 fi
+
+# Run tests
+echo "Running tests..."
+CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
 
 # Collect all modified projects
 PROJECTS_TO_BUILD=$($DIR/list-projects-to-build.sh $COMMIT_RANGE)

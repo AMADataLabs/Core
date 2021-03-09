@@ -1,69 +1,79 @@
 """ Local file system extractors """
+from   dataclasses import dataclass
 import io
 import logging
 import os
 
-from   datalabs.access.sftp import SFTPTaskMixin
-from   datalabs.etl.extract import FileExtractorTask
+import datalabs.access.sftp as sftp
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, ExecutionTimeMixin
 from   datalabs.etl.task import ETLException
+from   datalabs.task import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class SFTPFileExtractorTask(FileExtractorTask, SFTPTaskMixin):
-    def _extract(self):
-        data = None
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class SFTPFileExtractorParameters:
+    base_path: str
+    files: str
+    host: str
+    username: str
+    password: str
+    execution_time: str = None
+    include_names: str = None
+    data: object = None
 
-        with self._get_sftp(self._parameters.variables) as sftp:
-            file_paths = self._get_file_paths(sftp)
-            logging.info('Extracting the following files via SFTP: %s', file_paths)
 
-            data = self._extract_files(sftp, file_paths)
+# pylint: disable=too-many-ancestors
+class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
+    PARAMETER_CLASS = SFTPFileExtractorParameters
 
-        return data
+    def _get_files(self):
+        base_path = self._parameters.base_path
 
-    def _get_file_paths(self, sftp):
-        base_path = self._parameters.variables['BASE_PATH']
-        unresolved_files = [os.path.join(base_path, file) for file in self._parameters.variables['FILES'].split(',')]
-        resolved_files = []
+        return [os.path.join(base_path, file.strip()) for file in self._parameters.files.split(',')]
 
-        for file in unresolved_files:
-            files = self._resolve_filename(sftp, file)
+    def _get_client(self):
+        config = sftp.Configuration(
+            host=self._parameters.host
+        )
+        credentials = sftp.Credentials(
+            username=self._parameters.username,
+            password=self._parameters.password
+        )
 
-            if isinstance(files, str):
-                resolved_files.append(files)
-            else:
-                resolved_files += files
+        return sftp.SFTP(config, credentials)
 
-        return unresolved_files
+    def _resolve_wildcard(self, file):
+        resolved_files = [file]
+
+        if '*' in file:
+            file_parts = file.split('*')
+            base_path = os.path.dirname(file_parts[0])
+            unresolved_file = f'{os.path.basename(file_parts[0])}*{file_parts[1]}'
+            matched_files = self._client.list(base_path, filter=unresolved_file)
+
+            resolved_files = [os.path.join(base_path, file) for file in matched_files]
+
+            if len(resolved_files) == 0:
+                raise FileNotFoundError(f"Unable to find file '{file}'")
+
+        return resolved_files
 
     # pylint: disable=arguments-differ
-    def _extract_file(self, sftp, file_path):
+    def _extract_file(self, file):
         buffer = io.BytesIO()
 
         try:
-            sftp.get(file_path, buffer)
+            self._client.get(file, buffer)
         except Exception as exception:
-            raise ETLException(f"Unable to read file '{file_path}'") from exception
+            raise ETLException(f"Unable to read file '{file}'") from exception
 
         return bytes(buffer.getbuffer())
-
-    @classmethod
-    def _resolve_filename(cls, sftp, file_path):
-        base_path = os.path.dirname(file_path)
-        unresolved_file = os.path.basename(file_path)
-        file_paths = [os.path.join(base_path, file) for file in sftp.list(base_path, filter=unresolved_file)]
-
-        if len(file_paths) == 0:
-            raise FileNotFoundError(f"Unable to find file '{file_path}'")
-
-        return file_paths
-
-    @classmethod
-    def _decode_data(cls, data):
-        return data
 
 
 # pylint: disable=too-many-ancestors

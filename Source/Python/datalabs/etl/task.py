@@ -1,7 +1,6 @@
 """ ETL Task base classes. """
 from   dataclasses import dataclass
 import logging
-from typing import Any
 
 from   datalabs.access.environment import VariableTree
 import datalabs.task as task
@@ -69,14 +68,15 @@ class ETLTask(task.Task):
 
     @classmethod
     def _instantiate_component(cls, parameters, data=None):
-        parameters.data = data
+        parameters['data'] = data or {}
+        task_class = parameters.pop('TASK_CLASS', None)
 
-        if 'TASK_CLASS' not in parameters.variables:
-            raise ETLException(f'...__TASK_CLASS parameter not specified in {parameters.variables}')
+        if task_class is None:
+            raise ETLException(f'...__TASK_CLASS parameter not specified in {parameters}')
 
-        Plugin = plugin.import_plugin(parameters.variables['TASK_CLASS'])  # pylint: disable=invalid-name
+        TaskPlugin = plugin.import_plugin(task_class)  # pylint: disable=invalid-name
 
-        return Plugin(parameters)
+        return TaskPlugin(parameters)
 
 
 class ETLException(task.TaskException):
@@ -95,13 +95,6 @@ class ETLComponentTask(task.Task):
         return self._data
 
 
-@dataclass
-class ETLComponentParameters:
-    # database: dict
-    variables: dict
-    data: Any = None
-
-
 class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
         super()._get_task_parameters()
@@ -116,12 +109,11 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
 
     @classmethod
     def _get_component_parameters(cls, var_tree, component):
-        component_variables = var_tree.get_branch_values([component]) or {}
+        component_parameters = var_tree.get_branch_values([component]) or {}
 
-        LOGGER.debug('Component variables: %s', component_variables)
+        LOGGER.debug('Component parameters: %s', component_parameters)
 
-        return ETLComponentParameters(
-            variables=component_variables)
+        return component_parameters
 
 
 class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
@@ -130,12 +122,3 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
 
     def _handle_success(self):
         LOGGER.info('ETL task has finished')
-
-
-class TaskParameterSchemaMixin:
-    def _get_validated_parameters(self, parameter_class):
-        self._parameters.variables['DATA'] = self._parameters or {}
-        parameter_variables = {key.lower():value for key, value in self._parameters.variables.items()}
-        schema = parameter_class.SCHEMA
-
-        return schema.load(parameter_variables)

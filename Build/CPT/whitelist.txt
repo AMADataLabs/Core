@@ -1,1 +1,1 @@
-alembic,boto3,json5,pandas,psycopg2-binary,python-dotenv,sqlalchemy,jinja2,PyYAML,requests
+alembic,boto3,json5,pandas,psycopg2-binary,python-dotenv,sqlalchemy,jinja2,marshmallow,PyYAML,requests

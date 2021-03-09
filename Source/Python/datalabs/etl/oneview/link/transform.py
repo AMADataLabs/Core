@@ -15,8 +15,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 class CredentialingCustomerBusinessTransformerTask(TransformerTask):
     def _transform(self):
-        credentialing_customer_data, business_data = [self._to_dataframe(csv) for csv in self._parameters.data]
-        self._parameters.data = self._link_data(credentialing_customer_data, business_data)
+        credentialing_customer_data, business_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
+        self._parameters['data'] = self._link_data(credentialing_customer_data, business_data)
 
         return [super()._transform()]
 
@@ -52,8 +52,8 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
 
 class CredentialingCustomerInstitution(TransformerTask):
     def _transform(self):
-        credentialing_customer_data, residency_program_data = [self._to_dataframe(csv) for csv in self._parameters.data]
-        self._parameters.data = self._link_data(credentialing_customer_data, residency_program_data)
+        credentialing_customer_data, residency_program_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
+        self._parameters['data'] = self._link_data(credentialing_customer_data, residency_program_data)
 
         return [super()._transform()]
 

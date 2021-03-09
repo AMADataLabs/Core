@@ -1,0 +1,34 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: OneView ETL runtime environment
+    openshift.io/display-name: oneview-etl
+  creationTimestamp: null
+  labels:
+    app: OneView
+  name: oneview-etl
+  namespace: hsg-data-labs-dev
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: oneview-etl:1.0.3
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+    sourceSecret:
+      name: bitbucketprd
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Build/OneView/Dockerfile
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - type: ConfigChange

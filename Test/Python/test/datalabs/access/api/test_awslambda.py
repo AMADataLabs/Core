@@ -11,9 +11,11 @@ import datalabs.access.api.task as api
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
-    with mock.patch('datalabs.access.parameter.aws.boto3') as mock_boto3:
-        wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
-        parameters = wrapper._get_task_parameters()
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
+            wrapper._setup_environment()
+            parameters = wrapper._get_task_parameters()
 
     assert expected_parameters == parameters
 
@@ -29,10 +31,11 @@ def test_task_wrapper_handle_exception():
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_success(event):
-    with mock.patch('datalabs.access.parameter.aws.boto3') as mock_boto3:
-        wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
-        wrapper.run()
-        response = wrapper._handle_success()
+    with mock.patch('datalabs.access.parameter.aws.boto3'):
+        with mock.patch('datalabs.access.secret.aws.boto3'):
+            wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
+            wrapper.run()
+            response = wrapper._handle_success()
 
     assert response['statusCode'] == 200
     assert response['body'] == json.dumps(dict())

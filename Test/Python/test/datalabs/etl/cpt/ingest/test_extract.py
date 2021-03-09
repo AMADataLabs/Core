@@ -8,7 +8,6 @@ import pytest
 
 import pandas
 
-from   datalabs.etl.task import ETLComponentParameters
 from   datalabs.etl.cpt.ingest.extract import CPTTextDataExtractorTask
 
 logging.basicConfig()
@@ -29,7 +28,7 @@ def test_datestamp_conversion():
 @mock.patch('datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask._get_latest_path')
 # pylint: disable=redefined-outer-name, protected-access
 def test_extract_release_date(get_latest_path, task_parameters):
-    with mock.patch('datalabs.etl.s3.extract.boto3'):
+    with mock.patch('datalabs.access.aws.boto3'):
         get_latest_path.return_value = 'AMA/CPT/20200131'
         extractor = CPTTextDataExtractorTask(task_parameters)
         expected_release_date = '20200131'
@@ -40,7 +39,7 @@ def test_extract_release_date(get_latest_path, task_parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_generate_release_types(release_schedule, task_parameters):
-    with mock.patch('datalabs.etl.s3.extract.boto3'):
+    with mock.patch('datalabs.access.aws.boto3'):
         extractor = CPTTextDataExtractorTask(task_parameters)
         release_types = extractor._generate_release_types(release_schedule)
 
@@ -51,7 +50,7 @@ def test_generate_release_types(release_schedule, task_parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_get_release_type(release_schedule, task_parameters):
-    with mock.patch('datalabs.etl.s3.extract.boto3'):
+    with mock.patch('datalabs.access.aws.boto3'):
         extractor = CPTTextDataExtractorTask(task_parameters)
         release_date = date(2020, 7, 1)
         expected_release_type = 'Q3'
@@ -61,7 +60,7 @@ def test_get_release_type(release_schedule, task_parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_generate_release_details(release_schedule, task_parameters):
-    with mock.patch('datalabs.etl.s3.extract.boto3'):
+    with mock.patch('datalabs.access.aws.boto3'):
         extractor = CPTTextDataExtractorTask(task_parameters)
         release_date = date(2020, 7, 1)
         effective_date = date(2020, 10, 1)
@@ -89,15 +88,13 @@ def release_schedule():
 
 @pytest.fixture
 def task_parameters():
-    return ETLComponentParameters(
-        variables=dict(
-            ENDPOINT_URL='https://bogus.host.fqdn/path/file',
-            ACCESS_KEY='nviowaj4902hfisafh9402fdni0ph8',
-            SECRET_KEY='wr9e0afe90afohf90aw',
-            REGION_NAME='us-east-42',
-            BUCKET='jumanji',
-            BASE_PATH='dir1/dir2/dir3',
-            FILES='this_one.csv,that_one.csv,the_other_one.csv',
-            EXECUTION_TIME='19000101'
-        )
+    return dict(
+        ENDPOINT_URL='https://bogus.host.fqdn/path/file',
+        ACCESS_KEY='nviowaj4902hfisafh9402fdni0ph8',
+        SECRET_KEY='wr9e0afe90afohf90aw',
+        REGION_NAME='us-east-42',
+        BUCKET='jumanji',
+        BASE_PATH='dir1/dir2/dir3',
+        FILES='this_one.csv,that_one.csv,the_other_one.csv',
+        EXECUTION_TIME='19000101'
     )
