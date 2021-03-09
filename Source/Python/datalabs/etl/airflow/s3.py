@@ -9,10 +9,7 @@ class S3TaskDataCache(TaskDataCache):
         ''' Pull cached data from files on S3, assuming is in CSV format.'''
         cache_parameters = self._parameters
 
-        if isinstance(self._parameters['data'], bytes):
-            cache_extractor = S3FileExtractorTask(cache_parameters)
-        else:
-            cache_extractor = S3UnicodeTextFileExtractorTask(cache_parameters)
+        cache_extractor = S3FileExtractorTask(cache_parameters)
 
         cache_extractor.run()
 
@@ -22,10 +19,7 @@ class S3TaskDataCache(TaskDataCache):
         self._parameters['data'] = output_data
         cache_parameters = self._parameters
 
-        if isinstance(self._parameters['data'], bytes):
-            cache_loader = S3FileLoaderTask(cache_parameters)
-        else:
-            cache_loader = S3UnicodeTextFileLoaderTask(cache_parameters)
+        cache_loader = S3FileLoaderTask(cache_parameters)
 
         cache_loader.run()
 
