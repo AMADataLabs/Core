@@ -150,4 +150,6 @@ class AirflowTaskWrapper(task.TaskWrapper):
     def _get_parameters(cls, branch):
         var_tree = VariableTree.generate()
 
-        return var_tree.get_branch_values(branch)
+        candidate_parameters = var_tree.get_branch_values(branch)
+
+        return {key:value for key, value in candidate_parameters.items() if value is not None}

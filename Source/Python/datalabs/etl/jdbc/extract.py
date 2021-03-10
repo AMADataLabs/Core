@@ -18,9 +18,11 @@ class JDBCExtractorParameters:
     database_name: str = None
     database_username: str = None
     database_password: str = None
+    database_port: str = None
     jar_path: str = None
     sql: str = None
     data: object = None
+    execution_time: str = None
 
 
 class JDBCExtractorTask(ExtractorTask):

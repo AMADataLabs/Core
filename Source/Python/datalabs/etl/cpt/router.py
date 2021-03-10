@@ -9,6 +9,7 @@ import boto3
 
 from   datalabs.access.environment import VariableTree
 import datalabs.task as task
+import datalabs.awslambda as awslambda
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ class RouterParameters:
     functions: str
 
 
-class RouterTaskWrapper(task.TaskWrapper):
+class RouterTaskWrapper(awslambda.TaskWrapper):
     def _get_task_parameters(self):
         parameters = dict(EVENT=self._parameters)  # foward the Lambda event to the task
         var_tree = VariableTree.generate()
@@ -55,7 +56,7 @@ class RouterTask(task.Task):
                 key = s3_record['s3']['object']['key']
 
                 LOGGER.info('Object updated: %s', key)
-                LOGGER.info('Matching agains base path %s', self._parameters.base_path)
+                LOGGER.info('Matching against base path %s', self._parameters.base_path)
 
                 match = re.match(self._parameters.base_path+'/([0-9]{8})/.*ETL_TRIGGER', key)
                 if match:
