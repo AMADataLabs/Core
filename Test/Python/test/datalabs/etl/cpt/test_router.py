@@ -5,7 +5,7 @@ import pytest
 from   datalabs.etl.cpt.router import RouterTaskWrapper, RouterTask
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_router_variables_are_parsed(environment_variables):
     task_wrapper = RouterTaskWrapper(task_class=DummyClass)
     task_parameters = task_wrapper._get_task_parameters()
@@ -16,7 +16,7 @@ def test_router_variables_are_parsed(environment_variables):
     assert 'REGION' in task_parameters
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_router_router_task_using_correct_base_path(environment_variables):
     task_wrapper = RouterTaskWrapper(task_class=RouterTask)
     task_parameters = task_wrapper._get_task_parameters()
