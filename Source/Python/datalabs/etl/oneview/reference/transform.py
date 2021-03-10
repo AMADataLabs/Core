@@ -30,10 +30,11 @@ class PresentEmploymentTransformerTask(TransformerTask):
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
     def _transform(self):
-        self._parameters['data'] = [self._to_dataframe(file) for file in self._parameters['data']]
+        self._parameters['data'] = [self._to_dataframe(file.decode('utf-8', errors='backslashreplace'))
+                                    for file in self._parameters['data']]
         core_based_statistical_area_data = super()._transform()
 
-        return core_based_statistical_area_data
+        return core_based_statistical_area_data.encode('utf-8', errors='backslashreplace')
 
     @classmethod
     def _to_dataframe(cls, file):
