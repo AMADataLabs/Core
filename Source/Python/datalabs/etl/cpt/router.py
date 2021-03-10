@@ -71,8 +71,9 @@ class RouterTask(task.Task):
         client = boto3.client('lambda')
         region = self._parameters.region
         account = self._parameters.account
+        functions = [f.strip() for f in self._parameters.functions.split(',')]
 
-        for function in self._parameters.functions:
+        for function in functions:
             LOGGER.info('Invoking function: %s', function)
 
             response = client.invoke(
