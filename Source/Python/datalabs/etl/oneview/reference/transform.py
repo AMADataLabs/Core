@@ -60,7 +60,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
         self._parameters['data'] = filtered_specialty_data
 
-        return [super()._transform()]
+        return super()._transform()
 
     @classmethod
     def _to_dataframe(cls, file):
