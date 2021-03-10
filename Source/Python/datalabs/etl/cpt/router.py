@@ -8,7 +8,8 @@ import re
 import boto3
 
 from   datalabs.access.environment import VariableTree
-import datalabs.etl.awslambda as awslambda
+import datalabs.task as task
+import datalabs.awslambda as awslambda
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
