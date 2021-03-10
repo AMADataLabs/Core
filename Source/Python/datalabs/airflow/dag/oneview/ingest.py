@@ -99,21 +99,21 @@ with ONEVIEW_ETL_DAG:
         get_logs=True,
     )
 
-#     EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="extract_federal_information_processing_standard_county",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.http.extract.HTTPFileExtractorTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="extract_federal_information_processing_standard_county",
-#         get_logs=True,
-#     )
-#
+    EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_federal_information_processing_standard_county",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.http.extract.HTTPFileExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="extract_federal_information_processing_standard_county",
+        get_logs=True,
+    )
+
 #     EXTRACT_SPECIALTY = KubernetesPodOperator(
 #         namespace='hsg-data-labs-dev',
 #         image=DOCKER_IMAGE,
@@ -266,24 +266,24 @@ with ONEVIEW_ETL_DAG:
 #         get_logs=True,
 #     )
 #
-#     CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="create_federal_information_processing_standard_county_table",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(
-#             TASK_CLASS='datalabs.etl.oneview.reference.transform.'
-#                        'FederalInformationProcessingStandardCountyTransformerTask'
-#         ),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_federal_information_processing_standard_county_table",
-#         get_logs=True,
-#     )
-#
+    CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="create_federal_information_processing_standard_county_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(
+            TASK_CLASS='datalabs.etl.oneview.reference.transform.'
+                       'FederalInformationProcessingStandardCountyTransformerTask'
+        ),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="create_federal_information_processing_standard_county_table",
+        get_logs=True,
+    )
+
     CREATE_CORE_BASED_STATISTICAL_AREA_TABLE = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
@@ -472,7 +472,7 @@ EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE # >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_TYPE_OF_PRACTICE >> CREATE_TYPE_OF_PRACTICE_TABLE  # >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_PRESENT_EMPLOYMENT >> CREATE_PRESENT_EMPLOYMENT_TABLE >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY >> CREATE_MAJOR_PROFESSIONAL_ACTIVITY_TABLE >> LOAD_TABLES_INTO_DATABASE
-# EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY >> CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE
+EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY >> CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE
 # CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_CORE_BASED_STATISTICAL_AREA >> CREATE_CORE_BASED_STATISTICAL_AREA_TABLE  # >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_SPECIALTY >> CREATE_SPECIALTY_TABLE
