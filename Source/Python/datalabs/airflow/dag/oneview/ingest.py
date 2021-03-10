@@ -38,22 +38,22 @@ with ONEVIEW_ETL_DAG:
     #     task_id="extract_ppd",
     #     get_logs=True,
     # )
-    #
-    # EXTRACT_TYPE_OF_PRACTICE = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="extract_type_of_practice",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_from=[ETL_CONFIG],
-    #     secrets=[AIMS_SECRET, MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=True,
-    #     in_cluster=True,
-    #     task_id="extract_type_of_practice",
-    #     get_logs=True,
-    # )
-    #
+
+    EXTRACT_TYPE_OF_PRACTICE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_type_of_practice",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[AIMS_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="extract_type_of_practice",
+        get_logs=True,
+    )
+
     # EXTRACT_PRESENT_EMPLOYMENT = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
     #     image=DOCKER_IMAGE,
@@ -98,7 +98,7 @@ with ONEVIEW_ETL_DAG:
         task_id="extract_core_based_statistical_area",
         get_logs=True,
     )
-#
+
 #     EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY = KubernetesPodOperator(
 #         namespace='hsg-data-labs-dev',
 #         image=DOCKER_IMAGE,
@@ -218,22 +218,22 @@ with ONEVIEW_ETL_DAG:
 #         task_id="create_physician_table",
 #         get_logs=True,
 #     )
-#
-#     CREATE_TYPE_OF_PRACTICE_TABLE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         name="create_type_of_practice_table",
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_type_of_practice_table",
-#         get_logs=True,
-#     )
-#
+
+    CREATE_TYPE_OF_PRACTICE_TABLE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        name="create_type_of_practice_table",
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="create_type_of_practice_table",
+        get_logs=True,
+    )
+
 #     CREATE_PRESENT_EMPLOYMENT_TABLE = KubernetesPodOperator(
 #         namespace='hsg-data-labs-dev',
 #         image=DOCKER_IMAGE,
