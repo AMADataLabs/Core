@@ -24,20 +24,20 @@ ONEVIEW_ETL_DAG = DAG(
 
 
 with ONEVIEW_ETL_DAG:
-    # EXTRACT_PPD = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="extract_ppd",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_from=[ETL_CONFIG],
-    #     secrets=[ODS_SECRET, MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=True,
-    #     in_cluster=True,
-    #     task_id="extract_ppd",
-    #     get_logs=True,
-    # )
+    EXTRACT_PPD = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_ppd",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ODS_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="extract_ppd",
+        get_logs=True,
+    )
 
     EXTRACT_TYPE_OF_PRACTICE = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
@@ -204,20 +204,20 @@ with ONEVIEW_ETL_DAG:
 #         get_logs=True,
 #     )
 #
-#     CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="create_physician_table",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[ODS_SECRET, MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_physician_table",
-#         get_logs=True,
-#     )
+    CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="create_physician_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="create_physician_table",
+        get_logs=True,
+    )
 
     CREATE_TYPE_OF_PRACTICE_TABLE = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
@@ -468,7 +468,7 @@ with ONEVIEW_ETL_DAG:
 #
 #
 # # pylint: disable=pointless-statement
-# EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE >> LOAD_TABLES_INTO_DATABASE
+EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE # >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_TYPE_OF_PRACTICE >> CREATE_TYPE_OF_PRACTICE_TABLE  # >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_PRESENT_EMPLOYMENT >> CREATE_PRESENT_EMPLOYMENT_TABLE >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY >> CREATE_MAJOR_PROFESSIONAL_ACTIVITY_TABLE >> LOAD_TABLES_INTO_DATABASE
