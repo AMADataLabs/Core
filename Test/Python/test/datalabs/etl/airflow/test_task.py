@@ -18,6 +18,8 @@ def test_task_parameters_are_parsed(args, environment):
     task_wrapper = AirflowTaskWrapper(TestTask, parameters=args)
     parameters = task_wrapper._get_task_parameters()
 
+    assert 'TEST_TASK' not in parameters
+    assert 'OTHER_TASK' not in parameters
     assert 'DAG_VARIABLE' in parameters
     assert parameters['DAG_VARIABLE'] == 'tootie'
     assert 'TASK_VARIABLE' in parameters
@@ -136,6 +138,8 @@ def environment():
     os.environ['TEST_DAG__TEST_TASK__CACHE_INPUT_STUFF'] = 'Hello, there!'
     os.environ['TEST_DAG__TEST_TASK__CACHE_OUTPUT_THING'] = 'I am Batman'
     os.environ['TEST_DAG__TEST_TASK__CACHE_OUTPUT_STUFF'] = 'Dear John'
+    os.environ['TEST_DAG__OTHER_TASK__CACHE_QUOTE_ONE'] = 'How will this end? - Sheridan'
+    os.environ['TEST_DAG__OTHER_TASK__CACHE_QUOTE_TWO'] = 'In fire. - Kosh'
     yield os.environ
 
     os.environ.clear()
