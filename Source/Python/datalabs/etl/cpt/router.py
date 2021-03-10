@@ -53,11 +53,11 @@ class RouterTask(task.Task):
 
             for s3_record in s3_records:
                 key = s3_record['s3']['object']['key']
-                base_path = self._parameters.base_path
 
                 LOGGER.info('Object updated: %s', key)
+                LOGGER.info('Matching agains base path %s', self._parameters.base_path)
 
-                match = re.match(base_path+'/([0-9]{8})/.*ETL_TRIGGER', key)
+                match = re.match(self._parameters.base_path+'/([0-9]{8})/.*ETL_TRIGGER', key)
                 if match:
                     LOGGER.info('Triggering with execution date: %s', match.group(1))
                     self._trigger_etls(match.group(1))
