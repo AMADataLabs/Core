@@ -33,7 +33,7 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
         self._parameters['data'] = [self._to_dataframe(file) for file in self._parameters['data']]
         core_based_statistical_area_data = super()._transform()
 
-        return core_based_statistical_area_data[0].encode('utf-8', errors='backslashreplace')
+        return core_based_statistical_area_data
 
     @classmethod
     def _to_dataframe(cls, file):
