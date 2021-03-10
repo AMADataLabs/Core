@@ -7,8 +7,8 @@
                 "lambda:InvokeFunction"
             ],
             "Resource": [
-                "arn:aws:execute-api:us-east-1:arn:aws:lambda:us-east-1:644454719059:*/*/*/*",
-                "arn:aws:lambda:us-east-1:arn:aws:lambda:us-east-1:644454719059:function:*"
+                "arn:aws:execute-api:${region}:${account_id}:*/*/*/*",
+                "arn:aws:lambda:${region}:${account_id}:function:*"
             ]
         },
         {
@@ -19,8 +19,8 @@
                 "ssm:GetParameter"
             ],
             "Resource": [
-                "arn:aws:ssm:us-east-1:arn:aws:lambda:us-east-1:644454719059:function:CPTGetClinicianDescriptors:parameter/DataLabs/DataLake/*",
-                "arn:aws:ssm:us-east-1:arn:aws:lambda:us-east-1:644454719059:function:CPTGetClinicianDescriptors:parameter/DataLabs/CPT/*"
+                "arn:aws:ssm:${region}:${account_id}:parameter/DataLabs/DataLake/*",
+                "arn:aws:ssm:${region}:${account_id}:parameter/DataLabs/${project}/*"
             ]
         },
         {
@@ -35,7 +35,34 @@
                 "kms:ListKeyPolicies",
                 "kms:Decrypt"
             ],
-            "Resource": "arn:aws:kms:us-east-1:644454719059:key/*"
+            "Resource": "arn:aws:kms:${region}:${account_id}:key/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:ListObjects",
+                "s3:ListObjectsV2",
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
         }
     ]
 }

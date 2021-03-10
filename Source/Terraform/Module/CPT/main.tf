@@ -80,7 +80,7 @@ module "endpoint_descriptor" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -96,7 +96,7 @@ module "endpoint_all_descriptors" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -112,7 +112,7 @@ module "endpoint_consumer_descriptor" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -128,7 +128,7 @@ module "endpoint_consumer_descriptors" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -144,7 +144,7 @@ module "endpoint_clinician_descriptors" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -160,7 +160,7 @@ module "endpoint_all_clinician_descriptors" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -176,7 +176,7 @@ module "endpoint_pla_details" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -192,7 +192,7 @@ module "endpoint_all_pla_details" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -208,7 +208,7 @@ module "endpoint_modifier" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -224,7 +224,7 @@ module "endpoint_modifiers" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -240,7 +240,7 @@ module "endpoint_latest_pdfs" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -256,7 +256,7 @@ module "endpoint_latest_pdfs" {
 #     region              = local.region
 #     account_id          = data.aws_caller_identity.account.account_id
 #     role                = aws_iam_role.lambda_role.arn
-#     api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+#     api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
 #     database_host       = aws_db_instance.cpt_api_database.address
 # }
 
@@ -270,7 +270,7 @@ module "endpoint_releases" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -286,7 +286,7 @@ module "endpoint_default" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
+    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
     database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
     memory_size         = var.endpoint_memory_size
@@ -302,47 +302,7 @@ module "authorize" {
     region              = local.region
     account_id          = data.aws_caller_identity.account.account_id
     role                = aws_iam_role.lambda_role.arn
-    api_gateway_id      = aws_api_gateway_rest_api.cpt_api_gateway.id
-}
-
-
-module "task" {
-    source                = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git"
-    function_name         = "${local.project}Task"
-    handler = "awslambda.handler"
-    runtime = local.runtime
-    alias_name = "${local.project}TaskAlias"  # required but not needed, so use a stupid name
-    kms_key_arn = data.aws_kms_key.cpt.arn
-    memory_size = 3072
-    timeout = 30
-    environment = {
-        variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.etl.awslambda.ETLTaskWrapper"
-            # DATABASE_HOST           = var.database_host
-            # DATABASE_SECRET         = data.aws_secretsmanager_secret.database.arn
-            # BUCKET_NAME             = data.aws_ssm_parameter.processed_bucket.arn
-            # BUCKET_BASE_PATH        = data.aws_ssm_parameter.s3_base_path.arn
-            # BUCKET_URL_DURATION     = "600"
-        }
-    }
-
-    lambda_name = "${local.project}Task"
-    api_arn = aws_api_gateway_rest_api.cpt_api_gateway.arn
-
-    tag_name = "CPT API Task"
-    tag_environment = local.aws_environment
-    tag_contact = local.contact
-    tag_systemtier = "N/A"
-    tag_drtier = "N/A"
-    tag_dataclassification = "N/A"
-    tag_budgetcode = local.budget_code
-    tag_owner = local.owner
-    tag_projectname = local.project
-    tag_notes = ""
-    tag_eol = "N/A"
-    tag_maintwindow = "N/A"
-    s3_lambda_bucket = local.lambda_code_bucket
-    s3_lambda_key = local.lambda_code_key
+    api_gateway_id     = aws_api_gateway_rest_api.cpt_api_gateway.id
 }
 
 

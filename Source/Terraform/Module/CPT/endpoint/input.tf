@@ -33,8 +33,8 @@ variable "role" {
 }
 
 
-variable "api_gateway_id" {
-    description = "API Gateway ID"
+variable "api_gateway_arn" {
+    description = "API Gateway ARN"
     type        = string
 }
 
