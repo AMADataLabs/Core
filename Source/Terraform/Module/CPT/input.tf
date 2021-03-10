@@ -116,3 +116,8 @@ data "aws_sns_topic" "processed" {
 data "aws_ssm_parameter" "lambda_code_bucket" {
     name = "/DataLabs/lambda_code_bucket"
 }
+
+
+data "aws_ssm_parameter" "passport_url" {
+    name  = "/DataLabs/${var.project}/auth/passport_url"
+}
