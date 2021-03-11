@@ -29,66 +29,13 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
             title = "${var.project} API",
             description = local.spec_description,
             region = local.region,
-            lambda_descriptor_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.descriptor}",
-            lambda_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.descriptors}",
-            lambda_consumer_descriptor_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.consumer_descriptor}",
-            lambda_consumer_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.consumer_descriptors}",
-            lambda_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.clinician_descriptors}",
-            lambda_all_clinician_descriptors_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.all_clinician_descriptors}",
-            lambda_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.pla_details}",
-            lambda_all_pla_details_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.all_pla_details}",
-            lambda_modifier_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.modifier}",
-            lambda_modifiers_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.modifiers}",
-            lambda_latest_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.latest_pdfs}",
-            # lambda_pdfs_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.pdfs}",
-            lambda_releases_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.releases}",
-            lambda_return404_arn = "arn:aws:lambda:${local.region}:${data.aws_caller_identity.account.account_id}:function:${local.function_names.default}",
-            authorizer_uri = module.authorizer_lambda.function_invoke_arn,
-            authorizer_credentials = aws_iam_role.lambda_invocation_role.arn,
+            project = var.project,
+            account_id = data.aws_caller_identity.account.account_id,
+            authorizer_uri = module.authorizer_lambda.function_invoke_arn
         }
     )
 
     tags = merge(local.tags, {Name = "${var.project} API Gateway"})
-}
-
-
-resource "aws_iam_role" "lambda_invocation_role" {
-  name = "DataLabs${var.project}Authorizer"
-  path = "/"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "apigateway.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
-  ]
-}
-EOF
-}
-
-resource "aws_iam_role_policy" "lambda_invocation_policy" {
-  name = "DataLabs${var.project}AuthorizerInvocation"
-  role = aws_iam_role.lambda_invocation_role.id
-
-  policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Action": "lambda:InvokeFunction",
-      "Effect": "Allow",
-      "Resource": "${module.authorizer_lambda.function_arn}"
-    }
-  ]
-}
-EOF
 }
 
 
@@ -333,17 +280,6 @@ module "endpoint_default" {
 }
 
 
-# module "authorize" {
-#     source = "./authorize"
-#
-#     project             = var.project
-#     function_name       = local.function_names.authorizer
-#     task_class          = local.task_classes.authorizer
-#     region              = local.region
-#     account_id          = data.aws_caller_identity.account.account_id
-#     role                = aws_iam_role.lambda_role.arn
-#     api_gateway_id     = aws_api_gateway_rest_api.cpt_api_gateway.id
-# }
 module "authorizer_lambda" {
     # source                = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git"
     source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=feature/conditional_updates"
@@ -363,7 +299,7 @@ module "authorizer_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = true
+    create_lambda_permission    = false
     api_arn                     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
 
     environment_variables = {
@@ -388,6 +324,17 @@ module "authorizer_lambda" {
     tag_maintwindow         = local.tags["MaintenanceWindow"]
 }
 
+resource "aws_lambda_permission" "lambda_permission" {
+  statement_id  = "AllowAPIInvokefor-${local.function_names.authorizer}"
+  action        = "lambda:InvokeFunction"
+  function_name = local.function_names.authorizer
+  principal     = "apigateway.amazonaws.com"
+
+  # The /*/*/* part allows invocation from any stage, method and resource path
+  # within API Gateway REST API.
+  source_arn = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*"
+  depends_on = [ module.authorizer_lambda ]
+}
 
 module "etl_convert" {
     source = "./etl"
@@ -513,10 +460,10 @@ locals {
         consumer_descriptors        = "${var.project}GetConsumerDescriptors"
         clinician_descriptors       = "${var.project}GetClinicianDescriptors"
         all_clinician_descriptors   = "${var.project}GetAllClinicianDescriptors"
-        modifier                    = "${var.project}GetModifier"
-        modifiers                   = "${var.project}GetModifiers"
         pla_details                 = "${var.project}GetPLADetails"
         all_pla_details             = "${var.project}GetAllPLADetails"
+        modifier                    = "${var.project}GetModifier"
+        modifiers                   = "${var.project}GetModifiers"
         latest_pdfs                 = "${var.project}GetLatestPDFs"
         pdfs                        = "${var.project}GetPDFs"
         releases                    = "${var.project}GetReleases"
