@@ -1,5 +1,5 @@
 """ Oneview RaceEthnicity Transformer"""
-from   io import StringIO
+from   io import BytesIO
 import logging
 
 import pandas
@@ -21,7 +21,7 @@ class RaceEthnicityTransformerTask(TransformerTask):
 
     @classmethod
     def _to_dataframe(cls, file):
-        dataframe = pandas.read_csv(StringIO(file))
+        dataframe = pandas.read_csv(BytesIO(file))
         return dataframe
 
     def _get_columns(self):
