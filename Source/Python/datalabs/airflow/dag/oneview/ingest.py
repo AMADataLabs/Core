@@ -196,7 +196,7 @@ with ONEVIEW_ETL_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[SFTP_SECRET, MINIO_SECRET],
-        env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
+        env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
         do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
