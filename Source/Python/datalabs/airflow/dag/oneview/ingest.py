@@ -173,37 +173,37 @@ with ONEVIEW_ETL_DAG:
 #         task_id="extract_credentialing",
 #         get_logs=True,
 #     )
+
+    EXTRACT_CREDENTIALING_ADDRESSES = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_credentialing_addresses",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[SFTP_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="extract_credentialing_addresses",
+        get_logs=True,
+    )
 #
-#     EXTRACT_CREDENTIALING_ADDRESSES = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="extract_credentialing_addresses",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[SFTP_SECRET, MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="extract_credentialing_addresses",
-#         get_logs=True,
-#     )
-#
-#     EXTRACT_PHYSICIAN_RACE_ETHNICITY = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="extract_physician_race_ethnicity",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[SFTP_SECRET, MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="extract_physician_race_ethnicity",
-#         get_logs=True,
-#     )
-#
+    EXTRACT_PHYSICIAN_RACE_ETHNICITY = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_physician_race_ethnicity",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[SFTP_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="extract_physician_race_ethnicity",
+        get_logs=True,
+    )
+
     CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
@@ -389,21 +389,21 @@ with ONEVIEW_ETL_DAG:
 #         get_logs=True,
 #     )
 #
-#     CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="create_physician_race_ethnicity_table",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformerTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_physician_race_ethnicity_table",
-#         get_logs=True,
-#     )
-#
+    CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="create_physician_race_ethnicity_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="create_physician_race_ethnicity_table",
+        get_logs=True,
+    )
+
 #     CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE = KubernetesPodOperator(
 #         namespace='hsg-data-labs-dev',
 #         image=DOCKER_IMAGE,
@@ -482,10 +482,10 @@ EXTRACT_CORE_BASED_STATISTICAL_AREA >> CREATE_CORE_BASED_STATISTICAL_AREA_TABLE 
 # EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_CREDENTIALING_MAIN >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
-# EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
+EXTRACT_CREDENTIALING_ADDRESSES # >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 # CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 # MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_TABLES_INTO_DATABASE
-# EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE >> LOAD_TABLES_INTO_DATABASE
+EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE # >> LOAD_TABLES_INTO_DATABASE
 # MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE
 # CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE
 # CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE >> LOAD_TABLES_INTO_DATABASE
