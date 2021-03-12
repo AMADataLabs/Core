@@ -101,12 +101,13 @@ class TaskWrapper(ABC):
         task_resolver_class = import_plugin(task_resolver_class_name)
 
         if not hasattr(task_resolver_class, 'get_task_class_name'):
-            raise TypeError('Task resolver %s has no get_task_class_name method.', task_resolver_class_name)
+            raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class_name method.')
 
         return task_resolver_class
 
 
 class EnvironmentTaskResolver:
+    # pylint: disable=unused-argument
     @classmethod
     def get_task_class_name(cls, parameters):
         return os.environ['TASK_CLASS']

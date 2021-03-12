@@ -1,10 +1,9 @@
-""" source: datalabs.etl.cpt.resolve """
-import pytest
-
+""" source: datalabs.access.cpt.api.resolve """
 from   datalabs.access.cpt.api.resolve import TaskClassMapping, TaskResolver
 
 
 def test_task_resolver_resolves_wildcard_path_patterns():
+    # pylint: disable=bad-whitespace
     TaskResolver.TASK_CLASSES = [
         TaskClassMapping('/ping/pong/*',    'datalabs.fake.module.PongTask'),
         TaskClassMapping('/ping/pongs',     'datalabs.fake.module.PongsTask'),
@@ -13,6 +12,7 @@ def test_task_resolver_resolves_wildcard_path_patterns():
         TaskClassMapping('/*',              'datalabs.fake.module.SomeTask')
     ]
 
+    # pylint: disable=bad-whitespace
     actual_mappings = [
         TaskClassMapping('/ping/pong/123',          'datalabs.fake.module.PongTask'),
         TaskClassMapping('/ping/pongs',             'datalabs.fake.module.PongsTask'),

@@ -1,6 +1,7 @@
 """ source: datalabs.awslambda """
-import mock
 import os
+
+import mock
 import pytest
 
 from datalabs.awslambda import TaskWrapper
