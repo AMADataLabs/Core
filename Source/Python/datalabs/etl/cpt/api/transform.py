@@ -70,6 +70,8 @@ class ReleaseScheduleType(Enum):
 
 class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMixin):
     def _transform(self):
+        LOGGER.debug('%s parameters (sans data): %s', self.__class__.__name__, {key:value for key, value in self._parameters.items() if key != 'data'})
+
         _, data = zip(*self._parameters['data'])  # unpack the (filename, data) tuples
         input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
 

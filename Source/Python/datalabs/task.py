@@ -10,7 +10,7 @@ from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class Task(ABC):
@@ -94,7 +94,7 @@ class DatabaseTaskMixin:
             if key.startswith('DATABASE_'):
                 parameters[key.lower()] = value.lower()
 
-        return database_class.from_parameters(parameters)
+        return database_class.from_parameters(parameters, prefix='DATABASE_')
 
 
 def add_schema(model_class):
