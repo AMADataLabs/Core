@@ -281,8 +281,7 @@ module "endpoint_default" {
 
 
 module "authorizer_lambda" {
-    # source                = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git"
-    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=feature/conditional_updates"
+    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
     function_name       = local.function_names.authorizer
     s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
     s3_lambda_key       = "CPT/CPT.zip"
@@ -299,7 +298,7 @@ module "authorizer_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = false
+    create_lambda_permission    = true
     api_arn                     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
 
     environment_variables = {
@@ -324,17 +323,6 @@ module "authorizer_lambda" {
     tag_maintwindow         = local.tags["MaintenanceWindow"]
 }
 
-resource "aws_lambda_permission" "lambda_permission" {
-  statement_id  = "AllowAPIInvokefor-${local.function_names.authorizer}"
-  action        = "lambda:InvokeFunction"
-  function_name = local.function_names.authorizer
-  principal     = "apigateway.amazonaws.com"
-
-  # The /*/*/* part allows invocation from any stage, method and resource path
-  # within API Gateway REST API.
-  source_arn = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}/*/*"
-  depends_on = [ module.authorizer_lambda ]
-}
 
 module "etl_convert" {
     source = "./etl"
