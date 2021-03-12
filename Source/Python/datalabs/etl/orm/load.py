@@ -36,7 +36,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
 
     def _get_dataframes(self):
-        return [pandas.read_csv(io.BytesIO(data)) for data in self._parameters['data']]
+        return [pandas.read_csv(io.StringIO(data)) for data in self._parameters['data']]
 
     @classmethod
     def _create_model(cls, model_class, row):
