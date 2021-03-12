@@ -1,6 +1,6 @@
 module "etl_lambda" {
     # source                    = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git"
-    source                      = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=feature/conditional_updates"
+    source                      = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
     function_name               = var.function_name
     s3_lambda_bucket            = data.aws_ssm_parameter.lambda_code_bucket.value
     s3_lambda_key               = "CPT/CPT.zip"
