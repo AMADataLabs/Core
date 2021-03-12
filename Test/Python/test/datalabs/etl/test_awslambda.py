@@ -17,7 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         with mock.patch('datalabs.access.secret.aws.boto3'):
-            wrapper = ETLTaskWrapper(MockTask, parameters=event)
+            wrapper = ETLTaskWrapper(parameters=event)
             wrapper._setup_environment()
             parameters = wrapper._get_task_parameters()
             LOGGER.debug(parameters)
@@ -29,7 +29,7 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
 def test_task_wrapper_handle_exception():
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         with mock.patch('datalabs.access.secret.aws.boto3'):
-            wrapper = ETLTaskWrapper(MockTask)
+            wrapper = ETLTaskWrapper()
             exception = etl.ETLException('failed')
             response = wrapper._handle_exception(exception)
 
@@ -40,7 +40,7 @@ def test_task_wrapper_handle_exception():
 def test_task_wrapper_handle_success():
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         with mock.patch('datalabs.access.secret.aws.boto3'):
-            wrapper = ETLTaskWrapper(MockTask)
+            wrapper = ETLTaskWrapper()
             response = wrapper._handle_success()
 
     assert response == "Success"
@@ -82,6 +82,8 @@ def expected_parameters():
 @pytest.fixture
 def event():
     current_env = os.environ.copy()
+
+    os.environ['TASK_CLASS'] = 'test.datalabs.etl.test_awslambda.MockTask'
     os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
     os.environ['EXTRACTOR__thing'] = 'True'
     os.environ['EXTRACTOR__DATABASE_HOST'] = 'r2d2.droid.com'
