@@ -62,60 +62,15 @@ resource "aws_ecs_task_definition" "datanow" {
     task_role_arn               = aws_iam_role.datanow_assume.arn
     execution_role_arn          = aws_iam_role.datanow_execution.arn
 
-    container_definitions       = jsonencode([
+    container_definitions       = templatefile(
+        "${path.module}/datanow.json",
         {
-            name                    = "datanow"
-            image                   = "${data.aws_caller_identity.account.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/datanow:1.0.0"
-            cpu                     = 0
-            environment             = []
-            essential               = true
-            volumesFrom             = []
-
-            ulimits = [
-                {
-                    name            = "nofile",
-                    softLimit       = 65536,
-                    hardLimit       = 1048576
-                }
-            ]
-
-            portMappings = [
-                {
-                    containerPort   = 9047
-                    hostPort        = 9047
-                    protocol        = "tcp"
-                },
-                {
-                    containerPort   = 31010
-                    hostPort        = 31010
-                    protocol        = "tcp"
-                },
-                {
-                    containerPort   = 45678
-                    hostPort        = 45678
-                    protocol        = "tcp"
-                }
-            ]
-
-            mountPoints = [
-                {
-                    sourceVolume    = "DataNow",
-                    containerPath   = "/opt/dremio/data"
-                    readOnly        = false
-                }
-            ]
-
-            logConfiguration = {
-                logDriver                   = "awslogs"
-
-                options = {
-                    awslogs-region          = data.aws_region.current.name
-                    awslogs-group           = "/ecs/datanow"
-                    awslogs-stream-prefix   = "ecs"
-                }
-            }
+            account_id  = data.aws_caller_identity.account.account_id,
+            region      = data.aws_region.current.name
+            image       = var.datanow_image
+            tag         = var.datanow_version
         }
-    ])
+    )
 
     volume {
         name                        = "DataNow"

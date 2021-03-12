@@ -9,6 +9,7 @@ import boto3
 
 from   datalabs.access.environment import VariableTree
 import datalabs.task as task
+import datalabs.awslambda as awslambda
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +26,7 @@ class RouterParameters:
     functions: str
 
 
-class RouterTaskWrapper(task.TaskWrapper):
+class RouterTaskWrapper(awslambda.TaskWrapper):
     def _get_task_parameters(self):
         parameters = dict(EVENT=self._parameters)  # foward the Lambda event to the task
         var_tree = VariableTree.generate()
@@ -53,11 +54,11 @@ class RouterTask(task.Task):
 
             for s3_record in s3_records:
                 key = s3_record['s3']['object']['key']
-                base_path = self._parameters.base_path
 
                 LOGGER.info('Object updated: %s', key)
+                LOGGER.info('Matching against base path %s', self._parameters.base_path)
 
-                match = re.match(base_path+'/([0-9]{8})/.*ETL_TRIGGER', key)
+                match = re.match(self._parameters.base_path+'/([0-9]{8})/.*ETL_TRIGGER', key)
                 if match:
                     LOGGER.info('Triggering with execution date: %s', match.group(1))
                     self._trigger_etls(match.group(1))
@@ -70,8 +71,9 @@ class RouterTask(task.Task):
         client = boto3.client('lambda')
         region = self._parameters.region
         account = self._parameters.account
+        functions = [f.strip() for f in self._parameters.functions.split(',')]
 
-        for function in self._parameters.functions:
+        for function in functions:
             LOGGER.info('Invoking function: %s', function)
 
             response = client.invoke(

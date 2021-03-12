@@ -18,6 +18,7 @@ FUNCTIONS="${PROJECT}GetDescriptor
            ${PROJECT}GetReleases
            ${PROJECT}Default
            ${PROJECT}Convert
+           ${PROJECT}BundlePDF
            ${PROJECT}Load
            ${PROJECT}IngestionRouter
            ${PROJECT}ProcessedRouter"

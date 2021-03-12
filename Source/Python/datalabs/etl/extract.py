@@ -59,11 +59,11 @@ class FileExtractorTask(ExtractorTask, ABC):
         return datetime.utcnow()
 
     def _extract(self):
-        files = self._get_files()
-
         # pylint: disable=not-context-manager
         with self._get_client() as client:
             self._client = client
+
+            files = self._get_files()
 
             resolved_files = self._resolve_files(files)
 

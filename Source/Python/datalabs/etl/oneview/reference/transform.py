@@ -60,7 +60,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
         self._parameters['data'] = filtered_specialty_data
 
-        return [super()._transform()]
+        return super()._transform()
 
     @classmethod
     def _to_dataframe(cls, file):
@@ -78,7 +78,7 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
         return super()._transform()
 
     def _to_dataframe(self):
-        return [pandas.read_excel(BytesIO(file), skiprows=4) for file in self._parameters['data']]
+        return [pandas.read_excel(BytesIO(data), skiprows=4) for data in self._parameters['data']]
 
     @classmethod
     def set_columns(cls, fips_data):

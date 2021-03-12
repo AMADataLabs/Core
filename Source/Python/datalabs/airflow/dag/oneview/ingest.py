@@ -24,36 +24,36 @@ ONEVIEW_ETL_DAG = DAG(
 
 
 with ONEVIEW_ETL_DAG:
-    # EXTRACT_PPD = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="extract_ppd",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_from=[ETL_CONFIG],
-    #     secrets=[ODS_SECRET, MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=True,
-    #     in_cluster=True,
-    #     task_id="extract_ppd",
-    #     get_logs=True,
-    # )
-    #
-    # EXTRACT_TYPE_OF_PRACTICE = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="extract_type_of_practice",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_from=[ETL_CONFIG],
-    #     secrets=[AIMS_SECRET, MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=True,
-    #     in_cluster=True,
-    #     task_id="extract_type_of_practice",
-    #     get_logs=True,
-    # )
-    #
+    EXTRACT_PPD = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_ppd",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ODS_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="extract_ppd",
+        get_logs=True,
+    )
+
+    EXTRACT_TYPE_OF_PRACTICE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_type_of_practice",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[AIMS_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="extract_type_of_practice",
+        get_logs=True,
+    )
+
     # EXTRACT_PRESENT_EMPLOYMENT = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
     #     image=DOCKER_IMAGE,
@@ -91,29 +91,29 @@ with ONEVIEW_ETL_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[MINIO_SECRET],
-        env_vars=dict(TASK_CLASS='datalabs.etl.http.extract.HTTPUnicodeTextFileExtractorTask'),
+        env_vars=dict(TASK_CLASS='datalabs.etl.http.extract.HTTPFileExtractorTask'),
         do_xcom_push=False,
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
         in_cluster=True,
         task_id="extract_core_based_statistical_area",
         get_logs=True,
     )
-#
-#     EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="extract_federal_information_processing_standard_county",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.http.extract.HTTPFileExtractorTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="extract_federal_information_processing_standard_county",
-#         get_logs=True,
-#     )
-#
+
+    EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_federal_information_processing_standard_county",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.http.extract.HTTPFileExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="extract_federal_information_processing_standard_county",
+        get_logs=True,
+    )
+
 #     EXTRACT_SPECIALTY = KubernetesPodOperator(
 #         namespace='hsg-data-labs-dev',
 #         image=DOCKER_IMAGE,
@@ -173,67 +173,67 @@ with ONEVIEW_ETL_DAG:
 #         task_id="extract_credentialing",
 #         get_logs=True,
 #     )
+
+    EXTRACT_CREDENTIALING_ADDRESSES = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_credentialing_addresses",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[SFTP_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="extract_credentialing_addresses",
+        get_logs=True,
+    )
 #
-#     EXTRACT_CREDENTIALING_ADDRESSES = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="extract_credentialing_addresses",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[SFTP_SECRET, MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="extract_credentialing_addresses",
-#         get_logs=True,
-#     )
-#
-#     EXTRACT_PHYSICIAN_RACE_ETHNICITY = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="extract_physician_race_ethnicity",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[SFTP_SECRET, MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="extract_physician_race_ethnicity",
-#         get_logs=True,
-#     )
-#
-#     CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="create_physician_table",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[ODS_SECRET, MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_physician_table",
-#         get_logs=True,
-#     )
-#
-#     CREATE_TYPE_OF_PRACTICE_TABLE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         name="create_type_of_practice_table",
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_type_of_practice_table",
-#         get_logs=True,
-#     )
-#
+    EXTRACT_PHYSICIAN_RACE_ETHNICITY = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_physician_race_ethnicity",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[SFTP_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="extract_physician_race_ethnicity",
+        get_logs=True,
+    )
+
+    CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="create_physician_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="create_physician_table",
+        get_logs=True,
+    )
+
+    CREATE_TYPE_OF_PRACTICE_TABLE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        name="create_type_of_practice_table",
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="create_type_of_practice_table",
+        get_logs=True,
+    )
+
 #     CREATE_PRESENT_EMPLOYMENT_TABLE = KubernetesPodOperator(
 #         namespace='hsg-data-labs-dev',
 #         image=DOCKER_IMAGE,
@@ -256,7 +256,9 @@ with ONEVIEW_ETL_DAG:
 #         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
 #         env_from=[ETL_CONFIG],
 #         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.MajorProfessionalActivityTransformerTask'),
+        # env_vars=dict(
+        #   TASK_CLASS='datalabs.etl.oneview.reference.transform.MajorProfessionalActivityTransformerTask'
+        # ),
 #         do_xcom_push=False,
 #         is_delete_operator_pod=True,
 #         in_cluster=True,
@@ -264,24 +266,24 @@ with ONEVIEW_ETL_DAG:
 #         get_logs=True,
 #     )
 #
-#     CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="create_federal_information_processing_standard_county_table",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(
-#             TASK_CLASS='datalabs.etl.oneview.reference.transform.'
-#                        'FederalInformationProcessingStandardCountyTransformerTask'
-#         ),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_federal_information_processing_standard_county_table",
-#         get_logs=True,
-#     )
-#
+    CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="create_federal_information_processing_standard_county_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(
+            TASK_CLASS='datalabs.etl.oneview.reference.transform.'
+                       'FederalInformationProcessingStandardCountyTransformerTask'
+        ),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="create_federal_information_processing_standard_county_table",
+        get_logs=True,
+    )
+
     CREATE_CORE_BASED_STATISTICAL_AREA_TABLE = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
@@ -372,21 +374,6 @@ with ONEVIEW_ETL_DAG:
 #         get_logs=True,
 #     )
 #
-#     CREATE_CREDENTIALING_ADDRESSES_TABLE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="create_credentialing_addresses_table",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.transform.PassThroughTransformerTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_credentialing_addresses_table",
-#         get_logs=True,
-#     )
-#
 #     MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE = KubernetesPodOperator(
 #         namespace='hsg-data-labs-dev',
 #         image=DOCKER_IMAGE,
@@ -402,21 +389,21 @@ with ONEVIEW_ETL_DAG:
 #         get_logs=True,
 #     )
 #
-#     CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="create_physician_race_ethnicity_table",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformerTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_physician_race_ethnicity_table",
-#         get_logs=True,
-#     )
-#
+    CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="create_physician_race_ethnicity_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="create_physician_race_ethnicity_table",
+        get_logs=True,
+    )
+
 #     CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE = KubernetesPodOperator(
 #         namespace='hsg-data-labs-dev',
 #         image=DOCKER_IMAGE,
@@ -424,7 +411,9 @@ with ONEVIEW_ETL_DAG:
 #         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
 #         env_from=[ETL_CONFIG],
 #         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerInstitutionTransformerTask'),
+        # env_vars=dict(
+        #     TASK_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerInstitutionTransformerTask'
+        # ),
 #         do_xcom_push=False,
 #         is_delete_operator_pod=True,
 #         in_cluster=True,
@@ -462,42 +451,41 @@ with ONEVIEW_ETL_DAG:
 #         get_logs=True,
 #     )
 #
-#     LOAD_TABLES_INTO_DATABASE = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="load_tables_into_database",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[DATABASE_SECRET, MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="load_tables_into_database",
-#         get_logs=True,
-#     )
-#
+    LOAD_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="load_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[DATABASE_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="load_tables_into_database",
+        get_logs=True,
+    )
+
 #
 # # pylint: disable=pointless-statement
-# EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE >> LOAD_TABLES_INTO_DATABASE
-# EXTRACT_TYPE_OF_PRACTICE >> CREATE_TYPE_OF_PRACTICE_TABLE >> LOAD_TABLES_INTO_DATABASE
+EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE # >> LOAD_TABLES_INTO_DATABASE
+EXTRACT_TYPE_OF_PRACTICE >> CREATE_TYPE_OF_PRACTICE_TABLE  # >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_PRESENT_EMPLOYMENT >> CREATE_PRESENT_EMPLOYMENT_TABLE >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY >> CREATE_MAJOR_PROFESSIONAL_ACTIVITY_TABLE >> LOAD_TABLES_INTO_DATABASE
-# EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY >> CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE
-# CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE >> LOAD_TABLES_INTO_DATABASE
-EXTRACT_CORE_BASED_STATISTICAL_AREA >> CREATE_CORE_BASED_STATISTICAL_AREA_TABLE  # >> LOAD_TABLES_INTO_DATABASE
+EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY >> CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE
+CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE >> LOAD_TABLES_INTO_DATABASE
+EXTRACT_CORE_BASED_STATISTICAL_AREA >> CREATE_CORE_BASED_STATISTICAL_AREA_TABLE >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_SPECIALTY >> CREATE_SPECIALTY_TABLE
 # CREATE_PHYSICIAN_TABLE >> REMOVE_UNUSED_SPECIALTIES
 # CREATE_SPECIALTY_TABLE >> REMOVE_UNUSED_SPECIALTIES
 # REMOVE_UNUSED_SPECIALTIES >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_TABLES_INTO_DATABASE
-# EXTRACT_CREDENTIALING_ADDRESSES >> CREATE_CREDENTIALING_ADDRESSES_TABLE
 # EXTRACT_CREDENTIALING_MAIN >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
-# CREATE_CREDENTIALING_ADDRESSES_TABLE >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
+EXTRACT_CREDENTIALING_ADDRESSES # >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 # CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 # MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_TABLES_INTO_DATABASE
-# EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE >> LOAD_TABLES_INTO_DATABASE
+EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE # >> LOAD_TABLES_INTO_DATABASE
 # MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE
 # CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE
 # CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE >> LOAD_TABLES_INTO_DATABASE

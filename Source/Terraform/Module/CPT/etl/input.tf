@@ -32,10 +32,24 @@ variable "parent_function" {
 }
 
 
+variable "region" {
+    description = "AWS region"
+    type        = string
+    default     = "us-east-1"
+}
+
+
 variable "timeout" {
     description = "Timeout in seconds for Lambda functions"
     type        = number
     default     = 30
+}
+
+
+variable "memory_size" {
+    description = "lambda function memory size in Mb"
+    type        = number
+    default     = 1024
 }
 
 

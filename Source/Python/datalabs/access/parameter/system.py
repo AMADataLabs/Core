@@ -39,7 +39,15 @@ class ReferenceEnvironmentLoader:
 
     def _resolve_references_variables(self, variables, parameters):
         for key, value in variables.items():
-            variables[key] = self._resolve_references_in_value(value, parameters)
+            resolved_value = None
+
+            try:
+                resolved_value = self._resolve_references_in_value(value, parameters)
+            except KeyError:
+                LOGGER.warning('Ignoring bad environment variable reference(s) in %s', key)
+
+            if resolved_value is not None:
+                variables[key] = resolved_value
 
         return variables
 

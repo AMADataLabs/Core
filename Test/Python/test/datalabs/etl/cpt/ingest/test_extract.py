@@ -96,5 +96,7 @@ def task_parameters():
         BUCKET='jumanji',
         BASE_PATH='dir1/dir2/dir3',
         FILES='this_one.csv,that_one.csv,the_other_one.csv',
-        EXECUTION_TIME='19000101'
+        EXECUTION_TIME='19000101',
+        SCHEDULE='{"ANNUAL": ["1-Sep", "1-Jan"], "Q1": ["1-Jan", "1-Apr"], "Q2": ["1-Apr", "1-Jul"], '
+                 '"Q3": ["1-Jul", "1-Oct"], "Q4": ["1-Oct", "1-Jan"]}'
     )

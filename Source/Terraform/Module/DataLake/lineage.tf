@@ -72,34 +72,3 @@ module "lineage_database" {
     tag_eol = "N/A"
     tag_maintwindow = "N/A"
 }
-#
-#
-# resource "aws_neptune_subnet_group" "lineage" {
-#     name       = "datalabs-datalake-lineage"
-#     subnet_ids = [aws_subnet.lineage_frontend.id, aws_subnet.lineage_backend.id]
-#
-#     tags = merge(local.tags, {Name = "Data Lake Lineage Subnet Group"})
-# }
-#
-#
-# resource "aws_neptune_cluster" "linage_cluster" {
-#     cluster_identifier                  = "datalabs-lineage"
-#     skip_final_snapshot                 = true
-#     iam_database_authentication_enabled = true
-#     apply_immediately                   = true
-#     deletion_protection                 = false
-#     vpc_security_group_ids              = [aws_security_group.lineage.id]
-#     neptune_subnet_group_name           = aws_neptune_subnet_group.lineage.name
-#
-#     tags = merge(local.tags, {Name = "Data Labs Data Lake Lineage DB Cluster"})
-# }
-#
-# resource "aws_neptune_cluster_instance" "lineage" {
-#     identifier                          = "lineage"
-#     cluster_identifier                  = aws_neptune_cluster.linage_cluster.id
-#     instance_class                      = "db.t3.medium"
-#     apply_immediately                   = true
-#     neptune_subnet_group_name           = aws_neptune_subnet_group.lineage.name
-#
-#     tags = merge(local.tags, {Name = "Data Labs Data Lake Lineage DB Instance"})
-# }

@@ -10,7 +10,7 @@ from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class Task(ABC):
@@ -94,7 +94,7 @@ class DatabaseTaskMixin:
             if key.startswith('DATABASE_'):
                 parameters[key.lower()] = value.lower()
 
-        return database_class.from_parameters(parameters)
+        return database_class.from_parameters(parameters, prefix='DATABASE_')
 
 
 def add_schema(model_class):
@@ -135,11 +135,18 @@ def add_schema(model_class):
             return model
 
         def _fill_dataclass_defaults(self, data):
+            missing_fields = []
+
             for field in self.Meta.fields:
                 dataclass_field = model_class.__dict__['__dataclass_fields__'][field]
 
                 if field not in data and dataclass_field.default.__class__.__name__ != '_MISSING_TYPE':
                     data[field] = dataclass_field.default
+                elif field not in data:
+                    missing_fields.append(field)
+
+            if len(missing_fields) > 0:
+                raise TaskException(f'Missing parameters for {model_class.__name__} instance: {missing_fields}')
 
         def _fill_class_defaults(self, data):
             for field in self.Meta.fields:
