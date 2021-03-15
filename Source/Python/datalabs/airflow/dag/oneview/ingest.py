@@ -12,7 +12,7 @@ AIMS_SECRET = Secret('env', None, 'oneview-etl-aims')
 ODS_SECRET = Secret('env', None, 'oneview-etl-ods')
 SFTP_SECRET = Secret('env', None, 'oneview-etl-sftp')
 DATABASE_SECRET = Secret('env', None, 'oneview-etl-database')
-DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.0.3'
+DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.1.0'
 
 ONEVIEW_ETL_DAG = DAG(
     dag_id='oneview',
@@ -188,7 +188,7 @@ with ONEVIEW_ETL_DAG:
         task_id="extract_credentialing_addresses",
         get_logs=True,
     )
-#
+
     EXTRACT_PHYSICIAN_RACE_ETHNICITY = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
@@ -466,7 +466,20 @@ with ONEVIEW_ETL_DAG:
         get_logs=True,
     )
 
-#
+    MIGRATE_DATABASE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="migrate_database",
+        secrets=[DATABASE_SECRET],
+        cmds=['./Script/migrate-databse', 'upgrade', '${DATABASE_HOST}', '${PORT}', '${MESSAGE}', '${NAME}',
+              '${DATABASE_PASSWORD}', '${DATABASE_USERNAME}'],
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="load_tables_into_database",
+        get_logs=True,
+    )
+
 # # pylint: disable=pointless-statement
 EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE # >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_TYPE_OF_PRACTICE >> CREATE_TYPE_OF_PRACTICE_TABLE  # >> LOAD_TABLES_INTO_DATABASE
