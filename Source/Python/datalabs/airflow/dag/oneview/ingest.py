@@ -476,7 +476,7 @@ with ONEVIEW_ETL_DAG:
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
-        task_id="load_tables_into_database",
+        task_id="migrate_database",
         get_logs=True,
     )
 
