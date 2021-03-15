@@ -471,9 +471,8 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="migrate_database",
         secrets=[DATABASE_SECRET],
-        cmds=['./Script/migrate-database', 'upgrade', '--host ${DATABASE_HOST}', '--port ${PORT}',
-              '--message ${MESSAGE}', '--name ${NAME}', '--password ${DATABASE_PASSWORD}',
-              '-- username ${DATABASE_USERNAME}'],
+        cmds=['./Script/migrate-database', 'create', '--host ${DATABASE_HOST}', '--port ${DATABASE_PORT}',
+              '--name ${DATABASE_NAME}', '--password ${DATABASE_PASSWORD}',  '-- username ${DATABASE_USERNAME}'],
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
@@ -509,3 +508,4 @@ EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE # >> L
 # CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_TABLES_INTO_DATABASE
+MIGRATE_DATABASE
