@@ -472,7 +472,7 @@ with ONEVIEW_ETL_DAG:
         name="migrate_database",
         secrets=[DATABASE_SECRET],
         cmds=['./Script/migrate-database', 'create', '--host ${DATABASE_HOST}', '--port ${DATABASE_PORT}',
-              '--name ${DATABASE_NAME}', '--password ${DATABASE_PASSWORD}',  '-- username ${DATABASE_USERNAME}'],
+              '--name ${DATABASE_NAME}', '--password ${DATABASE_PASSWORD}', '-- username ${DATABASE_USERNAME}'],
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
