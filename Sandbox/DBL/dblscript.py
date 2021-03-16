@@ -1,6 +1,4 @@
-import file_names
 import xlsxwriter
-import xlwt
 
 def readInputFile(filename, header):
     return pd.read_csv(filename, delimiter='|',names=header)
@@ -51,6 +49,3 @@ ReportBy.loc['PERCENTAGE'] = ((ReportBy.loc['PERCENTAGE']/ReportBy.loc['PERCENTA
                               .apply('{:.0%}'.format))
 changerecord.loc['PERCENTAGE'] = ((changerecord.loc['PERCENTAGE']/changerecord.loc['PERCENTAGE'])
                               .apply('{:.0%}'.format))
-
-
-
