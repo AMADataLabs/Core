@@ -33,7 +33,7 @@ with ONEVIEW_ETL_DAG:
         secrets=[ODS_SECRET, MINIO_SECRET],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
         do_xcom_push=False,
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
         in_cluster=True,
         task_id="extract_ppd",
         get_logs=True,
