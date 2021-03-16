@@ -1,6 +1,5 @@
 """ JDBC Extractor """
 from   dataclasses import dataclass
-from   enum import Enum
 import logging
 
 import jaydebeapi
@@ -85,6 +84,7 @@ class JDBCExtractorTask(ExtractorTask):
             resolved_query = query.format(index=index, count=self._parameters.chunk_size)
 
             result = self._read_single_query(resolved_query, connection)
+            LOGGER.info('Read chunk %d with %d records.', int((index-1)/self._parameters.chunk_size), len(result))
 
             if len(result) > 0:
                 results.extend([result])
@@ -92,5 +92,6 @@ class JDBCExtractorTask(ExtractorTask):
 
         return pandas.concat(results, ignore_index=True)
 
-    def _read_single_query(self, query, connection):
+    @classmethod
+    def _read_single_query(cls, query, connection):
         return pandas.read_sql(query, connection)
