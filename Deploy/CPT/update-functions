@@ -20,8 +20,8 @@ FUNCTIONS="${PROJECT}GetDescriptor
            ${PROJECT}Convert
            ${PROJECT}BundlePDF
            ${PROJECT}Load
-           ${PROJECT}IngestedDataRouter
-           ${PROJECT}ProcessedDataRouter"
+           ${PROJECT}IngestionRouter
+           ${PROJECT}ProcessingRouter"
 
 for FUNCTION in ${FUNCTIONS}; do
   aws lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip
