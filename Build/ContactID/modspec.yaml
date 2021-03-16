@@ -24,3 +24,4 @@ modspec:
   - package: datalabs.etl
   - package: datalabs.etl.sftp
   - package: datalabs.etl.s3
+  - package: datalabs.etl.jdbc
