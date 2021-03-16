@@ -9,6 +9,8 @@ ENV PYTHONPATH=/OneView:/OneView/site-packages
 ENV CLASSPATH=/OneView
 ENV AWS_DEFAULT_REGION=us-east-1
 
+COPY ./Build/OneView/alembic/versions .
+
 COPY ./Build/OneView/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
@@ -34,8 +36,7 @@ RUN find ./ -name "*.env" -exec \
     --vars pythonpath=/OneView,$template_vars \;
 RUN ./Script/bundle-project -i --directory ./ OneView
 
-RUN rm -rf ./Script
-RUN rm -rf ./Build
+RUN rm -rf ./Build/Master
 RUN rm -rf ./Source
 
 RUN apt-get install -y vim
