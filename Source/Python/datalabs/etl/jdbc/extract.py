@@ -74,20 +74,23 @@ class JDBCExtractorTask(ExtractorTask):
         else:
             result = self._read_single_query(query, connection)
 
-    def _read_chunked_query(query, connection):
+        return result
+
+    def _read_chunked_query(self, query, connection):
         index = 1
         result = None
         results = []
 
-        while result is None or len(result) < self._parameters.chunk_size:
+        while result is None or len(result) > 0:
             resolved_query = query.format(index=index, count=self._parameters.chunk_size)
 
             result = self._read_single_query(resolved_query, connection)
 
-            results.append(result)
-            index = index + self._parameters.chunk_size
+            if len(result) > 0:
+                results.extend([result])
+                index += self._parameters.chunk_size
 
         return pandas.concat(results, ignore_index=True)
 
-    def _read_single_query(query, connection):
+    def _read_single_query(self, query, connection):
         return pandas.read_sql(query, connection)
