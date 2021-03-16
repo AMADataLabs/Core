@@ -1,11 +1,17 @@
 """ JDBC Extractor """
 from   dataclasses import dataclass
+from   enum import Enum
+import logging
 
 import jaydebeapi
 import pandas
 
 from   datalabs.etl.extract import ExtractorTask
 from   datalabs.task import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -23,6 +29,7 @@ class JDBCExtractorParameters:
     sql: str = None
     data: object = None
     execution_time: str = None
+    chunk_size: str = None
 
 
 class JDBCExtractorTask(ExtractorTask):
@@ -50,7 +57,7 @@ class JDBCExtractorTask(ExtractorTask):
     def _read_queries(self, connection):
         queries = self._split_queries(self._parameters.sql)
 
-        return [pandas.read_sql(query, connection) for query in queries]
+        return [self._read_query(query, connection) for query in queries]
 
     @classmethod
     def _split_queries(cls, queries):
@@ -58,3 +65,29 @@ class JDBCExtractorTask(ExtractorTask):
         queries_split.pop()
 
         return [q.strip() for q in queries_split]
+
+    def _read_query(self, query, connection):
+        result = None
+
+        if self._parameters.chunk_size:
+            result = self._read_chunked_query(query, connection)
+        else:
+            result = self._read_single_query(query, connection)
+
+    def _read_chunked_query(query, connection):
+        index = 1
+        result = None
+        results = []
+
+        while result is None or len(result) < self._parameters.chunk_size:
+            resolved_query = query.format(index=index, count=self._parameters.chunk_size)
+
+            result = self._read_single_query(resolved_query, connection)
+
+            results.append(result)
+            index = index + self._parameters.chunk_size
+
+        return pandas.concat(results, ignore_index=True)
+
+    def _read_single_query(query, connection):
+        return pandas.read_sql(query, connection)
