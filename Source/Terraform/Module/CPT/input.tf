@@ -88,13 +88,13 @@ data "aws_ssm_parameter" "contact" {
 }
 
 
-data "aws_ssm_parameter" "ingestion_bucket" {
-    name = "/DataLabs/DataLake/ingestion_bucket"
+data "aws_ssm_parameter" "ingested_data_bucket" {
+    name = "/DataLabs/DataLake/ingested_data_bucket"
 }
 
 
-data "aws_ssm_parameter" "processed_bucket" {
-    name = "/DataLabs/DataLake/processed_bucket"
+data "aws_ssm_parameter" "processed_data_bucket" {
+    name = "/DataLabs/DataLake/processed_data_bucket"
 }
 
 
@@ -103,13 +103,13 @@ data "aws_kms_key" "cpt" {
 }
 
 
-data "aws_sns_topic" "ingestion" {
-    name = "IngestionBucketNotification"
+data "aws_sns_topic" "ingested_data" {
+    name = "IngestedDataBucketNotification"
 }
 
 
-data "aws_sns_topic" "processed" {
-    name = "ProcessedBucketNotification"
+data "aws_sns_topic" "processed_data" {
+    name = "ProcessedDataBucketNotification"
 }
 
 

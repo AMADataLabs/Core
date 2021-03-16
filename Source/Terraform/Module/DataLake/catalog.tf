@@ -19,11 +19,11 @@ resource "aws_glue_crawler" "datalake" {
     )
 
     s3_target {
-        path = "s3://${data.aws_ssm_parameter.ingestion_bucket.value}"
+        path = "s3://${data.aws_ssm_parameter.ingested_data_bucket.value}"
     }
 
     s3_target {
-        path = "s3://${data.aws_ssm_parameter.processed_bucket.value}"
+        path = "s3://${data.aws_ssm_parameter.processed_data_bucket.value}"
     }
 
     schema_change_policy {

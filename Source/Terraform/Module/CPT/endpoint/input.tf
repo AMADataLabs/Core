@@ -68,8 +68,8 @@ data "aws_secretsmanager_secret" "database" {
 }
 
 
-data "aws_ssm_parameter" "processed_bucket" {
-    name = "/DataLabs/DataLake/processed_bucket"
+data "aws_ssm_parameter" "processed_data_bucket" {
+    name = "/DataLabs/DataLake/processed_data_bucket"
 }
 
 
