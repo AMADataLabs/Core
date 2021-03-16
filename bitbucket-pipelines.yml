@@ -1,4 +1,4 @@
-image: muffinspawn/pipelines:3
+image: muffinspawn/pipelines:4
 
 pipelines:
     branches:
@@ -24,29 +24,69 @@ pipelines:
             - bash Script/bitbucket-pipelines-build.sh
     custom:
         Test:
+        - parallel:
+            - step:
+                name: Unit Tests
+                caches:
+                  - unit-test-dependencies
+                script:
+                - bash Script/setup-virtual-environment Master
+                - export VIRTUAL_ENV=${PWD}/Environment/Master
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - python --version
+                - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+            - step:
+                name: Lint
+                caches:
+                  - lint-test-dependencies
+                script:
+                - bash Script/setup-virtual-environment Master
+                - export VIRTUAL_ENV=${PWD}/Environment/Master
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - python --version
+                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+        CPT-master:
         - step:
-            name: Unit Tests
+            name: Update Bundle
             script:
-            - bash Script/setup-virtual-environment Master
-            - export VIRTUAL_ENV=${PWD}/Environment/Master
-            - export PATH="$VIRTUAL_ENV/bin:$PATH"
-            - ${PWD}/Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
-        - step:
-            name: Lint
-            script:
-            - bash Script/setup-virtual-environment Master
-            - export VIRTUAL_ENV=${PWD}/Environment/Master
-            - export PATH="$VIRTUAL_ENV/bin:$PATH"
-            - ./Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
-        CPT:
-        - step:
-            name: Build Bundle
-            script:
-            - bash Script/setup-virtual-environment Master
-            - export VIRTUAL_ENV=${PWD}/Environment/Master
-            - export PATH="$VIRTUAL_ENV/bin:$PATH"
-            - ${PWD}/Script/bundle-project CPT
-        - step:
-            name: Upload Bundle
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - export AWS_S3_BUCKET='ama-hsg-datalabs-lambda-code-sandbox'
+            - bash Deploy/CPT/create-bundle
+            - bash Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - bash Deploy/CPT/update-functions
+        CPT-dev:
+        - step:
+            name: Update Bundle
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - echo "Hello there!"
+        CPT-test:
+        - step:
+            name: Update Bundle
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - echo "Hello there!"
+        CPT-stage:
+        - step:
+            name: Update Update Bundle
+            script:
+            - echo "Hello there!"
+        CPT-prod:
+        - step:
+            name: Update Bundle
+            script:
+            - echo "Hello there!"
+definitions:
+  caches:
+    unit-test-dependencies: Environment
+    lint-test-dependencies: Environment

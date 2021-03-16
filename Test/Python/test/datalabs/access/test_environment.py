@@ -28,6 +28,12 @@ def test_get_branch_values(tree):
         assert values[key] == value
 
 
+# pylint: disable=redefined-outer-name
+def test_get_missing_branch_raises_key_error(tree):
+    with pytest.raises(KeyError):
+        tree.get_branch_values(['ONE', 'THREE'])
+
+
 @pytest.fixture
 def tree():
     os.environ['ONE_TWO_BUCKLE'] = 'foo'

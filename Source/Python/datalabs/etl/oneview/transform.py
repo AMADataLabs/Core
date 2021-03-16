@@ -16,7 +16,9 @@ class TransformerTask(etl.TransformerTask, ABC):
         selected_data = self._select_columns(self._parameters['data'])
         renamed_data = self._rename_columns(selected_data)
 
-        return [self._dataframe_to_csv(data) for data in renamed_data]
+        csv_data = [self._dataframe_to_csv(data) for data in renamed_data]
+
+        return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
 
     def _select_columns(self, dataset):
         names = [list(column_map.keys()) for column_map in self._get_columns()]

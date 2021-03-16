@@ -7,6 +7,7 @@ provider "aws" {
 module "datalabs_terraform_state" {
     source  = "../../Module/DataLake"
     project = "DataLake"
+    datanow_version     = "1.0.0"
 }
 
 

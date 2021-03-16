@@ -88,13 +88,13 @@ data "aws_ssm_parameter" "contact" {
 }
 
 
-data "aws_ssm_parameter" "ingestion_bucket" {
-    name = "/DataLabs/DataLake/ingestion_bucket"
+data "aws_ssm_parameter" "ingested_data_bucket" {
+    name = "/DataLabs/DataLake/ingested_data_bucket"
 }
 
 
-data "aws_ssm_parameter" "processed_bucket" {
-    name = "/DataLabs/DataLake/processed_bucket"
+data "aws_ssm_parameter" "processed_data_bucket" {
+    name = "/DataLabs/DataLake/processed_data_bucket"
 }
 
 
@@ -103,11 +103,21 @@ data "aws_kms_key" "cpt" {
 }
 
 
-data "aws_sns_topic" "ingestion" {
-    name = "IngestionBucketNotification"
+data "aws_sns_topic" "ingested_data" {
+    name = "IngestedDataBucketNotification"
 }
 
 
-data "aws_sns_topic" "processed" {
-    name = "ProcessedBucketNotification"
+data "aws_sns_topic" "processed_data" {
+    name = "ProcessedDataBucketNotification"
+}
+
+
+data "aws_ssm_parameter" "lambda_code_bucket" {
+    name = "/DataLabs/lambda_code_bucket"
+}
+
+
+data "aws_ssm_parameter" "passport_url" {
+    name  = "/DataLabs/${var.project}/auth/passport_url"
 }
