@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: oneview-etl:1.1.0
+      name: oneview-etl:1.1.1
   postCommit: {}
   resources: {}
   runPolicy: Serial
