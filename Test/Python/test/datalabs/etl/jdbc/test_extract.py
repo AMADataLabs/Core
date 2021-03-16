@@ -25,6 +25,7 @@ def test_chunked_query_not_performed_when_no_chunk_size(parameters):
     with mock.patch('datalabs.etl.jdbc.extract.JDBCExtractorTask._read_single_query') as read_single_query:
         extractor = JDBCExtractorTask(parameters)
 
+        # pylint: disable=unused-argument
         def mock_read(query, connection):
             return pandas.DataFrame(dict(
                 column1=random.sample(range(10, 30), 5),
@@ -43,6 +44,7 @@ def test_chunked_query_is_chunked_correctly(parameters):
         counter = 0
         max_count = 3
 
+        # pylint: disable=unused-argument
         def mock_read(query, connection):
             nonlocal counter
             result = []
