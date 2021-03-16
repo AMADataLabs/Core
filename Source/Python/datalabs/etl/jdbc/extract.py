@@ -68,7 +68,7 @@ class JDBCExtractorTask(ExtractorTask):
     def _read_query(self, query, connection):
         result = None
 
-        if self._parameters.chunk_size:
+        if self._parameters.chunk_size is not None:
             result = self._read_chunked_query(query, connection)
         else:
             result = self._read_single_query(query, connection)
@@ -76,19 +76,21 @@ class JDBCExtractorTask(ExtractorTask):
         return result
 
     def _read_chunked_query(self, query, connection):
+        chunk_size = int(self._parameters.chunk_size)
         index = 1
         result = None
         results = []
 
         while result is None or len(result) > 0:
-            resolved_query = query.format(index=index, count=self._parameters.chunk_size)
+            resolved_query = query.format(index=index, count=chunk_size)
 
+            LOGGER.info('Reading chunk at index %d...', index)
             result = self._read_single_query(resolved_query, connection)
-            LOGGER.info('Read chunk %d with %d records.', int((index-1)/self._parameters.chunk_size), len(result))
+            LOGGER.info('Read %d records.', len(result))
 
             if len(result) > 0:
                 results.extend([result])
-                index += self._parameters.chunk_size
+                index += chunk_size
 
         return pandas.concat(results, ignore_index=True)
 

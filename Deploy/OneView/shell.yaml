@@ -34,7 +34,7 @@ spec:
         - -c
         - "sleep 86400"
         image: >-
-          docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.0
+          docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.1
         imagePullPolicy: IfNotPresent
         name: bitbucket-sync
         resources: {}

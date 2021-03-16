@@ -38,7 +38,7 @@ def test_chunked_query_not_performed_when_no_chunk_size(parameters):
         assert len(result) == 5
 
 def test_chunked_query_is_chunked_correctly(parameters):
-    parameters['CHUNK_SIZE'] = 5
+    parameters['CHUNK_SIZE'] = '5'
     with mock.patch('datalabs.etl.jdbc.extract.JDBCExtractorTask._read_single_query') as read_single_query:
         extractor = JDBCExtractorTask(parameters)
         counter = 0
