@@ -10,17 +10,25 @@ from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 
 
 # pylint: disable=redefined-outer-name, protected-access
-@pytest.mark.skip(reason="Integration test. Input Credentials")
-def test_jdbc_connection(parameters):
-    parameters['DATABASE_USERNAME'] = os.getenv('EXTRACTOR__DATABASE_USERNAME')
-    parameters['DATABASE_PASSWORD'] = os.getenv('EXTRACTOR__DATABASE_PASSWORD')
+def test_data_properly_converted_to_bytes_after_read(parameters):
+    with mock.patch('datalabs.etl.jdbc.extract.JDBCExtractorTask._read_single_query') as read_single_query:
+        extractor = JDBCExtractorTask(parameters)
 
-    extractor = JDBCExtractorTask(parameters)
-    dataframes_list = extractor._extract()
+        # pylint: disable=unused-argument
+        def mock_read(query, connection):
+            return pandas.DataFrame(dict(
+                column1=random.sample(range(10, 30), 5),
+                column2=random.sample(range(10, 30), 5)
+            ))
+        read_single_query.side_effect = mock_read
 
-    assert dataframes_list[0].columns[0] == 'ME_NUMBER'
+        result = extractor._read_queries(None)
+
+        assert len(result) == 1
+        assert hasattr(result[0], 'decode')
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_chunked_query_not_performed_when_no_chunk_size(parameters):
     with mock.patch('datalabs.etl.jdbc.extract.JDBCExtractorTask._read_single_query') as read_single_query:
         extractor = JDBCExtractorTask(parameters)
@@ -37,6 +45,8 @@ def test_chunked_query_not_performed_when_no_chunk_size(parameters):
 
         assert len(result) == 5
 
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_chunked_query_is_chunked_correctly(parameters):
     parameters['CHUNK_SIZE'] = '5'
     with mock.patch('datalabs.etl.jdbc.extract.JDBCExtractorTask._read_single_query') as read_single_query:
@@ -65,6 +75,18 @@ def test_chunked_query_is_chunked_correctly(parameters):
         assert len(result) == 15
 
 
+# pylint: disable=redefined-outer-name, protected-access
+@pytest.mark.skip(reason="Integration test. Input Credentials")
+def test_jdbc_connection(parameters):
+    parameters['DATABASE_USERNAME'] = os.getenv('EXTRACTOR__DATABASE_USERNAME')
+    parameters['DATABASE_PASSWORD'] = os.getenv('EXTRACTOR__DATABASE_PASSWORD')
+
+    extractor = JDBCExtractorTask(parameters)
+    dataframes_list = extractor._extract()
+
+    assert dataframes_list[0].columns[0] == 'ME_NUMBER'
+
+
 @pytest.fixture
 def parameters():
     return dict(
@@ -73,7 +95,7 @@ def parameters():
         DATABASE_HOST='rdbp1190',
         DATABASE_USERNAME='cbarkley',
         DATABASE_PASSWORD='strongestcrewmemberofNCC1701-D',
-        SQL='SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;',
+        SQL='SELECT * FROM ODS.ODS_PPD_FILE ORDER BY ME_NUMBER LIMIT {index}, {count};',
         DRIVER='com.ibm.db2.jcc.DB2Jcc',
         DRIVER_TYPE='db2',
         JAR_PATH='./db2jcc4.jar',
@@ -91,7 +113,7 @@ def environment_variables():
     os.environ['EXTRACTOR__DATABASE_HOST'] = 'rdbp1190'
     os.environ['EXTRACTOR__DATABASE_PORT'] = '54150'
 
-    os.environ['EXTRACTOR__SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE LIMIT 1;'
+    os.environ['EXTRACTOR__SQL'] = 'SELECT * FROM ODS.ODS_PPD_FILE ORDER BY ME_NUMBER LIMIT {index}, {count};'
     os.environ['EXTRACTOR__DRIVER'] = 'com.ibm.db2.jcc.DB2Jcc'
     os.environ['EXTRACTOR__DRIVER_TYPE'] = 'db2'
     os.environ['EXTRACTOR__JAR_PATH'] = './db2jcc4.jar'

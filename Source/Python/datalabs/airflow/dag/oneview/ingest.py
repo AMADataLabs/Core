@@ -12,7 +12,7 @@ AIMS_SECRET = Secret('env', None, 'oneview-etl-aims')
 ODS_SECRET = Secret('env', None, 'oneview-etl-ods')
 SFTP_SECRET = Secret('env', None, 'oneview-etl-sftp')
 DATABASE_SECRET = Secret('env', None, 'oneview-etl-database')
-DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.1'
+DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.2'
 
 ONEVIEW_ETL_DAG = DAG(
     dag_id='oneview',

@@ -56,7 +56,7 @@ class JDBCExtractorTask(ExtractorTask):
     def _read_queries(self, connection):
         queries = self._split_queries(self._parameters.sql)
 
-        return [self._read_query(query, connection) for query in queries]
+        return [self._read_query(query, connection).to_csv().encode('utf-8') for query in queries]
 
     @classmethod
     def _split_queries(cls, queries):

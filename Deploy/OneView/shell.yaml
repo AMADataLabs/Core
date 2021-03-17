@@ -55,5 +55,5 @@ spec:
       - bitbucket-sync
       from:
         kind: ImageStreamTag
-        name: oneview-etl:1.1.0
+        name: oneview-etl:1.2.2
         namespace: hsg-data-labs-dev
