@@ -10,6 +10,13 @@ data "aws_route_table" "datalake" {
 }
 
 
+data "aws_security_group" "datalake" {
+    tags = {
+        Name = "Data Lake"
+    }
+}
+
+
 resource "aws_subnet" "cpt_api_database_20" {
     vpc_id                  = data.aws_vpc.datalake.id
     cidr_block              = "172.31.20.0/24"
@@ -53,6 +60,7 @@ module "cpt_api_database" {
     database_username               = local.database_username
     database_password               = local.database_password
     db_subnet_list                  = [aws_subnet.cpt_api_database_20.id, aws_subnet.cpt_api_database_21.id]
+    vpc_security_group_list         = [data.aws_security_group.datalake.id]
 
     # should default to false
     create_initial_db               = false
