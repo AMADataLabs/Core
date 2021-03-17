@@ -213,7 +213,7 @@ with ONEVIEW_ETL_DAG:
         secrets=[MINIO_SECRET],
         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask'),
         do_xcom_push=False,
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
         in_cluster=True,
         task_id="create_physician_table",
         get_logs=True,
