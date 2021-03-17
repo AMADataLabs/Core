@@ -16,6 +16,9 @@ RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt &&\
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
+ADD https://dbschema.com/jdbc-drivers/MySqlJdbcDriver.zip .
+RUN unzip ./MySqlJdbcDriver.zip && rm ./MySqlJdbcDriver.zip
+
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/ContactID ./Build/ContactID
