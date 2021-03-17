@@ -77,7 +77,7 @@ class JDBCExtractorTask(ExtractorTask):
 
     def _read_chunked_query(self, query, connection):
         chunk_size = int(self._parameters.chunk_size)
-        index = 1
+        index = 0
         result = None
         results = []
 
