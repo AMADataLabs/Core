@@ -1,8 +1,5 @@
 """ Oneview RaceEthnicity Transformer"""
-from   io import BytesIO
 import logging
-
-import pandas
 
 from   datalabs.etl.oneview.race_ethnicity.column import RACE_ETHNICITY_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
