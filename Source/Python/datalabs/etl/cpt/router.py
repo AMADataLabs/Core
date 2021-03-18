@@ -13,7 +13,7 @@ import datalabs.awslambda as awslambda
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @task.add_schema
@@ -28,6 +28,7 @@ class RouterParameters:
 
 class RouterTaskWrapper(awslambda.TaskWrapper):
     def _get_task_parameters(self):
+        LOGGER.debug('Parameters: %s', self._parameters)
         parameters = dict(EVENT=self._parameters)  # foward the Lambda event to the task
         var_tree = VariableTree.generate()
         router_parameters = var_tree.get_branch_values(['ROUTER']) or {}
@@ -47,6 +48,7 @@ class RouterTask(task.Task):
     PARAMETER_CLASS = RouterParameters
 
     def run(self):
+        LOGGER.debug('Parameters: %s', self._parameters)
         for sns_record in self._parameters.event['Records']:
             sns_envelope = sns_record['Sns']
             message = json.loads(sns_envelope['Message'])
