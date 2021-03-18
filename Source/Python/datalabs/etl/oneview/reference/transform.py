@@ -40,7 +40,7 @@ class SpecialtyTransformerTask(TransformerTask):
 
 class SpecialtyMergeTransformerTask(TransformerTask):
     def _transform(self):
-        specialty_data, physician_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
+        specialty_data, physician_data = [pandas.read_csv(StringIO(csv)) for csv in self._parameters['data']]
         filtered_specialty_data = [
             specialty_data.loc[
                 specialty_data.id.isin(physician_data.primary_specialty) |
@@ -51,10 +51,6 @@ class SpecialtyMergeTransformerTask(TransformerTask):
         self._parameters['data'] = [dataframe.to_csv() for dataframe in filtered_specialty_data]
 
         return super()._transform()
-
-    @classmethod
-    def _to_dataframe(cls, file):
-        return pandas.read_csv(StringIO(file))
 
     def _get_columns(self):
         return [SPECIALTY_MERGED_COLUMNS]
