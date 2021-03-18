@@ -21,8 +21,8 @@ ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
 RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
 RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
-ADD https://dbschema.com/jdbc-drivers/MySqlJdbcDriver.zip .
-RUN unzip ./MySqlJdbcDriver.zip && rm ./MySqlJdbcDriver.zip
+ADD https://dbschema.com/jdbc-drivers/SqlServerJdbcDriver.zip .
+RUN unzip ./SqlServerJdbcDriver.zip && rm ./SqlServerJdbcDriver.zip
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
