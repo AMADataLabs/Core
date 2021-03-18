@@ -30,7 +30,7 @@
       "Resource": "arn:aws:sns:${region}:${account_id}:${topic_name}",
       "Condition": {
         "ArnLike": {
-          "aws:SourceArn": "${s3_bucket_arn}"
+          "aws:SourceArn": "arn:aws:s3:::${s3_bucket_name}"
         }
       }
     }
