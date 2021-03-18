@@ -58,12 +58,12 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     def _transform(self):
-        fips_data = self._to_dataframe()
-        self._parameters['data'] = [self.set_columns(df) for df in fips_data]
+        fips_data = self._make_dataframe()
+        self._parameters['data'] = [self.set_columns(df).to_csv() for df in fips_data]
 
         return super()._transform()
 
-    def _to_dataframe(self):
+    def _make_dataframe(self):
         return [pandas.read_excel(BytesIO(data), skiprows=4) for data in self._parameters['data']]
 
     @classmethod
