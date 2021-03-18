@@ -21,7 +21,7 @@ class TransformerTask(etl.TransformerTask, ABC):
         return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
 
     def _select_columns(self, dataset):
-        names = [list(column_map.keys()) for column_map in self._get_columns()]
+        names = [column_map.keys() for column_map in self._get_columns()]
         LOGGER.info(names)
         return [data[name] for name, data in zip(names, dataset)]
 
