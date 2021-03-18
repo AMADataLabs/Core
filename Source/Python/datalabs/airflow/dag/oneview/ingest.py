@@ -12,7 +12,7 @@ AIMS_SECRET = Secret('env', None, 'oneview-etl-aims')
 ODS_SECRET = Secret('env', None, 'oneview-etl-ods')
 SFTP_SECRET = Secret('env', None, 'oneview-etl-sftp')
 DATABASE_SECRET = Secret('env', None, 'oneview-etl-database')
-DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.1.0'
+DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.2'
 
 ONEVIEW_ETL_DAG = DAG(
     dag_id='oneview',
@@ -213,7 +213,7 @@ with ONEVIEW_ETL_DAG:
         secrets=[MINIO_SECRET],
         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask'),
         do_xcom_push=False,
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
         in_cluster=True,
         task_id="create_physician_table",
         get_logs=True,
