@@ -53,6 +53,35 @@ resource "aws_ecs_service" "datanow" {
 }
 
 
+# module "datanow_task_definition" {
+#     source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-ecs-fargate-task-definition.git?ref=feature/templated_container_definitions"
+#     task_name                       = "datanow"
+#     environment_name                = lower(data.aws_ssm_parameter.account_environment.value)
+#     task_role_arn                   = aws_iam_role.datanow_assume.arn
+#     execution_role_arn              = aws_iam_role.datanow_execution.arn
+#
+#     container_definition_vars       = {
+#         account_id  = data.aws_caller_identity.account.account_id,
+#         region      = data.aws_region.current.name
+#         image       = var.datanow_image
+#         tag         = var.datanow_version
+#     }
+#
+#     tag_name                        = "${var.project} DataNow Task"
+#     tag_environment                 = local.tags["Env"]
+#     tag_contact                     = local.tags["Contact"]
+#     tag_systemtier                  = local.tags["SystemTier"]
+#     tag_drtier                      = local.tags["DRTier"]
+#     tag_dataclassification          = local.tags["DataClassification"]
+#     tag_budgetcode                  = local.tags["BudgetCode"]
+#     tag_owner                       = local.tags["Owner"]
+#     tag_projectname                 = var.project
+#     tag_notes                       = ""
+#     tag_eol                         = local.tags["EOL"]
+#     tag_maintwindow                 = local.tags["MaintenanceWindow"]
+# }
+
+
 resource "aws_ecs_task_definition" "datanow" {
     family                      = "datanow"
     cpu                         = 1024

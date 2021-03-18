@@ -81,7 +81,6 @@ module "cpt_api_database" {
     tag_notes                       = ""
     tag_eol                         = local.tags["EOL"]
     tag_maintwindow                 = local.tags["MaintenanceWindow"]
-
 }
 
 resource "aws_db_instance" "cpt_api_database" {
