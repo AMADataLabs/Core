@@ -416,7 +416,6 @@ module "etl_convert" {
     function_name           = local.function_names.convert
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
         EXTRACTOR__TASK_CLASS       = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
@@ -444,7 +443,6 @@ module "etl_bundle_pdf" {
     function_name           = local.function_names.bundlepdf
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    parent_function         = aws_lambda_function.ingestion_etl_router
 
     variables               = {
         EXTRACTOR__TASK_CLASS           = "datalabs.etl.s3.extract.S3FileExtractorTask"
@@ -470,7 +468,6 @@ module "etl_load" {
     function_name           = local.function_names.loaddb
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    parent_function         = aws_lambda_function.processing_etl_router
     timeout                 = 300
 
     variables               = {
