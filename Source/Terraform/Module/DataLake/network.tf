@@ -43,3 +43,16 @@ resource "aws_security_group" "datalake" {
 
     tags = merge(local.tags, {Name = "Data Lake"})
 }
+
+# resource "aws_vpc_endpoint" "datalake" {
+#     vpc_id          = aws_vpc.datalake.id
+#     service_name    = "com.amazonaws.us-east-1.execute-api"
+#     vpc_endpoint_type = "Interface"
+#     private_dns_enabled = false
+#
+#     security_group_ids = [
+#         aws_security_group.datalake.id
+#     ]
+#
+#     tags = merge(local.tags, {Name = "Data Lake VPC Endpoint"})
+# }

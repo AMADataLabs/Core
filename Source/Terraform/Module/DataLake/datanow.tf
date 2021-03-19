@@ -10,7 +10,7 @@ resource "aws_ecr_repository" "datanow" {
 
 resource "aws_ecs_service" "datanow" {
     name                                = "DataNow"
-    task_definition                     = aws_ecs_task_definition.datanow.arn
+    task_definition                     = module.datanow_task_definition.aws_ecs_task_definition_td_arn
     launch_type                         = "FARGATE"
     cluster                             = aws_ecs_cluster.datalake.id
     desired_count                       = 1
@@ -47,76 +47,59 @@ resource "aws_ecs_service" "datanow" {
     tags = merge(local.tags, {Name = "Data Labs Data Lake DataNow Service"})
 
     depends_on = [
-        aws_ecs_task_definition.datanow,
+        module.datanow_task_definition,
         aws_lb_target_group.datanow
     ]
 }
 
 
-# module "datanow_task_definition" {
-#     source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-ecs-fargate-task-definition.git?ref=feature/templated_container_definitions"
-#     task_name                       = "datanow"
-#     environment_name                = lower(data.aws_ssm_parameter.account_environment.value)
-#     task_role_arn                   = aws_iam_role.datanow_assume.arn
-#     execution_role_arn              = aws_iam_role.datanow_execution.arn
-#
-#     container_definition_vars       = {
-#         account_id  = data.aws_caller_identity.account.account_id,
-#         region      = data.aws_region.current.name
-#         image       = var.datanow_image
-#         tag         = var.datanow_version
-#     }
-#
-#     tag_name                        = "${var.project} DataNow Task"
-#     tag_environment                 = local.tags["Env"]
-#     tag_contact                     = local.tags["Contact"]
-#     tag_systemtier                  = local.tags["SystemTier"]
-#     tag_drtier                      = local.tags["DRTier"]
-#     tag_dataclassification          = local.tags["DataClassification"]
-#     tag_budgetcode                  = local.tags["BudgetCode"]
-#     tag_owner                       = local.tags["Owner"]
-#     tag_projectname                 = var.project
-#     tag_notes                       = ""
-#     tag_eol                         = local.tags["EOL"]
-#     tag_maintwindow                 = local.tags["MaintenanceWindow"]
-# }
+module "datanow_task_definition" {
+    source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-ecs-fargate-task-definition.git?ref=feature/templated_container_definitions"
+    task_name                       = "datanow"
+    environment_name                = lower(data.aws_ssm_parameter.account_environment.value)
+    task_role_arn                   = aws_iam_role.datanow_assume.arn
+    execution_role_arn              = aws_iam_role.datanow_execution.arn
+    container_cpu                   = 1024
+    container_memory                = 8192
 
-
-resource "aws_ecs_task_definition" "datanow" {
-    family                      = "datanow"
-    cpu                         = 1024
-    memory                      = 8192
-    requires_compatibilities    = ["FARGATE"]
-    network_mode                = "awsvpc"
-    task_role_arn               = aws_iam_role.datanow_assume.arn
-    execution_role_arn          = aws_iam_role.datanow_execution.arn
-
-    container_definitions       = templatefile(
-        "${path.module}/datanow.json",
-        {
-            account_id  = data.aws_caller_identity.account.account_id,
-            region      = data.aws_region.current.name
-            image       = var.datanow_image
-            tag         = var.datanow_version
-        }
-    )
-
-    volume {
-        name                        = "DataNow"
-
-        efs_volume_configuration {
-            file_system_id          = aws_efs_file_system.datanow.id
-            root_directory          = "/"
-            transit_encryption      = "ENABLED"
-
-            authorization_config {
-                access_point_id     = aws_efs_access_point.dremio.id
-                iam                 = "ENABLED"
-            }
-        }
+    container_definition_vars       = {
+        account_id  = data.aws_caller_identity.account.account_id,
+        region      = data.aws_region.current.name
+        image       = var.datanow_image
+        tag         = var.datanow_version
     }
 
-    tags = merge(local.tags, {Name = "Data Lake DataNow ECS Task"})
+    volume                          = [
+        {
+            name                        = "DataNow"
+
+            efs_volume_configuration    = [
+                {
+                    "file_system_id":       aws_efs_file_system.datanow.id
+                    "root_directory":       "/"
+                    "transit_encryption":   "ENABLED"
+
+                    "authorization_config": {
+                        "access_point_id":  aws_efs_access_point.dremio.id
+                        "iam":              "ENABLED"
+                    }
+                }
+            ]
+        }
+    ]
+
+    tag_name                        = "${var.project} DataNow Task"
+    tag_environment                 = local.tags["Env"]
+    tag_contact                     = local.tags["Contact"]
+    tag_systemtier                  = local.tags["SystemTier"]
+    tag_drtier                      = local.tags["DRTier"]
+    tag_dataclassification          = local.tags["DataClassification"]
+    tag_budgetcode                  = local.tags["BudgetCode"]
+    tag_owner                       = local.tags["Owner"]
+    tag_projectname                 = var.project
+    tag_notes                       = ""
+    tag_eol                         = local.tags["EOL"]
+    tag_maintwindow                 = local.tags["MaintenanceWindow"]
 }
 
 
