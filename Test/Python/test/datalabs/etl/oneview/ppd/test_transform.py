@@ -1,6 +1,5 @@
 """ source: datalabs.etl.oneview.transform """
 import logging
-import pandas
 import pytest
 
 from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask
@@ -22,143 +21,42 @@ def test_jdbc_connection(components):
 
 # pylint: disable=redefined-outer-name
 @pytest.fixture
-def components(dataframe):
+def components(data):
     return dict(
         CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask',
         thing=True,
-        data=dataframe
+        data=data
     )
 
 
 @pytest.fixture
-def dataframe():
-    data = {'ME_NUMBER': {0: '03503191317',
-                          1: '03503191333',
-                          2: '03503191341',
-                          3: '03503191350',
-                          4: '03503191368'},
-            'RECORD_ID': {0: 'A', 1: 'A', 2: 'A', 3: 'A', 4: 'A'},
-            'UPDATE_TYPE': {0: '1', 1: '1', 2: '1', 3: '1', 4: '1'},
-            'ADDRESS_TYPE': {0: '2', 1: '2', 2: '2', 3: '2', 4: '2'},
-            'MAILING_NAME': {0: 'MOHSIN E JAWED MD',
-                             1: 'FATIMA I HOSAIN MD',
-                             2: 'MEAGHAN FLATLEY MD',
-                             3: 'JAIMIE M PARAMBIL MD',
-                             4: 'TIMOTHY HARTIGAN MD'},
-            'LAST_NAME': {0: 'JAWED',
-                          1: 'HOSAIN',
-                          2: 'FLATLEY',
-                          3: 'PARAMBIL',
-                          4: 'HARTIGAN'},
-            'FIRST_NAME': {0: 'MOHSIN',
-                           1: 'FATIMA',
-                           2: 'MEAGHAN',
-                           3: 'JAIMIE',
-                           4: 'TIMOTHY'},
-            'MIDDLE_NAME': {0: 'ELAHI', 1: 'IQBAL', 2: None, 3: 'MARY', 4: None},
-            'SUFFIX_CODE': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'PREFERRED_ADDR2': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'PREFERRED_ADDR1': {0: '98 ROXITICUS RD',
-                                1: '13 SPY GLASS HL',
-                                2: '223 BRACKENRIDGE AVE APT 8410',
-                                3: '15 WOODLANDS AVE N',
-                                4: '6410 LAKEMONT CT'},
-            'PREFERRED_CITY': {0: 'FAR HILLS',
-                               1: 'HOPEWELL JCT',
-                               2: 'SAN ANTONIO',
-                               3: 'WHITE PLAINS',
-                               4: 'EAST AMHERST'},
-            'PREFERRED_STATE': {0: 'NJ', 1: 'NY', 2: 'TX', 3: 'NY', 4: 'NY'},
-            'PREFERRED_ZIP': {0: '07931', 1: '12533', 2: '78209', 3: '10607', 4: '14051'},
-            'PREFERRED_PLUS4': {0: '2222', 1: '6273', 2: '7065', 3: '2510', 4: '2069'},
-            'PREFERRED_CARRIERROUTE': {0: 'R015 ',
-                                       1: 'R011 ',
-                                       2: 'C011 ',
-                                       3: 'C019 ',
-                                       4: 'R010 '},
-            'UNDELIVER_FLAG': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'FIPS_COUNTY': {0: '035', 1: '027', 2: '029', 3: '119', 4: '029'},
-            'FIPS_STATE': {0: '34', 1: '36', 2: '48', 3: '36', 4: '36'},
-            'PRINTER_CONTROLCODE_BEGIN': {0: '!', 1: '!', 2: '!', 3: '!', 4: '!'},
-            'BARCODE_ZIP': {0: '07931', 1: '12533', 2: '78209', 3: '10607', 4: '14051'},
-            'BARCODE_PLUS4': {0: '2222', 1: '6273', 2: '7065', 3: '2510', 4: '2069'},
-            'DELIVERYPOINTCODE': {0: '98', 1: '13', 2: '10', 3: '15', 4: '10'},
-            'CHECKDIGIT': {0: '5', 1: '4', 2: '5', 3: '2', 4: '1'},
-            'PRINTER_CONTROLCODE_END': {0: '!', 1: '!', 2: '!', 3: '!', 4: '!'},
-            'REGION': {0: '1', 1: '1', 2: '3', 3: '1', 4: '1'},
-            'DIVISION': {0: '2', 1: '2', 2: '7', 3: '2', 4: '2'},
-            'GROUP': {0: '6', 1: '6', 2: '6', 3: '6', 4: '6'},
-            'TRACT': {0: '0458', 1: '0501', 2: '1920', 3: '0111', 4: '0146'},
-            'SUFFIX': {0: '04', 1: '04', 2: '00', 3: '01', 4: '04'},
-            'BLOCKGROUP': {0: '3', 1: '2', 2: '2', 3: '4', 4: '1'},
-            'MSA_POPULATION': {0: 'A', 1: 'A', 2: 'A', 3: 'A', 4: 'A'},
-            'MICRO_METRO_IND': {0: '1', 1: '1', 2: '1', 3: '1', 4: '1'},
-            'CBSA': {0: '35620', 1: '39100', 2: '41700', 3: '35620', 4: '15380'},
-            'CBSA_DIVISION': {0: '1', 1: None, 2: None, 3: '1', 4: None},
-            'DEGREE_TYPE': {0: '1', 1: '1', 2: '1', 3: '1', 4: '1'},
-            'BIRTH_YEAR': {0: '1994', 1: '1993', 2: '1993', 3: '1993', 4: '1993'},
-            'BIRTH_CITY': {0: 'NORWALK',
-                           1: 'QUEENS',
-                           2: 'MINEOLA',
-                           3: 'BRONX',
-                           4: 'BUFFALO'},
-            'BIRTH_STATE': {0: 'CT', 1: 'NY', 2: None, 3: None, 4: 'NY'},
-            'BIRTH_COUNTRY': {0: 'US1', 1: 'US1', 2: 'US1', 3: 'US1', 4: 'US1'},
-            'GENDER': {0: '1', 1: '2', 2: '2', 3: '2', 4: '1'},
-            'PREFERREDPHONENUMBER': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'PENDINGDEAD_IND': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'FAXNUMBER': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'TOPCODE': {0: '012', 1: '012', 2: '012', 3: '012', 4: '012'},
-            'PECODE': {0: '050', 1: '050', 2: '050', 3: '050', 4: '050'},
-            'PRIMSPECIALTY': {0: 'GS ', 1: 'EM ', 2: 'US ', 3: 'US ', 4: 'MPD'},
-            'SECONDARYSPECIALTY': {0: 'US ', 1: 'US ', 2: 'US ', 3: 'US ', 4: 'US '},
-            'MPACODE': {0: 'HPR', 1: 'HPR', 2: 'HPR', 3: 'HPR', 4: 'HPR'},
-            'PRAAWARDRECIPIENT': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'PRAEXPIRATIONDATE': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'GMECONFIRMFLAG': {0: 'Y', 1: 'Y', 2: None, 3: None, 4: 'Y'},
-            'FROMDATE': {0: '07012019', 1: '07012019', 2: None, 3: None, 4: '07012019'},
-            'ENDDATE': {0: '06302024', 1: '06302023', 2: None, 3: None, 4: '06302023'},
-            'YEARINPROGRAM': {0: '0 ', 1: '0 ', 2: None, 3: None, 4: '0 '},
-            'POSTGRADYEAR': {0: '0 ', 1: '0 ', 2: None, 3: None, 4: '0 '},
-            'GMEPRIMSPECIALTY': {0: 'GS ', 1: 'EM ', 2: None, 3: None, 4: 'MPD'},
-            'GMESECSPECIALTY': {0: 'US ', 1: 'US ', 2: None, 3: None, 4: 'US '},
-            'TRAINING_TYPE': {0: '1', 1: '1', 2: None, 3: None, 4: '1'},
-            'GMEHOSPITALSTATE': {0: '35', 1: '08', 2: None, 3: None, 4: '35'},
-            'GMEHOSPITALID': {0: '0267', 1: '0433', 2: None, 3: None, 4: '0345'},
-            'GRADSCHOOLSTATE': {0: '035', 1: '035', 2: '035', 3: '035', 4: '035'},
-            'GRADSCHOOLCODE': {0: '03', 1: '03', 2: '03', 3: '03', 4: '03'},
-            'GRADYEAR': {0: '2019', 1: '2019', 2: '2019', 3: '2020', 4: '2019'},
-            'NOCONTACT_IND': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'NOWEBIND': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'PDRP_FLAG': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'PDRP_DATE': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'POLO_ADDR2': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'POLO_ADDR1': {0: None,
-                           1: '20 YORK ST',
-                           2: '3551 ROGER BROOKE DR',
-                           3: None,
-                           4: None},
-            'POLO_CITY': {0: None, 1: 'NEW HAVEN', 2: 'JBSA FSH', 3: None, 4: None},
-            'POLO_STATE': {0: None, 1: 'CT', 2: 'TX', 3: None, 4: None},
-            'POLO_ZIP': {0: None, 1: '06510', 2: '78234', 3: None, 4: None},
-            'POLO_PLUS4': {0: None, 1: '3220', 2: '4504', 3: None, 4: None},
-            'POLOCARRIERROUTE': {0: None, 1: 'C098 ', 2: 'C054 ', 3: None, 4: None},
-            'MOSTRECENTFORMERLASTNAME': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'MOSTRECENTFORMERMIDDLENAME': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'MOSTRECENTFORMERFIRSTNAME': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'NEXTMOSTRECENTFORMERLASTNAME': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'NEXTMOSTRECENTFORMERMIDDLENAME': {0: None,
-                                               1: None,
-                                               2: None,
-                                               3: None,
-                                               4: None},
-            'NEXTMOSTRECENTFORMERFIRSTNAME': {0: None,
-                                              1: None,
-                                              2: None,
-                                              3: None,
-                                              4: None},
-            'JOB_ID': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'CURRENT_BATCH_FLAG': {0: None, 1: None, 2: None, 3: None, 4: None},
-            'BATCH_BUSINESS_DATE': {0: None, 1: None, 2: None, 3: None, 4: None}}
+def data():
+    data = ',ME_NUMBER,RECORD_ID,UPDATE_TYPE,ADDRESS_TYPE,MAILING_NAME,LAST_NAME,FIRST_NAME,MIDDLE_NAME,SUFFIX_CODE,' \
+           'PREFERRED_ADDR2,PREFERRED_ADDR1,PREFERRED_CITY,PREFERRED_STATE,PREFERRED_ZIP,PREFERRED_PLUS4,' \
+           'PREFERRED_CARRIERROUTE,UNDELIVER_FLAG,FIPS_COUNTY,FIPS_STATE,PRINTER_CONTROLCODE_BEGIN,BARCODE_ZIP,' \
+           'BARCODE_PLUS4,DELIVERYPOINTCODE,CHECKDIGIT,PRINTER_CONTROLCODE_END,REGION,DIVISION,GROUP,TRACT,' \
+           'SUFFIX,BLOCKGROUP,MSA_POPULATION,MICRO_METRO_IND,CBSA,CBSA_DIVISION,DEGREE_TYPE,BIRTH_YEAR,BIRTH_CITY,' \
+           'BIRTH_STATE,BIRTH_COUNTRY,GENDER,PREFERREDPHONENUMBER,PENDINGDEAD_IND,FAXNUMBER,TOPCODE,PECODE,' \
+           'PRIMSPECIALTY,SECONDARYSPECIALTY,MPACODE,PRAAWARDRECIPIENT,PRAEXPIRATIONDATE,GMECONFIRMFLAG,FROMDATE,' \
+           'ENDDATE,YEARINPROGRAM,POSTGRADYEAR,GMEPRIMSPECIALTY,GMESECSPECIALTY,TRAINING_TYPE,GMEHOSPITALSTATE,' \
+           'GMEHOSPITALID,GRADSCHOOLSTATE,GRADSCHOOLCODE,GRADYEAR,NOCONTACT_IND,NOWEBIND,PDRP_FLAG,PDRP_DATE,' \
+           'POLO_ADDR2,POLO_ADDR1,POLO_CITY,POLO_STATE,POLO_ZIP,POLO_PLUS4,POLOCARRIERROUTE,MOSTRECENTFORMERLASTNAME,' \
+           'MOSTRECENTFORMERMIDDLENAME,MOSTRECENTFORMERFIRSTNAME,NEXTMOSTRECENTFORMERLASTNAME,' \
+           'NEXTMOSTRECENTFORMERMIDDLENAME,NEXTMOSTRECENTFORMERFIRSTNAME,JOB_ID,CURRENT_BATCH_FLAG,' \
+           'BATCH_BUSINESS_DATE\r\n0,03503191317,A,1,2,MOHSIN E JAWED MD,JAWED,MOHSIN,ELAHI,,,98 ROXITICUS RD,' \
+           'FAR HILLS,NJ,07931,2222,R015 ,,035,34,!,07931,2222,98,5,!,1,2,6,0458,04,3,A,1,35620,1,1,1994,NORWALK,CT,' \
+           'US1,1,,,,012,050,GS ,US ,HPR,,,Y,07012019,06302024,0 ,0 ,GS ,US ,1,35,0267,035,03,' \
+           '2019,,,,,,,,,,,,,,,,,,,,\r\n1,03503191333,A,1,2,FATIMA I HOSAIN MD,HOSAIN,FATIMA,IQBAL,,,13 SPY GLASS HL,' \
+           'HOPEWELL JCT,NY,12533,6273,R011 ,,027,36,!,12533,6273,13,4,!,1,2,6,0501,04,2,A,1,39100,,1,1993,QUEENS,NY,' \
+           'US1,2,,,,012,050,EM ,US ,HPR,,,Y,07012019,06302023,0 ,0 ,EM ,US ,1,08,0433,035,03,2019,,,,,,20 YORK ST,' \
+           'NEW HAVEN,CT,06510,3220,C098 ,,,,,,,,,\r\n2,03503191341,A,1,2,MEAGHAN FLATLEY MD,FLATLEY,MEAGHAN,,,,' \
+           '223 BRACKENRIDGE AVE APT 8410,SAN ANTONIO,TX,78209,7065,C011 ,,029,48,!,78209,7065,10,5,!,3,7,6,1920,00,' \
+           '2,A,1,41700,,1,1993,MINEOLA,,US1,2,,,,012,050,US ,US ,HPR,,,,,,,,,,,,,035,03,2019,,,,,,' \
+           '3551 ROGER BROOKE DR,JBSA FSH,TX,78234,4504,C054 ,,,,,,,,,\r\n3,03503191350,A,1,2,JAIMIE M PARAMBIL MD,' \
+           'PARAMBIL,JAIMIE,MARY,,,15 WOODLANDS AVE N,WHITE PLAINS,NY,10607,2510,C019 ,,119,36,!,10607,2510,15,2,!,1,' \
+           '2,6,0111,01,4,A,1,35620,1,1,1993,BRONX,,US1,2,,,,012,050,US ,US ,HPR,,,,,,,,,,,,,035,03,2020,,,,,,,,,,,,' \
+           ',,,,,,,,\r\n4,03503191368,A,1,2,TIMOTHY HARTIGAN MD,HARTIGAN,TIMOTHY,,,,6410 LAKEMONT CT,EAST AMHERST,NY,' \
+           '14051,2069,R010 ,,029,36,!,14051,2069,10,1,!,1,2,6,0146,04,1,A,1,15380,,1,1993,BUFFALO,NY,US1,1,,,,012,' \
+           '050,MPD,US ,HPR,,,Y,07012019,06302023,0 ,0 ,MPD,US ,1,35,0345,035,03,2019,,,,,,,,,,,,,,,,,,,,\r\n'
 
-    return [pandas.DataFrame.from_dict(data)]
+    return [data]

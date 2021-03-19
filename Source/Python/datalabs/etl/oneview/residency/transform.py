@@ -13,14 +13,14 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ResidencyTransformerTask(TransformerTask):
     def _transform(self):
-        df_data = [self._to_dataframe(data) for data in self._parameters['data']]
+        df_data = [self._make_dataframe(data) for data in self._parameters['data']]
         self._parameters['data'] = self._merge_dataframe(df_data)
         data = super()._transform()
 
         return data
 
     @classmethod
-    def _to_dataframe(cls, file):
+    def _make_dataframe(cls, file):
         dataframe = pandas.read_csv(StringIO(file), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
 
         return dataframe
