@@ -122,6 +122,49 @@ resource "aws_api_gateway_rest_api" "cpt_api_gateway" {
 
     tags = merge(local.tags, {Name = "${var.project} API Gateway"})
 }
+module "cpt_api_gateway" {
+    source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-apigateway.git?ref=development"
+    api_template = file("${path.module}/../../../../Build/CPT/api.yaml")
+    api_template                    = "${file("apis/platform-experience-1.5.yml")}"
+    api_template_vars               = {
+        title = "${var.project} API",
+        description = local.spec_description,
+        region = local.region,
+        project = var.project,
+        account_id = data.aws_caller_identity.account.account_id,
+        authorizer_uri = module.authorizer_lambda.function_invoke_arn
+    }
+    namespace    = "dev"
+    vpc_endpoint_id = "vpce-00386ef0e51362a12"
+    stage_variable_name              = "test"
+    tag_name                         = "pe-prd-api-gw"
+    tag_environment                  = "prd"
+    tag_contact                      = "Sandeep.Dhamale@ama-assn.org"
+    tag_systemtier                   = "0"
+    tag_drtier                       = "0"
+    tag_dataclassification           = "N/A"
+    tag_budgetcode                   = "PBW"
+    tag_owner                        = "Erek Horne"
+    tag_projectname                  = "Platform Experience"
+    tag_notes                        = "N/A"
+    tag_eol                          = "N/A"
+    tag_maintwindow                  = "N/A"
+    environment                      = "prd"
+
+
+    tag_name                        = "${var.project} API Database"
+    tag_environment                 = local.tags["Env"]
+    tag_contact                     = local.tags["Contact"]
+    tag_systemtier                  = local.tags["SystemTier"]
+    tag_drtier                      = local.tags["DRTier"]
+    tag_dataclassification          = local.tags["DataClassification"]
+    tag_budgetcode                  = local.tags["BudgetCode"]
+    tag_owner                       = local.tags["Owner"]
+    tag_projectname                 = var.project
+    tag_notes                       = ""
+    tag_eol                         = local.tags["EOL"]
+    tag_maintwindow                 = local.tags["MaintenanceWindow"]
+}
 
 
 resource "aws_api_gateway_deployment" "cpt_api_deployment_test" {
