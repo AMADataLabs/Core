@@ -366,6 +366,3 @@ class VTPhysicianContactSampleGenerator:
 def make_physician_contact_request_sample():
     sample_generator = VTPhysicianContactSampleGenerator()
     sample_generator.run()
-
-
-make_physician_contact_request_sample()
