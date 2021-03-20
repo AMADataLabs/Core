@@ -29,16 +29,6 @@ class PresentEmploymentTransformerTask(TransformerTask):
 
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
-    def _transform(self):
-        self._parameters['data'] = [self._to_dataframe(file) for file in self._parameters['data']]
-        core_based_statistical_area_data = super()._transform()
-
-        return core_based_statistical_area_data
-
-    @classmethod
-    def _to_dataframe(cls, file):
-        return pandas.read_csv(BytesIO(file))
-
     def _get_columns(self):
         return [CBSA_COLUMNS]
 
@@ -50,7 +40,7 @@ class SpecialtyTransformerTask(TransformerTask):
 
 class SpecialtyMergeTransformerTask(TransformerTask):
     def _transform(self):
-        specialty_data, physician_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
+        specialty_data, physician_data = [pandas.read_csv(StringIO(csv)) for csv in self._parameters['data']]
         filtered_specialty_data = [
             specialty_data.loc[
                 specialty_data.id.isin(physician_data.primary_specialty) |
@@ -58,13 +48,9 @@ class SpecialtyMergeTransformerTask(TransformerTask):
             ].reset_index(drop=True)
         ]
 
-        self._parameters['data'] = filtered_specialty_data
+        self._parameters['data'] = [dataframe.to_csv() for dataframe in filtered_specialty_data]
 
         return super()._transform()
-
-    @classmethod
-    def _to_dataframe(cls, file):
-        return pandas.read_csv(StringIO(file))
 
     def _get_columns(self):
         return [SPECIALTY_MERGED_COLUMNS]
@@ -72,13 +58,13 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     def _transform(self):
-        fips_data = self._to_dataframe()
-        self._parameters['data'] = [self.set_columns(df) for df in fips_data]
+        fips_data = self._make_dataframe()
+        self._parameters['data'] = [self.set_columns(df).to_csv() for df in fips_data]
 
         return super()._transform()
 
-    def _to_dataframe(self):
-        return [pandas.read_excel(BytesIO(data), skiprows=4) for data in self._parameters['data']]
+    def _make_dataframe(self):
+        return [pandas.read_excel(StringIO(data), skiprows=4) for data in self._parameters['data']]
 
     @classmethod
     def set_columns(cls, fips_data):

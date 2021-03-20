@@ -28,21 +28,21 @@ resource "aws_lambda_permission" "ingestion_etl_router" {
     action          = "lambda:InvokeFunction"
     function_name   = local.function_names.ingestion_etl_router
     principal       = "sns.amazonaws.com"
-    source_arn      = data.aws_sns_topic.ingestion.arn
+    source_arn      = data.aws_sns_topic.ingested_data.arn
 }
 
 
 resource "aws_sns_topic_subscription" "ingestion_etl_router" {
-  topic_arn = data.aws_sns_topic.ingestion.arn
+  topic_arn = data.aws_sns_topic.ingested_data.arn
   protocol  = "lambda"
   endpoint  = aws_lambda_function.ingestion_etl_router.arn
 }
 
 
-resource "aws_lambda_function" "processed_etl_router" {
+resource "aws_lambda_function" "processing_etl_router" {
     s3_bucket           = data.aws_ssm_parameter.lambda_code_bucket.value
     s3_key              = "CPT/CPT.zip"
-    function_name       = local.function_names.processed_etl_router
+    function_name       = local.function_names.processing_etl_router
     role                = aws_iam_role.lambda_role.arn
     handler             = "awslambda.handler"
     runtime             = "python3.7"
@@ -64,17 +64,17 @@ resource "aws_lambda_function" "processed_etl_router" {
 }
 
 
-resource "aws_lambda_permission" "processed_etl_router" {
+resource "aws_lambda_permission" "processing_etl_router" {
     statement_id    = "AllowLambdaInvoke"
     action          = "lambda:InvokeFunction"
-    function_name   = local.function_names.processed_etl_router
+    function_name   = local.function_names.processing_etl_router
     principal       = "sns.amazonaws.com"
-    source_arn      = data.aws_sns_topic.processed.arn
+    source_arn      = data.aws_sns_topic.processed_data.arn
 }
 
 
-resource "aws_sns_topic_subscription" "processed_etl_router" {
-  topic_arn = data.aws_sns_topic.processed.arn
+resource "aws_sns_topic_subscription" "processing_etl_router" {
+  topic_arn = data.aws_sns_topic.processed_data.arn
   protocol  = "lambda"
-  endpoint  = aws_lambda_function.processed_etl_router.arn
+  endpoint  = aws_lambda_function.processing_etl_router.arn
 }

@@ -33,8 +33,8 @@ class TaskDataCache(ABC):
 
 
 class AirflowTaskWrapper(task.TaskWrapper):
-    def __init__(self, task_class, parameters=None):
-        super().__init__(task_class, parameters)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
 
         self._cache_parameters = {}
 

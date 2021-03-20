@@ -27,13 +27,13 @@ data "aws_ssm_parameter" "contact" {
 }
 
 
-data "aws_ssm_parameter" "ingestion_bucket" {
-    name = "/DataLabs/${var.project}/ingestion_bucket"
+data "aws_ssm_parameter" "ingested_data_bucket" {
+    name = "/DataLabs/${var.project}/ingested_data_bucket"
 }
 
 
-data "aws_ssm_parameter" "processed_bucket" {
-    name = "/DataLabs/${var.project}/processed_bucket"
+data "aws_ssm_parameter" "processed_data_bucket" {
+    name = "/DataLabs/${var.project}/processed_data_bucket"
 }
 
 

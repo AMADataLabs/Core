@@ -9,7 +9,7 @@ import pytest
 from   datalabs.access.orm import Database
 from   datalabs.etl.orm.load import ORMLoaderTask
 
-from   test.datalabs.access.model import Base  # pylint: disable=wrong-import-order
+from test.datalabs.access.model import Base  # pylint: disable=wrong-import-order
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -55,13 +55,13 @@ def data():
         two={0: 'swish', 1: 'swash'}
     )
 
-
     poof = dict(
         a={0: 30},
         b={0: True}
     )
 
-    return list([pandas.DataFrame.from_dict(data).to_csv().encode('utf-8', errors='backslashreplace') for data in (foo, bar, poof)])
+    return list([pandas.DataFrame.from_dict(data).to_csv().encode('utf-8', errors='backslashreplace')
+                 for data in (foo, bar, poof)])
 
 
 @pytest.fixture

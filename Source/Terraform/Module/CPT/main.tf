@@ -336,7 +336,7 @@ module "etl_convert" {
     variables               = {
         EXTRACTOR__TASK_CLASS       = "datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask"
         EXTRACTOR__INCLUDE_NAMES    = "True"
-        EXTRACTOR__BUCKET           = data.aws_ssm_parameter.ingestion_bucket.arn
+        EXTRACTOR__BUCKET           = data.aws_ssm_parameter.ingested_data_bucket.arn
         EXTRACTOR__BASE_PATH        = data.aws_ssm_parameter.s3_base_path.arn
         EXTRACTOR__FILES            = data.aws_ssm_parameter.raw_data_files.arn
         EXTRACTOR__SCHEDULE         = data.aws_ssm_parameter.release_schedule.arn
@@ -345,7 +345,7 @@ module "etl_convert" {
         TRANSFORMER__PARSERS        = data.aws_ssm_parameter.raw_data_parsers.arn
 
         LOADER__TASK_CLASS          = "datalabs.etl.s3.load.S3UnicodeTextFileLoaderTask"
-        LOADER__BUCKET              = data.aws_ssm_parameter.processed_bucket.arn
+        LOADER__BUCKET              = data.aws_ssm_parameter.processed_data_bucket.arn
         LOADER__FILES               = data.aws_ssm_parameter.converted_data_files.arn
         LOADER__BASE_PATH           = data.aws_ssm_parameter.s3_base_path.arn
     }
@@ -364,14 +364,14 @@ module "etl_bundle_pdf" {
     variables               = {
         EXTRACTOR__TASK_CLASS           = "datalabs.etl.s3.extract.S3FileExtractorTask"
         EXTRACTOR__INCLUDE_NAMES        = "True"
-        EXTRACTOR__BUCKET               = data.aws_ssm_parameter.ingestion_bucket.arn
+        EXTRACTOR__BUCKET               = data.aws_ssm_parameter.ingested_data_bucket.arn
         EXTRACTOR__BASE_PATH            = data.aws_ssm_parameter.s3_base_path.arn
         EXTRACTOR__FILES                = data.aws_ssm_parameter.pdf_files.arn
 
         TRANSFORMER__TASK_CLASS         = "datalabs.etl.archive.transform.ZipTransformerTask"
 
         LOADER__TASK_CLASS              = "datalabs.etl.s3.load.S3FileLoaderTask"
-        LOADER__BUCKET                  = data.aws_ssm_parameter.processed_bucket.arn
+        LOADER__BUCKET                  = data.aws_ssm_parameter.processed_data_bucket.arn
         LOADER__BASE_PATH               = data.aws_ssm_parameter.s3_base_path.arn
         LOADER__FILES                   = "pdfs.zip"
     }
@@ -385,13 +385,13 @@ module "etl_load" {
     function_name           = local.function_names.loaddb
     account_id              = data.aws_caller_identity.account.account_id
     role                    = aws_iam_role.lambda_role.arn
-    parent_function         = aws_lambda_function.processed_etl_router
+    parent_function         = aws_lambda_function.processing_etl_router
     timeout                 = 300
 
     variables               = {
         EXTRACTOR__TASK_CLASS           = "datalabs.etl.s3.extract.S3UnicodeTextFileExtractorTask"
         EXTRACTOR__INCLUDE_NAMES        = "True"
-        EXTRACTOR__BUCKET               = data.aws_ssm_parameter.processed_bucket.arn
+        EXTRACTOR__BUCKET               = data.aws_ssm_parameter.processed_data_bucket.arn
         EXTRACTOR__BASE_PATH            = data.aws_ssm_parameter.s3_base_path.arn
         EXTRACTOR__FILES                = data.aws_ssm_parameter.raw_csv_files.arn
 
@@ -460,7 +460,7 @@ locals {
         loaddb                      = "${var.project}Load"
         bundlepdf                   = "${var.project}BundlePDF"
         ingestion_etl_router        = "${var.project}IngestionRouter"
-        processed_etl_router        = "${var.project}ProcessedRouter"
+        processing_etl_router        = "${var.project}ProcessingRouter"
         authorizer                  = "${var.project}Authorizer"
     }
     task_classes = {

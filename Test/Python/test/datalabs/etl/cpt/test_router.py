@@ -7,7 +7,7 @@ from   datalabs.etl.cpt.router import RouterTaskWrapper, RouterTask
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_router_variables_are_parsed(environment_variables):
-    task_wrapper = RouterTaskWrapper(task_class=DummyClass)
+    task_wrapper = RouterTaskWrapper()
     task_parameters = task_wrapper._get_task_parameters()
 
     assert 'ACCOUNT' in task_parameters
@@ -18,16 +18,11 @@ def test_router_variables_are_parsed(environment_variables):
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_router_router_task_using_correct_base_path(environment_variables):
-    task_wrapper = RouterTaskWrapper(task_class=RouterTask)
+    task_wrapper = RouterTaskWrapper()
     task_parameters = task_wrapper._get_task_parameters()
     task = RouterTask(task_parameters)
 
     assert task._parameters.base_path == "AMA/CPT"
-
-
-class DummyClass:
-    def run(self):
-        pass
 
 
 @pytest.fixture

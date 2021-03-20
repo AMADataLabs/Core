@@ -62,8 +62,7 @@ def environment(extractor_file, loader_directory):
 # pylint: disable=redefined-outer-name, unused-argument
 @pytest.fixture
 def etl(environment):
-    task_class = import_plugin(os.getenv('TASK_CLASS'))
     task_wrapper_class = import_plugin(os.getenv('TASK_WRAPPER_CLASS'))
-    task_wrapper = task_wrapper_class(task_class, parameters={})
+    task_wrapper = task_wrapper_class(parameters={})
 
     return task_wrapper

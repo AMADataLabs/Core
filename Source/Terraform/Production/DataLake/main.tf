@@ -32,15 +32,15 @@ resource "aws_ssm_parameter" "contact" {
 }
 
 
-resource "aws_ssm_parameter" "ingestion_bucket" {
-    name  = "/DataLabs/DataLake/ingestion_bucket"
+resource "aws_ssm_parameter" "ingested_data_bucket" {
+    name  = "/DataLabs/DataLake/ingested_data_bucket"
     type  = "String"
     value = "ama-hsg-datalabs-datalake-ingestion"
 }
 
 
-resource "aws_ssm_parameter" "processed_bucket" {
-    name  = "/DataLabs/DataLake/processed_bucket"
+resource "aws_ssm_parameter" "processed_data_bucket" {
+    name  = "/DataLabs/DataLake/processed_data_bucket"
     type  = "String"
     value = "ama-hsg-datalabs-datalake-processed"
 }

@@ -22,10 +22,10 @@ module "endpoint_lambda" {
     environment_variables = {
         variables = {
             TASK_WRAPPER_CLASS      = "datalabs.access.api.awslambda.APIEndpointTaskWrapper"
-            TASK_CLASS              = var.task_class
+            TASK_RESOLVER_CLASS     = "datalabs.access.cpt.api.resolve.TaskResolver"
             DATABASE_HOST           = var.database_host
             DATABASE_SECRET         = data.aws_secretsmanager_secret.database.arn
-            BUCKET_NAME             = data.aws_ssm_parameter.processed_bucket.arn
+            BUCKET_NAME             = data.aws_ssm_parameter.processed_data_bucket.arn
             BUCKET_BASE_PATH        = data.aws_ssm_parameter.s3_base_path.arn
             BUCKET_URL_DURATION     = "600"
         }
