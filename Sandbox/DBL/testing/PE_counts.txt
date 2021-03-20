@@ -1,0 +1,19 @@
+144959|011|Self-Employed Solo Practice
+29223|013|Two Physician Practice-Full Or Part Owner
+10083|021|Other-Patient Care
+3448|022|Locum Tenens
+430278|030|Group Practice
+2749|035|HMO
+21830|040|Medical School
+170408|050|Non-Government Hospital
+92869|063|City/County/State Government-Hospital
+7204|064|City/County/State Government-Other Than Hospital
+3712|081|Federal Government-Hospital/Army
+3227|082|Federal Government-Hospital/Navy
+2226|083|Federal Government-Hospital/Air Force
+2020|084|Federal Government-Hospital/Usphs
+11183|085|Federal Government-Hospital/Vet Admin
+6840|086|Federal Government-Hospital/Other Agency
+9695|101|Other/Non-Patient Care
+310355|110|No Classification
+
