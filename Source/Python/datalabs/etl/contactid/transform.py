@@ -11,7 +11,7 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-class TransformerTask(etl.TransformerTask, ABC):
+class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
     def _transform(self):
         LOGGER.info(self._parameters['data'])
 
