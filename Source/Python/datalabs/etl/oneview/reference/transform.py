@@ -56,15 +56,11 @@ class SpecialtyMergeTransformerTask(TransformerTask):
         return [SPECIALTY_MERGED_COLUMNS]
 
 
+# pylint: disable=abstract-method
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
-    def _transform(self):
-        fips_data = self._make_dataframe()
-        self._parameters['data'] = [self.set_columns(df).to_csv() for df in fips_data]
-
-        return super()._transform()
-
-    def _make_dataframe(self):
-        return [pandas.read_excel(StringIO(data), skiprows=4) for data in self._parameters['data']]
+    def _to_dataframe(self):
+        fips_data = [pandas.read_excel(BytesIO(data), skiprows=4) for data in self._parameters['data']]
+        return [self.set_columns(df) for df in fips_data]
 
     @classmethod
     def set_columns(cls, fips_data):
