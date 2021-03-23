@@ -100,8 +100,10 @@ class DBLReportTransformer(TransformerTask, InputData):
         """ PE Counts """
         data = InputData.pe_counts
 
-        # re-order columns
         data.columns = ['Total', 'PE Code', 'Description']
+        data['PE Code'] = data['PE Code'].apply(lambda x: ('000' + str(x))[-3:])
+
+        # re-order columns
         data_formatted = pd.DataFrame()
         formatted_columns = ['PE Code', 'Description', 'Total']
         for col in formatted_columns:
@@ -123,8 +125,10 @@ class DBLReportTransformer(TransformerTask, InputData):
         """ TOP Counts """
         data = InputData.top_counts
 
-        # Re-order columns
         data.columns = ['Total', 'TOP Code', 'Description']
+        data['TOP Code'] = data['TOP Code'].apply(lambda x: ('000' + str(x))[-3:])
+
+        # Re-order columns
         data_formatted = pd.DataFrame()
         formatted_columns = ['TOP Code', 'Description', 'Total']
         for col in formatted_columns:
@@ -147,6 +151,9 @@ class DBLReportTransformer(TransformerTask, InputData):
         data = InputData.top_by_pe
 
         data.columns = ['TOP Code', 'Description', 'PE Code', 'Count']
+        data['TOP Code'] = data['TOP Code'].apply(lambda x: ('000' + str(x))[-3:])
+        data['PE Code'] = data['PE Code'].apply(lambda x: ('000' + str(x))[-3:])
+
         table = pd.pivot_table(
             data,
             values='Count',
