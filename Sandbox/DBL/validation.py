@@ -64,6 +64,7 @@ class DBLReportValidation:
         self.validate_tab7()
         self.validate_tab8()
         self.validate_tab9()
+        self.validate_tab10()
 
         self.write_log_file()
 
@@ -342,7 +343,7 @@ class DBLReportValidation:
 
         unspecified10 = pd.read_excel(
             self.dbl_file_location,
-            sheet_name='SecSpecbyMPA',
+            sheet_name='PrimSpecbyMPA',
             header=1,
             index_col=0
         ).T.reset_index()[
