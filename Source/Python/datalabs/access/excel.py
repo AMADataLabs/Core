@@ -1,7 +1,7 @@
 """ Windows-specific Excel functions. """
 import pandas as pd
 import win32com  # pylint: disable=import-error
-from win32com import client
+from win32com import client  # pylint: disable=import-error
 
 
 def save_formatted_output(data: pd.DataFrame, file, sheet_name='Sheet1'):
