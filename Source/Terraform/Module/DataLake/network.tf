@@ -44,7 +44,8 @@ resource "aws_security_group" "datalake" {
     tags = merge(local.tags, {Name = "Data Lake"})
 }
 
-# resource "aws_vpc_endpoint" "datalake" {
+
+# resource "aws_vpc_endpoint" "api_gateway" {
 #     vpc_id          = aws_vpc.datalake.id
 #     service_name    = "com.amazonaws.us-east-1.execute-api"
 #     vpc_endpoint_type = "Interface"
