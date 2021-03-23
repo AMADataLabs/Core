@@ -17,7 +17,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
 
         sfmc_contacts, api_orders, active_subscription, users = self._to_dataframe()
 
-        LOGGER.info(sfmc_contacts.head(1))
+        #LOGGER.info(sfmc_contacts.head(1))
 
         sfmc_contacts['My new column'] = 'default value'
 
