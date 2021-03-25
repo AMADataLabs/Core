@@ -44,6 +44,10 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
                 prev_index = index - 1
                 sfmc_contacts['HSContact_ID'][index] = sfmc_contacts['HSContact_ID'][prev_index]
             emppid = sfmc_contacts['EMPPID'][index]
+
+    @classmethod
+    def _dataframe_to_csv(cls, data):
+        return data.to_csv(index=False, quoting=csv.QUOTE_NONNUMERIC)
 '''
     def _assign_id_to_users(users, sfmc_contacts):
         users['HSContact_ID'] = np.nan
@@ -54,19 +58,13 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
                     if users['EMAIL'][index_users] in sfmc_contacts['EMAIL_ADDRESS'][index_contacts]:
                         users['HSContact_ID'][index_users] = sfmc_contacts['HSContact_ID'][index_contacts]
             else:
-                id = 
+                id = uuid.uuid1()
                 sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
-                sfmc_contacts = sfmc_contacts.append({'HSContact_ID': })
-                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
-                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
-                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
-                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
-                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
+                sfmc_contacts = sfmc_contacts.append({'HSContact_ID':id.int})
+                sfmc_contacts = sfmc_contacts.append({'EMAIL_ADDRESS': users['EMAIL']})
         for index in users.index:
             if users['HSContact_ID'] == 'Nan':
                 id = uuid.uuid1()
                 users['HSContact_ID'][index] = id.int
 '''
-    @classmethod
-    def _dataframe_to_csv(cls, data):
-        return data.to_csv(index=False, quoting=csv.QUOTE_NONNUMERIC)
+
