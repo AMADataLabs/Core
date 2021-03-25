@@ -212,7 +212,7 @@ module "endpoint_lambda" {
         }
     }
 
-    tag_name                = local.function_names.endpoint
+    tag_name                = "${var.project}-Endpoint"
     tag_environment         = local.tags["Env"]
     tag_contact             = local.tags["Contact"]
     tag_systemtier          = local.tags["SystemTier"]
