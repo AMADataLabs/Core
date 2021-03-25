@@ -4,6 +4,8 @@ from   io import BytesIO
 import csv
 import logging
 import pandas
+import numpy as np
+import uuid
 
 import datalabs.etl.transform as etl
 
@@ -17,9 +19,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
 
         sfmc_contacts, api_orders, active_subscription, users = self._to_dataframe()
 
-        #LOGGER.info(sfmc_contacts.head(1))
-
-        sfmc_contacts['My new column'] = 'default value'
+        sfmc_contacts = self._assign_id_to_contacts(sfmc_contacts)
 
         LOGGER.info(sfmc_contacts.head(1))
 
@@ -34,6 +34,17 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
     def _to_dataframe(self):
         return [pandas.read_csv(BytesIO(file)) for file in self._parameters['data']]
 
+    def _assign_id_to_contacts(self, sfmc_contacts):
+        sfmc_contacts["HSContactID"] = np.nan
+        emppid = -1
+        for ind in org_manager.index:
+            if (sfmc_contacts['EMPPID'][ind] != emppid):
+                id = uuid.uuid1()
+                org_manager['HSContactID'][ind] = id.int
+            else:
+                prev_ind = ind - 1
+                sfmc_contacts['HSContactID'][ind] = org_manager['HSContactID'][prev_ind]
+            emppid = (sfmc_contacts['EMAIL'][ind]
 '''    
     def _select_columns(self, dataset):
         names = [list(column_map.keys()) for column_map in self._get_columns()]
