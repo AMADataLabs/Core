@@ -471,7 +471,7 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="migrate_database",
         secrets=[DATABASE_SECRET],
-        cmds=['./Script/migrate-database', 'create', '--host ${DATABASE_HOST}', '--port ${DATABASE_PORT}',
+        cmds=['./Script/migrate-database', 'create', '--message Update tables', '--host ${DATABASE_HOST}', '--port ${DATABASE_PORT}',
               '--name ${DATABASE_NAME}', '--password ${DATABASE_PASSWORD}', '-- username ${DATABASE_USERNAME}'],
         do_xcom_push=False,
         is_delete_operator_pod=False,
