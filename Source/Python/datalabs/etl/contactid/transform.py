@@ -42,8 +42,6 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
                 sfmc_contacts['HSContactID'][index] = sfmc_contacts['HSContactID'][prev_index]
             emppid = (sfmc_contacts['HSContactID'][index]
 
-
-
     @classmethod
     def _dataframe_to_csv(cls, data):
         return data.to_csv(index=False, quoting=csv.QUOTE_NONNUMERIC)
