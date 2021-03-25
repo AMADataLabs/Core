@@ -61,7 +61,7 @@ EOF
 
 
 resource "aws_iam_role_policy" "troodon" {
-    role = aws_iam_role.example.troodon
+    role = aws_iam_role.troodon.id
 
     policy = <<POLICY
 {
@@ -73,50 +73,30 @@ resource "aws_iam_role_policy" "troodon" {
         "*"
       ],
       "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
+        "logs:*",
         "ec2:CreateNetworkInterface",
-        "ec2:DescribeDhcpOptions",
         "ec2:DescribeNetworkInterfaces",
         "ec2:DeleteNetworkInterface",
         "ec2:DescribeSubnets",
         "ec2:DescribeSecurityGroups",
-        "ec2:DescribeVpcs"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateNetworkInterfacePermission"
-      ],
-      "Resource": [
-        "arn:aws:ec2:us-east-1:123456789012:network-interface/*"
-      ],
-      "Condition": {
-        "StringEquals": {
-          "ec2:Subnet": [
-            "${aws_subnet.example1.arn}",
-            "${aws_subnet.example2.arn}"
-          ],
-          "ec2:AuthorizedService": "codebuild.amazonaws.com"
-        }
-      }
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "s3:*"
-      ],
-      "Resource": [
-        "${aws_s3_bucket.example.arn}",
-        "${aws_s3_bucket.example.arn}/*"
+        "ec2:DescribeDhcpOptions",
+        "ec2:DescribeVpcs",
+        "ec2:CreateNetworkInterfacePermission",
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:GetObjectVersion",
+        "s3:ListBucket",
+        "cloudformation:*",
+        "iam:*",
+        "codedeploy:*",
+        "lambda:*",
+        "apigateway:*",
+        "ssm:*",
+        "ecr:*",
+        "s3:*",
+        "vpc:*",
+        "ec2:*",
+        "sagemaker:*"
       ]
     }
   ]
