@@ -1,6 +1,6 @@
 """ Transformer for DBL Report Creation """
 
-from io import BytesIO
+from io import BytesIO, StringIO
 import logging
 import numpy as np
 import pandas as pd
@@ -29,7 +29,6 @@ def get_letters_between(start, end):
 class DBLReportTransformer(TransformerTask):
     def _transform(self) -> 'Transformed Data':
         dataframes = self._get_dataframes(self._parameters['data'])
-
         dataframes[0] = self._transform_tab1(dataframes[0])
         dataframes[1] = self._transform_tab2(dataframes[1])
         dataframes[2] = self._transform_tab3(dataframes[2])
@@ -46,16 +45,16 @@ class DBLReportTransformer(TransformerTask):
 
     @classmethod
     def _get_dataframes(cls, data):
-        tab_1_data = pd.read_csv(data[0], delimiter='|', header=None)
-        tab_2_data = pd.read_csv(data[1], delimiter='|')
-        tab_3_data = pd.read_csv(data[2], delimiter='|')
-        tab_4_data = pd.read_csv(data[3], delimiter='|')
-        tab_5_data = pd.read_csv(data[4], delimiter='|')
-        tab_6_data = pd.read_csv(data[5], delimiter='|', header=None)
-        tab_7_data = pd.read_csv(data[6], delimiter='|', header=None)
-        tab_8_data = pd.read_csv(data[7], delimiter='|', header=None)
-        tab_9_data = pd.read_csv(data[8], delimiter='|', header=None)
-        tab_10_data = pd.read_csv(data[9], delimiter='|', header=None)
+        tab_1_data = pd.read_csv(StringIO(data[0]), delimiter='|', header=None)
+        tab_2_data = pd.read_csv(StringIO(data[1]), delimiter='|')
+        tab_3_data = pd.read_csv(StringIO(data[2]), delimiter='|')
+        tab_4_data = pd.read_csv(StringIO(data[3]), delimiter='|')
+        tab_5_data = pd.read_csv(StringIO(data[4]), delimiter='|')
+        tab_6_data = pd.read_csv(StringIO(data[5]), delimiter='|', header=None)
+        tab_7_data = pd.read_csv(StringIO(data[6]), delimiter='|', header=None)
+        tab_8_data = pd.read_csv(StringIO(data[7]), delimiter='|', header=None)
+        tab_9_data = pd.read_csv(StringIO(data[8]), delimiter='|', header=None)
+        tab_10_data = pd.read_csv(StringIO(data[9]), delimiter='|', header=None)
         return [
             tab_1_data,
             tab_2_data,
