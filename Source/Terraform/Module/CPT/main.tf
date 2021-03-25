@@ -179,225 +179,51 @@ resource "aws_api_gateway_deployment" "cpt_api_deployment_test" {
 }
 
 
-module "endpoint_descriptor" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.descriptor
-    task_class          = local.task_classes.descriptor
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
+module "endpoint_lambda" {
+    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
+    function_name       = local.function_names.endpoint
+    lambda_name         = local.function_names.endpoint
+    s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
+    s3_lambda_key       = "CPT/CPT.zip"
+    handler             = "awslambda.handler"
+    runtime             = local.runtime
+    create_alias        = false
     memory_size         = var.endpoint_memory_size
-}
-
-
-module "endpoint_all_descriptors" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.descriptors
-    task_class          = local.task_classes.descriptors
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
     timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
 
+    lambda_policy_vars  = {
+        account_id                  = data.aws_caller_identity.account.account_id
+        region                      = local.region
+        project                     = var.project
+    }
 
-module "endpoint_consumer_descriptor" {
-    source = "./endpoint"
+    create_lambda_permission    = true
+    api_arn                     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
 
-    project             = var.project
-    function_name       = local.function_names.consumer_descriptor
-    task_class          = local.task_classes.consumer_descriptor
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
+    environment_variables = {
+        variables = {
+            TASK_WRAPPER_CLASS      = "datalabs.access.api.awslambda.APIEndpointTaskWrapper"
+            TASK_RESOLVER_CLASS     = "datalabs.access.cpt.api.resolve.TaskResolver"
+            DATABASE_HOST           = aws_db_instance.cpt_api_database.address
+            DATABASE_SECRET         = data.aws_secretsmanager_secret.database.arn
+            BUCKET_NAME             = data.aws_ssm_parameter.processed_data_bucket.arn
+            BUCKET_BASE_PATH        = data.aws_ssm_parameter.s3_base_path.arn
+            BUCKET_URL_DURATION     = "600"
+        }
+    }
 
-
-module "endpoint_consumer_descriptors" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.consumer_descriptors
-    task_class          = local.task_classes.consumer_descriptors
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
-
-
-module "endpoint_clinician_descriptors" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.clinician_descriptors
-    task_class          = local.task_classes.clinician_descriptors
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
-
-
-module "endpoint_all_clinician_descriptors" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.all_clinician_descriptors
-    task_class          = local.task_classes.all_clinician_descriptors
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
-
-
-module "endpoint_pla_details" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.pla_details
-    task_class          = local.task_classes.pla_details
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
-
-
-module "endpoint_all_pla_details" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.all_pla_details
-    task_class          = local.task_classes.all_pla_details
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
-
-
-module "endpoint_modifier" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.modifier
-    task_class          = local.task_classes.modifier
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
-
-
-module "endpoint_modifiers" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.modifiers
-    task_class          = local.task_classes.modifiers
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
-
-
-module "endpoint_latest_pdfs" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.latest_pdfs
-    task_class          = local.task_classes.latest_pdfs
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
-
-
-# module "endpoint_pdfs" {
-#     source = "./endpoint"
-
-#     project             = var.project
-#     function_name       = local.function_names.pdfs
-#     task_class          = local.task_classes.pdfs
-#     region              = local.region
-#     account_id          = data.aws_caller_identity.account.account_id
-#     role                = aws_iam_role.lambda_role.arn
-#     api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-#     database_host       = aws_db_instance.cpt_api_database.address
-# }
-
-
-module "endpoint_releases" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.releases
-    task_class          = local.task_classes.releases
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
-}
-
-
-module "endpoint_default" {
-    source = "./endpoint"
-
-    project             = var.project
-    function_name       = local.function_names.default
-    task_class          = local.task_classes.default
-    region              = local.region
-    account_id          = data.aws_caller_identity.account.account_id
-    role                = aws_iam_role.lambda_role.arn
-    api_gateway_arn     = "arn:aws:execute-api:${local.region}:${data.aws_caller_identity.account.account_id}:${aws_api_gateway_rest_api.cpt_api_gateway.id}"
-    database_host       = aws_db_instance.cpt_api_database.address
-    timeout             = var.endpoint_timeout
-    memory_size         = var.endpoint_memory_size
+    tag_name                = local.function_names.endpoint
+    tag_environment         = local.tags["Env"]
+    tag_contact             = local.tags["Contact"]
+    tag_systemtier          = local.tags["SystemTier"]
+    tag_drtier              = local.tags["DRTier"]
+    tag_dataclassification  = local.tags["DataClassification"]
+    tag_budgetcode          = local.tags["BudgetCode"]
+    tag_owner               = local.tags["Owner"]
+    tag_projectname         = var.project
+    tag_notes               = ""
+    tag_eol                 = local.tags["EOL"]
+    tag_maintwindow         = local.tags["MaintenanceWindow"]
 }
 
 
@@ -425,7 +251,7 @@ module "authorizer_lambda" {
     environment_variables = {
         variables = {
             TASK_WRAPPER_CLASS      = "datalabs.access.authorize.awslambda.AuthorizerLambdaTaskWrapper"
-            TASK_CLASS              = local.task_classes.authorizer
+            TASK_CLASS              = "datalabs.access.authorize.task.AuthorizerTask"
             PASSPORT_URL            = data.aws_ssm_parameter.passport_url.arn
         }
     }
@@ -561,19 +387,7 @@ locals {
         MaintenanceWindow   = local.na
     }
     function_names = {
-        descriptor                  = "${var.project}GetDescriptor"
-        descriptors                 = "${var.project}GetDescriptors"
-        consumer_descriptor         = "${var.project}GetConsumerDescriptor"
-        consumer_descriptors        = "${var.project}GetConsumerDescriptors"
-        clinician_descriptors       = "${var.project}GetClinicianDescriptors"
-        all_clinician_descriptors   = "${var.project}GetAllClinicianDescriptors"
-        pla_details                 = "${var.project}GetPLADetails"
-        all_pla_details             = "${var.project}GetAllPLADetails"
-        modifier                    = "${var.project}GetModifier"
-        modifiers                   = "${var.project}GetModifiers"
-        latest_pdfs                 = "${var.project}GetLatestPDFs"
-        pdfs                        = "${var.project}GetPDFs"
-        releases                    = "${var.project}GetReleases"
+        endpoint                    = "${var.project}-Endpoint"
         default                     = "${var.project}Default"
         convert                     = "${var.project}Convert"
         loaddb                      = "${var.project}Load"
@@ -581,22 +395,5 @@ locals {
         ingestion_etl_router        = "${var.project}IngestionRouter"
         processing_etl_router        = "${var.project}ProcessingRouter"
         authorizer                  = "${var.project}Authorizer"
-    }
-    task_classes = {
-        descriptor                  = "datalabs.access.cpt.api.descriptor.DescriptorEndpointTask"
-        descriptors                 = "datalabs.access.cpt.api.descriptor.AllDescriptorsEndpointTask"
-        consumer_descriptor         = "datalabs.access.cpt.api.consumer_descriptor.ConsumerDescriptorEndpointTask"
-        consumer_descriptors        = "datalabs.access.cpt.api.consumer_descriptor.AllConsumerDescriptorsEndpointTask"
-        clinician_descriptors       = "datalabs.access.cpt.api.clinician_descriptor.ClinicianDescriptorsEndpointTask"
-        all_clinician_descriptors   = "datalabs.access.cpt.api.clinician_descriptor.AllClinicianDescriptorsEndpointTask"
-        modifier                    = "datalabs.access.cpt.api.modifier.ModifierEndpointTask"
-        modifiers                   = "datalabs.access.cpt.api.modifier.AllModifiersEndpointTask"
-        pla_details                 = "datalabs.access.cpt.api.pla.PLADetailsEndpointTask"
-        all_pla_details             = "datalabs.access.cpt.api.pla.AllPLADetailsEndpointTask"
-        latest_pdfs                 = "datalabs.access.cpt.api.pdf.LatestPDFsEndpointTask"
-        pdfs                        = "datalabs.access.cpt.api.pdf.PDFsEndpointTask"
-        releases                    = "datalabs.access.cpt.api.release.ReleasesEndpointTask"
-        default                     = "datalabs.access.cpt.api.default.DefaultEndpointTask"
-        authorizer                  = "datalabs.access.authorize.task.AuthorizerTask"
     }
 }
