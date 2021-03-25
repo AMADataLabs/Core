@@ -30,21 +30,43 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
 
     def _to_dataframe(self):
-        return [pandas.read_csv(BytesIO(file)) for file in self._parameters['data']]
+        seperators = ['\t', ',', ',', ',']
+        return [pandas.read_csv(BytesIO(data), seperator=seperator) for data, seperator in zip(self._parameters['data'], seperators)]
 
     def _assign_id_to_contacts(self, sfmc_contacts):
-        sfmc_contacts["HSContactID"] = np.nan
+        sfmc_contacts["HSContact_ID"] = np.nan
         emppid = -1
         for index in sfmc_contacts.index:
             if (sfmc_contacts['EMPPID'][index] != emppid):
                 id = uuid.uuid1()
-                sfmc_contacts['HSContactID'][index] = id.int
+                sfmc_contacts['HSContact_ID'][index] = id.int
             else:
                 prev_index = index - 1
-                sfmc_contacts['HSContactID'][index] = sfmc_contacts['HSContactID'][prev_index]
+                sfmc_contacts['HSContact_ID'][index] = sfmc_contacts['HSContact_ID'][prev_index]
             emppid = sfmc_contacts['EMPPID'][index]
-
-
+'''
+    def _assign_id_to_users(users, sfmc_contacts):
+        users['HSContact_ID'] = np.nan
+        for index_users in users.index:
+            for index_contacts in sfmc_contacts.index:
+            if users['FIRS_NM'][index_users] in sfmc_contacts['PARSE_FIRST'][index_contacts]:
+                if users['LAST_NM'][index_users] in sfmc_contacts['PARSE_LAST'][index_contacts]:
+                    if users['EMAIL'][index_users] in sfmc_contacts['EMAIL_ADDRESS'][index_contacts]:
+                        users['HSContact_ID'][index_users] = sfmc_contacts['HSContact_ID'][index_contacts]
+            else:
+                id = 
+                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
+                sfmc_contacts = sfmc_contacts.append({'HSContact_ID': })
+                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
+                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
+                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
+                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
+                sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
+        for index in users.index:
+            if users['HSContact_ID'] == 'Nan':
+                id = uuid.uuid1()
+                users['HSContact_ID'][index] = id.int
+'''
     @classmethod
     def _dataframe_to_csv(cls, data):
         return data.to_csv(index=False, quoting=csv.QUOTE_NONNUMERIC)
