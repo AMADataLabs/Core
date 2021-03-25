@@ -9,8 +9,21 @@ import pytest
     os.getenv('RUN_INTEGRATION_TESTS') != 'True',
     reason="Normally skip integration tests to increase testing speed."
 )
-def test_transformer_works_with_sandbox_data():
-    files = [
+# pylint: disable=protected-access, redefined-outer-name
+def test_transformer_works_with_sandbox_data(input_data):
+    # pylint: disable=undefined-variable
+    transformer = DBLReportTransformer(parameters=dict(data=input_data))
+    output_data = transformer._transform()
+
+    assert len(output_data) == 1
+
+    with open("transform_test.xlsx", "wb") as file:
+        file.write(output_data[0])
+
+
+@pytest.fixture
+def input_data():
+    filenames = [
         'Sandbox/DBL/testing/2021-03-23/changefileaudit.txt'
         'Sandbox/DBL/testing/2021-03-23/ReportByFieldFrom_SAS.txt'
         'Sandbox/DBL/testing/2021-03-23/countofchangesbyfieldextract.txt'
@@ -24,14 +37,8 @@ def test_transformer_works_with_sandbox_data():
     ]
 
     data = []
-    for file in files:
-        with open(file) as f:
-            data.update(f.read())  # needs to be bytes, not string
+    for filename in filenames:
+        with open(filename) as file:
+            data.extend(file.read())  # needs to be bytes, not string
 
-    parameters = dict(data=data)
-
-    t = DBLReportTransformer(parameters=parameters)
-    output = t._transform()[0]
-    print(output)
-    with open("transform_test.xlsx", "wb") as f:
-        f.write(output)
+    return data
