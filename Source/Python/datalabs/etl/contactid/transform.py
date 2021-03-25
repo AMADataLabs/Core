@@ -21,7 +21,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
 
         sfmc_contacts = self._assign_id_to_contacts(sfmc_contacts)
 
-        LOGGER.info(sfmc_contacts.head(1))
+        LOGGER.info(sfmc_contacts.head(2))
 
 
         #selected_data = self._select_columns(dataframes)
