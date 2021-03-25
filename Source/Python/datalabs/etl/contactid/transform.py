@@ -21,6 +21,8 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
 
         sfmc_contacts = self._assign_id_to_contacts(sfmc_contacts)
 
+        #users = self._assign_id_to_users(users, sfmc_contacts)
+
         LOGGER.info(sfmc_contacts.head(2))
 
         csv_data = [self._dataframe_to_csv(data) for data in [sfmc_contacts, api_orders, active_subscription, users]]
@@ -40,7 +42,8 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
             else:
                 prev_index = index - 1
                 sfmc_contacts['HSContactID'][index] = sfmc_contacts['HSContactID'][prev_index]
-            emppid = (sfmc_contacts['HSContactID'][index]
+            emppid = sfmc_contacts['EMPPID'][index]
+
 
     @classmethod
     def _dataframe_to_csv(cls, data):
