@@ -480,7 +480,23 @@ with ONEVIEW_ETL_DAG:
         get_logs=True,
     )
 
+    RESET_DATABASE = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="reset_database",
+        env_from=[ETL_CONFIG],
+        secrets=[DATABASE_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.orm.load.ORMPreLoaderTask'),
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="reset_database",
+        get_logs=True,
+    )
+
 # # pylint: disable=pointless-statement
+RESET_DATABASE
 EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE # >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_TYPE_OF_PRACTICE >> CREATE_TYPE_OF_PRACTICE_TABLE  # >> LOAD_TABLES_INTO_DATABASE
 # EXTRACT_PRESENT_EMPLOYMENT >> CREATE_PRESENT_EMPLOYMENT_TABLE >> LOAD_TABLES_INTO_DATABASE
