@@ -16,6 +16,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _load(self):
+        LOGGER.info(self._parameters)
+
         with self._get_database(Database, self._parameters) as database:
             for model_class, data in zip(self._get_model_classes(), self._get_dataframes()):
                 self._add_data(database, model_class, data)
