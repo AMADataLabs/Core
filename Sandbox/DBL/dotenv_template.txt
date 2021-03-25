@@ -1,0 +1,15 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+# Project Settings
+PROJECT_NAME='DBL-VALIDATION'
+
+# File Locations and Directories
+DBL_REPORT_FILE='{{ path to DBL report workbook to review }}'
+PREV_DBL_REPORT_FILE='{{ path to previous DBL report workbook - used to calculate changes}}'
+LOG_FILE_DIRECTORY='{{ target directory for log files to be written to  }}'
+
+# Distribution
+DISTRIBUTION_RECIPIENTS='{{ string of ;-delimited email addresses }}'
+DISTRIBUTION_CC='{{ string of ;-delimited email addresses }}'
+DISTRIBUTION_RECIPIENTS_ON_ERROR='{{ string of ;-delimited email addresses }}'
