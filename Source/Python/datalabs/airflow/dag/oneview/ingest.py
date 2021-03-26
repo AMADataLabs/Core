@@ -470,7 +470,6 @@ with ONEVIEW_ETL_DAG:
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
         name="migrate_database",
-        env_from=[ETL_CONFIG],
         secrets=[DATABASE_SECRET],
         cmds=['./Script/migrate-database', 'create', 'OneView', '--message', 'Update tables', '--host',
               '${DATABASE_HOST}', '--port', '${DATABASE_PORT}', '--name', '${DATABASE_NAME}', '--password',
