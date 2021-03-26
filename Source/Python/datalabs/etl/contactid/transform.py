@@ -32,7 +32,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
     def _to_dataframe(self):
         seperators = ['\t', ',', ',', ',']
         encodings = ['ISO 8859-1','utf-8','utf-8','utf-8']
-        return [pandas.read_csv(BytesIO(data), sep=seperator, encoding = encodings) for data, seperator, encodings in zip(self._parameters['data'], seperators, encodings)]
+        return [pandas.read_csv(BytesIO(data), sep=seperator, encoding = encodings, low_memory=False) for data, seperator, encodings in zip(self._parameters['data'], seperators, encodings)]
 
     def _assign_id_to_contacts(self, sfmc_contacts):
         sfmc_contacts["HSContact_ID"] = np.nan
