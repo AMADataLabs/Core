@@ -48,7 +48,7 @@ data:
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__SQL: 'SELECT DISTINCT T.top_cd, T.description FROM informix.top_pr T;'
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DRIVER: 'com.informix.jdbc.IfxDriver'
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DRIVER_TYPE: 'informix-sqli'
-    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
+    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
 
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
@@ -75,7 +75,7 @@ data:
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__SQL: "SELECT DISTINCT P.present_emp_cd, P.description FROM informix.present_emp_pr P;"
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DRIVER: 'com.informix.jdbc.IfxDriver'
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DRIVER_TYPE: 'informix-sqli'
-    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
 
 
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
@@ -103,7 +103,7 @@ data:
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__SQL: "SELECT DISTINCT M.mpa_cd, M.description FROM informix.mpa_pr M;"
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DRIVER: 'com.informix.jdbc.IfxDriver'
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DRIVER_TYPE: 'informix-sqli'
-    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
 
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
@@ -175,7 +175,7 @@ data:
     ONEVIEW__EXTRACT_SPECIALTY__SQL: "SELECT DISTINCT S.spec_cd, S.description FROM informix.spec_pr S;"
     ONEVIEW__EXTRACT_SPECIALTY__DRIVER: 'com.informix.jdbc.IfxDriver'
     ONEVIEW__EXTRACT_SPECIALTY__DRIVER_TYPE: 'informix-sqli'
-    ONEVIEW__EXTRACT_SPECIALTY__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
+    ONEVIEW__EXTRACT_SPECIALTY__JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
 
     ONEVIEW__EXTRACT_SPECIALTY__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_SPECIALTY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
