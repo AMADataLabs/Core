@@ -473,8 +473,9 @@ with ONEVIEW_ETL_DAG:
         env_from=[ETL_CONFIG],
         secrets=[DATABASE_SECRET],
         cmds=['./Script/migrate-database', 'create', 'OneView', '--message', 'Update tables', '--host',
-              '${DATABASE_HOST}', '--port', '${DATABASE_PORT}', '--name', '${DATABASE_NAME}', '--password',
-              '${DATABASE_PASSWORD}', '--username', '${DATABASE_USERNAME}'],
+              f'{DATABASE_SECRET.DATABASE_HOST}', '--port', f'{ETL_CONFIG.DATABASE_PORT}', '--name',
+              f'{ETL_CONFIG.DATABASE_NAME}', '--password', f'{DATABASE_SECRET.DATABASE_PASSWORD}', '--username',
+              f'{DATABASE_SECRET.DATABASE_USERNAME}'],
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
@@ -498,6 +499,7 @@ with ONEVIEW_ETL_DAG:
     )
 
 # # pylint: disable=pointless-statement
+MIGRATE_DATABASE
 RESET_DATABASE
 EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE # >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_TYPE_OF_PRACTICE >> CREATE_TYPE_OF_PRACTICE_TABLE  # >> LOAD_TABLES_INTO_DATABASE
@@ -526,4 +528,3 @@ EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE # >> L
 # CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_TABLES_INTO_DATABASE
-MIGRATE_DATABASE
