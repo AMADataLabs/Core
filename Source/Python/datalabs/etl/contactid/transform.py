@@ -17,7 +17,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
     def _transform(self):
         LOGGER.info(self._parameters['data'])
 
-        sfmc_contacts, api_orders, active_subscription, users = self._to_dataframe()
+        sfmc_contacts, active_subscription = self._to_dataframe()
 
         sfmc_contacts = self._assign_id_to_contacts(sfmc_contacts)
 
@@ -25,7 +25,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
 
         LOGGER.info(sfmc_contacts.head(2))
 
-        csv_data = [self._dataframe_to_csv(data) for data in [sfmc_contacts, api_orders, active_subscription, users]]
+        csv_data = [self._dataframe_to_csv(data) for data in [sfmc_contacts, active_subscription]]
 
         return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
 
@@ -47,7 +47,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
             emppid = sfmc_contacts['EMPPID'][index]
 
         return sfmc_contacts
-    
+
     @classmethod
     def _dataframe_to_csv(cls, data):
         return data.to_csv(index=False, quoting=csv.QUOTE_NONNUMERIC)
