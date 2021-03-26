@@ -60,6 +60,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
                         users['HSContact_ID'][index_users] = sfmc_contacts['HSContact_ID'][index_contacts]
             else:
                 id = uuid.uuid1()
+                users['HSContact_ID'][index_users]
                 sfmc_contacts = sfmc_contacts.append({'HSContact_ID':id.int})
                 sfmc_contacts = sfmc_contacts.append({'NAME': users['FIRS_NM'] + users['LAST_NM]})
                 sfmc_contacts = sfmc_contacts.append({'EMAIL_ADDRESS': users['EMAIL']})
