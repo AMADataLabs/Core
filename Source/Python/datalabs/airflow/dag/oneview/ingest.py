@@ -45,7 +45,7 @@ with ONEVIEW_ETL_DAG:
         name="extract_type_of_practice",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[AIMS_SECRET, MINIO_SECRET],
+        secrets=[ODS_SECRET, MINIO_SECRET],
         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
         do_xcom_push=False,
         is_delete_operator_pod=False,
