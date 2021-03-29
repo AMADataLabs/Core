@@ -59,16 +59,11 @@ class ORMPreLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _load(self):
         with self._get_database(Database, self._parameters) as database:
             for model_class in self._get_model_classes():
-                self._delete_data(database, model_class)
+                # pylint: disable=no-member
+                database.delete(model_class)
 
             # pylint: disable=no-member
             database.commit()
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
-
-    @classmethod
-    def _delete_data(cls, database, models):
-        for table in models:
-            # pylint: disable=no-member
-            database.delete(table)
