@@ -2,7 +2,7 @@
 import os
 
 import pytest
-#import ???
+from datalabs.analysis.dbl.transform import DBLReportTransformer
 
 
 @pytest.mark.skipif(
@@ -16,6 +16,7 @@ def test_transformer_works_with_sandbox_data(input_data):
     output_data = transformer._transform()
 
     assert len(output_data) == 1
+    assert 70000 >= len(output_data[0]) >= 50000
 
     with open("transform_test.xlsx", "wb") as file:
         file.write(output_data[0])
@@ -24,21 +25,21 @@ def test_transformer_works_with_sandbox_data(input_data):
 @pytest.fixture
 def input_data():
     filenames = [
-        'Sandbox/DBL/testing/2021-03-23/changefileaudit.txt'
-        'Sandbox/DBL/testing/2021-03-23/ReportByFieldFrom_SAS.txt'
-        'Sandbox/DBL/testing/2021-03-23/countofchangesbyfieldextract.txt'
-        'Sandbox/DBL/testing/2021-03-23/recordactionextract.txt'
-        'Sandbox/DBL/testing/2021-03-23/changebyrecordcount.txt'
-        'Sandbox/DBL/testing/2021-03-23/PE_counts.txt'
-        'Sandbox/DBL/testing/2021-03-23/TOP_counts.txt'
-        'Sandbox/DBL/testing/2021-03-23/topbyPEcounts.txt'
-        'Sandbox/DBL/testing/2021-03-23/PrimSpecbyMPA.txt'
-        'Sandbox/DBL/testing/2021-03-23/SecSpecbyMPA.txt'
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/changefileaudit.txt',
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/ReportByFieldFrom_SAS.txt',
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/countofchangesbyfieldextract.txt',
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/recordactionextract.txt',
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/changebyrecordcount.txt',
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/PE_counts.txt',
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/TOP_counts.txt',
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/topbyPEcounts.txt',
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/PrimSpecbyMPA.txt',
+        '../../../../../../Sandbox/DBL/testing/2021-03-23/SecSpecbyMPA.txt'
     ]
 
     data = []
     for filename in filenames:
-        with open(filename) as file:
-            data.extend(file.read())  # needs to be bytes, not string
+        with open(filename, 'rb') as file:
+            data.append(file.read())  # needs to be bytes, not string
 
     return data
