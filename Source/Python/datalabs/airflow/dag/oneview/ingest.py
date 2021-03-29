@@ -240,7 +240,7 @@ with ONEVIEW_ETL_DAG:
         name="create_present_employment_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[AIMS_SECRET, MINIO_SECRET],
+        secrets=[MINIO_SECRET],
         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.PresentEmploymentTransformerTask'),
         do_xcom_push=False,
         is_delete_operator_pod=False,
