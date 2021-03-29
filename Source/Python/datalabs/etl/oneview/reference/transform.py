@@ -5,7 +5,7 @@ import logging
 import pandas
 
 from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, \
-    SPECIALTY_COLUMNS, SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS
+    SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
