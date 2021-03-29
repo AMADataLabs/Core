@@ -33,11 +33,6 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
         return [CBSA_COLUMNS]
 
 
-class SpecialtyTransformerTask(TransformerTask):
-    def _get_columns(self):
-        return [SPECIALTY_COLUMNS]
-
-
 class SpecialtyMergeTransformerTask(TransformerTask):
     def _to_dataframe(self):
         specialty_physician_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
