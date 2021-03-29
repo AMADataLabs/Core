@@ -1,5 +1,5 @@
 """ OneView Reference Transformer"""
-from   io import StringIO, BytesIO
+from   io import BytesIO
 
 import logging
 import pandas
