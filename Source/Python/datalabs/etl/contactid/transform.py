@@ -6,6 +6,7 @@ import logging
 import pandas
 import numpy as np
 import uuid
+import pdb
 
 import datalabs.etl.transform as etl
 
@@ -18,6 +19,8 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         LOGGER.info(self._parameters['data'])
 
         sfmc_contacts, active_subscription = self._to_dataframe()
+
+        pdb.set_trace()
 
         sfmc_contacts = self._assign_id_to_contacts(sfmc_contacts)
 
