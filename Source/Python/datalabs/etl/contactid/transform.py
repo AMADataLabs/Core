@@ -16,11 +16,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
     def _transform(self):
-        LOGGER.info(self._parameters['data'])
-
-        sfmc_contacts, active_subscription = self._to_dataframe()
-
+        #LOGGER.info(self._parameters['data'])
         pdb.set_trace()
+        sfmc_contacts, active_subscription = self._to_dataframe()
 
         sfmc_contacts = self._assign_id_to_contacts(sfmc_contacts)
 
