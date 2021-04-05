@@ -121,7 +121,7 @@ class DatabaseTaskMixin:
 
         for key, value in variables.items():
             if key.startswith('DATABASE_'):
-                parameters[key.lower()] = value.lower()
+                parameters[key.lower()] = value
 
         return database_class.from_parameters(parameters, prefix='DATABASE_')
 

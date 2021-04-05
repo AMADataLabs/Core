@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 from string import ascii_uppercase
 import xlsxwriter
-import settings
 
 
 from datalabs.etl.transform import TransformerTask
@@ -45,16 +44,16 @@ class DBLReportTransformer(TransformerTask):
 
     @classmethod
     def _get_dataframes(cls, data):
-        tab_1_data = pd.read_csv(StringIO(data[0]), delimiter='|', header=None)
-        tab_2_data = pd.read_csv(StringIO(data[1]), delimiter='|')
-        tab_3_data = pd.read_csv(StringIO(data[2]), delimiter='|')
-        tab_4_data = pd.read_csv(StringIO(data[3]), delimiter='|')
-        tab_5_data = pd.read_csv(StringIO(data[4]), delimiter='|')
-        tab_6_data = pd.read_csv(StringIO(data[5]), delimiter='|', header=None)
-        tab_7_data = pd.read_csv(StringIO(data[6]), delimiter='|', header=None)
-        tab_8_data = pd.read_csv(StringIO(data[7]), delimiter='|', header=None)
-        tab_9_data = pd.read_csv(StringIO(data[8]), delimiter='|', header=None)
-        tab_10_data = pd.read_csv(StringIO(data[9]), delimiter='|', header=None)
+        tab_1_data =  pd.read_csv(BytesIO(data[0]), delimiter='|', header=None)
+        tab_2_data =  pd.read_csv(BytesIO(data[1]), delimiter='|')
+        tab_3_data =  pd.read_csv(BytesIO(data[2]), delimiter='|')
+        tab_4_data =  pd.read_csv(BytesIO(data[3]), delimiter='|')
+        tab_5_data =  pd.read_csv(BytesIO(data[4]), delimiter='|')
+        tab_6_data =  pd.read_csv(BytesIO(data[5]), delimiter='|', header=None)
+        tab_7_data =  pd.read_csv(BytesIO(data[6]), delimiter='|', header=None)
+        tab_8_data =  pd.read_csv(BytesIO(data[7]), delimiter='|', header=None)
+        tab_9_data =  pd.read_csv(BytesIO(data[8]), delimiter='|', header=None)
+        tab_10_data = pd.read_csv(BytesIO(data[9]), delimiter='|', header=None)
         return [
             tab_1_data,
             tab_2_data,

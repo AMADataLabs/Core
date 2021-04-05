@@ -86,6 +86,10 @@ def test_connection(lineage):
 
 @pytest.fixture
 def lineage():
+    # ssh -L 8182:datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com:8182
+    # <jump box host>
+    # Edit /etc/hosts and add this line:
+    # 127.0.0.1 datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com
     hostname = 'datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
     os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = hostname
     os.environ['NEPTUNE_CLUSTER_PORT'] = '8182'

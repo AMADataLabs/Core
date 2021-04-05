@@ -1,11 +1,11 @@
 """ OneView Reference Transformer"""
-from   io import StringIO, BytesIO
+from   io import BytesIO
 
 import logging
 import pandas
 
 from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, \
-    SPECIALTY_COLUMNS, SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS
+    SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -33,30 +33,22 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
         return [CBSA_COLUMNS]
 
 
-class SpecialtyTransformerTask(TransformerTask):
-    def _get_columns(self):
-        return [SPECIALTY_COLUMNS]
-
-
 class SpecialtyMergeTransformerTask(TransformerTask):
-    def _transform(self):
-        specialty_data, physician_data = [pandas.read_csv(StringIO(csv)) for csv in self._parameters['data']]
+    def _to_dataframe(self):
+        specialty_physician_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
         filtered_specialty_data = [
-            specialty_data.loc[
-                specialty_data.id.isin(physician_data.primary_specialty) |
-                specialty_data.id.isin(physician_data.secondary_specialty)
+            specialty_physician_data[0].loc[
+                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1].primary_specialty) |
+                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1].secondary_specialty)
             ].reset_index(drop=True)
         ]
 
-        self._parameters['data'] = [dataframe.to_csv() for dataframe in filtered_specialty_data]
-
-        return super()._transform()
+        return filtered_specialty_data
 
     def _get_columns(self):
         return [SPECIALTY_MERGED_COLUMNS]
 
 
-# pylint: disable=abstract-method
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     def _to_dataframe(self):
         fips_data = [pandas.read_excel(BytesIO(data), skiprows=4) for data in self._parameters['data']]

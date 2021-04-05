@@ -25,7 +25,6 @@ class TransformerTask(etl.TransformerTask, ABC):
 
         return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
 
-    @abstractmethod
     def _to_dataframe(self):
         return [pandas.read_csv(BytesIO(file)) for file in self._parameters['data']]
 
