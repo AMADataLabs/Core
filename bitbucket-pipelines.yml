@@ -51,6 +51,7 @@ pipelines:
             caches:
               - cpt-master-create-database-dependencies
             script:
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
             - export ENABLE_FEATURE_DEV=True
             - export DATABASE_NAME=cpt
             - export DATABASE_NAME_ADMIN=postgres
@@ -62,7 +63,10 @@ pipelines:
             - bash Deploy/CPT/create-database
         - step:
             name: Update Bundle
+            caches:
+                - cpt-master-update-bundle-dependencies
             script:
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
             - export ENABLE_FEATURE_DEV=True
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
@@ -94,8 +98,6 @@ pipelines:
             - bash Deploy/CPT/create-database
         - step:
             name: Update Bundle
-            caches:
-                - cpt-master-update-bundle-dependencies
             script:
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
             - export ENABLE_FEATURE_DEV=True
