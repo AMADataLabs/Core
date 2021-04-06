@@ -1,10 +1,11 @@
+""" Helper functions for deploy the CPT database. """
 import os
 
 import datalabs.deploy.database as database
 
 
 def create_unless_exists():
-    parmameters = dict(
+    parameters = dict(
         name=os.environ.get('DATABASE_NAME'),
         backend=os.environ.get('DATABASE_BACKEND'),
         host=os.environ.get('DATABASE_HOST'),
