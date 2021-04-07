@@ -94,8 +94,7 @@ def lineage():
     # Sandbox
     # hostname = 'datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
     # DEV
-    hostname = 'cptapi-neptune-cluster.cluster-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com'
-    # hostname = 'cptapi-neptune-cluster.cluster-ro-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com'
+    hostname = 'datalake-neptune-cluster.cluster-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com'
     os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = hostname
     os.environ['NEPTUNE_CLUSTER_PORT'] = '8182'
     GremlinUtils.init_statics(globals())

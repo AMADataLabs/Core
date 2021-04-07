@@ -62,6 +62,14 @@ pipelines:
             - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
             - bash Deploy/CPT/create-database
         - step:
+            name: Migrate Database
+            caches:
+              - cpt-master-create-database-dependencies
+            script:
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            - export ENABLE_FEATURE_DEV=True
+            - bash Script/migrate-database --host $CPT_DATABASE_HOST_SANDBOX --name cpt --user $CPT_DATABASE_USERNAME_SANDBOX --password $CPT_DATABASE_PASSWORD_SANDBOX
+        - step:
             name: Update Bundle
             caches:
                 - cpt-master-update-bundle-dependencies

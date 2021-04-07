@@ -1,28 +1,44 @@
 #!/bin/bash
 
-profile=${1:-dev}
+environment=${1:-dev}
 
 profile_available=0
 for p in $(aws configure list-profiles); do
-     if [[ "$p" == "$profile" ]]; then
+     if [[ "$p" == "$environment" ]]; then
          profile_available=1
      fi
 done
 if [[ $profile_available != 1 ]]; then
-    echo "Missing AWS profile "'"'"$profile"'"'""
+    echo "Missing AWS profile "'"'"$environment"'"'""
     exit 1
 fi
 
-account=191296302136
-region=$(aws configure get ${profile}.region)
+declare account
+case $environment in
+    'dev')
+        account=191296302136
+    ;;
+    'tst')
+        account=194221139997
+    ;;
+    'stg')
+        account=340826698851
+    ;;
+    'prd')
+        account=285887636563
+    ;;
+esac
 
-echo "Profile: $profile"
+# access_key=$(aws configure get ${environment}.aws_access_key_id)
+region=$(aws configure get ${environment}.region)
+
+echo "Profile: $environment"
 echo "Account: $account ($region)"
 
 unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
 
 
-for i in $(aws sts --profile $profile assume-role --role-arn "arn:aws:iam::${account}:role/dev-ama-apigateway-invoke-role" --role-session-name datalabs | egrep "AccessKeyId|SecretAccessKey|SessionToken"|sed 's/: /|/g'|sed 's/"//g'|sed 's/,$//')
+for i in $(aws sts --profile $environment assume-role --role-arn "arn:aws:iam::${account}:role/${environment}-ama-apigateway-invoke-role" --role-session-name datalabs | egrep "AccessKeyId|SecretAccessKey|SessionToken"|sed 's/: /|/g'|sed 's/"//g'|sed 's/,$//')
 do
 declare -a LIST
 LIST=($(echo $i|sed 's/|/ /g'))
