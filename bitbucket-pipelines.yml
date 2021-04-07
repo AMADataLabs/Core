@@ -68,7 +68,7 @@ pipelines:
             script:
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
             - export ENABLE_FEATURE_DEV=True
-            - bash Script/migrate-database --host $CPT_DATABASE_HOST_SANDBOX --name cpt --username $CPT_DATABASE_USERNAME_SANDBOX --password $CPT_DATABASE_PASSWORD_SANDBOX
+            - bash Script/migrate-database --host $CPT_DATABASE_HOST_SANDBOX --name cpt --username $CPT_DATABASE_USERNAME_SANDBOX --password $CPT_DATABASE_PASSWORD_SANDBOX upgrade CPT
         - step:
             name: Update Bundle
             caches:
