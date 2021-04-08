@@ -4,19 +4,8 @@ set -ex
 
 PROJECT="${PROJECT:-CPT}"
 
-FUNCTIONS="${PROJECT}GetDescriptor
-           ${PROJECT}GetDescriptors
-           ${PROJECT}GetConsumerDescriptor
-           ${PROJECT}GetConsumerDescriptors
-           ${PROJECT}GetClinicianDescriptors
-           ${PROJECT}GetAllClinicianDescriptors
-           ${PROJECT}GetModifier
-           ${PROJECT}GetModifiers
-           ${PROJECT}GetPLADetails
-           ${PROJECT}GetAllPLADetails
-           ${PROJECT}GetLatestPDFs
-           ${PROJECT}GetReleases
-           ${PROJECT}Default
+FUNCTIONS="${PROJECT}Authorizer
+           ${PROJECT}Endpoint
            ${PROJECT}Convert
            ${PROJECT}BundlePDF
            ${PROJECT}Load
