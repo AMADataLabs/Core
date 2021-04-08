@@ -32,8 +32,8 @@ def test_task_parameters_are_parsed(args, environment):
 def test_cache_parameters_are_parsed(args, environment):
     task_wrapper = AirflowTaskWrapper(parameters=args)
     task_wrapper._get_task_parameters()
-    input_cache_parameters = task_wrapper._cache_parameters[CacheDirection.Input]
-    output_cache_parameters = task_wrapper._cache_parameters[CacheDirection.Output]
+    input_cache_parameters = task_wrapper._cache_parameters[CacheDirection.INPUT]
+    output_cache_parameters = task_wrapper._cache_parameters[CacheDirection.OUTPUT]
 
     assert 'EXECUTION_TIME' in input_cache_parameters
     assert input_cache_parameters['EXECUTION_TIME'] == '19000101'
@@ -49,8 +49,8 @@ def test_cache_parameters_are_parsed(args, environment):
 def test_cache_parameters_are_overriden(args, environment):
     task_wrapper = AirflowTaskWrapper(parameters=args)
     task_wrapper._get_task_parameters()
-    input_cache_parameters = task_wrapper._cache_parameters[CacheDirection.Input]
-    output_cache_parameters = task_wrapper._cache_parameters[CacheDirection.Output]
+    input_cache_parameters = task_wrapper._cache_parameters[CacheDirection.INPUT]
+    output_cache_parameters = task_wrapper._cache_parameters[CacheDirection.OUTPUT]
 
     assert 'STUFF' in input_cache_parameters
     assert input_cache_parameters['STUFF'] == 'Hello, there!'

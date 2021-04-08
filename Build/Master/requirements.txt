@@ -30,7 +30,7 @@ pip==21.0
 pipenv==2018.5.18
 psycopg2-binary==2.8.5
 pydeps==1.9.0
-pylint==2.4.4
+pylint==2.7.0
 pyodbc==4.0.28; platform_system=="Windows"
 PyPDF2==1.26.0
 pysftp==0.2.9

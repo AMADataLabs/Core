@@ -15,8 +15,8 @@ LOGGER.setLevel(logging.INFO)
 
 
 class CacheDirection(Enum):
-    Input = "INPUT"
-    Output = "OUTPUT"
+    INPUT = "INPUT"
+    OUTPUT = "OUTPUT"
 
 
 class TaskDataCache(ABC):
@@ -42,7 +42,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
         parameters = self._get_dag_task_parameters()
         parameters = self._extract_cache_parameters(parameters)
 
-        cache_plugin = self._get_cache_plugin(CacheDirection.Input)
+        cache_plugin = self._get_cache_plugin(CacheDirection.INPUT)
         if cache_plugin:
             input_data = cache_plugin.extract_data()
 
@@ -54,7 +54,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
         LOGGER.exception('Handling Airflow task exception: %s', exception)
 
     def _handle_success(self):
-        cache_plugin = self._get_cache_plugin(CacheDirection.Output)  # pylint: disable=no-member
+        cache_plugin = self._get_cache_plugin(CacheDirection.OUTPUT)  # pylint: disable=no-member
         if cache_plugin:
             cache_plugin.load_data(self.task.data)
 
@@ -69,13 +69,13 @@ class AirflowTaskWrapper(task.TaskWrapper):
         return self._merge_parameters(dag_parameters, task_parameters)
 
     def _extract_cache_parameters(self, task_parameters):
-        self._cache_parameters[CacheDirection.Input] = self._get_cache_parameters(
+        self._cache_parameters[CacheDirection.INPUT] = self._get_cache_parameters(
             task_parameters,
-            CacheDirection.Input
+            CacheDirection.INPUT
         )
-        self._cache_parameters[CacheDirection.Output] = self._get_cache_parameters(
+        self._cache_parameters[CacheDirection.OUTPUT] = self._get_cache_parameters(
             task_parameters,
-            CacheDirection.Output
+            CacheDirection.OUTPUT
         )
         cache_keys = [key for key in task_parameters if key.startswith('CACHE_')]
 
@@ -136,7 +136,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
     @classmethod
     def _get_cache_parameters(cls, task_parameters: dict, direction: CacheDirection) -> dict:
         cache_parameters = {}
-        other_direction = [d[1] for d in CacheDirection.__members__.items() if d[1] != direction][0]
+        other_direction = [d[1] for d in CacheDirection.__members__.items() if d[1] != direction][0]  # pylint: disable=no-member
 
         for key, value in task_parameters.items():
             match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
