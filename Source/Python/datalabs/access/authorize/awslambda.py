@@ -3,8 +3,6 @@ import logging
 import os
 
 from   datalabs.access.authorize.task import AuthorizerParameters, AuthorizerTaskException
-from   datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
-from   datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
 from   datalabs.awslambda import TaskWrapper
 
 logging.basicConfig()
@@ -15,10 +13,9 @@ LOGGER.setLevel(logging.DEBUG)
 class AuthorizerLambdaTaskWrapper(TaskWrapper):
     def _get_task_parameters(self):
         token = self._get_authorization_token()
+        LOGGER.info('Bearer token: %s', token)
 
-        self._load_configuration()
-
-        return self._authorize(token)
+        return self._get_authorization_parameters(token)
 
     def _get_authorization_token(self):
         token = self._parameters.get('authorizationToken').strip()
@@ -28,15 +25,7 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
 
         return token
 
-    @classmethod
-    def _load_configuration(cls):
-        parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
-        parameter_loader.load()
-
-        secrets_loader = SecretsManagerEnvironmentLoader.from_environ()
-        secrets_loader.load()
-
-    def _authorize(self, token):
+    def _get_authorization_parameters(self, token):
         return AuthorizerParameters(
             token=token.split(' ')[1],
             endpoint=self._parameters.get('methodArn'),
@@ -48,4 +37,5 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
         return dict(message=exception.message)
 
     def _handle_success(self) -> (int, dict):
+        LOGGER.info('Policy document:\n%s', self.task.policy_document)
         return self.task.policy_document
