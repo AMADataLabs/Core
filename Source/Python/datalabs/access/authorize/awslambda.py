@@ -1,10 +1,15 @@
 """ API endpoint-specific Lambda function Task wrapper. """
+import logging
 import os
 
 from   datalabs.access.authorize.task import AuthorizerParameters, AuthorizerTaskException
 from   datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
 from   datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
 from   datalabs.awslambda import TaskWrapper
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class AuthorizerLambdaTaskWrapper(TaskWrapper):
@@ -39,6 +44,7 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
         )
 
     def _handle_exception(self, exception: AuthorizerTaskException) -> (int, dict):
+        LOGGER.exception('An error occurred during authorization:')
         return dict(message=exception.message)
 
     def _handle_success(self) -> (int, dict):
