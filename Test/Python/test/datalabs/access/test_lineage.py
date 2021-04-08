@@ -15,7 +15,6 @@ from   neptune_python_utils.gremlin_utils import GremlinUtils
 )
 def test_connection(lineage):
     lineage.V().hasLabel('dataset-test').outE().drop().iterate()
-    lineage.V().hasLabel('dataset-test').outE().drop().iterate()
     lineage.V().hasLabel('dataset-test').drop().iterate()
     lineage.V().hasLabel('data-test').outE().drop().iterate()
     lineage.V().hasLabel('data-test').drop().iterate()
@@ -94,7 +93,8 @@ def lineage():
     # Sandbox
     # hostname = 'datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
     # DEV
-    hostname = 'datalake-neptune-cluster.cluster-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com'
+    # hostname = 'datalake-neptune-cluster.cluster-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com'
+    hostname = 'datalake-neptune-cluster.cluster-cvo5zwdixjdr.us-east-1.neptune.amazonaws.com'
     os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = hostname
     os.environ['NEPTUNE_CLUSTER_PORT'] = '8182'
     GremlinUtils.init_statics(globals())
