@@ -17,7 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 def test_columns_set_from_model_class():
     updater = TableUpdater(None, model.Code, None, None)
 
-    assert all([column in updater._columns for column in ['code', 'modified_date', 'deleted']])
+    assert all(column in updater._columns for column in ['code', 'modified_date', 'deleted'])
 
 
 # pylint: disable=redefined-outer-name, protected-access
