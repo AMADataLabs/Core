@@ -157,7 +157,7 @@ print_usage() {
     echo "  -m|--message <module>       The message associated with the migration script."
     echo "  -n|--name <DB name>         The database name."
     echo "  -p|--password <DB password> The database password."
-    echo "  -u|--user <DB user>         The database user."
+    echo "  -u|--username <DB user>         The database user."
     echo "  -v|--version <DB version>   The database target version (default 'head')."
 
     exit 1
