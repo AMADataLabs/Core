@@ -5,7 +5,7 @@ set -ex
 PROJECT="${PROJECT:-CPT}"
 
 FUNCTIONS="${PROJECT}Authorizer
-           ${PROJECT}Endpoint
+           ${PROJECT}-Endpoint
            ${PROJECT}Convert
            ${PROJECT}BundlePDF
            ${PROJECT}Load
