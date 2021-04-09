@@ -11,6 +11,7 @@ Source/Terraform/**/tfplan
 Source/Terraform/**/terraform.tfvars
 Environment/*
 *.zip
+**/.DS_Store
 
 .idea
 venv
