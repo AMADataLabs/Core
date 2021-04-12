@@ -181,8 +181,6 @@ class ResidencyProgramPersonnelMember(Base):
     degree_1 = sa.Column(sa.String)
     degree_2 = sa.Column(sa.String)
     degree_3 = sa.Column(sa.String)
-    phone_number = sa.Column(sa.String)
-    email = sa.Column(sa.String)
 
 
 class ResidencyProgramInstitution(Base):

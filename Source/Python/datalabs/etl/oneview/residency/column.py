@@ -24,8 +24,6 @@ MEMBER_COLUMNS = {
     'pers_deg1': 'degree_1',
     'pers_deg2': 'degree_2',
     'pers_deg3': 'degree_3',
-    'pers_ph_num': 'phone_number',
-    'pers_e-mail': 'email'
 }
 
 INSTITUTION_COLUMNS = {

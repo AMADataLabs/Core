@@ -31,8 +31,11 @@ class ResidencyTransformerTask(TransformerTask):
         dataframes[1].pgm_id = dataframes[1].pgm_id.astype(str)
         dataframes[2].pgm_id = dataframes[2].pgm_id.astype(str)
 
+        dataframes[1] = dataframes[1].loc[(dataframes[1]['addr_type '] == 'D')].reset_index(drop=True)
+        dataframes[3] = dataframes[3].loc[(dataframes[3]['affiliation_type'] == 'S')].reset_index(drop=True)
+
         merged_df = pandas.merge(dataframes[0], dataframes[1], on='pgm_id')
-        merged_df = pandas.merge(merged_df, dataframes[2], on='pgm_id')
+        merged_df = pandas.merge(merged_df, dataframes[3], on='pgm_id')
 
         return [merged_df, dataframes[3], dataframes[4]]
 
