@@ -2,11 +2,11 @@
 
 from io import BytesIO, StringIO
 import logging
+from string import ascii_uppercase
+
 import numpy as np
 import pandas as pd
-from string import ascii_uppercase
 import xlsxwriter
-
 
 from datalabs.etl.transform import TransformerTask
 

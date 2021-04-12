@@ -1,4 +1,4 @@
-""" Source: Sandbox/DBL/transform.py """
+""" Source: datalabs.analysis.dbl.transform """
 import os
 
 import pytest
