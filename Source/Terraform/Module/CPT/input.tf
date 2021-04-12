@@ -104,12 +104,12 @@ data "aws_kms_key" "cpt" {
 
 
 data "aws_sns_topic" "ingested_data" {
-    name = "IngestedDataBucketNotification"
+    name = "IngestedDataNotification"
 }
 
 
 data "aws_sns_topic" "processed_data" {
-    name = "ProcessedDataBucketNotification"
+    name = "ProcessedDataNotification"
 }
 
 

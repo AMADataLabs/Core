@@ -6,7 +6,7 @@ import re
 TaskClassMapping = namedtuple('TaskClassMapping', 'path class_name')
 
 class TaskResolver:
-    # pylint: disable=bad-whitespace, line-too-long
+    # pylint: disable=line-too-long
     TASK_CLASSES = [
         TaskClassMapping('/descriptor/*',             'datalabs.access.cpt.api.descriptor.DescriptorEndpointTask'),
         TaskClassMapping('/descriptors',              'datalabs.access.cpt.api.descriptor.AllDescriptorsEndpointTask'),

@@ -14,9 +14,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class PartyKeyType(Enum):
-    License = 17
+    LICENSE = 17
     ME = 18
-    School = 23
+    SCHOOL = 23
     NPI = 38
 
 
@@ -25,7 +25,7 @@ class EDW(ODBCDatabase):
         return self.get_party_keys_by_type(PartyKeyType.ME, chunk_size)
 
     def get_school_ids(self, chunk_size=None):
-        return self.get_party_keys_by_type(PartyKeyType.School, chunk_size)
+        return self.get_party_keys_by_type(PartyKeyType.SCHOOL, chunk_size)
 
     def get_party_keys_by_type(self, party_key_type: PartyKeyType, order_by=None, chunk_size=None):
         data = self.read_in_chunks(
@@ -54,9 +54,9 @@ class EDW(ODBCDatabase):
 
     def get_active_medical_school_map(self, order_by=None, chunk_size=None):
         data = self.read_in_chunks(
-            f"SELECT PARTY_ID, ORG_NM as MEDSCHOOL_NAME "
-            f"FROM AMAEDW.ORG_NM "
-            f"WHERE THRU_DT IS NULL",
+            "SELECT PARTY_ID, ORG_NM as MEDSCHOOL_NAME "
+            "FROM AMAEDW.ORG_NM "
+            "WHERE THRU_DT IS NULL",
             order_by=order_by,
             chunk_size=chunk_size,
             caller=inspect.stack()[0][3]
@@ -66,9 +66,9 @@ class EDW(ODBCDatabase):
 
     def get_postal_address_map(self, order_by=None, chunk_size=None):
         data = self.read_in_chunks(
-            f"SELECT POST_CD_ID, SRC_POST_KEY, ADDR_1, ADDR_2, CITY, SRC_STATE_CD, POST_CD, POST_CD_PLUS_4 "
-            f"FROM AMAEDW.POST_CD P, AMAEDW.STATE S "
-            f"WHERE P.STATE_ID=S.STATE_ID",
+            "SELECT POST_CD_ID, SRC_POST_KEY, ADDR_1, ADDR_2, CITY, SRC_STATE_CD, POST_CD, POST_CD_PLUS_4 "
+            "FROM AMAEDW.POST_CD P, AMAEDW.STATE S "
+            "WHERE P.STATE_ID=S.STATE_ID",
             order_by=order_by,
             chunk_size=chunk_size,
             caller=inspect.stack()[0][3]

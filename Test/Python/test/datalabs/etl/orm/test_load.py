@@ -60,8 +60,8 @@ def data():
         b={0: True}
     )
 
-    return list([pandas.DataFrame.from_dict(data).to_csv().encode('utf-8', errors='backslashreplace')
-                 for data in (foo, bar, poof)])
+    return list(pandas.DataFrame.from_dict(data).to_csv().encode('utf-8', errors='backslashreplace')
+                 for data in (foo, bar, poof))
 
 
 @pytest.fixture

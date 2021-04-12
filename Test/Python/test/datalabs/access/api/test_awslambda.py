@@ -61,6 +61,7 @@ def expected_parameters():
 @pytest.fixture
 def event():
     current_env = os.environ.copy()
+    os.environ.clear()
 
     os.environ['TASK_CLASS'] = 'test.datalabs.access.api.test_awslambda.MockTask'
     os.environ['DATABASE_HOST'] = 'host'

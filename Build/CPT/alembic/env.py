@@ -20,9 +20,10 @@ database = Database(
     credentials=Credentials.load('ORM')
 )
 
+db_url_escaped = database.url.replace('%', '%%')
 config.set_main_option(
     "sqlalchemy.url",
-    database.url
+    db_url_escaped
 )
 
 # Interpret the config file for Python logging.
