@@ -1,5 +1,5 @@
 """ Oneview Residency Transformer"""
-from   io import StringIO
+from   io import BytesIO
 import logging
 import pandas
 
@@ -13,7 +13,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ResidencyTransformerTask(TransformerTask):
     def _to_dataframe(self):
-        df_data = [pandas.read_csv(StringIO(data), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
+        df_data = [pandas.read_csv(BytesIO(data), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
                    for data in self._parameters['data']]
 
         return df_data
