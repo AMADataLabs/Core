@@ -37,7 +37,7 @@ class ResidencyTransformerTask(TransformerTask):
         merged_df = pandas.merge(dataframes[0], dataframes[1], on='pgm_id')
         merged_df = pandas.merge(merged_df, dataframes[3], on='pgm_id')
 
-        return [merged_df, dataframes[3], dataframes[4]]
+        return [merged_df, dataframes[2], dataframes[3]]
 
     def _get_columns(self):
         return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]
