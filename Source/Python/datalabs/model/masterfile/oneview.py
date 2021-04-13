@@ -157,8 +157,6 @@ class ResidencyProgram(Base):
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     name = sa.Column(sa.String)
     web_address = sa.Column(sa.String)
-    old_name = sa.Column(sa.String)
-    address_type = sa.Column(sa.String)
     address_1 = sa.Column(sa.String)
     address_2 = sa.Column(sa.String)
     address_3 = sa.Column(sa.String)
@@ -183,8 +181,6 @@ class ResidencyProgramPersonnelMember(Base):
     degree_1 = sa.Column(sa.String)
     degree_2 = sa.Column(sa.String)
     degree_3 = sa.Column(sa.String)
-    phone_number = sa.Column(sa.String)
-    email = sa.Column(sa.String)
 
 
 class ResidencyProgramInstitution(Base):
