@@ -28,11 +28,12 @@ class ResidencyTransformerTask(TransformerTask):
         dataframes[1] = dataframes[1].loc[(dataframes[1]['addr_type'] == 'D')].reset_index(drop=True)
         dataframes[3] = dataframes[3].loc[(dataframes[3]['affiliation_type'] == 'S')].reset_index(drop=True)
 
-        merged_df = pandas.merge(dataframes[0], dataframes[1], on='pgm_id')
-        merged_df = pandas.merge(merged_df, dataframes[3], on='pgm_id')
+        program_information = pandas.merge(dataframes[0], dataframes[1], on='pgm_id')
+        program_information = pandas.merge(program_information, dataframes[3], on='pgm_id')
 
-        LOGGER.info(dataframes)
-        return [merged_df, dataframes[2], dataframes[3]]
+        program_institution = pandas.merge(dataframes[3], dataframes[4], on='ins_id')
+
+        return [program_information, dataframes[2], program_institution]
 
     def _get_columns(self):
         return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]

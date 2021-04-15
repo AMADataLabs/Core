@@ -211,7 +211,7 @@ data:
 
     # Residency Extractor
     ONEVIEW__EXTRACT_RESIDENCY__BASE_PATH: 'Data Analytics\Data-Science\Data\Masterfile_OneView'
-    ONEVIEW__EXTRACT_RESIDENCY__FILES: 'Program Information table - Active.txt,Program Institution.txt,Program Address table - Active.txt,Program Personnel table - Active.txt,Institution Information - Active.txt'
+    ONEVIEW__EXTRACT_RESIDENCY__FILES: 'Program Information table - Active.txt,Program Address table - Active.txt,Program Personnel table - Active.txt,Program Institution.txt,Institution Information - Active.txt'
     ONEVIEW__EXTRACT_RESIDENCY__HOST: "eft.ama-assn.org"
     ONEVIEW__EXTRACT_RESIDENCY__USERNAME: ${USERNAME}
     ONEVIEW__EXTRACT_RESIDENCY__PASSWORD: ${PASSWORD}
@@ -222,7 +222,7 @@ data:
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_ACCESS_KEY: ${ACCESS_KEY}
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_SECRET_KEY: ${SECRET_KEY}
-    ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_FILES: 'residency_program.csv, residency_address.csv, residency_program_personnel_member.csv,residency_program_institution.csv'
+    ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_FILES: 'residency_program.csv, residency_address.csv, residency_program_personnel_member.csv,residency_program_institution.csv,residency_institution_information.csv'
 
     # Residency Transformer
     ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
@@ -233,7 +233,7 @@ data:
 
     ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_INPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
-    ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_INPUT_FILES: 'residency_program.csv, residency_address.csv, residency_program_personnel_member.csv,residency_program_institution.csv'
+    ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_INPUT_FILES: 'residency_program.csv, residency_address.csv, residency_program_personnel_member.csv,residency_program_institution.csv,residency_institution_information.csv'
     ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_OUTPUT_FILES: 'residency_program.csv,residency_program_personnel_member.csv,residency_program_institution.csv'
 
     # IQVIA Extractor
