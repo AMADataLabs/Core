@@ -187,41 +187,6 @@ objects:
               mountPath: /.ssh/known_hosts
             - name: repo
               mountPath: /home/airflow/repo
-        #
-        # - name: airflow-sync
-        #   image: ' '
-        #   imagePullPolicy: IfNotPresent
-        #   command:
-        #   - /Sync/entrypoint.sh
-        #   args:
-        #   - python
-        #   - datalabs/deploy/airflow/sync/app.py
-        #   env:
-        #   - name: CLONE_URL
-        #     value: git@bitbucket.org:amaappdev/hs-datalabs.git
-        #   - name: BRANCH
-        #     value: master
-        #   - name: DAG_SOURCE_PATH
-        #     value: hs-datalabs/Source/Python/datalabs/airflow/dag
-        #   - name: DAG_TARGET_PATH
-        #     value: /home/airflow/dags
-        #   - name: SYNC_INTERVAL
-        #     value: "900.0"
-        #   - name: GIT_SSH_KEY
-        #     valueFrom:
-        #       secretKeyRef:
-        #         name: bitbucketprd
-        #         key: ssh-privatekey
-        #   envFrom:
-        #   - configMapRef:
-        #       name: airflow-webserver
-        #   ports:
-        #   - containerPort: 8080
-        #     protocol: TCP
-        #   terminationMessagePath: /dev/termination-log
-        #   volumeMounts:
-        #   - mountPath: /home/airflow/dags
-        #     name: ${APPLICATION_NAME}-shared
 
         - name: airflow-webserver
           image: ' '
