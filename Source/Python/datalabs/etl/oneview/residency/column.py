@@ -4,8 +4,6 @@ PROGRAM_COLUMNS = {
     'pgm_id': 'id',
     'pgm_name': 'name',
     'pgm_web_address': 'web_address',
-    'pgm_old_name': 'old_name',
-    'addr_type': 'address_type',
     'addr1': 'address_1',
     'addr2': 'address_2',
     'addr3': 'address_3',
@@ -26,8 +24,6 @@ MEMBER_COLUMNS = {
     'pers_deg1': 'degree_1',
     'pers_deg2': 'degree_2',
     'pers_deg3': 'degree_3',
-    'pers_ph_num': 'phone_number',
-    'pers_e-mail': 'email'
 }
 
 INSTITUTION_COLUMNS = {

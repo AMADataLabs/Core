@@ -12,7 +12,7 @@ AIMS_SECRET = Secret('env', None, 'oneview-etl-aims')
 ODS_SECRET = Secret('env', None, 'oneview-etl-ods')
 SFTP_SECRET = Secret('env', None, 'oneview-etl-sftp')
 DATABASE_SECRET = Secret('env', None, 'oneview-etl-database')
-DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.3'
+DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.4'
 
 ONEVIEW_ETL_DAG = DAG(
     dag_id='oneview',
@@ -129,21 +129,21 @@ with ONEVIEW_ETL_DAG:
         get_logs=True,
     )
 
-#     EXTRACT_RESIDENCY = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="extract_residency",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[SFTP_SECRET, MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="extract_residency",
-#         get_logs=True,
-#     )
-#
+    EXTRACT_RESIDENCY = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_residency",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[SFTP_SECRET, MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=True,
+        in_cluster=True,
+        task_id="extract_residency",
+        get_logs=True,
+    )
+
     EXTRACT_IQVIA = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
@@ -312,21 +312,21 @@ with ONEVIEW_ETL_DAG:
         get_logs=True,
     )
 
-#     CREATE_RESIDENCY_PROGRAM_TABLES = KubernetesPodOperator(
-#         namespace='hsg-data-labs-dev',
-#         image=DOCKER_IMAGE,
-#         name="create_residency_program_tables",
-#         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_from=[ETL_CONFIG],
-#         secrets=[MINIO_SECRET],
-#         env_vars=dict(TASK_CLASS='datalabs.etl.oneview.residency.transform.ResidencyTransformerTask'),
-#         do_xcom_push=False,
-#         is_delete_operator_pod=True,
-#         in_cluster=True,
-#         task_id="create_residency_program_tables",
-#         get_logs=True,
-#     )
-#
+    CREATE_RESIDENCY_PROGRAM_TABLES = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="create_residency_program_tables",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.oneview.residency.transform.ResidencyTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="create_residency_program_tables",
+        get_logs=True,
+    )
+
     CREATE_BUSINESS_AND_PROVIDER_TABLES = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
@@ -490,7 +490,7 @@ EXTRACT_CORE_BASED_STATISTICAL_AREA >> CREATE_CORE_BASED_STATISTICAL_AREA_TABLE 
 EXTRACT_SPECIALTY >> REMOVE_UNUSED_SPECIALTIES
 CREATE_PHYSICIAN_TABLE >> REMOVE_UNUSED_SPECIALTIES
 REMOVE_UNUSED_SPECIALTIES >> LOAD_TABLES_INTO_DATABASE
-# EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_TABLES_INTO_DATABASE
+EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES  # >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_CREDENTIALING_MAIN >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
