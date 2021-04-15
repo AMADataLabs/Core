@@ -15,8 +15,9 @@ class ResidencyTransformerTask(TransformerTask):
     def _to_dataframe(self):
         df_data = [pandas.read_csv(BytesIO(data), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
                    for data in self._parameters['data']]
+        new_dataframes = [self._merge_dataframe(df) for df in df_data]
 
-        return df_data
+        return new_dataframes
 
     @classmethod
     def _merge_dataframe(cls, dataframes):
