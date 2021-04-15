@@ -21,10 +21,12 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_dataframe(cls, dataframes):
-        dataframes[0] = dataframes[0].loc[(dataframes[0]['pgm_activity_code'] == '0')].reset_index(drop=True)
         dataframes[1].pgm_id = dataframes[1].pgm_id.astype(str)
         dataframes[2].pgm_id = dataframes[2].pgm_id.astype(str)
+        dataframes[3].ins_id = dataframes[3].pgm_id.astype(str)
+        dataframes[4].ins_id = dataframes[4].pgm_id.astype(str)
 
+        dataframes[0] = dataframes[0].loc[(dataframes[0]['pgm_activity_code'] == '0')].reset_index(drop=True)
         dataframes[1] = dataframes[1].loc[(dataframes[1]['addr_type'] == 'D')].reset_index(drop=True)
         dataframes[3] = dataframes[3].loc[(dataframes[3]['affiliation_type'] == 'S')].reset_index(drop=True)
 
