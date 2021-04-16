@@ -341,10 +341,14 @@ class ZipCode(Base):
     state = sa.Column(sa.String, nullable=False)
     city = sa.Column(sa.String, nullable=False)
     type = sa.Column(sa.String, nullable=False)
-    county_federal_information_processing = sa.Column(sa.String, nullable=False)
+    county_federal_information_processing = sa.Column(sa.String,
+                                                      sa.ForeignKey
+                                                      ("oneview.county.federal_information_processing_standard_code"),
+                                                      nullable=False)
     latitude = sa.Column(sa.String, nullable=False)
     longitude = sa.Column(sa.String, nullable=False)
-    metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
+    metropolitan_statistical_area = sa.Column(sa.String, sa.ForeignKey("oneview.metropolitan_statistical_area.code"),
+                                              nullable=False)
     primary_metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
 
 
@@ -385,7 +389,7 @@ class Census(Base):
     __tablename__ = 'census'
     __table_args__ = {"schema": "oneview"}
 
-    zip_code = sa.Column(sa.String, nullable=False)
+    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
     population = sa.Column(sa.String, nullable=False)
     urban = sa.Column(sa.String, nullable=False)
     suburban = sa.Column(sa.String, nullable=False)
@@ -432,7 +436,7 @@ class Census(Base):
     house_value = sa.Column(sa.String, nullable=False)
 
 
-class CoreBasedStatisticalAreaForZipCodes(Base):
+class CoreBasedStatisticalAreaMelissa(Base):
     __tablename__ = 'core_based_statistical_area_zip_code'
     __table_args__ = {"schema": "oneview"}
 
@@ -452,3 +456,14 @@ class ZipCodeCoreBasedStatisticalArea(Base):
                                             sa.ForeignKey("oneview.core_based_statistical_area_zip_code.code"),
                                             nullable=False)
     division = sa.Column(sa.String, nullable=False)
+
+
+class MetropolitanStatisticalArea(Base):
+    __tablename__ = 'metropolitan_statistical_area'
+    __table_args__ = {"schema": "oneview"}
+
+    code = sa.Column(sa.String, primary_key=True, nullable=False)
+    type = sa.Column(sa.String, nullable=False)
+    name = sa.Column(sa.String, nullable=False)
+    consolidated_metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
+    population = sa.Column(sa.String, nullable=False)
