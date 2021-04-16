@@ -1,8 +1,8 @@
 """ SQLAlchemy models for OneView """
 import sqlalchemy as sa
-from sqlalchemy.ext.declarative import declarative_base
+from   sqlalchemy.ext.declarative import declarative_base
 
-from datalabs.sqlalchemy import metadata
+from   datalabs.sqlalchemy import metadata
 
 Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
