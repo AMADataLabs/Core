@@ -1,8 +1,8 @@
 """ SQLAlchemy models for OneView """
 import sqlalchemy as sa
-from   sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.declarative import declarative_base
 
-from   datalabs.sqlalchemy import metadata
+from datalabs.sqlalchemy import metadata
 
 Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
@@ -331,3 +331,124 @@ class ResidencyProgramPhysician(Base):
                                  primary_key=True, nullable=False)
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
+
+
+class ZipCode(Base):
+    __tablename__ = 'zip_code'
+    __table_args__ = {"schema": "oneview"}
+
+    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    state = sa.Column(sa.String, nullable=False)
+    city = sa.Column(sa.String, nullable=False)
+    type = sa.Column(sa.String, nullable=False)
+    county_federal_information_processing = sa.Column(sa.String, nullable=False)
+    latitude = sa.Column(sa.String, nullable=False)
+    longitude = sa.Column(sa.String, nullable=False)
+    metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
+    primary_metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
+
+
+class County(Base):
+    __tablename__ = 'county'
+    __table_args__ = {"schema": "oneview"}
+
+    federal_information_processing_standard_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    county_name = sa.Column(sa.String, nullable=False)
+    state = sa.Column(sa.String, nullable=False)
+    time_zone = sa.Column(sa.String, nullable=False)
+    county_type = sa.Column(sa.String, nullable=False)
+    county_seat = sa.Column(sa.String, nullable=False)
+    name_type = sa.Column(sa.String, nullable=False)
+    elevation = sa.Column(sa.String, nullable=False)
+    person_per_household = sa.Column(sa.String, nullable=False)
+    population = sa.Column(sa.String, nullable=False)
+    area = sa.Column(sa.String, nullable=False)
+    households = sa.Column(sa.String, nullable=False)
+    white = sa.Column(sa.String, nullable=False)
+    black = sa.Column(sa.String, nullable=False)
+    hispanic = sa.Column(sa.String, nullable=False)
+    average_income = sa.Column(sa.String, nullable=False)
+    average_house = sa.Column(sa.String, nullable=False)
+
+
+class Telephone(Base):
+    __tablename__ = 'telephone'
+    __table_args__ = {"schema": "oneview"}
+
+    area_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    prefix = sa.Column(sa.String, nullable=False)
+    latitude = sa.Column(sa.String, nullable=False)
+    longitude = sa.Column(sa.String, nullable=False)
+
+
+class Census(Base):
+    __tablename__ = 'census'
+    __table_args__ = {"schema": "oneview"}
+
+    zip_code = sa.Column(sa.String, nullable=False)
+    population = sa.Column(sa.String, nullable=False)
+    urban = sa.Column(sa.String, nullable=False)
+    suburban = sa.Column(sa.String, nullable=False)
+    farm = sa.Column(sa.String, nullable=False)
+    non_farm = sa.Column(sa.String, nullable=False)
+    white = sa.Column(sa.String, nullable=False)
+    black = sa.Column(sa.String, nullable=False)
+    indian = sa.Column(sa.String, nullable=False)
+    asian = sa.Column(sa.String, nullable=False)
+    hawaian = sa.Column(sa.String, nullable=False)
+    race_other = sa.Column(sa.String, nullable=False)
+    hispanic = sa.Column(sa.String, nullable=False)
+    age_0_to_4 = sa.Column(sa.String, nullable=False)
+    age_5_to_9 = sa.Column(sa.String, nullable=False)
+    age_10_to_14 = sa.Column(sa.String, nullable=False)
+    age_15_to_17 = sa.Column(sa.String, nullable=False)
+    age_18_to_19 = sa.Column(sa.String, nullable=False)
+    age_20 = sa.Column(sa.String, nullable=False)
+    age_21 = sa.Column(sa.String, nullable=False)
+    age_22_to_24 = sa.Column(sa.String, nullable=False)
+    age_25_to_29 = sa.Column(sa.String, nullable=False)
+    age_30_to_34 = sa.Column(sa.String, nullable=False)
+    age_35_to_39 = sa.Column(sa.String, nullable=False)
+    age_40_to_44 = sa.Column(sa.String, nullable=False)
+    age_45_to_49 = sa.Column(sa.String, nullable=False)
+    age_50_to_54 = sa.Column(sa.String, nullable=False)
+    age_55_to_59 = sa.Column(sa.String, nullable=False)
+    age_60_to_61 = sa.Column(sa.String, nullable=False)
+    age_65_to_66 = sa.Column(sa.String, nullable=False)
+    age_67_to_69 = sa.Column(sa.String, nullable=False)
+    age_70_to_74 = sa.Column(sa.String, nullable=False)
+    age_75_to_79 = sa.Column(sa.String, nullable=False)
+    age_80_to_84 = sa.Column(sa.String, nullable=False)
+    age_85_plus = sa.Column(sa.String, nullable=False)
+    education_below_9 = sa.Column(sa.String, nullable=False)
+    education_9_to_12 = sa.Column(sa.String, nullable=False)
+    education_high_school = sa.Column(sa.String, nullable=False)
+    education_some_college = sa.Column(sa.String, nullable=False)
+    education_association = sa.Column(sa.String, nullable=False)
+    education_bachelor = sa.Column(sa.String, nullable=False)
+    education_professional = sa.Column(sa.String, nullable=False)
+    household_income = sa.Column(sa.String, nullable=False)
+    per_person_income = sa.Column(sa.String, nullable=False)
+    house_value = sa.Column(sa.String, nullable=False)
+
+
+class CoreBasedStatisticalAreaForZipCodes(Base):
+    __tablename__ = 'core_based_statistical_area_zip_code'
+    __table_args__ = {"schema": "oneview"}
+
+    code = sa.Column(sa.String, primary_key=True, nullable=False)
+    type = sa.Column(sa.String, nullable=False)
+    title = sa.Column(sa.String, nullable=False)
+    level = sa.Column(sa.String, nullable=False)
+    status = sa.Column(sa.String, nullable=False)
+
+
+class ZipCodeCoreBasedStatisticalArea(Base):
+    __tablename__ = 'zip_code_core_based_statistical_areas'
+    __table_args__ = {"schema": "oneview"}
+
+    zip_code = sa.Column(sa.String, sa.ForeignKey("oneview.zip_code.zip_code"), primary_key=True, nullable=False)
+    core_based_statistical_area = sa.Column(sa.String,
+                                            sa.ForeignKey("oneview.core_based_statistical_area_zip_code.code"),
+                                            nullable=False)
+    division = sa.Column(sa.String, nullable=False)
