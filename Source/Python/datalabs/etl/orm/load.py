@@ -1,5 +1,6 @@
 """OneView ETL ORM Loader"""
 import io
+import hashlib
 import logging
 import pandas
 import sqlalchemy as sa
@@ -19,11 +20,25 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         LOGGER.info(self._parameters)
 
         with self._get_database(Database, self._parameters) as database:
-            for model_class, data in zip(self._get_model_classes(), self._get_dataframes()):
+            for model_class, data, table in zip(self._get_model_classes(),
+                                                self._get_dataframes(),
+                                                self._parameters['TABLES'].split(',')):
+                data = self._generate_row_hashes(table, data)
                 self._add_data(database, model_class, data)
 
             # pylint: disable=no-member
             database.commit()
+
+    @classmethod
+    def _generate_row_hashes(cls, table, dataframe):
+        columns = "SELECT column_name FROM information_schema.columns " \
+                  f"WHERE table_schema = 'oneview' AND table_name   = f'{table}';"
+        dataframe = dataframe[columns]
+        data = dataframe.to_csv(header=None, index=False).strip('\n').split('\n')
+        hash_values = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in data]
+        dataframe['hash'] = hash_values
+
+        return dataframe
 
     @classmethod
     def _add_data(cls, database, model_class, data):
