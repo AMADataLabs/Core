@@ -467,3 +467,12 @@ class MetropolitanStatisticalArea(Base):
     name = sa.Column(sa.String, nullable=False)
     consolidated_metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
     population = sa.Column(sa.Integer, nullable=False)
+
+
+class HistoricalResident(Base):
+    medical_education_number = sa.Column(sa.String, primary_key=True, nullable=False)
+    institution_code = sa.Column(sa.String, nullable=False)
+    specialty = sa.Column(sa.String, nullable=False)
+    training_type = sa.Column(sa.String, nullable=False)
+    start_year = sa.Column(sa.Integer, nullable=False)
+    end_year = sa.Column(sa.Integer, nullable=False)
