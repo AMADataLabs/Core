@@ -366,13 +366,13 @@ class County(Base):
     elevation = sa.Column(sa.Integer, nullable=False)
     person_per_household = sa.Column(sa.Integer, nullable=False)
     population = sa.Column(sa.Integer, nullable=False)
-    area = sa.Column(sa.String, nullable=False)
-    households = sa.Column(sa.String, nullable=False)
+    area = sa.Column(sa.Integer, nullable=False)
+    households = sa.Column(sa.Integer, nullable=False)
     white = sa.Column(sa.Integer, nullable=False)
     black = sa.Column(sa.Integer, nullable=False)
     hispanic = sa.Column(sa.Integer, nullable=False)
     average_income = sa.Column(sa.String, nullable=False)
-    average_house = sa.Column(sa.String, nullable=False)
+    average_house = sa.Column(sa.Integer, nullable=False)
 
 
 class AreaCode(Base):
@@ -429,11 +429,11 @@ class Census(Base):
     education_high_school = sa.Column(sa.Integer, nullable=False)
     education_some_college = sa.Column(sa.Integer, nullable=False)
     education_association = sa.Column(sa.Integer, nullable=False)
-    education_bachelor = sa.Column(sa.String, nullable=False)
-    education_professional = sa.Column(sa.String, nullable=False)
-    household_income = sa.Column(sa.String, nullable=False)
-    per_person_income = sa.Column(sa.String, nullable=False)
-    house_value = sa.Column(sa.String, nullable=False)
+    education_bachelor = sa.Column(sa.Integer, nullable=False)
+    education_professional = sa.Column(sa.Integer, nullable=False)
+    household_income = sa.Column(sa.Integer, nullable=False)
+    per_person_income = sa.Column(sa.Integer, nullable=False)
+    house_value = sa.Column(sa.Integer, nullable=False)
 
 
 class CoreBasedStatisticalAreaMelissa(Base):
