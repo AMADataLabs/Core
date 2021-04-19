@@ -338,5 +338,5 @@ class HistoricalResident(Base):
     institution_code = sa.Column(sa.String, nullable=False)
     specialty = sa.Column(sa.String, nullable=False)
     training_type = sa.Column(sa.String, nullable=False)
-    start_year = sa.Column(sa.String, nullable=False)
-    end_year = sa.Column(sa.String, nullable=False)
+    start_year = sa.Column(sa.Integer, nullable=False)
+    end_year = sa.Column(sa.Integer, nullable=False)
