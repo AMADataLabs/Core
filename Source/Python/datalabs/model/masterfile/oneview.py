@@ -331,3 +331,12 @@ class ResidencyProgramPhysician(Base):
                                  primary_key=True, nullable=False)
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
+
+
+class HistoricalResident(Base):
+    medical_education_number = sa.Column(sa.String, primary_key=True, nullable=False)
+    institution_code = sa.Column(sa.String, nullable=False)
+    specialty = sa.Column(sa.String, nullable=False)
+    training_type = sa.Column(sa.String, nullable=False)
+    start_year = sa.Column(sa.Integer, nullable=False)
+    end_year = sa.Column(sa.Integer, nullable=False)
