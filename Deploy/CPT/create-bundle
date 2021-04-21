@@ -4,7 +4,6 @@ set -ex
 
 PROJECT="${PROJECT:-CPT}"
 
-./Script/setup-virtual-environment Master/BitBucketPipelines
 export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 

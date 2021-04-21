@@ -24,7 +24,7 @@ class Task(ABC):
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters()
 
-        LOGGER.debug('%s parameters: %s', self.__class__.__name__, self._parameters)
+        LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
     @abstractmethod
     def run(self):
@@ -49,6 +49,8 @@ class TaskWrapper(ABC):
         self.task_class = None
         self._parameters = parameters or {}
         self._task_parameters = None
+
+        LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
     def run(self):
         self._setup_environment()
@@ -121,7 +123,7 @@ class DatabaseTaskMixin:
 
         for key, value in variables.items():
             if key.startswith('DATABASE_'):
-                parameters[key.lower()] = value.lower()
+                parameters[key.lower()] = value
 
         return database_class.from_parameters(parameters, prefix='DATABASE_')
 

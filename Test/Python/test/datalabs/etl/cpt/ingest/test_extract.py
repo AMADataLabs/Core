@@ -69,7 +69,7 @@ def test_generate_release_details(release_schedule, task_parameters):
         )
 
     assert len(release_details.columns.values) == 3
-    assert all([c in release_details for c in ['publish_date', 'effective_date', 'type']])
+    assert all(c in release_details for c in ['publish_date', 'effective_date', 'type'])
     assert len(release_details) == 1
     assert release_details.publish_date.iloc[0] == release_date.strftime('%Y-%m-%d')
     assert release_details.effective_date.iloc[0] == effective_date.strftime('%Y-%m-%d')

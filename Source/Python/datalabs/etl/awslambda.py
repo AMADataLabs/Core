@@ -38,7 +38,10 @@ class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
         ]
 
         for variables in component_variables:
-            variables.update(environment_variables)
+            base_component_variables = environment_variables.copy()
+            base_component_variables.update(variables)
+            variables.clear()
+            variables.update(base_component_variables)
 
         return task_parameters
 

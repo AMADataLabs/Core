@@ -38,17 +38,17 @@ data:
     ONEVIEW__CREATE_PHYSICIAN_TABLE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
 
     # TypeOfPractice Extractor
-    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DATABASE_NAME: 'aims_prod:prd1srvxnet'
-    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DATABASE_PORT: '22093'
+    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DATABASE_NAME: 'devdw'
+    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DATABASE_PORT: '50000'
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DATABASE_HOST: ${DATABASE_HOST}
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DATABASE_USERNAME: ${DATABASE_USERNAME}
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
 
-    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__SQL: 'SELECT DISTINCT T.top_cd, T.description FROM informix.top_pr T;'
-    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DRIVER: 'com.informix.jdbc.IfxDriver'
-    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DRIVER_TYPE: 'informix-sqli'
-    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
+    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__SQL: 'SELECT DISTINCT T.TOP_CD, T.DESC FROM AMAEDW.TOP T;'
+    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DRIVER: 'com.ibm.db2.jcc.DB2Jcc'
+    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__DRIVER_TYPE: 'db2'
+    ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__JAR_PATH: './db2jcc4.jar'
 
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_TYPE_OF_PRACTICE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
@@ -70,17 +70,21 @@ data:
     ONEVIEW__CREATE_TYPE_OF_PRACTICE_TABLE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
 
     # PresentEmployment Extractor
-    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DATABASE_NAME: 'aims_prod:prd1srvxnet'
-    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DATABASE_PORT: '22093'
-    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__SQL: "SELECT DISTINCT P.present_emp_cd, P.description FROM informix.present_emp_pr P;"
-    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DRIVER: 'com.informix.jdbc.IfxDriver'
-    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DRIVER_TYPE: 'informix-sqli'
-    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DATABASE_NAME: 'devdw'
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DATABASE_PORT: '50000'
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DATABASE_HOST: ${DATABASE_HOST}
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__SQL: "SELECT DISTINCT P.EMPLOYER_CD, P.DESC FROM AMAEDW.EMPLOYER P;"
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DRIVER: 'com.ibm.db2.jcc.DB2Jcc'
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__DRIVER_TYPE: 'db2'
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__JAR_PATH: './db2jcc4.jar'
 
 
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
-    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_BASEPATH: 'AMA/OneView'
+    ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_BASE_PATH: 'AMA/OneView'
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_ACCESS_KEY: ${ACCESS_KEY}
     ONEVIEW__EXTRACT_PRESENT_EMPLOYMENT__CACHE_OUTPUT_SECRET_KEY: ${SECRET_KEY}
@@ -98,12 +102,16 @@ data:
     ONEVIEW__CREATE_PRESENT_EMPLOYMENT_TABLE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
 
     # MajorProfessionalActivity Extractor
-    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DATABASE_NAME: 'aims_prod:prd1srvxnet'
-    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DATABASE_PORT: '22093'
-    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__SQL: "SELECT DISTINCT M.mpa_cd, M.description FROM informix.mpa_pr M;"
-    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DRIVER: 'com.informix.jdbc.IfxDriver'
-    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DRIVER_TYPE: 'informix-sqli'
-    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DATABASE_NAME: 'devdw'
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DATABASE_PORT: '50000'
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DATABASE_HOST: ${DATABASE_HOST}
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__SQL: "SELECT DISTINCT M.MPA_CD, M.DESC FROM AMAEDW.MPA M;"
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DRIVER: 'com.ibm.db2.jcc.DB2Jcc'
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__DRIVER_TYPE: 'db2'
+    ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__JAR_PATH: './db2jcc4.jar'
 
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
@@ -170,12 +178,16 @@ data:
     ONEVIEW__CREATE_CORE_BASED_STATISTICAL_AREA_TABLE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
 
     # Specialty Extractor
-    ONEVIEW__EXTRACT_SPECIALTY__DATABASE_NAME: 'aims_prod:prd1srvxnet'
-    ONEVIEW__EXTRACT_SPECIALTY__DATABASE_PORT: '22093'
-    ONEVIEW__EXTRACT_SPECIALTY__SQL: "SELECT DISTINCT S.spec_cd, S.description FROM informix.spec_pr S;"
-    ONEVIEW__EXTRACT_SPECIALTY__DRIVER: 'com.informix.jdbc.IfxDriver'
-    ONEVIEW__EXTRACT_SPECIALTY__DRIVER_TYPE: 'informix-sqli'
-    ONEVIEW__EXTRACT_SPECIALTY__JAR_PATH: './jdbc-4.50.2.fix-1.jar,./bson-3.8.0.jar'
+    ONEVIEW__EXTRACT_SPECIALTY__DATABASE_NAME: 'devdw'
+    ONEVIEW__EXTRACT_SPECIALTY__DATABASE_PORT: '50000'
+    ONEVIEW__EXTRACT_SPECIALTY__DATABASE_HOST: ${DATABASE_HOST}
+    ONEVIEW__EXTRACT_SPECIALTY__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    ONEVIEW__EXTRACT_SPECIALTY__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+
+    ONEVIEW__EXTRACT_SPECIALTY__SQL: "SELECT DISTINCT S.SPEC_CD, S.DESC FROM AMAEDW.SPEC S;"
+    ONEVIEW__EXTRACT_SPECIALTY__DRIVER: 'com.ibm.db2.jcc.DB2Jcc'
+    ONEVIEW__EXTRACT_SPECIALTY__DRIVER_TYPE: 'db2'
+    ONEVIEW__EXTRACT_SPECIALTY__JAR_PATH: './db2jcc4.jar'
 
     ONEVIEW__EXTRACT_SPECIALTY__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_SPECIALTY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
@@ -199,8 +211,10 @@ data:
 
     # Residency Extractor
     ONEVIEW__EXTRACT_RESIDENCY__BASE_PATH: 'Data Analytics\Data-Science\Data\Masterfile_OneView'
-    ONEVIEW__EXTRACT_RESIDENCY__FILES: 'Program Information table - Active.txt,Program Institution.txt,Program Address table - Active.txt,Program Personnel table - Active.txt,Institution Information - Active.txt'
+    ONEVIEW__EXTRACT_RESIDENCY__FILES: 'Program Information table - Active.txt,Program Address table - Active.txt,Program Personnel table - Active.txt,Program Institution.txt,Institution Information - Active.txt'
     ONEVIEW__EXTRACT_RESIDENCY__HOST: "eft.ama-assn.org"
+    ONEVIEW__EXTRACT_RESIDENCY__USERNAME: ${USERNAME}
+    ONEVIEW__EXTRACT_RESIDENCY__PASSWORD: ${PASSWORD}
 
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
@@ -208,7 +222,7 @@ data:
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_ACCESS_KEY: ${ACCESS_KEY}
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_SECRET_KEY: ${SECRET_KEY}
-    ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_FILES: 'residency_program.csv,residency_program_personnel_member.csv,residency_program_institution.csv'
+    ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_FILES: 'residency_program.csv, residency_address.csv, residency_program_personnel_member.csv,residency_program_institution.csv,residency_institution_information.csv'
 
     # Residency Transformer
     ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
@@ -219,7 +233,7 @@ data:
 
     ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_INPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
-    ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_INPUT_FILES: 'residency_program.csv,residency_program_personnel_member.csv,residency_program_institution.csv'
+    ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_INPUT_FILES: 'residency_program.csv, residency_address.csv, residency_program_personnel_member.csv,residency_program_institution.csv,residency_institution_information.csv'
     ONEVIEW__CREATE_RESIDENCY_PROGRAM_TABLES__CACHE_OUTPUT_FILES: 'residency_program.csv,residency_program_personnel_member.csv,residency_program_institution.csv'
 
     # IQVIA Extractor
@@ -255,12 +269,16 @@ data:
     ONEVIEW__CREATE_BUSINESS_AND_PROVIDER_TABLES__CACHE_OUTPUT_FILES: 'iqvia_business.csv,iqvia_provider.csv,iqvia_provider_affiliation.csv'
 
     # CredentialingMain Extractor
-    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DATABASE_NAME: 'prddm'
-    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DATABASE_PORT: '54050'
+    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DATABASE_NAME: 'devdw'
+    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DATABASE_PORT: '50000'
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__SQL: "SELECT DISTINCT C.CUSTOMER_KEY, C.CUSTOMER_NBR, C.CUSTOMER_ISELL_LOGIN, C.CUSTOMER_NAME, C.CUSTOMER_TYPE_DESC, C.CUSTOMER_TYPE, C.CUSTOMER_CATEGORY, C.CUSTOMER_CATEGORY_DESC FROM AMADM.dim_customer C;SELECT DISTINCT P.PRODUCT_ID, P.PRODUCT_DESC FROM AMADM.DIM_PRODUCT P;SELECT DISTINCT O.FACT_EPROFILE_KEY, O.ORDER_NBR, O.CUSTOMER_KEY, O.ORDER_PRODUCT_ID, H.MED_EDU_NBR, D.FULL_DT FROM AMADM.DIM_DATE D, AMADM.FACT_EPROFILE_ORDERS O, AMADM.DIM_PHYSICIAN_HIST H WHERE D.DATE_KEY = O.ORDER_DT_KEY AND H.PHYSICIAN_HIST_KEY = O.ORDER_PHYSICIAN_HIST_KEY;"
+    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DATABASE_HOST: ${DATABASE_HOST}
+    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DRIVER: 'com.ibm.db2.jcc.DB2Jcc'
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__DRIVER_TYPE: 'db2'
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__JAR_PATH: './db2jcc4.jar'
+    ONEVIEW__EXTRACT_CREDENTIALING_MAIN__CHUNK_SIZE: '100000'
 
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
     ONEVIEW__EXTRACT_CREDENTIALING_MAIN__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
@@ -297,16 +315,16 @@ data:
     ONEVIEW__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_OUTPUT_FILES: 'credentialing_addresses.xlsx'
 
     # CredentialingMerge Transformer
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_BASE_PATH: 'AMA/OneView'
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_ACCESS_KEY: ${ACCESS_KEY}
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_SECRET_KEY: ${SECRET_KEY}
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    ONEVIEW__MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE__CACHE_BASE_PATH: 'AMA/OneView'
+    ONEVIEW__MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
+    ONEVIEW__MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE__CACHE_ACCESS_KEY: ${ACCESS_KEY}
+    ONEVIEW__MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE__CACHE_SECRET_KEY: ${SECRET_KEY}
+    ONEVIEW__MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
 
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_OUTPUT_FILES: 'credentialing_addresses.xlsx,credentialing_customer.csv'
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_INPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
-    ONEVIEW__EXTRACT_CREDENTIALING_MERGE__CACHE_INPUT_FILES: 'credentialing_customer.csv'
+    ONEVIEW__MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE__CACHE_INPUT_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
+    ONEVIEW__MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE__CACHE_INPUT_FILES: 'credentialing_addresses.xlsx,credentialing_customer.csv'
+    ONEVIEW__MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
+    ONEVIEW__MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE__CACHE_OUTPUT_FILES: 'credentialing_customer.csv'
 
     # RaceEthnicity Extractor
     ONEVIEW__EXTRACT_PHYSICIAN_RACE_ETHNICITY__BASE_PATH: 'Data Analytics\Data-Science\Data\Masterfile_OneView'
@@ -366,16 +384,22 @@ data:
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_ACCESS_KEY: ${ACCESS_KEY}
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_SECRET_KEY: ${SECRET_KEY}
-    ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_FILES: 'federal_information_processing_standard_county.csv,core_based_statistical_area.csv'
+    ONEVIEW__LOAD_TABLES_INTO_DATABASE__CACHE_INPUT_FILES: 'type_of_practice.csv,present_employment.csv,major_professional_activity.csv,specialty.csv,federal_information_processing_standard_county.csv,core_based_statistical_area.csv,ppd_physician.csv,iqvia_business.csv,iqvia_provider.csv,iqvia_provider_affiliation.csv'
 
-    ONEVIEW__LOAD_TABLES_INTO_DATABASE__MODEL_CLASSES: 'datalabs.model.masterfile.oneview.FederalInformationProcessingStandardCounty,datalabs.model.masterfile.oneview.CoreBasedStatisticalArea'
-    ONEVIEW__LOAD_TABLES_INTO_DATABASE__DATABASE_NAME: 'oneview'
+    ONEVIEW__LOAD_TABLES_INTO_DATABASE__MODEL_CLASSES: 'datalabs.model.masterfile.oneview.TypeOfPractice,datalabs.model.masterfile.oneview.PresentEmployment,datalabs.model.masterfile.oneview.MajorProfessionalActivity,datalabs.model.masterfile.oneview.Specialty,datalabs.model.masterfile.oneview.FederalInformationProcessingStandardCounty,datalabs.model.masterfile.oneview.CoreBasedStatisticalArea,datalabs.model.masterfile.oneview.Physician,datalabs.model.masterfile.oneview.Business,datalabs.model.masterfile.oneview.Provider,datalabs.model.masterfile.oneview.ProviderAffiliation'
+    ONEVIEW__LOAD_TABLES_INTO_DATABASE__DATABASE_NAME: 'datalabs'
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__DATABASE_PORT: '5432'
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__DATABASE_BACKEND: 'postgresql+psycopg2'
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__DATABASE_USERNAME: ${DATABASE_USERNAME}
     ONEVIEW__LOAD_TABLES_INTO_DATABASE__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-    ONEVIEW__LOAD_TABLES_INTO_DATABASE__TABLES: 'federal_information_processing_standard_county,core_based_statistical_area'
+    ONEVIEW__LOAD_TABLES_INTO_DATABASE__DATABASE_HOST: ${DATABASE_HOST}
+    ONEVIEW__LOAD_TABLES_INTO_DATABASE__TABLES: 'type_of_practice,present_employment,major_professional_activity,specialty,federal_information_processing_standard_county,core_based_statistical_area,physician,physician,business,provider,provider_affiliation'
 
-    # MigrateDatabase
-    ONEVIEW__MIGRATE_DATABASE__DATABASE_PORT: '5432'
-    ONEVIEW__MIGRATE_DATABASE__DATABASE_NAME: 'oneview'
+    # ResetDatabase
+    ONEVIEW__RESET_DATABASE__DATABASE_PORT: '5432'
+    ONEVIEW__RESET_DATABASE__DATABASE_NAME: 'datalabs'
+    ONEVIEW__RESET_DATABASE__DATABASE_BACKEND: 'postgresql+psycopg2'
+    ONEVIEW__RESET_DATABASE__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    ONEVIEW__RESET_DATABASE__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    ONEVIEW__RESET_DATABASE__DATABASE_HOST: ${DATABASE_HOST}
+    ONEVIEW__RESET_DATABASE__MODEL_CLASSES: 'datalabs.model.masterfile.oneview.FederalInformationProcessingStandardCounty,datalabs.model.masterfile.oneview.CoreBasedStatisticalArea'
