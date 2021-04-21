@@ -52,7 +52,6 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
             id = BinarySearch(id_list, x, existing_ids)
             if id != 'nan':
                 return id
-                break
 
     def id_generator(self, size=15, chars=string.ascii_uppercase + string.ascii_lowercase + string.digits):
         return ''.join(random.choice(chars) for _ in range(size))
