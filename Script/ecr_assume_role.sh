@@ -1,6 +1,6 @@
 #!/bin/bash
 
-profile=${1:-ecr_ecs_access}
+profile=${1:-shared}
 
 profile_available=0
 for p in $(aws configure list-profiles); do
@@ -51,12 +51,13 @@ filename=".ecrtoken_$(date +%Y%m%d%H%M%S)"
 [[ -z ${AWS_ACCESS_KEY_ID} || -z ${AWS_SECRET_ACCESS_KEY} || -z ${AWS_SESSION_TOKEN} ]] && exit 1004
 
  
-aws ecr get-login-password --region $region | docker login --username AWS --password-stdin ${AWS_REGISTRY_URL}
+aws_registry_url="${account}.dkr.ecr.${region}.amazonaws.com"
+aws ecr get-login-password --region $region | docker login --username AWS --password-stdin ${aws_registry_url}
 
 echo "unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN" > ${filename}
 echo "export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"" >> ${filename}
 echo "export AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"" >> ${filename}
 echo "export AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN"" >> ${filename}
 echo "export AWS_REGION="$region"" >> ${filename}
-echo "export AWS_REGISTRY_URL="${account}.dkr.ecr.${region}.amazonaws.com"" >> ${filename}
+echo "export AWS_REGISTRY_URL="${aws_registry_url}"" >> ${filename}
 echo "source ./${filename}"

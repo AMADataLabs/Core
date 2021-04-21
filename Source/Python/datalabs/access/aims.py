@@ -21,8 +21,8 @@ class AIMS(ODBCDatabase):
 
     def get_me_entity_map(self, order_by=None, chunk_size=None):
         chunks = self.read_in_chunks(
-            f"SELECT key_type_val as me, entity_id "
-            f"FROM entity_key_et WHERE key_type='ME' ",
+            "SELECT key_type_val as me, entity_id "
+            "FROM entity_key_et WHERE key_type='ME' ",
             order_by=order_by,
             chunk_size=chunk_size,
             caller=inspect.stack()[0][3]
@@ -33,12 +33,12 @@ class AIMS(ODBCDatabase):
 
     def get_no_contacts(self, order_by=None, chunk_size=None):
         chunks = self.read_in_chunks(
-            f"SELECT * "
-            f"FROM entity_cat_ct "
-            f"WHERE "
-            f"(end_dt is null AND category_code = 'NO_CONTACT') or "
-            f"(end_dt is null and category_code = 'NO-EMAIL') or "
-            f"(end_dt is null and category_code = 'NO-RELEASE')",
+            "SELECT * "
+            "FROM entity_cat_ct "
+            "WHERE "
+            "(end_dt is null AND category_code = 'NO_CONTACT') or "
+            "(end_dt is null and category_code = 'NO-EMAIL') or "
+            "(end_dt is null and category_code = 'NO-RELEASE')",
             order_by=order_by,
             chunk_size=chunk_size,
             caller=inspect.stack()[0][3]
@@ -49,8 +49,8 @@ class AIMS(ODBCDatabase):
 
     def get_pe_descriptions(self, order_by=None, chunk_size=None):
         chunks = self.read_in_chunks(
-            f"SELECT present_emp_cd, description "
-            f"FROM present_emp_pr",
+            "SELECT present_emp_cd, description "
+            "FROM present_emp_pr",
             order_by=order_by,
             chunk_size=chunk_size,
             caller=inspect.stack()[0][3]
@@ -61,9 +61,9 @@ class AIMS(ODBCDatabase):
 
     def get_active_licenses(self, order_by=None, chunk_size=None):
         chunks = self.read_in_chunks(
-            f"SELECT entity_id, state_cd, lic_nbr, lic_issue_dt, lic_sts, lic_exp_dt, lic_type, degree_cd, comm_id "
-            f"FROM license_lt "
-            f"WHERE lic_sts = 'A'",
+            "SELECT entity_id, state_cd, lic_nbr, lic_issue_dt, lic_sts, lic_exp_dt, lic_type, degree_cd, comm_id "
+            "FROM license_lt "
+            "WHERE lic_sts = 'A'",
             order_by=order_by,
             chunk_size=chunk_size,
             caller=inspect.stack()[0][3]
@@ -74,8 +74,8 @@ class AIMS(ODBCDatabase):
 
     def get_specialty_descriptions(self, order_by=None, chunk_size=None):
         chunks = self.read_in_chunks(
-            f"SELECT spec_cd, description "
-            f"FROM spec_pr",
+            "SELECT spec_cd, description "
+            "FROM spec_pr",
             order_by=order_by,
             chunk_size=chunk_size,
             caller=inspect.stack()[0][3]
@@ -86,9 +86,9 @@ class AIMS(ODBCDatabase):
 
     def get_entity_comm_phones(self, order_by=None, chunk_size=None):
         chunks = self.read_in_chunks(
-            f"SELECT e.*, p.area_cd||p.exchange||p.phone_nbr as aims_phone "
-            f"FROM entity_comm_at e join phone_at p on e.comm_id = p.comm_id "
-            f"WHERE comm_cat = 'P'",
+            "SELECT e.*, p.area_cd||p.exchange||p.phone_nbr as aims_phone "
+            "FROM entity_comm_at e join phone_at p on e.comm_id = p.comm_id "
+            "WHERE comm_cat = 'P'",
             order_by=order_by,
             chunk_size=chunk_size,
             caller=inspect.stack()[0][3]

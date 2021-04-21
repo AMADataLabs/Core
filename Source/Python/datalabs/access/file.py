@@ -15,8 +15,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 class DataFileType(Enum):
     CSV = 'csv'
-    Excel = 'xslx'
-    ExcelOld = 'xlsm'
+    EXCEL = 'xslx'
+    EXCEL_OLD = 'xlsm'
 
 
 class DataFile:
@@ -72,7 +72,7 @@ class DataFile:
 
         if file_type == DataFileType.CSV:
             data = pd.read_csv(file_name, index_col=None, header=0, dtype=str)
-        elif file_type == DataFileType.Excel:
+        elif file_type == DataFileType.EXCEL:
             data = pd.read_excel(file_name, index_col=None, header=0, dtype=str)
 
         return data

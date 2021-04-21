@@ -86,7 +86,15 @@ def test_connection(lineage):
 
 @pytest.fixture
 def lineage():
-    hostname = 'datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
+    # ssh -L 8182:datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com:8182
+    # <jump box host>
+    # Edit /etc/hosts and add this line:
+    # 127.0.0.1 datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com
+    # Sandbox
+    # hostname = 'datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
+    # DEV
+    # hostname = 'datalake-neptune-cluster.cluster-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com'
+    hostname = 'datalake-neptune-cluster.cluster-cvo5zwdixjdr.us-east-1.neptune.amazonaws.com'
     os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = hostname
     os.environ['NEPTUNE_CLUSTER_PORT'] = '8182'
     GremlinUtils.init_statics(globals())

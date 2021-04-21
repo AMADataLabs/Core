@@ -64,7 +64,7 @@ class ReleaseSchedule:
 
 
 class ReleaseScheduleType(Enum):
-    NonPLA = 'ANNUAL'
+    NON_PLA = 'ANNUAL'
     PLA = 'PLA'
 
 
@@ -334,7 +334,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMix
         return effective_dates, publish_dates
 
     def _generate_non_pla_release_types(self, effective_dates):
-        return self._generate_release_types(effective_dates, ReleaseScheduleType.NonPLA)
+        return self._generate_release_types(effective_dates, ReleaseScheduleType.NON_PLA)
 
     @classmethod
     def _generate_pla_release_dates(cls, pla_details):
@@ -355,7 +355,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMix
 
     def _generate_release_publish_dates(self, release_dates):
         publish_dates = []
-        release_schedules = self._generate_release_schedules_map_from_type(ReleaseScheduleType.NonPLA)
+        release_schedules = self._generate_release_schedules_map_from_type(ReleaseScheduleType.NON_PLA)
 
         for release_date in release_dates:
             release_date_for_lookup = date(release_date.year, release_date.month, release_date.day).strftime('%-d-%b')
