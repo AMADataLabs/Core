@@ -36,13 +36,13 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         return [pandas.read_csv(BytesIO(data), sep=seperator, encoding = encodings, dtype = 'str', low_memory=False) for data, seperator, encodings in zip(self._parameters['data'], seperators, encodings_list)]
 
 
-    def _assign_id_to_contacts(self, contacts):
+    def _assign_id_to_contacts(self, sfmc_contacts):
         id_list = []
-        for ind in contacts.index:
-            if contacts['HSContact_ID'][ind] != contacts['HSContact_ID'][ind]:
-                id = id_check(id_list, contacts['HSContact_ID'])
-                contacts['HSContact_ID'][ind] = id
-        return contacts
+        for ind in sfmc_contacts.index:
+            if sfmc_contacts['HSContact_ID'][ind] != sfmc_contacts['HSContact_ID'][ind]:
+                id = id_check(id_list, sfmc_contacts['HSContact_ID'])
+                sfmc_contacts['HSContact_ID'][ind] = id
+        return sfmc_contacts
 
 
     def id_check(self, id_list, existing_ids):
