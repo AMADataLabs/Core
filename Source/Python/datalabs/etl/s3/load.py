@@ -29,6 +29,7 @@ class S3FileLoaderParameters:
     access_key: str = None
     secret_key: str = None
     region_name: str = None
+    include_datestamp: str = None
     execution_time: str = None
 
 
@@ -72,9 +73,13 @@ class S3FileLoaderTask(LoaderTask):
             ContentMD5=b64_md5_hash.decode('utf-8'))
 
     def _get_current_path(self):
-        current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
+        release_folder = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
+        path = self._parameters.base_path
 
-        return '/'.join((self._parameters.base_path, current_date))
+        if self._parameters.include_datestamp is None or self._parameters.include_datestamp.lower() == 'true':
+            path = '/'.join((self._parameters.base_path, release_folder))
+
+        return path
 
     def _get_execution_date(self):
         execution_time = self._parameters.execution_time
