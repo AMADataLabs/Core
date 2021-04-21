@@ -46,7 +46,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         return contacts
 
 
-    def id_check(id_list, existing_ids):
+    def id_check(self, id_list, existing_ids):
         x = id_generator()
         while True:
             id = BinarySearch(id_list, x, existing_ids)
@@ -54,10 +54,10 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
                 return id
                 break
 
-    def id_generator(size=15, chars=string.ascii_uppercase + string.ascii_lowercase + string.digits):
+    def id_generator(self, size=15, chars=string.ascii_uppercase + string.ascii_lowercase + string.digits):
         return ''.join(random.choice(chars) for _ in range(size))
 
-    def BinarySearch(id_list, x, existing_ids):
+    def BinarySearch(self, id_list, x, existing_ids):
         i = bisect_left(id_list, x)
         if i != len(id_list) and id_list[i] == x:
             return 'nan'
@@ -68,7 +68,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
             insort_left(id_list, x, lo=0, hi=len(id_list))
             return x
 
-    def _assign_id_to_users(users, contacts):
+    def _assign_id_to_users(self, users, contacts):
         a = []
         id_list = []
         empty = []
@@ -106,29 +106,29 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
 
         return users, contacts
 
-    def check_if_users_email_present_in_flatfile(index_users):
+    def check_if_users_email_present_in_flatfile(self, index_users):
         global contacts
         count = np.where(contacts['BEST_EMAIL'].astype(str).str.contains(users['EMAIL'][index_users]))[0]
         return count
 
-    def copy_contact_name_from_users_to_flatfile(index_users, a):
+    def copy_contact_name_from_users_to_flatfile(self, index_users, a):
         global contacts
         contacts['NAME'][a[0]] = str(users['FIRST_NM'][index_users]) + " " + str(users['LAST_NM'][index_users])
 
-    def assign_flatfile_the_source_datalabs(a):
+    def assign_flatfile_the_source_datalabs(self, a):
         global contacts
         contacts['SOURCE_ORD'][a[0]] = 'DL'
 
-    def assign_users_contact_same_id_as_flatfile(index_users, a):
+    def assign_users_contact_same_id_as_flatfile(self, index_users, a):
         global users
         users['HSContact_ID'][index_users] = contacts['HSContact_ID'][a[0]]
 
-    def assign_new_id_to_users(index_users):
+    def assign_new_id_to_users(self, index_users):
         global users
         id = id_check(id_list, empty)
         users['HSContact_ID'][index_users] = id
 
-    def add_contact_from_users_to_flatfile(index_users):
+    def add_contact_from_users_to_flatfile(self, index_users):
         global contacts
         name = str(users['FIRST_NM'][index_users]) + " " + str(users['LAST_NM'][index_users])
         contacts = contacts.append({'HSContact_ID': users['HSContact_ID'][index_users], 'NAME': name,
