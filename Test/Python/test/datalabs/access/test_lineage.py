@@ -92,8 +92,8 @@ def lineage():
     # 127.0.0.1 datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com
     hostnames = dict(
         sbx='datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com',
-        dev='datalake-neptune-cluster.cluster-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com',
-        tst='datalake-neptune-cluster.cluster-cvo5zwdixjdr.us-east-1.neptune.amazonaws.com',
+        dev='datalake-neptune-cluster-dev.cluster-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com',
+        tst='datalake-neptune-cluster-tst.cluster-cvo5zwdixjdr.us-east-1.neptune.amazonaws.com',
         itg='datalake-neptune-cluster-itg.cluster-cxgp9osuwqi3.us-east-1.neptune.amazonaws.com',
         prd=''
     )
