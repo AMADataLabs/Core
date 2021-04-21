@@ -41,15 +41,15 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         id_list = []
         for ind in sfmc_contacts.index:
             if sfmc_contacts['HSContact_ID'][ind] != sfmc_contacts['HSContact_ID'][ind]:
-                id = id_check(id_list, sfmc_contacts['HSContact_ID'])
+                id = self.id_check(id_list, sfmc_contacts['HSContact_ID'])
                 sfmc_contacts['HSContact_ID'][ind] = id
         return sfmc_contacts
 
 
     def id_check(self, id_list, existing_ids):
-        x = id_generator()
+        x = self.id_generator()
         while True:
-            id = BinarySearch(id_list, x, existing_ids)
+            id = self.BinarySearch(id_list, x, existing_ids)
             if id != 'nan':
                 return id
 
@@ -74,33 +74,33 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         for index_users in users.index:
             print(index_users)
 
-            a = check_if_users_email_present_in_flatfile(index_users)
+            a = self.check_if_users_email_present_in_flatfile(index_users)
 
             if a.size >= 1:
                 if str(contacts['NAME'][a[0]]).lower() == 'nan':
 
-                    assign_users_contact_same_id_as_flatfile(index_users, a)
+                    self.assign_users_contact_same_id_as_flatfile(index_users, a)
 
-                    copy_contact_name_from_users_to_flatfile(index_users, a)
+                    self.copy_contact_name_from_users_to_flatfile(index_users, a)
 
-                    assign_flatfile_the_source_datalabs(a)
+                    self.assign_flatfile_the_source_datalabs(a)
 
                 elif (str(users['FIRST_NM'][index_users]) + " " + str(users['LAST_NM'][index_users])).lower() == str(
                         contacts['NAME'][a[0]]).lower():
 
-                    assign_users_contact_same_id_as_flatfile(index_users, a)
+                    self.assign_users_contact_same_id_as_flatfile(index_users, a)
 
                 elif str(users['FIRST_NM'][index_users]).lower() == 'nan' and str(
                         users['LAST_NM'][index_users]).lower() == 'nan':
 
-                    assign_users_contact_same_id_as_flatfile(index_users, a)
+                    self.assign_users_contact_same_id_as_flatfile(index_users, a)
 
                 else:
-                    assign_users_contact_same_id_as_flatfile(index_users, a)
+                    self.assign_users_contact_same_id_as_flatfile(index_users, a)
 
             elif a.size == 0:
-                assign_new_id_to_users(index_users)
-                add_contact_from_users_to_flatfile(index_users)
+                self.assign_new_id_to_users(index_users)
+                self.add_contact_from_users_to_flatfile(index_users)
 
         return users, contacts
 
@@ -123,7 +123,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
 
     def assign_new_id_to_users(self, index_users):
         global users
-        id = id_check(id_list, empty)
+        id = self.id_check(id_list, empty)
         users['HSContact_ID'][index_users] = id
 
     def add_contact_from_users_to_flatfile(self, index_users):
