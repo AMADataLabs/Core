@@ -31,7 +31,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
 
     def _to_dataframe(self):
-        seperators = ['\t', ',', ',', ',']
+        seperators = [',', ',', ',', ',']
         encodings_list = ['ISO 8859-1','utf-8','utf-8','utf-8' ]
         return [pandas.read_csv(BytesIO(data), sep=seperator, encoding = encodings, dtype = 'str', low_memory=False) for data, seperator, encodings in zip(self._parameters['data'], seperators, encodings_list)]
 
@@ -60,7 +60,6 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         if i != len(id_list) and id_list[i] == x:
             return 'nan'
         elif x in existing_ids:
-            print('yes')
             return 'nan'
         else:
             insort_left(id_list, x, lo=0, hi=len(id_list))
