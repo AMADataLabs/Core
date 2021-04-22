@@ -29,8 +29,8 @@ from   dataclasses import dataclass
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, ExecutionTimeMixin
-from   datalabs.etl.task import ETLException
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
+from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.task import add_schema
 
 
@@ -55,11 +55,6 @@ class S3FileExtractorParameters:
 class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
     PARAMETER_CLASS = S3FileExtractorParameters
 
-    def _get_files(self):
-        base_path = self._get_latest_path()
-
-        return ['/'.join((base_path, file.strip())) for file in self._parameters.files.split(',')]
-
     def _get_client(self):
         return AWSClient(
             's3',
@@ -68,6 +63,11 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             aws_secret_access_key=self._parameters.secret_key,
             region_name=self._parameters.region_name
         )
+
+    def _get_files(self):
+        base_path = self._get_latest_path()
+
+        return ['/'.join((base_path, file.strip())) for file in self._parameters.files.split(',')]
 
     def _resolve_wildcard(self, file):
         files = [file]
