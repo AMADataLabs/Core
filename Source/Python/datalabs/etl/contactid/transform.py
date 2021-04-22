@@ -72,14 +72,14 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         for index_users in users.index:
             print(index_users)
 
-            a = self.check_if_users_email_present_in_flatfile(index_users, contacts)
+            a = self.check_if_users_email_present_in_flatfile(index_users, contacts, users)
 
             if a.size >= 1:
                 if str(contacts['NAME'][a[0]]).lower() == 'nan':
 
                     self.assign_users_contact_same_id_as_flatfile(index_users, a, contacts, users)
 
-                    self.copy_contact_name_from_users_to_flatfile(index_users, a, contacts)
+                    self.copy_contact_name_from_users_to_flatfile(index_users, a, contacts, users)
 
                     self.assign_flatfile_the_source_datalabs(a, contacts)
 
@@ -102,11 +102,11 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
 
         return users, contacts
 
-    def check_if_users_email_present_in_flatfile(self, index_users, contacts):
+    def check_if_users_email_present_in_flatfile(self, index_users, contacts, users):
         count = np.where(contacts['BEST_EMAIL'].astype(str).str.contains(users['EMAIL'][index_users]))[0]
         return count
 
-    def copy_contact_name_from_users_to_flatfile(self, index_users, a, contacts):
+    def copy_contact_name_from_users_to_flatfile(self, index_users, a, contacts, users):
         contacts['NAME'][a[0]] = str(users['FIRST_NM'][index_users]) + " " + str(users['LAST_NM'][index_users])
 
     def assign_flatfile_the_source_datalabs(self, a, contacts):
