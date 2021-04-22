@@ -206,6 +206,8 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         FAPP = FAPP.rename(columns={"Num_Profs": "Full Profiles", "Rev": "Full Rev"})
         FAPP = FAPP.drop(columns=['Item Number'])
 
+        return FAPP
+
     def merge_all_dfs(self, CMON, FAPA, RAPP, LICBOARD, FAPP ):
         cmon_fapa = pd.merge(CMON, FAPA, how='left',
                              left_on=['Month', 'Year', 'Customer Number', 'Company Name', 'Customer Category'],
