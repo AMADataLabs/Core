@@ -97,7 +97,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
                     self.assign_users_contact_same_id_as_flatfile(index_users, a, contacts, users)
 
             elif a.size == 0:
-                self.assign_new_id_to_users(index_users, users)
+                self.assign_new_id_to_users(index_users, users, id_list, empty)
                 self.add_contact_from_users_to_flatfile(index_users, contacts, users)
 
         return users, contacts
@@ -115,7 +115,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
     def assign_users_contact_same_id_as_flatfile(self, index_users, a, contacts, users):
         users['HSContact_ID'][index_users] = contacts['HSContact_ID'][a[0]]
 
-    def assign_new_id_to_users(self, index_users, users):
+    def assign_new_id_to_users(self, index_users, users, id_list, empty):
         id = self.id_check(id_list, empty)
         users['HSContact_ID'][index_users] = id
 
