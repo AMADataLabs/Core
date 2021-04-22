@@ -1,6 +1,5 @@
 """SFTP loader class"""
 from   dataclasses import dataclass
-from   datetime import datetime
 import io
 import os
 
@@ -43,21 +42,23 @@ class SFTPFileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
 
         return self._resolve_timestamps(file_paths)
 
-    def _load_file(self, data, file_path):
+    def _load_file(self, data, file):
         buffer = io.BytesIO(data)
 
         try:
-            self._client.put(buffer, file_path)
+            self._client.put(buffer, file)
         except Exception as exception:
-            raise ETLException(f"Unable to write file '{file_path}'") from exception
+            raise ETLException(f"Unable to write file '{file}'") from exception
 
 
+# pylint: disable=too-many-ancestors
 class SFTPUnicodeTextFileLoaderTask(SFTPFileLoaderTask):
     @classmethod
     def _encode_data(cls, data):
         return data.encode('utf-8', errors='backslashreplace')
 
 
+# pylint: disable=too-many-ancestors
 class SFTPWindowsTextFileLoaderTask(SFTPFileLoaderTask):
     @classmethod
     def _encode_data(cls, data):
