@@ -5,9 +5,9 @@ from   datetime import datetime
 import hashlib
 import logging
 
-import boto3
 from   dateutil.parser import isoparse
 
+from   datalabs.access.aws import AWSClient
 from   datalabs.etl.load import FileLoaderTask
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.task import add_schema
@@ -48,14 +48,14 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
     def _load(self):
         files = self._get_files()
 
-        return [self._load_file(file, data) for file, data in zip(files, self._parameters.data)]
+        return [self._load_file(data, file) for file, data in zip(files, self._parameters.data)]
 
     def _get_files(self):
         current_path = self._get_current_path()
 
         return ['/'.join((current_path, file.strip())) for file in self._parameters.files.split(',')]
 
-    def _load_file(self, file, data):
+    def _load_file(self, data, file):
         try:
             body = self._encode(data)
         except Exception as exception:
@@ -64,7 +64,7 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
         md5_hash = hashlib.md5(body).digest()
         b64_md5_hash = base64.b64encode(md5_hash)
 
-        return self._s3.put_object(
+        return self._client.put_object(
             Bucket=self._parameters.bucket,
             Key=file,
             Body=body,
@@ -93,11 +93,13 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
         return data
 
 
+# pylint: disable=too-many-ancestors
 class S3UnicodeTextFileLoaderTask(S3FileLoaderTask):
     def _encode(self, data):
         return data.encode('utf-8', errors='backslashreplace')
 
 
+# pylint: disable=too-many-ancestors
 class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
     def _encode(self, data):
         return data.encode('cp1252', errors='backslashreplace')

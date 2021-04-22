@@ -4,7 +4,7 @@ import logging
 
 from abc import ABC, abstractmethod
 
-from datalabs.etl.task import ETLComponentTask
+from datalabs.etl.task import ETLException, ETLComponentTask
 
 
 class LoaderTask(ETLComponentTask, ABC):
