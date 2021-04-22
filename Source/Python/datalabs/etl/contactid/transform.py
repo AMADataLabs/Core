@@ -16,16 +16,14 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
+
 class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
     def _transform(self):
-        pdb.set_trace()
         sfmc_contacts, active_subscription, users, api_orders = self._to_dataframe()
 
         sfmc_contacts = self._assign_id_to_contacts(sfmc_contacts)
 
         users, sfmc_contacts = self._assign_id_to_users(users, sfmc_contacts)
-
-        LOGGER.info(sfmc_contacts.head(2))
 
         csv_data = [self._dataframe_to_csv(data) for data in [sfmc_contacts, active_subscription, users, api_orders]]
 
@@ -70,7 +68,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         empty = []
         users.insert(0, 'HSContact_ID', np.nan)
         for index_users in users.index:
-            print(index_users)
+            LOGGER.info(index_users)
 
             a = self.check_if_users_email_present_in_flatfile(index_users, contacts, users)
 
