@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { ConfigItem } from './item'
+import { Item } from '../item'
 
 
 export class ConfigView extends React.Component {
@@ -11,17 +11,18 @@ export class ConfigView extends React.Component {
             host: process.env.REACT_APP_ETCD_HOST,
             port: "2379",
             username: "root",
-            password: ""
+            password: "",
+            file: ""
         }
     }
 
     render() {
       return (
         <div className="ConfigView">
-            <ConfigItem name="Host" value={this.state.host} />
-            <ConfigItem name="Port" value={this.state.port} />
-            <ConfigItem name="Username" value={this.state.username} />
-            <ConfigItem name="Password" type="password" value={this.state.password} />
+            <Item name="Host" value={this.state.host} />
+            <Item name="Port" value={this.state.port} />
+            <Item name="Username" value={this.state.username} />
+            <Item name="Password" type="password" value={this.state.password} />
         </div>
       );
     }

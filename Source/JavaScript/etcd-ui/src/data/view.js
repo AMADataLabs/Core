@@ -1,28 +1,32 @@
 import React from 'react'
 
+import { NewButton } from './new'
+import { KeyValuePairList } from './list'
+
 
 export class DataView extends React.Component {
     constructor() {
         super();
 
         this.state = {
-            environment_variables: []
+            key_value_pairs: {}
         }
+
+        this.set_key_value_pairs = this.set_key_value_pairs.bind(this)
     }
 
-    componentDidMount() {
-        console.log(process.env);
-        this.setState({environment_variables: Object.entries(process.env)});
+    set_key_value_pairs(key_value_pairs) {
+        console.log("View: set_key_value_pairs() <- ", key_value_pairs)
+        this.setState({key_value_pairs: key_value_pairs})
     }
 
     render() {
+        console.log("View: render() <- ", this.state.key_value_pairs)
+
       return (
         <div className="DataView">
-            {/*
-                this.state.environment_variables.map(variable => (
-                    <h1>{variable[0]}: {variable[1]}</h1>
-                ))
-            */}
+            <NewButton view={this} />
+            <KeyValuePairList key_value_pairs={this.state.key_value_pairs} />
         </div>
       );
     }
