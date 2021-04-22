@@ -6,7 +6,6 @@ export class NewButton extends React.Component {
         super(props);
 
         this.state = {
-            file: this.props.file,
             view: this.props.view,
             key: "",
             value: ""
@@ -32,7 +31,7 @@ export class NewButton extends React.Component {
 
     render() {
       return (
-        <div className="ConfigView">
+        <div className="NewButton">
             <label>
                 Key
                 <input onChange={(event) => {
