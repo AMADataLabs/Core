@@ -86,8 +86,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
         except Exception as exception:
             raise ETLException(
-                f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}': {exception}"
-            )
+                f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
+            ) from exception
 
         return response['Body'].read()
 

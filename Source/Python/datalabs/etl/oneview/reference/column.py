@@ -1,27 +1,23 @@
 """OneView Reference Table Columns"""
 MPA_COLUMNS = {
-    'mpa_cd': 'id',
-    'description': 'description',
+    'MPA_CD': 'id',
+    'DESC': 'description',
 }
 TOP_COLUMNS = {
-    'top_cd': 'id',
-    'description': 'description'
+    'TOP_CD': 'id',
+    'DESC': 'description'
 }
 PE_COLUMNS = {
-    'present_emp_cd': 'id',
-    'description': 'description'
+    'EMPLOYER_CD': 'id',
+    'DESC': 'description'
 }
 CBSA_COLUMNS = {
     'CBSA Code': 'id',
     'CBSA Name': 'description'
 }
-SPECIALTY_COLUMNS = {
-    'spec_cd': 'id',
-    'description': 'description'
-}
 SPECIALTY_MERGED_COLUMNS = {
-    'id': 'id',
-    'description': 'description'
+    'SPEC_CD': 'id',
+    'DESC': 'description'
 }
 FIPSC_COLUMNS = {
     'State Code (FIPS)': 'state',

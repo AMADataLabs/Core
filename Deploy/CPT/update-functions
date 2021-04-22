@@ -4,19 +4,8 @@ set -ex
 
 PROJECT="${PROJECT:-CPT}"
 
-FUNCTIONS="${PROJECT}GetDescriptor
-           ${PROJECT}GetDescriptors
-           ${PROJECT}GetConsumerDescriptor
-           ${PROJECT}GetConsumerDescriptors
-           ${PROJECT}GetClinicianDescriptors
-           ${PROJECT}GetAllClinicianDescriptors
-           ${PROJECT}GetModifier
-           ${PROJECT}GetModifiers
-           ${PROJECT}GetPLADetails
-           ${PROJECT}GetAllPLADetails
-           ${PROJECT}GetLatestPDFs
-           ${PROJECT}GetReleases
-           ${PROJECT}Default
+FUNCTIONS="${PROJECT}Authorizer
+           ${PROJECT}-Endpoint
            ${PROJECT}Convert
            ${PROJECT}BundlePDF
            ${PROJECT}Load
@@ -24,6 +13,6 @@ FUNCTIONS="${PROJECT}GetDescriptor
            ${PROJECT}ProcessingRouter"
 
 for FUNCTION in ${FUNCTIONS}; do
-  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip
-  # aws --no-verify-ssl lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip
-done || exit
+  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip || exit $?
+  # aws --no-verify-ssl lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip || exit $?
+done

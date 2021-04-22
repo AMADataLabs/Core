@@ -4,7 +4,8 @@ from datalabs.analysis.humach.survey.archive import HumachResultsArchive
 import logging
 import settings
 
-LOGGER = logging.Logger(__name__)
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 class HumachResultsIngester:
@@ -38,12 +39,18 @@ class HumachResultsIngester:
     # different file types (xls vs xlsx)
     def ingest_standard(self):
         files = self.get_standard_result_files()
-
+        already_processed = [os.path.split(p)[-1] for p in os.listdir(self.file_input_directory_standard_archive)]
+        print(already_processed)
         for file in files:
             print(file)
-            LOGGER.info(f'PROCESSING FILE: {file}')
-            self.archive.ingest_result_file(table='humach_result', file_path=file)
-            LOGGER.info('SUCCESS.')
+            filename = os.path.split(file)[-1]
+            print(filename)
+            if filename in already_processed:
+                LOGGER.info(f'{file} ALREADY PROCESSED PREVIOUSLY. SKIPPING.')
+            else:
+                LOGGER.info(f'PROCESSING FILE: {file}')
+                #self.archive.ingest_result_file(table='humach_result', file_path=file)
+                LOGGER.info('SUCCESS.')
 
     def ingest_validation(self):
         files = self.get_validation_result_files()
@@ -55,6 +62,7 @@ class HumachResultsIngester:
 
     def ingest_samples(self):
         files = self.get_sample_files()
+        print(files)
         for file in files:
             try:
                 LOGGER.info(f'PROCESSING FILE: {file}')

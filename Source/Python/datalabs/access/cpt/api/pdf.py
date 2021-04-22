@@ -32,7 +32,7 @@ class LatestPDFsEndpointTask(APIEndpointTask):
             )
         except ClientError as exception:
             LOGGER.error(exception)
-            raise InternalServerError(f'Unable to get PDF archive URL: {str(exception)}')
+            raise InternalServerError('Unable to get PDF archive URL') from exception
 
         self._status_code = 303
         self._headers['Location'] = pdfs_archive_url

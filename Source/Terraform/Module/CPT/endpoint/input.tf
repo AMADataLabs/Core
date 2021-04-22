@@ -9,12 +9,6 @@ variable "function_name" {
 }
 
 
-variable "task_class" {
-    description = "task class name"
-    type        = string
-}
-
-
 variable "region" {
     description = "AWS region"
     type        = string
