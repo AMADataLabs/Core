@@ -25,6 +25,8 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
 
         users, sfmc_contacts = self._assign_id_to_users(users, sfmc_contacts)
 
+        api_orders = self._tranform_orders(api_orders)
+
         csv_data = [self._dataframe_to_csv(data) for data in [sfmc_contacts, active_subscription, users, api_orders]]
 
         return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
@@ -129,6 +131,119 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
                                     'SOURCE_ORD': 'DL',
                                     'RECSEQ': str(int(contacts['RECSEQ'][contacts.tail(1).index.item()])+1)},
                                     ignore_index=True)
+
+    def _transform_orders(self, api_orders):
+        api_orders = self.drop_columns_not_required(api_orders)
+
+        df = self.groupby_to_get_calculation_by_date(api_orders)
+
+        cmon, fapa, rapp, licboard, fapp = self.get_dfs_filtered_by_item_number(df)
+
+        cmon = self.groupby_cmon_df(cmon)
+        fapa = self.groupby_fapa_df(fapa)
+        fapp = self.groupby_fapp_df(fapp)
+        licboard = self.groupby_licboard_df(licboard)
+        rapp = self.groupby_rapp_df(rapp)
+
+        merged_df = self.merge_all_dfs(cmon, fapa, rapp, licboard, fapp)
+        result = self.calculate(merged_df)
+        return result
+
+    def drop_columns_not_required(self, api_orders):
+        api_orders = api_orders.drop(columns=['Unnamed: 0'])
+        api_orders = api_orders.drop(columns=['Isell Login'])
+        return api_orders
+
+    def groupby_to_get_calculation_by_date(self, api_orders):
+        df = api_orders.groupby(['Month', 'Year', 'Item Number', 'Customer Number', 'Company Name',
+                                 'Customer Category']).sum().reset_index()
+        return df
+
+    def get_dfs_filtered_by_item_number(self, df):
+        CMON = df.loc[df['Item Number'] == 'CMON']
+        FAPA = df.loc[df['Item Number'] == 'FAPA']
+        RAPP = df.loc[df['Item Number'] == 'RAPP']
+        LICBOARD = df.loc[df['Item Number'] == 'LICBOARD']
+        FAPP = df.loc[df['Item Number'] == 'FAPP']
+
+        return CMON, FAPA, RAPP, LICBOARD, FAPP
+
+    def groupby_cmon_df(self, CMON):
+        CMON = CMON.groupby(['Month', 'Year', 'Item Number', 'Customer Number', 'Company Name',
+                             'Customer Category']).sum().reset_index()
+        CMON = CMON.rename(columns={"Num_Profs": "CM Profiles", "Rev": "CM Rev"})
+        CMON = CMON.drop(columns=['Item Number'])
+
+        return CMON
+
+    def groupby_fapa_df(self, FAPA):
+        FAPA = FAPA.groupby(['Month', 'Year', 'Item Number', 'Customer Number', 'Company Name',
+                             'Customer Category']).sum().reset_index()
+        FAPA = FAPA.rename(columns={"Num_Profs": "PA Profiles", "Rev": "PA Rev"})
+        FAPA = FAPA.drop(columns=['Item Number'])
+
+        return FAPA
+
+    def groupby_rapp_df(self, RAPP):
+        RAPP = RAPP.groupby(['Month', 'Year', 'Item Number', 'Customer Number', 'Company Name',
+                             'Customer Category']).sum().reset_index()
+        RAPP = RAPP.rename(columns={"Num_Profs": "Reapp Profiles", "Rev": "Reapp Rev"})
+        RAPP = RAPP.drop(columns=['Item Number'])
+
+        return RAPP
+
+    def groupby_licboard_df(self, LICBOARD):
+        LICBOARD = LICBOARD.groupby(['Month', 'Year', 'Item Number', 'Customer Number', 'Company Name',
+                                     'Customer Category']).sum().reset_index()
+        LICBOARD = LICBOARD.rename(columns={"Num_Profs": "LicBoard Profiles", "Rev": "LicBoard Rev"})
+        LICBOARD = LICBOARD.drop(columns=['Item Number'])
+
+        return LICBOARD
+
+    def groupby_fapp_df(self, FAPP):
+        FAPP = FAPP.groupby(['Month', 'Year', 'Item Number', 'Customer Number', 'Company Name',
+                             'Customer Category']).sum().reset_index()
+        FAPP = FAPP.rename(columns={"Num_Profs": "Full Profiles", "Rev": "Full Rev"})
+        FAPP = FAPP.drop(columns=['Item Number'])
+
+    def merge_all_dfs(self, CMON, FAPA, RAPP, LICBOARD, FAPP ):
+        cmon_fapa = pd.merge(CMON, FAPA, how='left',
+                             left_on=['Month', 'Year', 'Customer Number', 'Company Name', 'Customer Category'],
+                             right_on=['Month', 'Year', 'Customer Number', 'Company Name', 'Customer Category'])
+        cmon_fapa_rapp = pd.merge(cmon_fapa, RAPP, how='left',
+                                  left_on=['Month', 'Year', 'Customer Number', 'Company Name', 'Customer Category'],
+                                  right_on=['Month', 'Year', 'Customer Number', 'Company Name', 'Customer Category'])
+        cmon_fapa_rapp_fapp = pd.merge(cmon_fapa_rapp, FAPP, how='left',
+                                       left_on=['Month', 'Year', 'Customer Number', 'Company Name',
+                                                'Customer Category'],
+                                       right_on=['Month', 'Year', 'Customer Number', 'Company Name',
+                                                 'Customer Category'])
+        cmon_fapa_rapp_fapa_licboard = pd.merge(cmon_fapa_rapp_fapp, LICBOARD, how='left',
+                                                left_on=['Month', 'Year', 'Customer Number', 'Company Name',
+                                                         'Customer Category'],
+                                                right_on=['Month', 'Year', 'Customer Number', 'Company Name',
+                                                          'Customer Category'])
+
+        cmon_fapa_rapp_fapa_licboard = cmon_fapa_rapp_fapa_licboard.fillna(0)
+
+        return cmon_fapa_rapp_fapa_licboard
+
+    def calculate(self, cmon_fapa_rapp_fapa_licboard):
+        cmon_fapa_rapp_fapa_licboard['Total Profiles'] = cmon_fapa_rapp_fapa_licboard['PA Profiles'] + \
+                                                         cmon_fapa_rapp_fapa_licboard['Reapp Profiles'] + \
+                                                         cmon_fapa_rapp_fapa_licboard['Full Profiles'] + \
+                                                         cmon_fapa_rapp_fapa_licboard['LicBoard Profiles']
+        cmon_fapa_rapp_fapa_licboard['Total Revenue'] = cmon_fapa_rapp_fapa_licboard['PA Rev'] + \
+                                                        cmon_fapa_rapp_fapa_licboard['Reapp Rev'] + \
+                                                        cmon_fapa_rapp_fapa_licboard['Full Rev'] + \
+                                                        cmon_fapa_rapp_fapa_licboard['LicBoard Rev'] + \
+                                                        cmon_fapa_rapp_fapa_licboard['CM Rev']
+        cmon_fapa_rapp_fapa_licboard.insert(0, 'Order Begin Date', np.nan)
+        cmon_fapa_rapp_fapa_licboard.insert(3, 'Isell Login', np.nan)
+        cmon_fapa_rapp_fapa_licboard['Order Begin Date'] = "1" + "/" + cmon_fapa_rapp_fapa_licboard['Month'].astype(
+            str) + "/" + cmon_fapa_rapp_fapa_licboard['Year'].astype(str)
+
+        return cmon_fapa_rapp_fapa_licboard
 
     @classmethod
     def _dataframe_to_csv(cls, data):
