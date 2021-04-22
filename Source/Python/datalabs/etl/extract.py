@@ -2,8 +2,6 @@
 from   abc import ABC, abstractmethod
 from   datetime import datetime
 
-from   dateutil.parser import isoparse
-
 from   datalabs.etl.task import ETLComponentTask, ETLException
 
 
@@ -27,19 +25,6 @@ class IncludeNamesMixin:
             include_names = self._parameters.get('INCLUDE_NAMES', 'false').upper() == 'TRUE'
 
         return include_names
-
-
-class ExecutionTimeMixin:
-    @property
-    def execution_time(self):
-        timestamp = datetime.utcnow().isoformat()
-
-        if hasattr(self._parameters, 'execution_time') and self._parameters.execution_time:
-            timestamp = self._parameters.execution_time
-        elif hasattr(self._parameters, 'get'):
-            timestamp = self._parameters.get('EXECUTION_TIME', timestamp)
-
-        return isoparse(timestamp)
 
 
 class FileExtractorTask(ExtractorTask, ABC):
@@ -79,6 +64,10 @@ class FileExtractorTask(ExtractorTask, ABC):
         return decoded_data
 
     @abstractmethod
+    def _get_client(self) -> 'Context Manager':
+        return None
+
+    @abstractmethod
     def _get_files(self) -> list:
         return None
 
@@ -88,10 +77,6 @@ class FileExtractorTask(ExtractorTask, ABC):
         expanded_files = self._resolve_wildcards(timestamped_files)
 
         return expanded_files
-
-    @abstractmethod
-    def _get_client(self) -> 'Context Manager':
-        return None
 
     def _extract_files(self, files):
         data = [self._extract_file(file) for file in files]

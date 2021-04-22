@@ -8,8 +8,8 @@ import logging
 import boto3
 from   dateutil.parser import isoparse
 
-from   datalabs.etl.load import LoaderTask
-from   datalabs.etl.task import ETLException
+from   datalabs.etl.load import FileLoaderTask
+from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.task import add_schema
 
 logging.basicConfig()
@@ -29,16 +29,15 @@ class S3FileLoaderParameters:
     access_key: str = None
     secret_key: str = None
     region_name: str = None
+    include_datestamp: str = None
     execution_time: str = None
 
 
-class S3FileLoaderTask(LoaderTask):
+class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
     PARAMETER_CLASS = S3FileLoaderParameters
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
-
-        self._s3 = boto3.client(
+    def _get_client(self):
+        return AWSClient(
             's3',
             endpoint_url=self._parameters.endpoint_url,
             aws_access_key_id=self._parameters.access_key,
@@ -72,9 +71,13 @@ class S3FileLoaderTask(LoaderTask):
             ContentMD5=b64_md5_hash.decode('utf-8'))
 
     def _get_current_path(self):
-        current_date = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
+        release_folder = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
+        path = self._parameters.base_path
 
-        return '/'.join((self._parameters.base_path, current_date))
+        if self._parameters.include_datestamp is None or self._parameters.include_datestamp.lower() == 'true':
+            path = '/'.join((self._parameters.base_path, release_folder))
+
+        return path
 
     def _get_execution_date(self):
         execution_time = self._parameters.execution_time
