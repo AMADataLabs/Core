@@ -21,6 +21,9 @@ RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
 #RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
 #RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
+ADD https://dbschema.com/jdbc-drivers/SqlServerJdbcDriver.zip .
+RUN unzip ./SqlServerJdbcDriver.zip && rm ./SqlServerJdbcDriver.zip
+
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/ContactID ./Build/ContactID
