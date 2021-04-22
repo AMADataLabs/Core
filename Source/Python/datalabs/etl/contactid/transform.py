@@ -66,7 +66,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         a = []
         id_list = []
         empty = []
-        users.insert(0, 'HSContact_ID', np.nan)
+        #users.insert(0, 'HSContact_ID', np.nan)
         for index_users in users.index:
             LOGGER.info(index_users)
 
@@ -114,8 +114,9 @@ class ContactIDMergeTransformerTask(etl.TransformerTask, ABC):
         users['HSContact_ID'][index_users] = contacts['HSContact_ID'][a[0]]
 
     def assign_new_id_to_users(self, index_users, users, id_list, empty):
-        id = self.id_check(id_list, empty)
-        users['HSContact_ID'][index_users] = id
+        if users['HSContact_ID'][index_users] != users['HSContact_ID'][index_users] :
+            id = self.id_check(id_list, empty)
+            users['HSContact_ID'][index_users] = id
 
     def add_contact_from_users_to_flatfile(self, index_users, contacts, users):
         name = str(users['FIRST_NM'][index_users]) + " " + str(users['LAST_NM'][index_users])
