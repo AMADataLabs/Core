@@ -5,8 +5,8 @@ import logging
 import os
 
 import datalabs.access.sftp as sftp
-from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, ExecutionTimeMixin
-from   datalabs.etl.task import ETLException
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
+from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.task import add_schema
 
 logging.basicConfig()
@@ -32,11 +32,6 @@ class SFTPFileExtractorParameters:
 class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
     PARAMETER_CLASS = SFTPFileExtractorParameters
 
-    def _get_files(self):
-        base_path = self._parameters.base_path
-
-        return [os.path.join(base_path, file.strip()) for file in self._parameters.files.split(',')]
-
     def _get_client(self):
         config = sftp.Configuration(
             host=self._parameters.host
@@ -47,6 +42,11 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
         )
 
         return sftp.SFTP(config, credentials)
+
+    def _get_files(self):
+        base_path = self._parameters.base_path
+
+        return [os.path.join(base_path, file.strip()) for file in self._parameters.files.split(',')]
 
     def _resolve_wildcard(self, file):
         resolved_files = [file]

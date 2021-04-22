@@ -8,8 +8,8 @@ import logging
 import boto3
 from   dateutil.parser import isoparse
 
-from   datalabs.etl.load import LoaderTask
-from   datalabs.etl.task import ETLException
+from   datalabs.etl.load import FileLoaderTask
+from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.task import add_schema
 
 logging.basicConfig()
@@ -33,13 +33,11 @@ class S3FileLoaderParameters:
     execution_time: str = None
 
 
-class S3FileLoaderTask(LoaderTask):
+class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
     PARAMETER_CLASS = S3FileLoaderParameters
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
-
-        self._s3 = boto3.client(
+    def _get_client(self):
+        return AWSClient(
             's3',
             endpoint_url=self._parameters.endpoint_url,
             aws_access_key_id=self._parameters.access_key,

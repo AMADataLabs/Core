@@ -24,5 +24,6 @@ def parameters():
         PASSWORD='dfihas80',
         BASE_PATH='dir1/dir2/dir3',
         FILES='this_one.csv,that_one.csv,\n       the_other_one.csv     ',
-        EXECUTION_TIME='19000101'
+        EXECUTION_TIME='19000101',
+        data=[{}, {}]
     )
