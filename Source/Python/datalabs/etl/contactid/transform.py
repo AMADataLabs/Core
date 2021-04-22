@@ -54,7 +54,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask):
         found_id = True
         attempts = 0
 
-        while found_id or attempts > cls.MAX_ID_ATTEMPTS:
+        while found_id and attempts <= cls.MAX_ID_ATTEMPTS:
             contact_id = cls._generate_id()
             found_id = cls._find_id(id_list, contact_id, existing_ids)
             attempts += 1
