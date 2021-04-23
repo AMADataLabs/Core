@@ -6,10 +6,10 @@ from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
 
 
-DOCKER_IMAGE = 'harbor.ama-assn.org/hsg-data-labs/contact-id-etl:1.0.0'
+DOCKER_IMAGE = 'harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.0'
 ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='contact-id-etl'))
 ADVANTAGE_SECRET = Secret('env', None, 'contact-id-etl-advantage')
-MINIO_SECRET = Secret('env', None, 'oneview-etl-minio')
+MINIO_SECRET = Secret('env', None, 'contact-id-etl-minio')
 
 CONTACT_ID_ASSIGNMENT_DAG = DAG(
     dag_id='contact_id',
@@ -24,7 +24,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     EXTRACT_ADVANTAGE = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
-        name="extract_present_employment",
+        name="extract_advantage",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[ADVANTAGE_SECRET, MINIO_SECRET],
@@ -39,7 +39,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     # EXTRACT_ORG_MANAGER = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
     #     image=DOCKER_IMAGE,
-    #     name="extract_type_of_practice",
+    #     name="extract_org_manager",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[ODS_SECRET, MINIO_SECRET],
@@ -54,7 +54,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     # EXTRACT_VALID = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
     #     image=DOCKER_IMAGE,
-    #     name="extract_ppd",
+    #     name="extract_valid",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[ODS_SECRET, MINIO_SECRET],
@@ -69,7 +69,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     # EXTRACT_SEED_FILES = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
     #     image=DOCKER_IMAGE,
-    #     name="extract_major_professional_activity",
+    #     name="extract_seed_files",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[ODS_SECRET, MINIO_SECRET],
@@ -84,7 +84,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     # ASSIGN_EXISTING_CONTACT_IDS = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
     #     image=DOCKER_IMAGE,
-    #     name="create_physician_table",
+    #     name="assign_existing_contact_ids",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[MINIO_SECRET],
@@ -100,7 +100,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     #     namespace='hsg-data-labs-dev',
     #     image=DOCKER_IMAGE,
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     name="create_type_of_practice_table",
+    #     name="merge_and_generate_new_ids",
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[MINIO_SECRET],
     #     env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
@@ -114,7 +114,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     # DELIVER_OUTPUT_FILES = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
     #     image=DOCKER_IMAGE,
-    #     name="load_tables_into_database",
+    #     name="deliver_output_files",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[DATABASE_SECRET, MINIO_SECRET],
@@ -129,7 +129,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     # UPDATE_SEED_FILES = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
     #     image=DOCKER_IMAGE,
-    #     name="load_tables_into_database",
+    #     name="update_seed_files",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[DATABASE_SECRET, MINIO_SECRET],
