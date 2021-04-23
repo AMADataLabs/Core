@@ -14,14 +14,17 @@ modspec:
       - plugin
       - task
       - awslambda
-  - package: datalabs.access.parameter
   - package: datalabs.access
     include:
+      - aws
       - credentials
       - database
       - datastore
       - environment
       - sftp
+  - package: datalabs.access.parameter
+    include:
+    - system
   - package: datalabs.etl
   - package: datalabs.etl.airflow
   - package: datalabs.etl.contactid
