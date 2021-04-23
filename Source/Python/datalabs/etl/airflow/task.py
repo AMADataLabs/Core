@@ -15,8 +15,8 @@ LOGGER.setLevel(logging.INFO)
 
 
 class CacheDirection(Enum):
-    Input = "INPUT"
-    Output = "OUTPUT"
+    INPUT = "INPUT"
+    OUTPUT = "OUTPUT"
 
 
 class TaskDataCache(ABC):
@@ -33,11 +33,17 @@ class TaskDataCache(ABC):
 
 
 class AirflowTaskWrapper(task.TaskWrapper):
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
+
+        self._cache_parameters = {}
+
     def _get_task_parameters(self):
         parameters = self._get_dag_task_parameters()
+        parameters = self._extract_cache_parameters(parameters)
 
-        if parameters:
-            cache_plugin = self._get_cache_plugin(parameters, CacheDirection.Input)
+        cache_plugin = self._get_cache_plugin(CacheDirection.INPUT)
+        if cache_plugin:
             input_data = cache_plugin.extract_data()
 
             parameters['data'] = input_data
@@ -48,8 +54,8 @@ class AirflowTaskWrapper(task.TaskWrapper):
         LOGGER.exception('Handling Airflow task exception: %s', exception)
 
     def _handle_success(self):
-        if self._task_parameters:
-            cache_plugin = self._get_cache_plugin(self._task_parameters, CacheDirection.Output)  # pylint: disable=no-member
+        cache_plugin = self._get_cache_plugin(CacheDirection.OUTPUT)  # pylint: disable=no-member
+        if cache_plugin:
             cache_plugin.load_data(self.task.data)
 
         LOGGER.info('Airflow task has finished')
@@ -62,17 +68,37 @@ class AirflowTaskWrapper(task.TaskWrapper):
 
         return self._merge_parameters(dag_parameters, task_parameters)
 
-    @classmethod
-    def _get_cache_plugin(cls, task_parameters: dict, direction: CacheDirection) -> TaskDataCache:
-        cache_parameters = cls._get_cache_parameters(task_parameters, direction)
-        plugin_name = 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    def _extract_cache_parameters(self, task_parameters):
+        self._cache_parameters[CacheDirection.INPUT] = self._get_cache_parameters(
+            task_parameters,
+            CacheDirection.INPUT
+        )
+        self._cache_parameters[CacheDirection.OUTPUT] = self._get_cache_parameters(
+            task_parameters,
+            CacheDirection.OUTPUT
+        )
+        cache_keys = [key for key in task_parameters if key.startswith('CACHE_')]
 
-        if 'CLASS' in cache_parameters:
-            plugin_name = cache_parameters.pop('CLASS')
+        for key in cache_keys:
+            task_parameters.pop(key)
 
-        TaskDataCachePlugin = import_plugin(plugin_name)  # pylint: disable=invalid-name
+        return task_parameters
 
-        return TaskDataCachePlugin(cache_parameters)
+    def _get_cache_plugin(self, direction: CacheDirection) -> TaskDataCache:
+        cache_parameters = self._cache_parameters[direction]
+        plugin = None
+
+        if len(cache_parameters) > 1:
+            plugin_name = 'datalabs.etl.airflow.s3.S3TaskDataCache'
+
+            if 'CLASS' in cache_parameters:
+                plugin_name = cache_parameters.pop('CLASS')
+
+            TaskDataCachePlugin = import_plugin(plugin_name)  # pylint: disable=invalid-name
+
+            plugin = TaskDataCachePlugin(cache_parameters)
+
+        return plugin
 
     @classmethod
     def _get_dag_parameters_from_environment(cls, dag_id, datestamp):
@@ -110,11 +136,12 @@ class AirflowTaskWrapper(task.TaskWrapper):
     @classmethod
     def _get_cache_parameters(cls, task_parameters: dict, direction: CacheDirection) -> dict:
         cache_parameters = {}
+        other_direction = [d[1] for d in CacheDirection.__members__.items() if d[1] != direction][0]  # pylint: disable=no-member
 
         for key, value in task_parameters.items():
             match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
 
-            if match:
+            if match and not match.group(2).startswith(other_direction.value+'_'):
                 cache_parameters[match.group(2)] = value
 
         return cache_parameters
@@ -123,4 +150,6 @@ class AirflowTaskWrapper(task.TaskWrapper):
     def _get_parameters(cls, branch):
         var_tree = VariableTree.generate()
 
-        return var_tree.get_branch_values(branch)
+        candidate_parameters = var_tree.get_branch_values(branch)
+
+        return {key:value for key, value in candidate_parameters.items() if value is not None}

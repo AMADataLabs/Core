@@ -2,7 +2,7 @@
 
 set -ex
 
-export PROJECT=CPT
+PROJECT="${PROJECT:-CPT}"
 
 ls Bundle.zip
 

@@ -1,4 +1,3 @@
-
 resource "aws_iam_role" "sns_logging" {
     name = "DataLabs${var.project}LoggingRoleForSNS"
 
@@ -32,138 +31,85 @@ resource "aws_iam_role_policy_attachment" "sns_logging" {
 }
 
 
-resource "aws_sns_topic" "ingestion" {
-    name = "IngestionBucketNotification"
-    sqs_success_feedback_role_arn       = aws_iam_role.sns_logging.arn
-    sqs_failure_feedback_role_arn       = aws_iam_role.sns_logging.arn
+module "ingested_data_sns_topic" {
+    source                  = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=feature/sns-updates"
+    name                    = "IngestedDataNotification"
+    topic_display_name            = "IngestedDataNotification"
+    app_name                = "datalake"
+    app_environment         = lower(local.tags["Env"])
     sqs_success_feedback_sample_rate    = 100
-    lambda_success_feedback_role_arn    = aws_iam_role.sns_logging.arn
-    lambda_failure_feedback_role_arn    = aws_iam_role.sns_logging.arn
     lambda_success_feedback_sample_rate = 100
 
-    tags = merge(local.tags, {Name = "Data Labs Data Lake ingestion bucket notification topic"})
-}
-
-
-resource "aws_sns_topic_policy" "ingestion" {
-    arn = aws_sns_topic.ingestion.arn
-
-    policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "AllowAccountSubscribe",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": [
-        "SNS:Subscribe",
-        "SNS:Receive"
-      ],
-      "Resource": "${aws_sns_topic.ingestion.arn}",
-      "Condition": {
-        "StringEquals": {
-          "AWS:SourceAccount": "${data.aws_caller_identity.account.account_id}"
-        }
-      }
-    },
-    {
-      "Sid": "AllowBucketPublish",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "s3.amazonaws.com"
-      },
-      "Action": [
-        "SNS:Publish"
-      ],
-      "Resource": "${aws_sns_topic.ingestion.arn}",
-      "Condition": {
-        "ArnLike": {
-          "aws:SourceArn": "${aws_s3_bucket.datalake_ingestion_bucket.arn}"
-        }
-      }
+    policy_template         = file("policies/s3_notification_topic.json")
+    policy_template_vars    = {
+        topic_name      = "IngestedDataNotification"
+        region          = "us-east-1"
+        account_id      = data.aws_caller_identity.account.account_id
+        s3_bucket_name  = data.aws_ssm_parameter.ingested_data_bucket.value
     }
-  ]
-}
-POLICY
+
+    tag_name                = "${var.project} ingested data bucket notification topic"
+    tag_environment         = local.tags["Env"]
+    tag_contact             = local.tags["Contact"]
+    tag_systemtier          = local.tags["SystemTier"]
+    tag_drtier              = local.tags["DRTier"]
+    tag_dataclassification  = local.tags["DataClassification"]
+    tag_budgetcode          = local.tags["BudgetCode"]
+    tag_owner               = local.tags["Owner"]
+    tag_projectname         = var.project
+    tag_notes               = ""
+    tag_eol                 = local.tags["EOL"]
+    tag_maintwindow         = local.tags["MaintenanceWindow"]
 }
 
 
-resource "aws_s3_bucket_notification" "ingestion_sns_notification" {
-    bucket = data.aws_ssm_parameter.ingestion_bucket.value
+resource "aws_s3_bucket_notification" "ingested_data_sns_notification" {
+    bucket = data.aws_ssm_parameter.ingested_data_bucket.value
 
     topic {
-        topic_arn           = aws_sns_topic.ingestion.arn
+        topic_arn           = module.ingested_data_sns_topic.this_sns_topic_arn
         events              = ["s3:ObjectCreated:*"]
     }
 }
 
 
-resource "aws_sns_topic" "processed" {
-    name = "ProcessedBucketNotification"
-    sqs_success_feedback_role_arn       = aws_iam_role.sns_logging.arn
-    sqs_failure_feedback_role_arn       = aws_iam_role.sns_logging.arn
+module "processed_data_sns_topic" {
+    source                  = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=feature/sns-updates"
+    name                    = "ProcessedDataNotification"
+    topic_display_name            = "ProcessedDataNotification"
+    app_name                = "datalake"
+    app_environment         = lower(local.tags["Env"])
     sqs_success_feedback_sample_rate    = 100
-    lambda_success_feedback_role_arn    = aws_iam_role.sns_logging.arn
-    lambda_failure_feedback_role_arn    = aws_iam_role.sns_logging.arn
     lambda_success_feedback_sample_rate = 100
 
-    tags = merge(local.tags, {Name = "Data Labs Data Lake processed bucket notification topic"})
-}
-
-
-resource "aws_sns_topic_policy" "processed" {
-    arn = aws_sns_topic.processed.arn
-
-    policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Sid": "AllowAccountSubscribe",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "*"
-      },
-      "Action": [
-        "SNS:Subscribe",
-        "SNS:Receive"
-      ],
-      "Resource": "${aws_sns_topic.processed.arn}",
-      "Condition": {
-        "StringEquals": {
-          "AWS:SourceAccount": "${data.aws_caller_identity.account.account_id}"
-        }
-      }
-    },
-    {
-      "Sid": "AllowBucketPublish",
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "s3.amazonaws.com"
-      },
-      "Action": [
-        "SNS:Publish"
-      ],
-      "Resource": "${aws_sns_topic.processed.arn}",
-      "Condition": {
-        "ArnLike": {
-          "aws:SourceArn": "${aws_s3_bucket.datalake_processed_bucket.arn}"
-        }
-      }
+    policy_template         = file("policies/s3_notification_topic.json")
+    policy_template_vars    = {
+        topic_name      = "ProcessedDataNotification"
+        region          = "us-east-1"
+        account_id      = data.aws_caller_identity.account.account_id
+        s3_bucket_name  = data.aws_ssm_parameter.processed_data_bucket.value
     }
-  ]
-}
-POLICY
+
+    tag_name                = "${var.project} processed data bucket notification topic"
+    tag_environment         = local.tags["Env"]
+    tag_contact             = local.tags["Contact"]
+    tag_systemtier          = local.tags["SystemTier"]
+    tag_drtier              = local.tags["DRTier"]
+    tag_dataclassification  = local.tags["DataClassification"]
+    tag_budgetcode          = local.tags["BudgetCode"]
+    tag_owner               = local.tags["Owner"]
+    tag_projectname         = var.project
+    tag_notes               = ""
+    tag_eol                 = local.tags["EOL"]
+    tag_maintwindow         = local.tags["MaintenanceWindow"]
 }
 
-resource "aws_s3_bucket_notification" "processed_sns_notification" {
-    bucket = data.aws_ssm_parameter.processed_bucket.value
+
+resource "aws_s3_bucket_notification" "processed_data_sns_notification" {
+    bucket = data.aws_ssm_parameter.processed_data_bucket.value
 
     topic {
-        topic_arn           = aws_sns_topic.processed.arn
+        topic_arn           = module.processed_data_sns_topic.this_sns_topic_arn
         events              = ["s3:ObjectCreated:*"]
     }
 }

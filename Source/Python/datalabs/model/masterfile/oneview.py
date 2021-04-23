@@ -98,6 +98,7 @@ class Physician(Base):
     next_most_recent_former_last_name = sa.Column(sa.String)
     next_most_recent_former_middle_name = sa.Column(sa.String)
     next_most_recent_former_first_name = sa.Column(sa.String)
+    physician_type = sa.Column(sa.String, nullable=False)
 
 
 class TypeOfPractice(Base):
@@ -155,12 +156,10 @@ class ResidencyProgram(Base):
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     specialty = sa.Column(sa.String)
-    # program_state = sa.Column(sa.String)
     institution_control = sa.Column(sa.String)
     sequence_number = sa.Column(sa.String)
     federal_code = sa.Column(sa.String)
     region_code = sa.Column(sa.String)
-    activity_code = sa.Column(sa.String)
     acgme_accredited = sa.Column(sa.String)
     name = sa.Column(sa.String)
     web_address = sa.Column(sa.String)
@@ -190,7 +189,6 @@ class ResidencyProgram(Base):
     american_osteopathic_association_indicator = sa.Column(sa.String)
     american_osteopathic_association_indicator_program_id = sa.Column(sa.String)
     osteopathic_principles = sa.Column(sa.String)
-    address_type = sa.Column(sa.String)
     address_1 = sa.Column(sa.String)
     address_2 = sa.Column(sa.String)
     address_3 = sa.Column(sa.String)
@@ -206,8 +204,6 @@ class ResidencyProgramPersonnelMember(Base):
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     program = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program.id"), nullable=False)
-    personnel_type = sa.Column(sa.String)
-    aamc_id = sa.Column(sa.String)
     first_name = sa.Column(sa.String)
     middle_name = sa.Column(sa.String)
     last_name = sa.Column(sa.String)
@@ -215,8 +211,6 @@ class ResidencyProgramPersonnelMember(Base):
     degree_1 = sa.Column(sa.String)
     degree_2 = sa.Column(sa.String)
     degree_3 = sa.Column(sa.String)
-    phone_number = sa.Column(sa.String)
-    email = sa.Column(sa.String)
     last_update_date = sa.Column(sa.Date)
 
 
@@ -282,22 +276,6 @@ class Business(Base):
     replacement_business = sa.Column(sa.String)
     status_indicator = sa.Column(sa.String)
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
-
-
-class CorporateParentBusiness(Base):
-    __tablename__ = 'corporate_parent_business'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    name = sa.Column(sa.String, nullable=False)
-
-
-class OwnerSubsidiary(Base):
-    __tablename__ = 'owner_subsidiary'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    name = sa.Column(sa.String, nullable=False)
 
 
 class Provider(Base):
@@ -432,3 +410,148 @@ class ResidencyProgramPhysician(Base):
                                  primary_key=True, nullable=False)
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
+
+
+class ZipCode(Base):
+    __tablename__ = 'zip_code'
+    __table_args__ = {"schema": "oneview"}
+
+    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    state = sa.Column(sa.String, nullable=False)
+    city = sa.Column(sa.String, nullable=False)
+    type = sa.Column(sa.String, nullable=False)
+    county_federal_information_processing = sa.Column(sa.String,
+                                                      sa.ForeignKey
+                                                      ("oneview.county.federal_information_processing_standard_code"),
+                                                      nullable=False)
+    latitude = sa.Column(sa.String, nullable=False)
+    longitude = sa.Column(sa.String, nullable=False)
+    metropolitan_statistical_area = sa.Column(sa.String, sa.ForeignKey("oneview.metropolitan_statistical_area.code"),
+                                              nullable=False)
+    primary_metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
+
+
+class County(Base):
+    __tablename__ = 'county'
+    __table_args__ = {"schema": "oneview"}
+
+    federal_information_processing_standard_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    county_name = sa.Column(sa.String, nullable=False)
+    state = sa.Column(sa.String, nullable=False)
+    time_zone = sa.Column(sa.String, nullable=False)
+    county_type = sa.Column(sa.String, nullable=False)
+    county_seat = sa.Column(sa.String, nullable=False)
+    name_type = sa.Column(sa.String, nullable=False)
+    elevation = sa.Column(sa.Integer, nullable=False)
+    person_per_household = sa.Column(sa.Integer, nullable=False)
+    population = sa.Column(sa.Integer, nullable=False)
+    area = sa.Column(sa.Integer, nullable=False)
+    households = sa.Column(sa.Integer, nullable=False)
+    white = sa.Column(sa.Integer, nullable=False)
+    black = sa.Column(sa.Integer, nullable=False)
+    hispanic = sa.Column(sa.Integer, nullable=False)
+    average_income = sa.Column(sa.String, nullable=False)
+    average_house = sa.Column(sa.Integer, nullable=False)
+
+
+class AreaCode(Base):
+    __tablename__ = 'area_code'
+    __table_args__ = {"schema": "oneview"}
+
+    area_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    prefix = sa.Column(sa.String, nullable=False)
+    latitude = sa.Column(sa.String, nullable=False)
+    longitude = sa.Column(sa.String, nullable=False)
+
+
+class Census(Base):
+    __tablename__ = 'census'
+    __table_args__ = {"schema": "oneview"}
+
+    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    population = sa.Column(sa.Integer, nullable=False)
+    urban = sa.Column(sa.Integer, nullable=False)
+    suburban = sa.Column(sa.Integer, nullable=False)
+    farm = sa.Column(sa.Integer, nullable=False)
+    non_farm = sa.Column(sa.Integer, nullable=False)
+    white = sa.Column(sa.Integer, nullable=False)
+    black = sa.Column(sa.Integer, nullable=False)
+    indian = sa.Column(sa.Integer, nullable=False)
+    asian = sa.Column(sa.Integer, nullable=False)
+    hawaian = sa.Column(sa.Integer, nullable=False)
+    race_other = sa.Column(sa.Integer, nullable=False)
+    hispanic = sa.Column(sa.Integer, nullable=False)
+    age_0_to_4 = sa.Column(sa.Integer, nullable=False)
+    age_5_to_9 = sa.Column(sa.Integer, nullable=False)
+    age_10_to_14 = sa.Column(sa.Integer, nullable=False)
+    age_15_to_17 = sa.Column(sa.Integer, nullable=False)
+    age_18_to_19 = sa.Column(sa.Integer, nullable=False)
+    age_20 = sa.Column(sa.Integer, nullable=False)
+    age_21 = sa.Column(sa.Integer, nullable=False)
+    age_22_to_24 = sa.Column(sa.Integer, nullable=False)
+    age_25_to_29 = sa.Column(sa.Integer, nullable=False)
+    age_30_to_34 = sa.Column(sa.Integer, nullable=False)
+    age_35_to_39 = sa.Column(sa.Integer, nullable=False)
+    age_40_to_44 = sa.Column(sa.Integer, nullable=False)
+    age_45_to_49 = sa.Column(sa.Integer, nullable=False)
+    age_50_to_54 = sa.Column(sa.Integer, nullable=False)
+    age_55_to_59 = sa.Column(sa.Integer, nullable=False)
+    age_60_to_61 = sa.Column(sa.Integer, nullable=False)
+    age_65_to_66 = sa.Column(sa.Integer, nullable=False)
+    age_67_to_69 = sa.Column(sa.Integer, nullable=False)
+    age_70_to_74 = sa.Column(sa.Integer, nullable=False)
+    age_75_to_79 = sa.Column(sa.Integer, nullable=False)
+    age_80_to_84 = sa.Column(sa.Integer, nullable=False)
+    age_85_plus = sa.Column(sa.Integer, nullable=False)
+    education_below_9 = sa.Column(sa.Integer, nullable=False)
+    education_9_to_12 = sa.Column(sa.Integer, nullable=False)
+    education_high_school = sa.Column(sa.Integer, nullable=False)
+    education_some_college = sa.Column(sa.Integer, nullable=False)
+    education_association = sa.Column(sa.Integer, nullable=False)
+    education_bachelor = sa.Column(sa.Integer, nullable=False)
+    education_professional = sa.Column(sa.Integer, nullable=False)
+    household_income = sa.Column(sa.Integer, nullable=False)
+    per_person_income = sa.Column(sa.Integer, nullable=False)
+    house_value = sa.Column(sa.Integer, nullable=False)
+
+
+class CoreBasedStatisticalAreaMelissa(Base):
+    __tablename__ = 'core_based_statistical_area_zip_code'
+    __table_args__ = {"schema": "oneview"}
+
+    code = sa.Column(sa.String, primary_key=True, nullable=False)
+    type = sa.Column(sa.String, nullable=False)
+    title = sa.Column(sa.String, nullable=False)
+    level = sa.Column(sa.String, nullable=False)
+    status = sa.Column(sa.String, nullable=False)
+
+
+class ZipCodeCoreBasedStatisticalArea(Base):
+    __tablename__ = 'zip_code_core_based_statistical_areas'
+    __table_args__ = {"schema": "oneview"}
+
+    zip_code = sa.Column(sa.String, sa.ForeignKey("oneview.zip_code.zip_code"), primary_key=True, nullable=False)
+    core_based_statistical_area = sa.Column(sa.String,
+                                            sa.ForeignKey("oneview.core_based_statistical_area_zip_code.code"),
+                                            nullable=False)
+    division = sa.Column(sa.String, nullable=False)
+
+
+class MetropolitanStatisticalArea(Base):
+    __tablename__ = 'metropolitan_statistical_area'
+    __table_args__ = {"schema": "oneview"}
+
+    code = sa.Column(sa.String, primary_key=True, nullable=False)
+    type = sa.Column(sa.String, nullable=False)
+    name = sa.Column(sa.String, nullable=False)
+    consolidated_metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
+    population = sa.Column(sa.Integer, nullable=False)
+
+
+class HistoricalResident(Base):
+    medical_education_number = sa.Column(sa.String, primary_key=True, nullable=False)
+    institution_code = sa.Column(sa.String, nullable=False)
+    specialty = sa.Column(sa.String, nullable=False)
+    training_type = sa.Column(sa.String, nullable=False)
+    start_year = sa.Column(sa.Integer, nullable=False)
+    end_year = sa.Column(sa.Integer, nullable=False)

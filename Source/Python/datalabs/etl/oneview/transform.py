@@ -1,7 +1,10 @@
 """ OneView Transformer"""
 from   abc import ABC, abstractmethod
+from   io import BytesIO
+
 import csv
 import logging
+import pandas
 
 import datalabs.etl.transform as etl
 
@@ -13,10 +16,17 @@ LOGGER.setLevel(logging.INFO)
 class TransformerTask(etl.TransformerTask, ABC):
     def _transform(self):
         LOGGER.info(self._parameters['data'])
-        selected_data = self._select_columns(self._parameters['data'])
+
+        dataframes = self._to_dataframe()
+        selected_data = self._select_columns(dataframes)
         renamed_data = self._rename_columns(selected_data)
 
-        return [self._dataframe_to_csv(data) for data in renamed_data]
+        csv_data = [self._dataframe_to_csv(data) for data in renamed_data]
+
+        return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
+
+    def _to_dataframe(self):
+        return [pandas.read_csv(BytesIO(file)) for file in self._parameters['data']]
 
     def _select_columns(self, dataset):
         names = [list(column_map.keys()) for column_map in self._get_columns()]

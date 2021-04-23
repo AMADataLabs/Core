@@ -4,16 +4,16 @@ provider "aws" {
 }
 
 
-resource "aws_ssm_parameter" "ingestion_bucket" {
-    name  = "/DataLabs/${local.project}/ingestion_bucket"
+resource "aws_ssm_parameter" "ingested_data_bucket" {
+    name  = "/DataLabs/${local.project}/ingested_data_bucket"
     type  = "String"
     value = format("ama-hsg-datalabs-%s-ingestion-sandbox", lower(local.project))
     tags = local.tags
 }
 
 
-resource "aws_ssm_parameter" "processed_bucket" {
-    name  = "/DataLabs/${local.project}/processed_bucket"
+resource "aws_ssm_parameter" "processed_data_bucket" {
+    name  = "/DataLabs/${local.project}/processed_data_bucket"
     type  = "String"
     value = format("ama-hsg-datalabs-%s-processed-sandbox", lower(local.project))
     tags = local.tags

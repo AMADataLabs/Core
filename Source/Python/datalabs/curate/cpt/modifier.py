@@ -15,85 +15,68 @@ LOGGER.setLevel(logging.INFO)
 
 
 class State(Enum):
-    Unknown = 0
-    Beginning = 1
-    CategoryOneModifier = 2
-    AnesthesiaPhysicalStatusModifier = 3
-    AmbulatoryServiceCenterModifier = 4
-    CategoryTwoModifier = 5
-    LevelTwoModifier = 6
-    End = 7
+    UNKNOWN = 0
+    BEGINNING = 1
+    CATEGORY_ONE = 2
+    ANESTHESIA_PHYSICAL_STATUS = 3
+    AMBULATORY_SERVICE_CENTER = 4
+    CATEGORY_TWO = 5
+    LEVEL_TWO = 6
+    END = 7
 
 
 class Event(Enum):
-    Start = 0
-    Blank = 1
-    Text = 2
-    Modifier = 3
-    AppendixA = 4
-    AnesthesiaPhysicalStatus = 5
-    CPTLevelIModifiers = 6
-    CategoryIIModifiers = 7
-    LevelIIModifiers = 8
+    START = 0
+    BLANK = 1
+    TEXT = 2
+    MODIFIER = 3
+    APPENDIX_A = 4
+    ANESTHESIA_PHYSICAL_STATUS = 5
+    CPT_LEVEL_I_MODIFIERS = 6
+    CATEGORY_II_MODIFIERS = 7
+    LEVEL_II_MODIFIERS = 8
 
 
 class ModifierType(Enum):
-    CategoryOne = 'Category I'
-    AnesthesiaPhysicalStatus = 'Anesthesia Physical Status'
-    AmbulatoryServiceCenter = 'Ambulatory Service Center'
-    CategoryTwo = 'Category II'
-    LevelTwo = 'Level II'
+    CATEGORY_ONE = 'Category I'
+    ANESTHESIA_PHYSICAL_STATUS = 'Anesthesia Physical Status'
+    AMBULATORY_SERVICE_CENTER = 'Ambulatory Service Center'
+    CATEGORY_TWO = 'Category II'
+    LEVEL_TWO = 'Level II'
 
 
 Context = namedtuple('Context', 'state event data')
 
 
-# pylint: disable=bad-continuation
 class ModifierParser(Parser):
-    # pylint: disable=line-too-long,bad-whitespace
+    # pylint: disable=line-too-long
     TRANSITION_TABLE = [
-        # Start             Blank                   Text                            Modifier
-        #   AppendixA              AnesthesiaPhysicalStatus    CPTLevelIModifiers          CategoryIIModifiers
-        #   LevelIIModifiers
-        [State.Unknown,     State.Unknown,          State.Unknown,                  State.Unknown,
-            State.Unknown,          State.Unknown,              State.Unknown,              State.Unknown,
-            State.Unknown],  # Unknown
-        [State.Beginning,   State.Beginning,        State.Beginning,                State.Unknown,
-            State.CategoryOneModifier,  State.Unknown,              State.Unknown,              State.Unknown,
-            State.Unknown],  # Beginning
-        [State.Unknown,     State.CategoryOneModifier,  State.CategoryOneModifier,          State.CategoryOneModifier,
-            State.Unknown,          State.AnesthesiaPhysicalStatusModifier,     State.Unknown,              State.Unknown,
-            State.Unknown],  # CategoryOneModifier
-        [State.Unknown,     State.AnesthesiaPhysicalStatusModifier, State.AnesthesiaPhysicalStatusModifier,         State.AnesthesiaPhysicalStatusModifier,
-            State.Unknown,          State.Unknown,          State.AmbulatoryServiceCenterModifier,     State.Unknown,
-            State.Unknown],  # AnesthesiaPhysicalStatusModifier
-        [State.Unknown,     State.AmbulatoryServiceCenterModifier, State.AmbulatoryServiceCenterModifier,         State.AmbulatoryServiceCenterModifier,
-            State.Unknown,          State.Unknown,          State.Unknown,              State.CategoryTwoModifier,
-            State.Unknown],  # AmbulatoryServiceCenterModifier
-        [State.Unknown,     State.CategoryTwoModifier, State.CategoryTwoModifier,   State.CategoryTwoModifier,
-            State.Unknown,          State.Unknown,          State.Unknown,              State.Unknown,
-            State.LevelTwoModifier],  # CategoryTwoModifier
-        [State.Unknown,     State.LevelTwoModifier, State.LevelTwoModifier,         State.LevelTwoModifier,
-            State.Unknown,          State.Unknown,          State.Unknown,              State.Unknown,
-            State.Unknown],  # LevelTwoModifier
+        # START             BLANK                             TEXT                              MODIFIER                          APPENDIX_A          ANESTHESIA_PHYSICAL_STATUS        CPT_LEVEL_I_MODIFIERS            CATEGORY_II_MODIFIERS LEVEL_II_MODIFIERS
+        [State.UNKNOWN,     State.UNKNOWN,                    State.UNKNOWN,                    State.UNKNOWN,                    State.UNKNOWN,      State.UNKNOWN,                    State.UNKNOWN,                   State.UNKNOWN,        State.UNKNOWN],    # UNKNOWN
+        [State.BEGINNING,   State.BEGINNING,                  State.BEGINNING,                  State.UNKNOWN,                    State.CATEGORY_ONE, State.UNKNOWN,                    State.UNKNOWN,                   State.UNKNOWN,        State.UNKNOWN],    # BEGINNING
+        [State.UNKNOWN,     State.CATEGORY_ONE,               State.CATEGORY_ONE,               State.CATEGORY_ONE,               State.UNKNOWN,      State.ANESTHESIA_PHYSICAL_STATUS, State.UNKNOWN,                   State.UNKNOWN,        State.UNKNOWN],    # CATEGORY_ONE
+        [State.UNKNOWN,     State.ANESTHESIA_PHYSICAL_STATUS, State.ANESTHESIA_PHYSICAL_STATUS, State.ANESTHESIA_PHYSICAL_STATUS, State.UNKNOWN,      State.UNKNOWN,                    State.AMBULATORY_SERVICE_CENTER, State.UNKNOWN,        State.UNKNOWN],    # ANESTHESIA_PHYSICAL_STATUS
+        [State.UNKNOWN,     State.AMBULATORY_SERVICE_CENTER,  State.AMBULATORY_SERVICE_CENTER,  State.AMBULATORY_SERVICE_CENTER,  State.UNKNOWN,      State.UNKNOWN,                    State.UNKNOWN,                   State.CATEGORY_TWO,   State.UNKNOWN],    # AMBULATORY_SERVICE_CENTER
+        [State.UNKNOWN,     State.CATEGORY_TWO,               State.CATEGORY_TWO,               State.CATEGORY_TWO,               State.UNKNOWN,      State.UNKNOWN,                    State.UNKNOWN,                   State.UNKNOWN,        State.LEVEL_TWO],  # CATEGORY_TWO
+        [State.UNKNOWN,     State.LEVEL_TWO,                  State.LEVEL_TWO,                  State.LEVEL_TWO,                  State.UNKNOWN,      State.UNKNOWN,                    State.UNKNOWN,                   State.UNKNOWN,        State.UNKNOWN],    # LEVEL_TWO
     ]
 
     def __init__(self):
         self._modifiers = {
-            ModifierType.CategoryOne: {},
-            ModifierType.AnesthesiaPhysicalStatus: {},
-            ModifierType.AmbulatoryServiceCenter: {},
-            ModifierType.CategoryTwo: {},
-            ModifierType.LevelTwo: {},
+            ModifierType.CATEGORY_ONE: {},
+            ModifierType.ANESTHESIA_PHYSICAL_STATUS: {},
+            ModifierType.AMBULATORY_SERVICE_CENTER: {},
+            ModifierType.CATEGORY_TWO: {},
+            ModifierType.LEVEL_TWO: {},
         }
         self._state_processors = [
             None,
             AppendixAProcessor(self),
-            CategoryOneModifierProcessor(self),
-            AnesthesiaPhysicalStatusModifierProcessor(self),
-            AmbulatoryServiceCenterModifierProcessor(self),
-            CategoryTwoModifier(self),
-            LevelTwoModifierProcessor(self)
+            CetegoryOneProcessor(self),
+            AnesthesiaPhysicalStatusProcessor(self),
+            AmbulatoryServiceCenterProcessor(self),
+            CategoryTwoProcessor(self),
+            LevelTwoProcessor(self)
         ]
 
     def add_modifier(self, modifier_type: ModifierType, code: str, description: str):
@@ -108,7 +91,7 @@ class ModifierParser(Parser):
         return self._generate_dataframe()
 
     def _parse_lines(self, lines):
-        context = Context(state=State.Beginning, event=Event.Start, data='')
+        context = Context(state=State.BEGINNING, event=Event.START, data='')
 
         for line in lines:
             context = self._process_event(context, line.strip())
@@ -140,77 +123,77 @@ class StateProcessor(ABC):
 
 class AppendixAProcessor(StateProcessor):
     def process_line(self, context, line):
-        event = Event.Start
+        event = Event.START
         data = ''
 
         if line == 'Appendix A':
-            event = Event.AppendixA
+            event = Event.APPENDIX_A
 
         return Context(state=None, event=event, data=data)
 
 
-class CategoryOneModifierProcessor(StateProcessor):
+class CetegoryOneProcessor(StateProcessor):
     def process_line(self, context, line):
         event = context.event
         data = context.data
         match = re.match('[1-9][0-9] ..*', line)
 
         if line == 'Anesthesia Physical Status':
-            event = Event.AnesthesiaPhysicalStatus
+            event = Event.ANESTHESIA_PHYSICAL_STATUS
             data = ''
-        elif context.event != Event.Modifier and match:
-            event = Event.Modifier
+        elif context.event != Event.MODIFIER and match:
+            event = Event.MODIFIER
             data = data + ' ' + line
-        elif context.event == Event.Modifier and line != '':
+        elif context.event == Event.MODIFIER and line != '':
             data = data + ' ' + line
-        elif context.event == Event.Modifier and line == '':
-            event = Event.Blank
+        elif context.event == Event.MODIFIER and line == '':
+            event = Event.BLANK
             match = data.strip()
             self._process_match(match)
             data = ''
         elif line == '':
-            event = Event.Blank
+            event = Event.BLANK
         else:
-            event = Event.Text
+            event = Event.TEXT
 
         return Context(state=None, event=event, data=data)
 
     def _process_match(self, match):
         code, description = match.split(' ', 1)
-        self._parser.add_modifier(ModifierType.CategoryOne, code, description)
+        self._parser.add_modifier(ModifierType.CATEGORY_ONE, code, description)
 
 
-class AnesthesiaPhysicalStatusModifierProcessor(StateProcessor):
+class AnesthesiaPhysicalStatusProcessor(StateProcessor):
     def process_line(self, context, line):
 
         data = context.data
-        event = Event.Modifier
+        event = Event.MODIFIER
         match = re.match('.*(P[0-9]):(.*)', line)
 
         if line == 'CPT Level I Modifiers':
-            event = Event.CPTLevelIModifiers
+            event = Event.CPT_LEVEL_I_MODIFIERS
 
         elif line == '':
-            event = Event.Blank
+            event = Event.BLANK
 
         elif match:
             self._process_match(match)
 
         elif line != '':
-            event = Event.Text
+            event = Event.TEXT
 
         elif line == '':
-            event = Event.Blank
+            event = Event.BLANK
 
         return Context(state=None, event=event, data=data)
 
     def _process_match(self, match):
         code = match.group(1)
         description = match.group(2)
-        self._parser.add_modifier(ModifierType.AnesthesiaPhysicalStatus, code, description)
+        self._parser.add_modifier(ModifierType.ANESTHESIA_PHYSICAL_STATUS, code, description)
 
 
-class AmbulatoryServiceCenterModifierProcessor(StateProcessor):
+class AmbulatoryServiceCenterProcessor(StateProcessor):
     def process_line(self, context, line):
 
         event = context.event
@@ -218,34 +201,34 @@ class AmbulatoryServiceCenterModifierProcessor(StateProcessor):
         match = re.match('[1-9][0-9] ..*', line)
 
         if line == 'Category II Modifiers':
-            event = Event.CategoryIIModifiers
+            event = Event.CATEGORY_II_MODIFIERS
             data = ''
 
-        elif context.event != Event.Modifier and match:
-            event = Event.Modifier
+        elif context.event != Event.MODIFIER and match:
+            event = Event.MODIFIER
             data = data + ' ' + line
 
-        elif context.event == Event.Modifier and line != '':
+        elif context.event == Event.MODIFIER and line != '':
             data = data + ' ' + line
 
-        elif context.event == Event.Modifier and line == '':
-            event = Event.Blank
+        elif context.event == Event.MODIFIER and line == '':
+            event = Event.BLANK
             self._process_match(data.strip())
             data = ''
         elif line != '':
-            event = Event.Text
+            event = Event.TEXT
 
         elif line == '':
-            event = Event.Blank
+            event = Event.BLANK
 
         return Context(state=None, event=event, data=data)
 
     def _process_match(self, code_description_line):
         code, description = code_description_line.split(' ', 1)
-        self._parser.add_modifier(ModifierType.AmbulatoryServiceCenter, code, description)
+        self._parser.add_modifier(ModifierType.AMBULATORY_SERVICE_CENTER, code, description)
 
 
-class CategoryTwoModifier(StateProcessor):
+class CategoryTwoProcessor(StateProcessor):
     def process_line(self, context, line):
 
         event = context.event
@@ -253,52 +236,52 @@ class CategoryTwoModifier(StateProcessor):
         match = re.match('[1-9][A-Z] ..*', line)
 
         if line == 'Level II (HCPCS/National) Modifiers':
-            event = Event.LevelIIModifiers
+            event = Event.LEVEL_II_MODIFIERS
             data = ''
 
-        elif context.event != Event.Modifier and match:
-            event = Event.Modifier
+        elif context.event != Event.MODIFIER and match:
+            event = Event.MODIFIER
             data = data + ' ' + line
 
-        elif context.event == Event.Modifier and line != '':
+        elif context.event == Event.MODIFIER and line != '':
             data = data + ' ' + line
 
-        elif context.event == Event.Modifier and line == '':
-            event = Event.Blank
+        elif context.event == Event.MODIFIER and line == '':
+            event = Event.BLANK
             self._process_match(data.strip())
             data = ''
         elif line != '':
-            event = Event.Text
+            event = Event.TEXT
 
         elif line == '':
-            event = Event.Blank
+            event = Event.BLANK
 
         return Context(state=None, event=event, data=data)
 
     def _process_match(self, code_description_line):
         code, description = code_description_line.split(' ', 1)
-        self._parser.add_modifier(ModifierType.CategoryTwo, code, description)
+        self._parser.add_modifier(ModifierType.CATEGORY_TWO, code, description)
 
 
-class LevelTwoModifierProcessor(StateProcessor):
+class LevelTwoProcessor(StateProcessor):
     def process_line(self, context, line):
 
         data = context.data
-        event = Event.Modifier
+        event = Event.MODIFIER
         match = re.match('([A-Z][0-9A-Z])(.*)', line)
 
         if line == '':
-            event = Event.Blank
+            event = Event.BLANK
 
         elif match:
             self._process_match(match)
 
         else:
-            event = Event.Text
+            event = Event.TEXT
 
         return Context(state=None, event=event, data=data)
 
     def _process_match(self, match):
         code = match.group(1)
         description = match.group(2)
-        self._parser.add_modifier(ModifierType.LevelTwo, code, description)
+        self._parser.add_modifier(ModifierType.LEVEL_TWO, code, description)

@@ -16,6 +16,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _load(self):
+        LOGGER.info(self._parameters)
+
         with self._get_database(Database, self._parameters) as database:
             for model_class, data in zip(self._get_model_classes(), self._get_dataframes()):
                 self._add_data(database, model_class, data)
@@ -31,12 +33,11 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             # pylint: disable=no-member
             database.add(model)
 
-
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
 
     def _get_dataframes(self):
-        return [pandas.read_csv(io.StringIO(data)) for data in self._parameters['data']]
+        return [pandas.read_csv(io.BytesIO(data)) for data in self._parameters['data']]
 
     @classmethod
     def _create_model(cls, model_class, row):
@@ -52,3 +53,17 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         columns = [column.key for column in mapper.attrs]
 
         return columns
+
+
+class ORMPreLoaderTask(LoaderTask, DatabaseTaskMixin):
+    def _load(self):
+        with self._get_database(Database, self._parameters) as database:
+            for model_class in self._get_model_classes():
+                # pylint: disable=no-member
+                database.delete(model_class)
+
+            # pylint: disable=no-member
+            database.commit()
+
+    def _get_model_classes(self):
+        return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]

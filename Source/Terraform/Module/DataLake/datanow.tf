@@ -8,131 +8,141 @@ resource "aws_ecr_repository" "datanow" {
 
 ########## Fargate Service ##########
 
-resource "aws_ecs_service" "datanow" {
-    name                                = "DataNow"
-    task_definition                     = aws_ecs_task_definition.datanow.arn
-    launch_type                         = "FARGATE"
-    cluster                             = aws_ecs_cluster.datalake.id
-    desired_count                       = 1
-    platform_version                    = "1.4.0"
+# resource "aws_ecs_service" "datanow" {
+#     name                                = "DataNow"
+#     task_definition                     = module.datanow_task_definition.aws_ecs_task_definition_td_arn
+#     launch_type                         = "FARGATE"
+#     cluster                             = aws_ecs_cluster.datalake.id
+#     desired_count                       = 1
+#     platform_version                    = "1.4.0"
+#     health_check_grace_period_seconds   = 0
+#     propagate_tags                      = "TASK_DEFINITION"
+#
+#     deployment_controller {
+#         type                = "ECS"
+#     }
+#
+#     timeouts {}
+#
+#     network_configuration {
+#         assign_public_ip    = true
+#
+#         security_groups     = [
+#             aws_security_group.datanow.id
+#         ]
+#
+#         subnets             = [
+#             aws_subnet.datanow_frontend.id,
+#             aws_subnet.datanow_backend.id
+#         ]
+#     }
+#
+#     load_balancer {
+#         target_group_arn    = aws_lb_target_group.datanow.arn
+#         container_name      = "datanow"
+#         container_port      = "9047"
+#     }
+#
+#
+#     tags = merge(local.tags, {Name = "Data Labs Data Lake DataNow Service"})
+#
+#     depends_on = [
+#         module.datanow_task_definition,
+#         aws_lb_target_group.datanow
+#     ]
+# }
+
+
+module "datanow_service" {
+    source                              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-fargate-service.git?ref=feature/auto-scaling"
+    app_name                            = "DataNow"
+    container_name                      = "DataNow"  # The module should be using just app_name
+    resource_prefix                     = "${var.project}"
+    ecs_cluster_id                      = aws_ecs_cluster.datalake.id
+    ecs_task_definition_arn             = module.datanow_task_definition.aws_ecs_task_definition_td_arn
+    task_count                          = 1
+    enable_autoscaling                  = true
+    create_discovery_record             = false  # Service Discovery is not currently implemented anyway
     health_check_grace_period_seconds   = 0
-    propagate_tags                      = "TASK_DEFINITION"
+    ecs_security_groups                 = [aws_security_group.datanow.id]
+    alb_subnets_private                 = [aws_subnet.datanow_frontend.id, aws_subnet.datanow_backend.id]
 
-    deployment_controller {
-        type                = "ECS"
-    }
-
-    timeouts {}
-
-    network_configuration {
-        assign_public_ip    = true
-
-        security_groups     = [
-            aws_security_group.datanow.id
-        ]
-
-        subnets             = [
-            aws_subnet.datanow_frontend.id,
-            aws_subnet.datanow_backend.id
-        ]
-    }
-
-    load_balancer {
-        target_group_arn    = aws_lb_target_group.datanow.arn
-        container_name      = "datanow"
-        container_port      = "9047"
-    }
-
-
-    tags = merge(local.tags, {Name = "Data Labs Data Lake DataNow Service"})
-
-    depends_on = [
-        aws_ecs_task_definition.datanow,
-        aws_lb_target_group.datanow
+    load_balancers                      = [
+        {
+            target_group_arn  = aws_lb_target_group.datanow.arn
+            container_name    = "datanow"
+            container_port    = "9047"
+        }
     ]
+
+    sd_record_name                      = "DataNow"  # Service Discovery is not currently implemented, but this has no default
+    tag_name                            = "${var.project} DataNow Service"
+    tag_environment                     = local.tags["Env"]
+    tag_contact                         = local.tags["Contact"]
+    tag_systemtier                      = local.tags["SystemTier"]
+    tag_drtier                          = local.tags["DRTier"]
+    tag_dataclassification              = local.tags["DataClassification"]
+    tag_budgetcode                      = local.tags["BudgetCode"]
+    tag_owner                           = local.tags["Owner"]
+    tag_projectname                     = var.project
+    tag_notes                           = ""
+    tag_eol                             = local.tags["EOL"]
+    tag_maintwindow                     = local.tags["MaintenanceWindow"]
+
+    # depends_on = [
+    #     module.datanow_task_definition,
+    #     aws_lb_target_group.datanow
+    # ]
 }
 
 
-resource "aws_ecs_task_definition" "datanow" {
-    family                      = "datanow"
-    cpu                         = 1024
-    memory                      = 8192
-    requires_compatibilities    = ["FARGATE"]
-    network_mode                = "awsvpc"
-    task_role_arn               = aws_iam_role.datanow_assume.arn
-    execution_role_arn          = aws_iam_role.datanow_execution.arn
+module "datanow_task_definition" {
+    source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-ecs-fargate-task-definition.git?ref=feature/templated_container_definitions"
+    task_name                       = "datanow"
+    environment_name                = lower(data.aws_ssm_parameter.account_environment.value)
+    task_role_arn                   = aws_iam_role.datanow_assume.arn
+    execution_role_arn              = aws_iam_role.datanow_execution.arn
+    container_cpu                   = 1024
+    container_memory                = 8192
 
-    container_definitions       = jsonencode([
-        {
-            name                    = "datanow"
-            image                   = "${data.aws_caller_identity.account.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/datanow:1.0.0"
-            cpu                     = 0
-            environment             = []
-            essential               = true
-            volumesFrom             = []
-
-            ulimits = [
-                {
-                    name            = "nofile",
-                    softLimit       = 65536,
-                    hardLimit       = 1048576
-                }
-            ]
-
-            portMappings = [
-                {
-                    containerPort   = 9047
-                    hostPort        = 9047
-                    protocol        = "tcp"
-                },
-                {
-                    containerPort   = 31010
-                    hostPort        = 31010
-                    protocol        = "tcp"
-                },
-                {
-                    containerPort   = 45678
-                    hostPort        = 45678
-                    protocol        = "tcp"
-                }
-            ]
-
-            mountPoints = [
-                {
-                    sourceVolume    = "DataNow",
-                    containerPath   = "/opt/dremio/data"
-                    readOnly        = false
-                }
-            ]
-
-            logConfiguration = {
-                logDriver                   = "awslogs"
-
-                options = {
-                    awslogs-region          = data.aws_region.current.name
-                    awslogs-group           = "/ecs/datanow"
-                    awslogs-stream-prefix   = "ecs"
-                }
-            }
-        }
-    ])
-
-    volume {
-        name                        = "DataNow"
-
-        efs_volume_configuration {
-            file_system_id          = aws_efs_file_system.datanow.id
-            root_directory          = "/"
-            transit_encryption      = "ENABLED"
-
-            authorization_config {
-                access_point_id     = aws_efs_access_point.dremio.id
-                iam                 = "ENABLED"
-            }
-        }
+    container_definition_vars       = {
+        account_id  = data.aws_caller_identity.account.account_id,
+        region      = data.aws_region.current.name
+        image       = var.datanow_image
+        tag         = var.datanow_version
     }
 
-    tags = merge(local.tags, {Name = "Data Lake DataNow ECS Task"})
+    volume                          = [
+        {
+            name                        = "DataNow"
+
+            efs_volume_configuration    = [
+                {
+                    "file_system_id":       aws_efs_file_system.datanow.id
+                    "root_directory":       "/"
+                    "transit_encryption":   "ENABLED"
+
+                    "authorization_config": {
+                        "access_point_id":  aws_efs_access_point.dremio.id
+                        "iam":              "ENABLED"
+                    }
+                }
+            ]
+        }
+    ]
+
+    tag_name                        = "${var.project} DataNow Task"
+    tag_environment                 = local.tags["Env"]
+    tag_contact                     = local.tags["Contact"]
+    tag_systemtier                  = local.tags["SystemTier"]
+    tag_drtier                      = local.tags["DRTier"]
+    tag_dataclassification          = local.tags["DataClassification"]
+    tag_budgetcode                  = local.tags["BudgetCode"]
+    tag_owner                       = local.tags["Owner"]
+    tag_projectname                 = var.project
+    tag_notes                       = ""
+    tag_eol                         = local.tags["EOL"]
+    tag_maintwindow                 = local.tags["MaintenanceWindow"]
 }
 
 
@@ -357,6 +367,36 @@ resource "aws_subnet" "datanow_backend" {
 resource "aws_route_table_association" "datanow_backend" {
     subnet_id      = aws_subnet.datanow_backend.id
     route_table_id = aws_vpc.datalake.default_route_table_id
+}
+#
+#
+# resource "aws_vpc_endpoint" "ecr" {
+#     vpc_id          = aws_vpc.datalake.id
+#     service_name    = "com.amazonaws.us-east-1.ecr.api"
+#     vpc_endpoint_type = "Interface"
+#     private_dns_enabled = false
+#
+#     security_group_ids = [
+#         aws_security_group.datalake.id
+#     ]
+#
+#     tags = merge(local.tags, {Name = "Data Lake ECR VPC Endpoint"})
+# }
+
+
+resource "aws_vpc_endpoint" "secrets" {
+    vpc_id              = aws_vpc.datalake.id
+    service_name        = "com.amazonaws.us-east-1.secretsmanager"
+    vpc_endpoint_type   = "Interface"
+    private_dns_enabled = false
+
+    security_group_ids = [
+        aws_security_group.datalake.id
+    ]
+
+    subnet_ids          = [aws_subnet.datanow_frontend.id, aws_subnet.datanow_backend.id]
+
+    tags = merge(local.tags, {Name = "Data Lake Secrets VPC Endpoint"})
 }
 
 

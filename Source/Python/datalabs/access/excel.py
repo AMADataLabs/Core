@@ -1,6 +1,7 @@
 """ Windows-specific Excel functions. """
 import pandas as pd
 import win32com  # pylint: disable=import-error
+from win32com import client  # pylint: disable=import-error
 
 
 def save_formatted_output(data: pd.DataFrame, file, sheet_name='Sheet1'):
@@ -46,6 +47,21 @@ def add_password_to_xlsx(file_path, password):
 
     file.Password = password
     file.Save()
+    file.Close()
+
+    app.DisplayAlerts = True
+    app.Quit()
+    del app
+
+
+def remove_password_from_xlsx(file_path, password, new_file):
+    app = client.Dispatch('Excel.Application')
+    app.DisplayAlerts = False
+    file = app.Workbooks.Open(file_path, False, False, None, password)
+
+    file.Unprotect(password)
+    file.UnprotectSharing(password)
+    file.SaveAs(new_file, None, '', '')
     file.Close()
 
     app.DisplayAlerts = True

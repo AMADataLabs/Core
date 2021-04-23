@@ -2,14 +2,17 @@
 from abc import ABC, abstractmethod
 import copy
 import logging
+import os
 
 import marshmallow
 
-from datalabs.access.database import Database
+from   datalabs.access.database import Database
+from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
+from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class Task(ABC):
@@ -21,7 +24,7 @@ class Task(ABC):
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters()
 
-        LOGGER.debug('%s parameters: %s', self.__class__.__name__, self._parameters)
+        LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
     @abstractmethod
     def run(self):
@@ -41,17 +44,21 @@ class TaskException(BaseException):
 
 
 class TaskWrapper(ABC):
-    def __init__(self, task_class, parameters=None):
+    def __init__(self, parameters=None):
         self.task = None
-        self.task_class = task_class
+        self.task_class = None
         self._parameters = parameters or {}
         self._task_parameters = None
 
-        if not hasattr(self.task_class, 'run'):
-            raise TypeError('Task class does not have a "run" method.')
+        LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
     def run(self):
+        self._setup_environment()
+
+        self.task_class = self._get_task_class()
+
         self._task_parameters = self._get_task_parameters()
+
         self.task = self.task_class(self._task_parameters)
 
         try:
@@ -62,6 +69,23 @@ class TaskWrapper(ABC):
             response = self._handle_exception(exception)
 
         return response
+
+    # pylint: disable=no-self-use
+    def _setup_environment(self):
+        secrets_loader = ReferenceEnvironmentLoader.from_environ()
+        secrets_loader.load()
+
+    def _get_task_class(self):
+        task_resolver_class = self._get_task_resolver_class()
+
+        task_class_name = task_resolver_class.get_task_class_name(self._parameters)
+
+        task_class = import_plugin(task_class_name)
+
+        if not hasattr(task_class, 'run'):
+            raise TypeError('Task class does not have a "run" method.')
+
+        return task_class
 
     def _get_task_parameters(self):
         return self._parameters
@@ -74,6 +98,22 @@ class TaskWrapper(ABC):
     def _handle_exception(self, exception: Exception) -> (int, dict):
         pass
 
+    def _get_task_resolver_class(self):
+        task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.task.EnvironmentTaskResolver')
+        task_resolver_class = import_plugin(task_resolver_class_name)
+
+        if not hasattr(task_resolver_class, 'get_task_class_name'):
+            raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class_name method.')
+
+        return task_resolver_class
+
+
+class EnvironmentTaskResolver:
+    # pylint: disable=unused-argument
+    @classmethod
+    def get_task_class_name(cls, parameters):
+        return os.environ['TASK_CLASS']
+
 
 # pylint: disable=abstract-method
 class DatabaseTaskMixin:
@@ -83,9 +123,9 @@ class DatabaseTaskMixin:
 
         for key, value in variables.items():
             if key.startswith('DATABASE_'):
-                parameters[key.lower()] = value.lower()
+                parameters[key.lower()] = value
 
-        return database_class.from_parameters(parameters)
+        return database_class.from_parameters(parameters, prefix='DATABASE_')
 
 
 def add_schema(model_class):
@@ -126,11 +166,18 @@ def add_schema(model_class):
             return model
 
         def _fill_dataclass_defaults(self, data):
+            missing_fields = []
+
             for field in self.Meta.fields:
                 dataclass_field = model_class.__dict__['__dataclass_fields__'][field]
 
                 if field not in data and dataclass_field.default.__class__.__name__ != '_MISSING_TYPE':
                     data[field] = dataclass_field.default
+                elif field not in data:
+                    missing_fields.append(field)
+
+            if len(missing_fields) > 0:
+                raise TaskException(f'Missing parameters for {model_class.__name__} instance: {missing_fields}')
 
         def _fill_class_defaults(self, data):
             for field in self.Meta.fields:
