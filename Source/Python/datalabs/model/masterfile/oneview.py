@@ -268,7 +268,6 @@ class Business(Base):
     federal_information_processing_standard_county = sa.Column(sa.String)
     number_of_providers = sa.Column(sa.String)
     corporate_parent_business = sa.Column(sa.String, sa.ForeignKey("oneview.corporate_parent_business.id"))
-    owner_subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.owner_subsidiary.id"))
     electronic_medical_record = sa.Column(sa.String)
     electronically_prescribe = sa.Column(sa.String)
     pay_for_performance = sa.Column(sa.String)
@@ -276,6 +275,14 @@ class Business(Base):
     replacement_business = sa.Column(sa.String)
     status_indicator = sa.Column(sa.String)
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
+
+
+class SubsidiaryBusiness(Base):
+    __tablename__ = 'subsidiary_business'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    name = sa.Column(sa.String)
 
 
 class Provider(Base):
