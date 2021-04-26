@@ -24,18 +24,13 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                                                 self._get_dataframes(),
                                                 self._parameters['TABLES'].split(',')):
 
-                columns = "SELECT column_name FROM information_schema.columns " \
-                          f"WHERE table_schema = 'oneview' AND table_name   = f'{table}';"
-                data = data[columns]
-
-                data = self._generate_row_hashes(data)
                 self._add_data(database, model_class, data)
 
             # pylint: disable=no-member
             database.commit()
 
     @classmethod
-    def _generate_row_hashes(cls, dataframe):
+    def _generate_row_hashes(cls, dataframe, table):
         data = dataframe.to_csv(header=None, index=False).strip('\n').split('\n')
         data = ["(" + i + ")" for i in data]
 
@@ -43,6 +38,14 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         dataframe['hash'] = hash_values
 
         return dataframe
+
+    @classmethod
+    def _get_sliced_dataframe(cls, data, table):
+        columns = "SELECT * FROM information_schema.columns " \
+                  f"WHERE table_schema = 'oneview' AND table_name = f'{table}';"
+        sliced_data = data[columns]
+
+        return sliced_data
 
     @classmethod
     def _add_data(cls, database, model_class, data):
