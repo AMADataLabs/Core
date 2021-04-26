@@ -278,11 +278,11 @@ class Business(Base):
 
 
 class CorporateParentBusiness(Base):
-    __tablename__ = 'corporate_parent_business '
+    __tablename__ = 'corporate_parent_business'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    name = sa.Column(sa.String)
+    child = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), primary_key=True, nullable=False)
+    parent = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
 
 
 class Provider(Base):
