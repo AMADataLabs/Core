@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { GetButton } from './get'
 import { NewButton } from './new'
 import { KeyValuePairList } from './list'
 
@@ -9,6 +10,7 @@ export class DataView extends React.Component {
         super();
 
         this.state = {
+            config: this.props.config,
             key_value_pairs: {}
         }
 
@@ -25,6 +27,7 @@ export class DataView extends React.Component {
 
       return (
         <div className="DataView">
+            <GetButton view={this}  />
             <NewButton view={this} />
             <KeyValuePairList key_value_pairs={this.state.key_value_pairs} />
         </div>
