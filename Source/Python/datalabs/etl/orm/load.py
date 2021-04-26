@@ -37,6 +37,8 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     @classmethod
     def _generate_row_hashes(cls, dataframe):
         data = dataframe.to_csv(header=None, index=False).strip('\n').split('\n')
+        data = ["(" + i + ")" for i in data]
+
         hash_values = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in data]
         dataframe['hash'] = hash_values
 

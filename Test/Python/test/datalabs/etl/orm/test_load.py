@@ -22,17 +22,17 @@ LOGGER.setLevel(logging.DEBUG)
 def test_orm_loader(components):
     with mock.patch('datalabs.etl.orm.load.Database'):
         loader = ORMLoaderTask(components)
-        print(components)
         df = pandas.read_csv(BytesIO(components['data'][0]), index_col=[0])
         print(df)
         dataframe = loader._generate_row_hashes(df)
         query_result = {'id': [1, 2, 3], 'md5': ['a0c4bd642e6d37a35dcca8a9e0d5ab43',
-                                                 '845f50063d87d4853fbe07278f1a3c0b',
+                                                 '0225525e6052c8be174995150a302e60',
                                                  '1409af11b29204e49ca9b8fe834b8270']
                         }
         query_result = pandas.DataFrame.from_dict(query_result)
-        print(dataframe, query_result)
-        assert dataframe['id'] == query_result['id']
+
+        assert dataframe['hash'][0] == query_result['md5'][0]
+
 
 # pylint: disable=redefined-outer-name, unused-argument
 @pytest.fixture
