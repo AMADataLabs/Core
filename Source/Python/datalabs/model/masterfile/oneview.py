@@ -282,7 +282,7 @@ class SubsidiaryBusiness(Base):
     __table_args__ = {"schema": "oneview"}
 
     subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), primary_key=True, nullable=False)
-    parent = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
+    owner = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
 
 
 class Provider(Base):
