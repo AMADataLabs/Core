@@ -102,7 +102,7 @@ class Endpoint:
 
         service = 'neptune-db'
         algorithm = 'AWS4-HMAC-SHA256'
-        
+
         request_parameters = urllib.parse.urlencode(querystring, quote_via=urllib.parse.quote)
         request_parameters = request_parameters.replace('%27','%22')
 

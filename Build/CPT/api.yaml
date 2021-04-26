@@ -62,7 +62,7 @@ paths:
             items:
               type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetDescriptor/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -126,7 +126,7 @@ paths:
             items:
               type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetDescriptors/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -162,7 +162,7 @@ paths:
           schema:
             type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetConsumerDescriptor/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -218,7 +218,7 @@ paths:
             items:
               type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetConsumerDescriptors/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -256,7 +256,7 @@ paths:
               schema:
                 type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetClinicianDescriptors/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -314,7 +314,7 @@ paths:
             items:
               type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetAllClinicianDescriptors/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -350,7 +350,7 @@ paths:
           schema:
             type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetPLADetails/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -408,7 +408,7 @@ paths:
             items:
               type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetAllPLADetails/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -446,7 +446,7 @@ paths:
               schema:
                 type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetModifier/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -483,7 +483,7 @@ paths:
             items:
               type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetModifiers/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -527,7 +527,7 @@ paths:
               standard/SurgeryGuidelines.pdf.
       operationId: getPDFLink
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetLatestPDFs/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -560,7 +560,7 @@ paths:
             type: integer
             minimum: 1
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}GetReleases/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: "200"
@@ -590,7 +590,7 @@ paths:
           schema:
             type: string
       x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}Default/invocations"
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
           default:
             statusCode: 200

@@ -27,11 +27,6 @@ variable "account_id" {
 }
 
 
-variable "parent_function" {
-    description = "Reference to the Lambda function allowed to invoke ETLs"
-}
-
-
 variable "region" {
     description = "AWS region"
     type        = string
