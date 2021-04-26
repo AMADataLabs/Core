@@ -277,12 +277,12 @@ class Business(Base):
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
 
 
-class SubsidiaryBusiness(Base):
+class BusinessOwner(Base):
     __tablename__ = 'subsidiary_business'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    name = sa.Column(sa.String)
+    subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), primary_key=True, nullable=False)
+    parent = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
 
 
 class Provider(Base):
