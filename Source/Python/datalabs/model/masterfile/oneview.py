@@ -277,7 +277,7 @@ class Business(Base):
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
 
 
-class BusinessOwner(Base):
+class SubsidiaryBusiness(Base):
     __tablename__ = 'subsidiary_business'
     __table_args__ = {"schema": "oneview"}
 
