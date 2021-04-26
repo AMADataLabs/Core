@@ -1,4 +1,5 @@
 """OneView ETL ORM Loader"""
+import hashlib
 import io
 import logging
 import pandas
@@ -19,7 +20,14 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         LOGGER.info(self._parameters)
 
         with self._get_database(Database, self._parameters) as database:
-            for model_class, data in zip(self._get_model_classes(), self._get_dataframes()):
+            for model_class, data, table in zip(self._get_model_classes(),
+                                                self._get_dataframes(),
+                                                self._parameters['TABLES'].split(',')):
+
+                current_data = self._get_current_data(database, model_class)
+                data = self._generate_row_hashes(data)
+                new_data = self._get_new_data(current_data, data)
+
                 self._add_data(database, model_class, data)
 
             # pylint: disable=no-member
@@ -32,6 +40,32 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         for model in models:
             # pylint: disable=no-member
             database.add(model)
+
+    def _get_current_data(self, database, model_class):
+        get_current_hash = "SELECT pk, md5(mytable::TEXT) FROM mytable"
+
+        return get_current_hash
+
+    @classmethod
+    def _generate_row_hashes(cls, dataframe):
+        data = dataframe.to_csv(header=None, index=False).strip('\n').split('\n')
+        hash_values = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in data]
+        dataframe['hash'] = hash_values
+
+        return dataframe
+
+    def _get_new_data(self, old_data, new_data):
+        for row in new_data:
+            for code in new_data['hash']:
+                if code in old_data['md5']:
+                    new_data.drop(row)
+
+        for row in old_data:
+            for code in old_data['md5']:
+                if code not in new_data['hash']:
+                    old_data.drop(row)
+
+        return new_data, old_data
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
