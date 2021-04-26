@@ -31,7 +31,7 @@ def test_generated_row_hashes_match_postgres_hashes(components_hash):
         loader = ORMLoaderTask(components)
         df = pandas.read_csv(BytesIO(components_hash['data'][0]), index_col=[0])
 
-        dataframe = loader._generate_row_hashes(df, components_hash['TABLES'])
+        dataframe = loader._generate_row_hashes(df, components_hash['COLUMNS'])
         query_result = {'id': [1, 2, 3], 'md5': ['a0c4bd642e6d37a35dcca8a9e0d5ab43',
                                                  '0225525e6052c8be174995150a302e60',
                                                  '1409af11b29204e49ca9b8fe834b8270']
@@ -120,6 +120,7 @@ def components_hash(database, file, data_hash):
         TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
         MODEL_CLASSES='test.datalabs.access.model.Foo,',
         TABLES='foo',
+        COLUMNS=['dumb', 'id', 'dumber'],
         thing=True,
         DATABASE_BACKEND='sqlite',
         DATABASE_NAME=file,
