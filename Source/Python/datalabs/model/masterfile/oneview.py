@@ -267,7 +267,6 @@ class Business(Base):
     federal_information_processing_standard_state = sa.Column(sa.String)
     federal_information_processing_standard_county = sa.Column(sa.String)
     number_of_providers = sa.Column(sa.String)
-    owner_subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.owner_subsidiary.id"))
     electronic_medical_record = sa.Column(sa.String)
     electronically_prescribe = sa.Column(sa.String)
     pay_for_performance = sa.Column(sa.String)
@@ -283,6 +282,14 @@ class CorporateParentBusiness(Base):
 
     child = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), primary_key=True, nullable=False)
     parent = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
+
+
+class SubsidiaryBusiness(Base):
+    __tablename__ = 'subsidiary_business'
+    __table_args__ = {"schema": "oneview"}
+
+    subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), primary_key=True, nullable=False)
+    owner = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
 
 
 class Provider(Base):
