@@ -35,14 +35,12 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         return [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
 
     @classmethod
-    def _get_sliced_dataframe(cls, database, data, table):
+    def _get_sliced_dataframe(cls, database, table):
         query = "SELECT * FROM information_schema.columns " \
                   f"WHERE table_schema = 'oneview' AND table_name = f'{table}';"
         old_data = pandas.read_sql(query, database)
 
-        sliced_data = data[old_data.columns]
-
-        return sliced_data
+        return old_data.columns
 
     @classmethod
     def _add_data(cls, database, model_class, data):
