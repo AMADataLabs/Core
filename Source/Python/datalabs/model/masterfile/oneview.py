@@ -267,8 +267,6 @@ class Business(Base):
     federal_information_processing_standard_state = sa.Column(sa.String)
     federal_information_processing_standard_county = sa.Column(sa.String)
     number_of_providers = sa.Column(sa.String)
-    corporate_parent_business = sa.Column(sa.String, sa.ForeignKey("oneview.corporate_parent_business.id"))
-    owner_subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.owner_subsidiary.id"))
     electronic_medical_record = sa.Column(sa.String)
     electronically_prescribe = sa.Column(sa.String)
     pay_for_performance = sa.Column(sa.String)
@@ -276,6 +274,22 @@ class Business(Base):
     replacement_business = sa.Column(sa.String)
     status_indicator = sa.Column(sa.String)
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
+
+
+class CorporateParentBusiness(Base):
+    __tablename__ = 'corporate_parent_business'
+    __table_args__ = {"schema": "oneview"}
+
+    child = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), primary_key=True, nullable=False)
+    parent = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
+
+
+class SubsidiaryBusiness(Base):
+    __tablename__ = 'subsidiary_business'
+    __table_args__ = {"schema": "oneview"}
+
+    subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), primary_key=True, nullable=False)
+    owner = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
 
 
 class Provider(Base):
@@ -299,7 +313,7 @@ class Provider(Base):
     universal_provider_identification = sa.Column(sa.String)
     national_provider_identifier = sa.Column(sa.String)
     status_description = sa.Column(sa.String)
-    batch_business_date = sa.Column(sa.Date,sa.ForeignKey("oneview.iqvia_update.date"))
+    batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
 
 
 class ProviderAffiliation(Base):
@@ -323,7 +337,7 @@ class IqviaUpdate(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    date = sa.Column(sa.Date)
+    date = sa.Column(sa.Date, unique=True)
 
 
 class CredentialingCustomer(Base):
@@ -549,6 +563,9 @@ class MetropolitanStatisticalArea(Base):
 
 
 class HistoricalResident(Base):
+    __tablename__ = 'historical_resident'
+    __table_args__ = {"schema": "oneview"}
+
     medical_education_number = sa.Column(sa.String, primary_key=True, nullable=False)
     institution_code = sa.Column(sa.String, nullable=False)
     specialty = sa.Column(sa.String, nullable=False)

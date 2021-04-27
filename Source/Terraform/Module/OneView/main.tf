@@ -41,7 +41,7 @@ locals {
         BudgetCode = "PBW"
         Owner = local.owner
         Group = local.owner
-        Project = var.project
+        ProjectName = var.project
         Department = "HSG"
         OS = local.na
         EOL = local.na
