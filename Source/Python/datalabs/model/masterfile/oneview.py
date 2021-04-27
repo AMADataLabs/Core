@@ -313,7 +313,7 @@ class Provider(Base):
     universal_provider_identification = sa.Column(sa.String)
     national_provider_identifier = sa.Column(sa.String)
     status_description = sa.Column(sa.String)
-    batch_business_date = sa.Column(sa.Date,sa.ForeignKey("oneview.iqvia_update.date"))
+    batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
 
 
 class ProviderAffiliation(Base):
@@ -337,7 +337,7 @@ class IqviaUpdate(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    date = sa.Column(sa.Date)
+    date = sa.Column(sa.Date, unique=True)
 
 
 class CredentialingCustomer(Base):
@@ -563,6 +563,9 @@ class MetropolitanStatisticalArea(Base):
 
 
 class HistoricalResident(Base):
+    __tablename__ = 'historical_resident'
+    __table_args__ = {"schema": "oneview"}
+
     medical_education_number = sa.Column(sa.String, primary_key=True, nullable=False)
     institution_code = sa.Column(sa.String, nullable=False)
     specialty = sa.Column(sa.String, nullable=False)
