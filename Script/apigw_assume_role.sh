@@ -1,15 +1,16 @@
 #!/bin/bash
 
 environment=${1:-dev}
+profile=${2:-apigw}
 
 profile_available=0
 for p in $(aws configure list-profiles); do
-     if [[ "$p" == "$environment" ]]; then
+     if [[ "$p" == "$profile" ]]; then
          profile_available=1
      fi
 done
 if [[ $profile_available != 1 ]]; then
-    echo "Missing AWS profile "'"'"$environment"'"'""
+    echo "Missing AWS profile "'"'"$profile"'"'""
     exit 1
 fi
 
@@ -30,15 +31,14 @@ case $environment in
 esac
 
 # access_key=$(aws configure get ${environment}.aws_access_key_id)
-region=$(aws configure get ${environment}.region)
+region=$(aws configure get ${profile}.region)
 
-echo "Profile: $environment"
 echo "Account: $account ($region)"
 
 unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
 
 
-for i in $(aws sts --profile $environment assume-role --role-arn "arn:aws:iam::${account}:role/${environment}-ama-apigateway-invoke-role" --role-session-name datalabs | egrep "AccessKeyId|SecretAccessKey|SessionToken"|sed 's/: /|/g'|sed 's/"//g'|sed 's/,$//')
+for i in $(aws sts --profile ${profile} assume-role --role-arn "arn:aws:iam::${account}:role/${environment}-ama-apigateway-invoke-role" --role-session-name datalabs | egrep "AccessKeyId|SecretAccessKey|SessionToken"|sed 's/: /|/g'|sed 's/"//g'|sed 's/,$//')
 do
 declare -a LIST
 LIST=($(echo $i|sed 's/|/ /g'))
