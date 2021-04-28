@@ -246,6 +246,92 @@ module "sns_processed_data" {
 }
 
 
+#####################################################################
+# Datalake - Neptune Cluster                                        #
+#####################################################################
+
+# resource "aws_security_group" "lineage" {
+#     name        = "Data Lake Lineage"
+#     description = "Allow inbound traffic to Neptune"
+#     vpc_id      = aws_vpc.datalake.id
+#
+#     ingress {
+#         description = "Gremlin"
+#         from_port   = 8182
+#         to_port     = 8182
+#         protocol    = "tcp"
+#         # cidr_blocks = [aws_vpc.development.cidr_block]
+#         cidr_blocks = ["0.0.0.0/0"]
+#     }
+#
+#     egress {
+#         from_port   = 0
+#         to_port     = 0
+#         protocol    = "-1"
+#         cidr_blocks = ["0.0.0.0/0"]
+#     }
+#
+#     tags = merge(local.tags, {Name = "Data Lake Lineage SG"})
+# }
+#
+#
+# resource "aws_subnet" "lineage_frontend" {
+#     vpc_id            = aws_vpc.datalake.id
+#     cidr_block        = "172.31.0.0/24"
+#     availability_zone = "us-east-1a"
+#
+#     tags = merge(local.tags, {Name = "Data Lake Lineage Fronend Subnet"})
+# }
+#
+#
+# resource "aws_route_table_association" "lineage_frontend" {
+#     subnet_id      = aws_subnet.lineage_frontend.id
+#     route_table_id = aws_vpc.datalake.default_route_table_id
+# }
+#
+#
+# resource "aws_subnet" "lineage_backend" {
+#     vpc_id            = aws_vpc.datalake.id
+#     cidr_block        = "172.31.1.0/24"
+#     availability_zone = "us-east-1b"
+#
+#     tags = merge(local.tags, {Name = "Data Lake Lineage Backend Subnet"})
+# }
+#
+#
+# resource "aws_route_table_association" "lineage_backend" {
+#     subnet_id      = aws_subnet.lineage_backend.id
+#     route_table_id = aws_vpc.datalake.default_route_table_id
+# }
+#
+#
+# module "lineage_neptune_cluster" {
+#     source  = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-neptune-cluster.git?ref=1.0.0"
+#     app_name                          = lower(var.project)
+#     instance_id                       = lower(var.project)
+#     neptune_subnet_list     = [aws_subnet.lineage_frontend.id, aws_subnet.lineage_backend.id]
+#     security_group_ids      = [aws_security_group.lineage.id]
+#     environment                       = var.environment
+#
+#     tag_name                          = "${var.project}-${var.environment}-neptune-cluster"
+#     tag_environment                   = var.environment
+#     tag_contact                       = local.contact
+#     tag_budgetcode                    = local.budget_code
+#     tag_owner                         = local.owner
+#     tag_projectname                   = local.project
+#     tag_systemtier                    = local.tier
+#     tag_drtier                        = local.tier
+#     tag_dataclassification            = local.na
+#     tag_notes                         = local.na
+#     tag_eol                           = local.na
+#     tag_maintwindow                   = local.na
+#     tags = {
+#         Group                               = local.group
+#         Department                          = local.department
+#     }
+# }
+
+
 module "datalabs_terraform_state" {
     source  = "../../Module/DataLake"
     project = "DataLake"
