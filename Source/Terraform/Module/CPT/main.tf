@@ -17,71 +17,72 @@ data "aws_security_group" "datalake" {
 }
 
 
-resource "aws_subnet" "cpt_api_database_20" {
-    vpc_id                  = data.aws_vpc.datalake.id
-    cidr_block              = "172.31.20.0/24"
-    availability_zone       = "us-east-1a"
+# resource "aws_subnet" "cpt_api_database_20" {
+#     vpc_id                  = data.aws_vpc.datalake.id
+#     cidr_block              = "172.31.20.0/24"
+#     availability_zone       = "us-east-1a"
+#
+#     tags = merge(local.tags, {Name = "${var.project} API Subnet 1"})
+# }
+#
+#
+# resource "aws_route_table_association" "cpt_api_database_20" {
+#     subnet_id      = aws_subnet.cpt_api_database_20.id
+#     route_table_id = data.aws_route_table.datalake.id
+# }
+#
+#
+# resource "aws_subnet" "cpt_api_database_21" {
+#     vpc_id                  = data.aws_vpc.datalake.id
+#     cidr_block              = "172.31.21.0/24"
+#     availability_zone       = "us-east-1b"
+#
+#     tags = merge(local.tags, {Name = "${var.project} API Subnet 2"})
+# }
+#
+#
+# resource "aws_route_table_association" "cpt_api_database_21" {
+#     subnet_id      = aws_subnet.cpt_api_database_21.id
+#     route_table_id = data.aws_route_table.datalake.id
+# }
+#
+#
+# module "cpt_api_database" {
+#     source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-rds.git?ref=development"
+#     # db_instance_class               = var.rds_instance_class
+#     db_instance_storage_type        = var.rds_storage_type
+#     db_instance_port                = local.rds_port
+#     db_instance_allocated_storage   = 20
+#     max_allocated_storage           = 1000
+#     db_engine                       = local.rds_engine
+#     use_engine_version              = true
+#     db_engine_version               = local.rds_engine_version
+#     database_username               = local.database_username
+#     database_password               = local.database_password
+#     db_subnet_list                  = [aws_subnet.cpt_api_database_20.id, aws_subnet.cpt_api_database_21.id]
+#     vpc_security_group_list         = [data.aws_security_group.datalake.id]
+#
+#     # should default to false
+#     create_initial_db               = false
+#     use_snapshot                    = false
+#
+#     app_name                        = "cpt-api"
+#     app_environment                 = lower(data.aws_ssm_parameter.account_environment.value)
+#
+#     tag_name                        = "${var.project} API Database"
+#     tag_environment                 = local.tags["Env"]
+#     tag_contact                     = local.tags["Contact"]
+#     tag_systemtier                  = local.tags["SystemTier"]
+#     tag_drtier                      = local.tags["DRTier"]
+#     tag_dataclassification          = local.tags["DataClassification"]
+#     tag_budgetcode                  = local.tags["BudgetCode"]
+#     tag_owner                       = local.tags["Owner"]
+#     tag_projectname                 = var.project
+#     tag_notes                       = ""
+#     tag_eol                         = local.tags["EOL"]
+#     tag_maintwindow                 = local.tags["MaintenanceWindow"]
+# }
 
-    tags = merge(local.tags, {Name = "${var.project} API Subnet 1"})
-}
-
-
-resource "aws_route_table_association" "cpt_api_database_20" {
-    subnet_id      = aws_subnet.cpt_api_database_20.id
-    route_table_id = data.aws_route_table.datalake.id
-}
-
-
-resource "aws_subnet" "cpt_api_database_21" {
-    vpc_id                  = data.aws_vpc.datalake.id
-    cidr_block              = "172.31.21.0/24"
-    availability_zone       = "us-east-1b"
-
-    tags = merge(local.tags, {Name = "${var.project} API Subnet 2"})
-}
-
-
-resource "aws_route_table_association" "cpt_api_database_21" {
-    subnet_id      = aws_subnet.cpt_api_database_21.id
-    route_table_id = data.aws_route_table.datalake.id
-}
-
-
-module "cpt_api_database" {
-    source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-rds.git?ref=development"
-    # db_instance_class               = var.rds_instance_class
-    db_instance_storage_type        = var.rds_storage_type
-    db_instance_port                = local.rds_port
-    db_instance_allocated_storage   = 20
-    max_allocated_storage           = 1000
-    db_engine                       = local.rds_engine
-    use_engine_version              = true
-    db_engine_version               = local.rds_engine_version
-    database_username               = local.database_username
-    database_password               = local.database_password
-    db_subnet_list                  = [aws_subnet.cpt_api_database_20.id, aws_subnet.cpt_api_database_21.id]
-    vpc_security_group_list         = [data.aws_security_group.datalake.id]
-
-    # should default to false
-    create_initial_db               = false
-    use_snapshot                    = false
-
-    app_name                        = "cpt-api"
-    app_environment                 = lower(data.aws_ssm_parameter.account_environment.value)
-
-    tag_name                        = "${var.project} API Database"
-    tag_environment                 = local.tags["Env"]
-    tag_contact                     = local.tags["Contact"]
-    tag_systemtier                  = local.tags["SystemTier"]
-    tag_drtier                      = local.tags["DRTier"]
-    tag_dataclassification          = local.tags["DataClassification"]
-    tag_budgetcode                  = local.tags["BudgetCode"]
-    tag_owner                       = local.tags["Owner"]
-    tag_projectname                 = var.project
-    tag_notes                       = ""
-    tag_eol                         = local.tags["EOL"]
-    tag_maintwindow                 = local.tags["MaintenanceWindow"]
-}
 
 resource "aws_db_instance" "cpt_api_database" {
     identifier                    = local.rds_instance_name
@@ -380,7 +381,7 @@ locals {
         BudgetCode          = local.budget_code
         Owner               = local.owner
         Group               = local.owner
-        Project             = var.project
+        ProjectName             = var.project
         Department          = "HSG"
         OS                  = local.na
         EOL                 = local.na

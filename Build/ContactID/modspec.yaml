@@ -14,14 +14,20 @@ modspec:
       - plugin
       - task
       - awslambda
-  - package: datalabs.access.parameter
-  - package: datalabs.access.secret
   - package: datalabs.access
-    exclude:
-      - ods
-      - aims
-      - edw
+    include:
+      - aws
+      - credentials
+      - database
+      - datastore
+      - environment
+      - sftp
+  - package: datalabs.access.parameter
+    include:
+    - system
   - package: datalabs.etl
+  - package: datalabs.etl.airflow
+  - package: datalabs.etl.contactid
+  - package: datalabs.etl.jdbc
   - package: datalabs.etl.sftp
   - package: datalabs.etl.s3
-  - package: datalabs.etl.jdbc
