@@ -95,7 +95,11 @@ def lineage():
         dev='datalake-neptune-cluster-dev.cluster-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com',
         tst='datalake-neptune-cluster-tst.cluster-cvo5zwdixjdr.us-east-1.neptune.amazonaws.com',
         itg='datalake-neptune-cluster-itg.cluster-cxgp9osuwqi3.us-east-1.neptune.amazonaws.com',
+<<<<<<< HEAD
         prd=''
+=======
+        prd='datalake-neptune-cluster-prd.cluster-cxgp9osuwqi3.us-east-1.neptune.amazonaws.com'
+>>>>>>> master
     )
     os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = hostnames[os.environ['NEPTUNE_ENVIRONMENT']]
     os.environ['NEPTUNE_CLUSTER_PORT'] = '8182'

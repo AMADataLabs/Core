@@ -9,7 +9,8 @@ if [[ $? != 0 ]]; then
         --firstname Data \
         --lastname Labs \
         --role Admin \
-        --email DataLabs@ama-assn.org
+        --email DataLabs@ama-assn.org \
+        --password CHANGEME
 fi
 
 /usr/local/bin/airflow scheduler
