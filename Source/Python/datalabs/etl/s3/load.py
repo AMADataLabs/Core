@@ -45,11 +45,6 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
             region_name=self._parameters.region_name
         )
 
-    def _load(self):
-        files = self._get_files()
-
-        return [self._load_file(data, file) for file, data in zip(files, self._parameters.data)]
-
     def _get_files(self):
         current_path = self._get_current_path()
 

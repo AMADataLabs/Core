@@ -21,3 +21,17 @@ variable "lambda_code_bucket" {
     type            = string
     default         = "ama-hsg-datalabs-lambda-code-sandbox"
 }
+
+
+variable "datanow_image" {
+    description     = "ECR repository (image name) for the DataNow container image."
+    type            = string
+    default         = "datanow"
+}
+
+
+variable "datanow_version" {
+    description     = "Version number of the DataNow container image."
+    type            = string
+    default         = "1.0.0"
+}
