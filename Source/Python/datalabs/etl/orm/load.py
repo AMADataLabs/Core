@@ -3,6 +3,7 @@ import hashlib
 import io
 import hashlib
 import logging
+import numpy
 import pandas
 import sqlalchemy as sa
 
@@ -36,14 +37,12 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         return [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
 
     @classmethod
-    def _get_sliced_dataframe(cls, database, data, table):
+    def _get_database_columns(cls, database, table):
         query = "SELECT * FROM information_schema.columns " \
                   f"WHERE table_schema = 'oneview' AND table_name = f'{table}';"
         old_data = pandas.read_sql(query, database)
 
-        sliced_data = data[old_data.columns]
-
-        return sliced_data
+        return old_data.columns
 
     @classmethod
     def _add_data(cls, database, model_class, data):
@@ -53,31 +52,17 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             # pylint: disable=no-member
             database.add(model)
 
-    def _get_current_data(self, database, model_class):
-        get_current_hash = "SELECT pk, md5(mytable::TEXT) FROM mytable"
+    @classmethod
+    def _get_current_data(cls, database):
+        get_current_hash = "SELECT pk, md5(f'{table}'::TEXT) FROM f'{table}'"
+        hash_table = pandas.read_sql(get_current_hash, database)
 
-        return get_current_hash
+        return hash_table
 
     @classmethod
-    def _generate_row_hashes(cls, dataframe):
-        data = dataframe.to_csv(header=None, index=False).strip('\n').split('\n')
-        hash_values = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in data]
-        dataframe['hash'] = hash_values
-
-        return dataframe
-
-    def _get_new_data(self, old_data, new_data):
-        for row in new_data:
-            for code in new_data['hash']:
-                if code in old_data['md5']:
-                    new_data.drop(row)
-
-        for row in old_data:
-            for code in old_data['md5']:
-                if code not in new_data['hash']:
-                    old_data.drop(row)
-
-        return new_data, old_data
+    def _compare_data(cls, old_data, new_data):
+        for generated_hash, db_hash in zip(cls._generate_row_hashes(), cls._get_current_data()['md5']):
+            return db_hash
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
