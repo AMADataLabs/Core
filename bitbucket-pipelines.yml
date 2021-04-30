@@ -52,7 +52,7 @@ pipelines:
                 caches:
                   - cpt-master-create-database-dependencies
                 script:
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - bash Script/setup-virtual-environment CPT
                 - export ENABLE_FEATURE_DEV=True
                 - export DATABASE_NAME=cpt
                 - export DATABASE_NAME_ADMIN=postgres

@@ -1,6 +1,9 @@
 """ ETL Task base classes. """
 from   dataclasses import dataclass
+from   datetime import datetime
 import logging
+
+from   dateutil.parser import isoparse
 
 from   datalabs.access.environment import VariableTree
 import datalabs.task as task
@@ -148,3 +151,16 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
             variables.update(base_component_variables)
 
         return task_parameters
+
+
+class ExecutionTimeMixin:
+    @property
+    def execution_time(self):
+        timestamp = datetime.utcnow().isoformat()
+
+        if hasattr(self._parameters, 'execution_time') and self._parameters.execution_time:
+            timestamp = self._parameters.execution_time
+        elif hasattr(self._parameters, 'get'):
+            timestamp = self._parameters.get('EXECUTION_TIME', timestamp)
+
+        return isoparse(timestamp)

@@ -4,19 +4,6 @@ variable "project" {
 }
 
 
-variable "datanow_image" {
-    description     = "ECR repository (image name) for the DataNow container image."
-    type            = string
-    default         = "datanow"
-}
-
-
-variable "datanow_version" {
-    description     = "Version number of the DataNow container image."
-    type            = string
-}
-
-
 data "aws_ssm_parameter" "account_environment" {
     name = "/DataLabs/account_environment"
 }
@@ -75,7 +62,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
-        Project             = var.project
+        ProjectName             = var.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na

@@ -38,8 +38,8 @@ class SpecialtyMergeTransformerTask(TransformerTask):
         specialty_physician_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
         filtered_specialty_data = [
             specialty_physician_data[0].loc[
-                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1].primary_specialty) |
-                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1].secondary_specialty)
+                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1]['PRIMSPECIALTY']) |
+                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1]['SECONDARYSPECIALTY'])
             ].reset_index(drop=True)
         ]
 
