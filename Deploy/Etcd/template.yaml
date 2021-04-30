@@ -39,41 +39,21 @@ objects:
     loadBalancer: {}
 
 - apiVersion: v1
-  kind: Service
-  metadata:
-    name: ${ETCD_SERVICE_NAME}-ui
-    annotations:
-      template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
-  spec:
-    ports:
-    - name: etcd-ui
-      nodePort: 0
-      port: 8080
-      protocol: TCP
-      targetPort: 8080
-    selector:
-      name: ${ETCD_SERVICE_NAME}
-    sessionAffinity: None
-    type: ClusterIP
-  status:
-    loadBalancer: {}
-
-- apiVersion: v1
   kind: Route
   metadata:
-    name: ${ETCD_SERVICE_NAME}-ui
+    name: ${ETCD_SERVICE_NAME}
     annotations:
       template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
   spec:
     host: ${ETCD_SERVICE_NAME}.apps.openshifttest.ama-assn.org
     port:
-      targetPort: 8080
-      containerPort: 8080
+      targetPort: 2379
+      containerPort: 2379
     tls:
       termination: edge
     to:
       kind: Service
-      name: ${ETCD_SERVICE_NAME}-ui
+      name: ${ETCD_SERVICE_NAME}
       weight: 100
     wildcardPolicy: None
     selector:
@@ -128,24 +108,6 @@ objects:
           volumeMounts:
           - mountPath: /bitnami/etcd
             name: ${ETCD_SERVICE_NAME}-data
-
-        - name: etcd-ui
-          image: "evildecay/etcdkeeper:v0.7.6"
-          imagePullPolicy: IfNotPresent
-          command:
-          - /opt/etcdkeeper/etcdkeeper.bin
-          # env:
-          # - name: ETCD_VOLUME_DIR
-          #   value: /bitnami/etcd
-          # - name: ETCD_AUTO_TLS
-          #   value: "true"
-          # - name: ETCD_ADVERTISE_CLIENT_URLS
-          #   value: "https://127.0.0.1:2379"
-          # - name: ETCD_LISTEN_CLIENT_URLS
-          #   value: "https://0.0.0.0:2379"
-          ports:
-          - containerPort: 2379
-            protocol: TCP
 
         dnsPolicy: ClusterFirst
         restartPolicy: Always
