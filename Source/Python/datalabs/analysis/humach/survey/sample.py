@@ -58,7 +58,7 @@ class HumachSampleGenerator:
             'VALIDATION': 'Validation_Sample'
         }
 
-    def create_masterfile_random_sample(self, include_me_list=None, filter_recent_mes=True):
+    def create_masterfile_random_sample(self, include_me_list=None, exclude_me_list=None, filter_recent_mes=True):
         LOGGER.info('SETTING VARIABLES AND CONNECTIONS')
         self._load_environment_variables()
         LOGGER.info('CREATING POPULATION DATA')
@@ -66,6 +66,9 @@ class HumachSampleGenerator:
             include_me_list=include_me_list,
             filter_recent_mes=filter_recent_mes
         )
+        if exclude_me_list is not None:
+            LOGGER.info(f'REMOVING {len(exclude_me_list)} FROM POPULATION BASED ON EXCLUSION LIST')
+            population_data = population_data[~population_data['ME'].isin(exclude_me_list)]
         LOGGER.info(f'POPULATION SIZE - {str(len(population_data))}')
         self._make_sample(population_data, size=self._sample_size, source='MF')
 
