@@ -1,0 +1,736 @@
+{
+	"info": {
+		"_postman_id": "ff83b408-81dc-4124-8a4b-4326bdfe205d",
+		"name": "Etcd",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Setup",
+			"item": [
+				{
+					"name": "Add Root User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.globals.set('auth_token', jsonData.token);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"root\",\n    \"password\": \"{{ETCD_ROOT_PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/add",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Root Role",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.globals.set('auth_token', jsonData.token);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"root\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/role/add",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"role",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Grant Root Role",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.globals.set('auth_token', jsonData.token);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user\": \"root\",\n    \"role\": \"root\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/grant",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"grant"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Enable Authorization",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.globals.set('auth_token', jsonData.token);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/enable",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"enable"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Root",
+			"item": [
+				{
+					"name": "Authenticate Root",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.globals.set('auth_token', jsonData.token);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"root\",\n    \"password\": \"{{ETCD_ROOT_PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/authenticate",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"authenticate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Users",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/list",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Roles",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/role/list",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"role",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add ContactID User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"contactid\",\n    \"password\": \"{{ETCD_CONTACTID_PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/add",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add ContactID Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"contactid\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/role/add",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"role",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Grant ContactID Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user\": \"contactid\",\n    \"role\": \"contactid\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/grant",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"grant"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Grant ContactID Permissions to /contact_id/*",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '/contact_id/'",
+									")));",
+									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '/contact_id0'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"contactid\",\n    \"perm\": {\n        \"key\": \"{{key_b64}}\",\n        \"permType\": \"READWRITE\",\n        \"range_end\": \"{{range_end_b64}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/role/grant",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"role",
+								"grant"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('slash_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse('/')));",
+									"pm.globals.set('zero_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse('0')));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"jsonData.kvs.forEach(function(record) {",
+									"    var key = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.key));",
+									"    var value = \"None\";",
+									"    if (\"value\" in record) {",
+									"        value = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.value));",
+									"    }",
+									"    console.log(key + \": \" + value)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"key\": \"{{slash_b64}}\",\n    \"range_end\": \"{{zero_b64}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/kv/range",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"kv",
+								"range"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ContactID",
+			"item": [
+				{
+					"name": "Authenticate ContactID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.globals.set('auth_token', jsonData.token);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"contactid\",\n    \"password\": \"{{ETCD_CONTACTID_PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/authenticate",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"authenticate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All ContactID",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '/contact_id/'",
+									")));",
+									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '/contact_id0'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"jsonData.kvs.forEach(function(record) {",
+									"    var key = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.key));",
+									"    var value = \"None\";",
+									"    if (\"value\" in record) {",
+									"        value = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.value));",
+									"    }",
+									"    console.log(key + \": \" + value)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"key\": \"{{key_b64}}\",\n    \"range_end\": \"{{range_end_b64}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/kv/range",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"kv",
+								"range"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put /contact_id/",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '/contact_id/'",
+									")));",
+									"pm.globals.set('value_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'true'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"key\": \"{{key_b64}}\",\n    \"value\": \"{{value_b64}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/kv/put",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"kv",
+								"put"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multi-Put",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('prefix_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '/contact_id/'",
+									")));",
+									"pm.globals.set('true_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'true'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"compare\":[\n        {\n            \"target\":\"CREATE\",\n            \"key\":\"{{prefix_b64}}\",\n            \"value\":\"{{true_b64}}\"\n        }\n    ],\n    \"success\":[\n        {\n            \"requestPut\":{\n                \"key\":\"Zm9v\",\n                \"value\":\"YmFy\"\n            }\n        },\n        {\n            \"requestPut\":{\n                \"key\":\"Zm9v\",\n                \"value\":\"YmFy\"\n            }\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/kv/range",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"kv",
+								"range"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "{{auth_token}}",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "Authorization",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
