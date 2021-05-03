@@ -61,21 +61,21 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
         return primary_key_table.attname[0]
 
-    def _compare_data(self, current_data, primary_key):
-        old_hashes = current_data.loc[current_data['md5'] in self._generate_row_hashes()]
-        old_data = self._data.loc[self._data[primary_key] in old_hashes[primary_key]]
+    def _compare_data(self, current_hashes, primary_key):
+        old_hashes = current_hashes[current_hashes[primary_key] in self._data[primary_key]]
+        old_data = old_hashes[old_hashes['md5'] in self._generate_row_hashes()]
 
-        new_data = self._data.loc[self._data[primary_key] not in current_data[primary_key]]
+        new_data = self._data[self._data[primary_key] not in current_hashes[primary_key]]
 
-        updated_data = self._data.loc[self._data[primary_key] in current_data[primary_key]]
+        updated_data = self._data[self._data[primary_key] in current_hashes[primary_key]]
         updated_data = updated_data.drop(updated_data[primary_key] in old_data[primary_key])
 
-        deleted_data = old_data.loc[old_data[primary_key] not in self._data[primary_key]]
+        deleted_data = old_data[old_data[primary_key] not in self._data[primary_key]]
 
         return new_data, updated_data, deleted_data
 
     def _generate_row_hashes(self):
-        columns = self._get_database_columns(self._database, self.table)
+        columns = self._get_database_columns(self._database, self._table)
         csv_data = self._data[columns].to_csv(header=None, index=False).strip('\n').split('\n')
         row_strings = ["(" + i + ")" for i in csv_data]
 
