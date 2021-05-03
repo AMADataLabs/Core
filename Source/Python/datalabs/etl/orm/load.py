@@ -36,9 +36,10 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                 self._table = table
 
                 primary_key, current_hashes = self._get_current_row_hashes()
-                old_data, new_data, updated_data = self._compare_data(current_hashes, primary_key)
+                new_data, updated_data, deleted_data = self._compare_data(current_hashes, primary_key)
 
                 self._add_data(database, model_class, new_data)
+                self._delete_data(database, model_class, deleted_data)
 
             # pylint: disable=no-member
             database.commit()
@@ -67,7 +68,9 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         updated_data = self._data.loc[self._data[primary_key] in current_data[primary_key]]
         updated_data = updated_data.drop(updated_data[primary_key] in old_data[primary_key])
 
-        return old_data, new_data, updated_data
+        deleted_data = old_data.loc[old_data[primary_key] not in self._data[primary_key]]
+
+        return new_data, updated_data, deleted_data
 
     def _generate_row_hashes(self):
         columns = self._get_database_columns(self._database, self.table)
@@ -112,6 +115,14 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         columns = [column.key for column in mapper.attrs]
 
         return columns
+
+    @classmethod
+    def _delete_data(cls, database, model_class, data):
+        models = [cls._create_model(model_class, row) for row in data.itertuples(index=False)]
+
+        for model in models:
+            # pylint: disable=no-member
+            database.delete(model)
 
 
 class ORMPreLoaderTask(LoaderTask, DatabaseTaskMixin):
