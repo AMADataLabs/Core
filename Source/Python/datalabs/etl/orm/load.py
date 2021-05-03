@@ -35,8 +35,8 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                 self._database = database
                 self._table = table
 
-                current_data = self._get_current_row_hashes()
-                old_data, new_data, updated_data = self._compare_data(current_data)
+                primary_key, current_hashes = self._get_current_row_hashes()
+                old_data, new_data, updated_data = self._compare_data(current_hashes, primary_key)
 
                 self._add_data(database, model_class, new_data)
 
@@ -44,19 +44,28 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             database.commit()
 
     def _get_current_row_hashes(self):
-        get_current_hash = "SELECT id, md5(f'{self._table}'::TEXT) FROM f'{self._table}'"
-        hash_table = pandas.read_sql(get_current_hash, self._database)
+        primary_key = self._get_primary_key()
+        get_current_hash = f"SELECT f'{primary_key}', md5(f'{self._table}'::TEXT) FROM f'{self._table}'"
 
-        return hash_table
+        return primary_key, pandas.read_sql(get_current_hash, self._database)
 
-    def _compare_data(self, current_data):
+    def _get_primary_key(self):
+        query = "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i " \
+                "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
+                f"WHERE  i.indrelid = f'{self._table}'::regclass AND i.indisprimary"
+
+        primary_key_table = pandas.read_sql(query, self._database)
+
+        return primary_key_table.attname[0]
+
+    def _compare_data(self, current_data, primary_key):
         old_hashes = current_data.loc[current_data['md5'] in self._generate_row_hashes()]
-        old_data = self._data.loc[self._data['id'] in old_hashes['id']]
+        old_data = self._data.loc[self._data[primary_key] in old_hashes[primary_key]]
 
-        new_data = self._data.loc[self._data['id'] not in current_data['id']]
+        new_data = self._data.loc[self._data[primary_key] not in current_data[primary_key]]
 
-        updated_data = self._data.loc[self._data['id'] in current_data['id']]
-        updated_data = updated_data.drop(updated_data['id'] in old_data['id'])
+        updated_data = self._data.loc[self._data[primary_key] in current_data[primary_key]]
+        updated_data = updated_data.drop(updated_data[primary_key] in old_data[primary_key])
 
         return old_data, new_data, updated_data
 
