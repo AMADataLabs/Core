@@ -530,7 +530,7 @@ class Census(Base):
 
 
 class CoreBasedStatisticalAreaMelissa(Base):
-    __tablename__ = 'core_based_statistical_area_zip_code'
+    __tablename__ = 'core_based_statistical_area_melissa'
     __table_args__ = {"schema": "oneview"}
 
     code = sa.Column(sa.String, primary_key=True, nullable=False)
