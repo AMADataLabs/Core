@@ -35,7 +35,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                 self._database = database
                 self._table = table
 
-                primary_key, current_hashes = self._get_current_row_hashes()
+                primary_key, current_hashes = self._get_current_row_hashes(database, table)
                 new_data, updated_data, deleted_data = self._compare_data(current_hashes, primary_key)
 
                 self._add_data(database, model_class, new_data)
@@ -44,18 +44,20 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             # pylint: disable=no-member
             database.commit()
 
-    def _get_current_row_hashes(self):
-        primary_key = self._get_primary_key()
-        get_current_hash = f"SELECT f'{primary_key}', md5(f'{self._table}'::TEXT) FROM f'{self._table}'"
+    @classmethod
+    def _get_current_row_hashes(cls, database, table):
+        primary_key = cls._get_primary_key(database, table)
+        get_current_hash = f"SELECT f'{primary_key}', md5(f'{table}'::TEXT) FROM f'{table}'"
 
-        return primary_key, pandas.read_sql(get_current_hash, self._database)
+        return primary_key, pandas.read_sql(get_current_hash, database)
 
-    def _get_primary_key(self):
+    @classmethod
+    def _get_primary_key(cls, database, table):
         query = "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i " \
                 "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
-                f"WHERE  i.indrelid = f'{self._table}'::regclass AND i.indisprimary"
+                f"WHERE  i.indrelid = f'{table}'::regclass AND i.indisprimary"
 
-        primary_key_table = pandas.read_sql(query, self._database)
+        primary_key_table = pandas.read_sql(query, database)
 
         return primary_key_table.attname[0]
 
@@ -123,6 +125,13 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         for model in models:
             # pylint: disable=no-member
             database.delete(model)
+
+    @classmethod
+    def _update_data(cls, database, model_class, data):
+        models = [cls._create_model(model_class, row) for row in data.itertuples(index=False)]
+
+        for model in models:
+            database.query().update(model)
 
 
 class ORMPreLoaderTask(LoaderTask, DatabaseTaskMixin):
