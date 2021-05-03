@@ -18,20 +18,51 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
+    def __init__(self):
+        super().__init__(parameters)
+        self._data = None
+        self._database = None
+        self.table =None
+
     def _load(self):
         LOGGER.info(self._parameters)
 
         with self._get_database(Database, self._parameters) as database:
-            for model_class, data in zip(self._get_model_classes(), self._get_dataframes()):
+            for model_class, data, table in zip(self._get_model_classes(),
+                                                self._get_dataframes(),
+                                                self._parameters['TABLES']):
+                self._data = data
+                self._database = database
+                self.table = table
 
-                self._add_data(database, model_class, data)
+                current_data = self._get_current_data()
+                old_data, new_data, updated_data = self._compare_data(current_data)
+
+                self._add_data(database, model_class, new_data)
 
             # pylint: disable=no-member
             database.commit()
 
-    @classmethod
-    def _generate_row_hashes(cls, data, columns):
-        csv_data = data[columns].to_csv(header=None, index=False).strip('\n').split('\n')
+    def _get_current_data(self):
+        get_current_hash = "SELECT pk, md5(f'{table}'::TEXT) FROM f'{table}'"
+        hash_table = pandas.read_sql(get_current_hash, self._database)
+
+        return hash_table
+
+    def _compare_data(self, current_data):
+        old_hashes = current_data.loc[current_data['md5'] in self._generate_row_hashes()]
+        old_data = self._data.loc[self._data['id'] in old_hashes['id']]
+
+        new_data = self._data.loc[self._data['id'] not in current_data['id']]
+
+        updated_data = self._data.loc[self._data['id'] in current_data['id']]
+        updated_data = updated_data.drop(updated_data['id'] in old_data['id'])
+
+        return old_data, new_data, updated_data
+
+    def _generate_row_hashes(self):
+        columns = self._get_database_columns(self._database, self.table)
+        csv_data = self._data[columns].to_csv(header=None, index=False).strip('\n').split('\n')
         row_strings = ["(" + i + ")" for i in csv_data]
 
         return [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
@@ -51,18 +82,6 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         for model in models:
             # pylint: disable=no-member
             database.add(model)
-
-    @classmethod
-    def _get_current_data(cls, database):
-        get_current_hash = "SELECT pk, md5(f'{table}'::TEXT) FROM f'{table}'"
-        hash_table = pandas.read_sql(get_current_hash, database)
-
-        return hash_table
-
-    @classmethod
-    def _compare_data(cls, old_data, new_data):
-        for generated_hash, db_hash in zip(cls._generate_row_hashes(), cls._get_current_data()['md5']):
-            return db_hash
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
