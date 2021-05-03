@@ -22,7 +22,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         super().__init__(parameters)
         self._data = None
         self._database = None
-        self.table =None
+        self._table = None
 
     def _load(self):
         LOGGER.info(self._parameters)
@@ -33,9 +33,9 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                                                 self._parameters['TABLES']):
                 self._data = data
                 self._database = database
-                self.table = table
+                self._table = table
 
-                current_data = self._get_current_data()
+                current_data = self._get_current_row_hashes()
                 old_data, new_data, updated_data = self._compare_data(current_data)
 
                 self._add_data(database, model_class, new_data)
@@ -43,8 +43,8 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             # pylint: disable=no-member
             database.commit()
 
-    def _get_current_data(self):
-        get_current_hash = "SELECT pk, md5(f'{table}'::TEXT) FROM f'{table}'"
+    def _get_current_row_hashes(self):
+        get_current_hash = "SELECT id, md5(f'{self._table}'::TEXT) FROM f'{self._table}'"
         hash_table = pandas.read_sql(get_current_hash, self._database)
 
         return hash_table
