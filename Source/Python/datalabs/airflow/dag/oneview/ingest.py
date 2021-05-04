@@ -219,10 +219,10 @@ with ONEVIEW_ETL_DAG:
         get_logs=True,
     )
 
-    EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFICATION = KubernetesPodOperator(
+    EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERs = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
-        name="physician_national_provider_identifier",
+        name="extract_physician_national_provider_identifiers",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[ODS_SECRET, MINIO_SECRET],
@@ -230,7 +230,7 @@ with ONEVIEW_ETL_DAG:
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
-        task_id="physician_national_provider_identifier",
+        task_id="extract_physician_national_provider_identifiers",
         get_logs=True,
     )
 
