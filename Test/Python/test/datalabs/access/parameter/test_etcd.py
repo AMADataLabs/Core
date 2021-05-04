@@ -57,19 +57,19 @@ def test_set_environment_variables(expected_parameters, environment):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_load(loader_parameters, raw_parameters, expected_parameters, environment):
-    with mock.patch('datalabs.access.parameter.etcd.requests') as req:
-        response = requests.Response()
-        response._content = json.dumps(raw_parameters).encode('utf8')
-        req.Session.return_value.post.return_value = response
-
-        loader = EtcdEnvironmentLoader(loader_parameters)
-
-    loader.load()
-    LOGGER.debug('Environment: %s', os.environ)
-
-    for key, value in expected_parameters.items():
-        assert os.environ.get(key) == value
+# def test_load(loader_parameters, raw_parameters, expected_parameters, environment):
+#     with mock.patch('datalabs.access.parameter.etcd.requests') as req:
+#         response = requests.Response()
+#         response._content = json.dumps(raw_parameters).encode('utf8')
+#         req.Session.return_value.post.return_value = response
+#
+#         loader = EtcdEnvironmentLoader(loader_parameters)
+#
+#     loader.load()
+#     LOGGER.debug('Environment: %s', os.environ)
+#
+#     for key, value in expected_parameters.items():
+#         assert os.environ.get(key) == value
 
 
 @pytest.fixture
