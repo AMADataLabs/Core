@@ -60,22 +60,25 @@ class EtcdEnvironmentLoader:
             password=self._parameters.password
         )
 
-        response = etcd.post(f'https://{self._parameters.host}/v3/auth/authenticate', json=body)
+        response = etcd.post(f'https://{self._parameters.host}/v3/auth/authenticate', json=body).json()
 
-        return response.json()['token']
+        return response['token']
 
     def _get_raw_parameters_from_etcd(self, etcd: requests.Session, token: str):
-        range = chr(ord(self._parameters.prefix[-1]) + 1)  # pylint: disable=redefined-builtin
+        range = self._parameters.prefix[:-1] + chr(ord(self._parameters.prefix[-1]) + 1)  # pylint: disable=redefined-builtin
         body = dict(
-            key=base64.b64encode(self._parameters.prefix.encode('utf8')),
-            range_end=base64.b64encode(range.encode('utf8'))
+            key=base64.b64encode(self._parameters.prefix.encode('utf8')).decode('utf8'),
+            range_end=base64.b64encode(range.encode('utf8')).decode('utf8')
         )
 
-        etcd.headers = dict(Authentication=token)
+        etcd.headers = {"Authorization": token, "Content-Type": 'application/json'}
 
-        response = etcd.post(f'https://{self._parameters.host}/v3/kv/range', json=body)
+        response = etcd.post(f'https://{self._parameters.host}/v3/kv/range', json=body).json()
 
-        return response.json()
+        if 'error' in response:
+            raise EtcdException(response['message'])
+
+        return response
 
     @classmethod
     def _extract_parameters(cls, raw_parameters):
@@ -83,3 +86,7 @@ class EtcdEnvironmentLoader:
             return base64.b64decode(value).decode('utf8')
 
         return {decode(p['key']):decode(p['value']) for p in raw_parameters['kvs']}
+
+
+class EtcdException(Exception):
+    pass
