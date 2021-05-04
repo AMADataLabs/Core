@@ -4,11 +4,8 @@ from   dataclasses import dataclass
 import logging
 import os
 
-from   arnparse import arnparse
-from   arnparse.arnparse import MalformedArnError
 import requests
 
-from   datalabs.access.credentials import Credentials
 from   datalabs.task import add_schema
 
 logging.basicConfig()
@@ -32,15 +29,15 @@ class EtcdEnvironmentLoader:
     def __init__(self, parameters):
         self._parameters = self._get_validated_parameters(parameters)
 
-    def load(self, environment: dict = None):
+    def load(self):
         parameters = self._get_parameters_from_etcd()
 
         self._set_environment_variables_from_parameters(parameters)
 
     @classmethod
-    def _get_validated_parameters(self, parameters: dict):
+    def _get_validated_parameters(cls, parameters: dict):
         parameter_variables = {key.lower():value for key, value in parameters.items()}
-        schema = EtcdParameters.SCHEMA
+        schema = EtcdParameters.SCHEMA  # pylint: disable=no-member
 
         return schema.load(parameter_variables)
 
@@ -68,7 +65,7 @@ class EtcdEnvironmentLoader:
         return response.json()['token']
 
     def _get_raw_parameters_from_etcd(self, etcd: requests.Session, token: str):
-        range = chr(ord(self._parameters.prefix[-1]) + 1)
+        range = chr(ord(self._parameters.prefix[-1]) + 1)  # pylint: disable=redefined-builtin
         body = dict(
             key=base64.b64encode(self._parameters.prefix.encode('utf8')),
             range_end=base64.b64encode(range.encode('utf8'))
@@ -80,7 +77,8 @@ class EtcdEnvironmentLoader:
 
         return response.json()
 
-    def _extract_parameters(self, raw_parameters):
+    @classmethod
+    def _extract_parameters(cls, raw_parameters):
         def decode(value):
             return base64.b64decode(value).decode('utf8')
 

@@ -36,7 +36,7 @@ def test_authentication(loader_parameters, etcd):
     assert token == 'abcd1234'
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_get_parameters(loader_parameters, etcd):
     loader = EtcdEnvironmentLoader(loader_parameters)
 
@@ -48,7 +48,7 @@ def test_get_parameters(loader_parameters, etcd):
         assert expected_parameters[key] == value
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_set_environment_variables(expected_parameters, environment):
     EtcdEnvironmentLoader._set_environment_variables_from_parameters(expected_parameters)
 
@@ -56,7 +56,7 @@ def test_set_environment_variables(expected_parameters, environment):
         assert os.environ.get(key) == value
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 # def test_load(loader_parameters, raw_parameters, expected_parameters, environment):
 #     with mock.patch('datalabs.access.parameter.etcd.requests') as req:
 #         response = requests.Response()
