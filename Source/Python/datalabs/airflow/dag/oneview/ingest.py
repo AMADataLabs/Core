@@ -219,7 +219,7 @@ with ONEVIEW_ETL_DAG:
         get_logs=True,
     )
 
-    EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERs = KubernetesPodOperator(
+    EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERS = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
         name="extract_physician_national_provider_identifiers",
