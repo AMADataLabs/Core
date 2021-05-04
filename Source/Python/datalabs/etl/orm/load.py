@@ -18,7 +18,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
-    def __init__(self):
+    def __init__(self, parameters):
         super().__init__(parameters)
         self._data = None
         self._database = None
