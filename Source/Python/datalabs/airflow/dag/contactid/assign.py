@@ -9,6 +9,7 @@ from kubernetes.client import models as k8s
 DOCKER_IMAGE = 'harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.3'
 ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='contact-id-etl'))
 ADVANTAGE_SECRET = Secret('env', None, 'contact-id-etl-advantage')
+VALID_EFT_SECRET = Secret('env', None, 'contact-id-etl-valid')
 MINIO_SECRET = Secret('env', None, 'contact-id-etl-minio')
 
 CONTACT_ID_ASSIGNMENT_DAG = DAG(
@@ -51,20 +52,20 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     #     get_logs=True,
     # )
     #
-    # EXTRACT_VALID = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="extract_valid",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[ODS_SECRET, MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPUnicodeTextFileExtractorTask'),
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=True,
-    #     in_cluster=True,
-    #     task_id="extract_valid",
-    #     get_logs=True,
-    # )
+    EXTRACT_VALID = KubernetesPodOperator(
+         namespace='hsg-data-labs-dev',
+         image=DOCKER_IMAGE,
+         name="extract_valid",
+         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+         env_from=[ETL_CONFIG],
+         secrets=[VALID_EFT_SECRET, MINIO_SECRET],
+         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPTextFileExtractorTask'),
+         do_xcom_push=False,
+         is_delete_operator_pod=True,
+         in_cluster=True,
+         task_id="extract_valid",
+         get_logs=True,
+     )
     #
     # EXTRACT_SEED_FILES = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
@@ -143,6 +144,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
 
 
 EXTRACT_ADVANTAGE
+EXTRACT_VALID
 # EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
 # EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
 # EXTRACT_ORG_MANAGER >> ASSIGN_EXISTING_CONTACT_IDS
