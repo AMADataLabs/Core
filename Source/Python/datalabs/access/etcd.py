@@ -22,38 +22,38 @@ class EtcdParameters:
     password: str
 
 
-class Etcd(Datastore):
+class Etcd(ParameterValidatorMixin, Datastore):
     PARAMETER_CLASS = EtcdParameters
 
-    def __init__(self, etcd_config):
-        self._etcd_config = self._get_validated_parameters(etcd_config)
+    def __init__(self, parameters):
+        self._parameters = self._get_validated_parameters(parameters)
         self._token = None
 
     def connect(self):
         self._connection = requests.Session()
 
-        self._authenticate
+        self._authenticate()
 
-    def _authenticate(self, etcd: requests.Session):
-        body = dict(
-            name=self._parameters.username,
-            password=self._parameters.password
-        )
-
-        response = etcd.post(f'https://{self._parameters.host}/v3/auth/authenticate', json=body).json()
-
-        etcd.headers = {
-            "Authorization": response['token'],
-            "Content-Type": "application/json"
-        }
-
-    def _execute_transaction(self, transaction: dict):
+    def execute_transaction(self, transaction: dict):
         response = self._connection.post(f'https://{self._parameters.host}/v3/kv/txn', json=transaction).json()
 
         if 'error' in response:
             raise EtcdException(response['message'])
 
         return response
+
+    def _authenticate(self):
+        body = dict(
+            name=self._parameters.username,
+            password=self._parameters.password
+        )
+
+        response = self._connection.post(f'https://{self._parameters.host}/v3/auth/authenticate', json=body).json()
+
+        self._connection.headers = {
+            "Authorization": response['token'],
+            "Content-Type": "application/json"
+        }
 
 
 class EtcdException(Exception):

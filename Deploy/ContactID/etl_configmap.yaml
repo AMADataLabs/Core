@@ -4,7 +4,7 @@ metadata:
     name: contact-id-etl
     namespace: hsg-data-labs-dev
 data:
-    TASK_WRAPPER_CLASS: datalabs.etl.airflow.task.AirflowTaskWrapper
+    # TASK_WRAPPER_CLASS: datalabs.etl.airflow.task.AirflowTaskWrapper
 
     # Contact ID Extractor
     CONTACT_ID__EXTRACT_ADVANTAGE__DATABASE_NAME: 'AdvDbPRD;domain=AMA_NT'

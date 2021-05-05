@@ -1,4 +1,5 @@
 """ Tool for loading Kubernetes ConfigMap data into etcd. """
+import base64
 from   dataclasses import dataclass
 import logging
 
@@ -19,7 +20,7 @@ class ConfigMapLoader():
     def load(self, filename):
         variables = self._extract_variables_from_configmap(filename)
 
-        self._load_variables_in_etcd(variables)
+        self._load_variables_into_etcd(variables)
 
     @classmethod
     def _extract_variables_from_configmap(cls, filename):
@@ -42,8 +43,8 @@ class ConfigMapLoader():
             "success": [
                 {
                     "requestPut": {
-                        "key": f"{key}",
-                        "value": f"{value}"
+                        "key": f"{base64.b64encode(key.encode('utf8')).decode('utf8')}",
+                        "value": f"{base64.b64encode(value.encode('utf8')).decode('utf8')}"
                     }
                 } for key, value in variables.items()
             ]
