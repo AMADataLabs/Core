@@ -189,3 +189,12 @@ def add_schema(model_class):
     model_class.SCHEMA = Schema()
 
     return model_class
+
+
+class ParameterValidatorMixin:
+    @classmethod
+    def _get_validated_parameters(cls, parameters: dict):
+        parameter_variables = {key.lower():value for key, value in parameters.items()}
+        schema = cls.PARAMETER_CLASS.SCHEMA  # pylint: disable=no-member
+
+        return schema.load(parameter_variables)

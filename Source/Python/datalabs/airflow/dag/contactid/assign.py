@@ -12,6 +12,7 @@ ADVANTAGE_SECRET = Secret('env', None, 'contact-id-etl-advantage')
 ORGMANAGER_SECRET = Secret('env', None, 'contact-id-etl-orgmanager')
 VALID_EFT_SECRET = Secret('env', None, 'contact-id-etl-valid')
 MINIO_SECRET = Secret('env', None, 'contact-id-etl-minio')
+BASE_ENVIRONMENT = dict(TASK_WRAPPER_CLASS='datalabs.etl.airflow.task.AirflowTaskWrapper')
 
 CONTACT_ID_ASSIGNMENT_DAG = DAG(
     dag_id='contact_id',
@@ -30,7 +31,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[ADVANTAGE_SECRET, MINIO_SECRET],
-        env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
         do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -45,14 +46,14 @@ with CONTACT_ID_ASSIGNMENT_DAG:
          cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
          env_from=[ETL_CONFIG],
          secrets=[ORGMANAGER_SECRET, MINIO_SECRET],
-         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
+         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
          do_xcom_push=False,
          is_delete_operator_pod=False,
          in_cluster=True,
          task_id="extract_org_manager",
          get_logs=True,
     )
-    #
+
     EXTRACT_VALID = KubernetesPodOperator(
          namespace='hsg-data-labs-dev',
          image=DOCKER_IMAGE,
@@ -60,7 +61,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
          cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
          env_from=[ETL_CONFIG],
          secrets=[VALID_EFT_SECRET, MINIO_SECRET],
-         env_vars=dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask'),
+         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
          do_xcom_push=False,
          is_delete_operator_pod=False,
          in_cluster=True,
@@ -75,7 +76,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[ODS_SECRET, MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.s3.extract.S3FileExtractorTask'),
+    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.extract.S3FileExtractorTask')},
     #     do_xcom_push=False,
     #     is_delete_operator_pod=False,
     #     in_cluster=True,
@@ -90,7 +91,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
+    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask')},
     #     do_xcom_push=False,
     #     is_delete_operator_pod=False,
     #     in_cluster=True,
@@ -105,7 +106,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     #     name="merge_and_generate_new_ids",
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
+    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask')},
     #     do_xcom_push=False,
     #     is_delete_operator_pod=False,
     #     in_cluster=True,
@@ -120,7 +121,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[DATABASE_SECRET, MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask'),
+    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask')},
     #     do_xcom_push=False,
     #     is_delete_operator_pod=False,
     #     in_cluster=True,
@@ -135,7 +136,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     # env_from=[ETL_CONFIG],
     #     # secrets=[DATABASE_SECRET, MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.s3.load.S3FileLoaderTask'),
+    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.load.S3FileLoaderTask')},
     #     do_xcom_push=False,
     #     is_delete_operator_pod=False,
     #     in_cluster=True,

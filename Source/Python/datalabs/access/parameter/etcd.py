@@ -6,6 +6,7 @@ import os
 
 import requests
 
+from   datalabs.access.etcd import EtcdException
 from   datalabs.task import add_schema
 
 logging.basicConfig()
@@ -86,7 +87,3 @@ class EtcdEnvironmentLoader:
             return base64.b64decode(value).decode('utf8')
 
         return {decode(p['key']):decode(p['value']) for p in raw_parameters['kvs']}
-
-
-class EtcdException(Exception):
-    pass
