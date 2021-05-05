@@ -82,20 +82,20 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     #     get_logs=True,
     # )
     #
-    # ASSIGN_EXISTING_CONTACT_IDS = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="assign_existing_contact_ids",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=False,
-    #     in_cluster=True,
-    #     task_id="assign_existing_contact_ids",
-    #     get_logs=True,
-    # )
+    ASSIGN_EXISTING_CONTACT_IDS = KubernetesPodOperator(
+         namespace='hsg-data-labs-dev',
+         image=DOCKER_IMAGE,
+         name="assign_existing_contact_ids",
+         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+         env_from=[ETL_CONFIG],
+         secrets=[MINIO_SECRET],
+         env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
+         do_xcom_push=False,
+         is_delete_operator_pod=False,
+         in_cluster=True,
+         task_id="assign_existing_contact_ids",
+         get_logs=True,
+    )
     #
     # MERGE_AND_GENERATE_NEW_IDS = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
@@ -143,12 +143,11 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     # )
 
 
-EXTRACT_ADVANTAGE
-EXTRACT_VALID
-# EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
-# EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
-# EXTRACT_ORG_MANAGER >> ASSIGN_EXISTING_CONTACT_IDS
-# EXTRACT_SEED_FILES >> ASSIGN_EXISTING_CONTACT_IDS
+
+EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
+EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
+EXTRACT_ORG_MANAGER >> ASSIGN_EXISTING_CONTACT_IDS
+EXTRACT_SEED_FILES >> ASSIGN_EXISTING_CONTACT_IDS
 #
 # ASSIGN_EXISTING_CONTACT_IDS >> MERGE_AND_GENERATE_NEW_IDS
 #
