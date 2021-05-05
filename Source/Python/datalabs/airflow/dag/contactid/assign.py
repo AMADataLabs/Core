@@ -38,7 +38,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         get_logs=True,
     )
 
-     EXTRACT_ORG_MANAGER = KubernetesPodOperator(
+    EXTRACT_ORG_MANAGER = KubernetesPodOperator(
          namespace='hsg-data-labs-dev',
          image=DOCKER_IMAGE,
          name="extract_org_manager",
@@ -51,7 +51,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
          in_cluster=True,
          task_id="extract_org_manager",
          get_logs=True,
-     )
+    )
     #
     EXTRACT_VALID = KubernetesPodOperator(
          namespace='hsg-data-labs-dev',
