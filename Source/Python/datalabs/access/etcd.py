@@ -5,7 +5,7 @@ import logging
 import requests
 
 from   datalabs.access.datastore import Datastore
-from   datalabs.task import add_schema, ParameterValidatorMixin
+from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

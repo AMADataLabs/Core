@@ -1,13 +1,12 @@
 """ Abstract task base class for use with AWS Lambda and other task-based systems. """
 from abc import ABC, abstractmethod
-import copy
 import logging
 import os
 
-import marshmallow
-
 from   datalabs.access.database import Database
+from   datalabs.access.parameter.etcd import EtcdEnvironmentLoader
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
+from   datalabs.parameter import ParameterValidatorMixin
 from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
@@ -15,26 +14,20 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class Task(ABC):
+class Task(ParameterValidatorMixin, ABC):
     PARAMETER_CLASS = None
 
     def __init__(self, parameters: dict):
         self._parameters = parameters
 
         if self.PARAMETER_CLASS:
-            self._parameters = self._get_validated_parameters()
+            self._parameters = self._get_validated_parameters(parameters)
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
     @abstractmethod
     def run(self):
         pass
-
-    def _get_validated_parameters(self):
-        parameter_variables = {key.lower():value for key, value in self._parameters.items()}
-        schema = self.PARAMETER_CLASS.SCHEMA
-
-        return schema.load(parameter_variables)
 
 
 class TaskException(BaseException):
@@ -72,6 +65,10 @@ class TaskWrapper(ABC):
 
     # pylint: disable=no-self-use
     def _setup_environment(self):
+        etcd_loader = EtcdEnvironmentLoader.from_environ()
+        if etcd_loader is not None:
+            etcd_loader.load()
+
         secrets_loader = ReferenceEnvironmentLoader.from_environ()
         secrets_loader.load()
 
@@ -126,75 +123,3 @@ class DatabaseTaskMixin:
                 parameters[key.lower()] = value
 
         return database_class.from_parameters(parameters, prefix='DATABASE_')
-
-
-def add_schema(model_class):
-    model_fields = [key for key, value in model_class.__dict__.items() if not key.startswith('_')]
-
-    if '__dataclass_fields__' in model_class.__dict__:
-        model_fields = [key for key, value in model_class.__dataclass_fields__.items() if not key.startswith('_')]
-
-    class Schema(marshmallow.Schema):
-        class Meta:
-            # strict = True
-            fields = copy.deepcopy(model_fields)
-
-        @marshmallow.post_load
-        #pylint: disable=unused-argument
-        def make_model(self, data, **kwargs):
-            model = None
-
-            if '__dataclass_fields__' in model_class.__dict__:
-                model = self._make_dataclass_model(data)
-            else:
-                model = self._make_class_model(data)
-
-            return model
-
-        def _make_dataclass_model(self, data):
-            self._fill_dataclass_defaults(data)
-
-            return model_class(**data)
-
-        def _make_class_model(self, data):
-            self._fill_class_defaults(data)
-            model = model_class()
-
-            for field in data:
-                setattr(model, field, data[field])
-
-            return model
-
-        def _fill_dataclass_defaults(self, data):
-            missing_fields = []
-
-            for field in self.Meta.fields:
-                dataclass_field = model_class.__dict__['__dataclass_fields__'][field]
-
-                if field not in data and dataclass_field.default.__class__.__name__ != '_MISSING_TYPE':
-                    data[field] = dataclass_field.default
-                elif field not in data:
-                    missing_fields.append(field)
-
-            if len(missing_fields) > 0:
-                raise TaskException(f'Missing parameters for {model_class.__name__} instance: {missing_fields}')
-
-        def _fill_class_defaults(self, data):
-            for field in self.Meta.fields:
-                default = getattr(model_class, field)
-
-                if field not in data:
-                    data[field] = default
-
-    model_class.SCHEMA = Schema()
-
-    return model_class
-
-
-class ParameterValidatorMixin:
-    @classmethod
-    def _get_validated_parameters(cls, parameters: dict):
-        parameter_variables = {key.lower():value for key, value in parameters.items()}
-        schema = cls.PARAMETER_CLASS.SCHEMA  # pylint: disable=no-member
-
-        return schema.load(parameter_variables)

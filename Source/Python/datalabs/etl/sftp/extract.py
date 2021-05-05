@@ -7,7 +7,7 @@ import os
 import datalabs.access.sftp as sftp
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
-from   datalabs.task import add_schema
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
