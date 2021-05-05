@@ -1,9 +1,7 @@
 """OneView ETL ORM Loader"""
-import hashlib
 import io
 import hashlib
 import logging
-import numpy
 import pandas
 import sqlalchemy as sa
 
@@ -63,7 +61,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     def _compare_data(self, current_hashes, primary_key):
         old_hashes = current_hashes[current_hashes[primary_key] in self._data[primary_key]]
-        old_data = old_hashes[old_hashes['md5'] in self._generate_row_hashes()]
+        old_data = old_hashes[old_hashes['md5'] in self._generate_row_hashes(primary_key)]
 
         new_data = self._data[self._data[primary_key] not in current_hashes[primary_key]]
 
@@ -74,12 +72,16 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
         return new_data, updated_data, deleted_data
 
-    def _generate_row_hashes(self):
+    def _generate_row_hashes(self, primary_key):
         columns = self._get_database_columns(self._database, self._table)
+
         csv_data = self._data[columns].to_csv(header=None, index=False).strip('\n').split('\n')
         row_strings = ["(" + i + ")" for i in csv_data]
 
-        return [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
+        hashes = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
+        primary_keys = self._data[primary_key].tolist()
+
+        return pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
 
     @classmethod
     def _get_database_columns(cls, database, table):
