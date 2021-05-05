@@ -107,3 +107,103 @@ data:
     CONTACT_ID__EXTRACT_VALID__CACHE_OUTPUT_SECRET_KEY: ${SECRET_KEY}
     CONTACT_ID__EXTRACT_VALID__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
     CONTACT_ID__EXTRACT_VALID__CACHE_OUTPUT_FILES: 'SFMC_FLATFILE_%Y%m%d.txt'
+
+
+    CONTACT_ID__EXTRACT_ORGMANAGER__DATABASE_NAME: 'PRDSSO'       #prod
+    CONTACT_ID__EXTRACT_ORGMANAGER__DATABASE_USERNAME: ${OrgManager_username}
+    CONTACT_ID__EXTRACT_ORGMANAGER__DATABASE_PASSWORD: ${OrgManager_password}
+    CONTACT_ID__EXTRACT_ORGMANAGER__DATABASE_HOST: '10.195.51.97'
+    CONTACT_ID__EXTRACT_ORGMANAGER__DATABASE_PORT: '54050'
+
+
+    CONTACT_ID__EXTRACT_ORGMANAGER__SQL: >-
+        select
+            mq.FIRST_NM,
+            mq.LAST_NM,
+            mq.EMAIL,
+            mq.ORG_NAME,
+            mq.ORGANIZATION_TYPE,
+            mq.ADVANTAGE_ID,
+            mq.ADDRESS_LINE_1,
+            mq.ADDRESS_LINE_2,
+            mq.CITY,
+            mq.STATE,
+            mq.ZIPCODE,
+            mq.PHONE_NUMBER,
+            mq.ORG_ISELL_ID
+        from
+            (select
+                ou.ORG_USER_ID,
+                lq.FIRST_NM,
+                lq.LAST_NM,
+                lq.EMAIL,
+                lq.ORG_NAME,
+                lq.ORGANIZATION_TYPE,
+                lq.ADVANTAGE_ID,
+                lq.ADDRESS_LINE_1,
+                lq.ADDRESS_LINE_2,
+                lq.CITY,
+                lq.STATE,
+                lq.ZIPCODE,
+                lq.PHONE_NUMBER,
+                lq.ORG_ISELL_ID
+        from
+            (select
+                usr.USER_ID,
+                usr.FIRST_NM,
+                usr.LAST_NM,
+                usr.EMAIL,
+                oou.ORG_NAME,
+                oou.ORGANIZATION_TYPE,
+                oou.ADVANTAGE_ID,
+                oou.ADDRESS_LINE_1,
+                oou.ADDRESS_LINE_2,
+                oou.CITY,
+                oou.STATE,
+                oou.ZIPCODE,
+                oou.PHONE_NUMBER,
+                oou.ORG_ISELL_ID
+        from
+            sso.PC_USER usr
+        inner join
+            (select *
+            from
+                sso.ORG_USER ou
+            inner join
+                (select
+                    o.ORG_ID as SEL_ORG_ID,
+                    o.ORG_NAME,
+                    o.ORGANIZATION_TYPE,
+                    o.ADVANTAGE_ID,
+                    o.ADDRESS_LINE_1,
+                    o.ADDRESS_LINE_2,
+                    o.CITY,
+                    o.STATE,
+                    o.ZIPCODE,
+                    o.PHONE_NUMBER,
+                    ois.ISELL_ID as ORG_ISELL_ID
+            from sso.ORGANIZATION o
+        left outer join sso.ORG_ISELL ois on o.ORG_ID=ois.ORG_ID
+        where
+            STATUS=1
+            --and ois.isell_id = '01AM30613'
+            AND ADVANTAGE_ID IS NOT NULL) org
+        on ou.ORG_ID=org.SEL_ORG_ID) oou on usr.USER_ID=oou.USER_ID
+            and not email like '%@ama-assn.org'
+            and not email like '%@mailinator.com'and usr.USER_STATUS='ACTIVE')lq
+        inner join sso.ORG_USER ou on lq.USER_ID=ou.USER_ID) mq
+        inner join sso.ORG_USER_ROLE our on mq.ORG_USER_ID=our.ORG_USER_ID
+        where our.ROLE_ID in ('1','2','3');
+
+
+    CONTACT_ID__EXTRACT_ORGMANAGER__DRIVER: 'com.ibm.db2.jcc.DB2Jcc'
+    CONTACT_ID__EXTRACT_ORGMANAGER__DRIVER_TYPE: 'db2'
+    CONTACT_ID__EXTRACT_ORGMANAGER__JAR_PATH: './db2jcc4.jar'
+
+    CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_BASE_PATH: 'AMA/ContactID'
+    CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
+    CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_ACCESS_KEY: ${ACCESS_KEY}
+    CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_SECRET_KEY: ${SECRET_KEY}
+    CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
+    CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_FILES: 'Users_%Y%m%d.csv'

@@ -9,6 +9,7 @@ from kubernetes.client import models as k8s
 DOCKER_IMAGE = 'harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.3'
 ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='contact-id-etl'))
 ADVANTAGE_SECRET = Secret('env', None, 'contact-id-etl-advantage')
+ORGMANAGER_SECRET = Secret('env', None, 'contact-id-etl-orgmanager')
 VALID_EFT_SECRET = Secret('env', None, 'contact-id-etl-valid')
 MINIO_SECRET = Secret('env', None, 'contact-id-etl-minio')
 
@@ -36,21 +37,21 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         task_id="extract_advantage",
         get_logs=True,
     )
-    #
-    # EXTRACT_ORG_MANAGER = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="extract_org_manager",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[ODS_SECRET, MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=False,
-    #     in_cluster=True,
-    #     task_id="extract_org_manager",
-    #     get_logs=True,
-    # )
+
+     EXTRACT_ORG_MANAGER = KubernetesPodOperator(
+         namespace='hsg-data-labs-dev',
+         image=DOCKER_IMAGE,
+         name="extract_org_manager",
+         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+         env_from=[ETL_CONFIG],
+         secrets=[ORGMANAGER_SECRET, MINIO_SECRET],
+         env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
+         do_xcom_push=False,
+         is_delete_operator_pod=False,
+         in_cluster=True,
+         task_id="extract_org_manager",
+         get_logs=True,
+     )
     #
     EXTRACT_VALID = KubernetesPodOperator(
          namespace='hsg-data-labs-dev',
