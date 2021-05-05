@@ -1,12 +1,10 @@
 """ Tool for loading Kubernetes ConfigMap data into etcd. """
 import base64
-from   dataclasses import dataclass
 import logging
 
-import requests
 import yaml
 
-from   datalabs.access.etcd import Etcd, EtcdException
+from   datalabs.access.etcd import Etcd
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -38,7 +36,8 @@ class ConfigMapLoader():
 
         return response
 
-    def _generate_transaction_body(self, variables):
+    @classmethod
+    def _generate_transaction_body(cls, variables):
         return {
             "success": [
                 {

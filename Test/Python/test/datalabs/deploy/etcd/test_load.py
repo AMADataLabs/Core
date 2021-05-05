@@ -1,4 +1,5 @@
 """ Source: datalabs.deploy.etcd.load """
+import base64
 import tempfile
 
 import pytest
@@ -6,6 +7,7 @@ import pytest
 from   datalabs.deploy.etcd.load import ConfigMapLoader
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_configmap_variable_extraction(etcd_config, configmap):
     loader = ConfigMapLoader(etcd_config)
 
@@ -18,6 +20,7 @@ def test_configmap_variable_extraction(etcd_config, configmap):
     assert variables['BLUES_SONG'] == 'Born Under a Bad Sign'
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_transaction_body_generation(etcd_config, configmap):
     loader = ConfigMapLoader(etcd_config)
     variables = loader._extract_variables_from_configmap(configmap)
@@ -30,8 +33,9 @@ def test_transaction_body_generation(etcd_config, configmap):
     operations = transaction['success']
     assert len(operations) == 2
     for operation in operations:
-        assert 'requestPut' in operation
-        assert variables[operation['requestPut']['key']] == operation['requestPut']['value']
+        key = base64.b64decode(operation['requestPut']['key'].encode('utf8')).decode('utf8')
+        expected_value = base64.b64encode(variables[key].encode('utf8')).decode('utf8')
+        assert expected_value == operation['requestPut']['value']
 
 
 @pytest.fixture
@@ -50,6 +54,7 @@ def filename():
 
 
 @pytest.fixture
+# pylint: disable=redefined-outer-name
 def configmap(filename):
     with open(filename, 'w') as file:
         file.write(

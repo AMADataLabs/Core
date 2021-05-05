@@ -5,7 +5,6 @@ import logging
 import requests
 
 from   datalabs.access.datastore import Datastore
-from   datalabs.access.credentials import Credentials
 from   datalabs.task import add_schema, ParameterValidatorMixin
 
 logging.basicConfig()
@@ -26,6 +25,8 @@ class Etcd(ParameterValidatorMixin, Datastore):
     PARAMETER_CLASS = EtcdParameters
 
     def __init__(self, parameters):
+        super().__init__()
+
         self._parameters = self._get_validated_parameters(parameters)
         self._token = None
 
