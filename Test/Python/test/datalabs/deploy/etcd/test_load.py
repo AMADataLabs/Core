@@ -18,6 +18,22 @@ def test_configmap_variable_extraction(etcd_config, configmap):
     assert variables['BLUES_SONG'] == 'Born Under a Bad Sign'
 
 
+def test_transaction_body_generation(etcd_config, configmap):
+    loader = ConfigMapLoader(etcd_config)
+    variables = loader._extract_variables_from_configmap(configmap)
+
+    transaction = loader._generate_transaction_body(variables)
+
+    assert len(transaction) == 1
+    assert 'success' in transaction
+
+    operations = transaction['success']
+    assert len(operations) == 2
+    for operation in operations:
+        assert 'requestPut' in operation
+        assert variables[operation['requestPut']['key']] == operation['requestPut']['value']
+
+
 @pytest.fixture
 def etcd_config():
     return dict(

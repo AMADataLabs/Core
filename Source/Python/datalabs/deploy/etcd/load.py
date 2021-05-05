@@ -13,8 +13,6 @@ LOGGER.setLevel(logging.INFO)
 
 
 class ConfigMapLoader():
-    PARAMETER_CLASS = EtcdParameters
-
     def __init__(self, etcd_config):
         self._etcd_config = etcd_config
 
@@ -32,12 +30,21 @@ class ConfigMapLoader():
 
     def _load_variables_into_etcd(self, variables):
         response = None
-        transaction = self._generate_transaction_body()
+        transaction = self._generate_transaction_body(variables)
 
         with Etcd(self._etcd_config) as etcd:
             response = etcd.execute_transaction(transaction)
 
         return response
 
-    def _generate_transaction_body(self):
-        pass
+    def _generate_transaction_body(self, variables):
+        return {
+            "success": [
+                {
+                    "requestPut": {
+                        "key": f"{key}",
+                        "value": f"{value}"
+                    }
+                } for key, value in variables.items()
+            ]
+        }
