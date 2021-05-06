@@ -25,8 +25,7 @@ class Etcd(ParameterValidatorMixin, Datastore):
     PARAMETER_CLASS = EtcdParameters
 
     def __init__(self, parameters):
-        super().__init__()
-
+        self._connection = None
         self._parameters = self._get_validated_parameters(parameters)
         self._token = None
 

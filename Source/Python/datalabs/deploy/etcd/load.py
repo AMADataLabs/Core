@@ -25,16 +25,22 @@ class ConfigMapLoader():
         with open(filename) as file:
             configmap = yaml.safe_load(file.read())
 
-        return configmap['data']
+        return [(key, value) for key, value in configmap['data'].items()]
 
     def _load_variables_into_etcd(self, variables):
-        response = None
-        transaction = self._generate_transaction_body(variables)
+        chunk_size = 100
+        responses = []
+        transactions = [
+            self._generate_transaction_body(variables[i:i + chunk_size])
+            for i in range(0, len(variables), chunk_size)
+        ]
+        # transaction = self._generate_transaction_body(variables)
 
         with Etcd(self._etcd_config) as etcd:
-            response = etcd.execute_transaction(transaction)
+            for transaction in transactions:
+                responses.append(etcd.execute_transaction(transaction))
 
-        return response
+        return responses
 
     @classmethod
     def _generate_transaction_body(cls, variables):
@@ -45,6 +51,6 @@ class ConfigMapLoader():
                         "key": f"{base64.b64encode(key.encode('utf8')).decode('utf8')}",
                         "value": f"{base64.b64encode(value.encode('utf8')).decode('utf8')}"
                     }
-                } for key, value in variables.items()
+                } for key, value in variables
             ]
         }

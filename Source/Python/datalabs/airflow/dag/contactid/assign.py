@@ -1,6 +1,7 @@
 ''' Masterfile OneView DAG definition. '''
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
+from airflow.models import Variable
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
@@ -12,10 +13,19 @@ ADVANTAGE_SECRET = Secret('env', None, 'contact-id-etl-advantage')
 ORGMANAGER_SECRET = Secret('env', None, 'contact-id-etl-orgmanager')
 VALID_EFT_SECRET = Secret('env', None, 'contact-id-etl-valid')
 MINIO_SECRET = Secret('env', None, 'contact-id-etl-minio')
-BASE_ENVIRONMENT = dict(TASK_WRAPPER_CLASS='datalabs.etl.airflow.task.AirflowTaskWrapper')
+
+### Configuration Bootstraping ###
+DAG_ID = 'contact_id'
+BASE_ENVIRONMENT = dict(
+    TASK_WRAPPER_CLASS='datalabs.etl.airflow.task.AirflowTaskWrapper',
+    ETCD_HOST=Variable.get('ETCD_HOST'),
+    ETCD_USERNAME=DAG_ID,
+    ETCD_PASSWORD=Variable.get(f'{DAG_ID.upper()}__ETCD_PASSWORD'),
+    ETCD_PREFIX=f'{DAG_ID.upper()}__'
+)
 
 CONTACT_ID_ASSIGNMENT_DAG = DAG(
-    dag_id='contact_id',
+    dag_id=DAG_ID,
     default_args={'owner': 'airflow'},
     schedule_interval=None,
     start_date=days_ago(2),
