@@ -25,7 +25,7 @@ class ConfigMapLoader():
         with open(filename) as file:
             configmap = yaml.safe_load(file.read())
 
-        return [(key, value) for key, value in configmap['data'].items()]
+        return list(configmap['data'].items())
 
     def _load_variables_into_etcd(self, variables):
         chunk_size = 100

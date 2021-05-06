@@ -214,7 +214,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         name="create_type_of_practice_table",
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
@@ -227,7 +230,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="create_present_employment_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.PresentEmploymentTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.PresentEmploymentTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
@@ -240,7 +246,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="create_major_professional_activity_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.MajorProfessionalActivityTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.MajorProfessionalActivityTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
@@ -269,7 +278,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="create_core_based_statistical_area_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.CoreBasedStatisticalAreaTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.CoreBasedStatisticalAreaTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -282,7 +294,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="remove_unused_specialties",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.SpecialtyMergeTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.SpecialtyMergeTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -295,7 +310,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="create_residency_program_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.residency.transform.ResidencyTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.residency.transform.ResidencyTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
@@ -321,7 +339,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="create_credentialing_customer_product_and_order_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -334,7 +355,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="merge_credentialing_addresses_into_customer_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingFinalTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingFinalTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -347,7 +371,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="create_physician_race_ethnicity_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=True,
         in_cluster=True,
@@ -375,7 +402,10 @@ with ONEVIEW_ETL_DAG:
 #         image=DOCKER_IMAGE,
 #         name="create_credentialing_customer_business_table",
 #         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerBusinessTransformerTask')},
+#         env_vars={
+#            **BASE_ENVIRONMENT,
+#            **dict(TASK_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerBusinessTransformerTask')
+#         },
 #         do_xcom_push=False,
 #         is_delete_operator_pod=True,
 #         in_cluster=True,
@@ -388,7 +418,10 @@ with ONEVIEW_ETL_DAG:
 #         image=DOCKER_IMAGE,
 #         name="create_residency_program_physician_table",
 #         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-#         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.link.transform.ResidencyProgramPhysicianTransformerTask')},
+#         env_vars={
+#            **BASE_ENVIRONMENT,
+#            **dict(TASK_CLASS='datalabs.etl.oneview.link.transform.ResidencyProgramPhysicianTransformerTask')
+#         },
 #         do_xcom_push=False,
 #         is_delete_operator_pod=True,
 #         in_cluster=True,

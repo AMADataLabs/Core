@@ -24,6 +24,7 @@ class EtcdParameters:
 class Etcd(ParameterValidatorMixin, Datastore):
     PARAMETER_CLASS = EtcdParameters
 
+    # pylint: disable=super-init-not-called
     def __init__(self, parameters):
         self._connection = None
         self._parameters = self._get_validated_parameters(parameters)

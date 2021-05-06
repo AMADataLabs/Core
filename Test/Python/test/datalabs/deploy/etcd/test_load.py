@@ -14,16 +14,17 @@ def test_configmap_variable_extraction(etcd_config, configmap):
     variables = loader._extract_variables_from_configmap(configmap)
 
     assert len(variables) == 2
-    assert 'JAZZ_SONG' in variables
-    assert variables['JAZZ_SONG'] == 'My Funny Valentine'
-    assert 'BLUES_SONG' in variables
-    assert variables['BLUES_SONG'] == 'Born Under a Bad Sign'
+    assert variables[0][0] == 'JAZZ_SONG'
+    assert variables[0][1] == 'My Funny Valentine'
+    assert variables[1][0] == 'BLUES_SONG'
+    assert variables[1][1] == 'Born Under a Bad Sign'
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_transaction_body_generation(etcd_config, configmap):
     loader = ConfigMapLoader(etcd_config)
     variables = loader._extract_variables_from_configmap(configmap)
+    variable_map = dict(variables)
 
     transaction = loader._generate_transaction_body(variables)
 
@@ -34,7 +35,7 @@ def test_transaction_body_generation(etcd_config, configmap):
     assert len(operations) == 2
     for operation in operations:
         key = base64.b64decode(operation['requestPut']['key'].encode('utf8')).decode('utf8')
-        expected_value = base64.b64encode(variables[key].encode('utf8')).decode('utf8')
+        expected_value = base64.b64encode(variable_map[key].encode('utf8')).decode('utf8')
         assert expected_value == operation['requestPut']['value']
 
 
