@@ -35,8 +35,8 @@ class ContactIDAssignTransformerTask(etl.TransformerTask, ABC):
     def _assign_id_to_new_sfmc_data(self, sfmc_contacts, sfmc_contacts_old):
         contacts_old_id = sfmc_contacts_old.loc[:, ['HSContact_ID', 'EMPPID']]
         merged_df = pd.merge(sfmc_contacts, contacts_old_id, on=['EMPPID'], how='left')
-        merged_df.insert(1, 'HSContact_IDD', df.HSContact_ID)
-        merged_df = df.drop(columns=['HSContact_ID'])
+        merged_df.insert(1, 'HSContact_IDD', merged_df.HSContact_ID)
+        merged_df = merged_df.drop(columns=['HSContact_ID'])
         merged_df.rename(columns={'HSContact_IDD': 'HSContact_ID'}, inplace=True)
 
         return merged_df
@@ -47,10 +47,9 @@ class ContactIDAssignTransformerTask(etl.TransformerTask, ABC):
                                    on=['FIRST_NM', 'LAST_NM', 'EMAIL', 'ORG_NAME', 'ORGANIZATION_TYPE',
                                        'ADDRESS_LINE_1', 'ADDRESS_LINE_2', 'CITY', 'STATE',
                                        'ZIPCODE', 'PHONE_NUMBER', 'TITLE'], how='left')
-        users_merged_df.insert(1, 'HSContact_IDD', users_merged_df.HSContact_ID)
+        users_merged_df.insert(0, 'HSContact_IDD', users_merged_df.HSContact_ID)
         users_merged_df = users_merged_df.drop(columns=['HSContact_ID'])
         users_merged_df.rename(columns={'HSContact_IDD': 'HSContact_ID'}, inplace=True)
-        users_merged_df.head(150)
 
         return users_merged_df
 
