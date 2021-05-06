@@ -34,7 +34,6 @@ class ConfigMapLoader():
             self._generate_transaction_body(variables[i:i + chunk_size])
             for i in range(0, len(variables), chunk_size)
         ]
-        # transaction = self._generate_transaction_body(variables)
 
         with Etcd(self._etcd_config) as etcd:
             for transaction in transactions:
