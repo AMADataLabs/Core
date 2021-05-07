@@ -1,0 +1,3 @@
+#!/bin/bash
+
+${PWD}/Script/migrate-database upgrade OneView --host ${DATABASE_HOST} --port ${DATABASE_PORT} --name ${DATABASE_NAME} --password ${DATABASE_PASSWORD} --username ${DATABASE_USERNAME}
