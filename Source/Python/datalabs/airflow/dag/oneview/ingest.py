@@ -262,10 +262,13 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="create_federal_information_processing_standard_county_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars=dict(
-            TASK_CLASS='datalabs.etl.oneview.reference.transform.'
-                       'FederalInformationProcessingStandardCountyTransformerTask'
-        ),
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(
+                TASK_CLASS='datalabs.etl.oneview.reference.transform.'
+                           'FederalInformationProcessingStandardCountyTransformerTask'
+            )
+        },
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
