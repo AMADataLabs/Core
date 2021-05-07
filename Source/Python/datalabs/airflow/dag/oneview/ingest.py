@@ -446,7 +446,6 @@ with ONEVIEW_ETL_DAG:
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
         name="migrate_database",
-        secrets=[DATABASE_SECRET],
         cmds=['./upgrade-database'],
         do_xcom_push=False,
         is_delete_operator_pod=False,
