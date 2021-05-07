@@ -25,6 +25,7 @@ COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/OneView ./Build/OneView
 COPY ./Source ./Source
+COPY Build/OneView/upgrade-database .
 
 ARG template_vars
 RUN echo $template_vars

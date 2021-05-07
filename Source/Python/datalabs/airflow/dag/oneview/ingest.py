@@ -5,7 +5,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 from airflow.utils.dates import days_ago
 
 
-DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.3.0'
+DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.3.1'
 
 ### Configuration Bootstraping ###
 DAG_ID = 'oneview'
