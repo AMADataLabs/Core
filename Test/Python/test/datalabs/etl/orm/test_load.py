@@ -16,6 +16,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@pytest.mark.skip(reason="Need data from database")
 # pylint: disable=redefined-outer-name, protected-access
 def test_orm_loader(loader_parameters):
     with mock.patch('datalabs.etl.orm.load.Database'):
@@ -27,10 +28,35 @@ def test_orm_loader(loader_parameters):
 def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data, hash_query_results):
     columns = ['dumb', 'id', 'dumber']
     loader = ORMLoaderTask(loader_parameters)
-    row_hashes = loader._generate_row_hashes(hash_data, columns)
+    primary_key = 'id'
+    row_hashes = loader._generate_row_hashes(columns, hash_data, primary_key)
 
-    for generated_hash, db_hash in zip(row_hashes, hash_query_results['md5']):
+    for generated_hash, db_hash in zip(row_hashes['md5'], hash_query_results['md5']):
         assert generated_hash == db_hash
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_compare_data(loader_parameters, hash_data, hash_query_results, incoming_data):
+    primary_key = 'id'
+    columns = ['dumb', 'id', 'dumber']
+
+    loader = ORMLoaderTask(loader_parameters)
+
+    row_hashes = loader._generate_row_hashes(columns, incoming_data, primary_key)
+    print(row_hashes)
+    new_data, updated_data, deleted_data = loader._compare_data(incoming_data, hash_query_results, row_hashes, primary_key)
+
+    print('deleted', deleted_data)
+    assert pandas.DataFrame.from_dict({'dumb': ['grapes'],
+                                       'id': [4],
+                                       'dumber': ['yum']}).equals(new_data)
+
+    assert pandas.DataFrame.from_dict({'dumb': ['apples'],
+                                       'id': [1],
+                                       'dumber': ['good']}).equals(updated_data)
+
+    assert pandas.DataFrame.from_dict({'id': [3],
+                                       'md5': ['1409af11b29204e49ca9b8fe834b8270']}).equals(deleted_data)
 
 
 # pylint: disable=blacklisted-name
@@ -125,3 +151,13 @@ def hash_query_results():
             ]
         }
     )
+
+
+# pylint: disable=blacklisted-name
+@pytest.fixture
+def incoming_data():
+    data = {'dumb': ['apples', 'oranges', 'grapes'],
+            'id': [1, 2, 4],
+            'dumber': ['good', 'yummy', 'yum']}
+
+    return pandas.DataFrame.from_dict(data)
