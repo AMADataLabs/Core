@@ -449,7 +449,7 @@ with ONEVIEW_ETL_DAG:
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
         name="migrate_database",
-        cmds=['./Deploy/OneView/upgrade-database'],
+        cmds=['./upgrade-database'],
         env_vars=BASE_ENVIRONMENT,
         do_xcom_push=False,
         is_delete_operator_pod=False,
