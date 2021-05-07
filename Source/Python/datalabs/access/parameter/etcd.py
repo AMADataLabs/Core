@@ -74,6 +74,9 @@ class EtcdEnvironmentLoader(ParameterValidatorMixin):
 
         response = etcd.post(f'https://{self._parameters.host}/v3/auth/authenticate', json=body).json()
 
+        if 'error' in response:
+            raise EtcdException(response['message'])
+
         return response['token']
 
     def _get_raw_parameters_from_etcd(self, etcd: requests.Session, token: str):
