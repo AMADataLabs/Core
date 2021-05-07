@@ -74,13 +74,13 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     @classmethod
     def _compare_data(cls, data, current_hashes, incoming_hashes, primary_key):
-        old_hashes = current_hashes[current_hashes[primary_key].isin(data[primary_key])]
-        old_data = old_hashes[old_hashes['md5'].isin(incoming_hashes['md5'])]
+        old_current_hashes = current_hashes[current_hashes[primary_key].isin(incoming_hashes[primary_key])]
+        old_new_hashes = incoming_hashes[incoming_hashes[primary_key].isin(old_current_hashes[primary_key])]
 
         new_data = data[~data[primary_key].isin(current_hashes[primary_key])]
 
-        updated_data = data[data[primary_key].isin(current_hashes[primary_key])]
-        updated_data = updated_data[~updated_data[primary_key].isin(old_data[primary_key])]
+        updated_hashes = old_new_hashes[~old_new_hashes['md5'].isin(old_current_hashes['md5'])]
+        updated_data = data[data[primary_key].isin(updated_hashes[primary_key])]
 
         deleted_data = current_hashes[~current_hashes[primary_key].isin(data[primary_key])]
 
