@@ -17,6 +17,7 @@ modspec:
       - etl
       - sqlalchemy
       - task
+      - parameter
   - package: datalabs.access
     include:
       - aws
