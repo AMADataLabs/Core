@@ -12,7 +12,7 @@ AIMS_SECRET = Secret('env', None, 'oneview-etl-aims')
 ODS_SECRET = Secret('env', None, 'oneview-etl-ods')
 SFTP_SECRET = Secret('env', None, 'oneview-etl-sftp')
 DATABASE_SECRET = Secret('env', None, 'oneview-etl-database')
-DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.4'
+DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.5'
 
 ONEVIEW_ETL_DAG = DAG(
     dag_id='oneview',
@@ -469,7 +469,7 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="migrate_database",
         secrets=[DATABASE_SECRET],
-        cmds=['./Deploy/OneView/upgrade-database'],
+        cmds=['./upgrade-database'],
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
