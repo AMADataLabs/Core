@@ -5,17 +5,11 @@ metadata:
     namespace: hsg-data-labs-dev
 data:
     # Reference Variables
-    ONEVIEW_SFTP_HOST: 'eft.ama-assn.org'
     ONEVIEW_S3_CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
-    ONEVIEW_S3_INGESTED_DATA_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
-    ONEVIEW_S3_PROCESSED_DATA_BUCKET: 'ama-hsg-datalabs-datalake-processing-onprem'
     ONEVIEW_S3_BASE_PATH: 'AMA/OneView'
     ONEVIEW_DB2_DRIVER: 'com.ibm.db2.jcc.DB2Jcc'
     ONEVIEW_DB2_DRIVER_TYPE: 'db2'
     ONEVIEW_DB2_JAR_PATH: './db2jcc4.jar'
-    ONEVIEW_DATABASE_PORT: '5432'
-    ONEVIEW_DATABASE_BACKEND: 'postgresql+psycopg2'
-    ONEVIEW_DATABASE_NAME: 'datalabs'
 
     # PPD Extractor
     ONEVIEW__EXTRACT_PPD__DATABASE_HOST: ${ONEVIEW_ODS_HOST}
