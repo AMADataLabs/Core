@@ -5,7 +5,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 from airflow.utils.dates import days_ago
 
 
-DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.4'
+DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.2.5'
 
 ### Configuration Bootstraping ###
 DAG_ID = 'oneview'
@@ -446,7 +446,8 @@ with ONEVIEW_ETL_DAG:
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
         name="migrate_database",
-        cmds=['./Deploy/OneView/upgrade-database'],
+        secrets=[DATABASE_SECRET],
+        cmds=['./upgrade-database'],
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
