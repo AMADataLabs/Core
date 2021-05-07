@@ -14,6 +14,7 @@ PROGRAM_COLUMNS = {
 }
 
 MEMBER_COLUMNS = {
+    'id': 'id',
     'pgm_id': 'program',
     'pers_type': 'personnel_type',
     'aamc_id': 'aamc_id',
