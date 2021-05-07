@@ -20,8 +20,8 @@ BASE_ENVIRONMENT = dict(
     TASK_WRAPPER_CLASS='datalabs.etl.airflow.task.AirflowTaskWrapper',
     ETCD_HOST=Variable.get('ETCD_HOST'),
     ETCD_USERNAME=DAG_ID,
-    ETCD_PASSWORD=Variable.get(f'{DAG_ID.upper()}__ETCD_PASSWORD'),
-    ETCD_PREFIX=f'{DAG_ID.upper()}__'
+    ETCD_PASSWORD=Variable.get(f'{DAG_ID.upper()}_ETCD_PASSWORD'),
+    ETCD_PREFIX=f'{DAG_ID.upper()}_'
 )
 
 CONTACT_ID_ASSIGNMENT_DAG = DAG(
