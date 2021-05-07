@@ -5,7 +5,7 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 from airflow.utils.dates import days_ago
 
 
-DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.3.2'
+DOCKER_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.3.3'
 
 ### Configuration Bootstraping ###
 DAG_ID = 'oneview'
@@ -270,7 +270,7 @@ with ONEVIEW_ETL_DAG:
             )
         },
         do_xcom_push=False,
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
         in_cluster=True,
         task_id="create_federal_information_processing_standard_county_table",
         get_logs=True,
