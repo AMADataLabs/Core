@@ -201,9 +201,7 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="extract_physician_national_provider_identifiers",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_from=[ETL_CONFIG],
-        secrets=[ODS_SECRET, MINIO_SECRET],
-        env_vars=dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask'),
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
@@ -516,4 +514,4 @@ EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE >> LOA
 # CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_MELISSA
-EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFICATION
+EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERS
