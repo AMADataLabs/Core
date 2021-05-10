@@ -1,8 +1,8 @@
 """ Oneview PPD Transformer"""
+from   io import BytesIO
+
 import logging
 import pandas
-
-from   io import BytesIO
 
 from   datalabs.etl.oneview.iqvia.column import BUSINESS_COLUMNS, PROVIDER_COLUMNS, PROVIDER_AFFILIATION_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
