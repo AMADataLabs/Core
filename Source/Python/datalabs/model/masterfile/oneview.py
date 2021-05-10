@@ -98,7 +98,8 @@ class Physician(Base):
     next_most_recent_former_last_name = sa.Column(sa.String)
     next_most_recent_former_middle_name = sa.Column(sa.String)
     next_most_recent_former_first_name = sa.Column(sa.String)
-    physician_type = sa.Column(sa.String, nullable=False)
+    national_provider_identifier = sa.Column(sa.String)
+    type = sa.Column(sa.String, nullable=False)
 
 
 class TypeOfPractice(Base):

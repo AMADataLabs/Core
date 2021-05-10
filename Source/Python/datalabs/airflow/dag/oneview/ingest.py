@@ -196,6 +196,19 @@ with ONEVIEW_ETL_DAG:
         get_logs=True,
     )
 
+    EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERS = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="extract_physician_national_provider_identifiers",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="extract_physician_national_provider_identifiers",
+        get_logs=True,
+    )
+
     CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
         namespace='hsg-data-labs-dev',
         image=DOCKER_IMAGE,
@@ -501,3 +514,4 @@ EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE >> LOA
 # CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_TABLES_INTO_DATABASE
 EXTRACT_MELISSA
+EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERS
