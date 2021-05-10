@@ -400,6 +400,7 @@ class CredentialingCustomerInstitution(Base):
     __tablename__ = 'credentialing_customer_institution'
     __table_args__ = {"schema": "oneview"}
 
+    id = sa.Column(sa.Integer, primary_key=True)
     customer = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_customer.id"), primary_key=True,
                          nullable=False)
     residency_program_institution = sa.Column(sa.String,
@@ -411,6 +412,7 @@ class CredentialingCustomerBusiness(Base):
     __tablename__ = 'credentialing_customer_business'
     __table_args__ = {"schema": "oneview"}
 
+    id = sa.Column(sa.Integer, primary_key=True)
     customer = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_customer.id"), primary_key=True,
                          nullable=False)
     business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), nullable=False)
@@ -420,6 +422,7 @@ class ResidencyProgramPhysician(Base):
     __tablename__ = 'residency_program_physician'
     __table_args__ = {"schema": "oneview"}
 
+    id = sa.Column(sa.Integer, primary_key=True)
     personnel_member = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program_personnel_member.id"),
                                  primary_key=True, nullable=False)
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
