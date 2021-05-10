@@ -6,7 +6,7 @@ import os
 import datalabs.access.sftp as sftp
 from   datalabs.etl.load import FileLoaderTask
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
-from   datalabs.task import add_schema
+from   datalabs.parameter import add_schema
 
 
 @add_schema

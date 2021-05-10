@@ -8,15 +8,16 @@ import re
 import boto3
 
 from   datalabs.access.environment import VariableTree
-import datalabs.task as task
 import datalabs.awslambda as awslambda
+from   datalabs.parameter import add_schema
+import datalabs.task as task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-@task.add_schema
+@add_schema
 @dataclass
 class RouterParameters:
     event: dict

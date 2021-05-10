@@ -190,10 +190,10 @@
 			]
 		},
 		{
-			"name": "Root",
+			"name": "Authenticate",
 			"item": [
 				{
-					"name": "Authenticate Root",
+					"name": "Authenticate root",
 					"event": [
 						{
 							"listen": "test",
@@ -246,6 +246,109 @@
 					},
 					"response": []
 				},
+				{
+					"name": "Authenticate oneview",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.globals.set('auth_token', jsonData.token);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"root\",\n    \"password\": \"{{ETCD_ROOT_PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/authenticate",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"authenticate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Authenticate contact_id",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.globals.set('auth_token', jsonData.token);",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"contact_id\",\n    \"password\": \"{{ETCD_CONTACTID_PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/authenticate",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"authenticate"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Root",
+			"item": [
 				{
 					"name": "List Users",
 					"request": {
@@ -305,13 +408,71 @@
 					"response": []
 				},
 				{
-					"name": "Add ContactID User",
+					"name": "Delete contactid User",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"contactid\",\n    \"password\": \"{{ETCD_CONTACTID_PASSWORD}}\"\n}",
+							"raw": "{\n    \"name\": \"contact_id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/delete",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete contactid Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"contactid\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/role/delete",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"role",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add oneview User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"oneview\",\n    \"password\": \"{{ETCD_ONEVIEW_PASSWORD}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -334,109 +495,6 @@
 					"response": []
 				},
 				{
-					"name": "Add ContactID Role",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"contactid\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{ETCD_URL}}/v3/auth/role/add",
-							"host": [
-								"{{ETCD_URL}}"
-							],
-							"path": [
-								"v3",
-								"auth",
-								"role",
-								"add"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Grant ContactID Role",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"user\": \"contactid\",\n    \"role\": \"contactid\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{ETCD_URL}}/v3/auth/user/grant",
-							"host": [
-								"{{ETCD_URL}}"
-							],
-							"path": [
-								"v3",
-								"auth",
-								"user",
-								"grant"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Grant ContactID Permissions to /contact_id/*",
-					"event": [
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
-									"    '/contact_id/'",
-									")));",
-									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
-									"    '/contact_id0'",
-									")));"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"contactid\",\n    \"perm\": {\n        \"key\": \"{{key_b64}}\",\n        \"permType\": \"READWRITE\",\n        \"range_end\": \"{{range_end_b64}}\"\n    }\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{ETCD_URL}}/v3/auth/role/grant",
-							"host": [
-								"{{ETCD_URL}}"
-							],
-							"path": [
-								"v3",
-								"auth",
-								"role",
-								"grant"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Get All",
 					"event": [
 						{
@@ -444,7 +502,7 @@
 							"script": {
 								"exec": [
 									"pm.globals.set('slash_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse('/')));",
-									"pm.globals.set('zero_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse('0')));"
+									"pm.globals.set('zero_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse('z')));"
 								],
 								"type": "text/javascript"
 							}
@@ -455,14 +513,16 @@
 								"exec": [
 									"var jsonData = pm.response.json();",
 									"",
-									"jsonData.kvs.forEach(function(record) {",
-									"    var key = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.key));",
-									"    var value = \"None\";",
-									"    if (\"value\" in record) {",
-									"        value = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.value));",
-									"    }",
-									"    console.log(key + \": \" + value)",
-									"});",
+									"if (\"kvs\" in jsonData) {",
+									"    jsonData.kvs.forEach(function(record) {",
+									"        var key = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.key));",
+									"        var value = \"None\";",
+									"        if (\"value\" in record) {",
+									"            value = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.value));",
+									"        }",
+									"        console.log(key + \": \" + value)",
+									"    });",
+									"}",
 									""
 								],
 								"type": "text/javascript"
@@ -494,21 +554,25 @@
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "ContactID",
-			"item": [
+				},
 				{
-					"name": "Authenticate ContactID",
+					"name": "Delete All",
 					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('slash_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse('/')));",
+									"pm.globals.set('zero_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse('z')));"
+								],
+								"type": "text/javascript"
+							}
+						},
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"var jsonData = JSON.parse(responseBody);",
-									"pm.globals.set('auth_token', jsonData.token);",
+									"var jsonData = pm.response.json();",
 									""
 								],
 								"type": "text/javascript"
@@ -516,14 +580,11 @@
 						}
 					],
 					"request": {
-						"auth": {
-							"type": "noauth"
-						},
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"contactid\",\n    \"password\": \"{{ETCD_CONTACTID_PASSWORD}}\"\n}",
+							"raw": "{\n    \"key\": \"{{slash_b64}}\",\n    \"range_end\": \"{{zero_b64}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -531,31 +592,75 @@
 							}
 						},
 						"url": {
-							"raw": "{{ETCD_URL}}/v3/auth/authenticate",
+							"raw": "{{ETCD_URL}}/v3/kv/deleterange",
 							"host": [
 								"{{ETCD_URL}}"
 							],
 							"path": [
 								"v3",
-								"auth",
-								"authenticate"
+								"kv",
+								"deleterange"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get All ContactID",
+					"name": "Put /foo/bar",
 					"event": [
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
 									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
-									"    '/contact_id/'",
+									"    '/foo/bar'",
+									")));",
+									"pm.globals.set('value_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'true'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"key\": \"{{key_b64}}\",\n    \"value\": \"{{value_b64}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/kv/put",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"kv",
+								"put"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All /foo/*",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '/foo/'",
 									")));",
 									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
-									"    '/contact_id0'",
+									"    '/foo0'",
 									")));"
 								],
 								"type": "text/javascript"
@@ -608,18 +713,37 @@
 					"response": []
 				},
 				{
-					"name": "Put /contact_id/",
+					"name": "Delete All /foo/*",
 					"event": [
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
 									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
-									"    '/contact_id/'",
+									"    '/foo/'",
 									")));",
-									"pm.globals.set('value_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
-									"    'true'",
+									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '/foo0'",
 									")));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"jsonData.kvs.forEach(function(record) {",
+									"    var key = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.key));",
+									"    var value = \"None\";",
+									"    if (\"value\" in record) {",
+									"        value = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.value));",
+									"    }",
+									"    console.log(key + \": \" + value)",
+									"});",
+									""
 								],
 								"type": "text/javascript"
 							}
@@ -630,7 +754,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"key\": \"{{key_b64}}\",\n    \"value\": \"{{value_b64}}\"\n}",
+							"raw": "{\n    \"key\": \"{{key_b64}}\",\n    \"range_end\": \"{{range_end_b64}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -638,31 +762,123 @@
 							}
 						},
 						"url": {
-							"raw": "{{ETCD_URL}}/v3/kv/put",
+							"raw": "{{ETCD_URL}}/v3/kv/deleterange",
 							"host": [
 								"{{ETCD_URL}}"
 							],
 							"path": [
 								"v3",
 								"kv",
-								"put"
+								"deleterange"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "ContactID",
+			"item": [
+				{
+					"name": "Add contact_id User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"contact_id\",\n    \"password\": \"{{ETCD_CONTACTID_PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/add",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"add"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Multi-Put",
+					"name": "Add contact_id Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"contact_id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/role/add",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"role",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Grant contact_id Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user\": \"contact_id\",\n    \"role\": \"contact_id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/grant",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"grant"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Grant contact_id Permissions to CONTACT_ID__*",
 					"event": [
 						{
 							"listen": "prerequest",
 							"script": {
 								"exec": [
-									"pm.globals.set('prefix_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
-									"    '/contact_id/'",
+									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'CONTACT_ID__'",
 									")));",
-									"pm.globals.set('true_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
-									"    'true'",
+									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'CONTACT_ID_`'",
 									")));"
 								],
 								"type": "text/javascript"
@@ -674,7 +890,129 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"compare\":[\n        {\n            \"target\":\"CREATE\",\n            \"key\":\"{{prefix_b64}}\",\n            \"value\":\"{{true_b64}}\"\n        }\n    ],\n    \"success\":[\n        {\n            \"requestPut\":{\n                \"key\":\"Zm9v\",\n                \"value\":\"YmFy\"\n            }\n        },\n        {\n            \"requestPut\":{\n                \"key\":\"Zm9v\",\n                \"value\":\"YmFy\"\n            }\n        }\n    ]\n}",
+							"raw": "{\n    \"name\": \"contact_id\",\n    \"perm\": {\n        \"key\": \"{{key_b64}}\",\n        \"permType\": \"READWRITE\",\n        \"range_end\": \"{{range_end_b64}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/role/grant",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"role",
+								"grant"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multi-Put CONTACT_ID__EXTRACT_VALID__",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('prefix_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'CONTACT_ID__'",
+									")));",
+									"pm.globals.set('true_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'true'",
+									")));",
+									"pm.globals.set('key1_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'CONTACT_ID__EXTRACT_VALID__HOST'",
+									")));",
+									"pm.globals.set('val1_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'eft.ama-assn.org'",
+									")));",
+									"pm.globals.set('key2_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'CONTACT_ID__EXTRACT_VALID__CACHE_OUTPUT_ACCESS_KEY'",
+									")));",
+									"pm.globals.set('val2_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '${ACCESS_KEY}'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"success\":[\n        {\n            \"requestPut\":{\n                \"key\":\"{{key1_b64}}\",\n                \"value\":\"{{val1_b64}}\"\n            }\n        },\n        {\n            \"requestPut\":{\n                \"key\":\"{{key2_b64}}\",\n                \"value\":\"{{val2_b64}}\"\n            }\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/kv/txn",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"kv",
+								"txn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All CONTACT_ID__*",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'CONTACT_ID__'",
+									")));",
+									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'CONTACT_ID_`'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"if ('kvs' in jsonData) {",
+									"    jsonData.kvs.forEach(function(record) {",
+									"        var key = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.key));",
+									"        var value = \"None\";",
+									"        if (\"value\" in record) {",
+									"            value = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.value));",
+									"        }",
+									"        console.log(key + \": \" + value)",
+									"    });",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"key\": \"{{key_b64}}\",\n    \"range_end\": \"{{range_end_b64}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -690,6 +1028,319 @@
 								"v3",
 								"kv",
 								"range"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "OneView",
+			"item": [
+				{
+					"name": "Add oneview User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"oneview\",\n    \"password\": \"{{ETCD_ONEVIEW_PASSWORD}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/add",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add oneview Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"oneview\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/role/add",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"role",
+								"add"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Grant oneview Role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user\": \"oneview\",\n    \"role\": \"oneview\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/grant",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"grant"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Grant contact_id Permissions to ONEVIEW_*",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'ONEVIEW_'",
+									")));",
+									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'ONEVIEW`'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"oneview\",\n    \"perm\": {\n        \"key\": \"{{key_b64}}\",\n        \"permType\": \"READWRITE\",\n        \"range_end\": \"{{range_end_b64}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/role/grant",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"role",
+								"grant"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Multi-Put ONEVIEW__EXTRACT_VALID__",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('prefix_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'ONEVIEW__'",
+									")));",
+									"pm.globals.set('true_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'true'",
+									")));",
+									"pm.globals.set('key1_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'ONEVIEW__EXTRACT_VALID__HOST'",
+									")));",
+									"pm.globals.set('val1_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'eft.ama-assn.org'",
+									")));",
+									"pm.globals.set('key2_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'ONEVIEW__EXTRACT_VALID__CACHE_OUTPUT_ACCESS_KEY'",
+									")));",
+									"pm.globals.set('val2_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    '${ACCESS_KEY}'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"success\":[\n        {\n            \"requestPut\":{\n                \"key\":\"{{key1_b64}}\",\n                \"value\":\"{{val1_b64}}\"\n            }\n        },\n        {\n            \"requestPut\":{\n                \"key\":\"{{key2_b64}}\",\n                \"value\":\"{{val2_b64}}\"\n            }\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/kv/txn",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"kv",
+								"txn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All ONEVIEW__*",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'ONEVIEW_0'",
+									")));",
+									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'ONEVIEW_z'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									"if ('kvs' in jsonData) {",
+									"    jsonData.kvs.forEach(function(record) {",
+									"        var key = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.key));",
+									"        var value = \"None\";",
+									"        if (\"value\" in record) {",
+									"            value = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Base64.parse(record.value));",
+									"        }",
+									"        console.log(key + \": \" + value)",
+									"    });",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"key\": \"{{key_b64}}\",\n    \"range_end\": \"{{range_end_b64}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/kv/range",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"kv",
+								"range"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete All ONEVIEW__*",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.globals.set('key_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'ONEVIEW_0'",
+									")));",
+									"pm.globals.set('range_end_b64', CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(",
+									"    'ONEVIEW_z'",
+									")));"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"key\": \"{{key_b64}}\",\n    \"range_end\": \"{{range_end_b64}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/kv/deleterange",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"kv",
+								"deleterange"
 							]
 						}
 					},

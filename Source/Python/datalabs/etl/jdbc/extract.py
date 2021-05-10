@@ -6,7 +6,7 @@ import jaydebeapi
 import pandas
 
 from   datalabs.etl.extract import ExtractorTask
-from   datalabs.task import add_schema
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

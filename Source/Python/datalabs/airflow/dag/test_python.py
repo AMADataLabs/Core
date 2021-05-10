@@ -2,13 +2,17 @@
 from pprint import pprint
 
 from airflow import DAG
+from airflow.models import Variable
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
+
+ETCD_HOST = Variable.get("ETCD_HOST")
 
 
 def print_that(**kwargs):
     pprint(kwargs)
     print(kwargs['ds'])
+    print(ETCD_HOST)
 
     return "Foobiddy Doobiddy"
 

@@ -6,7 +6,7 @@ import mock
 import pytest
 
 import datalabs.etl.task as task
-from   datalabs.task import add_schema
+from   datalabs.parameter import add_schema
 
 
 # pylint: disable=redefined-outer-name, protected-access
