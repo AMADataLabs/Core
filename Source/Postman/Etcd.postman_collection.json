@@ -279,7 +279,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"root\",\n    \"password\": \"{{ETCD_ROOT_PASSWORD}}\"\n}",
+							"raw": "{\n    \"name\": \"oneview\",\n    \"password\": \"{{ETCD_ONEVIEW_PASSWORD}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -415,6 +415,35 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"name\": \"contact_id\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{ETCD_URL}}/v3/auth/user/delete",
+							"host": [
+								"{{ETCD_URL}}"
+							],
+							"path": [
+								"v3",
+								"auth",
+								"user",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete oneview User",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"oneview\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
