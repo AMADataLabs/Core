@@ -128,6 +128,16 @@ objects:
           command:
           - /home/airflow/scheduler.sh
           env:
+          - name: DATABASE_HOST
+            valueFrom:
+              secretKeyRef:
+                name: ${APPLICATION_NAME}
+                key: database-host
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                key: database-name
+                name: ${APPLICATION_NAME}
           - name: DATABASE_USER
             valueFrom:
               secretKeyRef:
@@ -138,13 +148,13 @@ objects:
               secretKeyRef:
                 key: database-password
                 name: ${APPLICATION_NAME}
-          - name: DATABASE_NAME
+          - name: AIRFLOW__CORE__FERNET_KEY
             valueFrom:
               secretKeyRef:
-                key: database-name
                 name: ${APPLICATION_NAME}
+                key: fernet-key
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:5432/${DATABASE_NAME}
           envFrom:
           - configMapRef:
               name: airflow-scheduler
@@ -194,6 +204,16 @@ objects:
           command:
           - /home/airflow/webserver.sh
           env:
+          - name: DATABASE_HOST
+            valueFrom:
+              secretKeyRef:
+                name: ${APPLICATION_NAME}
+                key: database-host
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                name: ${APPLICATION_NAME}
+                key: database-name
           - name: DATABASE_USER
             valueFrom:
               secretKeyRef:
@@ -204,13 +224,13 @@ objects:
               secretKeyRef:
                 name: ${APPLICATION_NAME}
                 key: database-password
-          - name: DATABASE_NAME
+          - name: AIRFLOW__CORE__FERNET_KEY
             valueFrom:
               secretKeyRef:
                 name: ${APPLICATION_NAME}
-                key: database-name
+                key: fernet-key
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:5432/${DATABASE_NAME}
           envFrom:
           - configMapRef:
               name: airflow-webserver
