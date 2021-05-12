@@ -14,7 +14,7 @@ LOGGER.setLevel(logging.INFO)
 
 class DataFileFormat(Enum):
     CSV = 'csv'
-    Feather = 'feather'
+    FEATHER = 'feather'
 
 
 class EntityTableCleaner():
@@ -57,7 +57,7 @@ class EntityTableCleaner():
         if extension == DataFileFormat.CSV.value:
             LOGGER.info('Reading CSV file %s', filename)
             table_chunks = cls._read_csv_file_in_chunks(filename)
-        elif extension == DataFileFormat.Feather.value:
+        elif extension == DataFileFormat.FEATHER.value:
             LOGGER.info('Reading Feather file %s', filename)
             table_chunks = cls._read_feather_file_in_chunks(filename)
         else:
@@ -91,7 +91,7 @@ class EntityTableCleaner():
         if extension == DataFileFormat.CSV.value:
             LOGGER.info('Writing CSV file %s', filename)
             table.to_csv(filename)
-        elif extension == DataFileFormat.Feather.value:
+        elif extension == DataFileFormat.FEATHER.value:
             LOGGER.info('Writing Feather file %s', filename)
             table.to_feather(filename)
         else:

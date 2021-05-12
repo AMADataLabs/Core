@@ -99,16 +99,21 @@ class Database(Datastore):
         return configuration
 
     @classmethod
-    def from_parameters(cls, parameters):
+    def from_parameters(cls, parameters, prefix=None):
+        if not prefix:
+            prefix = ""
+
+        prefix_lc = prefix.lower()
+
         config = Configuration(
-            name=parameters.get('name') or parameters.get('NAME'),
-            backend=parameters.get('backend') or parameters.get('BACKEND'),
-            host=parameters.get('host') or parameters.get('HOST'),
-            port=parameters.get('port') or parameters.get('PORT')
+            name=parameters.get(f'{prefix_lc}name') or parameters.get(f'{prefix}NAME'),
+            backend=parameters.get(f'{prefix_lc}backend') or parameters.get(f'{prefix}BACKEND'),
+            host=parameters.get(f'{prefix_lc}host') or parameters.get(f'{prefix}HOST'),
+            port=parameters.get(f'{prefix_lc}port') or parameters.get(f'{prefix}PORT')
         )
         credentials = Credentials(
-            username=parameters.get('username') or parameters.get('USERNAME'),
-            password=parameters.get('password') or parameters.get('PASSWORD')
+            username=parameters.get(f'{prefix_lc}username') or parameters.get(f'{prefix}USERNAME'),
+            password=parameters.get(f'{prefix_lc}password') or parameters.get(f'{prefix}PASSWORD')
         )
 
         return cls(config, credentials)

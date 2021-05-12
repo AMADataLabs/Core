@@ -58,10 +58,11 @@ def test_load_resolves_all_references(environment):
     loader = ReferenceEnvironmentLoader.from_environ()
     loader.load()
 
-    assert len(os.environ) == 6
+    assert len(os.environ) == 7
     assert os.environ.get('SIMPLE_REFERENCE_VARIABLE') == 'Woopideedoo'
     assert os.environ.get('COMPLEX_REFERENCE_VARIABLE') == 'I said, "Woopideedoo!"'
     assert os.environ.get('MULTI_REFERENCE_VARIABLE') == 'He said, "Woopideedoo, I love you!"'
+    assert os.environ.get('BAD_REFERENCE_VARIABLE') == '${SOME_NONEXISTANT_VARIABLE}'
 
 
 @pytest.fixture
@@ -74,6 +75,7 @@ def environment():
     os.environ['COMPLEX_REFERENCE_VARIABLE'] = 'I said, "${REFERENT_VARIABLE}!"'
     os.environ['PHRASE_VARIABLE'] = 'I love you!'
     os.environ['MULTI_REFERENCE_VARIABLE'] = 'He said, "${REFERENT_VARIABLE}, ${PHRASE_VARIABLE}"'
+    os.environ['BAD_REFERENCE_VARIABLE'] = '${SOME_NONEXISTANT_VARIABLE}'
 
     yield os.environ
 

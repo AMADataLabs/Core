@@ -2,7 +2,7 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   annotations:
-    openshift.io/description: Airflow jobs for oneview ETLs
+    openshift.io/description: OneView ETL runtime environment
     openshift.io/display-name: oneview-etl
   creationTimestamp: null
   labels:
@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: oneview-etl:1.0.0
+      name: oneview-etl:1.3.3
   postCommit: {}
   resources: {}
   runPolicy: Serial
@@ -28,9 +28,6 @@ spec:
   strategy:
     dockerStrategy:
       dockerfilePath: Build/OneView/Dockerfile
-      from:
-        kind: ImageStreamTag
-        name: oneview-etl:1.0.0
     type: Docker
   successfulBuildsHistoryLimit: 5
   triggers:

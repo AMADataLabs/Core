@@ -13,7 +13,7 @@ import datalabs.access.api.task as api
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         with mock.patch('datalabs.access.secret.aws.boto3'):
-            wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
+            wrapper = APIEndpointTaskWrapper(parameters=event)
             wrapper._setup_environment()
             parameters = wrapper._get_task_parameters()
 
@@ -22,7 +22,7 @@ def test_task_wrapper_get_task_parameters(expected_parameters, event):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_handle_exception():
-    wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
+    wrapper = APIEndpointTaskWrapper(parameters=event)
     response = wrapper._handle_exception(api.APIEndpointException('failed'))
 
     assert response['statusCode'] == 400
@@ -33,7 +33,7 @@ def test_task_wrapper_handle_exception():
 def test_task_wrapper_handle_success(event):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         with mock.patch('datalabs.access.secret.aws.boto3'):
-            wrapper = APIEndpointTaskWrapper(MockTask, parameters=event)
+            wrapper = APIEndpointTaskWrapper(parameters=event)
             wrapper.run()
             response = wrapper._handle_success()
 
@@ -61,6 +61,9 @@ def expected_parameters():
 @pytest.fixture
 def event():
     current_env = os.environ.copy()
+    os.environ.clear()
+
+    os.environ['TASK_CLASS'] = 'test.datalabs.access.api.test_awslambda.MockTask'
     os.environ['DATABASE_HOST'] = 'host'
     os.environ['DATABASE_SECRET'] = '{"username":"username", "password":"password", "port":5432, ' \
                                              '"dbname":"name", "engine": "postgres"}'

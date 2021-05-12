@@ -1,10 +1,12 @@
 """ source: datalabs.task """
 from   dataclasses import dataclass
+import os
 
 from   marshmallow.exceptions import ValidationError
 import pytest
 
-from   datalabs.task import Task, TaskWrapper, add_schema
+from   datalabs.parameter import add_schema
+from   datalabs.task import Task, TaskWrapper
 
 def test_task_is_abstract():
     with pytest.raises(TypeError):
@@ -17,16 +19,20 @@ def test_task_is_not_abstract():
 
 def test_task_wrapper_is_abstract():
     with pytest.raises(TypeError):
-        BadTaskWrapper(None)  # pylint: disable=abstract-class-instantiated
+        BadTaskWrapper()  # pylint: disable=abstract-class-instantiated
 
 
 def test_task_wrapper_is_not_abstract():
-    GoodTaskWrapper(GoodTask).run()
+    os.environ['TASK_CLASS'] = 'test.datalabs.test_task.GoodTask'
+    GoodTaskWrapper().run()
 
 
 def test_task_lineage_is_bad():
+    os.environ['TASK_CLASS'] = 'test.datalabs.test_task.BadTask'
+    task_wrapper = GoodTaskWrapper('Task Class')
+
     with pytest.raises(TypeError):
-        GoodTaskWrapper('Task Class')
+        task_wrapper.run()
 
 
 # pylint: disable=redefined-outer-name

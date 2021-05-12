@@ -120,7 +120,7 @@ class VTPhysicianContactSampleGenerator:
         edw_data = EDWData()
         with EDW() as edw:
             edw_data.medschool_names = edw.get_active_medical_school_map()
-            edw_data.party_key_data = edw.get_party_keys_by_type(party_key_type=PartyKeyType.School)
+            edw_data.party_key_data = edw.get_party_keys_by_type(party_key_type=PartyKeyType.SCHOOL)
         self.edw_data = edw_data
 
     def _load_ppd(self) -> pd.DataFrame:
@@ -366,6 +366,3 @@ class VTPhysicianContactSampleGenerator:
 def make_physician_contact_request_sample():
     sample_generator = VTPhysicianContactSampleGenerator()
     sample_generator.run()
-
-
-make_physician_contact_request_sample()

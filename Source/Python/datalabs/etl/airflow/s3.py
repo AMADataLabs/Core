@@ -8,6 +8,7 @@ class S3TaskDataCache(TaskDataCache):
     def extract_data(self):
         ''' Pull cached data from files on S3, assuming is in CSV format.'''
         cache_parameters = self._parameters
+
         cache_extractor = S3FileExtractorTask(cache_parameters)
 
         cache_extractor.run()
@@ -17,6 +18,7 @@ class S3TaskDataCache(TaskDataCache):
     def load_data(self, output_data):
         self._parameters['data'] = output_data
         cache_parameters = self._parameters
+
         cache_loader = S3FileLoaderTask(cache_parameters)
 
         cache_loader.run()

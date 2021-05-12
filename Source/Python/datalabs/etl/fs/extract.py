@@ -2,8 +2,8 @@
 from   glob import glob
 import os
 
-from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, ExecutionTimeMixin
-from   datalabs.etl.task import ETLException
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
+from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 
 
 # pylint: disable=too-many-ancestors

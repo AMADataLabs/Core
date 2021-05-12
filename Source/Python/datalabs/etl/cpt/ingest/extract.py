@@ -1,4 +1,5 @@
 """ Extractor class for CPT standard release text data from the S3 ingestion bucket. """
+from   dataclasses import dataclass
 from   datetime import date, datetime
 import json
 import os
@@ -7,16 +8,36 @@ from   dateutil.parser import isoparse
 import pandas
 
 import datalabs.etl.s3.extract as extract
+from   datalabs.parameter import add_schema
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class CPTTextDataExtractorParameters:
+    bucket: str
+    base_path: str
+    files: str
+    schedule: str
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
+    include_names: str = None
+    execution_time: str = None
+    data: object = None
 
 
 # pylint: disable=too-many-ancestors
 class CPTTextDataExtractorTask(extract.S3UnicodeTextFileExtractorTask):
+    PARAMETER_CLASS = CPTTextDataExtractorParameters
+
     def _extract(self):
         data = super()._extract()
         release_datestamp = self._get_execution_date() or self._extract_release_date()
         release_date = isoparse(release_datestamp).date()
-        release_schedule = json.loads(self._parameters['SCHEDULE'])
-        release_source_path = os.path.join(self._parameters['BASE_PATH'], release_datestamp)
+        release_schedule = json.loads(self._parameters.schedule)
+        release_source_path = os.path.join(self._parameters.base_path, release_datestamp)
 
         data.insert(0, (release_source_path, self._generate_release_details(release_schedule, release_date)))
 
