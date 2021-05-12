@@ -36,27 +36,19 @@ def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_compare_data(loader_parameters, hash_data, hash_query_results, incoming_data):
+def test_compare_data(loader_parameters, hash_data, hash_query_results, incoming_data, expected_data):
     primary_key = 'id'
     columns = ['dumb', 'id', 'dumber']
 
     loader = ORMLoaderTask(loader_parameters)
-
     row_hashes = loader._generate_row_hashes(columns, incoming_data, primary_key)
-    print(row_hashes)
     new_data, updated_data, deleted_data = loader._compare_data(incoming_data, hash_query_results, row_hashes, primary_key)
 
-    print('deleted', deleted_data)
-    assert pandas.DataFrame.from_dict({'dumb': ['grapes'],
-                                       'id': [4],
-                                       'dumber': ['yum']}).equals(new_data)
+    assert expected_data['new'].equals(new_data)
 
-    assert pandas.DataFrame.from_dict({'dumb': ['apples'],
-                                       'id': [1],
-                                       'dumber': ['good']}).equals(updated_data)
+    assert expected_data['updated'].equals(updated_data)
 
-    assert pandas.DataFrame.from_dict({'id': [3],
-                                       'md5': ['1409af11b29204e49ca9b8fe834b8270']}).equals(deleted_data)
+    assert expected_data['deleted'].equals(deleted_data)
 
 
 # pylint: disable=blacklisted-name
@@ -161,3 +153,22 @@ def incoming_data():
             'dumber': ['good', 'yummy', 'yum']}
 
     return pandas.DataFrame.from_dict(data)
+
+
+# pylint: disable=blacklisted-name
+@pytest.fixture
+def expected_data():
+    new_data = pandas.DataFrame.from_dict({'dumb': ['grapes'],
+                                           'id': [4],
+                                           'dumber': ['yum']})
+
+    updated_data = pandas.DataFrame.from_dict({'dumb': ['apples'],
+                                               'id': [1],
+                                               'dumber': ['good']})
+
+    deleted_data = pandas.DataFrame.from_dict({'id': [3],
+                                               'md5': ['1409af11b29204e49ca9b8fe834b8270']})
+
+    return {'new': new_data,
+            'updated': updated_data,
+            'deleted': deleted_data}
