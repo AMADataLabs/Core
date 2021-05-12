@@ -22,6 +22,207 @@ metadata:
 
 
 objects:
+#######################################
+# Image Streams
+#######################################
+
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: Airflow
+    name: airflow-worker
+    namespace: hsg-data-labs-dev
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: airflow-worker:latest
+      generation: 1
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
+
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: HSGDataLabsAirflow
+    name: airflow
+    namespace: hsg-data-labs-dev
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: airflow:latest
+      generation: 1
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
+
+
+#######################################
+# Builds
+#######################################
+
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/description: Airflow worker
+      openshift.io/display-name: Airflow
+    creationTimestamp: null
+    labels:
+      app: Airflow
+    name: airflow-worker
+    namespace: hsg-data-labs-dev
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: airflow-worker:1.0.3
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+        # ref: story/DL-1260
+      sourceSecret:
+        name: bitbucketprd
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Build/Airflow/Worker/Dockerfile
+        from:
+          kind: ImageStreamTag
+          name: python:3.7
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - type: ConfigChange
+
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/description: Airflow scheduler and web server
+      openshift.io/display-name: Airflow
+    creationTimestamp: null
+    labels:
+      app: Airflow
+    name: airflow
+    namespace: hsg-data-labs-dev
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: airflow:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+        # ref: story/DL-1259
+      sourceSecret:
+        name: bitbucketprd
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Build/Airflow/Dockerfile
+        from:
+          kind: ImageStreamTag
+          name: python:3.7
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - type: ConfigChange
+
+
+#######################################
+# Configuration
+#######################################
+
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+      name: airflow-scheduler
+      namespace: hsg-data-labs-dev
+  data:
+      AIRFLOW_GPL_UNIDECODE: 'yes'
+      AIRFLOW_HOME: /home/airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /home/airflow/repo/hs-datalabs/Source/Python/datalabs/airflow/dag
+      AIRFLOW__CORE__DEFAULT_IMPERSONATION: '1000280000'
+      AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
+      AIRFLOW__CORE__HOSTNAME_CALLABLE: socket.gethostname
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag
+      AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: 'False'
+      AIRFLOW__KUBERNETES__ENV_FROM_CONFIGMAP_REF: airflow-scheduler
+      AIRFLOW__KUBERNETES__FS_GROUP: '1000280000'
+      AIRFLOW__KUBERNETES__IN_CLUSTER: 'True'
+      AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-dev
+      AIRFLOW__KUBERNETES__POD_TEMPLATE_FILE: /home/airflow/worker.yaml
+      AIRFLOW__KUBERNETES__RUN_AS_USER: '1000280000'
+      AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker
+      AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: 1.0.3
+      AIRFLOW__LOGGING__LOGGING_LEVEL: WARN
+      AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: '60'
+      AIRFLOW__WEBSERVER__RBAC: 'True'
+
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+      name: airflow-webserver
+      namespace: hsg-data-labs-dev
+  data:
+      AIRFLOW_GPL_UNIDECODE: 'yes'
+      AIRFLOW_HOME: /home/airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /home/airflow/repo/hs-datalabs/Source/Python/datalabs/airflow/dag
+      AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
+      AIRFLOW__CORE__HOSTNAME_CALLABLE: socket.gethostname
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag
+      AIRFLOW__KUBERNETES__GIT_BRANCH: master
+      AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: /home/airflow/dags
+      AIRFLOW__KUBERNETES__GIT_REPO: 'git@bitbucket.org:hsdatalabs/hsg-data-labs.git'
+      AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-dev
+      AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: 'true'
+      AIRFLOW__WEBSERVER__LOG_FETCH_TIMEOUT_SEC: '30'
+      AIRFLOW__WEBSERVER__RBAC: 'True'
+
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: airflow
+    namespace: hsg-data-labs-dev
+    selfLink: /api/v1/namespaces/hsg-data-labs-dev/secrets/airflow
+  type: Opaque
+  data:
+    database-host: {{host_b64}}
+    database-name: {{name_b64}}
+    database-user: {{username_b64}}
+    database-password: {{password_b64}}
+    fernet-key: {{fernet_key_b64}}
+
+
+#######################################
+# Permissions
+#######################################
+
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: Role
   metadata:
@@ -51,6 +252,11 @@ objects:
   - kind: ServiceAccount
     name: default
     namespace: hsg-data-labs-dev
+
+
+#######################################
+# Services and Routes
+#######################################
 
 - apiVersion: v1
   kind: Service
@@ -94,6 +300,11 @@ objects:
   status:
     ingress: null
 
+
+#######################################
+# Storage
+#######################################
+
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -104,6 +315,11 @@ objects:
     resources:
       requests:
         storage: ${VOLUME_CAPACITY}
+
+
+#######################################
+# Deployments
+#######################################
 
 - apiVersion: v1
   kind: DeploymentConfig
