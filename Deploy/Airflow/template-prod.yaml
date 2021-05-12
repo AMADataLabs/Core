@@ -4,10 +4,6 @@ labels:
   template: airflow-persistent
 message: |-
     The following service(s) have been created in your project: ${APPLICATION_NAME}.
-
-    Connection URL: https:/${APPLICATION_NAME}/
-    Database Password: ${DATABASE_PASSWORD}
-    Fernet Key: ${FERNET_KEY}
 metadata:
   name: airflow-persistent
   namespace: hsg-data-labs-prod
