@@ -1,4 +1,6 @@
 """OneView ETL ORM Loader"""
+from   dataclasses import dataclass
+
 import io
 import hashlib
 import logging
@@ -15,14 +17,14 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
-    def __init__(self, parameters):
-        super().__init__(parameters)
-        self._data = None
-        self._database = None
-        self._table = None
-        self._model_class = None
+@dataclass
+class TableParameters:
+    data: str
+    table: str
+    model_class: str
 
+
+class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _load(self):
         LOGGER.info(self._parameters)
 
@@ -30,31 +32,28 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             for model_class, data, table in zip(self._get_model_classes(),
                                                 self._get_dataframes(),
                                                 self._parameters['TABLES']):
-                self._data = data
-                self._database = database
-                self._table = table
-                self._model_class = model_class
 
-                self._update()
+                table_parameters = TableParameters(data, table, model_class)
+                self._update(database, table_parameters)
 
             # pylint: disable=no-member
             database.commit()
 
-    def _update(self):
-        primary_key = self._get_primary_key(self._database, self._table)
-        columns = self._get_database_columns(self._database, self._table)
+    def _update(self, database, table_parameters):
+        primary_key = self._get_primary_key(database, table_parameters.table)
+        columns = self._get_database_columns(database, table_parameters.table)
 
-        current_hashes = self._get_current_row_hashes(self._database, self._table, primary_key)
-        incoming_hashes = self._generate_row_hashes(columns, self._data, primary_key)
+        current_hashes = self._get_current_row_hashes(database, table_parameters.table, primary_key)
+        incoming_hashes = self._generate_row_hashes(columns, table_parameters.data, primary_key)
 
-        new_data, updated_data, deleted_data = self._compare_data(self._data,
+        new_data, updated_data, deleted_data = self._compare_data(table_parameters.data,
                                                                   current_hashes,
                                                                   incoming_hashes,
                                                                   primary_key)
 
-        self._add_data(self._database, self._model_class, new_data)
-        self._delete_data(self._database, self._model_class, deleted_data, primary_key, self._table)
-        self._update_data(self._database, self._model_class, updated_data)
+        self._add_data(database, table_parameters.model_class, new_data)
+        self._delete_data(database, table_parameters.model_class, deleted_data, primary_key, table_parameters.table)
+        self._update_data(database, table_parameters.model_class, updated_data)
 
     @classmethod
     def _get_primary_key(cls, database, table):
