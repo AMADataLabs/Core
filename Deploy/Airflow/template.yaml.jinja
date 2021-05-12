@@ -206,17 +206,39 @@ objects:
 
 - apiVersion: v1
   kind: Secret
+  type: Opaque
   metadata:
     name: airflow
     namespace: hsg-data-labs-dev
-    selfLink: /api/v1/namespaces/hsg-data-labs-dev/secrets/airflow
+    annotations:
+      template.openshift.io/base64-expose-password: "{.data['database-host']}"
+      template.openshift.io/base64-expose-password: "{.data['database-name']}"
+      template.openshift.io/base64-expose-password: "{.data['database-user']}"
+      template.openshift.io/base64-expose-password: "{.data['database-password']}"
+      template.openshift.io/base64-expose-password: "{.data['fernet-key']}"
+  stringData:
+    database-host: hsg-data-labs-airflow-db.hsg-data-labs-dev.svc.cluster.local
+    database-name: airflow
+    database-user: airflow
+    database-password: {{password}}
+    fernet-key: {{fernet_key}}
+
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: airflow-init
+    namespace: hsg-data-labs-dev
   type: Opaque
-  data:
-    database-host: {{host_b64}}
-    database-name: {{name_b64}}
-    database-user: {{username_b64}}
-    database-password: {{password_b64}}
-    fernet-key: {{fernet_key_b64}}
+  annotations:
+    template.openshift.io/base64-expose-password: "{.data['id_rsa']}"
+    template.openshift.io/base64-expose-password: "{.data['known_hosts']}"
+  stringData:
+    id_rsa: |-
+      {{id_rsa}}
+    known_hosts: |-
+      [bitbucket.ama-assn.org]:7999,[10.195.50.49]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDXTp4jOa5nwPB2RwSeBNXrnuWG3nSYk/pJTAuRDN27gPJBghZU4EyC9kqoHPYiMK0p39mBm544+xNzuoyFlAvq2M1Qg+CQf0axk+0uxioqokx9Eu6e+HGnhmz08S9JCM64lLaWRuhGPS7d/c1Cs8ZiJsBx+Io6xuNh7dT0Vc0RbPymqBUwPY3E1qoMQrar8quqd9SbG4tpAQbl70zerPrcV/uRX2GruS9tLFEUdSK613/cZ0upWe03CeBTFfWiWptQ5vkYDrCqZK4l5/TlNQLqXSNTgRuY/oyP195rCEdnSJ21oIBZXzI4LAdaSjUTSab69yldPHfiRFQmuF++blj1
+
+      bitbucket.org,2406:da00:ff00::22c5:2ef4 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubiN81eDcafrgMeLzaFPsw2kNvEcqTKl/VqLat/MaB33pZy0y3rJZtnqwR2qOOvbwKZYKiEO1O6VqNEBxKvJJelCq0dTXWT5pbO2gDXC6h6QDXCaHo6pOHGPUy+YBaGQRGuSusMEASYiWunYN0vCAI8QaXnWMXNMdFP3jHAJH0eDsoiGnLPBlBp4TNm6rYI74nMzgz3B9IikW4WVK+dc8KZJZWYjAuORU3jc1c/NPskD2ASinf8v3xnfXeukU0sJ5N6m5E8VLjObPEO+mN2t/FZTMZLiFqPWc/ALSqnMnnhwrNi2rbfg/rd/IpL8Le3pSBne8+seeFVBoGqzHM9yXw==
 
 
 #######################################
