@@ -22,6 +22,10 @@ class TableParameters:
     data: str
     table: str
     model_class: str
+    primary_key: str
+    columns: list
+    current_hashes: pandas.DataFrame
+    incoming_hashes: pandas.DataFrame
 
 
 class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
@@ -33,27 +37,25 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                                                 self._get_dataframes(),
                                                 self._parameters['TABLES']):
 
-                table_parameters = TableParameters(data, table, model_class)
+                table_parameters = self._set_table_parameters(model_class, data, table, database)
                 self._update(database, table_parameters)
 
             # pylint: disable=no-member
             database.commit()
 
+    def _set_table_parameters(self, model_class, data, table, database):
+        primary_key = self._get_primary_key(database, table)
+        columns = self._get_database_columns(database, table)
+
+        current_hashes = self._get_current_row_hashes(database, table, primary_key)
+        incoming_hashes = self._generate_row_hashes(columns, data, primary_key)
+
+        return TableParameters(data, table, model_class, primary_key, columns, current_hashes, incoming_hashes)
+
     def _update(self, database, table_parameters):
-        primary_key = self._get_primary_key(database, table_parameters.table)
-        columns = self._get_database_columns(database, table_parameters.table)
-
-        current_hashes = self._get_current_row_hashes(database, table_parameters.table, primary_key)
-        incoming_hashes = self._generate_row_hashes(columns, table_parameters.data, primary_key)
-
-        new_data, updated_data, deleted_data = self._compare_data(table_parameters.data,
-                                                                  current_hashes,
-                                                                  incoming_hashes,
-                                                                  primary_key)
-
-        self._add_data(database, table_parameters.model_class, new_data)
-        self._delete_data(database, table_parameters.model_class, deleted_data, primary_key, table_parameters.table)
-        self._update_data(database, table_parameters.model_class, updated_data)
+        self._add_data(database, table_parameters)
+        self._delete_data(database, table_parameters)
+        self._update_data(database, table_parameters)
 
     @classmethod
     def _get_primary_key(cls, database, table):
@@ -66,24 +68,18 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         return primary_key_table['attname'][0]
 
     @classmethod
+    def _get_database_columns(cls, database, table):
+        query = "SELECT * FROM information_schema.columns " \
+                f"WHERE table_schema = 'oneview' AND table_name = f'{table}';"
+        old_data = pandas.read_sql(query, database)
+
+        return old_data.columns
+
+    @classmethod
     def _get_current_row_hashes(cls, database, table, primary_key):
         get_current_hash = f"SELECT f'{primary_key}', md5(f'{table}'::TEXT) FROM f'{table}'"
 
         return pandas.read_sql(get_current_hash, database)
-
-    @classmethod
-    def _compare_data(cls, data, current_hashes, incoming_hashes, primary_key):
-        old_current_hashes = current_hashes[current_hashes[primary_key].isin(incoming_hashes[primary_key])]
-        old_new_hashes = incoming_hashes[incoming_hashes[primary_key].isin(old_current_hashes[primary_key])]
-
-        new_data = data[~data[primary_key].isin(current_hashes[primary_key])]
-
-        updated_hashes = old_new_hashes[~old_new_hashes['md5'].isin(old_current_hashes['md5'])]
-        updated_data = data[data[primary_key].isin(updated_hashes[primary_key])]
-
-        deleted_data = current_hashes[~current_hashes[primary_key].isin(data[primary_key])]
-
-        return new_data.reset_index(drop=True), updated_data.reset_index(drop=True), deleted_data.reset_index(drop=True)
 
     @classmethod
     def _generate_row_hashes(cls, columns, data, primary_key):
@@ -96,20 +92,89 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         return pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
 
     @classmethod
-    def _get_database_columns(cls, database, table):
-        query = "SELECT * FROM information_schema.columns " \
-                  f"WHERE table_schema = 'oneview' AND table_name = f'{table}';"
-        old_data = pandas.read_sql(query, database)
+    def _add_data(cls, database, table_parameters):
+        added_data = cls._select_new_data(table_parameters)
 
-        return old_data.columns
+        cls._add_data_to_table(table_parameters, added_data, database)
 
     @classmethod
-    def _add_data(cls, database, model_class, data):
-        models = [cls._create_model(model_class, row) for row in data.itertuples(index=False)]
+    def _select_new_data(cls, table_parameters):
+        return table_parameters.data[
+            ~table_parameters.data[table_parameters.primary_key].isin(
+                table_parameters.current_hashes[table_parameters.primary_key]
+            )
+        ].reset_index(drop=True)
+
+    @classmethod
+    def _add_data_to_table(cls, table_parameters, data, database):
+        models = [cls._create_model(table_parameters.model_class, row) for row in data.itertuples(index=False)]
 
         for model in models:
             # pylint: disable=no-member
             database.add(model)
+
+    @classmethod
+    def _delete_data(cls, database, table_parameters):
+        deleted_data = cls._select_deleted_data(table_parameters)
+
+        cls._delete_data_from_table(table_parameters, deleted_data, database)
+
+    @classmethod
+    def _select_deleted_data(cls, table_parameters):
+        return table_parameters.current_hashes[
+            ~table_parameters.current_hashes[table_parameters.primary_key].isin(
+                table_parameters.data[table_parameters.primary_key]
+            )
+        ].reset_index(drop=True)
+
+    @classmethod
+    def _delete_data_to_table(cls, table_parameters, data, database):
+        deleted_primary_keys = data[table_parameters.primary_key].tolist()
+        database_rows_query = f"SELECT * FROM {table_parameters.table} " \
+                              f"WHERE {table_parameters.primary_key} IN {tuple(deleted_primary_keys)};"
+
+        deleted_data = pandas.read_sql(database_rows_query, database)
+        models = [cls._create_model(table_parameters.model_class, row) for row in deleted_data.itertuples(index=False)]
+
+        for model in models:
+            # pylint: disable=no-member
+            database.delete(model)
+
+    @classmethod
+    def _update_data(cls, database, table_parameters):
+        updated_data = cls._select_updated_data(table_parameters)
+
+        cls._udpate_data_in_table(table_parameters, updated_data, database)
+
+    @classmethod
+    def _select_updated_data(cls, table_parameters):
+        old_current_hashes = table_parameters.current_hashes[
+            table_parameters.current_hashes[table_parameters.primary_key].isin(
+                table_parameters.incoming_hashes[table_parameters.primary_key]
+            )
+        ]
+
+        old_new_hashes = table_parameters.incoming_hashes[
+            table_parameters.incoming_hashes[table_parameters.primary_key].isin(
+                old_current_hashes[table_parameters.primary_key]
+            )
+        ]
+
+        updated_hashes = old_new_hashes[~old_new_hashes['md5'].isin(old_current_hashes['md5'])]
+        updated_data = table_parameters.data[
+            table_parameters.data[table_parameters.primary_key].isin(
+                updated_hashes[table_parameters.primary_key]
+            )
+        ]
+
+        return updated_data.reset_index(drop=True)
+
+    @classmethod
+    def _update_data_in_table(cls, table_parameters, data, database):
+        models = [cls._create_model(table_parameters.model_class, row) for row in data.itertuples(index=False)]
+
+        for model in models:
+            database.query().update(model)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
@@ -131,25 +196,6 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         columns = [column.key for column in mapper.attrs]
 
         return columns
-
-    @classmethod
-    def _delete_data(cls, database, model_class, data, primary_key, table):
-        deleted_primary_keys = data[primary_key].tolist()
-        database_rows_query = f"SELECT * FROM {table} WHERE {primary_key} IN {tuple(deleted_primary_keys)};"
-
-        data = pandas.read_sql(database_rows_query, database)
-        models = [cls._create_model(model_class, row) for row in data.itertuples(index=False)]
-
-        for model in models:
-            # pylint: disable=no-member
-            database.delete(model)
-
-    @classmethod
-    def _update_data(cls, database, model_class, data):
-        models = [cls._create_model(model_class, row) for row in data.itertuples(index=False)]
-
-        for model in models:
-            database.query().update(model)
 
 
 class ORMPreLoaderTask(LoaderTask, DatabaseTaskMixin):
