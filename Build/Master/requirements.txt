@@ -26,6 +26,7 @@ nameparser==1.0.6
 notebook==6.1.5
 numpy==1.18.1
 pandas==1.0.1
+paradag==1.2.0
 pip==21.0
 pipenv==2018.5.18
 psycopg2-binary==2.8.5
