@@ -4,7 +4,6 @@ labels:
   template: etcd-persistent-template
 message: |-
     The following service(s) have been created in your project: ${ETCD_SERVICE_NAME}.
-    Connection URL: s3:/${ETCD_SERVICE_NAME}/
 metadata:
   name: etcd-persistent
   namespace: hsg-data-labs-prod

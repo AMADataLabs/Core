@@ -477,12 +477,12 @@ resource "aws_ecr_repository" "datanow" {
 }
 
 
-module "datanow_ecs_cluster" {
+module "datalake_ecs_cluster" {
     source                            = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-fargate.git?ref=2.0.0"
-    app_name                          =  lower("${var.project}-datanow")
+    app_name                          =  lower("${var.project}")
     app_environment                   = var.environment
 
-    tag_name                          = "${var.project}-datanow-cluster"
+    tag_name                          = "${var.project}-cluster"
     tag_environment                   = var.environment
     tag_contact                       = local.contact
     tag_budgetcode                    = local.budget_code
@@ -505,7 +505,7 @@ resource "aws_ecs_service" "datanow" {
     name                                = "DataNow"
     task_definition                     = module.datanow_task_definition.aws_ecs_task_definition_td_arn
     launch_type                         = "FARGATE"
-    cluster                             = module.datanow_ecs_cluster.ecs_cluster_id
+    cluster                             = module.datalake_ecs_cluster.ecs_cluster_id
     desired_count                       = 1
     platform_version                    = "1.4.0"
     health_check_grace_period_seconds   = 0
@@ -549,7 +549,7 @@ resource "aws_ecs_service" "datanow" {
 #     app_name                            = "DataNow"
 #     container_name                      = "DataNow"  # The module should be using just app_name
 #     resource_prefix                     = "${var.project}"
-#     ecs_cluster_id                      = module.datanow_ecs_cluster.ecs_cluster_id
+#     ecs_cluster_id                      = module.datalake_ecs_cluster.ecs_cluster_id
 #     ecs_task_definition_arn             = module.datanow_task_definition.aws_ecs_task_definition_td_arn
 #     task_count                          = 1
 #     enable_autoscaling                  = true
