@@ -1116,6 +1116,11 @@ resource "aws_dynamodb_table" "scheduler_locks" {
         type = "S"
     }
 
+    ttl {
+      attribute_name = "ttl"
+      enabled        = true
+    }
+
     tags = merge(local.tags, {Name = "Data Labs DAG Scheduler Lock Table"})
 }
 
