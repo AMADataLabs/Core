@@ -2,7 +2,9 @@
 import os
 import pytest
 
+from   gremlin_python.process.anonymous_traversal import traversal
 from   gremlin_python.process.traversal import Bindings
+
 from   neptune_python_utils.gremlin_utils import GremlinUtils
 
 
@@ -84,14 +86,23 @@ def test_connection(lineage):
 
 @pytest.fixture
 def lineage():
-    os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = 'datalabs-lineage.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
+    # ssh -L 8182:datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com:8182
+    # <jump box host>
+    # Edit /etc/hosts and add this line:
+    # 127.0.0.1 datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com
+    hostnames = dict(
+        sbx='datalabs-datalake-lineage-neptune-cluster.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com',
+        dev='datalake-neptune-cluster-dev.cluster-cwp4vd8mllvz.us-east-1.neptune.amazonaws.com',
+        tst='datalake-neptune-cluster-tst.cluster-cvo5zwdixjdr.us-east-1.neptune.amazonaws.com',
+        itg='datalake-neptune-cluster-itg.cluster-cxgp9osuwqi3.us-east-1.neptune.amazonaws.com',
+        prd='datalake-neptune-cluster-prd.cluster-cxgp9osuwqi3.us-east-1.neptune.amazonaws.com'
+    )
+    os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = hostnames[os.environ['NEPTUNE_ENVIRONMENT']]
     os.environ['NEPTUNE_CLUSTER_PORT'] = '8182'
     GremlinUtils.init_statics(globals())
     gremlin_utils = GremlinUtils()
     connection = gremlin_utils.remote_connection()
-    # host = 'datalabs-lineage.cluster-c3mn4zysffxi.us-east-1.neptune.amazonaws.com'
-    # connection = DriverRemoteConnection(f'wss://{host}:8182/gremlin','g')
 
-    yield gremlin_utils.traversal_source(connection=connection)
+    yield traversal().withRemote(connection)
 
     connection.close()

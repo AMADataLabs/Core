@@ -19,7 +19,7 @@ class CredentialingTransformerTask(TransformerTask):
 
 class CredentialingFinalTransformerTask(TransformerTask):
     def _transform(self):
-        dataframes = self._to_dataframe(self._parameters['data'])
+        dataframes = self._make_dataframe(self._parameters['data'])
         self._parameters['data'] = self._merge_dataframes(dataframes)
 
         data = super()._transform()
@@ -27,7 +27,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
         return data
 
     @classmethod
-    def _to_dataframe(cls, data):
+    def _make_dataframe(cls, data):
         main_dataframe = pandas.read_csv(BytesIO(data[1]))
         address_dataframe = pandas.read_excel(BytesIO(data[0]))
         return [address_dataframe, main_dataframe]

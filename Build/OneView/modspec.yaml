@@ -17,14 +17,17 @@ modspec:
       - etl
       - sqlalchemy
       - task
+      - parameter
   - package: datalabs.access
     include:
+      - aws
       - sftp
       - credentials
       - database
       - datastore
       - environment
       - orm
+      - etcd
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
   - package: datalabs.etl
@@ -34,6 +37,7 @@ modspec:
       - awslambda
       - transform
       - load
+  - package: datalabs.etl.airflow
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.oneview
   - package: datalabs.etl.oneview.ppd

@@ -1,0 +1,68 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "lambda:InvokeFunction"
+            ],
+            "Resource": [
+                "arn:aws:execute-api:${region}:${account_id}:*/*/*/*",
+                "arn:aws:lambda:${region}:${account_id}:function:*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParametersByPath",
+                "ssm:GetParameters",
+                "ssm:GetParameter"
+            ],
+            "Resource": [
+                "arn:aws:ssm:${region}:${account_id}:parameter/DataLabs/DataLake/*",
+                "arn:aws:ssm:${region}:${account_id}:parameter/DataLabs/${project}/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kms:DescribeKey",
+                "kms:GetKeyPolicy",
+                "kms:GetKeyRotationStatus",
+                "kms:GetPublicKey",
+                "kms:ListKeys",
+                "kms:ListAliases",
+                "kms:ListKeyPolicies",
+                "kms:Decrypt"
+            ],
+            "Resource": "arn:aws:kms:${region}:${account_id}:key/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:GetSecretValue"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket",
+                "s3:ListObjects",
+                "s3:ListObjectsV2",
+                "s3:GetObject",
+                "s3:PutObject"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "arn:aws:logs:*:*:*"
+        }
+    ]
+}

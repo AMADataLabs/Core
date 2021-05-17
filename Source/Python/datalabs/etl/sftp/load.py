@@ -1,53 +1,64 @@
 """SFTP loader class"""
-from   datetime import datetime
+from   dataclasses import dataclass
 import io
 import os
 
-from   datalabs.access.sftp import SFTPTaskMixin
-from   datalabs.etl.load import LoaderTask
-from   datalabs.etl.task import ETLException
+import datalabs.access.sftp as sftp
+from   datalabs.etl.load import FileLoaderTask
+from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.parameter import add_schema
 
 
-class SFTPFileLoaderTask(LoaderTask, SFTPTaskMixin):
-    def _load(self):
-        file_paths = self._get_files()
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class SFTPFileLoaderParameters:
+    base_path: str
+    files: str
+    host: str
+    username: str
+    password: str
+    data: list
+    execution_time: str = None
 
-        with self._get_sftp(self._parameters) as sftp:
-            for file, data in zip(file_paths, self._parameters['data']):
-                self._load_file(sftp, data, file)
+
+class SFTPFileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
+    PARAMETER_CLASS = SFTPFileLoaderParameters
+
+    def _get_client(self):
+        config = sftp.Configuration(
+            host=self._parameters.host
+        )
+        credentials = sftp.Credentials(
+            username=self._parameters.username,
+            password=self._parameters.password
+        )
+
+        return sftp.SFTP(config, credentials)
 
     def _get_files(self):
-        base_path = self._parameters['BASE_PATH']
-        file_paths = [os.path.join(base_path, file.strip()) for file in self._parameters['FILES'].split(',')]
+        base_path = self._parameters.base_path
+        file_paths = [os.path.join(base_path, file.strip()) for file in self._parameters.files.split(',')]
 
         return self._resolve_timestamps(file_paths)
 
-    def _load_file(self, sftp, data, file_path):
-        data = self._encode_data(data)
+    def _load_file(self, data, file):
         buffer = io.BytesIO(data)
 
         try:
-            sftp.put(buffer, file_path)
+            self._client.put(buffer, file)
         except Exception as exception:
-            raise ETLException(f"Unable to write file '{file_path}'") from exception
-
-    @classmethod
-    def _encode_data(cls, data):
-        return data
-
-    @classmethod
-    def _resolve_timestamps(cls, files):
-        now = datetime.utcnow()
-
-        return [datetime.strftime(now, file) for file in files]
+            raise ETLException(f"Unable to write file '{file}'") from exception
 
 
+# pylint: disable=too-many-ancestors
 class SFTPUnicodeTextFileLoaderTask(SFTPFileLoaderTask):
     @classmethod
     def _encode_data(cls, data):
         return data.encode('utf-8', errors='backslashreplace')
 
 
+# pylint: disable=too-many-ancestors
 class SFTPWindowsTextFileLoaderTask(SFTPFileLoaderTask):
     @classmethod
     def _encode_data(cls, data):

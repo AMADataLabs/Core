@@ -3,8 +3,8 @@ import datalabs.etl.task as etl
 
 
 class ETLTaskWrapper(etl.ETLTaskWrapper):
-    def __init__(self, task_class, parameters=None):
-        super().__init__(task_class, parameters=parameters)
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
 
         self._exception = None
         self._data = None

@@ -6,11 +6,10 @@ import settings
 
 
 def main():
-    task_class = import_plugin(os.environ['TASK_CLASS'])
     task_wrapper_class = import_plugin(os.environ['TASK_WRAPPER_CLASS'])
-    task = task_wrapper_class(task_class, parameters=sys.argv)
+    task_wrapper = task_wrapper_class(parameters=sys.argv)
 
-    return task.run()
+    return task_wrapper.run()
 
 
 if __name__ == '__main__':

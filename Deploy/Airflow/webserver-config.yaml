@@ -8,7 +8,6 @@ data:
     AIRFLOW_HOME: /home/airflow
     AIRFLOW__CORE__DAGS_FOLDER: /home/airflow/repo/hs-datalabs/Source/Python/datalabs/airflow/dag
     AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
-    AIRFLOW__CORE__FERNET_KEY: yTUPS9onxDd2OdQCS8VGqJgpLsg4WaK4WPDIb5teAJQ=
     AIRFLOW__CORE__HOSTNAME_CALLABLE: socket.gethostname
     AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
     AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag

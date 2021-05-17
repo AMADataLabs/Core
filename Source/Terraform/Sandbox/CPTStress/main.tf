@@ -35,7 +35,7 @@ locals {
         Owner               = local.owner
         Group               = local.owner
         Department          = "HSG"
-        Project             = local.project
+        ProjectName             = local.project
         OS                  = local.na
         EOL                 = local.na
         MaintenanceWindow   = local.na
