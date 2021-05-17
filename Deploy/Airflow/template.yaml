@@ -658,7 +658,7 @@ parameters:
   displayName: Namespace
   value: openshift
 - name: APPLICATION_NAME
-  description: The name of the OpenShift Service exposed for the database.
+  description: The name of the OpenShift Service exposed for Airflow.
   displayName: Airflow Service Name
   value: hsg-data-labs-airflow
 - name: VOLUME_CAPACITY
