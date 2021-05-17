@@ -55,27 +55,27 @@ spec:
         - name: DATABASE_HOST
           valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: database-host
         - name: DATABASE_NAME
           valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: database-name
         - name: DATABASE_USER
           valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: database-user
         - name: DATABASE_PASSWORD
           valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: database-password
         - name: AIRFLOW__CORE__FERNET_KEY
           valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: fernet-key
         - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
           value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:5432/${DATABASE_NAME}
