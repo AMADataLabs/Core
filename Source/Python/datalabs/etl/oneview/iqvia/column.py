@@ -40,7 +40,7 @@ PROVIDER_COLUMNS = {
 }
 
 PROVIDER_AFFILIATION_COLUMNS = {
-    'AFFIL_TYPE_ID': 'id',
+    'id': 'id',
     'IMS_ORG_ID': 'business',
     'PROFESSIONAL_ID': 'provider',
     'AFFIL_TYPE_DESC': 'description',

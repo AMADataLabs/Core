@@ -58,12 +58,18 @@ class HumachSampleGenerator:
             'VALIDATION': 'Validation_Sample'
         }
 
-    def create_masterfile_random_sample(self):
+    def create_masterfile_random_sample(self, include_me_list=None, exclude_me_list=None, filter_recent_mes=True):
         LOGGER.info('SETTING VARIABLES AND CONNECTIONS')
         self._load_environment_variables()
         LOGGER.info('CREATING POPULATION DATA')
-        population_data = self._get_population_data()
-        LOGGER.info('CREATING SAMPLE')
+        population_data = self._get_population_data(
+            include_me_list=include_me_list,
+            filter_recent_mes=filter_recent_mes
+        )
+        if exclude_me_list is not None:
+            LOGGER.info(f'REMOVING {len(exclude_me_list)} FROM POPULATION BASED ON EXCLUSION LIST')
+            population_data = population_data[~population_data['ME'].isin(exclude_me_list)]
+        LOGGER.info(f'POPULATION SIZE - {str(len(population_data))}')
         self._make_sample(population_data, size=self._sample_size, source='MF')
 
     def create_vertical_trail_verification_sample(self):
@@ -95,6 +101,9 @@ class HumachSampleGenerator:
 
     def _get_vertical_trail_verification_population_data(self, result_data: pd.DataFrame):
         ppd = self._load_ppd()
+        if 'TOP_CD' not in ppd.columns:
+            print(ppd.columns.values)
+            raise ValueError('TOP_CD (used to filter to DPC) not found in columns.')
         aims_data = self._load_aims_data()
 
         result_data.columns = ['VT_' + col.upper() for col in result_data.columns.values]
@@ -113,17 +122,28 @@ class HumachSampleGenerator:
         self._months_phone_block = os.environ.get('MONTHS_PHONE_BLOCK')
         self._sample_size = os.environ.get(f'SAMPLE_SIZE_{self._survey_type}')
 
-    def _get_population_data(self):
+    def _get_population_data(self, include_me_list=None, filter_recent_mes=True):
         ppd = self._load_ppd()
+        if include_me_list is not None:
+            LOGGER.info(f'Filtering PPD to list of {len(include_me_list)} values')
+            ppd['ME'] = ppd['ME'].astype(str).apply(lambda x: ('00000000'+x)[-11:])
+            include_me_list = include_me_list.astype(str).apply(lambda x: ('00000000'+x)[-11:])
+            ppd = ppd[ppd['ME'].isin(include_me_list)]
+            ppd_len = len(ppd)
+            if ppd_len < int(self._sample_size):
+                print(ppd_len)
+                raise ValueError(
+                    'PPD filtered below sample size. Please check include_me_list, make sure it contains leading 0s.'
+                )
         aims_data = self._load_aims_data()
 
-        data = self._prepare_population_data(data=ppd, aims_data=aims_data)
+        data = self._prepare_population_data(data=ppd, aims_data=aims_data, filter_recent_mes=filter_recent_mes)
         return data
 
     def _make_sample(self, population_data: pd.DataFrame, size, source='MF', reference_sample_id=None):
         if size is None:
             size = len(population_data)
-
+        LOGGER.info(f'CREATING SAMPLE - SIZE: {str(self._sample_size)}')
         sample = population_data.sample(n=min(int(size), len(population_data))).reset_index()
 
         sample = self._add_sample_info_columns(data=sample, source=source, reference_sample_id=reference_sample_id)
@@ -144,13 +164,22 @@ class HumachSampleGenerator:
             aims_data.pe_descriptions = aims.get_pe_descriptions()
         return aims_data
 
-    def _prepare_population_data(self, data: pd.DataFrame, aims_data: AIMSData):
+    def _prepare_population_data(self, data: pd.DataFrame, aims_data: AIMSData, filter_recent_mes=True):
+        LOGGER.info('Filtering to DPC')
         data = self._filter_to_dpc(data=data)
+        LOGGER.info('Filtering to valid phones')
         data = self._filter_to_valid_phones(data=data)
+        LOGGER.info('Filtering out no-contacts')
         data = self._filter_no_contacts(data=data, aims_data=aims_data)
-        data = self._filter_recent_me(data=data)
+        if filter_recent_mes:
+            LOGGER.info('Filtering out ME numbers found in recent samples')
+            data = self._filter_recent_me(data=data)
+        LOGGER.info('Filtering out phone numbers found in recent samples')
         data = self._filter_recent_phones(data=data)
-        data = self._filter_me_from_custom_files(data=data, file_list=self._custom_exclusion_file_list)
+        if self._custom_exclusion_file_list is not None:
+            LOGGER.info('Filtering out ME numbers found in custom file list')
+            data = self._filter_me_from_custom_files(data=data, file_list=self._custom_exclusion_file_list)
+        LOGGER.info('Adding present employment description')
         data = self._add_pe_description(data=data, aims_data=aims_data)
         return data
 

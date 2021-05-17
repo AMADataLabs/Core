@@ -1,6 +1,6 @@
 aniso8601==7.0.0
-django-filter==2.2.0
-djangorestframework==3.10.3
+django-filter==2.4
+djangorestframework==3.11.2
 graphene==2.1.8
 graphene-django==2.6.0
 graphql-core==2.2.1
@@ -11,3 +11,4 @@ Rx==1.6.1
 singledispatch==3.4.0.3
 six==1.13.0
 sqlparse==0.3.0
+django>=2.2.18 # not directly required, pinned by Snyk to avoid a vulnerability

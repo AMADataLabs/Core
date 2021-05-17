@@ -16,6 +16,10 @@ RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt &&\
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
+RUN apt-get update && apt-get install -y openjdk-11-jre
+ADD https://dbschema.com/jdbc-drivers/SqlServerJdbcDriver.zip .
+RUN unzip ./SqlServerJdbcDriver.zip && rm ./SqlServerJdbcDriver.zip
+
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/ContactID ./Build/ContactID

@@ -9,6 +9,7 @@ modspec:
       - task
   - package: datalabs.access
     include:
+      - aws
       - credentials
       - database
       - datastore

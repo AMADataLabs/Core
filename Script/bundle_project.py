@@ -194,7 +194,7 @@ if __name__ == '__main__':
     ap.add_argument('-d', '--directory',
         help='Specify the target directory into which files will be bundled (default Build/<PROJECT>/<PROJECT>)')
     ap.add_argument('-i', '--in-place', action='store_true', default=False,
-        help='Do not pre-clean the target directory or try to install dependencies.')
+        help='Do not pre-clean the target directory.')
     ap.add_argument('-s', '--serverless', action='store_true', default=False,
         help='Create a zip archive of the bundle for serverless deployment.')
     ap.add_argument('project', help='Name of the project.')
