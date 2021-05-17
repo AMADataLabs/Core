@@ -25,7 +25,7 @@
 #     action        = "lambda:InvokeFunction"
 #     function_name = var.function_name
 #     principal     = "s3.amazonaws.com"
-#     # source_arn    = data.aws_s3_bucket.ingestion_bucket.arn
+#     # source_arn    = data.aws_s3_bucket.ingested_data_bucket.arn
 
 #     depends_on = [aws_lambda_function.etl_lambda]
 # }

@@ -9,12 +9,6 @@ variable "function_name" {
 }
 
 
-variable "task_class" {
-    description = "task class name"
-    type        = string
-}
-
-
 variable "region" {
     description = "AWS region"
     type        = string
@@ -33,8 +27,8 @@ variable "role" {
 }
 
 
-variable "api_gateway_id" {
-    description = "API Gateway ID"
+variable "api_gateway_arn" {
+    description = "API Gateway ARN"
     type        = string
 }
 
@@ -68,8 +62,8 @@ data "aws_secretsmanager_secret" "database" {
 }
 
 
-data "aws_ssm_parameter" "processed_bucket" {
-    name = "/DataLabs/DataLake/processed_bucket"
+data "aws_ssm_parameter" "processed_data_bucket" {
+    name = "/DataLabs/DataLake/processed_data_bucket"
 }
 
 

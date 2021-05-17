@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -ex
+
+PROJECT="${PROJECT:-CPT}"
+
+export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+cat Build/Master/requirements.txt | grep pip== > pip-requirements.txt
+pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt
+
+pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r Build/${PROJECT}/requirements.txt
+
+export PYTHONPATH=${PWD}/Source/Python
+python Script/bundle_project.py --in-place --directory Bundle/ ${PROJECT}

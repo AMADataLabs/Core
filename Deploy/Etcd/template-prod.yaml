@@ -1,0 +1,127 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: etcd-persistent-template
+message: |-
+    The following service(s) have been created in your project: ${ETCD_SERVICE_NAME}.
+metadata:
+  name: etcd-persistent
+  namespace: hsg-data-labs-prod
+  annotations:
+    description: |-
+      Minio object storage service with persistent storage.
+    iconClass: box-open
+    openshift.io/display-name: etcd
+    openshift.io/documentation-url: https://min.io/
+    openshift.io/long-description: This template provides a standalone, single-node Etcd key/value store.  Data is stored on a persistent volume.
+    openshift.io/provider-display-name: HSG Data Labs
+    tags: key,value,store,etcd,
+objects:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${ETCD_SERVICE_NAME}
+    annotations:
+      template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
+  spec:
+    ports:
+    - name: etcd
+      nodePort: 0
+      port: 2379
+      protocol: TCP
+      targetPort: 2379
+    selector:
+      name: ${ETCD_SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${ETCD_SERVICE_NAME}
+    annotations:
+      template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
+  spec:
+    host: ${ETCD_SERVICE_NAME}.apps.openshift.ama-assn.org
+    port:
+      targetPort: 2379
+      containerPort: 2379
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: ${ETCD_SERVICE_NAME}
+      weight: 100
+    wildcardPolicy: None
+    selector:
+      name: ${ETCD_SERVICE_NAME}
+  status:
+    ingress: null
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${ETCD_SERVICE_NAME}
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    name: ${ETCD_SERVICE_NAME}
+  spec:
+    replicas: 1
+    selector:
+      name: ${ETCD_SERVICE_NAME}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: ${ETCD_SERVICE_NAME}
+      spec:
+        containers:
+        - name: etcd
+          image: "bitnami/etcd:3.4.15"
+          imagePullPolicy: IfNotPresent
+          command:
+          - /opt/bitnami/scripts/etcd/run.sh
+          env:
+          - name: ETCD_VOLUME_DIR
+            value: /bitnami/etcd
+          - name: ETCD_ADVERTISE_CLIENT_URLS
+            value: "http://127.0.0.1:2379"
+          - name: ETCD_LISTEN_CLIENT_URLS
+            value: "http://0.0.0.0:2379"
+          ports:
+          - containerPort: 2379
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /bitnami/etcd
+            name: ${ETCD_SERVICE_NAME}-data
+
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        volumes:
+        - name: ${ETCD_SERVICE_NAME}-data
+          persistentVolumeClaim:
+            claimName: ${ETCD_SERVICE_NAME}
+parameters:
+- description: The OpenShift Namespace where the ImageStream resides.
+  displayName: Namespace
+  name: NAMESPACE
+  value: hsg-data-labs-prod
+- description: The name of the OpenShift Service exposed for the database.
+  displayName: etcd Service Name
+  name: ETCD_SERVICE_NAME
+  value: hsg-data-labs-etcd
+- description: Volume space available for data, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  name: VOLUME_CAPACITY
+  value: 2Gi

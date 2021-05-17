@@ -6,7 +6,7 @@ import mock
 import pytest
 
 import datalabs.etl.task as task
-from   datalabs.task import add_schema
+from   datalabs.parameter import add_schema
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -92,6 +92,8 @@ def parameters():
 @pytest.fixture
 def environment_variables():
     current_env = os.environ.copy()
+
+    os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
 
     os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
     os.environ['EXTRACTOR__thing'] = 'True'

@@ -27,8 +27,10 @@ variable "account_id" {
 }
 
 
-variable "parent_function" {
-    description = "Reference to the Lambda function allowed to invoke ETLs"
+variable "region" {
+    description = "AWS region"
+    type        = string
+    default     = "us-east-1"
 }
 
 
@@ -36,6 +38,13 @@ variable "timeout" {
     description = "Timeout in seconds for Lambda functions"
     type        = number
     default     = 30
+}
+
+
+variable "memory_size" {
+    description = "lambda function memory size in Mb"
+    type        = number
+    default     = 1024
 }
 
 

@@ -26,7 +26,7 @@ RUN mkdir -p shared \
     && ln -s shared dags \
     && ln -s shared logs
 
-COPY Deploy/Airflow/worker.yaml .
+COPY Build/Airflow/Worker/worker.yaml .
 
 RUN chown -R airflow:0 ${AIRFLOW_HOME} && chmod -R 777 ${AIRFLOW_HOME}
 
