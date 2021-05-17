@@ -502,7 +502,7 @@ objects:
                 name: airflow
                 key: fernet-key
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:5432/${DATABASE_NAME}
+            value: postgresql+psycopg2://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):5432/$(DATABASE_NAME)
           envFrom:
           - configMapRef:
               name: airflow-scheduler
@@ -578,7 +578,7 @@ objects:
                 name: airflow
                 key: fernet-key
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:5432/${DATABASE_NAME}
+            value: postgresql+psycopg2://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):5432/$(DATABASE_NAME)
           envFrom:
           - configMapRef:
               name: airflow-webserver

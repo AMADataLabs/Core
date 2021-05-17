@@ -78,9 +78,9 @@ spec:
                 name: airflow
                 key: fernet-key
         - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-          value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:5432/${DATABASE_NAME}
+          value: postgresql+psycopg2://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):5432/$(DATABASE_NAME)
         - name: AIRFLOW_CONN_AIRFLOW_DB
-          value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:5432/${DATABASE_NAME}
+          value: postgresql+psycopg2://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):5432/$(DATABASE_NAME)
       envFrom: []
       image: dummy_image
       imagePullPolicy: IfNotPresent
