@@ -392,17 +392,17 @@ objects:
           - name: POSTGRESQL_USER
             valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: database-user
           - name: POSTGRESQL_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: database-password
           - name: POSTGRESQL_DATABASE
             valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: database-name
           image: ' '
           imagePullPolicy: IfNotPresent
