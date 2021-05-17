@@ -58,7 +58,7 @@ class HumachSampleGenerator:
             'VALIDATION': 'Validation_Sample'
         }
 
-    def create_masterfile_random_sample(self, include_me_list=None, filter_recent_mes=True):
+    def create_masterfile_random_sample(self, include_me_list=None, exclude_me_list=None, filter_recent_mes=True):
         LOGGER.info('SETTING VARIABLES AND CONNECTIONS')
         self._load_environment_variables()
         LOGGER.info('CREATING POPULATION DATA')
@@ -66,7 +66,10 @@ class HumachSampleGenerator:
             include_me_list=include_me_list,
             filter_recent_mes=filter_recent_mes
         )
-        LOGGER.info('CREATING SAMPLE')
+        if exclude_me_list is not None:
+            LOGGER.info(f'REMOVING {len(exclude_me_list)} FROM POPULATION BASED ON EXCLUSION LIST')
+            population_data = population_data[~population_data['ME'].isin(exclude_me_list)]
+        LOGGER.info(f'POPULATION SIZE - {str(len(population_data))}')
         self._make_sample(population_data, size=self._sample_size, source='MF')
 
     def create_vertical_trail_verification_sample(self):
@@ -140,7 +143,7 @@ class HumachSampleGenerator:
     def _make_sample(self, population_data: pd.DataFrame, size, source='MF', reference_sample_id=None):
         if size is None:
             size = len(population_data)
-
+        LOGGER.info(f'CREATING SAMPLE - SIZE: {str(self._sample_size)}')
         sample = population_data.sample(n=min(int(size), len(population_data))).reset_index()
 
         sample = self._add_sample_info_columns(data=sample, source=source, reference_sample_id=reference_sample_id)

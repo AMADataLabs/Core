@@ -4,7 +4,6 @@ labels:
   template: etcd-persistent-template
 message: |-
     The following service(s) have been created in your project: ${ETCD_SERVICE_NAME}.
-    Connection URL: s3:/${ETCD_SERVICE_NAME}/
 metadata:
   name: etcd-persistent
   namespace: hsg-data-labs-prod
@@ -96,8 +95,6 @@ objects:
           env:
           - name: ETCD_VOLUME_DIR
             value: /bitnami/etcd
-          # - name: ETCD_AUTO_TLS
-          #   value: "true"
           - name: ETCD_ADVERTISE_CLIENT_URLS
             value: "http://127.0.0.1:2379"
           - name: ETCD_LISTEN_CLIENT_URLS
