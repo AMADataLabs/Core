@@ -19,7 +19,13 @@ BASE_ENVIRONMENT = dict(
 
 ONEVIEW_ETL_DAG = DAG(
     dag_id=DAG_ID,
-    default_args={'owner': 'airflow'},
+    default_args=dict(
+        owner='airflow',
+        resources=dict(
+            limit_memory="8G",
+            limit_cpu="1"
+        ),
+    ),
     schedule_interval=None,
     start_date=days_ago(2),
     tags=['OneView'],
