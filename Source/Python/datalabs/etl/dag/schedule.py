@@ -7,6 +7,7 @@ import botocore.exceptions
 import csv
 import logging
 import pandas
+import schedule
 
 import datalabs.etl.transform as etl
 from   datalabs.parameter import add_schema
@@ -66,48 +67,3 @@ class DAGScheduleTransformerTask(etl.ExecutionTimeMixin, etl.TransformerTask):
         self._unlock_state(dynamodb, name)
 
         return state["status"] == 'Pending' or state["status"] == 'Started'
-
-    def _lock_state(self, dynamodb, name):
-        lock_id = f'{name}-{self._parameters.execution_time}'
-        locked = False
-
-        try:
-            table = dynamodb.Table(self._parameters.state_lock_table)
-
-            table.put_item(
-                Item={'LockID': {'S': lock_id}, 'ttl': {'N': int(time.time()+30)}},
-                ConditionExpression="attribute_not_exists(#r)",
-                ExpressionAttributeNames={"#r": "LockID"})
-
-            locked = True
-        except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
-                raise
-            else:
-                pass
-
-        return locked
-
-    def _get_state(self, dynamodb, name):
-        pass
-
-    def _unlock_state(self, dynamodb, name):
-        lock_id = f'{name}-{self._parameters.execution_time}'
-        unlocked = False
-
-        try:
-            table = dynamodb.Table(self._parameters.state_lock_table)
-
-            table.delete_item(
-                Key={'LockID': {'Value': {'S': lock_id}}},
-                ConditionExpression="attribute_exists(#r)",
-                ExpressionAttributeNames={"#r": "LockID"})
-
-            unlocked = True
-        except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] != 'ConditionalCheckFailedException':
-                raise
-            else:
-                pass
-
-        return unlocked

@@ -14,6 +14,7 @@ def add_schema(model_class):
         class Meta:
             # strict = True
             fields = copy.deepcopy(model_fields)
+            unknown = marshmallow.RAISE
 
         @marshmallow.post_load
         #pylint: disable=unused-argument
@@ -30,11 +31,15 @@ def add_schema(model_class):
         def _make_dataclass_model(self, data):
             self._fill_dataclass_defaults(data)
 
+            # TODO: handle case where unknown == INCLUDE
+
             return model_class(**data)
 
         def _make_class_model(self, data):
             self._fill_class_defaults(data)
             model = model_class()
+
+            # TODO: handle case where unknown == INCLUDE
 
             for field in data:
                 setattr(model, field, data[field])
@@ -73,8 +78,11 @@ class ValidationException(Exception):
 
 class ParameterValidatorMixin:
     @classmethod
-    def _get_validated_parameters(cls, parameters: dict):
+    def _get_validated_parameters(cls, parameters: dict, unknowns=False):
         parameter_variables = {key.lower():value for key, value in parameters.items()}
         schema = cls.PARAMETER_CLASS.SCHEMA  # pylint: disable=no-member
+
+        if unknowns:
+            schema.Meta.unknown = marshmallow.INCLUDE
 
         return schema.load(parameter_variables)

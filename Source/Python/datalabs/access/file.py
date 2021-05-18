@@ -1,10 +1,10 @@
 """ Base classes for loading data from files. """
-from datetime import datetime
-from enum import Enum
+from   datetime import datetime
+from   enum import Enum
 import logging
-from pathlib import Path
+from   pathlib import Path
 import re
-from typing import Iterable
+from   typing import Iterable
 
 import pandas as pd
 
