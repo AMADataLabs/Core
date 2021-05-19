@@ -28,7 +28,7 @@ def test_datestamp_conversion():
 @mock.patch('datalabs.etl.cpt.ingest.extract.CPTTextDataExtractorTask._get_latest_path')
 # pylint: disable=redefined-outer-name, protected-access
 def test_extract_release_date(get_latest_path, task_parameters):
-    with mock.patch('datalabs.etl.s3.extract.boto3'):
+    with mock.patch('datalabs.access.aws.boto3'):
         get_latest_path.return_value = 'AMA/CPT/20200131'
         extractor = CPTTextDataExtractorTask(task_parameters)
         expected_release_date = '20200131'
@@ -39,7 +39,7 @@ def test_extract_release_date(get_latest_path, task_parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_generate_release_types(release_schedule, task_parameters):
-    with mock.patch('datalabs.etl.s3.extract.boto3'):
+    with mock.patch('datalabs.access.aws.boto3'):
         extractor = CPTTextDataExtractorTask(task_parameters)
         release_types = extractor._generate_release_types(release_schedule)
 
@@ -50,7 +50,7 @@ def test_generate_release_types(release_schedule, task_parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_get_release_type(release_schedule, task_parameters):
-    with mock.patch('datalabs.etl.s3.extract.boto3'):
+    with mock.patch('datalabs.access.aws.boto3'):
         extractor = CPTTextDataExtractorTask(task_parameters)
         release_date = date(2020, 7, 1)
         expected_release_type = 'Q3'
@@ -60,7 +60,7 @@ def test_get_release_type(release_schedule, task_parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_generate_release_details(release_schedule, task_parameters):
-    with mock.patch('datalabs.etl.s3.extract.boto3'):
+    with mock.patch('datalabs.access.aws.boto3'):
         extractor = CPTTextDataExtractorTask(task_parameters)
         release_date = date(2020, 7, 1)
         effective_date = date(2020, 10, 1)
@@ -69,7 +69,7 @@ def test_generate_release_details(release_schedule, task_parameters):
         )
 
     assert len(release_details.columns.values) == 3
-    assert all([c in release_details for c in ['publish_date', 'effective_date', 'type']])
+    assert all(c in release_details for c in ['publish_date', 'effective_date', 'type'])
     assert len(release_details) == 1
     assert release_details.publish_date.iloc[0] == release_date.strftime('%Y-%m-%d')
     assert release_details.effective_date.iloc[0] == effective_date.strftime('%Y-%m-%d')
@@ -96,5 +96,7 @@ def task_parameters():
         BUCKET='jumanji',
         BASE_PATH='dir1/dir2/dir3',
         FILES='this_one.csv,that_one.csv,the_other_one.csv',
-        EXECUTION_TIME='19000101'
+        EXECUTION_TIME='19000101',
+        SCHEDULE='{"ANNUAL": ["1-Sep", "1-Jan"], "Q1": ["1-Jan", "1-Apr"], "Q2": ["1-Apr", "1-Jul"], '
+                 '"Q3": ["1-Jul", "1-Oct"], "Q4": ["1-Oct", "1-Jan"]}'
     )

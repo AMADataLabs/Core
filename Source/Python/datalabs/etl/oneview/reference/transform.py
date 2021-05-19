@@ -1,11 +1,11 @@
 """ OneView Reference Transformer"""
-from   io import StringIO, BytesIO
+from   io import BytesIO
 
 import logging
 import pandas
 
 from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, \
-    SPECIALTY_COLUMNS, SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS
+    SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -29,56 +29,36 @@ class PresentEmploymentTransformerTask(TransformerTask):
 
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
-    def _transform(self):
-        self._parameters['data'] = [self._to_dataframe(file) for file in self._parameters['data']]
-        core_based_statistical_area_data = super()._transform()
-
-        return core_based_statistical_area_data
-
-    @classmethod
-    def _to_dataframe(cls, file):
-        return pandas.read_csv(BytesIO(file))
-
     def _get_columns(self):
         return [CBSA_COLUMNS]
 
 
-class SpecialtyTransformerTask(TransformerTask):
-    def _get_columns(self):
-        return [SPECIALTY_COLUMNS]
-
-
 class SpecialtyMergeTransformerTask(TransformerTask):
-    def _transform(self):
-        specialty_data, physician_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
+    def _to_dataframe(self):
+        specialty_physician_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
         filtered_specialty_data = [
-            specialty_data.loc[
-                specialty_data.id.isin(physician_data.primary_specialty) |
-                specialty_data.id.isin(physician_data.secondary_specialty)
+            specialty_physician_data[0].loc[
+                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1]['PRIMSPECIALTY']) |
+                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1]['SECONDARYSPECIALTY'])
             ].reset_index(drop=True)
         ]
 
-        self._parameters['data'] = filtered_specialty_data
-
-        return [super()._transform()]
-
-    @classmethod
-    def _to_dataframe(cls, file):
-        return pandas.read_csv(StringIO(file))
+        return filtered_specialty_data
 
     def _get_columns(self):
         return [SPECIALTY_MERGED_COLUMNS]
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
-    def _transform(self):
-        fips_data = self._to_dataframe()
-        self._parameters['data'] = [self.set_columns(df) for df in fips_data]
-
-        return super()._transform()
-
     def _to_dataframe(self):
-        return [pandas.read_excel(BytesIO(file), skiprows=4) for file in self._parameters['data']]
+        fips_data = [pandas.read_excel(BytesIO(data), skiprows=4) for data in self._parameters['data']]
+        fips_selected_data = self.set_columns(fips_data[0])
+
+        primary_keys = [column['State Code (FIPS)'] + column['County Code (FIPS)']
+                        for index, column in fips_selected_data.iterrows()]
+        fips_selected_data['id'] = primary_keys
+
+        return [fips_selected_data]
 
     @classmethod
     def set_columns(cls, fips_data):

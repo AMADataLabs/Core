@@ -80,10 +80,10 @@ class HumachResultsArchive:
                 ','.join(cols),
                 ','.join(['"' + str(v).replace(',', '').replace('"', '') + '"' for v in vals])
         )
-
         self.connection.execute(sql)
 
-    def validate_cols(self, table, cols):
+
+    def validate_cols(self, table, data, ignore_missing=False):
         """
         cols_set = sorted(set(cols))
         expected_set = sorted(set(self.expected_file_columns.dict[table]))
@@ -92,9 +92,24 @@ class HumachResultsArchive:
             print(sorted(expected_set))
             raise ValueError('Columns provided do not match columns expected.')
         """
+        cols = data.columns.values
+        for col in ['SAMPLE_ID', 'ROW_ID']:
+            assert col in cols  # these columns must exist and not be null.
+            assert not data[col].isna().any(), data[col].isna().any()
+
+        if 'sample' in table:
+            for col in ['SURVEY_MONTH', 'SURVEY_YEAR']:
+                assert col in cols  # these columns are required for sample data
+
         for col in self.expected_file_columns.dict[table]:
             if 'VERIFIED/UPDATED' not in col:
-                assert col in cols, col
+                if ignore_missing and col not in cols:
+                    data[col] = None
+                else:
+                    assert col in cols, col
+        if 'SOURCE' in cols:
+            del data['SOURCE']  # leftover column for ingesting sample files that were created with a different process
+        return data
 
     def ingest_result_file(self, table, file_path):
         if table == 'humach_result':
@@ -119,17 +134,26 @@ class HumachResultsArchive:
             self.insert_row(table='humach_result', vals=[v for v in r.values])
         self.connection.commit()
 
-    def ingest_sample_file(self, file_path: str):
+    def ingest_sample_file(self, file_path: str, ignore_missing=False):
         data = pd.read_excel(file_path, dtype=str)
-        self.ingest_sample_data(data=data)
+        self.ingest_sample_data(data=data, ignore_missing=ignore_missing)
 
-    def ingest_sample_data(self, data: pd.DataFrame):
-        df_cols = data.columns.values
-        self.validate_cols(table='humach_sample', cols=df_cols)
+    def ingest_sample_data(self, data: pd.DataFrame, ignore_missing=False):
+        data = self.validate_cols(table='humach_sample', data=data, ignore_missing=ignore_missing)
+        print('ingest sample data, cols:', data.columns.values)
         data.fillna('', inplace=True)
+        print(data.head())
 
         for i, r in data.iterrows():
-            self.insert_row(table='humach_sample', vals=[v for v in r.values])
+            try:
+                self.insert_row(table='humach_sample', vals=[v for v in r.values])
+            except:
+                print('Probably too many values. Check columns in data:')
+                print('Ingestion data columns:')
+                print(data.columns.values)
+                print(len(data.columns.values), 'columns found.')
+                print('24 columns required. See table definition.')
+                quit()
         self.connection.commit()
 
     def get_sample_data(self, sample_ids: [str]) -> pd.DataFrame:
@@ -144,7 +168,7 @@ class HumachResultsArchive:
         data['survey_date'] = [f'{year}-{("0" + str(month))[-2:]}-01' for year, month in zip(
             data['survey_year'].values,
             data['survey_month'].values)]
-        data['survey_date'] = pd.to_datetime(data['survey_date'])
+        data['survey_date'] = pd.to_datetime(data['survey_date'], errors='coerce')
         data['survey_date'] = data['survey_date'].apply(lambda x: x.date())
 
         data['month_diff'] = [relativedelta(as_of_date, survey_date) for survey_date in data['survey_date'].values]
@@ -283,16 +307,19 @@ class HumachResultsArchive:
             data['PRESENT EMPLOYMENT UPDATED'] = 0
             data['COMMENTS'] = 'FAIL'
 
-        cols = data.columns.values
-
         formatted_data = pd.DataFrame()
+        for col in data.columns.values:
+            if 'VERIFIED UPDATED' in col:
+                data[col.replace('VERIFIED UPDATED', 'VERIFIED/UPDATED')] = data[col]
+                del data[col]
+
         for col in self.expected_file_columns.standard_results:
-            if 'VERIFIED/UPDATED' in col and 'VERIFIED/UPDATED' not in data.columns.values:
-                data[col] = data[col.replace('VERIFIED/UPDATED', 'VERIFIED UPDATED')]
-                print(col)
+            #if 'VERIFIED/UPDATED' in col and 'VERIFIED/UPDATED' not in data.columns.values:
+            #    data[col] = data[col.replace('VERIFIED/UPDATED', 'VERIFIED UPDATED')]
+            #    print(col)
             formatted_data[col] = data[col]
 
-        self.validate_cols(table='humach_result', cols=cols)
+        self.validate_cols(table='humach_result', data=data)
         formatted_data = formatted_data[formatted_data['SAMPLE_ID'].isna() == False]
         return formatted_data
 
@@ -308,7 +335,7 @@ class HumachResultsArchive:
             sheet_dataframes.append(sheet_df)
 
         formatted_data = pd.concat(sheet_dataframes)
-        self.validate_cols(table='validation_result', cols=formatted_data.columns.values)
+        formatted_data = self.validate_cols(table='validation_result', data=formatted_data)
         return formatted_data
 
     def _phone_needs_end_dt(self, given: str, received: str, comment: str) -> bool:
@@ -351,6 +378,8 @@ class HumachResultsArchive:
     def _save_standard_batch_load_file(self, data: pd.DataFrame):
         today_date = str(datetime.now().date())
         file_name = f'HSG_PHYS_DELETES_{today_date}_StdKnownBad.csv'
-        save_path = self._batch_load_save_dir + '/' + file_name
-
+        if self._batch_load_save_dir is not None:
+            save_path = self._batch_load_save_dir + '/' + file_name
+        else:
+            save_path = file_name
         data.to_csv(save_path, index=False)

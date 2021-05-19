@@ -1,5 +1,5 @@
 """ OneView Linking Table Transformer"""
-from   io import StringIO
+from   io import BytesIO
 
 import logging
 import pandas
@@ -14,18 +14,15 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class CredentialingCustomerBusinessTransformerTask(TransformerTask):
-    def _transform(self):
-        credentialing_customer_data, business_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
-        self._parameters['data'] = self._link_data(credentialing_customer_data, business_data)
+    def _to_dataframe(self):
+        credentialing_customer_business_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
+        credentialing_customer_business_data = self._link_data(credentialing_customer_business_data[0],
+                                                               credentialing_customer_business_data[1])
+        primary_keys = [column['number'] + column['id']
+                        for index, column in credentialing_customer_business_data.iterrows()]
+        credentialing_customer_business_data['pk'] = primary_keys
 
-        return [super()._transform()]
-
-    def _get_columns(self):
-        return [CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS]
-
-    @classmethod
-    def _to_dataframe(cls, file):
-        return pandas.read_csv(StringIO(file))
+        return [credentialing_customer_business_data]
 
     @classmethod
     def _link_data(cls, credentialing_customer_data, business_data):
@@ -49,13 +46,21 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
 
         return credentialing_customer_data
 
+    def _get_columns(self):
+        return [CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS]
+
 
 class CredentialingCustomerInstitution(TransformerTask):
-    def _transform(self):
-        credentialing_customer_data, residency_program_data = [self._to_dataframe(csv) for csv in self._parameters['data']]
-        self._parameters['data'] = self._link_data(credentialing_customer_data, residency_program_data)
+    def _to_dataframe(self):
+        credentialing_customer_residency_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
+        credentialing_customer_residency_data = self._link_data(credentialing_customer_residency_data[0],
+                                                                credentialing_customer_residency_data[1])
 
-        return [super()._transform()]
+        primary_keys = [column['number'] + column['institution']
+                        for index, column in credentialing_customer_residency_data.iterrows()]
+        credentialing_customer_residency_data['pk'] = primary_keys
+
+        return [credentialing_customer_residency_data]
 
     @classmethod
     def _link_data(cls, credentialing_customer_data, residency_program_data):
@@ -66,10 +71,6 @@ class CredentialingCustomerInstitution(TransformerTask):
         )
 
         return matches[['number', 'institution']]
-
-    @classmethod
-    def _to_dataframe(cls, file):
-        return pandas.read_csv(StringIO(file))
 
     def _get_columns(self):
         return [CREDENTIALING_CUSTOMER_INSTITUTION_COLUMNS]

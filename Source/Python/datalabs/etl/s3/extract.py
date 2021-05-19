@@ -26,13 +26,12 @@
 """
 from   dataclasses import dataclass
 
-import boto3
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin, ExecutionTimeMixin
-from   datalabs.etl.task import ETLException
-from   datalabs.task import add_schema
+from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
+from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.parameter import add_schema
 
 
 @add_schema
@@ -47,17 +46,14 @@ class S3FileExtractorParameters:
     secret_key: str = None
     region_name: str = None
     include_names: str = None
+    include_datestamp: str = None
     execution_time: str = None
     data: object = None
 
 
+# pylint: disable=too-many-ancestors
 class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
     PARAMETER_CLASS = S3FileExtractorParameters
-
-    def _get_files(self):
-        latest_path = self._get_latest_path()
-
-        return ['/'.join((base_path, file)) for file in self._parameters.files.split(',')]
 
     def _get_client(self):
         return AWSClient(
@@ -68,6 +64,11 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             region_name=self._parameters.region_name
         )
 
+    def _get_files(self):
+        base_path = self._get_latest_path()
+
+        return ['/'.join((base_path, file.strip())) for file in self._parameters.files.split(',')]
+
     def _resolve_wildcard(self, file):
         files = [file]
 
@@ -75,22 +76,31 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             files = self._find_s3_object(file)
 
         if len(files) == 0:
-            raise FileNotFoundError(f"Unable to find S3 object '{file_path}'")
+            raise FileNotFoundError(f"Unable to find S3 object '{file}'")
 
         return files
 
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
         try:
-            response = self._client.get_object(Bucket=self._parameters.bucket, Key=file_path)
+            response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
         except Exception as exception:
             raise ETLException(
-                f"Unable to get file '{file_path}' from S3 bucket '{self._parameters.bucket}': {exception}"
-            )
+                f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
+            ) from exception
 
         return response['Body'].read()
 
     def _get_latest_path(self):
+        release_folder = self._get_release_folder()
+        path = self._parameters.base_path
+
+        if self._parameters.include_datestamp is None or self._parameters.include_datestamp.lower() == 'true':
+            path = '/'.join((self._parameters.base_path, release_folder))
+
+        return path
+
+    def _get_release_folder(self):
         release_folder = self._get_execution_date()
 
         if release_folder is None:
@@ -103,7 +113,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
             release_folder = release_folders[-1]
 
-        return '/'.join((self._parameters.base_path, release_folder))
+        return release_folder
 
     def _find_s3_object(self, wildcard_file_path):
         file_path_parts = wildcard_file_path.split('*')

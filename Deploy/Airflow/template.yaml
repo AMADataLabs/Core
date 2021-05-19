@@ -4,8 +4,6 @@ labels:
   template: airflow-persistent
 message: |-
     The following service(s) have been created in your project: ${APPLICATION_NAME}.
-
-    Connection URL: https:/${APPLICATION_NAME}/
 metadata:
   name: airflow-persistent
   namespace: hsg-data-labs-dev
@@ -22,6 +20,226 @@ metadata:
 
 
 objects:
+#######################################
+# Image Streams
+#######################################
+
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: Airflow
+    name: airflow-worker
+    namespace: hsg-data-labs-dev
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: airflow-worker:latest
+      generation: 1
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
+
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: HSGDataLabsAirflow
+    name: airflow
+    namespace: hsg-data-labs-dev
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: airflow:latest
+      generation: 1
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
+
+
+#######################################
+# Builds
+#######################################
+
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/description: Airflow worker
+      openshift.io/display-name: Airflow
+    creationTimestamp: null
+    labels:
+      app: Airflow
+    name: airflow-worker
+    namespace: hsg-data-labs-dev
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: airflow-worker:1.0.3
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+        ref: dev
+      sourceSecret:
+        name: bitbucketprd
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Build/Airflow/Worker/Dockerfile
+        from:
+          kind: ImageStreamTag
+          name: python:3.7
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - type: ConfigChange
+
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/description: Airflow scheduler and web server
+      openshift.io/display-name: Airflow
+    creationTimestamp: null
+    labels:
+      app: Airflow
+    name: airflow
+    namespace: hsg-data-labs-dev
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: airflow:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+        ref: dev
+      sourceSecret:
+        name: bitbucketprd
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Build/Airflow/Dockerfile
+        from:
+          kind: ImageStreamTag
+          name: python:3.7
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - type: ConfigChange
+
+
+#######################################
+# Configuration
+#######################################
+
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+      name: airflow-scheduler
+      namespace: hsg-data-labs-dev
+  data:
+      AIRFLOW_GPL_UNIDECODE: 'yes'
+      AIRFLOW_HOME: /home/airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /home/airflow/repo/hs-datalabs/Source/Python/datalabs/airflow/dag
+      AIRFLOW__CORE__DEFAULT_IMPERSONATION: '1000280000'
+      AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
+      AIRFLOW__CORE__HOSTNAME_CALLABLE: socket.gethostname
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag
+      AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: 'False'
+      AIRFLOW__KUBERNETES__ENV_FROM_CONFIGMAP_REF: airflow-scheduler
+      AIRFLOW__KUBERNETES__FS_GROUP: '1000280000'
+      AIRFLOW__KUBERNETES__IN_CLUSTER: 'True'
+      AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-dev
+      AIRFLOW__KUBERNETES__POD_TEMPLATE_FILE: /home/airflow/worker.yaml
+      AIRFLOW__KUBERNETES__RUN_AS_USER: '1000280000'
+      AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker
+      AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: 1.0.3
+      AIRFLOW__LOGGING__LOGGING_LEVEL: WARN
+      AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: '60'
+      AIRFLOW__WEBSERVER__RBAC: 'True'
+
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+      name: airflow-webserver
+      namespace: hsg-data-labs-dev
+  data:
+      AIRFLOW_GPL_UNIDECODE: 'yes'
+      AIRFLOW_HOME: /home/airflow
+      AIRFLOW__CORE__DAGS_FOLDER: /home/airflow/repo/hs-datalabs/Source/Python/datalabs/airflow/dag
+      AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
+      AIRFLOW__CORE__HOSTNAME_CALLABLE: socket.gethostname
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
+      AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag
+      AIRFLOW__KUBERNETES__GIT_BRANCH: master
+      AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: /home/airflow/dags
+      AIRFLOW__KUBERNETES__GIT_REPO: 'git@bitbucket.org:hsdatalabs/hsg-data-labs.git'
+      AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-dev
+      AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: 'true'
+      AIRFLOW__WEBSERVER__LOG_FETCH_TIMEOUT_SEC: '30'
+      AIRFLOW__WEBSERVER__RBAC: 'True'
+
+- apiVersion: v1
+  kind: Secret
+  type: Opaque
+  metadata:
+    name: airflow
+    namespace: hsg-data-labs-dev
+    annotations:
+      template.openshift.io/base64-expose-password: "{.data['database-host']}"
+      template.openshift.io/base64-expose-password: "{.data['database-name']}"
+      template.openshift.io/base64-expose-password: "{.data['database-user']}"
+      template.openshift.io/base64-expose-password: "{.data['database-password']}"
+      template.openshift.io/base64-expose-password: "{.data['fernet-key']}"
+  stringData:
+    database-host: hsg-data-labs-airflow-db.hsg-data-labs-dev.svc.cluster.local
+    database-name: airflow
+    database-user: airflow
+    database-password: ${DATABASE_PASSWORD}
+    fernet-key: ${FERNET_KEY}
+
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: airflow-init
+    namespace: hsg-data-labs-dev
+  type: Opaque
+  annotations:
+    template.openshift.io/base64-expose-password: "{.data['known_hosts']}"
+  stringData:
+    known_hosts: |-
+      [bitbucket.ama-assn.org]:7999,[10.195.50.49]:7999 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDXTp4jOa5nwPB2RwSeBNXrnuWG3nSYk/pJTAuRDN27gPJBghZU4EyC9kqoHPYiMK0p39mBm544+xNzuoyFlAvq2M1Qg+CQf0axk+0uxioqokx9Eu6e+HGnhmz08S9JCM64lLaWRuhGPS7d/c1Cs8ZiJsBx+Io6xuNh7dT0Vc0RbPymqBUwPY3E1qoMQrar8quqd9SbG4tpAQbl70zerPrcV/uRX2GruS9tLFEUdSK613/cZ0upWe03CeBTFfWiWptQ5vkYDrCqZK4l5/TlNQLqXSNTgRuY/oyP195rCEdnSJ21oIBZXzI4LAdaSjUTSab69yldPHfiRFQmuF++blj1
+
+      bitbucket.org,2406:da00:ff00::22c5:2ef4 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAubiN81eDcafrgMeLzaFPsw2kNvEcqTKl/VqLat/MaB33pZy0y3rJZtnqwR2qOOvbwKZYKiEO1O6VqNEBxKvJJelCq0dTXWT5pbO2gDXC6h6QDXCaHo6pOHGPUy+YBaGQRGuSusMEASYiWunYN0vCAI8QaXnWMXNMdFP3jHAJH0eDsoiGnLPBlBp4TNm6rYI74nMzgz3B9IikW4WVK+dc8KZJZWYjAuORU3jc1c/NPskD2ASinf8v3xnfXeukU0sJ5N6m5E8VLjObPEO+mN2t/FZTMZLiFqPWc/ALSqnMnnhwrNi2rbfg/rd/IpL8Le3pSBne8+seeFVBoGqzHM9yXw==
+
+
+#######################################
+# Permissions
+#######################################
+
 - apiVersion: rbac.authorization.k8s.io/v1
   kind: Role
   metadata:
@@ -51,6 +269,31 @@ objects:
   - kind: ServiceAccount
     name: default
     namespace: hsg-data-labs-dev
+
+
+#######################################
+# Services and Routes
+#######################################
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
+    name: ${APPLICATION_NAME}-db
+  spec:
+    ports:
+    - name: postgresql
+      nodePort: 0
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      name: ${APPLICATION_NAME}-db
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
 
 - apiVersion: v1
   kind: Service
@@ -94,6 +337,22 @@ objects:
   status:
     ingress: null
 
+
+#######################################
+# Storage
+#######################################
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${APPLICATION_NAME}-db
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
@@ -104,6 +363,95 @@ objects:
     resources:
       requests:
         storage: ${VOLUME_CAPACITY}
+
+
+#######################################
+# Deployments
+#######################################
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    name: ${APPLICATION_NAME}-db
+  spec:
+    replicas: 1
+    selector:
+      name: ${APPLICATION_NAME}-db
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: ${APPLICATION_NAME}-db
+      spec:
+        containers:
+        - capabilities: {}
+          env:
+          - name: POSTGRESQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: database-user
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: database-password
+          - name: POSTGRESQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: database-name
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - /usr/libexec/check-container
+              - --live
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+          name: postgresql
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /usr/libexec/check-container
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 512Mi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /var/lib/pgsql/data
+            name: ${APPLICATION_NAME}-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        volumes:
+        - name: ${APPLICATION_NAME}-data
+          persistentVolumeClaim:
+            claimName: ${APPLICATION_NAME}-db
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - postgresql
+        from:
+          kind: ImageStreamTag
+          name: postgresql:9.6
+          namespace: hsg-data-labs-dev
+        lastTriggeredImage: ""
+      type: ImageChange
+    - type: ConfigChange
+  status: {}
 
 - apiVersion: v1
   kind: DeploymentConfig
@@ -128,23 +476,33 @@ objects:
           command:
           - /home/airflow/scheduler.sh
           env:
-          - name: DATABASE_USER
+          - name: DATABASE_HOST
             valueFrom:
               secretKeyRef:
-                key: database-user
-                name: ${APPLICATION_NAME}
-          - name: DATABASE_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: database-password
-                name: ${APPLICATION_NAME}
+                name: airflow
+                key: database-host
           - name: DATABASE_NAME
             valueFrom:
               secretKeyRef:
                 key: database-name
-                name: ${APPLICATION_NAME}
+                name: airflow
+          - name: DATABASE_USER
+            valueFrom:
+              secretKeyRef:
+                key: database-user
+                name: airflow
+          - name: DATABASE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: database-password
+                name: airflow
+          - name: AIRFLOW__CORE__FERNET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: fernet-key
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+            value: postgresql+psycopg2://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):5432/$(DATABASE_NAME)
           envFrom:
           - configMapRef:
               name: airflow-scheduler
@@ -179,7 +537,7 @@ objects:
           - name: GIT_SYNC_MAX_SYNC_FAILURES
             value: "0"
           volumeMounts:
-            - name: git-ssh
+            - name: id-rsa
               subPath: id_rsa
               mountPath: /.ssh/id_rsa
             - name: git-ssh
@@ -187,41 +545,6 @@ objects:
               mountPath: /.ssh/known_hosts
             - name: repo
               mountPath: /home/airflow/repo
-        #
-        # - name: airflow-sync
-        #   image: ' '
-        #   imagePullPolicy: IfNotPresent
-        #   command:
-        #   - /Sync/entrypoint.sh
-        #   args:
-        #   - python
-        #   - datalabs/deploy/airflow/sync/app.py
-        #   env:
-        #   - name: CLONE_URL
-        #     value: git@bitbucket.org:amaappdev/hs-datalabs.git
-        #   - name: BRANCH
-        #     value: master
-        #   - name: DAG_SOURCE_PATH
-        #     value: hs-datalabs/Source/Python/datalabs/airflow/dag
-        #   - name: DAG_TARGET_PATH
-        #     value: /home/airflow/dags
-        #   - name: SYNC_INTERVAL
-        #     value: "900.0"
-        #   - name: GIT_SSH_KEY
-        #     valueFrom:
-        #       secretKeyRef:
-        #         name: bitbucketprd
-        #         key: ssh-privatekey
-        #   envFrom:
-        #   - configMapRef:
-        #       name: airflow-webserver
-        #   ports:
-        #   - containerPort: 8080
-        #     protocol: TCP
-        #   terminationMessagePath: /dev/termination-log
-        #   volumeMounts:
-        #   - mountPath: /home/airflow/dags
-        #     name: ${APPLICATION_NAME}-shared
 
         - name: airflow-webserver
           image: ' '
@@ -229,23 +552,33 @@ objects:
           command:
           - /home/airflow/webserver.sh
           env:
+          - name: DATABASE_HOST
+            valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: database-host
+          - name: DATABASE_NAME
+            valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: database-name
           - name: DATABASE_USER
             valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: database-user
           - name: DATABASE_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
+                name: airflow
                 key: database-password
-          - name: DATABASE_NAME
+          - name: AIRFLOW__CORE__FERNET_KEY
             valueFrom:
               secretKeyRef:
-                name: ${APPLICATION_NAME}
-                key: database-name
+                name: airflow
+                key: fernet-key
           - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
-            value: postgresql+psycopg2://${DATABASE_USER}:${DATABASE_PASSWORD}@${APPLICATION_NAME}-db.hsg-data-labs-dev.svc.cluster.local:5432/${DATABASE_NAME}
+            value: postgresql+psycopg2://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):5432/$(DATABASE_NAME)
           envFrom:
           - configMapRef:
               name: airflow-webserver
@@ -266,17 +599,22 @@ objects:
         volumes:
         - name: repo
           emptyDir: {}
+        - name: id-rsa
+          secret:
+            secretName: bitbucketprd
+            defaultMode: 420
+            items:
+              - key: ssh-privatekey
+                mode: 288
+                path: id_rsa
         - name: git-ssh
           secret:
-              secretName: airflow-init
-              defaultMode: 420
-              items:
-                - key: id_rsa
-                  mode: 288
-                  path: id_rsa
-                - key: known_hosts
-                  mode: 288
-                  path: known_hosts
+            secretName: airflow-init
+            defaultMode: 420
+            items:
+              - key: known_hosts
+                mode: 288
+                path: known_hosts
         - name: ${APPLICATION_NAME}-shared
           persistentVolumeClaim:
             claimName: ${APPLICATION_NAME}-shared
@@ -320,10 +658,22 @@ parameters:
   displayName: Namespace
   value: openshift
 - name: APPLICATION_NAME
-  description: The name of the OpenShift Service exposed for the database.
+  description: The name of the OpenShift Service exposed for Airflow.
   displayName: Airflow Service Name
   value: hsg-data-labs-airflow
 - name: VOLUME_CAPACITY
   description: Volume space available for data, e.g. 512Mi, 2Gi.
   displayName: Volume Capacity
   value: 1Gi
+- name: DATABASE_PASSWORD
+  description: Password for the PostgreSQL database.
+  displayName: PostgreSQL Password
+  from: '[a-zA-Z0-9]{16}'
+  generate: expression
+  required: true
+- name: FERNET_KEY
+  description: Fernet key for Airflow.
+  displayName: Airflow Fernet Key
+  from: '[a-zA-Z0-9]{44}'
+  generate: expression
+  required: true

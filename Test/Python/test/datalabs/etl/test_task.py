@@ -6,7 +6,7 @@ import mock
 import pytest
 
 import datalabs.etl.task as task
-from   datalabs.task import add_schema
+from   datalabs.parameter import add_schema
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -17,7 +17,7 @@ def test_etl_task(parameters):
 
     assert etl._extractor.data
     assert etl._transformer.data == 'True'
-    assert etl._loader.data == 'True'
+    assert etl._loader.data is None
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -29,7 +29,7 @@ def test_etl_task_wrapper(environment_variables):
 
     assert wrapper.task._extractor.data == 'True'
     assert wrapper.task._transformer.data == 'True'
-    assert wrapper.task._loader.data == 'True'
+    assert wrapper.task._loader.data is None
 
 
 def test_get_validated_parameters_returns_proper_object(parameters):
@@ -92,6 +92,8 @@ def parameters():
 @pytest.fixture
 def environment_variables():
     current_env = os.environ.copy()
+
+    os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
 
     os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
     os.environ['EXTRACTOR__thing'] = 'True'

@@ -1,7 +1,9 @@
 """ ETL Task base classes. """
 from   dataclasses import dataclass
+from   datetime import datetime
 import logging
-from typing import Any
+
+from   dateutil.parser import isoparse
 
 from   datalabs.access.environment import VariableTree
 import datalabs.task as task
@@ -98,8 +100,6 @@ class ETLComponentTask(task.Task):
 
 class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
-        super()._get_task_parameters()
-
         var_tree = VariableTree.generate()
 
         return ETLParameters(
@@ -118,8 +118,49 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
 
 
 class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
+    def _get_task_parameters(self):
+        task_parameters = super()._get_task_parameters()
+
+        if self._parameters and hasattr(self._parameters, 'append'):
+            task_parameters = self._add_component_environment_variables_from_parameters(
+                task_parameters,
+                self._parameters
+            )
+
+        return task_parameters
+
     def _handle_exception(self, exception: ETLException):
         LOGGER.exception('Handling ETL task exception: %s', exception)
 
     def _handle_success(self):
         LOGGER.info('ETL task has finished')
+
+    @classmethod
+    def _add_component_environment_variables_from_parameters(cls, task_parameters, parameters):
+        base_task_parameters = {key:value for key, value in (parameter.split('=') for parameter in parameters[1:])}  # pylint: disable=unnecessary-comprehension
+        component_variables = [
+            task_parameters.extractor,
+            task_parameters.transformer,
+            task_parameters.loader
+        ]
+
+        for variables in component_variables:
+            base_component_variables = base_task_parameters.copy()
+            base_component_variables.update(variables)
+            variables.clear()
+            variables.update(base_component_variables)
+
+        return task_parameters
+
+
+class ExecutionTimeMixin:
+    @property
+    def execution_time(self):
+        timestamp = datetime.utcnow().isoformat()
+
+        if hasattr(self._parameters, 'execution_time') and self._parameters.execution_time:
+            timestamp = self._parameters.execution_time
+        elif hasattr(self._parameters, 'get'):
+            timestamp = self._parameters.get('EXECUTION_TIME', timestamp)
+
+        return isoparse(timestamp)

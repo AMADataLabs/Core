@@ -8,6 +8,7 @@ import tempfile
 import mock
 import pytest
 
+import datalabs.etl.fs.load as fs
 from datalabs.plugin import import_plugin
 
 logging.basicConfig()
@@ -29,7 +30,7 @@ def test_loader_loads_two_files(etl, loader_directory):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    data = etl.task._loader.data
+    data = etl.task._loader._parameters['data']
 
     LOGGER.debug('Loaded Data: %s', data)
     assert len(data) == 2
@@ -47,6 +48,16 @@ def test_loader_properly_adds_datestamp(etl, loader_directory):
     expected_filename = datetime.utcnow().strftime('PhysicianProfessionalDataFile_%Y-%m-%d.csv')
     expected_path = os.path.join(loader_directory, expected_filename)
     assert expected_path == files[1]
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_whitespace_removed_from_filenames(parameters):
+    task = fs.LocalFileLoaderTask(parameters)
+
+    files = task._get_files()
+
+    assert len(files) == 3
+    assert files[2] == 'dir1/dir2/dir3/the_other_one.csv'
 
 
 @pytest.fixture
@@ -83,8 +94,16 @@ def environment(extractor_file, loader_directory):
 # pylint: disable=redefined-outer-name
 @pytest.fixture
 def etl(environment):
-    task_class = import_plugin(environment.get('TASK_CLASS'))
     task_wrapper_class = import_plugin(environment.get('TASK_WRAPPER_CLASS'))
-    task_wrapper = task_wrapper_class(task_class, parameters={})
+    task_wrapper = task_wrapper_class(parameters={})
 
     return task_wrapper
+
+
+@pytest.fixture
+def parameters():
+    return dict(
+        BASE_PATH='dir1/dir2/dir3',
+        FILES='this_one.csv,that_one.csv,\n       the_other_one.csv     ',
+        EXECUTION_TIME='19000101'
+    )

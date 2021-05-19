@@ -1,0 +1,62 @@
+[
+    {
+        "name": "etcd",
+        "image": "bitnami/etcd:3.4.15",
+        "cpu": 0,
+        "command": ["/opt/bitnami/scripts/etcd/run.sh"],
+        "environment": [
+            {
+                "name": "ETCD_VOLUME_DIR",
+                "value": "/bitnami/etcd"
+            },
+            {
+                "name": "ETCD_ADVERTISE_CLIENT_URLS",
+                "value": "http://127.0.0.1:2379"
+            },
+            {
+                "name": "ETCD_LISTEN_CLIENT_URLS",
+                "value": "http://0.0.0.0:2379"
+            },
+            {
+                "name": "ALLOW_NONE_AUTHENTICATION",
+                "value": "yes"
+            }
+        ],
+        "essential": true,
+        "volumesFrom": [],
+
+        "ulimits": [
+            {
+                "name": "nofile",
+                "softLimit": 65536,
+                "hardLimit": 1048576
+            }
+        ],
+
+        "portMappings": [
+            {
+                "containerPort": 2379,
+                "hostPort": 2379,
+                "protocol": "tcp"
+            }
+        ],
+
+        "mountPoints": [
+            {
+                "sourceVolume": "etcd",
+                "containerPath": "/bitnami/etcd",
+                "readOnly": false
+            }
+        ],
+
+        "logConfiguration": {
+            "logDriver": "awslogs",
+
+            "options": {
+                "awslogs-region": "${region}",
+                "awslogs-group": "/ecs/etcd",
+                "awslogs-stream-prefix": "ecs"
+            }
+        }
+    }
+]

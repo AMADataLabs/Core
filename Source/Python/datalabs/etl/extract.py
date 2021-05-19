@@ -2,8 +2,6 @@
 from   abc import ABC, abstractmethod
 from   datetime import datetime
 
-from   dateutil.parser import isoparse
-
 from   datalabs.etl.task import ETLComponentTask, ETLException
 
 
@@ -29,19 +27,6 @@ class IncludeNamesMixin:
         return include_names
 
 
-class ExecutionTimeMixin:
-    @property
-    def execution_time(self):
-        timestamp = datetime.utcnow().isoformat()
-
-        if hasattr(self._parameters, 'execution_time') and self._parameters.execution_time:
-            timestamp = self._parameters.execution_time
-        elif hasattr(self._parameters, 'get'):
-            timestamp = self._parameters.get('EXECUTION_TIME', timestamp)
-
-        return isoparse(timestamp)
-
-
 class FileExtractorTask(ExtractorTask, ABC):
     def __init__(self, parameters):
         super().__init__(parameters)
@@ -59,10 +44,11 @@ class FileExtractorTask(ExtractorTask, ABC):
         return datetime.utcnow()
 
     def _extract(self):
-        files = self._get_files()
-
+        # pylint: disable=not-context-manager
         with self._get_client() as client:
             self._client = client
+
+            files = self._get_files()
 
             resolved_files = self._resolve_files(files)
 
@@ -70,12 +56,16 @@ class FileExtractorTask(ExtractorTask, ABC):
 
         self._client = None
 
-        decoded_data = self._decode_dataset(data)
+        decoded_data = self._decode_dataset(data, resolved_files)
 
         if self._include_names:
             decoded_data = list(zip(resolved_files, decoded_data))
 
         return decoded_data
+
+    @abstractmethod
+    def _get_client(self) -> 'Context Manager':
+        return None
 
     @abstractmethod
     def _get_files(self) -> list:
@@ -88,16 +78,12 @@ class FileExtractorTask(ExtractorTask, ABC):
 
         return expanded_files
 
-    @abstractmethod
-    def _get_client(self) -> 'Context Manager':
-        return None
-
     def _extract_files(self, files):
         data = [self._extract_file(file) for file in files]
 
         return data
 
-    def _decode_dataset(self, dataset):
+    def _decode_dataset(self, dataset, files):
         decoded_dataset = []
 
         for index, data in enumerate(dataset):

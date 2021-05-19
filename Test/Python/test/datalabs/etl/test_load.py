@@ -8,8 +8,6 @@ from datalabs.etl.load import LoaderTask
 def test_loader_task(loader):
     loader.run()
 
-    assert loader.data
-
 
 @pytest.fixture
 def loader():
