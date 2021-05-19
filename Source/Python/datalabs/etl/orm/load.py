@@ -144,7 +144,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _update_data(cls, database, table_parameters):
         updated_data = cls._select_updated_data(table_parameters)
 
-        cls._udpate_data_in_table(table_parameters, updated_data, database)
+        cls._update_data_in_table(table_parameters, updated_data, database)
 
     @classmethod
     def _select_updated_data(cls, table_parameters):
