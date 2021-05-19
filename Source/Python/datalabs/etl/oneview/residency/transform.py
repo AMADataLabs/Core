@@ -19,7 +19,6 @@ class ResidencyTransformerTask(TransformerTask):
 
         return new_dataframes
 
-    @classmethod
     def _transform_dataframes(cls, dataframes):
         dataframes[1].pgm_id = dataframes[1].pgm_id.astype(str)
         dataframes[2].pgm_id = dataframes[2].pgm_id.astype(str)
