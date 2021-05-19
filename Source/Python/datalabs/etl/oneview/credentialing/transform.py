@@ -14,27 +14,22 @@ LOGGER.setLevel(logging.DEBUG)
 
 class CredentialingTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [CUSTOMER_COLUMNS, PRODUCT_COLUMNS, ORDER_COLUMNS]
+        return [PRODUCT_COLUMNS, ORDER_COLUMNS]
 
 
 class CredentialingFinalTransformerTask(TransformerTask):
-    def _transform(self):
-        dataframes = self._make_dataframe(self._parameters['data'])
-        self._parameters['data'] = self._merge_dataframes(dataframes)
+    def _to_dataframe(self):
+        main_dataframe = pandas.read_csv(BytesIO(self._parameters['data'][1]))
+        address_dataframe = pandas.read_excel(BytesIO(self._parameters['data'][0]))
 
-        data = super()._transform()
+        credentialing_data = self._merge_dataframes([address_dataframe, main_dataframe])
 
-        return data
-
-    @classmethod
-    def _make_dataframe(cls, data):
-        main_dataframe = pandas.read_csv(BytesIO(data[1]))
-        address_dataframe = pandas.read_excel(BytesIO(data[0]))
-        return [address_dataframe, main_dataframe]
+        return credentialing_data
 
     @classmethod
     def _merge_dataframes(cls, dataframes):
-        new_df = dataframes[1].merge(dataframes[0], how='left', on='number')
+        credentialing_main = dataframes[1].rename(columns={'CUSTOMER_NBR': 'number'})
+        new_df = credentialing_main.merge(dataframes[0], how='left', on='number')
         return [new_df]
 
     def _get_columns(self):
