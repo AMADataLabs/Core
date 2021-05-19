@@ -403,8 +403,10 @@ with ONEVIEW_ETL_DAG:
         image=DOCKER_IMAGE,
         name="create_melissa_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(
-            TASK_CLASS='datalabs.etl.oneview.melissa.transform.MelissaTransformerTask')},
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.melissa.transform.MelissaTransformerTask')
+        },
         do_xcom_push=False,
         is_delete_operator_pod=False,
         in_cluster=True,
