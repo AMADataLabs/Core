@@ -33,7 +33,6 @@ class ContactIDAssignTransformerTask(etl.TransformerTask, ABC):
         return [pandas.read_csv(BytesIO(data), sep=seperator, encoding = encodings, dtype = 'str', low_memory=False) for data, seperator, encodings in zip(self._parameters['data'], seperators, encodings_list)]
 
     def _assign_id_to_new_sfmc_data(self, sfmc_contacts, sfmc_contacts_old):
-
         contacts_old_id = self._select_contactid_and_emmpid(sfmc_contacts_old)
 
         merged_df = self._merge_contacts(sfmc_contacts, contacts_old_id)
@@ -79,7 +78,6 @@ class ContactIDAssignTransformerTask(etl.TransformerTask, ABC):
         return merged_df
 
     def _assign_id_to_new_users_data(self, users, users_old) :
-
         users_old = self._drop_columns(users_old)
 
         users_merged_df = self._merge_users(users, users_old)
