@@ -404,6 +404,22 @@ with ONEVIEW_ETL_DAG:
         get_logs=True,
     )
 
+    CREATE_MELISSA_TABLES = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="create_melissa_tables",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.melissa.transform.MelissaTransformerTask')
+        },
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="create_melissa_tables",
+        get_logs=True,
+    )
+
 #     CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE = KubernetesPodOperator(
 #         namespace='hsg-data-labs-dev',
 #         image=DOCKER_IMAGE,
@@ -518,6 +534,6 @@ EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE # >> L
 # CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TABLE # >> LOAD_TABLES_INTO_DATABASE
 # CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
-# CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE # >> LOAD_TABLES_INTO_DATABASE
-EXTRACT_MELISSA
+# CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_TABLES_INTO_DATABASE
+EXTRACT_MELISSA >> CREATE_MELISSA_TABLES
 EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERS
