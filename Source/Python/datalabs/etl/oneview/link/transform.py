@@ -4,9 +4,9 @@ from   io import BytesIO
 import logging
 import pandas
 
-from   datalabs.etl.oneview.link.column import CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS, \
-    CREDENTIALING_CUSTOMER_INSTITUTION_COLUMNS, RESIDENCY_PROGRAM_PHYSICIAN_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
+
+import datalabs.etl.oneview.link.column as columns
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
         return credentialing_customer_data
 
     def _get_columns(self):
-        return [CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS]
+        return [columns.CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS]
 
 
 class CredentialingCustomerInstitution(TransformerTask):
@@ -73,19 +73,15 @@ class CredentialingCustomerInstitution(TransformerTask):
         return matches[['number', 'institution']]
 
     def _get_columns(self):
-        return [CREDENTIALING_CUSTOMER_INSTITUTION_COLUMNS]
+        return [columns.CREDENTIALING_CUSTOMER_INSTITUTION_COLUMNS]
 
 
 class ResidencyProgramPhysician(TransformerTask):
-    def _transform(self):
-        dataframes = [self._to_dataframe(csv) for csv in self._parameters.data]
-        self._parameters.data = [self._linking_data(df) for df in dataframes]
+    def _to_dataframe(self):
+        residency_physician_data = [pandas.read_csv(BytesIO(csv) for csv in self._parameters['data'])]
+        linked_residency_physician_data = self._linking_data(residency_physician_data)
 
-        return super()._transform()
-
-    @classmethod
-    def _to_dataframe(cls, file):
-        return pandas.read_csv(StringIO(file))
+        return linked_residency_physician_data
 
     @classmethod
     def _linking_data(cls, data):
@@ -93,11 +89,12 @@ class ResidencyProgramPhysician(TransformerTask):
         physicians = cls._get_physician(data)
 
         all_match, pure_match = cls._get_matches(physicians, directors)
-        duplicate_matches, duplucates = cls._create_duplicate_matches(all_match, pure_match, directors)
+        duplicate_matches, duplicates = cls._create_duplicate_matches(all_match, pure_match, directors)
 
-        return cls._filter_out_duplicates(pure_match, duplicate_matches, duplicates)
+        return cls._filter_out_duplicates(duplicate_matches, duplicates)
 
-    def _get_matches(self, physicians, directors):
+    @classmethod
+    def _get_matches(cls, physicians, directors):
         all_match = pandas.merge(physicians, directors,
                                  on=['first_name', 'last_name'], suffixes=['_physician', '_residency'])
         pure_match = pandas.merge(physicians,
@@ -107,8 +104,9 @@ class ResidencyProgramPhysician(TransformerTask):
 
         return all_match, pure_match
 
-    def _create_duplicate_matches(self, all_match, pure_match, directors):
-        duplicate_matches = all_match[all_match.aamc_id.isin(pure_match.aamc_id) == False]
+    @classmethod
+    def _create_duplicate_matches(cls, all_match, pure_match, directors):
+        duplicate_matches = all_match[~all_match.aamc_id.isin(pure_match.aamc_id)]
         duplicates = directors[directors.aamc_id.isin(duplicate_matches.aamc_id)]
         duplicate_matches = duplicate_matches.fillna('None')
 
@@ -131,10 +129,10 @@ class ResidencyProgramPhysician(TransformerTask):
         return data[1]
 
     @classmethod
-    def _filter_out_duplicates(cls, pure_match, duplicate_matches, duplicates):
+    def _filter_out_duplicates(cls, duplicate_matches, duplicates):
         matched_dict_list = []
         for row in duplicates.itertuples():
-            new_df = cls._merge_dataframe(row, duplicate_matches)
+            new_df = cls._merge_filtered_dataframe(row, duplicate_matches)
 
             if len(new_df) == 1:
                 matched_dict_list.append({'aamc_id': row.aamc_id,
@@ -143,7 +141,7 @@ class ResidencyProgramPhysician(TransformerTask):
         return pandas.DataFrame(matched_dict_list)
 
     @classmethod
-    def _merge_dataframe(cls,row, duplicate_matches):
+    def _merge_filtered_dataframe(cls, row, duplicate_matches):
         new_df = duplicate_matches[duplicate_matches.aamc_id == row.aamc_id]
 
         if row.degree != 'None' and row.degree_one != 'MPH':
@@ -159,4 +157,4 @@ class ResidencyProgramPhysician(TransformerTask):
         return new_df
 
     def _get_columns(self):
-        return [RESIDENCY_PROGRAM_PHYSICIAN_COLUMNS]
+        return [columns.RESIDENCY_PROGRAM_PHYSICIAN_COLUMNS]
