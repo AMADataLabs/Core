@@ -10,6 +10,7 @@ CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS = {
     'id': 'business',
 }
 RESIDENCY_PROGRAM_PHYSICIAN_COLUMNS = {
-    'id': 'personnel_member',
+    'pk': 'id',
+    'personnel_member': 'personnel_member',
     'medical_education_number': 'medical_education_number'
 }

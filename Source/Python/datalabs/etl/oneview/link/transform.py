@@ -81,6 +81,10 @@ class ResidencyProgramPhysician(TransformerTask):
         residency_physician_data = [pandas.read_csv(BytesIO(csv) for csv in self._parameters['data'])]
         linked_residency_physician_data = self._linking_data(residency_physician_data)
 
+        primary_keys = [column['personnel_member'] + column['medical_education_number']
+                        for index, column in linked_residency_physician_data.iterrows()]
+        linked_residency_physician_data['pk'] = primary_keys
+
         return linked_residency_physician_data
 
     @classmethod
