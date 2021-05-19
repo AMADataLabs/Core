@@ -37,13 +37,13 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                                                 self._get_dataframes(),
                                                 self._parameters['TABLES']):
 
-                table_parameters = self._set_table_parameters(model_class, data, table, database)
+                table_parameters = self._generate_table_parameters(model_class, data, table, database)
                 self._update(database, table_parameters)
 
             # pylint: disable=no-member
             database.commit()
 
-    def _set_table_parameters(self, model_class, data, table, database):
+    def _generate_table_parameters(self, model_class, data, table, database):
         primary_key = self._get_primary_key(database, table)
         columns = self._get_database_columns(database, table)
 
@@ -128,7 +128,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         ].reset_index(drop=True)
 
     @classmethod
-    def _delete_data_to_table(cls, table_parameters, data, database):
+    def _delete_data_from_table(cls, table_parameters, data, database):
         deleted_primary_keys = data[table_parameters.primary_key].tolist()
         database_rows_query = f"SELECT * FROM {table_parameters.table} " \
                               f"WHERE {table_parameters.primary_key} IN {tuple(deleted_primary_keys)};"

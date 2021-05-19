@@ -8,6 +8,7 @@ import pytest
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.orm.load import ORMLoaderTask
+from   datalabs.etl.orm.load import TableParameters
 
 from   test.datalabs.access.model import Base  # pylint: disable=wrong-import-order
 
@@ -36,19 +37,41 @@ def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_compare_data(loader_parameters, hash_data, hash_query_results, incoming_data, expected_data):
-    primary_key = 'id'
-    columns = ['dumb', 'id', 'dumber']
-
+def test_select_new_data(table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
-    row_hashes = loader._generate_row_hashes(columns, incoming_data, primary_key)
-    new_data, updated_data, deleted_data = loader._compare_data(incoming_data, hash_query_results, row_hashes, primary_key)
+
+    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
+                                             table_parameters.primary_key)
+    table_parameters.incoming_hashes = row_hashes
+
+    new_data = loader._select_new_data(table_parameters)
 
     assert expected_data['new'].equals(new_data)
 
-    assert expected_data['updated'].equals(updated_data)
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_select_deleted_data(table_parameters, expected_data):
+    loader = ORMLoaderTask(loader_parameters)
+
+    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
+                                             table_parameters.primary_key)
+    table_parameters.incoming_hashes = row_hashes
+
+    deleted_data = loader._select_deleted_data(table_parameters)
 
     assert expected_data['deleted'].equals(deleted_data)
+
+
+def test_select_updated_data(table_parameters, expected_data):
+    loader = ORMLoaderTask(loader_parameters)
+
+    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
+                                             table_parameters.primary_key)
+    table_parameters.incoming_hashes = row_hashes
+
+    updated_data = loader._select_updated_data(table_parameters)
+
+    assert expected_data['updated'].equals(updated_data)
 
 
 # pylint: disable=blacklisted-name
@@ -172,3 +195,18 @@ def expected_data():
     return {'new': new_data,
             'updated': updated_data,
             'deleted': deleted_data}
+
+
+@pytest.fixture
+def table_parameters(incoming_data, hash_query_results):
+    data = incoming_data
+    model_class = 'test.datalabs.access.model.Foo'
+    table = 'foo'
+    primary_key = 'id'
+    columns = ['dumb', 'id', 'dumber']
+    current_hashes = hash_query_results
+    incoming_hashes = None
+
+    table_parameters = TableParameters(data, table, model_class, primary_key, columns, current_hashes, incoming_hashes)
+
+    return table_parameters
