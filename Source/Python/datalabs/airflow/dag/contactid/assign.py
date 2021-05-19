@@ -89,7 +89,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
          cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
          env_from=[ETL_CONFIG],
          secrets=[MINIO_SECRET],
-         env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
+         env_vars=dict(TASK_CLASS='datalabs.etl.contactid.idassign.transform.ContactIDAssignTransformerTask'),
          do_xcom_push=False,
          is_delete_operator_pod=False,
          in_cluster=True,
@@ -97,20 +97,20 @@ with CONTACT_ID_ASSIGNMENT_DAG:
          get_logs=True,
     )
     #
-    # MERGE_AND_GENERATE_NEW_IDS = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     name="merge_and_generate_new_ids",
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[MINIO_SECRET],
-    #     env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=False,
-    #     in_cluster=True,
-    #     task_id="merge_and_generate_new_ids",
-    #     get_logs=True,
-    # )
+    MERGE_AND_GENERATE_NEW_IDS = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        name="merge_and_generate_new_ids",
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="merge_and_generate_new_ids",
+        get_logs=True,
+     )
     #
     # DELIVER_OUTPUT_FILES = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
