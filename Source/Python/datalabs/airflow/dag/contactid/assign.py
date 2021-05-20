@@ -124,20 +124,20 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         get_logs=True,
     )
     #
-    # DELIVER_OUTPUT_FILES = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="deliver_output_files",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[DATABASE_SECRET, MINIO_SECRET],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask')},
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=False,
-    #     in_cluster=True,
-    #     task_id="deliver_output_files",
-    #     get_logs=True,
-    # )
+    DELIVER_OUTPUT_FILES = KubernetesPodOperator(
+         namespace='hsg-data-labs-dev',
+         image=DOCKER_IMAGE,
+         name="deliver_output_files",
+         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+         env_from=[ETL_CONFIG],
+         ecrets=[VALID_EFT_SECRET, MINIO_SECRET],
+         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask')},
+         do_xcom_push=False,
+         is_delete_operator_pod=False,
+         in_cluster=True,
+         task_id="deliver_output_files",
+         get_logs=True,
+     )
     #
     # UPDATE_SEED_FILES = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
