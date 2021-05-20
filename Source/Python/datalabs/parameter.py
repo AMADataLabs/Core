@@ -29,17 +29,24 @@ def add_schema(model_class):
             return model
 
         def _make_dataclass_model(self, data):
+            unknowns = self._extract_unknowns(data)
+
             self._fill_dataclass_defaults(data)
 
-            # TODO: handle case where unknown == INCLUDE
+            if self.Meta.unknown == marshmallow.INCLUDE and 'unknowns' in model_fields and 'unknowns' not in data:
+                data['unknowns'] = unknowns
 
             return model_class(**data)
 
         def _make_class_model(self, data):
+            unknowns = self._extract_unknowns(data)
+
             self._fill_class_defaults(data)
             model = model_class()
 
-            # TODO: handle case where unknown == INCLUDE
+            import pdb; pdb.set_trace()
+            if self.Meta.unknown == marshmallow.INCLUDE and 'unknowns' in model_fields:
+                setattr(model, 'unknowns', unknowns)
 
             for field in data:
                 setattr(model, field, data[field])
@@ -59,6 +66,20 @@ def add_schema(model_class):
 
             if len(missing_fields) > 0:
                 raise ValidationException(f'Missing parameters for {model_class.__name__} instance: {missing_fields}')
+
+        def _extract_unknowns(self, data):
+            unknowns = {}
+
+            for key in data.keys():
+                value = data.pop(key)
+
+                if key in model_fields:
+                    data[key] = value
+                else:
+                    unknowns[key] = value
+
+            return unknowns
+
 
         def _fill_class_defaults(self, data):
             for field in self.Meta.fields:
