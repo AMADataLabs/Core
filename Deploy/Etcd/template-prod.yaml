@@ -95,8 +95,6 @@ objects:
           env:
           - name: ETCD_VOLUME_DIR
             value: /bitnami/etcd
-          # - name: ETCD_AUTO_TLS
-          #   value: "true"
           - name: ETCD_ADVERTISE_CLIENT_URLS
             value: "http://127.0.0.1:2379"
           - name: ETCD_LISTEN_CLIENT_URLS
