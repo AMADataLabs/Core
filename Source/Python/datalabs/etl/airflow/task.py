@@ -36,6 +36,9 @@ class AirflowTaskWrapper(task.TaskWrapper):
     def __init__(self, parameters=None):
         super().__init__(parameters)
 
+        args = self._parameters
+        self._dag_id, self._task_id, self._datestamp = args[1].split('__')
+
         self._cache_parameters = {}
 
     def _get_task_parameters(self):
@@ -61,10 +64,8 @@ class AirflowTaskWrapper(task.TaskWrapper):
         LOGGER.info('Airflow task has finished')
 
     def _get_dag_task_parameters(self):
-        args = self._parameters
-        dag_id, task_id, datestamp = args[1].split('__')
-        dag_parameters = self._get_dag_parameters_from_environment(dag_id.upper(), datestamp)
-        task_parameters = self._get_task_parameters_from_environment(dag_id.upper(), task_id.upper())
+        dag_parameters = self._get_dag_parameters_from_environment(self._dag_id.upper(), self._datestamp)
+        task_parameters = self._get_task_parameters_from_environment(self._dag_id.upper(), self._task_id.upper())
 
         return self._merge_parameters(dag_parameters, task_parameters)
 

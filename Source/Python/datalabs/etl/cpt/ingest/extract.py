@@ -8,7 +8,7 @@ from   dateutil.parser import isoparse
 import pandas
 
 import datalabs.etl.s3.extract as extract
-from   datalabs.task import add_schema
+from   datalabs.parameter import add_schema
 
 
 @add_schema

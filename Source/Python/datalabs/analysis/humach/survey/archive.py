@@ -378,6 +378,8 @@ class HumachResultsArchive:
     def _save_standard_batch_load_file(self, data: pd.DataFrame):
         today_date = str(datetime.now().date())
         file_name = f'HSG_PHYS_DELETES_{today_date}_StdKnownBad.csv'
-        save_path = self._batch_load_save_dir + '/' + file_name
-
+        if self._batch_load_save_dir is not None:
+            save_path = self._batch_load_save_dir + '/' + file_name
+        else:
+            save_path = file_name
         data.to_csv(save_path, index=False)

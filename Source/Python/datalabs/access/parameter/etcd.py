@@ -6,7 +6,8 @@ import os
 
 import requests
 
-from   datalabs.task import add_schema
+from   datalabs.access.etcd import EtcdException
+from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -23,9 +24,9 @@ class EtcdParameters:
     password: str
 
 
-class EtcdEnvironmentLoader:
-    ''' Replace environment variable values that are AWS Systems Manager
-        Parameter Store resource ARNs with the resource values.'''
+class EtcdEnvironmentLoader(ParameterValidatorMixin):
+    PARAMETER_CLASS = EtcdParameters
+
     def __init__(self, parameters):
         self._parameters = self._get_validated_parameters(parameters)
 
@@ -35,11 +36,22 @@ class EtcdEnvironmentLoader:
         self._set_environment_variables_from_parameters(parameters)
 
     @classmethod
-    def _get_validated_parameters(cls, parameters: dict):
-        parameter_variables = {key.lower():value for key, value in parameters.items()}
-        schema = EtcdParameters.SCHEMA  # pylint: disable=no-member
+    def from_environ(cls):
+        host = os.environ.get('ETCD_HOST')
+        username = os.environ.get('ETCD_USERNAME')
+        password = os.environ.get('ETCD_PASSWORD')
+        prefix = os.environ.get('ETCD_PREFIX')
+        loader = None
 
-        return schema.load(parameter_variables)
+        if host and username and password and prefix:
+            loader = EtcdEnvironmentLoader(dict(
+                host=host,
+                username=username,
+                password=password,
+                prefix=prefix
+            ))
+
+        return loader
 
     def _get_parameters_from_etcd(self):
         with requests.Session() as etcd:
@@ -61,6 +73,9 @@ class EtcdEnvironmentLoader:
         )
 
         response = etcd.post(f'https://{self._parameters.host}/v3/auth/authenticate', json=body).json()
+
+        if 'error' in response:
+            raise EtcdException(response['message'])
 
         return response['token']
 
@@ -86,7 +101,3 @@ class EtcdEnvironmentLoader:
             return base64.b64decode(value).decode('utf8')
 
         return {decode(p['key']):decode(p['value']) for p in raw_parameters['kvs']}
-
-
-class EtcdException(Exception):
-    pass

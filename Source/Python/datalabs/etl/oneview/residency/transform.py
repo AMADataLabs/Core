@@ -15,12 +15,12 @@ class ResidencyTransformerTask(TransformerTask):
     def _to_dataframe(self):
         df_data = [pandas.read_csv(BytesIO(data), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
                    for data in self._parameters['data']]
-        new_dataframes = self._merge_dataframe(df_data)
+        new_dataframes = self._transform_dataframes(df_data)
 
         return new_dataframes
 
     @classmethod
-    def _merge_dataframe(cls, dataframes):
+    def _transform_dataframes(cls, dataframes):
         dataframes[1].pgm_id = dataframes[1].pgm_id.astype(str)
         dataframes[2].pgm_id = dataframes[2].pgm_id.astype(str)
         dataframes[3].ins_id = dataframes[3].ins_id.astype(str)
@@ -35,7 +35,12 @@ class ResidencyTransformerTask(TransformerTask):
 
         program_institution = pandas.merge(dataframes[3], dataframes[4], on='ins_id')
 
-        return [program_information, dataframes[2], program_institution]
+        program_personnel_member = dataframes[2]
+        primary_keys = [column['pgm_id'] + column['aamc_id']
+                        for index, column in program_personnel_member.iterrows()]
+        program_personnel_member['id'] = primary_keys
+
+        return [program_information, program_personnel_member, program_institution]
 
     def _get_columns(self):
         return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]
