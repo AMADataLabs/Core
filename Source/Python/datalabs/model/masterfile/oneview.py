@@ -220,8 +220,7 @@ class ResidencyProgramInstitution(Base):
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
-    program = sa.Column(sa.String)
-    sponsors_residents = sa.Column(sa.Boolean)
+    name = sa.Column(sa.String)
     primary_clinical_location = sa.Column(sa.String)
     last_update_date = sa.Column(sa.Date)
 
