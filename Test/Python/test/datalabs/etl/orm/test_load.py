@@ -8,6 +8,7 @@ import pytest
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.orm.load import ORMLoaderTask
+from   datalabs.etl.orm.load import TableParameters
 
 from   test.datalabs.access.model import Base  # pylint: disable=wrong-import-order
 
@@ -16,6 +17,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@pytest.mark.skip(reason="Need data from database")
 # pylint: disable=redefined-outer-name, protected-access
 def test_orm_loader(loader_parameters):
     with mock.patch('datalabs.etl.orm.load.Database'):
@@ -27,10 +29,49 @@ def test_orm_loader(loader_parameters):
 def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data, hash_query_results):
     columns = ['dumb', 'id', 'dumber']
     loader = ORMLoaderTask(loader_parameters)
-    row_hashes = loader._generate_row_hashes(hash_data, columns)
+    primary_key = 'id'
+    row_hashes = loader._generate_row_hashes(columns, hash_data, primary_key)
 
-    for generated_hash, db_hash in zip(row_hashes, hash_query_results['md5']):
+    for generated_hash, db_hash in zip(row_hashes['md5'], hash_query_results['md5']):
         assert generated_hash == db_hash
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_select_new_data(table_parameters, expected_data):
+    loader = ORMLoaderTask(loader_parameters)
+
+    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
+                                             table_parameters.primary_key)
+    table_parameters.incoming_hashes = row_hashes
+
+    new_data = loader._select_new_data(table_parameters)
+
+    assert expected_data['new'].equals(new_data)
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_select_deleted_data(table_parameters, expected_data):
+    loader = ORMLoaderTask(loader_parameters)
+
+    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
+                                             table_parameters.primary_key)
+    table_parameters.incoming_hashes = row_hashes
+
+    deleted_data = loader._select_deleted_data(table_parameters)
+
+    assert expected_data['deleted'].equals(deleted_data)
+
+
+def test_select_updated_data(table_parameters, expected_data):
+    loader = ORMLoaderTask(loader_parameters)
+
+    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
+                                             table_parameters.primary_key)
+    table_parameters.incoming_hashes = row_hashes
+
+    updated_data = loader._select_updated_data(table_parameters)
+
+    assert expected_data['updated'].equals(updated_data)
 
 
 # pylint: disable=blacklisted-name
@@ -125,3 +166,47 @@ def hash_query_results():
             ]
         }
     )
+
+
+# pylint: disable=blacklisted-name
+@pytest.fixture
+def incoming_data():
+    data = {'dumb': ['apples', 'oranges', 'grapes'],
+            'id': [1, 2, 4],
+            'dumber': ['good', 'yummy', 'yum']}
+
+    return pandas.DataFrame.from_dict(data)
+
+
+# pylint: disable=blacklisted-name
+@pytest.fixture
+def expected_data():
+    new_data = pandas.DataFrame.from_dict({'dumb': ['grapes'],
+                                           'id': [4],
+                                           'dumber': ['yum']})
+
+    updated_data = pandas.DataFrame.from_dict({'dumb': ['apples'],
+                                               'id': [1],
+                                               'dumber': ['good']})
+
+    deleted_data = pandas.DataFrame.from_dict({'id': [3],
+                                               'md5': ['1409af11b29204e49ca9b8fe834b8270']})
+
+    return {'new': new_data,
+            'updated': updated_data,
+            'deleted': deleted_data}
+
+
+@pytest.fixture
+def table_parameters(incoming_data, hash_query_results):
+    data = incoming_data
+    model_class = 'test.datalabs.access.model.Foo'
+    table = 'foo'
+    primary_key = 'id'
+    columns = ['dumb', 'id', 'dumber']
+    current_hashes = hash_query_results
+    incoming_hashes = None
+
+    table_parameters = TableParameters(data, table, model_class, primary_key, columns, current_hashes, incoming_hashes)
+
+    return table_parameters
