@@ -21,26 +21,29 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _transform_dataframes(cls, dataframes):
-        dataframes[1].pgm_id = dataframes[1].pgm_id.astype(str)
-        dataframes[2].pgm_id = dataframes[2].pgm_id.astype(str)
-        dataframes[3].ins_id = dataframes[3].ins_id.astype(str)
-        dataframes[4].ins_id = dataframes[4].ins_id.astype(str)
+        addresses = dataframes[1].pgm_id.astype(str)
+        program_personnel_member = dataframes[2].pgm_id.astype(str)
+        program_institution = dataframes[3].ins_id.astype(str)
+        institution_info = dataframes[4].ins_id.astype(str)
 
-        dataframes[0] = dataframes[0].loc[(dataframes[0]['pgm_activity_code'] == '0')].reset_index(drop=True)
-        dataframes[1] = dataframes[1].loc[(dataframes[1]['addr_type'] == 'D')].reset_index(drop=True)
-        dataframes[3] = dataframes[3].loc[(dataframes[3]['affiliation_type'] == 'S')].reset_index(drop=True)
+        programs = dataframes[0].loc[(dataframes[0]['pgm_activity_code'] == '0')].reset_index(drop=True)
+        addresses = addresses.loc[(addresses['addr_type'] == 'D')].reset_index(drop=True)
+        program_institution = program_institution.loc[
+            (program_institution['affiliation_type'] == 'S')
+        ].reset_index(drop=True)
 
-        program_information = pandas.merge(dataframes[0], dataframes[1], on='pgm_id')
-        program_information = pandas.merge(program_information, dataframes[3], on='pgm_id')
+        program_information = pandas.merge(programs, addresses, on='pgm_id')
+        program_information = pandas.merge(program_information, program_institution[['pgm_id', 'ins_id']], on='pgm_id')
 
-        program_institution = pandas.merge(dataframes[3], dataframes[4], on='ins_id')
+        institution_info = institution_info.loc[
+            (institution_info['ins_affiliation_type'] == 'S')
+        ].reset_index(drop=True)
 
-        program_personnel_member = dataframes[2]
         primary_keys = [column['pgm_id'] + column['aamc_id']
                         for index, column in program_personnel_member.iterrows()]
         program_personnel_member['id'] = primary_keys
 
-        return [program_information, program_personnel_member, program_institution]
+        return [program_information, program_personnel_member, institution_info]
 
     def _get_columns(self):
         return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]

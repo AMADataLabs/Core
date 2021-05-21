@@ -32,10 +32,10 @@ spec:
         - name: GIT_SYNC_ONE_TIME
           value: true
       volumeMounts:
-        - name: git-ssh-key
+        - name: id-rsa
           subPath: id_rsa
           mountPath: /.ssh/id_rsa
-        - name: git-ssh-key
+        - name: git-ssh
           subPath: known_hosts
           mountPath: /.ssh/known_hosts
         - name: repo
@@ -113,14 +113,19 @@ spec:
     - name: airflow-local-settings
       configMap:
         name: airflow-scheduler
-    - name: git-ssh-key
+    - name: id-rsa
+      secret:
+        secretName: bitbucketprd
+        defaultMode: 420
+        items:
+          - key: ssh-privatekey
+            mode: 288
+            path: id_rsa
+    - name: git-ssh
       secret:
         secretName: airflow-init
         defaultMode: 420
         items:
-          - key: id_rsa
-            mode: 288
-            path: id_rsa
           - key: known_hosts
             mode: 288
             path: known_hosts
