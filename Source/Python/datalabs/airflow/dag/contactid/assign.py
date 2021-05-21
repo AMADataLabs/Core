@@ -7,7 +7,12 @@ from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
 
 
-DOCKER_IMAGE = 'harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.3'
+DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
+IMAGES = dict(
+    dev='harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.3',
+    prod='harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.3'
+)
+DOCKER_IMAGE = IMAGES[DEPLOYMENT_ID]
 ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='contact-id-etl'))
 ADVANTAGE_SECRET = Secret('env', None, 'contact-id-etl-advantage')
 ORGMANAGER_SECRET = Secret('env', None, 'contact-id-etl-orgmanager')
