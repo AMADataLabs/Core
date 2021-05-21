@@ -494,7 +494,7 @@ class Census(Base):
     black = sa.Column(sa.Integer, nullable=False)
     indian = sa.Column(sa.Integer, nullable=False)
     asian = sa.Column(sa.Integer, nullable=False)
-    hawaian = sa.Column(sa.Integer, nullable=False)
+    hawaiian = sa.Column(sa.Integer, nullable=False)
     race_other = sa.Column(sa.Integer, nullable=False)
     hispanic = sa.Column(sa.Integer, nullable=False)
     age_0_to_4 = sa.Column(sa.Integer, nullable=False)

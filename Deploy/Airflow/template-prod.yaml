@@ -140,7 +140,7 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        dockerfilePath: Build/Airflow/Dockerfile
+        dockerfilePath: Build/Airflow/Dockerfile-prod
         from:
           kind: ImageStreamTag
           name: python:3.7
@@ -163,18 +163,18 @@ objects:
       AIRFLOW_GPL_UNIDECODE: 'yes'
       AIRFLOW_HOME: /home/airflow
       AIRFLOW__CORE__DAGS_FOLDER: /home/airflow/repo/hs-datalabs/Source/Python/datalabs/airflow/dag
-      AIRFLOW__CORE__DEFAULT_IMPERSONATION: '1000280000'
+      AIRFLOW__CORE__DEFAULT_IMPERSONATION: '1000130000'
       AIRFLOW__CORE__EXECUTOR: KubernetesExecutor
       AIRFLOW__CORE__HOSTNAME_CALLABLE: socket.gethostname
       AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
       AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag
       AIRFLOW__KUBERNETES__DELETE_WORKER_PODS: 'False'
       AIRFLOW__KUBERNETES__ENV_FROM_CONFIGMAP_REF: airflow-scheduler
-      AIRFLOW__KUBERNETES__FS_GROUP: '1000280000'
+      AIRFLOW__KUBERNETES__FS_GROUP: '1000130000'
       AIRFLOW__KUBERNETES__IN_CLUSTER: 'True'
       AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-prod
       AIRFLOW__KUBERNETES__POD_TEMPLATE_FILE: /home/airflow/worker.yaml
-      AIRFLOW__KUBERNETES__RUN_AS_USER: '1000280000'
+      AIRFLOW__KUBERNETES__RUN_AS_USER: '1000130000'
       AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: docker-registry.default.svc:5000/hsg-data-labs-prod/airflow-worker
       AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: 1.0.3
       AIRFLOW__LOGGING__LOGGING_LEVEL: WARN
@@ -447,7 +447,7 @@ objects:
         from:
           kind: ImageStreamTag
           name: postgresql:9.6
-          namespace: hsg-data-labs-prod
+          namespace: openshift
         lastTriggeredImage: ""
       type: ImageChange
     - type: ConfigChange
@@ -585,6 +585,16 @@ objects:
           ports:
           - containerPort: 8080
             protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           terminationMessagePath: /dev/termination-log
           volumeMounts:
           - name: ${APPLICATION_NAME}-shared
@@ -593,7 +603,7 @@ objects:
             mountPath: /home/airflow/repo
 
         securityContext:
-            fsGroup: 1000280000
+            fsGroup: 1000130000
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         volumes:
@@ -627,16 +637,6 @@ objects:
         from:
           kind: ImageStreamTag
           name: airflow:latest
-          namespace: hsg-data-labs-prod
-        lastTriggeredImage: ""
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - airflow-sync
-        from:
-          kind: ImageStreamTag
-          name: airflow-sync:latest
           namespace: hsg-data-labs-prod
         lastTriggeredImage: ""
     - type: ImageChange
