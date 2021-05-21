@@ -1,0 +1,126 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dummy-name
+  namespace: hsg-data-labs-dev
+spec:
+  initContainers:
+    - name: git-sync
+      image: "k8s.gcr.io/git-sync:v3.1.6"
+      env:
+        - name: GIT_SYNC_REV
+          value: "HEAD"
+        - name: GIT_SYNC_BRANCH
+          value: "master"
+        - name: GIT_SYNC_REPO
+          value: "git@bitbucket.org:amaappdev/hs-datalabs.git"
+        - name: GIT_SYNC_DEPTH
+          value: "1"
+        - name: GIT_SYNC_SUBMODULES
+          value: off
+        - name: GIT_SYNC_ROOT
+          value: "/home/airflow/repo"
+        - name: GIT_SYNC_DEST
+          value: "hs-datalabs"
+        - name: GIT_SYNC_ADD_USER
+          value: "true"
+        - name: GIT_SYNC_WAIT
+          value: "60"
+        - name: GIT_SYNC_MAX_SYNC_FAILURES
+          value: "0"
+        - name: GIT_SYNC_ONE_TIME
+          value: true
+      volumeMounts:
+        - name: git-ssh-key
+          subPath: id_rsa
+          mountPath: /.ssh/id_rsa
+        - name: git-ssh-key
+          subPath: known_hosts
+          mountPath: /.ssh/known_hosts
+        - name: repo
+          mountPath: /home/airflow/repo
+  containers:
+    - name: base
+      image: dummy_image
+      args: []
+      command: []
+      env:
+        # Hard Coded Airflow Envs
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: LocalExecutor
+        - name: AIRFLOW__LOGGING__LOGGING_LEVEL
+          value: DEBUG
+        # ConfigMap Airflow Envs
+        - name: DATABASE_HOST
+          valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: database-host
+        - name: DATABASE_NAME
+          valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: database-name
+        - name: DATABASE_USER
+          valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: database-user
+        - name: DATABASE_PASSWORD
+          valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: database-password
+        - name: AIRFLOW__CORE__FERNET_KEY
+          valueFrom:
+              secretKeyRef:
+                name: airflow
+                key: fernet-key
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: postgresql+psycopg2://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):5432/$(DATABASE_NAME)
+        - name: AIRFLOW_CONN_AIRFLOW_DB
+          value: postgresql+psycopg2://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST):5432/$(DATABASE_NAME)
+      envFrom: []
+      image: dummy_image
+      imagePullPolicy: IfNotPresent
+      ports: []
+      volumeMounts:
+        - name: airflow-logs
+          mountPath: /home/airflow/logs
+        - name: repo
+          mountPath: /home/airflow/repo
+          readOnly: true
+  hostNetwork: false
+  restartPolicy: Never
+  securityContext:
+    runAsUser: 1000130000
+    fsGroup: 1000130000
+  nodeSelector:
+    {}
+  affinity:
+    {}
+  tolerations:
+    []
+  volumes:
+    - name: repo
+      emptyDir: {}
+    - name: airflow-logs
+      emptyDir: {}
+    - name: airflow-config
+      configMap:
+        name: airflow-scheduler
+    - name: airflow-local-settings
+      configMap:
+        name: airflow-scheduler
+    - name: git-ssh-key
+      secret:
+        secretName: airflow-init
+        defaultMode: 420
+        items:
+          - key: id_rsa
+            mode: 288
+            path: id_rsa
+          - key: known_hosts
+            mode: 288
+            path: known_hosts
