@@ -16,9 +16,9 @@ class IQVIATransformerTask(TransformerTask):
     def _to_dataframe(self):
         iqvia_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
         provider_affiliation_data = iqvia_data[2]
-        primary_keys = [column['IMS_ORG_ID'] + column['PROFESSIONAL_ID']
-                        for index, column in provider_affiliation_data.iterrows()]
 
+        primary_keys = [str(column['IMS_ORG_ID']) + str(column['PROFESSIONAL_ID'])
+                        for index, column in provider_affiliation_data.iterrows()]
         provider_affiliation_data['id'] = primary_keys
 
         return [iqvia_data[0], iqvia_data[1], provider_affiliation_data]
