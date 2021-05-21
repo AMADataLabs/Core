@@ -194,7 +194,7 @@ objects:
       AIRFLOW__CORE__HOSTNAME_CALLABLE: socket.gethostname
       AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
       AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag
-      AIRFLOW__KUBERNETES__GIT_BRANCH: master
+      AIRFLOW__KUBERNETES__GIT_BRANCH: dev
       AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: /home/airflow/dags
       AIRFLOW__KUBERNETES__GIT_REPO: 'git@bitbucket.org:hsdatalabs/hsg-data-labs.git'
       AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-dev
@@ -530,7 +530,7 @@ objects:
           - name: GIT_SYNC_REV
             value: "HEAD"
           - name: GIT_SYNC_BRANCH
-            value: "master"
+            value: "dev"
           - name: GIT_SYNC_REPO
             value: "git@bitbucket.org:amaappdev/hs-datalabs.git"
           - name: GIT_SYNC_DEPTH
