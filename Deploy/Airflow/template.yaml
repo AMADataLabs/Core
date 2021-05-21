@@ -447,7 +447,7 @@ objects:
         from:
           kind: ImageStreamTag
           name: postgresql:9.6
-          namespace: hsg-data-labs-dev
+          namespace: openshift
         lastTriggeredImage: ""
       type: ImageChange
     - type: ConfigChange
@@ -506,6 +506,15 @@ objects:
           envFrom:
           - configMapRef:
               name: airflow-scheduler
+          livenessProbe:
+            exec:
+              command:
+                - /usr/local/bin/airflow jobs check
+            failureThreshold: 3
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           terminationMessagePath: /dev/termination-log
           volumeMounts:
           - mountPath: /home/airflow/shared
@@ -585,6 +594,16 @@ objects:
           ports:
           - containerPort: 8080
             protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           terminationMessagePath: /dev/termination-log
           volumeMounts:
           - name: ${APPLICATION_NAME}-shared
