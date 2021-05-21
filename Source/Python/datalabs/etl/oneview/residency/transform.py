@@ -28,7 +28,9 @@ class ResidencyTransformerTask(TransformerTask):
 
         programs = dataframes[0].loc[(dataframes[0]['pgm_activity_code'] == '0')].reset_index(drop=True)
         addresses = addresses.loc[(addresses['addr_type'] == 'D')].reset_index(drop=True)
-        program_institution = program_institution.loc[(program_institution['affiliation_type'] == 'S')].reset_index(drop=True)
+        program_institution = program_institution.loc[
+            (program_institution['affiliation_type'] == 'S')
+        ].reset_index(drop=True)
 
         program_information = pandas.merge(programs, addresses, on='pgm_id')
         program_information = pandas.merge(program_information, program_institution[['pgm_id', 'ins_id']], on='pgm_id')
