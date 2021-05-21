@@ -506,6 +506,15 @@ objects:
           envFrom:
           - configMapRef:
               name: airflow-scheduler
+          livenessProbe:
+            exec:
+              command:
+                - /usr/local/bin/airflow jobs check
+            failureThreshold: 3
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           terminationMessagePath: /dev/termination-log
           volumeMounts:
           - mountPath: /home/airflow/shared
