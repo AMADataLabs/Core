@@ -447,7 +447,7 @@ objects:
         from:
           kind: ImageStreamTag
           name: postgresql:9.6
-          namespace: hsg-data-labs-dev
+          namespace: openshift
         lastTriggeredImage: ""
       type: ImageChange
     - type: ConfigChange
@@ -627,16 +627,6 @@ objects:
         from:
           kind: ImageStreamTag
           name: airflow:latest
-          namespace: hsg-data-labs-dev
-        lastTriggeredImage: ""
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - airflow-sync
-        from:
-          kind: ImageStreamTag
-          name: airflow-sync:latest
           namespace: hsg-data-labs-dev
         lastTriggeredImage: ""
     - type: ImageChange
