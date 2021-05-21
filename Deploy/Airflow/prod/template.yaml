@@ -88,7 +88,7 @@ objects:
     output:
       to:
         kind: ImageStreamTag
-        name: airflow-worker:1.0.3
+        name: airflow-worker:4
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -176,7 +176,7 @@ objects:
       AIRFLOW__KUBERNETES__POD_TEMPLATE_FILE: /home/airflow/worker.yaml
       AIRFLOW__KUBERNETES__RUN_AS_USER: '1000130000'
       AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: docker-registry.default.svc:5000/hsg-data-labs-prod/airflow-worker
-      AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: 1.0.3
+      AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: 1.0.4
       AIRFLOW__LOGGING__LOGGING_LEVEL: WARN
       AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: '60'
       AIRFLOW__WEBSERVER__RBAC: 'True'
