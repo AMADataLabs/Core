@@ -509,7 +509,9 @@ objects:
           livenessProbe:
             exec:
               command:
-                - /usr/local/bin/airflow jobs check
+                - /usr/local/bin/airflow
+                - jobs
+                - check
             failureThreshold: 3
             initialDelaySeconds: 60
             periodSeconds: 10
@@ -600,7 +602,7 @@ objects:
               path: /health
               port: 8080
               scheme: HTTP
-            initialDelaySeconds: 60
+            initialDelaySeconds: 90
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 5
