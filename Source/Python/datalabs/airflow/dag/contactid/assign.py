@@ -94,50 +94,50 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     #     get_logs=True,
     # )
     #
-    # ASSIGN_EXISTING_CONTACT_IDS = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="assign_existing_contact_ids",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[MINIO_SECRET],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask')},
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=False,
-    #     in_cluster=True,
-    #     task_id="assign_existing_contact_ids",
-    #     get_logs=True,
-    # )
+    ASSIGN_EXISTING_CONTACT_IDS = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        name="assign_existing_contact_ids",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.contactid.idassign.transform.ContactIDAssignTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="assign_existing_contact_ids",
+        get_logs=True,
+    )
     #
-    # MERGE_AND_GENERATE_NEW_IDS = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     name="merge_and_generate_new_ids",
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[MINIO_SECRET],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask')},
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=False,
-    #     in_cluster=True,
-    #     task_id="merge_and_generate_new_ids",
-    #     get_logs=True,
-    # )
+    MERGE_AND_GENERATE_NEW_IDS = KubernetesPodOperator(
+        namespace='hsg-data-labs-dev',
+        image=DOCKER_IMAGE,
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        name="merge_and_generate_new_ids",
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
+        do_xcom_push=False,
+        is_delete_operator_pod=False,
+        in_cluster=True,
+        task_id="merge_and_generate_new_ids",
+        get_logs=True,
+    )
     #
-    # DELIVER_OUTPUT_FILES = KubernetesPodOperator(
-    #     namespace='hsg-data-labs-dev',
-    #     image=DOCKER_IMAGE,
-    #     name="deliver_output_files",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[DATABASE_SECRET, MINIO_SECRET],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask')},
-    #     do_xcom_push=False,
-    #     is_delete_operator_pod=False,
-    #     in_cluster=True,
-    #     task_id="deliver_output_files",
-    #     get_logs=True,
-    # )
+    DELIVER_OUTPUT_FILES = KubernetesPodOperator(
+         namespace='hsg-data-labs-dev',
+         image=DOCKER_IMAGE,
+         name="deliver_output_files",
+         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+         env_from=[ETL_CONFIG],
+         ecrets=[VALID_EFT_SECRET, MINIO_SECRET],
+         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask')},
+         do_xcom_push=False,
+         is_delete_operator_pod=False,
+         in_cluster=True,
+         task_id="deliver_output_files",
+         get_logs=True,
+     )
     #
     # UPDATE_SEED_FILES = KubernetesPodOperator(
     #     namespace='hsg-data-labs-dev',
@@ -155,10 +155,11 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     # )
 
 
-EXTRACT_ADVANTAGE
-EXTRACT_VALID
-EXTRACT_ORG_MANAGER
 
+EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
+EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
+EXTRACT_ORG_MANAGER >> ASSIGN_EXISTING_CONTACT_IDS
+EXTRACT_SEED_FILES >> ASSIGN_EXISTING_CONTACT_IDS
 # EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
 # EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
 # EXTRACT_ORG_MANAGER >> ASSIGN_EXISTING_CONTACT_IDS
