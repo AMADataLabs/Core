@@ -25,7 +25,7 @@ class TransformerTask(etl.TransformerTask, ABC):
 
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(d) for d in postprocessed_data]
+        return [self._dataframe_to_csv(data) for data in postprocessed_data]
 
     @classmethod
     def _csv_to_dataframe(cls, file):
