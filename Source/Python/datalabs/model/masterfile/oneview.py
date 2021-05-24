@@ -221,6 +221,7 @@ class ResidencyProgramInstitution(Base):
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     name = sa.Column(sa.String)
+    affiliation = sa.Column(sa.String)
     primary_clinical_location = sa.Column(sa.String)
     last_update_date = sa.Column(sa.Date)
 
