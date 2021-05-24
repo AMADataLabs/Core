@@ -382,6 +382,7 @@ class CredentialingOrder(Base):
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
     date = sa.Column(sa.String, nullable=False)
+    quantity = sa.Column(sa.String, nullable=False)
     person_id = sa.Column(sa.String, nullable=False)
     unique_physician_identification_number = sa.Column(sa.String, nullable=False)
 
