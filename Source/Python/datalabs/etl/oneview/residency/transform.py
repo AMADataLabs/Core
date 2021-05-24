@@ -22,6 +22,7 @@ class ResidencyTransformerTask(TransformerTask):
     @classmethod
     def _transform_dataframes(cls, dataframes):
         addresses = dataframes[1].pgm_id.astype(str)
+        LOGGER.info(addresses)
         program_personnel_member = dataframes[2].pgm_id.astype(str)
         program_institution = dataframes[3].ins_id.astype(str)
         institution_info = dataframes[4].ins_id.astype(str)
