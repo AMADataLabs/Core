@@ -2,12 +2,12 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   annotations:
-    openshift.io/description: Airflow worker
+    openshift.io/description: Airflow scheduler and web server
     openshift.io/display-name: Airflow
   creationTimestamp: null
   labels:
     app: Airflow
-  name: airflow-worker
+  name: airflow
   namespace: hsg-data-labs-dev
 spec:
   failedBuildsHistoryLimit: 5
@@ -15,20 +15,20 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: airflow-worker:1.0.3
+      name: airflow:latest
   postCommit: {}
   resources: {}
   runPolicy: Serial
   source:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-      # ref: story/DL-1260
+      ref: dev
     sourceSecret:
       name: bitbucketprd
     type: Git
   strategy:
     dockerStrategy:
-      dockerfilePath: Build/Airflow/Worker/Dockerfile
+      dockerfilePath: Build/Airflow/dev/Dockerfile
       from:
         kind: ImageStreamTag
         name: python:3.7
