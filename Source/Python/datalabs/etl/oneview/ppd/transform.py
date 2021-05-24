@@ -13,14 +13,7 @@ LOGGER.setLevel(logging.INFO)
 
 
 class PPDTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        ppd_npi_data = [pandas.read_csv(BytesIO(file)) for file in self._parameters['data']]
-        physician_data = self._merge_data(ppd_npi_data)
-
-        return [physician_data]
-
-    @classmethod
-    def _merge_data(cls, data):
+    def _preprocess_data(self, data):
         npi_table = data[1][['PARTY_ID', 'KEY_TYPE_ID', 'KEY_VAL', 'ACTIVE_IND']]
         ppd_table = data[0]
 
@@ -36,7 +29,7 @@ class PPDTransformerTask(TransformerTask):
         merged_npi_me = pandas.merge(medical_education_number, npi, on='PARTY_ID', how="left").drop(columns=['PARTY_ID'])
         ppd_npi = pandas.merge(ppd_table, merged_npi_me, on='ME_NUMBER', how="left")
 
-        return ppd_npi
+        return [ppd_npi]
 
     def _get_columns(self):
         return [PPD_COLUMNS]
