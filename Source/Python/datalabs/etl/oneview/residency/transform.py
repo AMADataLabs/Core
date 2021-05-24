@@ -29,6 +29,7 @@ class ResidencyTransformerTask(TransformerTask):
 
         program_institution = dataframes[3]
         program_institution.pgm_id = program_institution.pgm_id.astype(str)
+        program_institution.ins_id = program_institution.ins_id.astype(str)
 
         institution_info = dataframes[4]
 
@@ -43,6 +44,8 @@ class ResidencyTransformerTask(TransformerTask):
 
         program_information = pandas.merge(programs, addresses, on='pgm_id')
         program_information = pandas.merge(program_information, program_institution[['pgm_id', 'ins_id']], on='pgm_id')
+        institution_info = pandas.merge(institution_info, program_institution[['ins_id', 'pri_clinical_loc_ind']],
+                                        on='ins_id')
 
         program_personnel_member = cls._generate_primary_keys(program_personnel_member)
 
