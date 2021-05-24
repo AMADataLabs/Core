@@ -14,7 +14,6 @@ ORDER_COLUMNS = {
     'UPIN_NBR': 'unique_physician_identification_number',
     'MED_EDU_NBR': 'medical_education_number',
     'FULL_DT': 'date',
-    'PERSON_ID': 'person_id'
 }
 
 CUSTOMER_ADDRESSES_COLUMNS = {

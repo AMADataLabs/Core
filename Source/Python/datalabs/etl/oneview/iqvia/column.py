@@ -4,7 +4,7 @@ BUSINESS_COLUMNS = {
     'IMS_ORG_ID': 'id',
     'BUSINESS_NAME': 'name',
     'DBA_NAME': 'doing_business_as',
-    'ADDRESS_ID': 'address_id',
+    'ADDRESS_ID': 'iqvia_address_id',
     'PHYSICAL_ADDR_1': 'physical_address_1',
     'PHYSICAL_ADDR_2': 'physical_address_2',
     'PHYSICAL_CITY': 'physical_city',
@@ -62,7 +62,7 @@ PROVIDER_COLUMNS = {
     'TERTIARY_SPEC': 'tertiary_specialty',
     'PRIMARY_PROF_CODE': 'primary_profession',
     'PRIMARY_PROF_DESC': 'primary_profession_description',
-    'UPIN': 'universal_provider_identification',
+    'UPIN': 'unique_physician_identifier_number ',
     'NPI': 'national_provider_identifier',
     'STATUS_DESC': 'status_description',
     'BATCH_BUSINESS_DATE': 'batch_business_date'

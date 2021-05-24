@@ -311,7 +311,7 @@ class Provider(Base):
     tertiary_specialty = sa.Column(sa.String)
     primary_profession = sa.Column(sa.String)
     primary_profession_description = sa.Column(sa.String)
-    universal_provider_identification = sa.Column(sa.String)
+    unique_physician_identifier_number  = sa.Column(sa.String)
     national_provider_identifier = sa.Column(sa.String)
     status_description = sa.Column(sa.String)
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
@@ -383,7 +383,6 @@ class CredentialingOrder(Base):
                                          nullable=False)
     date = sa.Column(sa.String, nullable=False)
     quantity = sa.Column(sa.String, nullable=False)
-    person_id = sa.Column(sa.String, nullable=False)
     unique_physician_identification_number = sa.Column(sa.String, nullable=False)
 
 
