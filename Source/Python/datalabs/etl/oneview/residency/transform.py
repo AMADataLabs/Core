@@ -39,7 +39,7 @@ class ResidencyTransformerTask(TransformerTask):
             (institution_info['ins_affiliation_type'] == 'S')
         ].reset_index(drop=True)
 
-        primary_keys = [column['pgm_id'] + column['aamc_id']
+        primary_keys = [str(column['pgm_id']) + str(column['aamc_id'])
                         for index, column in program_personnel_member.iterrows()]
         program_personnel_member['id'] = primary_keys
 
