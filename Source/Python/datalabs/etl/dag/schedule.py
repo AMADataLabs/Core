@@ -11,23 +11,19 @@ import schedule
 
 import datalabs.etl.transform as etl
 from   datalabs.parameter import add_schema
+from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-@add_schema
+@add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class DAGScheduleTransformerParameters:
-    state_lock_table: str
-    dag_state_table: str
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
-    execution_time: str = None
+    state_class: str
+    unknowns: dict = None
     data: object = None
 
 
@@ -48,14 +44,10 @@ class DAGScheduleTransformerTask(etl.ExecutionTimeMixin, etl.TransformerTask):
         return [data.encode('utf-8', errors='backslashreplace') for data in dag_names]
 
     def _determine_dags_to_run(self, schedule):
-        with AWSClient(
-            'dynamodb',
-            endpoint_url=self._parameters.endpoint_url,
-            aws_access_key_id=self._parameters.access_key,
-            aws_secret_access_key=self._parameters.secret_key,
-            region_name=self._parameters.region_name
-        ) as dynamodb:
-            schedule["started"] = [self._is_scheduled(name, dynamodb) for name in schedule.name]
+        state = self._get_state_plugin()
+
+        # FIXME
+        schedule["started"] = [self._is_scheduled(name, dynamodb) for name in schedule.name]
 
         return schedule.name[schedule.started == False]
 
@@ -67,3 +59,11 @@ class DAGScheduleTransformerTask(etl.ExecutionTimeMixin, etl.TransformerTask):
         self._unlock_state(dynamodb, name)
 
         return state["status"] == 'Pending' or state["status"] == 'Started'
+
+    def _get_state_plugin(self):
+        parameters = self._parameters.unknowns
+        state_plugin = import_plugin(self._parameters.state_class)
+        state_parameter_keys = list(state_plugin.PARAMETER_CLASS.SCHEMA.fields.keys())
+        state_parameters = {key:value for key, value in parameters.items() if key in state_parameter_keys}
+
+        return state_plugin(state_parameters)
