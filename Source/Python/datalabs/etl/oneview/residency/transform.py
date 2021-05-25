@@ -33,8 +33,9 @@ class ResidencyTransformerTask(TransformerTask):
 
         institution_info = dataframes[4]
 
-        programs = dataframes[0].loc[(dataframes[0]['pgm_activity_code'] == '0')].reset_index(drop=True)
+        programs = dataframes[0].loc[(dataframes[0]['pgm_activity_code'] == 0)].reset_index(drop=True)
         addresses = addresses.loc[(addresses['addr_type'] == 'D')].reset_index(drop=True)
+        program_personnel_member = program_personnel_member.loc[(program_personnel_member['pers_type'] == 'D')]
         program_institution = program_institution.loc[
             (program_institution['affiliation_type'] == 'S')
         ].reset_index(drop=True)
