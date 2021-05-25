@@ -6,7 +6,7 @@ message: |-
     The following service(s) have been created in your project: ${APPLICATION_NAME}.
 metadata:
   name: airflow-persistent
-  namespace: hsg-data-labs-prod
+  namespace: hsg-data-labs-dev
   annotations:
     description: |-
       Airflow scheduler and webserver with a persistent PostgreSQL metadata backend.
@@ -30,7 +30,7 @@ objects:
     labels:
       app: Airflow
     name: airflow-worker
-    namespace: hsg-data-labs-prod
+    namespace: hsg-data-labs-dev
   spec:
     lookupPolicy:
       local: false
@@ -51,7 +51,7 @@ objects:
     labels:
       app: HSGDataLabsAirflow
     name: airflow
-    namespace: hsg-data-labs-prod
+    namespace: hsg-data-labs-dev
   spec:
     lookupPolicy:
       local: false
@@ -81,21 +81,21 @@ objects:
     labels:
       app: Airflow
     name: airflow-worker
-    namespace: hsg-data-labs-prod
+    namespace: hsg-data-labs-dev
   spec:
     failedBuildsHistoryLimit: 5
     nodeSelector: null
     output:
       to:
         kind: ImageStreamTag
-        name: airflow-worker:1.0.3
+        name: airflow-worker:1.0.4
     postCommit: {}
     resources: {}
     runPolicy: Serial
     source:
       git:
         uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-        ref: prod
+        ref: dev
       sourceSecret:
         name: bitbucketprd
       type: Git
@@ -120,7 +120,7 @@ objects:
     labels:
       app: Airflow
     name: airflow
-    namespace: hsg-data-labs-prod
+    namespace: hsg-data-labs-dev
   spec:
     failedBuildsHistoryLimit: 5
     nodeSelector: null
@@ -134,7 +134,7 @@ objects:
     source:
       git:
         uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-        ref: prod
+        ref: dev
       sourceSecret:
         name: bitbucketprd
       type: Git
@@ -158,7 +158,7 @@ objects:
   kind: ConfigMap
   metadata:
       name: airflow-scheduler
-      namespace: hsg-data-labs-prod
+      namespace: hsg-data-labs-dev
   data:
       AIRFLOW_GPL_UNIDECODE: 'yes'
       AIRFLOW_HOME: /home/airflow
@@ -172,11 +172,11 @@ objects:
       AIRFLOW__KUBERNETES__ENV_FROM_CONFIGMAP_REF: airflow-scheduler
       AIRFLOW__KUBERNETES__FS_GROUP: '1000280000'
       AIRFLOW__KUBERNETES__IN_CLUSTER: 'True'
-      AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-prod
+      AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-dev
       AIRFLOW__KUBERNETES__POD_TEMPLATE_FILE: /home/airflow/worker.yaml
       AIRFLOW__KUBERNETES__RUN_AS_USER: '1000280000'
-      AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: docker-registry.default.svc:5000/hsg-data-labs-prod/airflow-worker
-      AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: 1.0.3
+      AIRFLOW__KUBERNETES__WORKER_CONTAINER_REPOSITORY: docker-registry.default.svc:5000/hsg-data-labs-dev/airflow-worker
+      AIRFLOW__KUBERNETES__WORKER_CONTAINER_TAG: 1.0.4
       AIRFLOW__LOGGING__LOGGING_LEVEL: WARN
       AIRFLOW__SCHEDULER__DAG_DIR_LIST_INTERVAL: '60'
       AIRFLOW__WEBSERVER__RBAC: 'True'
@@ -185,7 +185,7 @@ objects:
   kind: ConfigMap
   metadata:
       name: airflow-webserver
-      namespace: hsg-data-labs-prod
+      namespace: hsg-data-labs-dev
   data:
       AIRFLOW_GPL_UNIDECODE: 'yes'
       AIRFLOW_HOME: /home/airflow
@@ -194,10 +194,10 @@ objects:
       AIRFLOW__CORE__HOSTNAME_CALLABLE: socket.gethostname
       AIRFLOW__CORE__LOAD_EXAMPLES: 'False'
       AIRFLOW__KUBERNETES__DAGS_VOLUME_SUBPATH: Source/Python/datalabs/dag
-      AIRFLOW__KUBERNETES__GIT_BRANCH: prod
+      AIRFLOW__KUBERNETES__GIT_BRANCH: dev
       AIRFLOW__KUBERNETES__GIT_DAGS_FOLDER_MOUNT_POINT: /home/airflow/dags
       AIRFLOW__KUBERNETES__GIT_REPO: 'git@bitbucket.org:hsdatalabs/hsg-data-labs.git'
-      AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-prod
+      AIRFLOW__KUBERNETES__NAMESPACE: hsg-data-labs-dev
       AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX: 'true'
       AIRFLOW__WEBSERVER__LOG_FETCH_TIMEOUT_SEC: '30'
       AIRFLOW__WEBSERVER__RBAC: 'True'
@@ -207,7 +207,7 @@ objects:
   type: Opaque
   metadata:
     name: airflow
-    namespace: hsg-data-labs-prod
+    namespace: hsg-data-labs-dev
     annotations:
       template.openshift.io/base64-expose-password: "{.data['database-host']}"
       template.openshift.io/base64-expose-password: "{.data['database-name']}"
@@ -215,7 +215,7 @@ objects:
       template.openshift.io/base64-expose-password: "{.data['database-password']}"
       template.openshift.io/base64-expose-password: "{.data['fernet-key']}"
   stringData:
-    database-host: hsg-data-labs-airflow-db.hsg-data-labs-prod.svc.cluster.local
+    database-host: hsg-data-labs-airflow-db.hsg-data-labs-dev.svc.cluster.local
     database-name: airflow
     database-user: airflow
     database-password: ${DATABASE_PASSWORD}
@@ -225,7 +225,7 @@ objects:
   kind: Secret
   metadata:
     name: airflow-init
-    namespace: hsg-data-labs-prod
+    namespace: hsg-data-labs-dev
   type: Opaque
   annotations:
     template.openshift.io/base64-expose-password: "{.data['known_hosts']}"
@@ -244,7 +244,7 @@ objects:
   kind: Role
   metadata:
     name: airflow
-    namespace: hsg-data-labs-prod
+    namespace: hsg-data-labs-dev
   rules:
   - apiGroups: [""] # "" indicates the core API group
     resources: ["pods"]
@@ -260,7 +260,7 @@ objects:
   kind: RoleBinding
   metadata:
     name: airflow
-    namespace: hsg-data-labs-prod
+    namespace: hsg-data-labs-dev
   roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: Role
@@ -268,7 +268,7 @@ objects:
   subjects:
   - kind: ServiceAccount
     name: default
-    namespace: hsg-data-labs-prod
+    namespace: hsg-data-labs-dev
 
 
 #######################################
@@ -322,7 +322,7 @@ objects:
     annotations:
       template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
   spec:
-    host: ${APPLICATION_NAME}.apps.openshift.ama-assn.org
+    host: ${APPLICATION_NAME}.apps.openshifttest.ama-assn.org
     port:
       targetPort: 8080
     tls:
@@ -447,7 +447,7 @@ objects:
         from:
           kind: ImageStreamTag
           name: postgresql:9.6
-          namespace: hsg-data-labs-prod
+          namespace: openshift
         lastTriggeredImage: ""
       type: ImageChange
     - type: ConfigChange
@@ -506,6 +506,17 @@ objects:
           envFrom:
           - configMapRef:
               name: airflow-scheduler
+          livenessProbe:
+            exec:
+              command:
+                - /usr/local/bin/airflow
+                - jobs
+                - check
+            failureThreshold: 3
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           terminationMessagePath: /dev/termination-log
           volumeMounts:
           - mountPath: /home/airflow/shared
@@ -519,7 +530,7 @@ objects:
           - name: GIT_SYNC_REV
             value: "HEAD"
           - name: GIT_SYNC_BRANCH
-            value: "prod"
+            value: "dev"
           - name: GIT_SYNC_REPO
             value: "git@bitbucket.org:amaappdev/hs-datalabs.git"
           - name: GIT_SYNC_DEPTH
@@ -585,6 +596,16 @@ objects:
           ports:
           - containerPort: 8080
             protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           terminationMessagePath: /dev/termination-log
           volumeMounts:
           - name: ${APPLICATION_NAME}-shared
@@ -627,7 +648,7 @@ objects:
         from:
           kind: ImageStreamTag
           name: airflow:latest
-          namespace: hsg-data-labs-prod
+          namespace: hsg-data-labs-dev
         lastTriggeredImage: ""
     - type: ImageChange
       imageChangeParams:
@@ -637,7 +658,7 @@ objects:
         from:
           kind: ImageStreamTag
           name: airflow-sync:latest
-          namespace: hsg-data-labs-prod
+          namespace: hsg-data-labs-dev
         lastTriggeredImage: ""
     - type: ImageChange
       imageChangeParams:
@@ -647,7 +668,7 @@ objects:
         from:
           kind: ImageStreamTag
           name: airflow:latest
-          namespace: hsg-data-labs-prod
+          namespace: hsg-data-labs-dev
         lastTriggeredImage: ""
     - type: ConfigChange
 
