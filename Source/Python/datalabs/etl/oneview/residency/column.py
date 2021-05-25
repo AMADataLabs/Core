@@ -34,7 +34,7 @@ PROGRAM_COLUMNS = {
     'last_upd_dt': 'last_update_date',
     'last_upd_type': 'last_update_type',
     'AOA_Ind': 'american_osteopathic_association_indicator',
-    'AOA_Program_ID': 'american_osteopathic_association_indicator_program_id',
+    'AOA_Program_ID': 'american_osteopathic_association_indicator_program',
     'Osteopathic_principles': 'osteopathic_principles',
     'addr1': 'address_1',
     'addr2': 'address_2',
