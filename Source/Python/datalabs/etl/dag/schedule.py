@@ -21,14 +21,14 @@ LOGGER.setLevel(logging.INFO)
 @add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class DAGScheduleTransformerParameters:
+class DAGSchedulerParameters:
     state_class: str
     unknowns: dict = None
     data: object = None
 
 
-class DAGScheduleTransformerTask(etl.ExecutionTimeMixin, etl.TransformerTask):
-    PARAMETER_CLASS = DAGScheduleTransformerParameters
+class DAGScheduler(etl.ExecutionTimeMixin, etl.TransformerTask):
+    PARAMETER_CLASS = DAGSchedulerParameters
 
     def _transform(self):
         LOGGER.info(self._parameters['data'])
@@ -46,17 +46,17 @@ class DAGScheduleTransformerTask(etl.ExecutionTimeMixin, etl.TransformerTask):
     def _determine_dags_to_run(self, schedule):
         state = self._get_state_plugin()
 
-        # FIXME
-        schedule["started"] = [self._is_scheduled(name, dynamodb) for name in schedule.name]
+        schedule["execution_time"] = schedule.apply(self._get_execution_time)
+
+        schedule["started"] = schedule.apply(lambda dag: self._is_started(state, dag))
 
         return schedule.name[schedule.started == False]
 
-    def _is_started(self, dynamodb, name):
-        self._lock_state(dynamodb, name)
+    def _get_execution_time(self, dag):
+        pass
 
-        state = self._get_state(dynamodb, name)
-
-        self._unlock_state(dynamodb, name)
+    def _is_started(self, state, dag):
+        state = state.get_status(dag['name'], dag['execution_time'])
 
         return state["status"] == 'Pending' or state["status"] == 'Started'
 
