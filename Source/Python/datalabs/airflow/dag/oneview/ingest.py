@@ -319,20 +319,20 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
-    # LOAD_RESIDENCY_TABLES_INTO_DATABASE = KubernetesPodOperator(
-    #     name="load_residency_tables_into_database",
-    #     task_id="load_residency_tables_into_database",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
-    # )
-    #
-    # LOAD_IQVIA_TABLES_INTO_DATABASE = KubernetesPodOperator(
-    #     name="load_iqvia_tables_into_database",
-    #     task_id="load_iqvia_tables_into_database",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
-    # )
-    #
+    LOAD_RESIDENCY_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        name="load_residency_tables_into_database",
+        task_id="load_residency_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_IQVIA_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        name="load_iqvia_tables_into_database",
+        task_id="load_iqvia_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
     # LOAD_RACE_ETHNICITY_TABLE_INTO_DATABASE = KubernetesPodOperator(
     #     name="load_race_ethnicity_table_into_database",
     #     task_id="load_race_ethnicity_table_into_database",
@@ -381,9 +381,9 @@ CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE >> LOAD_REFERENCE_TA
 EXTRACT_CORE_BASED_STATISTICAL_AREA >> CREATE_CORE_BASED_STATISTICAL_AREA_TABLE >> LOAD_REFERENCE_TABLES_INTO_DATABASE
 EXTRACT_SPECIALTY >> REMOVE_UNUSED_SPECIALTIES
 CREATE_PHYSICIAN_TABLE >> REMOVE_UNUSED_SPECIALTIES
-REMOVE_UNUSED_SPECIALTIES >> LOAD_REFERENCE_TABLES_INTO_DATABASE
-EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES  # >> LOAD_RESIDENCY_TABLES_INTO_DATABASE
-EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES # >> LOAD_IQVIA_TABLES_INTO_DATABASE
+REMOVE_UNUSED_SPECIALTIES # >> LOAD_REFERENCE_TABLES_INTO_DATABASE
+EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_RESIDENCY_TABLES_INTO_DATABASE
+EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_DATABASE
 EXTRACT_CREDENTIALING_MAIN >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
