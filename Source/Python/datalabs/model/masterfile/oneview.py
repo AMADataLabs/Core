@@ -188,7 +188,7 @@ class ResidencyProgram(Base):
     last_update_date = sa.Column(sa.Date)
     last_update_type = sa.Column(sa.String)
     american_osteopathic_association_indicator = sa.Column(sa.String)
-    american_osteopathic_association_indicator_program_id = sa.Column(sa.String)
+    american_osteopathic_association_indicator_program = sa.Column(sa.String)
     osteopathic_principles = sa.Column(sa.String)
     address_1 = sa.Column(sa.String)
     address_2 = sa.Column(sa.String)
@@ -221,6 +221,7 @@ class ResidencyProgramInstitution(Base):
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     name = sa.Column(sa.String)
+    affiliation = sa.Column(sa.String)
     primary_clinical_location = sa.Column(sa.String)
     last_update_date = sa.Column(sa.Date)
 
@@ -310,7 +311,7 @@ class Provider(Base):
     tertiary_specialty = sa.Column(sa.String)
     primary_profession = sa.Column(sa.String)
     primary_profession_description = sa.Column(sa.String)
-    universal_provider_identification = sa.Column(sa.String)
+    unique_physician_identification_number = sa.Column(sa.String)
     national_provider_identifier = sa.Column(sa.String)
     status_description = sa.Column(sa.String)
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
@@ -381,7 +382,7 @@ class CredentialingOrder(Base):
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
     date = sa.Column(sa.String, nullable=False)
-    person_id = sa.Column(sa.String, nullable=False)
+    quantity = sa.Column(sa.String, nullable=False)
     unique_physician_identification_number = sa.Column(sa.String, nullable=False)
 
 
