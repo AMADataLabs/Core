@@ -65,7 +65,6 @@ MEMBER_COLUMNS = {
 INSTITUTION_COLUMNS = {
     'ins_id': 'id',
     'ins_name': 'name',
-    'affiliation_type': 'affiliation',
     'pri_clinical_loc_ind': 'primary_clinical_location',
     'ins_affiliation_type': 'affiliation',
     'last_upd_dt': 'last_update_date'
