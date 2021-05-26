@@ -63,7 +63,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                 "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
                 f"WHERE  i.indrelid = f'{table}'::regclass AND i.indisprimary"
 
-        primary_key_table = pandas.read_sql(query, database)
+        primary_key_table = database.read(query)
 
         return primary_key_table['attname'][0]
 
@@ -71,7 +71,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _get_database_columns(cls, database, table):
         query = "SELECT * FROM information_schema.columns " \
                 f"WHERE table_schema = 'oneview' AND table_name = f'{table}';"
-        old_data = pandas.read_sql(query, database)
+        old_data = database.read(query)
 
         return old_data.columns
 
@@ -79,7 +79,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _get_current_row_hashes(cls, database, table, primary_key):
         get_current_hash = f"SELECT f'{primary_key}', md5(f'{table}'::TEXT) FROM f'{table}'"
 
-        return pandas.read_sql(get_current_hash, database)
+        return database.read(get_current_hash)
 
     @classmethod
     def _generate_row_hashes(cls, columns, data, primary_key):
@@ -133,7 +133,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         database_rows_query = f"SELECT * FROM {table_parameters.table} " \
                               f"WHERE {table_parameters.primary_key} IN {tuple(deleted_primary_keys)};"
 
-        deleted_data = pandas.read_sql(database_rows_query, database)
+        deleted_data = database.read(database_rows_query)
         models = [cls._create_model(table_parameters.model_class, row) for row in deleted_data.itertuples(index=False)]
 
         for model in models:
