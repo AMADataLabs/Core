@@ -60,12 +60,12 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     )
 
     EXTRACT_ORG_MANAGER = KubernetesPodOperator(
-         name="extract_org_manager",
-         task_id="extract_org_manager",
-         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-         env_from=[ETL_CONFIG],
-         secrets=[ORGMANAGER_SECRET, MINIO_SECRET],
-         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
+        name="extract_org_manager",
+        task_id="extract_org_manager",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ORGMANAGER_SECRET, MINIO_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
     EXTRACT_VALID = KubernetesPodOperator(
@@ -76,16 +76,16 @@ with CONTACT_ID_ASSIGNMENT_DAG:
          secrets=[VALID_EFT_SECRET, MINIO_SECRET],
          env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
      )
-    #
-    # EXTRACT_SEED_FILES = KubernetesPodOperator(
-    #     name="extract_seed_files",
-    #     task_id="extract_seed_files",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[ODS_SECRET, MINIO_SECRET],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.extract.S3FileExtractorTask')},
-    # )
-    #
+
+    EXTRACT_SEED_FILES = KubernetesPodOperator(
+        name="extract_seed_files",
+        task_id="extract_seed_files",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        ecrets=[MINIO_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.extract.S3FileExtractorTask')},
+    )
+
     ASSIGN_EXISTING_CONTACT_IDS = KubernetesPodOperator(
         name="assign_existing_contact_ids",
         task_id="assign_existing_contact_ids",
@@ -105,22 +105,22 @@ with CONTACT_ID_ASSIGNMENT_DAG:
     )
     #
     DELIVER_OUTPUT_FILES = KubernetesPodOperator(
-         name="deliver_output_files",
-         task_id="deliver_output_files",
-         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-         env_from=[ETL_CONFIG],
-         secrets=[VALID_EFT_SECRET, MINIO_SECRET],
-         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask')},
+        name="deliver_output_files",
+        task_id="deliver_output_files",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[VALID_EFT_SECRET, MINIO_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask')},
      )
-    #
-    # UPDATE_SEED_FILES = KubernetesPodOperator(
-    #     name="update_seed_files",
-    #     task_id="update_seed_files",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     # env_from=[ETL_CONFIG],
-    #     # secrets=[DATABASE_SECRET, MINIO_SECRET],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.load.S3FileLoaderTask')},
-    # )
+
+    UPDATE_SEED_FILES = KubernetesPodOperator(
+        name="update_seed_files",
+        task_id="update_seed_files",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[MINIO_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.load.S3FileLoaderTask')},
+    )
 
 
 
@@ -128,12 +128,6 @@ EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
 EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
 EXTRACT_ORG_MANAGER >> ASSIGN_EXISTING_CONTACT_IDS
 EXTRACT_SEED_FILES >> ASSIGN_EXISTING_CONTACT_IDS
-# EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
-# EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
-# EXTRACT_ORG_MANAGER >> ASSIGN_EXISTING_CONTACT_IDS
-# EXTRACT_SEED_FILES >> ASSIGN_EXISTING_CONTACT_IDS
-#
-# ASSIGN_EXISTING_CONTACT_IDS >> MERGE_AND_GENERATE_NEW_IDS
-#
-# MERGE_AND_GENERATE_NEW_IDS >> DELIVER_OUTPUT_FILES
-# MERGE_AND_GENERATE_NEW_IDS >> UPDATE_SEED_FILES
+ASSIGN_EXISTING_CONTACT_IDS >> MERGE_AND_GENERATE_NEW_IDS
+MERGE_AND_GENERATE_NEW_IDS >> DELIVER_OUTPUT_FILES
+MERGE_AND_GENERATE_NEW_IDS >> UPDATE_SEED_FILES
