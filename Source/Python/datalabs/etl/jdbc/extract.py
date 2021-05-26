@@ -75,9 +75,9 @@ class JDBCExtractorTask(ExtractorTask):
         result = None
 
         if self._parameters.chunk_size is not None:
-            result = self._read_chunked_query(query, connection, parquet)
+            result = self._read_chunked_query(query, connection)
         else:
-            result = self._read_single_query(query, connection, parquet)
+            result = self._read_single_query(query, connection)
 
         return result
 
@@ -107,12 +107,7 @@ class JDBCExtractorTask(ExtractorTask):
 
     @classmethod
     def _read_single_query(cls, query, connection):
-        results = pandas.read_sql(query, connection)
-
-        if csv:
-            results = results
-
-        return results
+        return pandas.read_sql(query, connection)
 
 
 class JDBCParquetExtractorTask(JDBCExtractorTask):
@@ -132,12 +127,14 @@ class JDBCParquetExtractorTask(JDBCExtractorTask):
             resolved_query = query.format(index=index, count=chunk_size)
 
             LOGGER.info('Reading chunk at index %d...', index)
-            chunk = self._read_single_query(resolved_query, connection)
+            chunk = super()._read_single_query(resolved_query, connection)
             LOGGER.info('Read %d records.', len(chunk))
 
             if len(chunk) > 0:
-                path = Path(directory.name, f'parquet_{index/chunk_size}'
-                results.to_parquet(path)
+                path = Path(directory.name, f'parquet_{index/chunk_size}')
+
+                chunk.to_parquet(path)
+
                 LOGGER.info('Wrote chunk to Parquet file %s', path)
                 index += chunk_size
 
@@ -147,7 +144,8 @@ class JDBCParquetExtractorTask(JDBCExtractorTask):
     def _read_single_query(cls, query, connection):
         directory = tempfile.TemporaryDirectory()
         results = pandas.read_sql(query, connection)
+        path = Path(directory.name, 'parquet_0')
 
-        results.to_parquet(Path(directory.name, 'parquet_0')
+        results.to_parquet(path)
 
         return directory
