@@ -1,6 +1,4 @@
 """ Oneview PPD Transformer"""
-from   io import BytesIO
-
 import logging
 import pandas
 
@@ -26,7 +24,9 @@ class PPDTransformerTask(TransformerTask):
         npi = npi_table.loc[npi_table['KEY_TYPE_ID'] == '38']
         npi = npi[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'npi'})
 
-        merged_npi_me = pandas.merge(medical_education_number, npi, on='PARTY_ID', how="left").drop(columns=['PARTY_ID'])
+        merged_npi_me = pandas.merge(medical_education_number, npi, on='PARTY_ID', how="left").drop(
+            columns=['PARTY_ID']
+        )
         ppd_npi = pandas.merge(ppd_table, merged_npi_me, on='ME_NUMBER', how="left")
 
         return [ppd_npi]
