@@ -77,10 +77,6 @@ class Database(Datastore):
 
         return url
 
-    @abstractmethod
-    def connect(self):
-        return self._connection
-
     def read(self, sql: str, **kwargs):
         return pandas.read_sql(sql, self._connection, **kwargs)
 
