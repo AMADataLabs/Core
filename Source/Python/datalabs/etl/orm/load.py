@@ -61,7 +61,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _get_primary_key(cls, database, table):
         query = "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i " \
                 "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
-                f"WHERE  i.indrelid = f'{table}'::regclass AND i.indisprimary"
+                f"WHERE  i.indrelid = 'oneview.{table}'::regclass AND i.indisprimary"
 
         primary_key_table = database.read(query)
 
