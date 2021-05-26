@@ -50,7 +50,7 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
         return [columns.CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS]
 
 
-class CredentialingCustomerInstitution(TransformerTask):
+class CredentialingCustomerInstitutionTransformerTask(TransformerTask):
     def _to_dataframe(self):
         credentialing_customer_residency_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
         credentialing_customer_residency_data = self._link_data(credentialing_customer_residency_data[0],
@@ -76,7 +76,7 @@ class CredentialingCustomerInstitution(TransformerTask):
         return [columns.CREDENTIALING_CUSTOMER_INSTITUTION_COLUMNS]
 
 
-class ResidencyProgramPhysician(TransformerTask):
+class ResidencyProgramPhysicianTransformerTask(TransformerTask):
     def _to_dataframe(self):
         residency_physician_data = [pandas.read_csv(BytesIO(csv) for csv in self._parameters['data'])]
         linked_residency_physician_data = self._linking_data(residency_physician_data)
