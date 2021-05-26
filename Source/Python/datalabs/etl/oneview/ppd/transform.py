@@ -12,10 +12,8 @@ LOGGER.setLevel(logging.INFO)
 
 class PPDTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
-        npi_table = data[1][['PARTY_ID', 'KEY_TYPE_ID', 'KEY_VAL', 'ACTIVE_IND']]
+        npi_table = data[1]
         ppd_table = data[0]
-
-        npi_table = npi_table.loc[npi_table['ACTIVE_IND'] == 'Y']
 
         medical_education_number = npi_table.loc[npi_table['KEY_TYPE_ID'] == '18']
         medical_education_number = medical_education_number[['PARTY_ID', 'KEY_VAL']].rename(columns=
