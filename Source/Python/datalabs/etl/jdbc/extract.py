@@ -1,6 +1,8 @@
 """ JDBC Extractor """
 from   dataclasses import dataclass
 import logging
+from   pathlib import Path
+import tempfile
 
 import jaydebeapi
 import pandas
@@ -56,7 +58,7 @@ class JDBCExtractorTask(ExtractorTask):
     def _read_queries(self, connection):
         queries = self._split_queries(self._parameters.sql)
 
-        return [self._read_query(query, connection).to_csv().encode('utf-8') for query in queries]
+        return [self._encode(self._read_query(query, connection)) for query in queries]
 
     @classmethod
     def _split_queries(cls, queries):
@@ -64,6 +66,10 @@ class JDBCExtractorTask(ExtractorTask):
         queries_split.pop()
 
         return [q.strip() for q in queries_split]
+
+    @classmethod
+    def _encode(cls, data):
+        return data.to_csv().encode('utf-8')
 
     def _read_query(self, query, connection):
         result = None
@@ -78,22 +84,68 @@ class JDBCExtractorTask(ExtractorTask):
     def _read_chunked_query(self, query, connection):
         chunk_size = int(self._parameters.chunk_size)
         index = 0
-        result = None
-        results = []
+        chunk = None
+        results = None
 
-        while result is None or len(result) > 0:
+        while chunk is None or len(chunk) > 0:
             resolved_query = query.format(index=index, count=chunk_size)
 
             LOGGER.info('Reading chunk at index %d...', index)
-            result = self._read_single_query(resolved_query, connection)
-            LOGGER.info('Read %d records.', len(result))
+            chunk = self._read_single_query(resolved_query, connection)
+            LOGGER.info('Read %d records.', len(chunk))
+            LOGGER.info('Chunk memory usage:\n%s', chunk.memory_usage(deep=True))
 
-            if len(result) > 0:
-                results.extend([result])
+            if len(chunk) > 0:
+                if results is None:
+                    results = chunk
+                else:
+                    results = pandas.concat([results, chunk], ignore_index=True)
+                LOGGER.info('Concatenated chunks memory usage:\n%s', chunk.memory_usage(deep=True))
                 index += chunk_size
 
-        return pandas.concat(results, ignore_index=True)
+        return results
 
     @classmethod
     def _read_single_query(cls, query, connection):
         return pandas.read_sql(query, connection)
+
+
+class JDBCParquetExtractorTask(JDBCExtractorTask):
+    PARAMETER_CLASS = JDBCExtractorParameters
+
+    @classmethod
+    def _encode(cls, data):
+        return data
+
+    def _read_chunked_query(self, query, connection):
+        directory = tempfile.TemporaryDirectory()
+        chunk_size = int(self._parameters.chunk_size)
+        index = 0
+        chunk = None
+
+        while chunk is None or len(chunk) > 0:
+            resolved_query = query.format(index=index, count=chunk_size)
+
+            LOGGER.info('Reading chunk at index %d...', index)
+            chunk = super()._read_single_query(resolved_query, connection)
+            LOGGER.info('Read %d records.', len(chunk))
+
+            if len(chunk) > 0:
+                path = Path(directory.name, f'parquet_{index/chunk_size}')
+
+                chunk.to_parquet(path)
+
+                LOGGER.info('Wrote chunk to Parquet file %s', path)
+                index += chunk_size
+
+        return directory
+
+    @classmethod
+    def _read_single_query(cls, query, connection):
+        directory = tempfile.TemporaryDirectory()
+        results = pandas.read_sql(query, connection)
+        path = Path(directory.name, 'parquet_0')
+
+        results.to_parquet(path)
+
+        return directory
