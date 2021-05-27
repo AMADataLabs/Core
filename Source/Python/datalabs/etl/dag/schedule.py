@@ -6,12 +6,13 @@ from   functools import partial
 from   io import BytesIO
 
 import botocore.exceptions
-from   contier import crontier
+from   croniter import croniter
 import csv
 import logging
 import pandas
 
-import datalabs.etl.transform as etl
+import datalabs.etl.task as task
+import datalabs.etl.transform as transform
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
 
@@ -30,43 +31,48 @@ class DAGSchedulerParameters:
     data: object = None
 
 
-class DAGScheduler(etl.ExecutionTimeMixin, etl.TransformerTask):
+class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
     PARAMETER_CLASS = DAGSchedulerParameters
 
     def _transform(self):
-        LOGGER.info(self._parameters['data'])
+        LOGGER.info(self._parameters.data)
         schedule = None
 
         try:
-            schedule = pandas.read_csv(BytesIO(self._parameters['data'][0]))
+            schedule = pandas.read_csv(BytesIO(self._parameters.data[0]))
         except Exception as exception:
-            raise ValueError('Bad schedule data: %s', self._parameters['data']) from exception
+            raise ValueError('Bad schedule data: %s', self._parameters.data[0]) from exception
 
         dag_names = self._determine_dags_to_run(schedule)
 
         return [data.encode('utf-8', errors='backslashreplace') for data in dag_names]
 
     def _determine_dags_to_run(self, schedule):
-        schedule["scheduled"] = self._get_scheduled_dags(schedule)
+        now = datetime.utcnow()
+
+        schedule["execution_time"] = self._get_execution_times(schedule, now)
+        schedule["scheduled"] = self._get_scheduled_dags(schedule, now)
         schedule["started"] = self._get_started_dags(schedule)
 
         return schedule.name[schedule.started & ~schedule.started]
 
-    def _get_scheduled_dags(self, schedule):
-        now = datetime.utcnow()
+    def _get_execution_times(self, schedule, now):
         base_time = now - timedelta(minutes=int(self._parameters.interval_minutes))
-        execution_time_bounds = self._get_execution_time_bounds(base_time)
-        execution_times = schedule.apply(partial(self._get_execution_time, base_time))
 
+        return schedule.apply(partial(self._get_execution_time, base_time), axis = 1)
+
+    def _get_scheduled_dags(self, schedule, now):
+        execution_time_bounds = self._get_execution_time_bounds(now)
+        
         return schedule.execution_time >= execution_time_bounds[0] & schedule.execution_time < execution_time_bounds[1]
 
     def _get_started_dags(self, schedule):
         state = self._get_state_plugin()
 
-        return schedule.apply(lambda dag: self._is_started(state, dag))
+        return schedule.apply(lambda dag: self._is_started(state, dag), axis = 1)
 
     def _get_execution_time_bounds(self, base_time):
-        execution_times = croniter(f'*/{self._parameters.interval_minutes} * * * *', now - interval)
+        execution_times = croniter(f'*/{self._parameters.interval_minutes} * * * *', base_time)
 
         return (execution_times.get_next(datetime), execution_times.get_next(datetime))
 
@@ -74,9 +80,10 @@ class DAGScheduler(etl.ExecutionTimeMixin, etl.TransformerTask):
         return croniter(dag["schedule"], base_time).get_next(datetime)
 
     def _is_started(self, state, dag):
-        state = state.get_status(dag['name'], dag['execution_time'])
+        import pdb; pdb.set_trace()
+        status = state.get_status(dag["name"], dag["execution_time"])
 
-        return state["status"] == 'Pending' or state["status"] == 'Started'
+        return status == 'Pending' or status == 'Started'
 
     def _get_state_plugin(self):
         parameters = self._parameters.unknowns
