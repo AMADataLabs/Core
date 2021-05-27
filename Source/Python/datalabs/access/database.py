@@ -78,7 +78,7 @@ class Database(Datastore):
         return url
 
     def read(self, sql: str, **kwargs):
-        return pandas.read_sql(sql, self._connection, **kwargs)
+        return pandas.read_sql(sql, self._connection.connection(), **kwargs)
 
     def execute(self, sql: str, **kwargs):
         return self._connection.execute(sql, **kwargs)

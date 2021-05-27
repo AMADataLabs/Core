@@ -79,5 +79,6 @@ PPD_COLUMNS = {
     'MOSTRECENTFORMERFIRSTNAME': 'most_recent_former_first_name',
     'NEXTMOSTRECENTFORMERLASTNAME': 'next_most_recent_former_last_name',
     'NEXTMOSTRECENTFORMERMIDDLENAME': 'next_most_recent_former_middle_name',
-    'NEXTMOSTRECENTFORMERFIRSTNAME': 'next_most_recent_former_first_name'
+    'NEXTMOSTRECENTFORMERFIRSTNAME': 'next_most_recent_former_first_name',
+    'npi': 'national_provider_identifier'
 }
