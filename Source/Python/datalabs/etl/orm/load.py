@@ -70,14 +70,14 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     @classmethod
     def _get_database_columns(cls, database, table):
         query = "SELECT * FROM information_schema.columns " \
-                f"WHERE table_schema = 'oneview' AND table_name = {table};"
+                f"WHERE table_schema = 'oneview' AND table_name = '{table}';"
         old_data = database.read(query)
 
-        return old_data.columns
+        return old_data.column_name
 
     @classmethod
     def _get_current_row_hashes(cls, database, table, primary_key):
-        get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM {table}'"
+        get_current_hash = f"SELECT {primary_key}, md5('{table}'::TEXT) FROM oneview.{table}"
 
         return database.read(get_current_hash)
 
