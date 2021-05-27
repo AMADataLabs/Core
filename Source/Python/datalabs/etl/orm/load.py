@@ -35,7 +35,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         with self._get_database(Database, self._parameters) as database:
             for model_class, data, table in zip(self._get_model_classes(),
                                                 self._get_dataframes(),
-                                                self._parameters['TABLES']):
+                                                self._parameters['TABLES'].split(',')):
 
                 table_parameters = self._generate_table_parameters(model_class, data, table, database)
                 self._update(database, table_parameters)
@@ -70,14 +70,14 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     @classmethod
     def _get_database_columns(cls, database, table):
         query = "SELECT * FROM information_schema.columns " \
-                f"WHERE table_schema = 'oneview' AND table_name = f'{table}';"
+                f"WHERE table_schema = 'oneview' AND table_name = '{table}';"
         old_data = database.read(query)
 
-        return old_data.columns
+        return old_data.column_name
 
     @classmethod
     def _get_current_row_hashes(cls, database, table, primary_key):
-        get_current_hash = f"SELECT f'{primary_key}', md5(f'{table}'::TEXT) FROM f'{table}'"
+        get_current_hash = f"SELECT {primary_key}, md5('{table}'::TEXT) FROM oneview.{table}"
 
         return database.read(get_current_hash)
 
