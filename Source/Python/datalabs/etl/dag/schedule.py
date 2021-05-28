@@ -11,6 +11,7 @@ import csv
 import logging
 import pandas
 
+from   datalabs.etl.dag.state import Status
 import datalabs.etl.task as task
 import datalabs.etl.transform as transform
 from   datalabs.parameter import add_schema
@@ -43,28 +44,29 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
         except Exception as exception:
             raise ValueError('Bad schedule data: %s', self._parameters.data[0]) from exception
 
-        dag_names = self._determine_dags_to_run(schedule)
+        dags = self._determine_dags_to_run(schedule, self._get_target_execution_time())
 
-        return [data.encode('utf-8', errors='backslashreplace') for data in dag_names]
+        return [dag[1].to_json().encode('utf-8', errors='backslashreplace') for dag in dags.iterrows()]
 
-    def _determine_dags_to_run(self, schedule):
-        now = datetime.utcnow()
+    def _get_target_execution_time(self):
+        return datetime.utcnow()
 
-        schedule["execution_time"] = self._get_execution_times(schedule, now)
-        schedule["scheduled"] = self._get_scheduled_dags(schedule, now)
+    def _determine_dags_to_run(self, schedule, target_execution_time):
+        base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
+        schedule["execution_time"] = self._get_execution_times(schedule, base_time)
+        schedule["scheduled"] = self._get_scheduled_dags(schedule, base_time)
         schedule["started"] = self._get_started_dags(schedule)
 
-        return schedule.name[schedule.started & ~schedule.started]
+        return schedule[schedule.scheduled & ~schedule.started]
 
-    def _get_execution_times(self, schedule, now):
-        base_time = now - timedelta(minutes=int(self._parameters.interval_minutes))
-
+    def _get_execution_times(self, schedule, base_time):
         return schedule.apply(partial(self._get_execution_time, base_time), axis = 1)
 
-    def _get_scheduled_dags(self, schedule, now):
-        execution_time_bounds = self._get_execution_time_bounds(now)
-        
-        return schedule.execution_time >= execution_time_bounds[0] & schedule.execution_time < execution_time_bounds[1]
+    def _get_scheduled_dags(self, schedule, base_time):
+        execution_times = schedule.execution_time
+        execution_time_bounds = self._get_execution_time_bounds(base_time)
+
+        return (execution_times >= execution_time_bounds[0]) & (execution_times < execution_time_bounds[1])
 
     def _get_started_dags(self, schedule):
         state = self._get_state_plugin()
@@ -80,10 +82,9 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
         return croniter(dag["schedule"], base_time).get_next(datetime)
 
     def _is_started(self, state, dag):
-        import pdb; pdb.set_trace()
-        status = state.get_status(dag["name"], dag["execution_time"])
+        status = state.get_status(dag["name"], dag["execution_time"].to_pydatetime())
 
-        return status == 'Pending' or status == 'Started'
+        return status == Status.Pending or status == Status.Running
 
     def _get_state_plugin(self):
         parameters = self._parameters.unknowns
