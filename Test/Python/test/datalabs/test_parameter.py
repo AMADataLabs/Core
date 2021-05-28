@@ -1,12 +1,10 @@
 """ source: datalabs.parameter """
 from   dataclasses import dataclass
-import os
 
 from   marshmallow.exceptions import ValidationError
 import pytest
 
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
-from   datalabs.task import Task, TaskWrapper
 
 
 # pylint: disable=redefined-outer-name
@@ -62,7 +60,7 @@ def test_adding_schema_to_class_yields_correct_schema_field_defaults(model_class
     assert model.barnacle == 'Bar'
 
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name, protected-access
 def test_including_unknown_dataclass_parameters_fills_unknowns_field(model_dataclass_parent):
     class ParameterizedThing(ParameterValidatorMixin):
         PARAMETER_CLASS = model_dataclass_parent
@@ -77,7 +75,7 @@ def test_including_unknown_dataclass_parameters_fills_unknowns_field(model_datac
     assert 'ping' in thing._parameters.unknowns
 
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name, protected-access
 def test_including_unknown_class_parameters_fills_unknowns_field(model_class_parent):
     class ParameterizedThing(ParameterValidatorMixin):
         PARAMETER_CLASS = model_class_parent

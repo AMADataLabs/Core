@@ -1,11 +1,8 @@
 """ source: datalabs.task """
-from   dataclasses import dataclass
 import os
 
-from   marshmallow.exceptions import ValidationError
 import pytest
 
-from   datalabs.parameter import add_schema
 from   datalabs.task import Task, TaskWrapper
 
 def test_task_is_abstract():

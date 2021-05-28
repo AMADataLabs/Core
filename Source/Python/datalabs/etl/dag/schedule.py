@@ -1,14 +1,11 @@
 """ Convert a DAG schedule into a list of DAGs to run. """
-from   abc import ABC, abstractmethod
 from   dataclasses import dataclass
 from   datetime import datetime, timedelta
 from   functools import partial
 from   io import BytesIO
-
-import botocore.exceptions
-from   croniter import croniter
-import csv
 import logging
+
+from   croniter import croniter
 import pandas
 
 from   datalabs.etl.dag.state import Status
@@ -36,18 +33,20 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
     PARAMETER_CLASS = DAGSchedulerParameters
 
     def _transform(self):
-        LOGGER.info(self._parameters.data)
         schedule = None
 
         try:
             schedule = pandas.read_csv(BytesIO(self._parameters.data[0]))
+            LOGGER.info("Schedule:\n%s", schedule)
         except Exception as exception:
-            raise ValueError('Bad schedule data: %s', self._parameters.data[0]) from exception
+            raise ValueError(f'Bad schedule data: {self._parameters.data[0]}') from exception
 
         dags = self._determine_dags_to_run(schedule, self._get_target_execution_time())
+        LOGGER.info("Dags to Run:\n%s", dags)
 
         return [dag[1].to_json().encode('utf-8', errors='backslashreplace') for dag in dags.iterrows()]
 
+    # pylint: disable=no-self-use
     def _get_target_execution_time(self):
         return datetime.utcnow()
 
@@ -78,13 +77,18 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
 
         return (execution_times.get_next(datetime), execution_times.get_next(datetime))
 
-    def _get_execution_time(self, base_time, dag):
+    @classmethod
+    def _get_execution_time(cls, base_time, dag):
         return croniter(dag["schedule"], base_time).get_next(datetime)
 
-    def _is_started(self, state, dag):
-        status = state.get_status(dag["name"], dag["execution_time"].to_pydatetime())
+    @classmethod
+    def _is_started(cls, state, dag):
+        status = None
 
-        return status == Status.Pending or status == Status.Running
+        with state:
+            status = state.get_status(dag["name"], dag["execution_time"].to_pydatetime())
+
+        return status != Status.UNKNOWN
 
     def _get_state_plugin(self):
         parameters = self._parameters.unknowns

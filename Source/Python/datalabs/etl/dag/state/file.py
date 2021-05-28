@@ -23,9 +23,12 @@ class DAGState(State):
     def connect(self):
         pass
 
+    def close(self):
+        pass
+
     def get_status(self, name: str, execution_time: datetime):
         state_path = self._generate_state_path(name, execution_time)
-        status = Status.Unknown
+        status = Status.UNKNOWN
 
         try:
             with open(state_path) as file:

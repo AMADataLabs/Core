@@ -1,6 +1,5 @@
 """ Generic database object intended to be subclassed by specific databases. """
 from   dataclasses import dataclass
-from   abc import abstractmethod
 import os
 
 import pandas

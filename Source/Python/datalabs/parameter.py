@@ -12,7 +12,7 @@ def add_schema(*args, **kwargs):
         if '__dataclass_fields__' in model_class.__dict__:
             model_fields = [key for key, value in model_class.__dataclass_fields__.items() if not key.startswith('_')]
 
-        if 'unknowns' in kwargs and kwargs['unknowns'] == True:
+        if 'unknowns' in kwargs and kwargs['unknowns']:
             unknown_handling = marshmallow.INCLUDE
 
 
@@ -70,9 +70,12 @@ def add_schema(*args, **kwargs):
                         missing_fields.append(field)
 
                 if len(missing_fields) > 0:
-                    raise ValidationException(f'Missing parameters for {model_class.__name__} instance: {missing_fields}')
+                    raise ValidationException(
+                        f'Missing parameters for {model_class.__name__} instance: {missing_fields}'
+                    )
 
-            def _extract_unknowns(self, data):
+            @classmethod
+            def _extract_unknowns(cls, data):
                 unknowns = {}
                 keys = list(data.keys())
 
