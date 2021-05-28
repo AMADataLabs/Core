@@ -9,8 +9,8 @@ from kubernetes.client import models as k8s
 
 DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
 IMAGES = dict(
-    dev='harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.3',
-    prod='harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.3'
+    dev='docker-registry.default.svc:5000/hsg-data-labs-dev/contact-id:1.0.0',
+    prod='harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.0'
 )
 ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='contact-id-etl'))
 ADVANTAGE_SECRET = Secret('env', None, 'contact-id-etl-advantage')
