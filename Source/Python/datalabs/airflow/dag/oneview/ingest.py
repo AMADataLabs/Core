@@ -5,14 +5,11 @@ from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import Kubernete
 from airflow.utils.dates import days_ago
 
 
-DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
-IMAGES = dict(
-    dev='docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-etl:1.3.3',
-    prod='harbor.ama-assn.org/hsg-data-labs/oneview-etl:1.3.3'
-)
-
 ### Configuration Bootstraping ###
 DAG_ID = 'oneview'
+DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
+IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE)
+
 BASE_ENVIRONMENT = dict(
     TASK_WRAPPER_CLASS='datalabs.etl.airflow.task.AirflowTaskWrapper',
     ETCD_HOST=Variable.get('ETCD_HOST'),
