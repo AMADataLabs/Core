@@ -15,6 +15,12 @@ class Database(db.Database):
     def add(self, model, **kwargs):
         self._connection.add(model, **kwargs)
 
+    def delete(self, model, **kwargs):
+        self._connection.delete(model, **kwargs)
+
+    def update(self, model, **kwargs):
+        self._connection.update(model, **kwargs)
+
     def commit(self):
         self._connection.commit()
 

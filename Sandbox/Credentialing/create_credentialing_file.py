@@ -151,6 +151,7 @@ def generate_file():
                                           index=False)
 
     all_results.to_csv(f'{out}Credentialing_Addresses_{today}.csv', index=False)
+    all_results.to_csv(f'{out}Credentialing_Addresses_latest.csv', index=False)
 
 def generate_triangulation_file():
     '''Create file for triangulation'''

@@ -38,7 +38,7 @@ modspec:
       - transform
       - load
   - package: datalabs.etl.airflow
-  - package: datalabs.etl.jdbc
+  - package: datalabs.etl.fs
   - package: datalabs.etl.oneview
   - package: datalabs.etl.oneview.ppd
   - package: datalabs.etl.oneview.iqvia
