@@ -135,6 +135,7 @@ def generate_file(years, months='all', order_type='all', customer_type='all'):
     all_results[cols].sample(1000).to_csv(f'{out}Credentialing_Addresses_Sample_{today}.csv',
                                           index=False)
     all_results.to_csv(f'{out}Credentialing_Addresses_{today}.csv', index=False)
+    all_results.to_csv(f'{out}Credentialing_Addresses_latest.csv', index=False)
 
 if __name__ == "__main__":
     generate_file(2020)
