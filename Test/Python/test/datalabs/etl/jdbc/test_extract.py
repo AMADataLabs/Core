@@ -65,6 +65,7 @@ def test_query_results_saved_as_parquet(parameters, read):
     assert len(files) == 1
 
     data = pandas.read_parquet(files[0])
+    assert len(data) == 5
     assert 'column1' in data
     assert 'column2' in data
 
@@ -85,11 +86,14 @@ def test_chunked_query_results_saved_as_parquet(parameters, chunked_read):
     files = list(Path(result.name).glob("parquet*"))
     assert len(files) == 3
 
+    data_parts = []
     for path in files:
-        data = pandas.read_parquet(path)
+        data_parts.append(pandas.read_parquet(path))
 
-        assert 'column1' in data
-        assert 'column2' in data
+    data = pandas.concat(data_parts)
+    assert len(data) == 15
+    assert 'column1' in data
+    assert 'column2' in data
 
 
 # pylint: disable=redefined-outer-name, protected-access

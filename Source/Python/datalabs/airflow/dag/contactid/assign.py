@@ -7,19 +7,19 @@ from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
 
 
+### Configuration Bootstraping ###
+DAG_ID = 'contact_id'
 DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
-IMAGES = dict(
-    dev='docker-registry.default.svc:5000/hsg-data-labs-dev/contact-id:1.0.0',
-    prod='harbor.ama-assn.org/hsg-data-labs/contact-id:1.0.0'
-)
+IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
+
+### Kubernets Configuration ###
 ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='contact-id-etl'))
 ADVANTAGE_SECRET = Secret('env', None, 'contact-id-etl-advantage')
 ORGMANAGER_SECRET = Secret('env', None, 'contact-id-etl-orgmanager')
 VALID_EFT_SECRET = Secret('env', None, 'contact-id-etl-valid')
 MINIO_SECRET = Secret('env', None, 'contact-id-etl-minio')
 
-### Configuration Bootstraping ###
-DAG_ID = 'contact_id'
+### DAG definition ###
 BASE_ENVIRONMENT = dict(
     TASK_WRAPPER_CLASS='datalabs.etl.airflow.task.AirflowTaskWrapper',
     ETCD_HOST=Variable.get('ETCD_HOST'),
@@ -38,7 +38,7 @@ CONTACT_ID_ASSIGNMENT_DAG = DAG(
         ),
         is_delete_operator_pod=True,
         namespace=f'hsg-data-labs-{DEPLOYMENT_ID}',
-        image=IMAGES[DEPLOYMENT_ID],
+        image=IMAGE,
         do_xcom_push=False,
         in_cluster=True,
         get_logs=True,

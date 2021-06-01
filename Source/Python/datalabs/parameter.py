@@ -4,67 +4,108 @@ import copy
 import marshmallow
 
 
-def add_schema(model_class):
-    model_fields = [key for key, value in model_class.__dict__.items() if not key.startswith('_')]
+def add_schema(*args, **kwargs):
+    def create_schema(model_class):
+        model_fields = [key for key, value in model_class.__dict__.items() if not key.startswith('_')]
+        unknown_handling = marshmallow.RAISE
 
-    if '__dataclass_fields__' in model_class.__dict__:
-        model_fields = [key for key, value in model_class.__dataclass_fields__.items() if not key.startswith('_')]
+        if '__dataclass_fields__' in model_class.__dict__:
+            model_fields = [key for key, value in model_class.__dataclass_fields__.items() if not key.startswith('_')]
 
-    class Schema(marshmallow.Schema):
-        class Meta:
-            # strict = True
-            fields = copy.deepcopy(model_fields)
+        if 'unknowns' in kwargs and kwargs['unknowns']:
+            unknown_handling = marshmallow.INCLUDE
 
-        @marshmallow.post_load
-        #pylint: disable=unused-argument
-        def make_model(self, data, **kwargs):
-            model = None
 
-            if '__dataclass_fields__' in model_class.__dict__:
-                model = self._make_dataclass_model(data)
-            else:
-                model = self._make_class_model(data)
+        class Schema(marshmallow.Schema):
+            class Meta:
+                # strict = True
+                fields = copy.deepcopy(model_fields)
+                unknown = unknown_handling
 
-            return model
+            @marshmallow.post_load
+            #pylint: disable=unused-argument
+            def make_model(self, data, **kwargs):
+                model = None
 
-        def _make_dataclass_model(self, data):
-            self._fill_dataclass_defaults(data)
+                if '__dataclass_fields__' in model_class.__dict__:
+                    model = self._make_dataclass_model(data)
+                else:
+                    model = self._make_class_model(data)
 
-            return model_class(**data)
+                return model
 
-        def _make_class_model(self, data):
-            self._fill_class_defaults(data)
-            model = model_class()
+            def _make_dataclass_model(self, data):
+                unknowns = self._extract_unknowns(data)
 
-            for field in data:
-                setattr(model, field, data[field])
+                self._fill_dataclass_defaults(data)
 
-            return model
+                if self.Meta.unknown == marshmallow.INCLUDE and 'unknowns' in model_fields and 'unknowns' in data:
+                    data['unknowns'] = unknowns
 
-        def _fill_dataclass_defaults(self, data):
-            missing_fields = []
+                return model_class(**data)
 
-            for field in self.Meta.fields:
-                dataclass_field = model_class.__dict__['__dataclass_fields__'][field]
+            def _make_class_model(self, data):
+                unknowns = self._extract_unknowns(data)
 
-                if field not in data and dataclass_field.default.__class__.__name__ != '_MISSING_TYPE':
-                    data[field] = dataclass_field.default
-                elif field not in data:
-                    missing_fields.append(field)
+                self._fill_class_defaults(data)
+                model = model_class()
 
-            if len(missing_fields) > 0:
-                raise ValidationException(f'Missing parameters for {model_class.__name__} instance: {missing_fields}')
+                if self.Meta.unknown == marshmallow.INCLUDE and 'unknowns' in model_fields and 'unknowns' in data:
+                    data['unknowns'] = unknowns
 
-        def _fill_class_defaults(self, data):
-            for field in self.Meta.fields:
-                default = getattr(model_class, field)
+                for field in data:
+                    setattr(model, field, data[field])
 
-                if field not in data:
-                    data[field] = default
+                return model
 
-    model_class.SCHEMA = Schema()
+            def _fill_dataclass_defaults(self, data):
+                missing_fields = []
 
-    return model_class
+                for field in self.Meta.fields:
+                    dataclass_field = model_class.__dict__['__dataclass_fields__'][field]
+
+                    if field not in data and dataclass_field.default.__class__.__name__ != '_MISSING_TYPE':
+                        data[field] = dataclass_field.default
+                    elif field not in data:
+                        missing_fields.append(field)
+
+                if len(missing_fields) > 0:
+                    raise ValidationException(
+                        f'Missing parameters for {model_class.__name__} instance: {missing_fields}'
+                    )
+
+            @classmethod
+            def _extract_unknowns(cls, data):
+                unknowns = {}
+                keys = list(data.keys())
+
+                for key in keys:
+                    value = data.pop(key)
+
+                    if key in model_fields:
+                        data[key] = value
+                    else:
+                        unknowns[key] = value
+
+                return unknowns
+
+
+            def _fill_class_defaults(self, data):
+                for field in self.Meta.fields:
+                    default = getattr(model_class, field)
+
+                    if field not in data:
+                        data[field] = default
+
+        model_class.SCHEMA = Schema()
+
+        return model_class
+
+    return_value = create_schema
+    if len(args) == 1:
+        return_value = create_schema(args[0])
+
+    return return_value
 
 
 class ValidationException(Exception):
