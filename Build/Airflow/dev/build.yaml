@@ -22,13 +22,13 @@ spec:
   source:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-      # ref: story/DL-1259
+      ref: dev
     sourceSecret:
       name: bitbucketprd
     type: Git
   strategy:
     dockerStrategy:
-      dockerfilePath: Build/Airflow/Dockerfile
+      dockerfilePath: Build/Airflow/dev/Dockerfile
       from:
         kind: ImageStreamTag
         name: python:3.7

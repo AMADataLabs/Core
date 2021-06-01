@@ -25,6 +25,7 @@ modspec:
   - package: datalabs.access.parameter
     include:
     - system
+    - etcd
   - package: datalabs.etl
   - package: datalabs.etl.airflow
   - package: datalabs.etl.contactid

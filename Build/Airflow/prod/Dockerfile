@@ -1,7 +1,7 @@
 FROM python:3.7
 
 # ARG AIRFLOW_VERSION=1.10.14
-ARG AIRFLOW_VERSION=2.0.1
+ARG AIRFLOW_VERSION=2.1.0
 
 ENV AIRFLOW_HOME=/home/airflow
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes
@@ -26,7 +26,7 @@ RUN mkdir -p shared \
     && ln -s shared dags \
     && ln -s shared logs
 
-COPY Build/Airflow/Worker/worker.yaml .
+COPY Build/Airflow/Worker/prod/pod.yaml ./worker.yaml
 
 RUN chown -R airflow:0 ${AIRFLOW_HOME} && chmod -R 777 ${AIRFLOW_HOME}
 

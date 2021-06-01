@@ -4,6 +4,34 @@ from datetime import date
 import pandas as pd
 import pyodbc
 import settings
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
+def org_manager_connect():
+    username_ = os.environ.get('ORG_MANAGER_USERNAME')
+    password_ = os.environ.get('ORG_MANAGER_PASSWORD')
+    x = "DSN=prdsso; UID={}; PWD={}".format(username_, password_)
+    SSO = pyodbc.connect(x)
+    return SSO
+
+def get_org_query():
+    query = \
+        '''
+        SELECT *
+        FROM
+        SSO.ORGANIZATION
+        '''
+    return query
+
+def get_addresses():
+    SSO = org_manager_connect()
+    query = get_org_query()
+    org_addresses = pd.read_sql(con=SSO, sql=query)
+    org_addresses['ADVANTAGE_ID'] = org_addresses.ADVANTAGE_ID.fillna('0')
+    org_addresses = org_addresses[org_addresses.ADVANTAGE_ID!='']
+    org_addresses['CUSTOMER_NBR']=[float(x) for x in org_addresses.ADVANTAGE_ID]
+    org_addresses = org_addresses.sort_values('STATUS').drop_duplicates('ADVANTAGE_ID', keep='last')
+    return org_addresses
 
 def datamart_connect():
     username = os.environ.get('CREDENTIALS_DATAMART_USERNAME')
@@ -12,7 +40,7 @@ def datamart_connect():
     AMADM = pyodbc.connect(s)
     return AMADM
 
-def get_order_query(months, years):
+def get_order_query():
     '''SQL query to get order table'''
     query = \
     f"""
@@ -31,9 +59,7 @@ def get_order_query(months, years):
     AND
     H.PHYSICIAN_HIST_KEY = O.ORDER_PHYSICIAN_HIST_KEY
     AND
-    D.MONTH_NBR in {months}
-    AND
-    D.YR in {years}
+    D.YR in (2019,2020,2021)
     """
     return query
 
@@ -69,11 +95,9 @@ def fix_me(me_list):
         nums.append(num)
     return nums
 
-def get_datamart_results(years, months='all', order_type='all', customer_type='all'):
+def get_datamart_results(order_type='all', customer_type='all'):
     '''Get results for specific time period'''
-    if months == 'all':
-        months = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
-    order_query = get_order_query(months, years)
+    order_query = get_order_query()
     customer_query = get_customer_query()
     AMADM = datamart_connect()
     orders = pd.read_sql(con=AMADM, sql=order_query)
@@ -95,26 +119,17 @@ def get_datamart_results(years, months='all', order_type='all', customer_type='a
     results.CUSTOMER_NBR = results.CUSTOMER_NBR.astype(float)
     return results
 
-def get_addresses():
-    '''Get org addresses'''
-    address_file = os.environ.get('ADDRESS_FILE')
-    addresses = pd.read_csv(address_file)
-    cols = {'ADDRESS_LINE_1':'addr_line_1',
-            'ADDRESS_LINE_2':'addr_line_2',
-            'CITY':'addr_city',
-            'STATE':'addr_state',
-            'ZIPCODE':'addr_zip'
-            }
-    addresses = addresses.rename(columns=cols)
-    return addresses
-
-def generate_file(years, months='all', order_type='all', customer_type='all'):
-    '''Generate file for loading'''
-    out = os.environ.get('OUTPUT_FOLDER')
-    today = str(date.today())
+def get_results(order_type='all', customer_type='all'):
     addresses = get_addresses()
-    results = get_datamart_results(years, months, order_type, customer_type)
+    results = get_datamart_results(order_type, customer_type)
     all_results = pd.merge(addresses, results, on='CUSTOMER_NBR')
+    return all_results
+
+def generate_file():
+    '''Generate file for loading'''
+    today = str(date.today())
+    all_results = get_results()
+    out = os.environ.get('OUTPUT_FOLDER')
     cols = ['me#',
             'load_type',
             'addr_type',
@@ -134,8 +149,27 @@ def generate_file(years, months='all', order_type='all', customer_type='all'):
     all_results['addr_line_3'] = ''
     all_results[cols].sample(1000).to_csv(f'{out}Credentialing_Addresses_Sample_{today}.csv',
                                           index=False)
+
     all_results.to_csv(f'{out}Credentialing_Addresses_{today}.csv', index=False)
     all_results.to_csv(f'{out}Credentialing_Addresses_latest.csv', index=False)
 
+def generate_triangulation_file():
+    '''Create file for triangulation'''
+    today = date.today()
+    all_results = get_results()
+    out = os.environ.get('OUTPUT_FOLDER')
+    one_year_ago = date.today() - relativedelta(years=1)
+    new_results = all_results[(all_results.FULL_DT) > one_year_ago]
+    acceptable_customers = ['Ambulatory Care',
+                            'Hospital',
+                            'Group',
+                            'Government',
+                            'Health Related',
+                            'Government',
+                            'Long Term Care',
+                            'Managed Care']
+    new_results = new_results[new_results.CUSTOMER_CATEGORY_DESC.isin(acceptable_customers)]
+    new_results.to_csv(f'{out}Credentialing_Addresses_{str(today)}.csv', index=False)
+
 if __name__ == "__main__":
-    generate_file(2020)
+    generate_triangulation_file()
