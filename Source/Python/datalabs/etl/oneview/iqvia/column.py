@@ -90,3 +90,7 @@ SUBSIDIARY_BUSINESS = {
     'OWNER_SUB_IMS_ORG_ID': 'subsidiary',
     'OWNER_SUB_NAME': 'owner'
 }
+
+IQVIA_DATE = {
+    'BATCH_BUSINESS_DATE': 'date'
+}
