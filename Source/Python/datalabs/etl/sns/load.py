@@ -36,5 +36,5 @@ class SNSLoaderLoaderTask(LoaderTask):
         )
 
     def _load(self):
-        # TODO: implement
+        # implement
         pass
