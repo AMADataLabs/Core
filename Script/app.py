@@ -8,7 +8,7 @@ import os
 from   render_template import render_template
 
 
-def configure(template_parameters, relative_path=None, name=None):
+def configure(template_parameters, relative_path=None, name=None, overwrite=False):
     script_path = Path(sys.argv[0])
     script_name = script_path.name
     if name is not None:
@@ -23,7 +23,7 @@ def configure(template_parameters, relative_path=None, name=None):
         raise FileNotFoundError(
             f'Application {script_name} does not have a configuration file in {environment_path.absolute()}.'
         )
-    elif not os.path.exists(dotenv_path):
+    elif overwrite or not os.path.exists(dotenv_path):
         render_template(template_path, dotenv_path, **template_parameters)
 
     dotenv.load_dotenv(dotenv_path=dotenv_path)
