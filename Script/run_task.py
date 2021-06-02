@@ -20,7 +20,7 @@ def _configure_app(args):
 
     template_args = {v.split('=')[0]:v.split('=')[1] for v in args["variable"]}
 
-    app.configure(template_args, name=args["task"], overwrite=args["force"])
+    app.configure(template_args, relative_path=args["path"], name=args["task"], overwrite=args["force"])
 
 
 def _run_application():
@@ -33,6 +33,7 @@ def _run_application():
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-t', '--task', required=True, help='Task name used to load environment template.')
+    ap.add_argument('-p', '--path', required=False, help='Path relative to Script/Environment to look for .env templates.')
     ap.add_argument(
         '-f', '--force', required=False, action='store_true', help='Force overwritting of the resolved .env template.'
     )
