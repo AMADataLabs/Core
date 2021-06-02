@@ -2,6 +2,8 @@
 import sqlalchemy
 from   sqlalchemy.orm import sessionmaker
 
+import pandas
+
 import datalabs.access.database as db
 
 
