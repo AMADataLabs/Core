@@ -12,6 +12,9 @@ class Database(db.Database):
 
         self._connection = Session()
 
+    def read(self, sql: str, **kwargs):
+        return pandas.read_sql(sql, self._connection.connection(), **kwargs)
+
     def add(self, model, **kwargs):
         self._connection.add(model, **kwargs)
 
