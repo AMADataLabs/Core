@@ -12,10 +12,11 @@ from datalabs.etl.fs.load import LocalUnicodeTextFileLoaderTask  # tbd
 # pylint: disable=too-many-instance-attributes
 class DBLReportEmailLoaderParameters:
     to: str
-    cc: str
     subject: str
-    body: str
     from_account: str
+    data: object
+    cc: str = None
+    body: str = None
 
 
 class DBLReportEmailLoaderTask(LoaderTask):
