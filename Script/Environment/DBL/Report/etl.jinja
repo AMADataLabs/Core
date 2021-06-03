@@ -7,7 +7,7 @@ EXTRACTOR__BASE_PATH=""
 EXTRACTOR__FILES=changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changerecordcount.txt,PE_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt
 EXTRACTOR__HOST=efttest.ama-assn.org
 EXTRACTOR__USERNAME=datalabstst
-EXTRACTOR__PASSWORD=
+EXTRACTOR__PASSWORD={{password}}
 
 
 # Transformer
@@ -18,6 +18,6 @@ TRANSFORMER__TASK_CLASS=datalabs.analysis.dbl.transform.DBLReportTransformer
 LOADER__TASK_CLASS=datalabs.etl.load.ConsoleLoaderTask
 LOADER__TO="garrett.lappe@ama-assn.org"
 LOADER__CC=""
-LOADER__SUBJECT=Test Subject
-LOADER__BODY=Test Body
+LOADER__SUBJECT="Test Subject"
+LOADER__BODY="Test Body"
 LOADER__FROM_ACCOUNT=datalabs@ama-assn.org
