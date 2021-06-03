@@ -183,3 +183,5 @@ definitions:
     lint-test-dependencies: Environment
     cpt-master-create-database-dependencies: Environment
     cpt-master-update-bundle-dependencies: Environment
+    oneview-master-create-database-dependencies: Environment
+    oneview-master-update-bundle-dependencies: Environment
