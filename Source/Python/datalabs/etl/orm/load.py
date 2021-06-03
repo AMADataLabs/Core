@@ -47,6 +47,8 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         primary_key = self._get_primary_key(database, table)
         columns = self._get_database_columns(database, table)
 
+        data[primary_key] = [str(key) for key in data[primary_key]]
+
         current_hashes = self._get_current_row_hashes(database, table, primary_key)
         incoming_hashes = self._generate_row_hashes(columns, data, primary_key)
 
@@ -73,23 +75,36 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                 f"WHERE table_schema = 'oneview' AND table_name = '{table}';"
         old_data = database.read(query)
 
-        return old_data.column_name
+        return old_data.column_name.to_list()
 
     @classmethod
     def _get_current_row_hashes(cls, database, table, primary_key):
-        get_current_hash = f"SELECT {primary_key}, md5('{table}'::TEXT) FROM oneview.{table}"
+        get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM oneview.{table}"
 
         return database.read(get_current_hash)
 
     @classmethod
     def _generate_row_hashes(cls, columns, data, primary_key):
         csv_data = data[columns].to_csv(header=None, index=False).strip('\n').split('\n')
-        row_strings = ["(" + i + ")" for i in csv_data]
+        row_strings = ["(" + cls.add_quotes(i) + ")" for i in csv_data]
 
         hashes = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
         primary_keys = data[primary_key].tolist()
 
-        return pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
+        incoming_hashes = pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
+
+        return incoming_hashes
+
+    @classmethod
+    def add_quotes(cls, csv_string):
+        conditions = [',', ' ']
+        string_list = csv_string.split(',')
+
+        if any(string_list[1].find(c) >= 0 for c in conditions):
+            string_list[1] = '"' + string_list[1] + '"'
+            csv_string = ','.join(string_list)
+
+        return csv_string
 
     @classmethod
     def _add_data(cls, database, table_parameters):
@@ -107,11 +122,12 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     @classmethod
     def _add_data_to_table(cls, table_parameters, data, database):
-        models = [cls._create_model(table_parameters.model_class, row) for row in data.itertuples(index=False)]
+        if not data.empty:
+            models = [cls._create_model(table_parameters.model_class, row) for row in data.itertuples(index=False)]
 
-        for model in models:
-            # pylint: disable=no-member
-            database.add(model)
+            for model in models:
+                # pylint: disable=no-member
+                database.add(model)
 
     @classmethod
     def _delete_data(cls, database, table_parameters):
@@ -129,16 +145,22 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     @classmethod
     def _delete_data_from_table(cls, table_parameters, data, database):
-        deleted_primary_keys = data[table_parameters.primary_key].tolist()
-        database_rows_query = f"SELECT * FROM {table_parameters.table} " \
-                              f"WHERE {table_parameters.primary_key} IN {tuple(deleted_primary_keys)};"
+        if not data.empty:
+            deleted_primary_keys = data[table_parameters.primary_key].tolist()
+            database_rows_query = "SELECT * FROM oneview.{} WHERE {} IN ({});".format(table_parameters.table,
+                                                                                      table_parameters.primary_key,
+                                                                                      ",".join(["'{}'".format(x) for x
+                                                                                                in deleted_primary_keys
+                                                                                                ]))
 
-        deleted_data = database.read(database_rows_query)
-        models = [cls._create_model(table_parameters.model_class, row) for row in deleted_data.itertuples(index=False)]
+            deleted_data = database.read(database_rows_query)
+            models = [cls._create_model(table_parameters.model_class, row) for row in
+                      deleted_data.itertuples(index=False)
+                      ]
 
-        for model in models:
-            # pylint: disable=no-member
-            database.delete(model)
+            for model in models:
+                # pylint: disable=no-member
+                database.delete(model)
 
     @classmethod
     def _update_data(cls, database, table_parameters):
@@ -171,10 +193,11 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     @classmethod
     def _update_data_in_table(cls, table_parameters, data, database):
-        models = [cls._create_model(table_parameters.model_class, row) for row in data.itertuples(index=False)]
+        if not data.empty:
+            models = [cls._create_model(table_parameters.model_class, row) for row in data.itertuples(index=False)]
 
-        for model in models:
-            database.query().update(model)
+            for model in models:
+                database.update(model)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
