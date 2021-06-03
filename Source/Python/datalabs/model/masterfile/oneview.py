@@ -99,6 +99,8 @@ class Physician(Base):
     next_most_recent_former_middle_name = sa.Column(sa.String)
     next_most_recent_former_first_name = sa.Column(sa.String)
     national_provider_identifier = sa.Column(sa.String)
+    party_id = sa.Column(sa.String)
+    entity_id = sa.Column(sa.String)
     type = sa.Column(sa.String, nullable=False)
 
 
