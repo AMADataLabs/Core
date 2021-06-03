@@ -3,6 +3,7 @@ import smtplib
 from email.message import EmailMessage
 
 
+# will clean up in the future or something probably, just needs to get in to support DBL report stuff
 def send_email(to, subject, cc=None, body=None, attachments=None, from_account=None, html_content=None):
     with smtplib.SMTP('amamx.ama-assn.org') as smtp:
         msg = EmailMessage()
