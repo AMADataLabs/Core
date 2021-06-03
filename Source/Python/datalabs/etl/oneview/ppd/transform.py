@@ -15,6 +15,7 @@ class PPDTransformerTask(TransformerTask):
         npi_table = data[1]
         ppd_table = data[0]
 
+        ppd_table.ME_NUMBER = ppd_table.ME_NUMBER.astype(str)
         medical_education_number = npi_table.loc[npi_table['KEY_TYPE_ID'] == 18]
         medical_education_number = medical_education_number[['PARTY_ID', 'KEY_VAL']].rename(columns=
                                                                                             {'KEY_VAL': 'ME_NUMBER'})
