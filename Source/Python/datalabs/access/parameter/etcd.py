@@ -97,7 +97,12 @@ class EtcdEnvironmentLoader(ParameterValidatorMixin):
 
     @classmethod
     def _extract_parameters(cls, raw_parameters):
+        parameters = {}
+
         def decode(value):
             return base64.b64decode(value).decode('utf8')
 
-        return {decode(p['key']):decode(p['value']) for p in raw_parameters['kvs']}
+        if 'kvs' in raw_parameters:
+            parameters = {decode(p['key']):decode(p['value']) for p in raw_parameters['kvs']}
+
+        return parameters
