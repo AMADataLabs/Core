@@ -1,43 +1,32 @@
 # Build Example:
-#    docker build -t one-view -f ./Build/OneView/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
+#    docker build -t one-view -f ./Build/Scheduler/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
 # Run Example:
 #    docker run -ti one-view -e DOTENV_PATH=ppd.env python -c "import awslambda; print(awslambda.handler(None, None))"
 
 FROM python:3.7
-WORKDIR /OneView
-ENV PYTHONPATH=/OneView:/OneView/site-packages
-ENV CLASSPATH=/OneView
+WORKDIR /Scheduler
+ENV PYTHONPATH=/Scheduler:/Scheduler/site-packages
+ENV CLASSPATH=/Scheduler
 ENV AWS_DEFAULT_REGION=us-east-1
 
-COPY ./Build/OneView/alembic/versions .
-
-COPY ./Build/OneView/requirements.txt .
+COPY ./Build/Scheduler/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
-
-RUN apt-get update && apt-get install -y openjdk-11-jre
-ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
-RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
-RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
-ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
-RUN unzip ./InformixJdbcDriver.zip && rm ./InformixJdbcDriver.zip
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
-COPY ./Build/OneView ./Build/OneView
+COPY ./Build/Scheduler ./Build/Scheduler
 COPY ./Source ./Source
-COPY ./Deploy/OneView/upgrade-database .
+COPY ./Deploy/Scheduler/upgrade-database .
 
 ARG template_vars
 RUN echo $template_vars
-COPY ./Build/OneView/*.env ./
+COPY ./Build/Scheduler/*.env ./
 RUN find ./ -name "*.env" -exec \
     ./Script/render-template \
     --template {} \
     --file {} \
-    --vars pythonpath=/OneView,$template_vars \;
-RUN ./Script/bundle-project -i --directory ./ OneView
+    --vars pythonpath=/Scheduler,$template_vars \;
+RUN ./Script/bundle-project -i --directory ./ Scheduler
 
 RUN rm -rf ./Build/Master
 RUN rm -rf ./Source
-
-RUN apt-get install -y vim
