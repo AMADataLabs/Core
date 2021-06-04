@@ -93,6 +93,76 @@ pipelines:
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - bash Deploy/CPT/update-functions
+        OneView-master:
+        - parallel:
+            - step:
+                name: Create Database
+                caches:
+                  - oneview-master-create-database-dependencies
+                script:
+                - bash Script/setup-virtual-environment OneView
+                - export ENABLE_FEATURE_DEV=True
+                - export DATABASE_NAME=oneview
+                - export DATABASE_NAME_ADMIN=postgres
+                - export DATABASE_BACKEND=postgresql+psycopg2
+                - export DATABASE_HOST=$ONEVIEW_DATABASE_HOST_SANDBOX
+                - export DATABASE_PORT=5432
+                - export DATABASE_USERNAME=$ONEVIEW_DATABASE_USERNAME_SANDBOX
+                - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_SANDBOX
+                - bash Deploy/Master/create-database OneView
+            - step:
+                name: Update Bundle
+                caches:
+                    - oneview-master-update-bundle-dependencies
+                script:
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export ENABLE_FEATURE_DEV=True
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+                - export AWS_S3_BUCKET='ama-hsg-datalabs-lambda-code-sandbox'
+                - bash Deploy/Master/create-bundle OneView
+                - bash Deploy/Master/upload-bundle OneView
+        - parallel:
+            - step:
+                name: Migrate Database
+                caches:
+                  - oneview-master-create-database-dependencies
+                script:
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - bash Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
+            - step:
+                name: Update Lambda Functions
+                script:
+                - export ENABLE_FEATURE_DEV=True
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+                - bash Deploy/OneView/update-functions
+        Scheduler-master:
+        - step:
+            name: Update Bundle
+            caches:
+                - scheduler-master-update-bundle-dependencies
+            script:
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - export AWS_S3_BUCKET='ama-hsg-datalabs-lambda-code-sandbox'
+            - bash Deploy/Master/create-bundle Scheduler
+            - bash Deploy/Master/upload-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - bash Deploy/Scheduler/update-functions
         CPT-dev:
         - step:
             name: Update Bundle
@@ -135,3 +205,6 @@ definitions:
     lint-test-dependencies: Environment
     cpt-master-create-database-dependencies: Environment
     cpt-master-update-bundle-dependencies: Environment
+    oneview-master-create-database-dependencies: Environment
+    oneview-master-update-bundle-dependencies: Environment
+    scheduler-master-update-bundle-dependencies: Environment
