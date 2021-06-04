@@ -21,6 +21,7 @@ modspec:
       - database
       - datastore
       - environment
+      - etcd
       - sftp
   - package: datalabs.access.parameter
     include:
