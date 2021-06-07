@@ -185,7 +185,7 @@ module "endpoint_lambda" {
     function_name       = local.function_names.endpoint
     lambda_name         = local.function_names.endpoint
     s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
-    s3_lambda_key       = "CPT/CPT.zip"
+    s3_lambda_key       = "CPT.zip"
     handler             = "awslambda.handler"
     runtime             = local.runtime
     create_alias        = false
@@ -232,7 +232,7 @@ module "authorizer_lambda" {
     source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
     function_name       = local.function_names.authorizer
     s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
-    s3_lambda_key       = "CPT/CPT.zip"
+    s3_lambda_key       = "CPT.zip"
     handler             = "awslambda.handler"
     runtime             = local.runtime
     create_alias        = false
