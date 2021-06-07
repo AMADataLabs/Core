@@ -10,6 +10,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
+# pylint: disable=too-many-instance-attributes
 class PPDTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         npi_table = data[1]
