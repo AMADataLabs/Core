@@ -11,6 +11,7 @@
 modspec:
   - package: datalabs
     include:
+      - parameter
       - plugin
       - task
       - awslambda
@@ -21,6 +22,7 @@ modspec:
       - database
       - datastore
       - environment
+      - etcd
       - sftp
   - package: datalabs.access.parameter
     include:

@@ -2,7 +2,7 @@
 
 set -ex
 
-PROJECT="${PROJECT:-OneView}"
+PROJECT="${PROJECT:-Scheduler}"
 
 # FUNCTIONS="${PROJECT}Authorizer
 #            ${PROJECT}-Endpoint
