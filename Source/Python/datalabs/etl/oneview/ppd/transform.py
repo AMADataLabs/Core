@@ -16,22 +16,39 @@ class PPDTransformerTask(TransformerTask):
         ppd_table = data[0]
 
         ppd_table.ME_NUMBER = ppd_table.ME_NUMBER.astype(str)
-        medical_education_number = npi_table.loc[npi_table['KEY_TYPE_ID'] == 18]
-        medical_education_number = medical_education_number[['PARTY_ID', 'KEY_VAL']].rename(columns=
-                                                                                            {'KEY_VAL': 'ME_NUMBER'})
 
-        npi = npi_table.loc[npi_table['KEY_TYPE_ID'] == 38]
-        npi = npi[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'npi'})
+        medical_education_number_table = self._create_medical_education_number_table(npi_table)
+        npi_table = self._create_npi_table(npi_table)
+        entity_table = self._create_entity_table(npi_table)
 
-        entity_id = npi_table.loc[npi_table['KEY_TYPE_ID'] == 9]
-        entity_id = entity_id[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'entity_id'})
+        transformed_ppd = self.merge_dataframes(medical_education_number_table, npi_table, entity_table, ppd_table)
 
-        merged_npi_me = pandas.merge(medical_education_number, npi, on='PARTY_ID', how="left").drop_duplicates()
-        merged_npi_entity_me = pandas.merge(merged_npi_me, entity_id, on='PARTY_ID', how="left").drop_duplicates()
+        return [transformed_ppd]
 
-        ppd_npi = pandas.merge(ppd_table, merged_npi_entity_me, on='ME_NUMBER', how="left").drop_duplicates()
+    @classmethod
+    def _create_medical_education_number_table(cls, npi_data):
+        medical_education_number = npi_data.loc[npi_data['KEY_TYPE_ID'] == 18]
 
-        return [ppd_npi]
+        return medical_education_number[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'ME_NUMBER'})
+
+    @classmethod
+    def _create_npi_table(cls, npi_data):
+        npi = npi_data.loc[npi_data['KEY_TYPE_ID'] == 38]
+
+        return npi[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'npi'})
+
+    @classmethod
+    def _create_entity_table(cls, npi_data):
+        entity_data = npi_data.loc[npi_data['KEY_TYPE_ID'] == 9]
+
+        return entity_data[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'entity_id'})
+
+    @classmethod
+    def _merge_dataframes(cls, medical_education_number, npi_table, entity_table, ppd_table):
+        merged_npi_me = pandas.merge(medical_education_number, npi_table, on='PARTY_ID', how="left").drop_duplicates()
+        merged_npi_entity_me = pandas.merge(merged_npi_me, entity_table, on='PARTY_ID', how="left").drop_duplicates()
+
+        return pandas.merge(ppd_table, merged_npi_entity_me, on='ME_NUMBER', how="left").drop_duplicates()
 
     def _get_columns(self):
         return [PPD_COLUMNS]
