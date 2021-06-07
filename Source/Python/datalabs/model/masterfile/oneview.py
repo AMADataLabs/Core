@@ -99,6 +99,8 @@ class Physician(Base):
     next_most_recent_former_middle_name = sa.Column(sa.String)
     next_most_recent_former_first_name = sa.Column(sa.String)
     national_provider_identifier = sa.Column(sa.String)
+    party_id = sa.Column(sa.String)
+    entity_id = sa.Column(sa.String)
     type = sa.Column(sa.String, nullable=False)
 
 
@@ -337,8 +339,7 @@ class IqviaUpdate(Base):
     __tablename__ = 'iqvia_update'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    date = sa.Column(sa.Date, unique=True)
+    date = sa.Column(sa.Date, unique=True, primary_key=True, nullable=False)
 
 
 class CredentialingCustomer(Base):
