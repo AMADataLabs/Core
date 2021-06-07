@@ -337,8 +337,7 @@ class IqviaUpdate(Base):
     __tablename__ = 'iqvia_update'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    date = sa.Column(sa.Date, unique=True)
+    date = sa.Column(sa.Date, unique=True, primary_key=True, nullable=False)
 
 
 class CredentialingCustomer(Base):
