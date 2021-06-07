@@ -73,6 +73,7 @@ resource "aws_s3_bucket_notification" "sns_scheduler" {
 # Datalake - SNS Topics and Subscriptions
 #####################################################################
 
+#module "sns_scheduler" {
 module "sns_scheduler" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
@@ -108,13 +109,13 @@ module "sns_scheduler" {
 
 
 resource "aws_sns_topic_subscription" "scheduler" {
-  topic_arn = sns_scheduler.topic_arn
+  topic_arn = module.sns_scheduler.topic_arn
   protocol  = "lambda"
   endpoint  = module.scheduler_lambda.function_arn
 }
 
 
-module "sns_dag_processor" {
+module "sns_dag_topic" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
@@ -149,13 +150,13 @@ module "sns_dag_processor" {
 
 
 resource "aws_sns_topic_subscription" "dag_processor" {
-  topic_arn = sns_scheduler.topic_arn
+  topic_arn = module.sns_dag_topic.topic_arn
   protocol  = "lambda"
   endpoint  = module.dag_processor_lambda.function_arn
 }
 
 
-module "sns_task_processor" {
+module "sns_task_topic" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
@@ -190,7 +191,7 @@ module "sns_task_processor" {
 
 
 resource "aws_sns_topic_subscription" "task_processor" {
-  topic_arn = sns_scheduler.topic_arn
+  topic_arn = module.sns_task_topic.topic_arn
   protocol  = "lambda"
   endpoint  = module.task_processor_lambda.function_arn
 }
@@ -216,7 +217,7 @@ EOF
 
 resource "aws_cloudwatch_event_target" "sns" {
   rule      = aws_cloudwatch_event_rule.console.name
-  arn       = s3_scheduler_data.topic_arn
+  arn       = module.sns_scheduler.topic_arn
 }
 
 
@@ -299,15 +300,15 @@ resource "aws_dynamodb_table" "task_state" {
 
 module "scheduler_lambda" {
     source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
-    function_name       = local.function_names.endpoint
-    lambda_name         = local.function_names.endpoint
-    s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
+    function_name       = local.function_names.scheduler
+    lambda_name         = local.function_names.scheduler
+    s3_lambda_bucket    = var.lambda_code_bucket
     s3_lambda_key       = "Scheduler.zip"
     handler             = "awslambda.handler"
     runtime             = local.runtime
     create_alias        = false
-    memory_size         = var.endpoint_memory_size
-    timeout             = var.endpoint_timeout
+    memory_size         = var.scheduler_memory_size
+    timeout             = var.scheduler_timeout
 
     lambda_policy_vars  = {
         account_id                  = data.aws_caller_identity.account.account_id
@@ -316,6 +317,7 @@ module "scheduler_lambda" {
     }
 
     create_lambda_permission    = true
+    api_arn                     = "arn:aws-partition:service:${local.region}:${data.aws_caller_identity.account.account_id}:resource-id"
 
     environment_variables = {
         variables = {
@@ -327,8 +329,8 @@ module "scheduler_lambda" {
         }
     }
 
-    tag_name                = "${var.project}-Scheduler"
-    tag_environment         = local.tags["Env"]
+    tag_name                = local.function_names.scheduler
+    tag_environment         = local.tags["Environment"]
     tag_contact             = local.tags["Contact"]
     tag_systemtier          = local.tags["SystemTier"]
     tag_drtier              = local.tags["DRTier"]
@@ -344,15 +346,15 @@ module "scheduler_lambda" {
 
 module "dag_processor_lambda" {
     source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
-    function_name       = local.function_names.endpoint
-    lambda_name         = local.function_names.endpoint
-    s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
+    function_name       = local.function_names.dag_processor
+    lambda_name         = local.function_names.dag_processor
+    s3_lambda_bucket    = var.lambda_code_bucket
     s3_lambda_key       = "Scheduler.zip"
     handler             = "awslambda.handler"
     runtime             = local.runtime
     create_alias        = false
-    memory_size         = var.endpoint_memory_size
-    timeout             = var.endpoint_timeout
+    memory_size         = var.scheduler_memory_size
+    timeout             = var.scheduler_timeout
 
     lambda_policy_vars  = {
         account_id                  = data.aws_caller_identity.account.account_id
@@ -361,6 +363,7 @@ module "dag_processor_lambda" {
     }
 
     create_lambda_permission    = true
+    api_arn                     = "arn:aws-partition:service:${local.region}:${data.aws_caller_identity.account.account_id}:resource-id"
 
     environment_variables = {
         variables = {
@@ -372,8 +375,8 @@ module "dag_processor_lambda" {
         }
     }
 
-    tag_name                = "${var.project}-DAGProcessor"
-    tag_environment         = local.tags["Env"]
+    tag_name                = local.function_names.dag_processor
+    tag_environment         = local.tags["Environment"]
     tag_contact             = local.tags["Contact"]
     tag_systemtier          = local.tags["SystemTier"]
     tag_drtier              = local.tags["DRTier"]
@@ -389,15 +392,15 @@ module "dag_processor_lambda" {
 
 module "task_processor_lambda" {
     source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
-    function_name       = local.function_names.endpoint
-    lambda_name         = local.function_names.endpoint
-    s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
+    function_name       = local.function_names.task_processor
+    lambda_name         = local.function_names.task_processor
+    s3_lambda_bucket    = var.lambda_code_bucket
     s3_lambda_key       = "Scheduler.zip"
     handler             = "awslambda.handler"
     runtime             = local.runtime
     create_alias        = false
-    memory_size         = var.endpoint_memory_size
-    timeout             = var.endpoint_timeout
+    memory_size         = var.scheduler_memory_size
+    timeout             = var.scheduler_timeout
 
     lambda_policy_vars  = {
         account_id                  = data.aws_caller_identity.account.account_id
@@ -406,6 +409,7 @@ module "task_processor_lambda" {
     }
 
     create_lambda_permission    = true
+    api_arn                     = "arn:aws-partition:service:${local.region}:${data.aws_caller_identity.account.account_id}:resource-id"
 
     environment_variables = {
         variables = {
@@ -417,8 +421,8 @@ module "task_processor_lambda" {
         }
     }
 
-    tag_name                = "${var.project}-TaskProcessor"
-    tag_environment         = local.tags["Env"]
+    tag_name                = local.function_names.task_processor
+    tag_environment         = local.tags["Environment"]
     tag_contact             = local.tags["Contact"]
     tag_systemtier          = local.tags["SystemTier"]
     tag_drtier              = local.tags["DRTier"]
