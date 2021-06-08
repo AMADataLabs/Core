@@ -21,7 +21,7 @@ class PPDTransformerTask(TransformerTask):
         npi_table = self._create_npi_table(npi_table)
         entity_table = self._create_entity_table(npi_table)
 
-        transformed_ppd = self.merge_dataframes(medical_education_number_table, npi_table, entity_table, ppd_table)
+        transformed_ppd = self._merge_dataframes(medical_education_number_table, npi_table, entity_table, ppd_table)
 
         return [transformed_ppd]
 
