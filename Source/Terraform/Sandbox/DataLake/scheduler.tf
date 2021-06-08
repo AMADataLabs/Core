@@ -245,6 +245,33 @@ resource "aws_dynamodb_table" "scheduler_locks" {
 }
 
 
+resource "aws_dynamodb_table" "configuration" {
+    name            = "${var.project}-${var.environment}-configuration"
+    billing_mode    = "PAY_PER_REQUEST"
+    # read_capacity   = 10
+    # write_capacity  = 2
+    hash_key        = "Task"
+    range_key      = "DAG"
+
+    attribute {
+        name = "Task"
+        type = "S"
+    }
+
+    attribute {
+        name = "DAG"
+        type = "S"
+    }
+
+    ttl {
+      attribute_name = "ttl"
+      enabled        = true
+    }
+
+    tags = merge(local.tags, {Name = "Data Labs Task Configuration Table"})
+}
+
+
 resource "aws_dynamodb_table" "dag_state" {
     name            = "${var.project}-${var.environment}-dag-state"
     billing_mode    = "PAY_PER_REQUEST"

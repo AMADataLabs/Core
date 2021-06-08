@@ -100,7 +100,7 @@ class ETLComponentTask(task.Task):
 
 class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
-        var_tree = VariableTree.generate()
+        var_tree = VariableTree.from_environment()
 
         return ETLParameters(
             extractor=self._get_component_parameters(var_tree, "EXTRACTOR"),
