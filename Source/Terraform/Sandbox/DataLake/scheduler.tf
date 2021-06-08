@@ -73,23 +73,22 @@ resource "aws_s3_bucket_notification" "sns_scheduler" {
 # Datalake - SNS Topics and Subscriptions
 #####################################################################
 
-#module "sns_scheduler" {
 module "sns_scheduler" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "${var.project}-scheduler-${var.environment}"
+    topic_name      = local.topic_names.scheduler
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_scheduler_data.bucket_id
   }
 
-  name = "${var.project}-scheduler-${var.environment}"
-  topic_display_name    = "${var.project}-scheduler-${var.environment}"
+  name = local.topic_names.scheduler
+  topic_display_name    = local.topic_names.scheduler
   app_name              = lower(var.project)
   app_environment       = var.environment
 
-  tag_name                         = "${var.project}-${var.environment}-sns-scheduler"
+  tag_name                         = local.topic_names.scheduler
   tag_environment                   = var.environment
   tag_contact                       = local.contact
   tag_budgetcode                    = local.budget_code
@@ -119,18 +118,18 @@ module "sns_dag_topic" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "${var.project}-task-processor-${var.environment}"
+    topic_name      = local.topic_names.dag_processor
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = "not_applicable"
   }
 
-  name = "${var.project}-scheduler-${var.environment}"
-  topic_display_name    = "${var.project}-task-processor-${var.environment}"
+  name = local.topic_names.dag_processor
+  topic_display_name    = local.topic_names.dag_processor
   app_name              = lower(var.project)
   app_environment       = var.environment
 
-  tag_name                         = "${var.project}-${var.environment}-sns-task-processor"
+  tag_name                         = local.topic_names.dag_processor
   tag_environment                   = var.environment
   tag_contact                       = local.contact
   tag_budgetcode                    = local.budget_code
@@ -160,18 +159,18 @@ module "sns_task_topic" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "${var.project}-task-processor-${var.environment}"
+    topic_name      = local.topic_names.task_processor
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = "not_applicable"
   }
 
-  name = "${var.project}-scheduler-${var.environment}"
-  topic_display_name    = "${var.project}-task-processor-${var.environment}"
+  name = local.topic_names.task_processor
+  topic_display_name    = local.topic_names.task_processor
   app_name              = lower(var.project)
   app_environment       = var.environment
 
-  tag_name                         = "${var.project}-${var.environment}-sns-task-processor"
+  tag_name                         = local.topic_names.task_processor
   tag_environment                   = var.environment
   tag_contact                       = local.contact
   tag_budgetcode                    = local.budget_code
@@ -204,7 +203,7 @@ resource "aws_sns_topic_subscription" "task_processor" {
 resource "aws_cloudwatch_event_rule" "console" {
   name        = "${var.project}-invoke-scheduler-${var.environment}"
   description = "Trigger running of the scheduler periodically"
-  schedule_expression = "cron(*/15 * * * *)"
+  schedule_expression = "cron(*/15 * * * ? *)"
 
   event_pattern = <<EOF
 {

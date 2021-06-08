@@ -28,6 +28,11 @@ locals {
         dag_processor               = "${var.project}-DAG-Processor-${var.environment}"
         task_processor              = "${var.project}-Task-Processor-${var.environment}"
     }
+    topic_names = {
+      scheduler                   = "${var.project}-Scheduler-${var.environment}"
+      dag_processor               = "${var.project}-DAG-Processor-${var.environment}"
+      task_processor              = "${var.project}-Task-Processor-${var.environment}"
+    }
     runtime = "python3.7"
     region = "us-east-1"
 }
