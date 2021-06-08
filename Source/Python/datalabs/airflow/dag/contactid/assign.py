@@ -59,9 +59,9 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
-    EXTRACT_ORG_MANAGER = KubernetesPodOperator(
-        name="extract_org_manager",
-        task_id="extract_org_manager",
+    EXTRACT_ORGMANAGER = KubernetesPodOperator(
+        name="extract_orgmanager",
+        task_id="extract_orgmanager",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[ORGMANAGER_SECRET, MINIO_SECRET],
@@ -125,7 +125,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
 
 #EXTRACT_VALID
 EXTRACT_ADVANTAGE
-EXTRACT_ORG_MANAGER
+EXTRACT_ORGMANAGER
 EXTRACT_SEED_FILES
 #EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
 #EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
