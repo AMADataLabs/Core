@@ -17,6 +17,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=too-many-instance-attributes
 @dataclass
 class TableParameters:
     data: str
@@ -24,6 +25,7 @@ class TableParameters:
     model_class: str
     primary_key: str
     columns: list
+    schema: str
     current_hashes: pandas.DataFrame
     incoming_hashes: pandas.DataFrame
 
@@ -44,15 +46,16 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             database.commit()
 
     def _generate_table_parameters(self, model_class, data, table, database):
-        primary_key = self._get_primary_key(database, table)
-        columns = self._get_database_columns(database, table)
+        schema = self._parameters['SCHEMA']
+        primary_key = self._get_primary_key(database, table, schema)
+        columns = self._get_database_columns(database, table, schema)
 
         data[primary_key] = [str(key) for key in data[primary_key]]
 
-        current_hashes = self._get_current_row_hashes(database, table, primary_key)
+        current_hashes = self._get_current_row_hashes(database, table, schema, primary_key)
         incoming_hashes = self._generate_row_hashes(columns, data, primary_key)
 
-        return TableParameters(data, table, model_class, primary_key, columns, current_hashes, incoming_hashes)
+        return TableParameters(data, table, model_class, primary_key, columns, current_hashes, schema, incoming_hashes)
 
     def _update(self, database, table_parameters):
         self._add_data(database, table_parameters)
@@ -60,26 +63,26 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         self._update_data(database, table_parameters)
 
     @classmethod
-    def _get_primary_key(cls, database, table):
+    def _get_primary_key(cls, database, table, schema):
         query = "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i " \
                 "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
-                f"WHERE  i.indrelid = 'oneview.{table}'::regclass AND i.indisprimary"
+                f"WHERE  i.indrelid = '{schema}.{table}'::regclass AND i.indisprimary"
 
         primary_key_table = database.read(query)
 
         return primary_key_table['attname'][0]
 
     @classmethod
-    def _get_database_columns(cls, database, table):
+    def _get_database_columns(cls, database, table, schema):
         query = "SELECT * FROM information_schema.columns " \
-                f"WHERE table_schema = 'oneview' AND table_name = '{table}';"
+                f"WHERE table_schema = '{schema}' AND table_name = '{table}';"
         old_data = database.read(query)
 
         return old_data.column_name.to_list()
 
     @classmethod
-    def _get_current_row_hashes(cls, database, table, primary_key):
-        get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM oneview.{table}"
+    def _get_current_row_hashes(cls, database, table, schema, primary_key):
+        get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM {schema}.{table}"
 
         return database.read(get_current_hash)
 
@@ -147,11 +150,14 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _delete_data_from_table(cls, table_parameters, data, database):
         if not data.empty:
             deleted_primary_keys = data[table_parameters.primary_key].tolist()
-            database_rows_query = "SELECT * FROM oneview.{} WHERE {} IN ({});".format(table_parameters.table,
-                                                                                      table_parameters.primary_key,
-                                                                                      ",".join(["'{}'".format(x) for x
-                                                                                                in deleted_primary_keys
-                                                                                                ]))
+            database_rows_query = "SELECT * FROM {}.{} WHERE {} IN ({});".format(table_parameters.schema,
+                                                                                 table_parameters.table,
+                                                                                 table_parameters.primary_key,
+                                                                                 ",".join(["'{}'".format(x)
+                                                                                           for x in deleted_primary_keys
+                                                                                           ]
+                                                                                          )
+                                                                                 )
 
             deleted_data = database.read(database_rows_query)
             models = [cls._create_model(table_parameters.model_class, row) for row in

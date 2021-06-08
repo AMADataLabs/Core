@@ -6,6 +6,6 @@ PROJECT=$1
 
 ls Bundle.zip
 
-aws s3 cp Bundle.zip s3://${AWS_S3_BUCKET}/${PROJECT}/${PROJECT}.zip
+aws s3 cp Bundle.zip s3://${AWS_S3_BUCKET}/${PROJECT}.zip
 
-aws s3 ls s3://${AWS_S3_BUCKET}/${PROJECT}/${PROJECT}.zip
+aws s3 ls s3://${AWS_S3_BUCKET}/${PROJECT}.zip

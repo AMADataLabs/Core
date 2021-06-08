@@ -1,4 +1,16 @@
 #####################################################################
+# Datalake - Passwords
+#####################################################################
+
+resource "random_password" "etcd_scheduler_password" {
+  length = 16
+  special = true
+  override_special = "_%" #Supply your own list of special characters to use (if application can only handle certain special characters)
+  # Reference with random_password.etcd_scheduler_password.result
+}
+
+
+#####################################################################
 # Datalake - S3 Buckets
 #####################################################################
 
@@ -48,10 +60,10 @@ module "s3_scheduler_data" {
 }
 
 
-resource "aws_s3_bucket_notification" "sns_scheduler_data" {
+resource "aws_s3_bucket_notification" "sns_scheduler" {
     bucket = module.s3_scheduler_data.bucket_id
     topic {
-        topic_arn           = module.sns_scheduler_data.topic_arn
+        topic_arn           = module.sns_scheduler.topic_arn
         events              = ["s3:ObjectCreated:*"]
     }
 }
@@ -61,23 +73,22 @@ resource "aws_s3_bucket_notification" "sns_scheduler_data" {
 # Datalake - SNS Topics and Subscriptions
 #####################################################################
 
-
-module "sns_scheduler_data" {
+module "sns_scheduler" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "scheduler_data-${var.environment}"
+    topic_name      = "${var.project}-scheduler-${var.environment}"
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_scheduler_data.bucket_id
   }
 
-  name = "scheduler_data-${var.environment}"
-  topic_display_name    = "scheduler_data-${var.environment}"
+  name = "${var.project}-scheduler-${var.environment}"
+  topic_display_name    = "${var.project}-scheduler-${var.environment}"
   app_name              = lower(var.project)
   app_environment       = var.environment
 
-  tag_name                         = "${var.project}-${var.environment}-sns-scheduler-data"
+  tag_name                         = "${var.project}-${var.environment}-sns-scheduler"
   tag_environment                   = var.environment
   tag_contact                       = local.contact
   tag_budgetcode                    = local.budget_code
@@ -93,6 +104,119 @@ module "sns_scheduler_data" {
     Group                               = local.group
     Department                          = local.department
   }
+}
+
+
+resource "aws_sns_topic_subscription" "scheduler" {
+  topic_arn = sns_scheduler.topic_arn
+  protocol  = "lambda"
+  endpoint  = module.scheduler_lambda.function_arn
+}
+
+
+module "sns_dag_processor" {
+  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+
+  policy_template_vars = {
+    topic_name      = "${var.project}-task-processor-${var.environment}"
+    region          = var.region
+    account_id      = data.aws_caller_identity.account.account_id
+    s3_bucket_name  = "not_applicable"
+  }
+
+  name = "${var.project}-scheduler-${var.environment}"
+  topic_display_name    = "${var.project}-task-processor-${var.environment}"
+  app_name              = lower(var.project)
+  app_environment       = var.environment
+
+  tag_name                         = "${var.project}-${var.environment}-sns-task-processor"
+  tag_environment                   = var.environment
+  tag_contact                       = local.contact
+  tag_budgetcode                    = local.budget_code
+  tag_owner                         = local.owner
+  tag_projectname                   = local.project
+  tag_systemtier                    = local.tier
+  tag_drtier                        = local.tier
+  tag_dataclassification            = local.na
+  tag_notes                         = local.na
+  tag_eol                           = local.na
+  tag_maintwindow                   = local.na
+  tags = {
+    Group                               = local.group
+    Department                          = local.department
+  }
+}
+
+
+resource "aws_sns_topic_subscription" "dag_processor" {
+  topic_arn = sns_scheduler.topic_arn
+  protocol  = "lambda"
+  endpoint  = module.dag_processor_lambda.function_arn
+}
+
+
+module "sns_task_processor" {
+  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+
+  policy_template_vars = {
+    topic_name      = "${var.project}-task-processor-${var.environment}"
+    region          = var.region
+    account_id      = data.aws_caller_identity.account.account_id
+    s3_bucket_name  = "not_applicable"
+  }
+
+  name = "${var.project}-scheduler-${var.environment}"
+  topic_display_name    = "${var.project}-task-processor-${var.environment}"
+  app_name              = lower(var.project)
+  app_environment       = var.environment
+
+  tag_name                         = "${var.project}-${var.environment}-sns-task-processor"
+  tag_environment                   = var.environment
+  tag_contact                       = local.contact
+  tag_budgetcode                    = local.budget_code
+  tag_owner                         = local.owner
+  tag_projectname                   = local.project
+  tag_systemtier                    = local.tier
+  tag_drtier                        = local.tier
+  tag_dataclassification            = local.na
+  tag_notes                         = local.na
+  tag_eol                           = local.na
+  tag_maintwindow                   = local.na
+  tags = {
+    Group                               = local.group
+    Department                          = local.department
+  }
+}
+
+
+resource "aws_sns_topic_subscription" "task_processor" {
+  topic_arn = sns_scheduler.topic_arn
+  protocol  = "lambda"
+  endpoint  = module.task_processor_lambda.function_arn
+}
+
+
+#####################################################################
+# Datalake - CloudWatch Events
+#####################################################################
+
+resource "aws_cloudwatch_event_rule" "console" {
+  name        = "${var.project}-invoke-scheduler-${var.environment}"
+  description = "Trigger running of the scheduler periodically"
+  schedule_expression = "cron(*/15 * * * *)"
+
+  event_pattern = <<EOF
+{
+  "detail-type": [
+    "Run Scheduler Event"
+  ]
+}
+EOF
+}
+
+resource "aws_cloudwatch_event_target" "sns" {
+  rule      = aws_cloudwatch_event_rule.console.name
+  arn       = s3_scheduler_data.topic_arn
 }
 
 
@@ -120,6 +244,7 @@ resource "aws_dynamodb_table" "scheduler_locks" {
     tags = merge(local.tags, {Name = "Data Labs DAG Scheduler Lock Table"})
 }
 
+
 resource "aws_dynamodb_table" "dag_state" {
     name            = "${var.project}-${var.environment}-dag-state"
     billing_mode    = "PAY_PER_REQUEST"
@@ -139,6 +264,7 @@ resource "aws_dynamodb_table" "dag_state" {
 
     tags = merge(local.tags, {Name = "Data Labs DAG State Table"})
 }
+
 
 resource "aws_dynamodb_table" "task_state" {
     name            = "${var.project}-${var.environment}-task-state"
@@ -170,3 +296,137 @@ resource "aws_dynamodb_table" "task_state" {
 #####################################################################
 # Datalake - Lambda functions
 #####################################################################
+
+module "scheduler_lambda" {
+    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
+    function_name       = local.function_names.endpoint
+    lambda_name         = local.function_names.endpoint
+    s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
+    s3_lambda_key       = "Scheduler.zip"
+    handler             = "awslambda.handler"
+    runtime             = local.runtime
+    create_alias        = false
+    memory_size         = var.endpoint_memory_size
+    timeout             = var.endpoint_timeout
+
+    lambda_policy_vars  = {
+        account_id                  = data.aws_caller_identity.account.account_id
+        region                      = local.region
+        project                     = var.project
+    }
+
+    create_lambda_permission    = true
+
+    environment_variables = {
+        variables = {
+            TASK_WRAPPER_CLASS      = "datalabs.etl.awslambda.ETLTaskWrapper"
+            ETCD_HOST               = aws_alb.etcd.dns_name
+            ETCD_USERNAME           = "scheduler"
+            ETCD_PASSWORD           = random_password.etcd_scheduler_password.result
+            ETCD_PREFIX             = "SCHEDULER_"
+        }
+    }
+
+    tag_name                = "${var.project}-Scheduler"
+    tag_environment         = local.tags["Env"]
+    tag_contact             = local.tags["Contact"]
+    tag_systemtier          = local.tags["SystemTier"]
+    tag_drtier              = local.tags["DRTier"]
+    tag_dataclassification  = local.tags["DataClassification"]
+    tag_budgetcode          = local.tags["BudgetCode"]
+    tag_owner               = local.tags["Owner"]
+    tag_projectname         = var.project
+    tag_notes               = ""
+    tag_eol                 = local.tags["EOL"]
+    tag_maintwindow         = local.tags["MaintenanceWindow"]
+}
+
+
+module "dag_processor_lambda" {
+    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
+    function_name       = local.function_names.endpoint
+    lambda_name         = local.function_names.endpoint
+    s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
+    s3_lambda_key       = "Scheduler.zip"
+    handler             = "awslambda.handler"
+    runtime             = local.runtime
+    create_alias        = false
+    memory_size         = var.endpoint_memory_size
+    timeout             = var.endpoint_timeout
+
+    lambda_policy_vars  = {
+        account_id                  = data.aws_caller_identity.account.account_id
+        region                      = local.region
+        project                     = var.project
+    }
+
+    create_lambda_permission    = true
+
+    environment_variables = {
+        variables = {
+          TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
+          ETCD_HOST               = aws_alb.etcd.dns_name
+          ETCD_USERNAME           = "scheduler"
+          ETCD_PASSWORD           = random_password.etcd_scheduler_password.result
+          ETCD_PREFIX             = "DAG_PROCESSOR_"
+        }
+    }
+
+    tag_name                = "${var.project}-DAGProcessor"
+    tag_environment         = local.tags["Env"]
+    tag_contact             = local.tags["Contact"]
+    tag_systemtier          = local.tags["SystemTier"]
+    tag_drtier              = local.tags["DRTier"]
+    tag_dataclassification  = local.tags["DataClassification"]
+    tag_budgetcode          = local.tags["BudgetCode"]
+    tag_owner               = local.tags["Owner"]
+    tag_projectname         = var.project
+    tag_notes               = ""
+    tag_eol                 = local.tags["EOL"]
+    tag_maintwindow         = local.tags["MaintenanceWindow"]
+}
+
+
+module "task_processor_lambda" {
+    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
+    function_name       = local.function_names.endpoint
+    lambda_name         = local.function_names.endpoint
+    s3_lambda_bucket    = data.aws_ssm_parameter.lambda_code_bucket.value
+    s3_lambda_key       = "Scheduler.zip"
+    handler             = "awslambda.handler"
+    runtime             = local.runtime
+    create_alias        = false
+    memory_size         = var.endpoint_memory_size
+    timeout             = var.endpoint_timeout
+
+    lambda_policy_vars  = {
+        account_id                  = data.aws_caller_identity.account.account_id
+        region                      = local.region
+        project                     = var.project
+    }
+
+    create_lambda_permission    = true
+
+    environment_variables = {
+        variables = {
+          TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
+          ETCD_HOST               = aws_alb.etcd.dns_name
+          ETCD_USERNAME           = "scheduler"
+          ETCD_PASSWORD           = random_password.etcd_scheduler_password.result
+          ETCD_PREFIX             = "TASK_PROCESSOR_"
+        }
+    }
+
+    tag_name                = "${var.project}-TaskProcessor"
+    tag_environment         = local.tags["Env"]
+    tag_contact             = local.tags["Contact"]
+    tag_systemtier          = local.tags["SystemTier"]
+    tag_drtier              = local.tags["DRTier"]
+    tag_dataclassification  = local.tags["DataClassification"]
+    tag_budgetcode          = local.tags["BudgetCode"]
+    tag_owner               = local.tags["Owner"]
+    tag_projectname         = var.project
+    tag_notes               = ""
+    tag_eol                 = local.tags["EOL"]
+    tag_maintwindow         = local.tags["MaintenanceWindow"]
+}
