@@ -108,59 +108,6 @@ class Physician(Base):
     type = sa.Column(sa.String, nullable=False)
 
 
-<<<<<<< HEAD
-=======
-class TypeOfPractice(Base):
-    __tablename__ = 'type_of_practice'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    description = sa.Column(sa.String, nullable=False)
-
-
-class PresentEmployment(Base):
-    __tablename__ = 'present_employment'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    description = sa.Column(sa.String, nullable=False)
-
-
-class MajorProfessionalActivity(Base):
-    __tablename__ = 'major_professional_activity'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    description = sa.Column(sa.String, nullable=False)
-
-
-class FederalInformationProcessingStandardCounty(Base):
-    __tablename__ = 'federal_information_processing_standard_county'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    state = sa.Column(sa.String, nullable=False)
-    county = sa.Column(sa.String, nullable=False)
-    description = sa.Column(sa.String, nullable=False)
-
-
-class CoreBasedStatisticalArea(Base):
-    __tablename__ = 'core_based_statistical_area'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    description = sa.Column(sa.String, nullable=False)
-
-
-class Specialty(Base):
-    __tablename__ = 'specialty'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    description = sa.Column(sa.String, nullable=False)
-
-
->>>>>>> dcf27c2374d815cf9694945020009695f59f157f
 class ResidencyProgram(Base):
     __tablename__ = 'residency_program'
     __table_args__ = {"schema": "oneview"}
@@ -629,8 +576,9 @@ class FederalInformationProcessingStandardCounty(Base):
     __tablename__ = 'federal_information_processing_standard_county'
     __table_args__ = {"schema": "oneview"}
 
-    state = sa.Column(sa.String, primary_key=True, nullable=False)
-    county = sa.Column(sa.String, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    state = sa.Column(sa.String, nullable=False)
+    county = sa.Column(sa.String, nullable=False)
     description = sa.Column(sa.String, nullable=False)
 
 
