@@ -132,8 +132,9 @@ class FederalInformationProcessingStandardCounty(Base):
     __tablename__ = 'federal_information_processing_standard_county'
     __table_args__ = {"schema": "oneview"}
 
-    state = sa.Column(sa.String, primary_key=True, nullable=False)
-    county = sa.Column(sa.String, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    state = sa.Column(sa.String, nullable=False)
+    county = sa.Column(sa.String, nullable=False)
     description = sa.Column(sa.String, nullable=False)
 
 
