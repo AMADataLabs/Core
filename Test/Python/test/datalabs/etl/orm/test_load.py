@@ -199,14 +199,15 @@ def expected_data():
 
 @pytest.fixture
 def table_parameters(incoming_data, hash_query_results):
-    data = incoming_data
-    model_class = 'test.datalabs.access.model.Foo'
-    table = 'foo'
-    primary_key = 'id'
-    columns = ['dumb', 'id', 'dumber']
-    current_hashes = hash_query_results
-    incoming_hashes = None
-
-    table_parameters = TableParameters(data, table, model_class, primary_key, columns, current_hashes, incoming_hashes)
+    table_parameters = TableParameters(
+        incoming_data,
+        'test.datalabs.access.model.Foo',
+        'foo',
+        'id',
+        ['dumb', 'id', 'dumber'],
+        'vampire',
+        hash_query_results,
+        None
+    )
 
     return table_parameters
