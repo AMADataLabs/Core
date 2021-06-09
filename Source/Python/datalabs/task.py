@@ -104,8 +104,15 @@ class TaskWrapper(ABC):
 
         return task_resolver_class
 
+class TaskResolver(ABC):
+    @abstractmethod
+    @classmethod
+    def get_task_class_name(cls, parameters):
+        pass
 
-class EnvironmentTaskResolver:
+
+
+class EnvironmentTaskResolver(TaskResolver):
     # pylint: disable=unused-argument
     @classmethod
     def get_task_class_name(cls, parameters):

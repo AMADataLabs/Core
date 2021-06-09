@@ -1,4 +1,4 @@
-""" Resolve task class name using the API Gateway event passed to the Lambda function. """
+""" Resolve task class name using the event passed to the Lambda function. """
 from   collections import namedtuple
 import re
 

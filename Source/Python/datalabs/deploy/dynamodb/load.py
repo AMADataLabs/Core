@@ -1,4 +1,4 @@
-""" Tool for loading Kubernetes ConfigMap data into etcd. """
+""" Tool for loading Kubernetes ConfigMap data into DynamoDB. """
 import base64
 import json
 import logging
@@ -51,6 +51,14 @@ class ConfigMapLoader():
 
         return (dag, dag_variables)
 
+    def _load_variables_into_dynamodb(self, dynamodb, dag, task, variables):
+        response = None
+        item = self._generate_item(dag, task, variables)
+
+        response = dynamodb.put_item(TableName=self._parameters["table"], Item=item)
+
+        return response
+
     @classmethod
     def _get_dag_id(cls, var_tree):
         global_variables = var_tree.get_branch_values([])
@@ -70,14 +78,6 @@ class ConfigMapLoader():
         global_variables.pop(dag)
 
         return global_variables
-
-    def _load_variables_into_dynamodb(self, dynamodb, dag, task, variables):
-        response = None
-        item = self._generate_item(dag, task, variables)
-
-        response = dynamodb.put_item(TableName=self._parameters["table"], Item=item)
-
-        return response
 
     def _generate_item(self, dag, task, variables):
         item = dict(

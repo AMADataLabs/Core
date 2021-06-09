@@ -1,4 +1,4 @@
-""" Task wrapper for simple ETL Lambda functions. """
+""" Task wrapper for DAG and DAG task Lambda functions. """
 import json
 import logging
 import os
@@ -12,6 +12,17 @@ LOGGER.setLevel(logging.INFO)
 
 
 class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
+    def _setup_environment(self):
+        dynamodb_loader = DynamoDBEnvironmentLoader.from_environ()
+        if dynamodb_loader is not None:
+            dynamodb_loader.load()
+
+        super()._setup_environment()
+
+        self._resolve_parameter_store_environment_variables()
+
+        self._resolve_secrets_manager_environment_variables()
+
     def _get_task_parameters(self):
         task_parameters = super()._get_task_parameters()
 
