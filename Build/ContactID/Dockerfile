@@ -19,6 +19,9 @@ RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
 RUN apt-get update && apt-get install -y openjdk-11-jre
 ADD https://dbschema.com/jdbc-drivers/SqlServerJdbcDriver.zip .
 RUN unzip ./SqlServerJdbcDriver.zip && rm ./SqlServerJdbcDriver.zip
+ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
+RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
+RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
@@ -43,3 +46,11 @@ RUN echo "eft.ama-assn.org,10.195.141.136 ssh-rsa AAAAB3NzaC1yc2EAAAABEQAAAQEAqQ
 RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
+
+
+
+
+
+
+
+
