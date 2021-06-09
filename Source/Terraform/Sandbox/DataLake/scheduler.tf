@@ -225,7 +225,7 @@ resource "aws_cloudwatch_event_target" "sns" {
 #####################################################################
 
 resource "aws_dynamodb_table" "scheduler_locks" {
-    name            = "${var.project}-${var.environment}-scheduler-locks"
+    name            = "${var.project}-scheduler-locks-${var.environment}"
     billing_mode    = "PAY_PER_REQUEST"
     # read_capacity   = 10
     # write_capacity  = 2
@@ -246,20 +246,20 @@ resource "aws_dynamodb_table" "scheduler_locks" {
 
 
 resource "aws_dynamodb_table" "configuration" {
-    name            = "${var.project}-${var.environment}-configuration"
+    name            = "${var.project}-configuration-${var.environment}"
     billing_mode    = "PAY_PER_REQUEST"
     # read_capacity   = 10
     # write_capacity  = 2
-    hash_key        = "Task"
-    range_key      = "DAG"
+    hash_key        = "DAG"
+    range_key      = "Task"
 
     attribute {
-        name = "Task"
+        name = "DAG"
         type = "S"
     }
 
     attribute {
-        name = "DAG"
+        name = "Task"
         type = "S"
     }
 
@@ -273,7 +273,7 @@ resource "aws_dynamodb_table" "configuration" {
 
 
 resource "aws_dynamodb_table" "dag_state" {
-    name            = "${var.project}-${var.environment}-dag-state"
+    name            = "${var.project}-dag-state-${var.environment}"
     billing_mode    = "PAY_PER_REQUEST"
     # read_capacity  = 10
     # write_capacity = 2
@@ -294,7 +294,7 @@ resource "aws_dynamodb_table" "dag_state" {
 
 
 resource "aws_dynamodb_table" "task_state" {
-    name            = "${var.project}-${var.environment}-task-state"
+    name            = "${var.project}-task-state-${var.environment}"
     billing_mode    = "PAY_PER_REQUEST"
     # read_capacity  = 10
     # write_capacity = 2

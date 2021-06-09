@@ -17,13 +17,12 @@ class VariableTree:
     @classmethod
     def from_environment(cls, separator=None):
         ''' Generate a VariableTree from all current environment variables. '''
-        separator = separator or '__'
-
         # pylint: disable=protected-access
         return cls.generate(os.environ._data, separator)
 
     @classmethod
     def generate(cls, variables, separator=None):
+        separator = separator or '__'
         root = dict()
 
         for key, value in (cls._decode_kv_pair(k, v) for k, v in variables.items()):
