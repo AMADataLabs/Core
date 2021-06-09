@@ -1,5 +1,6 @@
 """ Tool for loading Kubernetes ConfigMap data into etcd. """
 import base64
+import json
 import logging
 
 import yaml
@@ -15,59 +16,74 @@ LOGGER.setLevel(logging.INFO)
 
 
 class ConfigMapLoader():
-    def __init__(self, config):
-        self._config = config
+    def __init__(self, parameters):
+        self._parameters = parameters
 
-    def load(self, filename):
-        variables = self._extract_variables_from_configmap(filename)
+    def load(self, filenames):
+        variables = self._extract_variables_from_config(filenames)
 
-        dag_variables = self._parse_variables(variables)
+        dag, dag_variables = self._parse_variables(variables)
 
-        for task, task_variables in dag_variables.items():
-            self._load_variables_into_dynamodb(task, task_variables)
+        with AWSClient("dynamodb") as dynamodb:
+            for task, task_variables in dag_variables.items():
+                self._load_variables_into_dynamodb(dynamodb, dag, task, task_variables)
 
     @classmethod
-    def _extract_variables_from_configmap(cls, filename):
-        with open(filename) as file:
-            configmap = yaml.safe_load(file.read())
+    def _extract_variables_from_config(cls, filenames):
+        config = dict()
 
-        return configmap['data']
+        for filename in filenames:
+            with open(filename) as file:
+                config.update(yaml.safe_load(file.read())['data'])
+
+        return config
 
     def _parse_variables(self, variables):
         dag_variables = dict()
         var_tree = VariableTree.generate(variables)
-        global_variables = var_tree.get_branches([])
-        tasks = var_tree.get_branches([self._config["dag"]])
-
-        global_variables.remove(self._config["dag"])
+        dag = self._get_dag_id(var_tree)
+        global_variables = self._get_global_variables(dag, var_tree)
+        tasks = var_tree.get_branches([dag])
 
         for task in tasks:
-            dag_variables[task] = var_tree.get_branch_values([self._config["dag"], task])
+            dag_variables[task] = var_tree.get_branch_values([dag, task])
+            dag_variables[task].update(global_variables)
 
-        return dag_variables
+        return (dag, dag_variables)
 
+    @classmethod
+    def _get_dag_id(cls, var_tree):
+        global_variables = var_tree.get_branch_values([])
+        dag = None
 
-    def _load_variables_into_dynamodb(self, task, variables):
+        for key, value in global_variables.items():
+            if value is None:
+                dag = key
+                break
+
+        return dag
+
+    @classmethod
+    def _get_global_variables(cls, dag, var_tree):
+        global_variables = var_tree.get_branch_values([])
+
+        global_variables.pop(dag)
+
+        return global_variables
+
+    def _load_variables_into_dynamodb(self, dynamodb, dag, task, variables):
         response = None
-        item = self._generate_item(task, variables)
+        item = self._generate_item(dag, task, variables)
 
-        with AWSClient("dynamodb") as dynamodb:
-            import pdb; pdb.set_trace()
-            # TODO: delete all items for DAG
-            # dynamodb.query(TableName='DataLake-configuration-sbx', KeyConditions=dict(DAG=dict(ComparisonOperator="EQ", AttributeValueList=[dict(S="ONEVIEW")])))
-            response = dynamodb.put_item(TableName=self._config["table"], Item=item)
+        response = dynamodb.put_item(TableName=self._parameters["table"], Item=item)
 
         return response
 
-    def _generate_item(self, task, variables):
+    def _generate_item(self, dag, task, variables):
         item = dict(
             Task=dict(S=task),
-            DAG=dict(S=self._config["dag"])
+            DAG=dict(S=dag),
+            Variables=dict(S=json.dumps(variables))
         )
-
-        for key, value in variables.items():
-            item[key] = dict(S=str(value))
-
-        # TODO: add in global variables
 
         return item

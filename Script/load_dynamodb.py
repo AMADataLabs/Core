@@ -12,8 +12,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 def main(args):
     loader = ConfigMapLoader(dict(
-        table=args['table'],
-        dag=args['dag']
+        table=args['table']
    ))
 
     loader.load(args['file'])
@@ -24,8 +23,7 @@ if __name__ == '__main__':
 
     ap = argparse.ArgumentParser()
     ap.add_argument('-t', '--table', required=True, help='DynamoDB table name.')
-    ap.add_argument('-d', '--dag', required=True, help='DAG name.')
-    ap.add_argument('-f', '--file', required=True, help='ConfigMap YAML file.')
+    ap.add_argument('-f', '--file', action='append', required=True, help='ConfigMap YAML file.')
     args = vars(ap.parse_args())
 
     try:
