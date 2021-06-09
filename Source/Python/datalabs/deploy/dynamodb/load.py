@@ -53,7 +53,8 @@ class ConfigMapLoader():
 
         with AWSClient("dynamodb") as dynamodb:
             import pdb; pdb.set_trace()
-            # 'Artist = :a AND SongTitle BETWEEN :t1 AND :t2'
+            # TODO: delete all items for DAG
+            # dynamodb.query(TableName='DataLake-configuration-sbx', KeyConditions=dict(DAG=dict(ComparisonOperator="EQ", AttributeValueList=[dict(S="ONEVIEW")])))
             response = dynamodb.put_item(TableName=self._config["table"], Item=item)
 
         return response
@@ -66,5 +67,7 @@ class ConfigMapLoader():
 
         for key, value in variables.items():
             item[key] = dict(S=str(value))
+
+        # TODO: add in global variables
 
         return item
