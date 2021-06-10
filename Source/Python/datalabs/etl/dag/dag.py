@@ -37,6 +37,12 @@ class DAGMeta(type):
 
         return cls
 
+    def __getattr__(cls, name):
+        if name not in cls.__task_classes__:
+            raise AttributeError(f"type object '{cls.__name__}' has no attribute '{name}'")
+
+        return cls.__task_classes__.get(name)
+
     # TODO: allow DAG.TASK1 >> DAG.TASK2
 
 
@@ -50,7 +56,6 @@ class DAG(ParameterValidatorMixin, paradag.DAG, metaclass=DAGMeta):
 
     def __init__(self, parameters: DAGParameters):
         super().__init__()
-        self._task_classes = {}
         self._parameters = self._get_validated_parameters(parameters)
 
     @classmethod
