@@ -1,40 +1,34 @@
-""" Resolve task class name using the event passed to the Lambda function. """
-from   collections import namedtuple
-import re
+""" Resolve task class name using the configured DAG class. """
+from   dataclasses import dataclass
 
 import datalabs.task as task
+from   datalabs.parameter import add_schema, ParameterValidatorMixin
+from   datalabs.plugin import import_plugin
 
 
-TaskClassMapping = namedtuple('TaskClassMapping', 'path class_name')
+@add_schema
+@dataclass
+class TaskResolverParameters:
+    type: str
+    execution_time: str
+    task: str=None
 
-class TaskResolver(task.TaskResolver):
-    # pylint: disable=line-too-long
-    TASK_CLASSES = [
-        TaskClassMapping('/descriptor/*',             'datalabs.access.cpt.api.descriptor.DescriptorEndpointTask'),
-        TaskClassMapping('/descriptors',              'datalabs.access.cpt.api.descriptor.AllDescriptorsEndpointTask'),
-        TaskClassMapping('/consumer/descriptor/*',    'datalabs.access.cpt.api.consumer_descriptor.ConsumerDescriptorEndpointTask'),
-        TaskClassMapping('/consumer/descriptors',     'datalabs.access.cpt.api.consumer_descriptor.AllConsumerDescriptorsEndpointTask'),
-        TaskClassMapping('/clinician/descriptors/*',  'datalabs.access.cpt.api.clinician_descriptor.ClinicianDescriptorsEndpointTask'),
-        TaskClassMapping('/clinician/descriptors',    'datalabs.access.cpt.api.clinician_descriptor.AllClinicianDescriptorsEndpointTask'),
-        TaskClassMapping('/pla/details/*',            'datalabs.access.cpt.api.pla.PLADetailsEndpointTask'),
-        TaskClassMapping('/pla/details',              'datalabs.access.cpt.api.pla.AllPLADetailsEndpointTask'),
-        TaskClassMapping('/modifier/*',               'datalabs.access.cpt.api.modifier.ModifierEndpointTask'),
-        TaskClassMapping('/modifiers',                'datalabs.access.cpt.api.modifier.AllModifiersEndpointTask'),
-        TaskClassMapping('/pdfs',                     'datalabs.access.cpt.api.pdf.LatestPDFsEndpointTask'),
-        TaskClassMapping('/releases',                 'datalabs.access.cpt.api.release.ReleasesEndpointTask'),
-        TaskClassMapping('/*',                        'datalabs.access.cpt.api.default.DefaultEndpointTask')
-    ]
+
+class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
+    PARAMETER_CLASS = TaskResolverParameters
 
     @classmethod
     def get_task_class_name(cls, parameters):
-        path = parameters['path']
-        class_name = None
+        self._parameters = self._get_validated_parameters(parameters)
+        task_class_name = None
 
-        for mapping in cls.TASK_CLASSES:
-            path_pattern = mapping.path.replace('*', '[^/]+')
+        if type == "DAG":
+            task_class_name = 'datalabs.etl.dag.task.DAGExecutorTask'
+        elif type == "Task":
+            dag_class = import_plugin(cls.DAG_CLASS)
+            dag = dag_class(dict(DAG_CLASS=cls.DAG_CLASS, STATE_CLASS=None))
+            task_class_name = dag_class.TASK_CLASSES[task]
+        else:
+            raise ValueError(f"Invalid DAG plugin event type '{type}'")
 
-            if re.match(path_pattern, path):
-                class_name = mapping.class_name
-                break
-
-        return class_name
+        return task_class_name

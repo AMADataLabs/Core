@@ -111,7 +111,6 @@ class TaskResolver(ABC):
         pass
 
 
-
 class EnvironmentTaskResolver(TaskResolver):
     # pylint: disable=unused-argument
     @classmethod

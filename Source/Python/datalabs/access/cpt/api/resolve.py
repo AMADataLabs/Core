@@ -2,12 +2,10 @@
 from   collections import namedtuple
 import re
 
-import datalabs.task as task
-
 
 TaskClassMapping = namedtuple('TaskClassMapping', 'path class_name')
 
-class TaskResolver(task.TaskResolver):
+class TaskResolver:
     # pylint: disable=line-too-long
     TASK_CLASSES = [
         TaskClassMapping('/descriptor/*',             'datalabs.access.cpt.api.descriptor.DescriptorEndpointTask'),

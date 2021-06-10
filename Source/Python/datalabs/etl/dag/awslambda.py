@@ -13,6 +13,10 @@ LOGGER.setLevel(logging.INFO)
 
 class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
     def _setup_environment(self):
+        # TODO:
+        #  1. Determine if this is a DAG or Task invocation
+        #  2. Set either DAG_ID and TASK_ID from event depending on (1)
+        #  3. If TASK_ID is defined, run task. Otherwise, run DAG
         dynamodb_loader = DynamoDBEnvironmentLoader.from_environ()
         if dynamodb_loader is not None:
             dynamodb_loader.load()
@@ -27,7 +31,7 @@ class ETLTaskWrapper(task.ETLTaskParametersGetterMixin, awslambda.TaskWrapper):
         task_parameters = super()._get_task_parameters()
 
         if self._parameters and hasattr(self._parameters, 'items'):
-            task_parameters = self._add_component_environment_variables_from_event(task_parameters, self._parameters)
+            task_parameters = self._add_task_environment_variables_from_event(task_parameters, self._parameters)
 
         return task_parameters
 
