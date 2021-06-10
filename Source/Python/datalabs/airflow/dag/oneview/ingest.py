@@ -345,13 +345,13 @@ with ONEVIEW_ETL_DAG:
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
     #
-    # LOAD_MELISSA_TABLES_INTO_DATABASE = KubernetesPodOperator(
-    #     name="load_melissa_tables_into_database",
-    #     task_id="load_melissa_tables_into_database",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
-    # )
-    #
+    LOAD_MELISSA_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        name="load_melissa_tables_into_database",
+        task_id="load_melissa_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
     # LOAD_LINKING_TABLES_INTO_DATABASE = KubernetesPodOperator(
     #     name="load_linking_tables_into_database",
     #     task_id="load_linking_tables_into_database",
@@ -396,4 +396,4 @@ CREATE_BUSINESS_AND_PROVIDER_TABLES >> CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TA
 CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_LINKING_TABLES_INTO_DATABASE
-EXTRACT_MELISSA >> CREATE_MELISSA_TABLES # >> LOAD_MELISSA_TABLES_INTO_DATABASE
+EXTRACT_MELISSA >> CREATE_MELISSA_TABLES >> LOAD_MELISSA_TABLES_INTO_DATABASE
