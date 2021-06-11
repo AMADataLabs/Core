@@ -366,7 +366,7 @@ with ONEVIEW_ETL_DAG:
         env_vars=BASE_ENVIRONMENT,
     )
 
-# # pylint: disable=pointless-statement
+# pylint: disable=pointless-statement
 MIGRATE_DATABASE
 EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE
 EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERS >> CREATE_PHYSICIAN_TABLE

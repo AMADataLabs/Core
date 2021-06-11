@@ -479,7 +479,7 @@ resource "aws_ecr_repository" "datanow" {
 
 module "datalake_ecs_cluster" {
     source                            = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-fargate.git?ref=2.0.0"
-    app_name                          =  lower("${var.project}")
+    app_name                          =  lower(var.project)
     app_environment                   = var.environment
 
     tag_name                          = "${var.project}-cluster"
