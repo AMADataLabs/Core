@@ -41,7 +41,8 @@ class TestDAG:
 def dag_parameters():
     return dict(
         type="DAG",
-        execution_time="2021-01-21T12:24:38+00.00"
+        execution_time="2021-01-21T12:24:38+00.00",
+        dag_class=TestDAG
     )
 
 
@@ -62,7 +63,8 @@ def task_parameters():
     return dict(
         type="Task",
         execution_time="2021-01-21T12:24:38+00.00",
-        task="TestTask"
+        task="TestTask",
+        dag_class=TestDAG
     )
 
 
@@ -71,5 +73,6 @@ def bad_type_parameters():
     return dict(
         type="Exercise",
         execution_time="2021-01-21T12:24:38+00.00",
-        task="TestTask"
+        task="TestTask",
+        dag_class=TestDAG
     )

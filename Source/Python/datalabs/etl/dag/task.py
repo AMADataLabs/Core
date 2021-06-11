@@ -30,8 +30,9 @@ class DAGExecutorTask(Task):
 
 class DAGExecutor:
     def __init__(self, state_class: type):
+        self._state = state_class()
 
-    def param(self, task: DAGTask):
+    def param(self, task: 'DAGTask'):
         return task
 
     def execute(self, task):
