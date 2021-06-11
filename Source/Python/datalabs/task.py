@@ -75,9 +75,7 @@ class TaskWrapper(ABC):
     def _get_task_class(self):
         task_resolver_class = self._get_task_resolver_class()
 
-        task_class_name = task_resolver_class.get_task_class_name(self._parameters)
-
-        task_class = import_plugin(task_class_name)
+        task_class = task_resolver_class.get_task_class(self._parameters)
 
         if not hasattr(task_class, 'run'):
             raise TypeError('Task class does not have a "run" method.')
@@ -99,23 +97,25 @@ class TaskWrapper(ABC):
         task_resolver_class_name = os.environ.get('TASK_RESOLVER_CLASS', 'datalabs.task.EnvironmentTaskResolver')
         task_resolver_class = import_plugin(task_resolver_class_name)
 
-        if not hasattr(task_resolver_class, 'get_task_class_name'):
-            raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class_name method.')
+        if not hasattr(task_resolver_class, 'get_task_class'):
+            raise TypeError(f'Task resolver {task_resolver_class_name} has no get_task_class method.')
 
         return task_resolver_class
 
 class TaskResolver(ABC):
     @classmethod
     @abstractmethod
-    def get_task_class_name(cls, parameters):
+    def get_task_class(cls, parameters):
         pass
 
 
 class EnvironmentTaskResolver(TaskResolver):
     # pylint: disable=unused-argument
     @classmethod
-    def get_task_class_name(cls, parameters):
-        return os.environ['TASK_CLASS']
+    def get_task_class(cls, parameters):
+        task_class_name = os.environ['TASK_CLASS']
+
+        return import_plugin(task_class_name)
 
 
 # pylint: disable=abstract-method

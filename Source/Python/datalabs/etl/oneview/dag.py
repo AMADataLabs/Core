@@ -17,9 +17,6 @@ import datalabs.etl.oneview.residency.transform as residency
 from   datalabs.etl.orm.load import ORMLoaderTask
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 
-class TaskVertex(object):
-    def __init__(self, task_class):
-        self._task_class = task_class
 
 class OneViewDAG(DAG):
     EXTRACT_PPD: JDBCExtractorTask

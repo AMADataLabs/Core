@@ -1,6 +1,8 @@
 """ Resolve task class name using the configured DAG class. """
 from   dataclasses import dataclass
+import os
 
+from   datalabs.etl.dag.task import DAGExecutorTask
 import datalabs.task as task
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
 from   datalabs.plugin import import_plugin
@@ -18,17 +20,16 @@ class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
     PARAMETER_CLASS = TaskResolverParameters
 
     @classmethod
-    def get_task_class_name(cls, parameters):
-        self._parameters = self._get_validated_parameters(parameters)
-        task_class_name = None
+    def get_task_class(cls, parameters):
+        parameters = cls._get_validated_parameters(parameters)
+        task_class = None
 
-        if type == "DAG":
-            task_class_name = 'datalabs.etl.dag.task.DAGExecutorTask'
-        elif type == "Task":
-            dag_class = import_plugin(cls.DAG_CLASS)
-            task_class = dag_class.task_class(task)
-            task_class_name = '.'.join([task_class.__module__, task_class.__qualname__])
+        if parameters.type == "DAG":
+            task_class = DAGExecutorTask
+        elif parameters.type == "Task":
+            dag_class = import_plugin(os.environ.get('DAG_CLASS'))
+            task_class = dag_class.task_class(parameters.task)
         else:
-            raise ValueError(f"Invalid DAG plugin event type '{type}'")
+            raise ValueError(f"Invalid DAG plugin event type '{parameters.type}'")
 
-        return task_class_name
+        return task_class

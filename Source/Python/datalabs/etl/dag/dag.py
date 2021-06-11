@@ -54,7 +54,7 @@ class DAGMeta(type):
 
 
 class DAG(paradag.DAG, metaclass=DAGMeta):
-    def __init__(self, state_class):
+    def __init__(self):
         super().__init__()
 
         for task in self.__task_classes__.values():
