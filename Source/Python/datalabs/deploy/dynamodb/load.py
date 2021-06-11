@@ -1,11 +1,8 @@
 """ Tool for loading Kubernetes ConfigMap data into DynamoDB. """
-import base64
 import json
 import logging
 
 import yaml
-from   boto3.dynamodb.conditions import Key, And
-
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.access.environment import VariableTree
@@ -79,7 +76,8 @@ class ConfigMapLoader():
 
         return global_variables
 
-    def _generate_item(self, dag, task, variables):
+    @classmethod
+    def _generate_item(cls, dag, task, variables):
         item = dict(
             Task=dict(S=task),
             DAG=dict(S=dag),

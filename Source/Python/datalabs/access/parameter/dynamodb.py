@@ -57,7 +57,10 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
         with AWSClient("dynamodb") as dynamodb:
             response = dynamodb.get_item(
                 TableName=self._parameters.table,
-                Key=dict(DAG=)
+                Key=dict(
+                    DAG=self._parameters.dag,
+                    Task=self._parameters.task
+                )
             )
 
         return self._extract_parameters(response)
