@@ -1,7 +1,6 @@
 """ Source: datalabs.etl.dag.resolve """
 import os
 
-import mock
 import pytest
 
 from   datalabs.etl.dag.resolve import TaskResolver
@@ -14,7 +13,7 @@ def test_task_resolver_gets_dag_executor(dag_parameters):
     assert task_class.__qualname__ == 'DAGExecutorTask'
 
 
-# pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name, unused-argument
 def test_task_resolver_gets_dag_task(environment, task_parameters):
     task_class = TaskResolver.get_task_class(task_parameters)
 
@@ -32,6 +31,7 @@ class TestTask:
 
 
 class TestDAG:
+    # pylint: disable=unused-argument
     @classmethod
     def task_class(cls, name):
         return TestTask

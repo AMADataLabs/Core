@@ -1,5 +1,4 @@
 """ Task wrapper for DAG and DAG task Lambda functions. """
-import json
 import logging
 import os
 
@@ -63,7 +62,7 @@ class DAGTaskWrapper(awslambda.TaskWrapper):
 
         dynamodb_loader = DynamoDBEnvironmentLoader(dict(
             table=os.environ["DYNAMODB_CONFIG_TABLE"],
-            dag=os.environ["DAG"]
+            dag=os.environ["DAG"],
             task=self._parameters["task"]
         ))
         dynamodb_loader.load(environment=dag_task_parameters)

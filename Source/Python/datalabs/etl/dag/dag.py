@@ -1,7 +1,4 @@
 """ Class for defining a DAG. """
-from   collections import defaultdict
-from   dataclasses import dataclass
-
 import paradag
 
 
@@ -33,6 +30,7 @@ class DAGTask:
 
 
 class DAGMeta(type):
+    # pylint: disable=bad-mcs-classmethod-argument
     def __new__(mcs, classname, bases, attrs, **kwargs):
         cls = super().__new__(mcs, classname, bases, attrs, **kwargs)
         cls.__task_classes__ = {}

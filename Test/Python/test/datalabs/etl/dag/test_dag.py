@@ -1,9 +1,4 @@
 """ Source: datalabs.etl.dag.dag """
-import os
-
-import mock
-import pytest
-
 from   datalabs.etl.dag import DAG
 
 
@@ -25,7 +20,9 @@ def test_dag_vertices_are_created():
 
 
 def test_dag_edges_are_created():
+    # pylint: disable=pointless-statement
     TestDAG.CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY >> TestDAG.POOR_CHAMPAIGN_INTO_GLASS
+
     dag = TestDAG()
 
     assert dag.edge_size() == 1

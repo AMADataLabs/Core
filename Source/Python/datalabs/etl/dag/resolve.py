@@ -1,11 +1,9 @@
 """ Resolve task class name using the configured DAG class. """
 from   dataclasses import dataclass
-import os
 
 from   datalabs.etl.dag.task import DAGExecutorTask
 import datalabs.task as task
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
-from   datalabs.plugin import import_plugin
 
 
 @add_schema(unknowns=True)
