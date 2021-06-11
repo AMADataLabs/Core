@@ -55,7 +55,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         current_hashes = self._get_current_row_hashes(database, table, schema, primary_key)
         incoming_hashes = self._generate_row_hashes(columns, data, primary_key)
 
-        return TableParameters(data, table, model_class, primary_key, columns, current_hashes, schema, incoming_hashes)
+        return TableParameters(data, table, model_class, primary_key, columns, schema, current_hashes, incoming_hashes)
 
     def _update(self, database, table_parameters):
         self._add_data(database, table_parameters)
