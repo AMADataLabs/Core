@@ -89,7 +89,7 @@ CENSUS_COLUMNS = {
 }
 
 CORE_BASED_STATISTICAL_AREA_COLUMNS = {
-    'ZIP_CBSA_DIVISION': 'zip_code',
+    'ZIP_CBSA_DIVISION': 'code',
     'CBSA_OR_DIV': 'type',
     'LOCATION_TITLE': 'title',
     'LEVEL_MSA': 'level',

@@ -34,25 +34,25 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
 
 
 class SpecialtyMergeTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        specialty_physician_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
-        filtered_specialty_data = [
-            specialty_physician_data[0].loc[
-                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1]['PRIMSPECIALTY']) |
-                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1]['SECONDARYSPECIALTY'])
-            ].reset_index(drop=True)
-        ]
+    def _preprocess_data(self, data):
+        filtered_specialty_data = data[0].loc[
+            data[0]['SPEC_CD'].isin(data[1]['PRIMSPECIALTY']) | data[0]['SPEC_CD'].isin(data[1]['SECONDARYSPECIALTY'])
+        ].reset_index(drop=True)
 
-        return filtered_specialty_data
+        return [filtered_specialty_data]
 
     def _get_columns(self):
         return [SPECIALTY_MERGED_COLUMNS]
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        fips_data = [pandas.read_excel(BytesIO(data), skiprows=4) for data in self._parameters['data']]
-        fips_selected_data = self.set_columns(fips_data[0])
+    def _csv_to_dataframe(self, file):
+        fips_data = pandas.read_excel(BytesIO(file), skiprows=4)
+
+        return fips_data
+
+    def _preprocess_data(self, data):
+        fips_selected_data = self.set_columns(data[0])
 
         primary_keys = [column['State Code (FIPS)'] + column['County Code (FIPS)']
                         for index, column in fips_selected_data.iterrows()]
