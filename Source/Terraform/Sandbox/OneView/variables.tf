@@ -120,8 +120,15 @@ variable "etl_timeout" {
 }
 
 
-variable "etcd_host" {
+variable "dag_name" {
     description = "timeout in seconds"
     type        = string
-    default     = 15
+    default     = "ONEVIEW"
+}
+
+
+variable "dynamodb_config_table" {
+    description = "timeout in seconds"
+    type        = string
+    default     = "DataLake-configuration-${var.environment}"
 }

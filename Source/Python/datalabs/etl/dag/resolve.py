@@ -8,12 +8,13 @@ from   datalabs.parameter import add_schema, ParameterValidatorMixin
 from   datalabs.plugin import import_plugin
 
 
-@add_schema
+@add_schema(unknowns=True)
 @dataclass
 class TaskResolverParameters:
     type: str
-    execution_time: str
+    dag_class: type
     task: str=None
+    unknowns: dict=None
 
 
 class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
@@ -27,8 +28,7 @@ class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
         if parameters.type == "DAG":
             task_class = DAGExecutorTask
         elif parameters.type == "Task":
-            dag_class = import_plugin(os.environ.get('DAG_CLASS'))
-            task_class = dag_class.task_class(parameters.task)
+            task_class = parameters.dag_class.task_class(parameters.task)
         else:
             raise ValueError(f"Invalid DAG plugin event type '{parameters.type}'")
 

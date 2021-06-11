@@ -4,9 +4,6 @@ from   dataclasses import dataclass
 
 import paradag
 
-from   datalabs.etl.dag.state import State
-from   datalabs.parameter import add_schema, ParameterValidatorMixin
-
 
 class DAGTask:
     def __init__(self, task_class: str):
@@ -74,32 +71,3 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
     @classmethod
     def task_class(cls, task: str):
         return cls.__task_classes__.get(task).task_class
-
-    def run(self):
-        paradag.dag_run(dag, processor=paradag.MultiThreadProcessor(), executor=DAGExecutor())
-
-
-class DAGExecutor:
-    def __init__(self, dag: DAG):
-        self._dag = dag
-
-    def param(self, task: DAGTask):
-        return task
-
-    def execute(self, task):
-        state = self._get_task_state(task)
-
-        if state == State.UNKNOWN:
-            self._trigger_task(task)
-
-        return state
-
-    def deliver(self, task, predecessor_result):
-        if predecessor_result != State.FINISHED:
-            task.block()
-
-    def _get_task_state(self, task):
-        pass
-
-    def _trigger_task(self, task):
-        pass

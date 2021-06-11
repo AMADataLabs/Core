@@ -7,6 +7,7 @@ import os
 import requests
 
 from   datalabs.access.aws import AWSClient
+from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
 logging.basicConfig()
@@ -24,22 +25,25 @@ class DynamoDBParameters:
 
 
 class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
-    PARAMETER_CLASS = EtcdParameters
+    PARAMETER_CLASS = DynamoDBParameters
 
     def __init__(self, parameters):
         self._parameters = self._get_validated_parameters(parameters)
 
-    def load(self):
+    def load(self, environment: dict = None):
+        environment = environment or os.environ
         parameters = self._get_parameters_from_dynamodb()
 
-        self._set_environment_variables_from_parameters(parameters)
+        ReferenceEnvironmentLoader(parameters).load(environment=parameters)
+
+        environment.update(parameters)
 
     @classmethod
     def from_environ(cls):
         loader = None
 
         if table and dag and task:
-            loader = EtcdEnvironmentLoader(dict(
+            loader = DynamoDBEnvironmentLoader(dict(
                 table=os.environ.get('DYNAMODB_CONFIG_TABLE'),
                 dag=os.environ.get('DYNAMODB_CONFIG_DAG'),
                 task=os.environ.get('DYNAMODB_CONFIG_TASK')
@@ -57,11 +61,6 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
             )
 
         return self._extract_parameters(response)
-
-    @classmethod
-    def _set_environment_variables_from_parameters(cls, parameters: dict):
-        for key, value in parameters.items():
-            os.environ[key] = value
 
     @classmethod
     def _extract_parameters(cls, response):

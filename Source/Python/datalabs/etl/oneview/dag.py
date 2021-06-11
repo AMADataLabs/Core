@@ -1,8 +1,4 @@
 """ OneView ETL DAG definition. """
-from   collections import namedtuple
-
-import paradag
-
 from   datalabs.etl.dag import DAG
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
@@ -59,6 +55,8 @@ class OneViewDAG(DAG):
     LOAD_MELISSA_TABLES_INTO_DATABASE: ORMLoaderTask
     LOAD_LINKING_TABLES_INTO_DATABASE: ORMLoaderTask
 
+
+# pylint: disable=pointless-statement
 OneViewDAG.EXTRACT_PPD >> OneViewDAG.CREATE_PHYSICIAN_TABLE
 OneViewDAG.EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERS >> OneViewDAG.CREATE_PHYSICIAN_TABLE
 OneViewDAG.CREATE_PHYSICIAN_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_INTO_DATABASE

@@ -104,11 +104,13 @@ module "etl_lambda" {
 
     environment_variables = {
         variables = {
-          TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
-          ETCD_HOST               = var.etcd_host
-          ETCD_USERNAME           = "scheduler"
-          ETCD_PASSWORD           = random_password.etcd_scheduler_password.result
-          ETCD_PREFIX             = "TASK_PROCESSOR_"
+          TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
+          TASK_RESOLVER           = "datalabs.etl.dag.resolve.TaskResolver"
+          DYNAMODB_CONFIG_TABLE   = var.dynamodb_config_table
+          DAG_STATE_CLASS         = "datalabs.etl.dag.state.dynamodb.DAGState"
+          TASK_STATE_CLASS        = "datalabs.etl.dag.state.dynamodb.TaskState"
+          DAG                     = "ONEVIEW"
+          DAG_CLASS               = "datalabs.etl.oneview.dag.OneViewDAG"
         }
     }
 
