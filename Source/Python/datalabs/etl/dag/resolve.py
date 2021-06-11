@@ -26,8 +26,8 @@ class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
             task_class_name = 'datalabs.etl.dag.task.DAGExecutorTask'
         elif type == "Task":
             dag_class = import_plugin(cls.DAG_CLASS)
-            dag = dag_class(dict(DAG_CLASS=cls.DAG_CLASS, STATE_CLASS=None))
-            task_class_name = dag_class.TASK_CLASSES[task]
+            task_class = dag_class.task_class(task)
+            task_class_name = '.'.join([task_class.__module__, task_class.__qualname__])
         else:
             raise ValueError(f"Invalid DAG plugin event type '{type}'")
 

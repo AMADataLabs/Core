@@ -105,8 +105,8 @@ class TaskWrapper(ABC):
         return task_resolver_class
 
 class TaskResolver(ABC):
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def get_task_class_name(cls, parameters):
         pass
 
