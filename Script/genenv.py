@@ -14,7 +14,7 @@ def main(args):
     LOGGER.debug('Running virtual environment generator...')
     generator = EnvironmentGenerator.create(args)
 
-    generator.generate()
+    generator.from_environment()
 
 
 if __name__ == '__main__':

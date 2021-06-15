@@ -149,7 +149,7 @@ class AirflowTaskWrapper(task.TaskWrapper):
 
     @classmethod
     def _get_parameters(cls, branch):
-        var_tree = VariableTree.generate()
+        var_tree = VariableTree.from_environment()
 
         candidate_parameters = var_tree.get_branch_values(branch)
 

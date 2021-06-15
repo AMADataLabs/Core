@@ -11,6 +11,15 @@ LOGGER.setLevel(logging.INFO)
 
 
 class MelissaTransformerTask(TransformerTask):
+    def _preprocess_data(self, data):
+        zip_code_data = data[0]
+
+        primary_keys = [str(column['ZIP']) + str(column['CITY_CD'])
+                        for index, column in zip_code_data.iterrows()]
+        zip_code_data['id'] = primary_keys
+
+        return [zip_code_data, data[1], data[2], data[3], data[4], data[5], data[6]]
+
     def _get_columns(self):
         return [
             columns.ZIP_CODE_COLUMNS,

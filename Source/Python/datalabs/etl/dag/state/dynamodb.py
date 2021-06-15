@@ -45,7 +45,8 @@ class LockingState(State):
             table.put_item(
                 Item={'LockID': {'S': lock_id}, 'ttl': {'N': int(time.time()+30)}},
                 ConditionExpression="attribute_not_exists(#r)",
-                ExpressionAttributeNames={"#r": "LockID"})
+                ExpressionAttributeNames={"#r": "LockID"}
+            )
 
             locked = True
         except botocore.exceptions.ClientError as exception:
@@ -64,7 +65,8 @@ class LockingState(State):
             table.delete_item(
                 Key={'LockID': {'Value': {'S': lock_id}}},
                 ConditionExpression="attribute_exists(#r)",
-                ExpressionAttributeNames={"#r": "LockID"})
+                ExpressionAttributeNames={"#r": "LockID"}
+            )
 
             unlocked = True
         except botocore.exceptions.ClientError as exception:
