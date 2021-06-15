@@ -109,7 +109,7 @@ with ONEVIEW_ETL_DAG:
         name="extract_credentialing",
         task_id="extract_credentialing",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
