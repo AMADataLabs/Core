@@ -568,7 +568,7 @@ data:
     ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__CACHE_INPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__CACHE_INPUT_ACCESS_KEY: ${ONEVIEW_S3_ACCESS_KEY}
     ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__CACHE_INPUT_SECRET_KEY: ${ONEVIEW_S3_SECRET_KEY}
-    ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__CACHE_INPUT_FILES: 'metropolitan_statistical_area.csv,county.csv,core_based_statistical_area_melissa.csv,zip_code.csv,area_code.csv,census.csv,zip_code_core_based_statistical_areas.csv,'
+    ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__CACHE_INPUT_FILES: 'metropolitan_statistical_area.csv,county.csv,core_based_statistical_area_melissa.csv,zip_code.csv,area_code.csv,census.csv,zip_code_core_based_statistical_areas.csv'
 
     ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__MODEL_CLASSES: 'datalabs.model.masterfile.oneview.MetropolitanStatisticalArea,datalabs.model.masterfile.oneview.County,datalabs.model.masterfile.oneview.CoreBasedStatisticalAreaMelissa,datalabs.model.masterfile.oneview.ZipCode,datalabs.model.masterfile.oneview.AreaCode,datalabs.model.masterfile.oneview.Census,datalabs.model.masterfile.oneview.ZipCodeCoreBasedStatisticalArea'
     ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__DATABASE_HOST: ${ONEVIEW_DATABASE_HOST}
@@ -577,7 +577,7 @@ data:
     ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__DATABASE_NAME: ${ONEVIEW_DATABASE_NAME}
     ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__DATABASE_USERNAME: ${ONEVIEW_DATABASE_USERNAME}
     ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__DATABASE_PASSWORD: ${ONEVIEW_DATABASE_PASSWORD}
-    ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__TABLES: 'metropolitan_statistical_area,county,core_based_statistical_area_melissa,zip_code,area_code,census,zip_code_core_based_statistical_areas,'
+    ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__TABLES: 'metropolitan_statistical_area,county,core_based_statistical_area_melissa,zip_code,area_code,census,zip_code_core_based_statistical_areas'
     ONEVIEW__LOAD_MELISSA_TABLES_INTO_DATABASE__SCHEMA: 'oneview'
 
     # Physician NPI Extractor
