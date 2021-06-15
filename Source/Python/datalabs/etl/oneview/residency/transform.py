@@ -60,10 +60,11 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_dataframes(cls, programs, addresses, institution_info, program_institution):
-        program_information = pandas.merge(programs, addresses, on='pgm_id')
-        program_information = pandas.merge(program_information, program_institution[['pgm_id', 'ins_id']], on='pgm_id')
+        program_information = pandas.merge(programs, addresses, on='pgm_id', how='left')
+        program_information = pandas.merge(program_information, program_institution[['pgm_id', 'ins_id']], on='pgm_id',
+                                           how='left')
         institution_info = pandas.merge(institution_info, program_institution[['ins_id', 'pri_clinical_loc_ind']],
-                                        on='ins_id')
+                                        on='ins_id', how='left')
 
         return program_information, institution_info
 
