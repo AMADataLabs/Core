@@ -17,6 +17,7 @@ class ResidencyTransformerTask(TransformerTask):
 
         return df_data
 
+    # pylint: disable=too-many-arguments
     def _preprocess_data(self, data):
         programs = data[0]
 
