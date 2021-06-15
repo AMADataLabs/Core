@@ -334,7 +334,8 @@ class ZipCode(Base):
     __tablename__ = 'zip_code'
     __table_args__ = {"schema": "oneview"}
 
-    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
+    zip_code = sa.Column(sa.String, nullable=False)
     state = sa.Column(sa.String, nullable=False)
     city = sa.Column(sa.String, nullable=False)
     type = sa.Column(sa.String, nullable=False)
