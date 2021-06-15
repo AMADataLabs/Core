@@ -17,20 +17,20 @@ class ResidencyTransformerTask(TransformerTask):
 
         return df_data
 
-    def _preprocess_data(self, dataframes):
-        programs = dataframes[0]
+    def _preprocess_data(self, data):
+        programs = data[0]
 
-        addresses = dataframes[1]
+        addresses = data[1]
         addresses.pgm_id = addresses.pgm_id.astype(str)
 
-        program_personnel_member = dataframes[2]
+        program_personnel_member = data[2]
         program_personnel_member.pgm_id = program_personnel_member.pgm_id.astype(str)
 
-        program_institution = dataframes[3]
+        program_institution = data[3]
         program_institution.pgm_id = program_institution.pgm_id.astype(str)
         program_institution.ins_id = program_institution.ins_id.astype(str)
 
-        institution_info = dataframes[4]
+        institution_info = data[4]
 
         programs, addresses, program_personnel_member, program_institution, institution_info = self._select_values(
             programs, addresses, program_personnel_member, program_institution, institution_info
