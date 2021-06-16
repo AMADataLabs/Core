@@ -12,16 +12,16 @@ LOGGER.setLevel(logging.INFO)
 
 class PPDTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
-        npi_table = data[1]
-        ppd_table = data[0]
+        npi = data[1]
+        ppd = data[0]
 
-        ppd_table.ME_NUMBER = ppd_table.ME_NUMBER.astype(str)
+        ppd.ME_NUMBER = ppd.ME_NUMBER.astype(str)
 
-        medical_education_number_table = self._create_medical_education_number_table(npi_table)
-        npi_table = self._create_npi_table(npi_table)
-        entity_table = self._create_entity_table(npi_table)
+        medical_education_number_table = self._create_medical_education_number_table(npi)
+        npi_table = self._create_npi_table(npi)
+        entity_table = self._create_entity_table(npi)
 
-        transformed_ppd = self._merge_dataframes(medical_education_number_table, npi_table, entity_table, ppd_table)
+        transformed_ppd = self._merge_dataframes(medical_education_number_table, npi_table, entity_table, ppd)
 
         return [transformed_ppd]
 
