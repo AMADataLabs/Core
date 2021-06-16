@@ -25,7 +25,7 @@ ONEVIEW_ETL_DAG = DAG(
         owner='airflow',
         resources=dict(
             limit_memory="8G",
-            limit_cpu="1"
+            limit_cpu="2"
         ),
         is_delete_operator_pod=True,
         namespace=f'hsg-data-labs-{DEPLOYMENT_ID}',
