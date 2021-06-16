@@ -55,9 +55,6 @@ class AddressBatchLoadAggregator:
         self._save_invalid_data(invalid_data=invalid_aggregate_data, component_files=invalid_component_file_list)
         self._save_valid_data(data=valid_aggregate_data)
 
-
-
-
     def _validate_process_directories(self):
         for d in self.process_directories:
             if not os.path.exists(d):
