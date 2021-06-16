@@ -287,16 +287,16 @@ data:
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__CACHE_INPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__CACHE_INPUT_ACCESS_KEY: ${ONEVIEW_S3_ACCESS_KEY}
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__CACHE_INPUT_SECRET_KEY: ${ONEVIEW_S3_SECRET_KEY}
-    ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__CACHE_INPUT_FILES: 'residency_program.csv,residency_program_personnel_member.csv,residency_program_institution.csv'
+    ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__CACHE_INPUT_FILES: 'residency_program_institution.csv,residency_program.csv,residency_program_personnel_member.csv'
 
-    ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__MODEL_CLASSES: 'datalabs.model.masterfile.oneview.ResidencyProgram,datalabs.model.masterfile.oneview.ResidencyProgramPersonnelMember,datalabs.model.masterfile.oneview.ResidencyProgramInstitution'
+    ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__MODEL_CLASSES: 'datalabs.model.masterfile.oneview.ResidencyProgramInstitution,datalabs.model.masterfile.oneview.ResidencyProgram,datalabs.model.masterfile.oneview.ResidencyProgramPersonnelMember'
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__DATABASE_HOST: ${ONEVIEW_DATABASE_HOST}
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__DATABASE_PORT: ${ONEVIEW_DATABASE_PORT}
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__DATABASE_BACKEND: ${ONEVIEW_DATABASE_BACKEND}
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__DATABASE_NAME: ${ONEVIEW_DATABASE_NAME}
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__DATABASE_USERNAME: ${ONEVIEW_DATABASE_USERNAME}
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__DATABASE_PASSWORD: ${ONEVIEW_DATABASE_PASSWORD}
-    ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__TABLES: 'residency_program,residency_program_personnel_member,residency_program_institution'
+    ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__TABLES: 'residency_program_institution,residency_program,residency_program_personnel_member'
     ONEVIEW__LOAD_RESIDENCY_TABLES_INTO_DATABASE__SCHEMA: 'oneview'
 
     # IQVIA Extractor
