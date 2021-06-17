@@ -18,6 +18,7 @@ LOGGER.setLevel(logging.INFO)
 
 class Path(Enum):
     URL = 'https://data.cms.gov/provider-data/dataset/mj5m-pzi6'
+    PHONE_URL = 'https://data.cms.gov/provider-data/dataset/phys-phon'
     DRIVER = os.environ.get('DRIVER_PATH')
     DOWNLOADS = os.environ.get('DOWNLOAD_FOLDER')
     DATAGOV = os.environ.get('OUT_DIR')
@@ -30,7 +31,6 @@ def append_me(new_download):
     LOGGER.info('Appending ME numbers')
     with EDW() as edw:
         me_npi = edw.get_me_npi_map()
-    print(me_npi.dtypes)
     new_download['NPI_NBR'] = [str(int(x)) for x in new_download.NPI]
     with_mes = pd.merge(new_download, me_npi, on='NPI_NBR', how='left')
     with_mes.drop(columns = ['NPI_NBR'])
@@ -51,7 +51,7 @@ def get_current_release_date(driver):
     release_xpath = '//*[@id="root"]/div/div/main/div[2]/div[2]/div[1]/header/div[2]/div[2]'
     current_release_info = wait(driver).until(presence_of_element_located((By.XPATH, release_xpath))).text
     current_release_date = current_release_info.split(': ')[1]
-    current_release_date = datetime.strptime(current_release_date, '%B %d, %Y')
+    current_release_date = datetime.strptime(current_release_date, '%b %d, %Y')
     return current_release_date
 
 def is_updated(current_release_date):
