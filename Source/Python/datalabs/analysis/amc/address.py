@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 from datalabs.access.aims import AIMS
 from datalabs.access import excel
-from datalabs.messaging.outlook import Outlook
+from datalabs.messaging.email_message import send_email
 
 
 class AMCAddressFlagger:
@@ -217,13 +217,13 @@ class AMCAddressFlagger:
 
         data['any_flag'] = any_flags
         results_summary = ''
-        results_summary += f"<br>Count of all flagged amc-sourced addresses: {len(data[data['any_flag']])}"
-        results_summary += '<br>Flagging summary: (addresses can be flagged by multiple fields, ' \
+        results_summary += f"\nCount of all flagged amc-sourced addresses: {len(data[data['any_flag']])}"
+        results_summary += '\nFlagging summary: (addresses can be flagged by multiple fields, ' \
                            'so the sum of these counts may exceed count above)'
         for f in flags:
             count = flags[f]
             if count > 0:
-                results_summary += f'<br>{"&nbsp"*13}  {f}: {count}'
+                results_summary += f'\n\t{f}: {count}'
 
         data.drop(columns='address', axis=1, inplace=True)  # delete temp column
 
@@ -265,19 +265,24 @@ class AMCAddressFlagger:
 
         self.logger.info('Creating email report.')
         report_body = \
-            '<p>Hello!' + \
-            '<br>Attached are the latest results of the AMC address flagging script.' + \
-            '<br>Password: Survey21' + '</p>' + \
-            '<p>Results summary:' + \
-            summary + '</p>' + \
-            '<p>This report and email were generated automatically.' + \
-            '<br>If you believe there are errors or if you have questions or suggestions, please contact Garrett.</p>'
+            f"""Hello!
 
-        outlook = Outlook()
-        outlook.send_email(to=self._report_recipients,
-                           cc=self._report_cc,
-                           subject=f'AMC Sweep Results - {self._today_date}',
-                           body=report_body,
-                           from_account=self._report_sender,
-                           attachments=[self._output_file],
-                           auto_send=False)
+            Attached are the latest results of the AMC address flagging script.
+            Password: Survey21
+
+            Results summary:
+            {summary}
+
+            This report and email were generated automatically
+            If you believe there are errors or if you have questions or suggestions, please contact Garrett.""".replace(
+                '    ', ''  # removes tab-spacing at beginning of each line in email body
+            )
+
+        send_email(
+            to=self._report_recipients,
+            cc=self._report_cc,
+            subject=f'AMC Sweep Results - {self._today_date}',
+            body=report_body,
+            from_account=self._report_sender,
+            attachments=self._output_file,
+        )
