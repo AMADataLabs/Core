@@ -4,8 +4,13 @@ from datetime import date
 import pandas as pd
 import pyodbc
 import settings
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from datalabs.access.datamart import DataMart
+import logging
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 def org_manager_connect():
     username_ = os.environ.get('ORG_MANAGER_USERNAME')
@@ -26,59 +31,13 @@ def get_org_query():
 def get_addresses():
     SSO = org_manager_connect()
     query = get_org_query()
+    LOGGER.info("Getting addresses...")
     org_addresses = pd.read_sql(con=SSO, sql=query)
     org_addresses['ADVANTAGE_ID'] = org_addresses.ADVANTAGE_ID.fillna('0')
     org_addresses = org_addresses[org_addresses.ADVANTAGE_ID!='']
     org_addresses['CUSTOMER_NBR']=[float(x) for x in org_addresses.ADVANTAGE_ID]
     org_addresses = org_addresses.sort_values('STATUS').drop_duplicates('ADVANTAGE_ID', keep='last')
     return org_addresses
-
-def datamart_connect():
-    username = os.environ.get('CREDENTIALS_DATAMART_USERNAME')
-    password = os.environ.get('CREDENTIALS_DATAMART_PASSWORD')
-    s = "DSN=PRDDM; UID={}; PWD={}".format(username, password)
-    AMADM = pyodbc.connect(s)
-    return AMADM
-
-def get_order_query():
-    '''SQL query to get order table'''
-    query = \
-    f"""
-    SELECT DISTINCT
-    D.FULL_DT,
-    H.MED_EDU_NBR AS ME,
-    H.PARTY_ID,
-    O.ORDER_NBR,
-    O.ORDER_PRODUCT_ID,
-    O.ORDER_PHYSICIAN_HIST_KEY,
-    O.CUSTOMER_KEY
-    FROM
-    AMADM.DIM_DATE D, AMADM.FACT_EPROFILE_ORDERS O, AMADM.DIM_PHYSICIAN_HIST H
-    WHERE
-    D.DATE_KEY = O.ORDER_DT_KEY
-    AND
-    H.PHYSICIAN_HIST_KEY = O.ORDER_PHYSICIAN_HIST_KEY
-    AND
-    D.YR in (2019,2020,2021)
-    """
-    return query
-
-def get_customer_query():
-    '''SQL query to get customer table'''
-    query = \
-    """
-    SELECT DISTINCT
-    C.CUSTOMER_KEY,
-    C.CUSTOMER_NBR,
-    C.CUSTOMER_ISELL_LOGIN,
-    C.CUSTOMER_NAME,
-    C.CUSTOMER_TYPE_DESC,
-    C.CUSTOMER_TYPE,
-    C.CUSTOMER_CATEGORY_DESC
-    FROM
-    AMADM.dim_customer C
-    """
-    return query
 
 def fix_me(me_list):
     '''Add leading zeroes to ME'''
@@ -95,33 +54,22 @@ def fix_me(me_list):
         nums.append(num)
     return nums
 
-def get_datamart_results(order_type='all', customer_type='all'):
-    '''Get results for specific time period'''
-    order_query = get_order_query()
-    customer_query = get_customer_query()
-    AMADM = datamart_connect()
-    orders = pd.read_sql(con=AMADM, sql=order_query)
-    customers = pd.read_sql(con=AMADM, sql=customer_query)
-    customers.CUSTOMER_KEY = customers.CUSTOMER_KEY.astype(str)
+def get_datamart_results():
+    with DataMart() as datamart:
+        LOGGER.info("Getting customers...")
+        customers = datamart.get_customers()
+        LOGGER.info("Getting orders...")
+        orders = datamart.get_orders()
     customers = customers.fillna('None')
-    if customer_type == 'all':
-        class_cust = customers[customers.CUSTOMER_NAME != 'None']
-    else:
-        class_cust = customers[(customers.CUSTOMER_CATEGORY_DESC.isin(customer_type))&
-                               (customers.CUSTOMER_NAME != 'None')]
-    if order_type == 'reapp':
-        orders = orders[orders.ORDER_PRODUCT_ID.isin([4915514])]
-    elif order_type == 'app':
-        orders = orders[orders.ORDER_PRODUCT_ID.isin([4915513])]
-    else:
-        orders = orders[orders.ORDER_PRODUCT_ID.isin([4915513, 4915514])]
-    results = pd.merge(orders, class_cust, on='CUSTOMER_KEY').drop_duplicates()
+    customers = customers[customers.CUSTOMER_NAME != 'None']
+    customers['CUSTOMER_KEY'] = customers.CUSTOMER_KEY.astype(str)
+    results = pd.merge(orders, customers, on='CUSTOMER_KEY').drop_duplicates()
     results.CUSTOMER_NBR = results.CUSTOMER_NBR.astype(float)
     return results
 
-def get_results(order_type='all', customer_type='all'):
+def get_results():
+    results = get_datamart_results()
     addresses = get_addresses()
-    results = get_datamart_results(order_type, customer_type)
     all_results = pd.merge(addresses, results, on='CUSTOMER_NBR')
     return all_results
 
@@ -158,7 +106,7 @@ def generate_triangulation_file():
     today = date.today()
     all_results = get_results()
     out = os.environ.get('OUTPUT_FOLDER')
-    one_year_ago = date.today() - relativedelta(years=1)
+    one_year_ago = date.today() - relativedelta(years=2)
     new_results = all_results[(all_results.FULL_DT) > one_year_ago]
     acceptable_customers = ['Ambulatory Care',
                             'Hospital',
@@ -169,6 +117,7 @@ def generate_triangulation_file():
                             'Long Term Care',
                             'Managed Care']
     new_results = new_results[new_results.CUSTOMER_CATEGORY_DESC.isin(acceptable_customers)]
+    LOGGER.info('Saving...')
     new_results.to_csv(f'{out}Credentialing_Addresses_{str(today)}.csv', index=False)
 
 if __name__ == "__main__":
