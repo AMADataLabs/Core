@@ -266,6 +266,7 @@ class ProviderAffiliation(Base):
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, nullable=False)
     business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
+    provider = sa.Column(sa.String, sa.ForeignKey("oneview.provider.iqvia_provider_id"))
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.provider.medical_education_number"))
     type = sa.Column(sa.String)
     description = sa.Column(sa.String)
