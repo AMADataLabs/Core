@@ -19,18 +19,16 @@ class CredentialingTransformerTask(TransformerTask):
 
 
 class CredentialingFinalTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        main_dataframe = pandas.read_csv(BytesIO(self._parameters['data'][1]))
-        address_dataframe = pandas.read_excel(BytesIO(self._parameters['data'][0]))
+    def _csv_to_dataframe(self, data):
+        main_dataframe = pandas.read_csv(BytesIO(data[1]), encoding='latin-1')
 
-        credentialing_data = self._merge_dataframes([address_dataframe, main_dataframe])
+        address_dataframe = pandas.read_excel(BytesIO(data[0]))
 
-        return credentialing_data
+        return [address_dataframe, main_dataframe]
 
-    @classmethod
-    def _merge_dataframes(cls, dataframes):
-        credentialing_main = dataframes[1].rename(columns={'CUSTOMER_NBR': 'number'})
-        new_df = credentialing_main.merge(dataframes[0], how='left', on='number')
+    def _preprocess_data(self, data):
+        credentialing_main = data[1].rename(columns={'CUSTOMER_NBR': 'number'})
+        new_df = credentialing_main.merge(data[0], how='left', on='number')
         return [new_df]
 
     def _get_columns(self):

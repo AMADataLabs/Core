@@ -25,7 +25,7 @@ ONEVIEW_ETL_DAG = DAG(
         owner='airflow',
         resources=dict(
             limit_memory="8G",
-            limit_cpu="1"
+            limit_cpu="2"
         ),
         is_delete_operator_pod=True,
         namespace=f'hsg-data-labs-{DEPLOYMENT_ID}',
@@ -105,11 +105,11 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
-    EXTRACT_CREDENTIALING_MAIN = KubernetesPodOperator(
+    EXTRACT_CREDENTIALING = KubernetesPodOperator(
         name="extract_credentialing",
         task_id="extract_credentialing",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
@@ -337,14 +337,14 @@ with ONEVIEW_ETL_DAG:
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
-    #
-    # LOAD_CREDENTIALING_TABLES_INTO_DATABASE = KubernetesPodOperator(
-    #     name="load_credntialing_tables_into_database",
-    #     task_id="load_credntialing_tables_into_database",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
-    # )
-    #
+
+    LOAD_CREDENTIALING_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        name="load_credentialing_tables_into_database",
+        task_id="load_credentialing_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
     LOAD_MELISSA_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_melissa_tables_into_database",
         task_id="load_melissa_tables_into_database",
@@ -382,10 +382,10 @@ CREATE_PHYSICIAN_TABLE >> REMOVE_UNUSED_SPECIALTIES
 REMOVE_UNUSED_SPECIALTIES >> LOAD_REFERENCE_TABLES_INTO_DATABASE
 EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_RESIDENCY_TABLES_INTO_DATABASE
 EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_DATABASE
-EXTRACT_CREDENTIALING_MAIN >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
+EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
-# MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE # >> LOAD_CREDENTIALING_TABLES_INTO_DATABASE
+MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_TABLES_INTO_DATABASE
 EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE # >> LOAD_RACE_ETHNICITY_TABLE_INTO_DATABASE
 MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE
 CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE

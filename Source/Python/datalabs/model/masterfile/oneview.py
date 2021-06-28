@@ -121,8 +121,7 @@ class ResidencyProgram(Base):
     acgme_accredited = sa.Column(sa.String)
     name = sa.Column(sa.String)
     web_address = sa.Column(sa.String)
-    old_name = sa.Column(sa.String)
-    contact_director = sa.Column(sa.String)
+    contact_director = sa.Column(sa.Boolean)
     accreditation_status = sa.Column(sa.String)
     accreditation_effective_date = sa.Column(sa.Date)
     initial_accreditation_date = sa.Column(sa.Date)
@@ -130,23 +129,24 @@ class ResidencyProgram(Base):
     duration = sa.Column(sa.String)
     government_affiliated = sa.Column(sa.Boolean)
     graduate_medical_education_equivalent_years = sa.Column(sa.String)
+    preliminary_years_required = sa.Column(sa.String)
     preliminary_positions_offered = sa.Column(sa.Boolean)
     type = sa.Column(sa.String)
     max_residents_accepted_increase = sa.Column(sa.Integer)
     percent_at_primary_site = sa.Column(sa.String)
     primary_site = sa.Column(sa.String)
     core_program = sa.Column(sa.String)
-    medical_records = sa.Column(sa.String)
-    official_address = sa.Column(sa.String)
+    medical_records = sa.Column(sa.Boolean)
+    official_address = sa.Column(sa.Boolean)
     uses_sfmatch = sa.Column(sa.Boolean)
-    other_match_indicator = sa.Column(sa.String)
+    other_match_indicator = sa.Column(sa.Boolean)
     other_match = sa.Column(sa.String)
-    additional_education_accreditation_length = sa.Column(sa.String)
+    additional_education_accreditation_length = sa.Column(sa.Boolean)
     last_update_date = sa.Column(sa.Date)
     last_update_type = sa.Column(sa.String)
-    american_osteopathic_association_indicator = sa.Column(sa.String)
+    american_osteopathic_association_indicator = sa.Column(sa.Boolean)
     american_osteopathic_association_indicator_program = sa.Column(sa.String)
-    osteopathic_principles = sa.Column(sa.String)
+    osteopathic_principles = sa.Column(sa.Boolean)
     address_1 = sa.Column(sa.String)
     address_2 = sa.Column(sa.String)
     address_3 = sa.Column(sa.String)
@@ -334,18 +334,15 @@ class ZipCode(Base):
     __tablename__ = 'zip_code'
     __table_args__ = {"schema": "oneview"}
 
-    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    zip_code = sa.Column(sa.String, nullable=False)
     state = sa.Column(sa.String, nullable=False)
     city = sa.Column(sa.String, nullable=False)
     type = sa.Column(sa.String, nullable=False)
-    county_federal_information_processing = sa.Column(sa.String,
-                                                      sa.ForeignKey
-                                                      ("oneview.county.federal_information_processing_standard_code"),
-                                                      nullable=False)
+    county_federal_information_processing = sa.Column(sa.String, nullable=False)
     latitude = sa.Column(sa.String, nullable=False)
     longitude = sa.Column(sa.String, nullable=False)
-    metropolitan_statistical_area = sa.Column(sa.String, sa.ForeignKey("oneview.metropolitan_statistical_area.code"),
-                                              nullable=False)
+    metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
     primary_metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
 
 
@@ -376,7 +373,8 @@ class AreaCode(Base):
     __tablename__ = 'area_code'
     __table_args__ = {"schema": "oneview"}
 
-    area_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    area_code = sa.Column(sa.String, nullable=False)
     prefix = sa.Column(sa.String, nullable=False)
     latitude = sa.Column(sa.String, nullable=False)
     longitude = sa.Column(sa.String, nullable=False)
@@ -448,7 +446,7 @@ class ZipCodeCoreBasedStatisticalArea(Base):
     __tablename__ = 'zip_code_core_based_statistical_areas'
     __table_args__ = {"schema": "oneview"}
 
-    zip_code = sa.Column(sa.String, sa.ForeignKey("oneview.zip_code.zip_code"), primary_key=True, nullable=False)
+    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
     core_based_statistical_area = sa.Column(sa.String,
                                             sa.ForeignKey("oneview.core_based_statistical_area_melissa.code"),
                                             nullable=False)

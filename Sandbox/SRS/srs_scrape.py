@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 import pandas as pd
 import settings
+import json
 
 def wait(browser):
     '''Define wait'''
@@ -48,6 +49,8 @@ def set_preferences(driver):
         checkbox.click()
     for checkbox in driver.find_elements_by_name("displayPreviousStatuses"):
         checkbox.click()
+    for checkbox in driver.find_elements_by_name("displayCurrentStatuses"):
+        checkbox.click()
     return driver
 
 def iterate_schools(driver):
@@ -74,8 +77,10 @@ def concat_school_reports(schools, download_folder):
     for school in schools:
         school_num = school.split(' ')[-1]
         school_name = school.replace(f' {school_num}', '')
+        if '/' in school_name:
+            school_name = school_name.split('/')[0]
         print(school_name)
-        filepath = get_newest(download_folder, school_num)
+        filepath = get_newest(download_folder, school_name)
         school_info = pd.read_csv(filepath, sep="|", encoding='unicode_escape')
         school_info['SCHOOL'] = school_name
         all_schools = pd.concat([all_schools, school_info])
@@ -97,6 +102,8 @@ def scrape_srs():
     driver = go_to_reports(driver)
     driver = set_preferences(driver)
     school_list = iterate_schools(driver)
+    with open(f'{out}School_List_{today}.txt', 'w') as outfile:
+        json.dump(school_list, outfile)
     all_schools = concat_school_reports(school_list, download_folder)
     all_schools.to_csv(f'{out}/SRS_Scrape_{today}.csv', index=False)
 

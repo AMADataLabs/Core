@@ -1,6 +1,7 @@
 """Oneview Melissa Table Columns"""
 
 ZIP_CODE_COLUMNS = {
+    'id': 'id',
     'ZIP': 'zip_code',
     'STATE_CD': 'state',
     'CITY_CD': 'city',
@@ -33,6 +34,7 @@ COUNTY_COLUMNS = {
 }
 
 AREA_CODE_COLUMNS = {
+    'id': 'id',
     'AREA_CD': 'area_code',
     'PREFIX': 'prefix',
     'LATITUDE': 'latitude',
