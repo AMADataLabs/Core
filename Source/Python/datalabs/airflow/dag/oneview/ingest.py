@@ -337,14 +337,14 @@ with ONEVIEW_ETL_DAG:
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
-    #
-    # LOAD_CREDENTIALING_TABLES_INTO_DATABASE = KubernetesPodOperator(
-    #     name="load_credntialing_tables_into_database",
-    #     task_id="load_credntialing_tables_into_database",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
-    # )
-    #
+
+    LOAD_CREDENTIALING_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        name="load_credentialing_tables_into_database",
+        task_id="load_credentialing_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
     LOAD_MELISSA_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_melissa_tables_into_database",
         task_id="load_melissa_tables_into_database",
@@ -385,7 +385,7 @@ EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_D
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
-# MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE # >> LOAD_CREDENTIALING_TABLES_INTO_DATABASE
+MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_TABLES_INTO_DATABASE
 EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE # >> LOAD_RACE_ETHNICITY_TABLE_INTO_DATABASE
 MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE
 CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE
