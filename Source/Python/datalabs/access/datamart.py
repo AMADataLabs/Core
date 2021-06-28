@@ -1,7 +1,6 @@
 """ Database object for HSG DataMart """
 from   enum import Enum
 import logging
-
 from   datalabs.access.odbc import ODBCDatabase
 
 logging.basicConfig()
@@ -55,7 +54,7 @@ class DataMart(ODBCDatabase):
             H.PHYSICIAN_HIST_KEY = O.ORDER_PHYSICIAN_HIST_KEY
             AND
             D.YR in {years}
-            AND 
+            AND
             O.ORDER_PRODUCT_ID IN {products}
             """
         )
