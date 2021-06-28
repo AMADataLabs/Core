@@ -28,8 +28,8 @@ class TransformerTask(etl.TransformerTask, ABC):
         return [self._dataframe_to_csv(data) for data in postprocessed_data]
 
     @classmethod
-    def _csv_to_dataframe(cls, file):
-        return pandas.read_csv(BytesIO(file))
+    def _csv_to_dataframe(cls, data):
+        return [pandas.read_csv(BytesIO(file)) for file in data]
 
     @classmethod
     def _preprocess_data(cls, data):
