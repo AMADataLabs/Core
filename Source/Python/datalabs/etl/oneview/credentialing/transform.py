@@ -19,6 +19,13 @@ class CredentialingTransformerTask(TransformerTask):
 
 
 class CredentialingFinalTransformerTask(TransformerTask):
+    def _csv_to_dataframe(self, data):
+        main_dataframe = pandas.read_csv(BytesIO(data[1]), encoding='latin-1')
+
+        address_dataframe = pandas.read_excel(BytesIO(data[0]))
+
+        return [address_dataframe, main_dataframe]
+
     def _preprocess_data(self, data):
         credentialing_main = data[1].rename(columns={'CUSTOMER_NBR': 'number'})
         new_df = credentialing_main.merge(data[0], how='left', on='number')

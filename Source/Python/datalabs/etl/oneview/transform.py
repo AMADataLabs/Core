@@ -17,7 +17,7 @@ class TransformerTask(etl.TransformerTask, ABC):
     def _transform(self):
         LOGGER.info(self._parameters['data'])
 
-        table_data = [self._csv_to_dataframe(file) for file in self._parameters['data']]
+        table_data = self._csv_to_dataframe(self._parameters['data'])
         preprocessed_data = self._preprocess_data(table_data)
 
         selected_data = self._select_columns(preprocessed_data)
