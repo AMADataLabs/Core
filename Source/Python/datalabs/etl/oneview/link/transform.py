@@ -1,6 +1,4 @@
 """ OneView Linking Table Transformer"""
-from   io import BytesIO
-
 import logging
 import pandas
 
