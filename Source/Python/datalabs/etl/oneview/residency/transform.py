@@ -12,8 +12,10 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class ResidencyTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, file):
-        df_data = pandas.read_csv(BytesIO(file), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
+    def _csv_to_dataframe(self, data):
+        df_data = [pandas.read_csv(BytesIO(file), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
+                   for file in data
+                   ]
 
         return df_data
 
