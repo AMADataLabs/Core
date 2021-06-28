@@ -1,9 +1,10 @@
+""" Sends an email using AMA SMTP configuration """
 import os
 import smtplib
 from email.message import EmailMessage
 
 
-# pylint: disable=too-many-arguments, invalid-name, missing-module-docstring
+# pylint: disable=too-many-arguments, invalid-name
 def send_email(to, subject, cc=None, body=None, attachments=None, from_account=None, html_content=None):
     with smtplib.SMTP('amamx.ama-assn.org') as smtp:
         msg = EmailMessage()
