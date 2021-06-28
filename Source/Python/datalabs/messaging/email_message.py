@@ -3,7 +3,7 @@ import smtplib
 from email.message import EmailMessage
 
 
-# will clean up in the future or something probably, just needs to get in to support DBL report stuff
+# pylint: disable=too-many-arguments, invalid-name, missing-module-docstring
 def send_email(to, subject, cc=None, body=None, attachments=None, from_account=None, html_content=None):
     with smtplib.SMTP('amamx.ama-assn.org') as smtp:
         msg = EmailMessage()
@@ -37,8 +37,8 @@ def send_email(to, subject, cc=None, body=None, attachments=None, from_account=N
         if from_account is None:
             from_account = os.environ.get('AMA_EMAIL_ADDRESS')
             if from_account is None:
-                raise EnvironmentError(f'from_account parameter not specified and environment variable '
-                                       f'not set - cannot determine email address to send email message from.')
+                raise EnvironmentError('from_account parameter not specified and environment variable '
+                                       'not set - cannot determine email address to send email message from.')
         msg['From'] = from_account
 
         smtp.send_message(msg)
