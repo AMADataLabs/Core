@@ -54,7 +54,7 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
     def _preprocess_data(self, data):
         fips_selected_data = self.set_columns(data[0])
 
-        primary_keys = [column['State Code (FIPS)'] + column['County Code (FIPS)']
+        primary_keys = [str(column['State Code (FIPS)']) + str(column['County Code (FIPS)'])
                         for index, column in fips_selected_data.iterrows()]
         fips_selected_data['id'] = primary_keys
 
