@@ -14,8 +14,8 @@ class ProductType(Enum):
 
 class DataMart(ODBCDatabase):
     def get_customers(self):
-        LOGGER.info('Customers???')
-        sql = """
+        data = self.read(
+            """
             SELECT DISTINCT
             CUSTOMER_KEY,
             CUSTOMER_NBR,
@@ -26,7 +26,7 @@ class DataMart(ODBCDatabase):
             CUSTOMER_CATEGORY_DESC
             FROM AMADM.dim_customer
             """
-        data = self.read(sql)
+        )
         data.CUSTOMER_KEY = data.CUSTOMER_KEY.astype(str)
         return data
 
@@ -34,10 +34,11 @@ class DataMart(ODBCDatabase):
         if not product:
             products = (ProductType.INITIAL.value, ProductType.REAPPOINTMENT.value)
         elif product == 'app':
-            products = (ProductType.INTIAL.value)
+            products = (ProductType.INITIAL.value)
         elif product == 'reapp':
-            products = (ProductType.REAPPOINMENT.value)
-        data = self.read(f"""
+            products = (ProductType.REAPPOINTMENT.value)
+        data = self.read(
+            f"""
             SELECT DISTINCT
             D.FULL_DT,
             H.MED_EDU_NBR AS ME,
@@ -59,7 +60,3 @@ class DataMart(ODBCDatabase):
             """
         )
         return data
-
-
-            
-    
