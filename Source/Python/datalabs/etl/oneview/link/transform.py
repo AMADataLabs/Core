@@ -14,13 +14,10 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class CredentialingCustomerBusinessTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        credentialing_customer_business_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
-        credentialing_customer_business_data = self._link_data(credentialing_customer_business_data[0],
-                                                               credentialing_customer_business_data[1])
-        primary_keys = [column['number'] + column['id']
-                        for index, column in credentialing_customer_business_data.iterrows()]
-        credentialing_customer_business_data['pk'] = primary_keys
+    def _preprocess_data(self, data):
+        credentialing_customer_business_data = self._link_data(data[0], data[1])
+
+        credentialing_customer_business_data = self._generate_primary_keys(credentialing_customer_business_data)
 
         return [credentialing_customer_business_data]
 
@@ -46,19 +43,23 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
 
         return credentialing_customer_data
 
+    @classmethod
+    def _generate_primary_keys(cls, data):
+        primary_keys = [column['number'] + column['id']
+                        for index, column in data.iterrows()]
+        data['pk'] = primary_keys
+
+        return data
+
     def _get_columns(self):
         return [columns.CREDENTIALING_CUSTOMER_BUSINESS_COLUMNS]
 
 
 class CredentialingCustomerInstitutionTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        credentialing_customer_residency_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
-        credentialing_customer_residency_data = self._link_data(credentialing_customer_residency_data[0],
-                                                                credentialing_customer_residency_data[1])
+    def _preprocess_data(self, data):
+        credentialing_customer_residency_data = self._link_data(data[0], data[1])
 
-        primary_keys = [column['number'] + column['institution']
-                        for index, column in credentialing_customer_residency_data.iterrows()]
-        credentialing_customer_residency_data['pk'] = primary_keys
+        credentialing_customer_residency_data = self._generate_primary_keys(credentialing_customer_residency_data)
 
         return [credentialing_customer_residency_data]
 
@@ -72,20 +73,25 @@ class CredentialingCustomerInstitutionTransformerTask(TransformerTask):
 
         return matches[['number', 'institution']]
 
+    @classmethod
+    def _generate_primary_keys(cls, data):
+        primary_keys = [column['number'] + column['institution']
+                        for index, column in data.iterrows()]
+        data['pk'] = primary_keys
+
+        return data
+
     def _get_columns(self):
         return [columns.CREDENTIALING_CUSTOMER_INSTITUTION_COLUMNS]
 
 
 class ResidencyProgramPhysicianTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        residency_physician_data = [pandas.read_csv(BytesIO(csv) for csv in self._parameters['data'])]
-        linked_residency_physician_data = self._linking_data(residency_physician_data)
+    def _preprocess_data(self, data):
+        linked_residency_physician_data = self._linking_data(data)
 
-        primary_keys = [column['personnel_member'] + column['medical_education_number']
-                        for index, column in linked_residency_physician_data.iterrows()]
-        linked_residency_physician_data['pk'] = primary_keys
+        linked_residency_physician_data = self._generate_primary_keys(linked_residency_physician_data)
 
-        return linked_residency_physician_data
+        return [linked_residency_physician_data]
 
     @classmethod
     def _linking_data(cls, data):
@@ -159,6 +165,14 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
                 new_df = new_df[new_df.middle_name_physician == row.middle_name_residency.upper()]
 
         return new_df
+
+    @classmethod
+    def _generate_primary_keys(cls, data):
+        primary_keys = [column['personnel_member'] + column['medical_education_number']
+                        for index, column in data.iterrows()]
+        data['pk'] = primary_keys
+
+        return data
 
     def _get_columns(self):
         return [columns.RESIDENCY_PROGRAM_PHYSICIAN_COLUMNS]
