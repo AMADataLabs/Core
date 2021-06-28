@@ -334,19 +334,15 @@ class ZipCode(Base):
     __tablename__ = 'zip_code'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.Integer, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
     zip_code = sa.Column(sa.String, nullable=False)
     state = sa.Column(sa.String, nullable=False)
     city = sa.Column(sa.String, nullable=False)
     type = sa.Column(sa.String, nullable=False)
-    county_federal_information_processing = sa.Column(sa.String,
-                                                      sa.ForeignKey
-                                                      ("oneview.county.federal_information_processing_standard_code"),
-                                                      nullable=False)
+    county_federal_information_processing = sa.Column(sa.String, nullable=False)
     latitude = sa.Column(sa.String, nullable=False)
     longitude = sa.Column(sa.String, nullable=False)
-    metropolitan_statistical_area = sa.Column(sa.String, sa.ForeignKey("oneview.metropolitan_statistical_area.code"),
-                                              nullable=False)
+    metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
     primary_metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
 
 
@@ -377,7 +373,8 @@ class AreaCode(Base):
     __tablename__ = 'area_code'
     __table_args__ = {"schema": "oneview"}
 
-    area_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    area_code = sa.Column(sa.String, nullable=False)
     prefix = sa.Column(sa.String, nullable=False)
     latitude = sa.Column(sa.String, nullable=False)
     longitude = sa.Column(sa.String, nullable=False)
@@ -449,7 +446,7 @@ class ZipCodeCoreBasedStatisticalArea(Base):
     __tablename__ = 'zip_code_core_based_statistical_areas'
     __table_args__ = {"schema": "oneview"}
 
-    zip_code = sa.Column(sa.String, sa.ForeignKey("oneview.zip_code.zip_code"), primary_key=True, nullable=False)
+    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
     core_based_statistical_area = sa.Column(sa.String,
                                             sa.ForeignKey("oneview.core_based_statistical_area_melissa.code"),
                                             nullable=False)
