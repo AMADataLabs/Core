@@ -16,7 +16,7 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
         credentialing_customer_business_data = self._link_data(data[0], data[1])
 
         credentialing_customer_business_data = self._generate_primary_keys(credentialing_customer_business_data)
-
+        print(credentialing_customer_business_data)
         return [credentialing_customer_business_data]
 
     @classmethod
