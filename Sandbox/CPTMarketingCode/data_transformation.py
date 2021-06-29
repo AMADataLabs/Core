@@ -1,10 +1,11 @@
-import re
-import pandas as pd
-from glob import glob
-import columns
+from   glob import glob
 import os
-from varname import nameof
-import settings
+import re
+
+import pandas as pd
+
+import columns
+
 
 def main():
 
@@ -57,7 +58,7 @@ def export_tables(output_directory, new_tables):
 
         if key in no_index_files:
             val.to_csv(output_directory + key + ".csv", index = False)
-        else:    
+        else:
             val.to_csv(output_directory + key + ".csv")
 
     """print("tablestbalestbaleatbales")
