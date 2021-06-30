@@ -12,10 +12,11 @@ import pandas
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.dag.state import Status
-import datalabs.etl.task as task
+from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.transform as transform
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
+import datalabs.task as task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -32,7 +33,7 @@ class DAGSchedulerParameters:
     data: object = None
 
 
-class DAGSchedulerTask(task.ExecutionTimeMixin, transform.TransformerTask):
+class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
     PARAMETER_CLASS = DAGSchedulerParameters
 
     def _transform(self):
@@ -102,7 +103,8 @@ class DAGSchedulerTask(task.ExecutionTimeMixin, transform.TransformerTask):
         return state_plugin(state_parameters)
 
 
-class DAGSchedulerRunnerTask(task.ExecutionTimeMixin, task.Task):
+class DAGSchedulerRunnerTask(ExecutionTimeMixin, task.Task):
+    # pylint: disable=no-self-use
     def run(self):
         with AWSClient("sns") as sns:
             sns.publish(
