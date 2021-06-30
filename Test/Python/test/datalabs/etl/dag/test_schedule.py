@@ -9,7 +9,7 @@ import mock
 import pandas
 import pytest
 
-from   datalabs.etl.dag.schedule import DAGScheduler
+from   datalabs.etl.dag.schedule import DAGSchedulerTask
 from   datalabs.etl.dag.state.base import Status
 from   datalabs.etl.dag.state.file import DAGState
 
@@ -91,7 +91,7 @@ def test_scheduled_dags_are_correctly_identified(scheduler, schedule, base_time)
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
-    scheduler = DAGScheduler(parameters)
+    scheduler = DAGSchedulerTask(parameters)
     schedule["execution_time"] = scheduler._get_execution_times(schedule, base_time)
     state = DAGState(dict(BASE_PATH=parameters["BASE_PATH"]))
 
@@ -105,7 +105,7 @@ def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execution_time):
-    scheduler = DAGScheduler(parameters)
+    scheduler = DAGSchedulerTask(parameters)
     execution_times = scheduler._get_execution_times(schedule, target_execution_time - timedelta(minutes=15))
     state = DAGState(dict(BASE_PATH=parameters["BASE_PATH"]))
 
@@ -124,10 +124,10 @@ def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execu
 # pylint: disable=redefined-outer-name, protected-access
 def test_dags_to_run_are_transformed_to_csv_bytes(parameters, schedule_csv, target_execution_time):
     parameters["data"] = [schedule_csv.encode('utf-8', errors='backslashreplace')]
-    scheduler = DAGScheduler(parameters)
+    scheduler = DAGSchedulerTask(parameters)
 
-    with mock.patch('datalabs.etl.dag.schedule.DAGScheduler._get_target_execution_time') as get_target_execution_time:
-        get_target_execution_time.return_value = target_execution_time
+    with mock.patch('datalabs.etl.dag.schedule.DAGSchedulerTask._get_target_execution_time') as get_execution_time:
+        get_execution_time.return_value = target_execution_time
 
         dags_to_run = scheduler._transform()
 
@@ -154,7 +154,7 @@ def parameters(state_directory):
 
 @pytest.fixture
 def scheduler(parameters):
-    return DAGScheduler(parameters)
+    return DAGSchedulerTask(parameters)
 
 
 @pytest.fixture

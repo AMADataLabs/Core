@@ -347,11 +347,9 @@ module "scheduler_lambda" {
 
     environment_variables = {
         variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.etl.awslambda.ETLTaskWrapper"
-            ETCD_HOST               = aws_alb.etcd.dns_name
-            ETCD_USERNAME           = "scheduler"
-            ETCD_PASSWORD           = random_password.etcd_scheduler_password.result
-            ETCD_PREFIX             = "SCHEDULER_"
+            TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
+            TASK_CLASS              = "datalabs.etl.dag.scheduler.DAGSchedulerRunnerTask"
+            DAG_TOPIC_ARN           = module.sns_dag_topic.topic_arn
         }
     }
 
