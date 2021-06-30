@@ -68,7 +68,7 @@ def read_and_clean(new_download):
 def download_file(driver, current_release_date):
     driver.find_element_by_xpath('//*[@id="dataset-download"]/div/a').click()
     LOGGER.info(f'Downloading...')
-    time.sleep(120)
+    time.sleep(180)
     latest_download = get_newest(Path.DOWNLOADS.value)
     latest_data = read_and_clean(latest_download)
     formatted_date = current_release_date.strftime('%y%m%d')
