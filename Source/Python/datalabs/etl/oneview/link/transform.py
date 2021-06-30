@@ -16,7 +16,7 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
         credentialing_customer_business_data = self._link_data(data[0], data[1])
 
         credentialing_customer_business_data = self._generate_primary_keys(credentialing_customer_business_data)
-        print(credentialing_customer_business_data)
+
         return [credentialing_customer_business_data]
 
     @classmethod
@@ -27,10 +27,12 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
             credentialing_customer_data,
             business_data,
             left_on=['address_1', 'city', 'state'],
-            right_on=['physical_address_1', 'physical_city', 'physical_state']
+            right_on=['physical_address_1', 'physical_city', 'physical_state'],
+            suffixes=['_credentialing', '_business']
         )
+        matches = matches[['number', 'id_business']].rename(columns={'id_business': 'id'})
 
-        return matches[['number', 'id']]
+        return matches.drop_duplicates()
 
     @classmethod
     def _prepare_customer_data_for_merging(cls, credentialing_customer_data):
@@ -43,7 +45,7 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, data):
-        primary_keys = [column['number'] + column['id']
+        primary_keys = [str(column['number']) + str(column['id'])
                         for index, column in data.iterrows()]
         data['pk'] = primary_keys
 
@@ -63,17 +65,21 @@ class CredentialingCustomerInstitutionTransformerTask(TransformerTask):
 
     @classmethod
     def _link_data(cls, credentialing_customer_data, residency_program_data):
-        matches = pandas.merge(
-            credentialing_customer_data, residency_program_data,
-            left_on=['address_1', 'city', 'state'],
-            right_on=['address_1', 'city', 'state']
-        )
+        credentialing_customer_data = credentialing_customer_data.dropna(subset=['address_1', 'city', 'state'],
+                                                                         how='all').reset_index()
+        residency_program_data = residency_program_data.dropna(subset=['address_1', 'city', 'state'],
+                                                               how='all').reset_index()
+
+        matches = pandas.merge(credentialing_customer_data, residency_program_data,
+                               left_on=['address_1', 'city'],
+                               right_on=['address_3', 'city']
+                               )
 
         return matches[['number', 'institution']]
 
     @classmethod
     def _generate_primary_keys(cls, data):
-        primary_keys = [column['number'] + column['institution']
+        primary_keys = [str(column['number']) + str(column['institution'])
                         for index, column in data.iterrows()]
         data['pk'] = primary_keys
 
@@ -166,7 +172,7 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, data):
-        primary_keys = [column['personnel_member'] + column['medical_education_number']
+        primary_keys = [str(column['personnel_member']) + str(column['medical_education_number'])
                         for index, column in data.iterrows()]
         data['pk'] = primary_keys
 
