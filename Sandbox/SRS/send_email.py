@@ -57,7 +57,7 @@ def get_parameters():
 
     Of the records that matched on aamc_id
     {"{:,}".format(get_length(stu_affil))} ({round(get_length(stu_affil)/get_length(found_info)*100, 2)}%) records are student affiliates
-    {"{:,}".format(found_students)} ({round(found_students)/get_length(found_info)*100, 2)}%) records are not student affiliates
+    {"{:,}".format(found_students)} ({round((found_students)/get_length(found_info)*100, 2)}%) records are not student affiliates
         
     ----
     Of the records that are not student affiliates
