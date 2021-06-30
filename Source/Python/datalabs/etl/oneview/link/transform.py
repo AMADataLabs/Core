@@ -31,8 +31,7 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
             suffixes=['_credentialing', '_business']
         )
         matches = matches[['number', 'id_business']].rename(columns={'id_business': 'id'})
-        import pdb
-        pdb.set_trace()
+
         return matches.drop_duplicates()
 
     @classmethod
