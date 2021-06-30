@@ -217,6 +217,7 @@ data:
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_OUTPUT_FILES: 'SFMC_FlatFile_seed.csv, Users_seed.csv'
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_INPUT_FILES: 'SFMC_FlatFile_seed.csv, Users_seed.csv'
+    CONTACT_ID__EXTRACT_SEED_FILES__CACHE_INCLUDE_DATESTAMP: 'false'
 
 
     CONTACT_ID__ASSIGN_EXISTING_CONTACT_IDS__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
