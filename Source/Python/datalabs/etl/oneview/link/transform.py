@@ -65,11 +65,15 @@ class CredentialingCustomerInstitutionTransformerTask(TransformerTask):
 
     @classmethod
     def _link_data(cls, credentialing_customer_data, residency_program_data):
-        matches = pandas.merge(
-            credentialing_customer_data, residency_program_data,
-            left_on=['address_1', 'city', 'state'],
-            right_on=['address_1', 'city', 'state']
-        )
+        credentialing_customer_data = credentialing_customer_data.dropna(subset=['address_1', 'city', 'state'],
+                                                                         how='all').reset_index()
+        residency_program_data = residency_program_data.dropna(subset=['address_1', 'city', 'state'],
+                                                               how='all').reset_index()
+
+        matches = pandas.merge(credentialing_customer_data, residency_program_data,
+                               left_on=['address_1', 'city'],
+                               right_on=['address_3', 'city']
+                               )
 
         return matches[['number', 'institution']]
 
