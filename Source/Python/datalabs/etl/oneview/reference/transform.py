@@ -46,15 +46,15 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, file):
-        fips_data = pandas.read_excel(BytesIO(file), skiprows=4)
+    def _csv_to_dataframe(self, data):
+        fips_data = [pandas.read_excel(BytesIO(file), skiprows=4) for file in data]
 
         return fips_data
 
     def _preprocess_data(self, data):
         fips_selected_data = self.set_columns(data[0])
 
-        primary_keys = [column['State Code (FIPS)'] + column['County Code (FIPS)']
+        primary_keys = [str(column['State Code (FIPS)']) + str(column['County Code (FIPS)'])
                         for index, column in fips_selected_data.iterrows()]
         fips_selected_data['id'] = primary_keys
 

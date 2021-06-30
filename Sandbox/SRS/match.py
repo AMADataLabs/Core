@@ -4,7 +4,7 @@ from fuzzywuzzy import fuzz
 
 def get_full_names(df):
     full_names_all = []
-    for row in dfitertuples():
+    for row in df.itertuples():
         full_names_all.append(row.first_middle.strip() + ' '+ row.last_nm.strip())
     df['FULL_NAME'] = full_names_all
     return df
@@ -21,16 +21,16 @@ def parse_names(df):
 def match(criteria, all_students, unmatched, matched):
     new_matched = pd.merge(all_students, unmatched, on=criteria)[['entity_id','AAMC ID']].drop_duplicates('entity_id')
     match_list = list(new_matched['AAMC ID'])
-    match_list+=list(matched['AAMC ID'])
+    match_list += list(matched['AAMC ID'])
     unmatched = unmatched[unmatched['AAMC ID'].isin(match_list)==False]
     matched = pd.concat([new_matched, matched])
     return (unmatched, matched)
 
 def get_criteria():
     criteria_list = [['first_middle','last_nm','birth_dt'],
-               ['FIRST','LAST', 'birth_dt'],
-               ['FIRST', 'gender','birth_dt', 'birth_state_cd'],
-               ['LAST', 'gender','birth_dt', 'birth_state_cd']]
+                    ['FIRST','LAST', 'birth_dt'],
+                    ['FIRST', 'gender','birth_dt', 'birth_state_cd'],
+                    ['LAST', 'gender','birth_dt', 'birth_state_cd']]
     return criteria_list
 
 def match_process(all_students, unmatched):
