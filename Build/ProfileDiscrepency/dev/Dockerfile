@@ -22,11 +22,11 @@ COPY ${TALEND_JOB}_${talend_version}.zip .
 
 RUN mkdir -p /home/ssl-certs
 
-COPY ssl_cert_for_talend.cer /home/ssl-certs
+COPY jira_on_prem_ssl_cert.cer /home/ssl-certs
 
 RUN $JAVA_HOME/jre/bin/keytool -import \
     -keystore $JAVA_HOME/jre/lib/security/cacerts \
-    -file "/home/ssl-certs/ssl_cert_for_talend.cer" \
+    -file "/home/ssl-certs/jira_on_prem_ssl_cert.cer" \
     -storepass changeit \
     -trustcacerts \
     -noprompt \
