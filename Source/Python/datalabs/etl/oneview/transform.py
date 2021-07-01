@@ -17,7 +17,7 @@ class TransformerTask(etl.TransformerTask, ABC):
     def _transform(self):
         LOGGER.info(self._parameters['data'])
 
-        table_data = [self._csv_to_dataframe(file) for file in self._parameters['data']]
+        table_data = self._csv_to_dataframe(self._parameters['data'])
         preprocessed_data = self._preprocess_data(table_data)
 
         selected_data = self._select_columns(preprocessed_data)
@@ -28,8 +28,8 @@ class TransformerTask(etl.TransformerTask, ABC):
         return [self._dataframe_to_csv(data) for data in postprocessed_data]
 
     @classmethod
-    def _csv_to_dataframe(cls, file):
-        return pandas.read_csv(BytesIO(file))
+    def _csv_to_dataframe(cls, data):
+        return [pandas.read_csv(BytesIO(file)) for file in data]
 
     @classmethod
     def _preprocess_data(cls, data):

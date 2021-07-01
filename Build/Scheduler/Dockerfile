@@ -1,7 +1,7 @@
 # Build Example:
-#    docker build -t one-view -f ./Build/Scheduler/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
+#    docker build -t scheduler -f ./Build/Scheduler/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
 # Run Example:
-#    docker run -ti one-view -e DOTENV_PATH=ppd.env python -c "import awslambda; print(awslambda.handler(None, None))"
+#    docker run -e DOTENV_PATH=scheduler.env -ti scheduler python -c "import awslambda; print(awslambda.handler(None, None))"
 
 FROM python:3.7
 WORKDIR /Scheduler
@@ -16,7 +16,6 @@ COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/Scheduler ./Build/Scheduler
 COPY ./Source ./Source
-COPY ./Deploy/Scheduler/upgrade-database .
 
 ARG template_vars
 RUN echo $template_vars

@@ -47,6 +47,7 @@ class PPDTransformerTask(TransformerTask):
     def _merge_dataframes(cls, medical_education_number, npi_table, entity_table, ppd_table):
         merged_npi_me = pandas.merge(medical_education_number, npi_table, on='PARTY_ID', how="left").drop_duplicates()
         merged_npi_entity_me = pandas.merge(merged_npi_me, entity_table, on='PARTY_ID', how="left").drop_duplicates()
+        merged_npi_entity_me['ME_NUMBER'] = merged_npi_entity_me['ME_NUMBER'].str.lstrip('0')
 
         return pandas.merge(ppd_table, merged_npi_entity_me, on='ME_NUMBER', how="left").drop_duplicates()
 

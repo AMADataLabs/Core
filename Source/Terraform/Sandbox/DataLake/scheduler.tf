@@ -342,16 +342,14 @@ module "scheduler_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = true
-    api_arn                     = "arn:aws-partition:service:${local.region}:${data.aws_caller_identity.account.account_id}:resource-id"
+    create_lambda_permission    = false
+    api_arn                     = ""
 
     environment_variables = {
         variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.etl.awslambda.ETLTaskWrapper"
-            ETCD_HOST               = aws_alb.etcd.dns_name
-            ETCD_USERNAME           = "scheduler"
-            ETCD_PASSWORD           = random_password.etcd_scheduler_password.result
-            ETCD_PREFIX             = "SCHEDULER_"
+            TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
+            TASK_CLASS              = "datalabs.etl.dag.schedule.DAGSchedulerRunnerTask"
+            DAG_TOPIC_ARN           = module.sns_dag_topic.topic_arn
         }
     }
 
@@ -388,16 +386,13 @@ module "dag_processor_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = true
-    api_arn                     = "arn:aws-partition:service:${local.region}:${data.aws_caller_identity.account.account_id}:resource-id"
+    create_lambda_permission    = false
+    api_arn                     = ""
 
     environment_variables = {
         variables = {
           TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
-          ETCD_HOST               = aws_alb.etcd.dns_name
-          ETCD_USERNAME           = "scheduler"
-          ETCD_PASSWORD           = random_password.etcd_scheduler_password.result
-          ETCD_PREFIX             = "DAG_PROCESSOR_"
+          TASK_CLASS              = "datalabs.etl.dag.dag.DAGProcessorTask"
         }
     }
 
@@ -434,8 +429,8 @@ module "task_processor_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = true
-    api_arn                     = "arn:aws-partition:service:${local.region}:${data.aws_caller_identity.account.account_id}:resource-id"
+    create_lambda_permission    = false
+    api_arn                     = ""
 
     environment_variables = {
         variables = {
@@ -459,4 +454,24 @@ module "task_processor_lambda" {
     tag_notes               = ""
     tag_eol                 = local.tags["EOL"]
     tag_maintwindow         = local.tags["MaintenanceWindow"]
+}
+
+
+resource "aws_lambda_permission" "dag_processor_permission" {
+  statement_id  = "AllowSNSInvokefor-${module.dag_processor_lambda.function_name}"
+  action        = "lambda:InvokeFunction"
+  function_name = module.dag_processor_lambda.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn = module.sns_dag_topic.topic_arn
+  depends_on = [ module.dag_processor_lambda ]
+}
+
+
+resource "aws_lambda_permission" "task_processor_permission" {
+  statement_id  = "AllowSNSInvokefor-${module.task_processor_lambda.function_name}"
+  action        = "lambda:InvokeFunction"
+  function_name = module.task_processor_lambda.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn = module.sns_task_topic.topic_arn
+  depends_on = [ module.task_processor_lambda ]
 }

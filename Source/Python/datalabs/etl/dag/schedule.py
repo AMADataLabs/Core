@@ -3,16 +3,20 @@ from   dataclasses import dataclass
 from   datetime import datetime, timedelta
 from   functools import partial
 from   io import BytesIO
+import json
 import logging
+import os
 
 from   croniter import croniter
 import pandas
 
+from   datalabs.access.aws import AWSClient
 from   datalabs.etl.dag.state import Status
-import datalabs.etl.task as task
+from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.transform as transform
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
+import datalabs.task as task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -29,7 +33,7 @@ class DAGSchedulerParameters:
     data: object = None
 
 
-class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
+class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
     PARAMETER_CLASS = DAGSchedulerParameters
 
     def _transform(self):
@@ -97,3 +101,13 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
         state_parameters = {key:value for key, value in parameters.items() if key in state_parameter_keys}
 
         return state_plugin(state_parameters)
+
+
+class DAGSchedulerRunnerTask(task.Task):
+    # pylint: disable=no-self-use
+    def run(self):
+        with AWSClient("sns") as sns:
+            sns.publish(
+                TopicArn=os.environ.get("DAG_TOPIC_ARN"),
+                Message=json.dumps(dict(DAG="DAGScheduler"))
+            )
