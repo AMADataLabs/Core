@@ -24,6 +24,9 @@
     AMA/CPT/20200401/standard/MEDU.txt
     AMA/CPT/20200401/standard/SHORTU.txt
 """
+import logging
+import sys
+
 from   dataclasses import dataclass
 
 from   dateutil.parser import isoparse
@@ -32,6 +35,11 @@ from   datalabs.access.aws import AWSClient
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.parameter import add_schema
+
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @add_schema
@@ -88,7 +96,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             raise ETLException(
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
-
+        LOGGER.info(sys.getsizeof(response['Body'].read()))
         return response['Body'].read()
 
     def _get_latest_path(self):
