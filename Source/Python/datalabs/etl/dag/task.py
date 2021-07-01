@@ -20,7 +20,7 @@ class DAGSchedulerRunnerTask(Task):
         with AWSClient("sns") as sns:
             sns.publish(
                 TopicArn=os.environ.get("DAG_TOPIC_ARN"),
-                Message=json.dumps(dict(DAG_CLASS="datalabs.etl.dag.schedule.DAGSchedulerTask", ))
+                Message=json.dumps(dict(DAG_CLASS="datalabs.etl.dag.scheduler.schedule.DAGSchedulerDAG", ))
             )
 
 
@@ -36,6 +36,11 @@ class DAGProcessorTask(Task):
 
     def run(self):
         LOGGER.debug('DAG Processor Parameters: %s', self._parameters)
+
+        # TODO:
+        #   - create a local DAG execution plugin for testing
+        #   - create a Lambda DAG execution plugin
+        #   - call the DAG execution plugin
 
 
 @add_schema
