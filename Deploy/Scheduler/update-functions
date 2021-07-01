@@ -5,7 +5,7 @@ set -ex
 PROJECT="${PROJECT:-DataLake}"
 ENVIRONMENT="${ENVIRONMENT:-sbx}"
 CODE_BUCKET="${CODE_BUCKET:-ama-hsg-datalabs-lambda-code-sandbox}"
-BUNDLE="${PROJECT:-Scheduler}"
+BUNDLE="${BUNDLE:-Scheduler}"
 
 FUNCTIONS="${PROJECT}-Scheduler-${ENVIRONMENT}
            ${PROJECT}-DAG-Processor-${ENVIRONMENT}

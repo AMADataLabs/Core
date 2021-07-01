@@ -5,7 +5,7 @@ set -ex
 PROJECT="${PROJECT:-CPT}"
 ENVIRONMENT="${ENVIRONMENT:-sbx}"
 CODE_BUCKET="${CODE_BUCKET:-ama-hsg-datalabs-lambda-code-sandbox}"
-BUNDLE="${PROJECT:-CPT}"
+BUNDLE="${BUNDLE:-CPT}"
 
 FUNCTIONS="${PROJECT}Authorizer
            ${PROJECT}-Endpoint
