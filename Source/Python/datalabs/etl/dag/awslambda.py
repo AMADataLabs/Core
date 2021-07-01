@@ -1,4 +1,5 @@
 """ Task wrapper for DAG and DAG task Lambda functions. """
+import json
 import logging
 import os
 
@@ -10,6 +11,26 @@ from   datalabs.plugin import import_plugin
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+
+class ProcessorWrapper(awslambda.TaskWrapper):
+    def _get_task_parameters(self):
+        task_parameters = {}
+
+        if not hasattr(self._parameters, "items") or 'Records' not in self._parameters:
+            raise ValueError('Invalid SNS event: %s', self._parameters)
+
+        for record in self._parameters["Records"]:
+            if self._parameters.get("EventSource") == 'aws:sns':
+                task_parameters = json.loads(self._parameters["Message"]))
+                task_parameters["DAG_CLASS"] = import_plugin(task_parameters["DAG_CLASS"])
+
+                break
+
+        task_parameters["STATE_CLASS"] = import_plugin(os.environ.get("STATE_CLASS"))
+
+        return task_parameters
+
 
 
 class DAGTaskWrapper(awslambda.TaskWrapper):

@@ -391,7 +391,7 @@ module "dag_processor_lambda" {
 
     environment_variables = {
         variables = {
-          TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
+          TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.ProcessorWrapper"
           TASK_CLASS              = "datalabs.etl.dag.dag.DAGProcessorTask"
         }
     }
@@ -434,11 +434,9 @@ module "task_processor_lambda" {
 
     environment_variables = {
         variables = {
-          TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
-          ETCD_HOST               = aws_alb.etcd.dns_name
-          ETCD_USERNAME           = "scheduler"
-          ETCD_PASSWORD           = random_password.etcd_scheduler_password.result
-          ETCD_PREFIX             = "TASK_PROCESSOR_"
+          TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.ProcessorWrapper"
+          TASK_CLASS              = "datalabs.etl.dag.task.TaskProcessorTask"
+          STATE_CLASS             = "datalabs.etl.dag.state.dynamodb.TaskState"
         }
     }
 

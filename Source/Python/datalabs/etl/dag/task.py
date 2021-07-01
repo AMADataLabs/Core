@@ -1,18 +1,63 @@
 """ DAG runner task class. """
 from   dataclasses import dataclass
+import logging
 
 import paradag
 
+from   datalabs.access.aws import AWSClient
 from   datalabs.etl.dag.state import Status
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
+
+
+class DAGSchedulerRunnerTask(Task):
+    # pylint: disable=no-self-use
+    def run(self):
+        with AWSClient("sns") as sns:
+            sns.publish(
+                TopicArn=os.environ.get("DAG_TOPIC_ARN"),
+                Message=json.dumps(dict(DAG_CLASS="datalabs.etl.dag.schedule.DAGSchedulerTask", ))
+            )
+
+
+@add_schema
+@dataclass
+class DAGProcessorParameters:
+    dag_class: type
+    state_class: type
+
+
+class DAGProcessorTask(Task):
+    PARAMETER_CLASS = DAGProcessorParameters
+
+    def run(self):
+        LOGGER.debug('DAG Processor Parameters: %s', self._parameters)
+
+
+@add_schema
+@dataclass
+class TaskProcessorParameters:
+    dag_class: type
+    state_class: type
+    task: str
+
+
+class TaskProcessorTask(Task):
+    PARAMETER_CLASS = TaskProcessorParameters
+
+    def run(self):
+        LOGGER.debug('Task Processor Parameters: %s', self._parameters)
 
 
 @add_schema
 @dataclass
 class DAGExecutorParameters:
     dag_class: type
-    dag_state_class: type
+    state_class: type
 
 
 class DAGExecutorTask(Task):
