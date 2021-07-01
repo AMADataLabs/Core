@@ -92,6 +92,7 @@ pipelines:
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
+                - export ENVIRONMENT=sbx
                 - bash Deploy/CPT/update-functions
         OneView-master:
         - parallel:
@@ -140,6 +141,7 @@ pipelines:
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
+                - export ENVIRONMENT=sbx
                 - bash Deploy/OneView/update-functions
         Scheduler-master:
         - step:
@@ -162,6 +164,7 @@ pipelines:
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
+            - export ENVIRONMENT=sbx
             - bash Deploy/Scheduler/update-functions
         CPT-dev:
         - step:
@@ -182,6 +185,7 @@ pipelines:
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
+            - export ENVIRONMENT=sbx
             - bash Deploy/CPT/update-functions
         CPT-test:
         - step:
