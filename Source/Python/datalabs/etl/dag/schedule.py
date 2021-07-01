@@ -103,7 +103,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         return state_plugin(state_parameters)
 
 
-class DAGSchedulerRunnerTask(ExecutionTimeMixin, task.Task):
+class DAGSchedulerRunnerTask(task.Task):
     # pylint: disable=no-self-use
     def run(self):
         with AWSClient("sns") as sns:

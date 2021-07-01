@@ -11,6 +11,7 @@ modspec:
     include:
       - aws
       - environment
+      - etcd
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
   - package: datalabs.etl

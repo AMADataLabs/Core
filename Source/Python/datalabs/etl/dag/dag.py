@@ -1,5 +1,20 @@
 """ Class for defining a DAG. """
+import logging
+import os
+
 import paradag
+
+# from   datalabs.access.aws import AWSClient
+import datalabs.task as task
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
+
+class DAGProcessorTask(task.Task):
+    def run(self):
+        LOGGER.info('DAG Processor Event: %s', self._parameters)
 
 
 class DAGTask:
