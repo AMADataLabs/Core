@@ -4,7 +4,7 @@ metadata:
   labels:
     app: PDRJiraETL
   name: profile-discrepency-report-etl
-  namespace: hsg-data-labs-talend
+  namespace: hsg-data-labs-dev
 spec:
   lookupPolicy:
     local: false
