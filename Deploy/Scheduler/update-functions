@@ -3,12 +3,15 @@
 set -ex
 
 PROJECT="${PROJECT:-DataLake}"
+ENVIRONMENT="${ENVIRONMENT:-sbx}"
+CODE_BUCKET="${CODE_BUCKET:-ama-hsg-datalabs-lambda-code-sandbox}"
+BUNDLE="${BUNDLE:-Scheduler}"
 
-FUNCTIONS="${PROJECT}-Scheduler-sbx
-           ${PROJECT}-DAG-Processor-sbx
-           ${PROJECT}-Task-Processor-sbx"
+FUNCTIONS="${PROJECT}-Scheduler-${ENVIRONMENT}
+           ${PROJECT}-DAG-Processor-${ENVIRONMENT}
+           ${PROJECT}-Task-Processor-${ENVIRONMENT}"
 
 for FUNCTION in ${FUNCTIONS}; do
-  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip || exit $?
-  # aws --no-verify-ssl lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip || exit $?
+  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key ${BUNDLE}.zip || exit $?
+  # aws --no-verify-ssl lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key ${BUNDLE}.zip || exit $?
 done
