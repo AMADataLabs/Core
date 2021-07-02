@@ -1,21 +1,24 @@
+""" Code for executing AMC address"""
 from datetime import datetime
-import numpy as np
-import os
-import pandas as pd
 import string
-
 import logging
-logging.basicConfig(level=logging.INFO)
+import os
+import numpy as np
+import pandas as pd
 
+# pylint: disable=import-error
 from datalabs.access.aims import AIMS
 from datalabs.access import excel
 from datalabs.messaging.email_message import send_email
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
+
+# pylint: disable=too-many-locals, too-many-instance-attributes, invalid-name
 class AMCAddressFlagger:
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
-
         self._today_date = str(datetime.now().date())
 
         self._output_file = None
@@ -39,8 +42,8 @@ class AMCAddressFlagger:
         return flag_words
 
     def _get_amc_address_data(self):
-        with open(self._amc_query_file, 'r') as f:
-            sql = f.read()
+        with open(self._amc_query_file, 'r') as file:
+            sql = file.read()
         with AIMS() as aims:
             data = aims.read(sql=sql, coerce_float=False)
 
@@ -49,35 +52,34 @@ class AMCAddressFlagger:
     @classmethod
     def _is_flagged_city(cls, city_string):
         city_string = city_string.lower()
-        return any([city_string == '',
-                    not cls._contains_n_unique_chars(city_string, 2),
-                    cls._contains_any_digits(city_string)])
+        return any(
+            [
+                city_string == '',
+                not cls._contains_n_unique_chars(city_string, 2),
+                cls._contains_any_digits(city_string)
+            ]
+        )
 
     @classmethod
-    def _is_flagged_addr1(cls, addr1_string, flag_null=False):
+    def _is_flagged_address_line_1(cls, text, flag_null=False):
         flag = False
-
         if not flag_null:
-            if addr1_string is not None and len(addr1_string) != 0:
-                addr1_string = addr1_string.lower()
-                if not cls._contains_n_unique_chars(addr1_string, 2):
+            if text is not None and len(text) != 0:
+                text = text.lower()
+                if not cls._contains_n_unique_chars(text, 2):
                     flag = True
-
-        if flag_null:
-            if addr1_string is None or len(addr1_string) == 0 or addr1_string == '':
+        else:
+            if text is None or len(text) == 0 or text == '':
                 flag = True
         return flag
 
     @classmethod
-    def _is_flagged_addr2(cls, addr2_string):
+    def _is_flagged_address_line_2(cls, text):
         flag = False
-
-        if addr2_string is None or len(addr2_string) == 0:
+        if text is None or \
+                len(text) == 0 or \
+                not cls._contains_n_unique_chars(text, 2) or text.isdigit():
             flag = True
-
-        elif not cls._contains_n_unique_chars(addr2_string, 2) or addr2_string.isdigit():
-            flag = True
-
         return flag
 
     @classmethod
@@ -146,7 +148,7 @@ class AMCAddressFlagger:
 
         tokens = address_string.split()
 
-        return any([t in flag_words for t in tokens])
+        return any(t in flag_words for t in tokens)
 
     @classmethod
     def _clean_str_data(cls, data: pd.DataFrame):
@@ -168,24 +170,24 @@ class AMCAddressFlagger:
         return data
 
     def _get_flagged_data_and_summary(self, data):
-        self.logger.info('\tAdding flag indicator columns:')
-        self.logger.info('\t\taddr1')
-        data['addr1_flagged'] = data['addr_line1'].apply(lambda x: self._is_flagged_addr1(x))
-        self.logger.info('\t\taddr2')
-        data['addr2_flagged'] = data['addr_line2'].apply(lambda x: self._is_flagged_addr2(x))
-        self.logger.info('\t\tcity')
-        data['city_flagged'] = data['city_cd'].apply(lambda x: self._is_flagged_city(x))
-        self.logger.info('\t\tstate')
-        data['state_flagged'] = data['state_cd'].apply(lambda x: self._is_flagged_state(x))
-        self.logger.info('\t\tzip')
-        data['zip_flagged'] = data['zip'].apply(lambda x: self._is_flagged_zip(x))
+        LOGGER.info('\tAdding flag indicator columns:')
+        LOGGER.info('\t\taddr1')
+        data['addr1_flagged'] = data['addr_line1'].apply(self._is_flagged_address_line_1)
+        LOGGER.info('\t\taddr2')
+        data['addr2_flagged'] = data['addr_line2'].apply(self._is_flagged_address_line_2)
+        LOGGER.info('\t\tcity')
+        data['city_flagged'] = data['city_cd'].apply(self._is_flagged_city)
+        LOGGER.info('\t\tstate')
+        data['state_flagged'] = data['state_cd'].apply(self._is_flagged_state)
+        LOGGER.info('\t\tzip')
+        data['zip_flagged'] = data['zip'].apply(self._is_flagged_zip)
 
         flag_words = self._get_flag_words()
-        self.logger.info('\t\tflagwords')
+        LOGGER.info('\t\tflagwords')
         data['contains_flag_word'] = data['address'].apply(lambda x: self._contains_flagword(x, flag_words))
 
         data.drop_duplicates(inplace=True)
-        self.logger.info('\tGetting flag type counts.')
+        LOGGER.info('\tGetting flag type counts.')
 
         # flag type ounts
         n_addr1     = len(data[data['addr1_flagged']])
@@ -204,9 +206,9 @@ class AMCAddressFlagger:
             'flag_word': n_flagwords}
 
         # compile records that have any flag
-        self.logger.info('\tCompiling flagged Records.')
+        LOGGER.info('\tCompiling flagged Records.')
         any_flags = []
-        for i, row in data.iterrows():
+        for _, row in data.iterrows():
             a = any([row['addr1_flagged'],
                      row['addr2_flagged'],
                      row['city_flagged'],
@@ -251,19 +253,19 @@ class AMCAddressFlagger:
         self._false_positives = os.environ.get('FALSE_POSITIVES').split(',')
 
     def run(self):
-        self.logger.info('Getting required environment variables.')
+        LOGGER.info('Getting required environment variables.')
         self._get_env_variables()
-        self.logger.info('Querying active amc-sourced address data.')
+        LOGGER.info('Querying active amc-sourced address data.')
         data = self._get_amc_address_data()
-        self.logger.info('Cleaning data.')
+        LOGGER.info('Cleaning data.')
         data = self._clean_str_data(data).drop_duplicates()
 
         flagged_data, summary = self._get_flagged_data_and_summary(data)
         flagged_data.drop_duplicates(inplace=True)
-        self.logger.info('Saving results.')
+        LOGGER.info('Saving results.')
         self._save_output(flagged_data)
 
-        self.logger.info('Creating email report.')
+        LOGGER.info('Creating email report.')
         report_body = \
             f"""Hello!
 
