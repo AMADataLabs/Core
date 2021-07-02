@@ -1,8 +1,6 @@
 """ Class for defining a DAG. """
 import paradag
 
-from   datalabs.task import Task
-
 
 class DAGTask:
     def __init__(self, task_class: str):

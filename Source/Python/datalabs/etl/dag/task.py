@@ -1,111 +1,153 @@
-""" DAG runner task class. """
-from   dataclasses import dataclass
+""" DAG task wrapper and runner classes. """
 import logging
+import re
 
-import paradag
-
-from   datalabs.access.aws import AWSClient
-from   datalabs.etl.dag.state import Status
-from   datalabs.parameter import add_schema
-from   datalabs.task import Task
+from   datalabs.access.environment import VariableTree
+from   datalabs.etl.dag.cache import CacheDirection, TaskDataCache
+from   datalabs.plugin import import_plugin
+from   datalabs.task import TaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class DAGSchedulerRunnerTask(Task):
-    # pylint: disable=no-self-use
-    def run(self):
-        with AWSClient("sns") as sns:
-            sns.publish(
-                TopicArn=os.environ.get("DAG_TOPIC_ARN"),
-                Message=json.dumps(dict(DAG_CLASS="datalabs.etl.dag.scheduler.schedule.DAGSchedulerDAG", ))
-            )
+class DAGTaskWrapper(TaskWrapper):
+    def __init__(self, parameters=None):
+        super().__init__(parameters)
 
+        args = self._parameters
+        self._dag_id, self._task_id, self._execution_time = args[1].split('__')
 
-@add_schema
-@dataclass
-class DAGProcessorParameters:
-    dag_class: type
-    state_class: type
+        self._cache_parameters = {}
 
+    def _get_task_parameters(self):
+        task_parameters = None
 
-class DAGProcessorTask(Task):
-    PARAMETER_CLASS = DAGProcessorParameters
+        dag_parameters = self._get_dag_parameters()
 
-    def run(self):
-        LOGGER.debug('DAG Processor Parameters: %s', self._parameters)
+        task_parameters = self._merge_parameters(dag_parameters, self._get_dag_task_parameters())
 
-        # TODO:
-        #   - create a local DAG execution plugin for testing
-        #   - create a Lambda DAG execution plugin
-        #   - call the DAG execution plugin
+        task_parameters = self._extract_cache_parameters(task_parameters)
 
+        cache_plugin = self._get_cache_plugin(CacheDirection.INPUT)
+        if cache_plugin:
+            input_data = cache_plugin.extract_data()
 
-@add_schema
-@dataclass
-class TaskProcessorParameters:
-    dag_class: type
-    state_class: type
-    task: str
+            task_parameters['data'] = input_data
 
+        return task_parameters
 
-class TaskProcessorTask(Task):
-    PARAMETER_CLASS = TaskProcessorParameters
+    def _handle_exception(self, exception):
+        LOGGER.exception('Handling DAG task exception: %s', exception)
 
-    def run(self):
-        LOGGER.debug('Task Processor Parameters: %s', self._parameters)
+    def _handle_success(self):
+        cache_plugin = self._get_cache_plugin(CacheDirection.OUTPUT)  # pylint: disable=no-member
+        if cache_plugin:
+            cache_plugin.load_data(self.task.data)
 
+        LOGGER.info('DAG task has finished')
 
-@add_schema
-@dataclass
-class DAGExecutorParameters:
-    dag_class: type
-    state_class: type
+    def _get_dag_parameters(self):
+        dag_parameters = self._get_dag_parameters_from_environment(self._get_dag_id())
+        execution_time = self._get_execution_time()
 
+        dag_parameters['EXECUTION_TIME'] = execution_time
+        dag_parameters['CACHE_EXECUTION_TIME'] = execution_time
 
-class DAGExecutorTask(Task):
-    PARAMETER_CLASS = DAGExecutorParameters
+        return dag_parameters
 
-    def run(self):
-        dag = self._parameters.dag_class()
+    def _get_dag_task_parameters(self):
+        return self._get_task_parameters_from_environment(self._get_dag_id(), self._get_task_id())
 
-        paradag.dag_run(
-            dag,
-            processor=paradag.MultiThreadProcessor(),
-            executor=DAGExecutor(self._parameters.state_class)
+    def _extract_cache_parameters(self, task_parameters):
+        self._cache_parameters[CacheDirection.INPUT] = self._get_cache_parameters(
+            task_parameters,
+            CacheDirection.INPUT
         )
+        self._cache_parameters[CacheDirection.OUTPUT] = self._get_cache_parameters(
+            task_parameters,
+            CacheDirection.OUTPUT
+        )
+        cache_keys = [key for key in task_parameters if key.startswith('CACHE_')]
 
+        for key in cache_keys:
+            task_parameters.pop(key)
 
-class DAGExecutor:
-    def __init__(self, state_class: type):
-        self._state = state_class()
+        return task_parameters
 
-    # pylint: disable=no-self-use
-    def param(self, task: 'DAGTask'):
-        return task
+    def _get_cache_plugin(self, direction: CacheDirection) -> TaskDataCache:
+        cache_parameters = self._cache_parameters[direction]
+        plugin = None
 
-    # pylint: disable=assignment-from-no-return
-    def execute(self, task):
-        state = self._get_task_state(task)
+        if len(cache_parameters) > 1:
+            plugin_name = 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
 
-        if state == Status.UNKNOWN:
-            self._trigger_task(task)
+            if 'CLASS' in cache_parameters:
+                plugin_name = cache_parameters.pop('CLASS')
 
-        return state
+            TaskDataCachePlugin = import_plugin(plugin_name)  # pylint: disable=invalid-name
 
-    # pylint: disable=no-self-use
-    def deliver(self, task, predecessor_result):
-        if predecessor_result != Status.FINISHED:
-            task.block()
+            plugin = TaskDataCachePlugin(cache_parameters)
 
-    # pylint: disable=no-self-use, fixme
-    def _get_task_state(self, task):
-        # TODO: get state using task state plugin
-        pass
+        return plugin
 
-    # pylint: disable=no-self-use, fixme
-    def _trigger_task(self, task):
-        # TODO: send message using messaging plugin
-        pass
+    def _get_dag_id(self):
+        return self._dag_id.upper()
+
+    def _get_task_id(self):
+        return self._task_id.upper()
+
+    def _get_execution_time(self):
+        return self._execution_time
+
+    @classmethod
+    def _get_dag_parameters_from_environment(cls, dag_id):
+        parameters = {}
+
+        try:
+            parameters = cls._get_parameters([dag_id.upper()])
+        except KeyError:
+            pass
+
+        return parameters
+
+    @classmethod
+    def _get_task_parameters_from_environment(cls, dag_id, task_id):
+        parameters = {}
+
+        try:
+            parameters = cls._get_parameters([dag_id.upper(), task_id.upper()])
+        except KeyError:
+            pass
+
+        return parameters
+
+    @classmethod
+    def  _merge_parameters(cls, dag_parameters, task_parameters):
+        parameters = dag_parameters
+
+        parameters.update(task_parameters)
+
+        return parameters
+
+    @classmethod
+    def _get_cache_parameters(cls, task_parameters: dict, direction: CacheDirection) -> dict:
+        cache_parameters = {}
+        other_direction = [d[1] for d in CacheDirection.__members__.items() if d[1] != direction][0]  # pylint: disable=no-member
+
+        for key, value in task_parameters.items():
+            match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
+
+            if match and not match.group(2).startswith(other_direction.value+'_'):
+                cache_parameters[match.group(2)] = value
+
+        return cache_parameters
+
+    @classmethod
+    def _get_parameters(cls, branch):
+        var_tree = VariableTree.from_environment()
+
+        candidate_parameters = var_tree.get_branch_values(branch)
+
+        return {key:value for key, value in candidate_parameters.items() if value is not None}
