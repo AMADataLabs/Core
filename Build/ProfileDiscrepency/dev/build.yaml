@@ -28,7 +28,7 @@ spec:
     type: Git
   strategy:
     dockerStrategy:
-      dockerfilePath: Build/ProfileDiscrepency/Dockerfile
+      dockerfilePath: Build/ProfileDiscrepency/dev/Dockerfile
       from:
         kind: ImageStreamTag
         name: python:3.7
