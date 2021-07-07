@@ -4,7 +4,7 @@ metadata:
     name: contact-id-etl
     namespace: hsg-data-labs-dev
 data:
-    # TASK_WRAPPER_CLASS: datalabs.etl.airflow.task.AirflowTaskWrapper
+    # TASK_WRAPPER_CLASS: datalabs.etl.dag.task.DAGTaskWrapper
 
     # Contact ID Extractor-
     CONTACT_ID__EXTRACT_ADVANTAGE__DATABASE_NAME: 'AdvDbDEV;domain=AMA_NT'
@@ -85,7 +85,7 @@ data:
     CONTACT_ID__EXTRACT_ADVANTAGE__DRIVER_TYPE: 'jtds:sqlserver'
     CONTACT_ID__EXTRACT_ADVANTAGE__JAR_PATH: './jtds-1.3.1.jar'
 
-    CONTACT_ID__EXTRACT_ADVANTAGE__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    CONTACT_ID__EXTRACT_ADVANTAGE__CACHE_OUTPUT_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     CONTACT_ID__EXTRACT_ADVANTAGE__CACHE_OUTPUT_BASE_PATH: 'AMA/ContactID/%Y%m%d'
     CONTACT_ID__EXTRACT_ADVANTAGE__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     CONTACT_ID__EXTRACT_ADVANTAGE__CACHE_OUTPUT_ACCESS_KEY: ${ACCESS_KEY}
@@ -101,7 +101,7 @@ data:
     CONTACT_ID__EXTRACT_VALID__USERNAME: ${EFT_USERNAME}
     CONTACT_ID__EXTRACT_VALID__PASSWORD: ${EFT_PASSWORD}
 
-    CONTACT_ID__EXTRACT_VALID__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    CONTACT_ID__EXTRACT_VALID__CACHE_OUTPUT_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     CONTACT_ID__EXTRACT_VALID__CACHE_OUTPUT_BASE_PATH: 'AMA/ContactID/%Y%m%d'
     CONTACT_ID__EXTRACT_VALID__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     CONTACT_ID__EXTRACT_VALID__CACHE_OUTPUT_ACCESS_KEY: ${ACCESS_KEY}
@@ -202,7 +202,7 @@ data:
     CONTACT_ID__EXTRACT_ORGMANAGER__DRIVER_TYPE: 'db2'
     CONTACT_ID__EXTRACT_ORGMANAGER__JAR_PATH: './db2jcc4.jar'
 
-    CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_BASE_PATH: 'AMA/ContactID/%Y%m%d'
     CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_ACCESS_KEY: ${ACCESS_KEY}
@@ -211,7 +211,7 @@ data:
     CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_FILES: 'Users_%Y%m%d.csv'
     CONTACT_ID__EXTRACT_ORGMANAGER__CACHE_OUTPUT_INCLUDE_DATESTAMP: 'false'
 
-    CONTACT_ID__EXTRACT_SEED_FILES__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3FileExtractorTask'
+    CONTACT_ID__EXTRACT_SEED_FILES__CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_INPUT_BASE_PATH: 'AMA/ContactID'
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_OUTPUT_BASE_PATH: 'AMA/ContactID/%Y%m%d'
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -224,7 +224,7 @@ data:
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_OUTPUT_INCLUDE_DATESTAMP: 'false'
 
 
-    CONTACT_ID__ASSIGN_EXISTING_CONTACT_IDS__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    CONTACT_ID__ASSIGN_EXISTING_CONTACT_IDS__CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     CONTACT_ID__ASSIGN_EXISTING_CONTACT_IDS__CACHE_BASE_PATH: 'AMA/ContactID/%Y%m%d'
     CONTACT_ID__ASSIGN_EXISTING_CONTACT_IDS__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     CONTACT_ID__ASSIGN_EXISTING_CONTACT_IDS__CACHE_ACCESS_KEY: ${ACCESS_KEY}
@@ -237,7 +237,7 @@ data:
     CONTACT_ID__ASSIGN_EXISTING_CONTACT_IDS__CACHE_OUTPUT_INCLUDE_DATESTAMP: 'false'
 
 
-    CONTACT_ID__MERGE_AND_GENERATE_NEW_IDS__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    CONTACT_ID__MERGE_AND_GENERATE_NEW_IDS__CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     CONTACT_ID__MERGE_AND_GENERATE_NEW_IDS__CACHE_BASE_PATH: 'AMA/ContactID/%Y%m%d'
     CONTACT_ID__MERGE_AND_GENERATE_NEW_IDS__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     CONTACT_ID__MERGE_AND_GENERATE_NEW_IDS__CACHE_ACCESS_KEY: ${ACCESS_KEY}
@@ -249,7 +249,7 @@ data:
     CONTACT_ID__MERGE_AND_GENERATE_NEW_IDS__CACHE_OUTPUT_INCLUDE_DATESTAMP: 'false'
 
 
-    CONTACT_ID__UPDATE_SEED_FILES_INPUT__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    CONTACT_ID__UPDATE_SEED_FILES_INPUT__CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     CONTACT_ID__UPDATE_SEED_FILES_INPUT__CACHE_INPUT_BASE_PATH: 'AMA/ContactID/%Y%m%d'
     CONTACT_ID__UPDATE_SEED_FILES_INPUT__CACHE_OUTPUT_BASE_PATH: 'AMA/ContactID'
     CONTACT_ID__UPDATE_SEED_FILES_INPUT__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
@@ -263,7 +263,7 @@ data:
 
 
 
-    CONTACT_ID__DELIVER_OUTPUT_FILES_INPUT__CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    CONTACT_ID__DELIVER_OUTPUT_FILES_INPUT__CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     CONTACT_ID__DELIVER_OUTPUT_FILES_INPUT__CACHE_BASE_PATH: 'AMA/ContactID/%Y%m%d'
     CONTACT_ID__DELIVER_OUTPUT_FILES_INPUT__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     CONTACT_ID__DELIVER_OUTPUT_FILES_INPUT__CACHE_ACCESS_KEY: ${ACCESS_KEY}
