@@ -302,6 +302,16 @@ with ONEVIEW_ETL_DAG:
         },
     )
 
+    CREATE_IQVIA_UPDATE_TABLE = KubernetesPodOperator(
+        name="create_iqvia_update_table",
+        task_id="create_iqvia_update_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.iqvia.transform.IQVIAUpdateTransformerTask')
+        },
+    )
+
     # LOAD_PHYSICIAN_TABLE_INTO_DATABASE = KubernetesPodOperator(
     #     name="load_physician_table_into_database",
     #     task_id="load_physician_table_into_database",
@@ -382,6 +392,7 @@ CREATE_PHYSICIAN_TABLE >> REMOVE_UNUSED_SPECIALTIES
 REMOVE_UNUSED_SPECIALTIES >> LOAD_REFERENCE_TABLES_INTO_DATABASE
 EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_RESIDENCY_TABLES_INTO_DATABASE
 EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_DATABASE
+EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
