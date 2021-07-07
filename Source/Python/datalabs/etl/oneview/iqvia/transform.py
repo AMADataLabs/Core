@@ -28,3 +28,14 @@ class IQVIATransformerTask(TransformerTask):
                 column.PROVIDER_AFFILIATION_COLUMNS,
                 column.IQVIA_DATE
                 ]
+
+
+class IQVIAUpdateTransformerTask(TransformerTask):
+    def _preprocess_data(self, data):
+        iqvia_data = data[0]
+        iqvia_data = iqvia_data['BATCH_BUSINESS_DATE'][0]
+
+        return [iqvia_data]
+
+    def _get_columns(self):
+        return [column.IQVIA_DATE]
