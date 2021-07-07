@@ -49,7 +49,7 @@ def render_template(template_path, result_path, **kwargs):
     filenames = FileGeneratorFilenames(template=Path(template_path), output=Path(result_path))
 
     file_generator = SimpleFileGenerator(filenames, **kwargs)
-    file_generator.from_environment()
+    file_generator.generate()
 
 
 if __name__ == '__main__':

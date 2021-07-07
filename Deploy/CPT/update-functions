@@ -3,6 +3,9 @@
 set -ex
 
 PROJECT="${PROJECT:-CPT}"
+ENVIRONMENT="${ENVIRONMENT:-sbx}"
+CODE_BUCKET="${CODE_BUCKET:-ama-hsg-datalabs-lambda-code-sandbox}"
+BUNDLE="${BUNDLE:-CPT}"
 
 FUNCTIONS="${PROJECT}Authorizer
            ${PROJECT}-Endpoint
@@ -13,6 +16,6 @@ FUNCTIONS="${PROJECT}Authorizer
            ${PROJECT}ProcessingRouter"
 
 for FUNCTION in ${FUNCTIONS}; do
-  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip || exit $?
-  # aws --no-verify-ssl lambda update-function-code --function-name $FUNCTION --s3-bucket ama-hsg-datalabs-lambda-code-sandbox --s3-key CPT/CPT.zip || exit $?
+  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key ${BUNDLE}.zip || exit $?
+  # aws --no-verify-ssl lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key ${BUNDLE}.zip || exit $?
 done
