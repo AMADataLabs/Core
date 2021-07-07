@@ -1,70 +1,72 @@
 """ Task wrapper for DAG and DAG task Lambda functions. """
+import json
 import logging
 import os
 
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
-import datalabs.awslambda as awslambda
-import datalabs.etl.task as task
+import datalabs.etl.dag.task as task
 from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
-class DAGTaskWrapper(awslambda.TaskWrapper):
-    def __init__(self, parameters=None):
-        super().__init__(parameters)
-
-        self._cache_parameters = {}
-
-    def _setup_environment(self):
-        """ Add extra fields to the TaskWrapper parameters for the TaskResolver. We expect that the
-            following fields are included in the event details that are used as TaskWrapper parameters:
-            {
-                "type": "string",
-                "execution_time": "string",
-                "task": "string" (only if type is "DAG")
-            }
-         """
-        super()._setup_environment()
-
-        self._parameters["dag_class"] = import_plugin(os.environ["DAG_CLASS"])
-
-    def _get_task_parameters(self):
-        task_parameters = None
-
-        dag_parameters = self._get_dag_parameters()
-
-        if self._parameters["type"] == 'Task':
-            task_parameters = self._get_dag_task_parameters()
-
-            task_parameters.update(dag_parameters)
-
-        return task_parameters
-
+class DAGTaskWrapper(task.DAGTaskWrapper):
     def _handle_success(self) -> (int, dict):
         return "Success"
 
-    def _handle_exception(self, exception: task.ETLException) -> (int, dict):
+    def _handle_exception(self, exception) -> (int, dict):
         LOGGER.error('Handling ETL task exception: %s', exception)
 
         return f'Failed: {str(exception)}'
 
     def _get_dag_parameters(self):
-        return dict(
-            dag_class=self._parameters["dag_class"],
-            dag_state_class=import_plugin(os.environ["DAG_STATE_CLASS"])
-        )
+        dag_parameters = super()._get_dag_parameters()
+
+        dag_parameters["DAG_CLASS"] = import_plugin(os.environ["DAG_CLASS"])
+        dag_parameters["DAG_STATE_CLASS"] = import_plugin(os.environ["DAG_STATE_CLASS"])
+
+        return dag_parameters
 
     def _get_dag_task_parameters(self):
-        dag_task_parameters = {}
+        dag_task_parameters = super()._get_dag_task_parameters()
 
-        dynamodb_loader = DynamoDBEnvironmentLoader(dict(
-            table=os.environ["DYNAMODB_CONFIG_TABLE"],
-            dag=os.environ["DAG"],
-            task=self._parameters["task"]
-        ))
-        dynamodb_loader.load(environment=dag_task_parameters)
+        dag_task_parameters.update(self._get_event_parameters())
+
+        if self._parameters["type"] == 'Task':
+            dynamodb_loader = DynamoDBEnvironmentLoader(dict(
+                table=os.environ["DYNAMODB_CONFIG_TABLE"],
+                dag=self._get_dag_id(),
+                task=self._get_task_id()
+            ))
+            dynamodb_loader.load(environment=dag_task_parameters)
 
         return dag_task_parameters
+
+    def _get_task_id(self):
+        return self._parameters["task"]
+
+    def _get_event_parameters(self):
+        event_parameters = self._parameters
+
+        LOGGER.info('Event Parameters: %s', event_parameters)
+
+        return event_parameters
+
+
+class ProcessorWrapper(DAGTaskWrapper):
+    def _get_event_parameters(self):
+        LOGGER.debug('Event: %s', self._parameters)
+        event_parameters = {}
+
+        if not hasattr(self._parameters, "items") or 'Records' not in self._parameters:
+            raise ValueError(f'Invalid SNS event: {self._parameters}')
+
+        for record in self._parameters["Records"]:
+            if record.get("EventSource") == 'aws:sns':
+                event_parameters = json.loads(record["Message"])
+
+                break
+
+        return event_parameters

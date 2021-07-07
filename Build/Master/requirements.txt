@@ -12,6 +12,7 @@ feather-format==0.4.0
 gevent==1.4.0
 gremlinpython==3.4.8
 gunicorn==19.10.0
+guppy3==3.1.1
 imbalanced-learn==0.6.2
 ipython==7.21.0
 JayDeBeApi==1.1.1
@@ -29,6 +30,7 @@ numpy==1.18.1
 openpyxl==3.0.7
 pandas==1.0.1
 paradag==1.2.0
+pika==1.2.0
 pip==21.0
 pipenv==2018.5.18
 psycopg2-binary==2.8.5

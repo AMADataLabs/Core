@@ -1,11 +1,12 @@
-""" source: datalabs.etl.airflow """
+""" source: datalabs.etl.dag.task """
 import json
 import logging
 import os
 
 import pytest
 
-from   datalabs.etl.airflow.task import AirflowTaskWrapper, TaskDataCache, CacheDirection
+from   datalabs.etl.dag.task import DAGTaskWrapper
+from   datalabs.etl.dag.cache import TaskDataCache, CacheDirection
 from   datalabs.etl.task import ETLComponentTask
 
 logging.basicConfig()
@@ -15,7 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_parameters_are_parsed(args, environment):
-    task_wrapper = AirflowTaskWrapper(parameters=args)
+    task_wrapper = DAGTaskWrapper(parameters=args)
     parameters = task_wrapper._get_task_parameters()
 
     assert 'TEST_TASK' not in parameters
@@ -30,7 +31,7 @@ def test_task_parameters_are_parsed(args, environment):
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_cache_parameters_are_parsed(args, environment):
-    task_wrapper = AirflowTaskWrapper(parameters=args)
+    task_wrapper = DAGTaskWrapper(parameters=args)
     task_wrapper._get_task_parameters()
     input_cache_parameters = task_wrapper._cache_parameters[CacheDirection.INPUT]
     output_cache_parameters = task_wrapper._cache_parameters[CacheDirection.OUTPUT]
@@ -47,7 +48,7 @@ def test_cache_parameters_are_parsed(args, environment):
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_cache_parameters_are_overriden(args, environment):
-    task_wrapper = AirflowTaskWrapper(parameters=args)
+    task_wrapper = DAGTaskWrapper(parameters=args)
     task_wrapper._get_task_parameters()
     input_cache_parameters = task_wrapper._cache_parameters[CacheDirection.INPUT]
     output_cache_parameters = task_wrapper._cache_parameters[CacheDirection.OUTPUT]
@@ -60,7 +61,7 @@ def test_cache_parameters_are_overriden(args, environment):
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_input_data_is_loaded(args, environment):
-    task_wrapper = AirflowTaskWrapper(parameters=args)
+    task_wrapper = DAGTaskWrapper(parameters=args)
     parameters = task_wrapper._get_task_parameters()
 
     assert parameters['data'] is not None
@@ -70,7 +71,7 @@ def test_task_input_data_is_loaded(args, environment):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_no_cache_env_vars_yields_no_cache_parameters(args):
-    task_wrapper = AirflowTaskWrapper(parameters=args)
+    task_wrapper = DAGTaskWrapper(parameters=args)
     parameters = task_wrapper._get_dag_task_parameters()
 
     assert not parameters
@@ -78,15 +79,16 @@ def test_no_cache_env_vars_yields_no_cache_parameters(args):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_no_cache_input_parameters_skips_cache_pull(args):
-    task_wrapper = AirflowTaskWrapper(parameters=args)
+    task_wrapper = DAGTaskWrapper(parameters=args)
     parameters = task_wrapper._get_task_parameters()
 
-    assert not parameters
+    assert len(parameters) == 1
+    assert 'EXECUTION_TIME' in parameters
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_wrapper_runs_successfully(args, environment):
-    task_wrapper = AirflowTaskWrapper(parameters=args)
+    task_wrapper = DAGTaskWrapper(parameters=args)
 
     task_wrapper.run()
 
@@ -98,7 +100,7 @@ def test_no_cache_output_parameters_skips_cache_push(args, environment):
     for dag_parameter in dag_parameters:
         os.environ.pop(dag_parameter)
 
-    task_wrapper = AirflowTaskWrapper(parameters=args)
+    task_wrapper = DAGTaskWrapper(parameters=args)
 
     task_wrapper.run()
 
@@ -107,7 +109,7 @@ def test_no_cache_output_parameters_skips_cache_push(args, environment):
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_cache_parameters_omitted_from_task_parameters(args, environment):
-    task_wrapper = AirflowTaskWrapper(parameters=args)
+    task_wrapper = DAGTaskWrapper(parameters=args)
 
     task_wrapper.run()
 
@@ -135,9 +137,9 @@ def args():
 def environment():
     current_environment = os.environ.copy()
 
-    os.environ['TASK_CLASS'] = 'test.datalabs.etl.airflow.test_task.TestTask'
+    os.environ['TASK_CLASS'] = 'test.datalabs.etl.dag.test_task.TestTask'
     os.environ['TEST_DAG__DAG_VARIABLE'] = 'tootie'
-    os.environ['TEST_DAG__CACHE_CLASS'] = 'test.datalabs.etl.airflow.test_task.TestTaskDataCache'
+    os.environ['TEST_DAG__CACHE_CLASS'] = 'test.datalabs.etl.dag.test_task.TestTaskDataCache'
     os.environ['TEST_DAG__CACHE_STUFF'] = 'JIDFSAF9E0RU90FOV9A0FUD'
     os.environ['TEST_DAG__TEST_TASK__TASK_VARIABLE'] = 'fruity'
     os.environ['TEST_DAG__TEST_TASK__CACHE_INPUT_DATA'] = '["light", "and", "smoothie"]'
