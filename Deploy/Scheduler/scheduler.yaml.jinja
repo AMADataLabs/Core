@@ -1,0 +1,7 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/Scheduler/scheduler.yaml.jinja -f Deploy/Schedler/scheduler.yaml \
+# -v "lambda=DataLake-"
+---
+data:
+    DAGSCHEDULER__GLOBAL__LAMBDA: '{{ lambda }}'

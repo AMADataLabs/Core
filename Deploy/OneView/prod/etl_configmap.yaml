@@ -5,7 +5,7 @@ metadata:
     namespace: hsg-data-labs-dev
 data:
     # Reference Variables
-    ONEVIEW_S3_CACHE_CLASS: 'datalabs.etl.airflow.s3.S3TaskDataCache'
+    ONEVIEW_S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     ONEVIEW_S3_BASE_PATH: 'AMA/OneView'
     ONEVIEW_DB2_DRIVER: 'com.ibm.db2.jcc.DB2Jcc'
     ONEVIEW_DB2_DRIVER_TYPE: 'db2'
