@@ -97,6 +97,6 @@ class SourceBundle:
         try:
             _, _, all_files = next(os.walk(path))
         except StopIteration:
-            LOGGER.warning('Unable to to find package files in directory {path}.')
+            LOGGER.warning('Unable to to find package files in directory %s.', path)
 
         return all_files

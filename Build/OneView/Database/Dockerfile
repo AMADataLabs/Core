@@ -1,5 +1,5 @@
 # Build Example:
-#    docker build -t OneView -f ./Build/OneView/Dockerfile.alembic ./
+#    docker build -t OneViewDB -f ./Build/OneView/Database/Dockerfile ./
 
 FROM python:3.7
 WORKDIR /OneView
