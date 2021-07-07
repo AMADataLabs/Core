@@ -11,7 +11,7 @@ DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
 IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
 
 BASE_ENVIRONMENT = dict(
-    TASK_WRAPPER_CLASS='datalabs.etl.airflow.task.AirflowTaskWrapper',
+    TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper',
     ETCD_HOST=Variable.get('ETCD_HOST'),
     ETCD_USERNAME=DAG_ID,
     ETCD_PASSWORD=Variable.get(f'{DAG_ID.upper()}_ETCD_PASSWORD'),

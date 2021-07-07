@@ -63,7 +63,7 @@ module "s3_scheduler_data" {
 resource "aws_s3_bucket_notification" "sns_scheduler" {
     bucket = module.s3_scheduler_data.bucket_id
     topic {
-        topic_arn           = module.sns_scheduler.topic_arn
+        topic_arn           = module.sns_scheduler_topic.topic_arn
         events              = ["s3:ObjectCreated:*"]
     }
 }
@@ -73,7 +73,7 @@ resource "aws_s3_bucket_notification" "sns_scheduler" {
 # Datalake - SNS Topics and Subscriptions
 #####################################################################
 
-module "sns_scheduler" {
+module "sns_scheduler_topic" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
@@ -108,9 +108,9 @@ module "sns_scheduler" {
 
 
 resource "aws_sns_topic_subscription" "scheduler" {
-  topic_arn = module.sns_scheduler.topic_arn
+  topic_arn = module.sns_scheduler_topic.topic_arn
   protocol  = "lambda"
-  endpoint  = module.scheduler_lambda.function_arn
+  endpoint  = module.dag_processor_lambda.function_arn
 }
 
 
@@ -216,7 +216,7 @@ EOF
 
 resource "aws_cloudwatch_event_target" "sns" {
   rule      = aws_cloudwatch_event_rule.console.name
-  arn       = module.sns_scheduler.topic_arn
+  arn       = module.sns_scheduler_topic.topic_arn
 }
 
 
@@ -324,50 +324,6 @@ resource "aws_dynamodb_table" "task_state" {
 # Datalake - Lambda functions
 #####################################################################
 
-module "scheduler_lambda" {
-    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
-    function_name       = local.function_names.scheduler
-    lambda_name         = local.function_names.scheduler
-    s3_lambda_bucket    = var.lambda_code_bucket
-    s3_lambda_key       = "Scheduler.zip"
-    handler             = "awslambda.handler"
-    runtime             = local.runtime
-    create_alias        = false
-    memory_size         = var.scheduler_memory_size
-    timeout             = var.scheduler_timeout
-
-    lambda_policy_vars  = {
-        account_id                  = data.aws_caller_identity.account.account_id
-        region                      = local.region
-        project                     = var.project
-    }
-
-    create_lambda_permission    = false
-    api_arn                     = ""
-
-    environment_variables = {
-        variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
-            TASK_CLASS              = "datalabs.etl.dag.schedule.DAGSchedulerRunnerTask"
-            DAG_TOPIC_ARN           = module.sns_dag_topic.topic_arn
-        }
-    }
-
-    tag_name                = local.function_names.scheduler
-    tag_environment         = local.tags["Environment"]
-    tag_contact             = local.tags["Contact"]
-    tag_systemtier          = local.tags["SystemTier"]
-    tag_drtier              = local.tags["DRTier"]
-    tag_dataclassification  = local.tags["DataClassification"]
-    tag_budgetcode          = local.tags["BudgetCode"]
-    tag_owner               = local.tags["Owner"]
-    tag_projectname         = var.project
-    tag_notes               = ""
-    tag_eol                 = local.tags["EOL"]
-    tag_maintwindow         = local.tags["MaintenanceWindow"]
-}
-
-
 module "dag_processor_lambda" {
     source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
     function_name       = local.function_names.dag_processor
@@ -391,8 +347,9 @@ module "dag_processor_lambda" {
 
     environment_variables = {
         variables = {
-          TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
-          TASK_CLASS              = "datalabs.etl.dag.dag.DAGProcessorTask"
+          TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.ProcessorWrapper"
+          TASK_CLASS              = "datalabs.etl.dag.task.DAGProcessorTask"
+          DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
         }
     }
 
@@ -434,11 +391,9 @@ module "task_processor_lambda" {
 
     environment_variables = {
         variables = {
-          TASK_WRAPPER_CLASS      = "datalabs.awslambda.TaskWrapper"
-          ETCD_HOST               = aws_alb.etcd.dns_name
-          ETCD_USERNAME           = "scheduler"
-          ETCD_PASSWORD           = random_password.etcd_scheduler_password.result
-          ETCD_PREFIX             = "TASK_PROCESSOR_"
+          TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.ProcessorWrapper"
+          TASK_CLASS              = "datalabs.etl.dag.task.TaskProcessorTask"
+          STATE_CLASS             = "datalabs.etl.dag.state.dynamodb.TaskState"
         }
     }
 
@@ -456,8 +411,63 @@ module "task_processor_lambda" {
     tag_maintwindow         = local.tags["MaintenanceWindow"]
 }
 
+module "scheduler_lambda" {
+    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
+    function_name       = local.function_names.scheduler
+    lambda_name         = local.function_names.scheduler
+    s3_lambda_bucket    = var.lambda_code_bucket
+    s3_lambda_key       = "Scheduler.zip"
+    handler             = "awslambda.handler"
+    runtime             = local.runtime
+    create_alias        = false
+    memory_size         = var.scheduler_memory_size
+    timeout             = var.scheduler_timeout
 
-resource "aws_lambda_permission" "dag_processor_permission" {
+    lambda_policy_vars  = {
+        account_id                  = data.aws_caller_identity.account.account_id
+        region                      = local.region
+        project                     = var.project
+    }
+
+    create_lambda_permission    = false
+    api_arn                     = ""
+
+    environment_variables = {
+        variables = {
+            TASK_WRAPPER_CLASS              = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
+            TASK_RESOLVER_CLASS             = "datalabs.etl.dag.resolve.TaskResolver"
+            DAG_SCHEDULER__DAG_CLASS        = "datalabs.etl.dag.scheduler.schedule.DAGSchedulerDAG"
+            DAG_SCHEDULER__DAG_STATE_CLASS  = "datalabs.etl.dag.state.dynamodb.DAGState"
+            DAG_SCHEDULER__DAG_TOPIC_ARN    = module.sns_dag_topic.topic_arn
+        }
+    }
+
+    tag_name                = local.function_names.scheduler
+    tag_environment         = local.tags["Environment"]
+    tag_contact             = local.tags["Contact"]
+    tag_systemtier          = local.tags["SystemTier"]
+    tag_drtier              = local.tags["DRTier"]
+    tag_dataclassification  = local.tags["DataClassification"]
+    tag_budgetcode          = local.tags["BudgetCode"]
+    tag_owner               = local.tags["Owner"]
+    tag_projectname         = var.project
+    tag_notes               = ""
+    tag_eol                 = local.tags["EOL"]
+    tag_maintwindow         = local.tags["MaintenanceWindow"]
+}
+
+
+resource "aws_lambda_permission" "dag_processor_scheduler_sns" {
+  statement_id  = "AllowSNSInvokefor-Scheduler"
+  action        = "lambda:InvokeFunction"
+  function_name = module.dag_processor_lambda.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn = module.sns_scheduler_topic.topic_arn
+  depends_on = [ module.dag_processor_lambda ]
+}
+
+
+resource "aws_lambda_permission" "dag_processor_sns" {
   statement_id  = "AllowSNSInvokefor-${module.dag_processor_lambda.function_name}"
   action        = "lambda:InvokeFunction"
   function_name = module.dag_processor_lambda.function_name
@@ -467,7 +477,7 @@ resource "aws_lambda_permission" "dag_processor_permission" {
 }
 
 
-resource "aws_lambda_permission" "task_processor_permission" {
+resource "aws_lambda_permission" "task_processor_sns" {
   statement_id  = "AllowSNSInvokefor-${module.task_processor_lambda.function_name}"
   action        = "lambda:InvokeFunction"
   function_name = module.task_processor_lambda.function_name
