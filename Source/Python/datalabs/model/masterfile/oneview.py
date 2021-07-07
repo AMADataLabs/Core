@@ -106,6 +106,7 @@ class Physician(Base):
     party_id = sa.Column(sa.String)
     entity_id = sa.Column(sa.String)
     type = sa.Column(sa.String, nullable=False)
+    race_ethnicity = sa.Column(sa.String, nullable=False)
 
 
 class ResidencyProgram(Base):
@@ -238,8 +239,9 @@ class Provider(Base):
     __tablename__ = 'provider'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"))
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
+                                         primary_key=True)
+    iqvia_provider_id = sa.Column(sa.String)
     first_name = sa.Column(sa.String)
     middle_name = sa.Column(sa.String)
     last_name = sa.Column(sa.String)
@@ -264,7 +266,7 @@ class ProviderAffiliation(Base):
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, nullable=False)
     business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
-    provider = sa.Column(sa.String, sa.ForeignKey("oneview.provider.id"))
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.provider.medical_education_number"))
     type = sa.Column(sa.String)
     description = sa.Column(sa.String)
     primary = sa.Column(sa.String)
@@ -272,17 +274,6 @@ class ProviderAffiliation(Base):
     group = sa.Column(sa.String)
     group_description = sa.Column(sa.String)
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
-
-
-class PhysicianRaceEthnicity(Base):
-    __tablename__ = 'physician_race_ethnicity'
-    __table_args__ = {"schema": "oneview"}
-
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
-                                         primary_key=True, nullable=False)
-    race_ethnicity = sa.Column(sa.String, nullable=False)
-    gender = sa.Column(sa.String, nullable=False)
-    current_person_type = sa.Column(sa.String, nullable=False)
 
 
 ################################################################
@@ -513,9 +504,9 @@ class ResidencyProgramPhysician(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     personnel_member = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program_personnel_member.id"),
-                                 nullable=False)
+                                 nullable=False, unique=True)
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
-                                         nullable=False)
+                                         nullable=False, unique=True)
 
 
 class CorporateParentBusiness(Base):
