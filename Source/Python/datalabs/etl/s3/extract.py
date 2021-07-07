@@ -27,8 +27,8 @@
 import logging
 import sys
 
-from   guppy import hpy
 from   dataclasses import dataclass
+from   guppy import hpy
 
 from   dateutil.parser import isoparse
 
@@ -91,7 +91,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
-        LOGGER.info(f"Pre extraction memory '{hpy().heap()}'")
+        LOGGER.info("Pre extraction memory {}", hpy().heap())
         try:
             response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
         except Exception as exception:
@@ -99,7 +99,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
         LOGGER.info(sys.getsizeof(response['Body'].read()))
-        LOGGER.info(f"Post extraction memory '{hpy().heap()}'")
+        LOGGER.info("Post extraction memory {}", hpy().heap())
         return response['Body'].read()
 
     def _get_latest_path(self):

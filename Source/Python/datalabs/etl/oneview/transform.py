@@ -1,11 +1,12 @@
 """ OneView Transformer"""
 from   abc import ABC, abstractmethod
 from   io import BytesIO
-from   guppy import hpy
 
 import csv
 import logging
 import pandas
+
+from   guppy import hpy
 
 import datalabs.etl.transform as etl
 
@@ -19,10 +20,10 @@ class TransformerTask(etl.TransformerTask, ABC):
         LOGGER.info(self._parameters['data'])
 
         table_data = self._csv_to_dataframe(self._parameters['data'])
-        LOGGER.info(f"Post csv to dataframes memory '{hpy().heap()}'")
+        LOGGER.info("Post csv to dataframes memory {}", hpy().heap())
 
         preprocessed_data = self._preprocess_data(table_data)
-        LOGGER.info(f"Post processed dataframes memory '{hpy().heap()}'")
+        LOGGER.info("Post processed dataframes memory %", hpy().heap())
 
         selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)
