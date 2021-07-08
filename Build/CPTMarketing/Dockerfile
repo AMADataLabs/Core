@@ -18,6 +18,7 @@ COPY ./Build/Master ./Build/Master
 COPY ./Build/CPTMarketing ./Build/CPTMarketing
 COPY ./Source ./Source
 
+ARG template_vars
 COPY ./Build/CPTMarketing/*.env ./
 
 RUN find ./ -name "*.env" -exec \
