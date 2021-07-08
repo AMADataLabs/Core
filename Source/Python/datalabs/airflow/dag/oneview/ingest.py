@@ -327,9 +327,23 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
-    LOAD_RESIDENCY_TABLES_INTO_DATABASE = KubernetesPodOperator(
-        name="load_residency_tables_into_database",
-        task_id="load_residency_tables_into_database",
+    LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_residency_institution_table_into_database",
+        task_id="load_residency_institution_table_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_RESIDENCY_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_residency_table_into_database",
+        task_id="load_residency_table_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_RESIDENCY_PROGRAM_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_residency_table_into_database",
+        task_id="load_residency_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
@@ -390,7 +404,9 @@ EXTRACT_CORE_BASED_STATISTICAL_AREA >> CREATE_CORE_BASED_STATISTICAL_AREA_TABLE 
 EXTRACT_SPECIALTY >> REMOVE_UNUSED_SPECIALTIES
 CREATE_PHYSICIAN_TABLE >> REMOVE_UNUSED_SPECIALTIES
 REMOVE_UNUSED_SPECIALTIES >> LOAD_REFERENCE_TABLES_INTO_DATABASE
-EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_RESIDENCY_TABLES_INTO_DATABASE
+EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE
+LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_TABLE_INTO_DATABASE
+LOAD_RESIDENCY_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_PROGRAM_TABLE_INTO_DATABASE
 EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_DATABASE
 EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
