@@ -28,7 +28,7 @@ class DAGProcessorTask(Task):
     def run(self):
         LOGGER.debug('DAG Processor Parameters: %s', self._parameters)
 
-        if feature.enabled("DEV"):
+        if feature.enabled("FUTURE"):
             with AWSClient("lambda") as awslambda:
                 awslambda.invoke(
                     FunctionName='string',
@@ -54,7 +54,7 @@ class TaskProcessorTask(Task):
     def run(self):
         LOGGER.debug('Task Processor Parameters: %s', self._parameters)
 
-        if feature.enabled("DEV"):
+        if feature.enabled("FUTURE"):
             with AWSClient("lambda") as awslambda:
                 awslambda.invoke(
                     FunctionName='string',
