@@ -24,6 +24,13 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
     def _get_dag_parameters(self):
         dag_parameters = super()._get_dag_parameters()
 
+        dynamodb_loader = DynamoDBEnvironmentLoader(dict(
+            table=os.environ["DYNAMODB_CONFIG_TABLE"],
+            dag=self._get_dag_id(),
+            task="GLOBAL"
+        ))
+        dynamodb_loader.load(environment=dag_parameters)
+
         dag_parameters["DAG_CLASS"] = import_plugin(os.environ["DAG_CLASS"])
         dag_parameters["STATE_CLASS"] = import_plugin(os.environ["STATE_CLASS"])
 
@@ -48,7 +55,7 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         return self._parameters["dag"]
 
     def _get_task_id(self):
-        return self._parameters["task"]
+        return self._parameters.get("task")
 
     @classmethod
     def _get_event_parameters(cls, event):

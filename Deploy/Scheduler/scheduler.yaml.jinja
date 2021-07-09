@@ -1,7 +1,17 @@
 # Render as follows:
 #
-# Script/render-template -t Deploy/Scheduler/scheduler.yaml.jinja -f Deploy/Schedler/scheduler.yaml \
+# Script/render-template -t Deploy/Scheduler/scheduler.yaml.jinja -f Deploy/Scheduler/scheduler.yaml \
 # -v "lambda=DataLake-"
 ---
 data:
-    DAGSCHEDULER__GLOBAL__LAMBDA: '{{ lambda }}'
+    LAMBDA: '{{ lambda }}'
+    DAG_CLASS: 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
+    DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    TASK_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.TaskState'
+    TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+
+    DAG_SCHEDULER__EXTRACT_SCHEDULE__CACHE_OUTPUT_CLASS: ${TASK_CACHE_CLASS}
+
+    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_CLASS: ${TASK_CACHE_CLASS}
+
+    DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_INPUT_CLASS: ${TASK_CACHE_CLASS}

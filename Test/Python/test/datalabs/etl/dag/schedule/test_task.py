@@ -1,4 +1,4 @@
-""" Source: datalabs.etl.dag.schedule """
+""" Source: datalabs.etl.dag.schedule.task """
 from   datetime import datetime, timedelta
 from   io import BytesIO
 import json
@@ -9,7 +9,7 @@ import mock
 import pandas
 import pytest
 
-from   datalabs.etl.dag.schedule import DAGSchedulerTask
+from   datalabs.etl.dag.schedule.task import DAGSchedulerTask
 from   datalabs.etl.dag.state.base import Status
 from   datalabs.etl.dag.state.file import DAGState
 
@@ -126,7 +126,7 @@ def test_dags_to_run_are_transformed_to_csv_bytes(parameters, schedule_csv, targ
     parameters["data"] = [schedule_csv.encode('utf-8', errors='backslashreplace')]
     scheduler = DAGSchedulerTask(parameters)
 
-    with mock.patch('datalabs.etl.dag.schedule.DAGSchedulerTask._get_target_execution_time') as get_execution_time:
+    with mock.patch('datalabs.etl.dag.schedule.task.DAGSchedulerTask._get_target_execution_time') as get_execution_time:
         get_execution_time.return_value = target_execution_time
 
         dags_to_run = scheduler._transform()
