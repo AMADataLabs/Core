@@ -348,7 +348,7 @@ module "dag_processor_lambda" {
     environment_variables = {
         variables = {
           TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.ProcessorWrapper"
-          TASK_CLASS              = "datalabs.etl.dag.processor.DAGProcessorTask"
+          TASK_CLASS              = "datalabs.etl.dag.process.DAGProcessorTask"
           DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
           STATE_CLASS             = "datalabs.etl.dag.state.dynamodb.DAGState"
         }
