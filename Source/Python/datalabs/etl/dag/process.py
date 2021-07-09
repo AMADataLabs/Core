@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 import logging
 
 from   datalabs.access.aws import AWSClient
+import datalabs.feature as feature
 from   datalabs.task import Task
 from   datalabs.parameter import add_schema
 
@@ -11,10 +12,14 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-@add_schema
+@add_schema(unknowns=True)
 @dataclass
 class DAGProcessorParameters:
+    dag_class: str
+    state_class: str
+    execution_time: str
     dag: str='DAG_SCHEDULER'  # default is to run the DAG Scheduler DAG
+    unknowns: dict={}
 
 
 class DAGProcessorTask(Task):
@@ -23,21 +28,24 @@ class DAGProcessorTask(Task):
     def run(self):
         LOGGER.debug('DAG Processor Parameters: %s', self._parameters)
 
-        with AWSClient("lambda") as awslambda:
-            awslambda.invoke(
-                FunctionName='string',
-                InvocationType='Event',
-                Payload='parameters'
-            )
+        if feature.enabled("FUTURE"):
+            with AWSClient("lambda") as awslambda:
+                awslambda.invoke(
+                    FunctionName='string',
+                    InvocationType='RequestResponse',
+                    Payload='parameters'
+                )
 
 
-@add_schema
+@add_schema(unknowns=True)
 @dataclass
 class TaskProcessorParameters:
     dag: str
+    dag_class: str
     task: str
-    dag_class: type
     state_class: type
+    execution_time: str
+    unknowns: dict={}
 
 
 class TaskProcessorTask(Task):
@@ -45,3 +53,11 @@ class TaskProcessorTask(Task):
 
     def run(self):
         LOGGER.debug('Task Processor Parameters: %s', self._parameters)
+
+        if feature.enabled("FUTURE"):
+            with AWSClient("lambda") as awslambda:
+                awslambda.invoke(
+                    FunctionName='string',
+                    InvocationType='RequestResponse',
+                    Payload='parameters'
+                )
