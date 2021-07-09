@@ -37,7 +37,7 @@ modspec:
       - awslambda
       - transform
       - load
-      - airflow
+  - package: datalabs.etl.airflow
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.state
