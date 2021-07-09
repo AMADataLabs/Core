@@ -50,7 +50,8 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
     def _get_task_id(self):
         return self._parameters["task"]
 
-    def _get_event_parameters(self, event):
+    @classmethod
+    def _get_event_parameters(cls, event):
         LOGGER.info('Event Parameters: %s', event)
 
         return event
