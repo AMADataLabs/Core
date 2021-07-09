@@ -104,3 +104,7 @@ class DAGState(LockingState):
         )
 
         self._unlock_state(name)
+
+
+class TaskState(DAGState):
+    pass

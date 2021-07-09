@@ -19,7 +19,7 @@ class DAGProcessorParameters:
     state_class: str
     execution_time: str
     dag: str='DAG_SCHEDULER'  # default is to run the DAG Scheduler DAG
-    unknowns: dict={}
+    unknowns: dict=None
 
 
 class DAGProcessorTask(Task):
@@ -45,7 +45,7 @@ class TaskProcessorParameters:
     task: str
     state_class: type
     execution_time: str
-    unknowns: dict={}
+    unknowns: dict=None
 
 
 class TaskProcessorTask(Task):
