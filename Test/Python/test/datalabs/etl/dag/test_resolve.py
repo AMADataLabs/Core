@@ -26,15 +26,15 @@ def test_invalid_dag_plugin_event_type(bad_type_parameters):
         TaskResolver.get_task_class(bad_type_parameters)
 
 
-class TestTask:
-    pass
-
-
 class TestDAG:
     # pylint: disable=unused-argument
     @classmethod
     def task_class(cls, name):
         return TestTask
+
+
+class TestTask:
+    pass
 
 
 @pytest.fixture
