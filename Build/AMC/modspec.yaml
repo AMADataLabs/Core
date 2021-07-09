@@ -29,7 +29,8 @@ modspec:
     - system
     - etcd
   - package: datalabs.etl
-  - package: datalabs.etl.airflow
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
   - package: datalabs.etl.contactid
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.sftp
