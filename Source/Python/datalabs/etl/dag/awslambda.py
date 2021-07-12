@@ -58,7 +58,7 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         return dag_task_parameters
 
     def _get_dag_id(self):
-        return self._runtime_parameters["dag"]
+        return self._parameters.get("dag", "DAG_SCHEDULER")
 
     def _get_task_id(self):
         return self._runtime_parameters.get("task")
