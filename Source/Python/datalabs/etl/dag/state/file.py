@@ -53,3 +53,7 @@ class DAGState(State):
         timestamp = execution_time.strftime('%H%M%S')
 
         return Path(self._parameters.base_path, name, datestamp, f'state_{timestamp}')
+
+
+class TaskState(DAGState):
+    pass

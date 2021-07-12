@@ -39,12 +39,12 @@ class ConfigMapLoader():
         dag_variables = dict()
         var_tree = VariableTree.generate(variables)
         dag = self._get_dag_id(var_tree)
-        global_variables = self._get_global_variables(dag, var_tree)
+        dag_variables["GLOBAL"] = self._get_global_variables(dag, var_tree)
         tasks = var_tree.get_branches([dag])
 
         for task in tasks:
             dag_variables[task] = var_tree.get_branch_values([dag, task])
-            dag_variables[task].update(global_variables)
+            dag_variables[task].update(dag_variables["GLOBAL"])
 
         return (dag, dag_variables)
 

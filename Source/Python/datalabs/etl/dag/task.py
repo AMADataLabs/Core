@@ -16,9 +16,6 @@ class DAGTaskWrapper(TaskWrapper):
     def __init__(self, parameters=None):
         super().__init__(parameters)
 
-        args = self._parameters
-        self._dag_id, self._task_id, self._execution_time = args[1].split('__')
-
         self._cache_parameters = {}
 
     def _get_task_parameters(self):
@@ -93,13 +90,19 @@ class DAGTaskWrapper(TaskWrapper):
         return plugin
 
     def _get_dag_id(self):
-        return self._dag_id.upper()
+        dag_id, _, _ = self._parameters[1].split('__')
+
+        return dag_id.upper()
 
     def _get_task_id(self):
-        return self._task_id.upper()
+        _, task_id, _ = self._parameters[1].split('__')
+
+        return task_id.upper()
 
     def _get_execution_time(self):
-        return self._execution_time
+        _, _, execution_time = self._parameters[1].split('__')
+
+        return execution_time
 
     @classmethod
     def _get_dag_parameters_from_environment(cls, dag_id):

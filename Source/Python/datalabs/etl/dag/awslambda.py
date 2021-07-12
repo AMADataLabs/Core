@@ -24,15 +24,22 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
     def _get_dag_parameters(self):
         dag_parameters = super()._get_dag_parameters()
 
+        dynamodb_loader = DynamoDBEnvironmentLoader(dict(
+            table=os.environ["DYNAMODB_CONFIG_TABLE"],
+            dag=self._get_dag_id(),
+            task="GLOBAL"
+        ))
+        dynamodb_loader.load(environment=dag_parameters)
+
         dag_parameters["DAG_CLASS"] = import_plugin(os.environ["DAG_CLASS"])
-        dag_parameters["DAG_STATE_CLASS"] = import_plugin(os.environ["DAG_STATE_CLASS"])
+        dag_parameters["STATE_CLASS"] = import_plugin(os.environ["STATE_CLASS"])
 
         return dag_parameters
 
     def _get_dag_task_parameters(self):
         dag_task_parameters = super()._get_dag_task_parameters()
 
-        dag_task_parameters.update(self._get_event_parameters())
+        dag_task_parameters.update(self._get_event_parameters(self._parameters))
 
         if self._parameters["type"] == 'Task':
             dynamodb_loader = DynamoDBEnvironmentLoader(dict(
@@ -44,29 +51,38 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
 
         return dag_task_parameters
 
+    def _get_dag_id(self):
+        return self._parameters["dag"]
+
     def _get_task_id(self):
-        return self._parameters["task"]
+        return self._parameters.get("task")
 
-    def _get_event_parameters(self):
-        event_parameters = self._parameters
+    @classmethod
+    def _get_event_parameters(cls, event):
+        LOGGER.info('Event Parameters: %s', event)
 
-        LOGGER.info('Event Parameters: %s', event_parameters)
-
-        return event_parameters
+        return event
 
 
 class ProcessorWrapper(DAGTaskWrapper):
-    def _get_event_parameters(self):
-        LOGGER.debug('Event: %s', self._parameters)
+    @classmethod
+    def _get_event_parameters(cls, event):
+        LOGGER.debug('Event: %s', event)
         event_parameters = {}
 
-        if not hasattr(self._parameters, "items") or 'Records' not in self._parameters:
-            raise ValueError(f'Invalid SNS event: {self._parameters}')
+        if not hasattr(event, "items") or 'Records' not in event:
+            raise ValueError(f'Invalid SNS event: {event}')
 
-        for record in self._parameters["Records"]:
+        for record in event["Records"]:
             if record.get("EventSource") == 'aws:sns':
                 event_parameters = json.loads(record["Message"])
 
                 break
 
+        if len(event_parameters) == 1 and 'Records' in event_parameters:
+            event_parameters = {}
+
         return event_parameters
+
+    def _get_task_id(self):
+        return ""

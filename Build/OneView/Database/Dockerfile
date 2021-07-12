@@ -1,5 +1,7 @@
 # Build Example:
-#    docker build -t OneView -f ./Build/OneView/Dockerfile.alembic ./
+#    docker build -t oneview-db -f ./Build/OneView/Database/Dockerfile ./
+# Run Example:
+#    docker run -ti oneview-db ./migrate-database upgrade -H <DB host>  -n <DB name> -u <DB user> -p <DB password> OneView
 
 FROM python:3.7
 WORKDIR /OneView
@@ -16,7 +18,7 @@ COPY ./Build/OneView/alembic /Build/OneView/alembic
 COPY ./Build/OneView/alembic.ini /Build/OneView/alembic.ini
 COPY ./Source/Python/datalabs/access ./datalabs/access
 COPY ./Source/Python/datalabs/model/masterfile/oneview.py ./datalabs/model/masterfile/oneview.py
-COPY ./Source/Python/datalabs/__init__.py ./datalabs/a__init__.py
+COPY ./Source/Python/datalabs/__init__.py ./datalabs/__init__.py
 COPY ./Source/Python/datalabs/sqlalchemy.py ./datalabs/sqlalchemy.py
 COPY ./Script/migrate-database ./migrate-database
 COPY ./Script/run.py ./run.py
