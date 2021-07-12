@@ -15,10 +15,16 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel('INFO')
 
 
+# address load files MUST HAVE THESE COLUMNS (but values for some are optional)
 REQUIRED_COLUMNS = [
     'entity_id', 'me#', 'comm_id', 'usage', 'load_type_ind', 'addr_type',
     'addr_line_1', 'addr_line_2', 'addr_line_3', 'addr_city', 'addr_state',
     'addr_zip', 'addr_plus4', 'addr_country', 'source', 'source_dtm'
+]
+# subset of required columns which MUST have values -- NON-OPTIONAL
+REQUIRED_NON_NULL_COLUMNS = [
+    'usage', 'load_type_ind', 'addr_type', 'addr_line_1', 'addr_city',
+    'addr_state', 'addr_zip', 'source', 'source_dtm'
 ]
 
 
@@ -117,14 +123,14 @@ class AddressBatchLoadAggregator:
         reindexed_me = data.set_index(['me#', 'usage'])
         reindexed_entity_id = data.set_index(['entity_id', 'usage'])
 
+        # valid_data is data where the me+usage key or entity_id+usage key is unique
         valid_data = pd.concat(
             [
                 reindexed_me[~reindexed_me.index.isin(multiples_me.index)].reset_index(),
                 reindexed_entity_id[~reindexed_entity_id.index.isin(multiples_entity_id.index)].reset_index()
             ],
             ignore_index=True
-        )
-        valid_data.drop_duplicates(inplace=True)
+        ).drop_duplicates()
 
         invalid_data = pd.concat(
             [
@@ -132,8 +138,7 @@ class AddressBatchLoadAggregator:
                 reindexed_entity_id[reindexed_entity_id.index.isin(multiples_entity_id.index)].reset_index()
             ],
             ignore_index=True
-        )
-        invalid_data.drop_duplicates(inplace=True)
+        ).drop_duplicates()
 
         LOGGER.info(f"AGGREGATE DATA - VALID: {str(len(valid_data))}\t\tINVALID: {str(len(invalid_data))}")
 
@@ -186,7 +191,7 @@ class AddressBatchLoadAggregator:
                 try:
                     shutil.copy2(file, target_path)
                 except:
-                    pass  # likely cannot overwrite existing file
+                    pass  # perhaps cannot overwrite existing file
 
     @classmethod
     def _insert_datestamp(cls, filename):
@@ -201,9 +206,13 @@ class AddressBatchLoadAggregator:
         # required columns are hard-coded
         is_valid = True
         columns = data.columns.values
+        missing_columns = []
         for col in REQUIRED_COLUMNS:
             if col not in columns:
                 is_valid = False  # required column not found in dataframe
+                missing_columns.append(col)
+        if len(missing_columns) > 0:
+            LOGGER.info(f"MISSING COLUMNS: {str(missing_columns)}")
         if len(columns) > len(REQUIRED_COLUMNS):
             LOGGER.info(f"REQUIRED COLUMNS: {str(REQUIRED_COLUMNS)}")
             LOGGER.info(f"FOUND COLUMNS: {str(columns)}")
@@ -235,11 +244,7 @@ class AddressBatchLoadAggregator:
         if self._isna(row['entity_id']) and self._isna(row['me#']):
             is_valid_row = False
 
-        # all rows must have values for these columns
-        required_values = ['usage', 'load_type_ind', 'addr_type', 'addr_line_1', 'addr_city',
-                           'addr_state', 'addr_zip', 'source', 'source_dtm']
-
-        for col in required_values:
+        for col in REQUIRED_NON_NULL_COLUMNS:
             if self._isna(row[col]):
                 is_valid_row = False  # column exists in file but has a null value
         return is_valid_row
