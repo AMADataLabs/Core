@@ -78,8 +78,6 @@ class ProcessorTaskWrapper(DAGTaskWrapper):
             if event_source == 'aws:sns':
                 sns_details = record["Sns"]
                 event_parameters = json.loads(sns_details["Message"])
-
-                break
             elif event_source == 'aws:s3':
                 event_parameters = record["s3"]
 

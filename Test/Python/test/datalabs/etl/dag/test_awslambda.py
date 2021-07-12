@@ -24,6 +24,7 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
 
 @pytest.fixture
 def sns_event():
+    # pylint: disable=line-too-long
     return {
       'Records': [
         {
@@ -50,6 +51,7 @@ def sns_event():
 
 @pytest.fixture
 def s3_event():
+    # pylint: disable=line-too-long
     return {
       "Records": [
         {
