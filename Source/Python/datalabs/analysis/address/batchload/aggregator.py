@@ -1,10 +1,12 @@
-import pandas as pd
-import os
-from glob import glob
-import shutil
+""" Address load file aggregation class for combining output of several address-load-file-generating processes """
 from datetime import datetime
-from string import digits, ascii_uppercase
+from glob import glob
 import logging
+import os
+import shutil
+from string import digits, ascii_uppercase
+import pandas as pd
+# pylint: disable=unused-import
 import settings
 
 
@@ -20,6 +22,7 @@ REQUIRED_COLUMNS = [
 ]
 
 
+# pylint: disable=logging-fstring-interpolation, bare-except
 class AddressBatchLoadAggregator:
     def __init__(self):
         self.process_directories = os.environ.get('BATCHLOAD_PROCESS_DIRECTORIES').split(',')
@@ -56,9 +59,9 @@ class AddressBatchLoadAggregator:
         self._save_valid_data(data=valid_aggregate_data)
 
     def _validate_process_directories(self):
-        for d in self.process_directories:
-            if not os.path.exists(d):
-                raise FileNotFoundError(f'Process directory "{d}" not found.')
+        for directory in self.process_directories:
+            if not os.path.exists(directory):
+                raise FileNotFoundError(f'Process directory "{directory}" not found.')
         if not os.path.exists(self.save_directory):
             raise FileNotFoundError(f'Address batch load save directory "{self.save_directory}" not found.')
         if not os.path.exists(self.error_directory):
@@ -149,8 +152,8 @@ class AddressBatchLoadAggregator:
         invalid_data.to_csv(invalid_data_target_path, index=False)
 
         invalid_component_file_target_path = error_directory + '/invalid_component_file_list.txt'
-        with open(invalid_component_file_target_path, 'w') as f:
-            f.writelines(component_files)
+        with open(invalid_component_file_target_path, 'w') as file:
+            file.writelines(component_files)
 
     def _save_valid_data(self, data):
         data = self._reorder_batch_load_column_order(data).replace('nan', '')
@@ -209,16 +212,15 @@ class AddressBatchLoadAggregator:
 
     def _get_valid_rows(self, data):
         valid_data = data.copy()
-        valid_data = valid_data[valid_data['usage'].apply(lambda x: self._is_valid_usage(x))]
-        valid_data = valid_data[valid_data['usage'].apply(lambda x: self._is_valid_usage(x))]
-        valid_data = valid_data[valid_data['addr_zip'].apply(lambda x: self._is_valid_zip(x))]
-        valid_data = valid_data[valid_data['load_type_ind'].apply(lambda x: self._is_valid_load_type_ind(x))]
-        valid_data = valid_data[valid_data['addr_state'].apply(lambda x: self._is_valid_state(x))]
-        valid_data = valid_data[valid_data['source_dtm'].apply(lambda x: self._is_valid_date(x))]
-        valid_data = valid_data[valid_data['addr_type'].apply(lambda x: self._is_valid_addr_type(x))]
+        valid_data = valid_data[valid_data['usage'].apply(self._is_valid_usage)]
+        valid_data = valid_data[valid_data['addr_zip'].apply(self._is_valid_zip)]
+        valid_data = valid_data[valid_data['load_type_ind'].apply(self._is_valid_load_type_ind)]
+        valid_data = valid_data[valid_data['addr_state'].apply(self._is_valid_state)]
+        valid_data = valid_data[valid_data['source_dtm'].apply(self._is_valid_date)]
+        valid_data = valid_data[valid_data['addr_type'].apply(self._is_valid_addr_type)]
 
         valid_rows = []
-        for i, row in valid_data.iterrows():
+        for _, row in valid_data.iterrows():
             is_valid_row = self._is_valid_row(row)
 
             if is_valid_row:
@@ -249,15 +251,14 @@ class AddressBatchLoadAggregator:
     @classmethod
     def _is_valid_entity_id(cls, val):
         try:
-            int(val)  # entity_id should be able to be represented as integer
-            return True
+            return str(val).isdigit()
         except:
             return False
 
     @classmethod
     def _is_valid_me_number(cls, val):
         try:
-            return len(val) == 11 and isinstance(val, str) and all([x.isdigit() for x in val])
+            return len(val) == 11 and isinstance(val, str) and all(x.isdigit() for x in val)
         except:
             return False
 
@@ -271,7 +272,7 @@ class AddressBatchLoadAggregator:
     @classmethod
     def _is_valid_zip(cls, val):
         try:
-            return len(str(val)) in (4, 5) and all([str(x) in digits for x in val])
+            return len(str(val)) in (4, 5) and all(str(x) in digits for x in val)
         except:
             return False
 
@@ -285,14 +286,15 @@ class AddressBatchLoadAggregator:
     @classmethod
     def _is_valid_state(cls, val):
         try:
-            return isinstance(val, str) and len(val) == 2 and all([x in ascii_uppercase for x in val])
+            return isinstance(val, str) and len(val) == 2 and all(x in ascii_uppercase for x in val)
         except:
             return False
 
+    # pylint: disable=unused-argument
     @classmethod
     def _is_valid_addr_type(cls, val):
         try:
-            # return val in ('N', 'OF', 'HO', 'H', 'GROUP')  # unsure about rules
+            # return val in ('N', 'OF', 'HO', 'H', 'GROUP')  # unsure about rules, figure out later
             return True
         except:
             return False
