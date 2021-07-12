@@ -87,6 +87,7 @@ class TaskWrapper(ABC):
 
         return task_class
 
+    # pylint: disable=unused-argument
     @classmethod
     def _get_runtime_parameters(cls, parameters):
         return {}

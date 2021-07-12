@@ -43,7 +43,6 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         return dag_parameters
 
     def _get_dag_task_parameters(self):
-        self._parameters = self._get_event_parameters(self._parameters)
         dag_task_parameters = super()._get_dag_task_parameters()
 
         dag_task_parameters.update(self._parameters)
@@ -71,7 +70,7 @@ class ProcessorWrapper(DAGTaskWrapper):
         LOGGER.debug('Event: %s', parameters)
         event_parameters = {}
 
-        if not hasattr(event, "items") or 'Records' not in parameters:
+        if not hasattr(parameters, "items") or 'Records' not in parameters:
             raise ValueError(f'Invalid SNS event: {parameters}')
 
         for record in parameters["Records"]:
