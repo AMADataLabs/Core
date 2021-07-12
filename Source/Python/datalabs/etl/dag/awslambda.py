@@ -13,6 +13,12 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class DAGTaskWrapper(task.DAGTaskWrapper):
+    @classmethod
+    def _get_runtime_parameters(cls, parameters):
+        LOGGER.info('Event Parameters: %s', parameters)
+
+        return parameters
+
     def _handle_success(self) -> (int, dict):
         return "Success"
 
@@ -37,9 +43,10 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         return dag_parameters
 
     def _get_dag_task_parameters(self):
+        self._parameters = self._get_event_parameters(self._parameters)
         dag_task_parameters = super()._get_dag_task_parameters()
 
-        dag_task_parameters.update(self._get_event_parameters(self._parameters))
+        dag_task_parameters.update(self._parameters)
 
         if self._parameters["type"] == 'Task':
             dynamodb_loader = DynamoDBEnvironmentLoader(dict(
@@ -52,28 +59,22 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         return dag_task_parameters
 
     def _get_dag_id(self):
-        return self._parameters["dag"]
+        return self._runtime_parameters["dag"]
 
     def _get_task_id(self):
-        return self._parameters.get("task")
-
-    @classmethod
-    def _get_event_parameters(cls, event):
-        LOGGER.info('Event Parameters: %s', event)
-
-        return event
+        return self._runtime_parameters.get("task")
 
 
 class ProcessorWrapper(DAGTaskWrapper):
     @classmethod
-    def _get_event_parameters(cls, event):
-        LOGGER.debug('Event: %s', event)
+    def _get_runtime_parameters(cls, parameters):
+        LOGGER.debug('Event: %s', parameters)
         event_parameters = {}
 
-        if not hasattr(event, "items") or 'Records' not in event:
-            raise ValueError(f'Invalid SNS event: {event}')
+        if not hasattr(event, "items") or 'Records' not in parameters:
+            raise ValueError(f'Invalid SNS event: {parameters}')
 
-        for record in event["Records"]:
+        for record in parameters["Records"]:
             if record.get("EventSource") == 'aws:sns':
                 event_parameters = json.loads(record["Message"])
 
