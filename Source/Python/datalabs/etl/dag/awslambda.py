@@ -58,10 +58,10 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         return dag_task_parameters
 
     def _get_dag_id(self):
-        return self._parameters.get("dag", "DAG_SCHEDULER")
+        return self._runtime_parameters.get["DAG"]
 
     def _get_task_id(self):
-        return self._runtime_parameters.get("task")
+        return self._runtime_parameters.get("TASK")
 
 
 class ProcessorTaskWrapper(DAGTaskWrapper):
@@ -79,7 +79,7 @@ class ProcessorTaskWrapper(DAGTaskWrapper):
                 sns_details = record["Sns"]
                 event_parameters = json.loads(sns_details["Message"])
             elif event_source == 'aws:s3':
-                event_parameters = record["s3"]
+                event_parameters = dict(DAG="DAG_SCHEDULER")
 
         if len(event_parameters) == 1 and 'Records' in event_parameters:
             event_parameters = cls._get_runtime_parameters(event_parameters)

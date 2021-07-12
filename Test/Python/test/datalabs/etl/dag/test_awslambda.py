@@ -18,8 +18,8 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
     wrapper = ProcessorTaskWrapper()
     parameters = wrapper._get_runtime_parameters(s3_event)
 
-    for item in ["s3SchemaVersion", "configurationId", "bucket", "object"]:
-        assert item in parameters
+    assert len(parameters) == 1
+    assert "DAG" in parameters
 
 
 @pytest.fixture
