@@ -64,7 +64,7 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         return self._runtime_parameters.get("task")
 
 
-class ProcessorWrapper(DAGTaskWrapper):
+class ProcessorTaskWrapper(DAGTaskWrapper):
     @classmethod
     def _get_runtime_parameters(cls, parameters):
         LOGGER.debug('Event: %s', parameters)
@@ -74,13 +74,17 @@ class ProcessorWrapper(DAGTaskWrapper):
             raise ValueError(f'Invalid SNS event: {parameters}')
 
         for record in parameters["Records"]:
-            if record.get("EventSource") == 'aws:sns':
-                event_parameters = json.loads(record["Message"])
+            event_source = record.get("EventSource", record.get("eventSource"))
+            if event_source == 'aws:sns':
+                sns_details = record["Sns"]
+                event_parameters = json.loads(sns_details["Message"])
 
                 break
+            elif event_source == 'aws:s3':
+                event_parameters = record["s3"]
 
         if len(event_parameters) == 1 and 'Records' in event_parameters:
-            event_parameters = {}
+            event_parameters = cls._get_runtime_parameters(event_parameters)
 
         return event_parameters
 
