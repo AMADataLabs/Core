@@ -33,7 +33,7 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
     os.getenv('RUN_INTEGRATION_TESTS') != 'True',
     reason="Normally skip integration tests to increase testing speed."
 )
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_dag_processor_runs(environment, s3_event):
 
     wrapper = ProcessorTaskWrapper(s3_event)

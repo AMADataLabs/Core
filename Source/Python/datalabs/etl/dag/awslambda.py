@@ -56,7 +56,7 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
             ))
             dynamodb_loader.load(environment=dag_task_parameters)
 
-            dag_task_parameters["STATE_CLASS"] = import_plugin(dag_parameters["TASK_STATE_CLASS"])
+            dag_task_parameters["STATE_CLASS"] = import_plugin(dag_task_parameters["TASK_STATE_CLASS"])
 
         return dag_task_parameters
 
