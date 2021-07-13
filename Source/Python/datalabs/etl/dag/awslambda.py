@@ -6,7 +6,6 @@ import os
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
 from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.dag.task as task
-from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -38,8 +37,8 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         ))
         dynamodb_loader.load(environment=dag_parameters)
 
-        dag_parameters["DAG_CLASS"] = import_plugin(dag_parameters["DAG_CLASS"])
-        dag_parameters["STATE_CLASS"] = import_plugin(dag_parameters["DAG_STATE_CLASS"])
+        dag_parameters["DAG_CLASS"] = dag_parameters["DAG_CLASS"]
+        dag_parameters["STATE_CLASS"] = dag_parameters["DAG_STATE_CLASS"]
 
         return dag_parameters
 
@@ -56,7 +55,7 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
             ))
             dynamodb_loader.load(environment=dag_task_parameters)
 
-            dag_task_parameters["STATE_CLASS"] = import_plugin(dag_task_parameters["TASK_STATE_CLASS"])
+            dag_task_parameters["STATE_CLASS"] = dag_task_parameters["TASK_STATE_CLASS"]
 
         return dag_task_parameters
 
