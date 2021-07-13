@@ -38,8 +38,8 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         ))
         dynamodb_loader.load(environment=dag_parameters)
 
-        dag_parameters["DAG_CLASS"] = import_plugin(os.environ["DAG_CLASS"])
-        dag_parameters["STATE_CLASS"] = import_plugin(os.environ["STATE_CLASS"])
+        dag_parameters["DAG_CLASS"] = import_plugin(dag_parameters["DAG_CLASS"])
+        dag_parameters["STATE_CLASS"] = import_plugin(dag_parameters["DAG_STATE_CLASS"])
 
         return dag_parameters
 
@@ -48,13 +48,15 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
 
         dag_task_parameters.update(self._parameters)
 
-        if self._parameters["type"] == 'Task':
+        if self._runtime_parameters.get("type") == 'Task':
             dynamodb_loader = DynamoDBEnvironmentLoader(dict(
                 table=os.environ["DYNAMODB_CONFIG_TABLE"],
                 dag=self._get_dag_id(),
                 task=self._get_task_id()
             ))
             dynamodb_loader.load(environment=dag_task_parameters)
+
+            dag_task_parameters["STATE_CLASS"] = import_plugin(dag_parameters["TASK_STATE_CLASS"])
 
         return dag_task_parameters
 

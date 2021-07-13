@@ -1,4 +1,6 @@
 ''' Source: datalabs.etl.dag.awslambda '''
+import os
+
 import pytest
 
 from   datalabs.etl.dag.awslambda import ProcessorTaskWrapper
@@ -25,6 +27,18 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
     assert "dag" in parameters
     assert "execution_time" in parameters
     assert hasattr(parameters["execution_time"], "upper")
+
+
+@pytest.mark.skipif(
+    os.getenv('RUN_INTEGRATION_TESTS') != 'True',
+    reason="Normally skip integration tests to increase testing speed."
+)
+# pylint: disable=redefined-outer-name, protected-access
+def test_dag_processor_runs(environment, s3_event):
+
+    wrapper = ProcessorTaskWrapper(s3_event)
+
+    wrapper.run()
 
 
 @pytest.fixture
@@ -79,3 +93,17 @@ def s3_event():
         }
       ]
     }
+
+
+@pytest.fixture
+def environment():
+    current_env = os.environ.copy()
+
+    os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.dag.awslambda.ProcessorTaskWrapper'
+    os.environ['TASK_CLASS'] = 'datalabs.etl.dag.process.DAGProcessorTask'
+    os.environ['DYNAMODB_CONFIG_TABLE'] = 'DataLake-configuration-sbx'
+
+    yield os.environ
+
+    os.environ.clear()
+    os.environ.update(current_env)
