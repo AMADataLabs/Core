@@ -79,7 +79,7 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DAGTaskWrapper):
                 sns_details = record["Sns"]
                 event_parameters = json.loads(sns_details["Message"])
             elif event_source == 'aws:s3':
-                event_parameters = dict(dag="DAG_SCHEDULER", execution_time=self.execution_time)
+                event_parameters = dict(dag="DAG_SCHEDULER", execution_time=self.execution_time.isoformat())
 
         if len(event_parameters) == 1 and 'Records' in event_parameters:
             event_parameters = self._get_runtime_parameters(event_parameters)

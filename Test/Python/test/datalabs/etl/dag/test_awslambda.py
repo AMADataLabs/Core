@@ -13,7 +13,7 @@ def test_process_wrapper_sns_event_parsed_correctly(sns_event):
     assert "dag" in parameters
     assert parameters["dag"] == "DAGScheduler"
     assert "execution_time" in parameters
-    assert parameters["execution_time"] == "2021-07-13T16:18:54+00:00"
+    assert parameters["execution_time"] == "2021-07-13T16:18:54.663464"
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -24,6 +24,7 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
     assert len(parameters) == 2
     assert "dag" in parameters
     assert "execution_time" in parameters
+    assert hasattr(parameters["execution_time"], "upper")
 
 
 @pytest.fixture
@@ -40,7 +41,7 @@ def sns_event():
             'MessageId': '807e8cdb-71aa-5bd5-a96c-d5835a102fb4',
             'TopicArn': 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx',
             'Subject': None,
-            'Message': '{"dag": "DAGScheduler", "execution_time": "2021-07-13T16:18:54+00:00"}',
+            'Message': '{"dag": "DAGScheduler", "execution_time": "2021-07-13T16:18:54.663464"}',
             'Timestamp': '2021-07-01T20:45:46.090Z',
             'SignatureVersion': '1',
             'Signature': 'ZUwXyamt6MCEpZ3t5CwTU4FAEf1J9XXWLryq7PeLWQLz0tvIA5LvGdeB422XAo5qMUFXI7rhVJCZ+QWEB+OecVQ7w/9CCz/5Bf+VJhWWeW1Ip4UglHoG/kLHQeIxFdKX+GciNLsC0/gFc4uUdps2nl2U0fW2IkI4aKekyfXiFqm5MLpuropI0ss3pek6Qoyqb7zhLbMgVjdQgKJPhMaiAN4+sj9Y7trNOQX6z/WaE05c4JwgQc29zU8pKGXznrN90kHbDnwtspvHOACZf7FKH/kD6k6vjLJgF3b/BMTNAcU1NxTQte2lk1n2DMKnjFXyo6OxWj6ibETgtdq4zpWKkA==',
