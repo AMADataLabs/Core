@@ -18,8 +18,8 @@ class DAGTaskWrapper(TaskWrapper):
 
         self._cache_parameters = {}
 
-    @classmethod
-    def _get_runtime_parameters(cls, parameters):
+    # pylint: disable=no-self-use
+    def _get_runtime_parameters(self, parameters):
         dag, task, execution_time = parameters[1].split('__')
 
         return dict(

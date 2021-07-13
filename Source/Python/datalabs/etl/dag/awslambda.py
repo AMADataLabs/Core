@@ -4,6 +4,7 @@ import logging
 import os
 
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
+from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.dag.task as task
 from   datalabs.plugin import import_plugin
 
@@ -58,15 +59,14 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         return dag_task_parameters
 
     def _get_dag_id(self):
-        return self._runtime_parameters["DAG"]
+        return self._runtime_parameters["dag"]
 
     def _get_task_id(self):
-        return self._runtime_parameters.get("TASK")
+        return self._runtime_parameters.get("task")
 
 
-class ProcessorTaskWrapper(DAGTaskWrapper):
-    @classmethod
-    def _get_runtime_parameters(cls, parameters):
+class ProcessorTaskWrapper(ExecutionTimeMixin, DAGTaskWrapper):
+    def _get_runtime_parameters(self, parameters):
         LOGGER.debug('Event: %s', parameters)
         event_parameters = {}
 
@@ -79,10 +79,10 @@ class ProcessorTaskWrapper(DAGTaskWrapper):
                 sns_details = record["Sns"]
                 event_parameters = json.loads(sns_details["Message"])
             elif event_source == 'aws:s3':
-                event_parameters = dict(DAG="DAG_SCHEDULER")
+                event_parameters = dict(dag="DAG_SCHEDULER", execution_time=self.execution_time)
 
         if len(event_parameters) == 1 and 'Records' in event_parameters:
-            event_parameters = cls._get_runtime_parameters(event_parameters)
+            event_parameters = self._get_runtime_parameters(event_parameters)
 
         return event_parameters
 
