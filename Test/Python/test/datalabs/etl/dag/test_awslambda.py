@@ -11,9 +11,11 @@ def test_process_wrapper_sns_event_parsed_correctly(sns_event):
     wrapper = ProcessorTaskWrapper()
     parameters = wrapper._get_runtime_parameters(sns_event)
 
-    assert len(parameters) == 2
+    assert len(parameters) == 3
     assert "dag" in parameters
-    assert parameters["dag"] == "DAGScheduler"
+    assert parameters["dag"] == "DAG_SCHEDULER"
+    assert "task" in parameters
+    assert parameters["task"] == "EXTRACT_SCHEDULE"
     assert "execution_time" in parameters
     assert parameters["execution_time"] == "2021-07-13T16:18:54.663464"
 
@@ -25,6 +27,7 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
 
     assert len(parameters) == 2
     assert "dag" in parameters
+    assert parameters["dag"] == "DAG_SCHEDULER"
     assert "execution_time" in parameters
     assert hasattr(parameters["execution_time"], "upper")
 
@@ -35,8 +38,22 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
 )
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_dag_processor_runs(environment, s3_event):
+    os.environ['TASK_CLASS'] = 'datalabs.etl.dag.process.DAGProcessorTask'
 
     wrapper = ProcessorTaskWrapper(s3_event)
+
+    wrapper.run()
+
+
+@pytest.mark.skipif(
+    os.getenv('RUN_INTEGRATION_TESTS') != 'True',
+    reason="Normally skip integration tests to increase testing speed."
+)
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_task_processor_runs(environment, sns_event):
+    os.environ['TASK_CLASS'] = 'datalabs.etl.dag.process.TaskProcessorTask'
+
+    wrapper = ProcessorTaskWrapper(sns_event)
 
     wrapper.run()
 
@@ -55,7 +72,7 @@ def sns_event():
             'MessageId': '807e8cdb-71aa-5bd5-a96c-d5835a102fb4',
             'TopicArn': 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx',
             'Subject': None,
-            'Message': '{"dag": "DAGScheduler", "execution_time": "2021-07-13T16:18:54.663464"}',
+            'Message': '{"dag": "DAG_SCHEDULER", "task": "EXTRACT_SCHEDULE", "execution_time": "2021-07-13T16:18:54.663464"}',
             'Timestamp': '2021-07-01T20:45:46.090Z',
             'SignatureVersion': '1',
             'Signature': 'ZUwXyamt6MCEpZ3t5CwTU4FAEf1J9XXWLryq7PeLWQLz0tvIA5LvGdeB422XAo5qMUFXI7rhVJCZ+QWEB+OecVQ7w/9CCz/5Bf+VJhWWeW1Ip4UglHoG/kLHQeIxFdKX+GciNLsC0/gFc4uUdps2nl2U0fW2IkI4aKekyfXiFqm5MLpuropI0ss3pek6Qoyqb7zhLbMgVjdQgKJPhMaiAN4+sj9Y7trNOQX6z/WaE05c4JwgQc29zU8pKGXznrN90kHbDnwtspvHOACZf7FKH/kD6k6vjLJgF3b/BMTNAcU1NxTQte2lk1n2DMKnjFXyo6OxWj6ibETgtdq4zpWKkA==',
@@ -100,7 +117,6 @@ def environment():
     current_env = os.environ.copy()
 
     os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.dag.awslambda.ProcessorTaskWrapper'
-    os.environ['TASK_CLASS'] = 'datalabs.etl.dag.process.DAGProcessorTask'
     os.environ['DYNAMODB_CONFIG_TABLE'] = 'DataLake-configuration-sbx'
 
     yield os.environ

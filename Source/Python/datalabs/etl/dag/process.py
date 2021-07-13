@@ -33,7 +33,7 @@ class TaskProcessorParameters:
     dag: str
     dag_class: str
     task: str
-    state_class: type
+    state_class: str
     execution_time: str
     unknowns: dict=None
 
