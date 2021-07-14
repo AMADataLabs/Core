@@ -215,7 +215,7 @@ data:
     CONTACT_ID__EXTRACT_SEED_FILES__BASE_PATH: 'AMA/ContactID'
     CONTACT_ID__EXTRACT_SEED_FILES__FILES: 'SFMC_FlatFile_seed.csv, Users_seed.csv'
     CONTACT_ID__EXTRACT_SEED_FILES__INCLUDE_DATESTAMP: 'false'
-    CONTACT_ID__EXTRACT_SEED_FILES__NDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
+    CONTACT_ID__EXTRACT_SEED_FILES__ENDPOINT_URL: 'https://hsg-data-labs-minio.apps.openshifttest.ama-assn.org'
     CONTACT_ID__EXTRACT_SEED_FILES__ACCESS_KEY: ${ACCESS_KEY}
     CONTACT_ID__EXTRACT_SEED_FILES__SECRET_KEY: ${SECRET_KEY}
     CONTACT_ID__EXTRACT_SEED_FILES__BUCKET: 'ama-hsg-datalabs-datalake-ingestion-onprem'
