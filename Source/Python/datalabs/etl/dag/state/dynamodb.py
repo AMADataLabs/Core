@@ -92,7 +92,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         self._unlock_state(dynamodb, self._parameters.dag)
 
         if "Item" in state:
-            status = Status(state["Item"]["status"])
+            status = Status(state["Item"]["status"]["S"])
 
         return status
 
@@ -161,7 +161,7 @@ class TaskState(DynamoDBClientMixin, LockingStateMixin, State):
         self._unlock_state(dynamodb, lock_id)
 
         if "Item" in state:
-            status = Status(state["Item"]["status"])
+            status = Status(state["Item"]["status"]["S"])
 
         return status
 
@@ -180,8 +180,7 @@ class TaskState(DynamoDBClientMixin, LockingStateMixin, State):
             TableName=self._parameters.task_state_table,
             Key=dict(
                 name=dict(S=self._parameters.task),
-                DAG=dict(S=self._parameters.dag),
-                execution_time=dict(S=self._parameters.execution_time)
+                DAG=dict(S=self._parameters.dag)
             ),
             ConsistentRead=True
         )

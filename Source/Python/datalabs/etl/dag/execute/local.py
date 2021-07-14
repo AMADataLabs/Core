@@ -20,35 +20,23 @@ class LocalDAGExecutorParameters:
     dag: str
     dag_class: str
     dag_state_class: str
+    task_state_class: str
     execution_time: str
     unknowns: dict=None
+
 
 class LocalDAGExecutorTask(Task):
     PARAMETER_CLASS = LocalDAGExecutorParameters
 
     def run(self):
         dag = import_plugin(self._parameters.dag_class)()
-        state_parameters = self._get_state_parameters()
-        dag_state = import_plugin(self._parameters.dag_state_class)(self._parameters.unknowns)
+        dag_state = import_plugin(self._parameters.dag_state_class)(self._get_state_parameters())
 
         paradag.dag_run(
             dag,
             processor=paradag.MultiThreadProcessor(),
-            executor=DAGExecutor(self._parameters.dag, self._parameters.execution_time, dag_state)
+            executor=self
         )
-
-    def _get_state_parameters(self):
-        state_parameters = self._parameters.unknowns
-
-        state_parameters["execution_time"] = self._parameters.execution_time
-        state_parameters["dag"] = self._parameters.dag
-
-
-class DAGExecutor:
-    def __init__(self, dag, execution_time, dag_state):
-        self._dag = dag
-        self._execution_time = execution_time
-        self._state = dag_state
 
     # pylint: disable=no-self-use
     def param(self, task: 'DAGTask'):
@@ -56,7 +44,7 @@ class DAGExecutor:
 
     # pylint: disable=assignment-from-no-return
     def execute(self, task):
-        state = self._get_task_state(task)
+        state = self._get_task_status(task)
 
         if state == Status.UNKNOWN and task.ready:
             self._trigger_task(task)
@@ -69,15 +57,27 @@ class DAGExecutor:
             task.block()
 
     # pylint: disable=no-self-use, fixme
-    def _get_task_state(self, task):
+    def _get_task_status(self, task):
         # TODO: get state using task state plugin
-        state = self._state.get_status()
+        state = import_plugin(self._parameters.task_state_class)(self._get_state_parameters(task.id))
+        status = state.get_status()
 
-        LOGGER.info('State of task "%s" of DAG "%s": %s', task.id, self._dag, state)
+        LOGGER.info('State of task "%s" of DAG "%s": %s', task.id, self._parameters.dag, status)
 
-        return state
+        return status
 
     # pylint: disable=no-self-use, fixme
     def _trigger_task(self, task):
         # TODO: send message using messaging plugin
-        LOGGER.info('Triggering task "%s" of DAG "%s"', task.id, self._dag)
+        LOGGER.info('Triggering task "%s" of DAG "%s"', task.id, self._parameters.dag)
+
+    def _get_state_parameters(self, task=None):
+        state_parameters = self._parameters.unknowns
+
+        state_parameters["execution_time"] = self._parameters.execution_time
+        state_parameters["dag"] = self._parameters.dag
+
+        if task:
+            state_parameters["task"] = task
+
+        return state_parameters
