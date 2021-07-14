@@ -1,7 +1,7 @@
 """ Resolve task class name using the configured DAG class. """
 from   dataclasses import dataclass
 
-from   datalabs.etl.dag.execute import DAGExecutorTask
+from   datalabs.etl.dag.execute.local import LocalDAGExecutorTask
 import datalabs.task as task
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
@@ -24,7 +24,7 @@ class TaskResolver(ParameterValidatorMixin, task.TaskResolver):
         task_class = None
 
         if parameters.type == "DAG":
-            task_class = DAGExecutorTask
+            task_class = LocalDAGExecutorTask
         elif parameters.type == "Task":
             task_class = parameters.dag_class.task_class(parameters.task)
         else:

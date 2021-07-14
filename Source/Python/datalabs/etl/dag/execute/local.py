@@ -1,4 +1,4 @@
-''' Classes for executing DAG objects '''
+''' Classes for executing DAGs and DAG tasks locally '''
 from   dataclasses import dataclass
 import logging
 
@@ -16,29 +16,33 @@ LOGGER.setLevel(logging.INFO)
 
 @add_schema(unknowns=True)
 @dataclass
-class DAGExecutorParameters:
+class LocalDAGExecutorParameters:
     dag: str
     dag_class: str
     dag_state_class: str
+    execution_time: str
     unknowns: dict=None
 
-
-class DAGExecutorTask(Task):
-    PARAMETER_CLASS = DAGExecutorParameters
+class LocalDAGExecutorTask(Task):
+    PARAMETER_CLASS = LocalDAGExecutorParameters
 
     def run(self):
         dag = import_plugin(self._parameters.dag_class)()
+        state_parameters = self._parameters.unknowns
+        state_parameters["execution_time"] = self._parameters.execution_time
         dag_state = import_plugin(self._parameters.dag_state_class)(self._parameters.unknowns)
 
         paradag.dag_run(
             dag,
             processor=paradag.MultiThreadProcessor(),
-            executor=DAGExecutor(dag_state)
+            executor=DAGExecutor(self._parameters.dag, self._parameters.execution_time, dag_state)
         )
 
 
 class DAGExecutor:
-    def __init__(self, dag_state):
+    def __init__(self, dag, execution_time, dag_state):
+        self._dag = dag
+        self._execution_time = execution_time
         self._state = dag_state
 
     # pylint: disable=no-self-use
@@ -64,11 +68,11 @@ class DAGExecutor:
         # TODO: get state using task state plugin
         state = Status.UNKNOWN
 
-        LOGGER.info('Task "%s" state: %s', task.id, state)
+        LOGGER.info('State of task "%s" of DAG "%s": %s', task.id, self._dag, state)
 
         return state
 
     # pylint: disable=no-self-use, fixme
     def _trigger_task(self, task):
         # TODO: send message using messaging plugin
-        LOGGER.info('Triggering task "%s"', task.id)
+        LOGGER.info('Triggering task "%s" of DAG "%s"', task.id, self._dag)
