@@ -1,5 +1,6 @@
 ''' Classes for executing DAG objects '''
 from   dataclasses import dataclass
+import logging
 
 import paradag
 
@@ -8,12 +9,17 @@ from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
 
 @add_schema(unknowns=True)
 @dataclass
 class DAGExecutorParameters:
-    dag_class: type
-    dag_state_class: type
+    dag: str
+    dag_class: str
+    dag_state_class: str
     unknowns: dict=None
 
 
@@ -43,7 +49,7 @@ class DAGExecutor:
     def execute(self, task):
         state = self._get_task_state(task)
 
-        if state == Status.UNKNOWN:
+        if state == Status.UNKNOWN and task.ready:
             self._trigger_task(task)
 
         return state
@@ -56,9 +62,13 @@ class DAGExecutor:
     # pylint: disable=no-self-use, fixme
     def _get_task_state(self, task):
         # TODO: get state using task state plugin
-        pass
+        state = Status.UNKNOWN
+
+        LOGGER.info('Task "%s" state: %s', task.id, state)
+
+        return state
 
     # pylint: disable=no-self-use, fixme
     def _trigger_task(self, task):
         # TODO: send message using messaging plugin
-        pass
+        LOGGER.info('Triggering task "%s"', task.id)
