@@ -10,6 +10,9 @@ class DAGTask:
         self._dag = None
         self._ready = True
 
+    def __str__(self):
+        return self.id
+
     def set_dag(self, dag: 'DAG'):
         self._dag = dag
 

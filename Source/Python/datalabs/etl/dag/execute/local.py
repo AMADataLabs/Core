@@ -28,8 +28,7 @@ class LocalDAGExecutorTask(Task):
 
     def run(self):
         dag = import_plugin(self._parameters.dag_class)()
-        state_parameters = self._parameters.unknowns
-        state_parameters["execution_time"] = self._parameters.execution_time
+        state_parameters = self._get_state_parameters()
         dag_state = import_plugin(self._parameters.dag_state_class)(self._parameters.unknowns)
 
         paradag.dag_run(
@@ -37,6 +36,12 @@ class LocalDAGExecutorTask(Task):
             processor=paradag.MultiThreadProcessor(),
             executor=DAGExecutor(self._parameters.dag, self._parameters.execution_time, dag_state)
         )
+
+    def _get_state_parameters(self):
+        state_parameters = self._parameters.unknowns
+
+        state_parameters["execution_time"] = self._parameters.execution_time
+        state_parameters["dag"] = self._parameters.dag
 
 
 class DAGExecutor:
@@ -66,7 +71,7 @@ class DAGExecutor:
     # pylint: disable=no-self-use, fixme
     def _get_task_state(self, task):
         # TODO: get state using task state plugin
-        state = Status.UNKNOWN
+        state = self._state.get_status()
 
         LOGGER.info('State of task "%s" of DAG "%s": %s', task.id, self._dag, state)
 

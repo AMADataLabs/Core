@@ -14,12 +14,11 @@ class Status(Enum):
     FAILED = 'Failed'
 
 
-class State(ParameterValidatorMixin, Datastore, ABC):
+class State(ParameterValidatorMixin, ABC):
     PARAMETER_CLASS = None
 
     # pylint: disable=super-init-not-called
     def __init__(self, parameters: dict):
-        self._connection = None
         self._parameters = parameters
 
         if self.PARAMETER_CLASS:
