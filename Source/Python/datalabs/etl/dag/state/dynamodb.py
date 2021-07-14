@@ -10,17 +10,18 @@ from   datalabs.etl.dag.state.base import State, Status
 from   datalabs.parameter import add_schema
 
 
-@add_schema
+@add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class StateParameters:
     state_lock_table: str
-    state_table: str
+    dag_state_table: str
     execution_time: str
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
+    endpoint_url: str=None
+    access_key: str=None
+    secret_key: str=None
+    region_name: str=None
+    unknowns: dict=None
 
 
 class LockingState(State):

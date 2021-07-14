@@ -10,11 +10,12 @@ from   datalabs.etl.dag.state.base import State, Status
 from   datalabs.parameter import add_schema
 
 
-@add_schema
+@add_schema(unknowns=True)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class DAGStateParameters:
     base_path: str
+    unknowns: dict=None
 
 
 class DAGState(State):

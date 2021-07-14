@@ -1,17 +1,25 @@
 # Render as follows:
 #
 # Script/render-template -t Deploy/Scheduler/scheduler.yaml.jinja -f Deploy/Scheduler/scheduler.yaml \
-# -v "lambda=DataLake-Scheduler-sbx"
+# -v "lambda=DataLake-Scheduler-sbx" -v dag_state_table=DataLake-dag-state-sbx \
+# -v task_state_table=DataLake-task-state-sbx -v state_lock_table=DataLake-scheduler-locks-sbx
 ---
 data:
+    # Global Variables
     LAMBDA: '{{ lambda }}'
     DAG_CLASS: 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
     DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    DAG_STATE_TABLE: '{{ dag_state_table }}'
     TASK_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.TaskState'
+    TASK_STATE_TABLE: '{{ task_state_table }}'
     TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    STATE_LOCK_TABLE: '{{ state_lock_table }}'
 
+    # DAG Schedule Extractor Variables
     DAG_SCHEDULER__EXTRACT_SCHEDULE__CACHE_OUTPUT_CLASS: ${TASK_CACHE_CLASS}
 
+    # DAG Scheduler Variables
     DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_CLASS: ${TASK_CACHE_CLASS}
 
+    # Scheduled DAGs Loader Variables
     DAG_SCHEDULER__SCHEDULE_DAGS__CACHE_INPUT_CLASS: ${TASK_CACHE_CLASS}

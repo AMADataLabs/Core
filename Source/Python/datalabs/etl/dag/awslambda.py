@@ -33,12 +33,9 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         dynamodb_loader = DynamoDBEnvironmentLoader(dict(
             table=os.environ["DYNAMODB_CONFIG_TABLE"],
             dag=self._get_dag_id(),
-            task="GLOBAL"
+            task=self._get_task_id()
         ))
         dynamodb_loader.load(environment=dag_parameters)
-
-        dag_parameters["DAG_CLASS"] = dag_parameters["DAG_CLASS"]
-        dag_parameters["STATE_CLASS"] = dag_parameters["DAG_STATE_CLASS"]
 
         return dag_parameters
 
@@ -53,15 +50,13 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
             ))
             dynamodb_loader.load(environment=dag_task_parameters)
 
-            dag_task_parameters["STATE_CLASS"] = dag_task_parameters["TASK_STATE_CLASS"]
-
         return dag_task_parameters
 
     def _get_dag_id(self):
         return self._runtime_parameters["dag"]
 
     def _get_task_id(self):
-        return self._runtime_parameters.get("task")
+        return self._runtime_parameters.get("task", "GLOBAL")
 
 
 class ProcessorTaskWrapper(ExecutionTimeMixin, DAGTaskWrapper):

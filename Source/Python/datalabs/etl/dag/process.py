@@ -14,7 +14,7 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 class DAGProcessorParameters:
     dag_class: str
-    state_class: str
+    dag_state_class: str
     execution_time: str
     dag: str
     unknowns: dict=None
@@ -33,7 +33,7 @@ class TaskProcessorParameters:
     dag: str
     dag_class: str
     task: str
-    state_class: str
+    task_state_class: str
     execution_time: str
     unknowns: dict=None
 

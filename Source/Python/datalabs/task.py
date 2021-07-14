@@ -49,13 +49,13 @@ class TaskWrapper(ABC):
     def run(self):
         self._setup_environment()
 
-        self.task_class = self._get_task_class()
-
         self._runtime_parameters = self._get_runtime_parameters(self._parameters)
 
         self._task_parameters = self._get_task_parameters()
 
         self._task_parameters = self._merge_parameters(self._task_parameters, self._runtime_parameters)
+
+        self.task_class = self._get_task_class()
 
         self.task = self.task_class(self._task_parameters)
 
@@ -80,7 +80,7 @@ class TaskWrapper(ABC):
     def _get_task_class(self):
         task_resolver_class = self._get_task_resolver_class()
 
-        task_class = task_resolver_class.get_task_class(self._parameters)
+        task_class = task_resolver_class.get_task_class(self._task_parameters)
 
         if not hasattr(task_class, 'run'):
             raise TypeError('Task class does not have a "run" method.')

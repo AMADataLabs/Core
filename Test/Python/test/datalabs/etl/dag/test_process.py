@@ -74,7 +74,7 @@ class TestTask:
 def dag_parameters():
     return dict(
         DAG="TestDAG",
-        STATE_CLASS=DAGState,
+        DAG_STATE_CLASS=DAGState,
         DAG_CLASS=TestDAG,
         EXECUTION_TIME="2021-01-21T12:24:38+00.00"
     )
@@ -86,7 +86,7 @@ def task_parameters():
         DAG="TestDAG",
         TASK="TestTask",
         DAG_CLASS=TestDAG,
-        STATE_CLASS=TaskState,
+        TASK_STATE_CLASS=TaskState,
         EXECUTION_TIME="2021-01-21T12:24:38+00.00",
     )
 

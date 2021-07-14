@@ -5,32 +5,35 @@ import paradag
 
 from   datalabs.etl.dag.state import Status
 from   datalabs.parameter import add_schema
+from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
 
 
-@add_schema
+@add_schema(unknowns=True)
 @dataclass
 class DAGExecutorParameters:
     dag_class: type
-    state_class: type
+    dag_state_class: type
+    unknowns: dict=None
 
 
 class DAGExecutorTask(Task):
     PARAMETER_CLASS = DAGExecutorParameters
 
     def run(self):
-        dag = self._parameters.dag_class()
+        dag = import_plugin(self._parameters.dag_class)()
+        dag_state = import_plugin(self._parameters.dag_state_class)(self._parameters.unknowns)
 
         paradag.dag_run(
             dag,
             processor=paradag.MultiThreadProcessor(),
-            executor=DAGExecutor(self._parameters.state_class)
+            executor=DAGExecutor(dag_state)
         )
 
 
 class DAGExecutor:
-    def __init__(self, state_class: type):
-        self._state = state_class()
+    def __init__(self, dag_state):
+        self._state = dag_state
 
     # pylint: disable=no-self-use
     def param(self, task: 'DAGTask'):

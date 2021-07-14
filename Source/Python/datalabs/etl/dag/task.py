@@ -12,6 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# FIXME: handle running DAGs as well
 class DAGTaskWrapper(TaskWrapper):
     def __init__(self, parameters=None):
         super().__init__(parameters)
