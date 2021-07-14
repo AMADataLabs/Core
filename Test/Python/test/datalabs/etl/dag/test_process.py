@@ -35,6 +35,7 @@ class TestTask:
 @pytest.fixture
 def dag_parameters():
     return dict(
+        DAG="TestDAG",
         STATE_CLASS=DAGState,
         DAG_CLASS=TestDAG,
         EXECUTION_TIME="2021-01-21T12:24:38+00.00"
@@ -44,7 +45,7 @@ def dag_parameters():
 @pytest.fixture
 def task_parameters():
     return dict(
-        DAG="TestDag",
+        DAG="TestDAG",
         TASK="TestTask",
         DAG_CLASS=TestDAG,
         STATE_CLASS=TaskState,
