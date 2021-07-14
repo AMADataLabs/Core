@@ -16,7 +16,7 @@ class DAGProcessorParameters:
     dag_class: str
     state_class: str
     execution_time: str
-    dag: str='DAG_SCHEDULER'  # default is to run the DAG Scheduler DAG
+    dag: str
     unknowns: dict=None
 
 

@@ -55,8 +55,8 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
             response = dynamodb.get_item(
                 TableName=self._parameters.table,
                 Key=dict(
-                    DAG=self._parameters.dag,
-                    Task=self._parameters.task
+                    DAG=dict(S=self._parameters.dag),
+                    Task=dict(S=self._parameters.task)
                 )
             )
 

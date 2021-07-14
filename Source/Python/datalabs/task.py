@@ -41,6 +41,7 @@ class TaskWrapper(ABC):
         self.task = None
         self.task_class = None
         self._parameters = parameters or {}
+        self._runtime_parameters = None
         self._task_parameters = None
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
@@ -50,7 +51,11 @@ class TaskWrapper(ABC):
 
         self.task_class = self._get_task_class()
 
+        self._runtime_parameters = self._get_runtime_parameters(self._parameters)
+
         self._task_parameters = self._get_task_parameters()
+
+        self._task_parameters = self._merge_parameters(self._task_parameters, self._runtime_parameters)
 
         self.task = self.task_class(self._task_parameters)
 
@@ -82,8 +87,19 @@ class TaskWrapper(ABC):
 
         return task_class
 
+    # pylint: disable=unused-argument
+    @classmethod
+    def _get_runtime_parameters(cls, parameters):
+        return {}
+
     def _get_task_parameters(self):
         return self._parameters
+
+    @classmethod
+    def _merge_parameters(cls, parameters, new_parameters):
+        parameters.update(new_parameters)
+
+        return parameters
 
     @abstractmethod
     def _handle_success(self) -> (int, dict):

@@ -12,7 +12,7 @@ def main(args):
 
     _configure_app(args)
 
-    _run_application()
+    _run_application(args["args"])
 
 
 def _configure_app(args):
@@ -25,7 +25,7 @@ def _configure_app(args):
 
 def _run_application():
     task_wrapper_class = import_plugin(os.environ['TASK_WRAPPER_CLASS'])
-    task_wrapper = task_wrapper_class(parameters=sys.argv)
+    task_wrapper = task_wrapper_class(parameters=args)
 
     return task_wrapper.run()
 
@@ -42,6 +42,9 @@ if __name__ == '__main__':
     )
     ap.add_argument(
         '-v', '--variable', action='append', required=False, help='Template variable to set in the form name=value.'
+    )
+    ap.add_argument(
+        '-a', '--args', action='append', required=False, help='Command-line arguments to send to the task wrapper.'
     )
     args = vars(ap.parse_args())
 

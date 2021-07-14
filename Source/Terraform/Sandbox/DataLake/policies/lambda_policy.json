@@ -24,6 +24,13 @@
         {
             "Effect": "Allow",
             "Action": [
+                "dynamodb:GetItem"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
                 "logs:CreateLogGroup",
                 "logs:CreateLogStream",
                 "logs:PutLogEvents"
