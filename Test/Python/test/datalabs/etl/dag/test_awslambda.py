@@ -1,9 +1,22 @@
 ''' Source: datalabs.etl.dag.awslambda '''
 import os
 
+import mock
 import pytest
 
-from   datalabs.etl.dag.awslambda import ProcessorTaskWrapper
+from   datalabs.etl.dag.awslambda import DAGTaskWrapper, ProcessorTaskWrapper
+
+
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_runtime_parameters_are_included_in_task_parameters(runtime_parameters, environment):
+    task_wrapper = DAGTaskWrapper()
+    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(runtime_parameters)
+
+    with mock.patch('datalabs.etl.dag.awslambda.DynamoDBEnvironmentLoader'):
+        parameters = task_wrapper._get_task_parameters()
+
+    assert "dag" in parameters
+    assert "execution_time" in parameters
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -39,6 +52,15 @@ def test_dag_processor_runs(environment, s3_event):
     wrapper = ProcessorTaskWrapper(s3_event)
 
     wrapper.run()
+
+
+@pytest.fixture
+def runtime_parameters():
+    return dict(
+        dag="SOME_DAG",
+        task="SOME_TASK",
+        execution_time="2021-01-01T00:00:00.000000"
+    )
 
 
 @pytest.fixture
