@@ -19,6 +19,13 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
 
         return parameters
 
+    def _get_task_parameters(self):
+        task_parameters = super()._get_task_parameters()
+
+        task_parameters = self._merge_parameters(task_parameters, self._runtime_parameters)
+
+        return task_parameters
+
     def _handle_success(self) -> (int, dict):
         return "Success"
 
@@ -37,9 +44,6 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         ))
         dynamodb_loader.load(environment=dag_parameters)
 
-        dag_parameters["DAG_CLASS"] = dag_parameters["DAG_CLASS"]
-        dag_parameters["STATE_CLASS"] = dag_parameters["DAG_STATE_CLASS"]
-
         return dag_parameters
 
     def _get_dag_task_parameters(self):
@@ -54,8 +58,6 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
                 task=self._get_task_id()
             ))
             dynamodb_loader.load(environment=dag_task_parameters)
-
-            dag_task_parameters["STATE_CLASS"] = dag_task_parameters["TASK_STATE_CLASS"]
 
         return dag_task_parameters
 

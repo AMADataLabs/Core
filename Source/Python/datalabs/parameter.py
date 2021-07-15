@@ -2,7 +2,7 @@
 import copy
 
 import marshmallow
-
+from   marshmallow.exceptions import ValidationError
 
 def add_schema(*args, **kwargs):
     def create_schema(model_class):
@@ -117,5 +117,13 @@ class ParameterValidatorMixin:
     def _get_validated_parameters(cls, parameters: dict):
         parameter_variables = {key.lower():value for key, value in parameters.items()}
         schema = cls.PARAMETER_CLASS.SCHEMA  # pylint: disable=no-member
+        parameters = None
 
-        return schema.load(parameter_variables)
+        try:
+            parameters = schema.load(parameter_variables)
+        except (ValidationException, ValidationError) as error:
+            raise ValidationException(
+                f'Parameter validation failed for {cls.__name__} instance'
+            ) from error
+
+        return parameters
