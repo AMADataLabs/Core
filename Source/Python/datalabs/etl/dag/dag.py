@@ -3,8 +3,8 @@ import paradag
 
 
 class DAGTask:
-    def __init__(self, id: str, task_class: str):
-        self._id = id
+    def __init__(self, task_id: str, task_class: str):
+        self._id = task_id
         self._task_class = task_class
         self._successors = []
         self._dag = None
@@ -17,6 +17,7 @@ class DAGTask:
         self._dag = dag
 
     @property
+    # pylint: disable=redefined-outer-name, invalid-name
     def id(self):
         return self._id
 

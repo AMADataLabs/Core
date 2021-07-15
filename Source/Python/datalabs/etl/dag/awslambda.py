@@ -19,6 +19,13 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
 
         return parameters
 
+    def _get_task_parameters(self):
+        task_parameters = super()._get_task_parameters()
+
+        task_parameters = self._merge_parameters(task_parameters, self._runtime_parameters)
+
+        return task_parameters
+
     def _handle_success(self) -> (int, dict):
         return "Success"
 

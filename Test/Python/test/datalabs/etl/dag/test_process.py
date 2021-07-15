@@ -5,7 +5,7 @@ import os
 import pytest
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.dag.state.file import DAGState, TaskState
+from   datalabs.etl.dag.state.file import DAGState
 from   datalabs.etl.dag.process import DAGProcessorTask, TaskProcessorTask
 
 
@@ -35,7 +35,7 @@ def test_trigger_dag_processor_via_sns():
     ))
 
     with AWSClient("sns") as sns:
-        response = sns.publish(
+        sns.publish(
             TargetArn="arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx",
             Message=message
         )
@@ -54,7 +54,7 @@ def test_trigger_task_processor_via_sns():
     ))
 
     with AWSClient("sns") as sns:
-        response = sns.publish(
+        sns.publish(
             TargetArn="arn:aws:sns:us-east-1:644454719059:DataLake-Task-Processor-sbx",
             Message=message
         )
@@ -74,8 +74,8 @@ class TestTask:
 def dag_parameters():
     return dict(
         DAG="TestDAG",
-        DAG_STATE_CLASS=DAGState,
         DAG_CLASS=TestDAG,
+        DAG_STATE_CLASS=DAGState,
         EXECUTION_TIME="2021-01-21T12:24:38+00.00"
     )
 
@@ -86,7 +86,7 @@ def task_parameters():
         DAG="TestDAG",
         TASK="TestTask",
         DAG_CLASS=TestDAG,
-        TASK_STATE_CLASS=TaskState,
+        DAG_STATE_CLASS=DAGState,
         EXECUTION_TIME="2021-01-21T12:24:38+00.00",
     )
 

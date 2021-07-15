@@ -3,9 +3,7 @@ from   dataclasses import dataclass
 import logging
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.dag.state import Status
 from   datalabs.parameter import add_schema
-from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
 
 logging.basicConfig()
@@ -30,10 +28,10 @@ class LambdaDAGExecutor(Task):
             payload = dict(
                 dag=self._parameters.dag,
                 type="DAG",
-                execution_time=execution_time
+                execution_time=self._parameters.execution_time
             )
 
-            response = awslambda.invoke(
+            awslambda.invoke(
                 FunctionName=self._parameters.function,
                 InvocationType='Event',
                 Payload=payload

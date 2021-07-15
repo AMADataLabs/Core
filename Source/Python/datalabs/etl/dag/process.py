@@ -13,10 +13,10 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema(unknowns=True)
 @dataclass
 class DAGProcessorParameters:
+    dag: str
+    execution_time: str
     dag_class: str
     dag_state_class: str
-    execution_time: str
-    dag: str
     unknowns: dict=None
 
 
@@ -31,10 +31,10 @@ class DAGProcessorTask(Task):
 @dataclass
 class TaskProcessorParameters:
     dag: str
-    dag_class: str
     task: str
-    task_state_class: str
     execution_time: str
+    dag_class: str
+    dag_state_class: str
     unknowns: dict=None
 
 

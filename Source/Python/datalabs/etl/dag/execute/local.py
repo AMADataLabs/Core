@@ -29,7 +29,8 @@ class LocalDAGExecutorTask(Task):
 
     def run(self):
         dag = import_plugin(self._parameters.dag_class)()
-        dag_state = import_plugin(self._parameters.dag_state_class)(self._get_state_parameters())
+        # TODO: set the DAG state based on task states
+        # dag_state = import_plugin(self._parameters.dag_state_class)(self._get_state_parameters())
 
         paradag.dag_run(
             dag,

@@ -4,7 +4,7 @@ from   dataclasses import dataclass
 from   marshmallow.exceptions import ValidationError
 import pytest
 
-from   datalabs.parameter import add_schema, ParameterValidatorMixin
+from   datalabs.parameter import add_schema, ParameterValidatorMixin, ValidationException
 
 
 # pylint: disable=redefined-outer-name
@@ -88,6 +88,36 @@ def test_including_unknown_class_parameters_fills_unknowns_field(model_class_par
     assert thing._parameters.unknowns is not None
     assert 'biff' in thing._parameters.unknowns
     assert 'ping' in thing._parameters.unknowns
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_unknown_parameter_validation_failure(model_class):
+    class ParameterizedThing(ParameterValidatorMixin):
+        PARAMETER_CLASS = model_class
+
+        def __init__(self, parameters):
+            self._parameters = self._get_validated_parameters(parameters)
+
+    with pytest.raises(ValidationException) as exception:
+        ParameterizedThing(dict(FOOZIE='stuff', runnykine='!'))
+
+    assert "ParameterizedThing" in str(exception.value)
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_missing_parameter_validation_failure(model_dataclass):
+    class ParameterizedThing(ParameterValidatorMixin):
+        PARAMETER_CLASS = model_dataclass
+
+        def __init__(self, parameters):
+            self._parameters = self._get_validated_parameters(parameters)
+
+    with pytest.raises(ValidationException) as exception:
+        ParameterizedThing(dict())
+
+    assert "ParameterizedThing" in str(exception.value)
+    assert "Model" in str(exception.value.__cause__)
+    assert "foozie" in str(exception.value.__cause__)
 
 
 

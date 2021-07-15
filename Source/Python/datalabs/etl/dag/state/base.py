@@ -2,7 +2,6 @@
 from   abc import ABC, abstractmethod
 from   enum import Enum
 
-from   datalabs.access.datastore import Datastore
 from   datalabs.parameter import ParameterValidatorMixin
 
 
@@ -25,9 +24,17 @@ class State(ParameterValidatorMixin, ABC):
             self._parameters = self._get_validated_parameters(parameters)
 
     @abstractmethod
-    def get_status(self, name, execution_time):
+    def get_dag_status(self, dag, execution_time):
         pass
 
     @abstractmethod
-    def set_status(self, name, execution_time, status):
+    def get_task_status(self, dag, task, execution_time):
+        pass
+
+    @abstractmethod
+    def set_dag_status(self, dag, execution_time, status):
+        pass
+
+    @abstractmethod
+    def set_task_status(self, dag, task, execution_time, status):
         pass

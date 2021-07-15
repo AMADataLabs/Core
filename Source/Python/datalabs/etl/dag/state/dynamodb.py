@@ -1,6 +1,5 @@
 """ DynamoDB DAG state classes. """
 from   dataclasses import dataclass
-from   datetime import datetime
 import time
 
 import boto3
@@ -22,8 +21,7 @@ class DynamoDBClientMixin:
 
 
 class LockingStateMixin():
-    def _lock_state(self, dynamodb, name):
-        lock_id = f'{name}-{self._parameters.execution_time}'
+    def _lock_state(self, dynamodb, lock_id):
         locked = False
 
         try:
@@ -41,8 +39,7 @@ class LockingStateMixin():
 
         return locked
 
-    def _unlock_state(self, dynamodb, name):
-        lock_id = f'{name}-{self._parameters.execution_time}'
+    def _unlock_state(self, dynamodb, lock_id):
         unlocked = False
 
         try:
@@ -66,11 +63,8 @@ class LockingStateMixin():
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class DAGStateParameters:
-    dag: str
     state_lock_table: str
     dag_state_table: str
-    execution_time: str
-    task: str=None
     endpoint_url: str=None
     access_key: str=None
     secret_key: str=None
@@ -81,15 +75,28 @@ class DAGStateParameters:
 class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
     PARAMETER_CLASS = DAGStateParameters
 
-    def get_status(self):
+    def get_dag_status(self, dag: str, execution_time: str):
+        return self._get_status(dag, None, execution_time)
+
+    def get_task_status(self, dag: str, task: str, execution_time: str):
+        return self._get_status(dag, task, execution_time)
+
+    def set_dag_status(self, dag: str, execution_time: str, status: Status):
+        self._set_status(dag, None, execution_time, status)
+
+    def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
+        self._set_status(dag, task, execution_time, status)
+
+    def _get_status(self, dag: str, task: str, execution_time: str):
         status = Status.UNKNOWN
-        lock_id = self._get_primary_key()
+        primary_key = self._get_primary_key(dag, task)
+        lock_id = self._get_lock_id(primary_key, execution_time)
         state = None
         dynamodb = self._connect()
 
         self._lock_state(dynamodb, lock_id)
 
-        state  = self._get_state(dynamodb)
+        state  = self._get_state(dynamodb, primary_key, execution_time)
 
         self._unlock_state(dynamodb, lock_id)
 
@@ -98,46 +105,48 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
         return status
 
-    def set_status(self, status: Status):
-        lock_id = self._get_primary_key()
+    def _set_status(self, dag: str, task: str, execution_time: str, status: Status):
+        primary_key = self._get_primary_key(dag, task)
+        lock_id = self._get_lock_id(primary_key, execution_time)
         dynamodb = self._connect()
 
         self._lock_state(dynamodb, lock_id)
 
-        self._set_state(dynamodb, status)
+        self._set_state(dynamodb, primary_key, execution_time, status)
 
         self._unlock_state(dynamodb, lock_id)
 
-    def _get_state(self, dynamodb):
+    @classmethod
+    def _get_primary_key(cls, dag: str, task: str):
+        primary_key = dag
+
+        if task:
+            primary_key += "__" + task
+
+        return primary_key
+
+    @classmethod
+    def _get_lock_id(cls, primary_key: str, execution_time: str):
+        return primary_key + "__" + execution_time
+
+    def _get_state(self, dynamodb, primary_key: str, execution_time: str):
         items = dynamodb.get_item(
             TableName=self._parameters.dag_state_table,
             Key=dict(
-                name=dict(S=self._get_primary_key()),
-                execution_time=dict(S=self._parameters.execution_time)
+                name=dict(S=primary_key),
+                execution_time=dict(S=execution_time)
             ),
             ConsistentRead=True
         )
 
-        #                 DAG=dict(S=self._parameters.dag)
-
         return items
 
-
-    def _set_state(self, dynamodb, status: Status):
+    def _set_state(self, dynamodb, primary_key: str, execution_time: str, status: Status):
         dynamodb.put_item(
             TableName=self._parameters.dag_state_table,
             Item=dict(
-                name=dict(S=self._get_primary_key()),
-                execution_time=dict(S=self._parameters.execution_time),
-                DAG=dict(S=self._parameters.dag),
+                name=dict(S=primary_key),
+                execution_time=dict(S=execution_time),
                 status=dict(S=status.value)
             )
         )
-
-    def _get_primary_key(self):
-        lock_id = self._parameters.dag
-
-        if self._parameters.task:
-            lock_id += "__" + self._parameters.task
-
-        return lock_id

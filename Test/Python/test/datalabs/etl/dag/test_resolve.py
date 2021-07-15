@@ -10,7 +10,7 @@ from   datalabs.etl.dag.resolve import TaskResolver
 def test_task_resolver_gets_dag_executor(dag_parameters):
     task_class = TaskResolver.get_task_class(dag_parameters)
 
-    assert task_class.__qualname__ == 'DAGExecutorTask'
+    assert task_class.__qualname__ == 'LocalDAGExecutorTask'
 
 
 # pylint: disable=redefined-outer-name, unused-argument
