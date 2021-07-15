@@ -20,7 +20,6 @@ class LocalDAGExecutorParameters:
     dag: str
     dag_class: str
     dag_state_class: str
-    task_state_class: str
     execution_time: str
     unknowns: dict=None
 
@@ -59,7 +58,7 @@ class LocalDAGExecutorTask(Task):
     # pylint: disable=no-self-use, fixme
     def _get_task_status(self, task):
         # TODO: get state using task state plugin
-        state = import_plugin(self._parameters.task_state_class)(self._get_state_parameters(task.id))
+        state = import_plugin(self._parameters.dag_state_class)(self._get_state_parameters(task.id))
         status = state.get_status()
 
         LOGGER.info('State of task "%s" of DAG "%s": %s', task.id, self._parameters.dag, status)

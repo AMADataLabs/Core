@@ -278,9 +278,15 @@ resource "aws_dynamodb_table" "dag_state" {
     # read_capacity  = 10
     # write_capacity = 2
     hash_key       = "name"
+    range_key      = "execution_time"
 
     attribute {
         name = "name"
+        type = "S"
+    }
+
+    attribute {
+        name = "execution_time"
         type = "S"
     }
 
@@ -290,33 +296,6 @@ resource "aws_dynamodb_table" "dag_state" {
     }
 
     tags = merge(local.tags, {Name = "Data Labs DAG State Table"})
-}
-
-
-resource "aws_dynamodb_table" "task_state" {
-    name            = "${var.project}-task-state-${var.environment}"
-    billing_mode    = "PAY_PER_REQUEST"
-    # read_capacity  = 10
-    # write_capacity = 2
-    hash_key       = "name"
-    range_key      = "DAG"
-
-    attribute {
-        name = "name"
-        type = "S"
-    }
-
-    attribute {
-        name = "DAG"
-        type = "S"
-    }
-
-    ttl {
-      attribute_name = "ttl"
-      enabled        = true
-    }
-
-    tags = merge(local.tags, {Name = "Data Labs Task State Table"})
 }
 
 
@@ -350,7 +329,6 @@ module "dag_processor_lambda" {
           TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.ProcessorTaskWrapper"
           TASK_CLASS              = "datalabs.etl.dag.process.DAGProcessorTask"
           DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
-          STATE_CLASS             = "datalabs.etl.dag.state.dynamodb.DAGState"
         }
     }
 
@@ -395,8 +373,6 @@ module "task_processor_lambda" {
           TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.ProcessorTaskWrapper"
           TASK_CLASS              = "datalabs.etl.dag.process.TaskProcessorTask"
           DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
-
-          STATE_CLASS             = "datalabs.etl.dag.state.dynamodb.TaskState"
         }
     }
 
@@ -437,11 +413,9 @@ module "scheduler_lambda" {
 
     environment_variables = {
         variables = {
-            TASK_WRAPPER_CLASS              = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
-            TASK_RESOLVER_CLASS             = "datalabs.etl.dag.resolve.TaskResolver"
-            DAG_SCHEDULER__DAG_CLASS        = "datalabs.etl.dag.scheduler.schedule.DAGSchedulerDAG"
-            DAG_SCHEDULER__DAG_STATE_CLASS  = "datalabs.etl.dag.state.dynamodb.DAGState"
-            DAG_SCHEDULER__DAG_TOPIC_ARN    = module.sns_dag_topic.topic_arn
+            TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
+            TASK_RESOLVER_CLASS     = "datalabs.etl.dag.resolve.TaskResolver"
+            DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
         }
     }
 

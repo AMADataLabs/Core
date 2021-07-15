@@ -1,8 +1,7 @@
 # Render as follows:
 #
 # Script/render-template -t Deploy/Scheduler/scheduler.yaml.jinja -f Deploy/Scheduler/scheduler.yaml \
-# -v "lambda=DataLake-Scheduler-sbx" -v dag_state_table=DataLake-dag-state-sbx \
-# -v task_state_table=DataLake-task-state-sbx -v state_lock_table=DataLake-scheduler-locks-sbx
+# -v "lambda=DataLake-Scheduler-sbx,dag_state_table=DataLake-dag-state-sbx,state_lock_table=DataLake-scheduler-locks-sbx,dag_topic_arn=arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx,task_topic_arn=arn:aws:sns:us-east-1:644454719059:DataLake-Task-Processor-sbx"
 ---
 data:
     # Global Variables
@@ -10,10 +9,10 @@ data:
     DAG_CLASS: 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
     DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     DAG_STATE_TABLE: '{{ dag_state_table }}'
-    TASK_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.TaskState'
-    TASK_STATE_TABLE: '{{ task_state_table }}'
     TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     STATE_LOCK_TABLE: '{{ state_lock_table }}'
+    DAG_TOPIC_ARN: '{{ dag_topic_arn }}'
+    TASK_TOPIC_ARN: '{{ dag_topic_arn }}'
 
     # DAG Schedule Extractor Variables
     DAG_SCHEDULER__EXTRACT_SCHEDULE__CACHE_OUTPUT_CLASS: ${TASK_CACHE_CLASS}
