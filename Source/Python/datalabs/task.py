@@ -19,15 +19,24 @@ class Task(ParameterValidatorMixin, ABC):
 
     def __init__(self, parameters: dict):
         self._parameters = parameters
+        self._log_parameters(parameters)
 
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters(parameters)
 
-        LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
-
     @abstractmethod
     def run(self):
         pass
+
+    @classmethod
+    def _log_parameters(cls, parameters):
+        partial_parameters = parameters.copy()
+        data = None
+
+        if "data" in partial_parameters:
+            data = partial_parameters.pop("data")
+        LOGGER.info('%s parameters (no data): %s', cls.__name__, partial_parameters)
+        LOGGER.debug('%s data parameter: %s', cls.__name__, data)
 
 
 class TaskException(BaseException):

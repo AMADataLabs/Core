@@ -20,7 +20,7 @@ class LambdaDAGExecutorParameters:
     unknowns: dict=None
 
 
-class LambdaDAGExecutor(Task):
+class LambdaDAGExecutorTask(Task):
     PARAMETER_CLASS = LambdaDAGExecutorParameters
 
     def run(self):

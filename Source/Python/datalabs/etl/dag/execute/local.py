@@ -18,9 +18,9 @@ LOGGER.setLevel(logging.INFO)
 @dataclass
 class LocalDAGExecutorParameters:
     dag: str
+    execution_time: str
     dag_class: str
     dag_state_class: str
-    execution_time: str
     unknowns: dict=None
 
 
@@ -60,7 +60,7 @@ class LocalDAGExecutorTask(Task):
     def _get_task_status(self, task):
         # TODO: get state using task state plugin
         state = import_plugin(self._parameters.dag_state_class)(self._get_state_parameters(task.id))
-        status = state.get_status()
+        status = state.get_task_status(self._parameters.dag, task.id, self._parameters.execution_time)
 
         LOGGER.info('State of task "%s" of DAG "%s": %s', task.id, self._parameters.dag, status)
 
