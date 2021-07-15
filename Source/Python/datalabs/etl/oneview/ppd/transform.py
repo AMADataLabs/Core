@@ -51,6 +51,7 @@ class PPDTransformerTask(TransformerTask):
         return race_ethnicity_data[['medical_education_number', 'race_ethnicity']].rename(
             columns={'medical_education_number': 'ME_NUMBER'})
 
+    # pylint: disable=too-many-arguments
     @classmethod
     def _merge_dataframes(cls, medical_education_number, npi_table, entity_table, ppd_table, race_and_ethnicity):
         merged_npi_me = pandas.merge(medical_education_number, npi_table, on='PARTY_ID', how="left").drop_duplicates()
