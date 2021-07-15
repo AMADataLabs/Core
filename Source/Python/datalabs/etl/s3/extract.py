@@ -25,7 +25,6 @@
     AMA/CPT/20200401/standard/SHORTU.txt
 """
 import logging
-import sys
 
 from   dataclasses import dataclass
 from   guppy import hpy
