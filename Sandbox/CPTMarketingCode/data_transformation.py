@@ -1,11 +1,13 @@
-from   glob import glob
+from glob import glob
 import os
 import re
 
 import pandas as pd
 
 import columns
+from dotenv import load_dotenv
 
+load_dotenv()
 
 def main():
 
@@ -29,8 +31,11 @@ def setup_directory():
     return input_directory, output_directory, tables
 
 def import_budget_code(input_directory):
-    return pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
-                                usecols=['Item Number', 'Budget Code'])
+    return pd.read_excel(
+        input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
+        usecols=['Item Number', 'Budget Code'],
+        engine="openpyxl"
+    )
 
 def transform_tables(tables, budget_code):
     new_tables = {}
@@ -123,7 +128,7 @@ def create_pbd_table(pbd_orders, pbd_returns, pbd_cancels):  # staging table
 
     return pbd_table
 
-def create_pbd_items_table(pbd_table, pbd_items):  # staging table
+def create_pbd_items_table(pbd_table, pbd_items): # staging table
     '''
     Returns PBD sales table at an item level
 
