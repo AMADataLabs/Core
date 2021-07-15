@@ -99,7 +99,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             raise ETLException(
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
-        LOGGER.info(sys.getsizeof(response['Body'].read()))
+
         LOGGER.info(f'Post extraction memory {(hpy().heap())}')
         return response['Body'].read()
 
