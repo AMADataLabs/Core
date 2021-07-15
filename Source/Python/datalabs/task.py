@@ -55,8 +55,6 @@ class TaskWrapper(ABC):
 
         self._task_parameters = self._get_task_parameters()
 
-        self._task_parameters = self._merge_parameters(self._task_parameters, self._runtime_parameters)
-
         self.task = self.task_class(self._task_parameters)
 
         try:
