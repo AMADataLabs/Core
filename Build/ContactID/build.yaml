@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: contact-id:1.0.20
+      name: contact-id:1.0.21
   postCommit: {}
   resources: {}
   runPolicy: Serial
