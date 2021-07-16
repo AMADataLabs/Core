@@ -42,7 +42,7 @@ def dag_parameters():
     return dict(
         type="DAG",
         execution_time="2021-01-21T12:24:38+00.00",
-        dag_class=TestDAG
+        dag_class='test.datalabs.etl.dag.test_resolve.TestDAG'
     )
 
 
@@ -64,7 +64,7 @@ def task_parameters():
         type="Task",
         execution_time="2021-01-21T12:24:38+00.00",
         task="TestTask",
-        dag_class=TestDAG
+        dag_class='test.datalabs.etl.dag.test_resolve.TestDAG'
     )
 
 
@@ -74,5 +74,5 @@ def bad_type_parameters():
         type="Exercise",
         execution_time="2021-01-21T12:24:38+00.00",
         task="TestTask",
-        dag_class=TestDAG
+        dag_class='test.datalabs.etl.dag.test_resolve.TestDAG'
     )
