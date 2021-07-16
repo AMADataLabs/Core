@@ -341,9 +341,9 @@ with ONEVIEW_ETL_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
-    LOAD_RESIDENCY_PROGRAM_TABLE_INTO_DATABASE = KubernetesPodOperator(
-        name="load_residency_table_into_database",
-        task_id="load_residency_table_into_database",
+    LOAD_RESIDENCY_PERSONNEL_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_residency_personnel_table_into_database",
+        task_id="load_residency_personnel_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
@@ -351,6 +351,13 @@ with ONEVIEW_ETL_DAG:
     LOAD_IQVIA_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_iqvia_tables_into_database",
         task_id="load_iqvia_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_iqvia_update_table_into_database",
+        task_id="load_iqvia_update_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
@@ -406,9 +413,10 @@ CREATE_PHYSICIAN_TABLE >> REMOVE_UNUSED_SPECIALTIES
 REMOVE_UNUSED_SPECIALTIES >> LOAD_REFERENCE_TABLES_INTO_DATABASE
 EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE
 LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_TABLE_INTO_DATABASE
-LOAD_RESIDENCY_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_PROGRAM_TABLE_INTO_DATABASE
-EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_DATABASE
-EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE
+LOAD_RESIDENCY_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_PERSONNEL_TABLE_INTO_DATABASE
+EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES
+EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE >> LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE
+LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE >> LOAD_IQVIA_TABLES_INTO_DATABASE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
