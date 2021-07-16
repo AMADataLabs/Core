@@ -14,7 +14,6 @@ LOGGER.setLevel(logging.INFO)
 
 @dataclass
 class APIEndpointParameters:
-    path: dict
     query: dict
     database: dict
     bucket: dict

@@ -7,18 +7,6 @@ import pytest
 from   datalabs.etl.dag.awslambda import DAGTaskWrapper, ProcessorTaskWrapper
 
 
-# pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_runtime_parameters_are_included_in_task_parameters(runtime_parameters, environment):
-    task_wrapper = DAGTaskWrapper()
-    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(runtime_parameters)
-
-    with mock.patch('datalabs.etl.dag.awslambda.DynamoDBEnvironmentLoader'):
-        parameters = task_wrapper._get_task_parameters()
-
-    assert "dag" in parameters
-    assert "execution_time" in parameters
-
-
 # pylint: disable=redefined-outer-name, protected-access
 def test_process_wrapper_sns_event_parsed_correctly(sns_event):
     wrapper = ProcessorTaskWrapper()
@@ -52,6 +40,7 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_dag_processor_runs(environment, s3_event):
     os.environ['TASK_CLASS'] = 'datalabs.etl.dag.process.DAGProcessorTask'
+    os.environ['DAG_CLASS'] = 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
 
     wrapper = ProcessorTaskWrapper(s3_event)
 
@@ -65,6 +54,7 @@ def test_dag_processor_runs(environment, s3_event):
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_processor_runs(environment, sns_event):
     os.environ['TASK_CLASS'] = 'datalabs.etl.dag.process.TaskProcessorTask'
+    os.environ['DAG_CLASS'] = 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
 
     wrapper = ProcessorTaskWrapper(sns_event)
 

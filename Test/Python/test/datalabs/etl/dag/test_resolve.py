@@ -8,6 +8,7 @@ from   datalabs.etl.dag.resolve import TaskResolver
 
 # pylint: disable=redefined-outer-name
 def test_task_resolver_gets_dag_executor(dag_parameters):
+    os.environ["DAG_CLASS"] = 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
     task_class = TaskResolver.get_task_class(dag_parameters)
 
     assert task_class.__qualname__ == 'LocalDAGExecutorTask'
