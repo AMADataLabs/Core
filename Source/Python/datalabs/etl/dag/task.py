@@ -12,7 +12,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# FIXME: handle running DAGs as well
 class DAGTaskWrapper(TaskWrapper):
     def __init__(self, parameters=None):
         super().__init__(parameters)
@@ -31,7 +30,6 @@ class DAGTaskWrapper(TaskWrapper):
 
     def _get_task_parameters(self):
         task_parameters = None
-        import pdb; pdb.set_trace()
 
         default_parameters = self._get_default_parameters()
 

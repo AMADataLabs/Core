@@ -29,14 +29,14 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
         self._parameters = self._get_validated_parameters(parameters)
 
     def load(self, environment: dict = None):
-        environment = environment or os.environ
-        environment.update(self._get_parameters_from_dynamodb("GLOBAL"))
+        environment = environment
+        if environment is None:
+            environment = os.environ
+        global_variables = self._get_parameters_from_dynamodb("GLOBAL")
 
         parameters = self._get_parameters_from_dynamodb(self._parameters.task)
 
-        import pdb; pdb.set_trace()
-        ReferenceEnvironmentLoader(environment).load(environment=parameters)
-        import pdb; pdb.set_trace()
+        ReferenceEnvironmentLoader(global_variables).load(environment=parameters)
 
         environment.update(parameters)
 

@@ -67,7 +67,6 @@ class TaskWrapper(ABC):
         self._setup_environment()
 
         self._runtime_parameters = self._get_runtime_parameters(self._parameters)
-        import pdb; pdb.set_trace()
 
         self._task_parameters = self._get_task_parameters()
 
