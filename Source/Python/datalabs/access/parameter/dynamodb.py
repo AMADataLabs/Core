@@ -29,7 +29,6 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
         self._parameters = self._get_validated_parameters(parameters)
 
     def load(self, environment: dict = None):
-        environment = environment
         if environment is None:
             environment = os.environ
         global_variables = self._get_parameters_from_dynamodb("GLOBAL")

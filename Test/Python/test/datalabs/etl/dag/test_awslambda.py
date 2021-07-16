@@ -1,10 +1,9 @@
 ''' Source: datalabs.etl.dag.awslambda '''
 import os
 
-import mock
 import pytest
 
-from   datalabs.etl.dag.awslambda import DAGTaskWrapper, ProcessorTaskWrapper
+from   datalabs.etl.dag.awslambda import ProcessorTaskWrapper
 
 
 # pylint: disable=redefined-outer-name, protected-access
