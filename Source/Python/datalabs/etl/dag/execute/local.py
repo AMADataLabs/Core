@@ -30,10 +30,7 @@ class LocalDAGExecutorTask(Task):
 
     def run(self):
         dag = import_plugin(self._parameters.dag_class)()
-<<<<<<< HEAD
-=======
         self._parameters.dag_state_class = import_plugin(self._parameters.dag_state_class)
->>>>>>> DL-1877
 
         tasks = paradag.dag_run(
             dag,

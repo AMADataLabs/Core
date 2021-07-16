@@ -20,7 +20,8 @@ class ContactIDAssignTransformerTask(etl.TransformerTask):
 
         return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
 
-    def _remove_index(self, users):
+    @classmethod
+    def _remove_index(cls, users):
         users.drop(users.columns[0], axis=1, inplace = True)
         return users
 
