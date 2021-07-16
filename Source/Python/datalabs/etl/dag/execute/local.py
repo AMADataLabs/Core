@@ -1,4 +1,5 @@
 ''' Classes for executing DAGs and DAG tasks locally '''
+from   collections import Counter
 from   dataclasses import dataclass
 import logging
 
@@ -29,12 +30,18 @@ class LocalDAGExecutorTask(Task):
 
     def run(self):
         dag = import_plugin(self._parameters.dag_class)()
+<<<<<<< HEAD
+=======
+        self._parameters.dag_state_class = import_plugin(self._parameters.dag_state_class)
+>>>>>>> DL-1877
 
-        paradag.dag_run(
+        tasks = paradag.dag_run(
             dag,
             processor=paradag.MultiThreadProcessor(),
             executor=self
         )
+
+        self._set_dag_status_from_task_statuses([task.status for task in tasks])
 
     # pylint: disable=no-self-use
     def param(self, task: 'DAGTask'):
@@ -54,11 +61,35 @@ class LocalDAGExecutorTask(Task):
         if predecessor_result != Status.FINISHED:
             task.block()
 
+    def _set_dag_status_from_task_statuses(self, task_statuses):
+        dag_state = self._parameters.dag_state_class(self._get_state_parameters())
+        current_status = dag_state.get_dag_status(self._parameters.dag, self._parameters.execution_time)
+        task_status_counts = Counter(task_statuses)
+        status = Status.PENDING
+
+        if task_status_counts[Status.FINISHED] == len(task_statuses):
+            status = Status.FINISHED
+        elif task_status_counts[Status.FAILED] > 0:
+            status = Status.FAILED
+        elif (task_status_counts[Status.UNKNOWN] + task_status_counts[Status.PENDING]) < len(task_statuses):
+            status = Status.RUNNING
+
+        if current_status != status:
+            dag_state.set_dag_status(self._parameters.dag, self._parameters.execution_time, status)
+            LOGGER.info(
+                'Setting status of dag "%s" (%s) to %s',
+                self._parameters.dag,
+                self._parameters.execution_time,
+                status
+            )
+
     # pylint: disable=no-self-use, fixme
     def _get_task_status(self, task):
         # TODO: get state using task state plugin
-        state = import_plugin(self._parameters.dag_state_class)(self._get_state_parameters(task.id))
+        state = self._parameters.dag_state_class(self._get_state_parameters(task.id))
         status = state.get_task_status(self._parameters.dag, task.id, self._parameters.execution_time)
+
+        task.set_status(status)
 
         LOGGER.info('State of task "%s" of DAG "%s": %s', task.id, self._parameters.dag, status)
 
