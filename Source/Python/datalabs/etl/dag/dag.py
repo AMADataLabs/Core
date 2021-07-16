@@ -3,18 +3,31 @@ import paradag
 
 
 class DAGTask:
-    def __init__(self, task_class: str):
+    def __init__(self, task_id: str, task_class: str):
+        self._id = task_id
         self._task_class = task_class
         self._successors = []
         self._dag = None
         self._ready = True
 
+    def __str__(self):
+        return self.id
+
     def set_dag(self, dag: 'DAG'):
         self._dag = dag
 
     @property
+    # pylint: disable=redefined-outer-name, invalid-name
+    def id(self):
+        return self._id
+
+    @property
     def successors(self):
         return self._successors
+
+    @property
+    def ready(self):
+        return self._ready
 
     @property
     def task_class(self):
@@ -37,7 +50,7 @@ class DAGMeta(type):
 
         if hasattr(cls, '__annotations__'):
             for task, task_class in cls.__annotations__.items():
-                cls.__task_classes__[task] = DAGTask(task_class)
+                cls.__task_classes__[task] = DAGTask(task, task_class)
 
         return cls
 

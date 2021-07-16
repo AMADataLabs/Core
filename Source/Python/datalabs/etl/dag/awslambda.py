@@ -19,13 +19,6 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
 
         return parameters
 
-    def _get_task_parameters(self):
-        task_parameters = super()._get_task_parameters()
-
-        task_parameters = self._merge_parameters(task_parameters, self._runtime_parameters)
-
-        return task_parameters
-
     def _handle_success(self) -> (int, dict):
         return "Success"
 
@@ -34,30 +27,20 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
 
         return f'Failed: {str(exception)}'
 
-    def _get_dag_parameters(self):
-        dag_parameters = super()._get_dag_parameters()
+    def _get_dag_task_parameters(self):
+        dag_task_parameters = super()._get_dag_task_parameters()
+        dag = self._get_dag_id()
 
         dynamodb_loader = DynamoDBEnvironmentLoader(dict(
             table=os.environ["DYNAMODB_CONFIG_TABLE"],
-            dag=self._get_dag_id(),
-            task="GLOBAL"
+            dag=dag,
+            task=self._get_task_id()
         ))
-        dynamodb_loader.load(environment=dag_parameters)
+        dynamodb_loader.load(environment=dag_task_parameters)
 
-        return dag_parameters
-
-    def _get_dag_task_parameters(self):
-        dag_task_parameters = super()._get_dag_task_parameters()
-
-        dag_task_parameters.update(self._parameters)
-
-        if self._runtime_parameters.get("type") == 'Task':
-            dynamodb_loader = DynamoDBEnvironmentLoader(dict(
-                table=os.environ["DYNAMODB_CONFIG_TABLE"],
-                dag=self._get_dag_id(),
-                task=self._get_task_id()
-            ))
-            dynamodb_loader.load(environment=dag_task_parameters)
+        if self._runtime_parameters.get("type") == 'DAG':
+            dag_task_parameters["DAG"] = dag
+            dag_task_parameters["DAG_CLASS"] = os.environ["DAG_CLASS"]
 
         return dag_task_parameters
 
@@ -65,7 +48,7 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
         return self._runtime_parameters["dag"]
 
     def _get_task_id(self):
-        return self._runtime_parameters.get("task")
+        return self._runtime_parameters.get("task", "DAG")
 
 
 class ProcessorTaskWrapper(ExecutionTimeMixin, DAGTaskWrapper):
@@ -89,5 +72,14 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DAGTaskWrapper):
 
         return event_parameters
 
+    def _get_dag_task_parameters(self):
+        dag_task_parameters = super()._get_dag_task_parameters()
+
+        dag_task_parameters["DAG"] = self._get_dag_id()
+        dag_task_parameters["TASK"] = super()._get_task_id()
+        dag_task_parameters["DAG_CLASS"] = os.environ["DAG_CLASS"]
+
+        return dag_task_parameters
+
     def _get_task_id(self):
-        return ""
+        return "DAG"

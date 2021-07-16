@@ -22,14 +22,13 @@ LOGGER.setLevel(logging.DEBUG)
 def test_getting_state_plugin(scheduler):
     state = scheduler._get_state_plugin()
 
-    assert hasattr(state, 'get_status')
-    assert state.get_status('BOGUS_DAG', datetime.now()) == Status.UNKNOWN
+    assert state.get_dag_status('BOGUS_DAG', datetime.utcnow().isoformat()) == Status.UNKNOWN
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_dag_flagged_not_started_if_no_state(scheduler):
     state = scheduler._get_state_plugin()
-    dag = dict(name='BUGUS_DAG', execution_time=pandas.Timestamp(datetime.now()))
+    dag = dict(name='BUGUS_DAG', execution_time=pandas.Timestamp(datetime.utcnow()))
 
     assert not scheduler._is_started(state, dag)
 
@@ -95,7 +94,7 @@ def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
     schedule["execution_time"] = scheduler._get_execution_times(schedule, base_time)
     state = DAGState(dict(BASE_PATH=parameters["BASE_PATH"]))
 
-    state.set_status('archive_cat_photos', schedule.execution_time[0].to_pydatetime(), Status.PENDING)
+    state.set_dag_status('archive_cat_photos', schedule.execution_time[0].to_pydatetime().isoformat(), Status.PENDING)
 
     started_dags = scheduler._get_started_dags(schedule)
 
@@ -114,7 +113,7 @@ def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execu
     assert len(dags_to_run) == 1
     assert dags_to_run.name[0] == 'archive_cat_photos'
 
-    state.set_status('archive_cat_photos', execution_times[0].to_pydatetime(), Status.PENDING)
+    state.set_dag_status('archive_cat_photos', execution_times[0].to_pydatetime().isoformat(), Status.PENDING)
 
     dags_to_run = scheduler._determine_dags_to_run(schedule, target_execution_time)
 
