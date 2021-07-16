@@ -1,26 +1,20 @@
-""" Source: datalabs.etl.dag.schedule.dynamodb """
+""" Source: datalabs.etl.dag.schedule.file """
 import logging
-import os
+import tempfile
 
 import pytest
 
 from   datalabs.etl.dag.state import Status
-from   datalabs.etl.dag.state.dynamodb import DAGState
+from   datalabs.etl.dag.state.file import DAGState
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-@pytest.mark.skipif(
-    os.getenv('RUN_INTEGRATION_TESTS') != 'True',
-    reason="Normally skip integration tests to increase testing speed."
-)
-def test_set_get_dag_status():
-    state = DAGState(dict(
-        STATE_LOCK_TABLE="DataLake-scheduler-locks-sbx",
-        DAG_STATE_TABLE="DataLake-dag-state-sbx"
-    ))
+# pylint: disable=redefined-outer-name
+def test_set_get_dag_status(base_path):
+    state = DAGState(dict(BASE_PATH=base_path))
     dag = "MY_SWEET_DAG"
     execution_time = "2021-01-01T00:00:00.000000"
 
@@ -32,15 +26,9 @@ def test_set_get_dag_status():
     assert status == Status.PENDING
 
 
-@pytest.mark.skipif(
-    os.getenv('RUN_INTEGRATION_TESTS') != 'True',
-    reason="Normally skip integration tests to increase testing speed."
-)
-def test_set_get_task_status():
-    state = DAGState(dict(
-        STATE_LOCK_TABLE="DataLake-scheduler-locks-sbx",
-        DAG_STATE_TABLE="DataLake-dag-state-sbx"
-    ))
+# pylint: disable=redefined-outer-name
+def test_set_get_task_status(base_path):
+    state = DAGState(dict(BASE_PATH=base_path))
     dag = "MY_SWEET_DAG"
     task = "DO_SOMETHING_AWESOME"
     execution_time = "2021-01-01T00:00:00.000000"
@@ -51,3 +39,9 @@ def test_set_get_task_status():
     state.set_task_status(dag, task, execution_time, Status.PENDING)
     status = state.get_task_status(dag, task, execution_time)
     assert status == Status.PENDING
+
+
+@pytest.fixture
+def base_path():
+    with tempfile.TemporaryDirectory() as directory:
+        yield directory

@@ -7,7 +7,8 @@ class DAGSchedulerDAG(DAG):
     EXTRACT_SCHEDULE: S3FileExtractorTask
     SCHEDULE_DAGS: DAGSchedulerTask
     # NOTIFY_DAG_PROCESSOR: SNSMessageSenderTask
+    NOTIFY_DAG_PROCESSOR: S3FileExtractorTask
 
 
 # pylint: disable=pointless-statement
-DAGSchedulerDAG.EXTRACT_SCHEDULE >> DAGSchedulerDAG.SCHEDULE_DAGS # >> DAGSchedulerDAG.NOTIFY_DAG_PROCESSOR
+DAGSchedulerDAG.EXTRACT_SCHEDULE >> DAGSchedulerDAG.SCHEDULE_DAGS >> DAGSchedulerDAG.NOTIFY_DAG_PROCESSOR
