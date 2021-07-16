@@ -30,9 +30,13 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
 
     def load(self, environment: dict = None):
         environment = environment or os.environ
-        parameters = self._get_parameters_from_dynamodb()
+        environment.update(self._get_parameters_from_dynamodb("GLOBAL"))
 
-        ReferenceEnvironmentLoader(parameters).load(environment=parameters)
+        parameters = self._get_parameters_from_dynamodb(self._parameters.task)
+
+        import pdb; pdb.set_trace()
+        ReferenceEnvironmentLoader(environment).load(environment=parameters)
+        import pdb; pdb.set_trace()
 
         environment.update(parameters)
 
@@ -48,7 +52,7 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
 
         return loader
 
-    def _get_parameters_from_dynamodb(self):
+    def _get_parameters_from_dynamodb(self, task):
         response = None
 
         with AWSClient("dynamodb") as dynamodb:
@@ -56,7 +60,7 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
                 TableName=self._parameters.table,
                 Key=dict(
                     DAG=dict(S=self._parameters.dag),
-                    Task=dict(S=self._parameters.task)
+                    Task=dict(S=task)
                 )
             )
 
@@ -64,7 +68,12 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
 
     @classmethod
     def _extract_parameters(cls, response):
-        if "Item" not in response or "Variables" not in response["Item"]:
-            raise ValueError(f'Invalid response from DynamoDB {json.dumps(response)}')
+        parameters = {}
 
-        return json.loads(response["Item"]["Variables"]["S"])
+        if "Item" in response:
+            if "Variables" not in response["Item"]:
+                raise ValueError(f'Invalid DynamoDB configuration item: {json.dumps(response)}')
+
+            parameters = json.loads(response["Item"]["Variables"]["S"])
+
+        return parameters

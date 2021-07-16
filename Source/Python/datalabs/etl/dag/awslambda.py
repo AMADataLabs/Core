@@ -19,13 +19,6 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
 
         return parameters
 
-    def _get_task_parameters(self):
-        task_parameters = super()._get_task_parameters()
-
-        task_parameters = self._merge_parameters(task_parameters, self._runtime_parameters)
-
-        return task_parameters
-
     def _handle_success(self) -> (int, dict):
         return "Success"
 
@@ -34,19 +27,8 @@ class DAGTaskWrapper(task.DAGTaskWrapper):
 
         return f'Failed: {str(exception)}'
 
-    def _get_dag_parameters(self):
-        dag_parameters = super()._get_dag_parameters()
-
-        dynamodb_loader = DynamoDBEnvironmentLoader(dict(
-            table=os.environ["DYNAMODB_CONFIG_TABLE"],
-            dag=self._get_dag_id(),
-            task=self._get_task_id()
-        ))
-        dynamodb_loader.load(environment=dag_parameters)
-
-        return dag_parameters
-
     def _get_dag_task_parameters(self):
+        import pdb; pdb.set_trace()
         dag_task_parameters = super()._get_dag_task_parameters()
 
         if self._runtime_parameters.get("type") == 'Task':

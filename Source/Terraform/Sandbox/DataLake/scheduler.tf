@@ -416,6 +416,7 @@ module "scheduler_lambda" {
             TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
             TASK_RESOLVER_CLASS     = "datalabs.etl.dag.resolve.TaskResolver"
             DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
+            DAG_CLASS               = "datalabs.etl.dag.schedule.dag.DAGSchedulerDAG"
         }
     }
 

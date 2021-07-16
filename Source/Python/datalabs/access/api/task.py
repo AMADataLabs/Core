@@ -75,12 +75,15 @@ class APIEndpointTask(task.Task, task.DatabaseTaskMixin):
 
 # pylint: disable=abstract-method
 class APIEndpointParametersGetterMixin(task.TaskWrapper):
-    def _get_task_parameters(self):
-        query_parameters = self._parameters.get('query') or dict()
+    @classmethod
+    def _get_runtime_parameters(cls, parameters):
+        return dict(
+            path = parameters.get('path') or dict()
+        )
 
+    def _get_task_parameters(self):
         return APIEndpointParameters(
-            path=self._parameters.get('path') or dict(),
-            query=query_parameters,
+            query=self._parameters.get('query') or dict(),
             database=dict(
                 name=os.getenv('DATABASE_NAME'),
                 backend=os.getenv('DATABASE_BACKEND'),
