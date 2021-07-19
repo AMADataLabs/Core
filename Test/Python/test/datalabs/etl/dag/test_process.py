@@ -1,9 +1,11 @@
 """ Source: datalabs.etl.dag.process """
+import json
 import os
 
 import pytest
 
-from   datalabs.etl.dag.state.file import DAGState, TaskState
+from   datalabs.access.aws import AWSClient
+from   datalabs.etl.dag.state.file import DAGState
 from   datalabs.etl.dag.process import DAGProcessorTask, TaskProcessorTask
 
 
@@ -21,6 +23,42 @@ def test_task_processor_runs(task_parameters):
     task_processor.run()
 
 
+@pytest.mark.skipif(
+    os.getenv('RUN_INTEGRATION_TESTS') != 'True',
+    reason="Normally skip integration tests to increase testing speed."
+)
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_trigger_dag_processor_via_sns():
+    message = json.dumps(dict(
+        dag="DAG_SCHEDULER",
+        execution_time="2021-01-21T12:24:38.452349885"
+    ))
+
+    with AWSClient("sns") as sns:
+        sns.publish(
+            TargetArn="arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx",
+            Message=message
+        )
+
+
+@pytest.mark.skipif(
+    os.getenv('RUN_INTEGRATION_TESTS') != 'True',
+    reason="Normally skip integration tests to increase testing speed."
+)
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_trigger_task_processor_via_sns():
+    message = json.dumps(dict(
+        dag="DAG_SCHEDULER",
+        task="EXTRACT_SCHEDULE",
+        execution_time="2021-01-21T12:24:38.452349885"
+    ))
+
+    with AWSClient("sns") as sns:
+        sns.publish(
+            TargetArn="arn:aws:sns:us-east-1:644454719059:DataLake-Task-Processor-sbx",
+            Message=message
+        )
+
 class TestDAG:
     # pylint: disable=unused-argument
     @classmethod
@@ -36,8 +74,8 @@ class TestTask:
 def dag_parameters():
     return dict(
         DAG="TestDAG",
-        STATE_CLASS=DAGState,
         DAG_CLASS=TestDAG,
+        DAG_STATE_CLASS=DAGState,
         EXECUTION_TIME="2021-01-21T12:24:38+00.00"
     )
 
@@ -48,7 +86,7 @@ def task_parameters():
         DAG="TestDAG",
         TASK="TestTask",
         DAG_CLASS=TestDAG,
-        STATE_CLASS=TaskState,
+        DAG_STATE_CLASS=DAGState,
         EXECUTION_TIME="2021-01-21T12:24:38+00.00",
     )
 
