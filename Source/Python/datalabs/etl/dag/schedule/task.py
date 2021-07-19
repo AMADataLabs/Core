@@ -85,8 +85,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
     def _is_started(cls, state, dag):
         status = None
 
-        with state:
-            status = state.get_status(dag["name"], dag["execution_time"].to_pydatetime())
+        status = state.get_dag_status(dag["name"], dag["execution_time"].to_pydatetime().isoformat())
 
         return status != Status.UNKNOWN
 
