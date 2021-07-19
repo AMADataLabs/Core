@@ -15,8 +15,8 @@ ENV JIRA_USERNAME=${jira_username}
 ENV JIRA_PASSWORD=${jira_password}
 ENV APIGW_AWS_ACCESS_KEY=${apigw_aws_access_key}
 ENV APIGW_AWS_SECRET_KEY=${apigw_aws_secret_key}
-ENV TALEND_AWS_ACCESS_KEY=${hadi_aws_access_key}
-ENV TALEND_AWS_SECRET_KEY=${hadi_aws_secret_key}
+ENV TALEND_AWS_ACCESS_KEY=${talend_aws_access_key}
+ENV TALEND_AWS_SECRET_KEY=${talend_aws_secret_key}
 
 # Adding curl
 WORKDIR /opt
