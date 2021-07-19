@@ -103,8 +103,10 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
 
+        body = response['Body'].read()
         LOGGER.info(f'Post extraction memory {(hpy().heap())}')
-        return response['Body'].read()
+
+        return body
 
     def _get_latest_path(self):
         release_folder = self._get_release_folder()
