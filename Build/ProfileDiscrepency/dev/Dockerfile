@@ -1,7 +1,7 @@
 # Build Example:
 #    docker build -t pdr -f ./Build/ProfileDiscrepency/dev/Dockerfile --build-arg apigw_aws_access_key=ABCD123 --build-arg apigw_aws_secret_key=ABCD123' ./
 # Run Example:
-#    docker run -ti pdr"
+#    docker run -ti pdr sh ProfileDiscrepency/ProfileDiscrepency_run.sh
 FROM anapsix/alpine-java:8u121b13_jdk
 
 ARG jira_username
@@ -41,9 +41,7 @@ RUN $JAVA_HOME/jre/bin/keytool -import \
     -alias cert_for_talend \
     -v
 
-COPY ./Source ./Source
-COPY ./Build/ProfileDiscrepency/dev/start.sh .
-COPY ./Script ./Script
+COPY ./Script/apigw_assume_role.sh ./Script/apigw_assume_role.sh
 
 # creating apigw AWS profile
 ENV AWS_PROFILE=apigw
@@ -58,6 +56,3 @@ RUN AWS_ENV_SCRIPT=$(Script/apigw_assume_role.sh | grep source | awk '{print $2}
 RUN unzip -q ProfileDiscrepency_0.2.zip
 RUN rm -rf ProfileDiscrepency_0.2.zip
 RUN chmod +x ProfileDiscrepency/ProfileDiscrepency_run.sh
-
-
-CMD ["sh", "start.sh"]
