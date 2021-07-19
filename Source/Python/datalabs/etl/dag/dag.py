@@ -1,6 +1,8 @@
 """ Class for defining a DAG. """
 import paradag
 
+from   datalabs.etl.dag.state import Status
+
 
 class DAGTask:
     def __init__(self, task_id: str, task_class: str):
@@ -9,12 +11,16 @@ class DAGTask:
         self._successors = []
         self._dag = None
         self._ready = True
+        self._status = Status.UNKNOWN
 
     def __str__(self):
         return self.id
 
     def set_dag(self, dag: 'DAG'):
         self._dag = dag
+
+    def set_status(self, status: Status):
+        self._status = status
 
     @property
     # pylint: disable=redefined-outer-name, invalid-name
@@ -32,6 +38,10 @@ class DAGTask:
     @property
     def task_class(self):
         return self._task_class
+
+    @property
+    def status(self):
+        return self._status
 
     def __rshift__(self, other: 'DAGTask'):
         self._successors.append(other)
