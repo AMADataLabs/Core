@@ -66,5 +66,3 @@ RUN AWS_ENV_SCRIPT=$(Script/apigw_assume_role.sh | grep source | awk '{print $2}
 RUN unzip -q ProfileDiscrepency_0.2.zip
 RUN rm -rf ProfileDiscrepency_0.2.zip
 RUN chmod +x ProfileDiscrepency/ProfileDiscrepency_run.sh
-
-CMD ["sh"]
