@@ -1,7 +1,16 @@
 # Build Example:
-#    docker build -t pdr -f ./Build/ProfileDiscrepency/dev/Dockerfile --build-arg apigw_aws_access_key=ABCD123 --build-arg apigw_aws_secret_key=ABCD123' ./
+#     docker build -t pdr -f ./Build/ProfileDiscrepency/dev/Dockerfile --build-arg talend_job=ProfileDiscrepency \
+#     --build-arg talend_version=0.2 \
+#     --build-arg jira_username=USR \
+#     --build-arg jira_password=PSWD \
+#     --build-arg talend_aws_access_key=ACCS \
+#     --build-arg talend_aws_secret_key=SCRT \
+#     --build-arg apigw_aws_access_key=ACCS \
+#     --build-arg apigw_aws_secret_key=SCRT \
+#     ./
 # Run Example:
 #    docker run -ti pdr sh ProfileDiscrepency/ProfileDiscrepency_run.sh
+
 FROM anapsix/alpine-java:8u121b13_jdk
 
 ARG jira_username
