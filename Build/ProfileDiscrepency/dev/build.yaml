@@ -31,7 +31,7 @@ spec:
       dockerfilePath: Build/ProfileDiscrepency/dev/Dockerfile
       from:
         kind: ImageStreamTag
-        name: python:3.7
+        name: anapsix/alpine-java:8u121b13_jdk
     type: Docker
   successfulBuildsHistoryLimit: 5
   triggers:
