@@ -19,7 +19,7 @@ class TransformerTask(etl.TransformerTask, ABC):
     # pylint: disable=logging-fstring-interpolation
     def _transform(self):
         # LOGGER.info(self._parameters['data'])
-
+        LOGGER.info(f'Pre csv to dataframes memory {(hpy().heap())}')
         table_data = self._csv_to_dataframe(self._parameters['data'])
         LOGGER.info(f'Post csv to dataframes memory {(hpy().heap())}')
 

@@ -74,8 +74,12 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
     def _get_files(self):
         base_path = self._get_latest_path()
+        files = self._parameters.files.split(',')
 
-        return ['/'.join((base_path, file.strip())) for file in self._parameters.files.split(',')]
+        if base_path:
+            files = ['/'.join((base_path, file.strip())) for file in files]
+
+        return files
 
     def _resolve_wildcard(self, file):
         files = [file]
@@ -99,8 +103,10 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
 
+        body = response['Body'].read()
         LOGGER.info(f'Post extraction memory {(hpy().heap())}')
-        return response['Body'].read()
+
+        return body
 
     def _get_latest_path(self):
         release_folder = self._get_release_folder()

@@ -17,6 +17,7 @@ class PPDTransformerTask(TransformerTask):
         race_ethnicity = data[2]
 
         ppd.ME_NUMBER = ppd.ME_NUMBER.astype(str)
+        race_ethnicity.medical_education_number = race_ethnicity.medical_education_number.astype(str)
 
         medical_education_number_table = self._create_medical_education_number_table(npi)
         npi_table = self._create_npi_table(npi)
@@ -53,7 +54,7 @@ class PPDTransformerTask(TransformerTask):
 
     # pylint: disable=too-many-arguments
     @classmethod
-    def _merge_dataframes(cls, medical_education_number, npi_table, entity_table, ppd_table, race_and_ethnicity):
+    def _merge_dataframes(cls, medical_education_number, npi_table, entity_table, race_and_ethnicity, ppd_table):
         merged_npi_me = pandas.merge(medical_education_number, npi_table, on='PARTY_ID', how="left").drop_duplicates()
         merged_npi_entity_me = pandas.merge(merged_npi_me, entity_table, on='PARTY_ID', how="left").drop_duplicates()
         merged_npi_entity_me['ME_NUMBER'] = merged_npi_entity_me['ME_NUMBER'].str.lstrip('0')
