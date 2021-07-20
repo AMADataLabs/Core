@@ -7,8 +7,8 @@ RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel wget tar 
 
 # RUN rm /usr/bin/python && ln -s /usr/bin/python3.7 /usr/bin/python
 
-# COPY Build/Master/BitBucketPipelines/requirements.txt .
-#
-# RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
-#     pip3.7 install -r pip-requirements.txt &&\
-#     pip install -r requirements.txt
+COPY Build/Master/BitBucketPipelines/requirements.txt .
+
+RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
+    pip3.7 install -r pip-requirements.txt &&\
+    pip install -r requirements.txt

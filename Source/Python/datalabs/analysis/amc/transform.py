@@ -20,7 +20,7 @@ class FlaggedAddressReportParameters:
 
 
 class FlaggedAddressReportTask(TransformerTask):
-    PARAMETER_CLASS = AddressReportParameters
+    PARAMETER_CLASS = FlaggedAddressReportParameters
 
     def _transform(self):
         flagger = AMCAddressFlagger(this._parameters)

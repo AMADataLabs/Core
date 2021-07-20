@@ -108,3 +108,7 @@ class APIEndpointTaskWrapper(APIEndpointParametersGetterMixin, task.TaskWrapper)
         body = dict(message=exception.message)
 
         return status_code, dict(), body
+
+    @classmethod
+    def _merge_parameters(cls, parameters, new_parameters):
+        return parameters
