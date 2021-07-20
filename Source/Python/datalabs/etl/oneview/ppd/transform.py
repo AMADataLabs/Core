@@ -2,8 +2,6 @@
 import logging
 import pandas
 
-from   guppy import hpy
-
 from   datalabs.etl.oneview.ppd.column import PPD_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
@@ -22,17 +20,12 @@ class PPDTransformerTask(TransformerTask):
         race_ethnicity.medical_education_number = race_ethnicity.medical_education_number.astype(str)
 
         medical_education_number_table = self._create_medical_education_number_table(npi)
-        LOGGER.info(f'Post ME dataframe memory {(hpy().heap())}')
         npi_table = self._create_npi_table(npi)
-        LOGGER.info(f'Post npi dataframe memory {(hpy().heap())}')
         entity_table = self._create_entity_table(npi)
-        LOGGER.info(f'Post entity dataframe memory {(hpy().heap())}')
         race_ethnicity_table = self.create_race_ethnicity_table(race_ethnicity)
-        LOGGER.info(f'Post race dataframe memory {(hpy().heap())}')
 
         transformed_ppd = self._merge_dataframes(medical_education_number_table, npi_table, entity_table,
                                                  race_ethnicity_table, ppd)
-        LOGGER.info(f'Post final ppd dataframe memory {(hpy().heap())}')
 
         return [transformed_ppd]
 
