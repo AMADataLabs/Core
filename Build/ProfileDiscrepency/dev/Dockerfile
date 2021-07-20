@@ -1,5 +1,6 @@
 # Build Example:
-#     docker build -t pdr -f ./Build/ProfileDiscrepency/dev/Dockerfile --build-arg talend_job=ProfileDiscrepency \
+#     docker build -t pdr -f ./Build/ProfileDiscrepency/dev/Dockerfile \
+#     --build-arg talend_job=ProfileDiscrepency \
 #     --build-arg talend_version=0.2 \
 #     --build-arg jira_username=USR \
 #     --build-arg jira_password=PSWD \
@@ -65,3 +66,5 @@ RUN AWS_ENV_SCRIPT=$(Script/apigw_assume_role.sh | grep source | awk '{print $2}
 RUN unzip -q ProfileDiscrepency_0.2.zip
 RUN rm -rf ProfileDiscrepency_0.2.zip
 RUN chmod +x ProfileDiscrepency/ProfileDiscrepency_run.sh
+
+CMD ["sh"]
