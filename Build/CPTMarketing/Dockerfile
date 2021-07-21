@@ -1,7 +1,9 @@
 # Build Example:
-# docker build -t cpt-marketing -f ./Build/CPTMarketing/Dockerfile \
-# --build-arg template_vars='eft_username=,eft_password=,minio_username=,minio_password=' \
-# ./
+    # docker build \
+    # -t cpt-marketing \
+    # -f ./Build/CPTMarketing/Dockerfile \
+    # --build-arg template_vars='eft_username=user,eft_password=pwd,minio_access_key=accs,minio_secret_access_key=scrt' \
+    # ./
 # Run Example:
 # docker run -e DOTENV_PATH=valid.env -ti cpt-marketing python task.py
 
