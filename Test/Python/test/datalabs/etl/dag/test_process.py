@@ -5,7 +5,6 @@ import os
 import pytest
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.dag.state.file import DAGState
 from   datalabs.etl.dag.process import DAGProcessorTask, TaskProcessorTask
 
 
@@ -75,7 +74,8 @@ def dag_parameters():
     return dict(
         DAG="TestDAG",
         DAG_CLASS=TestDAG,
-        DAG_STATE_CLASS=DAGState,
+        DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+        DAG_EXECUTOR_CLASS='datalabs.etl.dag.execute.local.LocalDAGExecutor',
         EXECUTION_TIME="2021-01-21T12:24:38+00.00"
     )
 
@@ -86,7 +86,8 @@ def task_parameters():
         DAG="TestDAG",
         TASK="TestTask",
         DAG_CLASS=TestDAG,
-        DAG_STATE_CLASS=DAGState,
+        DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+        DAG_EXECUTOR_CLASS='datalabs.etl.dag.execute.local.LocalDAGExecutor',
         EXECUTION_TIME="2021-01-21T12:24:38+00.00",
     )
 
