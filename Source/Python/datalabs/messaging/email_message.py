@@ -6,7 +6,7 @@ from email.message import EmailMessage
 
 
 class Attachment:
-    def __init__(self, name: str = None, file_path: str = None, data: BytesIO = None):
+    def __init__(self, name=None, file_path=None, data=None):
         """
         :param name: string - name of attachment file as it appears in the email
         :param file_path: string - absolute or relative path to file to add as attachment
@@ -27,7 +27,7 @@ class Attachment:
             assert self.data.readable()
 
         assert self.name is not None
-        assert isinstance(data, BytesIO)
+        assert self.data is not None
         assert self.data.readable()
 
 
