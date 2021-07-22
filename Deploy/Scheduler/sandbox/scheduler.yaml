@@ -10,6 +10,7 @@ data:
 
     # DAG Variables
     DAG_SCHEDULER__DAG__LAMBDA: 'DataLake-Scheduler-sbx'
+    DAG_SCHEDULER__DAG__DAG_CLASS: 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
     DAG_SCHEDULER__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     DAG_SCHEDULER__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-sbx'
     DAG_SCHEDULER__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-sbx'
