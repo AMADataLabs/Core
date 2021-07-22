@@ -9,7 +9,7 @@ data:
 
 
     # DAG Variables
-    DAG_SCHEDULER__DAG__LAMBDA: 'DataLake-Scheduler-sbx'
+    DAG_SCHEDULER__DAG__LAMBDA_FUNCTION: 'DataLake-Scheduler-sbx'
     DAG_SCHEDULER__DAG__DAG_CLASS: 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
     DAG_SCHEDULER__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     DAG_SCHEDULER__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-sbx'
@@ -17,6 +17,7 @@ data:
     DAG_SCHEDULER__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx'
     DAG_SCHEDULER__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx'
     DAG_SCHEDULER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    DAG_SCHEDULER__DAG__FUNCTION: 'DataLake-'
 
 
     # DAG Schedule Extractor Variables

@@ -29,19 +29,16 @@ class DAGProcessorTask(Task):
 
     def run(self):
         LOGGER.debug('DAG Processor Parameters: %s', self._parameters)
+        state = self._get_plugin(self._parameters.dag_state_class, self._parameters)
+        executor = self._get_plugin(self._parameters.dag_executor_class, self._parameters)
 
-        if datalabs.feature.enabled("DL1902"):
-            plugin_parameters = self._get_plugin_parameters()
+        status = state.get_dag_status(self._parameters.dag, self._parameters.execution_time)
+        LOGGER.info('DAG %s Status: %s', self._parameters.dag, status.value)
 
-            state = import_plugin(self._parameters.dag_state_class)(plugin_parameters)
-            executor = import_plugin(self._parameters.dag_executor_class)(plugin_parameters)
+        if status == Status.UNKNOWN:
+            state.set_dag_status(self._parameters.dag, self._parameters.execution_time, Status.PENDING)
 
-            status = state.get_dag_status(self._parameters.dag, self._parameters.execution_time)
-
-            if status == Status.UNKNOWN:
-                state.set_dag_status(self._parameters.dag, self._parameters.execution_time, Status.PENDING)
-
-            executor.run()
+        executor.run()
 
 
         # DAG plugin parameters for running a DAG:
@@ -51,10 +48,22 @@ class DAGProcessorTask(Task):
         #   "execution_time": "time"
         # }
 
-    def _get_plugin_parameters(self):
-        parameters = self._parameters.unknowns or {}
+    @classmethod
+    def _get_plugin(cls, plugin_class_name, task_parameters):
+        plugin_class = import_plugin(plugin_class_name)
+        plugin_parameters = cls._get_plugin_parameters(plugin_class, task_parameters)
+        LOGGER.debug('%s Plugin Parameters: %s', plugin_class.__name__, plugin_parameters)
 
-        parameters.update()
+        return plugin_class(plugin_parameters)
+
+    @classmethod
+    def _get_plugin_parameters(cls, plugin_class: type, task_parameters):
+        parameter_names = plugin_class.PARAMETER_CLASS.__dataclass_fields__.keys()
+        parameters = {key:getattr(task_parameters, key) for key in parameter_names if hasattr(task_parameters, key)}
+
+        if hasattr(task_parameters, "unknowns"):
+            unknowns = task_parameters.unknowns or {}
+            parameters.update({key:unknowns[key] for key in parameter_names if key in unknowns})
 
         return parameters
 
