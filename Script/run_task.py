@@ -1,4 +1,5 @@
 import argparse
+import json
 import os
 import sys
 
@@ -10,20 +11,34 @@ import repo
 def main(args):
     repo.configure()  # Setup the repo's PYTHONPATH
 
+    runtime_args = _get_runtime_args(args)
+
     _configure_app(args)
 
-    _run_application(args["args"])
+    _run_application(runtime_args)
+
+
+def _get_runtime_args(args):
+    runtime_args = args["args"]
+
+    if not runtime_args and args["event"]:
+        runtime_args = json.loads(args["event"])
+
+    return runtime_args
 
 
 def _configure_app(args):
     import app
+    variables = args["variable"]
+    template_args = {}
 
-    template_args = {v.split('=')[0]:v.split('=')[1] for v in args["variable"]}
+    if variables:
+        template_args = {v.split('=')[0]:v.split('=')[1] for v in variables}
 
     app.configure(template_args, relative_path=args["path"], name=args["task"], overwrite=args["force"], build=args["build"])
 
 
-def _run_application():
+def _run_application(args):
     task_wrapper_class = import_plugin(os.environ['TASK_WRAPPER_CLASS'])
     task_wrapper = task_wrapper_class(parameters=args)
 
@@ -44,7 +59,10 @@ if __name__ == '__main__':
         '-v', '--variable', action='append', required=False, help='Template variable to set in the form name=value.'
     )
     ap.add_argument(
-        '-a', '--args', action='append', required=False, help='Command-line arguments to send to the task wrapper.'
+        '-a', '--args', required=False, help='Command-line arguments to send to the task wrapper.'
+    )
+    ap.add_argument(
+        '-e', '--event', required=False, help='JSON event passed in as a single command-line argument.'
     )
     args = vars(ap.parse_args())
 

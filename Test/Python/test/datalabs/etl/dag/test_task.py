@@ -73,6 +73,17 @@ def test_task_input_data_is_loaded(args, environment):
     assert parameters['data'] == ['light', 'and', 'smoothie']
 
 
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_runtime_parameters_are_not_included_in_task_parameters(args, environment):
+    task_wrapper = DAGTaskWrapper(parameters=args)
+    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
+    parameters = task_wrapper._get_task_parameters()
+
+    assert "dag" not in parameters
+    assert "task" not in parameters
+    assert "execution_time" not in parameters
+
+
 # pylint: disable=redefined-outer-name, protected-access
 def test_no_cache_env_vars_yields_no_cache_parameters(args):
     task_wrapper = DAGTaskWrapper(parameters=args)

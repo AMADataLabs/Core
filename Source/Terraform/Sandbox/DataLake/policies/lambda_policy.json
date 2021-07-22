@@ -24,7 +24,12 @@
         {
             "Effect": "Allow",
             "Action": [
-                "dynamodb:GetItem"
+              "dynamodb:GetItem",
+              "dynamodb:PutItem",
+              "dynamodb:DeleteItem",
+              "dynamodb:UpdateItem",
+              "dynamodb:Query",
+              "dynamodb:Scan"
             ],
             "Resource": "*"
         },
