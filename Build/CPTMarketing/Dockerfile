@@ -18,10 +18,10 @@ RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/CPTMarketing ./Build/CPTMarketing
-COPY ./Source ./Source
+COPY ./Source/Python/datalabs ./Source/Python/datalabs
 
 ARG template_vars
-COPY ./Build/CPTMarketing/*.env ./
+COPY ./Build/CPTMarketing/?*.env ./
 
 RUN find ./ -name "*.env" -exec \
     ./Script/render-template \

@@ -14,7 +14,6 @@ modspec:
       - parameter
       - plugin
       - task
-      - awslambda
   - package: datalabs.access
     include:
       - aws
@@ -29,8 +28,6 @@ modspec:
     - system
     - etcd
   - package: datalabs.etl
-  - package: datalabs.etl.jdbc
   - package: datalabs.etl.sftp
   - package: datalabs.etl.s3
-  - package: datalabs.etl.cpt
   - package: datalabs.etl.cpt.marketing
