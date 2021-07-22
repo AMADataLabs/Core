@@ -18,8 +18,8 @@ class Attachment:
         if file_path is not None:
             if not os.path.exists(file_path):
                 raise FileNotFoundError(file_path)
-            with open(file_path, 'rb') as f:
-                self.data = BytesIO(f.read())
+            with open(file_path, 'rb') as file:
+                self.data = BytesIO(file.read())
             # if name is None, determine filename automatically from file path
             if self.name in [None, '', '/']:
                 self.name = file_path.replace('\\', '/').split('/')[-1]
