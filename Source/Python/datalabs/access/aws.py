@@ -8,9 +8,9 @@ class AWSClient:
         self._client = None
 
     def __enter__(self):
-        aws_environment = self._kwargs.pop("aws_environment")
-        if aws_environment is not None:
-            self._assume_new_role(aws_environment)
+        assume_role = self._kwargs.pop("assume_role", None)
+        if assume_role is not None:
+            self._assume_new_role(assume_role)
 
         self._client = boto3.client(self._service, **self._kwargs)
 
@@ -19,22 +19,11 @@ class AWSClient:
     def __exit__(self, *args, **kwargs):
         self._client = None
 
-    def _assume_new_role(self, aws_environment):
-        environment_account_mapping = {
-            'dev': '191296302136',
-            'tst': '194221139997',
-            'stg': '340826698851',
-            'prd': '285887636563'
-        }
-        try:
-            account = environment_account_mapping[aws_environment]
-        except KeyError as exception:
-            raise KeyError("aws_environment must be one of 'dev', 'tst', 'stg' or 'prd'") from exception
+    def _assume_new_role(self, assume_role):
 
         sts_client = boto3.client('sts', **self._kwargs)
         assumed_role_object=sts_client.assume_role(
-            RoleArn=f"arn:aws:iam::{account}:role/{aws_environment}"\
-            "-ama-apigateway-invoke-role",
+            RoleArn=assume_role,
             RoleSessionName="datalabs"
         )
         credentials=assumed_role_object['Credentials']
