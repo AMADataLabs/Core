@@ -57,7 +57,7 @@ class S3FileExtractorParameters:
     include_datestamp: str = None
     execution_time: str = None
     data: object = None
-    aws_environment: str = None
+    assume_role: str = None
 
 
 # pylint: disable=too-many-ancestors
@@ -71,7 +71,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             aws_access_key_id=self._parameters.access_key,
             aws_secret_access_key=self._parameters.secret_key,
             region_name=self._parameters.region_name,
-            aws_environment=self._parameters.aws_environment
+            assume_role=self._parameters.assume_role
         )
 
     def _get_files(self):
