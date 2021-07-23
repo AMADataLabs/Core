@@ -123,7 +123,6 @@ class ContactIDAssignTransformerTask(etl.TransformerTask):
                 'STATE',
                 'ZIPCODE',
                 'PHONE_NUMBER',
-                'TITLE'
             ],
             how='left'
         )
