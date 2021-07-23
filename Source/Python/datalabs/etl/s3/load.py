@@ -31,6 +31,7 @@ class S3FileLoaderParameters:
     region_name: str = None
     include_datestamp: str = None
     execution_time: str = None
+    aws_environment: str = None
 
 
 class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
@@ -42,7 +43,8 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
             endpoint_url=self._parameters.endpoint_url,
             aws_access_key_id=self._parameters.access_key,
             aws_secret_access_key=self._parameters.secret_key,
-            region_name=self._parameters.region_name
+            region_name=self._parameters.region_name,
+            aws_environment=self._parameters.aws_environment
         )
 
     def _get_files(self):
