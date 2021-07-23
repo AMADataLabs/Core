@@ -6,6 +6,7 @@ import logging
 import paradag
 
 from   datalabs.etl.dag.state import Status
+from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
@@ -22,11 +23,18 @@ class LocalDAGExecutorParameters:
     execution_time: str
     dag_class: str
     dag_state_class: str
+    task_topic_arn: str
     unknowns: dict=None
 
 
 class LocalDAGExecutorTask(Task):
     PARAMETER_CLASS = LocalDAGExecutorParameters
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+        import pdb; pdb.set_trace()
+
+        self._notifier = SNSTaskNotifier(self._parameters.task_topic_arn)
 
     def run(self):
         dag = import_plugin(self._parameters.dag_class)()
@@ -80,7 +88,6 @@ class LocalDAGExecutorTask(Task):
                 status
             )
 
-    # pylint: disable=no-self-use, fixme
     def _get_task_status(self, task):
         state = self._parameters.dag_state_class(self._get_state_parameters(task.id))
         status = state.get_task_status(self._parameters.dag, task.id, self._parameters.execution_time)
@@ -91,10 +98,11 @@ class LocalDAGExecutorTask(Task):
 
         return status
 
-    # pylint: disable=no-self-use, fixme
     def _trigger_task(self, task):
-        # TODO: send message using messaging plugin
         LOGGER.info('Triggering task "%s" of DAG "%s"', task.id, self._parameters.dag)
+
+        self._notifier.notify(self._parameters.dag, task.id, self._parameters.execution_time)
+
 
     def _get_state_parameters(self, task=None):
         state_parameters = self._parameters.unknowns

@@ -15,7 +15,7 @@ data:
     DAG_SCHEDULER__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-sbx'
     DAG_SCHEDULER__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-sbx'
     DAG_SCHEDULER__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx'
-    DAG_SCHEDULER__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx'
+    DAG_SCHEDULER__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:644454719059:DataLake-Task-Processor-sbx'
     DAG_SCHEDULER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     DAG_SCHEDULER__DAG__FUNCTION: 'DataLake-'
 
