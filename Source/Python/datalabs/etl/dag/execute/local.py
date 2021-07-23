@@ -32,7 +32,6 @@ class LocalDAGExecutorTask(Task):
 
     def __init__(self, parameters):
         super().__init__(parameters)
-        import pdb; pdb.set_trace()
 
         self._notifier = SNSTaskNotifier(self._parameters.task_topic_arn)
 

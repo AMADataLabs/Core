@@ -1,10 +1,9 @@
-''' Classes for executing DAGs and DAG tasks locally '''
-from   dataclasses import dataclass
+''' Class for notifying tasks to run via SNS. '''
 import json
 import logging
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.parameter import add_schema, ParameterValidatorMixin
+from   datalabs.parameter import ParameterValidatorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

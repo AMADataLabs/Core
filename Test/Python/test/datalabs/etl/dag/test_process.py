@@ -3,6 +3,7 @@ import json
 import os
 import tempfile
 
+import mock
 import pytest
 
 from   datalabs.etl.dag.dag import DAG
@@ -15,7 +16,8 @@ from   datalabs.etl.dag.process import DAGProcessorTask, TaskProcessorTask
 def test_dag_processor_runs(dag_parameters):
     dag_processor = DAGProcessorTask(dag_parameters)
 
-    dag_processor.run()
+    with mock.patch('datalabs.etl.dag.notify.sns.AWSClient'):
+        dag_processor.run()
 
 
 # pylint: disable=redefined-outer-name
@@ -86,7 +88,8 @@ def dag_parameters():
             DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
             DAG_EXECUTOR_CLASS='datalabs.etl.dag.execute.local.LocalDAGExecutorTask',
             EXECUTION_TIME="2021-01-21T12:24:38.000000",
-            BASE_PATH=state_base_path
+            BASE_PATH=state_base_path,
+            TASK_TOPIC_ARN="arn:aws:sns:us-east-1:012345678901:DataLake-Task-Processor-fake"
         )
 
 
