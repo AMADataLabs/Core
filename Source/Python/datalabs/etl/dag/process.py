@@ -3,7 +3,6 @@ from   dataclasses import dataclass
 import logging
 
 from   datalabs.etl.dag.state import Status
-import datalabs.feature
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
