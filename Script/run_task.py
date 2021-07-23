@@ -22,7 +22,7 @@ def _get_runtime_args(args):
     runtime_args = args["args"]
 
     if not runtime_args:
-        runtime_args = json.loads(args["event"])
+        runtime_args = json.loads(args["event"] or "{}")
 
     return runtime_args
 

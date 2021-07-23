@@ -29,8 +29,11 @@ def setup_directory():
     return input_directory, output_directory, tables
 
 def import_budget_code(input_directory):
-    return pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
-                                usecols=['Item Number', 'Budget Code'])
+    return pd.read_excel(
+        input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
+        usecols=['Item Number', 'Budget Code'],
+        engine="openpyxl"
+    )
 
 def transform_tables(tables, budget_code):
     new_tables = {}
