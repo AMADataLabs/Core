@@ -122,7 +122,7 @@ class ContactIDAssignTransformerTask(etl.TransformerTask):
                 'CITY',
                 'STATE',
                 'ZIPCODE',
-                'PHONE_NUMBER',
+                'PHONE_NUMBER'
             ],
             how='left'
         )
