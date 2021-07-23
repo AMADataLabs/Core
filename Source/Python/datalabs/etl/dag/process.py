@@ -40,14 +40,6 @@ class DAGProcessorTask(Task):
 
         executor.run()
 
-
-        # DAG plugin parameters for running a DAG:
-        # {
-        #   "dag": "string"
-        #   "type": "DAG",
-        #   "execution_time": "time"
-        # }
-
     @classmethod
     def _get_plugin(cls, plugin_class_name, task_parameters):
         plugin_class = import_plugin(plugin_class_name)
@@ -58,14 +50,27 @@ class DAGProcessorTask(Task):
 
     @classmethod
     def _get_plugin_parameters(cls, plugin_class: type, task_parameters):
-        parameter_names = plugin_class.PARAMETER_CLASS.__dataclass_fields__.keys()
-        parameters = {key:getattr(task_parameters, key) for key in parameter_names if hasattr(task_parameters, key)}
+        fields = plugin_class.PARAMETER_CLASS.__dataclass_fields__.keys()
+        parameters = {key:getattr(task_parameters, key) for key in task_parameters.__dataclass_fields__.keys()}
 
         if hasattr(task_parameters, "unknowns"):
-            unknowns = task_parameters.unknowns or {}
-            parameters.update({key:unknowns[key] for key in parameter_names if key in unknowns})
+            cls._merge_parameter_unknowns(parameters)
+        else:
+            cls._remove_unknowns(parameters, fields)
 
         return parameters
+
+    @classmethod
+    def _merge_parameter_unknowns(cls, parameters):
+        unknowns = parameters.get("unknowns", {})
+        parameters.update(unknowns)
+        parameters.pop("unknowns")
+
+    @classmethod
+    def _remove_unknowns(cls, parameters, fields):
+        for key in parameters:
+            if key not in fields:
+                parameters.pop(key)
 
 
 @add_schema(unknowns=True)

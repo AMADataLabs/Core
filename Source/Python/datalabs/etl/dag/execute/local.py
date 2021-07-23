@@ -46,12 +46,12 @@ class LocalDAGExecutorTask(Task):
 
     # pylint: disable=assignment-from-no-return
     def execute(self, task):
-        state = self._get_task_status(task)
+        status = self._get_task_status(task)
 
-        if state == Status.UNKNOWN and task.ready:
+        if status == Status.UNKNOWN and task.ready:
             self._trigger_task(task)
 
-        return state
+        return status
 
     # pylint: disable=no-self-use
     def deliver(self, task, predecessor_result):
@@ -82,7 +82,6 @@ class LocalDAGExecutorTask(Task):
 
     # pylint: disable=no-self-use, fixme
     def _get_task_status(self, task):
-        # TODO: get state using task state plugin
         state = self._parameters.dag_state_class(self._get_state_parameters(task.id))
         status = state.get_task_status(self._parameters.dag, task.id, self._parameters.execution_time)
 
