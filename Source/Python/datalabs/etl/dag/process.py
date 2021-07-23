@@ -29,34 +29,48 @@ class DAGProcessorTask(Task):
 
     def run(self):
         LOGGER.debug('DAG Processor Parameters: %s', self._parameters)
+        state = self._get_plugin(self._parameters.dag_state_class, self._parameters)
+        executor = self._get_plugin(self._parameters.dag_executor_class, self._parameters)
 
-        if datalabs.feature.enabled("DL1902"):
-            plugin_parameters = self._get_plugin_parameters()
+        status = state.get_dag_status(self._parameters.dag, self._parameters.execution_time)
+        LOGGER.info('DAG %s Status: %s', self._parameters.dag, status.value)
 
-            state = import_plugin(self._parameters.dag_state_class)(plugin_parameters)
-            executor = import_plugin(self._parameters.dag_executor_class)(plugin_parameters)
+        if status == Status.UNKNOWN:
+            state.set_dag_status(self._parameters.dag, self._parameters.execution_time, Status.PENDING)
 
-            status = state.get_dag_status(self._parameters.dag, self._parameters.execution_time)
+        executor.run()
 
-            if status == Status.UNKNOWN:
-                state.set_dag_status(self._parameters.dag, self._parameters.execution_time, Status.PENDING)
+    @classmethod
+    def _get_plugin(cls, plugin_class_name, task_parameters):
+        plugin_class = import_plugin(plugin_class_name)
+        plugin_parameters = cls._get_plugin_parameters(plugin_class, task_parameters)
+        LOGGER.debug('%s Plugin Parameters: %s', plugin_class.__name__, plugin_parameters)
 
-            executor.run()
+        return plugin_class(plugin_parameters)
 
+    @classmethod
+    def _get_plugin_parameters(cls, plugin_class: type, task_parameters):
+        fields = plugin_class.PARAMETER_CLASS.__dataclass_fields__.keys()
+        parameters = {key:getattr(task_parameters, key) for key in task_parameters.__dataclass_fields__.keys()}
 
-        # DAG plugin parameters for running a DAG:
-        # {
-        #   "dag": "string"
-        #   "type": "DAG",
-        #   "execution_time": "time"
-        # }
-
-    def _get_plugin_parameters(self):
-        parameters = self._parameters.unknowns or {}
-
-        parameters.update()
+        if hasattr(task_parameters, "unknowns"):
+            cls._merge_parameter_unknowns(parameters)
+        else:
+            cls._remove_unknowns(parameters, fields)
 
         return parameters
+
+    @classmethod
+    def _merge_parameter_unknowns(cls, parameters):
+        unknowns = parameters.get("unknowns", {})
+        parameters.update(unknowns)
+        parameters.pop("unknowns")
+
+    @classmethod
+    def _remove_unknowns(cls, parameters, fields):
+        for key in parameters:
+            if key not in fields:
+                parameters.pop(key)
 
 
 @add_schema(unknowns=True)

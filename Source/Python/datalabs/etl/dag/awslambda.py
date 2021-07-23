@@ -105,6 +105,12 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
     @classmethod
     def _get_runtime_parameters(cls, parameters):
         LOGGER.info('Event Parameters: %s', parameters)
+        dag_parameters = cls._get_dag_task_parameters_from_dynamodb(parameters["dag"], "DAG")
+
+        parameters["dag_class"] = dag_parameters["DAG_CLASS"]
+
+        if "task" not in parameters:
+            parameters["task"] = "DAG"
 
         return parameters
 
@@ -122,8 +128,7 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
         dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
 
         if task == 'DAG':
-            dag_parameters = self._get_dag_task_parameters_from_dynamodb(self._get_dag_id(), "DAG")
             dag_task_parameters["dag"] = dag
-            dag_task_parameters["dag_class"] = dag_parameters["DAG_CLASS"]
+            dag_task_parameters["dag_class"] = self._runtime_parameters["dag_class"]
 
         return dag_task_parameters

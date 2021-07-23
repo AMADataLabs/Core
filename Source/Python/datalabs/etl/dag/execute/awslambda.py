@@ -1,5 +1,6 @@
 ''' Classes for executing DAGs and DAG tasks locally '''
 from   dataclasses import dataclass
+import json
 import logging
 
 from   datalabs.access.aws import AWSClient
@@ -15,7 +16,7 @@ LOGGER.setLevel(logging.INFO)
 @dataclass
 class LambdaDAGExecutorParameters:
     dag: str
-    function: str
+    lambda_function: str
     execution_time: str
     unknowns: dict=None
 
@@ -32,7 +33,7 @@ class LambdaDAGExecutorTask(Task):
             )
 
             awslambda.invoke(
-                FunctionName=self._parameters.function,
+                FunctionName=self._parameters.lambda_function,
                 InvocationType='Event',
-                Payload=payload
+                Payload=json.dumps(payload)
             )
