@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 # pylint: disable=import-error, invalid-name
-from datalabs.etl.smtploader import SMTPLoader
+from datalabs.etl.load import LoaderTask
 from datalabs.messaging.email_message import Attachment, send_email
 from datalabs.parameter import add_schema
 
@@ -19,7 +19,7 @@ class AMCLoaderParameters:
     data: [Attachment]
 
 
-class AMCReportSMTPLoader(SMTPLoader):
+class AMCReportSMTPLoader(LoaderTask):
     PARAMETER_CLASS = AMCLoaderParameters
 
     def _load(self):
