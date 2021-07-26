@@ -10,6 +10,8 @@ import pandas as pd
 # pylint: disable=import-error
 from datalabs.access.aims import AIMS
 from datalabs.access import excel
+from datalabs.analysis.amc.keywords import FALSE_POSITIVES, load_flagwords
+from datalabs.analysis.amc.sql import AMC_QUERY
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -21,19 +23,7 @@ class AMCAddressFlagger:
     def __init__(self):
         self._today_date = str(datetime.now().date())
 
-        self._output_file = None
-
-        self._amc_query_file = None
-        self._flag_word_file = None
-
-        self._output_directory = None
         self._output_file_password = None
-
-        self._report_sender = None
-        self._report_recipients = None
-        self._report_cc = None
-
-        self._false_positives = None
 
     def _get_flag_words(self):
         flag_words = pd.read_excel(self._flag_word_file, header=None)[0].values
@@ -42,11 +32,8 @@ class AMCAddressFlagger:
         return flag_words
 
     def _get_amc_address_data(self):
-        with open(self._amc_query_file, 'r') as file:
-            sql = file.read()
         with AIMS() as aims:
-            data = aims.read(sql=sql, coerce_float=False)
-
+            data = aims.read(sql=AMC_QUERY, coerce_float=False)
         return self._clean_str_data(data)
 
     @classmethod
@@ -234,27 +221,13 @@ class AMCAddressFlagger:
 
         return flagged_data, results_summary
 
-    def _save_output(self, data: pd.DataFrame):
-        excel.save_formatted_output(data, self._output_file, 'AMC Address Sweep')
-        excel.add_password_to_xlsx(self._output_file, self._output_file_password)
-
-    def _get_env_variables(self):
-        self._amc_query_file = os.environ.get('AMC_QUERY_FILE')
-        self._flag_word_file = os.environ.get('FLAG_WORD_FILE')
-
-        self._output_directory = os.environ.get('OUTPUT_DIRECTORY')
-        self._output_file_password = os.environ.get('OUTPUT_FILE_PASSWORD')
-        self._output_file = f'{self._output_directory}/AMC_flagged_addresses_{self._today_date}.xlsx'
-
-        self._report_sender = os.environ.get('REPORT_SENDER')
-        self._report_recipients = os.environ.get('REPORT_RECIPIENTS').split(',')
-        self._report_cc = os.environ.get('REPORT_CC').split(',')
-
-        self._false_positives = os.environ.get('FALSE_POSITIVES').split(',')
+    def _save_output(self, data: pd.DataFrame) -> BytesIO:
+        file = BytesIO()
+        file = excel.save_formatted_output(data, file, 'AMC Address Sweep')
+        # excel.add_password_to_xlsx(self._output_file, self._output_file_password)  # can only do on Windows?
+        return file
 
     def run(self):
-        LOGGER.info('Getting required environment variables.')
-        self._get_env_variables()
         LOGGER.info('Querying active amc-sourced address data.')
         data = self._get_amc_address_data()
         LOGGER.info('Cleaning data.')
@@ -268,7 +241,6 @@ class AMCAddressFlagger:
             Hello!
 
             Attached are the latest results of the AMC address flagging script.
-            Password: Survey21
 
             Results summary:
             {summary}
@@ -278,8 +250,8 @@ class AMCAddressFlagger:
             """.strip().replace('    ', '')  # removes tab-spacing at beginning of each line in email body
 
         # BytesIO of Excel report
-        report_data = BytesIO()
-        flagged_data.to_excel(report_data)
+        report_data = self._save_output(flagged_data)
+        # flagged_data.to_excel(report_data)  # unnecessary if using report_data = self._save_output(...)
         report_data.seek(0)
         # BytesIO of report summary text
         body_data = BytesIO()
