@@ -17,6 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_parameters_are_parsed(args, environment):
     task_wrapper = DAGTaskWrapper(parameters=args)
+    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
     parameters = task_wrapper._get_task_parameters()
 
     assert 'TEST_TASK' not in parameters
@@ -32,6 +33,7 @@ def test_task_parameters_are_parsed(args, environment):
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_cache_parameters_are_parsed(args, environment):
     task_wrapper = DAGTaskWrapper(parameters=args)
+    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
     task_wrapper._get_task_parameters()
     input_cache_parameters = task_wrapper._cache_parameters[CacheDirection.INPUT]
     output_cache_parameters = task_wrapper._cache_parameters[CacheDirection.OUTPUT]
@@ -47,8 +49,9 @@ def test_cache_parameters_are_parsed(args, environment):
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_cache_parameters_are_overriden(args, environment):
+def test_cache_parameters_are_overridden(args, environment):
     task_wrapper = DAGTaskWrapper(parameters=args)
+    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
     task_wrapper._get_task_parameters()
     input_cache_parameters = task_wrapper._cache_parameters[CacheDirection.INPUT]
     output_cache_parameters = task_wrapper._cache_parameters[CacheDirection.OUTPUT]
@@ -62,6 +65,7 @@ def test_cache_parameters_are_overriden(args, environment):
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_input_data_is_loaded(args, environment):
     task_wrapper = DAGTaskWrapper(parameters=args)
+    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
     parameters = task_wrapper._get_task_parameters()
 
     assert parameters['data'] is not None
@@ -69,9 +73,21 @@ def test_task_input_data_is_loaded(args, environment):
     assert parameters['data'] == ['light', 'and', 'smoothie']
 
 
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_runtime_parameters_are_not_included_in_task_parameters(args, environment):
+    task_wrapper = DAGTaskWrapper(parameters=args)
+    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
+    parameters = task_wrapper._get_task_parameters()
+
+    assert "dag" not in parameters
+    assert "task" not in parameters
+    assert "execution_time" not in parameters
+
+
 # pylint: disable=redefined-outer-name, protected-access
 def test_no_cache_env_vars_yields_no_cache_parameters(args):
     task_wrapper = DAGTaskWrapper(parameters=args)
+    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
     parameters = task_wrapper._get_dag_task_parameters()
 
     assert not parameters
@@ -80,6 +96,7 @@ def test_no_cache_env_vars_yields_no_cache_parameters(args):
 # pylint: disable=redefined-outer-name, protected-access
 def test_no_cache_input_parameters_skips_cache_pull(args):
     task_wrapper = DAGTaskWrapper(parameters=args)
+    task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
     parameters = task_wrapper._get_task_parameters()
 
     assert len(parameters) == 1

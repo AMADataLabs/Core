@@ -92,7 +92,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[MINIO_SECRET],
-        env_vars=dict(TASK_CLASS='datalabs.etl.contactid.idassign.transform.ContactIDAssignTransformerTask'),
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.idassign.transform.ContactIDAssignTransformerTask')},
     )
     #
     MERGE_AND_GENERATE_NEW_IDS = KubernetesPodOperator(
@@ -101,7 +101,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[MINIO_SECRET],
-        env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask')},
     )
     #
     DELIVER_OUTPUT_FILES = KubernetesPodOperator(

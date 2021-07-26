@@ -1,4 +1,4 @@
-image: muffinspawn/pipelines:4
+image: muffinspawn/pipelines:7
 
 pipelines:
     branches:

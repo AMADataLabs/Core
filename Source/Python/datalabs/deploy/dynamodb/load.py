@@ -19,10 +19,10 @@ class ConfigMapLoader():
     def load(self, filenames):
         variables = self._extract_variables_from_config(filenames)
 
-        dag, dag_variables = self._parse_variables(variables)
+        dag, parameters = self._parse_variables(variables)
 
         with AWSClient("dynamodb") as dynamodb:
-            for task, task_variables in dag_variables.items():
+            for task, task_variables in parameters.items():
                 self._load_variables_into_dynamodb(dynamodb, dag, task, task_variables)
 
     @classmethod
@@ -36,17 +36,16 @@ class ConfigMapLoader():
         return config
 
     def _parse_variables(self, variables):
-        dag_variables = dict()
+        parameters = dict()
         var_tree = VariableTree.generate(variables)
         dag = self._get_dag_id(var_tree)
-        global_variables = self._get_global_variables(dag, var_tree)
+        parameters["GLOBAL"] = self._get_global_variables(dag, var_tree)
         tasks = var_tree.get_branches([dag])
 
         for task in tasks:
-            dag_variables[task] = var_tree.get_branch_values([dag, task])
-            dag_variables[task].update(global_variables)
+            parameters[task] = var_tree.get_branch_values([dag, task])
 
-        return (dag, dag_variables)
+        return (dag, parameters)
 
     def _load_variables_into_dynamodb(self, dynamodb, dag, task, variables):
         response = None

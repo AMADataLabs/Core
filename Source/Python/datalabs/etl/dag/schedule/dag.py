@@ -1,12 +1,13 @@
 ''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag.dag import DAG
-from   datalabs.etl.dag.schedule import DAGSchedulerTask
+from   datalabs.etl.dag.schedule.task import DAGSchedulerTask
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 
 class DAGSchedulerDAG(DAG):
     EXTRACT_SCHEDULE: S3FileExtractorTask
     SCHEDULE_DAGS: DAGSchedulerTask
-    NOTIFY_DAG_PROCESSOR: DAGSchedulerTask
+    # NOTIFY_DAG_PROCESSOR: SNSMessageSenderTask
+    NOTIFY_DAG_PROCESSOR: S3FileExtractorTask
 
 
 # pylint: disable=pointless-statement

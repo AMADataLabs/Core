@@ -16,17 +16,24 @@ class DAGTaskWrapper(TaskWrapper):
     def __init__(self, parameters=None):
         super().__init__(parameters)
 
-        args = self._parameters
-        self._dag_id, self._task_id, self._execution_time = args[1].split('__')
-
         self._cache_parameters = {}
+
+    # pylint: disable=no-self-use
+    def _get_runtime_parameters(self, parameters):
+        dag, task, execution_time = parameters[1].split('__')
+
+        return dict(
+            dag=dag,
+            task=task,
+            execution_time=execution_time
+        )
 
     def _get_task_parameters(self):
         task_parameters = None
 
-        dag_parameters = self._get_dag_parameters()
+        default_parameters = self._get_default_parameters()
 
-        task_parameters = self._merge_parameters(dag_parameters, self._get_dag_task_parameters())
+        task_parameters = self._merge_parameters(default_parameters, self._get_dag_task_parameters())
 
         task_parameters = self._extract_cache_parameters(task_parameters)
 
@@ -48,8 +55,8 @@ class DAGTaskWrapper(TaskWrapper):
 
         LOGGER.info('DAG task has finished')
 
-    def _get_dag_parameters(self):
-        dag_parameters = self._get_dag_parameters_from_environment(self._get_dag_id())
+    def _get_default_parameters(self):
+        dag_parameters = self._get_default_parameters_from_environment(self._get_dag_id())
         execution_time = self._get_execution_time()
 
         dag_parameters['EXECUTION_TIME'] = execution_time
@@ -93,16 +100,16 @@ class DAGTaskWrapper(TaskWrapper):
         return plugin
 
     def _get_dag_id(self):
-        return self._dag_id.upper()
+        return self._runtime_parameters["dag"].upper()
 
     def _get_task_id(self):
-        return self._task_id.upper()
+        return self._runtime_parameters["task"].upper()
 
     def _get_execution_time(self):
-        return self._execution_time
+        return self._runtime_parameters["execution_time"].upper()
 
     @classmethod
-    def _get_dag_parameters_from_environment(cls, dag_id):
+    def _get_default_parameters_from_environment(cls, dag_id):
         parameters = {}
 
         try:
@@ -120,14 +127,6 @@ class DAGTaskWrapper(TaskWrapper):
             parameters = cls._get_parameters([dag_id.upper(), task_id.upper()])
         except KeyError:
             pass
-
-        return parameters
-
-    @classmethod
-    def  _merge_parameters(cls, dag_parameters, task_parameters):
-        parameters = dag_parameters
-
-        parameters.update(task_parameters)
 
         return parameters
 
