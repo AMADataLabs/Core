@@ -1,5 +1,6 @@
 """ Code for executing AMC address"""
 from datetime import datetime
+from io import BytesIO
 import string
 import logging
 import os
@@ -9,7 +10,6 @@ import pandas as pd
 # pylint: disable=import-error
 from datalabs.access.aims import AIMS
 from datalabs.access import excel
-from datalabs.messaging.email_message import send_email
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -262,12 +262,10 @@ class AMCAddressFlagger:
 
         flagged_data, summary = self._get_flagged_data_and_summary(data)
         flagged_data.drop_duplicates(inplace=True)
-        LOGGER.info('Saving results.')
-        self._save_output(flagged_data)
 
-        LOGGER.info('Creating email report.')
         report_body = \
-            f"""Hello!
+            f"""
+            Hello!
 
             Attached are the latest results of the AMC address flagging script.
             Password: Survey21
@@ -276,15 +274,17 @@ class AMCAddressFlagger:
             {summary}
 
             This report and email were generated automatically
-            If you believe there are errors or if you have questions or suggestions, please contact Garrett.""".replace(
-                '    ', ''  # removes tab-spacing at beginning of each line in email body
-            )
+            If you believe there are errors or if you have questions or suggestions, please contact Garrett.
+            """.strip().replace('    ', '')  # removes tab-spacing at beginning of each line in email body
 
-        send_email(
-            to=self._report_recipients,
-            cc=self._report_cc,
-            subject=f'AMC Sweep Results - {self._today_date}',
-            body=report_body,
-            from_account=self._report_sender,
-            attachments=self._output_file,
-        )
+        # BytesIO of Excel report
+        report_data = BytesIO()
+        flagged_data.to_excel(report_data)
+        report_data.seek(0)
+        # BytesIO of report summary text
+        body_data = BytesIO()
+        body_data.write(report_body)
+        body_data.seek(0)
+
+        LOGGER.info('Done creating report.')
+        return [report_data, body_data]
