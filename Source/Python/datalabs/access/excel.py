@@ -1,4 +1,4 @@
-""" Windows-specific Excel functions. """
+""" Windows-specific Excel functions. save_formatted_output should be able to be used on any platform (no win32com) """
 import pandas as pd
 import win32com  # pylint: disable=import-error
 from win32com import client  # pylint: disable=import-error
@@ -11,7 +11,7 @@ def save_formatted_output(data: pd.DataFrame, file, sheet_name='Sheet1'):
         - freeze-panes on headers
 
     :param data: DataFrame
-    :param file: Target path for output file
+    :param file: Target path or BytesIO
     :param sheet_name:
     :return:
     """
@@ -21,7 +21,7 @@ def save_formatted_output(data: pd.DataFrame, file, sheet_name='Sheet1'):
                   header=False,
                   sheet_name=sheet_name,
                   index=False)
-    workbook = writer.book
+    workbook = writer.book  # pylint: disable=no-member
     worksheet = writer.sheets[sheet_name]
     header_format = workbook.add_format({'bold': True,
                                          'align': 'center'})
@@ -32,6 +32,7 @@ def save_formatted_output(data: pd.DataFrame, file, sheet_name='Sheet1'):
     worksheet.freeze_panes(1, 0)  # freeze pane on top row
 
     writer.save()
+    return file
 
 
 def add_password_to_xlsx(file_path, password):
