@@ -348,9 +348,16 @@ with ONEVIEW_ETL_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
-    LOAD_IQVIA_TABLES_INTO_DATABASE = KubernetesPodOperator(
-        name="load_iqvia_tables_into_database",
-        task_id="load_iqvia_tables_into_database",
+    LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        name="load_iqvia_business_provider_tables_into_database",
+        task_id="load_iqvia_business_provider_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_IQVIA_PROVIER_AFFILIATION_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_iqvia_provider_affiliation_table_into_database",
+        task_id="load_iqvia_provider_affiliation_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
@@ -369,9 +376,16 @@ with ONEVIEW_ETL_DAG:
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
 
-    LOAD_CREDENTIALING_TABLES_INTO_DATABASE = KubernetesPodOperator(
-        name="load_credentialing_tables_into_database",
-        task_id="load_credentialing_tables_into_database",
+    LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        name="load_credentialing_customer_product_tables_into_database",
+        task_id="load_credentialing_customer_product_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_CREDENTIALING_ORDER_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_credentialing_order_tables_into_database",
+        task_id="load_credentialing_order_tables_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
@@ -416,11 +430,13 @@ LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_TABLE_INTO_DATA
 LOAD_RESIDENCY_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_PERSONNEL_TABLE_INTO_DATABASE
 EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES
 EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE >> LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE
-LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE >> LOAD_IQVIA_TABLES_INTO_DATABASE
+LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE >> LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO_DATABASE
+LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO_DATABASE >> LOAD_IQVIA_PROVIER_AFFILIATION_TABLE_INTO_DATABASE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
-MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_TABLES_INTO_DATABASE
+MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES_INTO_DATABASE
+LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES_INTO_DATABASE >> LOAD_CREDENTIALING_ORDER_TABLE_INTO_DATABASE
 EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE # >> LOAD_RACE_ETHNICITY_TABLE_INTO_DATABASE
 CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
