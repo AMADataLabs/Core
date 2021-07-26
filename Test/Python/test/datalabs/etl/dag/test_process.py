@@ -95,14 +95,17 @@ def dag_parameters():
 
 @pytest.fixture
 def task_parameters():
-    return dict(
-        DAG="TEST_DAG",
-        TASK="DO_THIS",
-        DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
-        DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
-        DAG_EXECUTOR_CLASS='datalabs.etl.dag.execute.local.LocalDAGExecutorTask',
-        EXECUTION_TIME="2021-01-21T12:24:38.000000",
-    )
+    with tempfile.TemporaryDirectory() as state_base_path:
+        return dict(
+            DAG="TEST_DAG",
+            TASK="DO_THIS",
+            DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
+            DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+            TASK_EXECUTOR_CLASS='datalabs.etl.dag.execute.local.LocalDAGExecutorTask',
+            BASE_PATH=state_base_path,
+            EXECUTION_TIME="2021-01-21T12:24:38.000000",
+            TASK_TOPIC_ARN="arn:aws:sns:us-east-1:012345678901:DataLake-Task-Processor-fake"
+        )
 
 
 @pytest.fixture
