@@ -9,7 +9,7 @@ from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @add_schema(unknowns=True)
@@ -31,6 +31,36 @@ class LambdaDAGExecutorTask(Task):
                 type="DAG",
                 execution_time=self._parameters.execution_time
             )
+
+            awslambda.invoke(
+                FunctionName=self._parameters.lambda_function,
+                InvocationType='Event',
+                Payload=json.dumps(payload)
+            )
+
+
+@add_schema(unknowns=True)
+@dataclass
+class LambdaTaskExecutorParameters:
+    dag: str
+    task: str
+    lambda_function: str
+    execution_time: str
+    unknowns: dict=None
+
+
+class LambdaTaskExecutorTask(Task):
+    PARAMETER_CLASS = LambdaTaskExecutorParameters
+
+    def run(self):
+        with AWSClient("lambda") as awslambda:
+            payload = dict(
+                dag=self._parameters.dag,
+                type="Task",
+                task=self._parameters.task,
+                execution_time=self._parameters.execution_time
+            )
+            LOGGER.debug('TaskProcessor event payload: %s', payload)
 
             awslambda.invoke(
                 FunctionName=self._parameters.lambda_function,
