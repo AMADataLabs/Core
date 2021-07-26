@@ -20,13 +20,12 @@ class AWSClient:
         self._client = None
 
     def _assume_new_role(self, assume_role):
-
         sts_client = boto3.client('sts', **self._kwargs)
-        assumed_role_object=sts_client.assume_role(
+        assumed_role_object = sts_client.assume_role(
             RoleArn=assume_role,
             RoleSessionName="datalabs"
         )
-        credentials=assumed_role_object['Credentials']
+        credentials = assumed_role_object['Credentials']
 
         self._kwargs["aws_session_token"] = credentials["SessionToken"]
         self._kwargs["aws_secret_access_key"] = credentials["SecretAccessKey"]
