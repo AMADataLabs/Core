@@ -113,3 +113,18 @@ class LocalDAGExecutorTask(Task):
             state_parameters["task"] = task
 
         return state_parameters
+
+
+@add_schema(unknowns=True)
+@dataclass
+class LocalTaskExecutorParameters:
+    dag: str
+    task: str
+    execution_time: str
+    dag_state_class: str
+    task_topic_arn: str
+    unknowns: dict=None
+
+
+class LocalTaskExecutorTask(Task):
+    PARAMETER_CLASS = LocalDAGExecutorParameters

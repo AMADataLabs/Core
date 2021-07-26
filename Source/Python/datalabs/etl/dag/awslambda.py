@@ -1,11 +1,16 @@
 """ Task wrapper for DAG and DAG task Lambda functions. """
+from   dataclasses import dataclass
 import json
 import logging
 import os
 
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
 from   datalabs.etl.task import ExecutionTimeMixin
+from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
+from   datalabs.etl.dag.state import Status
+from   datalabs.etl.dag.plugin import PluginExecutorMixin
 import datalabs.etl.dag.task
+from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -101,7 +106,23 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
         return dag_task_parameters
 
 
-class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAGTaskWrapper):
+@add_schema(unknowns=True)
+@dataclass
+class DAGTaskWrapperParameters:
+    dag: str
+    task: str
+    execution_time: str
+    unknowns: dict=None
+
+
+class DAGTaskWrapper(
+    DynamoDBTaskParameterGetterMixin,
+    ParameterValidatorMixin,
+    PluginExecutorMixin,
+    datalabs.etl.dag.task.DAGTaskWrapper
+):
+    PARAMETER_CLASS = DAGTaskWrapperParameters
+
     @classmethod
     def _get_runtime_parameters(cls, parameters):
         LOGGER.info('Event Parameters: %s', parameters)
@@ -115,9 +136,23 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
         return parameters
 
     def _handle_success(self) -> (int, dict):
+        parameters = self._get_validated_parameters(self._runtime_parameters)
+        state = self._get_plugin(self._parameters.task_state_class, self._parameters)
+
+        state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FINISHED)
+
+        self._notify_dag_processor()
+
         return "Success"
 
     def _handle_exception(self, exception) -> (int, dict):
+        parameters = self._get_validated_parameters(self._runtime_parameters)
+        state = self._get_plugin(self._parameters.task_state_class, self._parameters)
+
+        state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FAILED)
+
+        self._notify_dag_processor()
+
         LOGGER.error('Handling DAG task exception: %s', exception)
 
         return f'Failed: {str(exception)}'
@@ -132,3 +167,10 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
             dag_task_parameters["dag_class"] = self._runtime_parameters["dag_class"]
 
         return dag_task_parameters
+
+    def _notify_dag_processor(self):
+        if self._get_task_id() != "DAG":
+            dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
+            notifier = SNSDAGNotifier(dag_topic)
+
+            notifier.notify(self._get_dag_id(), self._get_execution_time())
