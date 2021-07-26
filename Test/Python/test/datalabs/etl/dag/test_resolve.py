@@ -8,9 +8,10 @@ from   datalabs.etl.dag.resolve import TaskResolver
 
 # pylint: disable=redefined-outer-name
 def test_task_resolver_gets_dag_executor(dag_parameters):
+    os.environ["DAG_CLASS"] = 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
     task_class = TaskResolver.get_task_class(dag_parameters)
 
-    assert task_class.__qualname__ == 'DAGExecutorTask'
+    assert task_class.__qualname__ == 'LocalDAGExecutorTask'
 
 
 # pylint: disable=redefined-outer-name, unused-argument
@@ -42,7 +43,7 @@ def dag_parameters():
     return dict(
         type="DAG",
         execution_time="2021-01-21T12:24:38+00.00",
-        dag_class=TestDAG
+        dag_class='test.datalabs.etl.dag.test_resolve.TestDAG'
     )
 
 
@@ -64,7 +65,7 @@ def task_parameters():
         type="Task",
         execution_time="2021-01-21T12:24:38+00.00",
         task="TestTask",
-        dag_class=TestDAG
+        dag_class='test.datalabs.etl.dag.test_resolve.TestDAG'
     )
 
 
@@ -74,5 +75,5 @@ def bad_type_parameters():
         type="Exercise",
         execution_time="2021-01-21T12:24:38+00.00",
         task="TestTask",
-        dag_class=TestDAG
+        dag_class='test.datalabs.etl.dag.test_resolve.TestDAG'
     )

@@ -47,6 +47,10 @@ class BadTaskWrapper(TaskWrapper):
 
 
 class GoodTaskWrapper(TaskWrapper):
+    @classmethod
+    def _merge_parameters(cls, parameters, new_parameters):
+        return parameters
+
     def _get_task_parameters(self):
         pass
 

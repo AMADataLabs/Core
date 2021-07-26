@@ -129,6 +129,10 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
 
         return task_parameters
 
+    @classmethod
+    def _merge_parameters(cls, parameters, new_parameters):
+        return parameters
+
     def _handle_exception(self, exception: ETLException):
         LOGGER.exception('Handling ETL task exception: %s', exception)
 

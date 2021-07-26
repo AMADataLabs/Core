@@ -4,3 +4,7 @@ Sandbox/*
 **/.terraform
 **/*.zip
 **/site-packages
+Bundle
+Source/Terraform/*
+Source/JavaScript/*
+Source/Postman/*

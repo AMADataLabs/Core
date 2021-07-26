@@ -4,85 +4,131 @@ import logging
 import os
 
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
-import datalabs.etl.dag.task as task
-from   datalabs.plugin import import_plugin
+from   datalabs.etl.task import ExecutionTimeMixin
+import datalabs.etl.dag.task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class DAGTaskWrapper(task.DAGTaskWrapper):
+class DynamoDBTaskParameterGetterMixin:
+    # pylint: disable=redefined-outer-name
+    @classmethod
+    def _get_dag_task_parameters_from_dynamodb(cls, dag: str, task: str):
+        parameters = {}
+
+        dynamodb_loader = DynamoDBEnvironmentLoader(dict(
+            table=os.environ["DYNAMODB_CONFIG_TABLE"],
+            dag=dag,
+            task=task
+        ))
+        dynamodb_loader.load(environment=parameters)
+
+        return parameters
+
+
+class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAGTaskWrapper):
+    def _get_runtime_parameters(self, parameters):
+        LOGGER.debug('Event: %s', parameters)
+        event_parameters = None
+
+        if not hasattr(parameters, "items"):
+            raise ValueError(f'Invalid Lambda event: {parameters}')
+
+        event_parameters = self._get_sns_event_parameters(parameters)
+
+        if len(event_parameters) == 1 and 'Records' in event_parameters:
+            event_parameters = self._get_s3_event_parameters(event_parameters)
+
+        if "task" not in event_parameters:
+            event_parameters["task"] = "DAG"
+
+        return event_parameters
+
+    @classmethod
+    def _get_sns_event_parameters(cls, event):
+        ''' An SNS notification implies either the DAG Processor or the Task Processor,
+             so just return the deserialized event message as the parameters.
+        '''
+        record = event.get("Records", [{}])[0]
+        event_source = record.get("EventSource", record.get("eventSource"))
+
+        if event_source != 'aws:sns':
+            raise ValueError(f'Invalid SNS event: {event}')
+
+        return json.loads(record["Sns"]["Message"])
+
+
+    def _get_s3_event_parameters(self, event):
+        ''' An S3 notification implies that the DAG Scheduler should be run, so return appropriate
+            parameters for the DAG Processor assuming the DAG Scheduler as the DAG to execute.
+        '''
+        record = event.get("Records", [{}])[0]
+        event_source = record.get("EventSource", record.get("eventSource"))
+        dag = "DAG_SCHEDULER"
+
+        if event_source != 'aws:s3':
+            raise ValueError(f'Invalid S3 notification event: {event}')
+
+        return dict(
+            dag=dag,
+            execution_time=self.execution_time.isoformat()
+        )
+
     def _handle_success(self) -> (int, dict):
         return "Success"
 
     def _handle_exception(self, exception) -> (int, dict):
-        LOGGER.error('Handling ETL task exception: %s', exception)
+        LOGGER.error('Handling DAG task exception: %s', exception)
 
         return f'Failed: {str(exception)}'
 
-    def _get_dag_parameters(self):
-        dag_parameters = super()._get_dag_parameters()
-
-        dynamodb_loader = DynamoDBEnvironmentLoader(dict(
-            table=os.environ["DYNAMODB_CONFIG_TABLE"],
-            dag=self._get_dag_id(),
-            task="GLOBAL"
-        ))
-        dynamodb_loader.load(environment=dag_parameters)
-
-        dag_parameters["DAG_CLASS"] = import_plugin(os.environ["DAG_CLASS"])
-        dag_parameters["STATE_CLASS"] = import_plugin(os.environ["STATE_CLASS"])
-
-        return dag_parameters
-
     def _get_dag_task_parameters(self):
-        dag_task_parameters = super()._get_dag_task_parameters()
+        ''' Get parameters for either the DAG Processor or the Task Processor. '''
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        dag_task_parameters = dict(
+            dag=dag,
+            execution_time=self._get_execution_time(),
+        )
 
-        dag_task_parameters.update(self._get_event_parameters(self._parameters))
+        dag_task_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
 
-        if self._parameters["type"] == 'Task':
-            dynamodb_loader = DynamoDBEnvironmentLoader(dict(
-                table=os.environ["DYNAMODB_CONFIG_TABLE"],
-                dag=self._get_dag_id(),
-                task=self._get_task_id()
-            ))
-            dynamodb_loader.load(environment=dag_task_parameters)
+        if task != "DAG":
+            dag_task_parameters["task"] = task
 
         return dag_task_parameters
 
-    def _get_dag_id(self):
-        return self._parameters["dag"]
 
-    def _get_task_id(self):
-        return self._parameters.get("task")
-
+class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAGTaskWrapper):
     @classmethod
-    def _get_event_parameters(cls, event):
-        LOGGER.info('Event Parameters: %s', event)
+    def _get_runtime_parameters(cls, parameters):
+        LOGGER.info('Event Parameters: %s', parameters)
+        dag_parameters = cls._get_dag_task_parameters_from_dynamodb(parameters["dag"], "DAG")
 
-        return event
+        parameters["dag_class"] = dag_parameters["DAG_CLASS"]
 
+        if "task" not in parameters:
+            parameters["task"] = "DAG"
 
-class ProcessorWrapper(DAGTaskWrapper):
-    @classmethod
-    def _get_event_parameters(cls, event):
-        LOGGER.debug('Event: %s', event)
-        event_parameters = {}
+        return parameters
 
-        if not hasattr(event, "items") or 'Records' not in event:
-            raise ValueError(f'Invalid SNS event: {event}')
+    def _handle_success(self) -> (int, dict):
+        return "Success"
 
-        for record in event["Records"]:
-            if record.get("EventSource") == 'aws:sns':
-                event_parameters = json.loads(record["Message"])
+    def _handle_exception(self, exception) -> (int, dict):
+        LOGGER.error('Handling DAG task exception: %s', exception)
 
-                break
+        return f'Failed: {str(exception)}'
 
-        if len(event_parameters) == 1 and 'Records' in event_parameters:
-            event_parameters = {}
+    def _get_dag_task_parameters(self):
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
 
-        return event_parameters
+        if task == 'DAG':
+            dag_task_parameters["dag"] = dag
+            dag_task_parameters["dag_class"] = self._runtime_parameters["dag_class"]
 
-    def _get_task_id(self):
-        return ""
+        return dag_task_parameters
