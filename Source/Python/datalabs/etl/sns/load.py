@@ -14,8 +14,8 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class SNSLoaderParameters:
-    topic: str
+class SNSMessageLoaderParameters:
+    topic_arn: str
     data: object
     endpoint_url: str = None
     access_key: str = None
@@ -23,18 +23,20 @@ class SNSLoaderParameters:
     region_name: str = None
 
 
-class SNSLoaderLoaderTask(LoaderTask):
-    PARAMETER_CLASS = SNSLoaderParameters
+class SNSMessageLoaderTask(LoaderTask):
+    PARAMETER_CLASS = SNSMessageLoaderParameters
 
-    def _get_client(self):
-        return AWSClient(
+    def _load(self):
+        with AWSClient(
             'sns',
             endpoint_url=self._parameters.endpoint_url,
             aws_access_key_id=self._parameters.access_key,
             aws_secret_access_key=self._parameters.secret_key,
             region_name=self._parameters.region_name
-        )
-
-    def _load(self):
-        # implement
-        pass
+        ) as sns:
+            for message in self._parameters.data:
+                LOGGER.info('Publishing the following message to %s: %s', self._parameters.topic_arn, message)
+                sns.publish(
+                    TargetArn=self._parameters.topic_arn,
+                    Message=message.decode('utf-8')
+                )
