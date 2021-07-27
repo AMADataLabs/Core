@@ -72,6 +72,7 @@ class JDBCExtractorTask(ExtractorTask):
         return data.to_csv().encode('utf-8')
 
     def _read_query(self, query, connection):
+        LOGGER.info('Sending query: %s', query)
         result = None
 
         if self._parameters.chunk_size is not None:
