@@ -25,6 +25,7 @@
     AMA/CPT/20200401/standard/SHORTU.txt
 """
 import logging
+import tempfile
 
 from   dataclasses import dataclass
 from   guppy import hpy
@@ -56,6 +57,7 @@ class S3FileExtractorParameters:
     include_names: str = None
     include_datestamp: str = None
     execution_time: str = None
+    on_disk: str = False
     data: object = None
 
 
@@ -103,10 +105,18 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
 
-        body = response['Body'].read()
+        if self._parameters.on_disk == 'True':
+            with tempfile.NamedTemporaryFile() as temp_file:
+                with open(temp_file.name, 'w') as file:
+                    for chunk in response['Body'].iter_chunks(1024*1024):
+                        file.write(chunk.decode("utf-8"))
+            import pdb
+            pdb.set_trace()
+            return temp_file.name
+
         LOGGER.info(f'Post extraction memory {(hpy().heap())}')
 
-        return body
+        return response['Body'].read()
 
     def _get_latest_path(self):
         release_folder = self._get_release_folder()
