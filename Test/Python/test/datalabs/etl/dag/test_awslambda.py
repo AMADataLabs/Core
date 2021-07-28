@@ -25,11 +25,13 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
     wrapper = ProcessorTaskWrapper()
     parameters = wrapper._get_runtime_parameters(s3_event)
 
-    assert len(parameters) == 2
+    assert len(parameters) == 3
     assert "dag" in parameters
     assert parameters["dag"] == "DAG_SCHEDULER"
     assert "execution_time" in parameters
     assert hasattr(parameters["execution_time"], "upper")
+    assert "task" in parameters
+    assert parameters["task"] == "DAG"
 
 
 @pytest.mark.skipif(

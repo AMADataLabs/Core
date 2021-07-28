@@ -1,11 +1,14 @@
 """ Source: datalabs.etl.dag.process """
 import json
 import os
+import tempfile
 
+import mock
 import pytest
 
+from   datalabs.etl.dag.dag import DAG
+from   datalabs.task import Task
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.dag.state.file import DAGState
 from   datalabs.etl.dag.process import DAGProcessorTask, TaskProcessorTask
 
 
@@ -13,7 +16,8 @@ from   datalabs.etl.dag.process import DAGProcessorTask, TaskProcessorTask
 def test_dag_processor_runs(dag_parameters):
     dag_processor = DAGProcessorTask(dag_parameters)
 
-    dag_processor.run()
+    with mock.patch('datalabs.etl.dag.notify.sns.AWSClient'):
+        dag_processor.run()
 
 
 # pylint: disable=redefined-outer-name
@@ -59,36 +63,49 @@ def test_trigger_task_processor_via_sns():
             Message=message
         )
 
-class TestDAG:
-    # pylint: disable=unused-argument
-    @classmethod
-    def task_class(cls, name):
-        return TestTask
+
+class TestTask(Task):
+    def run(self):
+        pass
 
 
-class TestTask:
-    pass
+class TestDAG(DAG):
+    DO_THIS: TestTask
+    DO_THAT: TestTask
+    FINISH_UP: TestTask
+
+
+# pylint: disable=pointless-statement
+TestDAG.DO_THIS >> TestDAG.DO_THAT >> TestDAG.FINISH_UP
 
 
 @pytest.fixture
 def dag_parameters():
-    return dict(
-        DAG="TestDAG",
-        DAG_CLASS=TestDAG,
-        DAG_STATE_CLASS=DAGState,
-        EXECUTION_TIME="2021-01-21T12:24:38+00.00"
-    )
+    with tempfile.TemporaryDirectory() as state_base_path:
+        yield dict(
+            DAG="TEST_DAG",
+            DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
+            DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+            DAG_EXECUTOR_CLASS='datalabs.etl.dag.execute.local.LocalDAGExecutorTask',
+            EXECUTION_TIME="2021-01-21T12:24:38.000000",
+            BASE_PATH=state_base_path,
+            TASK_TOPIC_ARN="arn:aws:sns:us-east-1:012345678901:DataLake-Task-Processor-fake"
+        )
 
 
 @pytest.fixture
 def task_parameters():
-    return dict(
-        DAG="TestDAG",
-        TASK="TestTask",
-        DAG_CLASS=TestDAG,
-        DAG_STATE_CLASS=DAGState,
-        EXECUTION_TIME="2021-01-21T12:24:38+00.00",
-    )
+    with tempfile.TemporaryDirectory() as state_base_path:
+        return dict(
+            DAG="TEST_DAG",
+            TASK="DO_THIS",
+            DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
+            DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+            TASK_EXECUTOR_CLASS='datalabs.etl.dag.execute.local.LocalDAGExecutorTask',
+            BASE_PATH=state_base_path,
+            EXECUTION_TIME="2021-01-21T12:24:38.000000",
+            TASK_TOPIC_ARN="arn:aws:sns:us-east-1:012345678901:DataLake-Task-Processor-fake"
+        )
 
 
 @pytest.fixture

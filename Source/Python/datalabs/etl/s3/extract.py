@@ -23,6 +23,12 @@
     the following files would be extracted as strings by the S3WindowsTextExtractorTask:
     AMA/CPT/20200401/standard/MEDU.txt
     AMA/CPT/20200401/standard/SHORTU.txt
+
+    If ASSUME_ROLE parameter is set to a RoleARN which looke liks:
+    'arn:aws:iam::191296302136:role/dev-ama-apigateway-invoke-role'
+    It will first assume that the ACCESS_KEY and SECRET_KEY parameters are the credentials for assuming
+    a new temporary role (previously would've been set as the 'apigw' profile). Then the Extract process
+    will carry on with the temporary role just assumed.
 """
 import logging
 
@@ -57,6 +63,7 @@ class S3FileExtractorParameters:
     include_datestamp: str = None
     execution_time: str = None
     data: object = None
+    assume_role: str = None
 
 
 # pylint: disable=too-many-ancestors
@@ -69,7 +76,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             endpoint_url=self._parameters.endpoint_url,
             aws_access_key_id=self._parameters.access_key,
             aws_secret_access_key=self._parameters.secret_key,
-            region_name=self._parameters.region_name
+            region_name=self._parameters.region_name,
+            assume_role=self._parameters.assume_role
         )
 
     def _get_files(self):
