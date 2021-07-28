@@ -34,7 +34,6 @@ import logging
 import tempfile
 
 from   dataclasses import dataclass
-from   guppy import hpy
 
 from   dateutil.parser import isoparse
 
@@ -105,7 +104,6 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=logging-fstring-interpolation
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
-        LOGGER.info(f'Pre extraction memory {(hpy().heap())}')
         try:
             response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
         except Exception as exception:
@@ -118,11 +116,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                 with open(temp_file.name, 'w') as file:
                     for chunk in response['Body'].iter_chunks(1024*1024):
                         file.write(chunk.decode("utf-8"))
-            import pdb
-            pdb.set_trace()
             return temp_file.name
-
-        LOGGER.info(f'Post extraction memory {(hpy().heap())}')
 
         return response['Body'].read()
 
