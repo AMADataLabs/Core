@@ -1,10 +1,12 @@
+""" VT Contact Request Sample Generation """
 from dataclasses import dataclass
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 import logging
 import os
+import sys
+from dateutil.relativedelta import relativedelta
 import pandas as pd
-
+# pylint: disable=import-error,unused-import
 from datalabs.access.aims import AIMS
 from datalabs.access.edw import EDW, PartyKeyType
 from datalabs.analysis.vertical_trail.physician_contact.archive import VTPhysicianContactArchive
@@ -31,10 +33,12 @@ class EDWData:
     party_key_data: pd.DataFrame = pd.DataFrame()
 
 
+# pylint: disable=too-many-instance-attributes,logging-fstring-interpolation,logging-too-many-args
 class VTPhysicianContactSampleGenerator:
     def __init__(self, archive: VTPhysicianContactArchive = None, survey_type: str = None):
         self._survey_type = survey_type
         self._target_sample_vars = []
+        self._target_deliverable_columns = []
 
         self._sample_size = None
         self._save_dir = None
@@ -66,7 +70,7 @@ class VTPhysicianContactSampleGenerator:
             proceed = input('PROCEED? Y/N').capitalize()
             if proceed != 'Y':
                 print('EXITING.')
-                quit()
+                sys.exit()
         LOGGER.info('CREATING SAMPLE')
         self._make_sample(population_data, size=self._sample_size)
 
@@ -77,7 +81,7 @@ class VTPhysicianContactSampleGenerator:
         self._target_sample_vars = self._archive.expected_file_columns.samples
         self._target_deliverable_columns = self._archive.expected_file_columns.samples
         self._months_me_block = os.environ.get('MONTHS_ME_BLOCK')
-        self._sample_size = os.environ.get(f'SAMPLE_SIZE_VERTICAL_TRAIL')
+        self._sample_size = os.environ.get('SAMPLE_SIZE_VERTICAL_TRAIL')
 
     def _load_database_data(self):
         self._load_edw_data()
@@ -173,12 +177,12 @@ class VTPhysicianContactSampleGenerator:
         data['medschool_key'] = data['MEDSCHOOL_STATE'] + data['MEDSCHOOL_ID']
 
         data.rename(columns={'PARTY_ID': 'PHYSICIAN_PARTY_ID'}, inplace=True)
-        self.edw_data.party_key_data['KEY_VAL'] = self.edw_data.party_key_data['KEY_VAL'].astype(str)
+        self.edw_data.party_key_data['SCHOOL'] = self.edw_data.party_key_data['SCHOOL'].astype(str)
         data = data.merge(
             self.edw_data.party_key_data,
             how='left',
             left_on='medschool_key',
-            right_on='KEY_VAL'
+            right_on='SCHOOL'
         )
         self.edw_data.medschool_names.rename(columns={'PARTY_ID': 'MEDSCHOOL_PARTY_ID'}, inplace=True)
 
@@ -227,7 +231,7 @@ class VTPhysicianContactSampleGenerator:
         )
         entity_ids = filtered_entity_comm_data['entity_id'].drop_duplicates().values
 
-        old_phone_data, old_phone_columns = self._get_old_phone_data(
+        old_phone_data, _ = self._get_old_phone_data(
             historical_phone_data=filtered_entity_comm_data,
             entity_ids=entity_ids
         )
@@ -246,7 +250,7 @@ class VTPhysicianContactSampleGenerator:
             name = 'oldphone' + str((i + 1))
             old_phone_data[name] = ''
 
-        for entity_id in temp_phone_dict.keys():
+        for entity_id in temp_phone_dict:
             phone_list = temp_phone_dict[entity_id]['old_phones']
             entity_id_index = old_phone_data[old_phone_data['entity_id'] == entity_id].index[0]
 
@@ -267,7 +271,7 @@ class VTPhysicianContactSampleGenerator:
     def _get_temp_phone_dict(cls, historical_phone_data, entity_ids) -> dict:
         temp_phone_dict = {}
         max_phones = 0  # the maximum number of old phones found for any one individual
-        for i in range(len(entity_ids)):
+        for i, entity_id in enumerate(entity_ids):
             temp_df = historical_phone_data[historical_phone_data['entity_id'] == entity_ids[i]]
             temp_phones = list(temp_df['aims_phone'])
 
@@ -275,9 +279,9 @@ class VTPhysicianContactSampleGenerator:
             if num_phones > max_phones:
                 max_phones = num_phones
 
-            temp_phone_dict[entity_ids[i]] = {}
-            temp_phone_dict[entity_ids[i]]['num_phones'] = len(temp_phones)
-            temp_phone_dict[entity_ids[i]]['old_phones'] = temp_phones
+            temp_phone_dict[entity_id] = {}
+            temp_phone_dict[entity_id]['num_phones'] = len(temp_phones)
+            temp_phone_dict[entity_id]['old_phones'] = temp_phones
 
         temp_phone_dict['max'] = max_phones
         return temp_phone_dict
@@ -341,6 +345,7 @@ class VTPhysicianContactSampleGenerator:
         data = data.merge(self.aims_data.pe_descriptions, left_on='PE_CD', right_on='present_emp_cd', how='left')
         return data
 
+    # pylint: disable=abstract-class-instantiated
     def _make_deliverable_sample(self, sample):
         deliverable = sample.drop(
             columns=[
@@ -354,7 +359,7 @@ class VTPhysicianContactSampleGenerator:
         sample_save_path = self._save_dir + sample_name
         writer = pd.ExcelWriter(sample_save_path, engine='xlsxwriter')
 
-        LOGGER.info('SAVING SAMPLE TO {}'.format(sample_save_path))
+        LOGGER.info(f'SAVING SAMPLE TO {sample_save_path}')
         deliverable.to_excel(excel_writer=writer, index=None)
         writer.save()
 
