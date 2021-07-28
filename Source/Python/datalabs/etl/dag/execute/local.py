@@ -56,6 +56,7 @@ class LocalDAGExecutorTask(Task):
     # pylint: disable=assignment-from-no-return
     def execute(self, task):
         status = self._get_task_status(task)
+        LOGGER.info('Task "%s" of DAG "%s" is ready? %s', task.id, self._parameters.dag, task.ready)
 
         if status == Status.UNKNOWN and task.ready:
             self._trigger_task(task)
