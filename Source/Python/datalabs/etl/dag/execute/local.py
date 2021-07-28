@@ -7,6 +7,7 @@ import paradag
 
 from   datalabs.etl.dag.state import Status
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
+from   datalabs.etl.dag.task import DAGTaskWrapper
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
@@ -128,3 +129,9 @@ class LocalTaskExecutorParameters:
 
 class LocalTaskExecutorTask(Task):
     PARAMETER_CLASS = LocalDAGExecutorParameters
+
+    def run(self):
+        parameters = f'{self._parameters.dag}__{self._parameters.task}__{self.parameters.execution_time}'
+        task_wrapper = DAGTaskWrapper(parameters=parameters)
+
+        task_wrapper.run()
