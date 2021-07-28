@@ -25,11 +25,11 @@ COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/AMC ./Build/AMC
 COPY ./Source ./Source
-COPY ./Build/AMC/known_hosts $HOME/.ssh/known_hosts
+# COPY ./Build/AMC/known_hosts $HOME/.ssh/known_hosts
 
 ARG template_vars
 RUN echo $template_vars
-COPY ./Build/AMC/*.env ./
+COPY ./Build/AMC/*.env.jinja ./
 
 RUN find ./ -name "*.env.jinja" -exec \
    ./Script/render-template \
