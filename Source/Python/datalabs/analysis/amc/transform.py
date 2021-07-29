@@ -6,11 +6,8 @@ from datalabs.etl.transform import TransformerTask
 
 
 # pylint: disable=no-self-use
-class FlaggedAddressReportTask(TransformerTask):
-    # PARAMETER_CLASS = FlaggedAddressReportParameters  # these parameters are required for loader, not transformer
-
+class AMCAddressFlaggingTransformer(TransformerTask):
     def _transform(self):
-        flagger = AMCAddressFlagger()  # returns Bytes-like, [xlsx_data, report_summary]
+        flagger = AMCAddressFlagger(self._data)  # returns list of Bytes-like, [xlsx_data, report_summary]
 
-        # run() must return the report data as a list of byte strings
         return flagger.run()
