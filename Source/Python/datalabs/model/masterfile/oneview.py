@@ -105,7 +105,6 @@ class Physician(Base):
     national_provider_identifier = sa.Column(sa.String)
     party_id = sa.Column(sa.String)
     entity_id = sa.Column(sa.String)
-    type = sa.Column(sa.String, nullable=False)
     race_ethnicity = sa.Column(sa.String, nullable=False)
 
 
