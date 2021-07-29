@@ -51,6 +51,9 @@ class DAGTask:
     def block(self):
         self._ready = False
 
+    def unblock(self):
+        self._ready = True
+
 
 class DAGMeta(type):
     # pylint: disable=bad-mcs-classmethod-argument
