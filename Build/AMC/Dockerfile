@@ -6,8 +6,6 @@
 FROM python:3.7
 ENV PYTHONPATH=/AMC:/AMC/site-packages
 ENV CLASSPATH=/AMC
-#ENV AWS_SHARED_CREDENTIALS_FILE=/AMC/.aws/credentials
-ENV AWS_DEFAULT_REGION=us-east-1
 ENV HOME=/AMC
 WORKDIR $HOME
 
@@ -20,16 +18,18 @@ RUN apt-get update && apt-get install -y openjdk-11-jre
 ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
 RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
 RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
+RUN unzip ./InformixJdbcDriver.zip && rm ./InformixJdbcDriver.zip
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/AMC ./Build/AMC
 COPY ./Source ./Source
-COPY ./Build/AMC/known_hosts $HOME/.ssh/known_hosts
 
 ARG template_vars
 RUN echo $template_vars
 COPY ./Build/AMC/*.env ./
+COPY ./Build/AMC/*.env.jinja ./
 
 RUN find ./ -name "*.env.jinja" -exec \
    ./Script/render-template \
