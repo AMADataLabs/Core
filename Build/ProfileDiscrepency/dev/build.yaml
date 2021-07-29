@@ -30,7 +30,7 @@ spec:
     dockerStrategy:
       dockerfilePath: Build/ProfileDiscrepency/dev/Dockerfile
       from:
-        kind: ImageStreamTag
+        kind: DockerImage
         name: anapsix/alpine-java:8u121b13_jdk
     type: Docker
   successfulBuildsHistoryLimit: 5
