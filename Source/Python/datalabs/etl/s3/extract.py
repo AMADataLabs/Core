@@ -112,7 +112,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             ) from exception
 
         if self._parameters.on_disk == 'True':
-            with tempfile.NamedTemporaryFile() as temp_file:
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
                 with open(temp_file.name, 'w') as file:
                     for chunk in response['Body'].iter_chunks(1024*1024):
                         file.write(chunk.decode("utf-8"))
