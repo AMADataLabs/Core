@@ -8,7 +8,7 @@ metadata:
   labels:
     app: Airflow
   name: airflow-worker
-  namespace: hsg-data-labs-dev
+  namespace: hsg-data-labs-prod
 spec:
   failedBuildsHistoryLimit: 5
   nodeSelector: null
@@ -24,7 +24,7 @@ spec:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
       ref: prod
     sourceSecret:
-      name: bitbucketprd
+      name: bitbucket
     type: Git
   strategy:
     dockerStrategy:
