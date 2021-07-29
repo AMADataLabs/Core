@@ -14,9 +14,6 @@ from datalabs.parameter import add_schema
 class AMCLoaderParameters:
     to: str or [str]
     cc: str or [str]
-    body: str
-    from_account: str
-    data: [Attachment]
 
 
 class AMCReportSMTPLoader(LoaderTask):
@@ -31,8 +28,7 @@ class AMCReportSMTPLoader(LoaderTask):
             to=self._parameters.to,
             cc=self._parameters.cc,
             subject=f'AMC Sweep Results - {date}',
-            body=self._parameters.body,
+            body=self._data[1].read(),
             attachments=[file],
-            from_account=self._parameters.from_account
-
+            from_account='datalabbs@ama-assn.org'
         )
