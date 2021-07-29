@@ -115,7 +115,7 @@ spec:
         name: airflow-scheduler
     - name: id-rsa
       secret:
-        secretName: bitbucketprd
+        secretName: bitbucket
         defaultMode: 420
         items:
           - key: ssh-privatekey

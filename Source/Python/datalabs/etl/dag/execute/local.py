@@ -42,8 +42,7 @@ class LocalDAGExecutorTask(Task):
 
         tasks = paradag.dag_run(
             dag,
-            # processor=paradag.MultiThreadProcessor(),
-            processor=paradag.SequentialProcessor(),
+            processor=paradag.MultiThreadProcessor(),
             executor=self
         )
 
@@ -68,6 +67,8 @@ class LocalDAGExecutorTask(Task):
         if predecessor_result != Status.FINISHED:
             LOGGER.info('Blocking task "%s" of DAG "%s"', task.id, self._parameters.dag)
             task.block()
+        else:
+            task.unblock()
 
     def _set_dag_status_from_task_statuses(self, task_statuses):
         dag_state = self._parameters.dag_state_class(self._get_state_parameters())
