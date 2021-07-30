@@ -14,20 +14,6 @@
 
 FROM anapsix/alpine-java:8u121b13_jdk
 
-ARG jira_username
-ARG jira_password
-ARG apigw_aws_access_key
-ARG apigw_aws_secret_key
-ARG talend_aws_access_key
-ARG talend_aws_secret_key
-
-ENV JIRA_USERNAME=${jira_username}
-ENV JIRA_PASSWORD=${jira_password}
-ENV APIGW_AWS_ACCESS_KEY=${apigw_aws_access_key}
-ENV APIGW_AWS_SECRET_KEY=${apigw_aws_secret_key}
-ENV TALEND_AWS_ACCESS_KEY=${talend_aws_access_key}
-ENV TALEND_AWS_SECRET_KEY=${talend_aws_secret_key}
-
 # Adding curl
 WORKDIR /opt
 RUN apk --no-cache add curl
