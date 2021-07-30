@@ -25,17 +25,17 @@ COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/AMC ./Build/AMC
 COPY ./Source ./Source
+# COPY ./Build/AMC/known_hosts $HOME/.ssh/known_hosts
 
 ARG template_vars
 RUN echo $template_vars
-COPY ./Build/AMC/*.env ./
 COPY ./Build/AMC/*.env.jinja ./
 
-RUN find ./ -name "*.env.jinja" -exec \
-   ./Script/render-template \
-    --template {} \
-    --file $(echo {} | sed 's/.jinja//') \
-   --vars pythonpath=/AMC,$template_vars \;
+RUN find ./ -name "*.env.jinja" | sed 's/.jinja//' | xargs -t -I {}\
+    ./Script/render-template \
+    --template {}.jinja \
+    --file {} \
+    --vars pythonpath=/AMC,$template_vars
 RUN ./Script/bundle-project -i --directory ./ AMC
 
 RUN rm -rf ./Script
