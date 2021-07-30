@@ -14,25 +14,19 @@ modspec:
       - parameter
       - plugin
       - task
-      - awslambda
   - package: datalabs.access
     include:
-      - aws
       - credentials
       - database
       - datastore
       - environment
-      - etcd
-      - sftp
-  - package: datalabs.access.parameter
-    include:
-    - system
-    - etcd
+      - excel
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
-  - package: datalabs.etl.contactid
   - package: datalabs.etl.fs
   - package: datalabs.etl.jdbc
-  - package: datalabs.etl.sftp
-  - package: datalabs.etl.s3
+  - package: datalabs.analysis.amc
+  - package: datalabs.messaging
+    include:
+      - email_message

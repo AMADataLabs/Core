@@ -8,10 +8,8 @@ import numpy as np
 import pandas as pd
 
 # pylint: disable=import-error
-from datalabs.access.aims import AIMS
 from datalabs.access import excel
 from datalabs.analysis.amc.keywords import FALSE_POSITIVES, load_flagwords
-from datalabs.analysis.amc.sql import AMC_QUERY
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -20,7 +18,8 @@ LOGGER.setLevel(logging.INFO)
 
 # pylint: disable=too-many-locals, too-many-instance-attributes, invalid-name
 class AMCAddressFlagger:
-    def __init__(self):
+    def __init__(self, data: pd.DataFrame = None):
+        self._data = data
         self._today_date = str(datetime.now().date())
 
         self._output_file_password = None
@@ -31,7 +30,10 @@ class AMCAddressFlagger:
 
         return flag_words
 
+    # if running locally
     def _get_amc_address_data(self):
+        from datalabs.access.aims import AIMS
+        from datalabs.analysis.amc.sql import AMC_QUERY
         with AIMS() as aims:
             data = aims.read(sql=AMC_QUERY, coerce_float=False)
         return self._clean_str_data(data)
@@ -137,8 +139,8 @@ class AMCAddressFlagger:
 
         return any(t in flag_words for t in tokens)
 
-    @classmethod
-    def _clean_str_data(cls, data: pd.DataFrame):
+    def _clean_str_data(self, data: pd.DataFrame):
+        data = self._data.copy()
         data.fillna('', inplace=True)
         data.replace(np.nan, '', inplace=True, regex=True)
 
@@ -154,7 +156,7 @@ class AMCAddressFlagger:
         data['usg_begin_dt'] = data['usg_begin_dt'].apply(lambda x: x[:x.index(':')] if ':' in x else x)
         data['usg_begin_dt'] = pd.to_datetime(data['usg_begin_dt'])
 
-        return data
+        return data.drop_duplicates()
 
     def _get_flagged_data_and_summary(self, data):
         LOGGER.info('\tAdding flag indicator columns:')
@@ -218,23 +220,26 @@ class AMCAddressFlagger:
 
         flagged_data = data[data['any_flag']]
         flagged_data['date_checked'] = self._today_date
+        flagged_data.drop_duplicates(inplace=True)
 
         return flagged_data, results_summary
 
     def _save_output(self, data: pd.DataFrame) -> BytesIO:
+        data.drop_duplicates(inplace=True)
         file = BytesIO()
         file = excel.save_formatted_output(data, file, 'AMC Address Sweep')
         # excel.add_password_to_xlsx(self._output_file, self._output_file_password)  # can only do on Windows?
         return file
 
     def run(self):
-        LOGGER.info('Querying active amc-sourced address data.')
-        data = self._get_amc_address_data()
+        if self._data is None:
+            LOGGER.info('Querying active amc-sourced address data.')
+            self._data = self._get_amc_address_data()
+
         LOGGER.info('Cleaning data.')
-        data = self._clean_str_data(data).drop_duplicates()
+        data = self._clean_str_data()
 
         flagged_data, summary = self._get_flagged_data_and_summary(data)
-        flagged_data.drop_duplicates(inplace=True)
 
         report_body = \
             f"""
