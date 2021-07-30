@@ -32,6 +32,7 @@ class S3FileLoaderParameters:
     include_datestamp: str = None
     execution_time: str = None
     assume_role: str = None
+    on_disk: str = False
 
 
 class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
@@ -53,6 +54,11 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
         return ['/'.join((current_path, file.strip())) for file in self._parameters.files.split(',')]
 
     def _load_file(self, data, file):
+        if self._parameters.on_disk == 'True':
+            data = self._read_data_from_file(data)
+
+        import pdb
+        pdb.set_trace()
         try:
             body = self._encode(data)
         except Exception as exception:
@@ -89,6 +95,11 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
     def _encode(self, data):
         return data
 
+    def _read_data_from_file(self, file):
+        file = open(file, "r")
+        data = file.read()
+
+        return data
 
 # pylint: disable=too-many-ancestors
 class S3UnicodeTextFileLoaderTask(S3FileLoaderTask):
