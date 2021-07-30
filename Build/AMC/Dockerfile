@@ -20,6 +20,8 @@ RUN apt-get update && apt-get install -y openjdk-11-jre
 ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
 RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
 RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
+RUN unzip ./InformixJdbcDriver.zip && rm ./InformixJdbcDriver.zip
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
@@ -31,11 +33,11 @@ ARG template_vars
 RUN echo $template_vars
 COPY ./Build/AMC/*.env.jinja ./
 
-RUN find ./ -name "*.env.jinja" -exec \
-   ./Script/render-template \
-    --template {} \
-    --file $(echo {} | sed 's/.jinja//') \
-   --vars pythonpath=/AMC,$template_vars \;
+RUN find ./ -name "*.env.jinja" | sed 's/.jinja//' | xargs -t -I {}\
+    ./Script/render-template \
+    --template {}.jinja \
+    --file {} \
+    --vars pythonpath=/AMC,$template_vars
 RUN ./Script/bundle-project -i --directory ./ AMC
 
 RUN rm -rf ./Script
