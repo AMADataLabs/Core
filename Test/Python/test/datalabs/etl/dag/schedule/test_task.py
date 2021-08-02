@@ -146,7 +146,7 @@ def state_directory():
 def parameters(state_directory):
     return dict(
         INTERVAL_MINUTES='15',
-        STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+        DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
         BASE_PATH=state_directory
     )
 
