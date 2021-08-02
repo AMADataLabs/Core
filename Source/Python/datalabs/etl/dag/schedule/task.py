@@ -1,6 +1,7 @@
 """ Convert a DAG schedule into a list of DAGs to run. """
 from   dataclasses import dataclass
 from   datetime import datetime, timedelta
+from   dateutil.parser import isoparse
 from   functools import partial
 from   io import BytesIO
 import logging
@@ -25,6 +26,7 @@ LOGGER.setLevel(logging.INFO)
 class DAGSchedulerParameters:
     interval_minutes: str
     dag_state_class: str
+    execution_time: str
     data: object = None
     unknowns: dict = None
 
@@ -48,7 +50,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
 
     # pylint: disable=no-self-use
     def _get_target_execution_time(self):
-        return datetime.utcnow()
+        return isoparse(self._parameters.execution_time)
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
         base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
