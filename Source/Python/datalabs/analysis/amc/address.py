@@ -9,7 +9,7 @@ import pandas as pd
 
 # pylint: disable=import-error
 from datalabs.access import excel
-from datalabs.analysis.amc.keywords import FALSE_POSITIVES, load_flagwords
+from datalabs.analysis.amc.keywords import FALSE_POSITIVES, FLAGWORDS
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -124,7 +124,7 @@ class AMCAddressFlagger:
 
         return flag
 
-    def _contains_flagword(self, address_string, flag_words):
+    def _contains_flagword(self, address_string):
         """
         We want to avoid false positive markers from flagging the method that checks for flag words.
         this is done by removing the text of false positives from the aggregated address text before
@@ -137,7 +137,7 @@ class AMCAddressFlagger:
 
         tokens = address_string.split()
 
-        return any(t in flag_words for t in tokens)
+        return any(t in FLAGWORDS for t in tokens)
 
     def _clean_str_data(self, data: pd.DataFrame):
         data = self._data.copy()
@@ -171,9 +171,8 @@ class AMCAddressFlagger:
         LOGGER.info('\t\tzip')
         data['zip_flagged'] = data['zip'].apply(self._is_flagged_zip)
 
-        flag_words = self._get_flag_words()
         LOGGER.info('\t\tflagwords')
-        data['contains_flag_word'] = data['address'].apply(lambda x: self._contains_flagword(x, flag_words))
+        data['contains_flag_word'] = data['address'].apply(self._contains_flagword)
 
         data.drop_duplicates(inplace=True)
         LOGGER.info('\tGetting flag type counts.')
