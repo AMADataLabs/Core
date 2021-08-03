@@ -1,8 +1,8 @@
 """Reinitialize from stable schema.
 
-Revision ID: 3f92ba59a4cc
+Revision ID: 8dd379f1118a
 Revises: 
-Create Date: 2021-08-03 17:31:25.964491+00:00
+Create Date: 2021-08-03 17:45:00.321972+00:00
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '3f92ba59a4cc'
+revision = '8dd379f1118a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -144,6 +144,7 @@ def upgrade():
     sa.Column('county', sa.String(), nullable=False),
     sa.Column('description', sa.String(), nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_federal_information_processing_standard_county')),
+    sa.UniqueConstraint('state', 'county', name=op.f('uq_federal_information_processing_standard_county_state')),
     schema='oneview'
     )
     op.create_table('historical_resident',
