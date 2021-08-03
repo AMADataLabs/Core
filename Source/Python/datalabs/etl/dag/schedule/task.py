@@ -1,11 +1,11 @@
 """ Convert a DAG schedule into a list of DAGs to run. """
 from   dataclasses import dataclass
 from   datetime import datetime, timedelta
-from   dateutil.parser import isoparse
 from   functools import partial
 from   io import BytesIO
 import logging
 
+from   dateutil.parser import isoparse
 from   croniter import croniter
 import pandas
 
