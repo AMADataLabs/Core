@@ -122,13 +122,19 @@ class DAGTaskWrapper(
     datalabs.etl.dag.task.DAGTaskWrapper
 ):
     PARAMETER_CLASS = DAGTaskWrapperParameters
+    DAG_PARAMETERS = None
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+        self._dag_parameters = None
 
     @classmethod
     def _get_runtime_parameters(cls, parameters):
         LOGGER.info('Event Parameters: %s', parameters)
-        dag_parameters = cls._get_dag_task_parameters_from_dynamodb(parameters["dag"], "DAG")
+        cls.DAG_PARAMETERS = cls._get_dag_task_parameters_from_dynamodb(parameters["dag"], "DAG")
 
-        parameters["dag_class"] = dag_parameters["DAG_CLASS"]
+        parameters["dag_class"] = cls.DAG_PARAMETERS["DAG_CLASS"]
 
         if "task" not in parameters:
             parameters["task"] = "DAG"
@@ -136,22 +142,34 @@ class DAGTaskWrapper(
         return parameters
 
     def _handle_success(self) -> (int, dict):
-        parameters = self._get_validated_parameters(self._runtime_parameters)
-        state = self._get_plugin(self._parameters.task_state_class, self._parameters)
+        super()._handle_success()
 
-        state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FINISHED)
+        parameters = self._runtime_parameters
+        parameters.update(self.DAG_PARAMETERS)
+        parameters = self._get_validated_parameters(parameters)
 
-        self._notify_dag_processor()
+        if parameters.task != "DAG":
+            state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
+
+            state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FINISHED)
+
+            self._notify_dag_processor()
 
         return "Success"
 
     def _handle_exception(self, exception) -> (int, dict):
-        parameters = self._get_validated_parameters(self._runtime_parameters)
-        state = self._get_plugin(self._parameters.task_state_class, self._parameters)
+        super()._handle_success()
 
-        state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FAILED)
+        parameters = self._runtime_parameters
+        parameters.update(self.DAG_PARAMETERS)
+        parameters = self._get_validated_parameters(parameters)
 
-        self._notify_dag_processor()
+        if parameters.task != "DAG":
+            state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
+
+            state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FAILED)
+
+            self._notify_dag_processor()
 
         LOGGER.error('Handling DAG task exception: %s', exception)
 
