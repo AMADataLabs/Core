@@ -1,5 +1,5 @@
 # Build Example:
-#    docker build -t one-view -f ./Build/DBL/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
+#    docker build -t DBL -f ./Build/DBL/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
 # Run Example:
 #    docker run -ti dbl -e DOTENV_PATH=ppd.env python task.py
 
@@ -9,7 +9,7 @@ ENV PYTHONPATH=/DBL:/DBL/site-packages
 ENV CLASSPATH=/DBL
 ENV AWS_DEFAULT_REGION=us-east-1
 
-COPY ./Build/DBL/alembic/versions .
+COPY ./Build/DBL/ .
 
 COPY ./Build/DBL/requirements.txt .
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt

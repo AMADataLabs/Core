@@ -4,7 +4,6 @@ import os
 from datalabs.parameter import add_schema
 from datalabs.messaging.email_message import send_email
 from datalabs.etl.load import LoaderTask
-from datalabs.etl.fs.load import LocalUnicodeTextFileLoaderTask  # tbd
 
 
 @add_schema
@@ -12,11 +11,7 @@ from datalabs.etl.fs.load import LocalUnicodeTextFileLoaderTask  # tbd
 # pylint: disable=too-many-instance-attributes
 class DBLReportEmailLoaderParameters:
     to: str
-    subject: str
-    from_account: str
-    data: object
     cc: str = None
-    body: str = None
 
 
 class DBLReportEmailLoaderTask(LoaderTask):
@@ -26,8 +21,8 @@ class DBLReportEmailLoaderTask(LoaderTask):
         send_email(
             to=self._parameters.to,
             cc=self._parameters.cc,
-            subject=self._parameters.subject,
-            body=self._parameters.body,
-            from_account=self._parameters.from_account,
-            attachments=self._parameters['data']
+            subject='Weekly DBL Report',
+            body='Attached is the auto-generated DBL report file.',
+            from_account='DataLabs@ama-assn.org',
+            attachments=self._data
         )
