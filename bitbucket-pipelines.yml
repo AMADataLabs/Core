@@ -3,7 +3,6 @@ image:
   aws:
     access-key: $AWS_ACCESS_KEY_ID
     secret-key: $AWS_SECRET_ACCESS_KEY
-docker: true
 
 pipelines:
     branches:
@@ -120,6 +119,8 @@ pipelines:
                 name: Update Bundle
                 caches:
                     - oneview-master-update-bundle-dependencies
+                services:
+                    - docker
                 script:
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
                 - export ENABLE_FEATURE_DEV=True
