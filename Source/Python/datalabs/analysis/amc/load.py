@@ -11,13 +11,13 @@ from datalabs.parameter import add_schema
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class AMCLoaderParameters:
+class AMCReportSMTPLoaderParameters:
     to: str or [str]
     cc: str or [str]
     data: object
 
-class AMCReportSMTPLoader(LoaderTask):
-    PARAMETER_CLASS = AMCLoaderParameters
+class AMCReportSMTPLoaderTask(LoaderTask):
+    PARAMETER_CLASS = AMCReportSMTPLoaderParameters
 
     def _load(self):
         date = str(datetime.now().date())  # 'YYYY-MM-DD'

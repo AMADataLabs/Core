@@ -6,8 +6,8 @@ from datalabs.etl.transform import TransformerTask
 
 
 # pylint: disable=no-self-use
-class AMCAddressFlaggingTransformer(TransformerTask):
+class AMCAddressFlaggingTransformerTask(TransformerTask):
     def _transform(self):
-        flagger = AMCAddressFlagger(self._data)  # returns list of Bytes-like, [xlsx_data, report_summary]
+        flagger = AMCAddressFlagger()
 
-        return flagger.run()
+        return [flagger.flag(file) for file in self._data] # returns list of Bytes-like, [xlsx_data, report_summary]
