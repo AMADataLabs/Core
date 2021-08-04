@@ -1,5 +1,5 @@
 """ Lists of words to help flag addresses """
-
+#pylint: disable=too-many-lines
 # phrases that would otherwise trip up the flagword check
 FALSE_POSITIVES = [
     'sebastopol',
@@ -15,6 +15,7 @@ FALSE_POSITIVES = [
 ]
 
 # list of naughty / spam / slur words mostly found from online curated lists
+# pylint: disable=anomalous-backslash-in-string
 FLAGWORDS = [
     "Remove",
     "stop",

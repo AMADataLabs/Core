@@ -2,7 +2,6 @@
 from datetime import datetime
 from io import BytesIO
 import logging
-import os
 import string
 
 import numpy as np
@@ -27,12 +26,6 @@ class AMCAddressFlagger:
         self._today_date = str(datetime.now().date())
 
         self._output_file_password = None
-
-    def _get_flag_words(self):
-        flag_words = pd.read_excel(self._flag_word_file, header=None)[0].values
-        flag_words = [str(word).lower() for word in flag_words]
-
-        return flag_words
 
     def flag(self, data: pd.DataFrame = None):
         if data is None and feature.enabled("WINDOWS"):
@@ -81,7 +74,8 @@ class AMCAddressFlagger:
 
         return address_data
 
-    def _clean_str_data(self, data: pd.DataFrame):
+    @classmethod
+    def _clean_str_data(cls, data: pd.DataFrame):
         data.fillna('', inplace=True)
         data.replace(np.nan, '', inplace=True, regex=True)
 
@@ -164,7 +158,8 @@ class AMCAddressFlagger:
 
         return flagged_data, results_summary
 
-    def _save_output(self, data: pd.DataFrame) -> BytesIO:
+    @classmethod
+    def _save_output(cls, data: pd.DataFrame) -> BytesIO:
         data.drop_duplicates(inplace=True)
         file = BytesIO()
         file = excel.save_formatted_output(data, file, 'AMC Address Sweep')
@@ -257,14 +252,15 @@ class AMCAddressFlagger:
 
         return flag
 
-    def _contains_flagword(self, address_string):
+    @classmethod
+    def _contains_flagword(cls, address_string):
         """
         We want to avoid false positive markers from flagging the method that checks for flag words.
         this is done by removing the text of false positives from the aggregated address text before
         we search that text for flag words.
         """
         address_string = address_string.lower()
-        for fp in self._false_positives:
+        for fp in FALSE_POSITIVES:
             if fp in address_string:
                 address_string = address_string.replace(fp, '')
 
