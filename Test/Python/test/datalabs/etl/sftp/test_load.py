@@ -51,6 +51,14 @@ def test_datetime_formatting_in_file_works(parameters):
         assert resolved_files[2] == 'dir1/dir2/dir3/the_other_19000101_one.csv'
 
 
+# pylint: disable=redefined-outer-name, protected-access
+def test_UTF8_encoding(parameters):
+    task = sftp.SFTPWindowsTextFileLoaderTask(parameters)
+    encoded = '▒'.encode('utf-8')
+    resolved_files = task._encode_data('▒')
+
+    assert resolved_files == encoded
+
 @pytest.fixture
 def parameters():
     return dict(
@@ -62,3 +70,5 @@ def parameters():
         EXECUTION_TIME='19000101',
         data=[{}, {}]
     )
+
+

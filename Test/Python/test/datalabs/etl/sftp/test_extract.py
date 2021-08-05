@@ -51,6 +51,20 @@ def test_datetime_formatting_in_file_works(parameters):
         assert resolved_files[2] == 'dir1/dir2/dir3/the_other_19000101_one.csv'
 
 
+def test_IBM437_decoding(parameters):
+    task = sftp.SFTPIBM437TextFileExtractorTask(parameters)
+    encoded = '▒'.encode('ibm437')
+    resolved_files = task._decode_data(encoded)
+
+    assert resolved_files == '▒'
+
+def test_CP1252_decoding(parameters):
+    task = sftp.SFTPWindowsTextFileExtractorTask(parameters)
+    encoded = 'abcdefg'.encode('cp1252')
+    resolved_files = task._decode_data(encoded)
+
+    assert resolved_files == 'abcdefg'
+
 @pytest.fixture
 def parameters():
     return dict(

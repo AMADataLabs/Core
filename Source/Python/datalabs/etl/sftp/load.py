@@ -51,15 +51,15 @@ class SFTPFileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
             raise ETLException(f"Unable to write file '{file}'") from exception
 
 
-# pylint: disable=too-many-ancestors
-class SFTPUnicodeTextFileLoaderTask(SFTPFileLoaderTask):
-    @classmethod
-    def _encode_data(cls, data):
-        return data.encode('utf-8', errors='backslashreplace')
+# # pylint: disable=too-many-ancestors
+# class SFTPUnicodeTextFileLoaderTask(SFTPFileLoaderTask):
+#     @classmethod
+#     def _encode_data(cls, data):
+#         return data.encode('utf-8', errors='backslashreplace')
 
 
 # pylint: disable=too-many-ancestors
 class SFTPWindowsTextFileLoaderTask(SFTPFileLoaderTask):
     @classmethod
     def _encode_data(cls, data):
-        return data.encode('cp1252', errors='backslashreplace')
+        return data.encode('utf-8', errors='backslashreplace')

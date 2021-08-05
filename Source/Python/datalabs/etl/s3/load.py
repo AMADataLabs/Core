@@ -90,13 +90,13 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
         return data
 
 
-# pylint: disable=too-many-ancestors
-class S3UnicodeTextFileLoaderTask(S3FileLoaderTask):
-    def _encode(self, data):
-        return data.encode('utf-8', errors='backslashreplace')
+# # pylint: disable=too-many-ancestors
+# class S3UnicodeTextFileLoaderTask(S3FileLoaderTask):
+#     def _encode(self, data):
+#         return data.encode('utf-8', errors='backslashreplace')
 
 
 # pylint: disable=too-many-ancestors
 class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
     def _encode(self, data):
-        return data.encode('cp1252', errors='backslashreplace')
+        return data.encode('utf-8', errors='backslashreplace')

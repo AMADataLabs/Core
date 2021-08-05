@@ -76,11 +76,11 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
         return bytes(buffer.getbuffer())
 
 
-# pylint: disable=too-many-ancestors
-class SFTPUnicodeTextFileExtractorTask(SFTPFileExtractorTask):
-    @classmethod
-    def _decode_data(cls, data):
-        return data.decode('utf-8', errors='backslashreplace')
+# # pylint: disable=too-many-ancestors
+# class SFTPUnicodeTextFileExtractorTask(SFTPFileExtractorTask):
+#     @classmethod
+#     def _decode_data(cls, data):
+#         return data.decode('utf-8', errors='backslashreplace')
 
 
 # pylint: disable=too-many-ancestors
@@ -88,3 +88,9 @@ class SFTPWindowsTextFileExtractorTask(SFTPFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252', errors='backslashreplace')
+
+
+class SFTPIBM437TextFileExtractorTask(SFTPFileExtractorTask):
+    @classmethod
+    def _decode_data(cls, data):
+        return data.decode('ibm437', errors='backslashreplace')
