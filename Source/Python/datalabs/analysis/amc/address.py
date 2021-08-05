@@ -1,6 +1,6 @@
 """ Code for executing AMC address"""
-from datetime import datetime
-from io import BytesIO
+from   datetime import datetime
+from   io import BytesIO
 import logging
 import string
 
@@ -54,13 +54,9 @@ class AMCAddressFlagger:
         report_data = self._save_output(flagged_data)
         # flagged_data.to_excel(report_data)  # unnecessary if using report_data = self._save_output(...)
         report_data.seek(0)
-        # BytesIO of report summary text
-        body_data = BytesIO()
-        body_data.write(report_body)
-        body_data.seek(0)
 
         LOGGER.info('Done creating report.')
-        return [report_data, body_data]
+        return report_data.read(), report_body
 
     # if running locally
     def _get_amc_address_data(self):

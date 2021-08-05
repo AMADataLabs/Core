@@ -12,9 +12,9 @@ from datalabs.parameter import add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class AMCReportSMTPLoaderParameters:
-    to: str or [str]
-    cc: str or [str]
-    data: object
+    to: str
+    cc: str
+    data: list
 
 class AMCReportSMTPLoaderTask(LoaderTask):
     PARAMETER_CLASS = AMCReportSMTPLoaderParameters

@@ -11,22 +11,28 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# def test_good_data(good_data):
-#     flagger = AMCAddressFlagger()
-#
-#     results = flagger.flag(good_data)
-#     LOGGER.debug('Good data results: %s', results)
-#
-#     assert ???
-#
-#
-# def test_bad_data(bad_data):
-#     flagger = AMCAddressFlagger()
-#
-#     results = flagger.flag(bad_data)
-#     LOGGER.debug('Bad data results: %s', results)
-#
-#     assert ???
+# pylint: disable=redefined-outer-name
+def test_good_data(good_data):
+    flagger = AMCAddressFlagger()
+
+    report_data, summary = flagger.flag(good_data)
+    LOGGER.debug('Report Data: %s', report_data)
+    LOGGER.debug('Report: %s', summary)
+
+    assert b'worksheets' in report_data
+    assert 'Hello!' in summary
+
+
+# pylint: disable=redefined-outer-name
+def test_bad_data(bad_data):
+    flagger = AMCAddressFlagger()
+
+    report_data, summary = flagger.flag(bad_data)
+    LOGGER.debug('Report Data: %s', report_data)
+    LOGGER.debug('Report: %s', summary)
+
+    assert b'worksheets' in report_data
+    assert 'Hello!' in summary
 
 
 @pytest.fixture
