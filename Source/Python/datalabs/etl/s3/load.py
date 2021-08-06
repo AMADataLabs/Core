@@ -53,18 +53,13 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
         return ['/'.join((current_path, file.strip())) for file in self._parameters.files.split(',')]
 
     def _load_file(self, data, file):
-        try:
-            body = self._encode(data)
-        except Exception as exception:
-            raise ETLException(f'Unable to encode S3 object {file}') from exception
-
-        md5_hash = hashlib.md5(body).digest()
+        md5_hash = hashlib.md5(data).digest()
         b64_md5_hash = base64.b64encode(md5_hash)
 
         return self._client.put_object(
             Bucket=self._parameters.bucket,
             Key=file,
-            Body=body,
+            Body=data,
             ContentMD5=b64_md5_hash.decode('utf-8'))
 
     def _get_current_path(self):
