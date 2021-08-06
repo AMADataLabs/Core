@@ -1,5 +1,6 @@
 """ source: datalabs.etl.parse.transform """
 import logging
+import pickle
 
 from   datalabs.etl.parse.transform import ParseToCSVTransformerTask
 
@@ -13,7 +14,7 @@ def test_transforming_cpt_files_to_csv():
     parser_class = 'test.datalabs.etl.cpt.ingest.parse.TestParser'
     parameters = dict(
         PARSERS=','.join((parser_class, parser_class)),
-        data=[('HelloThere.txt', 'Hello, there!'), ('DearJohn.txt', 'Dear John')]
+        data=[pickle.dumps([('HelloThere.txt', 'Hello, there!'), ('DearJohn.txt', 'Dear John')])]
     )
 
     transformer = ParseToCSVTransformerTask(parameters)
@@ -22,5 +23,5 @@ def test_transforming_cpt_files_to_csv():
 
     LOGGER.debug('Transformed Data: %s', data)
 
-    assert '"Hello, there!"' in data[0]
-    assert 'Dear John' in data[1]
+    assert b'"Hello, there!"' in data[0]
+    assert b'Dear John' in data[1]
