@@ -1,33 +1,32 @@
 from dataclasses import dataclass
-import os
+from datetime import datetime
 
-from datalabs.parameter import add_schema
-from datalabs.messaging.email_message import send_email
 from datalabs.etl.load import LoaderTask
-from datalabs.etl.fs.load import LocalUnicodeTextFileLoaderTask  # tbd
+from datalabs.messaging.email_message import send_email, Attachment
+from datalabs.parameter import add_schema
 
 
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class DBLReportEmailLoaderParameters:
-    to: str
-    subject: str
-    from_account: str
-    data: object
-    cc: str = None
-    body: str = None
+    to: str or [str]
+    cc: str or [str] = ''
+    data: object = None
 
 
 class DBLReportEmailLoaderTask(LoaderTask):
     PARAMETER_CLASS = DBLReportEmailLoaderParameters
 
     def _load(self):
+        today = str(datetime.now().date())
+        subject = f'Weekly DBL Report - {today}'
+        attachment = Attachment(subject + '.xlsx', data=self._parameters.data[0])
         send_email(
             to=self._parameters.to,
             cc=self._parameters.cc,
-            subject=self._parameters.subject,
-            body=self._parameters.body,
-            from_account=self._parameters.from_account,
-            attachments=self._parameters['data']
+            subject=subject,
+            body='',
+            from_account='datalabs@ama-assn.org',
+            attachments=[attachment]
         )
