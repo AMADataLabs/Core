@@ -10,5 +10,5 @@ output "subnet_ids" {
 
 
 output "vpc_endpoint_execapi_id" {
-    value = [aws_vpc.datalake.id]
+    value = aws_vpc_endpoint.apigw.id
 }
