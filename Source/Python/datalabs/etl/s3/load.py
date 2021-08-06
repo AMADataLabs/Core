@@ -80,10 +80,6 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
 
         return execution_date
 
-    # pylint: disable=no-self-use
-    def _encode(self, data):
-        return data
-
 # pylint: disable=too-many-ancestors
 class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
     def _encode_data(self, data):
