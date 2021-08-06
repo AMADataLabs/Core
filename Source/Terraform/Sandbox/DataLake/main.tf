@@ -164,6 +164,8 @@ resource "aws_vpc_endpoint" "apigw" {
     module.apigw_sg.security_group_id
   ]
 
+  subnet_ids        = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
+
   private_dns_enabled = true
 }
 
