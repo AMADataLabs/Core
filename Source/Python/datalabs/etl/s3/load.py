@@ -9,7 +9,7 @@ from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.load import FileLoaderTask
-from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
