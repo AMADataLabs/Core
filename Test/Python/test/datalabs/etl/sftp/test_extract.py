@@ -56,14 +56,14 @@ def test_IBM437_decoding(parameters):
     encoded = '▒'.encode('ibm437')
     resolved_files = task._decode_data(encoded)
 
-    assert resolved_files == '▒'
+    assert resolved_files == '▒'.encode("utf-8")
 
 def test_CP1252_decoding(parameters):
     task = sftp.SFTPWindowsTextFileExtractorTask(parameters)
     encoded = 'abcdefg'.encode('cp1252')
     resolved_files = task._decode_data(encoded)
 
-    assert resolved_files == 'abcdefg'
+    assert resolved_files == 'abcdefg'.encode("utf-8")
 
 @pytest.fixture
 def parameters():

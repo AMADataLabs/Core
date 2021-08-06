@@ -54,10 +54,10 @@ def test_datetime_formatting_in_file_works(parameters):
 # pylint: disable=redefined-outer-name, protected-access
 def test_UTF8_encoding(parameters):
     task = sftp.SFTPWindowsTextFileLoaderTask(parameters)
-    encoded = '▒'.encode('utf-8')
-    resolved_files = task._encode_data('▒')
+    encoded = 'a1b2c3d4e5'.encode('utf-8')
+    resolved_files = task._encode_data(encoded)
 
-    assert resolved_files == encoded
+    assert resolved_files == 'a1b2c3d4e5'.encode('cp1252')
 
 @pytest.fixture
 def parameters():
