@@ -128,7 +128,7 @@ pipelines:
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 644454719059.dkr.ecr.us-east-1.amazonaws.com
-                - docker build -t 644454719059.dkr.ecr.us-east-1.amazonaws.com/oneview-data:1.0.0 -f ./Build/OneView/Dockerfile ./
+                - docker build -t 644454719059.dkr.ecr.us-east-1.amazonaws.com/oneview-data:1.0.0 -f ./Build/OneView/ETL/Dockerfile ./
                 - docker push 644454719059.dkr.ecr.us-east-1.amazonaws.com/oneview-data:1.0.0
         - parallel:
             - step:
