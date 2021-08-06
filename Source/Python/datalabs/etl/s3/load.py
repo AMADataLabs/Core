@@ -91,5 +91,5 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
 
 # pylint: disable=too-many-ancestors
 class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
-    def _encode(self, data):
+    def _encode_data(self, data):
         return data.decode().encode('cp1252', errors='backslashreplace')

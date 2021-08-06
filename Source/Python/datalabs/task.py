@@ -11,7 +11,7 @@ from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class Task(ParameterValidatorMixin, ABC):

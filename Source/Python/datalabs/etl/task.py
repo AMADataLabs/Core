@@ -71,13 +71,17 @@ class ETLTask(task.Task):
 
     @classmethod
     def _instantiate_component(cls, parameters, data=None):
-        parameters['data'] = data or {}
         task_class = parameters.pop('TASK_CLASS', None)
 
         if task_class is None:
             raise ETLException(f'...__TASK_CLASS parameter not specified in {parameters}')
 
         TaskPlugin = plugin.import_plugin(task_class)  # pylint: disable=invalid-name
+
+        if not hasattr(TaskPlugin, "PARAMETER_CLASS") or \
+           (hasattr(TaskPlugin, "PARAMETER_CLASS") and TaskPlugin.PARAMETER_CLASS is None) or \
+           (hasattr(TaskPlugin, "PARAMETER_CLASS") and "data" in TaskPlugin.PARAMETER_CLASS.__annotations__):
+            parameters['data'] = data or {}
 
         return TaskPlugin(parameters)
 
