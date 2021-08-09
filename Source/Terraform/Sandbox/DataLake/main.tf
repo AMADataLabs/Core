@@ -94,10 +94,10 @@ resource "aws_subnet" "datalake_private2" {
     tags = merge(local.tags, {Name = "Data Lake Private Subnet 2"})
 }
 
-# resource "aws_route_table_association" "datalake_private2" {
-#     subnet_id      = aws_subnet.datalake_private2.id
-#     route_table_id = aws_vpc.datalake.default_route_table_id
-# }
+resource "aws_route_table_association" "datalake_private2" {
+    subnet_id      = aws_subnet.datalake_private2.id
+    route_table_id = aws_vpc.datalake.default_route_table_id
+}
 
 
 # resource "aws_security_group" "datalake" {
@@ -170,14 +170,6 @@ resource "aws_vpc_endpoint" "apigw" {
 }
 
 
-# resource "aws_vpc_peering_connection" "bastion" {
-#   peer_vpc_id   = aws_vpc.datalake.id
-#   vpc_id        = "vpc-0ac78ea6c797c34ec"
-#
-#   tags = merge(local.tags, {Name = "DataLake to Bastion VPC Peering"})
-# }
-
-
 #####################################################################
 # Datalake - Bastion                                                #
 #####################################################################
@@ -196,11 +188,19 @@ resource "aws_security_group" "datalake_bastion" {
   vpc_id      = aws_vpc.datalake.id
 
   ingress {
-    description = "SSH from VPC"
+    description = "SSH traffic"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "VPC traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["172.31.0.0/16"]
   }
 
   egress {
@@ -262,7 +262,7 @@ resource "aws_security_group" "datalake_bastion" {
 #
 #
 resource "aws_instance" "datalake_bastion" {
-    ami                             = aws_ami.datalake_bastion.id
+    ami                             = data.aws_ami.datalake_bastion.id
     instance_type                   = "t2.micro"
     key_name                        = aws_key_pair.bastion_key.key_name
     subnet_id                       = aws_subnet.datalake_public1.id
@@ -278,14 +278,16 @@ data "aws_ami" "datalake_bastion" {
     most_recent = true
 
     filter {
-        name   = "Name"
-        values = ["Temporary development box snapshot 2021-08-09"]
+        name   = "name"
+        values = ["Temporary development box 2021-08-09"]
         }
 
     filter {
         name   = "virtualization-type"
         values = ["hvm"]
     }
+
+    owners = [data.aws_caller_identity.account.account_id]
 }
 
 
