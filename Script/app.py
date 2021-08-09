@@ -16,10 +16,9 @@ def configure(template_parameters, relative_path=None, name=None, overwrite=Fals
     environment_path = Path(script_path.parent, 'Environment')
     if build:
         environment_path = Path(script_path.parent.parent, 'Build')
-
     dotenv_name = script_name.replace('.py', '.env')
     dotenv_path = Path(environment_path, relative_path or '', dotenv_name)
-    template_name = script_name.replace('.py', '.jinja')
+    template_name = script_name.replace('.py', '.env.jinja')
     template_path = Path(environment_path, relative_path or '', template_name)
 
     if not os.path.exists(dotenv_path) and not os.path.exists(template_path):
