@@ -15,6 +15,9 @@ class ODBCDatabase(Database):
         os.environ['DATABASE_EDW_BACKEND'] = 'odbc'
         os.environ['DATABASE_EDW_HOST'] = 'odbc'
 
+        os.environ['DATABASE_DATAMART_BACKEND'] = 'odbc'
+        os.environ['DATABASE_DATAMART_HOST'] = 'odbc'
+
         super().__init__()
 
     def connect(self):

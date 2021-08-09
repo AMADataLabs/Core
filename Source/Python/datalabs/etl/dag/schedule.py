@@ -5,11 +5,12 @@ from   functools import partial
 from   io import BytesIO
 import logging
 
+from   dateutil.parser import isoparse
 from   croniter import croniter
 import pandas
 
 from   datalabs.etl.dag.state import Status
-import datalabs.etl.task as task
+from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.transform as transform
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
@@ -24,12 +25,13 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=too-many-instance-attributes
 class DAGSchedulerParameters:
     interval_minutes: str
-    state_class: str
-    unknowns: dict = None
+    dag_state_class: str
+    execution_time: str
     data: object = None
+    unknowns: dict = None
 
 
-class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
+class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
     PARAMETER_CLASS = DAGSchedulerParameters
 
     def _transform(self):
@@ -48,7 +50,7 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
 
     # pylint: disable=no-self-use
     def _get_target_execution_time(self):
-        return datetime.utcnow()
+        return isoparse(self._parameters.execution_time)
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
         base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
@@ -85,14 +87,13 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
     def _is_started(cls, state, dag):
         status = None
 
-        with state:
-            status = state.get_status(dag["name"], dag["execution_time"].to_pydatetime())
+        status = state.get_dag_status(dag["name"], dag["execution_time"].to_pydatetime().isoformat())
 
         return status != Status.UNKNOWN
 
     def _get_state_plugin(self):
         parameters = self._parameters.unknowns
-        state_plugin = import_plugin(self._parameters.state_class)
+        state_plugin = import_plugin(self._parameters.dag_state_class)
         state_parameter_keys = list(state_plugin.PARAMETER_CLASS.SCHEMA.fields.keys())
         state_parameters = {key:value for key, value in parameters.items() if key in state_parameter_keys}
 
