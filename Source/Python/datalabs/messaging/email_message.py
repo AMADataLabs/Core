@@ -1,8 +1,14 @@
 """ Sends an email using AMA SMTP configuration """
 from io import BytesIO
+import logging
 import os
 import smtplib
 from email.message import EmailMessage
+
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+logging.basicConfig()
 
 
 class Attachment:
@@ -44,6 +50,8 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
     :return: None
     """
     with smtplib.SMTP('amamx.ama-assn.org') as smtp:
+        LOGGER.info('SMTP CONNECTION SUCCESSFUL')
+
         msg = EmailMessage()
         msg['To'] = to
         if cc not in [None, '']:
