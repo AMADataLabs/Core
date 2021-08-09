@@ -94,10 +94,10 @@ resource "aws_subnet" "datalake_private2" {
     tags = merge(local.tags, {Name = "Data Lake Private Subnet 2"})
 }
 
-resource "aws_route_table_association" "datalake_private2" {
-    subnet_id      = aws_subnet.datalake_private2.id
-    route_table_id = aws_vpc.datalake.default_route_table_id
-}
+# resource "aws_route_table_association" "datalake_private2" {
+#     subnet_id      = aws_subnet.datalake_private2.id
+#     route_table_id = aws_vpc.datalake.default_route_table_id
+# }
 
 
 # resource "aws_security_group" "datalake" {
@@ -170,6 +170,14 @@ resource "aws_vpc_endpoint" "apigw" {
 }
 
 
+# resource "aws_vpc_peering_connection" "bastion" {
+#   peer_vpc_id   = aws_vpc.datalake.id
+#   vpc_id        = "vpc-0ac78ea6c797c34ec"
+#
+#   tags = merge(local.tags, {Name = "DataLake to Bastion VPC Peering"})
+# }
+
+
 #####################################################################
 # Datalake - Bastion                                                #
 #####################################################################
@@ -179,6 +187,30 @@ resource "aws_key_pair" "bastion_key" {
     public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDMdCgPAcG2MsIQF7Zds/qaGTMNjWNeYIQXdwb+HvtSqJrtRDXo/XZUu6m4MUrFs0n6vDleSfAafp3xZ9VLLQN/6vVIuJW9GDRiJl1fqPessQxKKFGqJuSv+TrZ20RiUkUpGOmUKcBB6N1Hwkqped2DfTYIX9If3i4OKgdFETg8U2jlxFixvOtruSosm8g/xsHC2Xmnvv4VTc1DwWECARVYGRFUIdIdy/PNkIhzWGNp1aDs5ALzpZ5WhtqkzSBr49tYbALORs/DcN5CV6RSZ3vaVvcXoQrweDl6Cd5eCTiPxU8xsZGZFFPwWK9VXXrLJkpSMeqZmHacPNRAp+zd2zOZ"
 
     tags = merge(local.tags, {Name = "Data Lake Bastion Key"})
+}
+
+
+resource "aws_security_group" "datalake_bastion" {
+  name        = "DataLake-sbx-bastion-sg"
+  description = "Allow SSH inbound traffic"
+  vpc_id      = aws_vpc.datalake.id
+
+  ingress {
+    description = "SSH from VPC"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+    tags = merge(local.tags, {Name = "Temporary development box SG"})
 }
 
 
@@ -229,17 +261,32 @@ resource "aws_key_pair" "bastion_key" {
 # }
 #
 #
-# resource "aws_instance" "bastion" {
-#     ami                             = data.aws_ami.ubuntu.id
-#     instance_type                   = "t2.micro"
-#     key_name                        = aws_key_pair.bastion_key.key_name
-#     subnet_id                       = aws_subnet.bastion.id
-#     vpc_security_group_ids          = [aws_security_group.bastion_ssh.id]
-#     associate_public_ip_address     = true
-#
-#     tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
-#     volume_tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
-# }
+resource "aws_instance" "datalake_bastion" {
+    ami                             = aws_ami.datalake_bastion.id
+    instance_type                   = "t2.micro"
+    key_name                        = aws_key_pair.bastion_key.key_name
+    subnet_id                       = aws_subnet.datalake_public1.id
+    vpc_security_group_ids          = [aws_security_group.datalake_bastion.id]
+    associate_public_ip_address     = true
+
+    tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
+    volume_tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
+}
+
+
+data "aws_ami" "datalake_bastion" {
+    most_recent = true
+
+    filter {
+        name   = "Name"
+        values = ["Temporary development box snapshot 2021-08-09"]
+        }
+
+    filter {
+        name   = "virtualization-type"
+        values = ["hvm"]
+    }
+}
 
 
 # resource "aws_instance" "test" {
@@ -255,21 +302,21 @@ resource "aws_key_pair" "bastion_key" {
 # }
 
 
-data "aws_ami" "ubuntu" {
-    most_recent = true
-
-    filter {
-        name   = "name"
-        values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-20200821.1"]
-        }
-
-    filter {
-        name   = "virtualization-type"
-        values = ["hvm"]
-    }
-
-    owners = ["099720109477"] # Canonical
-}
+# data "aws_ami" "ubuntu" {
+#     most_recent = true
+#
+#     filter {
+#         name   = "name"
+#         values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-20200821.1"]
+#         }
+#
+#     filter {
+#         name   = "virtualization-type"
+#         values = ["hvm"]
+#     }
+#
+#     owners = ["099720109477"] # Canonical
+# }
 
 
 #####################################################################
