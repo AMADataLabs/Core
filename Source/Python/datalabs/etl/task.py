@@ -100,7 +100,7 @@ class ETLComponentTask(task.Task):
 
 class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
-        var_tree = VariableTree.generate()
+        var_tree = VariableTree.from_environment()
 
         return ETLParameters(
             extractor=self._get_component_parameters(var_tree, "EXTRACTOR"),
@@ -128,6 +128,10 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
             )
 
         return task_parameters
+
+    @classmethod
+    def _merge_parameters(cls, parameters, new_parameters):
+        return parameters
 
     def _handle_exception(self, exception: ETLException):
         LOGGER.exception('Handling ETL task exception: %s', exception)

@@ -11,17 +11,17 @@ TASK_WRAPPER_CLASS=datalabs.etl.task.ETLTaskWrapper
 
 # DBL Report Extractor
 EXTRACTOR__TASK_CLASS=datalabs.etl.sftp.extract.SFTPFileExtractorTask
-EXTRACTOR__BASE_PATH="Data Analytics\Data-Science\Data\Masterfile_DBL"
-EXTRACTOR__FILES=changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changerecordcount.txt,PE_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt
+EXTRACTOR__BASE_PATH=""
+EXTRACTOR__FILES=changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt
 
-EXTRACTOR__HOST=efttest.ama-assn.org
-EXTRACTOR__USERNAME=datalabsstst
-EXTRACTOR__PASSWORD='{{password}}'
+EXTRACTOR__HOST=eft.ama-assn.org
+EXTRACTOR__USERNAME=datalabsprd
+EXTRACTOR__PASSWORD='{{EFT_PASSWORD}}'
 
 # DBL Report Transformer
 TRANSFORMER__TASK_CLASS=datalabs.analysis.dbl.transform.DBLReportTransformer
 
 # DBL Report Loader
 LOADER__TASK_CLASS=datalabs.analysis.dbl.load.DBLReportEmailLoaderTask
-LOADER__TO="Garrett.Lappe@ama-assn.org"
+LOADER__TO='Garrett.Lappe@ama-assn.org'
 LOADER__CC=""

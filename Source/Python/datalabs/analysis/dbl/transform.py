@@ -17,7 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 def format_column_as_percentage(data: pd.DataFrame, column_name: str):
     df = data.copy()
-    df[column_name] *= 100
+    # df[column_name] *= 100
     return df
 
 
@@ -40,7 +40,7 @@ class DBLReportTransformer(TransformerTask):
         dataframes[9] = self._transform_tab10(dataframes[9])
 
         output = self._make_excel_workbook(sheet_dataframes=dataframes)
-        return [output.read()]
+        return [output]
 
     @classmethod
     def _get_dataframes(cls, data):
