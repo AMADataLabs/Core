@@ -30,3 +30,21 @@ class DBLReportEmailLoaderTask(LoaderTask):
             from_account='datalabs@ama-assn.org',
             attachments=[attachment]
         )
+
+    @classmethod
+    def _resolve_cc(cls, cc):
+        if cc is None or cc in ['', 'None', 'none', 'nan', 'null'] or not cls._contains_only_strings(cc):
+            return None
+        return cc
+
+    @classmethod
+    def _contains_only_strings(cls, lst):
+        try:
+            if isinstance(lst, str):
+                return True
+            for element in list:
+                if not isinstance(element, str):
+                    return False
+            return True
+        except:
+            return False
