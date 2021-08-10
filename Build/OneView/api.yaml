@@ -14,52 +14,6 @@ tags:
     description: >-
       Masterfile data for a physician.
 paths:
-  '/physician/{me_number}':
-    get:
-      tags:
-        - Physician
-      summary: Physician data (PPD) by Medical Education number
-      description: Returns all Masterfile data (PPD) for a physician.
-      operationId: getPhysician
-      parameters:
-        - name: me_number
-          in: path
-          description: Medical Education number
-          required: true
-          content:
-            application/json:
-              schema:
-                type: string
-        - name: fields
-          in: query
-          description: Restrict the result to the specified fields.
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-      x-amazon-apigateway-integration:
-        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/${lambda_physician_arn}/invocations"
-        responses:
-          default:
-            statusCode: "200"
-        passthroughBehavior: "when_no_match"
-        httpMethod: "POST"
-        contentHandling: "CONVERT_TO_TEXT"
-        type: "aws_proxy"
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Physician'
-        '400':
-          description: Invalid query parameter
-        '404':
-          description: No physician data found for the given ME number.
-      security:
-        - gateway_authorizer: []
   # /physicians?first_name=JOHN&last_name=SMITH&fields=first_name,last_name,me,polo_state
   /physicians:
     get:
@@ -701,9 +655,41 @@ paths:
             type: array
             items:
               type: string
-        - name: fields
+        - name: national_provider_identifier
           in: query
-          description: Restrict the results to the specified fields.
+          description: 'Filter by national_provider_identifier.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: party_id
+          in: query
+          description: 'Filter by party_id.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: entity_id
+          in: query
+          description: 'Filter by entity_id.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: race_ethnicity
+          in: query
+          description: 'Filter by race_ethnicity.'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: field
+          in: query
+          description: Restrict the results to the specified field.
           required: false
           schema:
             type: array
@@ -735,7 +721,7 @@ paths:
   /{proxy+}:
     get:
       parameters:
-        - name: proxy
+        - name: proxy+
           in: path
           required: true
           schema:
@@ -998,6 +984,18 @@ components:
           type: string
           format: byte
         next_most_recent_former_first_name:
+          type: string
+          format: byte
+        national_provider_identifier:
+          type: string
+          format: byte
+        party_id:
+          type: string
+          format: byte
+        entity_id:
+          type: string
+          format: byte
+        race_ethnicity:
           type: string
           format: byte
   securitySchemes:
