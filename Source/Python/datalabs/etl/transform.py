@@ -25,6 +25,5 @@ class ScalableTransformerMixin(TransformerTask, ABC):
         return dask.dataframe.read_csv(path, **kwargs)
 
     def _dataframe_to_csv(self, data: dask.dataframe.DataFrame, **kwargs):
-        import pdb
-        pdb.set_trace()
-        return data.to_csv(**kwargs)
+        path = 'data.csv'
+        return data.to_csv(path, dtype=str, **kwargs)
