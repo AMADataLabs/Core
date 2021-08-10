@@ -1,6 +1,6 @@
 """ Transformer for DBL Report Creation """
 
-from io import BytesIO, StringIO
+from io import BytesIO
 import logging
 from string import ascii_uppercase
 
@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import xlsxwriter
 
+# pylint: disable=import-error
 from datalabs.etl.transform import TransformerTask
 
 logging.basicConfig()
@@ -178,6 +179,7 @@ class DBLReportTransformer(TransformerTask):
     @classmethod
     def _make_excel_workbook(cls, sheet_dataframes):
         output = BytesIO()
+        # pylint: disable=abstract-class-instantiated
         writer = pd.ExcelWriter('temp.xlsx', engine='xlsxwriter')
         writer.book = xlsxwriter.Workbook(output, {'in_memory': True})
 
