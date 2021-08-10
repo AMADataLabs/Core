@@ -1,3 +1,5 @@
+""" DBL report email loader task class """
+
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -10,9 +12,9 @@ from datalabs.parameter import add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class DBLReportEmailLoaderParameters:
-    to: str or [str]
-    cc: str or [str] = ''
-    data: object = None
+    to: str
+    cc: str
+    data: list
 
 
 class DBLReportEmailLoaderTask(LoaderTask):
