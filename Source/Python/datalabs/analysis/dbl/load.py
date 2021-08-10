@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+# pylint: disable=import-error
 from datalabs.etl.load import LoaderTask
 from datalabs.messaging.email_message import send_email, Attachment
 from datalabs.parameter import add_schema
@@ -10,7 +11,7 @@ from datalabs.parameter import add_schema
 
 @add_schema
 @dataclass
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-many-instance-attributes, invalid-name
 class DBLReportEmailLoaderParameters:
     to: str
     cc: str
@@ -28,25 +29,7 @@ class DBLReportEmailLoaderTask(LoaderTask):
             to=self._parameters.to,
             cc=self._parameters.cc,
             subject=subject,
-            body='',
+            body='Attached is the auto-generated DBL report file.',
             from_account='datalabs@ama-assn.org',
             attachments=[attachment]
         )
-
-    @classmethod
-    def _resolve_cc(cls, cc):
-        if cc is None or cc in ['', 'None', 'none', 'nan', 'null'] or not cls._contains_only_strings(cc):
-            return None
-        return cc
-
-    @classmethod
-    def _contains_only_strings(cls, lst):
-        try:
-            if isinstance(lst, str):
-                return True
-            for element in list:
-                if not isinstance(element, str):
-                    return False
-            return True
-        except:
-            return False
