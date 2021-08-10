@@ -15,12 +15,6 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-def format_column_as_percentage(data: pd.DataFrame, column_name: str):
-    df = data.copy()
-    # df[column_name] *= 100
-    return df
-
-
 def get_letters_between(start, end):
     return ascii_uppercase[ascii_uppercase.index(start): ascii_uppercase.index(end)+1]
 
@@ -76,11 +70,12 @@ class DBLReportTransformer(TransformerTask):
     def _transform_tab2(cls, data):
         """ ReportByFieldFrom SAS """
         # no transformation required
-        return format_column_as_percentage(data, column_name='PERCENTAGE').fillna('')
+        return data.fillna('')
 
     @classmethod
     def _transform_tab3(cls, data):
         """ ChangeByFieldCount """
+        # no transformation required
         return data.fillna('')
 
     @classmethod
@@ -92,7 +87,8 @@ class DBLReportTransformer(TransformerTask):
     @classmethod
     def _transform_tab5(cls, data):
         """ ChangeByRecordCount """
-        return format_column_as_percentage(data, column_name='PERCENTAGE').fillna('')
+        # no transformation required
+        return data.fillna('')
 
     @classmethod
     def _transform_tab6(cls, data):
