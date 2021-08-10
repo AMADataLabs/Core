@@ -182,6 +182,38 @@ resource "aws_key_pair" "bastion_key" {
 }
 
 
+resource "aws_security_group" "datalake_bastion" {
+  name        = "DataLake-sbx-bastion-sg"
+  description = "Allow SSH inbound traffic"
+  vpc_id      = aws_vpc.datalake.id
+
+  ingress {
+    description = "SSH traffic"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "VPC traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["172.31.0.0/16"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+    tags = merge(local.tags, {Name = "Temporary development box SG"})
+}
+
+
 # resource "aws_security_group" "bastion_ssh" {
 #   name        = "Bastion SSH"
 #   description = "Allow SSH inbound traffic to bastions"
@@ -229,17 +261,34 @@ resource "aws_key_pair" "bastion_key" {
 # }
 #
 #
-# resource "aws_instance" "bastion" {
-#     ami                             = data.aws_ami.ubuntu.id
-#     instance_type                   = "t2.micro"
-#     key_name                        = aws_key_pair.bastion_key.key_name
-#     subnet_id                       = aws_subnet.bastion.id
-#     vpc_security_group_ids          = [aws_security_group.bastion_ssh.id]
-#     associate_public_ip_address     = true
-#
-#     tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
-#     volume_tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
-# }
+resource "aws_instance" "datalake_bastion" {
+    ami                             = data.aws_ami.datalake_bastion.id
+    instance_type                   = "t2.micro"
+    key_name                        = aws_key_pair.bastion_key.key_name
+    subnet_id                       = aws_subnet.datalake_public1.id
+    vpc_security_group_ids          = [aws_security_group.datalake_bastion.id]
+    associate_public_ip_address     = true
+
+    tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
+    volume_tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
+}
+
+
+data "aws_ami" "datalake_bastion" {
+    most_recent = true
+
+    filter {
+        name   = "name"
+        values = ["Temporary development box 2021-08-09"]
+        }
+
+    filter {
+        name   = "virtualization-type"
+        values = ["hvm"]
+    }
+
+    owners = [data.aws_caller_identity.account.account_id]
+}
 
 
 # resource "aws_instance" "test" {
@@ -255,21 +304,21 @@ resource "aws_key_pair" "bastion_key" {
 # }
 
 
-data "aws_ami" "ubuntu" {
-    most_recent = true
-
-    filter {
-        name   = "name"
-        values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-20200821.1"]
-        }
-
-    filter {
-        name   = "virtualization-type"
-        values = ["hvm"]
-    }
-
-    owners = ["099720109477"] # Canonical
-}
+# data "aws_ami" "ubuntu" {
+#     most_recent = true
+#
+#     filter {
+#         name   = "name"
+#         values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-20200821.1"]
+#         }
+#
+#     filter {
+#         name   = "virtualization-type"
+#         values = ["hvm"]
+#     }
+#
+#     owners = ["099720109477"] # Canonical
+# }
 
 
 #####################################################################
