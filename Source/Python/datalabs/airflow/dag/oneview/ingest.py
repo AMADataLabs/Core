@@ -142,6 +142,14 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
+    EXTRACT_HISTORICAL_RESIDENCY = KubernetesPodOperator(
+        name="extract_historical_residency",
+        task_id="extract_historical_residency",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
+        is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
+    )
+
     CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
         name="create_physician_table",
         task_id="create_physician_table",
@@ -378,6 +386,7 @@ EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_D
 EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
+EXTRACT_HISTORICAL_RESIDENCY
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_TABLES_INTO_DATABASE
 EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_TABLE
