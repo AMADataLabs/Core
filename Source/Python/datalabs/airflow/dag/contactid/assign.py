@@ -21,7 +21,7 @@ MINIO_SECRET = Secret('env', None, 'contact-id-etl-minio')
 
 ### DAG definition ###
 BASE_ENVIRONMENT = dict(
-    TASK_WRAPPER_CLASS='datalabs.etl.airflow.task.AirflowTaskWrapper',
+    TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper',
     ETCD_HOST=Variable.get('ETCD_HOST'),
     ETCD_USERNAME=DAG_ID,
     ETCD_PASSWORD=Variable.get(f'{DAG_ID.upper()}_ETCD_PASSWORD'),
@@ -59,9 +59,9 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
-    EXTRACT_ORG_MANAGER = KubernetesPodOperator(
-        name="extract_org_manager",
-        task_id="extract_org_manager",
+    EXTRACT_ORGMANAGER = KubernetesPodOperator(
+        name="extract_orgmanager",
+        task_id="extract_orgmanager",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[ORGMANAGER_SECRET, MINIO_SECRET],
@@ -92,7 +92,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[MINIO_SECRET],
-        env_vars=dict(TASK_CLASS='datalabs.etl.contactid.idassign.transform.ContactIDAssignTransformerTask'),
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.idassign.transform.ContactIDAssignTransformerTask')},
     )
     #
     MERGE_AND_GENERATE_NEW_IDS = KubernetesPodOperator(
@@ -101,7 +101,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[MINIO_SECRET],
-        env_vars=dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask'),
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask')},
     )
     #
     DELIVER_OUTPUT_FILES = KubernetesPodOperator(
@@ -124,13 +124,13 @@ with CONTACT_ID_ASSIGNMENT_DAG:
 
 
 #EXTRACT_VALID
-EXTRACT_ADVANTAGE
-EXTRACT_ORG_MANAGER
-EXTRACT_SEED_FILE
-#EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
-#EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
-#EXTRACT_ORG_MANAGER >> ASSIGN_EXISTING_CONTACT_IDS
-#EXTRACT_SEED_FILES >> ASSIGN_EXISTING_CONTACT_IDS
-#ASSIGN_EXISTING_CONTACT_IDS >> MERGE_AND_GENERATE_NEW_IDS
-#MERGE_AND_GENERATE_NEW_IDS >> DELIVER_OUTPUT_FILES
-#MERGE_AND_GENERATE_NEW_IDS >> UPDATE_SEED_FILES
+#EXTRACT_ADVANTAGE
+#EXTRACT_ORGMANAGER
+#EXTRACT_SEED_FILES
+EXTRACT_VALID >> ASSIGN_EXISTING_CONTACT_IDS
+EXTRACT_ADVANTAGE >> ASSIGN_EXISTING_CONTACT_IDS
+EXTRACT_ORGMANAGER >> ASSIGN_EXISTING_CONTACT_IDS
+EXTRACT_SEED_FILES >> ASSIGN_EXISTING_CONTACT_IDS
+ASSIGN_EXISTING_CONTACT_IDS >> MERGE_AND_GENERATE_NEW_IDS
+MERGE_AND_GENERATE_NEW_IDS >> DELIVER_OUTPUT_FILES
+MERGE_AND_GENERATE_NEW_IDS >> UPDATE_SEED_FILES

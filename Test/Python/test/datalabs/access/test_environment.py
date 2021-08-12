@@ -40,4 +40,4 @@ def tree():
     os.environ['ONE_TWO_MY'] = 'bar'
     os.environ['ONE_TWO_SHOE'] = 'party'
 
-    return VariableTree.generate(separator='_')
+    return VariableTree.from_environment(separator='_')

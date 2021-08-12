@@ -22,10 +22,3 @@ class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
         text = self._client.get(file)
 
         return text.content
-
-
-# pylint: disable=too-many-ancestors
-class HTTPUnicodeTextFileExtractorTask(HTTPFileExtractorTask):
-    @classmethod
-    def _decode_data(cls, data):
-        return data.decode('utf-8', errors='backslashreplace')

@@ -1,54 +1,58 @@
 """Local file system loader"""
-from   datetime import datetime
+from   dataclasses import dataclass
 import os
 
-from   datalabs.etl.load import LoaderTask
+from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin
 from   datalabs.etl.task import ETLException
+from   datalabs.parameter import add_schema
 
 
-class LocalFileLoaderTask(LoaderTask):
-    def _load(self):
-        files = self._get_files()
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class LocalFileLoaderParameters:
+    base_path: str
+    files: str
+    data: list
+    includes_names: str = None
+    execution_time: str = None
 
-        timestamped_files = self._resolve_timestamps(files)
 
-        for file, data in zip(timestamped_files, self._parameters['data']):
-            self._load_file(file, data)
+class LocalFileLoaderTask(IncludesNamesMixin, FileLoaderTask):
+    PARAMETER_CLASS = LocalFileLoaderParameters
 
     def _get_files(self):
-        base_path = self._parameters['BASE_PATH']
+        base_path = self._parameters.base_path
 
-        files = [os.path.join(base_path, file.strip()) for file in self._parameters['FILES'].split(',')]
+        files = [os.path.join(base_path, file.strip()) for file in self._parameters.files.split(',')]
 
         return files
 
-    @classmethod
-    def _resolve_timestamps(cls, files):
-        now = datetime.utcnow()
+    def _get_client(self):
+        class DummyFSClient:
+            def __enter__(self):
+                pass
 
-        return [datetime.strftime(now, file) for file in files]
+            def __exit__(self, *args, **kwargs):
+                pass
 
-    def _load_file(self, file_path, data):
+        return DummyFSClient()
+
+    def _load_file(self, data, file):
         data = self._encode_data(data)
 
         try:
-            with open(file_path, 'wb') as file:
-                file.write(data)
+            with open(file, 'wb') as _file:
+                _file.write(data)
         except Exception as exception:
-            raise ETLException(f"Unable to write file '{file_path}'") from exception
+            raise ETLException(f"Unable to write file '{file}'") from exception
 
     @classmethod
     def _encode_data(cls, data):
         return data
 
 
-class LocalUnicodeTextFileLoaderTask(LocalFileLoaderTask):
-    @classmethod
-    def _encode_data(cls, data):
-        return data.encode('utf-8', errors='backslashreplace')
-
-
 class LocalWindowsTextFileLoaderTask(LocalFileLoaderTask):
     @classmethod
     def _encode_data(cls, data):
-        return data.encode('cp1252', errors='backslashreplace')
+        return data.decode().encode('cp1252', errors='backslashreplace')

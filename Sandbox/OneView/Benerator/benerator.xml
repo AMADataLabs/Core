@@ -1,0 +1,540 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<setup xmlns="https://www.benerator.de/schema/1.1.2-jdk-11"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="https://www.benerator.de/schema/1.1.2-jdk-11 benerator-1.1.2-jdk-11.xsd"
+        defaultEncoding="Cp1252"
+        defaultDataset="US"
+        defaultLocale="en_US"
+        defaultLineSeparator="\n">
+
+    <comment>
+        Reproduces an existing database
+    </comment>
+
+    <comment>defining a database that will be referred by the id 'db' later</comment>
+    <database id="db"
+        url="jdbc:postgresql://[::1]:5432/Oneview"
+        driver="org.postgresql.Driver"
+        schema="oneview"
+        user="postgres"
+        password="helloworld2020"/>
+
+    
+    <comment> SQL query to delete all existing rows in Physician table, for PK redundancy. REMOVE THIS IF THERE IS REAL DATA IN DATABASE   </comment>
+	<execute target="db" onError="warn"> DELETE FROM oneview.credentialing_customer_institution </execute>
+
+	<execute target="db" onError="warn"> DELETE FROM oneview.residency_program_physician </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.credentialing_customer_business </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.area_code </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.county </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.historical_resident </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.census </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.credentialing_order </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.provider </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.provider_affiliation </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.physician </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.metropolitan_statistical_area </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.alembic_version </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.zip_code </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.credentialing_product </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.federal_information_processing_standard_county </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.major_professional_activity </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.type_of_practice </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.credentialing_customer </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.residency_program_personnel_member </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.subsidiary_business </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.residency_program_physician </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.corporate_parent_business </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.core_based_statistical_area </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.zip_code_core_based_statistical_areas </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.core_based_statistical_area_melissa </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.specialty </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.present_employment </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.residency_program </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.residency_program_institution </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.business </execute>
+	<execute target="db" onError="warn"> DELETE FROM oneview.iqvia_update </execute>
+
+    
+    
+
+    <comment>Create a valid predefined base data set for regression testing by importing a DbUnit file</comment>
+    <!-- iterate source="base.xls" consumer="db"/-->
+
+	
+	<generate type="county" count="100" consumer="db">
+        <id name="federal_information_processing_standard_code" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="county_name" type="string" pattern="[A-Z]{7}"/>
+		<attribute name="state" values="'AL','AK','AZ','AR','CA','CO','CT','DE','DC','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','AS','FM','GU','MH','MP','PW','PR','UM','VI'"/>
+		<attribute name="time_zone" values="'6','10','9','7','8','5','11','14','13','15','4'"/>
+		<attribute name="county_type" values="'B','D','C',' ','A'"/>
+		<attribute name="county_seat" type="string" pattern="[A-Z]{25}"/>
+		<attribute name="name_type" values="'C',' ','B','A','D','P','M'"/>
+		<attribute name="elevation" distribution="random" type="int" min="0" max="10190" />
+		<attribute name="person_per_household" values="'2','0','5','4','3','1'"/>
+		<attribute name="population" distribution="random" type="int" min="0" max="9519338" />
+		<attribute name="area" distribution="random" type="int" min="0" max="157121" />
+		<attribute name="households" distribution="random" type="int" min="0" max="3133774" />
+		<attribute name="white" distribution="random" type="int" min="0" max="4637062" />
+		<attribute name="black" distribution="random" type="int" min="0" max="1405361" />
+		<attribute name="hispanic" distribution="random" type="int" min="0" max="4242213" />
+		<attribute name="average_income" distribution="random" type="int" min="0" max="84645" />
+		<attribute name="average_house" distribution="random" type="int" min="0" max="500001" />
+    </generate>
+
+    <generate type="historical_resident" count="100" consumer="db">
+        <id name="medical_education_number" type="string" pattern="[A-Z]{7}"/>
+        <attribute name="institution_code" type="string" pattern="[A-Z]{7}"/>
+        <attribute name="specialty" type="string" pattern="[A-Z]{7}"/>
+        <attribute name="training_type" type="string" pattern="[A-Z]{7}"/>
+        <attribute name="start_year" type="string" pattern="[0-9]{4}"/>
+        <attribute name="end_year" type="string" pattern="[0-9]{4}"/>
+    </generate>
+
+    <generate type="census" count="100" consumer="db">
+        <id name="zip_code" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="population" distribution="random" type="int" min="1" max="144024" />
+		<attribute name="urban" distribution="random" type="int" min="0" max="142967" />
+		<attribute name="suburban" distribution="random" type="int" min="0" max="47158" />
+		<attribute name="farm" distribution="random" type="int" min="0" max="2463" />
+		<attribute name="non_farm" distribution="random" type="int" min="0" max="28238" />
+		<attribute name="white" distribution="random" type="int" min="0" max="121893" />
+		<attribute name="black" distribution="random" type="int" min="0" max="84323" />
+		<attribute name="indian" distribution="random" type="int" min="0" max="10868" />
+		<attribute name="asian" distribution="random" type="int" min="0" max="45132" />
+		<attribute name="hawaiian" distribution="random" type="int" min="0" max="11693" />
+		<attribute name="race_other" distribution="random" type="int" min="0" max="57875" />
+		<attribute name="hispanic" distribution="random" type="int" min="0" max="142595" />
+		<attribute name="age_0_to_4" distribution="random" type="int" min="0" max="12339" />
+		<attribute name="age_5_to_9" distribution="random" type="int" min="0" max="12271" />
+		<attribute name="age_10_to_14" distribution="random" type="int" min="0" max="11312" />
+		<attribute name="age_15_to_17" distribution="random" type="int" min="0" max="6661" />
+		<attribute name="age_18_to_19" distribution="random" type="int" min="0" max="9783" />
+		<attribute name="age_20" distribution="random" type="int" min="0" max="6850" />
+		<attribute name="age_21" distribution="random" type="int" min="0" max="5857" />
+		<attribute name="age_22_to_24" distribution="random" type="int" min="0" max="10507" />
+		<attribute name="age_25_to_29" distribution="random" type="int" min="0" max="16852" />
+		<attribute name="age_30_to_34" distribution="random" type="int" min="0" max="13591" />
+		<attribute name="age_35_to_39" distribution="random" type="int" min="0" max="10261" />
+		<attribute name="age_40_to_44" distribution="random" type="int" min="0" max="9784" />
+		<attribute name="age_45_to_49" distribution="random" type="int" min="0" max="9184" />
+		<attribute name="age_50_to_54" distribution="random" type="int" min="0" max="8832" />
+		<attribute name="age_55_to_59" distribution="random" type="int" min="0" max="7283" />
+		<attribute name="age_60_to_61" distribution="random" type="int" min="0" max="2697" />
+		<attribute name="age_62_to_64" distribution="random" type="int" min="0" max="4191" />
+		<attribute name="age_65_to_66" distribution="random" type="int" min="0" max="2380" />
+		<attribute name="age_67_to_69" distribution="random" type="int" min="0" max="3347" />
+		<attribute name="age_70_to_74" distribution="random" type="int" min="0" max="6641" />
+		<attribute name="age_75_to_79" distribution="random" type="int" min="0" max="5843" />
+		<attribute name="age_80_to_84" distribution="random" type="int" min="0" max="4338" />
+		<attribute name="age_85_plus" distribution="random" type="int" min="0" max="4474" />
+		<attribute name="education_below_9" distribution="random" type="int" min="0" max="28452" />
+		<attribute name="education_9_to_12" distribution="random" type="int" min="0" max="18707" />
+		<attribute name="education_high_school" distribution="random" type="int" min="0" max="26355" />
+		<attribute name="education_some_college" distribution="random" type="int" min="0" max="26256" />
+		<attribute name="education_association" distribution="random" type="int" min="0" max="8520" />
+		<attribute name="education_bachelor" distribution="random" type="int" min="0" max="36690" />
+		<attribute name="education_professional" distribution="random" type="int" min="0" max="32133" />
+		<attribute name="household_income" distribution="random" type="int" min="0" max="200001" />
+		<attribute name="per_person_income" distribution="random" type="int" min="0" max="654485" />
+		<attribute name="house_value" distribution="random" type="int" min="0" max="1000001" />
+    </generate>
+
+    <generate type="metropolitan_statistical_area" count="100" consumer="db">
+        <id name="code" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="type" values="'MSA ','PMSA','CMSA'"/>
+		<attribute name="name" type="string" pattern="[A-Z]{8}"/>
+		<attribute name="consolidated_metropolitan_statistical_area" values="'  ','28','35','87','77','97','70','07','34','42','91','14','21','31','56','49','63','84','79','82'"/>
+		<attribute name="population" distribution="random" type="int" min="56954" max="20196649" />
+    </generate>
+
+    <generate type="area_code" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="area_code" distribution="random" type="int" min="201" max="989" />
+		<attribute name="prefix" distribution="random" type="int" min="200" max="999" />
+		<attribute name="latitude" distribution="random" type="float" min="13.3954" max="74.6288" />
+		<attribute name="longitude" distribution="random" type="float" min="52.7251" max="176.6411" />
+    </generate>
+
+    <generate name="alembic_version" count="0" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+    </generate>
+
+    <generate type="zip_code" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(1)" />
+		<attribute name="zip_code" distribution="random" type="int" min="501" max="99950" />
+		<attribute name="state" values="'AL','AK','AZ','CA','CO','CT','DE','DC','FL','GA','HI','ID','ME','MD','MA','NV','NH','NJ','NM','NY','NC','OR','PA','RI','SC','TX','UT','VT','VA','WA','WV','WY','AS','FM','GU','MH','MP','PW','PR','VI','AE','AA','AP','TN','MS','KY','OH','IN','MI','IA','WI','MN','SD','ND','MT','IL','MO','KS','NE','LA','AR','OK'"/>
+		<attribute name="city" type="string" pattern="[A-Z]{28}"/>
+		<attribute name="type" values="' ','P','U','M'"/>
+		<attribute name="county_federal_information_processing" distribution="random" type="int" min="0" max="78030" />
+		<attribute name="latitude" distribution="random" type="int" min="0" max="80" />
+		<attribute name="longitude" distribution="random" type="int" min="0" max="180" />
+		<attribute name="metropolitan_statistical_area" distribution="random" type="int" min="0" max="9360" />
+		<attribute name="primary_metropolitan_statistical_area" values="'    ','5775','6920','4480','7360','8720','5945','6780','7400','7485','7500','8735','9270','2080','1125','3060','1160','8040','5480','9240','9160','8840','2680','5000','6450','720','3180','1120','4560','4760','560','875','6160','8760','5640','3640','5015','8480','5190','5600','2281','5380','5660','6440','7080','7600','1150','8200','5910','7440','470','1310','1640','1680','80','3200','2960','2160','440','2640','5080','3800','6600','1600','3740','1920','2800','3360','1145','2920'"/>
+    </generate>
+
+    <generate type="iqvia_update" count="100" consumer="db">
+        <id name="date" type="date" />
+    </generate>
+
+    <generate type="credentialing_product" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(1)" />
+		<attribute name="description" type="string" pattern="[A-Z]{30}"/>
+    </generate>
+
+    <generate type="specialty" count="100" consumer="db">
+		<id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="description" type="string" pattern="[A-Z]{27}"/>
+    </generate>
+
+    <generate type="core_based_statistical_area" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="description" type="string" pattern="[A-Z]{10}"/>
+    </generate>
+
+    <generate type="federal_information_processing_standard_county" count="100" consumer="db">
+        <attribute name="description" pattern="[A-Z]{20}"/>
+		<attribute name="county" pattern="[A-Z]{10}"/>
+		<attribute name="state" values="'0','1','2','4','5','6','8','9','10','11','12','13','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31','32','33','34','35','36','37','38','39','40','41','42','44','45','46','47','48','49','50','51','53','54','55','56','72'"/>
+		<id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+    </generate>
+
+    <generate type="major_professional_activity" count="100" consumer="db">
+		<id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="description" values="'Administration','Hospital Based Full-Time Physician Staff','Hospital Based Residents - All Years','Inactive','Locum Tenens','Medical Teaching','Not Classified','Office Based Practice','Other','Research','Semi-Retired'"/>
+    </generate>
+
+    <generate type="present_employment" count="38" consumer="db">
+		<id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="description" values="'Student','Self Employed Solo','Self-Employed Solo Practice','Two Physician Practice-Full Or Part Owner','Two Physician Practice-Employee','Arrangement--Non-Group','Other-Patient Care','Locum Tenens','Group Practice','HMO','Medical School','Non-Government Hospital','City/County/State Government','City/County/State Government Hospital','City/County/State Government Other','City/County/State Government-Hospital','City/County/State Government-Other Than Hospital','State Goverment','State Goverment Hospital','State Goverment Other','Federal Government-Hospital','Federal Government-Hospital/Army','Federal Government-Hospital/Navy','Federal Government-Hospital/Air Force','Federal Government-Hospital/Usphs','Federal Government-Hospital/Vet Admin','Federal Government-Hospital/Other Agency','Federal Government Other Than Hospital','Federal Government-Other Than Hosp/Army','Federal Government-Other Than Hosp/Navy','Federal Government-Other Than Hosp/Air Force','Federal Government-Other Than Hosp/USPHS','Federal Government-Other Than Hosp/Vet Admin','Federal Government-Other Than Hosp/Other Agency','No Classification','Other/Non-Patient Care'"/>
+    </generate>
+
+    <generate type="core_based_statistical_area_melissa" count="100" consumer="db">
+		<id name="code" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="type" values="'CBSA','DIV '"/>
+		<attribute name="title" type="string" pattern="[A-Z]{50}"/>
+		<attribute name="level" values="'Micropolitan Statistical Area','Metropolitan Statistical Area'"/>
+		<attribute name="status" values="'2','1'"/>
+    </generate>
+
+    <generate type="residency_program_institution" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="name" type="string" pattern="[A-Z]{46}"/>
+		<attribute name="primary_clinical_location" values="'0.0','1.0'"/>
+		<attribute name="affiliation" values="'S'"/>
+		<attribute name="last_update_date" type="date"/>
+    </generate>
+
+    <generate type="type_of_practice" count="19" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="description" values="'Student','Training','Resident (First Year)','Resident','Clinical Fellow','Research Fellow','Direct Patient Care','Administration','Medical Teaching','Medical Research','Other Patient Care','Non-Patient Care','Inactive','Retired','Semi-Retired','Disabled','Temporarily Not In Practice','Not Active For Other Reasons','Unclassified'"/>
+    </generate>
+
+    <generate type="credentialing_customer" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="number" distribution="random" type="int" min="100" max="100000" />
+		<attribute name="name" type="string" pattern="[A-Z]{11}"/>
+		<attribute name="type" values="'Eprofile','Nonphy','Phys','Instit','Retired','Unknown','Medstud','Resident','Media','Nursenp','Nonhlth','Physint','Aldhlth','Resdenti','Medstudi','Nonhlthi'"/>
+		<attribute name="type_description" values="'Eprofile Webstore Cusomer','Non-Physician Individual','Physician (On Aims)','Institution','Us Physician, Retired','Unknown','Medical Student On Aims','Us Physician Resident/Fellow','Media','Eprofile Webstore Customer','Nurse Practitioner','Non Health (Domestic)','International Physician','Allied Health (Domestic)','Intl Physician Resident/Fellow','International Med Student','Non Health (International)'"/>
+		<attribute name="category" values="'Hp','Gr','Spms','Gov','Mgc','Rc','Cvo','Am','Hr','Cb','Cf','Lt','Bd','Cms','Sms','Lw','Md','Ab'"/>
+		<attribute name="category_description" values="'Hospital','(null)','Group','Specialty Medical Society','Government','Managed Care','Recruitment','Credit Verification Org','Ambulatory Care','Health Related','Credentialling Board','Consulting','Long Term Care','Medical Board','County Medical Society','State Medical Society','Law','Medical Doctors','American Board'"/>
+		<attribute name="current_indicator" values="'N','Y'"/>
+		<attribute name="address_1" type="string" pattern="[A-Z]{18}"/>
+		<attribute name="address_2" type="string" pattern="[A-Z]{9}"/>
+		<attribute name="address_3" values="'0'"/>
+		<attribute name="city" type="string" pattern="[A-Z]{8}"/>
+		<attribute name="state" values="'NY','0','NC','TX','ID','NJ','MN','AK','MI','IL','FL','MS','CA','KY','CO','WV','PA','AL','GA','MO','AZ','VT','TN','OH','ND','LA','OK','MT','WA','OR','NM','IN','CT','MD','UT','VA','MA','SC','ME','WI','HI','NH','RI','WY','NE','DC','PR','IA','NV','SD','DE','KS','VI','GU','AR','AP'"/>
+		<attribute name="zipcode" type="string" pattern="[A-Z]{7}"/>
+		<attribute name="phone_number" type="string" pattern="[A-Z]{12}"/>
+		<attribute name="company_name" type="string" pattern="[A-Z]{7}"/>
+    </generate>
+
+    <generate type="residency_program" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<reference name="institution" source="db" targetType="residency_program_institution" distribution="random" />
+		<attribute name="specialty" distribution="random" type="float" min="20.0" max="999.0" />
+		<attribute name="institution_control" values="'21','0','11','12','31','13','22','32','4','33','8','30','66','14','50','45','23','42','43','44','18','34','26','20','28','38','46','7','36','77','88','40','48'"/>
+		<attribute name="sequence_number" distribution="random" type="int" min="1" max="962" />
+		<attribute name="federal_code" distribution="random" values="'7','5','8','4','3','2','1','6'"/>
+		<attribute name="region_code" distribution="random" values="'6','8','7','9','1','5','3','4','2','10'"/>
+		<attribute name="acgme_accredited" distribution="random" type="boolean"/>
+		<attribute name="name" type="string" pattern="[A-Z]{82}"/>
+		<attribute name="web_address" type="string" pattern="[A-Z]{75}"/>
+		<attribute name="contact_director" distribution="random" type="boolean"/>
+		<attribute name="accreditation_status" distribution="random" values="'I1','AO','CA','CF','AC','CW','0'"/>
+		<attribute name="accreditation_effective_date" type="date" />
+		<attribute name="initial_accreditation_date" type="date" />
+		<attribute name="accreditation_length" distribution="random" values="'2.0','4.0','3.0','1.0','7.0','0.0','5.0','6.0'"/>
+		<attribute name="duration" distribution="random" values="'2.0','3.0','4.0','5.0','1.0','7.0','0.0','6.0','8.0'"/>
+		<attribute name="government_affiliated" distribution="random"   type="boolean" />
+		<attribute name="graduate_medical_education_equivalent_years" type="float" values="'4.0','1.0','2.0','5.0','6.0','0.0','3.0','7.0','8.0'"/>
+		<attribute name="preliminary_years_required" distribution="random" type="float" values="'1','4','2','3','0'"/>
+		<attribute name="preliminary_positions_offered" distribution="random"  type="boolean" />
+		<attribute name="type" distribution="random" type="int" values="'1','5','2','3','4','0'"/>
+		<attribute name="max_residents_accepted_increase" type="int" values="'0','2','1','5'"/>
+		<attribute name="percent_at_primary_site" values="'10.0','100.0','60.0','0.0','90.0','97.0','50.0','95.0','40.0','80.0','70.0','33.0','20.0','85.0','75.0','55.0','66.0','35.0','92.0','65.0','45.0','67.0','57.0','86.0','98.0','94.0','84.0','96.0','73.0','91.0','43.0','99.0','87.0','89.0','88.0','30.0','58.0','51.0','41.0','83.0','46.0','25.0','54.0','77.0','68.0','47.0','38.0','48.0','71.0','63.0','64.0','62.0','72.0','61.0','81.0','79.0','32.0','69.0','42.0','53.0','93.0','28.0','78.0','82.0','52.0','59.0','37.0','39.0','5.0','4.0','36.0','44.0','34.0','15.0','74.0','56.0','49.0','26.0','22.0','23.0','18.0','12.0','29.0','31.0'"/>
+		<attribute name="primary_site" distribution="random" type="float" min="0.0" max="570106.0" />
+		<attribute name="core_program" distribution="random" type="float" min="0.0" max="4805421155.0" />
+		<attribute name="medical_records" distribution="random" type="boolean"/>
+		<attribute name="official_address" distribution="random" type="boolean"/>
+		<attribute name="uses_sfmatch" distribution="random" type="boolean"/>
+		<attribute name="other_match_indicator" distribution="random" type="boolean"/>
+		<attribute name="other_match" type="string" pattern="[A-Z]{45}"/>
+		<attribute name="additional_education_accreditation_length" type="boolean"/>
+		<attribute name="last_update_date" type="date" />/>
+		<attribute name="last_update_type" values="'M','V','K','0'"/>
+		<attribute name="american_osteopathic_association_indicator" type="boolean"/>
+		<attribute name="american_osteopathic_association_indicator_program" distribution="random" type="float" min="0.0" max="372188.0" />
+		<attribute name="osteopathic_principles" type="boolean"/>
+		<attribute name="address_1" type="string" pattern="[A-Z]{38}"/>
+		<attribute name="address_2" type="string" pattern="[A-Z]{10}"/>
+		<attribute name="address_3" type="string" pattern="[A-Z]{18}"/>
+		<attribute name="city" type="string" pattern="[A-Z]{7}"/>
+		<attribute name="state" values="'0','AL','AR','CA','CO','CT','FL','GA','IL','IN','LA','MD','MA','MI','MN','MS','MO','NH','NY','NC','OH','PA','RI','SC','TX','VT','VA','WA','AZ','DE','DC','IA','KS','KY','ME','NE','NV','NJ','NM','OK','OR','PR','TN','UT','WV','WI','AK','HI','ID','MT','ND','SD','WY'"/>
+		<attribute name="zipcode" distribution="random" type="float" min="0.0" max="992021330.0" />
+    </generate>
+
+    <generate type="residency_program_personnel_member" count="100" consumer="db">
+		<id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		
+		<reference name="program" source="db" targetType="residency_program" distribution="random" />
+		
+		<attribute name="personnel_type" values="'D'"/>
+		<attribute name="aamc_id" type="string" pattern="[A-Z]{3}"/>
+		<attribute name="first_name" type="string" pattern="[A-Z]{6}"/>
+		<attribute name="middle_name" type="string" pattern="[A-Z]{1}"/>
+		<attribute name="last_name" type="string" pattern="[A-Z]{12}"/>
+		<attribute name="suffix_name" values="'0','Jr','II','III','IV','Sr','I','SR','VIII'"/>
+		<attribute name="degree_1" values="'MD','DO','PhD','0','MBBS','MS'"/>
+		<attribute name="degree_2" values="'PhD','0','MS','MSc','MPH','MHS','MBA','MEd','MPA','DMD','JD','BSN','MMS','DDS','BS','EdM','MA','PHD','MAE','MPP','MHA','MSPH','DO','DSc','EdD','BA','MSN','DPM','MCS','MHPE','MEE','EDM','MD','MSA','AM','MPM','DPH','MSW','DC','BSE','LLB','DPT','OD'"/>
+		<attribute name="degree_3" values="'0','MS','MSc','MA','MBA','MM','MPH','MEd','PhD','BS','JD','DSc','MPP','MSEd'"/>
+		<attribute name="phone_number" distribution="random" type="float" min="0" max="9898943950.0" />
+		<attribute name="email" type="string" pattern="[A-Z]{17}"/>
+		<attribute name="last_update_date" type="date" />
+	</generate>
+
+    <generate type="business" count="100" consumer="db">
+		<id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<attribute name="name" type="string" pattern="[A-Z]{14}"/>
+		<attribute name="doing_business_as" type="string" pattern="[A-Z]{20}"/>
+		<attribute name="iqvia_address_id" distribution="random" type="int" min="4" max="44684205" />
+		<attribute name="physical_address_1" type="string" pattern="[A-Z]{23}"/>
+		<attribute name="physical_address_2" type="string" pattern="[A-Z]{34}"/>
+		<attribute name="physical_city" type="string" pattern="[A-Z]{6}"/>
+		<attribute name="physical_state" values="'MO','KS','NJ','CT','IL','FL','TX','NY','PA','MA','IA','AL','GA','TN','MI','OH','MD','NC','CA','WI','NE','MN','LA','IN','KY','SD','AR','WV','NH','RI','VA','CO','DE','ME','VT','MS','SC','WA','OK','UT','OR','AZ','ND','NM','ID','HI','NV','AK','DC','WY','MT','PR','VI','GU','AA','AP','AE','MP','PW','MH','FM','AS'"/>
+		<attribute name="physical_zipcode" type="string" pattern="[A-Z]{5}"/>
+		<attribute name="postal_address_1" type="string" pattern="[A-Z]{23}"/>
+		<attribute name="postal_address_2" type="string" pattern="[A-Z]{34}"/>
+		<attribute name="postal_city" type="string" pattern="[A-Z]{6}"/>
+		<attribute name="postal_state" values="'MO','KS','NJ','CT','IL','FL','TX','NY','PA','MA','IA','AL','GA','TN','MI','OH','MD','NC','CA','WI','NE','MN','LA','IN','KY','SD','AR','WV','NH','RI','VA','CO','DE','ME','VT','MS','SC','WA','OK','UT','OR','AZ','ND','NM','ID','HI','NV','AK','DC','WY','MT','PR','VI','GU','AA','AP','AE','MP','PW','MH','FM','AS'"/>
+		<attribute name="postal_zipcode" type="string" pattern="[A-Z]{5}"/>
+		<attribute name="phone" type="string" pattern="[A-Z]{12}"/>
+		<attribute name="fax" distribution="random" type="float" min="0.0" max="9978318820.0" />
+		<attribute name="website" type="string" pattern="[A-Z]{17}"/>
+		<attribute name="latitude" distribution="random" type="float" min="0.0" max="71.299689" />
+		<attribute name="longitude" distribution="random" type="float" min="0.0" max="144.89836" />
+		<attribute name="owner_status" values="'0','NOT INDEPENDENT','INDEPENDENT','ALLIED'"/>
+		<attribute name="profit_status" values="'For Profit','Not for Profit','Government','0','Armed Forces'"/>
+		<attribute name="primary_class_of_trade" distribution="random" type="int" min="2" max="258" />
+		<attribute name="class_of_trade_classification_description" type="string" pattern="[A-Z]{20}"/>
+		<attribute name="class_of_trade_classification" values="'10','28','25','14','26','17','20','16','19','12','15','21','13','18','23','11','22','24','27','29'"/>
+		<attribute name="class_of_trade_facility_type" values="'13','90','81','14','11','22','79','24','35','36','48','30','71','25','34','43','46','49','32','33','45','47','19','27','26','51','20','42','56','40','57','84','18','53','50','82','86','83','74','66','61','52','63','54','72','77','68','17','73','21','59','44','31','89','80','41','28','75','85','87','64','76','91','78','69','70','88','93','92'"/>
+		<attribute name="class_of_trade_facility_type_description" values="'Group Purchasing Organization (GPO)','Organization/Service','Owner Subsidiary','Integrated Delivery Network (IDN)','Corporate Owner','Acute Care Hospital','Non-health Delivery','Psychiatric Hospital','Medical Group','Outpatient Surgi Center','Nursing Homes','Clinical Laboratory','Physical Medicine and Rehabilitation','Rehabilitation Hospital','Independent Physician Practice','Research Institute','Home Health','Residential Facilities','Clinic','Imaging Center','Assisted Living','Independent Living','Adult Day Care','Managed Care','Indemnity','Durable Medical Equipment','Ambulance','Retail Pharmacy','Employee Assistance Programs','Outpatient Pharmacy','Executive Health Program','Nuclear','City/County/State','Warehouse','Distributor','Closed-door','Compounding','Mail Service','Manufacturer','Other Laboratory','Hospital/Clinic','Other Supply','Other Pharmacy','Wholesaler','Distributor - Corporate Headquarters','Blood Bank','Other','Federal','Health Department','Rescue','Other Government','Research Laboratory','Reference Laboratory','Medical Bank','Alternative Medicine','Pharmacy Provider','Pharmacy Benefit Manager','Internet','Central Fill','Medical School','Other Insurance','Non-Retail Pharmacy','Accountable Care Organization','Support Services','Distributor - Medical/Surgical Supply','Distributor - Pharmaceutical Supply','Osteopathic Medical School','Software Vendor','Health Insurance Marketplace'"/>
+		<attribute name="class_of_trade_specialty" values="'0.0','111.0','108.0','100.0','131.0','127.0','138.0','107.0','134.0','141.0','135.0','110.0','160.0','196.0','106.0','248.0','137.0','136.0','148.0','220.0','123.0','121.0','180.0','140.0','223.0','130.0','166.0','216.0','142.0','219.0','105.0','163.0','235.0','143.0','172.0','170.0','175.0','214.0','125.0','173.0','213.0','207.0','182.0','167.0','159.0','113.0','112.0','164.0','183.0','176.0','128.0','212.0','191.0','171.0','174.0','246.0','189.0','193.0','188.0','209.0','225.0','251.0','252.0','132.0','177.0','145.0','247.0','227.0','192.0','126.0','179.0','169.0','195.0','215.0','115.0','211.0','234.0','249.0','114.0','250.0','129.0','104.0','116.0','226.0','245.0','231.0','229.0','224.0','255.0','258.0','256.0','257.0'"/>
+		<attribute name="class_of_trade_specialty_description" values="'0','General Acute','Critical Access','Long-term Acute Care','Multispecialty Group Practice','Family Practice','Primary Care','Childrens','Ophthalmology','Urgent Care','Orthopedics','Oncology','Surgical','Emergency Medicine','Cardiology','Eye and Ear','Pediatric Medicine','Otolaryngology','Hospice','Developmental Disabilities','Dialysis Centers','Behavioral Health','Neurology','Sports Medicine','Occupational Health','Internal Medicine','Addiction Medicine','Preferred Provider Organization (PPO)','Obstetrics/Gynecology','Other','Ground transport','General Practice','Behavioral Health-CMHC','General Surgery','Infectious Disease','Audiology','Geriatric Medicine','Nutrition','Gastroenterology','Endocrinology','Infusion','Pain Management','Urology','Occupational Therapy','Dermatology','HMO - Network','HMO - Group/Staff Model','Preventive Medicine','Alzheimer Care','Allergy/Immunology','Hematology','Dentistry','Anesthesiology','Rheumatology','Pulmonary Disease','Birthing Center','Radiology','Chiropractic Medicine','Maxillofacial Surgery','Wound Care','Student Health Center','Professional Association','Disease Association','Nephrology','Vascular','Plastic and Reconstructive Surgery','Long-term Care','Workers Compensation','Podiatry','Optometry','Proctology','Orthotics/Prosthetics','Pathology','Genetics','Medicare','Anticoagulation','HMO','Home Dialysis','Independent Physicians Association-IPA','Retail Walk-in Clinic','Hemophilia Treatment Center','Air transport','Point of service-POS','Union Shop','US Navy Fleet Ship','Mail Service','Chain','Epilepsy','State','Partnership','Federal','Private'"/>
+		<attribute name="record_type" values="'1','7','2','3','4','5','6'"/>
+		<attribute name="total_licensed_beds" distribution="random" type="float" min="0.0" max="743089.0" />
+		<attribute name="total_census_beds" distribution="random" type="float" min="0.0" max="606468.0" />
+		<attribute name="total_staffed_beds" distribution="random" type="float" min="0.0" max="728118.0" />
+		<attribute name="teaching_hospital" values="'0','Y'"/>
+		<attribute name="hospital_care" values="'0','Yes'"/>
+		<attribute name="metropolitan_statistical_area" distribution="random" type="float" min="0.0" max="49820.0" />
+		
+		<variable name="_fipsc" type="federal_information_processing_standard_county" source="db" distribution="random" />		
+		<reference name="federal_information_processing_standard_county" script="_fipsc.county" />
+		<reference name="federal_information_processing_standard_state" script="_fipsc.state" />
+		
+		<attribute name="number_of_providers" distribution="random" type="float" min="0.0" max="388007.0" />
+		<attribute name="electronic_medical_record" values="'0','Yes','No','Partial','Unknown'"/>
+		<attribute name="electronically_prescribe" values="'0','Yes','No','Partial','Unknown'"/>
+		<attribute name="pay_for_performance" values="'0','Yes','No','Unknown','Site-determined'"/>
+		<attribute name="deactivation_reason" values="'0','Facility Closed','Duplicate Facility','Non-MII Class of Trade','Entry Error','Cannot Locate'"/>
+		<attribute name="replacement_business" type="string" pattern="[A-Z]{11}"/>
+		<attribute name="status_indicator" values="'A','D'"/>
+		<reference name="batch_business_date" source="db" type="iqvia_update" distribution="random"/>
+    </generate>
+
+    <generate type="physician" count="1000" consumer="db">
+		<id name="medical_education_number" type="string" generator="new IncrementalIdGenerator(10000000000)" />
+		<reference name="type_of_practice" source="db" targetType="type_of_practice" distribution="random" />
+        <reference name="present_employment" source="db" targetType="present_employment" distribution="random" />
+        <reference name="core_based_statistical_area" source="db" targetType="core_based_statistical_area" distribution="random" />
+		<reference name="primary_specialty" source="db" targetType="specialty" distribution="random" />
+        <reference name="secondary_specialty" source="db" targetType="specialty" distribution="random" />
+        <reference name="major_professional_activity" source="db" targetType="major_professional_activity" distribution="random" />
+		<attribute name="address_type" values="'2.0','3.0','1.0','0.0'"/>
+		<attribute name="mailing_name" type="string" pattern="[A-Z]{18}"/>
+		<attribute name="last_name" type="string" pattern="[A-Z]{11}"/>
+		<attribute name="first_name" type="string" pattern="[A-Z]{4}"/>
+		<attribute name="middle_name" type="string" pattern="[A-Z]{5}"/>
+		<attribute name="name_suffix" values="'0.0','2.0','4.0','5.0','3.0','6.0','1.0','7.0'"/>
+		<attribute name="preferred_address_2" type="string" pattern="[A-Z]{23}"/>
+		<attribute name="preferred_address_1" type="string" pattern="[A-Z]{10}"/>
+		<attribute name="city" type="string" pattern="[A-Z]{6}"/>
+		<attribute name="state" values="'AL','NC','AZ','LA','TN','SC','TX','FL','MS','OH','KY','UT','MN','MI','VA','MO','AR','OR','CO','ID','GA','NM','DC','WA','CA','MD','ME','IN','IL','MA','NV','NY','NJ','PA','OK','AK','CT','MT','IA','VT','NE','HI','NH','RI','WV','KS','WI','GU','DE','0','SD','ND','WY','AE','AP','VI','PR','AS','MP','AA','PW','FM'"/>
+		<attribute name="zipcode" type="string" pattern="[A-Z]{5}"/>
+		<attribute name="sector" distribution="random" type="float" min="0.0" max="9999.0" />
+		<attribute name="carrier_route" type="string" pattern="[A-Z]{4}"/>
+		<attribute name="address_undeliverable" values="'0','U'"/>
+
+		<variable name="_fipsc" type="federal_information_processing_standard_county" source="db" distribution="random" />		
+		<reference name="federal_information_processing_standard_county" script="_fipsc.county" />
+		<reference name="federal_information_processing_standard_state" script="_fipsc.state" />
+
+		<attribute name="printer_control_code_begin" values="'!'"/>
+		<attribute name="barcode_zipcode" type="string" pattern="[A-Z]{5}"/>
+		<attribute name="barcode_zipcode_plus_4" distribution="random" type="float" min="0.0" max="9999.0" />
+		<attribute name="delivery_point" distribution="random" type="float" min="0.0" max="99.0" />
+		<attribute name="check_digit" values="'6.0','7.0','9.0','5.0','0.0','4.0','1.0','3.0','8.0','2.0'"/>
+		<attribute name="printer_control_code_end" values="'!'"/>
+		<attribute name="region" values="'3.0','4.0','2.0','1.0','0.0'"/>
+		<attribute name="division" values="'6.0','5.0','8.0','7.0','3.0','4.0','9.0','1.0','2.0','0.0'"/>
+		<attribute name="group" values="'5.0','6.0','4.0','2.0','3.0','1.0','0.0'"/>
+		<attribute name="tract" distribution="random" type="float" min="0.0" max="9901.0" />
+		<attribute name="suffix" distribution="random" type="float" min="0.0" max="99.0" />
+		<attribute name="block_group" values="'1.0','3.0','2.0','5.0','6.0','0.0','4.0','7.0','8.0','9.0'"/>
+		<attribute name="metropolitan_statistical_area_population" values="'B','A','0','C','D'"/>
+		<attribute name="micro_metro_indicator" values="'1.0','2.0','0.0'"/>
+		<attribute name="core_based_statistical_area_division" values="'0.0','1.0'"/>
+		<attribute name="degree_type" values="'1','2'"/>
+		<attribute name="birth_year" distribution="random" type="float" min="0.0" max="1998.0" />
+		<attribute name="birth_city" type="string" pattern="[A-Z]{10}"/>
+		<attribute name="birth_state" values="'AL','GA','MS','0','TN','KY','DC','TX','NC','FL','MO','OH','LA','HI','ID','IL','CT','CA','NY','MD','IN','WA','PA','VA','IA','MA','NJ','MI','AR','AZ','KS','PR','DE','UT','WI','CO','RI','OK','NV','NE','OR','SC','MN','ND','WV','ME','AK','NM','WY','VT','MT','NH','SD','GU','AE','VI','AS','AP','AA','CZ','MH','MP','UK'"/>
+		<attribute name="birth_country" type="string" pattern="[A-Z]{3}"/>
+		<attribute name="gender" values="'1.0','2.0','0.0'"/>
+		<attribute name="telephone_number" distribution="random" type="float" min="0.0" max="9999999999.0" />
+		<attribute name="presumed_dead" values="'0','D'"/>
+		<attribute name="fax_number" distribution="random" type="float" min="0.0" max="9999999999.0" />
+		<attribute name="physician_recognition_award_recipient" values="'0','Y'"/>
+		<attribute name="physician_recognition_award_expiration_date" values="'0.0','8012019.0','1012020.0','7012019.0','10012019.0','11012019.0','9012019.0','7012020.0','12012019.0','2012020.0','1012070.0','3012102.0','11012020.0','7012070.0','3012020.0','6012020.0','4012020.0','9012020.0','7102019.0','1012030.0'"/>
+		<attribute name="graduate_medical_education_confirm" values="'Y','0'"/>
+		<attribute name="from_date" distribution="random" type="float" min="0.0" max="12312017.0" />
+		<attribute name="end_date" distribution="random" type="float" min="0.0" max="12312022.0" />
+		<attribute name="year_in_program" values="'0.0','2.0','3.0','4.0','1.0','5.0','8.0','7.0','6.0','9.0','12.0','28.0','99.0','18.0','11.0'"/>
+		<attribute name="post_graduate_year" values="'0.0','6.0','11.0','5.0','9.0','3.0','4.0','7.0','8.0','2.0','1.0','10.0','12.0','15.0','13.0','14.0','19.0','28.0','99.0','21.0'"/>
+		<attribute name="graduate_medical_education_primary_specialty" type="string" pattern="[A-Z]{3}"/>
+		<attribute name="graduate_medical_education_secondary_specialty" values="'0','US'"/>
+		<attribute name="training_type" values="'0.0','2.0','1.0'"/>
+		<attribute name="graduate_medical_education_hospital_state" values="'11.0','48.0','36.0','3.0','1.0','24.0','0.0','45.0','51.0','16.0','21.0','38.0','47.0','27.0','17.0','26.0','25.0','10.0','56.0','28.0','20.0','7.0','23.0','41.0','39.0','32.0','5.0','14.0','35.0','49.0','12.0','54.0','50.0','43.0','22.0','18.0','4.0','40.0','8.0','33.0','34.0','55.0','19.0','9.0','30.0','31.0','6.0','67.0','37.0','46.0','57.0','15.0','29.0','42.0','2.0','65.0','61.0','60.0','64.0','68.0','62.0','63.0','69.0'"/>
+		<attribute name="graduate_medical_education_hospital" distribution="random" type="float" min="0.0" max="9817.0" />
+		<attribute name="medical_school_state" distribution="random" type="int" min="1" max="965" />
+		<attribute name="medical_school" distribution="random" type="int" min="0" max="99" />
+		<attribute name="medical_school_graduation_year" distribution="random" type="int" min="1900" max="2019" />
+		<attribute name="no_contact_type" values="'0','N'"/>
+		<attribute name="no_web" values="'0','N'"/>
+		<attribute name="physician_data_restriction_program" values="'Y','0'"/>
+		<attribute name="physician_data_restriction_program_date" distribution="random" type="float" min="0.0" max="12312016.0" />
+		<attribute name="polo_address_2" type="string" pattern="[A-Z]{23}"/>
+		<attribute name="polo_address_1" type="string" pattern="[A-Z]{15}"/>
+		<attribute name="polo_city" type="string" pattern="[A-Z]{6}"/>
+		<attribute name="polo_state" values="'0','NC','AZ','LA','AL','TN','SC','TX','FL','MS','OH','KY','UT','MN','MI','VA','MO','AR','OR','CO','GA','NM','CA','ID','ME','DC','IN','MD','IL','MA','NV','WA','NY','NJ','PA','OK','AK','CT','MT','IA','VT','NE','HI','NH','RI','WV','DE','KS','WI','SD','ND','WY','AP','VI','AE','GU','PR','MP','AA','AS'"/>
+		<attribute name="polo_zipcode" type="string" pattern="[A-Z]{5}"/>
+		<attribute name="polo_sector" distribution="random" type="float" min="0.0" max="9999.0" />
+		<attribute name="polo_carrier_route" type="string" pattern="[A-Z]{4}"/>
+		<attribute name="most_recent_former_last_name" type="string" pattern="[A-Z]{1}"/>
+		<attribute name="most_recent_former_middle_name" type="string" pattern="[A-Z]{1}"/>\
+		<attribute name="entity_id" type="string" pattern="[A-Z]{6}"/>
+		<attribute name="party_id" type="string" pattern="[A-Z]{6}"/>
+		<attribute name="most_recent_former_first_name" type="string" pattern="[A-Z]{8}"/>
+		<attribute name="next_most_recent_former_last_name" type="string" pattern="[A-Z]{6}"/>
+		<attribute name="next_most_recent_former_middle_name" type="string" pattern="[A-Z]{6}"/>
+		<attribute name="next_most_recent_former_first_name" type="string" pattern="[A-Z]{3}"/>
+		<attribute name="national_provider_identifier" distribution="random" type="int" min="0" max="1992999874" />
+		<attribute name="race_ethnicity" values="'White','Asian','Hispanic, Latino, or Spanish Origin','American Indian or Alaskan Native','Black or African American','Mixed Race/Ethnicity','0','American Indian','Unknown','Other'"/>
+    </generate>
+
+    <generate type="subsidiary_business" count="100" consumer="db">
+        <reference name="subsidiary" source="db" targetType="business" unique="True"  />
+        <reference name="owner" source="db" targetType="business" unique="True" />
+    </generate>
+
+    <generate type="credentialing_customer_business" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+        <reference name="business" source="db" targetType="business" distribution="random"/>
+        <reference name="customer" source="db" targetType="credentialing_customer" distribution="random"/>
+    </generate>
+
+    <generate type="credentialing_order" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<reference name="customer" source="db" targetType="credentialing_customer" distribution="random" />
+		<reference name="product" source="db" targetType="credentialing_product" distribution="random" />		
+		<attribute name="number" distribution="random" type="int" min="0" max="448821" />
+		<attribute name="quantity" values="'1','-1','-2'"/>
+		<attribute name="unique_physician_identification_number" type="string" pattern="[A-Z]{6}"/>
+		<reference name="medical_education_number" source="db" targetType="physician" />
+		<attribute name="date" type="string" pattern="[A-Z]{8}"/>
+    </generate>
+
+    <generate type="credentialing_customer_institution" count="100" consumer="db">
+        <id name="id"  type="long" generator="new IncrementalIdGenerator(100)" />
+        <reference name="customer" source="db" targetType="credentialing_customer" />
+        <reference name="residency_program_institution" source="db" targetType="residency_program_institution" />
+    </generate>
+
+    <generate type="provider" count="100" consumer="db">
+		<reference name="medical_education_number" type="string" source="db" targetType="physician" unique="True" />
+		<attribute name="first_name" type="string" pattern="[A-Z]{5}"/>
+		<attribute name="middle_name" type="string" pattern="[A-Z]{5}"/>
+		<attribute name="last_name" type="string" pattern="[A-Z]{11}"/>
+		<attribute name="suffix" values="'0','III','JR','II','SR','IV','I','V','X','IX','VI','VIII','VII'"/>
+		<attribute name="designation" values="'0'"/>
+		<attribute name="gender" values="'M','F','U'"/>
+		<attribute name="role" values="'P','B','C'"/>
+		<attribute name="primary_specialty" type="string" pattern="[A-Z]{12}"/>
+		<attribute name="secondary_specialty" type="string" pattern="[A-Z]{12}"/>
+		<attribute name="tertiary_specialty" type="string" pattern="[A-Z]{12}"/>
+		<attribute name="primary_profession" values="'1','2','16','4','7','6','5','8','17','9','13','22','21','15','19','20','23','11','18','12','97','14'"/>
+		<attribute name="primary_profession_description" values="'Medical Doctors','Doctors of Osteopathy','Healthcare Administrator','Dentists','Physician Assistants','Nurse','Veterinarians','Podiatrists','Pharmacist','Optometrists','Chiropractor','Counselor','Dietician / Nutritionist','Social Worker','Physical Therapist','Occupational Therapist','Alternative Medicine','Psychologist','Naturopathic Doctor','Audiologist','Technician/Technologist','Operating / Surgical Assistants'"/>
+		<attribute name="unique_physician_identification_number" type="string" pattern="[A-Z]{10}"/>
+		<attribute name="iqvia_provider_id" type="string" pattern="[A-Z]{10}"/>
+		<attribute name="national_provider_identifier" distribution="random" type="float" min="0.0" max="1992999874.0" />
+		<attribute name="status_description" values="'Active','Semi-Retired'"/>
+        <reference name="batch_business_date" source="db" targetType="iqvia_update" distribution="random" />
+    </generate>
+	
+
+    <generate type="corporate_parent_business" count="100" consumer="db">
+        <reference name="child" source="db" targetType="business" unique="True"  />
+        <reference name="parent" source="db" targetType="business" unique="True"  />
+    </generate>
+
+    <generate type="zip_code_core_based_statistical_areas" count="100" consumer="db">
+        <id name="zip_code" type="long" generator="new IncrementalIdGenerator(100)" />
+		<reference name="core_based_statistical_area" source="db" targetType="core_based_statistical_area_melissa" distribution="random" />
+		<attribute name="division" values="'35004','0','15764','14454','40484','35614','35084','48864','15804','20524','33874','37964','47894','43524','33124','22744','48424','23844','47664','19804','29404','16974','20994','19124','23104','31084','11244','41884','36084','42034','42644','45104'"/>
+    </generate>
+	
+	<generate type="residency_program_physician" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+        <reference name="medical_education_number" source="db" targetType="physician" unique="True"  />
+        <reference name="personnel_member" source="db" targetType="residency_program_personnel_member" unique="True" />
+    </generate>
+
+    <generate type="provider_affiliation" count="100" consumer="db">
+        <id name="id" type="long" generator="new IncrementalIdGenerator(100)" />
+		<reference name="business" source="db" targetType="business" distribution="random" />
+		<attribute name="provider" type="string" pattern="[A-Z]{12}"/>
+		<attribute name="type" values="'1','2','3','4','5','6','7','8'"/>
+		<attribute name="description" values="'Attending','IDN Affiliated','Admitting','Staff','Consulting','Treating','IDN Affiliated (Inferred)','Admitting (Inferred)'"/>
+		<attribute name="primary" values="'P','A'"/>
+		<attribute name="rank" values="'10','8','9','6','7'"/>
+		<attribute name="group" values="'ATT','ADM','LTC'"/>
+		<attribute name="group_description" values="'Attending','Admitting','Long Term Care'"/>
+		<reference name="batch_business_date" source="db" targetType="iqvia_update" distribution="random" />
+		<reference name="medical_education_number" source="db" targetType="physician" distribution="random" />
+    </generate>
+
+    
+
+</setup>

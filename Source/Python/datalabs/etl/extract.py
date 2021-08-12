@@ -1,6 +1,7 @@
 """ Extractor base class """
 from   abc import ABC, abstractmethod
 from   datetime import datetime
+import pickle
 
 from   datalabs.etl.task import ETLComponentTask, ETLException
 
@@ -32,7 +33,6 @@ class FileExtractorTask(ExtractorTask, ABC):
         super().__init__(parameters)
 
         self._client = None
-        self._include_names = self.include_names
         self._execution_time = self.execution_time
 
     @property
@@ -58,8 +58,8 @@ class FileExtractorTask(ExtractorTask, ABC):
 
         decoded_data = self._decode_dataset(data, resolved_files)
 
-        if self._include_names:
-            decoded_data = list(zip(resolved_files, decoded_data))
+        if self.include_names:
+            decoded_data = [pickle.dumps(list(zip(resolved_files, decoded_data)))]
 
         return decoded_data
 

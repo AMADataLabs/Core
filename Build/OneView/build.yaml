@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: oneview-etl:1.3.3
+      name: oneview-etl:1.3.5
   postCommit: {}
   resources: {}
   runPolicy: Serial
@@ -23,7 +23,7 @@ spec:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
     sourceSecret:
-      name: bitbucketprd
+      name: bitbucket
     type: Git
   strategy:
     dockerStrategy:

@@ -1,16 +1,22 @@
 """ Sends an email using AMA SMTP configuration """
 from io import BytesIO
+<<<<<<< HEAD
 import logging
+=======
+>>>>>>> master
 import os
 import smtplib
 from email.message import EmailMessage
 
 
+<<<<<<< HEAD
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 logging.basicConfig()
 
 
+=======
+>>>>>>> master
 class Attachment:
     def __init__(self, name=None, file_path=None, data=None):
         """
