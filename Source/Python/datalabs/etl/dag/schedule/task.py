@@ -5,6 +5,7 @@ from   functools import partial
 from   io import BytesIO
 import logging
 
+from   dateutil.parser import isoparse
 from   croniter import croniter
 import pandas
 
@@ -24,9 +25,10 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=too-many-instance-attributes
 class DAGSchedulerParameters:
     interval_minutes: str
-    state_class: str
-    unknowns: dict = None
+    dag_state_class: str
+    execution_time: str
     data: object = None
+    unknowns: dict = None
 
 
 class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
@@ -48,7 +50,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
 
     # pylint: disable=no-self-use
     def _get_target_execution_time(self):
-        return datetime.utcnow()
+        return isoparse(self._parameters.execution_time)
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
         base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
@@ -91,7 +93,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
 
     def _get_state_plugin(self):
         parameters = self._parameters.unknowns
-        state_plugin = import_plugin(self._parameters.state_class)
+        state_plugin = import_plugin(self._parameters.dag_state_class)
         state_parameter_keys = list(state_plugin.PARAMETER_CLASS.SCHEMA.fields.keys())
         state_parameters = {key:value for key, value in parameters.items() if key in state_parameter_keys}
 

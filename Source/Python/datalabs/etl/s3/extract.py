@@ -168,16 +168,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         return objects
 
-
-# pylint: disable=too-many-ancestors
-class S3UnicodeTextFileExtractorTask(S3FileExtractorTask):
-    @classmethod
-    def _decode_data(cls, data):
-        return data.decode('utf-8', errors='backslashreplace')
-
-
 # pylint: disable=too-many-ancestors
 class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
-        return data.decode('cp1252', errors='backslashreplace')
+        return data.decode('cp1252', errors='backslashreplace').encode()

@@ -1,38 +1,39 @@
 """ AMC Flagged Addresses Report loader task """
-from dataclasses import dataclass
-from datetime import datetime
+from   dataclasses import dataclass
+from   datetime import datetime
+from   io import BytesIO
+import pickle
 
 # pylint: disable=import-error, invalid-name
-from datalabs.etl.load import LoaderTask
-from datalabs.messaging.email_message import Attachment, send_email
-from datalabs.parameter import add_schema
+from   datalabs.etl.load import LoaderTask
+from   datalabs.messaging.email_message import Attachment, send_email
+from   datalabs.parameter import add_schema
 
 
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class AMCLoaderParameters:
-    to: str or [str]
-    cc: str or [str]
-    body: str
-    from_account: str
-    data: [Attachment]
+class AMCReportSMTPLoaderParameters:
+    to: str
+    cc: str
+    data: list
 
-
-class AMCReportSMTPLoader(LoaderTask):
-    PARAMETER_CLASS = AMCLoaderParameters
+class AMCReportSMTPLoaderTask(LoaderTask):
+    PARAMETER_CLASS = AMCReportSMTPLoaderParameters
 
     def _load(self):
         date = str(datetime.now().date())  # 'YYYY-MM-DD'
         name = f'AMC_flagged_addresses_{date}.xlsx'
-        file = Attachment(name=name, data=self._data[0])
 
-        send_email(
-            to=self._parameters.to,
-            cc=self._parameters.cc,
-            subject=f'AMC Sweep Results - {date}',
-            body=self._parameters.body,
-            attachments=[file],
-            from_account=self._parameters.from_account
+        for data in self._parameters.data:
+            report_data, summary = pickle.loads(data)
+            file = Attachment(name=name, data=BytesIO(report_data))
 
-        )
+            send_email(
+                to=self._parameters.to,
+                cc=self._parameters.cc,
+                subject=f'AMC Sweep Results - {date}',
+                body=summary,
+                attachments=[file],
+                from_account='datalabbs@ama-assn.org'
+            )

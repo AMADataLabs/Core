@@ -11,7 +11,7 @@ class ExpandedPPDParser(Parser):
     # pylint: disable=arguments-differ
     def parse(self, data: bytes) -> pandas.DataFrame:
         return pandas.read_csv(
-            io.StringIO(data),
+            io.BytesIO(data),
             sep='|',
             dtype=str,
             names=column.NAMES,

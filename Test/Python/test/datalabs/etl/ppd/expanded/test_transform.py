@@ -38,7 +38,7 @@ def test_transformer_data_has_three_data_rows(etl):
         etl.run()
 
     transformer = etl.task._transformer
-    rows = transformer.data[0].split('\n')
+    rows = transformer.data[0].decode().split('\n')
     LOGGER.debug('Row Data: %s', rows)
 
     assert len(rows) == 5  # Headers, 3 x Data, LF at end of file

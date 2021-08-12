@@ -42,6 +42,14 @@ def test_whitespace_removed_from_filenames(parameters):
     assert files[2] == 'dir1/dir2/dir3/the_other_one.csv'
 
 
+def test_cp1252_decoding(parameters):
+    task = fs.LocalWindowsTextFileExtractorTask(parameters)
+    cp1252_encoded_text = '¥'.encode('cp1252')
+    unicode_encoded_text = task._decode_data(cp1252_encoded_text)
+
+    assert unicode_encoded_text == '¥'.encode("utf-8")
+
+
 # pylint: disable=redefined-outer-name, unused-argument
 @pytest.fixture
 def environment(extractor_file):
@@ -50,7 +58,7 @@ def environment(extractor_file):
     os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.task.ETLTaskWrapper'
     os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
 
-    os.environ['EXTRACTOR__TASK_CLASS'] = 'datalabs.etl.fs.extract.LocalUnicodeTextFileExtractorTask'
+    os.environ['EXTRACTOR__TASK_CLASS'] = 'datalabs.etl.fs.extract.LocalFileExtractorTask'
     os.environ['EXTRACTOR__BASE_PATH'] = os.path.dirname(extractor_file)
     os.environ['EXTRACTOR__FILES'] = 'PhysicianProfessionalDataFile_*'
 

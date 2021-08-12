@@ -17,6 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 class SNSMessageLoaderParameters:
     topic_arn: str
     data: object
+    execution_time: str = None
     endpoint_url: str = None
     access_key: str = None
     secret_key: str = None
