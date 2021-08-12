@@ -1,10 +1,11 @@
 """ Sends an email using AMA SMTP configuration """
-from io import BytesIO
+from   io import BytesIO
 import logging
 import os
-import smtplib
-from email.message import EmailMessage
 
+import smtplib
+
+from   email.message import EmailMessage
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

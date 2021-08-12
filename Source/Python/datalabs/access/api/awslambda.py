@@ -31,6 +31,10 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
         }
 
     @classmethod
+    def _merge_parameters(cls, parameters, new_parameters):
+        return parameters
+
+    @classmethod
     def _resolve_secrets_manager_environment_variables(cls):
         super()._resolve_secrets_manager_environment_variables()
 

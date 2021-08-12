@@ -2,37 +2,47 @@
 from   collections import namedtuple
 import re
 
+from   datalabs.access.cpt.api.default import DefaultEndpointTask
+from   datalabs.access.cpt.api.descriptor import DescriptorEndpointTask, AllDescriptorsEndpointTask
+import datalabs.access.cpt.api.clinician_descriptor as clinician_descriptor
+import datalabs.access.cpt.api.consumer_descriptor as consumer_descriptor
+from   datalabs.access.cpt.api.modifier import ModifierEndpointTask, AllModifiersEndpointTask
+from   datalabs.access.cpt.api.pdf import LatestPDFsEndpointTask
+from   datalabs.access.cpt.api.pla import PLADetailsEndpointTask, AllPLADetailsEndpointTask
+from   datalabs.access.cpt.api.release import ReleasesEndpointTask
+import datalabs.task as task
 
-TaskClassMapping = namedtuple('TaskClassMapping', 'path class_name')
 
-class TaskResolver:
+TaskClassMapping = namedtuple('TaskClassMapping', 'path task_class')
+
+class TaskResolver(task.TaskResolver):
     # pylint: disable=line-too-long
     TASK_CLASSES = [
-        TaskClassMapping('/descriptor/*',             'datalabs.access.cpt.api.descriptor.DescriptorEndpointTask'),
-        TaskClassMapping('/descriptors',              'datalabs.access.cpt.api.descriptor.AllDescriptorsEndpointTask'),
-        TaskClassMapping('/consumer/descriptor/*',    'datalabs.access.cpt.api.consumer_descriptor.ConsumerDescriptorEndpointTask'),
-        TaskClassMapping('/consumer/descriptors',     'datalabs.access.cpt.api.consumer_descriptor.AllConsumerDescriptorsEndpointTask'),
-        TaskClassMapping('/clinician/descriptors/*',  'datalabs.access.cpt.api.clinician_descriptor.ClinicianDescriptorsEndpointTask'),
-        TaskClassMapping('/clinician/descriptors',    'datalabs.access.cpt.api.clinician_descriptor.AllClinicianDescriptorsEndpointTask'),
-        TaskClassMapping('/pla/details/*',            'datalabs.access.cpt.api.pla.PLADetailsEndpointTask'),
-        TaskClassMapping('/pla/details',              'datalabs.access.cpt.api.pla.AllPLADetailsEndpointTask'),
-        TaskClassMapping('/modifier/*',               'datalabs.access.cpt.api.modifier.ModifierEndpointTask'),
-        TaskClassMapping('/modifiers',                'datalabs.access.cpt.api.modifier.AllModifiersEndpointTask'),
-        TaskClassMapping('/pdfs',                     'datalabs.access.cpt.api.pdf.LatestPDFsEndpointTask'),
-        TaskClassMapping('/releases',                 'datalabs.access.cpt.api.release.ReleasesEndpointTask'),
-        TaskClassMapping('/*',                        'datalabs.access.cpt.api.default.DefaultEndpointTask')
+        TaskClassMapping('/descriptor/*',             DescriptorEndpointTask),
+        TaskClassMapping('/descriptors',              AllDescriptorsEndpointTask),
+        TaskClassMapping('/consumer/descriptor/*',    consumer_descriptor.ConsumerDescriptorEndpointTask),
+        TaskClassMapping('/consumer/descriptors',     consumer_descriptor.AllConsumerDescriptorsEndpointTask),
+        TaskClassMapping('/clinician/descriptors/*',  clinician_descriptor.ClinicianDescriptorsEndpointTask),
+        TaskClassMapping('/clinician/descriptors',    clinician_descriptor.AllClinicianDescriptorsEndpointTask),
+        TaskClassMapping('/pla/details/*',            PLADetailsEndpointTask),
+        TaskClassMapping('/pla/details',              AllPLADetailsEndpointTask),
+        TaskClassMapping('/modifier/*',               ModifierEndpointTask),
+        TaskClassMapping('/modifiers',                AllModifiersEndpointTask),
+        TaskClassMapping('/pdfs',                     LatestPDFsEndpointTask),
+        TaskClassMapping('/releases',                 ReleasesEndpointTask),
+        TaskClassMapping('/*',                        DefaultEndpointTask)
     ]
 
     @classmethod
-    def get_task_class_name(cls, parameters):
+    def get_task_class(cls, parameters):
         path = parameters['path']
-        class_name = None
+        task_class = None
 
         for mapping in cls.TASK_CLASSES:
             path_pattern = mapping.path.replace('*', '[^/]+')
 
             if re.match(path_pattern, path):
-                class_name = mapping.class_name
+                task_class = mapping.task_class
                 break
 
-        return class_name
+        return task_class

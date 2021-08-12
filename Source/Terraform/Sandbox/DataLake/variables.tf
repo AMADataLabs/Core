@@ -23,6 +23,20 @@ variable "lambda_code_bucket" {
 }
 
 
+variable "scheduler_memory_size" {
+    description = "memory size in Mb"
+    type        = number
+    default     = 1024
+}
+
+
+variable "scheduler_timeout" {
+    description = "timeout in seconds"
+    type        = number
+    default     = 15
+}
+
+
 variable "datanow_image" {
     description     = "ECR repository (image name) for the DataNow container image."
     type            = string

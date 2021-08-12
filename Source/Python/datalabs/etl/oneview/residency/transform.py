@@ -12,28 +12,44 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class ResidencyTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        df_data = [pandas.read_csv(BytesIO(data), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
-                   for data in self._parameters['data']]
-        new_dataframes = self._transform_dataframes(df_data)
+    def _csv_to_dataframe(self, data):
+        df_data = [pandas.read_csv(BytesIO(file), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
+                   for file in data
+                   ]
 
-        return new_dataframes
+        return df_data
 
-    @classmethod
-    def _transform_dataframes(cls, dataframes):
-        addresses = dataframes[1]
+    # pylint: disable=too-many-arguments
+    def _preprocess_data(self, data):
+        programs = data[0]
+
+        addresses = data[1]
         addresses.pgm_id = addresses.pgm_id.astype(str)
 
-        program_personnel_member = dataframes[2]
+        program_personnel_member = data[2]
         program_personnel_member.pgm_id = program_personnel_member.pgm_id.astype(str)
 
-        program_institution = dataframes[3]
+        program_institution = data[3]
         program_institution.pgm_id = program_institution.pgm_id.astype(str)
         program_institution.ins_id = program_institution.ins_id.astype(str)
 
-        institution_info = dataframes[4]
+        institution_info = data[4]
 
-        programs = dataframes[0].loc[(dataframes[0]['pgm_activity_code'] == 0)].reset_index(drop=True)
+        programs, addresses, program_personnel_member, program_institution, institution_info = self._select_values(
+            programs, addresses, program_personnel_member, program_institution, institution_info
+        )
+        program_information, institution_info = self._merge_dataframes(programs,
+                                                                       addresses,
+                                                                       institution_info,
+                                                                       program_institution
+                                                                       )
+        program_personnel_member = self._generate_primary_keys(program_personnel_member)
+
+        return [program_information, program_personnel_member, institution_info]
+
+    @classmethod
+    def _select_values(cls, programs, addresses, program_personnel_member, program_institution, institution_info):
+        programs = programs.loc[(programs['pgm_activity_code'] == 0)].reset_index(drop=True)
         addresses = addresses.loc[(addresses['addr_type'] == 'D')].reset_index(drop=True)
         program_personnel_member = program_personnel_member.loc[(program_personnel_member['pers_type'] == 'D')]
         program_institution = program_institution.loc[
@@ -43,14 +59,17 @@ class ResidencyTransformerTask(TransformerTask):
             (institution_info['ins_affiliation_type'] == 'S')
         ].reset_index(drop=True)
 
-        program_information = pandas.merge(programs, addresses, on='pgm_id')
-        program_information = pandas.merge(program_information, program_institution[['pgm_id', 'ins_id']], on='pgm_id')
+        return programs, addresses, program_personnel_member, program_institution, institution_info
+
+    @classmethod
+    def _merge_dataframes(cls, programs, addresses, institution_info, program_institution):
+        program_information = pandas.merge(programs, addresses, on='pgm_id', how='left')
+        program_information = pandas.merge(program_information, program_institution[['pgm_id', 'ins_id']], on='pgm_id',
+                                           how='left')
         institution_info = pandas.merge(institution_info, program_institution[['ins_id', 'pri_clinical_loc_ind']],
-                                        on='ins_id')
+                                        on='ins_id', how='left')
 
-        program_personnel_member = cls._generate_primary_keys(program_personnel_member)
-
-        return [program_information, program_personnel_member, institution_info]
+        return program_information, institution_info
 
     @classmethod
     def _generate_primary_keys(cls, dataframe):

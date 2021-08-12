@@ -24,7 +24,7 @@ spec:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
       ref: story/DL-1215
     sourceSecret:
-      name: bitbucketprd
+      name: bitbucket
     type: Git
   strategy:
     dockerStrategy:

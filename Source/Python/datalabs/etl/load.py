@@ -1,8 +1,8 @@
 """ Loader base class """
+from   abc import ABC, abstractmethod
 from   datetime import datetime
 import logging
-
-from abc import ABC, abstractmethod
+import pickle
 
 from datalabs.etl.task import ETLException, ETLComponentTask
 
@@ -25,10 +25,23 @@ class ConsoleLoaderTask(LoaderTask):
 
     def _load(self):
         try:
-            for datum in self._parameters['data']:
-                self._logger.info(datum)
+            for index,datum in enumerate(self._parameters['data']):
+                self._logger.info('Datum #%d: %s', index+1, datum)
         except Exception:  # pylint: disable=broad-except
             self._logger.info(self._parameters['data'])
+
+
+class IncludesNamesMixin:
+    @property
+    def includes_names(self):
+        includes_names = False
+
+        if hasattr(self._parameters, 'includes_names') and self._parameters.includes_names:
+            includes_names = self._parameters.includes_names.upper() == 'TRUE'
+        elif hasattr(self._parameters, 'get'):
+            includes_names = self._parameters.get('INCLUDES_NAMES', 'false').upper() == 'TRUE'
+
+        return includes_names
 
 
 class FileLoaderTask(LoaderTask, ABC):
@@ -36,7 +49,10 @@ class FileLoaderTask(LoaderTask, ABC):
         super().__init__(parameters)
 
         self._client = None
-        self._execution_time = self.execution_time
+
+    @property
+    def includes_names(self):
+        return False
 
     @property
     def execution_time(self):
@@ -73,6 +89,10 @@ class FileLoaderTask(LoaderTask, ABC):
         return timestamped_files
 
     def _load_files(self, data, files):
+        if self.includes_names:
+            named_files_data = pickle.loads(data[0])
+            _, data = zip(*named_files_data)
+
         data = [self._load_file(data, file) for file, data in zip(files, data)]
 
         return data
@@ -89,7 +109,7 @@ class FileLoaderTask(LoaderTask, ABC):
         return encoded_dataset
 
     def _resolve_timestamps(self, files):
-        return [datetime.strftime(self._execution_time, file) for file in files]
+        return [datetime.strftime(self.execution_time, file) for file in files]
 
     @abstractmethod
     def _load_file(self, data, file):
