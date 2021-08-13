@@ -1,8 +1,8 @@
 """ Transformer base class and NO-OP implementation. """
-import dask.dataframe
-
 from   abc import ABC, abstractmethod
 import logging
+
+import dask.dataframe
 
 from datalabs.etl.task import ETLComponentTask
 
@@ -29,9 +29,10 @@ class PassThroughTransformerTask(TransformerTask):
 
 
 class ScalableTransformerMixin(TransformerTask, ABC):
-    def _csv_to_dataframe(self, path: str, **kwargs) -> dask.dataframe:
-        return dask.dataframe.read_csv(path, **kwargs)
+    @classmethod
+    def _csv_to_dataframe(cls, path: str, **kwargs) -> dask.dataframe:
+        return dask.dataframe.read_csv(path, dtype=str, **kwargs)
 
-    def _dataframe_to_csv(self, data: dask.dataframe.DataFrame, **kwargs):
-        path = 'data.csv'
-        return data.to_csv(path, dtype=str, **kwargs)
+    @classmethod
+    def _dataframe_to_csv(cls, data: dask.dataframe.DataFrame, path: str, **kwargs):
+        return data.to_csv(path, single_file=True, index=False, **kwargs)
