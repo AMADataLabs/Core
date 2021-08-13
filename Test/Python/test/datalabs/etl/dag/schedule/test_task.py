@@ -146,8 +146,9 @@ def state_directory():
 def parameters(state_directory):
     return dict(
         INTERVAL_MINUTES='15',
-        STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
-        BASE_PATH=state_directory
+        DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+        BASE_PATH=state_directory,
+        EXECUTION_TIME='2021-08-02T21:30:00.000000'
     )
 
 

@@ -12,6 +12,7 @@ ENV AWS_DEFAULT_REGION=us-east-1
 COPY ./Build/OneView/alembic/versions .
 
 COPY ./Build/OneView/requirements.txt .
+RUN chown -R root:root /usr/local/lib/python3.7
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 RUN apt-get update && apt-get install -y openjdk-11-jre

@@ -1,17 +1,31 @@
 """ Local file system extractors """
+from   dataclasses import dataclass
 from   glob import glob
 import os
 
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+from   datalabs.parameter import add_schema
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class LocalFileExtractorParameters:
+    base_path: str
+    files: str
+    include_names: str = None
+    execution_time: str = None
 
 
 # pylint: disable=too-many-ancestors
 class LocalFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
-    def _get_files(self):
-        base_path = self._parameters['BASE_PATH']
+    PARAMETER_CLASS = LocalFileExtractorParameters
 
-        files = [os.path.join(base_path, file.strip()) for file in self._parameters['FILES'].split(',')]
+    def _get_files(self):
+        base_path = self._parameters.base_path
+
+        files = [os.path.join(base_path, file.strip()) for file in self._parameters.files.split(',')]
 
         return files
 
@@ -46,14 +60,7 @@ class LocalFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtracto
 
 
 # pylint: disable=too-many-ancestors
-class LocalUnicodeTextFileExtractorTask(LocalFileExtractorTask):
-    @classmethod
-    def _decode_data(cls, data):
-        return data.decode('utf-8', errors='replace')
-
-
-# pylint: disable=too-many-ancestors
 class LocalWindowsTextFileExtractorTask(LocalFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
-        return data.decode('cp1252', errors='backslashreplace')
+        return data.decode('cp1252', errors='backslashreplace').encode()

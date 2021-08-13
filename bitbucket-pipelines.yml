@@ -1,4 +1,8 @@
-image: muffinspawn/pipelines:7
+image:
+  name: 644454719059.dkr.ecr.us-east-1.amazonaws.com/datalabs-bitbucket-pipelines:1.0.0
+  aws:
+    access-key: $AWS_ACCESS_KEY_ID
+    secret-key: $AWS_SECRET_ACCESS_KEY
 
 pipelines:
     branches:
@@ -115,15 +119,17 @@ pipelines:
                 name: Update Bundle
                 caches:
                     - oneview-master-update-bundle-dependencies
+                services:
+                    - docker
                 script:
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
                 - export ENABLE_FEATURE_DEV=True
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
-                - export AWS_S3_BUCKET='ama-hsg-datalabs-lambda-code-sandbox'
-                - bash Deploy/Master/create-bundle OneView
-                - bash Deploy/Master/upload-bundle OneView
+                - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 644454719059.dkr.ecr.us-east-1.amazonaws.com
+                - docker build -t 644454719059.dkr.ecr.us-east-1.amazonaws.com/oneview-data-sbx:1.0.0 -f ./Build/OneView/ETL/Dockerfile ./
+                - docker push 644454719059.dkr.ecr.us-east-1.amazonaws.com/oneview-data-sbx:1.0.0
         - parallel:
             - step:
                 name: Migrate Database

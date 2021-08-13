@@ -105,7 +105,6 @@ class Physician(Base):
     national_provider_identifier = sa.Column(sa.String)
     party_id = sa.Column(sa.String)
     entity_id = sa.Column(sa.String)
-    type = sa.Column(sa.String, nullable=False)
     race_ethnicity = sa.Column(sa.String, nullable=False)
 
 
@@ -266,7 +265,7 @@ class ProviderAffiliation(Base):
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, nullable=False)
     business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.provider.medical_education_number"))
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"))
     type = sa.Column(sa.String)
     description = sa.Column(sa.String)
     primary = sa.Column(sa.String)
@@ -563,8 +562,10 @@ class MajorProfessionalActivity(Base):
 
 class FederalInformationProcessingStandardCounty(Base):
     __tablename__ = 'federal_information_processing_standard_county'
-    __table_args__ = {"schema": "oneview"}
-
+    __table_args__ = (
+        sa.UniqueConstraint('state', 'county'),
+        {"schema": "oneview"}
+    )
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     state = sa.Column(sa.String, nullable=False)
     county = sa.Column(sa.String, nullable=False)
