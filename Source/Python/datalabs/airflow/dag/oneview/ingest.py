@@ -317,6 +317,15 @@ with ONEVIEW_ETL_DAG:
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
 
+    CREATE_HISTORICAL_RESIDENCY_TABLE = KubernetesPodOperator(
+        name="create_historical_residency_table",
+        task_id="create_historical_residency_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.historical_residency.transform.HistoricalResidencyTransformerTask')
+        },
+    )
     LOAD_REFERENCE_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_reference_tables_into_database",
         task_id="load_reference_tables_into_database",
@@ -386,7 +395,7 @@ EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_D
 EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
-EXTRACT_HISTORICAL_RESIDENCY
+EXTRACT_HISTORICAL_RESIDENCY >> CREATE_HISTORICAL_RESIDENCY_TABLE
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_TABLES_INTO_DATABASE
 EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_TABLE
