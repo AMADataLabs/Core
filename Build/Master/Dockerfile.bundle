@@ -1,4 +1,4 @@
-FROM amazonlinux as amazon-python
+FROM amazonlinux:2 as amazon-python
 WORKDIR /Build
 RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel wget tar gzip make
 RUN wget https://www.python.org/ftp/python/3.7.7/Python-3.7.7.tgz
@@ -9,7 +9,7 @@ RUN ./configure --enable-optimizations
 RUN make altinstall
 
 
-FROM amazonlinux as build
+FROM amazonlinux:2 as build
 ARG PROJECT
 WORKDIR /Build
 COPY --from=amazon-python /usr/local/bin/py*3.7* /usr/local/bin/

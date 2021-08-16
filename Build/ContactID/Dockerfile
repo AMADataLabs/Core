@@ -1,7 +1,7 @@
 # Build Example:
 #    docker build -t one-view -f ./Build/OneView/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
 # Run Example:
-#    docker run -ti one-view -e DOTENV_PATH=ppd.env python -c "import awslambda; print(awslambda.handler(None, None))"
+#    docker run -e DOTENV_PATH=ppd.env -ti one-view python task.py
 
 FROM python:3.7
 ENV PYTHONPATH=/ContactID:/ContactID/site-packages
@@ -46,11 +46,3 @@ RUN echo "eft.ama-assn.org,10.195.141.136 ssh-rsa AAAAB3NzaC1yc2EAAAABEQAAAQEAqQ
 RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
-
-
-
-
-
-
-
-

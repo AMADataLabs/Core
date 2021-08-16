@@ -1,6 +1,5 @@
 """ DynamoDB DAG state classes. """
 from   dataclasses import dataclass
-from   datetime import datetime
 import time
 
 import boto3
@@ -10,24 +9,9 @@ from   datalabs.etl.dag.state.base import State, Status
 from   datalabs.parameter import add_schema
 
 
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class StateParameters:
-    state_lock_table: str
-    state_table: str
-    execution_time: str
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
-
-
-class LockingState(State):
-    PARAMETER_CLASS = StateParameters
-
-    def connect(self):
-        self._connection = boto3.client(
+class DynamoDBClientMixin:
+    def _connect(self):
+        return boto3.client(
             'dynamodb',
             endpoint_url=self._parameters.endpoint_url,
             aws_access_key_id=self._parameters.access_key,
@@ -35,15 +19,15 @@ class LockingState(State):
             region_name=self._parameters.region_name
         )
 
-    def _lock_state(self, name):
-        lock_id = f'{name}-{self._parameters.execution_time}'
+
+class LockingStateMixin():
+    def _lock_state(self, dynamodb, lock_id):
         locked = False
 
         try:
-            table = self._connection.Table(self._parameters.state_lock_table)
-
-            table.put_item(
-                Item={'LockID': {'S': lock_id}, 'ttl': {'N': int(time.time()+30)}},
+            dynamodb.put_item(
+                TableName=self._parameters.state_lock_table,
+                Item={'LockID': {'S': lock_id}, 'ttl': {'N': str(time.time()+30)}},
                 ConditionExpression="attribute_not_exists(#r)",
                 ExpressionAttributeNames={"#r": "LockID"}
             )
@@ -55,15 +39,14 @@ class LockingState(State):
 
         return locked
 
-    def _unlock_state(self, name):
-        lock_id = f'{name}-{self._parameters.execution_time}'
+    def _unlock_state(self, dynamodb, lock_id):
         unlocked = False
 
         try:
-            table = self._connection.Table(self._parameters.state_lock_table)
 
-            table.delete_item(
-                Key={'LockID': {'Value': {'S': lock_id}}},
+            dynamodb.delete_item(
+                TableName=self._parameters.state_lock_table,
+                Key={'LockID': {'S': lock_id}},
                 ConditionExpression="attribute_exists(#r)",
                 ExpressionAttributeNames={"#r": "LockID"}
             )
@@ -75,32 +58,95 @@ class LockingState(State):
 
         return unlocked
 
-class DAGState(LockingState):
-    def get_status(self, name: str, execution_time: datetime):
+
+@add_schema(unknowns=True)
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class DAGStateParameters:
+    state_lock_table: str
+    dag_state_table: str
+    endpoint_url: str=None
+    access_key: str=None
+    secret_key: str=None
+    region_name: str=None
+    unknowns: dict=None
+
+
+class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
+    PARAMETER_CLASS = DAGStateParameters
+
+    def get_dag_status(self, dag: str, execution_time: str):
+        return self._get_status(dag, None, execution_time)
+
+    def get_task_status(self, dag: str, task: str, execution_time: str):
+        return self._get_status(dag, task, execution_time)
+
+    def set_dag_status(self, dag: str, execution_time: str, status: Status):
+        self._set_status(dag, None, execution_time, status)
+
+    def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
+        self._set_status(dag, task, execution_time, status)
+
+    def _get_status(self, dag: str, task: str, execution_time: str):
+        status = Status.UNKNOWN
+        primary_key = self._get_primary_key(dag, task)
+        lock_id = self._get_lock_id(primary_key, execution_time)
         state = None
+        dynamodb = self._connect()
 
-        self._lock_state(name)
+        self._lock_state(dynamodb, lock_id)
 
-        table = self._connection.Table(self._parameters.state_table)
-        state = table.get_item(
-            Key=dict(name=name, execution_time=execution_time.isoformat()),
-            ConsistantRead=True
+        state  = self._get_state(dynamodb, primary_key, execution_time)
+
+        self._unlock_state(dynamodb, lock_id)
+
+        if "Item" in state:
+            status = Status(state["Item"]["status"]["S"])
+
+        return status
+
+    def _set_status(self, dag: str, task: str, execution_time: str, status: Status):
+        primary_key = self._get_primary_key(dag, task)
+        lock_id = self._get_lock_id(primary_key, execution_time)
+        dynamodb = self._connect()
+
+        self._lock_state(dynamodb, lock_id)
+
+        self._set_state(dynamodb, primary_key, execution_time, status)
+
+        self._unlock_state(dynamodb, lock_id)
+
+    @classmethod
+    def _get_primary_key(cls, dag: str, task: str):
+        primary_key = dag
+
+        if task:
+            primary_key += "__" + task
+
+        return primary_key
+
+    @classmethod
+    def _get_lock_id(cls, primary_key: str, execution_time: str):
+        return primary_key + "__" + execution_time
+
+    def _get_state(self, dynamodb, primary_key: str, execution_time: str):
+        items = dynamodb.get_item(
+            TableName=self._parameters.dag_state_table,
+            Key=dict(
+                name=dict(S=primary_key),
+                execution_time=dict(S=execution_time)
+            ),
+            ConsistentRead=True
         )
 
-        self._unlock_state(name)
+        return items
 
-        return Status(state["Item"]["status"])
-
-    def set_status(self, name: str, execution_time: datetime, status: Status):
-        self._lock_state(name)
-
-        table = self._connection.Table(self._parameters.state_table)
-        table.put_item(
+    def _set_state(self, dynamodb, primary_key: str, execution_time: str, status: Status):
+        dynamodb.put_item(
+            TableName=self._parameters.dag_state_table,
             Item=dict(
-                name=dict(S=name),
-                execution_time=dict(S=execution_time.isoformat()),
+                name=dict(S=primary_key),
+                execution_time=dict(S=execution_time),
                 status=dict(S=status.value)
             )
         )
-
-        self._unlock_state(name)

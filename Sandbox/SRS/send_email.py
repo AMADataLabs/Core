@@ -5,7 +5,7 @@ from datetime import date
 import pandas as pd
 import settings 
 
-def get_length(file_location):
+def get_length_data(file_location):
     dataframe = pd.read_csv(file_location)
     return len(dataframe)
 
@@ -13,21 +13,21 @@ def get_length(file_location):
 def get_parameters():
     '''Get email parameters'''
     today = str(date.today())
-    out = os.environ.get('OUT_DIR')
-    out_directory = f'{out}{today}'
-    scraped_new = f'{out_directory}/SRS_Scrape_{today}.csv'
+    out_directory = os.environ.get('OUT_DIR')
+    scraped_new_all = f'{out_directory}/SRS_Scrape_{today}.csv'
     matched = f'{out_directory}/SRS_Matched_{today}.csv'
     still_missing = f'{out_directory}/SRS_Missing_{today}.csv'
     stu_affil = f'{out_directory}/SRS_Student_Affiliates_{today}.csv'
     grad_year = f'{out_directory}/SRS_Graduation_Year_Discrepancy_{today}.csv'
     status_update = f'{out_directory}/SRS_Status_Discrepancy_{today}.csv'
     manual = f'{out_directory}/SRS_Manual_Updates_{today}.csv'
-    auto = f'{out_directory}/SRS_Automatic_Updates_{today}.csv'
-    new = f'{out_directory}/SRS_New_{today}.csv'
+    auto = f'{out_directory}/Automatic_Updates_{today}.csv'
+    scraped_new = f'{out_directory}/SRS_Scraped_New_{today}.csv'
     unprocessed = f'{out_directory}/SRS_Unprocessed_{today}.csv'
-    me_matched = matched[matched.me!='None']
+    matched_ = pd.read_csv(matched)
+    me_matched = matched_[matched_.me!='None']
     found_info = f'{out_directory}/SRS_AAMC_{today}.csv'
-    found_students = get_length(found_info) - get_length(stu_affil)
+    found_students = get_length_data(found_info) - get_length_data(stu_affil)
 
     full = ['victoria.grose@ama-assn.org']
     meonly = ['victoria.grose@ama-assn.org']
@@ -47,29 +47,30 @@ def get_parameters():
     SRS_New includes all new records (added or updated since the last scrape, in January). There is also a flag in every file attached indicating whether the record is new. In the future I would probably only send these records (the ones that are newer than the last scrape).
 
 
-    {"{:,}".format(get_length(scraped_new))} student records in AAMC-SRS scrape
-    {"{:,}".format(get_length(found_info))} ({round(get_length(found_info)/get_length(scraped_new)*100, 2)}%) records matched to AIMS on aamc_id
-    {"{:,}".format(get_length(matched))} ({round(get_length(matched)/get_length(scraped_new)*100, 2)}%) records found via matching process 
-    {"{:,}".format(len(me_matched))} ({round(len(me_matched)/get_length(scraped_new)*100, 2)}%) MEs appended via matching process
-    {"{:,}".format(get_length(still_missing))} ({round(get_length(still_missing)/get_length(scraped_new)*100, 2)}%) scraped records missing from our database
+    {"{:,}".format(get_length_data(scraped_new_all))} student records in AAMC-SRS scrape
+    {"{:,}".format(get_length_data(scraped_new))} record updates since last scrape
+    {"{:,}".format(get_length_data(found_info))} ({round(get_length_data(found_info)/get_length_data(scraped_new)*100, 2)}%) records matched to AIMS on aamc_id
+    {"{:,}".format(get_length_data(matched))} ({round(get_length_data(matched)/get_length_data(scraped_new)*100, 2)}%) records found via matching process 
+    {"{:,}".format(len(me_matched))} ({round(len(me_matched)/get_length_data(scraped_new)*100, 2)}%) MEs appended via matching process
+    {"{:,}".format(get_length_data(still_missing))} ({round(get_length_data(still_missing)/get_length_data(scraped_new)*100, 2)}%) scraped records missing from our database
 
     ----
 
     Of the records that matched on aamc_id
-    {"{:,}".format(get_length(stu_affil))} ({round(get_length(stu_affil)/get_length(found_info)*100, 2)}%) records are student affiliates
-    {"{:,}".format(found_students)} ({round((found_students)/get_length(found_info)*100, 2)}%) records are not student affiliates
+    {"{:,}".format(get_length_data(stu_affil))} ({round(get_length_data(stu_affil)/get_length_data(found_info)*100, 2)}%) records are student affiliates
+    {"{:,}".format(found_students)} ({round((found_students)/get_length_data(found_info)*100, 2)}%) records are not student affiliates
         
     ----
     Of the records that are not student affiliates
-    {"{:,}".format(get_length(grad_year))} ({round(get_length(grad_year)/get_length(found_students)*100, 2)}%) records have graduation year discrepancies
-    {"{:,}".format(get_length(status_update))} ({round(get_length(status_update)/get_length(found_students)*100, 2)}%) records have status discrepancies, but correct graduation year
+    {"{:,}".format(get_length_data(grad_year))} ({round(get_length_data(grad_year)/found_students*100, 2)}%) records have graduation year discrepancies
+    {"{:,}".format(get_length_data(status_update))} ({round(get_length_data(status_update)/found_students*100, 2)}%) records have status discrepancies, but correct graduation year
 
     ----
 
-    {"{:,}".format(get_length(manual))} status discrepancies flagged for manual review
-    {"{:,}".format(get_length(auto))} status discrepancies automatically processed
-    {"{:,}".format(get_length(unprocessed))} status discrepancies not processed
-    {"{:,}".format(get_length(new))} record updates since last scrape
+    {"{:,}".format(get_length_data(manual))} status discrepancies flagged for manual review
+    {"{:,}".format(get_length_data(auto))} status discrepancies automatically processed
+    {"{:,}".format(get_length_data(unprocessed))} status discrepancies not processed
+    
     
     Thank you!
     DataLabs
@@ -81,8 +82,8 @@ def send_email(auto_send=True):
     '''Send le email'''
     outlook = win32.Dispatch('outlook.application')
     recipients, cc, subject, body, attachments = get_parameters()
-    if get_length(recipients) == 0 or get_length(subject) == 0 or get_length(body) == 0:
-        raise ValueError('recipients, subject, and body must be defined.')
+    # if get_length(recipients) == 0 or get_length(subject) == 0 or get_length(body) == 0:
+    #     raise ValueError('recipients, subject, and body must be defined.')
     msg = outlook.CreateItem(0)
     to = '; '.join(recipients)
     msg.To = to

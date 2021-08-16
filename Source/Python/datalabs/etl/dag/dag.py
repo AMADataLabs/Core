@@ -1,39 +1,47 @@
 """ Class for defining a DAG. """
-import logging
-# import os
-
 import paradag
 
-# from   datalabs.access.aws import AWSClient
-from   datalabs.task import Task
-
-logging.basicConfig()
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
-
-
-class DAGProcessorTask(Task):
-    def run(self):
-        LOGGER.info('DAG Processor Event: %s', self._parameters)
+from   datalabs.etl.dag.state import Status
 
 
 class DAGTask:
-    def __init__(self, task_class: str):
+    def __init__(self, task_id: str, task_class: str):
+        self._id = task_id
         self._task_class = task_class
         self._successors = []
         self._dag = None
         self._ready = True
+        self._status = Status.UNKNOWN
+
+    def __str__(self):
+        return self.id
 
     def set_dag(self, dag: 'DAG'):
         self._dag = dag
+
+    def set_status(self, status: Status):
+        self._status = status
+
+    @property
+    # pylint: disable=redefined-outer-name, invalid-name
+    def id(self):
+        return self._id
 
     @property
     def successors(self):
         return self._successors
 
     @property
+    def ready(self):
+        return self._ready
+
+    @property
     def task_class(self):
         return self._task_class
+
+    @property
+    def status(self):
+        return self._status
 
     def __rshift__(self, other: 'DAGTask'):
         self._successors.append(other)
@@ -42,6 +50,9 @@ class DAGTask:
 
     def block(self):
         self._ready = False
+
+    def unblock(self):
+        self._ready = True
 
 
 class DAGMeta(type):
@@ -52,7 +63,7 @@ class DAGMeta(type):
 
         if hasattr(cls, '__annotations__'):
             for task, task_class in cls.__annotations__.items():
-                cls.__task_classes__[task] = DAGTask(task_class)
+                cls.__task_classes__[task] = DAGTask(task, task_class)
 
         return cls
 

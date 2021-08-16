@@ -11,7 +11,7 @@ DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
 IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
 
 BASE_ENVIRONMENT = dict(
-    TASK_WRAPPER_CLASS='datalabs.etl.airflow.task.AirflowTaskWrapper',
+    TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper',
     ETCD_HOST=Variable.get('ETCD_HOST'),
     ETCD_USERNAME=DAG_ID,
     ETCD_PASSWORD=Variable.get(f'{DAG_ID.upper()}_ETCD_PASSWORD'),
@@ -142,6 +142,14 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
+    EXTRACT_HISTORICAL_RESIDENCY = KubernetesPodOperator(
+        name="extract_historical_residency",
+        task_id="extract_historical_residency",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
+        is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
+    )
+
     CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
         name="create_physician_table",
         task_id="create_physician_table",
@@ -251,16 +259,6 @@ with ONEVIEW_ETL_DAG:
         },
     )
 
-    CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE = KubernetesPodOperator(
-        name="create_physician_race_ethnicity_table",
-        task_id="create_physician_race_ethnicity_table",
-        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={
-            **BASE_ENVIRONMENT,
-            **dict(TASK_CLASS='datalabs.etl.oneview.race_ethnicity.transform.RaceEthnicityTransformerTask')
-        },
-    )
-
     CREATE_MELISSA_TABLES = KubernetesPodOperator(
         name="create_melissa_tables",
         task_id="create_melissa_tables",
@@ -302,6 +300,16 @@ with ONEVIEW_ETL_DAG:
         },
     )
 
+    CREATE_IQVIA_UPDATE_TABLE = KubernetesPodOperator(
+        name="create_iqvia_update_table",
+        task_id="create_iqvia_update_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.iqvia.transform.IQVIAUpdateTransformerTask')
+        },
+    )
+
     # LOAD_PHYSICIAN_TABLE_INTO_DATABASE = KubernetesPodOperator(
     #     name="load_physician_table_into_database",
     #     task_id="load_physician_table_into_database",
@@ -330,13 +338,6 @@ with ONEVIEW_ETL_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
-
-    # LOAD_RACE_ETHNICITY_TABLE_INTO_DATABASE = KubernetesPodOperator(
-    #     name="load_race_ethnicity_table_into_database",
-    #     task_id="load_race_ethnicity_table_into_database",
-    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
-    # )
 
     LOAD_CREDENTIALING_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_credentialing_tables_into_database",
@@ -389,13 +390,14 @@ CREATE_PHYSICIAN_TABLE >> REMOVE_UNUSED_SPECIALTIES
 REMOVE_UNUSED_SPECIALTIES >> LOAD_REFERENCE_TABLES_INTO_DATABASE
 EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_RESIDENCY_TABLES_INTO_DATABASE
 EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_DATABASE
-EXTRACT_IQVIA  # >> CREATE_IQVIA_UPDATE_TABLE >> LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE
+EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE >> LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE
 LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE >> LOAD_IQVIA_TABLES_INTO_DATABASE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
+EXTRACT_HISTORICAL_RESIDENCY
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_TABLES_INTO_DATABASE
-EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE # >> LOAD_RACE_ETHNICITY_TABLE_INTO_DATABASE
+EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_TABLE
 CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_LINKING_TABLES_INTO_DATABASE

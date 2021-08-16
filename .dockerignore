@@ -3,4 +3,14 @@ Environment/*
 Sandbox/*
 **/.terraform
 **/*.zip
+**/*.tar
+**/*.tar.gz
+**/*.tar.bz
 **/site-packages
+Bundle
+Source/Terraform/*
+Source/JavaScript/*
+Source/Postman/*
+tmp
+node_modules
+oneview-etl/*

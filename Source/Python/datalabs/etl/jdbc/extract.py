@@ -63,7 +63,9 @@ class JDBCExtractorTask(ExtractorTask):
     @classmethod
     def _split_queries(cls, queries):
         queries_split = queries.split(';')
-        queries_split.pop()
+
+        if queries_split[-1] == '':
+            queries_split.pop()
 
         return [q.strip() for q in queries_split]
 
@@ -72,6 +74,7 @@ class JDBCExtractorTask(ExtractorTask):
         return data.to_csv().encode('utf-8')
 
     def _read_query(self, query, connection):
+        LOGGER.info('Sending query: %s', query)
         result = None
 
         if self._parameters.chunk_size is not None:
