@@ -57,13 +57,6 @@ class BasePhysicianEndpointTask(APIEndpointTask):
                     d[column] = str(getattr(row, column))
                 output.append(d)
 
-        print("\n")
-        print(" === GET REQUEST OUTPUT === ")
-        for r in output:
-            print(r)
-        print("\n")
-
-
         return output
 
 class PysicianEndpointTask(BasePhysicianEndpointTask):
