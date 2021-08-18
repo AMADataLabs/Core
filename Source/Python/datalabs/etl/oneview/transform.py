@@ -23,7 +23,7 @@ class TransformerTask(etl.ScalableTransformerMixin, ABC):
 
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data, path, index=False, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, index=False, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
 
     @classmethod
