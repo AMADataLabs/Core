@@ -116,7 +116,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
             data = self._cache_data_to_disk(response['Body'])
         else:
-            data =response['Body'].read()
+            data = response['Body'].read()
 
         return data
 

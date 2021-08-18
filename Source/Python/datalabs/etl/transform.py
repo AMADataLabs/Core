@@ -5,7 +5,7 @@ import tempfile
 
 import dask.dataframe
 
-from datalabs.etl.task import ETLComponentTask
+from   datalabs.etl.task import ETLComponentTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
