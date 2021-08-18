@@ -12,14 +12,12 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-
 class PartyKeyType(Enum):
     LICENSE = 17
     ME = 18
     SCHOOL = 23
     NPI = 38
     ENTITY = 9
-
 
 class EDW(ODBCDatabase):
     def get_me_numbers(self, chunk_size=None):

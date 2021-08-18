@@ -16,10 +16,16 @@ variable "region" {
     default         = "us-east-1"
 }
 
-variable "lambda_code_bucket" {
+variable "old_lambda_code_bucket" {
     description     = "Name of the S3 bucket used to hold Lambda function code artifacts."
     type            = string
     default         = "ama-hsg-datalabs-lambda-code-sandbox"
+}
+
+variable "lambda_code_bucket" {
+    description     = "Name of the S3 bucket used to hold Lambda function code artifacts."
+    type            = string
+    default         = "ama-sbx-datalake-lambda-us-east-1"
 }
 
 

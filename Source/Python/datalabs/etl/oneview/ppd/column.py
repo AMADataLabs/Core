@@ -80,6 +80,8 @@ PPD_COLUMNS = {
     'NEXTMOSTRECENTFORMERLASTNAME': 'next_most_recent_former_last_name',
     'NEXTMOSTRECENTFORMERMIDDLENAME': 'next_most_recent_former_middle_name',
     'NEXTMOSTRECENTFORMERFIRSTNAME': 'next_most_recent_former_first_name',
+    'PARTY_ID': 'party_id',
+    'entity_id': 'entity_id',
     'npi': 'national_provider_identifier',
     'race_ethnicity': 'race_ethnicity'
 }

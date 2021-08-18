@@ -24,7 +24,7 @@ spec:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
       # ref: story/DL-807
     sourceSecret:
-      name: bitbucketprd
+      name: bitbucket
     type: Git
   strategy:
     dockerStrategy:
@@ -36,7 +36,7 @@ spec:
         - name: BITBUCKET_SSH_KEY
           valueFrom:
             secretKeyRef:
-              name: bitbucketprd
+              name: bitbucket
               key: ssh-privatekey
     type: Docker
   successfulBuildsHistoryLimit: 5

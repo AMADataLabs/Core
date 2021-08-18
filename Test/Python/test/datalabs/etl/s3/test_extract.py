@@ -64,6 +64,14 @@ def test_datetime_formatting_in_file_works(parameters):
         assert resolved_files[2] == 'dir1/dir2/dir3/the_other_19000101_one.csv'
 
 
+def test_cp1252_decoding(parameters):
+    task = s3.S3WindowsTextFileExtractorTask(parameters)
+    cp1252_encoded_text = '¥'.encode('cp1252')
+    unicode_encoded_text = task._decode_data(cp1252_encoded_text)
+
+    assert unicode_encoded_text == '¥'.encode("utf-8")
+
+
 @pytest.fixture
 def parameters():
     return dict(

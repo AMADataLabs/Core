@@ -23,7 +23,7 @@ modspec:
   - package: datalabs.access.parameter
     include:
       - system
-  - package: datalabs.analysis
+  - package: datalabs.analysis.dbl
   - package: datalabs.etl
     include:
       - task
@@ -33,3 +33,6 @@ modspec:
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.sftp
+  - package: datalabs.messaging
+    include:
+      - email_message

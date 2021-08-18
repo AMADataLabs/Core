@@ -142,6 +142,14 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
+    EXTRACT_HISTORICAL_RESIDENCY = KubernetesPodOperator(
+        name="extract_historical_residency",
+        task_id="extract_historical_residency",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
+        is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
+    )
+
     CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
         name="create_physician_table",
         task_id="create_physician_table",
@@ -309,6 +317,15 @@ with ONEVIEW_ETL_DAG:
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
 
+    CREATE_HISTORICAL_RESIDENCY_TABLE = KubernetesPodOperator(
+        name="create_historical_residency_table",
+        task_id="create_historical_residency_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.historical_residency.transform.HistoricalResidencyTransformerTask')
+        },
+    )
     LOAD_REFERENCE_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_reference_tables_into_database",
         task_id="load_reference_tables_into_database",
@@ -394,6 +411,13 @@ with ONEVIEW_ETL_DAG:
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
 
+    LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_iqvia_update_table_into_database",
+        task_id="load_iqvia_update_table_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
     MIGRATE_DATABASE = KubernetesPodOperator(
         name="migrate_database",
         task_id="migrate_database",
@@ -424,6 +448,7 @@ LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE >> LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO
 LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO_DATABASE >> LOAD_IQVIA_PROVIER_AFFILIATION_TABLE_INTO_DATABASE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
+EXTRACT_HISTORICAL_RESIDENCY >> CREATE_HISTORICAL_RESIDENCY_TABLE
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
 MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES_INTO_DATABASE
 LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES_INTO_DATABASE >> LOAD_CREDENTIALING_ORDER_TABLE_INTO_DATABASE

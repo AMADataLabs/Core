@@ -1,6 +1,81 @@
 import pandas as pd
 from nameparser import HumanName
 from fuzzywuzzy import fuzz
+from datetime import date
+
+def get_states():
+    us_state_abbrev = {
+                    'Alabama': 'AL',
+                    'Alaska': 'AK',
+                    'American Samoa': 'AS',
+                    'Arizona': 'AZ',
+                    'Arkansas': 'AR',
+                    'California': 'CA',
+                    'Colorado': 'CO',
+                    'Connecticut': 'CT',
+                    'Delaware': 'DE',
+                    'District of Columbia': 'DC',
+                    'Florida': 'FL',
+                    'Georgia': 'GA',
+                    'Guam': 'GU',
+                    'Hawaii': 'HI',
+                    'Idaho': 'ID',
+                    'Illinois': 'IL',
+                    'Indiana': 'IN',
+                    'Iowa': 'IA',
+                    'Kansas': 'KS',
+                    'Kentucky': 'KY',
+                    'Louisiana': 'LA',
+                    'Maine': 'ME',
+                    'Maryland': 'MD',
+                    'Massachusetts': 'MA',
+                    'Michigan': 'MI',
+                    'Minnesota': 'MN',
+                    'Mississippi': 'MS',
+                    'Missouri': 'MO',
+                    'Montana': 'MT',
+                    'Nebraska': 'NE',
+                    'Nevada': 'NV',
+                    'New Hampshire': 'NH',
+                    'New Jersey': 'NJ',
+                    'New Mexico': 'NM',
+                    'New York': 'NY',
+                    'North Carolina': 'NC',
+                    'North Dakota': 'ND',
+                    'Northern Mariana Islands':'MP',
+                    'Ohio': 'OH',
+                    'Oklahoma': 'OK',
+                    'Oregon': 'OR',
+                    'Pennsylvania': 'PA',
+                    'Puerto Rico': 'PR',
+                    'Rhode Island': 'RI',
+                    'South Carolina': 'SC',
+                    'South Dakota': 'SD',
+                    'Tennessee': 'TN',
+                    'Texas': 'TX',
+                    'Utah': 'UT',
+                    'Vermont': 'VT',
+                    'Virgin Islands': 'VI',
+                    'Virginia': 'VA',
+                    'Washington': 'WA',
+                    'West Virginia': 'WV',
+                    'Wisconsin': 'WI',
+                    'Wyoming': 'WY'
+                }
+    return us_state_abbrev
+
+def merge_name(all_students):
+    first_middles = []
+    for row in all_students.itertuples():
+        first = row.first_nm.strip()
+        if row.middle_nm != 'None':
+            middle = ' '+ row.middle_nm.strip()
+        else:
+            middle = ''
+        first_middle = first + middle
+        first_middles.append(first_middle)
+    all_students['first_middle'] = first_middles
+    return(all_students)
 
 def get_full_names(df):
     full_names_all = []
@@ -27,10 +102,10 @@ def match(criteria, all_students, unmatched, matched):
     return (unmatched, matched)
 
 def get_criteria():
-    criteria_list = [['first_middle','last_nm','birth_dt'],
-                    ['FIRST','LAST', 'birth_dt'],
-                    ['FIRST', 'gender','birth_dt', 'birth_state_cd'],
-                    ['LAST', 'gender','birth_dt', 'birth_state_cd']]
+    criteria_list = [['first_middle','last_nm','birth'],
+                    ['FIRST','LAST', 'birth'],
+                    ['FIRST', 'gender','birth', 'birth_state_cd'],
+                    ['LAST', 'gender','birth', 'birth_state_cd']]
     return criteria_list
 
 def match_process(all_students, unmatched):
@@ -41,7 +116,7 @@ def match_process(all_students, unmatched):
     return (matched, unmatched)
 
 def last_ditch(unmatched, all_students, matched):
-    FUCKIT = pd.merge(all_students, unmatched, on=['gender','birth_dt'])
+    FUCKIT = pd.merge(all_students, unmatched, on=['gender','birth'])
     keeps = []
     for row in FUCKIT.itertuples():
         keep = False
@@ -54,6 +129,20 @@ def last_ditch(unmatched, all_students, matched):
     return matched
 
 def match_missing_ids(no_id, all_students):
+    all_students = all_students.fillna('None')
+    o_id = no_id.fillna('None')
+    us_state_abbrev = get_states()
+    no_id['first_middle'] = [x.split(', ')[1] for x in no_id.Name]
+    no_id['last_nm'] = [x.split(', ')[0] for x in no_id.Name]
+    no_id['birth_state_cd'] = [us_state_abbrev[x] if x in us_state_abbrev.keys() else x for x in no_id['Birth State']]
+    no_id['birth'] = pd.to_datetime(no_id['Date of Birth']) 
+    with_birth = all_students[all_students.birth_dt!='None']
+    without_birth =  all_students[all_students.birth_dt=='None']
+    with_birth['birth'] = pd.to_datetime([str(x).replace(' ','') for x in with_birth.birth_dt])
+    without_birth['birth'] = date.today()
+    all_students = pd.concat([with_birth, without_birth])
+    all_students['birth'] = pd.to_datetime(all_students.birth)
+    all_students = merge_name(all_students)
     no_id['gender']=no_id.Sex
     get_full_names(all_students)
     get_full_names(no_id)

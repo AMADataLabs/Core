@@ -14,12 +14,15 @@ psycopg2-binary==2.8.5 \
 setuptools==41.0.0 \
 sqlalchemy==1.3.13
 
-COPY ./Build/OneView/alembic /Build/OneView/alembic
-COPY ./Build/OneView/alembic.ini /Build/OneView/alembic.ini
-COPY ./Source/Python/datalabs/access ./datalabs/access
-COPY ./Source/Python/datalabs/model/masterfile/oneview.py ./datalabs/model/masterfile/oneview.py
-COPY ./Source/Python/datalabs/__init__.py ./datalabs/__init__.py
-COPY ./Source/Python/datalabs/sqlalchemy.py ./datalabs/sqlalchemy.py
 COPY ./Script/migrate-database ./migrate-database
 COPY ./Script/run.py ./run.py
 COPY ./Script/repo.py ./repo.py
+COPY ./Source/Python/datalabs/access ./datalabs/access
+COPY ./Source/Python/datalabs/__init__.py ./datalabs/__init__.py
+COPY ./Source/Python/datalabs/sqlalchemy.py ./datalabs/sqlalchemy.py
+
+COPY ./Source/Python/datalabs/model/masterfile/oneview.py ./datalabs/model/masterfile/oneview.py
+
+# NOTE: migrate-database expects to find Build/ in ../, so /Build is correct
+COPY ./Build/OneView/alembic /Build/OneView/alembic
+COPY ./Build/OneView/alembic.ini /Build/OneView/alembic.ini

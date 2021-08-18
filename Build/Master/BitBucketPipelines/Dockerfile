@@ -1,9 +1,11 @@
 # Build from repository root
 FROM amazonlinux:2.0.20210617.0 as amazon-python
 WORKDIR /Build
+RUN yum update -y
+RUN amazon-linux-extras enable docker
 RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel wget tar gzip make gcc-c++ \
                    python python3-devel python3-pip git awscli \
-                   xvfb jq java-1.8.0-openjdk-devel
+                   xvfb jq java-1.8.0-openjdk-devel docker
 
 # RUN rm /usr/bin/python && ln -s /usr/bin/python3.7 /usr/bin/python
 
