@@ -1,4 +1,5 @@
 """ source: datalabs.etl.transform """
+import os
 import tempfile
 import pathlib
 import pytest
@@ -32,13 +33,13 @@ def test_scalable_dataframes_mixin(csv_file):
 
     data.id = dask.array.from_array(new_column)
 
-    paths = ScalableTransformerMixin._dataframe_to_csv(data, csv_file)
+    path = ScalableTransformerMixin._dataframe_to_csv(data)
 
-    assert len(paths) == 1
-
-    data = pandas.read_csv(csv_file)
+    data = pandas.read_csv(path)
 
     assert all(data.id == new_column)
+
+    os.remove(path)
 
 
 
