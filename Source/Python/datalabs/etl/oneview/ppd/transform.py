@@ -1,4 +1,5 @@
 """ Oneview PPD Transformer"""
+import dask.dataframe
 import logging
 
 from   datalabs.etl.oneview.ppd.column import PPD_COLUMNS
@@ -10,6 +11,9 @@ LOGGER.setLevel(logging.INFO)
 
 
 class PPDTransformerTask(TransformerTask):
+    def _csv_to_dataframe(self, path: str, **kwargs) -> dask.dataframe:
+        return dask.dataframe.read_csv(path, sep='|', dtype=str, **kwargs)
+
     def _preprocess_data(self, data):
         npi = data[1]
         ppd = data[0]
