@@ -104,6 +104,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=logging-fstring-interpolation
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
+        data = None
+
         try:
             response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
         except Exception as exception:
@@ -111,14 +113,12 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
 
-        if self._parameters.on_disk == 'True':
-            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                with open(temp_file.name, 'w') as file:
-                    for chunk in response['Body'].iter_chunks(1024*1024):
-                        file.write(chunk.decode("utf-8"))
-            return temp_file.name
+        if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
+            data = self._cache_data_to_disk(response['Body'])
+        else:
+            data =response['Body'].read()
 
-        return response['Body'].read()
+        return data
 
     def _get_latest_path(self):
         release_folder = self._get_release_folder()
@@ -128,6 +128,15 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             path = '/'.join((self._parameters.base_path, release_folder))
 
         return path
+
+    @classmethod
+    def _cache_data_to_disk(cls, body):
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            with open(temp_file.name, 'wb') as file:
+                for chunk in body.iter_chunks(1024*1024):
+                    file.write(chunk)
+
+        return temp_file.name.encode()
 
     def _get_release_folder(self):
         release_folder = self._get_execution_date()

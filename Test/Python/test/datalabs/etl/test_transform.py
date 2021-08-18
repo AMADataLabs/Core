@@ -42,8 +42,6 @@ def test_scalable_dataframes_mixin(csv_file):
     os.remove(path)
 
 
-
-
 @pytest.fixture
 def transformer():
     return Transformer(dict(data='True'))

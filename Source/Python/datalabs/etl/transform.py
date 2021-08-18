@@ -29,7 +29,7 @@ class PassThroughTransformerTask(TransformerTask):
         return self._parameters['data']
 
 
-class ScalableTransformerMixin(TransformerTask, ABC):
+class ScalableTransformerMixin():
     @classmethod
     def _csv_to_dataframe(cls, path: str, **kwargs) -> dask.dataframe:
         return dask.dataframe.read_csv(path, dtype=str, **kwargs)
