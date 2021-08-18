@@ -13,7 +13,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class HistoricalResidencyTransformerTask(TransformerTask):
-    def _csv_to_dataframe(cls, data):
+    def _csv_to_dataframe(self, data):
         return [pandas.read_csv(BytesIO(file), sep='|') for file in data]
 
     def _get_columns(self):
