@@ -411,13 +411,6 @@ with ONEVIEW_ETL_DAG:
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
 
-    LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE = KubernetesPodOperator(
-        name="load_iqvia_update_table_into_database",
-        task_id="load_iqvia_update_table_into_database",
-        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
-    )
-
     MIGRATE_DATABASE = KubernetesPodOperator(
         name="migrate_database",
         task_id="migrate_database",
