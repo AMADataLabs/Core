@@ -133,12 +133,12 @@ def test_cache_parameters_omitted_from_task_parameters(args, environment):
     for parameter in task_wrapper._task_parameters:
         assert not parameter.startswith('CACHE_')
 
-class TestTask(ETLComponentTask):
+class DummyTask(ETLComponentTask):
     def run(self):
         pass
 
 
-class TestTaskDataCache(TaskDataCache):
+class DummyTaskDataCache(TaskDataCache):
     def extract_data(self):
         return json.loads(self._parameters['DATA'])
 
@@ -154,9 +154,9 @@ def args():
 def environment():
     current_environment = os.environ.copy()
 
-    os.environ['TASK_CLASS'] = 'test.datalabs.etl.dag.test_task.TestTask'
+    os.environ['TASK_CLASS'] = 'test.datalabs.etl.dag.test_task.DummyTask'
     os.environ['TEST_DAG__DAG_VARIABLE'] = 'tootie'
-    os.environ['TEST_DAG__CACHE_CLASS'] = 'test.datalabs.etl.dag.test_task.TestTaskDataCache'
+    os.environ['TEST_DAG__CACHE_CLASS'] = 'test.datalabs.etl.dag.test_task.DummyTaskDataCache'
     os.environ['TEST_DAG__CACHE_STUFF'] = 'JIDFSAF9E0RU90FOV9A0FUD'
     os.environ['TEST_DAG__TEST_TASK__TASK_VARIABLE'] = 'fruity'
     os.environ['TEST_DAG__TEST_TASK__CACHE_INPUT_DATA'] = '["light", "and", "smoothie"]'

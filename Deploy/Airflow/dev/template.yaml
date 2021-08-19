@@ -97,7 +97,7 @@ objects:
         uri: git@bitbucket.org:amaappdev/hs-datalabs.git
         ref: dev
       sourceSecret:
-        name: bitbucketprd
+        name: bitbucket
       type: Git
     strategy:
       dockerStrategy:
@@ -136,7 +136,7 @@ objects:
         uri: git@bitbucket.org:amaappdev/hs-datalabs.git
         ref: dev
       sourceSecret:
-        name: bitbucketprd
+        name: bitbucket
       type: Git
     strategy:
       dockerStrategy:
@@ -622,7 +622,7 @@ objects:
           emptyDir: {}
         - name: id-rsa
           secret:
-            secretName: bitbucketprd
+            secretName: bitbucket
             defaultMode: 420
             items:
               - key: ssh-privatekey
