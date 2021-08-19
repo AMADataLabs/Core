@@ -1,0 +1,58 @@
+---
+# Example specification for which modules are included in a project.
+#
+# Rules:
+# 1) Package requirements are not recursive
+# 2) A package requirement without an include or exclude defaults to including all modules in that package
+# 3) A package MAY have EITHER an include or exclude module filter, but not both
+# 4) An include filter means that ONLY those modules listed will be included under the package
+# 5) An exclude filter means that ALL modules EXCEPT those listed will be included under the package
+
+modspec:
+  - package: datalabs
+    include:
+      - feature
+      - awslambda
+      - plugin
+      - etl
+      - sqlalchemy
+      - task
+      - parameter
+  - package: datalabs.access
+    include:
+      - aws
+      - sftp
+      - credentials
+      - database
+      - datastore
+      - environment
+      - orm
+      - etcd
+  - package: datalabs.access.parameter
+  - package: datalabs.access.secret
+  - package: datalabs.etl
+    include:
+      - task
+      - extract
+      - awslambda
+      - transform
+      - load
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.state
+  - package: datalabs.etl.fs
+  - package: datalabs.etl.jdbc
+  - package: datalabs.etl.oneview
+  - package: datalabs.etl.oneview.ppd
+  - package: datalabs.etl.oneview.iqvia
+  - package: datalabs.etl.oneview.credentialing
+  - package: datalabs.etl.oneview.residency
+  - package: datalabs.etl.oneview.race_ethnicity
+  - package: datalabs.etl.oneview.link
+  - package: datalabs.etl.oneview.melissa
+  - package: datalabs.etl.orm
+  - package: datalabs.etl.oneview.reference
+  - package: datalabs.etl.http
+  - package: datalabs.etl.s3
+  - package: datalabs.etl.sftp
+  - package: datalabs.model.masterfile

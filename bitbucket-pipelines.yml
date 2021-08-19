@@ -134,7 +134,7 @@ pipelines:
                 # - docker push 644454719059.dkr.ecr.us-east-1.amazonaws.com/oneview-content-sbx:1.0.0
                 - bash Deploy/Master/create-bundle OneView
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-bundle
+                - bash Deploy/Master/upload-bundle OneView
         - parallel:
             - step:
                 name: Migrate Database

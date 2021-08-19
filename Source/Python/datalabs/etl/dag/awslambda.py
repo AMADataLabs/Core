@@ -93,17 +93,27 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
         ''' Get parameters for either the DAG Processor or the Task Processor. '''
         dag = self._get_dag_id()
         task = self._get_task_id()
-        dag_task_parameters = dict(
+        dag_parameters = dict(
             dag=dag,
             execution_time=self._get_execution_time(),
         )
 
-        dag_task_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
+        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
+        dag_parameters.update(
+            self._get_dag_parameter_overrides(
+                self._get_dag_task_parameters_from_dynamodb(dag, task),
+                dag_parameters
+            )
+        )
 
         if task != "DAG":
-            dag_task_parameters["task"] = task
+            dag_parameters["task"] = task
 
-        return dag_task_parameters
+        return dag_parameters
+
+    @classmethod
+    def _get_dag_parameter_overrides(cls, task_parameters, dag_parameters):
+        return {key:value for key, value in task_parameters.items() if key in dag_parameters}
 
 
 @add_schema(unknowns=True)
@@ -123,11 +133,6 @@ class DAGTaskWrapper(
 ):
     PARAMETER_CLASS = DAGTaskWrapperParameters
     DAG_PARAMETERS = None
-
-    def __init__(self, parameters):
-        super().__init__(parameters)
-
-        self._dag_parameters = None
 
     @classmethod
     def _get_runtime_parameters(cls, parameters):
@@ -180,6 +185,8 @@ class DAGTaskWrapper(
         task = self._get_task_id()
         dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
 
+        dag_task_parameters = self._remove_dag_parameter_overrides(dag_task_parameters)
+
         if task == 'DAG':
             dag_task_parameters["dag"] = dag
             dag_task_parameters["dag_class"] = self._runtime_parameters["dag_class"]
@@ -192,3 +199,7 @@ class DAGTaskWrapper(
             notifier = SNSDAGNotifier(dag_topic)
 
             notifier.notify(self._get_dag_id(), self._get_execution_time())
+
+    @classmethod
+    def _remove_dag_parameter_overrides(cls, task_parameters):
+        return {key:value for key, value in task_parameters.items() if key not in cls.DAG_PARAMETERS}

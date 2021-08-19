@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from   datalabs.etl.dag.awslambda import ProcessorTaskWrapper
+from   datalabs.etl.dag.awslambda import ProcessorTaskWrapper, DAGTaskWrapper
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -32,6 +32,28 @@ def test_process_wrapper_s3_event_parsed_correctly(s3_event):
     assert hasattr(parameters["execution_time"], "upper")
     assert "task" in parameters
     assert parameters["task"] == "DAG"
+
+
+# pylint: disable=protected-access
+def test_process_wrapper_dag_parameters_are_overridden():
+    dag_parameters = dict(foo='fun', bar='bun')
+    task_parameters = dict(ping='pun', pong='pun', bar='pork rinds')
+
+    dag_parameter_overrides = ProcessorTaskWrapper._get_dag_parameter_overrides(task_parameters, dag_parameters)
+
+    assert len(dag_parameter_overrides) == 1
+    assert dag_parameter_overrides["bar"] == 'pork rinds'
+
+
+# pylint: disable=protected-access
+def test_task_wrapper_dag_parameters_are_removed():
+    DAGTaskWrapper.DAG_PARAMETERS = dict(foo='fun', bar='bun')
+    raw_task_parameters = dict(ping='pun', pong='pun', bar='pork rinds')
+
+    task_parameters = DAGTaskWrapper._remove_dag_parameter_overrides(raw_task_parameters)
+
+    assert len(task_parameters) == 2
+    assert "bar" not in task_parameters
 
 
 @pytest.mark.skipif(
