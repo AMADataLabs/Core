@@ -132,7 +132,7 @@ pipelines:
                 # - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 644454719059.dkr.ecr.us-east-1.amazonaws.com
                 # - docker build -t 644454719059.dkr.ecr.us-east-1.amazonaws.com/oneview-content-sbx:1.0.0 -f ./Build/OneView/ETL/Dockerfile ./
                 # - docker push 644454719059.dkr.ecr.us-east-1.amazonaws.com/oneview-content-sbx:1.0.0
-                - bash Deploy/Master/create-bundle OneView
+                - bash Deploy/Master/create-bundle OneView/ETL
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
                 - bash Deploy/Master/upload-bundle OneView
         - parallel:
