@@ -326,6 +326,17 @@ data "aws_ami" "datalake_bastion" {
 #####################################################################
 
 ##### BEGIN REMOVE #####
+resource "aws_s3_bucket" "old_datalabs_lambda_code_bucket" {
+    bucket = var.old_lambda_code_bucket
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags = merge(local.tags, {Name = "Data Labs Lambda Code Bucket"})
+}
+
+
 resource "aws_s3_bucket" "datalabs_lambda_code_bucket" {
     bucket = var.lambda_code_bucket
 

@@ -10,7 +10,7 @@ setup:
 	./Script/setup_development_environment
 
 test: setup_test_files
-	${RUN} ${VIRTUAL_ENV}/bin/python -m pytest -vv Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+	${RUN} ${VIRTUAL_ENV}/bin/pytest -vv Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
 
 setup_test_files: ${TEMPLATE_FILES}
 	cp ${TEMPLATE_FILES} ${CWD}/Test/Python/test/datalabs/environment/

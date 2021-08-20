@@ -317,6 +317,15 @@ with ONEVIEW_ETL_DAG:
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
 
+    CREATE_HISTORICAL_RESIDENCY_TABLE = KubernetesPodOperator(
+        name="create_historical_residency_table",
+        task_id="create_historical_residency_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.historical_residency.transform.HistoricalResidencyTransformerTask')
+        },
+    )
     LOAD_REFERENCE_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_reference_tables_into_database",
         task_id="load_reference_tables_into_database",
@@ -325,23 +334,65 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
-    LOAD_RESIDENCY_TABLES_INTO_DATABASE = KubernetesPodOperator(
-        name="load_residency_tables_into_database",
-        task_id="load_residency_tables_into_database",
+    LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_residency_institution_table_into_database",
+        task_id="load_residency_institution_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
-    LOAD_IQVIA_TABLES_INTO_DATABASE = KubernetesPodOperator(
-        name="load_iqvia_tables_into_database",
-        task_id="load_iqvia_tables_into_database",
+    LOAD_RESIDENCY_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_residency_table_into_database",
+        task_id="load_residency_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
-    LOAD_CREDENTIALING_TABLES_INTO_DATABASE = KubernetesPodOperator(
-        name="load_credentialing_tables_into_database",
-        task_id="load_credentialing_tables_into_database",
+    LOAD_RESIDENCY_PERSONNEL_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_residency_personnel_table_into_database",
+        task_id="load_residency_personnel_table_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        name="load_iqvia_business_provider_tables_into_database",
+        task_id="load_iqvia_business_provider_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_IQVIA_PROVIER_AFFILIATION_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_iqvia_provider_affiliation_table_into_database",
+        task_id="load_iqvia_provider_affiliation_table_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_iqvia_update_table_into_database",
+        task_id="load_iqvia_update_table_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    # LOAD_RACE_ETHNICITY_TABLE_INTO_DATABASE = KubernetesPodOperator(
+    #     name="load_race_ethnicity_table_into_database",
+    #     task_id="load_race_ethnicity_table_into_database",
+    #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+    #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    # )
+
+    LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES_INTO_DATABASE = KubernetesPodOperator(
+        name="load_credentialing_customer_product_tables_into_database",
+        task_id="load_credentialing_customer_product_tables_into_database",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
+    )
+
+    LOAD_CREDENTIALING_ORDER_TABLE_INTO_DATABASE = KubernetesPodOperator(
+        name="load_credentialing_order_tables_into_database",
+        task_id="load_credentialing_order_tables_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
@@ -359,13 +410,6 @@ with ONEVIEW_ETL_DAG:
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
-
-    LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE = KubernetesPodOperator(
-        name="load_iqvia_update_table_into_database",
-        task_id="load_iqvia_update_table_into_database",
-        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
-    )
 
     MIGRATE_DATABASE = KubernetesPodOperator(
         name="migrate_database",
@@ -388,15 +432,19 @@ EXTRACT_CORE_BASED_STATISTICAL_AREA >> CREATE_CORE_BASED_STATISTICAL_AREA_TABLE 
 EXTRACT_SPECIALTY >> REMOVE_UNUSED_SPECIALTIES
 CREATE_PHYSICIAN_TABLE >> REMOVE_UNUSED_SPECIALTIES
 REMOVE_UNUSED_SPECIALTIES >> LOAD_REFERENCE_TABLES_INTO_DATABASE
-EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_RESIDENCY_TABLES_INTO_DATABASE
-EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES >> LOAD_IQVIA_TABLES_INTO_DATABASE
+EXTRACT_RESIDENCY >> CREATE_RESIDENCY_PROGRAM_TABLES >> LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE
+LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_TABLE_INTO_DATABASE
+LOAD_RESIDENCY_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_PERSONNEL_TABLE_INTO_DATABASE
+EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES
 EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE >> LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE
-LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE >> LOAD_IQVIA_TABLES_INTO_DATABASE
+LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE >> LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO_DATABASE
+LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO_DATABASE >> LOAD_IQVIA_PROVIER_AFFILIATION_TABLE_INTO_DATABASE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 EXTRACT_CREDENTIALING_ADDRESSES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
-EXTRACT_HISTORICAL_RESIDENCY
+EXTRACT_HISTORICAL_RESIDENCY >> CREATE_HISTORICAL_RESIDENCY_TABLE
 CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
-MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_TABLES_INTO_DATABASE
+MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES_INTO_DATABASE
+LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES_INTO_DATABASE >> LOAD_CREDENTIALING_ORDER_TABLE_INTO_DATABASE
 EXTRACT_PHYSICIAN_RACE_ETHNICITY >> CREATE_PHYSICIAN_TABLE
 CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE

@@ -33,15 +33,17 @@
 import logging
 
 from   dataclasses import dataclass
-from   guppy import hpy
 
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+import datalabs.feature as feature
 from   datalabs.parameter import add_schema
 
+if feature.enabled("PROFILE"):
+    from guppy import hpy
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -103,7 +105,9 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=logging-fstring-interpolation
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
-        LOGGER.info(f'Pre extraction memory {(hpy().heap())}')
+        if feature.enabled("PROFILE"):
+            LOGGER.info(f'Pre extraction memory {(hpy().heap())}')
+
         try:
             response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
         except Exception as exception:
@@ -112,7 +116,9 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             ) from exception
 
         body = response['Body'].read()
-        LOGGER.info(f'Post extraction memory {(hpy().heap())}')
+
+        if feature.enabled("PROFILE"):
+            LOGGER.info(f'Post extraction memory {(hpy().heap())}')
 
         return body
 
