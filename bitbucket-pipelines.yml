@@ -109,7 +109,7 @@ pipelines:
                 script:
                 - bash Script/setup-virtual-environment OneView
                 - export ENABLE_FEATURE_DEV=True
-                - export DATABASE_NAME=oneview
+                - export DATABASE_NAME=oneview_content
                 - export DATABASE_NAME_ADMIN=postgres
                 - export DATABASE_BACKEND=postgresql+psycopg2
                 - export DATABASE_HOST=$ONEVIEW_DATABASE_HOST_SANDBOX
