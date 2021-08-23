@@ -16,7 +16,6 @@ LOGGER.setLevel(logging.DEBUG)
 class PhysiciansEndpointTask(APIEndpointTask):
     def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
-        self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
         query = self._query_for_physicians(database)
@@ -30,16 +29,11 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
         self._response_body = self._response_body[0]
 
-
-    def _set_parameter_defaults(self):
-        pass
-
     @classmethod
     def _query_for_physicians(cls, database):
         return database.query(Physician)
 
     def _filter(self, query):
-
         query_params = self._parameters.query
         return_fields = query_params.pop("field", None)
 
