@@ -3,7 +3,7 @@
 # Run Example:
 #    docker run -e DOTENV_PATH=scheduler.env -ti scheduler python -c "import awslambda; print(awslambda.handler(None, None))"
 
-FROM python:3.7
+FROM python:3.9.5
 WORKDIR /Scheduler
 ENV PYTHONPATH=/Scheduler:/Scheduler/site-packages
 ENV CLASSPATH=/Scheduler

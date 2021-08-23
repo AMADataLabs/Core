@@ -3,7 +3,7 @@
 # Run Example:
 #    docker run -e DOTENV_PATH=flagged_addresses_report.env -ti amc python task.py
 
-FROM python:3.7
+FROM python:3.9.5
 ENV PYTHONPATH=/AMC:/AMC/site-packages
 ENV CLASSPATH=/AMC
 ENV HOME=/AMC

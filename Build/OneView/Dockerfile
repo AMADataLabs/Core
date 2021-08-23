@@ -3,7 +3,7 @@
 # Run Example:
 #    docker run -ti one-view -e DOTENV_PATH=ppd.env python -c "import awslambda; print(awslambda.handler(None, None))"
 
-FROM python:3.7
+FROM python:3.9.5
 WORKDIR /OneView
 ENV PYTHONPATH=/OneView:/OneView/site-packages
 ENV CLASSPATH=/OneView

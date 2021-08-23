@@ -1,7 +1,7 @@
 # Build Example:
 #    docker build -t disciplinary-action -f ./Build/DisciplinaryAction/Dockerfile ./
 
-FROM python:3.7
+FROM python:3.9.5
 WORKDIR /DisciplinaryAction
 
 COPY ./Build/DisciplinaryAction/requirements.txt .

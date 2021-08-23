@@ -3,7 +3,7 @@
 # Run Example:
 #    docker run -e DOTENV_PATH=ppd.env -ti dbl python task.py
 
-FROM python:3.7
+FROM python:3.9.5
 WORKDIR /DBL
 ENV PYTHONPATH=/DBL:/DBL/site-packages
 ENV CLASSPATH=/DBL
