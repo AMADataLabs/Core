@@ -1,7 +1,7 @@
 """ OneView Physician endpoint classes """
 import logging
 
-from   sqlalchemy import or_, func
+from   sqlalchemy import func
 from   sqlalchemy.orm import defer, undefer
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
