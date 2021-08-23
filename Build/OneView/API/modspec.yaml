@@ -19,7 +19,6 @@ modspec:
       - parameter
   - package: datalabs.access
     include:
-      - api
       - aws
       - credentials
       - database
@@ -27,6 +26,7 @@ modspec:
       - environment
       - orm
       - etcd
+  - package: datalabs.access.api
   - package: datalabs.access.oneview.api
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
