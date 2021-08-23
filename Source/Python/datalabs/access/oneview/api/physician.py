@@ -1,5 +1,4 @@
 """ OneView Physician endpoint classes """
-from   abc import abstractmethod
 import logging
 
 from   sqlalchemy import or_, func
@@ -46,6 +45,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response_body(cls, rows, return_fields):
+        # pylint: disable=no-member
         columns = return_fields or [column.name for column in Physician.__table__.columns]
         output = []
 
@@ -75,4 +75,3 @@ class PhysiciansEndpointTask(APIEndpointTask):
             query = query.options(undefer(getattr(Physician, field)))
 
         return query
-
