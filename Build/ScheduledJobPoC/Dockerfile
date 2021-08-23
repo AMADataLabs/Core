@@ -1,7 +1,7 @@
 # Build Example:
 #    docker build -t scheduled-job-poc -f ./Build/ScheduledJobPoC/Dockerfile ./
 
-FROM python:3.7
+FROM python:3.9.5
 RUN apt update
 RUN apt install -y vim
 

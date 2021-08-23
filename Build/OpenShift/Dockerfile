@@ -23,7 +23,7 @@ RUN yum update && \
 
 # USER 1000280000
 
-# FROM python:3.7
+# FROM python:3.9.5
 # RUN apt update
 # RUN apt install -y vim
 #
