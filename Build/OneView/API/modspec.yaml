@@ -19,6 +19,7 @@ modspec:
       - parameter
   - package: datalabs.access
     include:
+      - api
       - aws
       - credentials
       - database
