@@ -155,4 +155,4 @@ parameters:
 - description: Volume space available for data, e.g. 512Mi, 2Gi.
   displayName: Volume Capacity
   name: VOLUME_CAPACITY
-  value: 5Gi
+  value: 10Gi
