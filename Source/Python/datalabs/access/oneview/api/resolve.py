@@ -12,7 +12,8 @@ TaskClassMapping = namedtuple('TaskClassMapping', 'path task_class')
 class TaskResolver(task.TaskResolver):
     # pylint: disable=line-too-long
     TASK_CLASSES = [
-        TaskClassMapping('/physicians',             PhysiciansEndpointTask),
+        TaskClassMapping('/physicians',                 PhysiciansEndpointTask),
+        TaskClassMapping('/*',                          DefaultEndpointTask)
     ]
 
     @classmethod
