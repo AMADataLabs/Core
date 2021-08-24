@@ -10,6 +10,7 @@ from kubernetes.client import models as k8s
 ### Configuration Bootstraping ###
 DAG_ID = 'amc'
 DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
+AMC_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/amc:1.0.0'
 IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
 
 ### Kubernets Configuration ###
