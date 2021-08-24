@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: contact-id-etl
+    namespace: hsg-data-labs-dev
+data:
+    # TASK_WRAPPER_CLASS: datalabs.etl.dag.task.DAGTaskWrapper
+
+
+    # Address-Flagging-Report Extractor
+    AMC__ADDRESS_FLAGGING_REPORT__DRIVER: 'com.informix.jdbc.IfxDriver'
+    AMC__ADDRESS_FLAGGING_REPORT__DRIVER_TYPE: 'informix-sqli'
+    AMC__ADDRESS_FLAGGING_REPORT__JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
+    AMC__ADDRESS_FLAGGING_REPORT__SQL: >-
+        SELECT
+            eke.key_type_val as ME,
+            ecu.entity_id,
+            ecu.comm_id,
+            first_nm,
+            middle_nm,
+            last_nm,
+            pa.addr_line0,
+            pa.addr_line1,
+            pa.addr_line2,
+            pa.city_cd,
+            pa.zip,
+            pa.state_cd,
+            ecu.usg_begin_dt,
+            ecu.comm_usage
+
+        FROM
+            entity_comm_usg_at ecu
+            INNER JOIN
+            entity_key_et eke
+            ON eke.entity_id = ecu.entity_id
+            INNER JOIN
+            post_addr_at pa
+            ON pa.comm_id = ecu.comm_id
+            INNER JOIN
+            person_name_et pn
+            ON pn.entity_id = ecu.entity_id
+
+        WHERE
+            ecu.src_cat_code = 'AMC' AND
+            ecu.end_dt is null       AND
+            eke.key_type ='ME'
+
+    # Address-Flagging-Report Transformer
+        # NONE
+
+    # Address-Flagging-Report Loader
+    AMC__ADDRESS_FLAGGING_REPORT__TO: 'Daniel.Ro@ama-assn.og'
+    AMC__ADDRESS_FLAGGING_REPORT__CC: ''
