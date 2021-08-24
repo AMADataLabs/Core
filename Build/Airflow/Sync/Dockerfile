@@ -1,4 +1,4 @@
-FROM python:3.9.5
+FROM python:3.7
 
 ENV AIRFLOW_HOME=/home/airflow
 ENV HOME=/Sync

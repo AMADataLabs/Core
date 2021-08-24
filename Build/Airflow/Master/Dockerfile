@@ -1,4 +1,4 @@
-FROM python:3.9.5
+FROM python:3.7
 
 ENV HOME /home/datalabs
 ENV SLUGIFY_USES_TEXT_UNIDECODE=yes

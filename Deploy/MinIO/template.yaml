@@ -5,8 +5,8 @@ labels:
 message: |-
     The following service(s) have been created in your project: ${MINIO_SERVICE_NAME}.
 
-         Access Key: ${MINIO_ACCESS_KEY}
-         Secret Key: ${MINIO_SECRET_KEY}
+         Root User: ${MINIO_ROOT_USER}
+         Root Password: ${MINIO_ROOT_PASSWORD}
     Connection URL: s3:/${MINIO_SERVICE_NAME}/
 metadata:
   name: minio-persistent
@@ -27,16 +27,16 @@ objects:
   kind: Secret
   metadata:
     annotations:
-      template.openshift.io/expose-access_key: '{.data[''access-key'']}'
-      template.openshift.io/expose-secret_key: '{.data[''secret-key'']}'
+      template.openshift.io/base64-expose-password: "{.data['root-user']}"
+      template.openshift.io/base64-expose-password: "{.data['root-password']}"
     name: ${MINIO_SERVICE_NAME}-secret
   stringData:
-    access-key: ${MINIO_ACCESS_KEY}
-    secret-key: ${MINIO_SECRET_KEY}
+    root-user: ${MINIO_ROOT_USER}
+    root-password: ${MINIO_ROOT_PASSWORD}
 - apiVersion: v1
   kind: Service
   metadata:
-    name: ${MINIO_SERVICE_NAME}-service
+    name: ${MINIO_SERVICE_NAME}-api
     annotations:
       template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
   spec:
@@ -53,13 +53,32 @@ objects:
   status:
     loadBalancer: {}
 - apiVersion: v1
+  kind: Service
+  metadata:
+    name: ${MINIO_SERVICE_NAME}-console
+    annotations:
+      template.openshift.io/expose-service_ip_port: "{.spec.clusterIP}:{.spec.ports[?(.name==\"web\")].port}"
+  spec:
+    ports:
+    - name: minio
+      nodePort: 0
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      name: ${MINIO_SERVICE_NAME}
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
   kind: Route
   metadata:
-    name: ${MINIO_SERVICE_NAME}-route
+    name: ${MINIO_SERVICE_NAME}-api
     annotations:
       template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
   spec:
-    host: ${MINIO_SERVICE_NAME}.apps.openshifttest.ama-assn.org
+    host: ${MINIO_SERVICE_NAME}-api.apps.openshifttest.ama-assn.org
     port:
       targetPort: 9000
       containerPort: 9000
@@ -67,7 +86,29 @@ objects:
       termination: edge
     to:
       kind: Service
-      name: ${MINIO_SERVICE_NAME}-service
+      name: ${MINIO_SERVICE_NAME}-api
+      weight: 100
+    wildcardPolicy: None
+    selector:
+      name: ${MINIO_SERVICE_NAME}
+  status:
+    ingress: null
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: ${MINIO_SERVICE_NAME}-console
+    annotations:
+      template.openshift.io/expose-uri: "http://{.spec.host}{.spec.path}"
+  spec:
+    host: ${MINIO_SERVICE_NAME}.apps.openshifttest.ama-assn.org
+    port:
+      targetPort: 8080
+      containerPort: 8080
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: ${MINIO_SERVICE_NAME}-console
       weight: 100
     wildcardPolicy: None
     selector:
@@ -105,23 +146,27 @@ objects:
           - minio
           args:
           - server
+          - '--console-address'
+          - ':8080'
           - /var/lib/minio/data
           env:
-          - name: MINIO_ACCESS_KEY
+          - name: MINIO_ROOT_USER
             valueFrom:
               secretKeyRef:
-                key: access-key
+                key: root-user
                 name: ${MINIO_SERVICE_NAME}-secret
-          - name: MINIO_SECRET_KEY
+          - name: MINIO_ROOT_PASSWORD
             valueFrom:
               secretKeyRef:
-                key: secret-key
+                key: root-password
                 name: ${MINIO_SERVICE_NAME}-secret
           image: "minio/minio"
           imagePullPolicy: IfNotPresent
           name: minio
           ports:
           - containerPort: 9000
+            protocol: TCP
+          - containerPort: 8080
             protocol: TCP
           terminationMessagePath: /dev/termination-log
           volumeMounts:
@@ -142,16 +187,15 @@ parameters:
   displayName: MinIO Service Name
   name: MINIO_SERVICE_NAME
   value: minio
-- description: Access key that will be used for accessing the service.
-  displayName: MinIO Access Key
-  from: "[A-Z0-9]{20}"
-  generate: expression
-  name: MINIO_ACCESS_KEY
-- description: Secret key that will be used for accessing the service.
-  displayName: MinIO Secret Key
+- description: Root user that will be used for accessing the service.
+  displayName: MinIO root user
+  name: MINIO_ROOT_USER
+  value: admin
+- description: Root user password that will be used for accessing the service.
+  displayName: MinIO root user password
   from: "[a-zA-Z0-9]{40}"
   generate: expression
-  name: MINIO_SECRET_KEY
+  name: MINIO_ROOT_PASSWORD
 - description: Volume space available for data, e.g. 512Mi, 2Gi.
   displayName: Volume Capacity
   name: VOLUME_CAPACITY

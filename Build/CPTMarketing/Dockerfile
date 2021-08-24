@@ -7,7 +7,7 @@
 # Run Example:
 #     docker run -e DOTENV_PATH=valid.env -ti cpt-marketing python task.py
 
-FROM python:3.9.5
+FROM python:3.7
 ENV CLASSPATH=/CPTMarketing
 ENV PYTHONPATH=/CPTMarketing:/CPTMarketing/site-packages
 WORKDIR /CPTMarketing

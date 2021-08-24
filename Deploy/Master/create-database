@@ -8,4 +8,5 @@ export VIRTUAL_ENV=${PWD}/Environment/${PROJECT}
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 export PYTHONPATH=${PWD}/Source/Python
+which python
 python -c 'from datalabs.deploy.database import create_unless_exists; create_unless_exists()'

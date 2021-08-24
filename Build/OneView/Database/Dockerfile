@@ -3,7 +3,7 @@
 # Run Example:
 #    docker run -ti oneview-db ./migrate-database upgrade -H <DB host>  -n <DB name> -u <DB user> -p <DB password> OneView
 
-FROM python:3.9.5
+FROM python:3.7
 WORKDIR /OneView
 ENV PYTHONPATH=/OneView
 

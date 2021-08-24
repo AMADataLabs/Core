@@ -1,7 +1,7 @@
 # Build Example:
 #    docker build -t one-view -f ./Build/OneView/PPD/Dockerfile ./
 
-FROM python:3.9.5
+FROM python:3.7
 WORKDIR /OneView
 
 COPY ./Build/OneView/requirements.txt .

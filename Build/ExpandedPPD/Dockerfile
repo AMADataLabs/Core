@@ -2,7 +2,7 @@
 #    docker build -t expanded-ppd -f ./Build/ExpandedPPD/Dockerfile \
 #                 --build-arg sftp_username=<SFTP Username> --build-arg sftp_password=<SFTP Password> ./
 
-FROM python:3.9.5
+FROM python:3.7
 WORKDIR /ExpandedPPD
 ENV PYTHONPATH=/ExpandedPPD
 
