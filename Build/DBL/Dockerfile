@@ -19,7 +19,7 @@ COPY ./Source ./Source
 
 ARG template_vars
 RUN echo $template_vars
-COPY ./Build/DBL/*.env ./
+COPY ./Build/DBL/*.env.jinja ./
 RUN find ./ -name "*.env.jinja" | sed 's/.jinja//' | xargs -t -I {}\
     ./Script/render-template \
     --template {} \
