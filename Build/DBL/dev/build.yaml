@@ -2,12 +2,12 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   annotations:
-    openshift.io/description: Address Flagging Report ETL runtime environment
-    openshift.io/display-name: address-flagging-report
+    openshift.io/description: DBL ETL runtime environment
+    openshift.io/display-name: dbl-etl-report
   creationTimestamp: null
   labels:
-    app: amc
-  name: address-flagging-report
+    app: DBL
+  name: dbl-etl-report
   namespace: hsg-data-labs-dev
 spec:
   failedBuildsHistoryLimit: 5
@@ -15,20 +15,20 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: amc:1.0.0
+      name: dbl:1.0.0
   postCommit: {}
   resources: {}
   runPolicy: Serial
   source:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-      ref: dev
+      # ref: dev
     sourceSecret:
       name: bitbucket
     type: Git
   strategy:
     dockerStrategy:
-      dockerfilePath: Build/AMC/Dockerfile
+      dockerfilePath: Build/DBL/Dockerfile
       from:
         kind: ImageStreamTag
         name: python:3.7
