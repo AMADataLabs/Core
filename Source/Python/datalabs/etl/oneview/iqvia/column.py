@@ -71,7 +71,7 @@ PROVIDER_COLUMNS = {
 PROVIDER_AFFILIATION_COLUMNS = {
     'id': 'id',
     'IMS_ORG_ID': 'business',
-    'PROFESSIONAL_ID': 'provider',
+    'ME': 'medical_education_number',
     'AFFIL_TYPE_ID': 'type',
     'AFFIL_TYPE_DESC': 'description',
     'AFFIL_IND': 'primary',

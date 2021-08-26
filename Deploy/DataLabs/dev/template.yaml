@@ -1,0 +1,193 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: datalabs
+message: |-
+    Application: ${APPLICATION_NAME}.
+    Database Password: ${DATABASE_PASSWORD}
+metadata:
+  name: datalabs
+  namespace: hsg-data-labs-dev
+  annotations:
+    description: |-
+      DataLabs general infrastructure.
+    openshift.io/long-description: PostgreSQL database backed by a persistent volume.
+    openshift.io/provider-display-name: HSG Data Labs
+    tags: object,storage,s3
+
+
+objects:
+#######################################
+# Secrets
+#######################################
+
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    annotations:
+      template.openshift.io/base64-expose-password: "{.data['database-name']}"
+      template.openshift.io/base64-expose-password: "{.data['database-user']}"
+      template.openshift.io/base64-expose-password: "{.data['database-password']}"
+    name: ${APPLICATION_NAME}-db
+  stringData:
+    database-name: ${DATABASE_NAME}
+    database-user: ${DATABASE_USER}
+    database-password: ${DATABASE_PASSWORD}
+
+#######################################
+# Services and Routes
+#######################################
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      template.openshift.io/expose-uri: postgres://{.spec.clusterIP}:{.spec.ports[?(.name=="postgresql")].port}
+    name: ${APPLICATION_NAME}-db
+  spec:
+    ports:
+    - name: postgresql
+      nodePort: 0
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      name: ${APPLICATION_NAME}-db
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+
+
+#######################################
+# Storage
+#######################################
+
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: ${APPLICATION_NAME}-db
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: ${VOLUME_CAPACITY}
+
+
+#######################################
+# Deployments
+#######################################
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    name: ${APPLICATION_NAME}-db
+  spec:
+    replicas: 1
+    selector:
+      name: ${APPLICATION_NAME}-db
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: ${APPLICATION_NAME}-db
+      spec:
+        containers:
+        - capabilities: {}
+          env:
+          - name: POSTGRESQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: ${APPLICATION_NAME}-db
+                key: database-user
+          - name: POSTGRESQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: ${APPLICATION_NAME}-db
+                key: database-password
+          - name: POSTGRESQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: ${APPLICATION_NAME}-db
+                key: database-name
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            exec:
+              command:
+              - /usr/libexec/check-container
+              - --live
+            initialDelaySeconds: 120
+            timeoutSeconds: 10
+          name: postgresql
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          readinessProbe:
+            exec:
+              command:
+              - /usr/libexec/check-container
+            initialDelaySeconds: 5
+            timeoutSeconds: 1
+          resources:
+            limits:
+              memory: 512Mi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+          volumeMounts:
+          - mountPath: /var/lib/pgsql/data
+            name: ${APPLICATION_NAME}-data
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        volumes:
+        - name: ${APPLICATION_NAME}-data
+          persistentVolumeClaim:
+            claimName: ${APPLICATION_NAME}-db
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - postgresql
+        from:
+          kind: ImageStreamTag
+          name: postgresql:9.6
+          namespace: openshift
+        lastTriggeredImage: ""
+      type: ImageChange
+    - type: ConfigChange
+  status: {}
+
+
+parameters:
+- name: DATABASE_IMAGE_NAMESPACE
+  description: The OpenShift Namespace where the ImageStream resides.
+  displayName: Namespace
+  value: openshift
+- name: APPLICATION_NAME
+  description: The name of the OpenShift Service exposed for Airflow.
+  displayName: Application Name
+  value: hsg-data-labs
+- name: VOLUME_CAPACITY
+  description: Volume space available for data, e.g. 512Mi, 2Gi.
+  displayName: Volume Capacity
+  value: 2Gi
+- name: DATABASE_NAME
+  description: Database name.
+  displayName: Database Name
+  value: datalabs
+- name: DATABASE_USER
+  description: Database user.
+  displayName: Database User
+  value: datalabs
+- name: DATABASE_PASSWORD
+  description: Password for the PostgreSQL database.
+  displayName: PostgreSQL Password
+  from: '[a-zA-Z0-9]{16}'
+  generate: expression
+  required: true

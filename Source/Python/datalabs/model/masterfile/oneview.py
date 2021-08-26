@@ -516,8 +516,8 @@ class CorporateParentBusiness(Base):
     parent = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
 
 
-class SubsidiaryBusiness(Base):
-    __tablename__ = 'subsidiary_business'
+class SubsidiaryOwnerBusiness(Base):
+    __tablename__ = 'subsidiary_owner_business'
     __table_args__ = {"schema": "oneview"}
 
     subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), primary_key=True, nullable=False)

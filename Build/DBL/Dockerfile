@@ -19,12 +19,12 @@ COPY ./Source ./Source
 
 ARG template_vars
 RUN echo $template_vars
-COPY ./Build/DBL/*.env ./
-RUN find ./ -name "*.env" -exec \
+COPY ./Build/DBL/*.env.jinja ./
+RUN find ./ -name "*.env.jinja" | sed 's/.jinja//' | xargs -t -I {}\
     ./Script/render-template \
-    --template {} \
+    --template {}.jinja \
     --file {} \
-    --vars pythonpath=/DBL,$template_vars \;
+    --vars pythonpath=/DBL,$template_vars
 RUN ./Script/bundle-project -i --directory ./ DBL
 
 RUN rm -rf ./Build/Master

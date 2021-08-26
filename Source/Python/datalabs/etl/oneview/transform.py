@@ -5,6 +5,10 @@ import csv
 import logging
 
 import datalabs.etl.transform as etl
+import datalabs.feature as feature
+
+if feature.enabled("PROFILE"):
+    from guppy import hpy
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -13,10 +17,19 @@ LOGGER.setLevel(logging.INFO)
 
 class TransformerTask(etl.ScalableTransformerMixin, ABC):
     def _transform(self):
-        # LOGGER.info(self._parameters['data'])
+        LOGGER.debug(self._parameters['data'])
+        if feature.enabled("PROFILE"):
+            LOGGER.info(f'Pre csv to dataframes memory {(hpy().heap())}')
+
         table_data = [self._csv_to_dataframe(data) for data in self._parameters['data']]
 
+        if feature.enabled("PROFILE"):
+            LOGGER.info(f'Post csv to dataframes memory {(hpy().heap())}')
+
         preprocessed_data = self._preprocess_data(table_data)
+
+        if feature.enabled("PROFILE"):
+            LOGGER.info(f'Post processed dataframes memory {(hpy().heap())}')
 
         selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)
