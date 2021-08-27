@@ -14,3 +14,8 @@ RESIDENCY_PROGRAM_PHYSICIAN_COLUMNS = {
     'personnel_member': 'personnel_member',
     'medical_education_number': 'medical_education_number'
 }
+
+CORPORATE_PARENT_BUSINESS = {
+    'CORP_PARENT_IMS_ORG_ID': 'child',
+    'CORP_PARENT_NAME': 'parent'
+}

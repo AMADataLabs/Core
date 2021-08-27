@@ -180,3 +180,24 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
 
     def _get_columns(self):
         return [columns.RESIDENCY_PROGRAM_PHYSICIAN_COLUMNS]
+
+
+class CorporateParentBusinessTransformerTask(TransformerTask):
+    def _preprocess_data(self, data):
+        corporate_parent_business = self._link_data(data[0])
+
+        return corporate_parent_business
+
+    @classmethod
+    def _link_data(cls, business_data):
+
+        matches = pandas.merge(
+
+
+
+        )
+
+        return None
+
+    def _get_columns(self):
+        return [columns.CORPORATE_PARENT_BUSINESS]
