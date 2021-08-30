@@ -106,6 +106,8 @@ class Physician(Base):
     party_id = sa.Column(sa.String)
     entity_id = sa.Column(sa.String)
     race_ethnicity = sa.Column(sa.String, nullable=False)
+    membership_year = sa.Column(sa.String)
+    type = sa.Column(sa.String)
 
 
 class ResidencyProgram(Base):
@@ -582,6 +584,94 @@ class CoreBasedStatisticalArea(Base):
 
 class Specialty(Base):
     __tablename__ = 'specialty'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class States(Base):
+    __tablename__ = 'states'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ClassOfTradeSpecialty(Base):
+    __tablename__ = 'class_of_trade_specialty'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ClassOfTradeFacilityType(Base):
+    __tablename__ = 'class_of_trade_facility'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ProviderAffiliationGroup(Base):
+    __tablename__ = 'provider_affiliation_group'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ProviderAffiliationType(Base):
+    __tablename__ = 'provider_affiliation_type'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class Suffix(Base):
+    __tablename__ = 'suffix'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class Region(Base):
+    __tablename__ = 'region'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class Division(Base):
+    __tablename__ = 'division'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ProfitStatus(Base):
+    __tablename__ = 'profit_status'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class OwnerStatus(Base):
+    __tablename__ = 'owner_status'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class AssociationStatus(Base):
+    __tablename__ = 'association_status'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
