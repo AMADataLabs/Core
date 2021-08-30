@@ -186,18 +186,13 @@ class CorporateParentBusinessTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         corporate_parent_business = self._link_data(data[0])
 
-        return corporate_parent_business
+        return [corporate_parent_business]
 
     @classmethod
     def _link_data(cls, business_data):
+        has_parent = business_data[business_data['CORP_PARENT_IMS_ORG_ID'].notna()]
 
-        matches = pandas.merge(
-
-
-
-        )
-
-        return None
+        return has_parent[['IMS_ORG_ID', 'CORP_PARENT_IMS_ORG_ID']]
 
     def _get_columns(self):
         return [columns.CORPORATE_PARENT_BUSINESS]

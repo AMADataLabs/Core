@@ -16,6 +16,6 @@ RESIDENCY_PROGRAM_PHYSICIAN_COLUMNS = {
 }
 
 CORPORATE_PARENT_BUSINESS = {
-    'CORP_PARENT_IMS_ORG_ID': 'child',
-    'CORP_PARENT_NAME': 'parent'
+    'IMS_ORG_ID': 'child',
+    'CORP_PARENT_IMS_ORG_ID': 'parent'
 }
