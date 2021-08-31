@@ -14,6 +14,7 @@ modspec:
       - database
       - datastore
       - environment
+      - etcd
       - orm
   - package: datalabs.access.api
   - package: datalabs.access.authorize
