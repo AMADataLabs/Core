@@ -4,6 +4,7 @@ modspec:
     include:
       - feature
       - awslambda
+      - parameter
       - plugin
       - sqlalchemy
       - task
