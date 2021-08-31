@@ -4,6 +4,7 @@ modspec:
     include:
       - feature
       - awslambda
+      - parameter
       - plugin
       - sqlalchemy
       - task
@@ -14,6 +15,7 @@ modspec:
       - database
       - datastore
       - environment
+      - etcd
       - orm
   - package: datalabs.access.api
   - package: datalabs.access.authorize
