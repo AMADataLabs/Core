@@ -2,12 +2,12 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   annotations:
-    openshift.io/description: Contact ID ETL runtime environment
-    openshift.io/display-name: contact-id
+    openshift.io/description: DBL ETL runtime environment
+    openshift.io/display-name: dbl-etl-report
   creationTimestamp: null
   labels:
-    app: OneView
-  name: contact-id
+    app: DBL
+  name: dbl-etl-report
   namespace: hsg-data-labs-dev
 spec:
   failedBuildsHistoryLimit: 5
@@ -15,20 +15,23 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: contact-id:1.0.34
+      name: dbl:1.0.0
   postCommit: {}
   resources: {}
   runPolicy: Serial
   source:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-      ref: dev
+      # ref: dev
     sourceSecret:
       name: bitbucket
     type: Git
   strategy:
     dockerStrategy:
-      dockerfilePath: Build/ContactID/Dockerfile
+      dockerfilePath: Build/DBL/Dockerfile
+      from:
+        kind: ImageStreamTag
+        name: python:3.7
     type: Docker
   successfulBuildsHistoryLimit: 5
   triggers:
