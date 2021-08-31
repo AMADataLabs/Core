@@ -150,6 +150,14 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
+    EXTRACT_MEDICAL_STUDENT = KubernetesPodOperator(
+        name="extract_medical_student",
+        task_id="extract_medical_student",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
+        is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
+    )
+
     CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
         name="create_physician_table",
         task_id="create_physician_table",
@@ -423,6 +431,7 @@ MIGRATE_DATABASE
 EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE
 EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERS >> CREATE_PHYSICIAN_TABLE
 CREATE_PHYSICIAN_TABLE # >> LOAD_PHYSICIAN_TABLE_INTO_DATABASE
+EXTRACT_MEDICAL_STUDENT
 EXTRACT_TYPE_OF_PRACTICE >> CREATE_TYPE_OF_PRACTICE_TABLE >> LOAD_REFERENCE_TABLES_INTO_DATABASE
 EXTRACT_PRESENT_EMPLOYMENT >> CREATE_PRESENT_EMPLOYMENT_TABLE >> LOAD_REFERENCE_TABLES_INTO_DATABASE
 EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY >> CREATE_MAJOR_PROFESSIONAL_ACTIVITY_TABLE >> LOAD_REFERENCE_TABLES_INTO_DATABASE
