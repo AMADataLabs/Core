@@ -47,39 +47,31 @@ DBL_REPORT_DAG = DAG(
 
 
 with DBL_REPORT_DAG:
-
-    DBL_REPORT_EXTRACTOR = KubernetesPodOperator(
-        name="dbl_extractor",
-        task_id="dbl_extractor",
+    EXTRACT_DBL = KubernetesPodOperator(
+        name="extract_dbl",
+        task_id="extract_dbl",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[EFT_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
     )
 
-    DBL_REPORT_TRANSFORMER = KubernetesPodOperator(
-        name="dbl_transformer",
-        task_id="dbl_transformer",
+    CREATE_DBL_REPORT = KubernetesPodOperator(
+        name="create_dbl_report",
+        task_id="create_dbl_report",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[EFT_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.analysis.dbl.transform.DBLReportTransformer')},
     )
 
-    DBL_REPORT_LOADER = KubernetesPodOperator(
-        name="dbl_loader",
-        task_id="dbl_loader",
+    EMAIL_DBL_REPORT = KubernetesPodOperator(
+        name="email_dbl_report",
+        task_id="email_dbl_report",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[EFT_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.analysis.dbl.load.DBLReportEmailLoaderTask')},
     )
 
-
-
-#EXTRACT_VALID
-#EXTRACT_ADVANTAGE
-#EXTRACT_ORGMANAGER
-#EXTRACT_SEED_FILES
-
-DBL_REPORT_EXTRACTOR >> DBL_REPORT_TRANSFORMER >> DBL_REPORT_LOADER
+EXTRACT_DBL >> CREATE_DBL_REPORT >> EMAIL_DBL_REPORT

@@ -7,13 +7,13 @@ data:
     # TASK_WRAPPER_CLASS: datalabs.etl.dag.task.DAGTaskWrapper
 
 
-    # Address-Flagging-Report Extractor
-    DBL__REPORT__BASE_PATH: ''
-    DBL__REPORT__FILES: 'changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt'
+    # EXTRACT_DBL
+    DBL__EXTRACT_DBL__BASE_PATH: ''
+    DBL__EXTRACT_DBL__FILES: 'changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt'
 
-    # Address-Flagging-Report Transformer
+    # CREATE_DBL_REPORT
         # NONE
 
-    # Address-Flagging-Report Loader
-    DBL__REPORT__TO: 'Daniel.Ro@ama-assn.og'
-    DBL__REPORT__CC: ''
+    # EMAIL_DBL_REPORT
+    DBL__EMAIL_DBL_REPORT__TO: 'Daniel.Ro@ama-assn.og'
+    DBL__EMAIL_DBL_REPORT__CC: ''
