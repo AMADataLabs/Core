@@ -33,7 +33,7 @@ class Physician(Base):
     preferred_address_2 = sa.Column(sa.String)
     preferred_address_1 = sa.Column(sa.String)
     city = sa.Column(sa.String)
-    state = sa.Column(sa.String)
+    state = sa.Column(sa.String, sa.ForeignKey("oneview.states.id"))
     zipcode = sa.Column(sa.String)
     sector = sa.Column(sa.String)
     carrier_route = sa.Column(sa.String)
@@ -598,8 +598,8 @@ class States(Base):
     description = sa.Column(sa.String, nullable=False)
 
 
-class ClassOfTradeSpecialty(Base):
-    __tablename__ = 'class_of_trade_specialty'
+class ClassOfTradeBusiness(Base):
+    __tablename__ = 'class_of_trade_business'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
@@ -624,30 +624,6 @@ class ProviderAffiliationGroup(Base):
 
 class ProviderAffiliationType(Base):
     __tablename__ = 'provider_affiliation_type'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    description = sa.Column(sa.String, nullable=False)
-
-
-class Suffix(Base):
-    __tablename__ = 'suffix'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    description = sa.Column(sa.String, nullable=False)
-
-
-class Region(Base):
-    __tablename__ = 'region'
-    __table_args__ = {"schema": "oneview"}
-
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    description = sa.Column(sa.String, nullable=False)
-
-
-class Division(Base):
-    __tablename__ = 'division'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
