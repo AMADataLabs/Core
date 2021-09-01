@@ -26,7 +26,7 @@ BASE_ENVIRONMENT = dict(
     ETCD_PREFIX=f'{DAG_ID.upper()}_'
 )
 
-CONTACT_ID_ASSIGNMENT_DAG = DAG(
+AMC_ADDRESS_FLAGGING_REPORT_DAG = DAG(
     dag_id=DAG_ID,
     default_args=dict(
         owner='airflow',
@@ -47,7 +47,7 @@ CONTACT_ID_ASSIGNMENT_DAG = DAG(
 )
 
 
-with CONTACT_ID_ASSIGNMENT_DAG:
+with AMC_ADDRESS_FLAGGING_REPORT_DAG:
 
     AMC_EXTRACTOR = KubernetesPodOperator(
         name="amc_extractor",
