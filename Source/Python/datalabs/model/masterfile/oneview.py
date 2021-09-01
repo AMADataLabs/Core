@@ -48,10 +48,10 @@ class Physician(Base):
     printer_control_code_end = sa.Column(sa.String)
     region = sa.Column(sa.String)
     division = sa.Column(sa.String)
-    group = sa.Column(sa.String)
-    tract = sa.Column(sa.String)
-    suffix = sa.Column(sa.String)
-    block_group = sa.Column(sa.String)
+    census_group = sa.Column(sa.String)
+    census_tract = sa.Column(sa.String)
+    census_suffix = sa.Column(sa.String)
+    census_block_group = sa.Column(sa.String)
     metropolitan_statistical_area_population = sa.Column(sa.String)
     micro_metro_indicator = sa.Column(sa.String)
     core_based_statistical_area = sa.Column(sa.String, sa.ForeignKey("oneview.core_based_statistical_area.id"))
@@ -208,14 +208,14 @@ class Business(Base):
     website = sa.Column(sa.String)
     latitude = sa.Column(sa.String)
     longitude = sa.Column(sa.String)
-    owner_status = sa.Column(sa.String)
-    profit_status = sa.Column(sa.String)
+    owner_status = sa.Column(sa.String, sa.ForeignKey("oneview.owner_status.id"))
+    profit_status = sa.Column(sa.String, sa.ForeignKey("oneview.profit_status.id"))
     primary_class_of_trade = sa.Column(sa.String)
     class_of_trade_classification = sa.Column(sa.String)
     class_of_trade_classification_description = sa.Column(sa.String)
-    class_of_trade_facility_type = sa.Column(sa.String)
+    class_of_trade_facility_type = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_facility.id"))
     class_of_trade_facility_type_description = sa.Column(sa.String)
-    class_of_trade_specialty = sa.Column(sa.String)
+    class_of_trade_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_specialty.id"))
     class_of_trade_specialty_description = sa.Column(sa.String)
     record_type = sa.Column(sa.String)
     total_licensed_beds = sa.Column(sa.String)
@@ -268,11 +268,11 @@ class ProviderAffiliation(Base):
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, nullable=False)
     business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"))
-    type = sa.Column(sa.String)
+    type = sa.Column(sa.String, sa.ForeignKey("oneview.provider_affiliation_type.id"))
     description = sa.Column(sa.String)
     primary = sa.Column(sa.String)
     rank = sa.Column(sa.String)
-    group = sa.Column(sa.String)
+    group = sa.Column(sa.String, sa.ForeignKey("oneview.provider_affiliation_group.id"))
     group_description = sa.Column(sa.String)
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
 
@@ -598,8 +598,8 @@ class States(Base):
     description = sa.Column(sa.String, nullable=False)
 
 
-class ClassOfTradeBusiness(Base):
-    __tablename__ = 'class_of_trade_business'
+class ClassOfTradeSpecialty(Base):
+    __tablename__ = 'class_of_trade_specialty'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
