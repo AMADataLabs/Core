@@ -22,7 +22,7 @@ spec:
   source:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-      # ref: dev
+      ref: dev
     sourceSecret:
       name: bitbucket
     type: Git

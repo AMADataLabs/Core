@@ -44,7 +44,7 @@ AMC_ADDRESS_FLAGGING_REPORT_DAG = DAG(
 
 with AMC_ADDRESS_FLAGGING_REPORT_DAG:
 
-    AMC_EXTRACTOR = KubernetesPodOperator(
+    EXTRACT_AMC = KubernetesPodOperator(
         name="amc_extractor",
         task_id="amc_extractor",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
@@ -53,7 +53,7 @@ with AMC_ADDRESS_FLAGGING_REPORT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
-    AMC_TRANSFORMER = KubernetesPodOperator(
+    FLAG_ADDRESS_AMC = KubernetesPodOperator(
         name="amc_transformer",
         task_id="amc_transformer",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
@@ -62,7 +62,7 @@ with AMC_ADDRESS_FLAGGING_REPORT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.analysis.amc.transform.AMCAddressFlaggingTransformerTask')},
     )
 
-    AMC_LOADER = KubernetesPodOperator(
+    EMAIL_AMC_REPORT = KubernetesPodOperator(
         name="amc_loader",
         task_id="amc_loader",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
@@ -78,4 +78,4 @@ with AMC_ADDRESS_FLAGGING_REPORT_DAG:
 #EXTRACT_ORGMANAGER
 #EXTRACT_SEED_FILES
 
-AMC_EXTRACTOR >> AMC_TRANSFORMER >> AMC_LOADER
+EXTRACT_AMC >> FLAG_ADDRESS_AMC >> EMAIL_AMC_REPORT
