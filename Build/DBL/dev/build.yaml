@@ -2,12 +2,12 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   annotations:
-    openshift.io/description: DBL ETL runtime environment
-    openshift.io/display-name: dbl-etl-report
+    openshift.io/description: DBL Counts File runtime environment
+    openshift.io/display-name: dbl-counts-file-report
   creationTimestamp: null
   labels:
     app: DBL
-  name: dbl-etl-report
+  name: dbl-counts-file-report
   namespace: hsg-data-labs-dev
 spec:
   failedBuildsHistoryLimit: 5

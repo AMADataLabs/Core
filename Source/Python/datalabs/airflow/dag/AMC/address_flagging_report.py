@@ -10,23 +10,18 @@ from kubernetes.client import models as k8s
 ### Configuration Bootstraping ###
 DAG_ID = 'amc'
 DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
-AMC_IMAGE = 'docker-registry.default.svc:5000/hsg-data-labs-dev/amc:1.0.0'
 IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
 
 ### Kubernets Configuration ###
-ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='address-flagging-report-etl'))
+ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='amc-address-flagging-report'))
 AIMS_SECRET = Secret('env', None, 'amc-address-flagging-report-aims')
 
 ### DAG definition ###
 BASE_ENVIRONMENT = dict(
-    TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper',
-    ETCD_HOST=Variable.get('ETCD_HOST'),
-    ETCD_USERNAME=DAG_ID,
-    ETCD_PASSWORD=Variable.get(f'{DAG_ID.upper()}_ETCD_PASSWORD'),
-    ETCD_PREFIX=f'{DAG_ID.upper()}_'
+    TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper'
 )
 
-CONTACT_ID_ASSIGNMENT_DAG = DAG(
+AMC_ADDRESS_FLAGGING_REPORT_DAG = DAG(
     dag_id=DAG_ID,
     default_args=dict(
         owner='airflow',
@@ -47,7 +42,7 @@ CONTACT_ID_ASSIGNMENT_DAG = DAG(
 )
 
 
-with CONTACT_ID_ASSIGNMENT_DAG:
+with AMC_ADDRESS_FLAGGING_REPORT_DAG:
 
     AMC_EXTRACTOR = KubernetesPodOperator(
         name="amc_extractor",

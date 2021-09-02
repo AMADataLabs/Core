@@ -150,7 +150,8 @@ objects:
           persistentVolumeClaim:
             claimName: ${APPLICATION_NAME}-db
     triggers:
-    - imageChangeParams:
+    - type: ImageChange
+      imageChangeParams:
         automatic: true
         containerNames:
         - postgresql
@@ -159,7 +160,6 @@ objects:
           name: postgresql:9.6
           namespace: openshift
         lastTriggeredImage: ""
-      type: ImageChange
     - type: ConfigChange
   status: {}
 
