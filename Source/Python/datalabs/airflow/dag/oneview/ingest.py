@@ -182,6 +182,14 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
+    EXTRACT_REFERENCE_TABLES = KubernetesPodOperator(
+        name="extract_reference_tables",
+        task_id="extract_reference_tables",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
+        is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
+    )
+
     EXTRACT_MEDICAL_STUDENT = KubernetesPodOperator(
         name="extract_medical_student",
         task_id="extract_medical_student",
@@ -189,7 +197,7 @@ with ONEVIEW_ETL_DAG:
         env_from=[ETL_CONFIG],
         secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
-        is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
+        is_delete_operator_pod=(DEPLOYMENT_ID == 'prod')
     )
 
     CREATE_PHYSICIAN_TABLE = KubernetesPodOperator(
@@ -555,3 +563,4 @@ CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_LINKING_TABLES_INTO_DATABASE
 EXTRACT_MELISSA >> CREATE_MELISSA_TABLES >> LOAD_MELISSA_TABLES_INTO_DATABASE
+EXTRACT_REFERENCE_TABLES
