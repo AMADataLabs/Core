@@ -1,6 +1,7 @@
 """ source: datalabs.etl.s3.extract """
 import tempfile
 
+import pytest
 import mock
 import pandas
 import pytest
