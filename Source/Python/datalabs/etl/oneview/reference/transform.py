@@ -46,10 +46,8 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, data):
-        fips_data = [pandas.read_excel(BytesIO(file), skiprows=4) for file in data]
-
-        return fips_data
+    def _csv_to_dataframe(cls, path: str, **kwargs) -> dask.dataframe:
+        return pandas.read_excel(path, skiprows=4, dtype=str, **kwargs)
 
     def _preprocess_data(self, data):
         fips_selected_data = self.set_columns(data[0])

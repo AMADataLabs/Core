@@ -157,7 +157,7 @@ module "apigw_sg" {
 
 resource "aws_vpc_endpoint" "apigw" {
   vpc_id            = aws_vpc.datalake.id
-  service_name      = "com.amazonaws.us-east-1.execute-api"
+  service_name      = "com.amazonaws.${var.region}.execute-api"
   vpc_endpoint_type = "Interface"
 
   security_group_ids = [
@@ -167,6 +167,8 @@ resource "aws_vpc_endpoint" "apigw" {
   subnet_ids        = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
 
   private_dns_enabled = true
+
+  tags = merge(local.tags, {Name = "${var.environment}-execute-api_vpc_endpoint"})
 }
 
 
@@ -1126,4 +1128,94 @@ module "datanow_efs" {
 module "datalabs_terraform_state" {
     source  = "../../Module/DataLake"
     project = "DataLake"
+}
+
+
+#####################################################################
+# Web App Load Balancer
+#####################################################################
+
+module "webapp_sg" {
+  source  = "app.terraform.io/AMA/security-group/aws"
+  version = "1.0.0"
+  name        = "${var.project}-${var.environment}-webapp-sg"
+  description = "Security group for DataLabs web app load balancer"
+  vpc_id      = aws_vpc.datalake.id
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = "443"
+      to_port     = "443"
+      protocol    = "tcp"
+      description = "Web traffic"
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      from_port   = "7"
+      to_port     = "7"
+      protocol    = "icmp"
+      description = "Ping"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "outbound ports"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  tags = merge(local.tags, {Name = "DataLabs web app load balancer security group"})
+}
+
+module "webapp_alb" {
+  source                            = "app.terraform.io/AMA/alb/aws"
+  version                           = "1.0.2"
+  environment                       = var.environment
+  name                              = "webapp"
+  project                           = lower(var.project)
+  description                       = "DataLabs Web APP Load Balancer"
+  # vpc_id                            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+  vpc_id                            = aws_vpc.datalake.id
+  # security_groups                   = [module.oneview_sg.security_group_id]
+  security_groups                   = [module.webapp_sg.security_group_id]
+  internal                          = true
+  load_balancer_type                = "application"
+  # subnet_ids                        = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+  subnet_ids                        = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
+  enable_deletion_protection        = "false"
+  target_type                       = "ip"
+  target_group_port                 = 80
+  target_group_protocol             = "HTTP"
+  listener_port                     = 443
+  listener_protocol                 = "HTTPS"
+  ssl_policy                        = "ELBSecurityPolicy-2020-10"
+  # certificate_arn                   = var.private_certificate_arn
+  certificate_arn                   = data.aws_acm_certificate.amaaws.arn
+  action                            = "forward"
+  health_check_protocol             = "HTTP"
+  health_check_port                 = 80
+  health_check_interval             = 300
+  health_check_path                 = "/"
+  health_check_timeout              = "3"
+  health_check_healthy_threshold    = "5"
+  health_check_unhealthy_threshold  = "10"
+  health_check_matcher              = "200"
+  tag_name                          = "${var.project}-${var.environment}-webapp-alb"
+  tag_environment                   = var.environment
+  tag_contact                       = local.contact
+  tag_budgetcode                    = local.budget_code
+  tag_owner                         = local.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
+  tags = {}
 }
