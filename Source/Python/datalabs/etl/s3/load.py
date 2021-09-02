@@ -83,8 +83,8 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
 
         return path
 
-# pylint: disable=no-self-use
-    def _md5_file(self, path):
+    @classmethod
+    def _md5_file(cls, path):
         hash_md5 = hashlib.md5()
 
         with open(path, 'rb') as file:
