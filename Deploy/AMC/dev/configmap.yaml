@@ -8,10 +8,10 @@ data:
 
 
     # Address-Flagging-Report Extractor
-    AMC__AMC_EXTRACTOR__DRIVER: 'com.informix.jdbc.IfxDriver'
-    AMC__AMC_EXTRACTOR__DRIVER_TYPE: 'informix-sqli'
-    AMC__AMC_EXTRACTOR__JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
-    AMC__AMC_EXTRACTOR__SQL: >-
+    AMC__EXTRACT_AMC__DRIVER: 'com.informix.jdbc.IfxDriver'
+    AMC__EXTRACT_AMC__DRIVER_TYPE: 'informix-sqli'
+    AMC__EXTRACT_AMC__JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
+    AMC__EXTRACT_AMC__SQL: >-
         SELECT
             eke.key_type_val as ME,
             ecu.entity_id,
@@ -49,5 +49,5 @@ data:
         # NONE
 
     # Address-Flagging-Report Loader
-    AMC__AMC_LOADER__TO: 'Daniel.Ro@ama-assn.og'
-    AMC__AMC_LOADER__CC: ''
+    AMC__EMAIL_AMC_REPORT__TO: 'Daniel.Ro@ama-assn.og'
+    AMC__EMAIL_AMC_REPORT__CC: ''
