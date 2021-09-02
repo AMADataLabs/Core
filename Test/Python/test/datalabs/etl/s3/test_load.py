@@ -1,6 +1,9 @@
 """ source: datalabs.etl.s3.extract """
 import mock
 import pytest
+import tempfile
+
+import pandas
 
 import datalabs.etl.s3.load as s3
 
@@ -63,6 +66,18 @@ def test_datetime_formatting_in_file_works(parameters):
         assert len(resolved_files) == 3
         assert resolved_files[2] == 'dir1/dir2/dir3/the_19000101_other_one.csv'
 
+# pylint: disable=redefined-outer-name, protected-access
+def test_loading_data_from_a_file(data_file, parameters):
+    parameters["ON_DISK"] = 'True'
+    task = s3.S3FileLoaderTask(parameters)
+    task._client = mock.Mock()
+
+    task._load_file(data_file.encode(), 'ACME/Stuff/something.csv')
+
+    cache_file = task._client.put_object.call_args[1]["Body"]
+
+    assert hasattr(cache_file, "read")
+
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_cp1252_encoding(parameters):
@@ -86,3 +101,12 @@ def parameters():
         EXECUTION_TIME='19000101',
         data=[{}, {}]
     )
+
+@pytest.fixture
+def data_file():
+    data = pandas.DataFrame(dict(name=['foo', 'bar', 'ping'], id=[12345, 54321, 24680]))
+
+    with tempfile.NamedTemporaryFile() as file:
+        data.to_csv(file.name, index=False)
+
+        yield file.name
