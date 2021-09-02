@@ -3,11 +3,11 @@ kind: BuildConfig
 metadata:
   annotations:
     openshift.io/description: Address Flagging Report ETL runtime environment
-    openshift.io/display-name: address-flagging-report
+    openshift.io/display-name: amc-address-flagging-report
   creationTimestamp: null
   labels:
     app: amc
-  name: address-flagging-report
+  name: amc-address-flagging-report
   namespace: hsg-data-labs-dev
 spec:
   failedBuildsHistoryLimit: 5
