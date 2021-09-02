@@ -24,12 +24,12 @@ class TransformerTask(etl.ScalableTransformerMixin, etl.TransformerTask, ABC):
         table_data = [self._csv_to_dataframe(data) for data in self._parameters['data']]
 
         if feature.enabled("PROFILE"):
-            LOGGER.info(f'Post csv to dataframes memory (%s)', hpy().heap())
+            LOGGER.info('Post csv to dataframes memory (%s)', hpy().heap())
 
         preprocessed_data = self._preprocess_data(table_data)
 
         if feature.enabled("PROFILE"):
-            LOGGER.info(f'Post processed dataframes memory (%s)', hpy().heap())
+            LOGGER.info('Post processed dataframes memory (%s)', hpy().heap())
 
         selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)

@@ -1,6 +1,4 @@
 """Oneview Credentialing Table Columns"""
-from   io import BytesIO
-
 import logging
 import pandas
 
@@ -33,7 +31,10 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data, index=False, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+        return [
+            self._dataframe_to_csv(data, index=False, quoting=pandas.DataFrame.QUOTE_NONNUMERIC) \
+            for data in postprocessed_data
+        ]
 
     def _preprocess_data(self, data):
         credentialing_main = data[1].rename(columns={'CUSTOMER_NBR': 'number'})

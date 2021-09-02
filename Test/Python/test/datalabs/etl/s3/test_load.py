@@ -1,10 +1,9 @@
 """ source: datalabs.etl.s3.extract """
-import pytest
 import tempfile
 
 import mock
-
 import pandas
+import pytest
 
 import datalabs.etl.s3.load as s3
 

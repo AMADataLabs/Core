@@ -1,6 +1,4 @@
 """ OneView Reference Transformer"""
-from   io import BytesIO
-
 import logging
 import pandas
 
@@ -46,7 +44,8 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
-    def _csv_to_dataframe(cls, path: str, **kwargs) -> dask.dataframe:
+    @classmethod
+    def _csv_to_dataframe(cls, path: str, **kwargs):
         return pandas.read_excel(path, skiprows=4, dtype=str, **kwargs)
 
     def _preprocess_data(self, data):
