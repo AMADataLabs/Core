@@ -1,10 +1,8 @@
 """ OneView Transformer"""
 from   abc import ABC, abstractmethod
-from   io import BytesIO
 
 import csv
 import logging
-import pandas
 
 import datalabs.etl.transform as etl
 import datalabs.feature as feature
@@ -17,32 +15,29 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class TransformerTask(etl.TransformerTask, ABC):
-    # pylint: disable=logging-fstring-interpolation
+class TransformerTask(etl.ScalableTransformerMixin, etl.TransformerTask, ABC):
     def _transform(self):
+        LOGGER.debug(self._parameters['data'])
         if feature.enabled("PROFILE"):
-            LOGGER.info(f'Pre csv to dataframes memory {(hpy().heap())}')
+            LOGGER.info('Pre csv to dataframes memory (%s)', hpy().heap())
 
-        table_data = self._csv_to_dataframe(self._parameters['data'])
+        table_data = [self._csv_to_dataframe(data) for data in self._parameters['data']]
 
         if feature.enabled("PROFILE"):
-            LOGGER.info(f'Post csv to dataframes memory {(hpy().heap())}')
+            LOGGER.info('Post csv to dataframes memory (%s)', hpy().heap())
 
         preprocessed_data = self._preprocess_data(table_data)
 
         if feature.enabled("PROFILE"):
-            LOGGER.info(f'Post processed dataframes memory {(hpy().heap())}')
+            LOGGER.info('Post processed dataframes memory (%s)', hpy().heap())
 
         selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)
 
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, index=False, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
-    @classmethod
-    def _csv_to_dataframe(cls, data):
-        return [pandas.read_csv(BytesIO(file)) for file in data]
 
     @classmethod
     def _preprocess_data(cls, data):
@@ -65,7 +60,3 @@ class TransformerTask(etl.TransformerTask, ABC):
     @classmethod
     def _postprocess_data(cls, data):
         return data
-
-    @classmethod
-    def _dataframe_to_csv(cls, data):
-        return data.to_csv(index=False, quoting=csv.QUOTE_NONNUMERIC).encode('utf-8', errors='backslashreplace')

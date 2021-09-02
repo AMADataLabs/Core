@@ -1,5 +1,4 @@
 """ Oneview Residency Transformer"""
-from   io import BytesIO
 import logging
 import pandas
 
@@ -12,12 +11,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class ResidencyTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, data):
-        df_data = [pandas.read_csv(BytesIO(file), sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
-                   for file in data
-                   ]
-
-        return df_data
+    @classmethod
+    def _csv_to_dataframe(cls, path, **kwargs):
+        return super()._csv_to_dataframe(path, sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
 
     # pylint: disable=too-many-arguments
     def _preprocess_data(self, data):

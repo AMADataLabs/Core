@@ -31,6 +31,7 @@
     will carry on with the temporary role just assumed.
 """
 import logging
+import tempfile
 
 from   dataclasses import dataclass
 
@@ -64,6 +65,7 @@ class S3FileExtractorParameters:
     include_names: str = None
     include_datestamp: str = None
     execution_time: str = None
+    on_disk: str = False
     data: object = None
     assume_role: str = None
 
@@ -105,6 +107,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=logging-fstring-interpolation
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
+        data = None
+
         if feature.enabled("PROFILE"):
             LOGGER.info(f'Pre extraction memory {(hpy().heap())}')
 
@@ -115,12 +119,15 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
 
-        body = response['Body'].read()
+        if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
+            data = self._cache_data_to_disk(response['Body'])
+        else:
+            data = response['Body'].read()
 
         if feature.enabled("PROFILE"):
             LOGGER.info(f'Post extraction memory {(hpy().heap())}')
 
-        return body
+        return data
 
     def _get_latest_path(self):
         release_folder = self._get_release_folder()
@@ -130,6 +137,15 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             path = '/'.join((self._parameters.base_path, release_folder))
 
         return path
+
+    @classmethod
+    def _cache_data_to_disk(cls, body):
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            with open(temp_file.name, 'wb') as file:
+                for chunk in body.iter_chunks(1024*1024):
+                    file.write(chunk)
+
+        return temp_file.name.encode()
 
     def _get_release_folder(self):
         release_folder = self._get_execution_date()

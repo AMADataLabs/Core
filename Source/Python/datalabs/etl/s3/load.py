@@ -32,6 +32,7 @@ class S3FileLoaderParameters:
     include_datestamp: str = None
     execution_time: str = None
     assume_role: str = None
+    on_disk: str = False
 
 
 class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
@@ -53,14 +54,25 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
         return ['/'.join((current_path, file.strip())) for file in self._parameters.files.split(',')]
 
     def _load_file(self, data, file):
-        md5_hash = hashlib.md5(data).digest()
+        if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
+            md5_hash = self._md5_file(data)
+            data = open(data.decode(), 'rb')  # data is a filename bytes string
+        else:
+            md5_hash = hashlib.md5(data).digest()
+
         b64_md5_hash = base64.b64encode(md5_hash)
 
-        return self._client.put_object(
+        response = self._client.put_object(
             Bucket=self._parameters.bucket,
             Key=file,
             Body=data,
-            ContentMD5=b64_md5_hash.decode('utf-8'))
+            ContentMD5=b64_md5_hash.decode()
+        )
+
+        if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
+            data.close()
+
+        return response
 
     def _get_current_path(self):
         release_folder = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
@@ -71,6 +83,16 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
 
         return path
 
+    @classmethod
+    def _md5_file(cls, path):
+        hash_md5 = hashlib.md5()
+
+        with open(path, 'rb') as file:
+            for chunk in iter(lambda: file.read(4096), b""):
+                hash_md5.update(chunk)
+
+        return hash_md5.digest()
+
     def _get_execution_date(self):
         execution_time = self._parameters.execution_time
         execution_date = None
@@ -79,6 +101,7 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
             execution_date = isoparse(execution_time).date().strftime('%Y%m%d')
 
         return execution_date
+
 
 # pylint: disable=too-many-ancestors
 class S3WindowsTextFileLoaderTask(S3FileLoaderTask):

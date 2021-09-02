@@ -13,16 +13,12 @@ DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
 IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
 
 ### Kubernets Configuration ###
-ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='report-etl'))
-EFT_SECRET = Secret('env', None, 'dbl-etl-report')
+ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='dbl-file-count'))
+EFT_SECRET = Secret('env', None, 'dbl-file-count-eft')
 
 ### DAG definition ###
 BASE_ENVIRONMENT = dict(
-    TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper',
-    ETCD_HOST=Variable.get('ETCD_HOST'),
-    ETCD_USERNAME=DAG_ID,
-    ETCD_PASSWORD=Variable.get(f'{DAG_ID.upper()}_ETCD_PASSWORD'),
-    ETCD_PREFIX=f'{DAG_ID.upper()}_'
+    TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper'
 )
 
 DBL_REPORT_DAG = DAG(

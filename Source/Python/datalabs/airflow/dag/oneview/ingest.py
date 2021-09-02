@@ -1,8 +1,10 @@
 ''' Masterfile OneView DAG definition. '''
 from airflow import DAG
+from airflow.kubernetes.secret import Secret
 from airflow.models import Variable
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.utils.dates import days_ago
+from kubernetes.client import models as k8s
 
 
 ### Configuration Bootstraping ###
@@ -11,12 +13,12 @@ DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
 IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
 
 BASE_ENVIRONMENT = dict(
-    TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper',
-    ETCD_HOST=Variable.get('ETCD_HOST'),
-    ETCD_USERNAME=DAG_ID,
-    ETCD_PASSWORD=Variable.get(f'{DAG_ID.upper()}_ETCD_PASSWORD'),
-    ETCD_PREFIX=f'{DAG_ID.upper()}_'
+    TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper'
 )
+
+### Kubernets Configuration ###
+ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='oneview-etl'))
+ETL_SECRETS = Secret('env', None, 'oneview-etl-secrets')
 
 ### DAG definition ###
 ONEVIEW_ETL_DAG = DAG(
@@ -45,6 +47,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_ppd",
         task_id="extract_ppd",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
@@ -52,6 +56,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_type_of_practice",
         task_id="extract_type_of_practice",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
@@ -59,6 +65,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_present_employment",
         task_id="extract_present_employment",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
@@ -66,6 +74,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_major_professional_activity",
         task_id="extract_major_professional_activity",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
@@ -73,6 +83,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_core_based_statistical_area",
         task_id="extract_core_based_statistical_area",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.http.extract.HTTPFileExtractorTask')},
     )
 
@@ -80,6 +92,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_federal_information_processing_standard_county",
         task_id="extract_federal_information_processing_standard_county",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.http.extract.HTTPFileExtractorTask')},
     )
 
@@ -87,6 +101,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_specialty",
         task_id="extract_specialty",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
@@ -94,6 +110,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_residency",
         task_id="extract_residency",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
     )
 
@@ -101,6 +119,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_iqvia",
         task_id="extract_iqvia",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -109,6 +129,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_credentialing",
         task_id="extract_credentialing",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -117,6 +139,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_credentialing_addresses",
         task_id="extract_credentialing_addresses",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
     )
 
@@ -124,6 +148,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_physician_race_ethnicity",
         task_id="extract_physician_race_ethnicity",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
     )
 
@@ -131,6 +157,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_melissa",
         task_id="extract_melissa",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
@@ -138,6 +166,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_physician_national_provider_identifiers",
         task_id="extract_physician_national_provider_identifiers",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -146,6 +176,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_historical_residency",
         task_id="extract_historical_residency",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -154,6 +186,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_medical_student",
         task_id="extract_medical_student",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -162,6 +196,8 @@ with ONEVIEW_ETL_DAG:
         name="create_physician_table",
         task_id="create_physician_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -170,6 +206,8 @@ with ONEVIEW_ETL_DAG:
         name="create_type_of_practice_table",
         task_id="create_type_of_practice_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.TypeOfPracticeTransformerTask')
@@ -180,6 +218,8 @@ with ONEVIEW_ETL_DAG:
         name="create_present_employment_table",
         task_id="create_present_employment_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.PresentEmploymentTransformerTask')
@@ -190,6 +230,8 @@ with ONEVIEW_ETL_DAG:
         name="create_major_professional_activity_table",
         task_id="create_major_professional_activity_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.MajorProfessionalActivityTransformerTask')
@@ -200,6 +242,8 @@ with ONEVIEW_ETL_DAG:
         name="create_federal_information_processing_standard_county_table",
         task_id="create_federal_information_processing_standard_county_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(
@@ -213,6 +257,8 @@ with ONEVIEW_ETL_DAG:
         name="create_core_based_statistical_area_table",
         task_id="create_core_based_statistical_area_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.CoreBasedStatisticalAreaTransformerTask')
@@ -223,6 +269,8 @@ with ONEVIEW_ETL_DAG:
         name="remove_unused_specialties",
         task_id="remove_unused_specialties",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.SpecialtyMergeTransformerTask')
@@ -233,6 +281,8 @@ with ONEVIEW_ETL_DAG:
         name="create_residency_program_tables",
         task_id="create_residency_program_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.residency.transform.ResidencyTransformerTask')
@@ -243,6 +293,8 @@ with ONEVIEW_ETL_DAG:
         name="create_business_and_provider_tables",
         task_id="create_business_and_provider_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.oneview.iqvia.transform.IQVIATransformerTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -251,6 +303,8 @@ with ONEVIEW_ETL_DAG:
         name="create_credentialing_customer_product_and_order_tables",
         task_id="create_credentialing_customer_product_and_order_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingTransformerTask')
@@ -261,6 +315,8 @@ with ONEVIEW_ETL_DAG:
         name="merge_credentialing_addresses_into_customer_table",
         task_id="merge_credentialing_addresses_into_customer_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.credentialing.transform.CredentialingFinalTransformerTask')
@@ -271,6 +327,8 @@ with ONEVIEW_ETL_DAG:
         name="create_melissa_tables",
         task_id="create_melissa_tables",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.melissa.transform.MelissaTransformerTask')
@@ -282,6 +340,8 @@ with ONEVIEW_ETL_DAG:
     #     name="create_credentialing_customer_institution_table",
     #     task_id="create_credentialing_customer_institution_table",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+    #     env_from = [ETL_CONFIG],
+    #     secrets = [ETL_SECRETS],
     #     env_vars={
     #         **BASE_ENVIRONMENT,
     #         **dict(TASK_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerInstitutionTransformerTask')
@@ -292,6 +352,8 @@ with ONEVIEW_ETL_DAG:
     #     name="create_credentialing_customer_business_table",
     #     task_id="create_credentialing_customer_business_table",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+    #     env_from = [ETL_CONFIG],
+    #     secrets = [ETL_SECRETS],
     #     env_vars={
     #        **BASE_ENVIRONMENT,
     #        **dict(TASK_CLASS='datalabs.etl.oneview.link.transform.CredentialingCustomerBusinessTransformerTask')
@@ -302,6 +364,8 @@ with ONEVIEW_ETL_DAG:
         name="create_residency_program_physician_table",
         task_id="create_residency_program_physician_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
            **BASE_ENVIRONMENT,
            **dict(TASK_CLASS='datalabs.etl.oneview.link.transform.ResidencyProgramPhysicianTransformerTask')
@@ -312,6 +376,8 @@ with ONEVIEW_ETL_DAG:
         name="create_iqvia_update_table",
         task_id="create_iqvia_update_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.iqvia.transform.IQVIAUpdateTransformerTask')
@@ -322,6 +388,8 @@ with ONEVIEW_ETL_DAG:
     #     name="load_physician_table_into_database",
     #     task_id="load_physician_table_into_database",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+    #     env_from = [ETL_CONFIG],
+    #     secrets = [ETL_SECRETS],
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
 
@@ -329,6 +397,8 @@ with ONEVIEW_ETL_DAG:
         name="create_historical_residency_table",
         task_id="create_historical_residency_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={
             **BASE_ENVIRONMENT,
             **dict(TASK_CLASS='datalabs.etl.oneview.historical_residency.transform.HistoricalResidencyTransformerTask')
@@ -338,6 +408,8 @@ with ONEVIEW_ETL_DAG:
         name="load_reference_tables_into_database",
         task_id="load_reference_tables_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -346,6 +418,8 @@ with ONEVIEW_ETL_DAG:
         name="load_residency_institution_table_into_database",
         task_id="load_residency_institution_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
@@ -353,6 +427,8 @@ with ONEVIEW_ETL_DAG:
         name="load_residency_table_into_database",
         task_id="load_residency_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
@@ -360,6 +436,8 @@ with ONEVIEW_ETL_DAG:
         name="load_residency_personnel_table_into_database",
         task_id="load_residency_personnel_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
@@ -367,6 +445,8 @@ with ONEVIEW_ETL_DAG:
         name="load_iqvia_business_provider_tables_into_database",
         task_id="load_iqvia_business_provider_tables_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
@@ -374,6 +454,8 @@ with ONEVIEW_ETL_DAG:
         name="load_iqvia_provider_affiliation_table_into_database",
         task_id="load_iqvia_provider_affiliation_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
@@ -381,6 +463,8 @@ with ONEVIEW_ETL_DAG:
         name="load_iqvia_update_table_into_database",
         task_id="load_iqvia_update_table_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
@@ -388,6 +472,8 @@ with ONEVIEW_ETL_DAG:
     #     name="load_race_ethnicity_table_into_database",
     #     task_id="load_race_ethnicity_table_into_database",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+    #     env_from = [ETL_CONFIG],
+    #     secrets = [ETL_SECRETS],
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
 
@@ -395,6 +481,8 @@ with ONEVIEW_ETL_DAG:
         name="load_credentialing_customer_product_tables_into_database",
         task_id="load_credentialing_customer_product_tables_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
@@ -402,6 +490,8 @@ with ONEVIEW_ETL_DAG:
         name="load_credentialing_order_tables_into_database",
         task_id="load_credentialing_order_tables_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
@@ -409,6 +499,8 @@ with ONEVIEW_ETL_DAG:
         name="load_melissa_tables_into_database",
         task_id="load_melissa_tables_into_database",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     )
 
@@ -416,6 +508,8 @@ with ONEVIEW_ETL_DAG:
     #     name="load_linking_tables_into_database",
     #     task_id="load_linking_tables_into_database",
     #     cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+    #     env_from = [ETL_CONFIG],
+    #     secrets = [ETL_SECRETS],
     #     env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.orm.load.ORMLoaderTask')},
     # )
 
@@ -423,6 +517,8 @@ with ONEVIEW_ETL_DAG:
         name="migrate_database",
         task_id="migrate_database",
         cmds=['./upgrade-database'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars=BASE_ENVIRONMENT,
     )
 

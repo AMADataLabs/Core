@@ -1,8 +1,5 @@
 """ Oneview Historical Residency Transformer"""
-from   io import BytesIO
-
 import logging
-import pandas
 
 from   datalabs.etl.oneview.historical_residency import column
 from   datalabs.etl.oneview.transform import TransformerTask
@@ -13,8 +10,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class HistoricalResidencyTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, data):
-        return [pandas.read_csv(BytesIO(file), sep='|') for file in data]
+    @classmethod
+    def _csv_to_dataframe(cls, path, **kwargs):
+        return super()._csv_to_dataframe(path, sep='|')
 
     def _get_columns(self):
         return [column.HISTORICAL_RESIDENCY]
