@@ -8,20 +8,13 @@ data:
     ONEVIEW_DB2_DRIVER_TYPE: 'db2'
     ONEVIEW_DB2_JAR_PATH: './db2jcc4.jar'
 
-    # Global Variables
-    TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-    STATE_LOCK_TABLE: 'DataLake-scheduler-locks-sbx'
-    DAG_STATE_TABLE: 'DataLake-dag-state-sbx'
-    DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx'
-
     # DAG Variables
     ONEVIEW__DAG__LAMBDA_FUNCTION: 'OneView-ETL-sbx'
     ONEVIEW__DAG__DAG_CLASS: 'datalabs.etl.dag.oneview.ingest.OneViewDAG'
-    ONEVIEW__DAG__DAG_STATE_CLASS: '${DAG_STATE_CLASS}'
-    ONEVIEW__DAG__DAG_STATE_TABLE: '${DAG_STATE_TABLE}'
-    ONEVIEW__DAG__STATE_LOCK_TABLE: '${STATE_LOCK_TABLE}'
-    ONEVIEW__DAG__DAG_TOPIC_ARN: '${DAG_TOPIC_ARN}'
+    ONEVIEW__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    ONEVIEW__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-sbx'
+    ONEVIEW__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-sbx'
+    ONEVIEW__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx'
     ONEVIEW__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:644454719059:DataLake-Task-Processor-sbx'
     ONEVIEW__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     ONEVIEW__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
