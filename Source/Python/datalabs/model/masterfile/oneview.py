@@ -33,7 +33,7 @@ class Physician(Base):
     preferred_address_2 = sa.Column(sa.String)
     preferred_address_1 = sa.Column(sa.String)
     city = sa.Column(sa.String)
-    state = sa.Column(sa.String, sa.ForeignKey("oneview.states.id"))
+    state = sa.Column(sa.String, sa.ForeignKey("oneview.state.id"))
     zipcode = sa.Column(sa.String)
     sector = sa.Column(sa.String)
     carrier_route = sa.Column(sa.String)
@@ -590,8 +590,8 @@ class Specialty(Base):
     description = sa.Column(sa.String, nullable=False)
 
 
-class States(Base):
-    __tablename__ = 'states'
+class State(Base):
+    __tablename__ = 'state'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
