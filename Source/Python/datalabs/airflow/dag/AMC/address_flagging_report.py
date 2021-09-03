@@ -45,8 +45,8 @@ AMC_ADDRESS_FLAGGING_REPORT_DAG = DAG(
 with AMC_ADDRESS_FLAGGING_REPORT_DAG:
 
     EXTRACT_AMC = KubernetesPodOperator(
-        name="amc_extractor",
-        task_id="amc_extractor",
+        name="extract_amc",
+        task_id="extract_amc",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[AIMS_SECRET],
@@ -54,8 +54,8 @@ with AMC_ADDRESS_FLAGGING_REPORT_DAG:
     )
 
     FLAG_ADDRESS_AMC = KubernetesPodOperator(
-        name="amc_transformer",
-        task_id="amc_transformer",
+        name="flag_address_amc",
+        task_id="flag_address_amc",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[AIMS_SECRET],
@@ -63,8 +63,8 @@ with AMC_ADDRESS_FLAGGING_REPORT_DAG:
     )
 
     EMAIL_AMC_REPORT = KubernetesPodOperator(
-        name="amc_loader",
-        task_id="amc_loader",
+        name="email_amc_report",
+        task_id="email_amc_report",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[AIMS_SECRET],
