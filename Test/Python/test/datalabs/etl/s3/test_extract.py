@@ -74,7 +74,7 @@ def test_datetime_formatting_in_file_works(parameters):
 def test_caching_data_to_disk(body, parameters):
     task = s3.S3FileExtractorTask(parameters)
 
-    path = task._cache_data_to_disk(body).decode()
+    path = task._cache_data_to_disk(body)
 
     assert os.path.isfile(path)
 
