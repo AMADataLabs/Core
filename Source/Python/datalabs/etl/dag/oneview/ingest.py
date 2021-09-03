@@ -20,7 +20,7 @@ from   datalabs.etl.orm.load import ORMLoaderTask
 
 
 class OneViewDAG(DAG):
-    EXTRACT_PPD: JDBCExtractorTask
+    EXTRACT_PPD: SFTPFileExtractorTask
     CREATE_PHYSICIAN_TABLE: PPDTransformerTask
     LOAD_PHYSICIAN_TABLE_INTO_DATABASE: ORMLoaderTask
     EXTRACT_MELISSA: S3FileExtractorTask

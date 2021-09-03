@@ -49,7 +49,7 @@ with ONEVIEW_ETL_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[ETL_SECRETS],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
     )
 
     EXTRACT_TYPE_OF_PRACTICE = KubernetesPodOperator(
