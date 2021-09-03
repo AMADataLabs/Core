@@ -12,9 +12,11 @@ pipelines:
             - bash Script/bitbucket-pipelines-build.sh
         - step:
             script:
+            - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+            - git fetch
             - git checkout dev
-            - get pull
-            - get merge -m 'Automatic merge from master to dev.' ${BITBUCKET_COMMIT}
+            - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
+            - git push origin dev
         dev:
         - step:
             script:
@@ -221,7 +223,7 @@ pipelines:
             - export AWS_DEFAULT_REGION='us-east-1'
             - export ENVIRONMENT=sbx
             - bash Deploy/CPT/update-functions
-        OneView-dev:
+        # OneView-dev:
         # - parallel:
         #     - step:
         #         name: Create Database
