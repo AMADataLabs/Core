@@ -21,6 +21,8 @@ modspec:
       - datastore
       - environment
       - excel
+      - etcd
+  - package: datalabs.access.parameter
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
