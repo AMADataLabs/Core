@@ -7,7 +7,6 @@ from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 
 ETCD_HOST = Variable.get("ETCD_HOST")
-PYLINT_TRIGGER_VARIABLE = "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 
 
 def print_that(**kwargs):
