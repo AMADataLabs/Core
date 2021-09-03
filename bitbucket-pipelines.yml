@@ -12,12 +12,13 @@ pipelines:
             script:
             - bash Script/bitbucket-pipelines-build.sh
         - step:
+            name: Auto-Merge to dev
             script:
             - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
             - git fetch
             - git checkout dev
             - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
-            - git push --no-verify origin dev
+            - git push origin dev
         dev:
         - step:
             script:
@@ -35,28 +36,28 @@ pipelines:
             script:
             - bash Script/bitbucket-pipelines-build.sh
     custom:
-        # Test:
-        # - parallel:
-        #     - step:
-        #         name: Unit Tests
-        #         caches:
-        #           - unit-test-dependencies
-        #         script:
-        #         - bash Script/setup-virtual-environment Master
-        #         - export VIRTUAL_ENV=${PWD}/Environment/Master
-        #         - export PATH="$VIRTUAL_ENV/bin:$PATH"
-        #         - python --version
-        #         - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
-        #     - step:
-        #         name: Lint
-        #         caches:
-        #           - lint-test-dependencies
-        #         script:
-        #         - bash Script/setup-virtual-environment Master
-        #         - export VIRTUAL_ENV=${PWD}/Environment/Master
-        #         - export PATH="$VIRTUAL_ENV/bin:$PATH"
-        #         - python --version
-        #         - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+        Test:
+        - parallel:
+            - step:
+                name: Unit Tests
+                caches:
+                  - unit-test-dependencies
+                script:
+                - bash Script/setup-virtual-environment Master
+                - export VIRTUAL_ENV=${PWD}/Environment/Master
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - python --version
+                - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+            - step:
+                name: Lint
+                caches:
+                  - lint-test-dependencies
+                script:
+                - bash Script/setup-virtual-environment Master
+                - export VIRTUAL_ENV=${PWD}/Environment/Master
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - python --version
+                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
         CPT-master:
         - parallel:
             - step:
