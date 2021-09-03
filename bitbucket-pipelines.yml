@@ -224,11 +224,7 @@ pipelines:
             - export AWS_DEFAULT_REGION='us-east-1'
             - export ENVIRONMENT=sbx
             - bash Deploy/CPT/update-functions
-        OneView-dev:
-        - step:
-            - name: Nothing
-            - script:
-              - export
+        # OneView-dev:
         # - parallel:
         #     - step:
         #         name: Create Database
