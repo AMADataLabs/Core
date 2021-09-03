@@ -56,7 +56,7 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
     def _load_file(self, data, file):
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
             md5_hash = self._md5_file(data)
-            data = open(data.decode(), 'rb')  # data is a filename bytes string
+            data = open(data, 'rb')  # data is a filename bytes string
         else:
             md5_hash = hashlib.md5(data).digest()
 
