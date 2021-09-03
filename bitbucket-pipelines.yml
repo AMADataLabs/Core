@@ -12,9 +12,11 @@ pipelines:
             - bash Script/bitbucket-pipelines-build.sh
         - step:
             script:
+            - git fetch
             - git checkout dev
             - get pull
-            - get merge -m 'Automatic merge from master to dev.' ${BITBUCKET_COMMIT}
+            - get merge -m 'Automatic merge from master to dev.' $BITBUCKET_BRANCH_NAME
+            - git push origin dev
         dev:
         - step:
             script:
