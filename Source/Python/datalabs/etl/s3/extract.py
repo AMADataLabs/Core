@@ -145,7 +145,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                 for chunk in body.iter_chunks(1024*1024):
                     file.write(chunk)
 
-        return temp_file.name.encode()
+        return temp_file.name
 
     def _get_release_folder(self):
         release_folder = self._get_execution_date()
