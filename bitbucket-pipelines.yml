@@ -263,7 +263,7 @@ pipelines:
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rcDeploy/Master/upload-bundle OneView/ETL
+                - bash --rcfile assume_role.rc Deploy/Master/upload-bundle OneView/ETL
             - step:
                 name: Update API Bundle
                 caches:
