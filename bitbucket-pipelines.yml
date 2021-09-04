@@ -287,15 +287,15 @@ pipelines:
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
                 - bash --rcfile assume_role.rc Deploy/Master/upload-bundle OneView/API
         - parallel:
-            - step:
-                name: Migrate Database
-                caches:
-                  - oneview-dev-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - bash Script/migrate-database --host $ONEVIEW_DATABASE_HOST_DEV --name oneview --username $ONEVIEW_DATABASE_USERNAME_DEV --password $ONEVIEW_DATABASE_PASSWORD_DEV upgrade OneView
+            # - step:
+            #     name: Migrate Database
+            #     caches:
+            #       - oneview-dev-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #     - bash Script/migrate-database --host $ONEVIEW_DATABASE_HOST_DEV --name oneview --username $ONEVIEW_DATABASE_USERNAME_DEV --password $ONEVIEW_DATABASE_PASSWORD_DEV upgrade OneView
             - step:
                 name: Update Lambda Functions
                 script:
