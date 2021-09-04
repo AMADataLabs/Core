@@ -225,78 +225,91 @@ pipelines:
             - export AWS_DEFAULT_REGION='us-east-1'
             - export ENVIRONMENT=sbx
             - bash Deploy/CPT/update-functions
-        # OneView-dev:
-        # - parallel:
-        #     - step:
-        #         name: Create Database
-        #         caches:
-        #           - oneview-dev-create-database-dependencies
-        #         script:
-        #         - bash Script/setup-virtual-environment OneView
-        #         - export ENABLE_FEATURE_DEV=True
-        #         - export DATABASE_NAME=oneview_content
-        #         - export DATABASE_NAME_ADMIN=postgres
-        #         - export DATABASE_BACKEND=postgresql+psycopg2
-        #         - export DATABASE_HOST=$ONEVIEW_DATABASE_HOST_DEV
-        #         - export DATABASE_PORT=5432
-        #         - export DATABASE_USERNAME=$ONEVIEW_DATABASE_USERNAME_DEV
-        #         - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_DEV
-        #         - bash Deploy/Master/create-database OneView
-        #     - step:
-        #         name: Update ETL Bundle
-        #         caches:
-        #             - oneview-dev-update-bundle-dependencies
-        #         script:
-        #         # Setup virtual environment
-        #         - bash Script/setup-virtual-environment Master/BitBucketPipelines
-        #
-        #         # Create the code bundle
-        #         - export ENABLE_FEATURE_DEV=True
-        #         - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_ROLE
-        #         - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_ROLE
-        #         - export AWS_DEFAULT_REGION='us-east-1'
-        #         - bash Deploy/Master/create-bundle OneView/ETL
-        #
-        #         # Upload the code bundle
-        #         - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-        #         - bash Deploy/Master/upload-bundle OneView/ETL
-        #     - step:
-        #         name: Update API Bundle
-        #         caches:
-        #             - oneview-dev-update-bundle-dependencies
-        #         script:
-        #         # Setup virtual environment
-        #         - bash Script/setup-virtual-environment Master/BitBucketPipelines
-        #
-        #         # Create the code bundle
-        #         - export ENABLE_FEATURE_DEV=True
-        #         - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_ROLE
-        #         - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_ROLE
-        #         - export AWS_DEFAULT_REGION='us-east-1'
-        #         - bash Deploy/Master/create-bundle OneView/API
-        #
-        #         # Upload the code bundle
-        #         - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-        #         - bash Deploy/Master/upload-bundle OneView/API
-        # - parallel:
-        #     - step:
-        #         name: Migrate Database
-        #         caches:
-        #           - oneview-dev-create-database-dependencies
-        #         script:
-        #         - bash Script/setup-virtual-environment Master/BitBucketPipelines
-        #         - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-        #         - export PATH="$VIRTUAL_ENV/bin:$PATH"
-        #         - bash Script/migrate-database --host $ONEVIEW_DATABASE_HOST_DEV --name oneview --username $ONEVIEW_DATABASE_USERNAME_DEV --password $ONEVIEW_DATABASE_PASSWORD_DEV upgrade OneView
-        #     - step:
-        #         name: Update Lambda Functions
-        #         script:
-        #         - export ENABLE_FEATURE_DEV=True
-        #         - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_ROLE
-        #         - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_ROLE
-        #         - export AWS_DEFAULT_REGION='us-east-1'
-        #         - export ENVIRONMENT=dev
-        #         - bash Deploy/OneView/update-functions
+        OneView-dev:
+        - parallel:
+            # - step:
+            #     name: Create Database
+            #     caches:
+            #       - oneview-dev-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment OneView
+            #     - export ENABLE_FEATURE_DEV=True
+            #     - export DATABASE_NAME=oneview_content
+            #     - export DATABASE_NAME_ADMIN=postgres
+            #     - export DATABASE_BACKEND=postgresql+psycopg2
+            #     - export DATABASE_HOST=$ONEVIEW_DATABASE_HOST_DEV
+            #     - export DATABASE_PORT=5432
+            #     - export DATABASE_USERNAME=$ONEVIEW_DATABASE_USERNAME_DEV
+            #     - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_DEV
+            #     - bash Deploy/Master/create-database OneView
+            - step:
+                name: Update ETL Bundle
+                caches:
+                    - oneview-dev-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+                # Assume maintenance role
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+                - aws configure set profile.apigw.aws_secret_key_id $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.region us-east-1
+                - aws configure set profile.apigw.output json
+                - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_DEV=True
+                - bash --rcfile assume_role.rc Deploy/Master/create-bundle OneView/ETL
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+                - bash --rcfile assume_role.rcDeploy/Master/upload-bundle OneView/ETL
+            - step:
+                name: Update API Bundle
+                caches:
+                    - oneview-dev-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+                # Assume maintenance role
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+                - aws configure set profile.apigw.aws_secret_key_id $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.region us-east-1
+                - aws configure set profile.apigw.output json
+                - bash Script/apigw_assume_role.sh | grep source > assume_role.rc
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_DEV=True
+                - bash --rcfile assume_role.rc Deploy/Master/create-bundle OneView/API
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+                - bash --rcfile assume_role.rc Deploy/Master/upload-bundle OneView/API
+        - parallel:
+            - step:
+                name: Migrate Database
+                caches:
+                  - oneview-dev-create-database-dependencies
+                script:
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - bash Script/migrate-database --host $ONEVIEW_DATABASE_HOST_DEV --name oneview --username $ONEVIEW_DATABASE_USERNAME_DEV --password $ONEVIEW_DATABASE_PASSWORD_DEV upgrade OneView
+            - step:
+                name: Update Lambda Functions
+                script:
+                # Assume maintenance role
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+                - aws configure set profile.apigw.aws_secret_key_id $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.region us-east-1
+                - aws configure set profile.apigw.output json
+                - bash Script/apigw_assume_role.sh | grep source > assume_role.rc
+
+                # Update Lambda functions
+                - export ENABLE_FEATURE_DEV=True
+                - export ENVIRONMENT=dev
+                - bash --rcfile assume_role.rc Deploy/OneView/update-functions
         CPT-test:
         - step:
             name: Update Bundle
