@@ -259,11 +259,12 @@ pipelines:
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
-                - bash --rcfile assume_role.rc Deploy/Master/create-bundle OneView/ETL
+                - bash Deploy/Master/create-bundle OneView/ETL
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc Deploy/Master/upload-bundle OneView/ETL
+                - bash
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
             - step:
                 name: Update API Bundle
                 caches:
@@ -281,11 +282,11 @@ pipelines:
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
-                - bash --rcfile assume_role.rc Deploy/Master/create-bundle OneView/API
+                - bash Deploy/Master/create-bundle OneView/API
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc Deploy/Master/upload-bundle OneView/API
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -309,7 +310,7 @@ pipelines:
                 # Update Lambda functions
                 - export ENABLE_FEATURE_DEV=True
                 - export ENVIRONMENT=dev
-                - bash --rcfile assume_role.rc Deploy/OneView/update-functions
+                - bash --rcfile assume_role.rc -i Deploy/OneView/update-functions
         CPT-test:
         - step:
             name: Update Bundle
