@@ -252,7 +252,7 @@ pipelines:
 
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_key_id $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
                 - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
@@ -274,10 +274,10 @@ pipelines:
 
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_key_id $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
-                - bash Script/apigw_assume_role.sh | grep source > assume_role.rc
+                - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
@@ -301,10 +301,10 @@ pipelines:
                 script:
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_key_id $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
-                - bash Script/apigw_assume_role.sh | grep source > assume_role.rc
+                - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
 
                 # Update Lambda functions
                 - export ENABLE_FEATURE_DEV=True
