@@ -10,6 +10,8 @@ class ContactIDAssignTransformerTask(etl.TransformerTask):
     def _transform(self):
         sfmc_contacts, sfmc_contacts_old, users, users_old = self._to_dataframe()
 
+        users = self._remove_index(users)
+
         sfmc_contacts = self._assign_id_to_new_sfmc_data(sfmc_contacts, sfmc_contacts_old)
 
         users = self._assign_id_to_new_users_data(users, users_old)
@@ -17,6 +19,12 @@ class ContactIDAssignTransformerTask(etl.TransformerTask):
         csv_data = [self._dataframe_to_csv(data) for data in [sfmc_contacts, users]]
 
         return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
+
+    @classmethod
+    def _remove_index(cls, users):
+        users.drop(users.columns[0], axis=1, inplace = True)
+        return users
+
 
     def _to_dataframe(self):
         seperators = ['\t', ',', ',', ',']
@@ -113,9 +121,7 @@ class ContactIDAssignTransformerTask(etl.TransformerTask):
                 'ADDRESS_LINE_2',
                 'CITY',
                 'STATE',
-                'ZIPCODE',
-                'PHONE_NUMBER',
-                'TITLE'
+                'ZIPCODE'
             ],
             how='left'
         )

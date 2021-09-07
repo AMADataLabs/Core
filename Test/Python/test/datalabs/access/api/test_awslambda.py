@@ -49,7 +49,6 @@ class MockTask(api.APIEndpointTask):
 @pytest.fixture
 def expected_parameters():
     return api.APIEndpointParameters(
-        path=dict(foo='bar'),
         query=dict(ping='pong'),
         database=dict(
             name='name', backend='postgresql+psycopg2', host='host', port='5432', username='username', password='password'

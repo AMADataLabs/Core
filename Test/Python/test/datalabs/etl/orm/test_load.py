@@ -204,9 +204,11 @@ def table_parameters(incoming_data, hash_query_results):
     table = 'foo'
     primary_key = 'id'
     columns = ['dumb', 'id', 'dumber']
+    schema = 'oneview'
     current_hashes = hash_query_results
     incoming_hashes = None
 
-    table_parameters = TableParameters(data, table, model_class, primary_key, columns, current_hashes, incoming_hashes)
+    table_parameters = TableParameters(data, table, model_class, primary_key, columns, schema, current_hashes,
+                                       incoming_hashes)
 
     return table_parameters

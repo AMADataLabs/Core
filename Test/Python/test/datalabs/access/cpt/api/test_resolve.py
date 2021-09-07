@@ -2,24 +2,44 @@
 from   datalabs.access.cpt.api.resolve import TaskClassMapping, TaskResolver
 
 
+class PongTask:
+    pass
+
+
+class PongsTask:
+    pass
+
+
+class DingsTask:
+    pass
+
+
+class DingsesTask:
+    pass
+
+
+class SomeTask:
+    pass
+
+
 def test_task_resolver_resolves_wildcard_path_patterns():
     TaskResolver.TASK_CLASSES = [
-        TaskClassMapping('/ping/pong/*',    'datalabs.fake.module.PongTask'),
-        TaskClassMapping('/ping/pongs',     'datalabs.fake.module.PongsTask'),
-        TaskClassMapping('/ping/dings/*',   'datalabs.fake.module.DingsTask'),
-        TaskClassMapping('/ping/dings',     'datalabs.fake.module.DingsesTask'),
-        TaskClassMapping('/*',              'datalabs.fake.module.SomeTask')
+        TaskClassMapping('/ping/pong/*',    PongTask),
+        TaskClassMapping('/ping/pongs',     PongsTask),
+        TaskClassMapping('/ping/dings/*',   DingsTask),
+        TaskClassMapping('/ping/dings',     DingsesTask),
+        TaskClassMapping('/*',              SomeTask)
     ]
 
     actual_mappings = [
-        TaskClassMapping('/ping/pong/123',          'datalabs.fake.module.PongTask'),
-        TaskClassMapping('/ping/pongs',             'datalabs.fake.module.PongsTask'),
-        TaskClassMapping('/ping/dings/456',         'datalabs.fake.module.DingsTask'),
-        TaskClassMapping('/ping/dings',             'datalabs.fake.module.DingsesTask'),
-        TaskClassMapping('/wing/ding/biff/baff',    'datalabs.fake.module.SomeTask')
+        TaskClassMapping('/ping/pong/123',          PongTask),
+        TaskClassMapping('/ping/pongs',             PongsTask),
+        TaskClassMapping('/ping/dings/456',         DingsTask),
+        TaskClassMapping('/ping/dings',             DingsesTask),
+        TaskClassMapping('/wing/ding/biff/baff',    SomeTask)
     ]
 
     for mapping in actual_mappings:
-        class_name = TaskResolver.get_task_class_name(dict(path=mapping.path))
+        task_class = TaskResolver.get_task_class(dict(path=mapping.path))
 
-        assert class_name == mapping.class_name
+        assert task_class == mapping.task_class

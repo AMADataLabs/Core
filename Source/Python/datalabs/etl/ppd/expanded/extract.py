@@ -1,9 +1,9 @@
 """Expanded PPD extractor"""
-from datalabs.etl.fs.extract import LocalUnicodeTextFileExtractorTask
+from datalabs.etl.fs.extract import LocalFileExtractorTask
 
 
 # pylint: disable=too-many-ancestors
-class LocalPPDExtractorTask(LocalUnicodeTextFileExtractorTask):
+class LocalPPDExtractorTask(LocalFileExtractorTask):
     def _extract_files(self, files):
         latest_file = self._filter_for_latest_file(files)
 

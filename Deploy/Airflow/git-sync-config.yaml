@@ -8,7 +8,7 @@ data:
     GIT_BRANCH: master
     GIT_SUBPATH: Source/Python/datalabs/dag
     GIT_SYNC_ROOT: /git
-    GIT_SSH_KEY_SECRET_NAME: bitbucketprd
+    GIT_SSH_KEY_SECRET_NAME: bitbucket
     GIT_DAGS_FOLDER_MOUNT_POINT: /airflow/dags
     GIT_SYNC_CONTAINER_REPOSITORY: k8s.gcr.io/git-sync
     GIT_SYNC_CONTAINER_TAG: v3.1.2

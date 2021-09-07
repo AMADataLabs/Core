@@ -31,7 +31,7 @@ class RouterTaskWrapper(awslambda.TaskWrapper):
     def _get_task_parameters(self):
         LOGGER.debug('Parameters: %s', self._parameters)
         parameters = dict(EVENT=self._parameters)  # foward the Lambda event to the task
-        var_tree = VariableTree.generate()
+        var_tree = VariableTree.from_environment()
         router_parameters = var_tree.get_branch_values(['ROUTER']) or {}
 
         parameters.update(router_parameters)
