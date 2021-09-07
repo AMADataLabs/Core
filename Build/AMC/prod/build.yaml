@@ -8,7 +8,7 @@ metadata:
   labels:
     app: amc
   name: amc-address-flagging-report
-  namespace: hsg-data-labs-dev
+  namespace: hsg-data-labs-prod
 spec:
   failedBuildsHistoryLimit: 5
   nodeSelector: null
@@ -22,7 +22,7 @@ spec:
   source:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-      ref: dev
+      ref: prod
     sourceSecret:
       name: bitbucket
     type: Git
