@@ -7,3 +7,4 @@ pandas==1.0.1
 pip==21.0
 pysftp==0.2.9
 setuptools==41.0.0
+paradag==1.2.0
