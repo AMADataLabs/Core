@@ -1,8 +1,8 @@
 """ source: datalabs.etl.s3.extract """
 from   io import BytesIO
-import mock
 import os
 import os.path
+import mock
 import pytest
 
 from   botocore.response import StreamingBody
@@ -72,18 +72,18 @@ def test_datetime_formatting_in_file_works(parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_caching_data_to_disk(body, parameters):
-        task = s3.S3FileExtractorTask(parameters)
+    task = s3.S3FileExtractorTask(parameters)
 
-        path = task._cache_data_to_disk(body).decode()
+    path = task._cache_data_to_disk(body)
 
-        assert os.path.isfile(path)
+    assert os.path.isfile(path)
 
-        data = pandas.read_csv(path)
+    data = pandas.read_csv(path)
 
-        assert data.columns.to_list() == ['name', 'id']
-        assert len(data) == 3
+    assert data.columns.to_list() == ['name', 'id']
+    assert len(data) == 3
 
-        os.remove(path)
+    os.remove(path)
 
 
 def test_cp1252_decoding(parameters):

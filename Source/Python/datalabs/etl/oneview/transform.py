@@ -15,28 +15,28 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class TransformerTask(etl.ScalableTransformerMixin, ABC):
+class TransformerTask(etl.ScalableTransformerMixin, etl.TransformerTask, ABC):
     def _transform(self):
         LOGGER.debug(self._parameters['data'])
         if feature.enabled("PROFILE"):
-            LOGGER.info(f'Pre csv to dataframes memory {(hpy().heap())}')
+            LOGGER.info('Pre csv to dataframes memory (%s)', hpy().heap())
 
         table_data = [self._csv_to_dataframe(data) for data in self._parameters['data']]
 
         if feature.enabled("PROFILE"):
-            LOGGER.info(f'Post csv to dataframes memory {(hpy().heap())}')
+            LOGGER.info('Post csv to dataframes memory (%s)', hpy().heap())
 
         preprocessed_data = self._preprocess_data(table_data)
 
         if feature.enabled("PROFILE"):
-            LOGGER.info(f'Post processed dataframes memory {(hpy().heap())}')
+            LOGGER.info('Post processed dataframes memory (%s)', hpy().heap())
 
         selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)
 
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data, index=False, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
 
     @classmethod

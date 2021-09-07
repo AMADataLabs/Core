@@ -1,6 +1,4 @@
 """ OneView Reference Transformer"""
-from   io import BytesIO
-
 import logging
 import pandas
 
@@ -46,10 +44,9 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, data):
-        fips_data = [pandas.read_excel(BytesIO(file), skiprows=4) for file in data]
-
-        return fips_data
+    @classmethod
+    def _csv_to_dataframe(cls, path: str, **kwargs):
+        return pandas.read_excel(path, skiprows=4, dtype=str, engine='openpyxl', **kwargs)
 
     def _preprocess_data(self, data):
         fips_selected_data = self.set_columns(data[0])
@@ -63,12 +60,16 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
     @classmethod
     def set_columns(cls, fips_data):
         fips_data = fips_data.loc[
-            (fips_data['Summary Level'] == 50) |
-            (fips_data['Summary Level'] == 40) |
-            (fips_data['Summary Level'] == 10)
+            (fips_data['Summary Level'] == '050') |
+            (fips_data['Summary Level'] == '040') |
+            (fips_data['Summary Level'] == '010')
         ].reset_index(drop=True)
 
         return fips_data
 
     def _get_columns(self):
         return [FIPSC_COLUMNS]
+
+    @classmethod
+    def _dataframe_to_csv(cls, data, **kwargs):
+        return pandas.DataFrame.to_csv(data)

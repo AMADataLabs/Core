@@ -1,6 +1,7 @@
 """ Oneview PPD Transformer"""
-import dask.dataframe
 import logging
+
+import dask.dataframe
 
 from   datalabs.etl.oneview.ppd.column import PPD_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
