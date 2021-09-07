@@ -29,7 +29,7 @@ class CPTTextDataExtractorParameters:
 
 
 # pylint: disable=too-many-ancestors
-class CPTTextDataExtractorTask(extract.S3UnicodeTextFileExtractorTask):
+class CPTTextDataExtractorTask(extract.S3FileExtractorTask):
     PARAMETER_CLASS = CPTTextDataExtractorParameters
 
     def _extract(self):

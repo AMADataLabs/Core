@@ -19,6 +19,31 @@ class AIMS(ODBCDatabase):
 
         return int(record_count.iloc[0, 0])
 
+    def get_entity_aamc_map(self, order_by=None, chunk_size=None):
+        chunks = self.read_in_chunks(
+            "SELECT key_type_val as aamc_id, entity_id "
+            "FROM entity_key_et WHERE key_type='AMC' ",
+            order_by=order_by,
+            chunk_size=chunk_size,
+            caller=inspect.stack()[0][3]
+        )
+        data = pandas.concat(chunks, ignore_index=True)
+
+        return data.datalabs.strip()
+
+    def get_student_affiliates(self, order_by=None, chunk_size=None):
+        chunks = self.read_in_chunks(
+            "SELECT entity_id, category_code"
+            "FROM entity_key_et"
+            "WHERE end_dt is null AND category_code='STU_AFFIL",
+            order_by=order_by,
+            chunk_size=chunk_size,
+            caller=inspect.stack()[0][3]
+        )
+        data = pandas.concat(chunks, ignore_index=True)
+
+        return data.datalabs.strip()
+
     def get_me_entity_map(self, order_by=None, chunk_size=None):
         chunks = self.read_in_chunks(
             "SELECT key_type_val as me, entity_id "

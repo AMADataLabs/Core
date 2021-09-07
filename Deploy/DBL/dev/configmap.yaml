@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: dbl-file-count
+    namespace: hsg-data-labs-dev
+data:
+    # TASK_WRAPPER_CLASS: datalabs.etl.dag.task.DAGTaskWrapper
+
+
+    # EXTRACT_DBL
+    DBL__EXTRACT_DBL__BASE_PATH: ''
+    DBL__EXTRACT_DBL__FILES: 'changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt'
+
+    # CREATE_DBL_REPORT
+        # NONE
+
+    # EMAIL_DBL_REPORT
+    DBL__EMAIL_DBL_REPORT__TO: 'Daniel.Ro@ama-assn.og'
+    DBL__EMAIL_DBL_REPORT__CC: ''

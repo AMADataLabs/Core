@@ -1,6 +1,4 @@
 """ OneView Reference Transformer"""
-from   io import BytesIO
-
 import logging
 import pandas
 
@@ -34,27 +32,26 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
 
 
 class SpecialtyMergeTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        specialty_physician_data = [pandas.read_csv(BytesIO(csv)) for csv in self._parameters['data']]
-        filtered_specialty_data = [
-            specialty_physician_data[0].loc[
-                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1]['PRIMSPECIALTY']) |
-                specialty_physician_data[0]['SPEC_CD'].isin(specialty_physician_data[1]['SECONDARYSPECIALTY'])
-            ].reset_index(drop=True)
-        ]
+    def _preprocess_data(self, data):
+        filtered_specialty_data = data[0].loc[
+            data[0]['SPEC_CD'].isin(data[1]['PRIMSPECIALTY']) | data[0]['SPEC_CD'].isin(data[1]['SECONDARYSPECIALTY'])
+        ].reset_index(drop=True)
 
-        return filtered_specialty_data
+        return [filtered_specialty_data]
 
     def _get_columns(self):
         return [SPECIALTY_MERGED_COLUMNS]
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        fips_data = [pandas.read_excel(BytesIO(data), skiprows=4) for data in self._parameters['data']]
-        fips_selected_data = self.set_columns(fips_data[0])
+    @classmethod
+    def _csv_to_dataframe(cls, path: str, **kwargs):
+        return pandas.read_excel(path, skiprows=4, dtype=str, engine='openpyxl', **kwargs)
 
-        primary_keys = [column['State Code (FIPS)'] + column['County Code (FIPS)']
+    def _preprocess_data(self, data):
+        fips_selected_data = self.set_columns(data[0])
+
+        primary_keys = [str(column['State Code (FIPS)']) + str(column['County Code (FIPS)'])
                         for index, column in fips_selected_data.iterrows()]
         fips_selected_data['id'] = primary_keys
 
@@ -63,12 +60,16 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
     @classmethod
     def set_columns(cls, fips_data):
         fips_data = fips_data.loc[
-            (fips_data['Summary Level'] == 50) |
-            (fips_data['Summary Level'] == 40) |
-            (fips_data['Summary Level'] == 10)
+            (fips_data['Summary Level'] == '050') |
+            (fips_data['Summary Level'] == '040') |
+            (fips_data['Summary Level'] == '010')
         ].reset_index(drop=True)
 
         return fips_data
 
     def _get_columns(self):
         return [FIPSC_COLUMNS]
+
+    @classmethod
+    def _dataframe_to_csv(cls, data, **kwargs):
+        return pandas.DataFrame.to_csv(data)
