@@ -71,7 +71,7 @@ def generate_dotenv_file_from_template(dotenv_template, pythonpath):
         filenames = FileGeneratorFilenames(template=dotenv_template, output=dotenv_path)
 
         dotenv_generator = SimpleFileGenerator(filenames, pythonpath=pythonpath)
-        dotenv_generator.generate()
+        dotenv_generator.from_environment()
 
 
 if __name__ == '__main__':

@@ -1,78 +1,99 @@
 """ source: datalabs.etl.jdbc.extract """
 import os
+from   pathlib import Path
 import random
 
 import mock
 import pandas
 import pytest
 
-from   datalabs.etl.jdbc.extract import JDBCExtractorTask
+from   datalabs.etl.jdbc.extract import JDBCExtractorTask, JDBCParquetExtractorTask
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_data_properly_converted_to_bytes_after_read(parameters):
-    with mock.patch('datalabs.etl.jdbc.extract.JDBCExtractorTask._read_single_query') as read_single_query:
-        extractor = JDBCExtractorTask(parameters)
+def test_data_properly_converted_to_bytes_after_read(parameters, read):
+    extractor = JDBCExtractorTask(parameters)
 
-        # pylint: disable=unused-argument
-        def mock_read(query, connection):
-            return pandas.DataFrame(dict(
-                column1=random.sample(range(10, 30), 5),
-                column2=random.sample(range(10, 30), 5)
-            ))
-        read_single_query.side_effect = mock_read
+    with mock.patch('pandas.read_sql') as read_sql:
+        read_sql.side_effect = read
 
         result = extractor._read_queries(None)
 
-        assert len(result) == 1
-        assert hasattr(result[0], 'decode')
+    assert len(result) == 1
+    assert hasattr(result[0], 'decode')
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_chunked_query_not_performed_when_no_chunk_size(parameters):
-    with mock.patch('datalabs.etl.jdbc.extract.JDBCExtractorTask._read_single_query') as read_single_query:
-        extractor = JDBCExtractorTask(parameters)
+def test_chunked_query_not_performed_when_no_chunk_size(parameters, read):
+    extractor = JDBCExtractorTask(parameters)
 
-        # pylint: disable=unused-argument
-        def mock_read(query, connection):
-            return pandas.DataFrame(dict(
-                column1=random.sample(range(10, 30), 5),
-                column2=random.sample(range(10, 30), 5)
-            ))
-        read_single_query.side_effect = mock_read
+    with mock.patch('pandas.read_sql') as read_sql:
+        read_sql.side_effect = read
 
         result = extractor._read_query('SELECT * FROM BOGUS', None)
 
-        assert len(result) == 5
+    assert len(result) == 5
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_chunked_query_is_chunked_correctly(parameters):
+def test_chunked_query_is_chunked_correctly(parameters, chunked_read):
     parameters['CHUNK_SIZE'] = '5'
-    with mock.patch('datalabs.etl.jdbc.extract.JDBCExtractorTask._read_single_query') as read_single_query:
-        extractor = JDBCExtractorTask(parameters)
-        counter = 0
-        max_count = 3
+    extractor = JDBCExtractorTask(parameters)
+    result = None
 
-        # pylint: disable=unused-argument
-        def mock_read(query, connection):
-            nonlocal counter
-            result = []
+    with mock.patch('pandas.read_sql') as read_sql:
+        read_sql.side_effect = chunked_read
 
-            if counter < max_count:
-                result = pandas.DataFrame(dict(
-                    column1=random.sample(range(10, 30), 5),
-                    column2=random.sample(range(10, 30), 5)
-                ))
+        result = extractor._read_query('SELECT * FROM BOGUS', None)
 
-            counter += 1
+    assert len(result) == 15
 
-            return result
-        read_single_query.side_effect = mock_read
 
-        result = extractor._read_chunked_query('SELECT * FROM BOGUS', None)
+# pylint: disable=redefined-outer-name, protected-access
+def test_query_results_saved_as_parquet(parameters, read):
+    extractor = JDBCParquetExtractorTask(parameters)
 
-        assert len(result) == 15
+    with mock.patch('pandas.read_sql') as read_sql:
+        read_sql.side_effect = read
+
+        result = extractor._read_query('SELECT * FROM BOGUS', None)
+
+    assert hasattr(result, 'name')
+    assert hasattr(result, 'cleanup')
+
+    files = list(Path(result.name).glob("parquet*"))
+    assert len(files) == 1
+
+    data = pandas.read_parquet(files[0])
+    assert len(data) == 5
+    assert 'column1' in data
+    assert 'column2' in data
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_chunked_query_results_saved_as_parquet(parameters, chunked_read):
+    parameters['CHUNK_SIZE'] = '5'
+    extractor = JDBCParquetExtractorTask(parameters)
+
+    with mock.patch('pandas.read_sql') as read_sql:
+        read_sql.side_effect = chunked_read
+
+        result = extractor._read_query('SELECT * FROM BOGUS', None)
+
+    assert hasattr(result, 'name')
+    assert hasattr(result, 'cleanup')
+
+    files = list(Path(result.name).glob("parquet*"))
+    assert len(files) == 3
+
+    data_parts = []
+    for path in files:
+        data_parts.append(pandas.read_parquet(path))
+
+    data = pandas.concat(data_parts)
+    assert len(data) == 15
+    assert 'column1' in data
+    assert 'column2' in data
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -100,6 +121,41 @@ def parameters():
         DRIVER_TYPE='db2',
         JAR_PATH='./db2jcc4.jar',
     )
+
+
+@pytest.fixture
+def read():
+    # pylint: disable=unused-argument
+    def read_sql(query, connection):
+        return pandas.DataFrame(dict(
+            column1=random.sample(range(10, 30), 5),
+            column2=random.sample(range(10, 30), 5)
+        ))
+
+    return read_sql
+
+
+@pytest.fixture
+def chunked_read():
+    counter = 0
+    max_count = 3
+
+    # pylint: disable=unused-argument
+    def read_sql(query, connection):
+        nonlocal counter
+        result = pandas.DataFrame(columns=['column1', 'column2'])
+
+        if counter < max_count:
+            result = pandas.DataFrame(dict(
+                column1=random.sample(range(10, 30), 5),
+                column2=random.sample(range(10, 30), 5)
+            ))
+
+        counter += 1
+
+        return result
+
+    return read_sql
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
 """ Transformer for DBL Report Creation """
 
-from io import BytesIO, StringIO
+from io import BytesIO
 import logging
 from string import ascii_uppercase
 
@@ -8,17 +8,12 @@ import numpy as np
 import pandas as pd
 import xlsxwriter
 
+# pylint: disable=import-error
 from datalabs.etl.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
-
-
-def format_column_as_percentage(data: pd.DataFrame, column_name: str):
-    df = data.copy()
-    df[column_name] *= 100
-    return df
 
 
 def get_letters_between(start, end):
@@ -40,7 +35,7 @@ class DBLReportTransformer(TransformerTask):
         dataframes[9] = self._transform_tab10(dataframes[9])
 
         output = self._make_excel_workbook(sheet_dataframes=dataframes)
-        return [output.read()]
+        return [output]
 
     @classmethod
     def _get_dataframes(cls, data):
@@ -76,11 +71,12 @@ class DBLReportTransformer(TransformerTask):
     def _transform_tab2(cls, data):
         """ ReportByFieldFrom SAS """
         # no transformation required
-        return format_column_as_percentage(data, column_name='PERCENTAGE').fillna('')
+        return data.fillna('')
 
     @classmethod
     def _transform_tab3(cls, data):
         """ ChangeByFieldCount """
+        # no transformation required
         return data.fillna('')
 
     @classmethod
@@ -92,7 +88,8 @@ class DBLReportTransformer(TransformerTask):
     @classmethod
     def _transform_tab5(cls, data):
         """ ChangeByRecordCount """
-        return format_column_as_percentage(data, column_name='PERCENTAGE').fillna('')
+        # no transformation required
+        return data.fillna('')
 
     @classmethod
     def _transform_tab6(cls, data):
@@ -182,6 +179,7 @@ class DBLReportTransformer(TransformerTask):
     @classmethod
     def _make_excel_workbook(cls, sheet_dataframes):
         output = BytesIO()
+        # pylint: disable=abstract-class-instantiated
         writer = pd.ExcelWriter('temp.xlsx', engine='xlsxwriter')
         writer.book = xlsxwriter.Workbook(output, {'in_memory': True})
 

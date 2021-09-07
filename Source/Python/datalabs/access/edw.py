@@ -12,13 +12,12 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
-
 class PartyKeyType(Enum):
     LICENSE = 17
     ME = 18
     SCHOOL = 23
     NPI = 38
-
+    ENTITY = 9
 
 class EDW(ODBCDatabase):
     def get_me_numbers(self, chunk_size=None):
@@ -29,7 +28,7 @@ class EDW(ODBCDatabase):
 
     def get_party_keys_by_type(self, party_key_type: PartyKeyType, order_by=None, chunk_size=None):
         data = self.read_in_chunks(
-            f"SELECT PARTY_ID, KEY_VAL "
+            f"SELECT PARTY_ID, KEY_VAL AS {party_key_type.name} "
             f"FROM AMAEDW.PARTY_KEY "
             f"WHERE KEY_TYPE_ID={party_key_type.value}",
             order_by=order_by,

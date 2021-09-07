@@ -1,5 +1,6 @@
 """ Transformer task for running parsers on text data, converting it to CSVs. """
 import logging
+import pickle
 
 from   datalabs.etl.transform import TransformerTask
 from   datalabs.plugin import import_plugin
@@ -12,7 +13,8 @@ LOGGER.setLevel(logging.INFO)
 class ParseToCSVTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug('Data to transform: %s', self._parameters['data'])
-        _, data = zip(*self._parameters['data'])  # unpack the list of (filename, data) tuples
+        named_files_data = pickle.loads(self._parameters['data'][0])
+        _, data = zip(*named_files_data)  # unpack the list of (filename, data) tuples
         parsers = self._instantiate_parsers()
         transformed_data = []
 
@@ -20,9 +22,9 @@ class ParseToCSVTransformerTask(TransformerTask):
 
         for datum in parsed_data:
             if hasattr(datum, 'to_csv'):
-                transformed_data.append(datum.to_csv(index=False))
+                transformed_data.append(datum.to_csv(index=False).encode())
             else:
-                transformed_data.append(str(datum))
+                transformed_data.append(str(datum).encode())
 
         return transformed_data
 

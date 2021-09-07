@@ -1,7 +1,7 @@
 # Build Example:
 #    docker build -t one-view -f ./Build/OneView/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
 # Run Example:
-#    docker run -ti one-view -e DOTENV_PATH=ppd.env python -c "import awslambda; print(awslambda.handler(None, None))"
+#    docker run -e DOTENV_PATH=ppd.env -ti one-view python task.py
 
 FROM python:3.7
 ENV PYTHONPATH=/ContactID:/ContactID/site-packages
@@ -19,6 +19,9 @@ RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
 RUN apt-get update && apt-get install -y openjdk-11-jre
 ADD https://dbschema.com/jdbc-drivers/SqlServerJdbcDriver.zip .
 RUN unzip ./SqlServerJdbcDriver.zip && rm ./SqlServerJdbcDriver.zip
+ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
+RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
+RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master

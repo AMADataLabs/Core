@@ -1,10 +1,11 @@
-import re
-import pandas as pd
-from glob import glob
-import columns
+from   glob import glob
 import os
-from varname import nameof
-import settings
+import re
+
+import pandas as pd
+
+import columns
+
 
 def main():
 
@@ -28,8 +29,11 @@ def setup_directory():
     return input_directory, output_directory, tables
 
 def import_budget_code(input_directory):
-    return pd.read_excel(input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
-                                usecols=['Item Number', 'Budget Code'])
+    return pd.read_excel(
+        input_directory + 'CPT_Products_Mapping_Budget_Codes.xlsx',
+        usecols=['Item Number', 'Budget Code'],
+        engine="openpyxl"
+    )
 
 def transform_tables(tables, budget_code):
     new_tables = {}
@@ -57,7 +61,7 @@ def export_tables(output_directory, new_tables):
 
         if key in no_index_files:
             val.to_csv(output_directory + key + ".csv", index = False)
-        else:    
+        else:
             val.to_csv(output_directory + key + ".csv")
 
     """print("tablestbalestbaleatbales")

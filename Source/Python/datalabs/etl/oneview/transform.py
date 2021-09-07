@@ -1,32 +1,47 @@
 """ OneView Transformer"""
 from   abc import ABC, abstractmethod
-from   io import BytesIO
 
 import csv
 import logging
-import pandas
 
 import datalabs.etl.transform as etl
+import datalabs.feature as feature
+
+if feature.enabled("PROFILE"):
+    from guppy import hpy
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class TransformerTask(etl.TransformerTask, ABC):
+class TransformerTask(etl.ScalableTransformerMixin, etl.TransformerTask, ABC):
     def _transform(self):
-        LOGGER.info(self._parameters['data'])
+        LOGGER.debug(self._parameters['data'])
+        if feature.enabled("PROFILE"):
+            LOGGER.info('Pre csv to dataframes memory (%s)', hpy().heap())
 
-        dataframes = self._to_dataframe()
-        selected_data = self._select_columns(dataframes)
+        table_data = [self._csv_to_dataframe(data) for data in self._parameters['data']]
+
+        if feature.enabled("PROFILE"):
+            LOGGER.info('Post csv to dataframes memory (%s)', hpy().heap())
+
+        preprocessed_data = self._preprocess_data(table_data)
+
+        if feature.enabled("PROFILE"):
+            LOGGER.info('Post processed dataframes memory (%s)', hpy().heap())
+
+        selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)
 
-        csv_data = [self._dataframe_to_csv(data) for data in renamed_data]
+        postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [data.encode('utf-8', errors='backslashreplace') for data in csv_data]
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
-    def _to_dataframe(self):
-        return [pandas.read_csv(BytesIO(file)) for file in self._parameters['data']]
+
+    @classmethod
+    def _preprocess_data(cls, data):
+        return data
 
     def _select_columns(self, dataset):
         names = [list(column_map.keys()) for column_map in self._get_columns()]
@@ -43,5 +58,5 @@ class TransformerTask(etl.TransformerTask, ABC):
         return []
 
     @classmethod
-    def _dataframe_to_csv(cls, data):
-        return data.to_csv(index=False, quoting=csv.QUOTE_NONNUMERIC)
+    def _postprocess_data(cls, data):
+        return data
