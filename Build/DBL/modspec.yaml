@@ -20,6 +20,7 @@ modspec:
       - database
       - datastore
       - environment
+      - etcd
   - package: datalabs.access.parameter
     include:
       - system
@@ -32,6 +33,7 @@ modspec:
       - load
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.state
   - package: datalabs.etl.sftp
   - package: datalabs.messaging
     include:
