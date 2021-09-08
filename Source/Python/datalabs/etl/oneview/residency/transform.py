@@ -1,6 +1,5 @@
 """ Oneview Residency Transformer"""
 import logging
-import pandas
 import dask.array
 import dask.dataframe
 
@@ -61,8 +60,6 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_dataframes(cls, programs, addresses, institution_info, program_institution):
-        import pdb
-        pdb.set_trace()
         program_information = programs.merge(addresses, on='pgm_id', how='left')
         program_information = program_information.merge(program_institution[['pgm_id', 'ins_id']], on='pgm_id',
                                                         how='left')
