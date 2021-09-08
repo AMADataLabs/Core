@@ -6,8 +6,6 @@ arnparse==0.0.2
 boto3==1.12.45
 ipython==7.12.0
 jinja2==2.11.3
-jinja2==2.11.3
-json5==0.8.5
 json5==0.8.5
 marshmallow==3.10.0
 minio==6.0.0
