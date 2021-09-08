@@ -17,6 +17,7 @@ modspec:
   - package: datalabs.access.parameter
     include:
       - system
+      - etcd
   - package: datalabs.analysis.dbl
   - package: datalabs.etl
     include:
