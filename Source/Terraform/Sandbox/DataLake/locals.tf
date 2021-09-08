@@ -24,14 +24,16 @@ locals {
         Department          = local.department
     }
     function_names = {
-        scheduler                   = "${var.project}-Scheduler-${var.environment}"
-        dag_processor               = "${var.project}-DAG-Processor-${var.environment}"
-        task_processor              = "${var.project}-Task-Processor-${var.environment}"
+        scheduler                   = "${var.project}-${var.environment}-Scheduler"
+        dag_processor               = "${var.project}-${var.environment}-DAGProcessor"
+        task_processor              = "${var.project}-${var.environment}-TaskProcessor"
     }
     topic_names = {
-      scheduler                   = "${var.project}-Scheduler-${var.environment}"
-      dag_processor               = "${var.project}-DAG-Processor-${var.environment}"
-      task_processor              = "${var.project}-Task-Processor-${var.environment}"
+      ingested_data               = "${var.project}-${var.environment}-ingested-data"
+      processed_data              = "${var.project}-${var.environment}-processed-data"
+      scheduler                   = "${var.project}-${var.environment}-Scheduler"
+      dag_processor               = "${var.project}-${var.environment}-DAGProcessor"
+      task_processor              = "${var.project}-${var.environment}-TaskProcessor"
     }
     runtime = "python3.7"
     region = "us-east-1"

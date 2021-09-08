@@ -201,7 +201,7 @@ resource "aws_sns_topic_subscription" "task_processor" {
 #####################################################################
 
 resource "aws_cloudwatch_event_rule" "console" {
-  name        = "${var.project}-invoke-scheduler-${var.environment}"
+  name        = "${var.project}-${var.environment}-invoke-scheduler"
   description = "Trigger running of the scheduler periodically"
   schedule_expression = "cron(*/15 * * * ? *)"
 
