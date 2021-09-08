@@ -1,5 +1,7 @@
 """ Oneview Melissa Transformer"""
+import dask.array
 import logging
+import pandas
 
 from   datalabs.etl.oneview.transform import TransformerTask
 
@@ -24,8 +26,8 @@ class MelissaTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_zip_code_primary_keys(cls, data):
-        zip_code_primary_keys = [str(column['ZIP']) + str(column['CITY_CD'])
-                                 for index, column in data.iterrows()]
+        zip_code_primary_keys = dask.array.array([str(column['ZIP']) + str(column['CITY_CD'])
+                                                  for index, column in data.iterrows()])
         data['id'] = zip_code_primary_keys
 
         return data
