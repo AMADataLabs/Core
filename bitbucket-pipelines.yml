@@ -124,15 +124,20 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - scheduler-master-update-bundle-dependencies
+            - scheduler-master-update-bundle-dependencies
             script:
+            # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Create the code bundle
             - export ENABLE_FEATURE_DEV=True
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
             - bash Deploy/Master/create-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
             - bash Deploy/Master/upload-bundle Scheduler
         - step:
             name: Update Lambda Functions
