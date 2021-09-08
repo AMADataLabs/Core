@@ -6,10 +6,12 @@ metadata:
 data:
     # TASK_WRAPPER_CLASS: datalabs.etl.dag.task.DAGTaskWrapper
 
-
     # EXTRACT_DBL
     DBL__EXTRACT_DBL__BASE_PATH: ''
     DBL__EXTRACT_DBL__FILES: 'changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt'
+    DBL__EXTRACT_DBL__HOST: ${HOST}
+    DBL__EXTRACT_DBL__USERNAME: ${USERNAME}
+    DBL__EXTRACT_DBL__PASSWORD: ${PASSWORD}
 
     # CREATE_DBL_REPORT
         # NONE

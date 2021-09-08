@@ -6,7 +6,6 @@ PROJECT="${PROJECT:-OneView}"
 ENVIRONMENT="${ENVIRONMENT:-sbx}"
 
 CODE_BUCKET="ama-${ENVIRONMENT}-datalake-lambda-us-east-1"
-# FIXME: add web app backend API Lambdas
 FUNCTIONS=(
     "${PROJECT}-${ENVIRONMENT}-API"
     "${PROJECT}-${ENVIRONMENT}-ETL"

@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
     name: amc-address-flagging-report
-    namespace: hsg-data-labs-dev
+    namespace: hsg-data-labs-prod
 data:
     # TASK_WRAPPER_CLASS: datalabs.etl.dag.task.DAGTaskWrapper
 
@@ -12,9 +12,9 @@ data:
     AMC__EXTRACT_AMC__DRIVER_TYPE: 'informix-sqli'
     AMC__EXTRACT_AMC__DATABASE_HOST: 'rdbp1627'
     AMC__EXTRACT_AMC__DATABASE_PORT: '22093'
-    AMC__EXTRACT_AMC__DATABASE_NAME: '${DATABASE_NAME}'
-    AMC__EXTRACT_AMC__DATABASE_USERNAME: '${DATABASE_USERNAME}'
-    AMC__EXTRACT_AMC__DATABASE_PASSWORD: '${DATABASE_PASSWORD}'
+    AMC__EXTRACT_AMC__DATABASE_NAME: 'aims_prod:prd1srvxnet'
+    AMC__EXTRACT_AMC__DATABASE_USERNAME: '${AIMS_USERNAME}'
+    AMC__EXTRACT_AMC__DATABASE_PASSWORD: '${AIMS_PASSWORD}'
     AMC__EXTRACT_AMC__JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
     AMC__EXTRACT_AMC__SQL: >-
         SELECT
