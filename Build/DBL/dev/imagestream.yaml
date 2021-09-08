@@ -12,7 +12,7 @@ spec:
   - annotations: null
     from:
       kind: DockerImage
-      name: dbl:1.0.0
+      name: dbl:1.0.2
     generation: 1
     importPolicy: {}
     name: latest
