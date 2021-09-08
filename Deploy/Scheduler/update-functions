@@ -12,9 +12,9 @@ FUNCTIONS=(
     "${PROJECT}-Task-Processor-${ENVIRONMENT}"
 )
 BUNDLES=(
-    "${PROJECT}.zip"
-    "${PROJECT}.zip"
-    "${PROJECT}.zip"
+    "Scheduler.zip"
+    "Scheduler.zip"
+    "Scheduler.zip"
 )
 
 for index in "${!FUNCTIONS[@]}"; do
