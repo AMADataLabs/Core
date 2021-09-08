@@ -36,6 +36,10 @@ pipelines:
             script:
             - bash Script/bitbucket-pipelines-build.sh
     custom:
+        ##############################################################
+        # global targets
+        ##############################################################
+
         Test:
         - parallel:
             - step:
@@ -58,6 +62,12 @@ pipelines:
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
                 - python --version
                 - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+
+
+        ##############################################################
+        # master branch targets
+        ##############################################################
+
         CPT-master:
         - parallel:
             - step:
@@ -109,6 +119,36 @@ pipelines:
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - export ENVIRONMENT=sbx
                 - bash Deploy/CPT/update-functions
+
+        Scheduler-master:
+        - step:
+            name: Update Bundle
+            caches:
+            - scheduler-master-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - bash Deploy/Master/create-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+            - bash Deploy/Master/upload-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - export ENVIRONMENT=sbx
+            - bash Deploy/Scheduler/update-functions
+
         OneView-master:
         - parallel:
             - step:
@@ -181,29 +221,12 @@ pipelines:
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - export ENVIRONMENT=sbx
                 - bash Deploy/OneView/update-functions
-        Scheduler-master:
-        - step:
-            name: Update Bundle
-            caches:
-                - scheduler-master-update-bundle-dependencies
-            script:
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/create-bundle Scheduler
-            - bash Deploy/Master/upload-bundle Scheduler
-        - step:
-            name: Update Lambda Functions
-            script:
-            - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - export ENVIRONMENT=sbx
-            - bash Deploy/Scheduler/update-functions
+
+
+        ##############################################################
+        # dev branch targets
+        ##############################################################
+
         CPT-dev:
         - step:
             name: Update Bundle
@@ -225,6 +248,45 @@ pipelines:
             - export AWS_DEFAULT_REGION='us-east-1'
             - export ENVIRONMENT=sbx
             - bash Deploy/CPT/update-functions
+
+        Scheduler-dev:
+        - step:
+            name: Update Bundle
+            caches:
+                - scheduler-dev-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - bash Deploy/Master/create-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_DEV=True
+            - export ENVIRONMENT=dev
+            - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
+
         OneView-dev:
         - parallel:
             # - step:
@@ -263,7 +325,6 @@ pipelines:
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash
                 - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
             - step:
                 name: Update API Bundle
@@ -311,17 +372,35 @@ pipelines:
                 - export ENABLE_FEATURE_DEV=True
                 - export ENVIRONMENT=dev
                 - bash --rcfile assume_role.rc -i Deploy/OneView/update-functions
+
+
+        ##############################################################
+        # test branch targets
+        ##############################################################
+
         CPT-test:
         - step:
             name: Update Bundle
             script:
             - export ENABLE_FEATURE_DEV=True
             - echo "Hello there!"
+
+
+        ##############################################################
+        # stage branch targets
+        ##############################################################
+
         CPT-stage:
         - step:
             name: Update Update Bundle
             script:
             - echo "Hello there!"
+
+
+        ##############################################################
+        # prod branch targets
+        ##############################################################
+
         CPT-prod:
         - step:
             name: Update Bundle
@@ -333,9 +412,10 @@ definitions:
     lint-test-dependencies: Environment
     cpt-master-create-database-dependencies: Environment
     cpt-master-update-bundle-dependencies: Environment
+    scheduler-master-update-bundle-dependencies: Environment
     oneview-master-create-database-dependencies: Environment
     oneview-master-update-bundle-dependencies: Environment
-    scheduler-master-update-bundle-dependencies: Environment
 
+    scheduler-dev-update-bundle-dependencies: Environment
     oneview-dev-create-database-dependencies: Environment
     oneview-dev-update-bundle-dependencies: Environment
