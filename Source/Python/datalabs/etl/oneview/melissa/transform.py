@@ -34,7 +34,8 @@ class MelissaTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_area_code_primary_keys(cls, data):
-        area_code_primary_keys = [str(column['AREA_CD']) + str(column['PREFIX']) for index, column in data.iterrows()]
+        area_code_primary_keys = dask.array.array([str(column['AREA_CD']) + str(column['PREFIX'])
+                                                   for index, column in data.iterrows()])
         data['id'] = area_code_primary_keys
 
         return data
