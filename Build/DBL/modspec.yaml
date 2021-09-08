@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 # Rules:
 # 1) Package requirements are not recursive
@@ -13,6 +14,7 @@ modspec:
       - plugin
       - etl
       - task
+      - parameter
   - package: datalabs.access
     include:
       - sftp
