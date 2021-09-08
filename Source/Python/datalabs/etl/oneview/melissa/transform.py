@@ -1,7 +1,6 @@
 """ Oneview Melissa Transformer"""
-import dask.array
 import logging
-import pandas
+import dask.array
 
 from   datalabs.etl.oneview.transform import TransformerTask
 
