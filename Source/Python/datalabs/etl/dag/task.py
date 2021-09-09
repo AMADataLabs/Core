@@ -36,6 +36,7 @@ class DAGTaskWrapper(TaskWrapper):
         task_parameters = self._merge_parameters(default_parameters, self._get_dag_task_parameters())
 
         task_parameters = self._extract_cache_parameters(task_parameters)
+        LOGGER.debug('Task Parameters: %s', task_parameters)
 
         cache_plugin = self._get_cache_plugin(CacheDirection.INPUT)
         if cache_plugin:

@@ -183,13 +183,15 @@ class DAGTaskWrapper(
     def _get_dag_task_parameters(self):
         dag = self._get_dag_id()
         task = self._get_task_id()
+        LOGGER.debug('Getting DAG Task Parameters for %s__%s...', dag, task)
         dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
-
-        dag_task_parameters = self._remove_dag_parameter_overrides(dag_task_parameters)
+        LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
 
         if task == 'DAG':
             dag_task_parameters["dag"] = dag
-            dag_task_parameters["dag_class"] = self._runtime_parameters["dag_class"]
+        else
+            dag_task_parameters = self._remove_dag_parameter_overrides(dag_task_parameters)
+        LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
         return dag_task_parameters
 
