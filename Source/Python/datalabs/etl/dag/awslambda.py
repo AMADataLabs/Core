@@ -99,21 +99,11 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
         )
 
         dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
-        dag_parameters.update(
-            self._get_dag_parameter_overrides(
-                self._get_dag_task_parameters_from_dynamodb(dag, task),
-                dag_parameters
-            )
-        )
 
         if task != "DAG":
             dag_parameters["task"] = task
 
         return dag_parameters
-
-    @classmethod
-    def _get_dag_parameter_overrides(cls, task_parameters, dag_parameters):
-        return {key:value for key, value in task_parameters.items() if key in dag_parameters}
 
 
 @add_schema(unknowns=True)
@@ -189,8 +179,6 @@ class DAGTaskWrapper(
 
         if task == 'DAG':
             dag_task_parameters["dag"] = dag
-        else:
-            dag_task_parameters = self._remove_dag_parameter_overrides(dag_task_parameters)
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
         return dag_task_parameters
@@ -201,7 +189,3 @@ class DAGTaskWrapper(
             notifier = SNSDAGNotifier(dag_topic)
 
             notifier.notify(self._get_dag_id(), self._get_execution_time())
-
-    @classmethod
-    def _remove_dag_parameter_overrides(cls, task_parameters):
-        return {key:value for key, value in task_parameters.items() if key not in cls.DAG_PARAMETERS}
