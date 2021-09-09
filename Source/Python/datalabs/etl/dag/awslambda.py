@@ -189,7 +189,7 @@ class DAGTaskWrapper(
 
         if task == 'DAG':
             dag_task_parameters["dag"] = dag
-        else
+        else:
             dag_task_parameters = self._remove_dag_parameter_overrides(dag_task_parameters)
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
