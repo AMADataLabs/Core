@@ -12,7 +12,7 @@ spec:
   - annotations: null
     from:
       kind: DockerImage
-      name: amc:1.0.8
+      name: amc:1.0.9
     generation: 1
     importPolicy: {}
     name: latest
