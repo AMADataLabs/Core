@@ -182,9 +182,17 @@ with ONEVIEW_ETL_DAG:
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
 
-    EXTRACT_REFERENCE_TABLES = KubernetesPodOperator(
-        name="extract_reference_tables",
-        task_id="extract_reference_tables",
+    EXTRACT_STATE_TABLE = KubernetesPodOperator(
+        name="extract_state_table",
+        task_id="extract_state_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
+        is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
+    )
+
+    EXTRACT_CLASS_OF_TRADE_TABLE = KubernetesPodOperator(
+        name="extract_class_of_trade_table",
+        task_id="extract_class_of_trade_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),

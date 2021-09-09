@@ -64,6 +64,9 @@ class OneViewDAG(DAG):
     CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TABLE: CredentialingCustomerBusinessTransformerTask
     CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE: ResidencyProgramPhysicianTransformerTask
     LOAD_LINKING_TABLES_INTO_DATABASE: ORMLoaderTask
+    EXTRACT_STATE_TABLE: JDBCExtractorTask
+    EXTRACT_CLASS_OF_TRADE_TABLE: JDBCExtractorTask
+
     #   MIGRATE_DATABASE:
 
 
