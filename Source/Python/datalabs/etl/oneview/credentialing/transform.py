@@ -32,6 +32,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
         return [self._dataframe_to_csv(data, index=False) for data in postprocessed_data]
 
+    # pylint: disable=arguments-differ
     @classmethod
     def _csv_to_dataframe(cls, data):
         addresses = pandas.read_excel(data[0], engine='openpyxl')
@@ -40,8 +41,6 @@ class CredentialingFinalTransformerTask(TransformerTask):
         return [addresses, customers]
 
     def _preprocess_data(self, data):
-        import pdb
-        pdb.set_trace()
         credentialing_main = data[1].rename(columns={'CUSTOMER_NBR': 'number'})
         new_df = credentialing_main.merge(data[0], how='left', on='number')
         return [new_df]

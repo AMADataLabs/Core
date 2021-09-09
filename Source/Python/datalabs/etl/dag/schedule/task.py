@@ -3,7 +3,6 @@ from   dataclasses import dataclass
 from   datetime import datetime, timedelta
 from   functools import partial
 from   io import BytesIO
-import json
 import logging
 import pickle
 
