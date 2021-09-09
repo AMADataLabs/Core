@@ -3,6 +3,7 @@ from   datetime import datetime, timedelta
 from   io import BytesIO
 import json
 import logging
+import pickle
 import tempfile
 
 import mock
@@ -121,19 +122,21 @@ def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execu
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_dags_to_run_are_transformed_to_csv_bytes(parameters, schedule_csv, target_execution_time):
+def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, target_execution_time):
     parameters["data"] = [schedule_csv.encode('utf-8', errors='backslashreplace')]
     scheduler = DAGSchedulerTask(parameters)
 
     with mock.patch('datalabs.etl.dag.schedule.task.DAGSchedulerTask._get_target_execution_time') as get_execution_time:
         get_execution_time.return_value = target_execution_time
 
-        dags_to_run = scheduler._transform()
+        dags_to_run = pickle.loads(scheduler._transform())
 
     assert len(dags_to_run) == 1
 
-    dag_data = json.loads(dags_to_run[0].decode('utf8'))
-    assert all(column in dag_data for column in ['name', 'schedule', 'execution_time', 'scheduled'])
+    dag_data = [json.loads(dag) for dag in dags_to_run]
+
+    for row in dag_data:
+        assert all(column in row for column in ['DAG', 'execution_time'])
 
 
 @pytest.fixture

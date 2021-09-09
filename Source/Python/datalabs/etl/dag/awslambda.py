@@ -97,8 +97,11 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
             dag=dag,
             execution_time=self._get_execution_time(),
         )
+        task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
 
         dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
+
+        dag_parameters["LAMBDA_FUNCTION"] = task_parameters.get("LAMBDA_FUNCTION", dag_parameters["LAMBDA_FUNCTION"])
 
         if task != "DAG":
             dag_parameters["task"] = task
@@ -179,6 +182,8 @@ class DAGTaskWrapper(
 
         if task == 'DAG':
             dag_task_parameters["dag"] = dag
+        elif "LAMBDA_FUNCTION" in dag_task_parameters:
+            dag_task_parameters.pop("LAMBDA_FUNCTION")
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
         return dag_task_parameters

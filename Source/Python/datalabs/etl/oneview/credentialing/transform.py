@@ -1,4 +1,6 @@
 """Oneview Credentialing Table Columns"""
+from   io import BytesIO
+
 import logging
 import pandas
 
@@ -19,10 +21,7 @@ class CredentialingTransformerTask(TransformerTask):
 class CredentialingFinalTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug(self._parameters['data'])
-        table_data = [
-            self._csv_to_dataframe(self._parameters['data'][0]),
-            pandas.read_excel(self._parameters['data'][1], skiprows=4, dtype=str)
-        ]
+        table_data = self._csv_to_dataframe(self._parameters['data'])
 
         preprocessed_data = self._preprocess_data(table_data)
 
@@ -31,10 +30,15 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [
-            self._dataframe_to_csv(data, index=False, quoting=pandas.DataFrame.QUOTE_NONNUMERIC) \
-            for data in postprocessed_data
-        ]
+        return [self._dataframe_to_csv(data, index=False) for data in postprocessed_data]
+
+    # pylint: disable=arguments-differ
+    @classmethod
+    def _csv_to_dataframe(cls, data):
+        addresses = pandas.read_excel(data[0], engine='openpyxl')
+        customers = pandas.read_csv(BytesIO(data[1]), encoding = "ISO-8859-1", engine='python')
+
+        return [addresses, customers]
 
     def _preprocess_data(self, data):
         credentialing_main = data[1].rename(columns={'CUSTOMER_NBR': 'number'})
@@ -43,3 +47,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
     def _get_columns(self):
         return [columns.CUSTOMER_ADDRESSES_COLUMNS]
+
+    @classmethod
+    def _dataframe_to_csv(cls, data, **kwargs):
+        return pandas.DataFrame.to_csv(data, **kwargs).encode()
