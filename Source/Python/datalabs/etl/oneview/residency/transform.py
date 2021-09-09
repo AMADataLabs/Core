@@ -1,6 +1,7 @@
 """ Oneview Residency Transformer"""
 import logging
-import pandas
+import dask.array
+import dask.dataframe
 
 from   datalabs.etl.oneview.residency.column import PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
@@ -59,18 +60,18 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_dataframes(cls, programs, addresses, institution_info, program_institution):
-        program_information = pandas.merge(programs, addresses, on='pgm_id', how='left')
-        program_information = pandas.merge(program_information, program_institution[['pgm_id', 'ins_id']], on='pgm_id',
-                                           how='left')
-        institution_info = pandas.merge(institution_info, program_institution[['ins_id', 'pri_clinical_loc_ind']],
-                                        on='ins_id', how='left')
+        program_information = programs.merge(addresses, on='pgm_id', how='left')
+        program_information = program_information.merge(program_institution[['pgm_id', 'ins_id']], on='pgm_id',
+                                                        how='left')
+        institution_info = institution_info.merge(program_institution[['ins_id', 'pri_clinical_loc_ind']],
+                                                  on='ins_id', how='left')
 
         return program_information, institution_info
 
     @classmethod
     def _generate_primary_keys(cls, dataframe):
-        primary_keys = [str(column['pgm_id']) + str(column['aamc_id'])
-                        for index, column in dataframe.iterrows()]
+        primary_keys = dask.array.array([str(column['pgm_id']) + str(column['aamc_id'])
+                                         for index, column in dataframe.iterrows()])
         dataframe['id'] = primary_keys
 
         return dataframe

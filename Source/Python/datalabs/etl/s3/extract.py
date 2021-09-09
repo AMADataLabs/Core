@@ -190,6 +190,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         return objects
 
+
 # pylint: disable=too-many-ancestors
 class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
     @classmethod

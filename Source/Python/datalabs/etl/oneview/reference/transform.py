@@ -72,4 +72,4 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 
     @classmethod
     def _dataframe_to_csv(cls, data, **kwargs):
-        return pandas.DataFrame.to_csv(data)
+        return pandas.DataFrame.to_csv(data).encode()
