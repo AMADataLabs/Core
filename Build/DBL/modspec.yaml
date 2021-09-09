@@ -25,7 +25,7 @@ modspec:
       - extract
       - transform
       - load
-      - -s3
+      - s3
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.state
