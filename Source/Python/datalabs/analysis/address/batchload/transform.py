@@ -208,7 +208,7 @@ def _reorder_batch_load_column_order(data: pd.DataFrame):
 
 class AddressLoadFileAggregationTransformerTask(TransformerTask):
     def _transform(self) -> 'Transformed Data':
-        dataframes = [pd.read_csv(BytesIO(data) for data in self._parameters['data'])]
+        dataframes = [pd.read_csv(data) for data in self._parameters['data']]
         valid_dataframe_list = []
         invalid_dataframe_list = []
 
