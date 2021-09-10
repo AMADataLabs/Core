@@ -232,10 +232,12 @@ class AddressLoadFileAggregationTransformerTask(TransformerTask):
         else:
             aggregate_data = pd.concat(valid_dataframe_list, ignore_index=True)
             valid_aggregate_data, invalid_aggregate_data = _process_aggregate_data(aggregate_data=aggregate_data)
+
         valid_csv = BytesIO()
         invalid_csv = BytesIO()
 
         valid_aggregate_data.to_csv(valid_csv, index=False)
         invalid_aggregate_data.to_csv(invalid_csv, index=False)
 
-        return [valid_csv.getvalue(), invalid_csv.getvalue()]
+        # return [valid_csv.getvalue(), invalid_csv.getvalue()]
+        return [valid_csv.read(), invalid_csv.read()]
