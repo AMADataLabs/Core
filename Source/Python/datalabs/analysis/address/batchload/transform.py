@@ -4,7 +4,6 @@ from io import BytesIO
 import logging
 from string import ascii_uppercase, digits
 import pandas as pd
-import pickle
 
 from datalabs.etl.transform import TransformerTask
 
@@ -32,15 +31,17 @@ def _process_aggregate_data(aggregate_data: pd.DataFrame):
     Would be inaccurate/redundant to set multiple addresses with the same usage to a single physician,
     so this function identifies which records are unique by (individual, usage) and which are not.
     """
-    data = aggregate_data.copy().drop(columns=['filename'], axis=1).drop_duplicates()
-    me_counts = data.groupby(by=['me#', 'usage']).size()
-    entity_counts = data.groupby(by=['entity_id', 'usage']).size()
+    if 'filename' in aggregate_data.columns.values:
+        aggregate_data.drop(columns=['filename'], axis=1, inplace=True)
+    data = aggregate_data.copy().drop_duplicates()
+    me_counts = data[~data['me#'].apply(_isna)].groupby(by=['me#', 'usage']).size()
+    entity_counts = data[~data['entity_id'].apply(_isna)].groupby(by=['entity_id', 'usage']).size()
 
-    multiples_me = me_counts[me_counts > 1]
+    multiples_me = me_counts[me_counts > 1].dropna()
     multiples_entity_id = entity_counts[entity_counts > 1]
 
-    reindexed_me = data.set_index(['me#', 'usage'])
-    reindexed_entity_id = data.set_index(['entity_id', 'usage'])
+    reindexed_me = data[~data['me#'].apply(_isna)].set_index(['me#', 'usage'])
+    reindexed_entity_id = data[~data['entity_id'].apply(_isna)].set_index(['entity_id', 'usage'])
 
     # valid_data is data where the me+usage key or entity_id+usage key is unique
     valid_data = pd.concat(
@@ -86,11 +87,13 @@ def _process_component_data(data: pd.DataFrame):
     Validates structure of component data files -- columns
     """
     for col in data.columns.values:
-        data[col] = data[col].astype(str).apply(lambda x: x.strip())
+        data[col] = data[col].fillna('').astype(str).apply(lambda x: x.strip())
 
     is_valid_structure = _is_valid_component_data_structure(data)
 
     if not is_valid_structure:
+        LOGGER.info('INVALID DATA STRUCTURE')
+        LOGGER.info(data.columns.values)
         valid_data = None
         invalid_data = data
     else:
@@ -208,12 +211,14 @@ def _reorder_batch_load_column_order(data: pd.DataFrame):
 
 class AddressLoadFileAggregationTransformerTask(TransformerTask):
     def _transform(self) -> 'Transformed Data':
-        dataframes = [pd.read_csv(data) for data in self._parameters['data']]
+        dataframes = [pd.read_csv(BytesIO(data)) for data in self._parameters['data']]
         valid_dataframe_list = []
         invalid_dataframe_list = []
 
         for data in dataframes:
             valid_data, invalid_data = _process_component_data(data=data)
+            LOGGER.info(f'VALID: {str(len(valid_data) if valid_data is not None else 0)}')
+            LOGGER.info(f'INVVALID: {str(len(invalid_data) if invalid_data is not None else 0)}')
 
             if valid_data is not None:
                 valid_dataframe_list.append(valid_data)
@@ -221,7 +226,16 @@ class AddressLoadFileAggregationTransformerTask(TransformerTask):
             if invalid_data is not None:
                 invalid_dataframe_list.append(invalid_data)
 
-        aggregate_data = pd.concat(valid_dataframe_list, ignore_index=True)
-        valid_aggregate_data, invalid_aggregate_data = _process_aggregate_data(aggregate_data=aggregate_data)
+        if len(valid_dataframe_list) == 0:
+            valid_aggregate_data = pd.DataFrame()
+            invalid_aggregate_data = pd.concat(invalid_dataframe_list)
+        else:
+            aggregate_data = pd.concat(valid_dataframe_list, ignore_index=True)
+            valid_aggregate_data, invalid_aggregate_data = _process_aggregate_data(aggregate_data=aggregate_data)
+        valid_csv = BytesIO()
+        invalid_csv = BytesIO()
 
-        return [pickle.dumps(df) for df in [valid_aggregate_data, invalid_aggregate_data]]
+        valid_aggregate_data.to_csv(valid_csv, index=False)
+        invalid_aggregate_data.to_csv(invalid_csv, index=False)
+
+        return [valid_csv.getvalue(), invalid_csv.getvalue()]
