@@ -59,9 +59,9 @@ class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
             data = open(data, 'rb')  # data is a filename bytes string
         else:
             try:
-                md5_hash = hashlib.md5(data.encode()).digest()
-            except TypeError:
                 md5_hash = hashlib.md5(data).digest()
+            except TypeError:
+                md5_hash = hashlib.md5(data.encode()).digest()
 
         b64_md5_hash = base64.b64encode(md5_hash)
 
