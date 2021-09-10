@@ -218,7 +218,7 @@ class AddressLoadFileAggregationTransformerTask(TransformerTask):
         for data in dataframes:
             valid_data, invalid_data = _process_component_data(data=data)
             LOGGER.info(f'VALID: {str(len(valid_data) if valid_data is not None else 0)}')
-            LOGGER.info(f'INVVALID: {str(len(invalid_data) if invalid_data is not None else 0)}')
+            LOGGER.info(f'INVALID: {str(len(invalid_data) if invalid_data is not None else 0)}')
 
             if valid_data is not None:
                 valid_dataframe_list.append(valid_data)
