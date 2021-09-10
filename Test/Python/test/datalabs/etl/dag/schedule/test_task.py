@@ -139,7 +139,7 @@ def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, 
     dag_data = [json.loads(dag) for dag in dags_to_run]
 
     for row in dag_data:
-        assert all(column in row for column in ['DAG', 'execution_time'])
+        assert all(column in row for column in ['dag', 'execution_time'])
 
 
 @pytest.fixture
