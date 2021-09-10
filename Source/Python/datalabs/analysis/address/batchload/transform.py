@@ -239,5 +239,4 @@ class AddressLoadFileAggregationTransformerTask(TransformerTask):
         valid_aggregate_data.to_csv(valid_csv, index=False)
         invalid_aggregate_data.to_csv(invalid_csv, index=False)
 
-        # return [valid_csv.getvalue(), invalid_csv.getvalue()]
-        return [valid_csv.read(), invalid_csv.read()]
+        return [valid_csv.getvalue(), invalid_csv.getvalue()]
