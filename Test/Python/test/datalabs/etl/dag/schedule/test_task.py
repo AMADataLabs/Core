@@ -45,7 +45,6 @@ def test_execution_time_returns_next_execution_time(scheduler, target_execution_
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_execution_time_bounds_are_correct(scheduler, target_execution_time):
-
     lower_bound, upper_bound = scheduler._get_execution_time_bounds(target_execution_time)
 
     assert lower_bound.year == target_execution_time.year
@@ -85,8 +84,8 @@ def test_scheduled_dags_are_correctly_identified(scheduler, schedule, base_time)
 
     scheduled_dags = scheduler._get_scheduled_dags(schedule, base_time)
 
-    assert len(scheduled_dags) == 3
-    assert all(actual == expected for actual, expected in zip(scheduled_dags, [True, False, False]))
+    assert len(scheduled_dags) == 4
+    assert all(actual == expected for actual, expected in zip(scheduled_dags, [True, False, False, True]))
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -99,8 +98,8 @@ def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
 
     started_dags = scheduler._get_started_dags(schedule)
 
-    assert len(started_dags) == 3
-    assert all(actual == expected for actual, expected in zip(started_dags, [True, False, False]))
+    assert len(started_dags) == 4
+    assert all(actual == expected for actual, expected in zip(started_dags, [True, False, False, False]))
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -111,14 +110,14 @@ def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execu
 
     dags_to_run = scheduler._determine_dags_to_run(schedule, target_execution_time)
 
-    assert len(dags_to_run) == 1
+    assert len(dags_to_run) == 2
     assert dags_to_run.name[0] == 'archive_cat_photos'
 
     state.set_dag_status('archive_cat_photos', execution_times[0].to_pydatetime().isoformat(), Status.PENDING)
 
     dags_to_run = scheduler._determine_dags_to_run(schedule, target_execution_time)
 
-    assert len(dags_to_run) == 0
+    assert len(dags_to_run) == 1
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -135,7 +134,7 @@ def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, 
 
     dags_to_run = pickle.loads(data[0])
 
-    assert len(dags_to_run) == 1
+    assert len(dags_to_run) == 2
 
     dag_data = [json.loads(dag) for dag in dags_to_run]
 
@@ -180,6 +179,7 @@ def schedule_csv():
 archive_cat_photos,15 * */1 * 1
 translate_meows,10 */5 * * 1-5
 scrape_ama_fan_pages,5 * */1 * 3
+boil_water,*/15 * * * *
 """
 
 
