@@ -23,7 +23,16 @@
     the following files would be extracted as strings by the S3WindowsTextExtractorTask:
     AMA/CPT/20200401/standard/MEDU.txt
     AMA/CPT/20200401/standard/SHORTU.txt
+
+    If ASSUME_ROLE parameter is set to a RoleARN which looke liks:
+    'arn:aws:iam::191296302136:role/dev-ama-apigateway-invoke-role'
+    It will first assume that the ACCESS_KEY and SECRET_KEY parameters are the credentials for assuming
+    a new temporary role (previously would've been set as the 'apigw' profile). Then the Extract process
+    will carry on with the temporary role just assumed.
 """
+import logging
+import tempfile
+
 from   dataclasses import dataclass
 
 from   dateutil.parser import isoparse
@@ -31,7 +40,15 @@ from   dateutil.parser import isoparse
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
+import datalabs.feature as feature
 from   datalabs.parameter import add_schema
+
+if feature.enabled("PROFILE"):
+    from guppy import hpy
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @add_schema
@@ -48,7 +65,9 @@ class S3FileExtractorParameters:
     include_names: str = None
     include_datestamp: str = None
     execution_time: str = None
+    on_disk: str = False
     data: object = None
+    assume_role: str = None
 
 
 # pylint: disable=too-many-ancestors
@@ -61,13 +80,18 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             endpoint_url=self._parameters.endpoint_url,
             aws_access_key_id=self._parameters.access_key,
             aws_secret_access_key=self._parameters.secret_key,
-            region_name=self._parameters.region_name
+            region_name=self._parameters.region_name,
+            assume_role=self._parameters.assume_role
         )
 
     def _get_files(self):
         base_path = self._get_latest_path()
+        files = self._parameters.files.split(',')
 
-        return ['/'.join((base_path, file.strip())) for file in self._parameters.files.split(',')]
+        if base_path:
+            files = ['/'.join((base_path, file.strip())) for file in files]
+
+        return files
 
     def _resolve_wildcard(self, file):
         files = [file]
@@ -80,8 +104,14 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         return files
 
+    # pylint: disable=logging-fstring-interpolation
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
+        data = None
+
+        if feature.enabled("PROFILE"):
+            LOGGER.info(f'Pre extraction memory {(hpy().heap())}')
+
         try:
             response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
         except Exception as exception:
@@ -89,7 +119,15 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
 
-        return response['Body'].read()
+        if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
+            data = self._cache_data_to_disk(response['Body'])
+        else:
+            data = response['Body'].read()
+
+        if feature.enabled("PROFILE"):
+            LOGGER.info(f'Post extraction memory {(hpy().heap())}')
+
+        return data
 
     def _get_latest_path(self):
         release_folder = self._get_release_folder()
@@ -99,6 +137,15 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             path = '/'.join((self._parameters.base_path, release_folder))
 
         return path
+
+    @classmethod
+    def _cache_data_to_disk(cls, body):
+        with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+            with open(temp_file.name, 'wb') as file:
+                for chunk in body.iter_chunks(1024*1024):
+                    file.write(chunk)
+
+        return temp_file.name
 
     def _get_release_folder(self):
         release_folder = self._get_execution_date()
@@ -145,14 +192,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
 
 # pylint: disable=too-many-ancestors
-class S3UnicodeTextFileExtractorTask(S3FileExtractorTask):
-    @classmethod
-    def _decode_data(cls, data):
-        return data.decode('utf-8', errors='backslashreplace')
-
-
-# pylint: disable=too-many-ancestors
 class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
-        return data.decode('cp1252', errors='backslashreplace')
+        return data.decode('cp1252', errors='backslashreplace').encode()

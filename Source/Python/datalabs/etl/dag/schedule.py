@@ -4,12 +4,14 @@ from   datetime import datetime, timedelta
 from   functools import partial
 from   io import BytesIO
 import logging
+import pickle
 
+from   dateutil.parser import isoparse
 from   croniter import croniter
 import pandas
 
 from   datalabs.etl.dag.state import Status
-import datalabs.etl.task as task
+from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.transform as transform
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
@@ -24,12 +26,13 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=too-many-instance-attributes
 class DAGSchedulerParameters:
     interval_minutes: str
-    state_class: str
-    unknowns: dict = None
+    dag_state_class: str
+    execution_time: str
     data: object = None
+    unknowns: dict = None
 
 
-class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
+class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
     PARAMETER_CLASS = DAGSchedulerParameters
 
     def _transform(self):
@@ -44,11 +47,11 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
         dags = self._determine_dags_to_run(schedule, self._get_target_execution_time())
         LOGGER.info("Dags to Run:\n%s", dags)
 
-        return [dag[1].to_json().encode('utf-8', errors='backslashreplace') for dag in dags.iterrows()]
+        return self._generate_notification_messages(dags)
 
     # pylint: disable=no-self-use
     def _get_target_execution_time(self):
-        return datetime.utcnow()
+        return isoparse(self._parameters.execution_time)
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
         base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
@@ -57,6 +60,13 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
         schedule["started"] = self._get_started_dags(schedule)
 
         return schedule[schedule.scheduled & ~schedule.started]
+
+    @classmethod
+    def _generate_notification_messages(cls, dags):
+        message_data = dags[["name", "execution_time"]].rename(columns=dict(name="DAG"))
+        messages = [row[1].to_json() for row in message_data.iterrows()]
+
+        return pickle.dumps(messages)
 
     def _get_execution_times(self, schedule, base_time):
         return schedule.apply(partial(self._get_execution_time, base_time), axis = 1)
@@ -85,14 +95,13 @@ class DAGScheduler(task.ExecutionTimeMixin, transform.TransformerTask):
     def _is_started(cls, state, dag):
         status = None
 
-        with state:
-            status = state.get_status(dag["name"], dag["execution_time"].to_pydatetime())
+        status = state.get_dag_status(dag["name"], dag["execution_time"].to_pydatetime().isoformat())
 
         return status != Status.UNKNOWN
 
     def _get_state_plugin(self):
         parameters = self._parameters.unknowns
-        state_plugin = import_plugin(self._parameters.state_class)
+        state_plugin = import_plugin(self._parameters.dag_state_class)
         state_parameter_keys = list(state_plugin.PARAMETER_CLASS.SCHEMA.fields.keys())
         state_parameters = {key:value for key, value in parameters.items() if key in state_parameter_keys}
 

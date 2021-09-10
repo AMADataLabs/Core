@@ -11,7 +11,7 @@ import datalabs.plugin as plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 @dataclass
@@ -71,13 +71,17 @@ class ETLTask(task.Task):
 
     @classmethod
     def _instantiate_component(cls, parameters, data=None):
-        parameters['data'] = data or {}
         task_class = parameters.pop('TASK_CLASS', None)
 
         if task_class is None:
             raise ETLException(f'...__TASK_CLASS parameter not specified in {parameters}')
 
         TaskPlugin = plugin.import_plugin(task_class)  # pylint: disable=invalid-name
+
+        if not hasattr(TaskPlugin, "PARAMETER_CLASS") or \
+           (hasattr(TaskPlugin, "PARAMETER_CLASS") and TaskPlugin.PARAMETER_CLASS is None) or \
+           (hasattr(TaskPlugin, "PARAMETER_CLASS") and "data" in TaskPlugin.PARAMETER_CLASS.__annotations__):
+            parameters['data'] = data or {}
 
         return TaskPlugin(parameters)
 
@@ -100,7 +104,7 @@ class ETLComponentTask(task.Task):
 
 class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
-        var_tree = VariableTree.generate()
+        var_tree = VariableTree.from_environment()
 
         return ETLParameters(
             extractor=self._get_component_parameters(var_tree, "EXTRACTOR"),
@@ -128,6 +132,10 @@ class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
             )
 
         return task_parameters
+
+    @classmethod
+    def _merge_parameters(cls, parameters, new_parameters):
+        return parameters
 
     def _handle_exception(self, exception: ETLException):
         LOGGER.exception('Handling ETL task exception: %s', exception)
