@@ -105,7 +105,7 @@ def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
 # pylint: disable=redefined-outer-name, protected-access
 def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execution_time):
     scheduler = DAGSchedulerTask(parameters)
-    execution_times = scheduler._get_execution_times(schedule, target_execution_time - timedelta(minutes=15))
+    execution_times = scheduler._get_execution_times(schedule, target_execution_time - timedelta(minutes=int('15')))
     state = DAGState(dict(BASE_PATH=parameters["BASE_PATH"]))
 
     dags_to_run = scheduler._determine_dags_to_run(schedule, target_execution_time)
