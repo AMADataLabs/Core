@@ -47,7 +47,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         dags = self._determine_dags_to_run(schedule, self._get_target_execution_time())
         LOGGER.info("Dags to Run:\n%s", dags)
 
-        return self._generate_notification_messages(dags)
+        return [self._generate_notification_messages(dags)]
 
     # pylint: disable=no-self-use
     def _get_target_execution_time(self):

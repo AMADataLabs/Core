@@ -125,11 +125,15 @@ def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execu
 def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, target_execution_time):
     parameters["data"] = [schedule_csv.encode('utf-8', errors='backslashreplace')]
     scheduler = DAGSchedulerTask(parameters)
+    data = None
 
     with mock.patch('datalabs.etl.dag.schedule.task.DAGSchedulerTask._get_target_execution_time') as get_execution_time:
         get_execution_time.return_value = target_execution_time
+        data = scheduler._transform()
 
-        dags_to_run = pickle.loads(scheduler._transform())
+    assert len(data) == 1
+
+    dags_to_run = pickle.loads(data[0])
 
     assert len(dags_to_run) == 1
 
