@@ -97,7 +97,7 @@ objects:
         uri: git@bitbucket.org:amaappdev/hs-datalabs.git
         ref: dev
       sourceSecret:
-        name: bitbucketprd
+        name: bitbucket
       type: Git
     strategy:
       dockerStrategy:
@@ -136,7 +136,7 @@ objects:
         uri: git@bitbucket.org:amaappdev/hs-datalabs.git
         ref: dev
       sourceSecret:
-        name: bitbucketprd
+        name: bitbucket
       type: Git
     strategy:
       dockerStrategy:
@@ -440,7 +440,8 @@ objects:
           persistentVolumeClaim:
             claimName: ${APPLICATION_NAME}-db
     triggers:
-    - imageChangeParams:
+    - type: ImageChange
+      imageChangeParams:
         automatic: true
         containerNames:
         - postgresql
@@ -449,7 +450,6 @@ objects:
           name: postgresql:9.6
           namespace: openshift
         lastTriggeredImage: ""
-      type: ImageChange
     - type: ConfigChange
   status: {}
 
@@ -622,7 +622,7 @@ objects:
           emptyDir: {}
         - name: id-rsa
           secret:
-            secretName: bitbucketprd
+            secretName: bitbucket
             defaultMode: 420
             items:
               - key: ssh-privatekey
@@ -685,7 +685,7 @@ parameters:
 - name: VOLUME_CAPACITY
   description: Volume space available for data, e.g. 512Mi, 2Gi.
   displayName: Volume Capacity
-  value: 1Gi
+  value: 2Gi
 - name: DATABASE_PASSWORD
   description: Password for the PostgreSQL database.
   displayName: PostgreSQL Password

@@ -2,9 +2,10 @@ setuptools==41.0.0
 apache-airflow[kubernetes]==2.0.1
 alembic==1.4.2
 arnparse==0.0.2
-boto3==1.12.45
+boto3==1.18.12
 coverage==5.1
 croniter==0.3.37
+dask==2021.7.1
 docker==4.2.1
 doit==0.31.1
 Flask==1.1.1
@@ -12,6 +13,7 @@ feather-format==0.4.0
 gevent==1.4.0
 gremlinpython==3.4.8
 gunicorn==19.10.0
+guppy3==3.1.1
 imbalanced-learn==0.6.2
 ipython==7.21.0
 JayDeBeApi==1.1.1
@@ -26,8 +28,10 @@ mock==4.0.2
 nameparser==1.0.6
 notebook==6.1.5
 numpy==1.18.1
+openpyxl==3.0.7
 pandas==1.0.1
 paradag==1.2.0
+pika==1.2.0
 pip==21.0
 pipenv==2018.5.18
 psycopg2-binary==2.8.5
@@ -42,7 +46,7 @@ python-dateutil==2.8.1
 python-dotenv==0.12.0
 pywin32==223; platform_system=="Windows"
 PyYAML==5.4
-requests==2.22.0
+requests==2.26.0
 scikit-image==0.16.2
 scikit-learn==0.22.1
 scipy==1.4.1
@@ -50,6 +54,6 @@ seaborn==0.10.0
 selenium==3.141.0
 sqlalchemy==1.3.18
 tensorflow==2.1.0; platform_system=="Windows"
-urllib3==1.25.11
+urllib3==1.26.5
 xgboost==0.90
 XlsxWriter==1.3.7

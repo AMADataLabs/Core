@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: contact-id:1.0.6
+      name: contact-id:1.0.34
   postCommit: {}
   resources: {}
   runPolicy: Serial
@@ -24,7 +24,7 @@ spec:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
       ref: dev
     sourceSecret:
-      name: bitbucketprd
+      name: bitbucket
     type: Git
   strategy:
     dockerStrategy:

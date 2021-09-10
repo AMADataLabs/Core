@@ -33,7 +33,7 @@ class Physician(Base):
     preferred_address_2 = sa.Column(sa.String)
     preferred_address_1 = sa.Column(sa.String)
     city = sa.Column(sa.String)
-    state = sa.Column(sa.String)
+    state = sa.Column(sa.String, sa.ForeignKey("oneview.state.id"))
     zipcode = sa.Column(sa.String)
     sector = sa.Column(sa.String)
     carrier_route = sa.Column(sa.String)
@@ -46,12 +46,12 @@ class Physician(Base):
     delivery_point = sa.Column(sa.String)
     check_digit = sa.Column(sa.String)
     printer_control_code_end = sa.Column(sa.String)
-    region = sa.Column(sa.String)
-    division = sa.Column(sa.String)
-    group = sa.Column(sa.String)
-    tract = sa.Column(sa.String)
-    suffix = sa.Column(sa.String)
-    block_group = sa.Column(sa.String)
+    census_region = sa.Column(sa.String)
+    census_division = sa.Column(sa.String)
+    census_group = sa.Column(sa.String)
+    census_tract = sa.Column(sa.String)
+    census_suffix = sa.Column(sa.String)
+    census_block_group = sa.Column(sa.String)
     metropolitan_statistical_area_population = sa.Column(sa.String)
     micro_metro_indicator = sa.Column(sa.String)
     core_based_statistical_area = sa.Column(sa.String, sa.ForeignKey("oneview.core_based_statistical_area.id"))
@@ -105,7 +105,9 @@ class Physician(Base):
     national_provider_identifier = sa.Column(sa.String)
     party_id = sa.Column(sa.String)
     entity_id = sa.Column(sa.String)
-    type = sa.Column(sa.String, nullable=False)
+    race_ethnicity = sa.Column(sa.String, nullable=False)
+    membership_year = sa.Column(sa.String)
+    type = sa.Column(sa.String)
 
 
 class ResidencyProgram(Base):
@@ -121,8 +123,7 @@ class ResidencyProgram(Base):
     acgme_accredited = sa.Column(sa.String)
     name = sa.Column(sa.String)
     web_address = sa.Column(sa.String)
-    old_name = sa.Column(sa.String)
-    contact_director = sa.Column(sa.String)
+    contact_director = sa.Column(sa.Boolean)
     accreditation_status = sa.Column(sa.String)
     accreditation_effective_date = sa.Column(sa.Date)
     initial_accreditation_date = sa.Column(sa.Date)
@@ -130,23 +131,24 @@ class ResidencyProgram(Base):
     duration = sa.Column(sa.String)
     government_affiliated = sa.Column(sa.Boolean)
     graduate_medical_education_equivalent_years = sa.Column(sa.String)
+    preliminary_years_required = sa.Column(sa.String)
     preliminary_positions_offered = sa.Column(sa.Boolean)
     type = sa.Column(sa.String)
     max_residents_accepted_increase = sa.Column(sa.Integer)
     percent_at_primary_site = sa.Column(sa.String)
     primary_site = sa.Column(sa.String)
     core_program = sa.Column(sa.String)
-    medical_records = sa.Column(sa.String)
-    official_address = sa.Column(sa.String)
+    medical_records = sa.Column(sa.Boolean)
+    official_address = sa.Column(sa.Boolean)
     uses_sfmatch = sa.Column(sa.Boolean)
-    other_match_indicator = sa.Column(sa.String)
+    other_match_indicator = sa.Column(sa.Boolean)
     other_match = sa.Column(sa.String)
-    additional_education_accreditation_length = sa.Column(sa.String)
+    additional_education_accreditation_length = sa.Column(sa.Boolean)
     last_update_date = sa.Column(sa.Date)
     last_update_type = sa.Column(sa.String)
-    american_osteopathic_association_indicator = sa.Column(sa.String)
+    american_osteopathic_association_indicator = sa.Column(sa.Boolean)
     american_osteopathic_association_indicator_program = sa.Column(sa.String)
-    osteopathic_principles = sa.Column(sa.String)
+    osteopathic_principles = sa.Column(sa.Boolean)
     address_1 = sa.Column(sa.String)
     address_2 = sa.Column(sa.String)
     address_3 = sa.Column(sa.String)
@@ -206,14 +208,14 @@ class Business(Base):
     website = sa.Column(sa.String)
     latitude = sa.Column(sa.String)
     longitude = sa.Column(sa.String)
-    owner_status = sa.Column(sa.String)
-    profit_status = sa.Column(sa.String)
+    owner_status = sa.Column(sa.String, sa.ForeignKey("oneview.owner_status.id"))
+    profit_status = sa.Column(sa.String, sa.ForeignKey("oneview.profit_status.id"))
     primary_class_of_trade = sa.Column(sa.String)
     class_of_trade_classification = sa.Column(sa.String)
     class_of_trade_classification_description = sa.Column(sa.String)
-    class_of_trade_facility_type = sa.Column(sa.String)
+    class_of_trade_facility_type = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_facility.id"))
     class_of_trade_facility_type_description = sa.Column(sa.String)
-    class_of_trade_specialty = sa.Column(sa.String)
+    class_of_trade_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_specialty.id"))
     class_of_trade_specialty_description = sa.Column(sa.String)
     record_type = sa.Column(sa.String)
     total_licensed_beds = sa.Column(sa.String)
@@ -238,8 +240,9 @@ class Provider(Base):
     __tablename__ = 'provider'
     __table_args__ = {"schema": "oneview"}
 
-    id = sa.Column(sa.String, primary_key=True, nullable=False)
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"))
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
+                                         primary_key=True)
+    iqvia_provider_id = sa.Column(sa.String)
     first_name = sa.Column(sa.String)
     middle_name = sa.Column(sa.String)
     last_name = sa.Column(sa.String)
@@ -264,25 +267,14 @@ class ProviderAffiliation(Base):
 
     id = sa.Column(sa.Integer, autoincrement=True, primary_key=True, nullable=False)
     business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
-    provider = sa.Column(sa.String, sa.ForeignKey("oneview.provider.id"))
-    type = sa.Column(sa.String)
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"))
+    type = sa.Column(sa.String, sa.ForeignKey("oneview.provider_affiliation_type.id"))
     description = sa.Column(sa.String)
     primary = sa.Column(sa.String)
     rank = sa.Column(sa.String)
-    group = sa.Column(sa.String)
+    group = sa.Column(sa.String, sa.ForeignKey("oneview.provider_affiliation_group.id"))
     group_description = sa.Column(sa.String)
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
-
-
-class PhysicianRaceEthnicity(Base):
-    __tablename__ = 'physician_race_ethnicity'
-    __table_args__ = {"schema": "oneview"}
-
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
-                                         primary_key=True, nullable=False)
-    race_ethnicity = sa.Column(sa.String, nullable=False)
-    gender = sa.Column(sa.String, nullable=False)
-    current_person_type = sa.Column(sa.String, nullable=False)
 
 
 ################################################################
@@ -334,18 +326,15 @@ class ZipCode(Base):
     __tablename__ = 'zip_code'
     __table_args__ = {"schema": "oneview"}
 
-    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    zip_code = sa.Column(sa.String, nullable=False)
     state = sa.Column(sa.String, nullable=False)
     city = sa.Column(sa.String, nullable=False)
     type = sa.Column(sa.String, nullable=False)
-    county_federal_information_processing = sa.Column(sa.String,
-                                                      sa.ForeignKey
-                                                      ("oneview.county.federal_information_processing_standard_code"),
-                                                      nullable=False)
+    county_federal_information_processing = sa.Column(sa.String, nullable=False)
     latitude = sa.Column(sa.String, nullable=False)
     longitude = sa.Column(sa.String, nullable=False)
-    metropolitan_statistical_area = sa.Column(sa.String, sa.ForeignKey("oneview.metropolitan_statistical_area.code"),
-                                              nullable=False)
+    metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
     primary_metropolitan_statistical_area = sa.Column(sa.String, nullable=False)
 
 
@@ -376,7 +365,8 @@ class AreaCode(Base):
     __tablename__ = 'area_code'
     __table_args__ = {"schema": "oneview"}
 
-    area_code = sa.Column(sa.String, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    area_code = sa.Column(sa.String, nullable=False)
     prefix = sa.Column(sa.String, nullable=False)
     latitude = sa.Column(sa.String, nullable=False)
     longitude = sa.Column(sa.String, nullable=False)
@@ -448,7 +438,7 @@ class ZipCodeCoreBasedStatisticalArea(Base):
     __tablename__ = 'zip_code_core_based_statistical_areas'
     __table_args__ = {"schema": "oneview"}
 
-    zip_code = sa.Column(sa.String, sa.ForeignKey("oneview.zip_code.zip_code"), primary_key=True, nullable=False)
+    zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
     core_based_statistical_area = sa.Column(sa.String,
                                             sa.ForeignKey("oneview.core_based_statistical_area_melissa.code"),
                                             nullable=False)
@@ -515,9 +505,9 @@ class ResidencyProgramPhysician(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     personnel_member = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program_personnel_member.id"),
-                                 nullable=False)
+                                 nullable=False, unique=True)
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
-                                         nullable=False)
+                                         nullable=False, unique=True)
 
 
 class CorporateParentBusiness(Base):
@@ -528,8 +518,8 @@ class CorporateParentBusiness(Base):
     parent = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
 
 
-class SubsidiaryBusiness(Base):
-    __tablename__ = 'subsidiary_business'
+class SubsidiaryOwnerBusiness(Base):
+    __tablename__ = 'subsidiary_owner_business'
     __table_args__ = {"schema": "oneview"}
 
     subsidiary = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"), primary_key=True, nullable=False)
@@ -574,8 +564,10 @@ class MajorProfessionalActivity(Base):
 
 class FederalInformationProcessingStandardCounty(Base):
     __tablename__ = 'federal_information_processing_standard_county'
-    __table_args__ = {"schema": "oneview"}
-
+    __table_args__ = (
+        sa.UniqueConstraint('state', 'county'),
+        {"schema": "oneview"}
+    )
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     state = sa.Column(sa.String, nullable=False)
     county = sa.Column(sa.String, nullable=False)
@@ -592,6 +584,70 @@ class CoreBasedStatisticalArea(Base):
 
 class Specialty(Base):
     __tablename__ = 'specialty'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class State(Base):
+    __tablename__ = 'state'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ClassOfTradeSpecialty(Base):
+    __tablename__ = 'class_of_trade_specialty'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ClassOfTradeFacilityType(Base):
+    __tablename__ = 'class_of_trade_facility'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ProviderAffiliationGroup(Base):
+    __tablename__ = 'provider_affiliation_group'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ProviderAffiliationType(Base):
+    __tablename__ = 'provider_affiliation_type'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ProfitStatus(Base):
+    __tablename__ = 'profit_status'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class OwnerStatus(Base):
+    __tablename__ = 'owner_status'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class AssociationStatus(Base):
+    __tablename__ = 'association_status'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)

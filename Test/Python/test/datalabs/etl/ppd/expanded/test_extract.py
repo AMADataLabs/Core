@@ -1,6 +1,7 @@
 """ source: datalabs.etl.ppd.expanded.extract """
 import logging
 import os
+import pickle
 
 import mock
 import pytest
@@ -31,9 +32,11 @@ def test_extractor_data_is_reasonable(etl):
     LOGGER.debug('Extracted Data: %s', extractor.data)
     assert len(extractor.data) == 1
 
-    data = extractor.data[0]
-    assert len(data) == 2
-    assert len(data[1].split('\n')) == 3
+    named_files_data = pickle.loads(extractor.data[0])
+    assert len(named_files_data) == 1
+    _, data = zip(*named_files_data)
+    assert len(data) == 1
+    assert len(data[0].decode().split('\n')) == 3
 
 
 # pylint: disable=redefined-outer-name, unused-argument

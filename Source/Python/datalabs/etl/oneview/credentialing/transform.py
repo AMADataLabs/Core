@@ -19,19 +19,35 @@ class CredentialingTransformerTask(TransformerTask):
 
 
 class CredentialingFinalTransformerTask(TransformerTask):
-    def _to_dataframe(self):
-        main_dataframe = pandas.read_csv(BytesIO(self._parameters['data'][1]))
-        address_dataframe = pandas.read_excel(BytesIO(self._parameters['data'][0]))
+    def _transform(self):
+        LOGGER.debug(self._parameters['data'])
+        table_data = self._csv_to_dataframe(self._parameters['data'])
 
-        credentialing_data = self._merge_dataframes([address_dataframe, main_dataframe])
+        preprocessed_data = self._preprocess_data(table_data)
 
-        return credentialing_data
+        selected_data = self._select_columns(preprocessed_data)
+        renamed_data = self._rename_columns(selected_data)
 
+        postprocessed_data = self._postprocess_data(renamed_data)
+
+        return [self._dataframe_to_csv(data, index=False) for data in postprocessed_data]
+
+    # pylint: disable=arguments-differ
     @classmethod
-    def _merge_dataframes(cls, dataframes):
-        credentialing_main = dataframes[1].rename(columns={'CUSTOMER_NBR': 'number'})
-        new_df = credentialing_main.merge(dataframes[0], how='left', on='number')
+    def _csv_to_dataframe(cls, data):
+        addresses = pandas.read_excel(data[0], engine='openpyxl')
+        customers = pandas.read_csv(BytesIO(data[1]), encoding = "ISO-8859-1", engine='python')
+
+        return [addresses, customers]
+
+    def _preprocess_data(self, data):
+        credentialing_main = data[1].rename(columns={'CUSTOMER_NBR': 'number'})
+        new_df = credentialing_main.merge(data[0], how='left', on='number')
         return [new_df]
 
     def _get_columns(self):
         return [columns.CUSTOMER_ADDRESSES_COLUMNS]
+
+    @classmethod
+    def _dataframe_to_csv(cls, data, **kwargs):
+        return pandas.DataFrame.to_csv(data, **kwargs).encode()

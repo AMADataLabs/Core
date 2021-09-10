@@ -125,6 +125,53 @@ resource "aws_route_table_association" "datalake_private2" {
 # }
 
 
+module "apigw_sg" {
+  source  = "app.terraform.io/AMA/security-group/aws"
+  version = "1.0.0"
+  name        = "${var.project}-${var.environment}-apigw-sg"
+  description = "Security group for API Gateway VPC interfaces"
+  vpc_id      = aws_vpc.datalake.id
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "User-service ports"
+      cidr_blocks = "0.0.0.0/0,10.96.64.0/20,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    },
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "outbound ports"
+      cidr_blocks = "0.0.0.0/0"
+    },
+  ]
+
+}
+
+
+resource "aws_vpc_endpoint" "apigw" {
+  vpc_id            = aws_vpc.datalake.id
+  service_name      = "com.amazonaws.${var.region}.execute-api"
+  vpc_endpoint_type = "Interface"
+
+  security_group_ids = [
+    module.apigw_sg.security_group_id
+  ]
+
+  subnet_ids        = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
+
+  private_dns_enabled = true
+
+  tags = merge(local.tags, {Name = "${var.environment}-execute-api_vpc_endpoint"})
+}
+
+
 #####################################################################
 # Datalake - Bastion                                                #
 #####################################################################
@@ -134,6 +181,38 @@ resource "aws_key_pair" "bastion_key" {
     public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDMdCgPAcG2MsIQF7Zds/qaGTMNjWNeYIQXdwb+HvtSqJrtRDXo/XZUu6m4MUrFs0n6vDleSfAafp3xZ9VLLQN/6vVIuJW9GDRiJl1fqPessQxKKFGqJuSv+TrZ20RiUkUpGOmUKcBB6N1Hwkqped2DfTYIX9If3i4OKgdFETg8U2jlxFixvOtruSosm8g/xsHC2Xmnvv4VTc1DwWECARVYGRFUIdIdy/PNkIhzWGNp1aDs5ALzpZ5WhtqkzSBr49tYbALORs/DcN5CV6RSZ3vaVvcXoQrweDl6Cd5eCTiPxU8xsZGZFFPwWK9VXXrLJkpSMeqZmHacPNRAp+zd2zOZ"
 
     tags = merge(local.tags, {Name = "Data Lake Bastion Key"})
+}
+
+
+resource "aws_security_group" "datalake_bastion" {
+  name        = "DataLake-sbx-bastion-sg"
+  description = "Allow SSH inbound traffic"
+  vpc_id      = aws_vpc.datalake.id
+
+  ingress {
+    description = "SSH traffic"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "VPC traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["172.31.0.0/16"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+    tags = merge(local.tags, {Name = "Temporary development box SG"})
 }
 
 
@@ -184,17 +263,34 @@ resource "aws_key_pair" "bastion_key" {
 # }
 #
 #
-# resource "aws_instance" "bastion" {
-#     ami                             = data.aws_ami.ubuntu.id
-#     instance_type                   = "t2.micro"
-#     key_name                        = aws_key_pair.bastion_key.key_name
-#     subnet_id                       = aws_subnet.bastion.id
-#     vpc_security_group_ids          = [aws_security_group.bastion_ssh.id]
-#     associate_public_ip_address     = true
-#
-#     tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
-#     volume_tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
-# }
+resource "aws_instance" "datalake_bastion" {
+    ami                             = data.aws_ami.datalake_bastion.id
+    instance_type                   = "t2.micro"
+    key_name                        = aws_key_pair.bastion_key.key_name
+    subnet_id                       = aws_subnet.datalake_public1.id
+    vpc_security_group_ids          = [aws_security_group.datalake_bastion.id]
+    associate_public_ip_address     = true
+
+    tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
+    volume_tags = merge(local.tags, {Name = "Data Lake Bastion", OS = "Ubuntu 18.04"})
+}
+
+
+data "aws_ami" "datalake_bastion" {
+    most_recent = true
+
+    filter {
+        name   = "name"
+        values = ["Temporary development box 2021-08-09"]
+        }
+
+    filter {
+        name   = "virtualization-type"
+        values = ["hvm"]
+    }
+
+    owners = [data.aws_caller_identity.account.account_id]
+}
 
 
 # resource "aws_instance" "test" {
@@ -210,21 +306,21 @@ resource "aws_key_pair" "bastion_key" {
 # }
 
 
-data "aws_ami" "ubuntu" {
-    most_recent = true
-
-    filter {
-        name   = "name"
-        values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-20200821.1"]
-        }
-
-    filter {
-        name   = "virtualization-type"
-        values = ["hvm"]
-    }
-
-    owners = ["099720109477"] # Canonical
-}
+# data "aws_ami" "ubuntu" {
+#     most_recent = true
+#
+#     filter {
+#         name   = "name"
+#         values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-20200821.1"]
+#         }
+#
+#     filter {
+#         name   = "virtualization-type"
+#         values = ["hvm"]
+#     }
+#
+#     owners = ["099720109477"] # Canonical
+# }
 
 
 #####################################################################
@@ -232,6 +328,17 @@ data "aws_ami" "ubuntu" {
 #####################################################################
 
 ##### BEGIN REMOVE #####
+resource "aws_s3_bucket" "old_datalabs_lambda_code_bucket" {
+    bucket = var.old_lambda_code_bucket
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags = merge(local.tags, {Name = "Data Labs Lambda Code Bucket"})
+}
+
+
 resource "aws_s3_bucket" "datalabs_lambda_code_bucket" {
     bucket = var.lambda_code_bucket
 
@@ -479,7 +586,7 @@ resource "aws_ecr_repository" "datanow" {
 
 module "datalake_ecs_cluster" {
     source                            = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-fargate.git?ref=2.0.0"
-    app_name                          =  lower("${var.project}")
+    app_name                          =  lower(var.project)
     app_environment                   = var.environment
 
     tag_name                          = "${var.project}-cluster"
@@ -1021,4 +1128,94 @@ module "datanow_efs" {
 module "datalabs_terraform_state" {
     source  = "../../Module/DataLake"
     project = "DataLake"
+}
+
+
+#####################################################################
+# Web App Load Balancer
+#####################################################################
+
+module "webapp_sg" {
+  source  = "app.terraform.io/AMA/security-group/aws"
+  version = "1.0.0"
+  name        = "${var.project}-${var.environment}-webapp-sg"
+  description = "Security group for DataLabs web app load balancer"
+  vpc_id      = aws_vpc.datalake.id
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = "443"
+      to_port     = "443"
+      protocol    = "tcp"
+      description = "Web traffic"
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      from_port   = "7"
+      to_port     = "7"
+      protocol    = "icmp"
+      description = "Ping"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "outbound ports"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
+
+  tags = merge(local.tags, {Name = "DataLabs web app load balancer security group"})
+}
+
+module "webapp_alb" {
+  source                            = "app.terraform.io/AMA/alb/aws"
+  version                           = "1.0.2"
+  environment                       = var.environment
+  name                              = "webapp"
+  project                           = lower(var.project)
+  description                       = "DataLabs Web APP Load Balancer"
+  # vpc_id                            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+  vpc_id                            = aws_vpc.datalake.id
+  # security_groups                   = [module.oneview_sg.security_group_id]
+  security_groups                   = [module.webapp_sg.security_group_id]
+  internal                          = true
+  load_balancer_type                = "application"
+  # subnet_ids                        = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+  subnet_ids                        = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
+  enable_deletion_protection        = "false"
+  target_type                       = "ip"
+  target_group_port                 = 80
+  target_group_protocol             = "HTTP"
+  listener_port                     = 443
+  listener_protocol                 = "HTTPS"
+  ssl_policy                        = "ELBSecurityPolicy-2020-10"
+  # certificate_arn                   = var.private_certificate_arn
+  certificate_arn                   = data.aws_acm_certificate.amaaws.arn
+  action                            = "forward"
+  health_check_protocol             = "HTTP"
+  health_check_port                 = 80
+  health_check_interval             = 300
+  health_check_path                 = "/"
+  health_check_timeout              = "3"
+  health_check_healthy_threshold    = "5"
+  health_check_unhealthy_threshold  = "10"
+  health_check_matcher              = "200"
+  tag_name                          = "${var.project}-${var.environment}-webapp-alb"
+  tag_environment                   = var.environment
+  tag_contact                       = local.contact
+  tag_budgetcode                    = local.budget_code
+  tag_owner                         = local.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
+  tags = {}
 }

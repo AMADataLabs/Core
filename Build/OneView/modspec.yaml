@@ -37,7 +37,9 @@ modspec:
       - awslambda
       - transform
       - load
-  - package: datalabs.etl.airflow
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.state
   - package: datalabs.etl.fs
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.oneview
@@ -50,6 +52,7 @@ modspec:
   - package: datalabs.etl.oneview.melissa
   - package: datalabs.etl.orm
   - package: datalabs.etl.oneview.reference
+  - package: datalabs.etl.oneview.historical_residency
   - package: datalabs.etl.http
   - package: datalabs.etl.s3
   - package: datalabs.etl.sftp

@@ -1,4 +1,4 @@
-""" REPLACE WITH DOCSTRING """
+""" Task wrapper for simple ETL Lambda functions. """
 import json
 import logging
 import os

@@ -50,6 +50,18 @@ def get_key_table():
     key_table = pd.merge(entity_to_party, me_to_party, on='PARTY_ID')
     return key_table
 
+def fix_zipcodes(zipcode_list):
+    nums = []
+    for num in zipcode_list:
+        num = str(num)
+        num = num.replace('.0', '')
+        if len(num) == 4:
+            num = '0' + num
+        elif len(num) == 3:
+            num = '00' + num
+        nums.append(num)
+    return nums
+
 def get_addresses():
     LOGGER.info('Getting POLO and PPMA addresses')
     with EDW() as edw:
@@ -125,8 +137,11 @@ def find_humach_matches(newer_dpc):
     dpc_with_humach['ADDRESS_VALIDATED'] = corrects
     validated = dpc_with_humach[dpc_with_humach.ADDRESS_VALIDATED==True]
     validated = validated.drop_duplicates('ME')
+    not_validated = newer_dpc[newer_dpc.ME.isin(validated.ME)==False]
+    not_validated = not_validated.drop_duplicates('ME')
     LOGGER.info(f'{len(validated)} newer filtered DPC POLOs have been recently validated by Humach')
-    return validated
+    LOGGER.info(f'{len(not_validated)} newer filtered DPC POLOs have not been recently validated by Humach')
+    return validated, not_validated
 
 def get_license():
     LOGGER.info('Getting state license info')
@@ -166,6 +181,7 @@ def find_license_matches(newer_validated_dpc):
 def get_col():
     '''Get column dict'''
     columns = {
+        'ENTITY': 'entity_id',
         'ME':'me#',
         'COMM_ID':'comm_id',
         'ADDR_1_POLO':'addr_line_1',
@@ -176,10 +192,73 @@ def get_col():
         'ZIP_POLO':'addr_zip'}
     return columns
 
+def remove_whitespaces(dataframe):
+    for column in dataframe.columns:
+        if dataframe[column].dtype == 'object':
+            dataframe[column] = [str(x).strip() for x in dataframe[column]]
+    return dataframe
+
+def get_present_employment():
+    present_employment_key = {
+        11: 'Self-Employed Solo Practice',
+        13: 'Two Physician Practice-Full Or Part Owner',
+        21: 'Other-Patient Care',
+        22: 'Locum Tenens',
+        30: 'Group Practice',
+        35: 'HMO',
+        40: 'Medical School',
+        50: 'Non-Government Hospital',
+        63: 'City/County/State Government-Hospital',
+        64: 'City/County/State Government-Other Than Hospital',
+        81: 'Federal Government-Hospital/Army',
+        82: 'Federal Government-Hospital/Navy',
+        83: 'Federal Government-Hospital/Air Force',
+        84: 'Federal Government-Hospital/Usphs',
+        85: 'Federal Government-Hospital/Vet Admin',
+        86: 'Federal Government-Hospital/Other Agency',
+        101: 'Other/Non-Patient Care',
+        110: 'No Classification'
+    }
+    return present_employment_key
+
+def humach_samplify(data):
+    present_employment_key = get_present_employment()
+    data['DESCRIPTION'] = [present_employment_key[x] for x in data.PE_CD]
+    data = data[data.TELEPHONE_NUMBER!='None']
+    new_columns = {
+        'ADDR_1_POLO':'POLO_MAILING_LINE_2',
+        'ADDR_2_POLO':'POLO_MAILING_LINE_1',
+        'CITY_POLO':'POLO_CITY',
+        'STATE_POLO':'POLO_STATE',
+        'ZIP_POLO':'POLO_ZIP'}
+    humach_columns = [
+        'ME',
+        'FIRST_NAME',
+        'MIDDLE_NAME',
+        'LAST_NAME',
+        'SUFFIX',
+        'ADDR_2_POLO',
+        'ADDR_1_POLO',
+        'CITY_POLO',
+        'STATE_POLO',
+        'ZIP_POLO',
+        'TELEPHONE_NUMBER',
+        'PRIM_SPEC_CD',
+        'DESCRIPTION',
+        'PE_CD',
+        'FAX_NUMBER'
+    ]
+    humach_data = data[humach_columns].rename(columns = new_columns)
+    return humach_data
+
 def clean_file(all_that, today):
     '''Clean and format data'''
     LOGGER.info('Cleaning file')
     all_that = all_that.drop_duplicates(['ME'])
+    all_that = remove_whitespaces(all_that)
+    all_that['addr_plus4'] = ''
+    all_that['addr_zip'] = fix_zipcodes(all_that.ZIP_POLO)
+    all_that['addr_country'] = ''
     all_that['ADDR_2_POLO'] = ['' if x=='None' else x for x in all_that.ADDR_2_POLO]
     all_that['ADDR_3_POLO'] = ['' if x=='None' else x for x in all_that.ADDR_3_POLO]
     all_that['usage'] = 'PP'
@@ -188,7 +267,8 @@ def clean_file(all_that, today):
     all_that['source'] = 'POLO-PPD'
     all_that['source_dtm'] = today
     col = get_col()
-    all_that = all_that[['ME',
+    all_that = all_that[['ENTITY',
+                         'ME',
                          'COMM_ID',
                          'usage',
                          'load_type_ind',
@@ -198,14 +278,16 @@ def clean_file(all_that, today):
                          'ADDR_3_POLO',
                          'CITY_POLO',
                          'STATE_POLO',
-                         'ZIP_POLO',
+                         'addr_zip',
+                         'addr_plus4',
+                         'addr_country',
                          'source',
                          'source_dtm',
                          ]].rename(columns=col)
     return all_that
 
 def create_and_save_file():
-    u_output = os.environ.get('UDRIVE_FOLDER')
+    u_output = os.environ.get('LOCAL_FOLDER')
     local_output = os.environ.get('LOCAL_FOLDER')
     today = str(date.today())
     
@@ -213,13 +295,13 @@ def create_and_save_file():
     filtered_polos.to_csv(f'{local_output}/Filtered_POLOs_{today}.csv', index=False)
     newer_filtered = find_newer_polos(filtered_polos)
     newer_filtered.to_csv(f'{local_output}/Newer_Filtered_POLOs_{today}.csv', index=False)
-    filtered_polos[filtered_polos.ME.isin(newer_filtered.ME==False)].to_csv(f'{local_output}/Older_Filtered_POLOs_{today}.csv', index=False)
+    filtered_polos[filtered_polos.ME.isin(newer_filtered.ME)==False].to_csv(f'{local_output}/Older_Filtered_POLOs_{today}.csv', index=False)
     # newer_filtered = pd.read_csv(f'{local_output}/Newer_Filtered_POLOs_2021-05-28.csv')
-    validated_newer_filtered = find_humach_matches(newer_filtered)
+    validated_newer_filtered, not_validated_newer_filtered = find_humach_matches(newer_filtered)
     # validated_newer_filtered = pd.read_csv(f'{local_output}/Recently_Validated_2021-05-28.csv')
     validated_newer_filtered.to_csv(f'{local_output}/Recently_Validated_{today}.csv', index=False)
+    humach_samplify(not_validated_newer_filtered).to_csv(f'{local_output}/Filtered_POLOs_Humach_Sample_{today}.csv', index=False)
     acceptable_updates = find_license_matches(validated_newer_filtered)
-    
     cleaned_file = clean_file(acceptable_updates, today)
     cleaned_file.to_csv(f'{u_output}/address_load.csv', index=False)
     cleaned_file.to_csv(f'{local_output}/address_load_{today}.csv', index=False)

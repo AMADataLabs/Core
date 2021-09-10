@@ -15,16 +15,30 @@ class VariableTree:
         return str(self._root)
 
     @classmethod
-    def generate(cls, separator=None):
+    def from_environment(cls, separator=None):
         ''' Generate a VariableTree from all current environment variables. '''
+        # pylint: disable=protected-access
+        return cls.generate(os.environ._data, separator)
+
+    @classmethod
+    def generate(cls, variables, separator=None):
         separator = separator or '__'
         root = dict()
 
-        # pylint: disable=protected-access
-        for name, value in os.environ._data.items():
-            cls._create_branch(root, name.decode('utf-8'), value.decode('utf-8'), separator)
+        for key, value in (cls._decode_kv_pair(k, v) for k, v in variables.items()):
+            cls._create_branch(root, key, value, separator)
 
         return VariableTree(root)
+
+    @classmethod
+    def _decode_kv_pair(cls, key, value):
+        decoded_kv_pair = [key, value]
+
+        for index, item in enumerate((key, value)):
+            if hasattr(item, 'decode'):
+                decoded_kv_pair[index] = item.decode('utf8')
+
+        return tuple(decoded_kv_pair)
 
     def get_value(self, branches: list):
         branch = self._root
