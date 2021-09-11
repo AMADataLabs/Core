@@ -155,6 +155,7 @@ class ResidencyProgram(Base):
     city = sa.Column(sa.String)
     state = sa.Column(sa.String)
     zipcode = sa.Column(sa.String)
+    primary_clinical_location = sa.Column(sa.String)
     institution = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program_institution.id"))
 
 
@@ -181,7 +182,6 @@ class ResidencyProgramInstitution(Base):
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     name = sa.Column(sa.String)
     affiliation = sa.Column(sa.String)
-    primary_clinical_location = sa.Column(sa.String)
     last_update_date = sa.Column(sa.Date)
 
 
