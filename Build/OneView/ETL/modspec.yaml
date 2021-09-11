@@ -46,13 +46,14 @@ modspec:
   - package: datalabs.etl.fs
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.oneview
-  - package: datalabs.etl.oneview.ppd
-  - package: datalabs.etl.oneview.iqvia
   - package: datalabs.etl.oneview.credentialing
-  - package: datalabs.etl.oneview.residency
-  - package: datalabs.etl.oneview.race_ethnicity
+  - package: datalabs.etl.oneview.historical_residency
+  - package: datalabs.etl.oneview.iqvia
   - package: datalabs.etl.oneview.link
   - package: datalabs.etl.oneview.melissa
+  - package: datalabs.etl.oneview.ppd
+  - package: datalabs.etl.oneview.race_ethnicity
+  - package: datalabs.etl.oneview.residency
   - package: datalabs.etl.orm
   - package: datalabs.etl.oneview.reference
   - package: datalabs.etl.http
