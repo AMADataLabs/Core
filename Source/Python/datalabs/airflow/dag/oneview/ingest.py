@@ -26,7 +26,7 @@ ONEVIEW_ETL_DAG = DAG(
     default_args=dict(
         owner='airflow',
         resources=dict(
-            limit_memory="20G",
+            limit_memory="12G",
             limit_cpu="2"
         ),
         is_delete_operator_pod=True,
