@@ -9,6 +9,6 @@ pandas==1.0.1
 psycopg2-binary==2.8.5
 python-dotenv==0.12.0
 PyYAML==5.4
-requests==2.22.0
+requests==2.26.0
 SQLAlchemy==1.3.18
-urllib3>=1.26.5 # not directly required, pinned by Snyk to avoid a vulnerability
+urllib3==1.26.5
