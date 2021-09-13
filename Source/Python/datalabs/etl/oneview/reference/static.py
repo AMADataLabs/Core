@@ -8,3 +8,11 @@ provider_affiliation_type = {
     'description': ['Attending', 'IDN Affiliated', 'Admitting', 'Staff', 'Consulting', 'Treating',
                     'IDN Affiliated (Inferred)', 'Admitting (Inferred)']
 }
+
+profit_status = {
+    'id': ['For Profit', 'Not For Profit', 'Government'],
+}
+
+owner_status = {
+    'id': ['INDEPENDENT', 'NOT INDEPENDENT']
+}

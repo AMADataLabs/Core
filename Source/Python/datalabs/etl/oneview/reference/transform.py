@@ -3,8 +3,11 @@ import logging
 import pandas
 
 from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, \
-    SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS
+    SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS, PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, \
+    OWNER_STATUS
 from   datalabs.etl.oneview.transform import TransformerTask
+
+import datalabs.etl.oneview.reference.static as tables
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -72,4 +75,26 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 
     @classmethod
     def _dataframe_to_csv(cls, data, **kwargs):
+        return pandas.DataFrame.to_csv(data).encode()
+
+
+class StaticReferenceTablesTransformerTask(TransformerTask):
+    def _transform(self):
+        table_data = [self._dictionary_to_dataframe(data) for data in tables]
+        preprocessed_data = self._preprocess_data(table_data)
+        selected_data = self._select_columns(preprocessed_data)
+        renamed_data = self._rename_columns(selected_data)
+        postprocessed_data = self._postprocess_data(renamed_data)
+
+        return [self._dataframe_to_csv(data) for data in postprocessed_data]
+
+    @classmethod
+    def _dictionary_to_dataframe(cls, data):
+        return pandas.DataFrame.from_dict(data)
+
+    def _get_columns(self):
+        return [PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, OWNER_STATUS]
+
+    @classmethod
+    def _dataframe_to_csv(cls, data):
         return pandas.DataFrame.to_csv(data).encode()

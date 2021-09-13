@@ -420,6 +420,19 @@ with ONEVIEW_ETL_DAG:
             **dict(TASK_CLASS='datalabs.etl.oneview.historical_residency.transform.HistoricalResidencyTransformerTask')
         },
     )
+
+    CREATE_STATIC_REFERENCE_TABLE = KubernetesPodOperator(
+        name="create_static_reference_table",
+        task_id="create_static_reference_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.StaticReferenceTablesTransformerTask')
+        },
+    )
+
     LOAD_REFERENCE_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_reference_tables_into_database",
         task_id="load_reference_tables_into_database",
@@ -573,3 +586,4 @@ CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 EXTRACT_MELISSA >> CREATE_MELISSA_TABLES >> LOAD_MELISSA_TABLES_INTO_DATABASE
 EXTRACT_STATE_TABLE
 EXTRACT_CLASS_OF_TRADE_TABLE
+CREATE_STATIC_REFERENCE_TABLE

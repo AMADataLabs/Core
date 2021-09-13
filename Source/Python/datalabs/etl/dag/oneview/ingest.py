@@ -8,7 +8,7 @@ from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
 from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask
 from   datalabs.etl.oneview.reference.transform import TypeOfPracticeTransformerTask, PresentEmploymentTransformerTask,\
     CoreBasedStatisticalAreaTransformerTask, FederalInformationProcessingStandardCountyTransformerTask, \
-    SpecialtyMergeTransformerTask
+    SpecialtyMergeTransformerTask, StaticReferenceTablesTransformerTask
 from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
 from   datalabs.etl.oneview.iqvia.transform import IQVIATransformerTask, IQVIAUpdateTransformerTask
 from   datalabs.etl.oneview.credentialing.transform import CredentialingTransformerTask, \
@@ -66,6 +66,7 @@ class OneViewDAG(DAG):
     LOAD_LINKING_TABLES_INTO_DATABASE: ORMLoaderTask
     EXTRACT_STATE_TABLE: JDBCExtractorTask
     EXTRACT_CLASS_OF_TRADE_TABLE: JDBCExtractorTask
+    CREATE_STATIC_REFERENCE_TABLE: StaticReferenceTablesTransformerTask
 
     #   MIGRATE_DATABASE:
 
@@ -114,3 +115,4 @@ OneViewDAG.CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE >> OneViewDAG.LOAD_LI
 OneViewDAG.CREATE_RESIDENCY_PROGRAM_TABLES >> OneViewDAG.LOAD_LINKING_TABLES_INTO_DATABASE
 OneViewDAG.EXTRACT_STATE_TABLE
 OneViewDAG.EXTRACT_CLASS_OF_TRADE_TABLE
+OneViewDAG.CREATE_STATIC_REFERENCE_TABLE
