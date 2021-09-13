@@ -25,3 +25,19 @@ FIPSC_COLUMNS = {
     'County Code (FIPS)': 'county',
     'Area Name (including legal/statistical area description)': 'description'
 }
+
+COT_SPECIALTY = {
+    'COT_SPECIALTY_ID': 'id',
+    'COT_SPECIALTY': 'description',
+}
+
+COT_FACILITY = {
+    'COT_FACILITY_TYPE_ID': 'id',
+    'COT_FACILITY_TYPE': 'description',
+}
+
+STATE = {
+    'STATE_ID' : 'id',
+    'SRC_STATE_CD': 'code',
+    'DESC': 'description'
+}

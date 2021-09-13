@@ -420,6 +420,31 @@ with ONEVIEW_ETL_DAG:
             **dict(TASK_CLASS='datalabs.etl.oneview.historical_residency.transform.HistoricalResidencyTransformerTask')
         },
     )
+
+    CREATE_CLASS_OF_TRADE_TABLE = KubernetesPodOperator(
+        name="create_class_of_trade_table",
+        task_id="create_class_of_trade_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.ClassOfTradeTransformerTask')
+        },
+    )
+
+    CREATE_STATE_TABLE = KubernetesPodOperator(
+        name="create_state_table",
+        task_id="create_state_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.StateTransformerTask')
+        },
+    )
+
     LOAD_REFERENCE_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_reference_tables_into_database",
         task_id="load_reference_tables_into_database",
@@ -571,5 +596,5 @@ CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_LINKING_TABLES_INTO_DATABASE
 EXTRACT_MELISSA >> CREATE_MELISSA_TABLES >> LOAD_MELISSA_TABLES_INTO_DATABASE
-EXTRACT_STATE_TABLE
-EXTRACT_CLASS_OF_TRADE_TABLE
+EXTRACT_STATE_TABLE >> CREATE_STATE_TABLE
+EXTRACT_CLASS_OF_TRADE_TABLE >> CREATE_CLASS_OF_TRADE_TABLE
