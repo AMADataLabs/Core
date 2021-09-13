@@ -42,6 +42,7 @@ PROGRAM_COLUMNS = {
     'city': 'city',
     'state': 'state',
     'Zip+4': 'zipcode',
+    'pri_clinical_loc_ind': 'primary_clinical_location',
     'ins_id': 'institution',
 }
 
@@ -65,7 +66,6 @@ MEMBER_COLUMNS = {
 INSTITUTION_COLUMNS = {
     'ins_id': 'id',
     'ins_name': 'name',
-    'pri_clinical_loc_ind': 'primary_clinical_location',
     'ins_affiliation_type': 'affiliation',
     'last_upd_dt': 'last_update_date'
 }
