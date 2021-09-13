@@ -207,7 +207,9 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             models = [cls._create_model(table_parameters.model_class, row) for row in data.itertuples(index=False)]
 
             for model, parameter in zip(models, parameters):
-                database.query(table_parameters.model_class).filter(getattr(table_parameters.model_class, table_parameters.primary_key) == getattr(model, table_parameters.primary_key)).update(parameter)
+                database.query(table_parameters.model_class).filter(
+                    getattr(table_parameters.model_class, table_parameters.primary_key) ==
+                    getattr(model, table_parameters.primary_key)).update(parameter)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
