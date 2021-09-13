@@ -36,7 +36,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
     @classmethod
     def _csv_to_dataframe(cls, data):
         addresses = pandas.read_excel(data[0], engine='openpyxl')
-        customers = pandas.read_csv(BytesIO(data[1]), encoding = "ISO-8859-1", engine='python')
+        customers = pandas.read_csv(BytesIO(data[1]), encoding="ISO-8859-1", engine='python')
 
         return [addresses, customers]
 
