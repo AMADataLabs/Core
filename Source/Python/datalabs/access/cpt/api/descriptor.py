@@ -3,6 +3,7 @@ from   abc import abstractmethod
 import logging
 
 from   sqlalchemy import or_
+from   sqlalchemy.orm import defer, undefer
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, WildcardFilterMixin
@@ -15,30 +16,41 @@ LOGGER.setLevel(logging.DEBUG)
 
 class BaseDescriptorEndpointTask(APIEndpointTask):
     LENGTH_MODEL_NAMES = dict(short='ShortDescriptor', medium='MediumDescriptor', long='LongDescriptor')
+    LANGUAGE_MODEL_NAMES = dict(english='English', chinese='Chinese', spanish='Spanish')
 
     def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
+
+
         lengths = self._parameters.query.get('length')
+        language = self._parameters.query.get('language')
 
-        if not self._lengths_are_valid(lengths):
-            raise InvalidRequest(f"Invalid query parameter: length={lengths}")
+        # if not self._lengths_are_valid(lengths):
+        #     raise InvalidRequest(f"Invalid query parameter: length={lengths}")
 
+        # if not self._language_is_valid(language):
+        #     raise InvalidRequest(f"Invalid query parameter: language={language}")
         query = self._query_for_descriptors(database)
 
         query = self._filter(query)
 
-        self._response_body = self._generate_response_body(query.all(), lengths)
+        self._response_body = self._generate_response_body(query.all(), lengths, language)
 
     def _set_parameter_defaults(self):
         self._parameters.query['length'] = self._parameters.query.get('length') or ['short', 'medium', 'long']
         self._parameters.query['keyword'] = self._parameters.query.get('keyword') or []
+        self._parameters.query['language'] = self._parameters.query.get('language') or 'english'
 
     @classmethod
     def _lengths_are_valid(cls, lengths):
         return all(length in cls.LENGTH_MODEL_NAMES.keys() for length in lengths)
+
+    @classmethod
+    def _language_is_valid(cls, language):
+        return all(lang in cls.LANGUAGE_MODEL_NAMES.keys() for lang in language)
 
     @classmethod
     def _query_for_descriptors(cls, database):
@@ -60,16 +72,39 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         pass
 
     @classmethod
-    def _generate_response_body(cls, rows, lengths):
+    def _generate_response_body(cls, rows, lengths, language):
         body = []
+
+        if type(lengths) is not list:
+            lengths = [lengths]
 
         for row in rows:
             row_body = dict(code=row.Code.code)
 
             for length in lengths:
-                row_body.update({length + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length]).descriptor})
+                if language.lower() == 'chinese':
+                    row_body.update({length.lower() + '_descriptor_chi': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_chi})
+                elif language.lower() == 'spanish':
+                    row_body.update({length.lower() + '_descriptor_spa': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_spa})
+                else:
+                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor})
 
             body.append(row_body)
+
+        print("\n")
+        print("\n")
+        print("\n")
+        print("\n")
+        print("Language: " + language.upper())
+        print("==================== API GET RESULT ====================")
+        for row in body:
+            for r in row:
+                print(r + ": " + row[r])
+            print("\n")
+        print("\n")
+        print("\n")
+        print("\n")
+        print("\n")
 
         return body
 

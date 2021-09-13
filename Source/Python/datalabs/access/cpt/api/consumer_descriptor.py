@@ -2,7 +2,7 @@
 from   abc import abstractmethod
 import logging
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin
 from   datalabs.model.cpt.api import ConsumerDescriptor
 
@@ -12,31 +12,48 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class BaseConsumerDescriptorEndpointTask(APIEndpointTask):
+    LANGUAGE_MODEL_NAMES = dict(english='English', chinese='Chinese', spanish='Spanish')
+
     def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
+        language = self._parameters.query.get('language')
+
+        if not self._language_is_valid(language):
+            raise InvalidRequest(f"Invalid query parameter: language={language}")
+
         query = self._query_for_descriptors(database)
 
         query = self._filter(query)
 
-        self._response_body = self._generate_response_body(query.all())
+        self._response_body = self._generate_response_body(query.all(), language)
 
     def _set_parameter_defaults(self):
         self._parameters.query['keyword'] = self._parameters.query.get('keyword') or []
+        self._parameters.query['language'] = self._parameters.query.get('language') or ['english']
 
     @classmethod
     def _query_for_descriptors(cls, database):
         return database.query(ConsumerDescriptor)
+
+    @classmethod
+    def _language_is_valid(cls, language):
+        return all(lang in cls.LANGUAGE_MODEL_NAMES.keys() for lang in language)
 
     @abstractmethod
     def _filter(self, query):
         pass
 
     @classmethod
-    def _generate_response_body(cls, rows):
-        return [dict(code=row.code, descriptor=row.descriptor) for row in rows]
+    def _generate_response_body(cls, rows, language):
+        if language[0].lower() == 'chinese':
+            return [dict(code=row.code, descriptor_chi=row.descriptor_chi) for row in rows]
+        elif language[0].lower() == 'spanish':
+            return [dict(code=row.code, descriptor_spa=row.descriptor_spa) for row in rows]
+        else:
+            return [dict(code=row.code, descriptor=row.descriptor) for row in rows]
 
 
 class ConsumerDescriptorEndpointTask(BaseConsumerDescriptorEndpointTask):

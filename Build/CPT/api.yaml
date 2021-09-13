@@ -61,6 +61,14 @@ paths:
             type: array
             items:
               type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
@@ -125,6 +133,14 @@ paths:
             type: array
             items:
               type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
@@ -161,6 +177,14 @@ paths:
           required: true
           schema:
             type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
@@ -217,6 +241,14 @@ paths:
             type: array
             items:
               type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
@@ -255,6 +287,14 @@ paths:
             application/json:
               schema:
                 type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
@@ -308,6 +348,14 @@ paths:
           in: query
           description: >-
             Filters for wildcard search across all the codes.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
           required: false
           schema:
             type: array
@@ -624,11 +672,28 @@ components:
         long:
           type: string
           format: byte
+        short_spa:
+          type: string
+          format: byte
+        medium_spa:
+          type: string
+          format: byte
+        long_spa:
+          type: string
+          format: byte
+        short_chi:
+          type: string
+          format: byte
+        medium_chi:
+          type: string
+          format: byte
+        long_chi:
+          type: string
+          format: byte
     ConsumerDescriptor:
       type: object
       required:
         - code
-        - descriptor
       properties:
         code:
           type: string
@@ -636,12 +701,17 @@ components:
         descriptor:
           type: string
           format: byte
+        descriptor_spa:
+          type: string
+          format: byte
+        descriptor_chi:
+          type: string
+          format: byte
     ClinicianDescriptor:
       type: object
       required:
         - id
         - code
-        - descriptor
       properties:
         id:
           type: integer
@@ -650,6 +720,12 @@ components:
           type: string
           format: byte
         descriptor:
+          type: string
+          format: byte
+        descriptor_spa:
+          type: string
+          format: byte
+        descriptor_chi:
           type: string
           format: byte
     PLA:
