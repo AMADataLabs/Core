@@ -23,16 +23,14 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
-
-
         lengths = self._parameters.query.get('length')
         language = self._parameters.query.get('language')
 
-        # if not self._lengths_are_valid(lengths):
-        #     raise InvalidRequest(f"Invalid query parameter: length={lengths}")
+        if not self._lengths_are_valid(lengths):
+            raise InvalidRequest(f"Invalid query parameter: length={lengths}")
+        if not self._language_is_valid(language):
+            raise InvalidRequest(f"Invalid query parameter: language={language}")
 
-        # if not self._language_is_valid(language):
-        #     raise InvalidRequest(f"Invalid query parameter: language={language}")
         query = self._query_for_descriptors(database)
 
         query = self._filter(query)
@@ -46,11 +44,13 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _lengths_are_valid(cls, lengths):
+        if type(lengths) is not list:
+            lengths = [lengths]
         return all(length in cls.LENGTH_MODEL_NAMES.keys() for length in lengths)
 
     @classmethod
     def _language_is_valid(cls, language):
-        return all(lang in cls.LANGUAGE_MODEL_NAMES.keys() for lang in language)
+        return language.lower() in cls.LANGUAGE_MODEL_NAMES.keys()
 
     @classmethod
     def _query_for_descriptors(cls, database):

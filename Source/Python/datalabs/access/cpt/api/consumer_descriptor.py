@@ -40,7 +40,7 @@ class BaseConsumerDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _language_is_valid(cls, language):
-        return all(lang in cls.LANGUAGE_MODEL_NAMES.keys() for lang in language)
+        return language.lower() in cls.LANGUAGE_MODEL_NAMES.keys()
 
     @abstractmethod
     def _filter(self, query):
