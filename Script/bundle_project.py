@@ -23,18 +23,18 @@ class ProjectBundler(ABC):
         self._build_path = Path(os.path.join(self._repository_path, 'Build')).resolve()
 
 
-    def bundle(self, project, target_path=None, **kwargs):
+    def bundle(self, project, target_path, extra_files, **kwargs):
         target_path = target_path or Path(os.path.join(self._build_path, project, project)).resolve()
 
-        self._build_bundle(project, Path(target_path), **kwargs)
+        self._build_bundle(project, Path(target_path), extra_files, **kwargs)
 
     @abstractmethod
-    def _build_bundle(self, project, target_path, **kwargs):
+    def _build_bundle(self, project, target_path, extra_files, **kwargs):
         pass
 
 
 class LocalProjectBundler(ProjectBundler):
-    def _build_bundle(self, project, target_path, **kwargs):
+    def _build_bundle(self, project, target_path, extra_files, **kwargs):
         if os.path.exists(target_path) and not kwargs['in_place']:
             LOGGER.info('=== Removing Old Target Directory ===')
             shutil.rmtree(target_path)
@@ -46,6 +46,9 @@ class LocalProjectBundler(ProjectBundler):
 
         LOGGER.info('=== Copying Source Files ===')
         self._copy_source_files(project, target_path)
+
+        LOGGER.info('=== Copying Extra Files ===')
+        self._copy_extra_files(extra_files, target_path)
 
         LOGGER.info('=== Copying Lambda Function Handler ===')
         self._copy_lambda_function_handler(target_path)
@@ -66,6 +69,10 @@ class LocalProjectBundler(ProjectBundler):
         bundle = SourceBundle(modspec_path)
 
         return bundle.copy(self._shared_source_path, target_path)
+
+    def _copy_extra_files(self, files, target_path):
+        for file in files:
+            shutil.copy(file, os.path.join(target_path, file))
 
     def _copy_lambda_function_handler(self, target_path):
         shutil.copy(os.path.join(self._build_path, 'Master', 'awslambda.py'), os.path.join(target_path, 'awslambda.py'))
@@ -125,7 +132,7 @@ class LocalProjectBundler(ProjectBundler):
 
 
 class ServerlessProjectBundler(ProjectBundler):
-    def _build_bundle(self, project, target_path, **kwargs):
+    def _build_bundle(self, project, target_path, extra_files, **kwargs):
         from   docker import from_env
 
         docker = from_env()
@@ -197,6 +204,12 @@ if __name__ == '__main__':
         help='Do not pre-clean the target directory.')
     ap.add_argument('-s', '--serverless', action='store_true', default=False,
         help='Create a zip archive of the bundle for serverless deployment.')
+    ap.add_argument(
+        '-f', '--file', action='append', required=False, help='Include the give file in the bundle.'
+    )
+    ap.add_argument(
+        '-j', '--jdbc-driver', action='append', required=False, help='Download the JDBC driver zip and install in the bundle.'
+    )
     ap.add_argument('project', help='Name of the project.')
     args = vars(ap.parse_args())
     LOGGER.debug('Args: %s', args)
@@ -215,6 +228,7 @@ if __name__ == '__main__':
         return_code = project_bundler.bundle(
             args['project'],
             target_path=args['directory'],
+            extra_files=args['file'],
             in_place=args['in_place']
         )
     except Exception as e:
