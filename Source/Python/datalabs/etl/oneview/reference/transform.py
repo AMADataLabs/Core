@@ -2,9 +2,10 @@
 import logging
 import pandas
 
-from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS, \
-    SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS, PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, \
-    OWNER_STATUS
+from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS,\
+    SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS, PROVIDER_AFFILIATION_GROUP, SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS, \
+    PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, OWNER_STATUS, COT_SPECIALTY, COT_FACILITY, STATE
+
 from   datalabs.etl.oneview.transform import TransformerTask
 
 import datalabs.etl.oneview.reference.static as tables
@@ -98,3 +99,24 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
     @classmethod
     def _dataframe_to_csv(cls, data):
         return pandas.DataFrame.to_csv(data).encode()
+
+
+class ClassOfTradeTransformerTask(TransformerTask):
+    def _preprocess_data(self, data):
+        class_of_trade_data = data[0]
+
+        specialty_data = class_of_trade_data['COT_SPECIALTY_ID', 'COT_SPECIALTY']
+        facility_data = class_of_trade_data['COT_FACILITY_TYPE_ID', 'COT_FACILITY_TYPE']
+
+        return [specialty_data, facility_data]
+
+    def _get_columns(self):
+        return [COT_SPECIALTY, COT_FACILITY]
+
+    def _postprocess_data(self, data):
+        return [dataframe.drop_duplicates() for dataframe in data]
+
+
+class StateTransformerTask(TransformerTask):
+    def _get_columns(self):
+        return [STATE]
