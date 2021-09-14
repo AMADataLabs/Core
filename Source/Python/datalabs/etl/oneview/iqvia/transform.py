@@ -37,8 +37,9 @@ class IQVIATransformerTask(TransformerTask):
 class IQVIAUpdateTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         iqvia_update = data[0].compute().iloc[0]['BATCH_BUSINESS_DATE']
+        iqvia_update = pandas.DataFrame.from_dict({'BATCH_BUSINESS_DATE': [iqvia_update]})
 
-        return [pandas.DataFrame.from_dict({'BATCH_BUSINESS_DATE': [iqvia_update]})]
+        return [dask.dataframe.from_pandas(iqvia_update, npartitions=20)]
 
     def _get_columns(self):
         return [column.IQVIA_DATE]
