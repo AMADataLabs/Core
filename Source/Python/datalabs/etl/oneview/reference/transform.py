@@ -97,7 +97,7 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
         return [PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, OWNER_STATUS]
 
     @classmethod
-    def _dataframe_to_csv(cls, data):
+    def _dataframe_to_csv(cls, data, **kwargs):
         return pandas.DataFrame.to_csv(data).encode()
 
 
