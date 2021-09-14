@@ -156,7 +156,7 @@ class DAGTaskWrapper(
         return "Success"
 
     def _handle_exception(self, exception) -> (int, dict):
-        super()._handle_success()
+        super()._handle_exception(exception)
 
         parameters = self._runtime_parameters
         parameters.update(self.DAG_PARAMETERS)

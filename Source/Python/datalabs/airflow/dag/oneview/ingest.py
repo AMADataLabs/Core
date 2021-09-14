@@ -186,6 +186,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_state_table",
         task_id="extract_state_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -194,6 +196,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_class_of_trade_table",
         task_id="extract_class_of_trade_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -421,6 +425,18 @@ with ONEVIEW_ETL_DAG:
         },
     )
 
+    CREATE_STATIC_REFERENCE_TABLE = KubernetesPodOperator(
+        name="create_static_reference_table",
+        task_id="create_static_reference_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.StaticReferenceTablesTransformerTask')
+        },
+    )
+
     CREATE_CLASS_OF_TRADE_TABLE = KubernetesPodOperator(
         name="create_class_of_trade_table",
         task_id="create_class_of_trade_table",
@@ -596,5 +612,6 @@ CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_LINKING_TABLES_INTO_DATABASE
 EXTRACT_MELISSA >> CREATE_MELISSA_TABLES >> LOAD_MELISSA_TABLES_INTO_DATABASE
+CREATE_STATIC_REFERENCE_TABLE
 EXTRACT_STATE_TABLE >> CREATE_STATE_TABLE
 EXTRACT_CLASS_OF_TRADE_TABLE >> CREATE_CLASS_OF_TRADE_TABLE
