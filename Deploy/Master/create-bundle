@@ -12,7 +12,7 @@ while (( "$#" )); do
       PROJECT=$1
       echo "Set project to ${PROJECT}"
   else
-      EXTRA_FILES+="-f $1"
+      EXTRA_FILES+="-f $1 "
       echo "Added extra file ${1}"
   fi
 
