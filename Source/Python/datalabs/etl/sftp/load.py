@@ -20,6 +20,7 @@ class SFTPFileLoaderParameters:
     password: str
     data: list
     execution_time: str = None
+    include_names: str = None
 
 
 class SFTPFileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
