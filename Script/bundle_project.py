@@ -71,6 +71,8 @@ class LocalProjectBundler(ProjectBundler):
         return bundle.copy(self._shared_source_path, target_path)
 
     def _copy_extra_files(self, files, target_path):
+        files = files or []
+
         for file in files:
             shutil.copy(file, os.path.join(target_path, file))
 
@@ -206,9 +208,6 @@ if __name__ == '__main__':
         help='Create a zip archive of the bundle for serverless deployment.')
     ap.add_argument(
         '-f', '--file', action='append', required=False, help='Include the give file in the bundle.'
-    )
-    ap.add_argument(
-        '-j', '--jdbc-driver', action='append', required=False, help='Download the JDBC driver zip and install in the bundle.'
     )
     ap.add_argument('project', help='Name of the project.')
     args = vars(ap.parse_args())

@@ -1,7 +1,7 @@
 arnparse==0.0.2
 croniter==0.3.37
 PyYAML==5.4
-boto3==1.12.45
+boto3==1.18.12
 dask==2021.7.1
 jinja2==2.11.3
 json5==0.8.5
