@@ -78,7 +78,7 @@ PROVIDER_AFFILIATION_COLUMNS = {
     'AFFIL_RANK': 'rank',
     'AFFIL_GROUP_CODE': 'group',
     'AFFIL_GROUP_DESC': 'group_description',
-    'BATCH_BUSINESS_DATE': 'batch_business_date'
+    'BATCH_BUSINESS_DATE_y': 'batch_business_date'
 }
 
 CORPORATE_PARENT_BUSINESS = {

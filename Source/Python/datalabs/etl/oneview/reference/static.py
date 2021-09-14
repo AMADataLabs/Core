@@ -1,3 +1,4 @@
+"""OneView Static Reference Data"""
 provider_affiliation_group = {
     'id': ['ATT', 'ADM', 'LTC'],
     'description': ['Attending', 'Admitting', 'Long Term Care']
