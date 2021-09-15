@@ -1,6 +1,47 @@
 #!/bin/bash
 
-SNAKE_CASE_NAMES='add_department add_profile get_admin_users get_data_now_token get_department get_departments get_group_users get_orgs get_profile get_profiles get_resources get_token get_user_details get_users lambdaAuthorizer process_access_request remove_data_now_token update_department update_group_users update_profile update_user_details update_user_profile validate_user'
+RAW_NAMES=(
+    "addDepartment"
+    "addOrg"
+    "addProfile"
+    "age-gender-mpa-annual"
+    "age-gender-mpa"
+    "getAdminUsers"
+    "getCounties"
+    "getDepartment"
+    "getDepartments"
+    "getDremioToken"
+    "getGridMasterData"
+    "getGroupUsers"
+    "getOneviewData"
+    "getOrgs"
+    "getPhysicianColumns"
+    "getProfile"
+    "getProfiles"
+    "getResources"
+    "getToken"
+    "getUserDetails"
+    "getUsers"
+    "processAccessRequest"
+    "removeDremioToken"
+    "specialty-by-mpa-annual"
+    "specialty-by-mpa"
+    "updateDepartment"
+    "updateGroupUsers"
+    "updateProfile"
+    "updateUserDetails"
+    "updateUserProfile"
+    "validateUser"
+)
+SNAKE_CASE_NAMES=
+
+for name in ${RAW_NAMES[@]}; do
+    name=${name//-/_}
+    name=$(echo $name | sed 's/\([A-Z]\)/_\1/g' | tr '[:upper:]' '[:lower:]')
+    SNAKE_CASE_NAMES+="$name "
+done
+
+rm lambdas.tf
 
 for name in $SNAKE_CASE_NAMES; do
   DASHED_NAME=${name//_/-}
@@ -13,7 +54,12 @@ for name in $SNAKE_CASE_NAMES; do
     HUMAN_READABLE_NAME="${HUMAN_READABLE_NAME} $capitalized_part"
     CAMEL_CASE_NAME="${CAMEL_CASE_NAME}$capitalized_part"
   done
-    CAMEL_CASE_NAME="$(tr '[:upper:]' '[:lower:]' <<< ${CAMEL_CASE_NAME:0:1})${CAMEL_CASE_NAME:1}"
 
-  render-template -t lambda.tf.jinja -f $CAMEL_CASE_NAME.tf -v "SNAKE_CASE_NAME=${name},DASHED_NAME=${DASHED_NAME},HUMAN_READABLE_NAME=${HUMAN_READABLE_NAME},CAMEL_CASE_NAME=${CAMEL_CASE_NAME}"
+  CAMEL_CASE_NAME="$(tr '[:upper:]' '[:lower:]' <<< ${CAMEL_CASE_NAME:0:1})${CAMEL_CASE_NAME:1}"
+
+  render-template -t lambda.tf.jinja -f lambda.tf -v "SNAKE_CASE_NAME=${name},DASHED_NAME=${DASHED_NAME},HUMAN_READABLE_NAME=${HUMAN_READABLE_NAME},CAMEL_CASE_NAME=${CAMEL_CASE_NAME}"
+
+  cat lambda.tf >> lambdas.tf
 done
+
+rm lambda.tf
