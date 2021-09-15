@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+# set -ex
 
 ENVIRONMENT="${1:-sbx}"
 
@@ -11,7 +11,7 @@ BUNDLE_NAMES=(
     "specialty-by-mpa"
 )
 
-for name in $BUNDLE_NAMES; do
+for name in ${BUNDLE_NAMES[@]}; do
   CAMEL_CASE_NAME=""
   parts=${name//-/ }
 
