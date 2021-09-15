@@ -16,10 +16,10 @@ class Attachment:
         """
         :param name: string - name of attachment file as it appears in the email
         :param file_path: string - absolute or relative path to file to add as attachment
-        :param data: Byte string of data for the attachment, will be overridden by file_path file if file_path not None
+        :param data: Bytes of data for the attachment, will be overridden by file_path file if file_path not None
         """
         self.name = name
-        assert self.name is not None
+        self.data: bytes = data
 
         if file_path is not None:
             if not os.path.exists(file_path):
@@ -29,9 +29,12 @@ class Attachment:
             # if name is None, determine filename automatically from file path
             if self.name in [None, '', '/']:
                 self.name = file_path.replace('\\', '/').split('/')[-1]
-        elif data is not None:
-            self.data = data
 
+        if self.data is None:
+            raise ValueError("Data is None")
+
+        if self.name is None:
+            raise ValueError("Name is None")
 
 # pylint: disable=too-many-arguments, invalid-name
 def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None, from_account=None, html_content=None):
@@ -63,7 +66,12 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
 
         if attachments is not None:
             for attachment in set(attachments):
-                msg.add_attachment(attachment.data, filename=attachment.name)
+                msg.add_attachment(
+                    attachment.data.read(),
+                    filename=attachment.name,
+                    maintype='application',
+                    subtype='octet-stream'
+                )
 
         if from_account is None:
             from_account = os.environ.get('AMA_EMAIL_ADDRESS')
