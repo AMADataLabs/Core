@@ -67,7 +67,7 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
         if attachments is not None:
             for attachment in set(attachments):
                 msg.add_attachment(
-                    attachment.data.read(),
+                    attachment.data,
                     filename=attachment.name,
                     maintype='application',
                     subtype='octet-stream'
