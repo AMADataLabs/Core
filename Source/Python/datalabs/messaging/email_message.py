@@ -1,5 +1,4 @@
 """ Sends an email using AMA SMTP configuration """
-from   io import BytesIO
 import logging
 import os
 
@@ -17,26 +16,25 @@ class Attachment:
         """
         :param name: string - name of attachment file as it appears in the email
         :param file_path: string - absolute or relative path to file to add as attachment
-        :param data: BytesIO object of data to add as attachment. If specified, must also specify name
+        :param data: Bytes of data for the attachment, will be overridden by file_path file if file_path not None
         """
         self.name = name
-        self.data: BytesIO = data
+        self.data: bytes = data
 
         if file_path is not None:
             if not os.path.exists(file_path):
                 raise FileNotFoundError(file_path)
             with open(file_path, 'rb') as file:
-                self.data = BytesIO(file.read())
+                self.data = file.read()
             # if name is None, determine filename automatically from file path
             if self.name in [None, '', '/']:
                 self.name = file_path.replace('\\', '/').split('/')[-1]
-        elif data is not None:
-            assert self.data.readable()
 
-        assert self.name is not None
-        assert self.data is not None
-        assert self.data.readable()
+        if self.data is None:
+            raise ValueError("Data is None")
 
+        if self.name is None:
+            raise ValueError("Name is None")
 
 # pylint: disable=too-many-arguments, invalid-name
 def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None, from_account=None, html_content=None):
@@ -55,13 +53,17 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
 
         msg = EmailMessage()
         msg['To'] = to
+
         if cc not in [None, '']:
             msg['Cc'] = cc
         msg['Subject'] = subject
+
         if body is not None:
             msg.set_content(body)
+
         if html_content is not None:
             msg.add_alternative(f"{html_content}", subtype='html')
+
         if attachments is not None:
             for attachment in set(attachments):
                 msg.add_attachment(
