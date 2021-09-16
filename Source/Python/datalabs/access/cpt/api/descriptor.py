@@ -84,28 +84,13 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
             for length in lengths:
                 row_body.update({"language": language.lower()})
                 if language == 'chinese':
-                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_chi})
+                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_chinese})
                 elif language == 'spanish':
-                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_spa})
+                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_spanish})
                 else:
                     row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor})
 
             body.append(row_body)
-
-        print("\n")
-        print("\n")
-        print("\n")
-        print("\n")
-        print("Language: " + language.upper())
-        print("==================== API GET RESULT ====================")
-        for row in body:
-            for r in row:
-                print(r + ": " + row[r])
-            print("\n")
-        print("\n")
-        print("\n")
-        print("\n")
-        print("\n")
 
         return body
 

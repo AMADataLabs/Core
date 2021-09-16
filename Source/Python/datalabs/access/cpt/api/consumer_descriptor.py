@@ -13,8 +13,6 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class BaseConsumerDescriptorEndpointTask(APIEndpointTask):
-    LANGUAGE_MODEL_NAMES = dict(english='English', chinese='Chinese', spanish='Spanish')
-
     def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
@@ -50,9 +48,9 @@ class BaseConsumerDescriptorEndpointTask(APIEndpointTask):
     @classmethod
     def _generate_response_body(cls, rows, language):
         if language == 'chinese':
-            return [dict(code=row.code, descriptor=row.descriptor_chi, language=language) for row in rows]
+            return [dict(code=row.code, descriptor=row.descriptor_chinese, language=language) for row in rows]
         elif language == 'spanish':
-            return [dict(code=row.code, descriptor=row.descriptor_spa, language=language) for row in rows]
+            return [dict(code=row.code, descriptor=row.descriptor_spanish, language=language) for row in rows]
         else:
             return [dict(code=row.code, descriptor=row.descriptor, language=language) for row in rows]
 

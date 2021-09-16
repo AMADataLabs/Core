@@ -16,8 +16,6 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
-    LANGUAGE_MODEL_NAMES = dict(english='English', chinese='Chinese', spanish='Spanish')
-
     def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
         self._set_parameter_defaults()
@@ -55,12 +53,12 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
         if language == 'chinese':
             return [dict(id=row.ClinicianDescriptor.id,
                          code=row.ClinicianDescriptorCodeMapping.code,
-                         descriptor=row.ClinicianDescriptor.descriptor_chi,
+                         descriptor=row.ClinicianDescriptor.descriptor_chinese,
                          language=language) for row in rows]
         elif language == 'spanish':
             return [dict(id=row.ClinicianDescriptor.id,
                          code=row.ClinicianDescriptorCodeMapping.code,
-                         descriptor=row.ClinicianDescriptor.descriptor_spa,
+                         descriptor=row.ClinicianDescriptor.descriptor_spanish,
                          language=language) for row in rows]
         else:
             return [dict(id=row.ClinicianDescriptor.id,
