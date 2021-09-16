@@ -22,9 +22,9 @@ paths:
     get:
       tags:
         - Files
-      summary: Zip archive of PDFs from the most recent release
+      summary: Zip archive of the CPT standard distribution data files.
       description: >-
-          Provides a zip archive of the PDFs from the most recent release. In particular,
+          Provides a zip archive of the CPT standard distribution data files.
               CPT Link Release Notes YYYYMMDD.pdf,
               standard/AnesthesiaGuidelines.pdf,
               standard/AppendixB.pdf,standard/AppendixN.pdf,
