@@ -16,6 +16,7 @@ class DBLReportEmailLoaderParameters:
     to: str
     cc: str
     data: list
+    execution_time: str = None
 
 
 class DBLReportEmailLoaderTask(LoaderTask):
