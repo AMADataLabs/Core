@@ -1,7 +1,6 @@
 ''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag.dag import DAG
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
-from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
