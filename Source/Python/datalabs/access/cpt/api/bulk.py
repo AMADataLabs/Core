@@ -18,26 +18,26 @@ class FilesEndpointTask(APIEndpointTask):
         self._s3 = boto3.client('s3')
 
     def _run(self, database):
-        pdf_archive_path = self._get_pdf_archive_path()
-        pdfs_archive_url = None
+        files_archive_path = self._get_files_archive_path()
+        files_archive_url = None
 
         try:
-            pdfs_archive_url = self._s3.generate_presigned_url(
+            files_archive_url = self._s3.generate_presigned_url(
                 'get_object',
                 Params={
                     'Bucket': self._parameters.bucket['name'],
-                    'Key': pdf_archive_path
+                    'Key': files_archive_path
                 },
                 ExpiresIn=self._parameters.bucket['url_duration']
             )
         except ClientError as exception:
             LOGGER.error(exception)
-            raise InternalServerError('Unable to get PDF archive URL') from exception
+            raise InternalServerError('Unable to get files archive URL') from exception
 
         self._status_code = 303
-        self._headers['Location'] = pdfs_archive_url
+        self._headers['Location'] = files_archive_url
 
-    def _get_pdf_archive_path(self):
+    def _get_files_archive_path(self):
         release_folders = sorted(
             self._listdir(
                 self._parameters.bucket['name'],
@@ -45,7 +45,7 @@ class FilesEndpointTask(APIEndpointTask):
             )
         )
 
-        return '/'.join((self._parameters.bucket['base_path'], release_folders[-1], 'pdfs.zip'))
+        return '/'.join((self._parameters.bucket['base_path'], release_folders[-1], 'files.zip'))
 
     def _listdir(self, bucket, base_path):
         response = self._s3.list_objects_v2(Bucket=bucket, Prefix=base_path)
