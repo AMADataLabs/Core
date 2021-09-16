@@ -17,6 +17,7 @@ class APIEndpointParameters:
     query: dict
     database: dict
     bucket: dict
+    path: dict
 
 
 class APIEndpointException(task.TaskException):
@@ -82,6 +83,7 @@ class APIEndpointParametersGetterMixin(task.TaskWrapper):
 
     def _get_task_parameters(self):
         return APIEndpointParameters(
+            path = self._parameters.get("path") or dict(),
             query=self._parameters.get('query') or dict(),
             database=dict(
                 name=os.getenv('DATABASE_NAME'),

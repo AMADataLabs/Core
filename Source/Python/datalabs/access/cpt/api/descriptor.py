@@ -8,6 +8,7 @@ from   sqlalchemy.orm import defer, undefer
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, WildcardFilterMixin
 import datalabs.model.cpt.api as dbmodel
+from datalabs.access.cpt.api import languages
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -16,7 +17,6 @@ LOGGER.setLevel(logging.DEBUG)
 
 class BaseDescriptorEndpointTask(APIEndpointTask):
     LENGTH_MODEL_NAMES = dict(short='ShortDescriptor', medium='MediumDescriptor', long='LongDescriptor')
-    LANGUAGE_MODEL_NAMES = dict(english='English', chinese='Chinese', spanish='Spanish')
 
     def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
@@ -24,7 +24,7 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         LOGGER.debug('Parameters: %s', self._parameters)
 
         lengths = self._parameters.query.get('length')
-        language = self._parameters.query.get('language')
+        language = self._parameters.query.get('language').lower()
 
         if not self._lengths_are_valid(lengths):
             raise InvalidRequest(f"Invalid query parameter: length={lengths}")
@@ -50,7 +50,7 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _language_is_valid(cls, language):
-        return language.lower() in cls.LANGUAGE_MODEL_NAMES.keys()
+        return language in languages.Descriptor_Languages
 
     @classmethod
     def _query_for_descriptors(cls, database):
@@ -82,10 +82,11 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
             row_body = dict(code=row.Code.code)
 
             for length in lengths:
-                if language.lower() == 'chinese':
-                    row_body.update({length.lower() + '_descriptor_chi': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_chi})
-                elif language.lower() == 'spanish':
-                    row_body.update({length.lower() + '_descriptor_spa': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_spa})
+                row_body.update({"language": language.lower()})
+                if language == 'chinese':
+                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_chi})
+                elif language == 'spanish':
+                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_spa})
                 else:
                     row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor})
 

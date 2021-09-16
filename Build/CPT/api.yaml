@@ -659,6 +659,7 @@ components:
       type: object
       required:
         - code
+        - language
       properties:
         code:
           type: string
@@ -672,28 +673,15 @@ components:
         long:
           type: string
           format: byte
-        short_spa:
-          type: string
-          format: byte
-        medium_spa:
-          type: string
-          format: byte
-        long_spa:
-          type: string
-          format: byte
-        short_chi:
-          type: string
-          format: byte
-        medium_chi:
-          type: string
-          format: byte
-        long_chi:
+        language:
           type: string
           format: byte
     ConsumerDescriptor:
       type: object
       required:
         - code
+        - descriptor
+        - language
       properties:
         code:
           type: string
@@ -701,10 +689,7 @@ components:
         descriptor:
           type: string
           format: byte
-        descriptor_spa:
-          type: string
-          format: byte
-        descriptor_chi:
+        language:
           type: string
           format: byte
     ClinicianDescriptor:
@@ -712,6 +697,8 @@ components:
       required:
         - id
         - code
+        - descriptor
+        - language
       properties:
         id:
           type: integer
@@ -722,10 +709,7 @@ components:
         descriptor:
           type: string
           format: byte
-        descriptor_spa:
-          type: string
-          format: byte
-        descriptor_chi:
+        language:
           type: string
           format: byte
     PLA:

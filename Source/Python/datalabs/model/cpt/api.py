@@ -67,7 +67,7 @@ class MediumDescriptor(Base):
     __table_args__ = {"schema": "cpt"}
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
-    descriptor = sa.Column(sa.String(48), nullable=False)
+    descriptor = sa.Column(sa.String(48), nullable=False)  # English
     descriptor_spa = sa.Column(sa.String(48), nullable=False)  # Spanish
     descriptor_chi = sa.Column(sa.String(48), nullable=False)  # Chinese
     modified_date = sa.Column(sa.Date, nullable=False)
@@ -79,7 +79,7 @@ class LongDescriptor(Base):
     __table_args__ = {"schema": "cpt"}
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
-    descriptor = sa.Column(sa.String(), nullable=False)
+    descriptor = sa.Column(sa.String(), nullable=False)  # English
     descriptor_spa = sa.Column(sa.String(), nullable=False)  # Spanish
     descriptor_chi = sa.Column(sa.String(), nullable=False)  # Chinese
     modified_date = sa.Column(sa.Date, nullable=False)
@@ -91,7 +91,7 @@ class ConsumerDescriptor(Base):
     __table_args__ = {"schema": "cpt"}
 
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), primary_key=True)
-    descriptor = sa.Column(sa.String, nullable=False)
+    descriptor = sa.Column(sa.String, nullable=False)  # English
     descriptor_spa = sa.Column(sa.String, nullable=False)  # Spanish
     descriptor_chi = sa.Column(sa.String, nullable=False)  # Chinese
     modified_date = sa.Column(sa.Date, nullable=False)
@@ -103,7 +103,7 @@ class ClinicianDescriptor(Base):
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    descriptor = sa.Column(sa.String, nullable=False)
+    descriptor = sa.Column(sa.String, nullable=False)  # English
     descriptor_spa = sa.Column(sa.String, nullable=False)  # Spanish
     descriptor_chi = sa.Column(sa.String, nullable=False)  # Chinese
     modified_date = sa.Column(sa.Date, nullable=False)

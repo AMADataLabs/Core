@@ -8,6 +8,7 @@ from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, Invali
 from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterMixin
 from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping
 from   datalabs.model.cpt.api import Code, Release, ReleaseCodeMapping
+from datalabs.access.cpt.api import languages
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 
-        language = self._parameters.query.get('language')
+        language = self._parameters.query.get('language').lower()
 
         if not self._language_is_valid(language):
             raise InvalidRequest(f"Invalid query parameter: language={language}")
@@ -35,7 +36,7 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
 
     def _set_parameter_defaults(self):
         self._parameters.query['keyword'] = self._parameters.query.get('keyword') or []
-        self._parameters.query['language'] = self._parameters.query.get('language') or ['english']
+        self._parameters.query['language'] = self._parameters.query.get('language') or 'english'
 
     @classmethod
     def _query_for_descriptors(cls, database):
@@ -43,7 +44,7 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
 
     @classmethod
     def _language_is_valid(cls, language):
-        return language.lower() in cls.LANGUAGE_MODEL_NAMES.keys()
+        return language in languages.Descriptor_Languages
 
     @abstractmethod
     def _filter(self, query):
@@ -51,18 +52,21 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response_body(cls, rows, language):
-        if language[0].lower() == 'chinese':
+        if language == 'chinese':
             return [dict(id=row.ClinicianDescriptor.id,
                          code=row.ClinicianDescriptorCodeMapping.code,
-                         descriptor_chi=row.ClinicianDescriptor.descriptor_chi) for row in rows]
-        elif language[0].lower() == 'spanish':
+                         descriptor=row.ClinicianDescriptor.descriptor_chi,
+                         language=language) for row in rows]
+        elif language == 'spanish':
             return [dict(id=row.ClinicianDescriptor.id,
                          code=row.ClinicianDescriptorCodeMapping.code,
-                         descriptor_spa=row.ClinicianDescriptor.descriptor_spa) for row in rows]
+                         descriptor=row.ClinicianDescriptor.descriptor_spa,
+                         language=language) for row in rows]
         else:
             return [dict(id=row.ClinicianDescriptor.id,
                          code=row.ClinicianDescriptorCodeMapping.code,
-                         descriptor=row.ClinicianDescriptor.descriptor) for row in rows]
+                         descriptor=row.ClinicianDescriptor.descriptor,
+                         language=language) for row in rows]
 
 
 class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):
