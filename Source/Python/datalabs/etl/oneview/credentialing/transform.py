@@ -22,6 +22,8 @@ class CredentialingTransformerTask(TransformerTask):
 class CredentialingFinalTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug(self._parameters['data'])
+        on_disk = bool(self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE')
+
         table_data = self._csv_to_dataframe(self._parameters['data'])
 
         preprocessed_data = self._preprocess_data(table_data)
@@ -31,7 +33,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     # pylint: disable=arguments-differ
     @classmethod

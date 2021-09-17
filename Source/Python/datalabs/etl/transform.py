@@ -1,8 +1,10 @@
 """ Transformer base class and NO-OP implementation. """
 from   abc import ABC, abstractmethod
+
+import tempfile
+
 import logging
 import pandas
-import tempfile
 
 import dask.dataframe
 

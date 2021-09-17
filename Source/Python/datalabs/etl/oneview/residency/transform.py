@@ -13,7 +13,8 @@ LOGGER.setLevel(logging.DEBUG)
 class ResidencyTransformerTask(TransformerTask):
     @classmethod
     def _csv_to_dataframe(cls, path, on_disk, **kwargs):
-        return super()._csv_to_dataframe(path, sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
+        return super()._csv_to_dataframe(path, on_disk, sep='|', error_bad_lines=False, encoding='latin',
+                                         low_memory=False)
 
     # pylint: disable=too-many-arguments
     def _preprocess_data(self, data):

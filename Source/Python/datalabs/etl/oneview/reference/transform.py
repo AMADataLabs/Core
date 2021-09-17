@@ -50,7 +50,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     @classmethod
-    def _csv_to_dataframe(cls, path: str, on_disk, **kwargs):
+    def _csv_to_dataframe(cls, path, **kwargs):
         return pandas.read_excel(path, skiprows=4, dtype=str, engine='openpyxl', **kwargs)
 
     def _preprocess_data(self, data):

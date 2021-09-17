@@ -2,9 +2,6 @@
 import logging
 import pandas
 
-import dask.array
-import dask.dataframe
-
 from   datalabs.etl.oneview.iqvia import column
 from   datalabs.etl.oneview.transform import TransformerTask
 

@@ -18,10 +18,7 @@ LOGGER.setLevel(logging.INFO)
 class TransformerTask(etl.ScalableTransformerMixin, etl.TransformerTask, ABC):
     def _transform(self):
         LOGGER.debug(self._parameters['data'])
-        if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
-            on_disk = True
-        else:
-            on_disk = False
+        on_disk = bool(self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE')
 
         if feature.enabled("PROFILE"):
             LOGGER.info('Pre csv to dataframes memory (%s)', hpy().heap())
