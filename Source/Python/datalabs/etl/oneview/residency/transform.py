@@ -71,7 +71,8 @@ class ResidencyTransformerTask(TransformerTask):
                                                             ['pgm_id', 'ins_id', 'pri_clinical_loc_ind']
                                                         ], on='pgm_id', how='left')
 
-        institution_info = institution_info.merge(program_institution[['ins_id']], on='ins_id', how='left')
+        institution_info = institution_info.merge(program_institution[['ins_id']],
+                                                  on='ins_id', how='left').drop_duplicates()
         institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970'))
 

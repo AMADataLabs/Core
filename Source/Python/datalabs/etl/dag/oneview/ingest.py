@@ -1,7 +1,6 @@
 ''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag.dag import DAG
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
-from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
@@ -24,7 +23,7 @@ class OneViewDAG(DAG):
     EXTRACT_PPD: SFTPFileExtractorTask
     CREATE_PHYSICIAN_TABLE: PPDTransformerTask
     LOAD_PHYSICIAN_TABLE_INTO_DATABASE: ORMLoaderTask
-    EXTRACT_MELISSA: S3FileExtractorTask
+    EXTRACT_MELISSA: JDBCExtractorTask
     CREATE_MELISSA_TABLES: MelissaTransformerTask
     LOAD_MELISSA_TABLES_INTO_DATABASE: ORMLoaderTask
     EXTRACT_TYPE_OF_PRACTICE: JDBCExtractorTask
@@ -75,7 +74,9 @@ class OneViewDAG(DAG):
 
 # pylint: disable=pointless-statement
 OneViewDAG.EXTRACT_MELISSA >> OneViewDAG.CREATE_MELISSA_TABLES >> OneViewDAG.LOAD_MELISSA_TABLES_INTO_DATABASE
-OneViewDAG.EXTRACT_PPD >> OneViewDAG.CREATE_PHYSICIAN_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_INTO_DATABASE
+OneViewDAG.EXTRACT_PPD >> OneViewDAG.CREATE_PHYSICIAN_TABLE
+OneViewDAG.EXTRACT_PHYSICIAN_NATIONAL_PROVIDER_IDENTIFIERS >> OneViewDAG.CREATE_PHYSICIAN_TABLE
+OneViewDAG.CREATE_PHYSICIAN_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_INTO_DATABASE
 OneViewDAG.EXTRACT_TYPE_OF_PRACTICE \
     >> OneViewDAG.CREATE_TYPE_OF_PRACTICE_TABLE \
     >> OneViewDAG.LOAD_REFERENCE_TABLES_INTO_DATABASE
