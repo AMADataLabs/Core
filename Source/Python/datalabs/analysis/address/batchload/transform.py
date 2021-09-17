@@ -5,8 +5,9 @@ import logging
 from string import ascii_uppercase, digits
 import pandas as pd
 
-from datalabs.etl.transform import TransformerTask
+from datalabs.etl.transform import TransformerTask  # pylint: disable=import-error
 
+# pylint: disable=bare-except,logging-fstring-interpolation
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
