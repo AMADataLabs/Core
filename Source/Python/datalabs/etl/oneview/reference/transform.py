@@ -49,6 +49,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
+    # pylint: disable=arguments-differ
     @classmethod
     def _csv_to_dataframe(cls, path, **kwargs):
         return pandas.read_excel(path, skiprows=4, dtype=str, engine='openpyxl', **kwargs)
@@ -78,6 +79,8 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 
 class StaticReferenceTablesTransformerTask(TransformerTask):
     def _transform(self):
+        on_disk = bool(self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE')
+
         table_data = [self._dictionary_to_dataframe(data) for data in [tables.provider_affiliation_group,
                                                                        tables.provider_affiliation_type,
                                                                        tables.profit_status,
@@ -89,7 +92,7 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
         renamed_data = self._rename_columns(selected_data)
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     @classmethod
     def _dictionary_to_dataframe(cls, data):
