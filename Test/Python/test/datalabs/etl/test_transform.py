@@ -28,12 +28,13 @@ def test_pass_through_transformer():
 
 # pylint: disable=protected-access
 def test_scalable_dataframes_mixin(csv_file):
-    data = ScalableTransformerMixin._csv_to_dataframe(csv_file)
+    on_disk = True
+    data = ScalableTransformerMixin._csv_to_dataframe(csv_file, on_disk)
     new_column = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'R2']
 
     data.id = dask.array.from_array(new_column)
 
-    path = ScalableTransformerMixin._dataframe_to_csv(data)
+    path = ScalableTransformerMixin._dataframe_to_csv(data, on_disk)
 
     data = pandas.read_csv(path)
 

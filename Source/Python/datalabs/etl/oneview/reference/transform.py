@@ -1,4 +1,5 @@
 """ OneView Reference Transformer"""
+import csv
 import logging
 import pandas
 
@@ -48,8 +49,9 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
+    # pylint: disable=arguments-differ
     @classmethod
-    def _csv_to_dataframe(cls, path: str, **kwargs):
+    def _csv_to_dataframe(cls, path, **kwargs):
         return pandas.read_excel(path, skiprows=4, dtype=str, engine='openpyxl', **kwargs)
 
     def _preprocess_data(self, data):
@@ -74,20 +76,23 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
     def _get_columns(self):
         return [FIPSC_COLUMNS]
 
-    @classmethod
-    def _dataframe_to_csv(cls, data, **kwargs):
-        return pandas.DataFrame.to_csv(data).encode()
-
 
 class StaticReferenceTablesTransformerTask(TransformerTask):
     def _transform(self):
-        table_data = [self._dictionary_to_dataframe(data) for data in tables]
+        on_disk = bool(self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE')
+
+        table_data = [self._dictionary_to_dataframe(data) for data in [tables.provider_affiliation_group,
+                                                                       tables.provider_affiliation_type,
+                                                                       tables.profit_status,
+                                                                       tables.owner_status]
+                      ]
+
         preprocessed_data = self._preprocess_data(table_data)
         selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     @classmethod
     def _dictionary_to_dataframe(cls, data):
@@ -95,10 +100,6 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
 
     def _get_columns(self):
         return [PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, OWNER_STATUS]
-
-    @classmethod
-    def _dataframe_to_csv(cls, data, **kwargs):
-        return pandas.DataFrame.to_csv(data).encode()
 
 
 class ClassOfTradeTransformerTask(TransformerTask):

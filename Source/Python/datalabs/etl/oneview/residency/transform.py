@@ -1,8 +1,6 @@
 """ Oneview Residency Transformer"""
 import logging
 import pandas
-import dask.array
-import dask.dataframe
 
 from   datalabs.etl.oneview.residency.column import PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
@@ -14,8 +12,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ResidencyTransformerTask(TransformerTask):
     @classmethod
-    def _csv_to_dataframe(cls, path, **kwargs):
-        return super()._csv_to_dataframe(path, sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
+    def _csv_to_dataframe(cls, path, on_disk, **kwargs):
+        return super()._csv_to_dataframe(path, on_disk, sep='|', error_bad_lines=False, encoding='latin',
+                                         low_memory=False)
 
     # pylint: disable=too-many-arguments
     def _preprocess_data(self, data):
@@ -83,8 +82,7 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, dataframe):
-        primary_keys = dask.array.array([str(column['pgm_id']) + str(column['aamc_id'])
-                                         for index, column in dataframe.iterrows()])
+        primary_keys = [str(column['pgm_id']) + str(column['aamc_id']) for index, column in dataframe.iterrows()]
         dataframe['id'] = primary_keys
 
         return dataframe
