@@ -1,6 +1,6 @@
 """Oneview Physician Table Columns"""
 
-PPD_COLUMNS = {
+PHYSICIAN_COLUMNS = {
     'ME_NUMBER': 'medical_education_number',
     'ADDRESS_TYPE': 'address_type',
     'MAILING_NAME': 'mailing_name',
@@ -84,4 +84,45 @@ PPD_COLUMNS = {
     'entity_id': 'entity_id',
     'npi': 'national_provider_identifier',
     'race_ethnicity': 'race_ethnicity'
+}
+
+MEDICAL_STUDENT_COLUMNS = {
+    'me_no': 'ME_NUMBER',
+    'mailing_name': 'MAILING_NAME',
+    'last_name': 'LAST_NAME',
+    'first_name': 'FIRST_NAME',
+    'middle_name': 'MIDDLE_NAME',
+    'suffix': 'SUFFIX_CODE',
+    'mail_line_1': 'PREFERRED_ADDR1',
+    'mail_line_2': 'PREFERRED_ADDR2',
+    'state': 'PREFERRED_STATE',
+    'zipcode': 'PREFERRED_ZIP',
+    'sector': 'PREFERRED_PLUS4',
+    'addr_city': 'PREFERRED_CITY',
+    'carrier_route': 'PREFERRED_CARRIERROUTE',
+    'addr_undeliver_flg': 'UNDELIVER_FLAG',
+    'fips_county': 'FIPS_COUNTY',
+    'fips_state': 'FIPS_STATE',
+    'region': 'REGION',
+    'msa_population_size': 'MSA_POPULATION',
+    'division': 'DIVISION',
+    'group': 'GROUP',
+    'tract': 'TRACT',
+    'census_suffix': 'SUFFIX',
+    'block_group': 'BLOCK_GROUP',
+    'metro_micro_indicator': '',
+    'cbsa': 'CBSA',
+    'cbsa_division_indicator': 'MICRO_METRO_IND',
+    'school_name': 'GRADSCHOOLCODE',
+    'school_state': 'GRADSCHOOLSTATE',
+    'grad_year': 'GRADYEAR',
+    'birth_year': 'BIRTH_YEAR',
+    'birth_city': 'BIRTH_CITY',
+    'birth_state': 'BIRTH_STATE',
+    'birth_country': 'BIRTH_COUNTRY',
+    'gender': 'GENDER',
+    'addr_type_ind': 'ADDRESS_TYPE',
+    'phone_no': 'PREFERREDPHONENUMBER',
+    'presumed_dead': 'PENDINGDEAD_IND',
+    'contact_flg': 'NOCONTACT_IND'
 }
