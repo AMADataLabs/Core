@@ -1,8 +1,6 @@
 """ Oneview Melissa Transformer"""
 import logging
 
-import pandas
-
 import datalabs.etl.oneview.melissa.column as columns
 from   datalabs.etl.oneview.transform import TransformerTask
 
