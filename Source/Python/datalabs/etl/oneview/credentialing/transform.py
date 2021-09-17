@@ -1,6 +1,7 @@
 """Oneview Credentialing Table Columns"""
 from   io import BytesIO
 
+import csv
 import logging
 import pandas
 
@@ -30,7 +31,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data, index=False) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     # pylint: disable=arguments-differ
     @classmethod
@@ -47,7 +48,3 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
     def _get_columns(self):
         return [columns.CUSTOMER_ADDRESSES_COLUMNS]
-
-    @classmethod
-    def _dataframe_to_csv(cls, data, **kwargs):
-        return pandas.DataFrame.to_csv(data, **kwargs).encode()

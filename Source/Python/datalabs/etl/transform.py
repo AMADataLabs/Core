@@ -32,11 +32,11 @@ class PassThroughTransformerTask(TransformerTask):
 
 class ScalableTransformerMixin():
     @classmethod
-    def _csv_to_dataframe(cls, path: str, on_disk: bool, **kwargs):
+    def _csv_to_dataframe(cls, path, on_disk: bool, **kwargs):
         if on_disk is True:
             data = dask.dataframe.read_csv(path, dtype=str, **kwargs)
         else:
-            data = pandas.read_csv(path, **kwargs)
+            data = pandas.read_csv(path, dtype=str, **kwargs)
 
         return data
 
@@ -46,6 +46,6 @@ class ScalableTransformerMixin():
             path = tempfile.NamedTemporaryFile(delete=False).name
             data = data.to_csv(path, single_file=True, index=False, **kwargs)[0]
         else:
-            data = data.to_csv(data)
+            data = data.to_csv(data, index=False)
 
         return data

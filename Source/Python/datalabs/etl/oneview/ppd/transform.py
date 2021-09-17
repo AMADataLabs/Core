@@ -12,9 +12,6 @@ LOGGER.setLevel(logging.INFO)
 
 
 class NPITransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, path: str, **kwargs) -> pandas.DataFrame:
-        return pandas.read_csv(path, sep='|', dtype=str, **kwargs)
-
     def _preprocess_data(self, data):
         npi = data[0]
 
@@ -59,7 +56,7 @@ class NPITransformerTask(TransformerTask):
 
 
 class PPDTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, path: str, **kwargs) -> pandas.DataFrame:
+    def _csv_to_dataframe(self, path: str, on_disk, **kwargs) -> pandas.DataFrame:
         return pandas.read_csv(path, sep='|', dtype=str, **kwargs)
 
     def _preprocess_data(self, data):
@@ -99,9 +96,6 @@ class PPDTransformerTask(TransformerTask):
 
 
 class PhysicianTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, path: str, **kwargs) -> pandas.DataFrame:
-        return pandas.read_csv(path, dtype=str, **kwargs)
-
     def _preprocess_data(self, data):
         ppd, npi = data
 
