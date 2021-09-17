@@ -23,15 +23,6 @@ module "webapp_{{SNAKE_CASE_NAME}}_lambda" {
     security_group_ids      = [module.oneview_sg.security_group_id]
   }
 
-  environment_variables = {
-    variables = {
-      DATABASE_HOST         = module.webapp_database.endpoint
-      DATABASE_NAME         = var.app_database_name
-      DATABASE_USERNAME     = var.database_username
-      DATABASE_PASSWORD     = random_password.database_password.result
-    }
-  }
-
   lambda_policy_vars = {
     account_id = local.account
     region     = var.region
