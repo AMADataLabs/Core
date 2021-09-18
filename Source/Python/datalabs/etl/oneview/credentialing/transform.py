@@ -37,7 +37,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
     # pylint: disable=arguments-differ
     @classmethod
-    def _csv_to_dataframe(cls, data):
+    def _csv_to_dataframe(cls, data, on_disk):
         addresses = pandas.read_excel(data[0], engine='openpyxl')
         customers = pandas.read_csv(BytesIO(data[1]), encoding="ISO-8859-1", engine='python')
 
