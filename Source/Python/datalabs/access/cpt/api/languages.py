@@ -4,3 +4,9 @@
 Descriptor_Languages = ['english',
                         'chinese',
                         'spanish']
+
+Descriptor_Suffix = {
+    'english': '',
+    'spanish': '_spanish',
+    'chinese': '_chinese'
+}

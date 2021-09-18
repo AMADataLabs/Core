@@ -5,7 +5,7 @@ import logging
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin
 from   datalabs.model.cpt.api import ConsumerDescriptor
-from datalabs.access.cpt.api import languages
+from   datalabs.access.cpt.api import languages
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -47,12 +47,9 @@ class BaseConsumerDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response_body(cls, rows, language):
-        if language == 'chinese':
-            return [dict(code=row.code, descriptor=row.descriptor_chinese, language=language) for row in rows]
-        elif language == 'spanish':
-            return [dict(code=row.code, descriptor=row.descriptor_spanish, language=language) for row in rows]
-        else:
-            return [dict(code=row.code, descriptor=row.descriptor, language=language) for row in rows]
+        return [dict(code=row.code,
+                     descriptor=getattr(row, "descriptor" + languages.Descriptor_Suffix[language]),
+                     language=language) for row in rows]
 
 
 class ConsumerDescriptorEndpointTask(BaseConsumerDescriptorEndpointTask):

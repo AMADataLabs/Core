@@ -8,7 +8,7 @@ from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, Invali
 from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterMixin
 from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping
 from   datalabs.model.cpt.api import Code, Release, ReleaseCodeMapping
-from datalabs.access.cpt.api import languages
+from   datalabs.access.cpt.api import languages
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -50,21 +50,10 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response_body(cls, rows, language):
-        if language == 'chinese':
-            return [dict(id=row.ClinicianDescriptor.id,
-                         code=row.ClinicianDescriptorCodeMapping.code,
-                         descriptor=row.ClinicianDescriptor.descriptor_chinese,
-                         language=language) for row in rows]
-        elif language == 'spanish':
-            return [dict(id=row.ClinicianDescriptor.id,
-                         code=row.ClinicianDescriptorCodeMapping.code,
-                         descriptor=row.ClinicianDescriptor.descriptor_spanish,
-                         language=language) for row in rows]
-        else:
-            return [dict(id=row.ClinicianDescriptor.id,
-                         code=row.ClinicianDescriptorCodeMapping.code,
-                         descriptor=row.ClinicianDescriptor.descriptor,
-                         language=language) for row in rows]
+        return [dict(id=row.ClinicianDescriptor.id,
+                     code=row.ClinicianDescriptorCodeMapping.code,
+                     descriptor=getattr(row.ClinicianDescriptor, "descriptor" + languages.Descriptor_Suffix[language]),
+                     language=language) for row in rows]
 
 
 class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):

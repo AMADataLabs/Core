@@ -8,7 +8,7 @@ from   sqlalchemy.orm import defer, undefer
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, WildcardFilterMixin
 import datalabs.model.cpt.api as dbmodel
-from datalabs.access.cpt.api import languages
+from   datalabs.access.cpt.api import languages
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -83,13 +83,9 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
 
             for length in lengths:
                 row_body.update({"language": language.lower()})
-                if language == 'chinese':
-                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_chinese})
-                elif language == 'spanish':
-                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor_spanish})
-                else:
-                    row_body.update({length.lower() + '_descriptor': getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()]).descriptor})
-
+                descriptor = getattr(row, cls.LENGTH_MODEL_NAMES[length.lower()])
+                descriptor = getattr(descriptor, "descriptor" + languages.Descriptor_Suffix[language])
+                row_body.update({length.lower() + '_descriptor': descriptor})
             body.append(row_body)
 
         return body

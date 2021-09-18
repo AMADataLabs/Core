@@ -104,8 +104,8 @@ class ClinicianDescriptor(Base):
 
     id = sa.Column(sa.Integer, primary_key=True)
     descriptor = sa.Column(sa.String, nullable=False)  # English
-    descriptor_spa = sa.Column(sa.String, nullable=False)  # Spanish
-    descriptor_chi = sa.Column(sa.String, nullable=False)  # Chinese
+    descriptor_spanish = sa.Column(sa.String, nullable=False)  # Spanish
+    descriptor_chinese = sa.Column(sa.String, nullable=False)  # Chinese
     modified_date = sa.Column(sa.Date, nullable=False)
     deleted = sa.Column(sa.Boolean, nullable=False, default=False)
 
