@@ -22,7 +22,7 @@ class CredentialingTransformerTask(TransformerTask):
 class CredentialingFinalTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug(self._parameters['data'])
-        on_disk = bool(self._parameters["on_disk"] and self._parameters["on_disk"].upper() == 'TRUE')
+        on_disk = bool(self._parameters.get("on_disk") and self._parameters["on_disk"].upper() == 'TRUE')
 
         table_data = self._csv_to_dataframe(self._parameters['data'])
 

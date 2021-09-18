@@ -79,7 +79,7 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 
 class StaticReferenceTablesTransformerTask(TransformerTask):
     def _transform(self):
-        on_disk = bool(self._parameters["on_disk"] and self._parameters["on_disk"].upper() == 'TRUE')
+        on_disk = bool(self._parameters.get("on_disk") and self._parameters["on_disk"].upper() == 'TRUE')
 
         table_data = [self._dictionary_to_dataframe(data) for data in [tables.provider_affiliation_group,
                                                                        tables.provider_affiliation_type,
