@@ -24,7 +24,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
         LOGGER.debug(self._parameters['data'])
         on_disk = bool(self._parameters.get("on_disk") and self._parameters["on_disk"].upper() == 'TRUE')
 
-        table_data = self._csv_to_dataframe(self._parameters['data'])
+        table_data = self._csv_to_dataframe(self._parameters['data'], on_disk)
 
         preprocessed_data = self._preprocess_data(table_data)
 

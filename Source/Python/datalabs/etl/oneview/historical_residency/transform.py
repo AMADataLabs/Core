@@ -11,8 +11,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 class HistoricalResidencyTransformerTask(TransformerTask):
     @classmethod
-    def _csv_to_dataframe(cls, path, on_disk, **kwargs):
-        return super()._csv_to_dataframe(path, on_disk, sep='|')
+    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
+        return super()._csv_to_dataframe(data, on_disk, sep='|')
 
     def _get_columns(self):
         return [column.HISTORICAL_RESIDENCY]

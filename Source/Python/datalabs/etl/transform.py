@@ -35,13 +35,13 @@ class PassThroughTransformerTask(TransformerTask):
 
 class ScalableTransformerMixin():
     @classmethod
-    def _csv_to_dataframe(cls, csv, on_disk: bool, **kwargs):
+    def _csv_to_dataframe(cls, data, on_disk: bool, **kwargs):
         if on_disk:
-            data = dask.dataframe.read_csv(csv.decode(), dtype=str, **kwargs)
+            dataframe = dask.dataframe.read_csv(data.decode(), dtype=str, **kwargs)
         else:
-            data = pandas.read_csv(BytesIO(csv), dtype=str, **kwargs)
+            dataframe = pandas.read_csv(BytesIO(data), dtype=str, **kwargs)
 
-        return data
+        return dataframe
 
     @classmethod
     def _dataframe_to_csv(cls, data, on_disk: bool, **kwargs):

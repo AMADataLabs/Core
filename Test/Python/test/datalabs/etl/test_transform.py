@@ -2,11 +2,11 @@
 from   io import BytesIO
 import os
 import pathlib
-import pytest
 import tempfile
 
 import dask.array
 import pandas
+import pytest
 
 from datalabs.etl.transform import TransformerTask, PassThroughTransformerTask, ScalableTransformerMixin
 

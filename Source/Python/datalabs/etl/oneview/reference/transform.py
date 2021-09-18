@@ -49,10 +49,10 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
-    # pylint: disable=arguments-differ
+    # pylint: disable=unused-argument
     @classmethod
-    def _csv_to_dataframe(cls, path, no_disk, **kwargs):
-        return pandas.read_excel(path, skiprows=4, dtype=str, engine='openpyxl', **kwargs)
+    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
+        return pandas.read_excel(data, skiprows=4, dtype=str, engine='openpyxl', **kwargs)
 
     def _preprocess_data(self, data):
         fips_selected_data = self.set_columns(data[0])

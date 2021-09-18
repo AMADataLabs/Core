@@ -56,8 +56,8 @@ class NPITransformerTask(TransformerTask):
 
 
 class PPDTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, path: str, on_disk, **kwargs) -> pandas.DataFrame:
-        return pandas.read_csv(path, sep='|', dtype=str, **kwargs)
+    def _csv_to_dataframe(self, data: bytes, on_disk, **kwargs) -> pandas.DataFrame:
+        return super()._csv_to_dataframe(data, sep='|', dtype=str, **kwargs)
 
     def _preprocess_data(self, data):
         ppd, race_ethnicity, medical_student = data
