@@ -38,7 +38,7 @@ DBL_REPORT_DAG = DAG(
         get_logs=True,
     ),
     schedule_interval="0 7 * * 1",  # every Monday at 7 AM
-    start_date=datetime(year=2021, month=9, day=1),
+    start_date=datetime(year=2021, month=9, day=16),
     tags=['DBL_Report'],
     catchup=False
 )
