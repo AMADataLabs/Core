@@ -211,7 +211,7 @@ class Business(Base):
     owner_status = sa.Column(sa.String, sa.ForeignKey("oneview.owner_status.id"))
     profit_status = sa.Column(sa.String, sa.ForeignKey("oneview.profit_status.id"))
     primary_class_of_trade = sa.Column(sa.String)
-    class_of_trade_classification = sa.Column(sa.String)
+    class_of_trade_classification = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_classification.id"))
     class_of_trade_classification_description = sa.Column(sa.String)
     class_of_trade_facility_type = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_facility.id"))
     class_of_trade_facility_type_description = sa.Column(sa.String)
