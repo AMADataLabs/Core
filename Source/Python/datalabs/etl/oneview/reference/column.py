@@ -39,13 +39,17 @@ PROFIT_STATUS = {
 OWNER_STATUS = {
     'id': 'id'
 }
+COT_CLASSIFICATION = {
+    'CLASSIFICATION_ID': 'id',
+    'CLASSIFICATION': 'description',
+}
 COT_SPECIALTY = {
-    'COT_SPECIALTY_ID': 'id',
-    'COT_SPECIALTY': 'description',
+    'SPECIALTY_ID': 'id',
+    'SPECIALTY': 'description',
 }
 COT_FACILITY = {
-    'COT_FACILITY_TYPE_ID': 'id',
-    'COT_FACILITY_TYPE': 'description',
+    'FACILITY_TYPE_ID': 'id',
+    'FACILITY_TYPE': 'description',
 }
 STATE = {
     'STATE_ID': 'id',

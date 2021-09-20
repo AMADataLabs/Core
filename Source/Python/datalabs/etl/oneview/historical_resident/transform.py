@@ -9,7 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class HistoricalResidencyTransformerTask(TransformerTask):
+class HistoricalResidentTransformerTask(TransformerTask):
     @classmethod
     def _csv_to_dataframe(cls, data, on_disk, **kwargs):
         return super()._csv_to_dataframe(data, on_disk, sep='|')

@@ -106,10 +106,11 @@ class ClassOfTradeTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         class_of_trade_data = data[0]
 
-        specialty_data = class_of_trade_data['COT_SPECIALTY_ID', 'COT_SPECIALTY']
-        facility_data = class_of_trade_data['COT_FACILITY_TYPE_ID', 'COT_FACILITY_TYPE']
+        classification_data = class_of_trade_data['CLASSIFICATION_ID', 'CLASSIFICATION']
+        specialty_data = class_of_trade_data['SPECIALTY_ID', 'SPECIALTY']
+        facility_data = class_of_trade_data['FACILITY_TYPE_ID', 'FACILITY_TYPE']
 
-        return [specialty_data, facility_data]
+        return [specialty_data, facility_data, classification_data]
 
     def _get_columns(self):
         return [COT_SPECIALTY, COT_FACILITY]
