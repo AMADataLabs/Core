@@ -12,7 +12,7 @@ module "webapp_{{SNAKE_CASE_NAME}}_lambda" {
   description               = "Oneview App Backend Function - {{HUMAN_READABLE_NAME}}"
   s3_lambda_bucket          = local.s3_lambda_bucket
   s3_lambda_key             = "OneView/{{CAMEL_CASE_NAME}}.zip"
-  handler                   = "lambda_handler.lambda_handler"
+  handler                   = "lambda_function.lambda_handler"
   runtime                   = var.runtime
   memory_size               = var.endpoint_lambda_memory_size
   timeout                   = var.endpoint_lambda_timeout
