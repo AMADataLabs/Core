@@ -11,10 +11,9 @@ info:
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
 tags:
   - name: Files
-    description: Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
+    description: Provides a zip archive of the standard CPT distribution files
   - name: Releases
-    description: >-
-      All release data in descending order of date
+    description: All release data in descending order of date
     externalDocs:
       url: 'http://swagger.io'
 paths:
@@ -22,23 +21,8 @@ paths:
     get:
       tags:
         - Files
-      summary: Zip archive of the CPT standard distribution data files.
-      description: >-
-          Provides a zip archive of the CPT standard distribution data files.
-              CPT Link Release Notes YYYYMMDD.pdf,
-              standard/AnesthesiaGuidelines.pdf,
-              standard/AppendixB.pdf,standard/AppendixN.pdf,
-              standard/AppendixO.pdf,
-              standard/CategoryIIGuidelines.pdf,
-              standard/CategoryIIIGuidelines.pdf,
-              standard/CPT YYYY README.pdf,
-              standard/EvalManagementGuidelines.pdf,
-              standard/MedicineGuidelines.pdf,
-              standard/PathLabGuidelines.pdf,
-              standard/RadiologyGuidelines.pdf,
-              standard/Clinician Descriptors/YYYY Clinician Descriptors README.pdf,
-              standard/Consumer Friendly Descriptors/YYYY Consumer Friendly Descriptors README.pdf, and
-              standard/SurgeryGuidelines.pdf.
+      summary: Zip archive of the CPT standard distribution data files
+      description: Provides a zip archive of the standard CPT distribution files
       operationId: getFiles
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
