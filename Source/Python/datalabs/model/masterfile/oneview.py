@@ -598,6 +598,14 @@ class State(Base):
     description = sa.Column(sa.String, nullable=False)
 
 
+class ClassOfTradeClassification(Base):
+    __tablename__ = 'class_of_trade_classification'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
 class ClassOfTradeSpecialty(Base):
     __tablename__ = 'class_of_trade_specialty'
     __table_args__ = {"schema": "oneview"}
