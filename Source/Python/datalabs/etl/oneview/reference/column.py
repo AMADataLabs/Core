@@ -34,12 +34,10 @@ PROVIDER_AFFILIATION_TYPE = {
     'description': 'description'
 }
 PROFIT_STATUS = {
-    'id': 'id',
-    'description': 'description'
+    'id': 'id'
 }
 OWNER_STATUS = {
-    'id': 'id',
-    'description': 'description'
+    'id': 'id'
 }
 COT_SPECIALTY = {
     'COT_SPECIALTY_ID': 'id',
