@@ -15,7 +15,7 @@ from   datalabs.etl.oneview.credentialing.transform import CredentialingTransfor
     CredentialingFinalTransformerTask
 from   datalabs.etl.oneview.link.transform import CredentialingCustomerInstitutionTransformerTask, \
     CredentialingCustomerBusinessTransformerTask, ResidencyProgramPhysicianTransformerTask
-from   datalabs.etl.oneview.historical_residency.transform import HistoricalResidentTransformerTask
+from   datalabs.etl.oneview.historical_resident.transform import HistoricalResidentTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
 
 
