@@ -50,10 +50,12 @@ class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response_body(cls, rows, language):
-        return [dict(id=row.ClinicianDescriptor.id,
-                     code=row.ClinicianDescriptorCodeMapping.code,
-                     descriptor=getattr(row.ClinicianDescriptor, "descriptor" + languages.Descriptor_Suffix[language]),
-                     language=language) for row in rows]
+        return [
+            dict(id=row.ClinicianDescriptor.id,
+            code=row.ClinicianDescriptorCodeMapping.code,
+            descriptor=getattr(row.ClinicianDescriptor, "descriptor" + languages.Descriptor_Suffix[language]),
+            language=language) for row in rows
+        ]
 
 
 class ClinicianDescriptorsEndpointTask(BaseClinicianDescriptorsEndpointTask):

@@ -47,9 +47,11 @@ class BaseConsumerDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _generate_response_body(cls, rows, language):
-        return [dict(code=row.code,
-                     descriptor=getattr(row, "descriptor" + languages.Descriptor_Suffix[language]),
-                     language=language) for row in rows]
+        return [
+            dict(code=row.code,
+            descriptor=getattr(row, "descriptor" + languages.Descriptor_Suffix[language]),
+            language=language) for row in rows
+        ]
 
 
 class ConsumerDescriptorEndpointTask(BaseConsumerDescriptorEndpointTask):
