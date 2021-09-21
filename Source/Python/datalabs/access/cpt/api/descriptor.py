@@ -25,6 +25,9 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         lengths = self._parameters.query.get('length')
         language = self._parameters.query.get('language').lower()
 
+        if not isinstance(lengths, list):
+            lengths = [lengths]
+
         if not self._lengths_are_valid(lengths):
             raise InvalidRequest(f"Invalid query parameter: length={lengths}")
         if not self._language_is_valid(language):
@@ -43,8 +46,6 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _lengths_are_valid(cls, lengths):
-        if not isinstance(lengths, list):
-            lengths = [lengths]
         return all(length in cls.LENGTH_MODEL_NAMES.keys() for length in lengths)
 
     @classmethod
