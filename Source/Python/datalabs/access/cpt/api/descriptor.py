@@ -3,7 +3,6 @@ from   abc import abstractmethod
 import logging
 
 from   sqlalchemy import or_
-from   sqlalchemy.orm import defer, undefer
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, ResourceNotFound
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, WildcardFilterMixin
@@ -26,6 +25,9 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
         lengths = self._parameters.query.get('length')
         language = self._parameters.query.get('language').lower()
 
+        if not isinstance(lengths, list):
+            lengths = [lengths]
+
         if not self._lengths_are_valid(lengths):
             raise InvalidRequest(f"Invalid query parameter: length={lengths}")
         if not self._language_is_valid(language):
@@ -44,8 +46,6 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _lengths_are_valid(cls, lengths):
-        if type(lengths) is not list:
-            lengths = [lengths]
         return all(length in cls.LENGTH_MODEL_NAMES.keys() for length in lengths)
 
     @classmethod
@@ -74,9 +74,6 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
     @classmethod
     def _generate_response_body(cls, rows, lengths, language):
         body = []
-
-        if type(lengths) is not list:
-            lengths = [lengths]
 
         for row in rows:
             row_body = dict(code=row.Code.code)
