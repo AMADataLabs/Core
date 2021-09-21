@@ -52,7 +52,7 @@ modspec:
   - package: datalabs.etl.oneview.melissa
   - package: datalabs.etl.orm
   - package: datalabs.etl.oneview.reference
-  - package: datalabs.etl.oneview.historical_residency
+  - package: datalabs.etl.oneview.historical_resident
   - package: datalabs.etl.http
   - package: datalabs.etl.s3
   - package: datalabs.etl.sftp
