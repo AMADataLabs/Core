@@ -1,7 +1,7 @@
 """ Oneview Historical Residency Transformer"""
 import logging
 
-from   datalabs.etl.oneview.historical_residency import column
+from   datalabs.etl.oneview.historical_resident import column
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
