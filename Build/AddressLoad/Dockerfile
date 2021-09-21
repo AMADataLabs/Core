@@ -24,7 +24,8 @@ RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
 COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
 COPY ./Build/AddressLoad ./Build/AddressLoad
-COPY ./Source ./Source
+COPY ./Source/Python/datalabs ./Source/Python/datalabs
+# COPY ./Source ./Source
 # COPY ./Build/AddressLoad/known_hosts $HOME/.ssh/known_hosts
 
 ARG template_vars
