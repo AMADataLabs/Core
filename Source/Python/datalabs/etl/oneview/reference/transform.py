@@ -5,7 +5,7 @@ import pandas
 
 from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS,\
     SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS, PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, \
-    OWNER_STATUS, COT_SPECIALTY, COT_FACILITY, COT_CLASSIFICATION, STATE
+    OWNER_STATUS, COT_SPECIALTY, COT_FACILITY, COT_CLASSIFICATION, STATE, MEDICAL_SCHOOL
 
 from   datalabs.etl.oneview.transform import TransformerTask
 
@@ -122,3 +122,8 @@ class ClassOfTradeTransformerTask(TransformerTask):
 class StateTransformerTask(TransformerTask):
     def _get_columns(self):
         return [STATE]
+
+
+class MedicalSchoolTransformerTask(TransformerTask):
+    def _get_columns(self):
+        return [MEDICAL_SCHOOL]

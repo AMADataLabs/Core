@@ -654,8 +654,8 @@ class OwnerStatus(Base):
     description = sa.Column(sa.String, nullable=False)
 
 
-class AssociationStatus(Base):
-    __tablename__ = 'association_status'
+class MedicalSchool(Base):
+    __tablename__ = 'medical_school'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
