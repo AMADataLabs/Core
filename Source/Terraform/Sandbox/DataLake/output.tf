@@ -5,7 +5,7 @@ output "vpc_id" {
 
 
 output "subnet_ids" {
-  value = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
+  value = local.subnets
 }
 
 

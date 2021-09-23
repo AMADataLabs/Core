@@ -2,7 +2,7 @@
 from   datalabs.etl.dag.dag import DAG
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
-from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
+from   datalabs.etl.sftp.extract import SFTPFileExtractorTask, SFTPIBM437TextFileExtractorTask
 from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
 from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransformerTask, PhysicianTransformerTask
 from   datalabs.etl.oneview.reference.transform import TypeOfPracticeTransformerTask, PresentEmploymentTransformerTask,\
@@ -20,7 +20,7 @@ from   datalabs.etl.orm.load import ORMLoaderTask
 
 
 class OneViewDAG(DAG):
-    EXTRACT_PPD: SFTPFileExtractorTask
+    EXTRACT_PPD: SFTPIBM437TextFileExtractorTask
     EXTRACT_PARTY_KEYS: JDBCExtractorTask
     SUPPLEMENT_PPD_TABLE: PPDTransformerTask
     CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
