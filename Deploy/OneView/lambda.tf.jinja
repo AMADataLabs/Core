@@ -5,7 +5,9 @@ module "webapp_{{SNAKE_CASE_NAME}}_lambda" {
   version = "2.2.0"
   function_name             = "${var.project}-${local.environment}-{{CAMEL_CASE_NAME}}"
   lambda_name               = "${var.project}-${local.environment}-{{CAMEL_CASE_NAME}}"
-  create_alias              = false
+  layers                    = [aws_lambda_layer_version.webapp.arn]
+  create_alias              = true
+  alias_name                = local.environment
   create_lambda_permission  = true
   api_arn                   = module.webapp_api_gateway.api_execution_arn
   use_source_hash           = false

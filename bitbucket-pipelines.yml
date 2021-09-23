@@ -70,21 +70,21 @@ pipelines:
 
         CPT-master:
         - parallel:
-            - step:
-                name: Create Database
-                caches:
-                  - cpt-master-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment CPT
-                - export ENABLE_FEATURE_DEV=True
-                - export DATABASE_NAME=cpt
-                - export DATABASE_NAME_ADMIN=postgres
-                - export DATABASE_BACKEND=postgresql+psycopg2
-                - export DATABASE_HOST=$CPT_DATABASE_HOST_SANDBOX
-                - export DATABASE_PORT=5432
-                - export DATABASE_USERNAME=$CPT_DATABASE_USERNAME_SANDBOX
-                - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
-                - bash Deploy/CPT/create-database
+            # - step:
+            #     name: Create Database
+            #     caches:
+            #       - cpt-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment CPT
+            #     - export ENABLE_FEATURE_DEV=True
+            #     - export DATABASE_NAME=cpt
+            #     - export DATABASE_NAME_ADMIN=postgres
+            #     - export DATABASE_BACKEND=postgresql+psycopg2
+            #     - export DATABASE_HOST=$CPT_DATABASE_HOST_SANDBOX
+            #     - export DATABASE_PORT=5432
+            #     - export DATABASE_USERNAME=$CPT_DATABASE_USERNAME_SANDBOX
+            #     - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
+            #     - bash Deploy/CPT/create-database
             - step:
                 name: Update Bundle
                 caches:
@@ -96,20 +96,18 @@ pipelines:
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - bash Deploy/CPT/create-bundle
-                - export AWS_S3_BUCKET='ama-hsg-datalabs-lambda-code-sandbox'
-                - bash Deploy/CPT/upload-bundle
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
                 - bash Deploy/CPT/upload-bundle
         - parallel:
-            - step:
-                name: Migrate Database
-                caches:
-                  - cpt-master-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - bash Script/migrate-database --host $CPT_DATABASE_HOST_SANDBOX --name cpt --username $CPT_DATABASE_USERNAME_SANDBOX --password $CPT_DATABASE_PASSWORD_SANDBOX upgrade CPT
+            # - step:
+            #     name: Migrate Database
+            #     caches:
+            #       - cpt-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #     - bash Script/migrate-database --host $CPT_DATABASE_HOST_SANDBOX --name cpt --username $CPT_DATABASE_USERNAME_SANDBOX --password $CPT_DATABASE_PASSWORD_SANDBOX upgrade CPT
             - step:
                 name: Update Lambda Functions
                 script:

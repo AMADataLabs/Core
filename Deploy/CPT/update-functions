@@ -4,18 +4,18 @@ set -ex
 
 PROJECT="${PROJECT:-CPT}"
 ENVIRONMENT="${ENVIRONMENT:-sbx}"
-CODE_BUCKET="${CODE_BUCKET:-ama-hsg-datalabs-lambda-code-sandbox}"
-BUNDLE="${BUNDLE:-CPT}"
+CODE_BUCKET="${CODE_BUCKET:-ama-${ENVIRONMENT}-datalake-lambda-us-east-1}"
+BUNDLE="${BUNDLE:-ETL}"
 
-FUNCTIONS="${PROJECT}Authorizer
-           ${PROJECT}-Endpoint
-           ${PROJECT}Convert
-           ${PROJECT}BundlePDF
-           ${PROJECT}Load
-           ${PROJECT}IngestionRouter
-           ${PROJECT}ProcessingRouter"
+FUNCTIONS="${PROJECT}-API-${ENVIRONMENT}-Authorizer
+           ${PROJECT}-API-${ENVIRONMENT}-Endpoint
+           ${PROJECT}-API-${ENVIRONMENT}-Convert
+           ${PROJECT}-API-${ENVIRONMENT}-BundlePDF
+           ${PROJECT}-API-${ENVIRONMENT}-Load
+           ${PROJECT}-API-${ENVIRONMENT}-IngestionRouter
+           ${PROJECT}-API-${ENVIRONMENT}-ProcessingRouter"
 
 for FUNCTION in ${FUNCTIONS}; do
-  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key ${BUNDLE}.zip || exit $?
+  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key CPT/${BUNDLE}.zip || exit $?
   # aws --no-verify-ssl lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key ${BUNDLE}.zip || exit $?
 done

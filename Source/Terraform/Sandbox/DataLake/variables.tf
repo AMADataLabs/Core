@@ -55,3 +55,15 @@ variable "datanow_version" {
     type            = string
     default         = "1.0.0"
 }
+
+variable "ingested_data_topic_name" {
+   description  = "Name of the SNS topic for ngestion router."
+   type = string
+   default = "ingested_data_notification"
+}
+
+variable "processed_data_topic_name" {
+   description  = "Name of the sns topic for processing router."
+   type = string
+   default = "processed_data_notification"
+}

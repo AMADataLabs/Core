@@ -509,14 +509,14 @@ module "sns_ingested_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "ingested_data-${var.environment}"
+    topic_name      = "${var.ingested_data_topic_name}-${var.environment}"
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_ingested_data.bucket_id
   }
 
-  name = "ingested_data-${var.environment}"
-  topic_display_name    = "ingested_data-${var.environment}"
+  name = "${var.ingested_data_topic_name}-${var.environment}"
+  topic_display_name    = "${var.ingested_data_topic_name}-${var.environment}"
   app_name              = lower(var.project)
   app_environment       = var.environment
 
@@ -543,14 +543,14 @@ module "sns_processed_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "processed_data-${var.environment}"
+    topic_name      = "${var.processed_data_topic_name}-${var.environment}"
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_processed_data.bucket_id
   }
 
-  name = "processed_data-${var.environment}"
-  topic_display_name    = "processed_data-${var.environment}"
+  name = "${var.processed_data_topic_name}-${var.environment}"
+  topic_display_name    = "${var.processed_data_topic_name}-${var.environment}"
   app_name              = lower(var.project)
   app_environment       = var.environment
 
