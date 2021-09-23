@@ -24,7 +24,10 @@ class CPTTextDataExtractorParameters:
     secret_key: str = None
     region_name: str = None
     include_names: str = None
+    include_datestamp: str = None
     execution_time: str = None
+    on_disk: str = False
+    assume_role: str = None
     data: object = None
 
 
