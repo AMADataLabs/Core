@@ -45,7 +45,7 @@ class CPTTextDataExtractorTask(extract.S3FileExtractorTask):
 
         data.insert(0, (release_source_path, self._generate_release_details(release_schedule, release_date)))
 
-        return pickle.dumps(data)
+        return [pickle.dumps(data)]
 
     def _extract_release_date(self):
         latest_release_path = self._get_latest_path()
