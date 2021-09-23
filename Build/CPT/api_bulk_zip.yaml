@@ -67,8 +67,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Release'
-        '400':
-          description: Invalid query parameter
       security:
         - gateway_authorizer: []
   /{proxy+}:
