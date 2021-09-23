@@ -2,9 +2,9 @@
 from   enum import Enum
 from   dataclasses import dataclass
 from   datetime import datetime, date
-
 import io
 import logging
+import pickle
 
 import pandas
 
@@ -75,7 +75,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMix
             {key:value for key, value in self._parameters.items() if key != 'data'}
         )
 
-        _, data = zip(*self._parameters['data'])  # unpack the (filename, data) tuples
+        _, data = zip(*pickle.loads(self._parameters['data'][0]))  # unpack the (filename, data) tuples
         input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
 
         return self._generate_tables(input_data)
