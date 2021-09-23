@@ -49,14 +49,6 @@ paths:
       summary: Release data in descending order of date
       description: Allows user to query for updates to expose release data in descending order of date
       operationId: getReleaseDate
-      parameters:
-        - name: results
-          in: query
-          description: Number of results to return
-          required: false
-          schema:
-            type: integer
-            minimum: 1
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
