@@ -70,6 +70,8 @@ class PPDTransformerTask(TransformerTask):
 
         transformed_ppd = self._merge_data(race_ethnicity_table, medical_student_table, ppd)
 
+        transformed_ppd['PDRP_FLAG'] = 'filler'
+
         return [transformed_ppd]
 
     @classmethod
