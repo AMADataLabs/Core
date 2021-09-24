@@ -4,6 +4,8 @@ from   dataclasses import dataclass
 import io
 import hashlib
 import logging
+import re
+
 import pandas
 import sqlalchemy as sa
 
@@ -89,7 +91,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     @classmethod
     def _generate_row_hashes(cls, columns, data, primary_key):
         csv_data = data[columns].to_csv(header=None, index=False).strip('\n').split('\n')
-        row_strings = ["(" + cls.add_quotes(i) + ")" for i in csv_data]
+        row_strings = ["(" + cls._add_quotes(i) + ")" for i in csv_data]
 
         hashes = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
         primary_keys = data[primary_key].tolist()
@@ -99,15 +101,22 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         return incoming_hashes
 
     @classmethod
-    def add_quotes(cls, csv_string):
-        conditions = [',', ' ']
-        string_list = csv_string.split(',')
+    def _add_quotes(cls, csv_string):
+        # split at only unquoted commas
+        columns =  [term for term in re.split(r'("[^"]*,[^"]*"|[^,]*)', csv_string) if (term and term != ',')]
 
-        if any(string_list[1].find(c) >= 0 for c in conditions):
-            string_list[1] = '"' + string_list[1] + '"'
-            csv_string = ','.join(string_list)
+        return ','.join(cls._quote_if_spaces(column) for column in columns)
 
-        return csv_string
+
+    @classmethod
+    def _quote_if_spaces(cls, csv_column):
+        quoted_csv_column = csv_column
+        match = re.match(r'[^"].* .*[^"]$| +$', csv_column)  # match only an unquoted string with spaces
+
+        if match:
+            quoted_csv_column = f'"{csv_column}"'
+
+        return quoted_csv_column
 
     @classmethod
     def _add_data(cls, database, table_parameters):

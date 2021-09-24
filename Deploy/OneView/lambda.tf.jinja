@@ -15,7 +15,7 @@ module "webapp_{{SNAKE_CASE_NAME}}_lambda" {
   s3_lambda_bucket          = local.s3_lambda_bucket
   s3_lambda_key             = "OneView/{{CAMEL_CASE_NAME}}.zip"
   handler                   = "lambda_function.lambda_handler"
-  runtime                   = var.runtime
+  runtime                   = "python3.8"
   memory_size               = var.endpoint_lambda_memory_size
   timeout                   = var.endpoint_lambda_timeout
   tracing_config            = { mode = "Active" }

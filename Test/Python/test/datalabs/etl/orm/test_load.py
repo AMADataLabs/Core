@@ -24,6 +24,13 @@ def test_orm_loader(loader_parameters):
         loader = ORMLoaderTask(loader_parameters)
         loader._load()
 
+def test_row_quoting(hash_data):
+    csv_string = 'apple pants,1,"yummy, yummy","yip,yip!"'
+    expected_string = '"apple pants",1,"yummy, yummy","yip,yip!"'
+
+    quoted_string = ORMLoaderTask._add_quotes(csv_string)
+
+    assert quoted_string == expected_string
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data, hash_query_results):
@@ -40,8 +47,11 @@ def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data
 def test_select_new_data(table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
-    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
-                                             table_parameters.primary_key)
+    row_hashes = loader._generate_row_hashes(
+        table_parameters.columns,
+        table_parameters.data,
+        table_parameters.primary_key
+    )
     table_parameters.incoming_hashes = row_hashes
 
     new_data = loader._select_new_data(table_parameters)
@@ -53,8 +63,11 @@ def test_select_new_data(table_parameters, expected_data):
 def test_select_deleted_data(table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
-    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
-                                             table_parameters.primary_key)
+    row_hashes = loader._generate_row_hashes(
+        table_parameters.columns,
+        table_parameters.data,
+        table_parameters.primary_key
+    )
     table_parameters.incoming_hashes = row_hashes
 
     deleted_data = loader._select_deleted_data(table_parameters)
@@ -65,8 +78,11 @@ def test_select_deleted_data(table_parameters, expected_data):
 def test_select_updated_data(table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
-    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
-                                             table_parameters.primary_key)
+    row_hashes = loader._generate_row_hashes(
+        table_parameters.columns,
+        table_parameters.data,
+        table_parameters.primary_key
+    )
     table_parameters.incoming_hashes = row_hashes
 
     updated_data = loader._select_updated_data(table_parameters)
@@ -149,7 +165,7 @@ def loader_parameters(database, file, data):
 # pylint: disable=blacklisted-name
 @pytest.fixture
 def hash_data():
-    data = {'dumb': ['apple', 'oranges', 'bananas'], 'id': [1, 2, 3], 'dumber': ['good', 'yummy', 'bad']}
+    data = {'dumb': ['apple pants', 'oranges', 'bananas'], 'id': [1, 2, 3], 'dumber': ['good', 'yummy, yummy', 'bad']}
 
     return pandas.DataFrame.from_dict(data)
 
@@ -160,8 +176,8 @@ def hash_query_results():
         {
             'id': [1, 2, 3],
             'md5': [
-                'a0c4bd642e6d37a35dcca8a9e0d5ab43',
-                '0225525e6052c8be174995150a302e60',
+                '25a93a044406f7d9d3d7a5c98bb9dd1a',
+                '5bdf77504ce234e0968bef50b65d5737',
                 '1409af11b29204e49ca9b8fe834b8270'
             ]
         }
@@ -173,7 +189,7 @@ def hash_query_results():
 def incoming_data():
     data = {'dumb': ['apples', 'oranges', 'grapes'],
             'id': [1, 2, 4],
-            'dumber': ['good', 'yummy', 'yum']}
+            'dumber': ['good', 'yummy, yummy', 'yum']}
 
     return pandas.DataFrame.from_dict(data)
 
