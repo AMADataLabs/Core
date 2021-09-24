@@ -8,7 +8,8 @@ from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransfor
 from   datalabs.etl.oneview.reference.transform import TypeOfPracticeTransformerTask, PresentEmploymentTransformerTask,\
     CoreBasedStatisticalAreaTransformerTask, FederalInformationProcessingStandardCountyTransformerTask, \
     MajorProfessionalActivityTransformerTask, SpecialtyMergeTransformerTask, \
-    StaticReferenceTablesTransformerTask,ClassOfTradeTransformerTask, StateTransformerTask
+    StaticReferenceTablesTransformerTask, ClassOfTradeTransformerTask, StateTransformerTask, \
+    MedicalSchoolTransformerTask
 from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
 from   datalabs.etl.oneview.iqvia.transform import IQVIATransformerTask, IQVIAUpdateTransformerTask
 from   datalabs.etl.oneview.credentialing.transform import CredentialingTransformerTask, \
@@ -91,6 +92,9 @@ class OneViewDAG(DAG):
     LOAD_CLASS_OF_TRADE_TABLE_INTO_DATABASE: ORMLoaderTask
     LOAD_STATE_TABLE_INTO_DATABASE: ORMLoaderTask
     LOAD_STATIC_REFERENCE_TABLE: ORMLoaderTask
+    EXTRACT_MEDICAL_SCHOOL_REFERENCE_TABLE: JDBCExtractorTask
+    CREATE_MEDICAL_SCHOOL_REFERENCE_TABLE: MedicalSchoolTransformerTask
+    LOAD_MEDICAL_SCHOOL_REFERENCE_TABLE: ORMLoaderTask
 
 
 # pylint: disable=pointless-statement
@@ -182,3 +186,6 @@ OneViewDAG.EXTRACT_STATE_TABLE >> OneViewDAG.CREATE_STATE_TABLE >> OneViewDAG.LO
 
 OneViewDAG.EXTRACT_CLASS_OF_TRADE_TABLE >> OneViewDAG.CREATE_CLASS_OF_TRADE_TABLE \
     >> OneViewDAG.LOAD_CLASS_OF_TRADE_TABLE_INTO_DATABASE
+
+OneViewDAG.EXTRACT_MEDICAL_SCHOOL_REFERENCE_TABLE >> OneViewDAG.CREATE_MEDICAL_SCHOOL_REFERENCE_TABLE \
+    >> OneViewDAG.LOAD_MEDICAL_SCHOOL_REFERENCE_TABLE

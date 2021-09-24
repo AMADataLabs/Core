@@ -56,3 +56,7 @@ STATE = {
     'SRC_STATE_CD': 'code',
     'DESC': 'description'
 }
+MEDICAL_SCHOOL = {
+    'KEY_VAL': 'id',
+    'ORN_NM': 'description'
+}
