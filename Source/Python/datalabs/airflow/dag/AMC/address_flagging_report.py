@@ -14,7 +14,7 @@ IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
 
 ### Kubernets Configuration ###
 ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='amc-address-flagging-report'))
-AIMS_SECRET = Secret('env', None, 'amc-address-flagging-report-aims')
+AIMS_SECRET = Secret('env', None, 'amc-address-flagging-report')
 
 ### DAG definition ###
 BASE_ENVIRONMENT = dict(
@@ -53,7 +53,7 @@ with AMC_ADDRESS_FLAGGING_REPORT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
-    FLAG_ADDRESS_AMC = KubernetesPodOperator(
+    FLAG_ADDRESSES = KubernetesPodOperator(
         name="flag_address_amc",
         task_id="flag_address_amc",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
@@ -62,7 +62,7 @@ with AMC_ADDRESS_FLAGGING_REPORT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.analysis.amc.transform.AMCAddressFlaggingTransformerTask')},
     )
 
-    EMAIL_AMC_REPORT = KubernetesPodOperator(
+    EMAIL_ADDRESS_REPORT = KubernetesPodOperator(
         name="email_amc_report",
         task_id="email_amc_report",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
@@ -72,10 +72,4 @@ with AMC_ADDRESS_FLAGGING_REPORT_DAG:
     )
 
 
-
-#EXTRACT_VALID
-#EXTRACT_ADVANTAGE
-#EXTRACT_ORGMANAGER
-#EXTRACT_SEED_FILES
-
-EXTRACT_AMC >> FLAG_ADDRESS_AMC >> EMAIL_AMC_REPORT
+EXTRACT_AMC >> FLAG_ADDRESSES >> EMAIL_ADDRESS_REPORT

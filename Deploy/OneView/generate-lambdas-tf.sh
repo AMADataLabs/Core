@@ -41,7 +41,9 @@ for name in ${RAW_NAMES[@]}; do
     SNAKE_CASE_NAMES+="$name "
 done
 
-rm lambdas.tf
+rm -f lambdas.tf
+rm -f functions.txt
+rm -f bundles.txt
 
 for name in $SNAKE_CASE_NAMES; do
   DASHED_NAME=${name//_/-}
@@ -60,6 +62,9 @@ for name in $SNAKE_CASE_NAMES; do
   render-template -t lambda.tf.jinja -f lambda.tf -v "SNAKE_CASE_NAME=${name},DASHED_NAME=${DASHED_NAME},HUMAN_READABLE_NAME=${HUMAN_READABLE_NAME},CAMEL_CASE_NAME=${CAMEL_CASE_NAME}"
 
   cat lambda.tf >> lambdas.tf
+
+  echo "    "'"'"\${PROJECT}-\${ENVIRONMENT}-${CAMEL_CASE_NAME}"'"'"" >> functions.txt
+  echo "    "'"'"\${PROJECT}/${CAMEL_CASE_NAME}.zip"'"'"" >> bundles.txt
 done
 
 rm lambda.tf
