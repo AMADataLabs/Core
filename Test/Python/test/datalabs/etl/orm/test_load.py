@@ -24,13 +24,16 @@ def test_orm_loader(loader_parameters):
         loader = ORMLoaderTask(loader_parameters)
         loader._load()
 
-def test_row_quoting(hash_data):
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_row_quoting():
     csv_string = 'apple pants,1,"yummy, yummy","yip,yip!"'
     expected_string = '"apple pants",1,"yummy, yummy","yip,yip!"'
 
     quoted_string = ORMLoaderTask._add_quotes(csv_string)
 
     assert quoted_string == expected_string
+
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data, hash_query_results):
