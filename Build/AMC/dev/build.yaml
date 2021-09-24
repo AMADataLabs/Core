@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: amc:1.0.6
+      name: amc:1.0.7
   postCommit: {}
   resources: {}
   runPolicy: Serial
