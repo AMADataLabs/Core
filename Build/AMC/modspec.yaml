@@ -16,13 +16,13 @@ modspec:
       - task
   - package: datalabs.access
     include:
+      - aws
       - credentials
       - database
       - datastore
       - environment
       - excel
       - etcd
-  - package: datalabs.access.aws
   - package: datalabs.access.parameter
   - package: datalabs.etl
   - package: datalabs.etl.dag
