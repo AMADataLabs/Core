@@ -62,7 +62,7 @@ class PPDTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         ppd, race_ethnicity, medical_student = data
 
-        ppd.ME_NUMBER = ppd.ME_NUMBER.astype(str)
+        ppd.meNumber = ppd.meNumber.astype(str)
         race_ethnicity.medical_education_number = race_ethnicity.medical_education_number.astype(str)
 
         race_ethnicity_table = self.create_race_ethnicity_table(race_ethnicity)
@@ -77,7 +77,7 @@ class PPDTransformerTask(TransformerTask):
     @classmethod
     def create_race_ethnicity_table(cls, race_ethnicity_data):
         return race_ethnicity_data[['medical_education_number', 'race_ethnicity']].rename(
-            columns={'medical_education_number': 'ME_NUMBER'})
+            columns={'medical_education_number': 'meNumber'})
 
     @classmethod
     def create_medical_student_table(cls, medical_student_data):
@@ -87,7 +87,7 @@ class PPDTransformerTask(TransformerTask):
     @classmethod
     def _merge_data(cls, race_and_ethnicity, medical_student, ppd_table):
         merged_ppd_race_ethnicity = ppd_table.merge(
-            race_and_ethnicity, on='ME_NUMBER', how="left", sort=True).drop_duplicates()
+            race_and_ethnicity, on='meNumber', how="left", sort=True).drop_duplicates()
 
         merged_ppd_student_data = merged_ppd_race_ethnicity.append(medical_student, ignore_index=True)
 
