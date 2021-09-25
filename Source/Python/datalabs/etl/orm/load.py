@@ -198,7 +198,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             models = cls._create_models(table_parameters.model_class, data)
 
             for model in models:
-                cls._update_row_of_table(cls, database, table_parameters, model)
+                cls._update_row_of_table(database, table_parameters, model)
 
     @classmethod
     def _quote_if_spaces(cls, csv_column):
