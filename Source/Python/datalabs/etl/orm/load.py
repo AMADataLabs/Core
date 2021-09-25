@@ -41,7 +41,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
                                                 self._get_dataframes(),
                                                 self._parameters['TABLES'].split(',')):
 
-                table_parameters = self._generate_table_parameters(model_class, data, table, database)
+                table_parameters = self._generate_table_parameters(database, model_class, data, table)
                 self._update(database, table_parameters)
 
             # pylint: disable=no-member
@@ -53,7 +53,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _get_dataframes(self):
         return [pandas.read_csv(io.BytesIO(data)) for data in self._parameters['data']]
 
-    def _generate_table_parameters(self, model_class, data, table, database):
+    def _generate_table_parameters(self, database, model_class, data, table):
         schema = self._parameters['SCHEMA']
         primary_key = self._get_primary_key(database, table, schema)
         columns = self._get_database_columns(database, table, schema)
@@ -144,7 +144,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         ].reset_index(drop=True)
 
     @classmethod
-    def _add_data_to_table(cls, table_parameters, data, database):
+    def _add_data_to_table(cls, database, table_parameters, data):
         if not data.empty:
             models = cls._create_models(table_parameters.model_class, data)
 
