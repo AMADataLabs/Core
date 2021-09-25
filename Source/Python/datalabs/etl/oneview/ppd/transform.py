@@ -61,6 +61,9 @@ class PPDTransformerTask(TransformerTask):
 
     def _preprocess_data(self, data):
         ppd, race_ethnicity, medical_student = data
+        LOGGER.debug('PPD Table: %s', ppd)
+        LOGGER.debug('Race/Ethnicity Table: %s', race_ethnicity)
+        LOGGER.debug('Medical Student Table: %s', medical_student)
 
         ppd.meNumber = ppd.meNumber.astype(str)
         race_ethnicity.medical_education_number = race_ethnicity.medical_education_number.astype(str)
@@ -70,7 +73,9 @@ class PPDTransformerTask(TransformerTask):
 
         transformed_ppd = self._merge_data(race_ethnicity_table, medical_student_table, ppd)
 
+        ########## REMOVE AFTER DATA SOURCE FIXED###########
         transformed_ppd['PDRP_FLAG'] = 'filler'
+        ####################################################
 
         return [transformed_ppd]
 
