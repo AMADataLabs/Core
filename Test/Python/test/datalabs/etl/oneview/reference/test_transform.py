@@ -1,13 +1,12 @@
 """ source: datalabs.etl.oneview.reference.transform """
 from   io import BytesIO
-import os
 
 import pandas
-import pytest
 
 from datalabs.etl.oneview.reference.transform import StaticReferenceTablesTransformerTask
 
 
+# pylint: disable=protected-access
 def test_static_reference_tables_are_created_properly():
     transformer = StaticReferenceTablesTransformerTask({})
 
