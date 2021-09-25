@@ -84,9 +84,12 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _get_database_columns(cls, database, table, schema):
         query = "SELECT * FROM information_schema.columns " \
                 f"WHERE table_schema = '{schema}' AND table_name = '{table}';"
-        old_data = database.read(query)
+        column_data = database.read(query)
 
-        return old_data.column_name.to_list()
+        columns = column_data.column_name.to_list()
+        LOGGER.debug('Columns in table %s.%s: %s', schema, table, columns)
+
+        return columns
 
     @classmethod
     def _get_current_row_hashes(cls, database, table, schema, primary_key):
@@ -96,6 +99,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     @classmethod
     def _generate_row_hashes(cls, columns, data, primary_key):
+        LOGGER.debug('Columns in incomming data: %s', data.columns.values)
         csv_data = data[columns].to_csv(header=None, index=False).strip('\n').split('\n')
         row_strings = ["(" + cls._add_quotes(i) + ")" for i in csv_data]
 
