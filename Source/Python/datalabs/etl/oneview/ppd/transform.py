@@ -8,7 +8,7 @@ from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class NPITransformerTask(TransformerTask):

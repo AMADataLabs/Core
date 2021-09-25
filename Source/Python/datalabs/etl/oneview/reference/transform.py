@@ -9,7 +9,7 @@ from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE
 
 from   datalabs.etl.oneview.transform import TransformerTask
 
-import datalabs.etl.oneview.reference.static as tables
+import datalabs.etl.oneview.reference.static as static
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -80,12 +80,7 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 class StaticReferenceTablesTransformerTask(TransformerTask):
     def _transform(self):
         on_disk = bool(self._parameters.get("on_disk") and self._parameters["on_disk"].upper() == 'TRUE')
-
-        table_data = [self._dictionary_to_dataframe(data) for data in [tables.provider_affiliation_group,
-                                                                       tables.provider_affiliation_type,
-                                                                       tables.profit_status,
-                                                                       tables.owner_status]
-                      ]
+        table_data = [pandas.DataFrame.from_dict(table) for table in static.tables]
 
         preprocessed_data = self._preprocess_data(table_data)
         selected_data = self._select_columns(preprocessed_data)
@@ -93,10 +88,6 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
         postprocessed_data = self._postprocess_data(renamed_data)
 
         return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
-
-    @classmethod
-    def _dictionary_to_dataframe(cls, data):
-        return pandas.DataFrame.from_dict(data)
 
     def _get_columns(self):
         return [PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, OWNER_STATUS]

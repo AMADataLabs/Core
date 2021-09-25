@@ -19,3 +19,5 @@ owner_status = {
     'id': ['INDEPENDENT', 'NOT INDEPENDENT'],
     'description': ['Independent', 'Not Independent']
 }
+
+tables = [provider_affiliation_group, provider_affiliation_type, profit_status, owner_status]
