@@ -12,7 +12,7 @@ provider_affiliation_type = {
 
 profit_status = {
     'id': ['For Profit', 'Not For Profit', 'Government'],
-    'discription': ['For Profit', 'Not For Profit', 'Government']
+    'description': ['For Profit', 'Not For Profit', 'Government']
 }
 
 owner_status = {
