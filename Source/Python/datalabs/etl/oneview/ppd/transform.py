@@ -103,7 +103,7 @@ class PPDTransformerTask(TransformerTask):
         return merged_ppd_student_data
 
     def _get_columns(self):
-        return [{}]
+        return [PPD_COLUMNS]
 
 
 class PhysicianTransformerTask(TransformerTask):
