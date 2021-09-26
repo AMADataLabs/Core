@@ -27,7 +27,7 @@ class NPITransformerTask(TransformerTask):
     def _create_medical_education_number_table(cls, npi_data):
         medical_education_number_table = npi_data.loc[npi_data['KEY_TYPE_ID'] == 18]
 
-        return medical_education_number_table[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'ME_NUMBER'})
+        return medical_education_number_table[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'meNumber'})
 
     @classmethod
     def _create_npi_table(cls, npi_data):
@@ -52,7 +52,7 @@ class NPITransformerTask(TransformerTask):
         return merged_npi_entity_me
 
     def _get_columns(self):
-        return [{}]
+        return [NPI_COLUMNS]
 
 
 class PPDTransformerTask(TransformerTask):
@@ -71,7 +71,7 @@ class PPDTransformerTask(TransformerTask):
         race_ethnicity_table = self.create_race_ethnicity_table(race_ethnicity)
         medical_student_table = self.create_medical_student_table(medical_student)
 
-        transformed_ppd = self._merge_data(race_ethnicity_table, medical_student_table, ppd)
+        transformed_ppd = self._merge_data(ppd, race_ethnicity_table, medical_student_table, )
 
         ########## REMOVE AFTER DATA SOURCE FIXED###########
         transformed_ppd['PDRP_FLAG'] = 'filler'
@@ -90,11 +90,15 @@ class PPDTransformerTask(TransformerTask):
 
     # pylint: disable=too-many-arguments
     @classmethod
-    def _merge_data(cls, race_and_ethnicity, medical_student, ppd_table):
+    def _merge_data(cls, ppd_table, race_and_ethnicity, medical_student):
+        LOGGER.debug('Race/Ethnicity Table: %s', race_ethnicity)
+        LOGGER.debug('Medical Student Table: %s', medical_student)
         merged_ppd_race_ethnicity = ppd_table.merge(
             race_and_ethnicity, on='meNumber', how="left", sort=True).drop_duplicates()
+        LOGGER.debug('PPD Table w/ Race/Ethnicity: %s', merged_ppd_race_ethnicity)
 
         merged_ppd_student_data = merged_ppd_race_ethnicity.append(medical_student, ignore_index=True)
+        LOGGER.debug('PPD Table w/ Students: %s', merged_ppd_student_data)
 
         return merged_ppd_student_data
 
@@ -113,7 +117,7 @@ class PhysicianTransformerTask(TransformerTask):
     # pylint: disable=too-many-arguments
     @classmethod
     def _merge_data(cls, ppd_table, npi_table):
-        return ppd_table.merge(npi_table, on='ME_NUMBER', how="left").drop_duplicates()
+        return ppd_table.merge(npi_table, on='meNumber', how="left").drop_duplicates()
 
     def _get_columns(self):
         return [PHYSICIAN_COLUMNS]

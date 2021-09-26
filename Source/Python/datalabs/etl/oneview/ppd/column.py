@@ -1,5 +1,185 @@
 """Oneview Physician Table Columns"""
 
+PPD_COLUMNS = {
+    'meNumber': 'meNumber'
+    'addressType': 'addressType'
+    'MailingName': 'MailingName'
+    'lastName': 'lastName'
+    'firstName': 'firstName'
+    'middleName': 'middleName'
+    'suffixCode': 'suffixCode'
+    'preferredLine_addr_1': 'preferredLine_addr_1'
+    'preferredLine_addr_2': 'preferredLine_addr_2'
+    'preferredCity': 'preferredCity'
+    'preferredStateCode': 'preferredStateCode'
+    'preferredZipCode': 'preferredZipCode'
+    'prefferedSectorZipPlus4': 'prefferedSectorZipPlus4'
+    'preferredCarrierRoute': 'preferredCarrierRoute'
+    'undeliverableFlag': 'undeliverableFlag'
+    'fips_county': 'fips_county'
+    'fips_state': 'fips_state'
+    'printerControlCodeBegin': 'printerControlCodeBegin'
+    'barCodeZip': 'barCodeZip'
+    'barCodePlus4': 'barCodePlus4'
+    'deliveryPointCode': 'deliveryPointCode'
+    'checkDigit': 'checkDigit'
+    'printerControlCodeEnd': 'printerControlCodeEnd'
+    'region': 'region'
+    'division': 'division'
+    'group': 'group'
+    'tract': 'tract'
+    'suffix': 'suffix'
+    'blockGroup': 'blockGroup'
+    'MSA_Poulation': 'MSA_Poulation'
+    'Micro_Metro_ind': 'Micro_Metro_ind'
+    'CBSA': 'CBSA'
+    'CBSA_devision': 'CBSA_devision'
+    'degree_type': 'degree_type'
+    'birthYear': 'birthYear'
+    'birthCity': 'birthCity'
+    'birthState': 'birthState'
+    'birthCountry': 'birthCountry'
+    'gender': 'gender'
+    'preferredPhoneNumber': 'preferredPhoneNumber'
+    'pendingDeadIndicator': 'pendingDeadIndicator'
+    'faxNumber': 'faxNumber'
+    'topCode': 'topCode'
+    'PECode': 'PECode'
+    'primSpecialty': 'primSpecialty'
+    'secondarySpecialty': 'secondarySpecialty'
+    'MPACode': 'MPACode'
+    'PRAAwardRecepient': 'PRAAwardRecepient'
+    'PRAAwardExpirationDate': 'PRAAwardExpirationDate'
+    'GMEConfirmationFlag': 'GMEConfirmationFlag'
+    'fromDate': 'fromDate'
+    'endDate': 'endDate'
+    'yearInProgram': 'yearInProgram'
+    'postGradYear': 'postGradYear'
+    'gmePrimarySpecialtyCode': 'gmePrimarySpecialtyCode'
+    'gmeSecondarySpecialtyCode': 'gmeSecondarySpecialtyCode'
+    'TrainingType': 'TrainingType'
+    'GMEHospitalState': 'GMEHospitalState'
+    'GMEHospitalID': 'GMEHospitalID'
+    'gradSchoolState': 'gradSchoolState'
+    'gradSchoolCd': 'gradSchoolCd'
+    'gradYear': 'gradYear'
+    'contactIndicator': 'contactIndicator'
+    'noWebInfoRls': 'noWebInfoRls'
+    'CBSA_DIVISION': 'CBSA_DIVISION'
+    'DEGREE_TYPE': 'DEGREE_TYPE'
+    'BIRTH_YEAR': 'BIRTH_YEAR'
+    'BIRTH_CITY': 'BIRTH_CITY'
+    'BIRTH_STATE': 'BIRTH_STATE'
+    'BIRTH_COUNTRY': 'BIRTH_COUNTRY'
+    'GENDER': 'GENDER'
+    'PREFERREDPHONENUMBER': 'PREFERREDPHONENUMBER'
+    'PENDINGDEAD_IND': 'PENDINGDEAD_IND'
+    'FAXNUMBER': 'FAXNUMBER'
+    'TOPCODE': 'TOPCODE'
+    'PECODE': 'PECODE'
+    'PRIMSPECIALTY': 'PRIMSPECIALTY'
+    'SECONDARYSPECIALTY': 'SECONDARYSPECIALTY'
+    'MPACODE': 'MPACODE'
+    'PRAAWARDRECIPIENT': 'PRAAWARDRECIPIENT'
+    'PRAEXPIRATIONDATE': 'PRAEXPIRATIONDATE'
+    'GMECONFIRMFLAG': 'GMECONFIRMFLAG'
+    'FROMDATE': 'FROMDATE'
+    'ENDDATE': 'ENDDATE'
+    'YEARINPROGRAM': 'YEARINPROGRAM'
+    'POSTGRADYEAR': 'POSTGRADYEAR'
+    'GMEPRIMSPECIALTY': 'GMEPRIMSPECIALTY'
+    'GMESECSPECIALTY': 'GMESECSPECIALTY'
+    'TRAINING_TYPE': 'TRAINING_TYPE'
+    'GMEHOSPITALSTATE': 'GMEHOSPITALSTATE'
+    'GMEHOSPITALID': 'GMEHOSPITALID'
+    'GRADSCHOOLSTATE': 'GRADSCHOOLSTATE'
+    'GRADSCHOOLCODE': 'GRADSCHOOLCODE'
+    'GRADYEAR': 'GRADYEAR'
+    'NOCONTACT_IND': 'NOCONTACT_IND'
+    'NOWEBIND': 'NOWEBIND'
+    'PDRP_FLAG': 'PDRP_FLAG'
+    'PDRP_DATE': 'PDRP_DATE'
+    'POLO_ADDR2': 'POLO_ADDR2'
+    'POLO_ADDR1': 'POLO_ADDR1'
+    'POLO_CITY': 'POLO_CITY'
+    'POLO_STATE': 'POLO_STATE'
+    'POLO_ZIP': 'POLO_ZIP'
+    'POLO_PLUS4': 'POLO_PLUS4'
+    'POLOCARRIERROUTE': 'POLOCARRIERROUTE'
+    'MOSTRECENTFORMERLASTNAME': 'MOSTRECENTFORMERLASTNAME'
+    'MOSTRECENTFORMERMIDDLENAME': 'MOSTRECENTFORMERMIDDLENAME'
+    'MOSTRECENTFORMERFIRSTNAME': 'MOSTRECENTFORMERFIRSTNAME'
+    'NEXTMOSTRECENTFORMERLASTNAME': 'NEXTMOSTRECENTFORMERLASTNAME'
+    'NEXTMOSTRECENTFORMERMIDDLENAME': 'NEXTMOSTRECENTFORMERMIDDLENAME'
+    'NEXTMOSTRECENTFORMERFIRSTNAME': 'NEXTMOSTRECENTFORMERFIRSTNAME'
+    'PDRP_date': 'PDRP_date'
+    'poloLine_addr_2': 'poloLine_addr_2'
+    'poloLine_addr_1': 'poloLine_addr_1'
+    'cityName': 'cityName'
+    'poloState': 'poloState'
+    'poloZipCode': 'poloZipCode'
+    'poloSector': 'poloSector'
+    'poloCarrierRoute': 'poloCarrierRoute'
+    'mostRecentFormerLastName': 'mostRecentFormerLastName'
+    'mostRecentFormerMiddleName': 'mostRecentFormerMiddleName'
+    'mostRecentFormerFirstName': 'mostRecentFormerFirstName'
+    'nextMostRecentFormerLastName': 'nextMostRecentFormerLastName'
+    'nextMostRecentFormerMiddleName': 'nextMostRecentFormerMiddleName'
+    'nextMostRecentFormerFirstName': 'nextMostRecentFormerFirstName'
+    'PARTY_ID': 'PARTY_ID'
+    'entity_id': 'entity_id'
+    'npi': 'npi'
+    'race_ethnicity': 'race_ethnicity'
+}
+
+MEDICAL_STUDENT_COLUMNS = {
+    'me_no': 'meNumber',
+    'mailing_name': 'MailingName',
+    'last_name': 'lastName',
+    'first_name': 'firstName',
+    'middle_name': 'middleName',
+    'suffix': 'suffixCode',
+    'mail_line_1': 'preferredLine_addr_1',
+    'mail_line_2': 'preferredLine_addr_2',
+    'state': 'preferredStateCode',
+    'zipcode': 'preferredZipCode',
+    'sector': 'prefferedSectorZipPlus4',
+    'addr_city': 'preferredCity',
+    'carrier_route': 'preferredCarrierRoute',
+    'addr_undeliver_flg': 'undeliverableFlag',
+    'fips_county': 'fips_county',
+    'fips_state': 'fips_state',
+    'region': 'region',
+    'msa_population_size': 'MSA_Poulation',
+    'division': 'division',
+    'group': 'group',
+    'tract': 'tract',
+    'census_suffix': 'suffix',
+    'block_group': 'blockGroup',
+    'metro_micro_indicator': 'metro_micro_indicator',
+    'CBSA': 'CBSA',
+    'cbsa_division_indicator': 'CBSA_devision',
+    'school_name': 'GRADSCHOOLCODE',
+    'school_state': 'GRADSCHOOLSTATE',
+    'grad_year': 'GRADYEAR',
+    'birth_year': 'BIRTH_YEAR',
+    'birth_city': 'BIRTH_CITY',
+    'birth_state': 'BIRTH_STATE',
+    'birth_country': 'BIRTH_COUNTRY',
+    'gender': 'GENDER',
+    'addr_type_ind': 'addressType',
+    'phone_no': 'PREFERREDPHONENUMBER',
+    'presumed_dead': 'PENDINGDEAD_IND',
+    'contact_flg': 'NOCONTACT_IND'
+}
+
+NPI_COLUMNS = {
+    'PARTY_ID': 'PARTY_ID',
+    'meNumber': 'meNumber',
+    'npi': 'npi',
+    'entity_id': 'entity_id'
+}
+
 PHYSICIAN_COLUMNS = {
     'meNumber': 'medical_education_number',
     'addressType': 'address_type',
@@ -8,8 +188,8 @@ PHYSICIAN_COLUMNS = {
     'firstName': 'first_name',
     'middleName': 'middle_name',
     'suffixCode': 'name_suffix',
-    'preferredLine_addr_2': 'preferred_address_2',
     'preferredLine_addr_1': 'preferred_address_1',
+    'preferredLine_addr_2': 'preferred_address_2',
     'preferredCity': 'city',
     'preferredStateCode': 'state',
     'preferredZipCode': 'zipcode',
@@ -130,45 +310,4 @@ PHYSICIAN_COLUMNS = {
     'entity_id': 'entity_id',
     'npi': 'national_provider_identifier',
     'race_ethnicity': 'race_ethnicity'
-}
-
-MEDICAL_STUDENT_COLUMNS = {
-    'me_no': 'ME_NUMBER',
-    'mailing_name': 'MAILING_NAME',
-    'last_name': 'LAST_NAME',
-    'first_name': 'FIRST_NAME',
-    'middle_name': 'MIDDLE_NAME',
-    'suffix': 'SUFFIX_CODE',
-    'mail_line_1': 'PREFERRED_ADDR1',
-    'mail_line_2': 'PREFERRED_ADDR2',
-    'state': 'PREFERRED_STATE',
-    'zipcode': 'PREFERRED_ZIP',
-    'sector': 'PREFERRED_PLUS4',
-    'addr_city': 'PREFERRED_CITY',
-    'carrier_route': 'PREFERRED_CARRIERROUTE',
-    'addr_undeliver_flg': 'UNDELIVER_FLAG',
-    'fips_county': 'FIPS_COUNTY',
-    'fips_state': 'FIPS_STATE',
-    'region': 'REGION',
-    'msa_population_size': 'MSA_POPULATION',
-    'division': 'DIVISION',
-    'group': 'GROUP',
-    'tract': 'TRACT',
-    'census_suffix': 'SUFFIX',
-    'block_group': 'BLOCK_GROUP',
-    'metro_micro_indicator': '',
-    'cbsa': 'CBSA',
-    'cbsa_division_indicator': 'MICRO_METRO_IND',
-    'school_name': 'GRADSCHOOLCODE',
-    'school_state': 'GRADSCHOOLSTATE',
-    'grad_year': 'GRADYEAR',
-    'birth_year': 'BIRTH_YEAR',
-    'birth_city': 'BIRTH_CITY',
-    'birth_state': 'BIRTH_STATE',
-    'birth_country': 'BIRTH_COUNTRY',
-    'gender': 'GENDER',
-    'addr_type_ind': 'ADDRESS_TYPE',
-    'phone_no': 'PREFERREDPHONENUMBER',
-    'presumed_dead': 'PENDINGDEAD_IND',
-    'contact_flg': 'NOCONTACT_IND'
 }

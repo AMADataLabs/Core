@@ -85,17 +85,15 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _set_defaults(cls, programs, program_personnel, institution_info):
-        institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
-            value=pandas.to_datetime('01/01/1970'))
+        programs['pgm_chg_size'] = programs['pgm_chg_size'].fillna(value=0)
+
+        programs['pgm_oth_match'] = programs['pgm_oth_match'].fillna(value='')
 
         program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970'))
 
-        programs['max_residents_accepted_increase'] = programs['max_residents_accepted_increase'].fillna(
-            value=0
-        )
-
-        programs['other_match'] = programs['other_match'].fillna(value='')
+        institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
+            value=pandas.to_datetime('01/01/1970'))
 
     @classmethod
     def _convert_ids_to_strings(cls, addresses, program_personnel, program_institution):
