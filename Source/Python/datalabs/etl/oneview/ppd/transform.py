@@ -3,7 +3,7 @@ import logging
 
 import pandas
 
-from   datalabs.etl.oneview.ppd.column import PHYSICIAN_COLUMNS, MEDICAL_STUDENT_COLUMNS
+from   datalabs.etl.oneview.ppd.column import NPI_COLUMNS, PPD_COLUMNS, MEDICAL_STUDENT_COLUMNS, PHYSICIAN_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -90,11 +90,11 @@ class PPDTransformerTask(TransformerTask):
 
     # pylint: disable=too-many-arguments
     @classmethod
-    def _merge_data(cls, ppd_table, race_and_ethnicity, medical_student):
+    def _merge_data(cls, ppd, race_ethnicity, medical_student):
         LOGGER.debug('Race/Ethnicity Table: %s', race_ethnicity)
         LOGGER.debug('Medical Student Table: %s', medical_student)
-        merged_ppd_race_ethnicity = ppd_table.merge(
-            race_and_ethnicity, on='meNumber', how="left", sort=True).drop_duplicates()
+        merged_ppd_race_ethnicity = ppd.merge(
+            race_ethnicity, on='meNumber', how="left", sort=True).drop_duplicates()
         LOGGER.debug('PPD Table w/ Race/Ethnicity: %s', merged_ppd_race_ethnicity)
 
         merged_ppd_student_data = merged_ppd_race_ethnicity.append(medical_student, ignore_index=True)
