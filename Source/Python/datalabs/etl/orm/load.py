@@ -232,10 +232,9 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _update_row_of_table(cls, database, table_parameters, model):
         columns = cls._get_model_columns(table_parameters.model_class)
         primary_key = getattr(model, table_parameters.primary_key)
-        new_values = {column: getattr(model, column) for column in columns if hasattr(model, column)}
         row = database.query(table_parameters.model_class).get(primary_key)
-
-        row.update(new_values)
+        for column in columns:
+            setattr(row, column, getattr(model, column))
 
     @classmethod
     def _get_model_columns(cls, model_class):
