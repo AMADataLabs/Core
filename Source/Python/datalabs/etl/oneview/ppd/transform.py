@@ -47,7 +47,7 @@ class NPITransformerTask(TransformerTask):
         merged_npi_me = medical_education_number_table.merge(npi_table, on='PARTY_ID', how="left").drop_duplicates()
         merged_npi_entity_me = merged_npi_me.merge(entity_table, on='PARTY_ID', how="left", sort=True).drop_duplicates()
 
-        merged_npi_entity_me['ME_NUMBER'] = merged_npi_entity_me['ME_NUMBER'].str.lstrip('0')
+        merged_npi_entity_me['meNumber'] = merged_npi_entity_me['meNumber'].str.lstrip('0')
 
         return merged_npi_entity_me
 
@@ -74,7 +74,7 @@ class PPDTransformerTask(TransformerTask):
         transformed_ppd = self._merge_data(ppd, race_ethnicity_table, medical_student_table, )
 
         ########## REMOVE AFTER DATA SOURCE FIXED###########
-        transformed_ppd['PDRP_FLAG'] = 'filler'
+        transformed_ppd['PDRP_flag'] = 'filler'
         ####################################################
 
         return [transformed_ppd]
