@@ -18,12 +18,13 @@ class ResidencyTransformerTask(TransformerTask):
 
     # pylint: disable=too-many-arguments
     def _preprocess_data(self, data):
-        programs, addresses, program_personnel, program_institution, institition_info = data
+        programs, addresses, program_personnel, program_institution, institution_info = data
 
         self._convert_ids_to_strings(addresses, program_personnel, program_institution)
 
         programs, addresses, program_personnel, program_institution, institution_info = self._select_values(
-            programs, addresses,
+            programs,
+            addresses,
             program_personnel,
             program_institution,
             institution_info
@@ -37,9 +38,9 @@ class ResidencyTransformerTask(TransformerTask):
             program_personnel
         )
 
-        programs, program_institution, institution_info = self._set_defaults(
+        programs, program_personnel, institution_info = self._set_defaults(
             programs,
-            program_institution,
+            program_personnel,
             institution_info
         )
 
@@ -83,7 +84,7 @@ class ResidencyTransformerTask(TransformerTask):
         return program_information, institution_info, program_personnel
 
     @classmethod
-    def _set_defaults(cls, programs, program_institution, institution_info):
+    def _set_defaults(cls, programs, program_personnel, institution_info):
         institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970'))
 
