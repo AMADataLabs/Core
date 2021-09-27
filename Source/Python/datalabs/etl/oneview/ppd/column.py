@@ -177,7 +177,8 @@ PHYSICIAN_COLUMNS = {
     'PARTY_ID': 'party_id',
     'entity_id': 'entity_id',
     'npi': 'national_provider_identifier',
-    'person_type': 'type'
+    'person_type': 'type',
+    'MEMBERSHIP_STATUS': 'membership_status'
 }
 MEDICAL_STUDENT_COLUMNS = {
     'me_no': 'meNumber',
