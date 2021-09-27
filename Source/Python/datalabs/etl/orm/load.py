@@ -134,7 +134,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     @classmethod
     def _add_quotes(cls, csv_string):
         # split at only unquoted commas
-        columns =  [term for term in re.split(r'("[^"]*,[^"]*"|[^,]*)', csv_string) if (term and term != ',')]
+        columns = [term for term in re.split(r'("[^"]*,[^"]*"|[^,]*)', csv_string) if (term and term != ',')]
 
         return ','.join(cls._quote_if_spaces(column) for column in columns)
 
