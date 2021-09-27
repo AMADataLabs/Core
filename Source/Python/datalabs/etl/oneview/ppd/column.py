@@ -96,7 +96,7 @@ MEDICAL_STUDENT_COLUMNS = {
     'suffix': 'suffixCode',
     'mail_line_1': 'preferredLine_addr_1',
     'mail_line_2': 'preferredLine_addr_2',
-    'city': 'preferredCity'
+    'city': 'preferredCity',
     'state': 'preferredStateCode',
     'zipcode': 'preferredZipCode',
     'sector': 'prefferedSectorZipPlus4',
