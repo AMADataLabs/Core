@@ -218,7 +218,7 @@ pipelines:
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
                 - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - bash Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
+                - Script/run.py Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
             - step:
                 name: Update Lambda Functions
                 script:
