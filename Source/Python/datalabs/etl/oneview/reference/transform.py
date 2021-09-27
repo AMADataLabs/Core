@@ -116,5 +116,11 @@ class StateTransformerTask(TransformerTask):
 
 
 class MedicalSchoolTransformerTask(TransformerTask):
+    def _preprocess_data(self, data):
+        ''' TEMPORARY DATA CLEANUP (remove when data source is fixed) '''
+        cleaned_medical_schools = data[~(data.KEY_VAL == 56003 & data.ORG_NM == 'Bar-Ilan University Faculty of Medicine in the Galilee']
+
+        return cleaned_medical_schools
+
     def _get_columns(self):
         return [MEDICAL_SCHOOL]
