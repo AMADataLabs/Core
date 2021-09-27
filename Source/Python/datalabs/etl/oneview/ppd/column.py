@@ -84,6 +84,7 @@ PPD_COLUMNS = {
     'nextMostRecentFormerFirstName': 'nextMostRecentFormerFirstName',
     'no_release_ind': 'no_release_ind',
     'race_ethnicity': 'race_ethnicity',
+    'person_type': 'person_type'
 }
 NPI_COLUMNS = {
     'PARTY_ID': 'PARTY_ID',
