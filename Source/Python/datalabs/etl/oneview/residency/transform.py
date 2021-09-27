@@ -95,7 +95,7 @@ class ResidencyTransformerTask(TransformerTask):
         institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970'))
 
-        programs, program_personnel, institution_info
+        return programs, program_personnel, institution_info
 
     @classmethod
     def _convert_ids_to_strings(cls, addresses, program_personnel, program_institution):
