@@ -2,7 +2,7 @@
 import logging
 import pandas
 
-from   datalabs.etl.oneview.residency.column import PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS
+import datalabs.etl.oneview.residency.column as col
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -21,6 +21,8 @@ class ResidencyTransformerTask(TransformerTask):
         programs, addresses, program_personnel, program_institution, institution_info = data
 
         self._convert_ids_to_strings(addresses, program_personnel, program_institution)
+
+        self._convert_integers_to_booleans(programs)
 
         programs, addresses, program_personnel, program_institution, institution_info = self._select_values(
             programs,
@@ -54,8 +56,11 @@ class ResidencyTransformerTask(TransformerTask):
 
         program_personnel.pgm_id = program_personnel.pgm_id.astype(str)
 
-        program_institution.pgm_id = program_institution.pgm_id.astype(str)
-        program_institution.ins_id = program_institution.ins_id.astype(str)
+        program_institution = program_institution.astype({'pgm_id': str, 'ins_id': str})
+
+    @classmethod
+    def _convert_integers_to_booleans(cls, programs):
+        programs = programs.astype({column:'boolean' for column in col.PROGRAM_BOOLEAN_COLUMNS})
 
     @classmethod
     def _select_values(cls, programs, addresses, program_personnel, program_institution, institution_info):
@@ -113,4 +118,4 @@ class ResidencyTransformerTask(TransformerTask):
         return program_personnel
 
     def _get_columns(self):
-        return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]
+        return [col.PROGRAM_COLUMNS, col.MEMBER_COLUMNS, col.INSTITUTION_COLUMNS]

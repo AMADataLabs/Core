@@ -1,5 +1,19 @@
 """Oneview Residency Table Columns"""
 
+PROGRAM_BOOLEAN_COLUMNS = [
+    'prm_acgme_accred_ind',
+    'pgm_contact_dir_ind',
+    'pgm_gov_affil_ind',
+    'pgm_prelim_pos_offered',
+    'medical_records',
+    'official_addr_ind',
+    'pgm_sf_match',
+    'pgm_oth_match_ind',
+    'pgm_addit_educ_accred_length',
+    'AOA_Ind',
+    'Osteopathic_principles',
+]
+
 PROGRAM_COLUMNS = {
     'pgm_id': 'id',
     'pgm_spec': 'specialty',
@@ -34,7 +48,7 @@ PROGRAM_COLUMNS = {
     'last_upd_dt_x': 'last_update_date',
     'last_upd_type_x': 'last_update_type',
     'AOA_Ind': 'american_osteopathic_association_indicator',
-    'AOA_Program_ID': 'american_osteopathic_association_indicator_program',
+    'AOA_Program_ID': 'american_osteopathic_association_program',
     'Osteopathic_principles': 'osteopathic_principles',
     'addr1': 'address_1',
     'addr2': 'address_2',
