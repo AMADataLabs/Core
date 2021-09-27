@@ -3,7 +3,7 @@ import logging
 
 import pandas
 
-from   datalabs.etl.oneview.ppd.column import PHYSICIAN_COLUMNS, MEDICAL_STUDENT_COLUMNS
+from   datalabs.etl.oneview.ppd.column import PPD_COLUMNS, PHYSICIAN_COLUMNS, MEDICAL_STUDENT_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -72,7 +72,9 @@ class PPDTransformerTask(TransformerTask):
 
         transformed_ppd['PDRP_FLAG'] = 'filler'
 
-        return [transformed_ppd]
+        final_ppd = self._add_person_type(transformed_ppd)
+
+        return [final_ppd]
 
     @classmethod
     def create_race_ethnicity_table(cls, race_ethnicity_data):
@@ -81,7 +83,10 @@ class PPDTransformerTask(TransformerTask):
 
     @classmethod
     def create_medical_student_table(cls, medical_student_data):
-        return medical_student_data.rename(columns=MEDICAL_STUDENT_COLUMNS)
+        medical_student_data = medical_student_data.rename(columns=MEDICAL_STUDENT_COLUMNS)
+        medical_student_data['person_type'] = 'Student'
+
+        return medical_student_data
 
     # pylint: disable=too-many-arguments
     @classmethod
@@ -89,12 +94,27 @@ class PPDTransformerTask(TransformerTask):
         merged_ppd_race_ethnicity = ppd_table.merge(
             race_and_ethnicity, on='meNumber', how="left", sort=True).drop_duplicates()
 
-        merged_ppd_student_data = merged_ppd_race_ethnicity.append(medical_student, ignore_index=True)
+        merged_ppd_race_ethnicity_with_type = cls._add_person_type(merged_ppd_race_ethnicity)
+        merged_ppd_student_data = merged_ppd_race_ethnicity_with_type.append(medical_student, ignore_index=True)
 
         return merged_ppd_student_data
 
+    @classmethod
+    def _add_person_type(cls, data):
+        person_type = []
+
+        for row in data['topCode'].to_list():
+            if row == '012':
+                person_type.append('Resident')
+            else:
+                person_type.append('Physician')
+
+        data['person_type'] = person_type
+
+        return data
+
     def _get_columns(self):
-        return [{}]
+        return [PPD_COLUMNS]
 
 
 class PhysicianTransformerTask(TransformerTask):
