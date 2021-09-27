@@ -68,6 +68,7 @@ PPD_COLUMNS = {
     'contactIndicator': 'contactIndicator',
     'noWebInfoRls': 'noWebInfoRls',
     'noPrescribeIndicator': 'noPrescribeIndicator',
+    'PDRP_FLAG': 'PDRP_FLAG',
     'PDRP_date': 'PDRP_date',
     'poloLine_addr_2': 'poloLine_addr_2',
     'poloLine_addr_1': 'poloLine_addr_1',
