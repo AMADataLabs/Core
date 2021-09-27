@@ -1,9 +1,9 @@
 #!/bin/bash
 
 export AWS_PAGER=""
-OUTPUT_FILE=ssm_parameter_values_ivl.json
-# PARAMETERS=($(aws --profile ivl ssm describe-parameters --parameter-filters Key=Name,Option=BeginsWith,Values=OneView/dev/ | grep Name | sed 's/"Name": "//' | sed 's/",$//'))
-PARAMETERS=($(aws ssm describe-parameters --parameter-filters Key=Name,Option=BeginsWith,Values=OneView/dev/ | grep Name | sed 's/"Name": "//' | sed 's/",$//'))
+OUTPUT_FILE=ssm_parameter_values.json
+PARAMETERS=($(aws --profile ivl ssm describe-parameters --parameter-filters Key=Name,Option=BeginsWith,Values=OneView/dev/ | grep Name | sed 's/"Name": "//' | sed 's/",$//'))
+# PARAMETERS=($(aws ssm describe-parameters --parameter-filters Key=Name,Option=BeginsWith,Values=OneView/dev/ | grep Name | sed 's/"Name": "//' | sed 's/",$//'))
 PARAMETERS_ARGUMENT=
 
 rm -f $OUTPUT_FILE

@@ -38,8 +38,8 @@ data:
     DBL__CREATE_DBL_REPORT__CACHE_OUTPUT_BUCKET: ${DBL_S3_PROCESSED_DATA_BUCKET}
 
     # EMAIL_DBL_REPORT
-    DBL__EMAIL_DBL_REPORT__TO: 'Christina.Tennant@ama-assn.org'
-    DBL__EMAIL_DBL_REPORT__CC: 'Garrett.Lappe@ama-assn.org,DataLabs@ama-assn.org,Daniel.Ro@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__TO: 'Daniel.Ro@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__CC: ''
 
     DBL__EMAIL_DBL_REPORT__CACHE_INPUT_CLASS: ${DBL_S3_CACHE_CLASS}
     DBL__EMAIL_DBL_REPORT__CACHE_INPUT_BUCKET: ${DBL_S3_PROCESSED_DATA_BUCKET}
