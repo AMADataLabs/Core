@@ -30,12 +30,12 @@ class ResidencyTransformerTask(TransformerTask):
             institution_info
         )
 
-        program_information, institution_info, program_personnel = self._merge_dataframes(
+        program_information, program_personnel, institution_info = self._merge_dataframes(
             programs,
             addresses,
-            institution_info,
+            program_personnel,
             program_institution,
-            program_personnel
+            institution_info
         )
 
         programs, program_personnel, institution_info = self._set_defaults(
@@ -81,7 +81,7 @@ class ResidencyTransformerTask(TransformerTask):
             how='left'
         ).drop_duplicates()
 
-        return program_information, institution_info, program_personnel
+        return program_information, program_personnel, institution_info
 
     @classmethod
     def _set_defaults(cls, programs, program_personnel, institution_info):
@@ -95,6 +95,8 @@ class ResidencyTransformerTask(TransformerTask):
         institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970'))
 
+        return programs, program_personnel, institution_info
+
     @classmethod
     def _convert_ids_to_strings(cls, addresses, program_personnel, program_institution):
         addresses.pgm_id = addresses.pgm_id.astype(str)
@@ -105,11 +107,10 @@ class ResidencyTransformerTask(TransformerTask):
         program_institution.ins_id = program_institution.ins_id.astype(str)
 
     @classmethod
-    def _generate_primary_keys(cls, dataframe):
-        primary_keys = [str(column['pgm_id']) + str(column['aamc_id']) for index, column in dataframe.iterrows()]
-        dataframe['id'] = primary_keys
+    def _generate_primary_keys(cls, program_personnel):
+        program_personnel['id'] = program_personnel['pgm_id'].astype(str) + program_personnel['aamc_id'].astype(str)
 
-        return dataframe
+        return program_personnel
 
     def _get_columns(self):
         return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]
