@@ -1,7 +1,7 @@
 """ SQLAlchemy models for OneView """
 from   alembic_utils.pg_view import PGView
 import sqlalchemy as sa
-from   sqlalchemy.ext.declarative import declarative_base
+from   sqlalchemy.ext.declarative import declarative_base  # pylint: disable=import-error
 
 from   datalabs.sqlalchemy import metadata
 
