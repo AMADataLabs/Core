@@ -61,7 +61,7 @@ pipelines:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
                 - python --version
-                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=${PWD}/Source/Python/datalabs/airflow/ ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
 
 
         ##############################################################
