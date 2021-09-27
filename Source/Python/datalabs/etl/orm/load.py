@@ -95,11 +95,13 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _get_current_row_hashes(cls, database, table, schema, primary_key):
         get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM {schema}.{table}"
 
-        return database.read(get_current_hash)
+        current_hashes = database.read(get_current_hash)
+        LOGGER.debug('Current Row Hashes: %s', current_hashes)
+
+        return current_hashes
 
     @classmethod
     def _generate_row_hashes(cls, columns, data, primary_key):
-        LOGGER.debug('Columns in incomming data: %s', data.columns.values)
         csv_data = data[columns].to_csv(header=None, index=False).strip('\n').split('\n')
         row_strings = ["(" + cls._add_quotes(i) + ")" for i in csv_data]
 
@@ -107,6 +109,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         primary_keys = data[primary_key].tolist()
 
         incoming_hashes = pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
+        LOGGER.debug('Incoming Row Hashes: %s', current_hashes)
 
         return incoming_hashes
 
@@ -137,11 +140,15 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     @classmethod
     def _select_new_data(cls, table_parameters):
-        return table_parameters.data[
+        LOGGER.debug()
+        selected_data = table_parameters.data[
             ~table_parameters.data[table_parameters.primary_key].isin(
                 table_parameters.current_hashes[table_parameters.primary_key]
             )
         ].reset_index(drop=True)
+        LOGGER.debug('Selected Data: %s', selected_data)
+
+        return selected_data
 
     @classmethod
     def _add_data_to_table(cls, database, table_parameters, data):
@@ -153,11 +160,14 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     @classmethod
     def _select_deleted_data(cls, table_parameters):
-        return table_parameters.current_hashes[
+        deleted_data = table_parameters.current_hashes[
             ~table_parameters.current_hashes[table_parameters.primary_key].isin(
                 table_parameters.data[table_parameters.primary_key]
             )
         ].reset_index(drop=True)
+        LOGGER.debug('Deleted Data: %s', deleted_data)
+
+        return deleted_data
 
     @classmethod
     def _delete_data_from_table(cls, database, table_parameters, data):
@@ -188,9 +198,10 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
             table_parameters.data[table_parameters.primary_key].isin(
                 updated_hashes[table_parameters.primary_key]
             )
-        ]
+        ].reset_index(drop=True)
+        LOGGER.debug('Updated Data: %s', updated_data)
 
-        return updated_data.reset_index(drop=True)
+        return updated_data
 
     @classmethod
     def _update_data_in_table(cls, database, table_parameters, data):
