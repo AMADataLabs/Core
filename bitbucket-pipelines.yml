@@ -171,6 +171,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Install the DB2 JDBC driver
                 - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
@@ -198,6 +200,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
@@ -318,6 +322,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Install the DB2 JDBC driver
                 - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
@@ -349,6 +355,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
