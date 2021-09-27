@@ -425,7 +425,7 @@ class Census(BASE):
     house_value = sa.Column(sa.Integer, nullable=False)
 
 
-class CoreBASEdStatisticalAreaMelissa(BASE):
+class CoreBasedStatisticalAreaMelissa(BASE):
     __tablename__ = 'core_based_statistical_area_melissa'
     __table_args__ = {"schema": SCHEMA}
 
@@ -436,7 +436,7 @@ class CoreBASEdStatisticalAreaMelissa(BASE):
     status = sa.Column(sa.String, nullable=False)
 
 
-class ZipCodeCoreBASEdStatisticalArea(BASE):
+class ZipCodeCoreBasedStatisticalArea(BASE):
     __tablename__ = 'zip_code_core_based_statistical_areas'
     __table_args__ = {"schema": SCHEMA}
 
@@ -576,7 +576,7 @@ class FederalInformationProcessingStandardCounty(BASE):
     description = sa.Column(sa.String, nullable=False)
 
 
-class CoreBASEdStatisticalArea(BASE):
+class CoreBasedStatisticalArea(BASE):
     __tablename__ = 'core_based_statistical_area'
     __table_args__ = {"schema": SCHEMA}
 
