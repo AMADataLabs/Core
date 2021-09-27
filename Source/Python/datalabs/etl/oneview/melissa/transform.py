@@ -32,7 +32,7 @@ class MelissaTransformerTask(TransformerTask):
         area_code_primary_keys = [str(column['AREA_CD']) + str(column['PREFIX']) for index, column in data.iterrows()]
         data['id'] = area_code_primary_keys
 
-        return data
+        return data.drop_duplicates(subset=['id'], ignore_index=True)
 
     def _get_columns(self):
         return [

@@ -15,7 +15,6 @@ LOGGER.setLevel(logging.DEBUG)
 class NPITransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         npi = data[0]
-        membership = data[1]
 
         medical_education_number_table = self._create_medical_education_number_table(npi)
         npi_table = self._create_npi_table(npi)
@@ -23,9 +22,7 @@ class NPITransformerTask(TransformerTask):
 
         merged_data = self._merge_data(medical_education_number_table, npi_table, entity_table)
 
-        merged_data_membership = self._add_membership(merged_data, membership)
-
-        return [merged_data_membership]
+        return [merged_data]
 
     @classmethod
     def _create_medical_education_number_table(cls, npi_data):
@@ -54,17 +51,6 @@ class NPITransformerTask(TransformerTask):
         merged_npi_entity_me['meNumber'] = merged_npi_entity_me['meNumber'].str.lstrip('0')
 
         return merged_npi_entity_me
-
-    @classmethod
-    def _add_membership(cls, data, membership):
-        membership_data = []
-        for row in membership['MBRSHP_YR'].to_list():
-            if row == '2021':
-                membership_data.append('Active')
-
-        data['membership_year'] = membership_data
-
-        return data
 
     def _get_columns(self):
         return [NPI_COLUMNS]
@@ -145,16 +131,20 @@ class PPDTransformerTask(TransformerTask):
 
 class PhysicianTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
-        ppd, npi = data
+        ppd, npi, membership = data
 
-        physician = self._merge_data(ppd, npi)
+        physician = self._merge_data(ppd, npi, membership)
 
         return [physician]
 
     # pylint: disable=too-many-arguments
     @classmethod
-    def _merge_data(cls, ppd_table, npi_table):
-        return ppd_table.merge(npi_table, on='meNumber', how="left").drop_duplicates()
+    def _merge_data(cls, ppd_table, npi_table, membership):
+        ppd_npi = ppd_table.merge(npi_table, on='meNumber', how="left").drop_duplicates()
+        ppd_membership = ppd_npi.merge(membership['PARTY_ID', 'MEMBERSHIP_STATUS'],
+                                       on='PARTY_ID', how="left").drop_duplicates(ignore_index=True)
+
+        return ppd_membership
 
     def _get_columns(self):
         return [PHYSICIAN_COLUMNS]

@@ -108,7 +108,7 @@ class Physician(BASE):
     party_id = sa.Column(sa.String)
     entity_id = sa.Column(sa.String)
     race_ethnicity = sa.Column(sa.String, nullable=False)
-    membership_year = sa.Column(sa.String)
+    membership_status = sa.Column(sa.String)
     type = sa.Column(sa.String)
 
 
