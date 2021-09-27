@@ -109,7 +109,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         primary_keys = data[primary_key].tolist()
 
         incoming_hashes = pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
-        LOGGER.debug('Incoming Row Hashes: %s', current_hashes)
+        LOGGER.debug('Incoming Row Hashes: %s', incoming_hashes)
 
         return incoming_hashes
 
@@ -140,7 +140,6 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     @classmethod
     def _select_new_data(cls, table_parameters):
-        LOGGER.debug()
         selected_data = table_parameters.data[
             ~table_parameters.data[table_parameters.primary_key].isin(
                 table_parameters.current_hashes[table_parameters.primary_key]
