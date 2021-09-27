@@ -441,9 +441,7 @@ class ZipCodeCoreBasedStatisticalArea(BASE):
     __table_args__ = {"schema": SCHEMA}
 
     zip_code = sa.Column(sa.String, primary_key=True, nullable=False)
-    core_based_statistical_area = sa.Column(sa.String,
-                                            sa.ForeignKey("oneview.core_based_statistical_area_melissa.code"),
-                                            nullable=False)
+    core_based_statistical_area = sa.Column(sa.String, nullable=False)
     division = sa.Column(sa.String, nullable=False)
 
 
