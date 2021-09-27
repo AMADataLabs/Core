@@ -140,12 +140,16 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
     @classmethod
     def _select_new_data(cls, table_parameters):
+        LOGGER.debug('DB data PK type: %s', table_parameters.current_hashes[table_parameters.primary_key].dtype)
+        LOGGER.debug('Incoming data PK type: %s', table_parameters.data[table_parameters.primary_key].dtype)
         selected_data = table_parameters.data[
             ~table_parameters.data[table_parameters.primary_key].isin(
                 table_parameters.current_hashes[table_parameters.primary_key]
             )
         ].reset_index(drop=True)
         LOGGER.debug('Selected Data: %s', selected_data)
+        LOGGER.debug('Incoming Data Size: %d', len(table_parameters.data))
+        LOGGER.debug('Selected Data Size: %d', len(selected_data))
 
         return selected_data
 

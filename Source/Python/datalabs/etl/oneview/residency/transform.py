@@ -49,6 +49,15 @@ class ResidencyTransformerTask(TransformerTask):
         return [program_information, program_personnel, institution_info]
 
     @classmethod
+    def _convert_ids_to_strings(cls, addresses, program_personnel, program_institution):
+        addresses.pgm_id = addresses.pgm_id.astype(str)
+
+        program_personnel.pgm_id = program_personnel.pgm_id.astype(str)
+
+        program_institution.pgm_id = program_institution.pgm_id.astype(str)
+        program_institution.ins_id = program_institution.ins_id.astype(str)
+
+    @classmethod
     def _select_values(cls, programs, addresses, program_personnel, program_institution, institution_info):
         programs = programs.loc[(programs['pgm_activity_code'] == '0')].reset_index(drop=True)
 
@@ -67,7 +76,7 @@ class ResidencyTransformerTask(TransformerTask):
         return programs, addresses, program_personnel_member, program_institution, institution_info
 
     @classmethod
-    def _merge_dataframes(cls, programs, addresses, institution_info, program_institution, program_personnel):
+    def _merge_dataframes(cls, programs, addresses, program_personnel, program_institution, institution_info):
         program_information = programs.merge(addresses, on='pgm_id', how='left')
         program_information = program_information.merge(
             program_institution[['pgm_id', 'ins_id', 'pri_clinical_loc_ind']],
@@ -96,15 +105,6 @@ class ResidencyTransformerTask(TransformerTask):
             value=pandas.to_datetime('01/01/1970'))
 
         return programs, program_personnel, institution_info
-
-    @classmethod
-    def _convert_ids_to_strings(cls, addresses, program_personnel, program_institution):
-        addresses.pgm_id = addresses.pgm_id.astype(str)
-
-        program_personnel.pgm_id = program_personnel.pgm_id.astype(str)
-
-        program_institution.pgm_id = program_institution.pgm_id.astype(str)
-        program_institution.ins_id = program_institution.ins_id.astype(str)
 
     @classmethod
     def _generate_primary_keys(cls, program_personnel):
