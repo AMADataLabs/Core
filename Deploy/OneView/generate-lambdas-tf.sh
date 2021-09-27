@@ -22,6 +22,7 @@ RAW_NAMES=(
     "getToken"
     "getUserDetails"
     "getUsers"
+    "lambdaAuthorizer"
     "processAccessRequest"
     "removeDremioToken"
     "specialty-by-mpa-annual"

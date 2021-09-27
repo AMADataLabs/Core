@@ -34,10 +34,12 @@ PROVIDER_AFFILIATION_TYPE = {
     'description': 'description'
 }
 PROFIT_STATUS = {
-    'id': 'id'
+    'id': 'id',
+    'description': 'description'
 }
 OWNER_STATUS = {
-    'id': 'id'
+    'id': 'id',
+    'description': 'description'
 }
 COT_CLASSIFICATION = {
     'CLASSIFICATION_ID': 'id',
@@ -58,5 +60,5 @@ STATE = {
 }
 MEDICAL_SCHOOL = {
     'KEY_VAL': 'id',
-    'ORN_NM': 'description'
+    'ORG_NM': 'description'
 }

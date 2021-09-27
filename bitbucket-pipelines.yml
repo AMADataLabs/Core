@@ -61,7 +61,7 @@ pipelines:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
                 - python --version
-                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
 
 
         ##############################################################
@@ -171,6 +171,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Install the DB2 JDBC driver
                 - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
@@ -198,6 +200,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
@@ -210,15 +214,15 @@ pipelines:
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
                 - bash Deploy/Master/upload-bundle OneView/API
         - parallel:
-            - step:
-                name: Migrate Database
-                caches:
-                  - oneview-master-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - bash Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
+            # - step:
+            #     name: Migrate Database
+            #     caches:
+            #       - oneview-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #     - Script/run.py Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
             - step:
                 name: Update Lambda Functions
                 script:
@@ -318,6 +322,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Install the DB2 JDBC driver
                 - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
@@ -349,6 +355,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE

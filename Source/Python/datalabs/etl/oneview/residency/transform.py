@@ -18,29 +18,32 @@ class ResidencyTransformerTask(TransformerTask):
 
     # pylint: disable=too-many-arguments
     def _preprocess_data(self, data):
-        programs = data[0]
+        programs, addresses, program_personnel, program_institution, institution_info = data
 
-        addresses = data[1]
-        addresses.pgm_id = addresses.pgm_id.astype(str)
-
-        program_personnel = data[2]
-        program_personnel.pgm_id = program_personnel.pgm_id.astype(str)
-
-        program_institution = data[3]
-        program_institution.pgm_id = program_institution.pgm_id.astype(str)
-        program_institution.ins_id = program_institution.ins_id.astype(str)
-
-        institution_info = data[4]
+        self._convert_ids_to_strings(addresses, program_personnel, program_institution)
 
         programs, addresses, program_personnel, program_institution, institution_info = self._select_values(
-            programs, addresses, program_personnel, program_institution, institution_info
+            programs,
+            addresses,
+            program_personnel,
+            program_institution,
+            institution_info
         )
-        program_information, institution_info, program_personnel = self._merge_dataframes(programs,
-                                                                                          addresses,
-                                                                                          institution_info,
-                                                                                          program_institution,
-                                                                                          program_personnel
-                                                                                          )
+
+        program_information, institution_info, program_personnel = self._merge_dataframes(
+            programs,
+            addresses,
+            institution_info,
+            program_institution,
+            program_personnel
+        )
+
+        programs, program_personnel, institution_info = self._set_defaults(
+            programs,
+            program_personnel,
+            institution_info
+        )
+
         program_personnel = self._generate_primary_keys(program_personnel)
 
         return [program_information, program_personnel, institution_info]
@@ -66,19 +69,40 @@ class ResidencyTransformerTask(TransformerTask):
     @classmethod
     def _merge_dataframes(cls, programs, addresses, institution_info, program_institution, program_personnel):
         program_information = programs.merge(addresses, on='pgm_id', how='left')
-        program_information = program_information.merge(program_institution[
-                                                            ['pgm_id', 'ins_id', 'pri_clinical_loc_ind']
-                                                        ], on='pgm_id', how='left')
+        program_information = program_information.merge(
+            program_institution[['pgm_id', 'ins_id', 'pri_clinical_loc_ind']],
+            on='pgm_id',
+            how='left'
+        )
 
-        institution_info = institution_info.merge(program_institution[['ins_id']],
-                                                  on='ins_id', how='left').drop_duplicates()
-        institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
-            value=pandas.to_datetime('01/01/1970'))
+        institution_info = institution_info.merge(
+            program_institution[['ins_id']],
+            on='ins_id',
+            how='left'
+        ).drop_duplicates()
+
+        return program_information, institution_info, program_personnel
+
+    @classmethod
+    def _set_defaults(cls, programs, program_personnel, institution_info):
+        programs['pgm_chg_size'] = programs['pgm_chg_size'].fillna(value=0)
+
+        programs['pgm_oth_match'] = programs['pgm_oth_match'].fillna(value='')
 
         program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970'))
 
-        return program_information, institution_info, program_personnel
+        institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
+            value=pandas.to_datetime('01/01/1970'))
+
+    @classmethod
+    def _convert_ids_to_strings(cls, addresses, program_personnel, program_institution):
+        addresses.pgm_id = addresses.pgm_id.astype(str)
+
+        program_personnel.pgm_id = program_personnel.pgm_id.astype(str)
+
+        program_institution.pgm_id = program_institution.pgm_id.astype(str)
+        program_institution.ins_id = program_institution.ins_id.astype(str)
 
     @classmethod
     def _generate_primary_keys(cls, dataframe):

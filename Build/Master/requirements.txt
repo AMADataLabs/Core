@@ -1,6 +1,7 @@
 setuptools==41.0.0
-apache-airflow[kubernetes]==2.0.1
-alembic==1.4.2
+# apache-airflow[kubernetes]==2.0.1  # unresolvable conflict with alembic_utils (alembic<1.2 vs alembic>=1.5.7)
+alembic==1.7.3
+alembic_utils==0.7.2
 arnparse==0.0.2
 boto3==1.18.12
 coverage==5.1

@@ -12,8 +12,12 @@ provider_affiliation_type = {
 
 profit_status = {
     'id': ['For Profit', 'Not For Profit', 'Government'],
+    'description': ['For Profit', 'Not For Profit', 'Government']
 }
 
 owner_status = {
-    'id': ['INDEPENDENT', 'NOT INDEPENDENT']
+    'id': ['INDEPENDENT', 'NOT INDEPENDENT'],
+    'description': ['Independent', 'Not Independent']
 }
+
+tables = [provider_affiliation_group, provider_affiliation_type, profit_status, owner_status]

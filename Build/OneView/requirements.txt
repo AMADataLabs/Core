@@ -1,8 +1,6 @@
+alembic==1.7.3
 arnparse==0.0.2
 JayDeBeApi==1.2.3
-PyPDF2==1.26.0
-PyYAML==5.4
-alembic==1.4.2
 boto3==1.18.12
 gremlinpython==3.4.8
 dask==2021.7.1
@@ -15,6 +13,8 @@ minio==6.0.0
 nameparser==1.0.6
 numpy==1.18.1
 openpyxl==3.0.7
+PyPDF2==1.26.0
+PyYAML==5.4
 pandas==1.0.1
 paradag==1.2.0
 pip==20.0.2
