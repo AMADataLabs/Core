@@ -4,6 +4,7 @@ import logging
 import pandas
 
 from   datalabs.etl.oneview.ppd.column import NPI_COLUMNS, PPD_COLUMNS, MEDICAL_STUDENT_COLUMNS, PHYSICIAN_COLUMNS
+
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -77,7 +78,9 @@ class PPDTransformerTask(TransformerTask):
         transformed_ppd['PDRP_flag'] = 'filler'
         ####################################################
 
-        return [transformed_ppd]
+        final_ppd = self._add_person_type(transformed_ppd)
+
+        return [final_ppd]
 
     @classmethod
     def create_race_ethnicity_table(cls, race_ethnicity_data):
@@ -86,7 +89,10 @@ class PPDTransformerTask(TransformerTask):
 
     @classmethod
     def create_medical_student_table(cls, medical_student_data):
-        return medical_student_data.rename(columns=MEDICAL_STUDENT_COLUMNS)
+        medical_student_data = medical_student_data.rename(columns=MEDICAL_STUDENT_COLUMNS)
+        medical_student_data['person_type'] = 'Student'
+
+        return medical_student_data
 
     # pylint: disable=too-many-arguments
     @classmethod
@@ -95,12 +101,29 @@ class PPDTransformerTask(TransformerTask):
         LOGGER.debug('Medical Student Table: %s', medical_student)
         merged_ppd_race_ethnicity = ppd.merge(
             race_ethnicity, on='meNumber', how="left", sort=True).drop_duplicates()
+
         LOGGER.debug('PPD Table w/ Race/Ethnicity: %s', merged_ppd_race_ethnicity)
 
-        merged_ppd_student_data = merged_ppd_race_ethnicity.append(medical_student, ignore_index=True)
+        merged_ppd_race_ethnicity_with_type = cls._add_person_type(merged_ppd_race_ethnicity)
+        merged_ppd_student_data = merged_ppd_race_ethnicity_with_type.append(medical_student, ignore_index=True)
+
         LOGGER.debug('PPD Table w/ Students: %s', merged_ppd_student_data)
 
         return merged_ppd_student_data
+
+    @classmethod
+    def _add_person_type(cls, data):
+        person_type = []
+
+        for row in data['topCode'].to_list():
+            if row == '012':
+                person_type.append('Resident')
+            else:
+                person_type.append('Physician')
+
+        data['person_type'] = person_type
+
+        return data
 
     def _get_columns(self):
         return [PPD_COLUMNS]
