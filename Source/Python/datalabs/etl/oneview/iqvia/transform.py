@@ -12,9 +12,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 class IQVIATransformerTask(TransformerTask):
     def _preprocess_data(self, data):
-        provider_affiliation_data = data[2]
-        provider = data[1]
+        business, provider, provider_affiliation_data = data
 
+        business['class_of_trade_classification_description'] = 'filler'
         provider_affiliation = provider_affiliation_data.merge(provider,
                                                                on='PROFESSIONAL_ID', how='left').drop_duplicates()
 
