@@ -102,13 +102,11 @@ class ResidencyTransformerTask(TransformerTask):
     @classmethod
     def _set_defaults(cls, programs, program_personnel, institution_info):
         programs['pgm_chg_size'] = programs['pgm_chg_size'].fillna(value=0)
-        # programs['pgm_oth_match'] = programs['pgm_oth_match'].fillna(value='')
         programs = programs.fillna({column:0 for column in col.PROGRAM_BOOLEAN_COLUMNS})
         programs['pgm_init_accred_dt'] = programs['pgm_init_accred_dt'].fillna(
             value=pandas.to_datetime('01/01/1970')
         )
         programs = programs.fillna('')
-        import pdb; pdb.set_trace()
 
         program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970')
