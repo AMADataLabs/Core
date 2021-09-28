@@ -20,9 +20,11 @@ class ResidencyTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         programs, addresses, program_personnel, program_institution, institution_info = data
 
-        self._convert_ids_to_strings(addresses, program_personnel, program_institution)
-
-        self._convert_integers_to_booleans(programs)
+        addresses, program_personnel, program_institution = self._convert_ids_to_strings(
+            addresses,
+            program_personnel,
+            program_institution
+        )
 
         programs, addresses, program_personnel, program_institution, institution_info = self._select_values(
             programs,
@@ -46,6 +48,8 @@ class ResidencyTransformerTask(TransformerTask):
             institution_info
         )
 
+        programs = self._convert_integers_to_booleans(programs)
+
         program_personnel = self._generate_primary_keys(program_personnel)
 
         return [program_information, program_personnel, institution_info]
@@ -58,9 +62,7 @@ class ResidencyTransformerTask(TransformerTask):
 
         program_institution = program_institution.astype({'pgm_id': str, 'ins_id': str})
 
-    @classmethod
-    def _convert_integers_to_booleans(cls, programs):
-        programs = programs.astype({column:'boolean' for column in col.PROGRAM_BOOLEAN_COLUMNS})
+        return addresses, program_personnel, program_institution
 
     @classmethod
     def _select_values(cls, programs, addresses, program_personnel, program_institution, institution_info):
@@ -100,8 +102,8 @@ class ResidencyTransformerTask(TransformerTask):
     @classmethod
     def _set_defaults(cls, programs, program_personnel, institution_info):
         programs['pgm_chg_size'] = programs['pgm_chg_size'].fillna(value=0)
-
         programs['pgm_oth_match'] = programs['pgm_oth_match'].fillna(value='')
+        programs = programs.fillna({column:False for column in col.PROGRAM_BOOLEAN_COLUMNS})
 
         program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970'))
@@ -110,6 +112,12 @@ class ResidencyTransformerTask(TransformerTask):
             value=pandas.to_datetime('01/01/1970'))
 
         return programs, program_personnel, institution_info
+
+    @classmethod
+    def _convert_integers_to_booleans(cls, programs):
+        programs = programs.astype({column:'boolean' for column in col.PROGRAM_BOOLEAN_COLUMNS})
+
+        return programs
 
     @classmethod
     def _generate_primary_keys(cls, program_personnel):

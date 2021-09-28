@@ -126,7 +126,7 @@ class MedicalSchoolTransformerTask(TransformerTask):
             )
         ]
 
-        return cleaned_medical_schools
+        return [cleaned_medical_schools]
 
     def _get_columns(self):
         return [MEDICAL_SCHOOL]
