@@ -95,7 +95,7 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
     def _get_current_row_hashes(cls, database, table, schema, primary_key):
         get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM {schema}.{table}"
 
-        current_hashes = database.read(get_current_hash)
+        current_hashes = database.read(get_current_hash).astype(str)
         LOGGER.debug('Current Row Hashes: %s', current_hashes)
 
         return current_hashes
