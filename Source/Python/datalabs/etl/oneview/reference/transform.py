@@ -38,8 +38,11 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
 
 class SpecialtyMergeTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
+        specialties, physicians = data
+
         filtered_specialty_data = data[0].loc[
-            data[0]['SPEC_CD'].isin(data[1]['PRIMSPECIALTY']) | data[0]['SPEC_CD'].isin(data[1]['SECONDARYSPECIALTY'])
+            specialties['SPEC_CD'].isin(physicians['primary_specialty']) \
+            | specialties['SPEC_CD'].isin(physicians['secondary_specialty'])
         ].reset_index(drop=True)
 
         return [filtered_specialty_data]
