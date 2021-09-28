@@ -87,12 +87,58 @@ PPD_COLUMNS = {
     'race_ethnicity': 'race_ethnicity',
     'person_type': 'person_type'
 }
+
+
 NPI_COLUMNS = {
     'PARTY_ID': 'PARTY_ID',
     'meNumber': 'meNumber',
     'npi': 'npi',
     'entity_id': 'entity_id'
 }
+
+
+MEDICAL_STUDENT_COLUMNS = {
+    'me_no': 'meNumber',
+    'mailing_name': 'MailingName',
+    'last_name': 'lastName',
+    'first_name': 'firstName',
+    'middle_name': 'middleName',
+    'suffix': 'suffixCode',
+    'mail_line_1': 'preferredLine_addr_2',
+    'mail_line_2': 'preferredLine_addr_1',
+    'state': 'preferredStateCode',
+    'zipcode': 'preferredZipCode',
+    'sector': 'prefferedSectorZipPlus4',
+    'addr_city': 'preferredCity',
+    'carrier_route': 'preferredCarrierRoute',
+    'addr_undeliver_flg': 'undeliverableFlag',
+    'fips_county': 'fips_county',
+    'fips_state': 'fips_state',
+    'msa_population_size': 'MSA_Poulation',
+    'region': 'region',
+    'division': 'division',
+    'group': 'group',
+    'tract': 'tract',
+    'suffix': 'suffix',
+    'blockGroup': 'blockGroup',
+    'metro_micro_indicator': 'Micro_Metro_ind',
+    'cbsa': 'CBSA',
+    'cbsa_division_indicator': 'CBSA_devision',
+    'school_name': 'gradSchoolCd',
+    'school_state': 'gradSchoolState',
+    'grad_year': 'gradYear',
+    'birth_year': 'birthYear',
+    'birth_city': 'birthCity',
+    'birth_state': 'birthState',
+    'birth_country': 'birthCountry',
+    'gender': 'gender',
+    'addr_type_ind': 'addressType',
+    'phone_no': 'preferredPhoneNumber',
+    'presumed_dead': 'pendingDeadIndicator',
+    'contact_flg': 'contactIndicator'
+}
+
+
 PHYSICIAN_COLUMNS = {
     'meNumber': 'medical_education_number',
     'addressType': 'address_type',
@@ -179,44 +225,4 @@ PHYSICIAN_COLUMNS = {
     'npi': 'national_provider_identifier',
     'person_type': 'type',
     'MEMBERSHIP_STATUS': 'membership_status'
-}
-MEDICAL_STUDENT_COLUMNS = {
-    'me_no': 'meNumber',
-    'mailing_name': 'MailingName',
-    'last_name': 'lastName',
-    'first_name': 'firstName',
-    'middle_name': 'middleName',
-    'suffix': 'suffixCode',
-    'mail_line_1': 'preferredLine_addr_2',
-    'mail_line_2': 'preferredLine_addr_1',
-    'state': 'preferredStateCode',
-    'zipcode': 'preferredZipCode',
-    'sector': 'prefferedSectorZipPlus4',
-    'addr_city': 'preferredCity',
-    'carrier_route': 'preferredCarrierRoute',
-    'addr_undeliver_flg': 'undeliverableFlag',
-    'fips_county': 'fips_county',
-    'fips_state': 'fips_state',
-    'region': 'region',
-    'msa_population_size': 'MSA_Poulation',
-    'division': 'division',
-    'group': 'group',
-    'tract': 'tract',
-    'census_suffix': 'suffix',
-    'block_group': 'blockGroup',
-    'metro_micro_indicator': 'Micro_Metro_ind',
-    'cbsa': 'CBSA',
-    'cbsa_division_indicator': 'CBSA_devision',
-    'school_name': 'gradSchoolCd',
-    'school_state': 'gradSchoolState',
-    'grad_year': 'gradYear',
-    'birth_year': 'birthYear',
-    'birth_city': 'birthCity',
-    'birth_state': 'birthState',
-    'birth_country': 'birthCountry',
-    'gender': 'gender',
-    'addr_type_ind': 'addressType',
-    'phone_no': 'preferredPhoneNumber',
-    'presumed_dead': 'pendingDeadIndicator',
-    'contact_flg': 'contactIndicator'
 }
