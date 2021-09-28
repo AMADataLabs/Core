@@ -22,7 +22,7 @@ class IQVIATransformerTask(TransformerTask):
                         for index, column in provider_affiliation.iterrows()]
         provider_affiliation['id'] = primary_keys
 
-        return [data[0], data[1], provider_affiliation]
+        return [business, provider, provider_affiliation]
 
     def _get_columns(self):
         return [column.BUSINESS_COLUMNS,
