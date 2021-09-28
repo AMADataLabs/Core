@@ -141,6 +141,8 @@ class PhysicianTransformerTask(TransformerTask):
     @classmethod
     def _merge_data(cls, ppd_table, npi_table, membership):
         ppd_npi = ppd_table.merge(npi_table, on='meNumber', how="left").drop_duplicates()
+
+        membership = membership.rename(columns={'PARTY_ID_FROM': 'PARTY_ID', 'DESC': 'MEMBERSHIP_STATUS'})
         ppd_membership = ppd_npi.merge(membership['PARTY_ID', 'MEMBERSHIP_STATUS'],
                                        on='PARTY_ID', how="left").drop_duplicates(ignore_index=True)
 
