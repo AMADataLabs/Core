@@ -26,19 +26,19 @@ class NPITransformerTask(TransformerTask):
 
     @classmethod
     def _create_medical_education_number_table(cls, npi_data):
-        medical_education_number_table = npi_data.loc[npi_data['KEY_TYPE_ID'] == 18]
+        medical_education_number_table = npi_data.loc[npi_data['KEY_TYPE_ID'] == '18']
 
         return medical_education_number_table[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'meNumber'})
 
     @classmethod
     def _create_npi_table(cls, npi_data):
-        npi = npi_data.loc[npi_data['KEY_TYPE_ID'] == 38]
+        npi = npi_data.loc[npi_data['KEY_TYPE_ID'] == '38']
 
         return npi[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'npi'})
 
     @classmethod
     def _create_entity_table(cls, npi_data):
-        entity_data = npi_data.loc[npi_data['KEY_TYPE_ID'] == 9]
+        entity_data = npi_data.loc[npi_data['KEY_TYPE_ID'] == '9']
 
         return entity_data[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'entity_id'})
 

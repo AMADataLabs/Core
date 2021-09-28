@@ -66,7 +66,6 @@ class TransformerTask(ScalableTransformerMixin, etl.TransformerTask, ABC):
 
         return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
-
     @classmethod
     def _preprocess_data(cls, data):
         return data
@@ -88,3 +87,20 @@ class TransformerTask(ScalableTransformerMixin, etl.TransformerTask, ABC):
     @classmethod
     def _postprocess_data(cls, data):
         return data
+
+
+class ConcatenateTransformerTask(etl.TransformerTask):
+    def _transform(self):
+        parts = [self._csv_to_dataframe(data) for data in self._parameters['data']]
+
+        data = pandas.concat(parts, ignore_index=True)
+
+        return [self._dataframe_to_csv(data)]
+
+    @classmethod
+    def _csv_to_dataframe(cls, data, **kwargs):
+        return pandas.read_csv(BytesIO(data), dtype=str, **kwargs)
+
+    @classmethod
+    def _dataframe_to_csv(cls, data, **kwargs):
+        return data.to_csv(index=False, **kwargs).encode()
