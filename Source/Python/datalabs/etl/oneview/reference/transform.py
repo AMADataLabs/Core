@@ -119,9 +119,10 @@ class MedicalSchoolTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         """ TEMPORARY DATA CLEANUP (remove when data source is fixed) """
         medical_schools = data[0]
+
         cleaned_medical_schools = medical_schools[
             ~(
-                (medical_schools.KEY_VAL == 56003) & \
+                (medical_schools.KEY_VAL == '56003') & \
                 (medical_schools.ORG_NM == 'Bar-Ilan University Faculty of Medicine in the Galilee')
             )
         ]
