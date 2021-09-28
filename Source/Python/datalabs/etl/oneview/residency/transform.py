@@ -34,7 +34,7 @@ class ResidencyTransformerTask(TransformerTask):
             institution_info
         )
 
-        program_information, program_personnel, institution_info = self._merge_dataframes(
+        programs, program_personnel, institution_info = self._merge_dataframes(
             programs,
             addresses,
             program_personnel,
@@ -52,7 +52,7 @@ class ResidencyTransformerTask(TransformerTask):
 
         program_personnel = self._generate_primary_keys(program_personnel)
 
-        return [program_information, program_personnel, institution_info]
+        return [programs, program_personnel, institution_info]
 
     @classmethod
     def _convert_ids_to_strings(cls, addresses, program_personnel, program_institution):
@@ -84,8 +84,8 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_dataframes(cls, programs, addresses, program_personnel, program_institution, institution_info):
-        program_information = programs.merge(addresses, on='pgm_id', how='left')
-        program_information = program_information.merge(
+        programs = programs.merge(addresses, on='pgm_id', how='left')
+        programs = programs.merge(
             program_institution[['pgm_id', 'ins_id', 'pri_clinical_loc_ind']],
             on='pgm_id',
             how='left'
@@ -97,19 +97,26 @@ class ResidencyTransformerTask(TransformerTask):
             how='left'
         ).drop_duplicates()
 
-        return program_information, program_personnel, institution_info
+        return programs, program_personnel, institution_info
 
     @classmethod
     def _set_defaults(cls, programs, program_personnel, institution_info):
         programs['pgm_chg_size'] = programs['pgm_chg_size'].fillna(value=0)
-        programs['pgm_oth_match'] = programs['pgm_oth_match'].fillna(value='')
+        # programs['pgm_oth_match'] = programs['pgm_oth_match'].fillna(value='')
         programs = programs.fillna({column:0 for column in col.PROGRAM_BOOLEAN_COLUMNS})
+        programs['pgm_init_accred_dt'] = programs['pgm_init_accred_dt'].fillna(
+            value=pandas.to_datetime('01/01/1970')
+        )
+        programs = programs.fillna('')
+        import pdb; pdb.set_trace()
 
         program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
-            value=pandas.to_datetime('01/01/1970'))
+            value=pandas.to_datetime('01/01/1970')
+        )
 
         institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
-            value=pandas.to_datetime('01/01/1970'))
+            value=pandas.to_datetime('01/01/1970')
+        )
 
         return programs, program_personnel, institution_info
 
