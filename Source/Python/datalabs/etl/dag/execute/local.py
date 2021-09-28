@@ -6,7 +6,6 @@ import logging
 import paradag
 
 from   datalabs.etl.dag.state import Status
-from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.etl.dag.task import DAGTaskWrapper
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
@@ -24,7 +23,6 @@ class LocalDAGExecutorParameters:
     execution_time: str
     dag_class: str
     dag_state_class: str
-    task_topic_arn: str
     unknowns: dict=None
 
 
@@ -34,13 +32,13 @@ class LocalDAGExecutorTask(Task):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-        self._notifier = SNSTaskNotifier(self._parameters.task_topic_arn)
+        self._triggered_tasks = []
         self._parameters.dag_state_class = import_plugin(self._parameters.dag_state_class)
 
     def run(self):
         dag = import_plugin(self._parameters.dag_class)()
 
-        for _, task in cls.__task_classes__.iteritems():
+        for _, task in dag.__task_classes__.items():
             task.unblock()
 
         tasks = paradag.dag_run(
@@ -50,6 +48,10 @@ class LocalDAGExecutorTask(Task):
         )
 
         self._set_dag_status_from_task_statuses([task.status for task in tasks])
+
+    @property
+    def triggered_tasks(self):
+        return self._triggered_tasks
 
     # pylint: disable=no-self-use
     def param(self, task: 'DAGTask'):
@@ -106,7 +108,7 @@ class LocalDAGExecutorTask(Task):
     def _trigger_task(self, task):
         LOGGER.info('Triggering task "%s" of DAG "%s"', task.id, self._parameters.dag)
 
-        self._notifier.notify(self._parameters.dag, task.id, self._parameters.execution_time)
+        self._triggered_tasks.append(task.id)
 
     def _get_state_parameters(self, task=None):
         state_parameters = self._parameters.unknowns

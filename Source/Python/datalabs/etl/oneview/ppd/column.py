@@ -119,7 +119,7 @@ MEDICAL_STUDENT_COLUMNS = {
     'division': 'division',
     'group': 'group',
     'tract': 'tract',
-    'suffix': 'suffix',
+    'census_suffix': 'suffix',
     'blockGroup': 'blockGroup',
     'metro_micro_indicator': 'Micro_Metro_ind',
     'cbsa': 'CBSA',
