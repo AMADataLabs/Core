@@ -18,11 +18,15 @@ from   datalabs.etl.oneview.link.transform import CredentialingCustomerInstituti
     CredentialingCustomerBusinessTransformerTask, ResidencyProgramPhysicianTransformerTask
 from   datalabs.etl.oneview.historical_resident.transform import HistoricalResidentTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
+# from   datalabs.etl.transform import ConcatenateTransformerTask
 
 
 class OneViewDAG(DAG):
     EXTRACT_PPD: SFTPIBM437TextFileExtractorTask
     EXTRACT_PARTY_KEYS: JDBCExtractorTask
+    # EXTRACT_PARTY_KEYS_1: JDBCExtractorTask
+    # EXTRACT_PARTY_KEYS_2: JDBCExtractorTask
+    # CONCATENATE_PARTY_KEYS: ConcatenateTransformerTask
     EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     SUPPLEMENT_PPD_TABLE: PPDTransformerTask
     CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
