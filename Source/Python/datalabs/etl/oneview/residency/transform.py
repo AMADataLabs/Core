@@ -103,7 +103,7 @@ class ResidencyTransformerTask(TransformerTask):
     def _set_defaults(cls, programs, program_personnel, institution_info):
         programs['pgm_chg_size'] = programs['pgm_chg_size'].fillna(value=0)
         programs['pgm_oth_match'] = programs['pgm_oth_match'].fillna(value='')
-        programs = programs.fillna({column:False for column in col.PROGRAM_BOOLEAN_COLUMNS})
+        programs = programs.fillna({column:0 for column in col.PROGRAM_BOOLEAN_COLUMNS})
 
         program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970'))
@@ -115,6 +115,7 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _convert_integers_to_booleans(cls, programs):
+        programs = programs.astype({column:'int' for column in col.PROGRAM_BOOLEAN_COLUMNS})
         programs = programs.astype({column:'boolean' for column in col.PROGRAM_BOOLEAN_COLUMNS})
 
         return programs
