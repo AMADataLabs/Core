@@ -18,7 +18,7 @@ from   datalabs.etl.oneview.link.transform import CredentialingCustomerInstituti
     CredentialingCustomerBusinessTransformerTask, ResidencyProgramPhysicianTransformerTask
 from   datalabs.etl.oneview.historical_resident.transform import HistoricalResidentTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
-# from   datalabs.etl.transform import ConcatenateTransformerTask
+from   datalabs.etl.transform import PassThroughTransformerTask
 
 
 class OneViewDAG(DAG):
@@ -27,7 +27,7 @@ class OneViewDAG(DAG):
     # EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     # SUPPLEMENT_PPD_TABLE: PPDTransformerTask
     # CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
-    CREATE_PHYSICIAN_TABLE: PhysicianTransformerTask
+    # CREATE_PHYSICIAN_TABLE: PhysicianTransformerTask
     LOAD_PHYSICIAN_TABLE: ORMLoaderTask
     # EXTRACT_MELISSA: JDBCExtractorTask
     # CREATE_MELISSA_TABLES: MelissaTransformerTask
@@ -51,6 +51,7 @@ class OneViewDAG(DAG):
     # CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE: \
     #     FederalInformationProcessingStandardCountyTransformerTask
     EXTRACT_SPECIALTY: JDBCExtractorTask
+    CREATE_SPECIALTY_TABLE: PassThroughTransformerTask
     LOAD_SPECIALTY_TABLE: ORMLoaderTask
     REMOVE_UNUSED_SPECIALTIES: SpecialtyMergeTransformerTask
     EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY: JDBCExtractorTask
@@ -145,8 +146,9 @@ OneViewDAG.EXTRACT_CORE_BASED_STATISTICAL_AREA \
 #     >> OneViewDAG.CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE \
 #     >> OneViewDAG.LOAD_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE
 #
-OneViewDAG.EXTRACT_SPECIALTY >> OneViewDAG.CREATE_PHYSICIAN_TABLE >> OneViewDAG.REMOVE_UNUSED_SPECIALTIES \
+OneViewDAG.EXTRACT_SPECIALTY >> OneViewDAG.CREATE_SPECIALTY_TABLE >> OneViewDAG.REMOVE_UNUSED_SPECIALTIES \
     >> OneViewDAG.LOAD_SPECIALTY_TABLE
+# OneViewDAG.CREATE_PHYSICIAN_TABLE >> OneViewDAG.REMOVE_UNUSED_SPECIALTIES
 
 OneViewDAG.EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY >> OneViewDAG.CREATE_MAJOR_PROFESSIONAL_ACTIVITY_TABLE \
     >> OneViewDAG.LOAD_MAJOR_PROFESSIONAL_ACTIVITY_TABLE
