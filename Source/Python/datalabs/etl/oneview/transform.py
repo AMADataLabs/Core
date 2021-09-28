@@ -103,4 +103,4 @@ class ConcatenateTransformerTask(etl.TransformerTask):
 
     @classmethod
     def _dataframe_to_csv(cls, data, **kwargs):
-        return data.to_csv(index=False).encode()
+        return data.to_csv(index=False, **kwargs).encode()
