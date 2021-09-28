@@ -42,8 +42,8 @@ FUNCTIONS=(
     "${PROJECT}-${ENVIRONMENT}-validateUser"
 )
 BUNDLES=(
-    "${PROJECT}/API.zip"
     "${PROJECT}/ETL.zip"
+    "${PROJECT}/API.zip"
     "${PROJECT}/addDepartment.zip"
     "${PROJECT}/addOrg.zip"
     "${PROJECT}/addProfile.zip"
