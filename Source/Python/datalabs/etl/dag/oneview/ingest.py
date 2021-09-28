@@ -27,7 +27,7 @@ class OneViewDAG(DAG):
     # EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     # SUPPLEMENT_PPD_TABLE: PPDTransformerTask
     # CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
-    # CREATE_PHYSICIAN_TABLE: PhysicianTransformerTask
+    CREATE_PHYSICIAN_TABLE: PhysicianTransformerTask
     LOAD_PHYSICIAN_TABLE: ORMLoaderTask
     # EXTRACT_MELISSA: JDBCExtractorTask
     # CREATE_MELISSA_TABLES: MelissaTransformerTask
