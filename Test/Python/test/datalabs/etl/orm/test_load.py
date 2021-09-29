@@ -47,7 +47,7 @@ def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_select_new_data(table_parameters, expected_data):
+def test_select_new_data(loader_parameters, table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
     row_hashes = loader._generate_row_hashes(
@@ -63,7 +63,7 @@ def test_select_new_data(table_parameters, expected_data):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_select_deleted_data(table_parameters, expected_data):
+def test_select_deleted_data(loader_parameters, table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
     row_hashes = loader._generate_row_hashes(
@@ -78,7 +78,7 @@ def test_select_deleted_data(table_parameters, expected_data):
     assert expected_data['deleted'].equals(deleted_data)
 
 
-def test_select_updated_data(table_parameters, expected_data):
+def test_select_updated_data(loader_parameters, table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
     row_hashes = loader._generate_row_hashes(
@@ -147,18 +147,18 @@ def database(database_parameters):
 @pytest.fixture
 def loader_parameters(database, file, data):
     return dict(
-        TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
+        # TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
         MODEL_CLASSES='test.datalabs.access.model.Foo,'
                       'test.datalabs.access.model.Bar,'
                       'test.datalabs.access.model.Poof',
         TABLES='foo,'
                'bar,'
                'poof',
-        thing=True,
-        DATABASE_BACKEND='sqlite',
-        DATABASE_NAME=file,
+        SCHEMA='pingpong',
         DATABASE_HOST='',
         DATABASE_PORT='',
+        DATABASE_BACKEND='sqlite',
+        DATABASE_NAME=file,
         DATABASE_USERNAME='',
         DATABASE_PASSWORD='',
         data=data
