@@ -1,23 +1,35 @@
 ''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag.dag import DAG
-from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
-from   datalabs.etl.sftp.extract import SFTPFileExtractorTask, SFTPIBM437TextFileExtractorTask
-from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
+from   datalabs.etl.jdbc.extract import JDBCExtractorTask
+from   datalabs.etl.manipulate.transform import SplitTransformerTask
+# from   datalabs.etl.oneview.credentialing.transform import \
+#     CredentialingTransformerTask, \
+#     CredentialingFinalTransformerTask
+# from   datalabs.etl.oneview.historical_resident.transform import HistoricalResidentTransformerTask
+# from   datalabs.etl.oneview.iqvia.transform import IQVIATransformerTask, IQVIAUpdateTransformerTask
+# from   datalabs.etl.oneview.link.transform import \
+#     CredentialingCustomerInstitutionTransformerTask, \
+#     CredentialingCustomerBusinessTransformerTask, \
+#     ResidencyProgramPhysicianTransformerTask
+# from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
 from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransformerTask, PhysicianTransformerTask
-from   datalabs.etl.oneview.reference.transform import TypeOfPracticeTransformerTask, PresentEmploymentTransformerTask,\
-    CoreBasedStatisticalAreaTransformerTask, FederalInformationProcessingStandardCountyTransformerTask, \
-    MajorProfessionalActivityTransformerTask, SpecialtyMergeTransformerTask, \
-    StaticReferenceTablesTransformerTask, ClassOfTradeTransformerTask, StateTransformerTask, \
-    MedicalSchoolTransformerTask
-from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
-from   datalabs.etl.oneview.iqvia.transform import IQVIATransformerTask, IQVIAUpdateTransformerTask
-from   datalabs.etl.oneview.credentialing.transform import CredentialingTransformerTask, \
-    CredentialingFinalTransformerTask
-from   datalabs.etl.oneview.link.transform import CredentialingCustomerInstitutionTransformerTask, \
-    CredentialingCustomerBusinessTransformerTask, ResidencyProgramPhysicianTransformerTask
-from   datalabs.etl.oneview.historical_resident.transform import HistoricalResidentTransformerTask
+from   datalabs.etl.oneview.reference.transform import \
+    StateTransformerTask, \
+    SpecialtyMergeTransformerTask, \
+    MajorProfessionalActivityTransformerTask, \
+    CoreBasedStatisticalAreaTransformerTask, \
+    PresentEmploymentTransformerTask, \
+    TypeOfPracticeTransformerTask
+
+# from   datalabs.etl.oneview.reference.transform import \
+#     FederalInformationProcessingStandardCountyTransformerTask, \
+#     StaticReferenceTablesTransformerTask, \
+#     ClassOfTradeTransformerTask, \
+#     MedicalSchoolTransformerTask
+# from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
+from   datalabs.etl.sftp.extract import SFTPFileExtractorTask, SFTPIBM437TextFileExtractorTask
 from   datalabs.etl.transform import PassThroughTransformerTask
 
 
@@ -31,7 +43,10 @@ class OneViewDAG(DAG):
     CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
     EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     CREATE_PHYSICIAN_TABLE: PhysicianTransformerTask
-    LOAD_PHYSICIAN_TABLE: ORMLoaderTask
+    SPLIT_PHYSICIAN_TABLE: SplitTransformerTask
+    LOAD_PHYSICIAN_TABLE_1: ORMLoaderTask
+    LOAD_PHYSICIAN_TABLE_2: ORMLoaderTask
+    LOAD_PHYSICIAN_TABLE_3: ORMLoaderTask
 
     EXTRACT_STATE_TABLE: JDBCExtractorTask
     CREATE_STATE_TABLE: StateTransformerTask
@@ -75,6 +90,7 @@ class OneViewDAG(DAG):
 
     # EXTRACT_RESIDENCY: SFTPFileExtractorTask
     # CREATE_RESIDENCY_TABLES: ResidencyTransformerTask
+    # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE: ResidencyProgramPhysicianTransformerTask
     # LOAD_RESIDENCY_INSTITUTION_TABLE: ORMLoaderTask
     # LOAD_RESIDENCY_PROGRAM_TABLE: ORMLoaderTask
     # LOAD_RESIDENCY_PERSONNEL_TABLE: ORMLoaderTask
@@ -94,15 +110,14 @@ class OneViewDAG(DAG):
     # LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES: ORMLoaderTask
     # LOAD_CREDENTIALING_ORDER_TABLE: ORMLoaderTask
     # MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE: CredentialingFinalTransformerTask
+    # CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE: CredentialingCustomerInstitutionTransformerTask
+    # CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TABLE: CredentialingCustomerBusinessTransformerTask
+    # LOAD_LINKING_TABLES: ORMLoaderTask
 
     # EXTRACT_HISTORICAL_RESIDENT: SFTPFileExtractorTask
     # CREATE_HISTORICAL_RESIDENT_TABLE: HistoricalResidentTransformerTask
     # LOAD_HISTORICAL_RESIDENT_TABLE: ORMLoaderTask
 
-    # CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE: CredentialingCustomerInstitutionTransformerTask
-    # CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TABLE: CredentialingCustomerBusinessTransformerTask
-    # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE: ResidencyProgramPhysicianTransformerTask
-    # LOAD_LINKING_TABLES: ORMLoaderTask
     # EXTRACT_CLASS_OF_TRADE_TABLE: JDBCExtractorTask
     # CREATE_STATIC_REFERENCE_TABLE: StaticReferenceTablesTransformerTask
     # CREATE_CLASS_OF_TRADE_TABLE: ClassOfTradeTransformerTask
@@ -123,13 +138,18 @@ OneViewDAG.EXTRACT_PARTY_KEYS >> OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE >> OneVie
 OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE
 OneViewDAG.EXTRACT_MEMBERSHIP_DATA >> OneViewDAG.CREATE_PHYSICIAN_TABLE
 
-OneViewDAG.CREATE_PHYSICIAN_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE
-OneViewDAG.LOAD_STATE_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE
-OneViewDAG.LOAD_SPECIALTY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE
-OneViewDAG.LOAD_MAJOR_PROFESSIONAL_ACTIVITY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE
-OneViewDAG.LOAD_CORE_BASED_STATISTICAL_AREA_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE
-OneViewDAG.LOAD_PRESENT_EMPLOYMENT_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE
-OneViewDAG.LOAD_TYPE_OF_PRACTICE_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE
+OneViewDAG.CREATE_PHYSICIAN_TABLE >> OneViewDAG.SPLIT_PHYSICIAN_TABLE
+OneViewDAG.LOAD_STATE_TABLE >> OneViewDAG.SPLIT_PHYSICIAN_TABLE
+OneViewDAG.LOAD_SPECIALTY_TABLE >> OneViewDAG.SPLIT_PHYSICIAN_TABLE
+OneViewDAG.LOAD_MAJOR_PROFESSIONAL_ACTIVITY_TABLE >> OneViewDAG.SPLIT_PHYSICIAN_TABLE
+OneViewDAG.LOAD_CORE_BASED_STATISTICAL_AREA_TABLE >> OneViewDAG.SPLIT_PHYSICIAN_TABLE
+OneViewDAG.LOAD_PRESENT_EMPLOYMENT_TABLE >> OneViewDAG.SPLIT_PHYSICIAN_TABLE
+OneViewDAG.LOAD_TYPE_OF_PRACTICE_TABLE >> OneViewDAG.SPLIT_PHYSICIAN_TABLE
+
+OneViewDAG.SPLIT_PHYSICIAN_TABLE \
+    >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1 \
+    >> OneViewDAG.LOAD_PHYSICIAN_TABLE_2 \
+    >> OneViewDAG.LOAD_PHYSICIAN_TABLE_3
 
 OneViewDAG.EXTRACT_STATE_TABLE >> OneViewDAG.CREATE_STATE_TABLE >> OneViewDAG.LOAD_STATE_TABLE
 
