@@ -77,7 +77,7 @@ class TaskWrapper(ABC):
             self.task.run()
 
             response = self._handle_success()
-        except TaskException as exception:
+        except Exception as exception:
             response = self._handle_exception(exception)
 
         return response

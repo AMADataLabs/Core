@@ -2,7 +2,7 @@
 from   datalabs.etl.dag.dag import DAG
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
-from   datalabs.etl.manipulate.transform import SplitTransformerTask
+from   datalabs.etl.manipulate.transform import SplitTransformerTask, ConcatenateTransformerTask
 # from   datalabs.etl.oneview.credentialing.transform import \
 #     CredentialingTransformerTask, \
 #     CredentialingFinalTransformerTask
@@ -39,7 +39,10 @@ class OneViewDAG(DAG):
     EXTRACT_MEDICAL_STUDENT: SFTPFileExtractorTask
     SUPPLEMENT_PPD_TABLE: PPDTransformerTask
 
-    EXTRACT_PARTY_KEYS: JDBCExtractorTask
+    EXTRACT_PARTY_KEYS_1: JDBCExtractorTask
+    EXTRACT_PARTY_KEYS_2: JDBCExtractorTask
+    EXTRACT_PARTY_KEYS_3: JDBCExtractorTask
+    CONCATENATE_PARTY_KEYS: ConcatenateTransformerTask
     CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
     EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     CREATE_PHYSICIAN_TABLE: PhysicianTransformerTask
@@ -133,8 +136,9 @@ OneViewDAG.EXTRACT_PPD >> OneViewDAG.SUPPLEMENT_PPD_TABLE
 OneViewDAG.EXTRACT_PHYSICIAN_RACE_ETHNICITY >> OneViewDAG.SUPPLEMENT_PPD_TABLE
 OneViewDAG.EXTRACT_MEDICAL_STUDENT >> OneViewDAG.SUPPLEMENT_PPD_TABLE
 
+OneViewDAG.EXTRACT_PARTY_KEYS_1 >> OneViewDAG.EXTRACT_PARTY_KEYS_2 >> OneViewDAG.EXTRACT_PARTY_KEYS_3 \
+    >> OneViewDAG.CONCATENATE_PARTY_KEYS >> OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE
 OneViewDAG.SUPPLEMENT_PPD_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE
-OneViewDAG.EXTRACT_PARTY_KEYS >> OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE
 OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE
 OneViewDAG.EXTRACT_MEMBERSHIP_DATA >> OneViewDAG.CREATE_PHYSICIAN_TABLE
 
