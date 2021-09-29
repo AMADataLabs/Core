@@ -46,7 +46,7 @@ class Task(ParameterValidatorMixin, ABC):
             LOGGER.info('%s parameters: %s', cls.__name__, parameters)
 
 
-class TaskException(BaseException):
+class TaskException(Exception):
     @property
     def message(self):
         return self.args[0]  # pylint: disable=unsubscriptable-object
