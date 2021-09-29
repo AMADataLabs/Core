@@ -6,23 +6,23 @@ image:
 
 pipelines:
     branches:
-        master:
-        - step:
-            name: Build
-            script:
-            - bash Script/bitbucket-pipelines-build.sh
-        - step:
-            name: Auto-Merge to dev
-            script:
-            - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-            - git fetch
-            - git checkout dev
-            - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
-            - git push origin dev
-        dev:
-        - step:
-            script:
-            - bash Script/bitbucket-pipelines-build.sh
+        # master:
+        # - step:
+        #     name: Build
+        #     script:
+        #     - bash Script/bitbucket-pipelines-build.sh
+        # - step:
+        #     name: Auto-Merge to dev
+        #     script:
+        #     - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        #     - git fetch
+        #     - git checkout dev
+        #     - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
+        #     - git push origin dev
+        # dev:
+        # - step:
+        #     script:
+        #     - bash Script/bitbucket-pipelines-build.sh
         test:
         - step:
             script:
@@ -40,28 +40,28 @@ pipelines:
         # global targets
         ##############################################################
 
-        # Test:
-        # - parallel:
-        #     - step:
-        #         name: Unit Tests
-        #         caches:
-        #           - unit-test-dependencies
-        #         script:
-        #         - bash Script/setup-virtual-environment Master
-        #         - export VIRTUAL_ENV=${PWD}/Environment/Master
-        #         - export PATH="$VIRTUAL_ENV/bin:$PATH"
-        #         - python --version
-        #         - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
-        #     - step:
-        #         name: Lint
-        #         caches:
-        #           - lint-test-dependencies
-        #         script:
-        #         - bash Script/setup-virtual-environment Master
-        #         - export VIRTUAL_ENV=${PWD}/Environment/Master
-        #         - export PATH="$VIRTUAL_ENV/bin:$PATH"
-        #         - python --version
-        #         - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+        Test:
+        - parallel:
+            - step:
+                name: Unit Tests
+                caches:
+                  - unit-test-dependencies
+                script:
+                - bash Script/setup-virtual-environment Master
+                - export VIRTUAL_ENV=${PWD}/Environment/Master
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - python --version
+                - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+            - step:
+                name: Lint
+                caches:
+                  - lint-test-dependencies
+                script:
+                - bash Script/setup-virtual-environment Master
+                - export VIRTUAL_ENV=${PWD}/Environment/Master
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+                - python --version
+                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
 
 
         ##############################################################
@@ -147,91 +147,91 @@ pipelines:
             - export ENVIRONMENT=sbx
             - bash Deploy/Scheduler/update-functions
 
-        # OneView-master:
-        # - parallel:
-        #     - step:
-        #         name: Create Database
-        #         caches:
-        #           - oneview-master-create-database-dependencies
-        #         script:
-        #         - bash Script/setup-virtual-environment OneView
-        #         - export ENABLE_FEATURE_DEV=True
-        #         - export DATABASE_NAME=oneview_content
-        #         - export DATABASE_NAME_ADMIN=postgres
-        #         - export DATABASE_BACKEND=postgresql+psycopg2
-        #         - export DATABASE_HOST=$ONEVIEW_DATABASE_HOST_SANDBOX
-        #         - export DATABASE_PORT=5432
-        #         - export DATABASE_USERNAME=$ONEVIEW_DATABASE_USERNAME_SANDBOX
-        #         - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_SANDBOX
-        #         - bash Deploy/Master/create-database OneView
-        #     - step:
-        #         name: Update ETL Bundle
-        #         caches:
-        #             - oneview-master-update-bundle-dependencies
-        #         script:
-        #         # Setup virtual environment
-        #         - bash Script/setup-virtual-environment Master/BitBucketPipelines
-        #         - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-        #         - export PATH="$VIRTUAL_ENV/bin:$PATH"
-        #
-        #         # Install the DB2 JDBC driver
-        #         - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
-        #         - unzip ./Db2JdbcDriver.zip
-        #
-        #         # Install the Informix JDBC driver
-        #         - wget https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
-        #         - unzip ./InformixJdbcDriver.zip
-        #         - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
-        #
-        #         # Create the code bundle
-        #         - export ENABLE_FEATURE_DEV=True
-        #         - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-        #         - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-        #         - export AWS_DEFAULT_REGION='us-east-1'
-        #         - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
-        #
-        #         # Upload the code bundle
-        #         - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-        #         - bash Deploy/Master/upload-bundle OneView/ETL
-        #     - step:
-        #         name: Update API Bundle
-        #         caches:
-        #             - oneview-master-update-bundle-dependencies
-        #         script:
-        #         # Setup virtual environment
-        #         - bash Script/setup-virtual-environment Master/BitBucketPipelines
-        #         - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-        #         - export PATH="$VIRTUAL_ENV/bin:$PATH"
-        #
-        #         # Create the code bundle
-        #         - export ENABLE_FEATURE_DEV=True
-        #         - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-        #         - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-        #         - export AWS_DEFAULT_REGION='us-east-1'
-        #         - bash Deploy/Master/create-bundle OneView/API
-        #
-        #         # Upload the code bundle
-        #         - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-        #         - bash Deploy/Master/upload-bundle OneView/API
-        # - parallel:
-        #     # - step:
-        #     #     name: Migrate Database
-        #     #     caches:
-        #     #       - oneview-master-create-database-dependencies
-        #     #     script:
-        #     #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
-        #     #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-        #     #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
-        #     #     - Script/run.py Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
-        #     - step:
-        #         name: Update Lambda Functions
-        #         script:
-        #         - export ENABLE_FEATURE_DEV=True
-        #         - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-        #         - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-        #         - export AWS_DEFAULT_REGION='us-east-1'
-        #         - export ENVIRONMENT=sbx
-        #         - bash Deploy/OneView/update-functions
+        OneView-master:
+        - parallel:
+            - step:
+                name: Create Database
+                caches:
+                  - oneview-master-create-database-dependencies
+                script:
+                - bash Script/setup-virtual-environment OneView
+                - export ENABLE_FEATURE_DEV=True
+                - export DATABASE_NAME=oneview_content
+                - export DATABASE_NAME_ADMIN=postgres
+                - export DATABASE_BACKEND=postgresql+psycopg2
+                - export DATABASE_HOST=$ONEVIEW_DATABASE_HOST_SANDBOX
+                - export DATABASE_PORT=5432
+                - export DATABASE_USERNAME=$ONEVIEW_DATABASE_USERNAME_SANDBOX
+                - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_SANDBOX
+                - bash Deploy/Master/create-database OneView
+            - step:
+                name: Update ETL Bundle
+                caches:
+                    - oneview-master-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+                # Install the DB2 JDBC driver
+                - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - unzip ./Db2JdbcDriver.zip
+
+                # Install the Informix JDBC driver
+                - wget https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - unzip ./InformixJdbcDriver.zip
+                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_DEV=True
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+                - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+                - bash Deploy/Master/upload-bundle OneView/ETL
+            - step:
+                name: Update API Bundle
+                caches:
+                    - oneview-master-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_DEV=True
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+                - bash Deploy/Master/create-bundle OneView/API
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+                - bash Deploy/Master/upload-bundle OneView/API
+        - parallel:
+            # - step:
+            #     name: Migrate Database
+            #     caches:
+            #       - oneview-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #     - Script/run.py Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
+            - step:
+                name: Update Lambda Functions
+                script:
+                - export ENABLE_FEATURE_DEV=True
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+                - export ENVIRONMENT=sbx
+                - bash Deploy/OneView/update-functions
 
 
         ##############################################################
