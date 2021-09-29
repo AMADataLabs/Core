@@ -22,7 +22,12 @@ class IQVIATransformerTask(TransformerTask):
                         for index, column in provider_affiliation.iterrows()]
         provider_affiliation['id'] = primary_keys
 
+        business = self._set_null_values(business)
         return [business, provider, provider_affiliation]
+
+    def _set_null_values(self, business):
+        business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].fillna(value='-1')
+        return business
 
     def _get_columns(self):
         return [column.BUSINESS_COLUMNS,
