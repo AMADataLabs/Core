@@ -39,7 +39,7 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
         codes = cbsa.iloc[2:-4,0]
         titles = cbsa.iloc[2:-4,3]
 
-        return pandas.DataFrame(data={'CBSA Code': codes, 'CBSA Title': titles})
+        return pandas.DataFrame(data={'CBSA Code': codes, 'CBSA Title': titles}).drop_duplicates()
 
     def _get_columns(self):
         return [col.CBSA_COLUMNS]

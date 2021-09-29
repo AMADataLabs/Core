@@ -111,7 +111,7 @@ source ${ENVIRONMENT_FILE}
 for task in ${TASKS[@]}; do
     echo $task: $(aws dynamodb get-item \
         --table-name DataLake-dag-state-dev \
-        --key '{"name": {"S": "ONEVIEW__'${task}'"}, "execution_time": {"S": "2021-09-29 20:45:00"}}' \
+        --key '{"name": {"S": "ONEVIEW__'${task}'"}, "execution_time": {"S": "2021-09-29 22:30:00"}}' \
         | grep -A 1 status | grep '"S"' | awk '{print $2}'
     )
 done
