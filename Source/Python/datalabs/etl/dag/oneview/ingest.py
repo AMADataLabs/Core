@@ -39,7 +39,7 @@ class OneViewDAG(DAG):
     # EXTRACT_PHYSICIAN_RACE_ETHNICITY: SFTPFileExtractorTask
     # EXTRACT_MEDICAL_STUDENT: SFTPFileExtractorTask
     # SUPPLEMENT_PPD_TABLE: PPDTransformerTask
-    SPLIT_PPD_TABLE: SplitTransformerTask
+    # SPLIT_PPD_TABLE: SplitTransformerTask
 
     # EXTRACT_PARTY_KEYS_1: JDBCExtractorTask
     # EXTRACT_PARTY_KEYS_2: JDBCExtractorTask

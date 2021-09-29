@@ -1,11 +1,12 @@
 """ OneView Reference Transformer"""
 import csv
+from   io import BytesIO
 import logging
+
+import openpyxl
 import pandas
 
-from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS,\
-    SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS, PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, \
-    OWNER_STATUS, COT_SPECIALTY, COT_FACILITY, COT_CLASSIFICATION, STATE, MEDICAL_SCHOOL
+import datalabs.etl.oneview.reference.column as col
 
 from   datalabs.etl.oneview.transform import TransformerTask
 
@@ -18,22 +19,31 @@ LOGGER.setLevel(logging.DEBUG)
 
 class MajorProfessionalActivityTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [MPA_COLUMNS]
+        return [col.MPA_COLUMNS]
 
 
 class TypeOfPracticeTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [TOP_COLUMNS]
+        return [col.TOP_COLUMNS]
 
 
 class PresentEmploymentTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [PE_COLUMNS]
+        return [col.PE_COLUMNS]
 
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
+    @classmethod
+    def _csv_to_dataframe(cls, data, on_disk):
+        cbsa = pandas.read_excel(BytesIO(data))
+
+        codes = cbsa.iloc[2:-4,0]
+        titles = cbsa.iloc[2:-4,3]
+
+        return pandas.DataFrame(data={'CBSA Code': codes, 'CBSA Title': titles})
+
     def _get_columns(self):
-        return [CBSA_COLUMNS]
+        return [col.CBSA_COLUMNS]
 
 
 class SpecialtyMergeTransformerTask(TransformerTask):
@@ -48,7 +58,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
         return [filtered_specialty_data]
 
     def _get_columns(self):
-        return [SPECIALTY_MERGED_COLUMNS]
+        return [col.SPECIALTY_MERGED_COLUMNS]
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
@@ -77,7 +87,7 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
         return fips_data
 
     def _get_columns(self):
-        return [FIPSC_COLUMNS]
+        return [col.FIPSC_COLUMNS]
 
 
 class StaticReferenceTablesTransformerTask(TransformerTask):
@@ -93,7 +103,7 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
         return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     def _get_columns(self):
-        return [PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, OWNER_STATUS]
+        return [col.PROVIDER_AFFILIATION_GROUP, col.PROVIDER_AFFILIATION_TYPE, col.PROFIT_STATUS, col.OWNER_STATUS]
 
 
 class ClassOfTradeTransformerTask(TransformerTask):
@@ -106,16 +116,16 @@ class ClassOfTradeTransformerTask(TransformerTask):
 
         return [specialty_data, facility_data, classification_data]
 
-    def _get_columns(self):
-        return [COT_SPECIALTY, COT_FACILITY, COT_CLASSIFICATION]
-
     def _postprocess_data(self, data):
         return [dataframe.drop_duplicates() for dataframe in data]
+
+    def _get_columns(self):
+        return [col.COT_SPECIALTY, col.COT_FACILITY, col.COT_CLASSIFICATION]
 
 
 class StateTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [STATE]
+        return [col.STATE]
 
 
 class MedicalSchoolTransformerTask(TransformerTask):
@@ -133,4 +143,4 @@ class MedicalSchoolTransformerTask(TransformerTask):
         return [cleaned_medical_schools]
 
     def _get_columns(self):
-        return [MEDICAL_SCHOOL]
+        return [col.MEDICAL_SCHOOL]

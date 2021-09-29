@@ -13,7 +13,7 @@ PE_COLUMNS = {
 }
 CBSA_COLUMNS = {
     'CBSA Code': 'id',
-    'CBSA Name': 'description'
+    'CBSA Title': 'description'
 }
 SPECIALTY_MERGED_COLUMNS = {
     'SPEC_CD': 'id',
