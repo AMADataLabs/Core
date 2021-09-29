@@ -3,7 +3,6 @@ import csv
 from   io import BytesIO
 import logging
 
-import openpyxl
 import pandas
 
 import datalabs.etl.oneview.reference.column as col
@@ -34,7 +33,7 @@ class PresentEmploymentTransformerTask(TransformerTask):
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
     @classmethod
-    def _csv_to_dataframe(cls, data, on_disk):
+    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
         cbsa = pandas.read_excel(BytesIO(data))
 
         codes = cbsa.iloc[2:-4,0]

@@ -77,7 +77,7 @@ class TaskWrapper(ABC):
             self.task.run()
 
             response = self._handle_success()
-        except Exception as exception:
+        except Exception as exception:  # pylint: disable=broad-except
             response = self._handle_exception(exception)
 
         return response
