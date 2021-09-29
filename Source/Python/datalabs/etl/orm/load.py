@@ -13,7 +13,6 @@ from   datalabs.access.orm import Database
 from   datalabs.etl.load import LoaderTask
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
-from   datalabs.task import DatabaseTaskMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -40,17 +39,23 @@ class ORMLoaderParameters:
     tables: str
     model_classes: str
     schema: str
-    append: str
-    execution_time: str = None
+    database_host: str
+    database_port: str
+    database_name: str
+    database_backend: str
+    database_username: str
+    database_password: str
     data: object
+    execution_time: str = None
+    append: str = None
 
 
-class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
+class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
     def _load(self):
         LOGGER.info(self._parameters)
 
-        with self._get_database(Database, self._parameters) as database:
+        with self._get_database() as database:
             for model_class, data, table in zip(self._get_model_classes(),
                                                 self._get_dataframes(),
                                                 self._parameters.tables.split(',')):
@@ -60,6 +65,18 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
 
             # pylint: disable=no-member
             database.commit()
+
+    def _get_database(self):
+        return Database.from_parameters(
+            dict(
+                host=self._parameters.database_host,
+                port=self._parameters.database_port,
+                backend=self._parameters.database_backend,
+                name=self._parameters.database_name,
+                username=self._parameters.database_username,
+                password=self._parameters.database_password
+            )
+        )
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
@@ -282,15 +299,27 @@ class ORMLoaderTask(LoaderTask, DatabaseTaskMixin):
         return model
 
 
-class ORMPreLoaderTask(LoaderTask, DatabaseTaskMixin):
+class ORMPreLoaderTask(LoaderTask):
     def _load(self):
-        with self._get_database(Database, self._parameters) as database:
+        with self._get_database() as database:
             for model_class in self._get_model_classes():
                 # pylint: disable=no-member
                 database.delete(model_class)
 
             # pylint: disable=no-member
             database.commit()
+
+    def _get_database(self):
+        return Database.from_parameters(
+            dict(
+                host=self._parameters.database_host,
+                port=self._parameters.database_port,
+                backend=self._parameters.database_backend,
+                name=self._parameters.database_name,
+                username=self._parameters.database_username,
+                password=self._parameters.database_password
+            )
+        )
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]

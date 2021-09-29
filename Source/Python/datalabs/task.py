@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 import logging
 import os
 
-from   datalabs.access.database import Database
 from   datalabs.access.parameter.etcd import EtcdEnvironmentLoader
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.parameter import ParameterValidatorMixin
@@ -147,16 +146,3 @@ class EnvironmentTaskResolver(TaskResolver):
         task_class_name = os.environ['TASK_CLASS']
 
         return import_plugin(task_class_name)
-
-
-# pylint: disable=abstract-method
-class DatabaseTaskMixin:
-    @classmethod
-    def _get_database(cls, database_class: Database, variables: dict):
-        parameters = {}
-
-        for key, value in variables.items():
-            if key.startswith('DATABASE_'):
-                parameters[key.lower()] = value
-
-        return database_class.from_parameters(parameters, prefix='DATABASE_')

@@ -10,7 +10,6 @@ import pandas
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.transform import TransformerTask
-import datalabs.task as task
 
 import datalabs.model.cpt.api as dbmodel
 
@@ -68,7 +67,7 @@ class ReleaseScheduleType(Enum):
     PLA = 'PLA'
 
 
-class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMixin):
+class CSVToRelationalTablesTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug(
             '%s parameters (sans data): %s', self.__class__.__name__,
@@ -401,7 +400,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMix
         return release_schedules_map
 
     def _extract_release_schedules(self):
-        with self._get_database(Database, self._parameters) as database:
+        with self._get_database() as database:
             # pylint: disable=no-member
             release_types = database.query(dbmodel.ReleaseType).all()
 
@@ -421,3 +420,6 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMix
         modifiers.loc[modifiers.modifier.isin(general_modifiers), 'general'] = True
 
         return modifiers.drop(index=duplicate_modifiers.index)
+
+    def _get_database(self):
+        Database.from_parameters(self._parameters, prefix='DATABASE_')
