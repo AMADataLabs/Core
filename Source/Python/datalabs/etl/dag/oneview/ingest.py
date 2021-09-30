@@ -2,7 +2,7 @@
 from   datalabs.etl.dag.dag import DAG
 # from   datalabs.etl.http.extract import HTTPFileExtractorTask
 # from   datalabs.etl.jdbc.extract import JDBCExtractorTask
-from   datalabs.etl.manipulate.transform import SplitTransformerTask  #, ConcatenateTransformerTask
+# from   datalabs.etl.manipulate.transform import SplitTransformerTask, ConcatenateTransformerTask
 # from   datalabs.etl.oneview.credentialing.transform import \
 #     CredentialingTransformerTask, \
 #     CredentialingFinalTransformerTask
@@ -39,7 +39,7 @@ class OneViewDAG(DAG):
     # EXTRACT_PHYSICIAN_RACE_ETHNICITY: SFTPFileExtractorTask
     # EXTRACT_MEDICAL_STUDENT: SFTPFileExtractorTask
     # SUPPLEMENT_PPD_TABLE: PPDTransformerTask
-    SPLIT_PPD_TABLE: SplitTransformerTask
+    # SPLIT_PPD_TABLE: SplitTransformerTask
     #
     # EXTRACT_PARTY_KEYS_1: JDBCExtractorTask
     # EXTRACT_PARTY_KEYS_2: JDBCExtractorTask
@@ -150,7 +150,7 @@ class OneViewDAG(DAG):
 #
 # OneViewDAG.EXTRACT_PARTY_KEYS_1 >> OneViewDAG.EXTRACT_PARTY_KEYS_2 >> OneViewDAG.EXTRACT_PARTY_KEYS_3 \
 #     >> OneViewDAG.CONCATENATE_PARTY_KEYS >> OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE
-OneViewDAG.SPLIT_PPD_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
+# OneViewDAG.SPLIT_PPD_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
 # OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
 # OneViewDAG.EXTRACT_MEMBERSHIP_DATA >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
 OneViewDAG.CREATE_PHYSICIAN_TABLE_1 >> OneViewDAG.CREATE_PHYSICIAN_TABLE_2 >> OneViewDAG.CREATE_PHYSICIAN_TABLE_3 >> \
