@@ -6,6 +6,7 @@ arnparse==0.0.2
 boto3==1.18.12
 coverage==5.1
 croniter==0.3.37
+cryptography==3.4.8
 dask==2021.7.1
 docker==4.2.1
 doit==0.31.1
