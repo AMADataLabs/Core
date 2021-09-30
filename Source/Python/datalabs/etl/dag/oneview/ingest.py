@@ -21,10 +21,10 @@ from   datalabs.etl.oneview.reference.transform import \
     MajorProfessionalActivityTransformerTask, \
     CoreBasedStatisticalAreaTransformerTask, \
     PresentEmploymentTransformerTask, \
-    TypeOfPracticeTransformerTask
+    TypeOfPracticeTransformerTask, \
+    FederalInformationProcessingStandardCountyTransformerTask
 
 # from   datalabs.etl.oneview.reference.transform import \
-#     FederalInformationProcessingStandardCountyTransformerTask, \
 #     StaticReferenceTablesTransformerTask, \
 #     ClassOfTradeTransformerTask, \
 #     MedicalSchoolTransformerTask
