@@ -1,5 +1,7 @@
 #!/bin/bash
 
+EXECUTION_TIME=$1  # 2021-09-29 22:45:00
+
 TASKS=(
     # "EXTRACT_PPD"
     # "EXTRACT_PHYSICIAN_RACE_ETHNICITY"
@@ -111,7 +113,7 @@ source ${ENVIRONMENT_FILE}
 for task in ${TASKS[@]}; do
     echo $task: $(aws dynamodb get-item \
         --table-name DataLake-dag-state-dev \
-        --key '{"name": {"S": "ONEVIEW__'${task}'"}, "execution_time": {"S": "2021-09-29 22:30:00"}}' \
+        --key '{"name": {"S": "ONEVIEW__'${task}'"}, "execution_time": {"S": "'"${EXECUTION_TIME}"'"}}' \
         | grep -A 1 status | grep '"S"' | awk '{print $2}'
     )
 done

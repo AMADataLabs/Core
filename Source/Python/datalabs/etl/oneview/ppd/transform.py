@@ -135,7 +135,9 @@ class PhysicianTransformerTask(TransformerTask):
 
         physician = self._merge_data(ppd, npi, membership)
 
-        return [physician]
+        cleaned_physician = self._clean_data(physician)
+
+        return [cleaned_physician]
 
     # pylint: disable=too-many-arguments
     @classmethod
@@ -149,6 +151,17 @@ class PhysicianTransformerTask(TransformerTask):
         ).drop_duplicates(ignore_index=True)
 
         return ppd_membership
+
+    @classmethod
+    def _clean_data(cls, physician):
+        physician.CBSA.fillna('00000', inplace=True)
+        physician.topCode.fillna('100', inplace=True)
+        physician.PECode.fillna('100', inplace=True)
+        physician.primSpecialty.fillna('000', inplace=True)
+        physician.secondarySpecialty.fillna('000', inplace=True)
+        physician.MPACode.fillna('NCL', inplace=True)
+
+        return physician
 
     def _get_columns(self):
         return [PHYSICIAN_COLUMNS]
