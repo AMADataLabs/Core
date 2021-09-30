@@ -175,11 +175,11 @@ pipelines:
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Install the DB2 JDBC driver
-                - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
                 - unzip ./Db2JdbcDriver.zip
 
                 # Install the Informix JDBC driver
-                - wget https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
                 - unzip ./InformixJdbcDriver.zip
                 - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
@@ -326,11 +326,11 @@ pipelines:
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Install the DB2 JDBC driver
-                - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
                 - unzip ./Db2JdbcDriver.zip
 
                 # Install the Informix JDBC driver
-                - wget https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
                 - unzip ./InformixJdbcDriver.zip
                 - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
