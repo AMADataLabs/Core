@@ -6,23 +6,23 @@ image:
 
 pipelines:
     branches:
-        master:
-        - step:
-            name: Build
-            script:
-            - bash Script/bitbucket-pipelines-build.sh
-        - step:
-            name: Auto-Merge to dev
-            script:
-            - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-            - git fetch
-            - git checkout dev
-            - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
-            - git push origin dev
-        dev:
-        - step:
-            script:
-            - bash Script/bitbucket-pipelines-build.sh
+        # master:
+        # - step:
+        #     name: Build
+        #     script:
+        #     - bash Script/bitbucket-pipelines-build.sh
+        # - step:
+        #     name: Auto-Merge to dev
+        #     script:
+        #     - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        #     - git fetch
+        #     - git checkout dev
+        #     - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
+        #     - git push origin dev
+        # dev:
+        # - step:
+        #     script:
+        #     - bash Script/bitbucket-pipelines-build.sh
         test:
         - step:
             script:
@@ -348,30 +348,30 @@ pipelines:
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
                 - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
-            - step:
-                name: Update API Bundle
-                caches:
-                    - oneview-dev-update-bundle-dependencies
-                script:
-                # Setup virtual environment
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-
-                # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-                - aws configure set profile.apigw.region us-east-1
-                - aws configure set profile.apigw.output json
-                - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
-
-                # Create the code bundle
-                - export ENABLE_FEATURE_DEV=True
-                - bash Deploy/Master/create-bundle OneView/API
-
-                # Upload the code bundle
-                - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
+            # - step:
+            #     name: Update API Bundle
+            #     caches:
+            #         - oneview-dev-update-bundle-dependencies
+            #     script:
+            #     # Setup virtual environment
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #
+            #     # Assume maintenance role
+            #     - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            #     - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            #     - aws configure set profile.apigw.region us-east-1
+            #     - aws configure set profile.apigw.output json
+            #     - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+            #
+            #     # Create the code bundle
+            #     - export ENABLE_FEATURE_DEV=True
+            #     - bash Deploy/Master/create-bundle OneView/API
+            #
+            #     # Upload the code bundle
+            #     - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            #     - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
         - parallel:
             # - step:
             #     name: Migrate Database

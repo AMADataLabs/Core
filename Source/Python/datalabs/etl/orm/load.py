@@ -241,11 +241,9 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _delete_data_from_table(cls, database, table_parameters, data):
         if not data.empty:
-            deleted_data = cls._get_deleted_data_from_table(database, table_parameters, data)
+            deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
 
-            models = cls._create_models(table_parameters.model_class, deleted_data)
-
-            for model in models:
+            for model in deleted_models:
                 database.delete(model)  # pylint: disable=no-member
 
     @classmethod
@@ -265,16 +263,11 @@ class ORMLoaderTask(LoaderTask):
         return [cls._create_model(model_class, row, columns) for row in data.itertuples(index=False)]
 
     @classmethod
-    def _get_deleted_data_from_table(cls, database, table_parameters, data):
-        deleted_primary_keys = data[table_parameters.primary_key].tolist()
-        database_rows_query = "SELECT * FROM {}.{} WHERE {} IN ({});".format(
-            table_parameters.schema,
-            table_parameters.table,
-            table_parameters.primary_key,
-            ",".join(["'{}'".format(x) for x in deleted_primary_keys])
-        )
+    def _get_deleted_models_from_table(cls, database, table_parameters, data):
+        primary_key = getattr(table_parameters.model_class, table_parameters.primary_key)
+        deleted_keys = data[table_parameters.primary_key].tolist()
 
-        return database.read(database_rows_query)
+        return database.query(table_parameters.model_class).filter(primary_key.in_(tuple(deleted_keys))).all()
 
     @classmethod
     def _update_row_of_table(cls, database, table_parameters, model):

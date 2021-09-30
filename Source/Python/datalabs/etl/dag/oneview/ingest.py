@@ -2,7 +2,7 @@
 from   datalabs.etl.dag.dag import DAG
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
-# from   datalabs.etl.manipulate.transform import SplitTransformerTask , ConcatenateTransformerTask
+from   datalabs.etl.manipulate.transform import SplitTransformerTask , ConcatenateTransformerTask
 # from   datalabs.etl.oneview.credentialing.transform import \
 #     CredentialingTransformerTask, \
 #     CredentialingFinalTransformerTask
@@ -13,8 +13,8 @@ from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 #     CredentialingCustomerBusinessTransformerTask, \
 #     ResidencyProgramPhysicianTransformerTask
 # from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
-# from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransformerTask
-# from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
+from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransformerTask
+from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
 from   datalabs.etl.oneview.reference.transform import \
     StateTransformerTask, \
     SpecialtyMergeTransformerTask, \
@@ -30,28 +30,28 @@ from   datalabs.etl.oneview.reference.transform import \
 #     MedicalSchoolTransformerTask
 # from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
-# from   datalabs.etl.sftp.extract import SFTPFileExtractorTask, SFTPIBM437TextFileExtractorTask
+from   datalabs.etl.sftp.extract import SFTPFileExtractorTask, SFTPIBM437TextFileExtractorTask
 from   datalabs.etl.transform import PassThroughTransformerTask
 
 
 class OneViewDAG(DAG):
-    # EXTRACT_PPD: SFTPIBM437TextFileExtractorTask
-    # EXTRACT_PHYSICIAN_RACE_ETHNICITY: SFTPFileExtractorTask
-    # EXTRACT_MEDICAL_STUDENT: SFTPFileExtractorTask
-    # SUPPLEMENT_PPD_TABLE: PPDTransformerTask
-    # SPLIT_PPD_TABLE: SplitTransformerTask
+    EXTRACT_PPD: SFTPIBM437TextFileExtractorTask
+    EXTRACT_PHYSICIAN_RACE_ETHNICITY: SFTPFileExtractorTask
+    EXTRACT_MEDICAL_STUDENT: SFTPFileExtractorTask
+    SUPPLEMENT_PPD_TABLE: PPDTransformerTask
+    SPLIT_PPD_TABLE: SplitTransformerTask
 
-    # EXTRACT_PARTY_KEYS_1: JDBCExtractorTask
-    # EXTRACT_PARTY_KEYS_2: JDBCExtractorTask
-    # EXTRACT_PARTY_KEYS_3: JDBCExtractorTask
-    # CONCATENATE_PARTY_KEYS: ConcatenateTransformerTask
-    # CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
+    EXTRACT_PARTY_KEYS_1: JDBCExtractorTask
+    EXTRACT_PARTY_KEYS_2: JDBCExtractorTask
+    EXTRACT_PARTY_KEYS_3: JDBCExtractorTask
+    CONCATENATE_PARTY_KEYS: ConcatenateTransformerTask
+    CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
 
-    # EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
-    # CREATE_PHYSICIAN_TABLE_1: PhysicianTransformerTask
-    # CREATE_PHYSICIAN_TABLE_2: PhysicianTransformerTask
-    # CREATE_PHYSICIAN_TABLE_3: PhysicianTransformerTask
-    # CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
+    EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
+    CREATE_PHYSICIAN_TABLE_1: PhysicianTransformerTask
+    CREATE_PHYSICIAN_TABLE_2: PhysicianTransformerTask
+    CREATE_PHYSICIAN_TABLE_3: PhysicianTransformerTask
+    CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
     LOAD_PHYSICIAN_TABLE_1: ORMLoaderTask
     LOAD_PHYSICIAN_TABLE_2: ORMLoaderTask
     LOAD_PHYSICIAN_TABLE_3: ORMLoaderTask
@@ -137,20 +137,20 @@ class OneViewDAG(DAG):
 
 
 # pylint: disable=pointless-statement
-# OneViewDAG.EXTRACT_PPD >> OneViewDAG.SUPPLEMENT_PPD_TABLE
-# OneViewDAG.EXTRACT_PHYSICIAN_RACE_ETHNICITY >> OneViewDAG.SUPPLEMENT_PPD_TABLE
-# OneViewDAG.EXTRACT_MEDICAL_STUDENT >> OneViewDAG.SUPPLEMENT_PPD_TABLE
-# OneViewDAG.SUPPLEMENT_PPD_TABLE >> OneViewDAG.SPLIT_PPD_TABLE
+OneViewDAG.EXTRACT_PPD >> OneViewDAG.SUPPLEMENT_PPD_TABLE
+OneViewDAG.EXTRACT_PHYSICIAN_RACE_ETHNICITY >> OneViewDAG.SUPPLEMENT_PPD_TABLE
+OneViewDAG.EXTRACT_MEDICAL_STUDENT >> OneViewDAG.SUPPLEMENT_PPD_TABLE
+OneViewDAG.SUPPLEMENT_PPD_TABLE >> OneViewDAG.SPLIT_PPD_TABLE
 
-# OneViewDAG.EXTRACT_PARTY_KEYS_1 >> OneViewDAG.EXTRACT_PARTY_KEYS_2 >> OneViewDAG.EXTRACT_PARTY_KEYS_3 \
-#     >> OneViewDAG.CONCATENATE_PARTY_KEYS >> OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE
-# OneViewDAG.SPLIT_PPD_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
-# OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
-# OneViewDAG.EXTRACT_MEMBERSHIP_DATA >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
-# OneViewDAG.CREATE_PHYSICIAN_TABLE_1 >> OneViewDAG.CREATE_PHYSICIAN_TABLE_2 >> OneViewDAG.CREATE_PHYSICIAN_TABLE_3 \
-#     >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
+OneViewDAG.EXTRACT_PARTY_KEYS_1 >> OneViewDAG.EXTRACT_PARTY_KEYS_2 >> OneViewDAG.EXTRACT_PARTY_KEYS_3 \
+    >> OneViewDAG.CONCATENATE_PARTY_KEYS >> OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE
+OneViewDAG.SPLIT_PPD_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
+OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
+OneViewDAG.EXTRACT_MEMBERSHIP_DATA >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
+OneViewDAG.CREATE_PHYSICIAN_TABLE_1 >> OneViewDAG.CREATE_PHYSICIAN_TABLE_2 >> OneViewDAG.CREATE_PHYSICIAN_TABLE_3 \
+    >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
 
-# OneViewDAG.CREATE_PHYSICIAN_TABLE_3 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
+OneViewDAG.CREATE_PHYSICIAN_TABLE_3 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
 OneViewDAG.LOAD_STATE_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
 OneViewDAG.LOAD_SPECIALTY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
 OneViewDAG.LOAD_MAJOR_PROFESSIONAL_ACTIVITY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
