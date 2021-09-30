@@ -82,7 +82,7 @@ class ORMLoaderTask(LoaderTask):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
 
     def _get_dataframes(self):
-        return [pandas.read_csv(io.BytesIO(data)) for data in self._parameters.data]
+        return [pandas.read_csv(io.BytesIO(data), dtype=object) for data in self._parameters.data]
 
     def _generate_table_parameters(self, database, model_class, data, table):
         schema = self._parameters.schema

@@ -52,7 +52,9 @@ class SpecialtyMergeTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         specialties, physicians = data
 
-        filtered_specialty_data = data[0].loc[
+        specialties.SPEC_CD = specialties.SPEC_CD = specialties.SPEC_CD.str.strip()
+
+        filtered_specialty_data = specialties.loc[
             specialties['SPEC_CD'].isin(physicians['primary_specialty']) \
             | specialties['SPEC_CD'].isin(physicians['secondary_specialty'])
         ].reset_index(drop=True)
