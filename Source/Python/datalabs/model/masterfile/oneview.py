@@ -35,7 +35,7 @@ class Physician(BASE):
     preferred_address_2 = sa.Column(sa.String)
     preferred_address_1 = sa.Column(sa.String)
     city = sa.Column(sa.String)
-    state = sa.Column(sa.String, sa.ForeignKey("oneview.state.id"))
+    state = sa.Column(sa.String)  #, sa.ForeignKey("oneview.state.id")) - 2-letter codes don't match numberical IDs
     zipcode = sa.Column(sa.String)
     sector = sa.Column(sa.String)
     carrier_route = sa.Column(sa.String)
@@ -757,7 +757,7 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.entity_id AS phy_entity_id,
     phy.race_ethnicity AS phy_race_ethnicity,
 	phy."type" as phy_type,
-	phy.membership_year as phy_membership_year,
+	phy.membership_status as phy_membership_status,
     bu.name AS aff_business_name,
     bu.owner_status AS aff_owner_status,
     bu.profit_status AS aff_profit_status,
@@ -883,7 +883,7 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.entity_id AS phy_entity_id,
     phy.race_ethnicity AS phy_race_ethnicity,
 	phy."type" as phy_type,
-	phy.membership_year as phy_membership_year,
+	phy.membership_status as phy_membership_status,
     bu.name AS aff_business_name,
     bu.owner_status AS aff_owner_status,
     bu.profit_status AS aff_profit_status,
