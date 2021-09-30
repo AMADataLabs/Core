@@ -78,6 +78,17 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
                         for index, column in fips_selected_data.iterrows()]
         fips_selected_data['id'] = primary_keys
 
+        fips_selected_data = fips_selected_data.append(
+            {
+                'id': '99999',
+                'State Code (FIPS)': '99',
+                'County Code (FIPS)': '999',
+                'Area Name (including legal/statistical area description)': 'Unknown/Not Specified'
+            },
+            ignore_index=True
+        )
+
+
         return [fips_selected_data]
 
     @classmethod
