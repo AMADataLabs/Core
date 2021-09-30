@@ -4,6 +4,7 @@ RAW_NAMES=(
     "addDepartment"
     "addOrg"
     "addProfile"
+    "addUsers"
     "age-gender-mpa-annual"
     "age-gender-mpa"
     "getAdminUsers"

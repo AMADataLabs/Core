@@ -37,10 +37,10 @@ DBL_REPORT_DAG = DAG(
         in_cluster=True,
         get_logs=True,
     ),
-    schedule_interval="0 7 * * *",
-    start_date=datetime(year=2021, month=9, day=16),
+    schedule_interval="0 12 * * 4",
+    start_date=datetime(year=2021, month=9, day=22),
     tags=['DBL_Report'],
-    catchup=False
+    catchup=True
 )
 
 
