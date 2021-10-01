@@ -8,12 +8,15 @@ import tempfile
 
 import pandas
 
-import dask.dataframe
 import datalabs.etl.transform as etl
 import datalabs.feature as feature
 
 if feature.enabled("PROFILE"):
     from guppy import hpy
+
+if feature.enabled("DASK"):
+    import dask.dataframe
+
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
