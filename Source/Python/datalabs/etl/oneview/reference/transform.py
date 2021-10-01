@@ -88,6 +88,11 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
             ignore_index=True
         )
 
+        fips = fips.append(
+            {'FIPS': '70030', 'state': '70', 'county': '030', 'description': 'Koror, Republic of Palau'},
+            ignore_index=True
+        )
+
         return [fips]
 
     def _get_columns(self):
