@@ -130,14 +130,13 @@ class PPDTransformerTask(TransformerTask):
 
 
 class PhysicianTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
+    @classmethod
+    def _preprocess_data(cls, data):
         ppd, npi, membership = data
 
-        physician = self._merge_data(ppd, npi, membership)
+        physician = cls._merge_data(ppd, npi, membership)
 
-        cleaned_physician = self._clean_data(physician)
-
-        return [cleaned_physician]
+        return [physician]
 
     # pylint: disable=too-many-arguments
     @classmethod
@@ -153,13 +152,36 @@ class PhysicianTransformerTask(TransformerTask):
         return ppd_membership
 
     @classmethod
-    def _clean_data(cls, physician):
-        physician.CBSA.fillna('00000', inplace=True)
-        physician.topCode.fillna('100', inplace=True)
-        physician.PECode.fillna('100', inplace=True)
-        physician.primSpecialty.fillna('000', inplace=True)
-        physician.secondarySpecialty.fillna('000', inplace=True)
-        physician.MPACode.fillna('NCL', inplace=True)
+    def _postprocess_data(cls, data):
+        physician = data[0]
+
+        filled_physician = cls._fill_defaults(physician)
+
+        cleaned_physician = cls._clean_physician(filled_physician)
+
+        return [cleaned_physician]
+
+    @classmethod
+    def _fill_defaults(cls, physician):
+        physician.federal_information_processing_standard_state.fillna('  ', inplace=True)
+        physician.federal_information_processing_standard_county.fillna('   ', inplace=True)
+        physician.core_based_statistical_area.fillna('00000', inplace=True)
+        physician.type_of_practice.fillna('100', inplace=True)
+        physician.present_employment.fillna('100', inplace=True)
+        physician.primary_specialty.fillna('000', inplace=True)
+        physician.secondary_specialty.fillna('000', inplace=True)
+        physician.major_professional_activity.fillna('NCL', inplace=True)
+
+        return physician
+
+    @classmethod
+    def _clean_physician(cls, physician):
+        # Fix Pohnpei FIPS County code
+        physician.federal_information_processing_standard_county[
+            (physician.federal_information_processing_standard_state == '64') & \
+            (physician.federal_information_processing_standard_county == '003') & \
+            (physician.city == 'POHNPEI')
+        ] = '040'
 
         return physician
 

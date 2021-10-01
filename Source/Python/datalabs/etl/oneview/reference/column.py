@@ -20,10 +20,10 @@ SPECIALTY_MERGED_COLUMNS = {
     'DESC': 'description'
 }
 FIPSC_COLUMNS = {
-    'id': 'id',
-    'State Code (FIPS)': 'state',
-    'County Code (FIPS)': 'county',
-    'Area Name (including legal/statistical area description)': 'description'
+    'FIPS': 'id',
+    'state': 'state',
+    'county': 'county',
+    'description': 'description'
 }
 PROVIDER_AFFILIATION_GROUP = {
     'id': 'id',

@@ -34,7 +34,7 @@ data:
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    DATABASE_HOST: oneview-${ENVIRONMENT}-db.cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+    DATABASE_HOST: oneview-dev-db.cwp4vd8mllvz.us-east-1.rds.amazonaws.com
     DATABASE_PORT: '5432'
     DATABASE_BACKEND: 'postgresql+psycopg2'
     DATABASE_NAME: 'oneview_content'
@@ -103,7 +103,7 @@ data:
     ONEVIEW__SPLIT_PPD_TABLE__CACHE_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
     ONEVIEW__SPLIT_PPD_TABLE__CACHE_BASE_PATH: ${S3_BASE_PATH}
     ONEVIEW__SPLIT_PPD_TABLE__CACHE_INPUT_FILES: 'physician_professional_data.csv'
-    ONEVIEW__SPLIT_PPD_TABLE__CACHE_OUTPUT_FILES: 'physician_professional_data_1.csv,physician_professional_data_2.csv,physician_professional_data_3.csvphysician_professional_data_4.csv,physician_professional_data_5.csv,physician_professional_data_6.csv'
+    ONEVIEW__SPLIT_PPD_TABLE__CACHE_OUTPUT_FILES: 'physician_professional_data_1.csv,physician_professional_data_2.csv,physician_professional_data_3.csv,physician_professional_data_4.csv,physician_professional_data_5.csv,physician_professional_data_6.csv'
 
     # Party Key Extractor 1
     ONEVIEW__EXTRACT_PARTY_KEYS_1__DATABASE_NAME: ${EDW_NAME}
@@ -415,7 +415,7 @@ data:
     ONEVIEW__CREATE_MAJOR_PROFESSIONAL_ACTIVITY_TABLE__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
 
     # FederalInformationProcessingStandardCounty Extractor
-    ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__URLS: 'https://www2.census.gov/programs-surveys/popest/geographies/2018/all-geocodes-v2018.xlsx'
+    ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__URLS: 'https://en.wikipedia.org/wiki/List_of_United_States_FIPS_codes_by_county'
 
     ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
     ONEVIEW__EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
