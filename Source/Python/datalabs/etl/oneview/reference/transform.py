@@ -83,17 +83,15 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
         )
         fips.description = fips.description.str.replace(r'\[.\]', '')
 
-        fips = fips.append(
-            {'FIPS': '     ', 'state': '  ', 'county': '   ', 'description': 'Unknown/Not Specified'},
-            ignore_index=True
-        )
-
-        fips = fips.append(
-            {'FIPS': '70030', 'state': '70', 'county': '030', 'description': 'Koror, Republic of Palau'},
-            ignore_index=True
-        )
-
         return [fips]
+
+    @classmethod
+    def _postprocess_data(cls, data):
+        fips = data[0]
+        fips_supplement = pandas.DataFrame(data=static.fips_supplement)
+        supplemented_fips = pandas.concat([fips, fips_supplement], ignore_index=True)
+
+        return [supplemented_fips]
 
     def _get_columns(self):
         return [col.FIPSC_COLUMNS]
