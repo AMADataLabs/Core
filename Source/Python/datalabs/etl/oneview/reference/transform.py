@@ -69,37 +69,26 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
     # pylint: disable=unused-argument
     @classmethod
     def _csv_to_dataframe(cls, data, on_disk, **kwargs):
-        return pandas.read_excel(data, skiprows=4, dtype=str, engine='openpyxl', **kwargs)
+        page_tables = pandas.read_html(data, converters={'FIPS': str}, **kwargs)
+
+        return page_tables[1]
 
     def _preprocess_data(self, data):
-        fips_selected_data = self.set_columns(data[0])
+        fips = data[0]
+        fips['state'] = fips.FIPS.str[:2]
+        fips['county'] = fips.FIPS.str[2:]
+        fips['description'] = fips[['County or equivalent', 'State or equivalent']].apply(
+            lambda row: ', '.join(row.values),
+            axis=1
+        )
+        fips.description = fips.description.str.replace(r'\[.\]', '')
 
-        primary_keys = [str(column['State Code (FIPS)']) + str(column['County Code (FIPS)'])
-                        for index, column in fips_selected_data.iterrows()]
-        fips_selected_data['id'] = primary_keys
-
-        fips_selected_data = fips_selected_data.append(
-            {
-                'id': '     ',
-                'State Code (FIPS)': '  ',
-                'County Code (FIPS)': '   ',
-                'Area Name (including legal/statistical area description)': 'Unknown/Not Specified'
-            },
+        fips = fips.append(
+            {'FIPS': '     ', 'state': '  ', 'county': '   ', 'description': 'Unknown/Not Specified'},
             ignore_index=True
         )
 
-
-        return [fips_selected_data]
-
-    @classmethod
-    def set_columns(cls, fips_data):
-        fips_data = fips_data.loc[
-            (fips_data['Summary Level'] == '050') |
-            (fips_data['Summary Level'] == '040') |
-            (fips_data['Summary Level'] == '010')
-        ].reset_index(drop=True)
-
-        return fips_data
+        return [fips]
 
     def _get_columns(self):
         return [col.FIPSC_COLUMNS]
