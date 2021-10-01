@@ -154,8 +154,8 @@ class PhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _clean_data(cls, physician):
-        physician.fips_state.fillna('99')
-        physician.fips_county.fillna('999')
+        physician.fips_state.fillna('99', inplace=True)
+        physician.fips_county.fillna('999', inplace=True)
         physician.CBSA.fillna('00000', inplace=True)
         physician.topCode.fillna('100', inplace=True)
         physician.PECode.fillna('100', inplace=True)
