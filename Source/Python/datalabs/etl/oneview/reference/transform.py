@@ -80,9 +80,9 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 
         fips_selected_data = fips_selected_data.append(
             {
-                'id': '99999',
-                'State Code (FIPS)': '99',
-                'County Code (FIPS)': '999',
+                'id': '     ',
+                'State Code (FIPS)': '  ',
+                'County Code (FIPS)': '   ',
                 'Area Name (including legal/statistical area description)': 'Unknown/Not Specified'
             },
             ignore_index=True
