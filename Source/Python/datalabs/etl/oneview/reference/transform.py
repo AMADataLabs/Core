@@ -118,6 +118,8 @@ class ClassOfTradeTransformerTask(TransformerTask):
         specialty_data = class_of_trade_data[['SPECIALTY_ID', 'SPECIALTY']]
         facility_data = class_of_trade_data[['FACILITY_TYPE_ID', 'FACILITY_TYPE']]
 
+        specialty_data = specialty_data.append(pandas.DataFrame.from_dict({'SPECIALTY_ID': ['Unknown ID'],
+                                                                           'SPECIALTY': ['']}))
         return [specialty_data, facility_data, classification_data]
 
     def _postprocess_data(self, data):

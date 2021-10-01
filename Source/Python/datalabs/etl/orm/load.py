@@ -52,6 +52,7 @@ class ORMLoaderParameters:
 
 class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
+
     def _load(self):
         LOGGER.info(self._parameters)
 
@@ -259,6 +260,17 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _create_models(cls, model_class, data):
         columns = cls._get_model_columns(model_class)
+        # data.additional_education_accreditation_length = data.additional_education_accreditation_length.astype(bool)
+        # data.acgme_accredited = data.acgme_accredited.astype(bool)
+        # data.contact_director = data.contact_director.astype(bool)
+        # data.government_affiliated = data.government_affiliated.astype(bool)
+        # data.preliminary_positions_offered = data.preliminary_positions_offered.astype(bool)
+        # data.medical_records = data.medical_records.astype(bool)
+        # data.official_address = data.official_address.astype(bool)
+        # data.uses_sfmatch = data.uses_sfmatch.astype(bool)
+        # data.other_match_indicator = data.other_match_indicator.astype(bool)
+        # data.american_osteopathic_association_indicator = data.american_osteopathic_association_indicator.astype(bool)
+        # data.osteopathic_principles = data.osteopathic_principles.astype(bool)
 
         return [cls._create_model(model_class, row, columns) for row in data.itertuples(index=False)]
 
