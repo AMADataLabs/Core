@@ -60,13 +60,14 @@ class ORMLoaderTask(LoaderTask):
 
     def _load(self):
         LOGGER.info(self._parameters)
+        model_classes = self._get_model_classes()
+        data = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+        tables = self._parameters.tables.split(',')
 
         with self._get_database() as database:
-            for model_class, data, table in zip(self._get_model_classes(),
-                                                self._get_dataframes(),
-                                                self._parameters.tables.split(',')):
-
+            for model_class, data, table in zip(model_classes, data, tables):
                 table_parameters = self._generate_table_parameters(database, model_class, data, table)
+
                 self._update(database, table_parameters)
 
             # pylint: disable=no-member
@@ -87,8 +88,12 @@ class ORMLoaderTask(LoaderTask):
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
 
-    def _get_dataframes(self):
-        return [pandas.read_csv(io.BytesIO(data), dtype=object) for data in self._parameters.data]
+    def _csv_to_dataframe(self, data):
+        dataframe = pandas.read_csv(io.BytesIO(data), dtype=object)
+
+        dataframe.fillna('', inplace=True)
+
+        return dataframe
 
     def _generate_table_parameters(self, database, model_class, data, table):
         schema = self._parameters.schema
