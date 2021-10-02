@@ -8,6 +8,7 @@ import dask.array
 import pandas
 import pytest
 
+os.environ['ENABLE_FEATURE_DASK'] = 'True'
 from datalabs.etl.oneview.transform import ScalableTransformerMixin
 
 
