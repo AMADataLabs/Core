@@ -52,6 +52,12 @@ class ORMLoaderParameters:
 
 class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
+
+    COLUMN_TYPES = {
+        'BOOLEAN': bool,
+        'INTEGER': int
+    }
+
     def _load(self):
         LOGGER.info(self._parameters)
 
@@ -260,6 +266,8 @@ class ORMLoaderTask(LoaderTask):
     def _create_models(cls, model_class, data):
         columns = cls._get_model_columns(model_class)
 
+        cls._set_column_types(data, model_class, columns)
+
         return [cls._create_model(model_class, row, columns) for row in data.itertuples(index=False)]
 
     @classmethod
@@ -290,6 +298,18 @@ class ORMLoaderTask(LoaderTask):
         model = model_class(**parameters)
 
         return model
+
+    @classmethod
+    def _set_column_types(cls, data, model, columns):
+        for column in columns:
+            column_type = str(getattr(model, column).type)
+
+            cls._set_column_type(data, column, column_type)
+
+    @classmethod
+    def _set_column_type(cls, data, column, column_type):
+        if column_type in cls.COLUMN_TYPES:
+            data[column] = data[column].astype(cls.COLUMN_TYPES[column_type], copy=False)
 
 
 class ORMPreLoaderTask(LoaderTask):

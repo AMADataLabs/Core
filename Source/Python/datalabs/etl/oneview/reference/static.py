@@ -1,26 +1,26 @@
 """OneView Static Reference Data"""
 provider_affiliation_group = {
-    'id': ['ATT', 'ADM', 'LTC'],
-    'description': ['Attending', 'Admitting', 'Long Term Care']
+    'id': ['ATT', 'ADM', 'LTC', 'UNKNOWN'],
+    'description': ['Attending', 'Admitting', 'Long Term Care', 'Unknown']
 }
 
 
 provider_affiliation_type = {
-    'id': [1, 2, 3, 4, 5, 6, 7, 8],
+    'id': [1, 2, 3, 4, 5, 6, 7, 8, 0],
     'description': ['Attending', 'IDN Affiliated', 'Admitting', 'Staff', 'Consulting', 'Treating',
-                    'IDN Affiliated (Inferred)', 'Admitting (Inferred)']
+                    'IDN Affiliated (Inferred)', 'Admitting (Inferred)', 'Unknown']
 }
 
 
 profit_status = {
-    'id': ['For Profit', 'Not For Profit', 'Government'],
-    'description': ['For Profit', 'Not For Profit', 'Government']
+    'id': ['For Profit', 'Not for Profit', 'Government', 'UNKNOWN'],
+    'description': ['For Profit', 'Not For Profit', 'Government', 'Unknown']
 }
 
 
 owner_status = {
-    'id': ['INDEPENDENT', 'NOT INDEPENDENT'],
-    'description': ['Independent', 'Not Independent']
+    'id': ['INDEPENDENT', 'NOT INDEPENDENT', 'UNKNOWN'],
+    'description': ['Independent', 'Not Independent', 'Unknown']
 }
 
 
