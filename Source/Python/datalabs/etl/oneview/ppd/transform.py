@@ -184,10 +184,10 @@ class PhysicianTransformerTask(TransformerTask):
         ] = '040'
 
         # Remove duplicate for ME 10401040442
-        physicians.drop(
-            physicians.index[
-                (physicians.medical_education_number == '10401040442') & \
-                (physicians.national_provider_identifier == '1093029282')
+        physician.drop(
+            physician.index[
+                (physician.medical_education_number == '10401040442') & \
+                (physician.national_provider_identifier == '1093029282')
             ][0],
             inplace=True
         )
