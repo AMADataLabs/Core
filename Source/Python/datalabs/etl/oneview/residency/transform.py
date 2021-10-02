@@ -49,6 +49,7 @@ class ResidencyTransformerTask(TransformerTask):
         )
 
         programs = self._convert_integers_to_booleans(programs)
+        programs = self._filter_out_values(programs, institution_info)
 
         program_personnel = self._generate_primary_keys(program_personnel)
 
@@ -106,11 +107,13 @@ class ResidencyTransformerTask(TransformerTask):
         programs['pgm_init_accred_dt'] = programs['pgm_init_accred_dt'].fillna(
             value=pandas.to_datetime('01/01/1970')
         )
-
+        programs['pgm_accred_eff_dt'] = programs['pgm_accred_eff_dt'].fillna(
+            value=pandas.to_datetime('01/01/1970')
+        )
         program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970')
         )
-        institution_info = institution_info.append(pandas.DataFrame.from_dict({'ins_id': ['0'], 'ins_name': [''],
+        institution_info = institution_info.append(pandas.DataFrame.from_dict({'ins_id': ['00'], 'ins_name': [''],
                                                                                'ins_affiliation_type': [''],
                                                                                'last_upd_dt': ['01/01/1970']}))
         institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
@@ -118,6 +121,9 @@ class ResidencyTransformerTask(TransformerTask):
         )
 
         programs['ins_id'] = programs['ins_id'].fillna(value='00')
+        programs['last_upd_dt_x'] = programs['last_upd_dt_x'].fillna(
+            value=pandas.to_datetime('01/01/1970')
+        )
         programs = programs.fillna('')
 
         return programs, program_personnel, institution_info
@@ -126,6 +132,13 @@ class ResidencyTransformerTask(TransformerTask):
     def _convert_integers_to_booleans(cls, programs):
         programs = programs.astype({column: 'int' for column in col.PROGRAM_BOOLEAN_COLUMNS})
         programs = programs.astype({column: 'boolean' for column in col.PROGRAM_BOOLEAN_COLUMNS})
+
+        return programs
+
+    @classmethod
+    def _filter_out_values(cls, programs, institutions):
+        unaccounted_values = list(set(programs.ins_id.to_list()) - set(institutions.ins_id.to_list()))
+        programs = programs[~programs['ins_id'].isin(unaccounted_values)]
 
         return programs
 

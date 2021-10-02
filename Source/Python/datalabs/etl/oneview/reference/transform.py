@@ -36,8 +36,8 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
     def _csv_to_dataframe(cls, data, on_disk, **kwargs):
         cbsa = pandas.read_excel(BytesIO(data))
 
-        codes = cbsa.iloc[2:-4,0]
-        titles = cbsa.iloc[2:-4,3]
+        codes = cbsa.iloc[2:-4, 0]
+        titles = cbsa.iloc[2:-4, 3]
 
         table = pandas.DataFrame(data={'CBSA Code': codes, 'CBSA Title': titles}).drop_duplicates()
         table = table.append({'CBSA Code': '00000', 'CBSA Title': 'Unknown'}, ignore_index=True)
@@ -57,7 +57,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
         filtered_specialty_data = specialties.loc[
             specialties['SPEC_CD'].isin(physicians['primary_specialty']) \
             | specialties['SPEC_CD'].isin(physicians['secondary_specialty'])
-        ].reset_index(drop=True)
+            ].reset_index(drop=True)
 
         return [filtered_specialty_data]
 
@@ -121,6 +121,15 @@ class ClassOfTradeTransformerTask(TransformerTask):
         specialty_data = class_of_trade_data[['SPECIALTY_ID', 'SPECIALTY']]
         facility_data = class_of_trade_data[['FACILITY_TYPE_ID', 'FACILITY_TYPE']]
 
+        specialty_data = specialty_data.append(pandas.DataFrame.from_dict({'SPECIALTY_ID': ['Unknown ID'],
+                                                                           'SPECIALTY': ['']})
+                                               )
+        specialty_data = specialty_data.append(pandas.DataFrame.from_dict({'SPECIALTY_ID': ['219'],
+                                                                           'SPECIALTY': ['Other']})
+                                               )
+        facility_data = facility_data.append(pandas.DataFrame.from_dict({'FACILITY_TYPE_ID': ['53'],
+                                                                         'FACILITY_TYPE': ['Warehouse']})
+                                             )
         return [specialty_data, facility_data, classification_data]
 
     def _postprocess_data(self, data):
@@ -142,8 +151,8 @@ class MedicalSchoolTransformerTask(TransformerTask):
 
         cleaned_medical_schools = medical_schools[
             ~(
-                (medical_schools.KEY_VAL == '56003') & \
-                (medical_schools.ORG_NM == 'Bar-Ilan University Faculty of Medicine in the Galilee')
+                    (medical_schools.KEY_VAL == '56003') & \
+                    (medical_schools.ORG_NM == 'Bar-Ilan University Faculty of Medicine in the Galilee')
             )
         ]
 
