@@ -151,10 +151,6 @@ def loader_parameters(database, file, data):
         MODEL_CLASSES='test.datalabs.access.model.Foo,'
                       'test.datalabs.access.model.Bar,'
                       'test.datalabs.access.model.Poof',
-        TABLES='foo,'
-               'bar,'
-               'poof',
-        SCHEMA='pingpong',
         DATABASE_HOST='',
         DATABASE_PORT='',
         DATABASE_BACKEND='sqlite',
@@ -227,14 +223,11 @@ def expected_data():
 def table_parameters(incoming_data, hash_query_results):
     data = incoming_data
     model_class = 'test.datalabs.access.model.Foo'
-    table = 'foo'
     primary_key = 'id'
     columns = ['dumb', 'id', 'dumber']
-    schema = 'oneview'
     current_hashes = hash_query_results
     incoming_hashes = None
 
-    table_parameters = TableParameters(data, table, model_class, primary_key, columns, schema, current_hashes,
-                                       incoming_hashes)
+    table_parameters = TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes)
 
     return table_parameters

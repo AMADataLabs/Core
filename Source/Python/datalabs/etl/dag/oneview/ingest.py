@@ -3,7 +3,7 @@ from   datalabs.etl.dag.dag import DAG
 # from   datalabs.etl.http.extract import HTTPFileExtractorTask
 # from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 # from   datalabs.etl.manipulate.transform import SplitTransformerTask
-from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
+# from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 # from   datalabs.etl.oneview.credentialing.transform import \
 #     CredentialingTransformerTask, \
 #     CredentialingFinalTransformerTask
@@ -12,10 +12,10 @@ from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 # from   datalabs.etl.oneview.link.transform import \
 #     CredentialingCustomerInstitutionTransformerTask, \
 #     CredentialingCustomerBusinessTransformerTask, \
-#     ResidencyProgramPhysicianTransformerTask
+from  datalabs.etl.oneview.link.transform import ResidencyProgramPhysicianTransformerTask
 # from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
 # from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransformerTask
-from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
+# from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
 # from   datalabs.etl.oneview.reference.transform import \
 #     FederalInformationProcessingStandardCountyTransformerTask \
 #     StateTransformerTask, \
@@ -29,9 +29,10 @@ from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
 #     StaticReferenceTablesTransformerTask, \
 #     ClassOfTradeTransformerTask, \
 #     MedicalSchoolTransformerTask
-# from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
+from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
-# from   datalabs.etl.sftp.extract import SFTPFileExtractorTask, SFTPIBM437TextFileExtractorTask
+from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
+# from   datalabs.etl.sftp.extract import SFTPIBM437TextFileExtractorTask
 # from   datalabs.etl.transform import PassThroughTransformerTask
 
 
@@ -53,9 +54,9 @@ class OneViewDAG(DAG):
     # CREATE_PHYSICIAN_TABLE_2: PhysicianTransformerTask
     # CREATE_PHYSICIAN_TABLE_3: PhysicianTransformerTask
     # CREATE_PHYSICIAN_TABLE_4: PhysicianTransformerTask
-    CREATE_PHYSICIAN_TABLE_5: PhysicianTransformerTask
-    CREATE_PHYSICIAN_TABLE_6: PhysicianTransformerTask
-    CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
+    # CREATE_PHYSICIAN_TABLE_5: PhysicianTransformerTask
+    # CREATE_PHYSICIAN_TABLE_6: PhysicianTransformerTask
+    # CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
 
     # EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY: HTTPFileExtractorTask
     # CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE: \
@@ -87,12 +88,20 @@ class OneViewDAG(DAG):
     # CREATE_TYPE_OF_PRACTICE_TABLE: TypeOfPracticeTransformerTask
     # LOAD_TYPE_OF_PRACTICE_TABLE: ORMLoaderTask
 
-    LOAD_PHYSICIAN_TABLE_1: ORMLoaderTask
-    LOAD_PHYSICIAN_TABLE_2: ORMLoaderTask
-    LOAD_PHYSICIAN_TABLE_3: ORMLoaderTask
-    LOAD_PHYSICIAN_TABLE_4: ORMLoaderTask
-    LOAD_PHYSICIAN_TABLE_5: ORMLoaderTask
-    LOAD_PHYSICIAN_TABLE_6: ORMLoaderTask
+    # LOAD_PHYSICIAN_TABLE_1: ORMLoaderTask
+    # LOAD_PHYSICIAN_TABLE_2: ORMLoaderTask
+    # LOAD_PHYSICIAN_TABLE_3: ORMLoaderTask
+    # LOAD_PHYSICIAN_TABLE_4: ORMLoaderTask
+    # LOAD_PHYSICIAN_TABLE_5: ORMLoaderTask
+    # LOAD_PHYSICIAN_TABLE_6: ORMLoaderTask
+
+    EXTRACT_RESIDENCY: SFTPFileExtractorTask
+    CREATE_RESIDENCY_TABLES: ResidencyTransformerTask
+    LOAD_RESIDENCY_INSTITUTION_TABLE: ORMLoaderTask
+    LOAD_RESIDENCY_PROGRAM_TABLE: ORMLoaderTask
+    LOAD_RESIDENCY_PERSONNEL_TABLE: ORMLoaderTask
+
+    CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE: ResidencyProgramPhysicianTransformerTask
 
     # EXTRACT_MELISSA: JDBCExtractorTask
     # CREATE_MELISSA_TABLES: MelissaTransformerTask
@@ -103,13 +112,6 @@ class OneViewDAG(DAG):
     # LOAD_AREA_CODE_TABLE: ORMLoaderTask
     # LOAD_CENSUS_TABLE: ORMLoaderTask
     # LOAD_ZIP_CODE_CORE_BASED_STATISTICAL_AREA_TABLE: ORMLoaderTask
-
-    # EXTRACT_RESIDENCY: SFTPFileExtractorTask
-    # CREATE_RESIDENCY_TABLES: ResidencyTransformerTask
-    # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE: ResidencyProgramPhysicianTransformerTask
-    # LOAD_RESIDENCY_INSTITUTION_TABLE: ORMLoaderTask
-    # LOAD_RESIDENCY_PROGRAM_TABLE: ORMLoaderTask
-    # LOAD_RESIDENCY_PERSONNEL_TABLE: ORMLoaderTask
 
     # EXTRACT_IQVIA_BUSINESS: JDBCExtractorTask
     # EXTRACT_IQVIA_PROVIDER: JDBCExtractorTask
@@ -159,8 +161,8 @@ class OneViewDAG(DAG):
 # OneViewDAG.CREATE_PHYSICIAN_TABLE_2 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
 # OneViewDAG.CREATE_PHYSICIAN_TABLE_3 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
 # OneViewDAG.CREATE_PHYSICIAN_TABLE_4 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
-OneViewDAG.CREATE_PHYSICIAN_TABLE_5 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
-OneViewDAG.CREATE_PHYSICIAN_TABLE_6 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
+# OneViewDAG.CREATE_PHYSICIAN_TABLE_5 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
+# OneViewDAG.CREATE_PHYSICIAN_TABLE_6 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
 
 # OneViewDAG.EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY \
 #     >> OneViewDAG.CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE \
@@ -191,8 +193,8 @@ OneViewDAG.CREATE_PHYSICIAN_TABLE_6 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
 # OneViewDAG.CREATE_PHYSICIAN_TABLE_2 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_2
 # OneViewDAG.CREATE_PHYSICIAN_TABLE_3 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_3
 # OneViewDAG.CREATE_PHYSICIAN_TABLE_4 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_4
-OneViewDAG.CREATE_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_5
-OneViewDAG.CREATE_PHYSICIAN_TABLE_6 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_6
+# OneViewDAG.CREATE_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_5
+# OneViewDAG.CREATE_PHYSICIAN_TABLE_6 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_6
 # OneViewDAG.LOAD_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
 # OneViewDAG.LOAD_STATE_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
 # OneViewDAG.LOAD_SPECIALTY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
@@ -201,9 +203,17 @@ OneViewDAG.CREATE_PHYSICIAN_TABLE_6 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_6
 # OneViewDAG.LOAD_PRESENT_EMPLOYMENT_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
 # OneViewDAG.LOAD_TYPE_OF_PRACTICE_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_1
 
-OneViewDAG.LOAD_PHYSICIAN_TABLE_1 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_2 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_3 >> \
-OneViewDAG.LOAD_PHYSICIAN_TABLE_4 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_6
+# OneViewDAG.LOAD_PHYSICIAN_TABLE_1 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_2 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_3 >> \
+# OneViewDAG.LOAD_PHYSICIAN_TABLE_4 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_6
+#
+OneViewDAG.EXTRACT_RESIDENCY >> OneViewDAG.CREATE_RESIDENCY_TABLES \
+    >> OneViewDAG.LOAD_RESIDENCY_INSTITUTION_TABLE \
+    >> OneViewDAG.LOAD_RESIDENCY_PROGRAM_TABLE \
+    >> OneViewDAG.LOAD_RESIDENCY_PERSONNEL_TABLE
 
+# OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
+OneViewDAG.CREATE_RESIDENCY_TABLES >> OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
+#
 # OneViewDAG.EXTRACT_MELISSA >> OneViewDAG.CREATE_MELISSA_TABLES
 # OneViewDAG.CREATE_MELISSA_TABLES >> OneViewDAG.LOAD_AREA_CODE_TABLE
 # OneViewDAG.CREATE_MELISSA_TABLES >> OneViewDAG.LOAD_CENSUS_TABLE
@@ -212,16 +222,10 @@ OneViewDAG.LOAD_PHYSICIAN_TABLE_4 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneVie
 # OneViewDAG.CREATE_MELISSA_TABLES >> OneViewDAG.LOAD_COUNTY_TABLE
 # OneViewDAG.CREATE_MELISSA_TABLES >> OneViewDAG.LOAD_ZIP_CODE_CORE_BASED_STATISTICAL_AREA_TABLE
 # OneViewDAG.CREATE_MELISSA_TABLES >> OneViewDAG.LOAD_ZIP_CODE_TABLE
-#
-# OneViewDAG.CREATE_PHYSICIAN_TABLE >> OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE \
-#     >> OneViewDAG.LOAD_LINKING_TABLES
+
+# OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> OneViewDAG.LOAD_LINKING_TABLES
 # OneViewDAG.LOAD_RESIDENCY_PERSONNEL_TABLE >> OneViewDAG.LOAD_LINKING_TABLES
 # OneViewDAG.LOAD_PHYSICIAN_TABLE >> OneViewDAG.LOAD_LINKING_TABLES
-#
-# OneViewDAG.EXTRACT_RESIDENCY  >> OneViewDAG.CREATE_RESIDENCY_TABLES \
-#     >> OneViewDAG.LOAD_RESIDENCY_INSTITUTION_TABLE \
-#     >> OneViewDAG.LOAD_RESIDENCY_PROGRAM_TABLE \
-#     >> OneViewDAG.LOAD_RESIDENCY_PERSONNEL_TABLE
 #
 # OneViewDAG.EXTRACT_IQVIA_BUSINESS >> OneViewDAG.CREATE_BUSINESS_AND_PROVIDER_TABLES
 # OneViewDAG.EXTRACT_IQVIA_PROVIDER >> OneViewDAG.CREATE_BUSINESS_AND_PROVIDER_TABLES
@@ -242,9 +246,6 @@ OneViewDAG.LOAD_PHYSICIAN_TABLE_4 >> OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneVie
 #     >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE
 #
 # OneViewDAG.LOAD_PHYSICIAN_TABLE >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE
-#
-# OneViewDAG.CREATE_PHYSICIAN_TABLE >> OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE \
-#     >> OneViewDAG.LOAD_LINKING_TABLES
 #
 # OneViewDAG.EXTRACT_HISTORICAL_RESIDENT \
 #     >> OneViewDAG.CREATE_HISTORICAL_RESIDENT_TABLE \
