@@ -45,6 +45,8 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
 
         if len(event_parameters) == 1 and 'Records' in event_parameters:
             event_parameters = self._get_s3_event_parameters(event_parameters)
+        elif "source" in event_parameters:
+            event_parameters = self._get_cloudwatch_event_parameters(event_parameters)
 
         if "task" not in event_parameters:
             event_parameters["task"] = "DAG"
@@ -64,20 +66,29 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
 
         return json.loads(record["Sns"]["Message"])
 
-
     def _get_s3_event_parameters(self, event):
-        ''' An S3 notification implies that the DAG Scheduler should be run, so return appropriate
-            parameters for the DAG Processor assuming the DAG Scheduler as the DAG to execute.
-        '''
+        ''' An S3 notification implies that the DAG Scheduler should be run.'''
         record = event.get("Records", [{}])[0]
         event_source = record.get("EventSource", record.get("eventSource"))
-        dag = "DAG_SCHEDULER"
 
         if event_source != 'aws:s3':
             raise ValueError(f'Invalid S3 notification event: {event}')
 
+        return self._get_scheduler_event_parameters()
+
+    def _get_cloudwatch_event_parameters(self, event):
+        ''' A CloudWatch Event notification implies that the DAG Scheduler should be run.'''
+        event_source = event["source"]
+
+        if event_source != 'aws.events':
+            raise ValueError(f'Invalid CloudWatch event: {event}')
+
+        return self._get_scheduler_event_parameters()
+
+    def _get_scheduler_event_parameters(self):
+        ''' Return appropriate parameters for the DAG Processor assuming the DAG Scheduler as the DAG to execute.'''
         return dict(
-            dag=dag,
+            dag="DAG_SCHEDULER",
             execution_time=self.execution_time.isoformat()
         )
 
@@ -156,7 +167,7 @@ class DAGTaskWrapper(
         return "Success"
 
     def _handle_exception(self, exception) -> (int, dict):
-        super()._handle_success()
+        super()._handle_exception(exception)
 
         parameters = self._runtime_parameters
         parameters.update(self.DAG_PARAMETERS)

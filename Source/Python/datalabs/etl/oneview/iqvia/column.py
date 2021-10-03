@@ -27,7 +27,7 @@ BUSINESS_COLUMNS = {
     'COT_FACILITY_TYPE_ID': 'class_of_trade_facility_type',
     'COT_FACILITY_TYPE': 'class_of_trade_facility_type_description',
     'COT_SPECIALTY_ID': 'class_of_trade_specialty',
-    'COT_SPECIALTY':'class_of_trade_specialty_description',
+    'COT_SPECIALTY': 'class_of_trade_specialty_description',
     'RECORD_TYPE': 'record_type',
     'TTL_LICENSE_BEDS': 'total_licensed_beds',
     'TTL_CENSUS_BEDS': 'total_census_beds',
@@ -78,7 +78,7 @@ PROVIDER_AFFILIATION_COLUMNS = {
     'AFFIL_RANK': 'rank',
     'AFFIL_GROUP_CODE': 'group',
     'AFFIL_GROUP_DESC': 'group_description',
-    'BATCH_BUSINESS_DATE': 'batch_business_date'
+    'BATCH_BUSINESS_DATE_y': 'batch_business_date'
 }
 
 CORPORATE_PARENT_BUSINESS = {

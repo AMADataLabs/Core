@@ -25,3 +25,34 @@ FIPSC_COLUMNS = {
     'County Code (FIPS)': 'county',
     'Area Name (including legal/statistical area description)': 'description'
 }
+PROVIDER_AFFILIATION_GROUP = {
+    'id': 'id',
+    'description': 'description'
+}
+PROVIDER_AFFILIATION_TYPE = {
+    'id': 'id',
+    'description': 'description'
+}
+PROFIT_STATUS = {
+    'id': 'id'
+}
+OWNER_STATUS = {
+    'id': 'id'
+}
+COT_CLASSIFICATION = {
+    'CLASSIFICATION_ID': 'id',
+    'CLASSIFICATION': 'description',
+}
+COT_SPECIALTY = {
+    'SPECIALTY_ID': 'id',
+    'SPECIALTY': 'description',
+}
+COT_FACILITY = {
+    'FACILITY_TYPE_ID': 'id',
+    'FACILITY_TYPE': 'description',
+}
+STATE = {
+    'STATE_ID': 'id',
+    'SRC_STATE_CD': 'code',
+    'DESC': 'description'
+}

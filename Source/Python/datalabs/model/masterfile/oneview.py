@@ -155,6 +155,7 @@ class ResidencyProgram(Base):
     city = sa.Column(sa.String)
     state = sa.Column(sa.String)
     zipcode = sa.Column(sa.String)
+    primary_clinical_location = sa.Column(sa.String)
     institution = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program_institution.id"))
 
 
@@ -181,7 +182,6 @@ class ResidencyProgramInstitution(Base):
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     name = sa.Column(sa.String)
     affiliation = sa.Column(sa.String)
-    primary_clinical_location = sa.Column(sa.String)
     last_update_date = sa.Column(sa.Date)
 
 
@@ -211,7 +211,7 @@ class Business(Base):
     owner_status = sa.Column(sa.String, sa.ForeignKey("oneview.owner_status.id"))
     profit_status = sa.Column(sa.String, sa.ForeignKey("oneview.profit_status.id"))
     primary_class_of_trade = sa.Column(sa.String)
-    class_of_trade_classification = sa.Column(sa.String)
+    class_of_trade_classification = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_classification.id"))
     class_of_trade_classification_description = sa.Column(sa.String)
     class_of_trade_facility_type = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_facility.id"))
     class_of_trade_facility_type_description = sa.Column(sa.String)
@@ -592,6 +592,14 @@ class Specialty(Base):
 
 class State(Base):
     __tablename__ = 'state'
+    __table_args__ = {"schema": "oneview"}
+
+    id = sa.Column(sa.String, primary_key=True, nullable=False)
+    description = sa.Column(sa.String, nullable=False)
+
+
+class ClassOfTradeClassification(Base):
+    __tablename__ = 'class_of_trade_classification'
     __table_args__ = {"schema": "oneview"}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)

@@ -1,7 +1,11 @@
 """ Transformer base class and NO-OP implementation. """
 from   abc import ABC, abstractmethod
-import logging
+from   io import BytesIO
+
 import tempfile
+
+import logging
+import pandas
 
 import dask.dataframe
 
@@ -31,11 +35,20 @@ class PassThroughTransformerTask(TransformerTask):
 
 class ScalableTransformerMixin():
     @classmethod
-    def _csv_to_dataframe(cls, path: str, **kwargs) -> dask.dataframe:
-        return dask.dataframe.read_csv(path, dtype=str, **kwargs)
+    def _csv_to_dataframe(cls, data, on_disk: bool, **kwargs):
+        if on_disk:
+            dataframe = dask.dataframe.read_csv(data.decode(), dtype=str, **kwargs)
+        else:
+            dataframe = pandas.read_csv(BytesIO(data), dtype=str, **kwargs)
+
+        return dataframe
 
     @classmethod
-    def _dataframe_to_csv(cls, data: dask.dataframe.DataFrame, **kwargs):
-        path = tempfile.NamedTemporaryFile(delete=False).name
+    def _dataframe_to_csv(cls, data, on_disk: bool, **kwargs):
+        if on_disk:
+            path = tempfile.NamedTemporaryFile(delete=False).name
+            csv = data.to_csv(path, single_file=True, index=False, **kwargs)[0].encode()
+        else:
+            csv = data.to_csv(index=False).encode()
 
-        return data.to_csv(path, single_file=True, index=False, **kwargs)[0]
+        return csv

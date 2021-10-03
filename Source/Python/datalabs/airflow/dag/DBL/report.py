@@ -5,6 +5,7 @@ from airflow.models import Variable
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
+from datetime import datetime
 
 
 ### Configuration Bootstraping ###
@@ -36,9 +37,10 @@ DBL_REPORT_DAG = DAG(
         in_cluster=True,
         get_logs=True,
     ),
-    schedule_interval=None,
-    start_date=days_ago(2),
+    schedule_interval="0 7 * * 1",  # every Monday at 7 AM
+    start_date=datetime(year=2021, month=9, day=16),
     tags=['DBL_Report'],
+    catchup=False
 )
 
 
