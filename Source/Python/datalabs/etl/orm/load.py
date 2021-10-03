@@ -23,11 +23,9 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 class TableParameters:
     data: str
-    table: str
     model_class: str
     primary_key: str
     columns: list
-    schema: str
     current_hashes: pandas.DataFrame
     incoming_hashes: pandas.DataFrame
 
@@ -36,9 +34,7 @@ class TableParameters:
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ORMLoaderParameters:
-    tables: str
     model_classes: str
-    schema: str
     database_host: str
     database_port: str
     database_name: str
@@ -62,11 +58,10 @@ class ORMLoaderTask(LoaderTask):
         LOGGER.info(self._parameters)
         model_classes = self._get_model_classes()
         data = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
-        tables = self._parameters.tables.split(',')
 
         with self._get_database() as database:
-            for model_class, data, table in zip(model_classes, data, tables):
-                table_parameters = self._generate_table_parameters(database, model_class, data, table)
+            for model_class, data in zip(model_classes, data):
+                table_parameters = self._generate_table_parameters(database, model_class, data)
 
                 self._update(database, table_parameters)
 
@@ -88,24 +83,26 @@ class ORMLoaderTask(LoaderTask):
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
 
-    def _csv_to_dataframe(self, data):
+    @classmethod
+    def _csv_to_dataframe(cls, data):
         dataframe = pandas.read_csv(io.BytesIO(data), dtype=object)
 
         dataframe.fillna('', inplace=True)
 
         return dataframe
 
-    def _generate_table_parameters(self, database, model_class, data, table):
-        schema = self._parameters.schema
-        primary_key = self._get_primary_key(database, table, schema)
-        columns = self._get_database_columns(database, table, schema)
+    def _generate_table_parameters(self, database, model_class, data):
+        schema = model_class.__table_args__.get('schema')
+        table = model_class.__tablename__
+        primary_key = self._get_primary_key(database, schema, table)
+        columns = self._get_database_columns(database, schema, table)
 
         data[primary_key] = [str(key) for key in data[primary_key]]
 
-        current_hashes = self._get_current_row_hashes(database, table, schema, primary_key)
+        current_hashes = self._get_current_row_hashes(database, schema, table, primary_key)
         incoming_hashes = self._generate_row_hashes(columns, data, primary_key)
 
-        return TableParameters(data, table, model_class, primary_key, columns, schema, current_hashes, incoming_hashes)
+        return TableParameters(data, table, model_class, primary_key, columns, current_hashes, incoming_hashes)
 
     def _update(self, database, table_parameters):
         self._add_data(database, table_parameters)
@@ -116,7 +113,7 @@ class ORMLoaderTask(LoaderTask):
             self._delete_data(database, table_parameters)
 
     @classmethod
-    def _get_primary_key(cls, database, table, schema):
+    def _get_primary_key(cls, database, schema, table):
         query = "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i " \
                 "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
                 f"WHERE  i.indrelid = '{schema}.{table}'::regclass AND i.indisprimary"
@@ -126,7 +123,7 @@ class ORMLoaderTask(LoaderTask):
         return primary_key_table['attname'][0]
 
     @classmethod
-    def _get_database_columns(cls, database, table, schema):
+    def _get_database_columns(cls, database, schema, table):
         query = "SELECT * FROM information_schema.columns " \
                 f"WHERE table_schema = '{schema}' AND table_name = '{table}';"
         column_data = database.read(query)
@@ -137,7 +134,7 @@ class ORMLoaderTask(LoaderTask):
         return columns
 
     @classmethod
-    def _get_current_row_hashes(cls, database, table, schema, primary_key):
+    def _get_current_row_hashes(cls, database, schema, table, primary_key):
         get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM {schema}.{table}"
 
         current_hashes = database.read(get_current_hash).astype(str)
