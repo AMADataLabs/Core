@@ -1,7 +1,6 @@
 """ Oneview PPD Transformer"""
 import logging
-import dask.array
-import dask.dataframe
+import pandas
 
 from   datalabs.etl.oneview.iqvia import column
 from   datalabs.etl.oneview.transform import TransformerTask
@@ -16,12 +15,12 @@ class IQVIATransformerTask(TransformerTask):
         provider_affiliation_data = data[2]
         provider = data[1]
 
-        primary_keys = dask.array.array([str(column['IMS_ORG_ID']) + str(column['PROFESSIONAL_ID'])
-                                         for index, column in provider_affiliation_data.iterrows()])
-        provider_affiliation_data['id'] = primary_keys
-
         provider_affiliation = provider_affiliation_data.merge(provider,
                                                                on='PROFESSIONAL_ID', how='left').drop_duplicates()
+
+        primary_keys = [str(column['IMS_ORG_ID']) + str(column['ME'])
+                        for index, column in provider_affiliation.iterrows()]
+        provider_affiliation['id'] = primary_keys
 
         return [data[0], data[1], provider_affiliation]
 
@@ -34,8 +33,8 @@ class IQVIATransformerTask(TransformerTask):
 
 class IQVIAUpdateTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
-        iqvia_data = data[0]
-        iqvia_update = iqvia_data['BATCH_BUSINESS_DATE'][0]
+        iqvia_update = data[0].iloc[0]['BATCH_BUSINESS_DATE']
+        iqvia_update = pandas.DataFrame.from_dict({'BATCH_BUSINESS_DATE': [iqvia_update]})
 
         return [iqvia_update]
 

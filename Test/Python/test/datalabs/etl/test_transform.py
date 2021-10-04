@@ -1,11 +1,12 @@
 """ source: datalabs.etl.transform """
+from   io import BytesIO
 import os
-import tempfile
 import pathlib
-import pytest
+import tempfile
 
 import dask.array
 import pandas
+import pytest
 
 from datalabs.etl.transform import TransformerTask, PassThroughTransformerTask, ScalableTransformerMixin
 
@@ -27,17 +28,32 @@ def test_pass_through_transformer():
 
 
 # pylint: disable=protected-access
-def test_scalable_dataframes_mixin(csv_file):
-    data = ScalableTransformerMixin._csv_to_dataframe(csv_file)
+def test_scalable_dataframes_mixin_in_memory(csv_file):
+    on_disk = False
+    with open(csv_file, 'rb') as csv:
+        input_data = ScalableTransformerMixin._csv_to_dataframe(csv.read(), on_disk)
     new_column = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'R2']
 
-    data.id = dask.array.from_array(new_column)
+    input_data.id = new_column
 
-    path = ScalableTransformerMixin._dataframe_to_csv(data)
+    output_data = pandas.read_csv(BytesIO(ScalableTransformerMixin._dataframe_to_csv(input_data, on_disk)))
 
-    data = pandas.read_csv(path)
+    assert all(output_data.id == new_column)
 
-    assert all(data.id == new_column)
+
+# pylint: disable=protected-access
+def test_scalable_dataframes_mixin_on_disk(csv_file):
+    on_disk = True
+    input_data = ScalableTransformerMixin._csv_to_dataframe(csv_file, on_disk)
+    new_column = ['00', '11', '22', '33', '44', '55', '66', '77', '88', '99', 'R2']
+
+    input_data.id = dask.array.from_array(new_column)
+
+    path = ScalableTransformerMixin._dataframe_to_csv(input_data, on_disk).decode()
+
+    output_data = pandas.read_csv(path)
+
+    assert all(output_data.id == new_column)
 
     os.remove(path)
 
@@ -73,7 +89,7 @@ boing,Q101
 '''
         )
 
-    return path
+    return bytes(path)
 
 
 class Transformer(TransformerTask):

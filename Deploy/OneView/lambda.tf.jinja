@@ -1,0 +1,44 @@
+
+
+module "webapp_{{SNAKE_CASE_NAME}}_lambda" {
+  source  = "app.terraform.io/AMA/lambda/aws"
+  version = "2.2.0"
+  function_name             = "${var.project}-${local.environment}-{{CAMEL_CASE_NAME}}"
+  lambda_name               = "${var.project}-${local.environment}-{{CAMEL_CASE_NAME}}"
+  create_alias              = false
+  create_lambda_permission  = true
+  api_arn                   = module.webapp_api_gateway.api_execution_arn
+  use_source_hash           = false
+  description               = "Oneview App Backend Function - {{HUMAN_READABLE_NAME}}"
+  s3_lambda_bucket          = local.s3_lambda_bucket
+  s3_lambda_key             = "OneView/{{CAMEL_CASE_NAME}}.zip"
+  handler                   = "lambda_function.lambda_handler"
+  runtime                   = var.runtime
+  memory_size               = var.endpoint_lambda_memory_size
+  timeout                   = var.endpoint_lambda_timeout
+  tracing_config            = { mode = "Active" }
+
+  vpc_config = {
+    subnet_ids              = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+    security_group_ids      = [module.oneview_sg.security_group_id]
+  }
+
+  lambda_policy_vars = {
+    account_id = local.account
+    region     = var.region
+    project    = var.project
+  }
+
+  tag_name                          = "${upper(var.project)}-${upper(local.environment)}-{{CAMEL_CASE_NAME}}"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
+}

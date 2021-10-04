@@ -18,7 +18,7 @@ from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @add_schema(unknowns=True)
@@ -47,7 +47,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         dags = self._determine_dags_to_run(schedule, self._get_target_execution_time())
         LOGGER.info("Dags to Run:\n%s", dags)
 
-        return self._generate_notification_messages(dags)
+        return [self._generate_notification_messages(dags)]
 
     # pylint: disable=no-self-use
     def _get_target_execution_time(self):
@@ -55,15 +55,17 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
         base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
+        LOGGER.debug('Base time: %s', base_time)
         schedule["execution_time"] = self._get_execution_times(schedule, base_time)
         schedule["scheduled"] = self._get_scheduled_dags(schedule, base_time)
         schedule["started"] = self._get_started_dags(schedule)
+        LOGGER.debug('Schedule: %s', schedule)
 
         return schedule[schedule.scheduled & ~schedule.started]
 
     @classmethod
     def _generate_notification_messages(cls, dags):
-        message_data = dags[["name", "execution_time"]].rename(columns=dict(name="DAG"))
+        message_data = dags[["name", "execution_time"]].rename(columns=dict(name="dag")).astype(str)
         messages = [row[1].to_json() for row in message_data.iterrows()]
 
         return pickle.dumps(messages)

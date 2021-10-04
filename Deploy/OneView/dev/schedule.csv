@@ -1,2 +1,3 @@
 name,schedule
-ONEVIEW,*/15 * * * 1
+ONEVIEW,*/15 * * * *
+ONEVIEW-BACKUP,0 0 * * 1

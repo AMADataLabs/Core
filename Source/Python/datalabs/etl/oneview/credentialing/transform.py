@@ -1,6 +1,7 @@
 """Oneview Credentialing Table Columns"""
 from   io import BytesIO
 
+import csv
 import logging
 import pandas
 
@@ -21,7 +22,9 @@ class CredentialingTransformerTask(TransformerTask):
 class CredentialingFinalTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug(self._parameters['data'])
-        table_data = self._csv_to_dataframe(self._parameters['data'])
+        on_disk = bool(self._parameters.get("on_disk") and self._parameters["on_disk"].upper() == 'TRUE')
+
+        table_data = self._csv_to_dataframe(self._parameters['data'], on_disk)
 
         preprocessed_data = self._preprocess_data(table_data)
 
@@ -30,13 +33,13 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data, index=False) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     # pylint: disable=arguments-differ
     @classmethod
-    def _csv_to_dataframe(cls, data):
+    def _csv_to_dataframe(cls, data, on_disk):
         addresses = pandas.read_excel(data[0], engine='openpyxl')
-        customers = pandas.read_csv(BytesIO(data[1]), encoding = "ISO-8859-1", engine='python')
+        customers = pandas.read_csv(BytesIO(data[1]), encoding="ISO-8859-1", engine='python')
 
         return [addresses, customers]
 
@@ -47,7 +50,3 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
     def _get_columns(self):
         return [columns.CUSTOMER_ADDRESSES_COLUMNS]
-
-    @classmethod
-    def _dataframe_to_csv(cls, data, **kwargs):
-        return pandas.DataFrame.to_csv(data, **kwargs).encode()

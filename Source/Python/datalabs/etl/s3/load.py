@@ -29,6 +29,7 @@ class S3FileLoaderParameters:
     access_key: str = None
     secret_key: str = None
     region_name: str = None
+    include_names: str = None
     include_datestamp: str = None
     execution_time: str = None
     assume_role: str = None

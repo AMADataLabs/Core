@@ -186,6 +186,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_state_table",
         task_id="extract_state_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -194,6 +196,8 @@ with ONEVIEW_ETL_DAG:
         name="extract_class_of_trade_table",
         task_id="extract_class_of_trade_table",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
         is_delete_operator_pod=(DEPLOYMENT_ID == 'prod'),
     )
@@ -420,6 +424,43 @@ with ONEVIEW_ETL_DAG:
             **dict(TASK_CLASS='datalabs.etl.oneview.historical_residency.transform.HistoricalResidencyTransformerTask')
         },
     )
+
+    CREATE_STATIC_REFERENCE_TABLE = KubernetesPodOperator(
+        name="create_static_reference_table",
+        task_id="create_static_reference_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.StaticReferenceTablesTransformerTask')
+        },
+    )
+
+    CREATE_CLASS_OF_TRADE_TABLE = KubernetesPodOperator(
+        name="create_class_of_trade_table",
+        task_id="create_class_of_trade_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.ClassOfTradeTransformerTask')
+        },
+    )
+
+    CREATE_STATE_TABLE = KubernetesPodOperator(
+        name="create_state_table",
+        task_id="create_state_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.reference.transform.StateTransformerTask')
+        },
+    )
+
     LOAD_REFERENCE_TABLES_INTO_DATABASE = KubernetesPodOperator(
         name="load_reference_tables_into_database",
         task_id="load_reference_tables_into_database",
@@ -538,6 +579,18 @@ with ONEVIEW_ETL_DAG:
         env_vars=BASE_ENVIRONMENT,
     )
 
+    CREATE_CORPORATE_PARENT_BUSINESS_TABLE = KubernetesPodOperator(
+        name="create_corporate_parent_business_table",
+        task_id="create_corporate_parent_business_table",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[ETL_SECRETS],
+        env_vars={
+            **BASE_ENVIRONMENT,
+            **dict(TASK_CLASS='datalabs.etl.oneview.link.transform.CorporateParentBusinessTransformerTask')
+        },
+    )
+
 # pylint: disable=pointless-statement
 MIGRATE_DATABASE
 EXTRACT_PPD >> CREATE_PHYSICIAN_TABLE
@@ -558,6 +611,7 @@ LOAD_RESIDENCY_INSTITUTION_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_TABLE_INTO_DATA
 LOAD_RESIDENCY_TABLE_INTO_DATABASE >> LOAD_RESIDENCY_PERSONNEL_TABLE_INTO_DATABASE
 EXTRACT_IQVIA >> CREATE_BUSINESS_AND_PROVIDER_TABLES
 EXTRACT_IQVIA >> CREATE_IQVIA_UPDATE_TABLE >> LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE
+EXTRACT_IQVIA >> CREATE_CORPORATE_PARENT_BUSINESS_TABLE
 LOAD_IQVIA_UPDATE_TABLE_INTO_DATABASE >> LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO_DATABASE
 LOAD_IQVIA_BUSINESS_PROVIER_TABLES_INTO_DATABASE >> LOAD_IQVIA_PROVIER_AFFILIATION_TABLE_INTO_DATABASE
 EXTRACT_CREDENTIALING >> CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
@@ -571,5 +625,6 @@ CREATE_RESIDENCY_PROGRAM_TABLES >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 CREATE_PHYSICIAN_TABLE >> CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE >> LOAD_LINKING_TABLES_INTO_DATABASE
 EXTRACT_MELISSA >> CREATE_MELISSA_TABLES >> LOAD_MELISSA_TABLES_INTO_DATABASE
-EXTRACT_STATE_TABLE
-EXTRACT_CLASS_OF_TRADE_TABLE
+CREATE_STATIC_REFERENCE_TABLE
+EXTRACT_STATE_TABLE >> CREATE_STATE_TABLE
+EXTRACT_CLASS_OF_TRADE_TABLE >> CREATE_CLASS_OF_TRADE_TABLE

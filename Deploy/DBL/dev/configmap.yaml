@@ -23,7 +23,7 @@ data:
     DBL__EXTRACT_DBL__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio-api.apps.openshifttest.ama-assn.org'
     DBL__EXTRACT_DBL__CACHE_OUTPUT_ACCESS_KEY: ${DBL_S3_ACCESS_KEY}
     DBL__EXTRACT_DBL__CACHE_OUTPUT_SECRET_KEY: ${DBL_S3_SECRET_KEY}
-    DBL__EXTRACT_DBL__CACHE_OUTPUT_FILES: 'eft_files.csv'
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_FILES: 'changefileaudit.csv,ReportByFieldFrom_SAS.csv,countofchangesbyfieldextract.csv,recordactionextract.csv,changebyrecordcount.csv,PE_counts.csv,TOP_counts.csv,topbyPEcounts.csv,PrimSpecbyMPA.csv,SecSpecbyMPA.csv'
 
     # CREATE_DBL_REPORT
     DBL__CREATE_DBL_REPORT__CACHE_CLASS: ${DBL_S3_CACHE_CLASS}
@@ -32,14 +32,14 @@ data:
     DBL__CREATE_DBL_REPORT__CACHE_ACCESS_KEY: ${DBL_S3_ACCESS_KEY}
     DBL__CREATE_DBL_REPORT__CACHE_SECRET_KEY: ${DBL_S3_SECRET_KEY}
 
-    DBL__CREATE_DBL_REPORT__CACHE_INPUT_FILES: 'eft_files.csv'
+    DBL__CREATE_DBL_REPORT__CACHE_INPUT_FILES: 'changefileaudit.csv,ReportByFieldFrom_SAS.csv,countofchangesbyfieldextract.csv,recordactionextract.csv,changebyrecordcount.csv,PE_counts.csv,TOP_counts.csv,topbyPEcounts.csv,PrimSpecbyMPA.csv,SecSpecbyMPA.csv'
     DBL__CREATE_DBL_REPORT__CACHE_OUTPUT_FILES: 'dbl_report.xlsx'
     DBL__CREATE_DBL_REPORT__CACHE_INPUT_BUCKET: ${DBL_S3_INGESTED_DATA_BUCKET}
     DBL__CREATE_DBL_REPORT__CACHE_OUTPUT_BUCKET: ${DBL_S3_PROCESSED_DATA_BUCKET}
 
     # EMAIL_DBL_REPORT
-    DBL__EMAIL_DBL_REPORT__TO: 'Daniel.Ro@ama-assn.og'
-    DBL__EMAIL_DBL_REPORT__CC: ''
+    DBL__EMAIL_DBL_REPORT__TO: 'Christina.Tennant@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__CC: 'Garrett.Lappe@ama-assn.org,DataLabs@ama-assn.org,Daniel.Ro@ama-assn.org'
 
     DBL__EMAIL_DBL_REPORT__CACHE_INPUT_CLASS: ${DBL_S3_CACHE_CLASS}
     DBL__EMAIL_DBL_REPORT__CACHE_INPUT_BUCKET: ${DBL_S3_PROCESSED_DATA_BUCKET}
