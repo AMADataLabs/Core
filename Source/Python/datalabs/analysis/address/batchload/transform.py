@@ -4,6 +4,7 @@ from io import BytesIO
 import logging
 from string import ascii_uppercase, digits
 import pandas as pd
+import pickle as pk
 
 from datalabs.etl.transform import TransformerTask  # pylint: disable=import-error
 
@@ -212,7 +213,8 @@ def _reorder_batch_load_column_order(data: pd.DataFrame):
 
 class AddressLoadFileAggregationTransformerTask(TransformerTask):
     def _transform(self) -> 'Transformed Data':
-        dataframes = [pd.read_csv(BytesIO(data)) for data in self._parameters['data']]
+        # dataframes = [pd.read_csv(BytesIO(data)) for data in self._parameters['data']]
+        dataframes = [pd.read_csv(BytesIO(data[1])) for data in pk.loads(self._parameters['data'][0])]
         valid_dataframe_list = []
         invalid_dataframe_list = []
 
