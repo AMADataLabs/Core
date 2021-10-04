@@ -23,6 +23,7 @@ class IQVIATransformerTask(TransformerTask):
         provider_affiliation['id'] = primary_keys
 
         business, provider_affiliation = self._set_null_values(business, provider_affiliation)
+        business = self._set_unaccounted_valuee(business)
         return [business, provider, provider_affiliation]
 
     def _set_null_values(self, business, provider_affiliation):
@@ -34,11 +35,16 @@ class IQVIATransformerTask(TransformerTask):
         provider_affiliation['AFFIL_TYPE_ID'] = provider_affiliation['AFFIL_TYPE_ID'].fillna(value=0)
         provider_affiliation['AFFIL_GROUP_CODE'] = provider_affiliation['AFFIL_GROUP_CODE'].fillna(value='UNKNOWN')
 
-        business = business.fillna('')
-        business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].astype(str).replace('.0', '', regex=True)
-        business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].replace(['1', '2', '6', '7', '9'], 'Unknown ID')
-
         return business, provider_affiliation
+
+    def _set_unaccounted_values(self, business):
+        business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].astype(str).replace('.0', '', regex=True)
+        business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].replace(['0', '1', '2', '4', '5',
+                                                                             '6', '7', '8', '9', '229', '129', '224',
+                                                                             '231', ], 'Unknown ID')
+        business['COT_FACILITY_ID'] = business['COT_FACILITY_ID'].replace([['69', '70', '75', '76', '52', '53', '54',
+                                                                            '59', '63'], 'Unknown ID'])
+        business['COT_CLASSIFICATION_ID'] = business['COT_CLASSIFICATION_ID'].replace(['24'], 'Unknown ID')
 
     def _get_columns(self):
         return [column.BUSINESS_COLUMNS,
