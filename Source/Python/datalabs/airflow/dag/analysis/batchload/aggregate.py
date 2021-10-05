@@ -29,7 +29,7 @@ ADDRESS_LOAD_AGGREGATION_DAG = DAG(
             limit_memory="8G",
             limit_cpu="1"
         ),
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
         namespace=f'hsg-data-labs-{DEPLOYMENT_ID}',
         image=IMAGE,
         do_xcom_push=False,
