@@ -49,7 +49,7 @@ class ResidencyTransformerTask(TransformerTask):
         )
 
         programs = self._convert_integers_to_booleans(programs)
-        programs = self._filter_out_values(programs, institution_info)
+        programs, program_personnel = self._filter_out_values(programs, institution_info, program_personnel)
 
         program_personnel = self._generate_primary_keys(program_personnel)
 
@@ -135,11 +135,14 @@ class ResidencyTransformerTask(TransformerTask):
         return programs
 
     @classmethod
-    def _filter_out_values(cls, programs, institutions):
+    def _filter_out_values(cls, programs, institutions, program_personnel):
         unaccounted_values = list(set(programs.ins_id.to_list()) - set(institutions.ins_id.to_list()))
         programs = programs[~programs['ins_id'].isin(unaccounted_values)]
 
-        return programs
+        unaccounted_values = list(set(program_personnel.pgm_id.to_list()) - set(programs.pgm_id.to_list()))
+        program_personnel = program_personnel[~program_personnel['pgm_id'].isin(unaccounted_values)]
+
+        return programs, program_personnel
 
     @classmethod
     def _generate_primary_keys(cls, program_personnel):
