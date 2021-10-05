@@ -23,7 +23,7 @@ class IQVIATransformerTask(TransformerTask):
         provider_affiliation['id'] = primary_keys
 
         business, provider_affiliation = self._set_null_values(business, provider_affiliation)
-        business = self._set_unaccounted_valuee(business)
+        business = self._set_unaccounted_values(business)
         return [business, provider, provider_affiliation]
 
     def _set_null_values(self, business, provider_affiliation):
@@ -42,9 +42,14 @@ class IQVIATransformerTask(TransformerTask):
         business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].replace(['0', '1', '2', '4', '5',
                                                                              '6', '7', '8', '9', '229', '129', '224',
                                                                              '231', ], 'Unknown ID')
-        business['COT_FACILITY_ID'] = business['COT_FACILITY_ID'].replace([['69', '70', '75', '76', '52', '53', '54',
-                                                                            '59', '63'], 'Unknown ID'])
+
+        business['COT_FACILITY_TYPE_ID'] = business['COT_FACILITY_TYPE_ID'].astype(str)
+        business['COT_FACILITY_TYPE_ID'] = business['COT_FACILITY_TYPE_ID'].replace([['69', '70', '75', '76', '52',
+                                                                                      '53', '54', '59', '63'],
+                                                                                     'Unknown ID'])
         business['COT_CLASSIFICATION_ID'] = business['COT_CLASSIFICATION_ID'].replace(['24'], 'Unknown ID')
+
+        return business
 
     def _get_columns(self):
         return [column.BUSINESS_COLUMNS,
