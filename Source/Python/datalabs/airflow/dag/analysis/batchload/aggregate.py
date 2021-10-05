@@ -9,11 +9,12 @@ from kubernetes.client import models as k8s
 
 ### Configuration Bootstraping ###
 DAG_ID = 'ADDRESS_LOAD_AGGREGATION'
+DAG_ID = 'address_load_aggregation'
 DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
 IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
 
 ### Kubernets Configuration ###
-ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='addressload-aggregate'))
+ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='address-load-aggregate'))
 EFT_SECRET = Secret('env', None, 'analysis-etl-secret')
 
 ### DAG definition ###
