@@ -120,7 +120,6 @@ class ResidencyTransformerTask(TransformerTask):
             value=pandas.to_datetime('01/01/1970')
         )
 
-        programs['ins_id'] = programs['ins_id'].fillna(value='00')
         programs['last_upd_dt_x'] = programs['last_upd_dt_x'].fillna(
             value=pandas.to_datetime('01/01/1970')
         )
@@ -147,6 +146,11 @@ class ResidencyTransformerTask(TransformerTask):
         program_personnel['id'] = program_personnel['pgm_id'].astype(str) + program_personnel['aamc_id'].astype(str)
 
         return program_personnel
+
+    def _postprocess_data(self, data):
+        program = data[0]
+        program = program[program['institution'].notna()]
+        return [program, data[1], data[2]]
 
     def _get_columns(self):
         return [col.PROGRAM_COLUMNS, col.MEMBER_COLUMNS, col.INSTITUTION_COLUMNS]
