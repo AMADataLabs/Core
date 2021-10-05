@@ -40,7 +40,7 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
         titles = cbsa.iloc[2:-4, 3]
 
         table = pandas.DataFrame(data={'CBSA Code': codes, 'CBSA Title': titles}).drop_duplicates()
-        table = table.append({'CBSA Code': '00000', 'CBSA Title': 'Unknown'}, ignore_index=True)
+        table = table.append({'CBSA Code': '00000', 'CBSA Title': 'Unknown/Not Specified'}, ignore_index=True)
 
         return table
 
@@ -121,21 +121,30 @@ class ClassOfTradeTransformerTask(TransformerTask):
         specialty_data = class_of_trade_data[['SPECIALTY_ID', 'SPECIALTY']]
         facility_data = class_of_trade_data[['FACILITY_TYPE_ID', 'FACILITY_TYPE']]
 
-        specialty_data = specialty_data.append(pandas.DataFrame.from_dict({'SPECIALTY_ID': ['Unknown ID'],
-                                                                           'SPECIALTY': ['']})
-                                               )
-        specialty_data = specialty_data.append(pandas.DataFrame.from_dict({'SPECIALTY_ID': ['219'],
-                                                                           'SPECIALTY': ['Other']})
-                                               )
-        facility_data = facility_data.append(pandas.DataFrame.from_dict({'FACILITY_TYPE_ID': ['53'],
-                                                                         'FACILITY_TYPE': ['Warehouse']})
-                                             )
-        facility_data = facility_data.append(pandas.DataFrame.from_dict({'FACILITY_TYPE_ID': ['Unknown ID'],
-                                                                         'FACILITY_TYPE': ['']})
-                                             )
-        classification_data = classification_data.append(pandas.DataFrame.from_dict({'CLASSIFICATION_ID': ['Unknown ID']
-                                                                                    , 'CLASSIFICATION': ['']})
-                                                         )
+        specialty_data = specialty_data.append(
+            pandas.DataFrame(
+                data={'SPECIALTY_ID': ['Unknown/Not Specified'], 'SPECIALTY': ['']}
+            )
+        )
+        specialty_data = specialty_data.append(
+            pandas.DataFrame(
+                data={'SPECIALTY_ID': ['219'], 'SPECIALTY': ['Other']}
+            )
+        )
+        facility_data = facility_data.append(
+            pandas.DataFrame(
+                data={'FACILITY_TYPE_ID': ['53'], 'FACILITY_TYPE': ['Warehouse']}
+            )
+        )
+        facility_data = facility_data.append(
+            pandas.DataFrame(
+                data={'FACILITY_TYPE_ID': ['Unknown/Not Specified'], 'FACILITY_TYPE': ['']})
+        )
+        classification_data = classification_data.append(
+            pandas.DataFrame(
+                data={'CLASSIFICATION_ID': ['Unknown/Not Specified'], 'CLASSIFICATION': ['']})
+        )
+
         return [specialty_data, facility_data, classification_data]
 
     def _postprocess_data(self, data):

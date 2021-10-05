@@ -138,6 +138,9 @@ class PhysicianTransformerTask(TransformerTask):
 
         return [physician]
 
+    def _get_columns(self):
+        return [PHYSICIAN_COLUMNS]
+
     # pylint: disable=too-many-arguments
     @classmethod
     def _merge_data(cls, ppd_table, npi_table, membership):
@@ -176,14 +179,26 @@ class PhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _clean_physician(cls, physician):
-        # Fix Pohnpei FIPS County code
+        cls._fix_pohnpei_fips_county_code(physician)
+
+        cls._consolidate_duplicates(physician)
+
+        return physician
+
+    @classmethod
+    def _fix_pohnpei_fips_county_code(cls, physician):
         physician.federal_information_processing_standard_county[
             (physician.federal_information_processing_standard_state == '64') & \
             (physician.federal_information_processing_standard_county == '003') & \
             (physician.city == 'POHNPEI')
         ] = '040'
 
-        return physician
+    @classmethod
+    def _consolidate_duplicates(cls, physician):
+        ''' Remove duplicate records that vary only by NPI. Null NPI for the remaining record. '''
+        duplicates = physician[physician.duplicated('medical_education_number')].groupby('medical_education_number')
+        duplicate_me_numbers = duplicates.groups.keys()
 
-    def _get_columns(self):
-        return [PHYSICIAN_COLUMNS]
+        physician.drop_duplicates('medical_education_number', inplace=True)
+
+        physician.national_provider_identifier[physician.medical_education_number.isin(duplicate_me_numbers)] = ''

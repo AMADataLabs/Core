@@ -1,6 +1,6 @@
 """OneView ETL ORM Loader"""
+import csv
 from   dataclasses import dataclass
-
 import io
 import hashlib
 import logging
@@ -23,11 +23,9 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 class TableParameters:
     data: str
-    table: str
     model_class: str
     primary_key: str
     columns: list
-    schema: str
     current_hashes: pandas.DataFrame
     incoming_hashes: pandas.DataFrame
 
@@ -36,9 +34,7 @@ class TableParameters:
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ORMLoaderParameters:
-    tables: str
     model_classes: str
-    schema: str
     database_host: str
     database_port: str
     database_name: str
@@ -53,15 +49,20 @@ class ORMLoaderParameters:
 class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
 
+    COLUMN_TYPES = {
+        'BOOLEAN': bool,
+        'INTEGER': int
+    }
+
     def _load(self):
         LOGGER.info(self._parameters)
+        model_classes = self._get_model_classes()
+        data = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
 
         with self._get_database() as database:
-            for model_class, data, table in zip(self._get_model_classes(),
-                                                self._get_dataframes(),
-                                                self._parameters.tables.split(',')):
+            for model_class, data in zip(model_classes, data):
+                table_parameters = self._generate_table_parameters(database, model_class, data)
 
-                table_parameters = self._generate_table_parameters(database, model_class, data, table)
                 self._update(database, table_parameters)
 
             # pylint: disable=no-member
@@ -82,20 +83,26 @@ class ORMLoaderTask(LoaderTask):
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
 
-    def _get_dataframes(self):
-        return [pandas.read_csv(io.BytesIO(data), dtype=object) for data in self._parameters.data]
+    @classmethod
+    def _csv_to_dataframe(cls, data):
+        dataframe = pandas.read_csv(io.BytesIO(data), dtype=object)
 
-    def _generate_table_parameters(self, database, model_class, data, table):
-        schema = self._parameters.schema
-        primary_key = self._get_primary_key(database, table, schema)
-        columns = self._get_database_columns(database, table, schema)
+        dataframe.fillna('', inplace=True)
+
+        return dataframe
+
+    def _generate_table_parameters(self, database, model_class, data):
+        schema = model_class.__table_args__.get('schema')
+        table = model_class.__tablename__
+        primary_key = self._get_primary_key(database, schema, table)
+        columns = self._get_database_columns(database, schema, table)
 
         data[primary_key] = [str(key) for key in data[primary_key]]
 
-        current_hashes = self._get_current_row_hashes(database, table, schema, primary_key)
+        current_hashes = self._get_current_row_hashes(database, schema, table, primary_key)
         incoming_hashes = self._generate_row_hashes(columns, data, primary_key)
 
-        return TableParameters(data, table, model_class, primary_key, columns, schema, current_hashes, incoming_hashes)
+        return TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes)
 
     def _update(self, database, table_parameters):
         self._add_data(database, table_parameters)
@@ -106,7 +113,7 @@ class ORMLoaderTask(LoaderTask):
             self._delete_data(database, table_parameters)
 
     @classmethod
-    def _get_primary_key(cls, database, table, schema):
+    def _get_primary_key(cls, database, schema, table):
         query = "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i " \
                 "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
                 f"WHERE  i.indrelid = '{schema}.{table}'::regclass AND i.indisprimary"
@@ -116,7 +123,7 @@ class ORMLoaderTask(LoaderTask):
         return primary_key_table['attname'][0]
 
     @classmethod
-    def _get_database_columns(cls, database, table, schema):
+    def _get_database_columns(cls, database, schema, table):
         query = "SELECT * FROM information_schema.columns " \
                 f"WHERE table_schema = '{schema}' AND table_name = '{table}';"
         column_data = database.read(query)
@@ -127,7 +134,7 @@ class ORMLoaderTask(LoaderTask):
         return columns
 
     @classmethod
-    def _get_current_row_hashes(cls, database, table, schema, primary_key):
+    def _get_current_row_hashes(cls, database, schema, table, primary_key):
         get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM {schema}.{table}"
 
         current_hashes = database.read(get_current_hash).astype(str)
@@ -137,8 +144,8 @@ class ORMLoaderTask(LoaderTask):
 
     @classmethod
     def _generate_row_hashes(cls, columns, data, primary_key):
-        csv_data = data[columns].to_csv(header=None, index=False).strip('\n').split('\n')
-        row_strings = ["(" + cls._add_quotes(i) + ")" for i in csv_data]
+        csv_data = data[columns].to_csv(header=None, index=False, quoting=csv.QUOTE_ALL).strip('\n').split('\n')
+        row_strings = ["(" + cls._remove_quotes(i) + ")" for i in csv_data]
 
         hashes = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
         primary_keys = data[primary_key].tolist()
@@ -167,11 +174,11 @@ class ORMLoaderTask(LoaderTask):
         cls._delete_data_from_table(database, table_parameters, deleted_data)
 
     @classmethod
-    def _add_quotes(cls, csv_string):
+    def _remove_quotes(cls, csv_string):
         # split at only unquoted commas
         columns = [term for term in re.split(r'("[^"]*,[^"]*"|[^,]*)', csv_string) if (term and term != ',')]
 
-        return ','.join(cls._quote_if_spaces(column) for column in columns)
+        return ','.join(cls._unquote_term(column) for column in columns)
 
     @classmethod
     def _select_new_data(cls, table_parameters):
@@ -248,29 +255,20 @@ class ORMLoaderTask(LoaderTask):
                 database.delete(model)  # pylint: disable=no-member
 
     @classmethod
-    def _quote_if_spaces(cls, csv_column):
+    def _unquote_term(cls, csv_column):
         quoted_csv_column = csv_column
-        match = re.match(r'[^"].* .*[^"]$| +$', csv_column)  # match only an unquoted string with spaces
+        match = re.match(r'".*[, ].*"|""', csv_column)  # match quoted strings with spaces or commas
 
-        if match:
-            quoted_csv_column = f'"{csv_column}"'
+        if match is None:
+            quoted_csv_column = f'{csv_column[1:-1]}'
 
         return quoted_csv_column
 
     @classmethod
     def _create_models(cls, model_class, data):
         columns = cls._get_model_columns(model_class)
-        # data.additional_education_accreditation_length = data.additional_education_accreditation_length.astype(bool)
-        # data.acgme_accredited = data.acgme_accredited.astype(bool)
-        # data.contact_director = data.contact_director.astype(bool)
-        # data.government_affiliated = data.government_affiliated.astype(bool)
-        # data.preliminary_positions_offered = data.preliminary_positions_offered.astype(bool)
-        # data.medical_records = data.medical_records.astype(bool)
-        # data.official_address = data.official_address.astype(bool)
-        # data.uses_sfmatch = data.uses_sfmatch.astype(bool)
-        # data.other_match_indicator = data.other_match_indicator.astype(bool)
-        # data.american_osteopathic_association_indicator = data.american_osteopathic_association_indicator.astype(bool)
-        # data.osteopathic_principles = data.osteopathic_principles.astype(bool)
+
+        cls._set_column_types(data, model_class, columns)
 
         return [cls._create_model(model_class, row, columns) for row in data.itertuples(index=False)]
 
@@ -302,6 +300,18 @@ class ORMLoaderTask(LoaderTask):
         model = model_class(**parameters)
 
         return model
+
+    @classmethod
+    def _set_column_types(cls, data, model, columns):
+        for column in columns:
+            column_type = str(getattr(model, column).type)
+
+            cls._set_column_type(data, column, column_type)
+
+    @classmethod
+    def _set_column_type(cls, data, column, column_type):
+        if column_type in cls.COLUMN_TYPES:
+            data[column] = data[column].astype(cls.COLUMN_TYPES[column_type], copy=False)
 
 
 class ORMPreLoaderTask(LoaderTask):
