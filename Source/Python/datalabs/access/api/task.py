@@ -45,7 +45,7 @@ class InternalServerError(APIEndpointException):
         super().__init__(message, 500)
 
 
-class APIEndpointTask(task.Task, task.DatabaseTaskMixin):
+class APIEndpointTask(task.Task):
     def __init__(self, parameters: APIEndpointParameters):
         super().__init__(parameters)
         self._status_code = 200
@@ -65,8 +65,11 @@ class APIEndpointTask(task.Task, task.DatabaseTaskMixin):
         return self._headers
 
     def run(self):
-        with Database.from_parameters(self._parameters.database) as database:
+        with self._get_database() as database:
             self._run(database)  # pylint: disable=no-member
+
+    def _get_database(self):
+        return Database.from_parameters(self._parameters.database)
 
     @abstractmethod
     def _run(self, database):

@@ -13,17 +13,17 @@ PE_COLUMNS = {
 }
 CBSA_COLUMNS = {
     'CBSA Code': 'id',
-    'CBSA Name': 'description'
+    'CBSA Title': 'description'
 }
 SPECIALTY_MERGED_COLUMNS = {
     'SPEC_CD': 'id',
     'DESC': 'description'
 }
 FIPSC_COLUMNS = {
-    'id': 'id',
-    'State Code (FIPS)': 'state',
-    'County Code (FIPS)': 'county',
-    'Area Name (including legal/statistical area description)': 'description'
+    'FIPS': 'id',
+    'state': 'state',
+    'county': 'county',
+    'description': 'description'
 }
 PROVIDER_AFFILIATION_GROUP = {
     'id': 'id',
@@ -34,10 +34,12 @@ PROVIDER_AFFILIATION_TYPE = {
     'description': 'description'
 }
 PROFIT_STATUS = {
-    'id': 'id'
+    'id': 'id',
+    'description': 'description'
 }
 OWNER_STATUS = {
-    'id': 'id'
+    'id': 'id',
+    'description': 'description'
 }
 COT_CLASSIFICATION = {
     'CLASSIFICATION_ID': 'id',
@@ -55,4 +57,8 @@ STATE = {
     'STATE_ID': 'id',
     'SRC_STATE_CD': 'code',
     'DESC': 'description'
+}
+MEDICAL_SCHOOL = {
+    'KEY_VAL': 'id',
+    'ORG_NM': 'description'
 }

@@ -2,7 +2,6 @@
 import logging
 import tempfile
 
-import mock
 import pytest
 
 from   datalabs.etl.dag.execute.local import LocalDAGExecutorTask
@@ -16,7 +15,6 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=redefined-outer-name, protected-access
 def test_dag_scheduler_task_integration(state_base_path, dag_parameters):
     dag_executor = LocalDAGExecutorTask(dag_parameters)
-    dag_executor._notifier = mock.Mock()
     execution_time = dag_executor._parameters.execution_time
     state = dag_executor._parameters.dag_state_class(dict(base_path=state_base_path))
 
@@ -43,7 +41,7 @@ def test_dag_scheduler_task_integration(state_base_path, dag_parameters):
 
 def _run_dag(dag_executor, state, notification_count, expected_dag_status):
     dag_executor.run()
-    assert dag_executor._notifier.notify.call_count == notification_count
+    assert len(dag_executor.triggered_tasks) == notification_count
     assert state.get_dag_status("DAG_SCHEDULER", dag_executor._parameters.execution_time) == expected_dag_status
 
 

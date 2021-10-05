@@ -43,6 +43,7 @@ def test_execution_time_returns_next_execution_time(scheduler, target_execution_
 
     assert execution_time == expected_execution_time
 
+
 # pylint: disable=redefined-outer-name, protected-access
 def test_execution_time_bounds_are_correct(scheduler, target_execution_time):
     lower_bound, upper_bound = scheduler._get_execution_time_bounds(target_execution_time)

@@ -12,9 +12,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 class IQVIATransformerTask(TransformerTask):
     def _preprocess_data(self, data):
-        provider_affiliation_data = data[2]
-        provider = data[1]
+        business, provider, provider_affiliation_data = data
 
+        business['class_of_trade_classification_description'] = 'filler'
         provider_affiliation = provider_affiliation_data.merge(provider,
                                                                on='PROFESSIONAL_ID', how='left').drop_duplicates()
 
@@ -22,7 +22,23 @@ class IQVIATransformerTask(TransformerTask):
                         for index, column in provider_affiliation.iterrows()]
         provider_affiliation['id'] = primary_keys
 
-        return [data[0], data[1], provider_affiliation]
+        business, provider_affiliation = self._set_null_values(business, provider_affiliation)
+        return [business, provider, provider_affiliation]
+
+    def _set_null_values(self, business, provider_affiliation):
+        business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].fillna(value='-1')
+
+        business['PROFIT_STATUS'] = business['PROFIT_STATUS'].fillna(value='UNKNOWN')
+        business['OWNER_STATUS'] = business['OWNER_STATUS'].fillna(value='UNKNOWN')
+
+        provider_affiliation['AFFIL_TYPE_ID'] = provider_affiliation['AFFIL_TYPE_ID'].fillna(value=0)
+        provider_affiliation['AFFIL_GROUP_CODE'] = provider_affiliation['AFFIL_GROUP_CODE'].fillna(value='UNKNOWN')
+
+        business = business.fillna('')
+        business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].astype(str).replace('.0', '', regex=True)
+        business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].replace(['1', '2', '6', '7', '9'], 'Unknown ID')
+
+        return business, provider_affiliation
 
     def _get_columns(self):
         return [column.BUSINESS_COLUMNS,

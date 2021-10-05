@@ -37,4 +37,6 @@ locals {
     }
     runtime = "python3.7"
     region = "us-east-1"
+
+    subnets = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
 }

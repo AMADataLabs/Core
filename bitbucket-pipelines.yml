@@ -6,23 +6,23 @@ image:
 
 pipelines:
     branches:
-        master:
-        - step:
-            name: Build
-            script:
-            - bash Script/bitbucket-pipelines-build.sh
-        - step:
-            name: Auto-Merge to dev
-            script:
-            - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-            - git fetch
-            - git checkout dev
-            - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
-            - git push origin dev
-        dev:
-        - step:
-            script:
-            - bash Script/bitbucket-pipelines-build.sh
+        # master:
+        # - step:
+        #     name: Build
+        #     script:
+        #     - bash Script/bitbucket-pipelines-build.sh
+        # - step:
+        #     name: Auto-Merge to dev
+        #     script:
+        #     - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        #     - git fetch
+        #     - git checkout dev
+        #     - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
+        #     - git push origin dev
+        # dev:
+        # - step:
+        #     script:
+        #     - bash Script/bitbucket-pipelines-build.sh
         test:
         - step:
             script:
@@ -61,7 +61,7 @@ pipelines:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
                 - python --version
-                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
 
 
         ##############################################################
@@ -70,21 +70,21 @@ pipelines:
 
         CPT-master:
         - parallel:
-            - step:
-                name: Create Database
-                caches:
-                  - cpt-master-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment CPT
-                - export ENABLE_FEATURE_DEV=True
-                - export DATABASE_NAME=cpt
-                - export DATABASE_NAME_ADMIN=postgres
-                - export DATABASE_BACKEND=postgresql+psycopg2
-                - export DATABASE_HOST=$CPT_DATABASE_HOST_SANDBOX
-                - export DATABASE_PORT=5432
-                - export DATABASE_USERNAME=$CPT_DATABASE_USERNAME_SANDBOX
-                - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
-                - bash Deploy/CPT/create-database
+            # - step:
+            #     name: Create Database
+            #     caches:
+            #       - cpt-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment CPT
+            #     - export ENABLE_FEATURE_DEV=True
+            #     - export DATABASE_NAME=cpt
+            #     - export DATABASE_NAME_ADMIN=postgres
+            #     - export DATABASE_BACKEND=postgresql+psycopg2
+            #     - export DATABASE_HOST=$CPT_DATABASE_HOST_SANDBOX
+            #     - export DATABASE_PORT=5432
+            #     - export DATABASE_USERNAME=$CPT_DATABASE_USERNAME_SANDBOX
+            #     - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
+            #     - bash Deploy/CPT/create-database
             - step:
                 name: Update Bundle
                 caches:
@@ -96,20 +96,18 @@ pipelines:
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - bash Deploy/CPT/create-bundle
-                - export AWS_S3_BUCKET='ama-hsg-datalabs-lambda-code-sandbox'
-                - bash Deploy/CPT/upload-bundle
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
                 - bash Deploy/CPT/upload-bundle
         - parallel:
-            - step:
-                name: Migrate Database
-                caches:
-                  - cpt-master-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - bash Script/migrate-database --host $CPT_DATABASE_HOST_SANDBOX --name cpt --username $CPT_DATABASE_USERNAME_SANDBOX --password $CPT_DATABASE_PASSWORD_SANDBOX upgrade CPT
+            # - step:
+            #     name: Migrate Database
+            #     caches:
+            #       - cpt-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #     - bash Script/migrate-database --host $CPT_DATABASE_HOST_SANDBOX --name cpt --username $CPT_DATABASE_USERNAME_SANDBOX --password $CPT_DATABASE_PASSWORD_SANDBOX upgrade CPT
             - step:
                 name: Update Lambda Functions
                 script:
@@ -173,13 +171,15 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Install the DB2 JDBC driver
-                - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
                 - unzip ./Db2JdbcDriver.zip
 
                 # Install the Informix JDBC driver
-                - wget https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
                 - unzip ./InformixJdbcDriver.zip
                 - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
@@ -200,6 +200,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
@@ -212,15 +214,15 @@ pipelines:
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
                 - bash Deploy/Master/upload-bundle OneView/API
         - parallel:
-            - step:
-                name: Migrate Database
-                caches:
-                  - oneview-master-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - bash Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
+            # - step:
+            #     name: Migrate Database
+            #     caches:
+            #       - oneview-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #     - Script/run.py Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
             - step:
                 name: Update Lambda Functions
                 script:
@@ -320,13 +322,15 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Install the DB2 JDBC driver
-                - wget https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
                 - unzip ./Db2JdbcDriver.zip
 
                 # Install the Informix JDBC driver
-                - wget https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
                 - unzip ./InformixJdbcDriver.zip
                 - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
@@ -344,28 +348,30 @@ pipelines:
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
                 - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
-            - step:
-                name: Update API Bundle
-                caches:
-                    - oneview-dev-update-bundle-dependencies
-                script:
-                # Setup virtual environment
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-                # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-                - aws configure set profile.apigw.region us-east-1
-                - aws configure set profile.apigw.output json
-                - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
-
-                # Create the code bundle
-                - export ENABLE_FEATURE_DEV=True
-                - bash Deploy/Master/create-bundle OneView/API
-
-                # Upload the code bundle
-                - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
+            # - step:
+            #     name: Update API Bundle
+            #     caches:
+            #         - oneview-dev-update-bundle-dependencies
+            #     script:
+            #     # Setup virtual environment
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #
+            #     # Assume maintenance role
+            #     - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            #     - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            #     - aws configure set profile.apigw.region us-east-1
+            #     - aws configure set profile.apigw.output json
+            #     - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+            #
+            #     # Create the code bundle
+            #     - export ENABLE_FEATURE_DEV=True
+            #     - bash Deploy/Master/create-bundle OneView/API
+            #
+            #     # Upload the code bundle
+            #     - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            #     - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
         - parallel:
             # - step:
             #     name: Migrate Database

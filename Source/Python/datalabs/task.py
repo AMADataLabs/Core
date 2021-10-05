@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 import logging
 import os
 
-from   datalabs.access.database import Database
 from   datalabs.access.parameter.etcd import EtcdEnvironmentLoader
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.parameter import ParameterValidatorMixin
@@ -11,7 +10,7 @@ from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class Task(ParameterValidatorMixin, ABC):
@@ -47,7 +46,7 @@ class Task(ParameterValidatorMixin, ABC):
             LOGGER.info('%s parameters: %s', cls.__name__, parameters)
 
 
-class TaskException(BaseException):
+class TaskException(Exception):
     @property
     def message(self):
         return self.args[0]  # pylint: disable=unsubscriptable-object
@@ -78,7 +77,7 @@ class TaskWrapper(ABC):
             self.task.run()
 
             response = self._handle_success()
-        except TaskException as exception:
+        except Exception as exception:  # pylint: disable=broad-except
             response = self._handle_exception(exception)
 
         return response
@@ -147,16 +146,3 @@ class EnvironmentTaskResolver(TaskResolver):
         task_class_name = os.environ['TASK_CLASS']
 
         return import_plugin(task_class_name)
-
-
-# pylint: disable=abstract-method
-class DatabaseTaskMixin:
-    @classmethod
-    def _get_database(cls, database_class: Database, variables: dict):
-        parameters = {}
-
-        for key, value in variables.items():
-            if key.startswith('DATABASE_'):
-                parameters[key.lower()] = value
-
-        return database_class.from_parameters(parameters, prefix='DATABASE_')

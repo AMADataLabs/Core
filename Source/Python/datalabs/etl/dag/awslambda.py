@@ -7,6 +7,7 @@ import os
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
+from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.etl.dag.state import Status
 from   datalabs.etl.dag.plugin import PluginExecutorMixin
 import datalabs.etl.dag.task
@@ -157,7 +158,10 @@ class DAGTaskWrapper(
         parameters.update(self.DAG_PARAMETERS)
         parameters = self._get_validated_parameters(parameters)
 
-        if parameters.task != "DAG":
+        if parameters.task == "DAG":
+            for task in self.task.triggered_tasks:
+                self._notify_task_processor(task)
+        else:
             state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
 
             state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FINISHED)
@@ -199,9 +203,14 @@ class DAGTaskWrapper(
 
         return dag_task_parameters
 
-    def _notify_dag_processor(self):
-        if self._get_task_id() != "DAG":
-            dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
-            notifier = SNSDAGNotifier(dag_topic)
+    def _notify_task_processor(self, task):
+        task_topic = self._runtime_parameters["TASK_TOPIC_ARN"]
+        notifier = SNSTaskNotifier(task_topic)
 
-            notifier.notify(self._get_dag_id(), self._get_execution_time())
+        notifier.notify(self._get_dag_id(), task, self._get_execution_time())
+
+    def _notify_dag_processor(self):
+        dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
+        notifier = SNSDAGNotifier(dag_topic)
+
+        notifier.notify(self._get_dag_id(), self._get_execution_time())
