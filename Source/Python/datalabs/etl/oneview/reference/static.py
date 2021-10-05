@@ -19,8 +19,8 @@ profit_status = {
 
 
 owner_status = {
-    'id': ['INDEPENDENT', 'NOT INDEPENDENT', 'UNKNOWN'],
-    'description': ['Independent', 'Not Independent', 'Unknown']
+    'id': ['INDEPENDENT', 'NOT INDEPENDENT', 'ALLIED', 'UNKNOWN'],
+    'description': ['Independent', 'Not Independent', 'Allied', 'Unknown']
 }
 
 
