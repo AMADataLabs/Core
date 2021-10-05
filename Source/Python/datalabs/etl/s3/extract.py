@@ -30,10 +30,9 @@
     a new temporary role (previously would've been set as the 'apigw' profile). Then the Extract process
     will carry on with the temporary role just assumed.
 """
+from   dataclasses import dataclass
 import logging
 import tempfile
-
-from   dataclasses import dataclass
 
 from   dateutil.parser import isoparse
 
@@ -66,8 +65,8 @@ class S3FileExtractorParameters:
     include_datestamp: str = None
     execution_time: str = None
     on_disk: str = False
-    data: object = None
     assume_role: str = None
+    data: object = None
 
 
 # pylint: disable=too-many-ancestors

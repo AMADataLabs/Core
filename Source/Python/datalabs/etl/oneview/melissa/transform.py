@@ -22,17 +22,15 @@ class MelissaTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_zip_code_primary_keys(cls, data):
-        zip_code_primary_keys = [str(column['ZIP']) + str(column['CITY_CD']) for index, column in data.iterrows()]
-        data['id'] = zip_code_primary_keys
+        data['id'] = data['ZIP'].astype(str) + data['CITY_CD'].astype(str)
 
         return data
 
     @classmethod
     def _generate_area_code_primary_keys(cls, data):
-        area_code_primary_keys = [str(column['AREA_CD']) + str(column['PREFIX']) for index, column in data.iterrows()]
-        data['id'] = area_code_primary_keys
+        data['id'] = data['AREA_CD'].astype(str) + data['PREFIX'].astype(str)
 
-        return data
+        return data.drop_duplicates(subset=['id'], ignore_index=True)
 
     def _get_columns(self):
         return [

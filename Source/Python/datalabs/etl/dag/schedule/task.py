@@ -66,6 +66,12 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
     @classmethod
     def _generate_notification_messages(cls, dags):
         message_data = dags[["name", "execution_time"]].rename(columns=dict(name="dag")).astype(str)
+        message_data.execution_time.replace(
+            to_replace='([0-9]{4}-[0-9]{2}-[0-9]{2})$',
+            value=r'\1 00:00:00',
+            regex=True,
+            inplace=True
+        )
         messages = [row[1].to_json() for row in message_data.iterrows()]
 
         return pickle.dumps(messages)

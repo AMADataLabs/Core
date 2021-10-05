@@ -2,7 +2,7 @@
 import logging
 import pandas
 
-from   datalabs.etl.oneview.residency.column import PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS
+import datalabs.etl.oneview.residency.column as col
 from   datalabs.etl.oneview.transform import TransformerTask
 
 logging.basicConfig()
@@ -18,32 +18,52 @@ class ResidencyTransformerTask(TransformerTask):
 
     # pylint: disable=too-many-arguments
     def _preprocess_data(self, data):
-        programs = data[0]
+        programs, addresses, program_personnel, program_institution, institution_info = data
 
-        addresses = data[1]
-        addresses.pgm_id = addresses.pgm_id.astype(str)
-
-        program_personnel = data[2]
-        program_personnel.pgm_id = program_personnel.pgm_id.astype(str)
-
-        program_institution = data[3]
-        program_institution.pgm_id = program_institution.pgm_id.astype(str)
-        program_institution.ins_id = program_institution.ins_id.astype(str)
-
-        institution_info = data[4]
+        addresses, program_personnel, program_institution = self._convert_ids_to_strings(
+            addresses,
+            program_personnel,
+            program_institution
+        )
 
         programs, addresses, program_personnel, program_institution, institution_info = self._select_values(
-            programs, addresses, program_personnel, program_institution, institution_info
+            programs,
+            addresses,
+            program_personnel,
+            program_institution,
+            institution_info
         )
-        program_information, institution_info, program_personnel = self._merge_dataframes(programs,
-                                                                                          addresses,
-                                                                                          institution_info,
-                                                                                          program_institution,
-                                                                                          program_personnel
-                                                                                          )
+
+        programs, program_personnel, institution_info = self._merge_dataframes(
+            programs,
+            addresses,
+            program_personnel,
+            program_institution,
+            institution_info
+        )
+
+        programs, program_personnel, institution_info = self._set_defaults(
+            programs,
+            program_personnel,
+            institution_info
+        )
+
+        programs = self._convert_integers_to_booleans(programs)
+        programs = self._filter_out_values(programs, institution_info)
+
         program_personnel = self._generate_primary_keys(program_personnel)
 
-        return [program_information, program_personnel, institution_info]
+        return [programs, program_personnel, institution_info]
+
+    @classmethod
+    def _convert_ids_to_strings(cls, addresses, program_personnel, program_institution):
+        addresses.pgm_id = addresses.pgm_id.astype(str)
+
+        program_personnel.pgm_id = program_personnel.pgm_id.astype(str)
+
+        program_institution = program_institution.astype({'pgm_id': str, 'ins_id': str})
+
+        return addresses, program_personnel, program_institution
 
     @classmethod
     def _select_values(cls, programs, addresses, program_personnel, program_institution, institution_info):
@@ -64,28 +84,69 @@ class ResidencyTransformerTask(TransformerTask):
         return programs, addresses, program_personnel_member, program_institution, institution_info
 
     @classmethod
-    def _merge_dataframes(cls, programs, addresses, institution_info, program_institution, program_personnel):
-        program_information = programs.merge(addresses, on='pgm_id', how='left')
-        program_information = program_information.merge(program_institution[
-                                                            ['pgm_id', 'ins_id', 'pri_clinical_loc_ind']
-                                                        ], on='pgm_id', how='left')
+    def _merge_dataframes(cls, programs, addresses, program_personnel, program_institution, institution_info):
+        programs = programs.merge(addresses, on='pgm_id', how='left')
+        programs = programs.merge(
+            program_institution[['pgm_id', 'ins_id', 'pri_clinical_loc_ind']],
+            on='pgm_id',
+            how='left'
+        )
 
-        institution_info = institution_info.merge(program_institution[['ins_id']],
-                                                  on='ins_id', how='left').drop_duplicates()
-        institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
-            value=pandas.to_datetime('01/01/1970'))
+        institution_info = institution_info.merge(
+            program_institution[['ins_id']],
+            on='ins_id',
+            how='left'
+        ).drop_duplicates()
 
-        program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
-            value=pandas.to_datetime('01/01/1970'))
-
-        return program_information, institution_info, program_personnel
+        return programs, program_personnel, institution_info
 
     @classmethod
-    def _generate_primary_keys(cls, dataframe):
-        primary_keys = [str(column['pgm_id']) + str(column['aamc_id']) for index, column in dataframe.iterrows()]
-        dataframe['id'] = primary_keys
+    def _set_defaults(cls, programs, program_personnel, institution_info):
+        programs['pgm_chg_size'] = programs['pgm_chg_size'].fillna(value=0)
+        programs = programs.fillna({column: 0 for column in col.PROGRAM_BOOLEAN_COLUMNS})
+        programs['pgm_init_accred_dt'] = programs['pgm_init_accred_dt'].fillna(
+            value=pandas.to_datetime('01/01/1970')
+        )
+        programs['pgm_accred_eff_dt'] = programs['pgm_accred_eff_dt'].fillna(
+            value=pandas.to_datetime('01/01/1970')
+        )
+        program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
+            value=pandas.to_datetime('01/01/1970')
+        )
+        institution_info = institution_info.append(pandas.DataFrame.from_dict({'ins_id': ['00'], 'ins_name': [''],
+                                                                               'ins_affiliation_type': [''],
+                                                                               'last_upd_dt': ['01/01/1970']}))
+        institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
+            value=pandas.to_datetime('01/01/1970')
+        )
 
-        return dataframe
+        programs['ins_id'] = programs['ins_id'].fillna(value='00')
+        programs['last_upd_dt_x'] = programs['last_upd_dt_x'].fillna(
+            value=pandas.to_datetime('01/01/1970')
+        )
+        programs = programs.fillna('')
+
+        return programs, program_personnel, institution_info
+
+    @classmethod
+    def _convert_integers_to_booleans(cls, programs):
+        programs = programs.astype({column: 'int' for column in col.PROGRAM_BOOLEAN_COLUMNS})
+        programs = programs.astype({column: 'boolean' for column in col.PROGRAM_BOOLEAN_COLUMNS})
+
+        return programs
+
+    @classmethod
+    def _filter_out_values(cls, programs, institutions):
+        unaccounted_values = list(set(programs.ins_id.to_list()) - set(institutions.ins_id.to_list()))
+        programs = programs[~programs['ins_id'].isin(unaccounted_values)]
+
+        return programs
+
+    @classmethod
+    def _generate_primary_keys(cls, program_personnel):
+        program_personnel['id'] = program_personnel['pgm_id'].astype(str) + program_personnel['aamc_id'].astype(str)
+
+        return program_personnel
 
     def _get_columns(self):
-        return [PROGRAM_COLUMNS, MEMBER_COLUMNS, INSTITUTION_COLUMNS]
+        return [col.PROGRAM_COLUMNS, col.MEMBER_COLUMNS, col.INSTITUTION_COLUMNS]

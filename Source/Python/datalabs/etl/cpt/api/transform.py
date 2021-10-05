@@ -2,15 +2,14 @@
 from   enum import Enum
 from   dataclasses import dataclass
 from   datetime import datetime, date
-
 import io
 import logging
+import pickle
 
 import pandas
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.transform import TransformerTask
-import datalabs.task as task
 
 import datalabs.model.cpt.api as dbmodel
 
@@ -68,14 +67,14 @@ class ReleaseScheduleType(Enum):
     PLA = 'PLA'
 
 
-class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMixin):
+class CSVToRelationalTablesTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug(
             '%s parameters (sans data): %s', self.__class__.__name__,
             {key:value for key, value in self._parameters.items() if key != 'data'}
         )
 
-        _, data = zip(*self._parameters['data'])  # unpack the (filename, data) tuples
+        _, data = zip(*pickle.loads(self._parameters['data'][0]))  # unpack the (filename, data) tuples
         input_data = InputData(*[pandas.read_csv(io.StringIO(text)) for text in data])
 
         return self._generate_tables(input_data)
@@ -401,7 +400,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMix
         return release_schedules_map
 
     def _extract_release_schedules(self):
-        with self._get_database(Database, self._parameters) as database:
+        with self._get_database() as database:
             # pylint: disable=no-member
             release_types = database.query(dbmodel.ReleaseType).all()
 
@@ -421,3 +420,6 @@ class CSVToRelationalTablesTransformerTask(TransformerTask, task.DatabaseTaskMix
         modifiers.loc[modifiers.modifier.isin(general_modifiers), 'general'] = True
 
         return modifiers.drop(index=duplicate_modifiers.index)
+
+    def _get_database(self):
+        Database.from_parameters(self._parameters, prefix='DATABASE_')

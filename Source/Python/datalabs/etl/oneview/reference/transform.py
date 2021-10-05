@@ -1,15 +1,15 @@
 """ OneView Reference Transformer"""
 import csv
+from   io import BytesIO
 import logging
+
 import pandas
 
-from   datalabs.etl.oneview.reference.column import MPA_COLUMNS, TOP_COLUMNS, PE_COLUMNS, CBSA_COLUMNS,\
-    SPECIALTY_MERGED_COLUMNS, FIPSC_COLUMNS, PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, \
-    OWNER_STATUS, COT_SPECIALTY, COT_FACILITY, STATE
+import datalabs.etl.oneview.reference.column as col
 
 from   datalabs.etl.oneview.transform import TransformerTask
 
-import datalabs.etl.oneview.reference.static as tables
+import datalabs.etl.oneview.reference.static as static
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -18,74 +18,89 @@ LOGGER.setLevel(logging.DEBUG)
 
 class MajorProfessionalActivityTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [MPA_COLUMNS]
+        return [col.MPA_COLUMNS]
 
 
 class TypeOfPracticeTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [TOP_COLUMNS]
+        return [col.TOP_COLUMNS]
 
 
 class PresentEmploymentTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [PE_COLUMNS]
+        return [col.PE_COLUMNS]
 
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
+    @classmethod
+    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
+        cbsa = pandas.read_excel(BytesIO(data))
+
+        codes = cbsa.iloc[2:-4, 0]
+        titles = cbsa.iloc[2:-4, 3]
+
+        table = pandas.DataFrame(data={'CBSA Code': codes, 'CBSA Title': titles}).drop_duplicates()
+        table = table.append({'CBSA Code': '00000', 'CBSA Title': 'Unknown/Not Specified'}, ignore_index=True)
+
+        return table
+
     def _get_columns(self):
-        return [CBSA_COLUMNS]
+        return [col.CBSA_COLUMNS]
 
 
 class SpecialtyMergeTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
-        filtered_specialty_data = data[0].loc[
-            data[0]['SPEC_CD'].isin(data[1]['PRIMSPECIALTY']) | data[0]['SPEC_CD'].isin(data[1]['SECONDARYSPECIALTY'])
-        ].reset_index(drop=True)
+        specialties, physicians = data
+
+        specialties.SPEC_CD = specialties.SPEC_CD = specialties.SPEC_CD.str.strip()
+
+        filtered_specialty_data = specialties.loc[
+            specialties['SPEC_CD'].isin(physicians['primary_specialty']) \
+            | specialties['SPEC_CD'].isin(physicians['secondary_specialty'])
+            ].reset_index(drop=True)
 
         return [filtered_specialty_data]
 
     def _get_columns(self):
-        return [SPECIALTY_MERGED_COLUMNS]
+        return [col.SPECIALTY_MERGED_COLUMNS]
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     # pylint: disable=unused-argument
     @classmethod
     def _csv_to_dataframe(cls, data, on_disk, **kwargs):
-        return pandas.read_excel(data, skiprows=4, dtype=str, engine='openpyxl', **kwargs)
+        page_tables = pandas.read_html(data, converters={'FIPS': str}, **kwargs)
+
+        return page_tables[1]
 
     def _preprocess_data(self, data):
-        fips_selected_data = self.set_columns(data[0])
+        fips = data[0]
+        fips['state'] = fips.FIPS.str[:2]
+        fips['county'] = fips.FIPS.str[2:]
+        fips['description'] = fips[['County or equivalent', 'State or equivalent']].apply(
+            lambda row: ', '.join(row.values),
+            axis=1
+        )
+        fips.description = fips.description.str.replace(r'\[.\]', '')
 
-        primary_keys = [str(column['State Code (FIPS)']) + str(column['County Code (FIPS)'])
-                        for index, column in fips_selected_data.iterrows()]
-        fips_selected_data['id'] = primary_keys
-
-        return [fips_selected_data]
+        return [fips]
 
     @classmethod
-    def set_columns(cls, fips_data):
-        fips_data = fips_data.loc[
-            (fips_data['Summary Level'] == '050') |
-            (fips_data['Summary Level'] == '040') |
-            (fips_data['Summary Level'] == '010')
-        ].reset_index(drop=True)
+    def _postprocess_data(cls, data):
+        fips = data[0]
+        fips_supplement = pandas.DataFrame(data=static.fips_supplement)
+        supplemented_fips = pandas.concat([fips, fips_supplement], ignore_index=True)
 
-        return fips_data
+        return [supplemented_fips]
 
     def _get_columns(self):
-        return [FIPSC_COLUMNS]
+        return [col.FIPSC_COLUMNS]
 
 
 class StaticReferenceTablesTransformerTask(TransformerTask):
     def _transform(self):
         on_disk = bool(self._parameters.get("on_disk") and self._parameters["on_disk"].upper() == 'TRUE')
-
-        table_data = [self._dictionary_to_dataframe(data) for data in [tables.provider_affiliation_group,
-                                                                       tables.provider_affiliation_type,
-                                                                       tables.profit_status,
-                                                                       tables.owner_status]
-                      ]
+        table_data = [pandas.DataFrame.from_dict(table) for table in static.tables]
 
         preprocessed_data = self._preprocess_data(table_data)
         selected_data = self._select_columns(preprocessed_data)
@@ -94,31 +109,60 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
 
         return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
-    @classmethod
-    def _dictionary_to_dataframe(cls, data):
-        return pandas.DataFrame.from_dict(data)
-
     def _get_columns(self):
-        return [PROVIDER_AFFILIATION_GROUP, PROVIDER_AFFILIATION_TYPE, PROFIT_STATUS, OWNER_STATUS]
+        return [col.PROVIDER_AFFILIATION_GROUP, col.PROVIDER_AFFILIATION_TYPE, col.PROFIT_STATUS, col.OWNER_STATUS]
 
 
 class ClassOfTradeTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         class_of_trade_data = data[0]
 
-        classification_data = class_of_trade_data['CLASSIFICATION_ID', 'CLASSIFICATION']
-        specialty_data = class_of_trade_data['SPECIALTY_ID', 'SPECIALTY']
-        facility_data = class_of_trade_data['FACILITY_TYPE_ID', 'FACILITY_TYPE']
+        classification_data = class_of_trade_data[['CLASSIFICATION_ID', 'CLASSIFICATION']]
+        specialty_data = class_of_trade_data[['SPECIALTY_ID', 'SPECIALTY']]
+        facility_data = class_of_trade_data[['FACILITY_TYPE_ID', 'FACILITY_TYPE']]
 
+        specialty_data = specialty_data.append(
+            pandas.DataFrame(
+                data={'SPECIALTY_ID': ['Unknown/Not Specified'], 'SPECIALTY': ['']}
+            )
+        )
+        specialty_data = specialty_data.append(
+            pandas.DataFrame(
+                data={'SPECIALTY_ID': ['219'], 'SPECIALTY': ['Other']}
+            )
+        )
+        facility_data = facility_data.append(
+            pandas.DataFrame(
+                data={'FACILITY_TYPE_ID': ['53'], 'FACILITY_TYPE': ['Warehouse']}
+            )
+        )
         return [specialty_data, facility_data, classification_data]
-
-    def _get_columns(self):
-        return [COT_SPECIALTY, COT_FACILITY]
 
     def _postprocess_data(self, data):
         return [dataframe.drop_duplicates() for dataframe in data]
 
+    def _get_columns(self):
+        return [col.COT_SPECIALTY, col.COT_FACILITY, col.COT_CLASSIFICATION]
+
 
 class StateTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [STATE]
+        return [col.STATE]
+
+
+class MedicalSchoolTransformerTask(TransformerTask):
+    def _preprocess_data(self, data):
+        """ TEMPORARY DATA CLEANUP (remove when data source is fixed) """
+        medical_schools = data[0]
+
+        cleaned_medical_schools = medical_schools[
+            ~(
+                    (medical_schools.KEY_VAL == '56003') & \
+                    (medical_schools.ORG_NM == 'Bar-Ilan University Faculty of Medicine in the Galilee')
+            )
+        ]
+
+        return [cleaned_medical_schools]
+
+    def _get_columns(self):
+        return [col.MEDICAL_SCHOOL]
