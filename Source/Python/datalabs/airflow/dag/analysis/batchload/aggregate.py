@@ -8,7 +8,6 @@ from kubernetes.client import models as k8s
 
 
 ### Configuration Bootstraping ###
-DAG_ID = 'ADDRESS_LOAD_AGGREGATION'
 DAG_ID = 'address_load_aggregation'
 DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
 IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
