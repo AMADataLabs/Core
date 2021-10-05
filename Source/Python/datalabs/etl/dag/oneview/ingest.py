@@ -10,8 +10,8 @@ from   datalabs.etl.oneview.credentialing.transform import \
 from   datalabs.etl.oneview.historical_resident.transform import HistoricalResidentTransformerTask
 from   datalabs.etl.oneview.iqvia.transform import IQVIATransformerTask, IQVIAUpdateTransformerTask
 from   datalabs.etl.oneview.link.transform import \
-    CredentialingCustomerInstitutionTransformerTask, \
-    CredentialingCustomerBusinessTransformerTask
+    # CredentialingCustomerInstitutionTransformerTask, \  # v2
+    # CredentialingCustomerBusinessTransformerTask  # v2
 from  datalabs.etl.oneview.link.transform import ResidencyProgramPhysicianTransformerTask
 from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
 # from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransformerTask
@@ -128,8 +128,8 @@ class OneViewDAG(DAG):
     LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES: ORMLoaderTask
     LOAD_CREDENTIALING_ORDER_TABLE: ORMLoaderTask
     MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE: CredentialingFinalTransformerTask
-    CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE: CredentialingCustomerInstitutionTransformerTask
-    CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TABLE: CredentialingCustomerBusinessTransformerTask
+    # CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE: CredentialingCustomerInstitutionTransformerTask  # v2
+    # CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TABLE: CredentialingCustomerBusinessTransformerTask  # v2
     LOAD_LINKING_TABLES: ORMLoaderTask
 
     EXTRACT_HISTORICAL_RESIDENT: SFTPFileExtractorTask
@@ -243,7 +243,11 @@ OneViewDAG.LOAD_STATIC_REFERENCE_TABLE >> OneViewDAG.LOAD_IQVIA_BUSINESS_PROVIDE
 OneViewDAG.EXTRACT_CREDENTIALING >> OneViewDAG.EXTRACT_CREDENTIALING_ADDRESSES \
     >> OneViewDAG.MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE \
     >> OneViewDAG.LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES \
-    >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE
+    >> OneViewDAG.SPLIT_CREDENTIALING_ORDER_TABLE \
+    >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_1
+
+OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_1 >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_2 \
+    >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_3
 
 # OneViewDAG.LOAD_PHYSICIAN_TABLE_6 >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE
 
