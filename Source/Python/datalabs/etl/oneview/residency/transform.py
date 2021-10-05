@@ -49,7 +49,7 @@ class ResidencyTransformerTask(TransformerTask):
         )
 
         programs = self._convert_integers_to_booleans(programs)
-        programs = self._filter_out_values(programs, institution_info)
+        programs, program_personnel = self._filter_out_values(programs, institution_info, program_personnel)
 
         program_personnel = self._generate_primary_keys(program_personnel)
 
@@ -120,7 +120,6 @@ class ResidencyTransformerTask(TransformerTask):
             value=pandas.to_datetime('01/01/1970')
         )
 
-        programs['ins_id'] = programs['ins_id'].fillna(value='00')
         programs['last_upd_dt_x'] = programs['last_upd_dt_x'].fillna(
             value=pandas.to_datetime('01/01/1970')
         )
@@ -136,17 +135,25 @@ class ResidencyTransformerTask(TransformerTask):
         return programs
 
     @classmethod
-    def _filter_out_values(cls, programs, institutions):
+    def _filter_out_values(cls, programs, institutions, program_personnel):
         unaccounted_values = list(set(programs.ins_id.to_list()) - set(institutions.ins_id.to_list()))
         programs = programs[~programs['ins_id'].isin(unaccounted_values)]
 
-        return programs
+        unaccounted_values = list(set(program_personnel.pgm_id.to_list()) - set(programs.pgm_id.to_list()))
+        program_personnel = program_personnel[~program_personnel['pgm_id'].isin(unaccounted_values)]
+
+        return programs, program_personnel
 
     @classmethod
     def _generate_primary_keys(cls, program_personnel):
         program_personnel['id'] = program_personnel['pgm_id'].astype(str) + program_personnel['aamc_id'].astype(str)
 
         return program_personnel
+
+    def _postprocess_data(self, data):
+        program = data[0]
+        program = program[program['institution'].notna()]
+        return [program, data[1], data[2]]
 
     def _get_columns(self):
         return [col.PROGRAM_COLUMNS, col.MEMBER_COLUMNS, col.INSTITUTION_COLUMNS]
