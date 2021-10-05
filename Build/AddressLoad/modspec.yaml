@@ -11,27 +11,26 @@
 modspec:
   - package: datalabs
     include:
-      - feature
       - parameter
       - plugin
       - task
   - package: datalabs.access
     include:
-      - aws
       - credentials
       - database
       - datastore
       - environment
-      - excel
       - etcd
+      - sftp
   - package: datalabs.access.parameter
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.state
-  - package: datalabs.etl.jdbc
-  - package: datalabs.etl.s3
-  - package: datalabs.analysis.amc
-  - package: datalabs.messaging
+  - package: datalabs.etl.sftp
     include:
-      - email_message
+      - extract
+      - load
+  - package: datalabs.analysis.address.batchload
+    include:
+      - transform

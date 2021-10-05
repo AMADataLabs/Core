@@ -56,7 +56,6 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
             base_path = os.path.dirname(file_parts[0])
             unresolved_file = f'{os.path.basename(file_parts[0])}*{file_parts[1]}'
             matched_files = self._client.list(base_path, filter=unresolved_file)
-
             resolved_files = [os.path.join(base_path, file) for file in matched_files]
 
             if len(resolved_files) == 0:
