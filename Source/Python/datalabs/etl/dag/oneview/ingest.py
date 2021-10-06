@@ -2,16 +2,15 @@
 from   datalabs.etl.dag.dag import DAG
 # from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
-# from   datalabs.etl.manipulate.transform import SplitTransformerTask
+from   datalabs.etl.manipulate.transform import SplitTransformerTask
 # from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 from   datalabs.etl.oneview.credentialing.transform import \
     CredentialingTransformerTask, \
     CredentialingFinalTransformerTask
 from   datalabs.etl.oneview.historical_resident.transform import HistoricalResidentTransformerTask
 from   datalabs.etl.oneview.iqvia.transform import IQVIATransformerTask, IQVIAUpdateTransformerTask
-# from   datalabs.etl.oneview.link.transform import \
-    # CredentialingCustomerInstitutionTransformerTask, \  # v2
-    # CredentialingCustomerBusinessTransformerTask  # v2
+# from   datalabs.etl.oneview.link.transform import
+#     CredentialingCustomerInstitutionTransformerTask, CredentialingCustomerBusinessTransformerTask  # v2
 from  datalabs.etl.oneview.link.transform import ResidencyProgramPhysicianTransformerTask
 from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
 # from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransformerTask
@@ -125,9 +124,14 @@ class OneViewDAG(DAG):
     EXTRACT_CREDENTIALING: SFTPFileExtractorTask
     EXTRACT_CREDENTIALING_ADDRESSES: SFTPFileExtractorTask
     CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES: CredentialingTransformerTask
-    LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES: ORMLoaderTask
-    LOAD_CREDENTIALING_ORDER_TABLE: ORMLoaderTask
     MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE: CredentialingFinalTransformerTask
+    SPLIT_CREDENTIALING_ORDER_TABLE: SplitTransformerTask
+
+    LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES: ORMLoaderTask
+    LOAD_CREDENTIALING_ORDER_TABLE_1: ORMLoaderTask
+    LOAD_CREDENTIALING_ORDER_TABLE_2: ORMLoaderTask
+    LOAD_CREDENTIALING_ORDER_TABLE_3: ORMLoaderTask
+
     # CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE: CredentialingCustomerInstitutionTransformerTask  # v2
     # CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TABLE: CredentialingCustomerBusinessTransformerTask  # v2
     LOAD_LINKING_TABLES: ORMLoaderTask

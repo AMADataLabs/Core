@@ -27,7 +27,8 @@ class IQVIATransformerTask(TransformerTask):
 
         return [business, provider, provider_affiliation]
 
-    def _set_null_values(self, business, provider_affiliation):
+    @classmethod
+    def _set_null_values(cls, business, provider_affiliation):
         business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].fillna(value='-1')
 
         business['PROFIT_STATUS'] = business['PROFIT_STATUS'].fillna(value='UNKNOWN')
@@ -40,7 +41,8 @@ class IQVIATransformerTask(TransformerTask):
 
         return business, provider_affiliation
 
-    def _set_unaccounted_values(self, business):
+    @classmethod
+    def _set_unaccounted_values(cls, business):
         business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].astype(str).replace('.0', '', regex=True)
         business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].replace(['0', '1', '2', '4', '5',
                                                                              '6', '7', '8', '9', '229', '129', '224',

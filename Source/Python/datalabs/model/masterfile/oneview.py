@@ -460,7 +460,8 @@ class HistoricalResident(BASE):
     __tablename__ = 'historical_resident'
     __table_args__ = {"schema": SCHEMA}
 
-    medical_education_number = sa.Column(sa.String, primary_key=True, nullable=False)
+    id = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"), primary_key=True)
+    medical_education_number = sa.Column(sa.String, nullable=False)
     institution_code = sa.Column(sa.String, nullable=False)
     specialty = sa.Column(sa.String, nullable=False)
     training_type = sa.Column(sa.String, nullable=False)
