@@ -563,15 +563,14 @@ data:
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_FILES: 'residency_program.csv, residency_address.csv, residency_program_personnel_member.csv,residency_program_institution.csv,residency_institution_information.csv'
+    ONEVIEW__EXTRACT_RESIDENCY__CACHE_OUTPUT_FILES: 'residency_program.psv, residency_address.psv, residency_program_personnel_member.psv,residency_program_institution.psv,residency_institution_information.psv'
 
     # Residency Transformer
     ONEVIEW__CREATE_RESIDENCY_TABLES__CACHE_CLASS: ${S3_CACHE_CLASS}
     ONEVIEW__CREATE_RESIDENCY_TABLES__CACHE_BASE_PATH: ${S3_BASE_PATH}
-
     ONEVIEW__CREATE_RESIDENCY_TABLES__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    ONEVIEW__CREATE_RESIDENCY_TABLES__CACHE_INPUT_FILES: 'residency_program.psv, residency_address.psv, residency_program_personnel_member.psv,residency_program_institution.psv,residency_institution_information.psv'
     ONEVIEW__CREATE_RESIDENCY_TABLES__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-    ONEVIEW__CREATE_RESIDENCY_TABLES__CACHE_INPUT_FILES: 'residency_program.csv, residency_address.csv, residency_program_personnel_member.csv,residency_program_institution.csv,residency_institution_information.csv'
     ONEVIEW__CREATE_RESIDENCY_TABLES__CACHE_OUTPUT_FILES: 'residency_program.csv,residency_program_personnel_member.csv,residency_program_institution.csv'
 
     # ResidencyTables Loader
