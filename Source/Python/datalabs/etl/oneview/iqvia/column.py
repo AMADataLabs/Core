@@ -49,8 +49,8 @@ BUSINESS_COLUMNS = {
 }
 
 PROVIDER_COLUMNS = {
-    'PROFESSIONAL_ID': 'id',
     'ME': 'medical_education_number',
+    'PROFESSIONAL_ID': 'iqvia_provider_id',
     'FIRST_NAME': 'first_name',
     'MIDDLE_NAME': 'middle_name',
     'LAST_NAME': 'last_name',
@@ -63,7 +63,7 @@ PROVIDER_COLUMNS = {
     'TERTIARY_SPEC': 'tertiary_specialty',
     'PRIMARY_PROF_CODE': 'primary_profession',
     'PRIMARY_PROF_DESC': 'primary_profession_description',
-    'UPIN': 'unique_physician_identification_number ',
+    'UPIN': 'unique_physician_identification_number',
     'NPI': 'national_provider_identifier',
     'STATUS_DESC': 'status_description',
     'BATCH_BUSINESS_DATE': 'batch_business_date'
