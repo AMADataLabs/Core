@@ -44,8 +44,8 @@ ADDRESS_LOAD_AGGREGATION_DAG = DAG(
 
 with ADDRESS_LOAD_AGGREGATION_DAG:
     EXTRACT_ADDRESS_LOAD = KubernetesPodOperator(
-        name="address_load_aggregation",
-        task_id="address_load_aggregation",
+        name="extract_address_load",
+        task_id="extract_address_load",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[EFT_SECRET],
