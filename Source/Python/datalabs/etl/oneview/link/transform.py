@@ -45,9 +45,7 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, data):
-        primary_keys = [str(column['number']) + str(column['id'])
-                        for index, column in data.iterrows()]
-        data['pk'] = primary_keys
+        data['pk'] = data.number.astype(str) + data.id.astype(str)
 
         return data
 
@@ -79,9 +77,7 @@ class CredentialingCustomerInstitutionTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, data):
-        primary_keys = [str(column['number']) + str(column['institution'])
-                        for index, column in data.iterrows()]
-        data['pk'] = primary_keys
+        data['pk'] = data.number.astype(str) + data.institution.astype(str)
 
         return data
 
@@ -187,7 +183,7 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, data):
-        data['id'] = data['personnel_member'].astype(str) + data['medical_education_number'].astype(str)
+        data['pk'] = data.personnel_member.astype(str) + data.medical_education_number.astype(str)
 
         return data
 

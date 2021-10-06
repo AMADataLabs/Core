@@ -14,12 +14,13 @@ class HistoricalResidentTransformerTask(TransformerTask):
     def _csv_to_dataframe(cls, data, on_disk, **kwargs):
         return super()._csv_to_dataframe(data, on_disk, sep='|')
 
-    def _preprocess_data(self, data):
+    @classmethod
+    def _postprocess_data(cls, data):
         historical_resident = data[0]
 
-        primary_keys = list(range(len(historical_resident)))
+        historical_resident['id'] = data.medical_education_number.astype(str) + data.start_year.astype(str)
 
-        historical_resident['id'] = primary_keys
+        return data
 
         return historical_resident
 
