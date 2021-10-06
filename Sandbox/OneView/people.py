@@ -11,9 +11,12 @@ def get_directors():
     directors = directors.fillna('None')
     directors['FIRST_NAME'] = [x.upper() for x in directors.pers_name_first]
     directors['LAST_NAME'] = [x.upper() for x in directors.pers_name_last]
-    directors = directors[directors.aamc_id != 'None'].sort_values(
-        ['survey_cycle']).drop_duplicates(['aamc_id'], keep='last')
-    return directors
+    identifying_fields = ['pers_name_last','pers_name_first','pers_name_mid','pers_deg1','pers_deg2','pers_deg3']
+    unique_directors = directors.drop_duplicates(identifying_fields).sort_values('pers_name_last')
+    unique_directors = unique_directors[identifying_fields]
+    unique_directors['person_id'] = list(range(len(unique_directors)))
+    directors = pd.merge(directors, unique_directors, on = [identifying_fields])
+    return directors, unique_directors
 
 def get_ppd():
     '''Grab and transform ppd'''
@@ -26,9 +29,9 @@ def initial_match(directors, ppd):
     '''Match directors and physicians'''
     all_match = pd.merge(ppd, directors, on=['FIRST_NAME', 'LAST_NAME'])
     pure_match = pd.merge(ppd, directors, on=[
-        'FIRST_NAME', 'LAST_NAME']).drop_duplicates('aamc_id', keep=False)
-    duplicate_matches = all_match[all_match.aamc_id.isin(pure_match.aamc_id) == False]
-    duplicates = directors[directors.aamc_id.isin(duplicate_matches.aamc_id)]
+        'FIRST_NAME', 'LAST_NAME']).drop_duplicates('person_id', keep=False)
+    duplicate_matches = all_match[all_match.person_id.isin(pure_match.person_id) == False]
+    duplicates = directors[directors.person_id.isin(duplicate_matches.person_id)]
     duplicate_matches = duplicate_matches.fillna('None')
     return (pure_match, duplicate_matches, duplicates)
 
@@ -36,7 +39,7 @@ def filter_out_duplicates(duplicates, duplicate_matches):
     '''Remove duplicate matches based on further filtering criteria'''
     matched_dict_list = []
     for row in duplicates.itertuples():
-        new_df = duplicate_matches[duplicate_matches.aamc_id == row.aamc_id]
+        new_df = duplicate_matches[duplicate_matches.person_id == row.person_id]
         if row.pers_deg1 != 'None' and row.pers_deg1 != 'MPH':
             new_df = new_df[new_df.pers_deg1_x == row.pers_deg1]
         if len(new_df) > 1 and row.pers_name_mid != 'None':
@@ -46,18 +49,20 @@ def filter_out_duplicates(duplicates, duplicate_matches):
             else:
                 new_df = new_df[new_df.MIDDLE_NAME == row.pers_name_mid.upper()]
         if len(new_df) == 1:
-            matched_dict_list.append({'aamc_id':row.aamc_id, 'ME': list(new_df.ME)[0]})
+            matched_dict_list.append({'person_id':row.person_id, 'ME': list(new_df.ME)[0]})
     return matched_dict_list
 
 def main():
     '''Create key table'''
     outfile = os.environ.get('OUTFILE')
-    directors = get_directors()
+    directors, unique_directors = get_directors()
     ppd = get_ppd()
-    pure_match, duplicate_matches, duplicates = initial_match(directors, ppd)
+    pure_match, duplicate_matches, duplicates = initial_match(unique_directors, ppd)
     new_matches = filter_out_duplicates(duplicates, duplicate_matches)
     new_match = pd.DataFrame(new_matches)
-    pd.concat([pure_match[['ME', 'aamc_id']], new_match]).to_csv(outfile, index=False)
+    me_person = pd.concat([pure_match[['ME', 'person_id']], new_match])
+    physician_directors = pd.merge(me_person, directors, on='person_id')[['ME','pgm_id']]
+    physician_directors.to_csv(outfile, index=False)
 
 if __name__ == "__main__":
     main()
