@@ -57,7 +57,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
         filtered_specialty_data = specialties.loc[
             specialties['SPEC_CD'].isin(physicians['primary_specialty']) \
             | specialties['SPEC_CD'].isin(physicians['secondary_specialty'])
-            ].reset_index(drop=True)
+        ].reset_index(drop=True)
 
         return [filtered_specialty_data]
 
@@ -114,36 +114,13 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
 
 
 class ClassOfTradeTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        class_of_trade_data = data[0]
+    @classmethod
+    def _preprocess_data(cls, data):
+        classification_data = cls._add_classification_defaults(data[0][['CLASSIFICATION_ID', 'CLASSIFICATION']])
 
-        classification_data = class_of_trade_data[['CLASSIFICATION_ID', 'CLASSIFICATION']]
-        specialty_data = class_of_trade_data[['SPECIALTY_ID', 'SPECIALTY']]
-        facility_data = class_of_trade_data[['FACILITY_TYPE_ID', 'FACILITY_TYPE']]
+        facility_data = cls._add_facility_defaults(data[0][['FACILITY_TYPE_ID', 'FACILITY_TYPE']])
 
-        specialty_data = specialty_data.append(
-            pandas.DataFrame(
-                data={'SPECIALTY_ID': ['Unknown/Not Specified'], 'SPECIALTY': ['']}
-            )
-        )
-        specialty_data = specialty_data.append(
-            pandas.DataFrame(
-                data={'SPECIALTY_ID': ['219'], 'SPECIALTY': ['Other']}
-            )
-        )
-        facility_data = facility_data.append(
-            pandas.DataFrame(
-                data={'FACILITY_TYPE_ID': ['53'], 'FACILITY_TYPE': ['Warehouse']}
-            )
-        )
-        facility_data = facility_data.append(
-            pandas.DataFrame(
-                data={'FACILITY_TYPE_ID': ['Unknown/Not Specified'], 'FACILITY_TYPE': ['']})
-        )
-        classification_data = classification_data.append(
-            pandas.DataFrame(
-                data={'CLASSIFICATION_ID': ['Unknown/Not Specified'], 'CLASSIFICATION': ['']})
-        )
+        specialty_data = cls._add_specialty_defaults(data[0][['SPECIALTY_ID', 'SPECIALTY']])
 
         return [specialty_data, facility_data, classification_data]
 
@@ -152,6 +129,44 @@ class ClassOfTradeTransformerTask(TransformerTask):
 
     def _get_columns(self):
         return [col.COT_SPECIALTY, col.COT_FACILITY, col.COT_CLASSIFICATION]
+
+    @classmethod
+    def _add_classification_defaults(cls, classification_data):
+        classification_data = classification_data.append(
+            pandas.DataFrame(
+                data={'CLASSIFICATION_ID': ['00'], 'CLASSIFICATION': ['Unknown/Not Specified']})
+        )
+
+        return classification_data
+
+    @classmethod
+    def _add_facility_defaults(cls, facility_data):
+        facility_data = facility_data.append(
+            pandas.DataFrame(
+                data={'FACILITY_TYPE_ID': ['53'], 'FACILITY_TYPE': ['Warehouse']}
+            )
+        )
+        facility_data = facility_data.append(
+            pandas.DataFrame(
+                data={'FACILITY_TYPE_ID': ['000'], 'FACILITY_TYPE': ['Unknown/Not Specified']})
+        )
+
+        return facility_data
+
+    @classmethod
+    def _add_specialty_defaults(cls, specialty_data):
+        specialty_data = specialty_data.append(
+            pandas.DataFrame(
+                data={'SPECIALTY_ID': ['000'], 'SPECIALTY': ['Unknown/Not Specified']}
+            )
+        )
+        specialty_data = specialty_data.append(
+            pandas.DataFrame(
+                data={'SPECIALTY_ID': ['219'], 'SPECIALTY': ['Other']}
+            )
+        )
+
+        return specialty_data
 
 
 class StateTransformerTask(TransformerTask):

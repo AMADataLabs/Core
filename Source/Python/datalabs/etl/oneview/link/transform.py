@@ -45,9 +45,7 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, data):
-        primary_keys = [str(column['number']) + str(column['id'])
-                        for index, column in data.iterrows()]
-        data['pk'] = primary_keys
+        data['pk'] = data.number.astype(str) + data.id.astype(str)
 
         return data
 
@@ -79,9 +77,7 @@ class CredentialingCustomerInstitutionTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, data):
-        primary_keys = [str(column['number']) + str(column['institution'])
-                        for index, column in data.iterrows()]
-        data['pk'] = primary_keys
+        data['pk'] = data.number.astype(str) + data.institution.astype(str)
 
         return data
 
@@ -102,37 +98,18 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
         directors = cls._get_directors(data)
         physicians = cls._get_physician(data)
 
-        all_match, pure_match = cls._get_matches(physicians, directors)
+        directors, unique_directors = cls._find_unique(directors)
+        all_match, pure_match = cls._get_matches(physicians, unique_directors)
         duplicate_matches, duplicates = cls._create_duplicate_matches(all_match, pure_match, directors)
+        linking_data = cls._filter_out_duplicates(duplicate_matches, duplicates)
 
-        return cls._filter_out_duplicates(duplicate_matches, duplicates)
-
-    @classmethod
-    def _get_matches(cls, physicians, directors):
-        all_match = pandas.merge(physicians, directors,
-                                 on=['first_name', 'last_name'], suffixes=['_physician', '_residency'])
-        pure_match = pandas.merge(physicians,
-                                  directors,
-                                  on=['first_name', 'last_name'],
-                                  suffixes=['_ppd', '_residency']).drop_duplicates('aamc_id', keep=False)
-
-        return all_match, pure_match
-
-    @classmethod
-    def _create_duplicate_matches(cls, all_match, pure_match, directors):
-        duplicate_matches = all_match[~all_match.aamc_id.isin(pure_match.aamc_id)]
-        duplicates = directors[directors.aamc_id.isin(duplicate_matches.aamc_id)]
-        duplicate_matches = duplicate_matches.fillna('None')
-
-        return duplicate_matches, duplicates
+        return cls._get_programs(linking_data, directors)
 
     @classmethod
     def _get_directors(cls, data):
         data[0] = data[0].fillna('None')
         data[0]['first_name'] = [x.upper() for x in data[0].first_name]
         data[0]['last_name'] = [x.upper() for x in data[0].last_name]
-        data[0] = data[0][data[0].aamc_id != 'None'].sort_values(
-            ['survey_cycle']).drop_duplicates(['aamc_id'], keep='last')
 
         return data[0]
 
@@ -143,20 +120,50 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
         return data[1]
 
     @classmethod
+    def _find_unique(cls, directors):
+        identifying_fields = ['pers_name_last', 'pers_name_first', 'pers_name_mid', 'pers_deg1', 'pers_deg2',
+                              'pers_deg3']
+        unique_directors = directors.drop_duplicates(identifying_fields).sort_values('pers_name_last')
+        unique_directors = unique_directors[identifying_fields]
+        unique_directors['person_id'] = list(range(len(unique_directors)))
+        directors = pandas.merge(directors, unique_directors, on=[identifying_fields])
+
+        return directors, unique_directors
+
+    @classmethod
+    def _get_matches(cls, physicians, directors):
+        all_match = pandas.merge(physicians, directors,
+                                 on=['first_name', 'last_name'], suffixes=['_physician', '_residency'])
+        pure_match = pandas.merge(physicians,
+                                  directors,
+                                  on=['first_name', 'last_name'],
+                                  suffixes=['_ppd', '_residency']).drop_duplicates('person_id', keep=False)
+
+        return all_match, pure_match
+
+    @classmethod
+    def _create_duplicate_matches(cls, all_match, pure_match, directors):
+        duplicate_matches = all_match[~all_match.person_id.isin(pure_match.person_id)]
+        duplicates = directors[directors.person_id.isin(duplicate_matches.person_id)]
+        duplicate_matches = duplicate_matches.fillna('None')
+
+        return duplicate_matches, duplicates
+
+    @classmethod
     def _filter_out_duplicates(cls, duplicate_matches, duplicates):
         matched_dict_list = []
         for row in duplicates.itertuples():
             new_df = cls._merge_filtered_dataframe(row, duplicate_matches)
 
             if len(new_df) == 1:
-                matched_dict_list.append({'aamc_id': row.aamc_id,
+                matched_dict_list.append({'person_id': row.person_id,
                                           'medical_education_number': list(new_df.medical_education_number)[0]})
 
         return pandas.DataFrame(matched_dict_list)
 
     @classmethod
     def _merge_filtered_dataframe(cls, row, duplicate_matches):
-        new_df = duplicate_matches[duplicate_matches.aamc_id == row.aamc_id]
+        new_df = duplicate_matches[duplicate_matches.person_id == row.person_id]
 
         if row.degree != 'None' and row.degree_one != 'MPH':
             new_df = new_df[new_df.degree == row.degree_one]
@@ -171,10 +178,12 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
         return new_df
 
     @classmethod
+    def _get_programs(cls, linking_data, directors):
+        return pandas.merge(linking_data, directors, on='person_id')[['ME', 'pgm_id']]
+
+    @classmethod
     def _generate_primary_keys(cls, data):
-        primary_keys = [str(column['personnel_member']) + str(column['medical_education_number'])
-                        for index, column in data.iterrows()]
-        data['pk'] = primary_keys
+        data['pk'] = data.personnel_member.astype(str) + data.medical_education_number.astype(str)
 
         return data
 
