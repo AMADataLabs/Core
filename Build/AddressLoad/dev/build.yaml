@@ -22,7 +22,7 @@ spec:
   source:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-      ref: dev
+      ref: DL-1744_AddressLoad # NOTE: change back to dev
     sourceSecret:
       name: bitbucket
     type: Git
