@@ -90,7 +90,7 @@ class PPDTransformerTask(TransformerTask):
     @classmethod
     def create_medical_student_table(cls, medical_student_data):
         medical_student_data = medical_student_data.rename(columns=MEDICAL_STUDENT_COLUMNS)
-        medical_student_data['person_type'] = 'Student'
+        medical_student_data['topCode'] = '000'
 
         return medical_student_data
 
@@ -118,6 +118,8 @@ class PPDTransformerTask(TransformerTask):
         for row in data['topCode'].to_list():
             if row == '012':
                 person_type.append('Resident')
+            if row == '000':
+                person_type.append('Student')
             else:
                 person_type.append('Physician')
 
