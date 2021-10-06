@@ -121,9 +121,9 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _find_unique(cls, directors):
-        identifying_fields = ['pers_name_last', 'pers_name_first', 'pers_name_mid', 'pers_deg1', 'pers_deg2',
-                              'pers_deg3']
-        unique_directors = directors.drop_duplicates(identifying_fields).sort_values('pers_name_last')
+        identifying_fields = ['last_name', 'first_name', 'middle_name', 'degree_1', 'degree_2',
+                              'degree_3']
+        unique_directors = directors.drop_duplicates(identifying_fields).sort_values('last_name')
         unique_directors = unique_directors[identifying_fields]
         unique_directors['person_id'] = list(range(len(unique_directors)))
         directors = pandas.merge(directors, unique_directors, on=[identifying_fields])
@@ -179,11 +179,11 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _get_programs(cls, linking_data, directors):
-        return pandas.merge(linking_data, directors, on='person_id')[['ME', 'pgm_id']]
+        return pandas.merge(linking_data, directors, on='person_id')[['medical_education_number', 'program']]
 
     @classmethod
     def _generate_primary_keys(cls, data):
-        data['pk'] = data.personnel_member.astype(str) + data.medical_education_number.astype(str)
+        data['id'] = data.personnel_member.astype(str) + data.medical_education_number.astype(str)
 
         return data
 
