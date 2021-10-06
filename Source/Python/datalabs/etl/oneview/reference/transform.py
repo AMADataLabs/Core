@@ -134,7 +134,7 @@ class ClassOfTradeTransformerTask(TransformerTask):
     def _add_classification_defaults(cls, classification_data):
         classification_data = classification_data.append(
             pandas.DataFrame(
-                data={'CLASSIFICATION_ID': ['00'], 'CLASSIFICATION': ['Unknown/Not Specified']})
+                data={'CLASSIFICATION_ID': ['-1'], 'CLASSIFICATION': ['Unknown/Not Specified']})
         )
 
         return classification_data
@@ -148,18 +148,15 @@ class ClassOfTradeTransformerTask(TransformerTask):
         )
         facility_data = facility_data.append(
             pandas.DataFrame(
-                data={'FACILITY_TYPE_ID': ['000'], 'FACILITY_TYPE': ['Unknown/Not Specified']})
+                data={'FACILITY_TYPE_ID': ['-1'], 'FACILITY_TYPE': ['Unknown/Not Specified']})
         )
 
         return facility_data
 
     @classmethod
     def _add_specialty_defaults(cls, specialty_data):
-        specialty_data = specialty_data.append(
-            pandas.DataFrame(
-                data={'SPECIALTY_ID': ['000'], 'SPECIALTY': ['Unknown/Not Specified']}
-            )
-        )
+        specialty_data.SPECIALTY[specialty_data.SPECIALTY_ID == '-1'] = 'Unknown/Not Specified'
+
         specialty_data = specialty_data.append(
             pandas.DataFrame(
                 data={'SPECIALTY_ID': ['219'], 'SPECIALTY': ['Other']}

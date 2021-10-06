@@ -18,11 +18,10 @@ class HistoricalResidentTransformerTask(TransformerTask):
     def _postprocess_data(cls, data):
         historical_resident = data[0]
 
-        historical_resident['id'] = data.medical_education_number.astype(str) + data.start_year.astype(str)
+        historical_resident['id'] = \
+            historical_resident.medical_education_number.astype(str) + historical_resident.start_year.astype(str)
 
         return data
-
-        return historical_resident
 
     def _get_columns(self):
         return [column.HISTORICAL_RESIDENCY]
