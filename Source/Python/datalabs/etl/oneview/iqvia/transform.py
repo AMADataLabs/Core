@@ -23,7 +23,7 @@ class IQVIATransformerTask(TransformerTask):
         business, provider_affiliation = self._set_null_values(business, provider_affiliation)
         business = self._set_unaccounted_values(business)
 
-        provider_affiliation['id'] = data.IMS_ORG_ID.astype(str) + data.ME.astype(str)
+        provider_affiliation['id'] = provider_affiliation.IMS_ORG_ID.astype(str) + provider_affiliation.ME.astype(str)
 
         return [business, provider, provider_affiliation]
 
