@@ -8,9 +8,8 @@ import dask.array
 import pandas
 import pytest
 
-from   datalabs.etl.oneview.transform import ScalableTransformerMixin
-
 os.environ['ENABLE_FEATURE_DASK'] = 'True'
+from   datalabs.etl.oneview.transform import ScalableTransformerMixin
 
 
 # pylint: disable=protected-access, redefined-outer-name
