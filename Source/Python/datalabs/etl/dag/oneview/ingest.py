@@ -49,6 +49,8 @@ class OneViewDAG(DAG):
     # CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
     #
     # EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
+    EXTRACT_PHYSICIAN_EMAIL: JDBCExtractorTask
+    EXTRACT_PHYSICIAN_EMAIL_ID: JDBCExtractorTask
     # CREATE_PHYSICIAN_TABLE_1: PhysicianTransformerTask
     # CREATE_PHYSICIAN_TABLE_2: PhysicianTransformerTask
     # CREATE_PHYSICIAN_TABLE_3: PhysicianTransformerTask
