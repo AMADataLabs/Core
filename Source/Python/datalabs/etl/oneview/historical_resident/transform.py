@@ -21,5 +21,7 @@ class HistoricalResidentTransformerTask(TransformerTask):
 
         historical_resident['id'] = primary_keys
 
+        return historical_resident
+
     def _get_columns(self):
         return [column.HISTORICAL_RESIDENCY]
