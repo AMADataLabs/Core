@@ -19,7 +19,10 @@ class HistoricalResidentTransformerTask(TransformerTask):
         historical_resident = data[0]
 
         historical_resident['id'] = \
-            historical_resident.medical_education_number.astype(str) + historical_resident.start_year.astype(str)
+            historical_resident.medical_education_number.astype(str) +'-' \
+            + historical_resident.specialty.astype(str) + '-' \
+            + historical_resident.institution_code.astype(str) + '-' \
+            + historical_resident.start_year.astype(str)
 
         return data
 
