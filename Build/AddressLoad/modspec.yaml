@@ -22,6 +22,7 @@ modspec:
       - environment
       - etcd
       - sftp
+      - aws
   - package: datalabs.access.parameter
   - package: datalabs.etl
   - package: datalabs.etl.dag
