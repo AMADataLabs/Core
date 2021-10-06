@@ -9,7 +9,7 @@ from   datalabs.etl.oneview.credentialing.transform import \
     CredentialingFinalTransformerTask
 from   datalabs.etl.oneview.historical_resident.transform import HistoricalResidentTransformerTask
 from   datalabs.etl.oneview.iqvia.transform import IQVIATransformerTask, IQVIAUpdateTransformerTask
-from   datalabs.etl.oneview.link.transform import \
+# from   datalabs.etl.oneview.link.transform import \
     # CredentialingCustomerInstitutionTransformerTask, \  # v2
     # CredentialingCustomerBusinessTransformerTask  # v2
 from  datalabs.etl.oneview.link.transform import ResidencyProgramPhysicianTransformerTask
