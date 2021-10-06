@@ -52,4 +52,14 @@ with ADDRESS_LOAD_AGGREGATION_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
     )
 
-EXTRACT_ADDRESS_LOAD
+with ADDRESS_LOAD_AGGREGATION_DAG:
+    TRANSFROM_ADDRESS_LOAD = KubernetesPodOperator(
+        name="transform_address_load",
+        task_id="transform_address_load",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[EFT_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.analysis.address.batchload.transform.AddressLoadFileAggregationTransformerTask')},
+    )
+
+EXTRACT_ADDRESS_LOAD >> TRANSFROM_ADDRESS_LOAD
