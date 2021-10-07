@@ -2,21 +2,9 @@
 import os
 
 import mock
-import pytest
 
 from datalabs.awslambda import TaskWrapper
 from datalabs.task import Task, TaskException
-
-
-def test_task_wrapper_is_abstract():
-    os.environ['TASK_CLASS'] = 'test.datalabs.test_awslambda.BadTask'
-
-    task_wrapper = BadTaskWrapper(parameters=dict(fail=False))  # pylint: disable=abstract-class-instantiated
-
-    with mock.patch('datalabs.access.parameter.aws.boto3'):
-        with mock.patch('datalabs.access.secret.aws.boto3'):
-            with pytest.raises(TypeError):
-                task_wrapper.run()
 
 
 # pylint: disable=protected-access

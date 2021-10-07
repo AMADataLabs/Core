@@ -63,17 +63,19 @@ class TaskWrapper(ABC):
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
     def run(self):
-        self._setup_environment()
-
-        self._runtime_parameters = self._get_runtime_parameters(self._parameters)
-
-        self._task_parameters = self._get_task_parameters()
-
-        self.task_class = self._get_task_class()
-
-        self.task = self.task_class(self._task_parameters)
+        response = None
 
         try:
+            self._setup_environment()
+
+            self._runtime_parameters = self._get_runtime_parameters(self._parameters)
+
+            self._task_parameters = self._get_task_parameters()
+
+            self.task_class = self._get_task_class()
+
+            self.task = self.task_class(self._task_parameters)
+
             self.task.run()
 
             response = self._handle_success()

@@ -24,14 +24,6 @@ def test_task_wrapper_is_not_abstract():
     GoodTaskWrapper().run()
 
 
-def test_task_lineage_is_bad():
-    os.environ['TASK_CLASS'] = 'test.datalabs.test_task.BadTask'
-    task_wrapper = GoodTaskWrapper('Task Class')
-
-    with pytest.raises(TypeError):
-        task_wrapper.run()
-
-
 # pylint: disable=abstract-method
 class BadTask(Task):
     pass
