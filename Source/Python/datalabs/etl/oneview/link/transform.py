@@ -185,7 +185,7 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
     def _generate_primary_keys(cls, data):
         primary_keys = data['program'].astype(str) + data['medical_education_number'].astype(str)
 
-        data['id'] = primary_keys
+        data['pk'] = primary_keys
 
         return data
 
