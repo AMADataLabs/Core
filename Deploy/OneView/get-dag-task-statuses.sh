@@ -5,6 +5,7 @@ TASKS_FILE=~/.tasks
 
 main() {
     execution_time=$1  # 2021-09-29 22:45:00
+    echo $execution_time
 
     if [[ ! -f "$TASKS_FILE" ]]; then
         initialize_tasks_file
@@ -164,4 +165,4 @@ initialize_tasks_file() {
     echo ")" >> $TASKS_FILE
 }
 
-main $1
+main "$1"
