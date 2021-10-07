@@ -7,7 +7,7 @@ import pandas
 
 from   datalabs.etl.oneview.transform import TransformerTask
 
-import datalabs.etl.oneview.credentialing.column as columns
+import datalabs.etl.oneview.credentialing.column as column
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -16,7 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 class CredentialingTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [columns.PRODUCT_COLUMNS, columns.ORDER_COLUMNS]
+        return [column.PRODUCT_COLUMNS, column.ORDER_COLUMNS]
 
 
 class CredentialingFinalTransformerTask(TransformerTask):
@@ -49,4 +49,21 @@ class CredentialingFinalTransformerTask(TransformerTask):
         return [new_df]
 
     def _get_columns(self):
-        return [columns.CUSTOMER_ADDRESSES_COLUMNS]
+        return [column.CUSTOMER_ADDRESSES_COLUMNS]
+
+
+class CredentialingOrderPruningTransformerTask(TransformerTask):
+    @classmethod
+    def _preprocess_data(cls, data):
+        orders, physicians = data
+
+        orders = orders[
+            orders.medical_education_number.isin(physicians.medical_education_number)
+        ]
+
+        return [orders]
+
+    def _get_columns(self):
+        columns = {value:value for value in column.ORDER_COLUMNS.values()}
+
+        return [columns]
