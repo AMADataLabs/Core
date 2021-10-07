@@ -134,9 +134,9 @@ class PPDTransformerTask(TransformerTask):
 class PhysicianTransformerTask(TransformerTask):
     @classmethod
     def _preprocess_data(cls, data):
-        ppd, npi, membership = data
+        ppd, npi, membership, email = data
 
-        physician = cls._merge_data(ppd, npi, membership)
+        physician = cls._merge_data(ppd, npi, membership, email)
 
         return [physician]
 
@@ -145,7 +145,7 @@ class PhysicianTransformerTask(TransformerTask):
 
     # pylint: disable=too-many-arguments
     @classmethod
-    def _merge_data(cls, ppd_table, npi_table, membership):
+    def _merge_data(cls, ppd_table, npi_table, membership, email):
         ppd_npi = ppd_table.merge(npi_table, on='meNumber', how="left").drop_duplicates()
 
         membership = membership.rename(columns={'PARTY_ID_FROM': 'PARTY_ID', 'DESC': 'MEMBERSHIP_STATUS'})
@@ -154,7 +154,11 @@ class PhysicianTransformerTask(TransformerTask):
             on='PARTY_ID', how="left"
         ).drop_duplicates(ignore_index=True)
 
-        return ppd_membership
+        ppd_email = ppd_membership.merge(email['PARTY_ID', 'has_email'],
+                                         on='PARTY_ID', how='left').drop_duplicates(ignore_index=True)
+        ppd_email.has_email.fillna(False, inplace=True)
+
+        return ppd_email
 
     @classmethod
     def _postprocess_data(cls, data):
