@@ -1,5 +1,6 @@
 ''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag.dag import DAG
+from   datalabs.etl.oneview.email.transform import PhysicianEmailTransformer
 # from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 from   datalabs.etl.manipulate.transform import SplitTransformerTask
@@ -51,6 +52,7 @@ class OneViewDAG(DAG):
     # EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     EXTRACT_PHYSICIAN_EMAIL: JDBCExtractorTask
     EXTRACT_PHYSICIAN_EMAIL_ID: JDBCExtractorTask
+    CREATE_PHYSICIAN_EMAIL_TABLE: PhysicianEmailTransformer
     # CREATE_PHYSICIAN_TABLE_1: PhysicianTransformerTask
     # CREATE_PHYSICIAN_TABLE_2: PhysicianTransformerTask
     # CREATE_PHYSICIAN_TABLE_3: PhysicianTransformerTask
@@ -162,7 +164,11 @@ class OneViewDAG(DAG):
 #     >> OneViewDAG.CONCATENATE_PARTY_KEYS >> OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE
 # OneViewDAG.SPLIT_PPD_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
 # OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
+OneViewDAG.EXTRACT_PHYSICIAN_EMAIL >> OneViewDAG.CREATE_PHYSICIAN_EMAIL_TABLE
+OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_ID >> OneViewDAG.CREATE_PHYSICIAN_EMAIL_TABLE
 # OneViewDAG.EXTRACT_MEMBERSHIP_DATA >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
+OneViewDAG.CREATE_PHYSICIAN_EMAIL_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_1
+
 # OneViewDAG.CREATE_PHYSICIAN_TABLE_1 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
 # OneViewDAG.CREATE_PHYSICIAN_TABLE_2 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE
 # OneViewDAG.CREATE_PHYSICIAN_TABLE_3 >> OneViewDAG.CONCATENATE_PHYSICIAN_TABLE

@@ -110,7 +110,7 @@ class Physician(BASE):
     race_ethnicity = sa.Column(sa.String, nullable=False)
     membership_status = sa.Column(sa.String)
     type = sa.Column(sa.String)
-    has_email = sa.column(sa.String)
+    has_email = sa.column(sa.Boolean)
 
 
 class ResidencyProgram(BASE):
