@@ -134,31 +134,14 @@ class PPDTransformerTask(TransformerTask):
 class PhysicianTransformerTask(TransformerTask):
     @classmethod
     def _preprocess_data(cls, data):
-        ppd, npi, membership, email = data
+        ppd, npi, membership, email_status = data
 
-        physician = cls._merge_data(ppd, npi, membership, email)
+        physician = cls._merge_data(ppd, npi, membership, email_status)
 
         return [physician]
 
     def _get_columns(self):
         return [PHYSICIAN_COLUMNS]
-
-    # pylint: disable=too-many-arguments
-    @classmethod
-    def _merge_data(cls, ppd_table, npi_table, membership, email):
-        ppd_npi = ppd_table.merge(npi_table, on='meNumber', how="left").drop_duplicates()
-
-        membership = membership.rename(columns={'PARTY_ID_FROM': 'PARTY_ID', 'DESC': 'MEMBERSHIP_STATUS'})
-        ppd_membership = ppd_npi.merge(
-            membership[['PARTY_ID', 'MEMBERSHIP_STATUS']],
-            on='PARTY_ID', how="left"
-        ).drop_duplicates(ignore_index=True)
-
-        ppd_email = ppd_membership.merge(email['PARTY_ID', 'has_email'],
-                                         on='PARTY_ID', how='left').drop_duplicates(ignore_index=True)
-        ppd_email.has_email.fillna(False, inplace=True)
-
-        return ppd_email
 
     @classmethod
     def _postprocess_data(cls, data):
@@ -169,6 +152,17 @@ class PhysicianTransformerTask(TransformerTask):
         cleaned_physician = cls._clean_physician(filled_physician)
 
         return [cleaned_physician]
+
+    # pylint: disable=too-many-arguments
+    @classmethod
+    def _merge_data(cls, ppd, npi, membership, email_status):
+        ppd_npi = cls._merge_npi(ppd, npi)
+
+        ppd_membership = cls._merge_membership(ppd_npi, ppd_membership)
+
+        ppd_email_status = cls._merge_email_status(ppd_membership, email_status)
+
+        return ppd_email_status
 
     @classmethod
     def _fill_defaults(cls, physician):
@@ -190,6 +184,29 @@ class PhysicianTransformerTask(TransformerTask):
         cls._consolidate_duplicates(physician)
 
         return physician
+
+    @classmethod
+    def _merge_npi(cls, ppd, npi):
+        return ppd.merge(npi, on='meNumber', how="left").drop_duplicates()
+
+    @classmethod
+    def _merge_membership(cls, ppd, membershp):
+        membership = membership.rename(columns={'PARTY_ID_FROM': 'PARTY_ID', 'DESC': 'MEMBERSHIP_STATUS'})
+
+        return ppd.merge(
+            membership[['PARTY_ID', 'MEMBERSHIP_STATUS']],
+            on='PARTY_ID', how="left"
+        ).drop_duplicates(ignore_index=True)
+
+    @classmethod
+    def _merge_email_status(cls, ppd, email_status):
+        ppd_email = ppd.merge(
+            email['PARTY_ID', 'has_email'], on='PARTY_ID', how='left'
+        ).drop_duplicates(ignore_index=True)
+
+        ppd_email.has_email.fillna(False, inplace=True)
+
+        return ppd_email
 
     @classmethod
     def _fix_pohnpei_fips_county_code(cls, physician):

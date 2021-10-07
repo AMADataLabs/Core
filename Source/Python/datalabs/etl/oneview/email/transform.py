@@ -10,26 +10,13 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class PhysicianEmailTransformer(TransformerTask):
+class PhysicianEmailStatusTransformer(TransformerTask):
     def _preprocess_data(self, data):
-        email_address, email_id = data
+        email_status = data
 
-        emails = email_address.merge(email_address, how="inner", on='EMAIL_ID')
-        emails = self._add_flag(emails)
+        email_status['has_email'] = email_status.EMAIL_STATUS == 'valid'
 
-        return [emails]
-
-    @classmethod
-    def _add_flag(cls, emails):
-        emails['has_email'] = ''
-
-        for row in emails:
-            if row.EMAIL_STATUS == 'valid':
-                row.has_email = True
-            else:
-                row.has_email = False
-
-        return emails
+        return [email_status]
 
     def _get_columns(self):
         return [EMAIL_COLUMNS]
