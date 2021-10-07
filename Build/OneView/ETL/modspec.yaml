@@ -48,6 +48,7 @@ modspec:
   - package: datalabs.etl.manipulate
   - package: datalabs.etl.oneview
   - package: datalabs.etl.oneview.credentialing
+  - package: datalabs.etl.oneview.email
   - package: datalabs.etl.oneview.historical_resident
   - package: datalabs.etl.oneview.iqvia
   - package: datalabs.etl.oneview.link
