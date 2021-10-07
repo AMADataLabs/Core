@@ -2,7 +2,6 @@
 import os
 
 import mock
-import pytest
 
 from datalabs.awslambda import TaskWrapper
 from datalabs.task import Task, TaskException
