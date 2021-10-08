@@ -328,11 +328,11 @@ pipelines:
                 # Install the DB2 JDBC driver
                 - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
                 - unzip ./Db2JdbcDriver.zip
+                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Install the Informix JDBC driver
                 - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
                 - unzip ./InformixJdbcDriver.zip
-                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
