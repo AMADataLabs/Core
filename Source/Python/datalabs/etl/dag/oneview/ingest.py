@@ -4,7 +4,7 @@ from   datalabs.etl.dag.dag import DAG, Repeat
 # from   datalabs.etl.http.extract import HTTPFileExtractorTask
 # from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 # from   datalabs.etl.manipulate.transform import SplitTransformerTask
-from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
+# from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 # from   datalabs.etl.oneview.credentialing.transform import \
 #     CredentialingTransformerTask, \
 #     CredentialingFinalTransformerTask, \
