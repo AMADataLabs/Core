@@ -115,10 +115,10 @@ class PPDTransformerTask(TransformerTask):
     def _add_person_type(cls, data):
         person_type = []
 
-        for row in data['topCode'].to_list():
+        for row in data.topCode.to_list():
             if row == '012':
                 person_type.append('Resident')
-            if row == '000':
+            elif row == '000':
                 person_type.append('Student')
             else:
                 person_type.append('Physician')
