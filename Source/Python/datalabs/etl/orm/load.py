@@ -92,7 +92,7 @@ class ORMLoaderTask(LoaderTask):
         return dataframe
 
     def _generate_table_parameters(self, database, model_class, data):
-        schema = model_class.__table_args__.get('schema')
+        schema = self._get_schema(model_class)
         table = model_class.__tablename__
         primary_key = self._get_primary_key(database, schema, table)
         columns = self._get_database_columns(database, schema, table)
@@ -103,6 +103,15 @@ class ORMLoaderTask(LoaderTask):
         incoming_hashes = self._generate_row_hashes(columns, data, primary_key)
 
         return TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes)
+
+    @classmethod
+    def _get_schema(cls, model_class):
+        if hasattr(model_class.__table_args__, 'get'):
+            schema = model_class.__table_args__.get('schema')
+        else:
+            schema = model_class.__table_args__[1].get('schema')
+
+        return schema
 
     def _update(self, database, table_parameters):
         self._add_data(database, table_parameters)
