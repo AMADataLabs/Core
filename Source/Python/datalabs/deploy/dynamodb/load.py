@@ -91,7 +91,7 @@ class ConfigMapLoader():
 
         if hasattr(value, 'replace'):
             resolved_value = value.replace('@MACRO_COUNT@', str(macro_count))
-            resolved_value = value.replace('@MACRO_INDEX@', str(macro_index))
+            resolved_value = resolved_value.replace('@MACRO_INDEX@', str(macro_index))
 
         return resolved_value
 
