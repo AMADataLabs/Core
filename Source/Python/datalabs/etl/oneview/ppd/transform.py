@@ -187,6 +187,8 @@ class PhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_npi(cls, ppd, npi):
+        npi['meNumber'] = npi['meNumber'].astype(str).apply(lambda x: ('0' * 10 + x)[-11:])
+
         return ppd.merge(npi, on='meNumber', how="left").drop_duplicates()
 
     @classmethod
