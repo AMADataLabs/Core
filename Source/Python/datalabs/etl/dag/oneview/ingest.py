@@ -1,5 +1,5 @@
 ''' DAG definition for the DAG Scheduler. '''
-from   datalabs.etl.dag.dag import DAG
+from   datalabs.etl.dag.dag import DAG, Repeat
 from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransformer
 # from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
@@ -57,12 +57,7 @@ class OneViewDAG(DAG):
     # CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
     #
     # EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
-    # EXTRACT_PHYSICIAN_EMAIL_STATUS_0: JDBCExtractorTask
-    # EXTRACT_PHYSICIAN_EMAIL_STATUS_1: JDBCExtractorTask
-    # EXTRACT_PHYSICIAN_EMAIL_STATUS_2: JDBCExtractorTask
-    EXTRACT_PHYSICIAN_EMAIL_STATUS_3: JDBCExtractorTask
-    EXTRACT_PHYSICIAN_EMAIL_STATUS_4: JDBCExtractorTask
-    EXTRACT_PHYSICIAN_EMAIL_STATUS_5: JDBCExtractorTask
+    EXTRACT_PHYSICIAN_EMAIL_STATUS: Repeat(JDBCExtractorTask, 6, start=3)
     CONCATENATE_PHYSICIAN_EMAIL_STATUS: ConcatenateTransformerTask
     CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: PhysicianEmailStatusTransformer
     CREATE_PHYSICIAN_TABLE_0: PhysicianTransformerTask
@@ -198,9 +193,11 @@ class OneViewDAG(DAG):
 # OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_0 \
 #     >> OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_1 \
 #     >> OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_2 \
-OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_3 \
-    >> OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_4 \
-    >> OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_5 \
+OneViewDAG.sequence('EXTRACT_PHYSICIAN_EMAIL_STATUS', 6, start=3)
+# OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_3 \
+#     >> OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_4 \
+#     >> OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_5 \
+OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_5 \
     >> OneViewDAG.CONCATENATE_PHYSICIAN_EMAIL_STATUS \
     >> OneViewDAG.CREATE_PHYSICIAN_EMAIL_STATUS_TABLE
 

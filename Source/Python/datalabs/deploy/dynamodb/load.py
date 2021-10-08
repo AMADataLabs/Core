@@ -22,7 +22,6 @@ class ConfigMapLoader():
         dag, parameters = self._parse_variables(variables)
 
         parameters = self._expand_macros(parameters)
-        import pdb; pdb.set_trace()
 
         with AWSClient("dynamodb") as dynamodb:
             for task, task_variables in parameters.items():

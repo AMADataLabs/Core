@@ -1,4 +1,6 @@
 """ Class for defining a DAG. """
+from   dataclasses import dataclass
+
 import paradag
 
 from   datalabs.etl.dag.state import Status
@@ -63,7 +65,7 @@ class DAGMeta(type):
 
         if hasattr(cls, '__annotations__'):
             for task, task_class in cls.__annotations__.items():
-                cls.__task_classes__[task] = DAGTask(task, task_class)
+                cls._generate_tasks(task, task_class)
 
         return cls
 
@@ -72,6 +74,13 @@ class DAGMeta(type):
             raise AttributeError(f"type object '{cls.__name__}' has no attribute '{name}'")
 
         return cls.__task_classes__.get(name)
+
+    def _generate_tasks(cls, task, task_class):
+        if type(task_class).__name__ == 'Repeat':
+            for index in range(task_class.start, task_class.count):
+                cls.__task_classes__[f'{task}_{index}'] = DAGTask(f'{task}_{index}', task_class.task_class)
+        else:
+            cls.__task_classes__[task] = DAGTask(task, task_class)
 
 
 class DAG(paradag.DAG, metaclass=DAGMeta):
@@ -94,4 +103,23 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
 
     @classmethod
     def task_class(cls, task: str):
-        return cls.__task_classes__.get(task).task_class
+        dag_task = cls.__task_classes__.get(task)
+
+        if dag_task is None:
+            raise ValueError(f'DAG {cls.__name__} has no task {task}')
+
+        return dag_task.task_class
+
+    @classmethod
+    def sequence(cls, task, count, start=None):
+        if start is None:
+            start = 0
+
+        for index in range(start+1, count):
+            getattr(cls, f'{task}_{index-1}') >> getattr(cls, f'{task}_{index-1}')
+
+@dataclass
+class Repeat:
+    task_class: type
+    count: int
+    start: int=0
