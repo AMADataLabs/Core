@@ -21,6 +21,9 @@ class ConfigMapLoader():
 
         dag, parameters = self._parse_variables(variables)
 
+        parameters = self._expand_macros(parameters)
+        import pdb; pdb.set_trace()
+
         with AWSClient("dynamodb") as dynamodb:
             for task, task_variables in parameters.items():
                 self._load_variables_into_dynamodb(dynamodb, dag, task, task_variables)
@@ -46,6 +49,52 @@ class ConfigMapLoader():
             parameters[task] = var_tree.get_branch_values([dag, task])
 
         return (dag, parameters)
+
+    @classmethod
+    def _expand_macros(cls, parameters):
+        deleted_tasks = []
+        added_tasks = []
+        count = 0
+
+        for task, task_parameters in parameters.items():
+            if '@MACRO_COUNT@' in task_parameters:
+                deleted_tasks.append(task)
+
+                added_tasks += cls._generate_macro_parameters(task, task_parameters)
+
+        for task in deleted_tasks:
+            parameters.pop(task)
+
+        for task_parameters in added_tasks:
+            parameters.update(task_parameters)
+
+        return parameters
+
+    @classmethod
+    def _generate_macro_parameters(cls, task, task_parameters):
+        count = int(task_parameters['@MACRO_COUNT@'])
+        generated_parameters = []
+
+
+        for index in range(count):
+            instance_parameters = {
+                name: cls._replace_macro_parameters(value, count, index) for name, value in task_parameters.items()
+                if name != '@MACRO_COUNT@'
+            }
+
+            generated_parameters.append({f'{task}_{index}': instance_parameters})
+
+        return generated_parameters
+
+    @classmethod
+    def _replace_macro_parameters(cls, value, macro_count, macro_index):
+        resolved_value = value
+
+        if hasattr(value, 'replace'):
+            resolved_value = value.replace('@MACRO_COUNT@', str(macro_count))
+            resolved_value = value.replace('@MACRO_INDEX@', str(macro_index))
+
+        return resolved_value
 
     def _load_variables_into_dynamodb(self, dynamodb, dag, task, variables):
         response = None

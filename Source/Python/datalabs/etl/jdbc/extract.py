@@ -31,8 +31,10 @@ class JDBCExtractorParameters:
     data: object = None
     execution_time: str = None
     chunk_size: str = None
+    count: str = None
     start_index: str = '0'
-    stop_index: str = None
+    max_parts: str = None
+    part_index: str = None
     stream: str = None
 
 
@@ -105,13 +107,18 @@ class JDBCExtractorTask(ExtractorTask):
 
     def _iterate_over_chunks(self, query, connection):
         chunk_size = int(self._parameters.chunk_size)
-        start_index = int(self._parameters.start_index)
+        count = int(self._parameters.count)
+        start_index = int(self._parameters.start_index) * count
         index = start_index
-        stop_index = None
+        stop_index = start_index + count
         iterating = True
 
-        if self._parameters.stop_index is not None:
-            stop_index = int(self._parameters.stop_index)
+        if self._parameters.max_parts is not None and self._parameters.part_index is not None:
+            max_parts = int(self._parameters.max_parts)
+            part_index = int(self._parameters.part_index)
+
+            if part_index >= (max_parts - 1):
+                stop_index = None
 
         while iterating:
             if stop_index and (index + chunk_size) > stop_index:
