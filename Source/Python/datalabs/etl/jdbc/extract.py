@@ -134,15 +134,16 @@ class JDBCExtractorTask(ExtractorTask):
 
             LOGGER.info('Reading chunk of size %d at index %d...', chunk_size, index)
             chunk = self._read_single_query(resolved_query, connection)
-            LOGGER.info('Read %d records.', len(chunk))
+            read_count = len(chunk)
+            LOGGER.info('Read %d records.', read_count)
             LOGGER.info('Chunk memory usage:\n%s', chunk.memory_usage(deep=True))
 
-            if stop_index and index > stop_index or len(chunk) == 0:
+            if stop_index and index > stop_index or read_count == 0:
                 iterating = False
             else:
                 yield chunk
 
-            index += chunk_size
+            index += read_count
 
 
 class JDBCParquetExtractorTask(JDBCExtractorTask):
