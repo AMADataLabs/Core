@@ -59,11 +59,7 @@ class OneViewDAG(DAG):
     # CONCATENATE_PHYSICIAN_EMAIL_STATUS: ConcatenateTransformerTask
     # CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: PhysicianEmailStatusTransformer
     CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 6)
-<<<<<<< HEAD
-    CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
-=======
     # CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
->>>>>>> master
 
     # EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY: HTTPFileExtractorTask
     # CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE: \
