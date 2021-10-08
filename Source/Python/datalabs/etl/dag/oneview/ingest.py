@@ -3,26 +3,26 @@ from   datalabs.etl.dag.dag import DAG, Repeat
 from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransformer
 # from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
-from   datalabs.etl.manipulate.transform import SplitTransformerTask
+# from   datalabs.etl.manipulate.transform import SplitTransformerTask
 from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
-from   datalabs.etl.oneview.credentialing.transform import \
-    CredentialingTransformerTask, \
-    CredentialingFinalTransformerTask, \
-    CredentialingOrderPruningTransformerTask
-from   datalabs.etl.oneview.historical_resident.transform import \
-    HistoricalResidentTransformerTask, \
-    HistoricalResidentPruningTransformerTask
-from   datalabs.etl.oneview.iqvia.transform import \
-    IQVIABusinessTransformerTask, \
-    IQVIAProviderTransformerTask, \
-    IQVIAProviderPruningTransformerTask, \
-    IQVIAUpdateTransformerTask
+# from   datalabs.etl.oneview.credentialing.transform import \
+#     CredentialingTransformerTask, \
+#     CredentialingFinalTransformerTask, \
+#     CredentialingOrderPruningTransformerTask
+# from   datalabs.etl.oneview.historical_resident.transform import \
+#     HistoricalResidentTransformerTask, \
+#     HistoricalResidentPruningTransformerTask
+# from   datalabs.etl.oneview.iqvia.transform import \
+#     IQVIABusinessTransformerTask, \
+#     IQVIAProviderTransformerTask, \
+#     IQVIAProviderPruningTransformerTask, \
+#     IQVIAUpdateTransformerTask
 # from   datalabs.etl.oneview.link.transform import
 #     CredentialingCustomerInstitutionTransformerTask, CredentialingCustomerBusinessTransformerTask  # v2
-from  datalabs.etl.oneview.link.transform import ResidencyProgramPhysicianTransformerTask
+# from  datalabs.etl.oneview.link.transform import ResidencyProgramPhysicianTransformerTask
 # from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
 # from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransformerTask
-from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
+# from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
 # from   datalabs.etl.oneview.reference.transform import \
 #     FederalInformationProcessingStandardCountyTransformerTask \
 #     StateTransformerTask, \
@@ -36,9 +36,9 @@ from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
 #     StaticReferenceTablesTransformerTask, \
 #     ClassOfTradeTransformerTask, \
 #     MedicalSchoolTransformerTask
-from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
-from   datalabs.etl.orm.load import ORMLoaderTask
-from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
+# from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
+# from   datalabs.etl.orm.load import ORMLoaderTask
+# from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 # from   datalabs.etl.sftp.extract import SFTPIBM437TextFileExtractorTask
 # from   datalabs.etl.transform import PassThroughTransformerTask
 
@@ -50,18 +50,16 @@ class OneViewDAG(DAG):
     # SUPPLEMENT_PPD_TABLE: PPDTransformerTask
     # SPLIT_PPD_TABLE: SplitTransformerTask
     #
-    # EXTRACT_PARTY_KEYS_0: JDBCExtractorTask
-    # EXTRACT_PARTY_KEYS_1: JDBCExtractorTask
-    # EXTRACT_PARTY_KEYS_2: JDBCExtractorTask
+    # EXTRACT_PARTY_KEYS: Repeat(JDBCExtractorTask, 3)
     # CONCATENATE_PARTY_KEYS: ConcatenateTransformerTask
     # CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
     #
     # EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
-    EXTRACT_PHYSICIAN_EMAIL_STATUS: Repeat(JDBCExtractorTask, 10)
+    EXTRACT_PHYSICIAN_EMAIL_STATUS: Repeat(JDBCExtractorTask, 4)
     CONCATENATE_PHYSICIAN_EMAIL_STATUS: ConcatenateTransformerTask
     CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: PhysicianEmailStatusTransformer
-    CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 6)
-    CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
+    # CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 6)
+    # CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
 
     # EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY: HTTPFileExtractorTask
     # CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE: \
@@ -93,15 +91,15 @@ class OneViewDAG(DAG):
     # CREATE_TYPE_OF_PRACTICE_TABLE: TypeOfPracticeTransformerTask
     # LOAD_TYPE_OF_PRACTICE_TABLE: ORMLoaderTask
 
-    LOAD_PHYSICIAN_TABLE: Repeat(ORMLoaderTask, 6)
+    # LOAD_PHYSICIAN_TABLE: Repeat(ORMLoaderTask, 6)
 
     # EXTRACT_RESIDENCY: SFTPFileExtractorTask
-    CREATE_RESIDENCY_TABLES: ResidencyTransformerTask
+    # CREATE_RESIDENCY_TABLES: ResidencyTransformerTask
     # LOAD_RESIDENCY_INSTITUTION_TABLE: ORMLoaderTask
     # LOAD_RESIDENCY_PROGRAM_TABLE: ORMLoaderTask
     # LOAD_RESIDENCY_PERSONNEL_TABLE: ORMLoaderTask
 
-    CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE: ResidencyProgramPhysicianTransformerTask
+    # CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE: ResidencyProgramPhysicianTransformerTask
 
     # EXTRACT_MELISSA: JDBCExtractorTask
     # CREATE_MELISSA_TABLES: MelissaTransformerTask
@@ -116,36 +114,36 @@ class OneViewDAG(DAG):
     # EXTRACT_IQVIA_BUSINESS: JDBCExtractorTask
     # EXTRACT_IQVIA_PROVIDER: JDBCExtractorTask
     # EXTRACT_IQVIA_PROVIDER_AFFILIATION: JDBCExtractorTask
-    CREATE_IQVIA_UPDATE_TABLE: IQVIAUpdateTransformerTask
-    CREATE_BUSINESS_TABLE: IQVIABusinessTransformerTask
-    CREATE_PROVIDER_TABLE: IQVIAProviderTransformerTask
-    REMOVE_UNKNOWN_PROVIDERS: IQVIAProviderPruningTransformerTask
-    SPLIT_IQVIA_BUSINESS_TABLE: SplitTransformerTask
-    LOAD_IQVIA_BUSINESS_TABLE: Repeat(ORMLoaderTask, 3)
-    SPLIT_IQVIA_PROVIDER_TABLE: SplitTransformerTask
-    LOAD_IQVIA_PROVIDER_TABLE: Repeat(ORMLoaderTask, 3)
-    LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE: ORMLoaderTask
-    LOAD_IQVIA_UPDATE_TABLE: ORMLoaderTask
+    # CREATE_IQVIA_UPDATE_TABLE: IQVIAUpdateTransformerTask
+    # CREATE_BUSINESS_TABLE: IQVIABusinessTransformerTask
+    # CREATE_PROVIDER_TABLE: IQVIAProviderTransformerTask
+    # REMOVE_UNKNOWN_PROVIDERS: IQVIAProviderPruningTransformerTask
+    # SPLIT_IQVIA_BUSINESS_TABLE: SplitTransformerTask
+    # LOAD_IQVIA_BUSINESS_TABLE: Repeat(ORMLoaderTask, 3)
+    # SPLIT_IQVIA_PROVIDER_TABLE: SplitTransformerTask
+    # LOAD_IQVIA_PROVIDER_TABLE: Repeat(ORMLoaderTask, 3)
+    # LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE: ORMLoaderTask
+    # LOAD_IQVIA_UPDATE_TABLE: ORMLoaderTask
 
-    EXTRACT_CREDENTIALING: SFTPFileExtractorTask
-    EXTRACT_CREDENTIALING_ADDRESSES: SFTPFileExtractorTask
-    CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES: CredentialingTransformerTask
-    MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE: CredentialingFinalTransformerTask
-    REMOVE_UNKNOWN_ORDERS: CredentialingOrderPruningTransformerTask
-    SPLIT_CREDENTIALING_ORDER_TABLE: SplitTransformerTask
-
-    LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES: ORMLoaderTask
-    LOAD_CREDENTIALING_ORDER_TABLE: Repeat(ORMLoaderTask, 3)
+    # EXTRACT_CREDENTIALING: SFTPFileExtractorTask
+    # EXTRACT_CREDENTIALING_ADDRESSES: SFTPFileExtractorTask
+    # CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES: CredentialingTransformerTask
+    # MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE: CredentialingFinalTransformerTask
+    # REMOVE_UNKNOWN_ORDERS: CredentialingOrderPruningTransformerTask
+    # SPLIT_CREDENTIALING_ORDER_TABLE: SplitTransformerTask
+    #
+    # LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES: ORMLoaderTask
+    # LOAD_CREDENTIALING_ORDER_TABLE: Repeat(ORMLoaderTask, 3)
 
     # CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE: CredentialingCustomerInstitutionTransformerTask  # v2
     # CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TABLE: CredentialingCustomerBusinessTransformerTask  # v2
-    LOAD_LINKING_TABLES: ORMLoaderTask
-
-    EXTRACT_HISTORICAL_RESIDENT: SFTPFileExtractorTask
-    CREATE_HISTORICAL_RESIDENT_TABLE: HistoricalResidentTransformerTask
-    REMOVE_UNKNOWN_HISTORICAL_RESIDENTS: HistoricalResidentPruningTransformerTask
-    SPLIT_HISTORICAL_RESIDENT_TABLE: SplitTransformerTask
-    LOAD_HISTORICAL_RESIDENT_TABLE: Repeat(ORMLoaderTask, 6)
+    # LOAD_LINKING_TABLES: ORMLoaderTask
+    #
+    # EXTRACT_HISTORICAL_RESIDENT: SFTPFileExtractorTask
+    # CREATE_HISTORICAL_RESIDENT_TABLE: HistoricalResidentTransformerTask
+    # REMOVE_UNKNOWN_HISTORICAL_RESIDENTS: HistoricalResidentPruningTransformerTask
+    # SPLIT_HISTORICAL_RESIDENT_TABLE: SplitTransformerTask
+    # LOAD_HISTORICAL_RESIDENT_TABLE: Repeat(ORMLoaderTask, 6)
 
     # EXTRACT_CLASS_OF_TRADE: JDBCExtractorTask
     # CREATE_STATIC_REFERENCE_TABLE: StaticReferenceTablesTransformerTask
@@ -169,14 +167,14 @@ class OneViewDAG(DAG):
 # OneViewDAG.CREATE_PHYSICIAN_NPI_TABLE >> OneViewDAG.CREATE_PHYSICIAN_TABLE_0
 # OneViewDAG.EXTRACT_MEMBERSHIP_DATA >> OneViewDAG.CREATE_PHYSICIAN_TABLE_0
 
-OneViewDAG.sequence('EXTRACT_PHYSICIAN_EMAIL_STATUS', 10)
-OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_9 \
+OneViewDAG.sequence('EXTRACT_PHYSICIAN_EMAIL_STATUS', 4)
+OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_3 \
     >> OneViewDAG.CONCATENATE_PHYSICIAN_EMAIL_STATUS \
     >> OneViewDAG.CREATE_PHYSICIAN_EMAIL_STATUS_TABLE
 
-OneViewDAG.fan_out('CREATE_PHYSICIAN_EMAIL_STATUS_TABLE', 'CREATE_PHYSICIAN_TABLE', 6)
-
-OneViewDAG.fan_in('CREATE_PHYSICIAN_TABLE', 'CONCATENATE_PHYSICIAN_TABLE', 6)
+# OneViewDAG.fan_out('CREATE_PHYSICIAN_EMAIL_STATUS_TABLE', 'CREATE_PHYSICIAN_TABLE', 6)
+#
+# OneViewDAG.fan_in('CREATE_PHYSICIAN_TABLE', 'CONCATENATE_PHYSICIAN_TABLE', 6)
 
 # OneViewDAG.EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY \
 #     >> OneViewDAG.CREATE_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE \
@@ -204,7 +202,7 @@ OneViewDAG.fan_in('CREATE_PHYSICIAN_TABLE', 'CONCATENATE_PHYSICIAN_TABLE', 6)
 #     >> OneViewDAG.LOAD_TYPE_OF_PRACTICE_TABLE
 #
 
-OneViewDAG.parallel('CREATE_PHYSICIAN_TABLE', 'LOAD_PHYSICIAN_TABLE', 6)
+# OneViewDAG.parallel('CREATE_PHYSICIAN_TABLE', 'LOAD_PHYSICIAN_TABLE', 6)
 # OneViewDAG.LOAD_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
 # OneViewDAG.LOAD_STATE_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
 # OneViewDAG.LOAD_SPECIALTY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
@@ -213,15 +211,15 @@ OneViewDAG.parallel('CREATE_PHYSICIAN_TABLE', 'LOAD_PHYSICIAN_TABLE', 6)
 # OneViewDAG.LOAD_PRESENT_EMPLOYMENT_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
 # OneViewDAG.LOAD_TYPE_OF_PRACTICE_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
 
-OneViewDAG.sequence('LOAD_PHYSICIAN_TABLE', 6)
+# OneViewDAG.sequence('LOAD_PHYSICIAN_TABLE', 6)
 #
 # OneViewDAG.EXTRACT_RESIDENCY >> OneViewDAG.CREATE_RESIDENCY_TABLES \
 #     >> OneViewDAG.LOAD_RESIDENCY_INSTITUTION_TABLE \
 #     >> OneViewDAG.LOAD_RESIDENCY_PROGRAM_TABLE \
 #     >> OneViewDAG.LOAD_RESIDENCY_PERSONNEL_TABLE
 
-OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
-OneViewDAG.CREATE_RESIDENCY_TABLES >> OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
+# OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
+# OneViewDAG.CREATE_RESIDENCY_TABLES >> OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE
 
 # OneViewDAG.EXTRACT_MELISSA >> OneViewDAG.CREATE_MELISSA_TABLES
 # OneViewDAG.CREATE_MELISSA_TABLES >> OneViewDAG.LOAD_AREA_CODE_TABLE
@@ -239,54 +237,54 @@ OneViewDAG.CREATE_RESIDENCY_TABLES >> OneViewDAG.CREATE_RESIDENCY_PROGRAM_PHYSIC
 # OneViewDAG.EXTRACT_IQVIA_BUSINESS >> OneViewDAG.CREATE_BUSINESS_TABLE
 # OneViewDAG.EXTRACT_IQVIA_BUSINESS >> OneViewDAG.CREATE_IQVIA_UPDATE_TABLE
 
-OneViewDAG.CREATE_IQVIA_UPDATE_TABLE >> OneViewDAG.LOAD_IQVIA_UPDATE_TABLE
-
-OneViewDAG.CREATE_BUSINESS_TABLE >> OneViewDAG.SPLIT_IQVIA_BUSINESS_TABLE
+# OneViewDAG.CREATE_IQVIA_UPDATE_TABLE >> OneViewDAG.LOAD_IQVIA_UPDATE_TABLE
+#
+# OneViewDAG.CREATE_BUSINESS_TABLE >> OneViewDAG.SPLIT_IQVIA_BUSINESS_TABLE
 
 # OneViewDAG.LOAD_STATIC_REFERENCE_TABLE >> OneViewDAG.LOAD_IQVIA_BUSINESS_TABLE_0
-OneViewDAG.LOAD_IQVIA_UPDATE_TABLE >> OneViewDAG.LOAD_IQVIA_BUSINESS_TABLE_0
-
-OneViewDAG.SPLIT_IQVIA_BUSINESS_TABLE >> OneViewDAG.LOAD_IQVIA_BUSINESS_TABLE_0
-OneViewDAG.sequence('LOAD_IQVIA_BUSINESS_TABLE', 3)
+# OneViewDAG.LOAD_IQVIA_UPDATE_TABLE >> OneViewDAG.LOAD_IQVIA_BUSINESS_TABLE_0
+#
+# OneViewDAG.SPLIT_IQVIA_BUSINESS_TABLE >> OneViewDAG.LOAD_IQVIA_BUSINESS_TABLE_0
+# OneViewDAG.sequence('LOAD_IQVIA_BUSINESS_TABLE', 3)
 
 # OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.CREATE_PROVIDER_TABLE
 # OneViewDAG.EXTRACT_IQVIA_PROVIDER >> OneViewDAG.CREATE_PROVIDER_TABLE
 # OneViewDAG.EXTRACT_IQVIA_PROVIDER_AFFILIATION >> OneViewDAG.CREATE_PROVIDER_TABLE
 
-OneViewDAG.CREATE_PROVIDER_TABLE >> OneViewDAG.REMOVE_UNKNOWN_PROVIDERS
-OneViewDAG.REMOVE_UNKNOWN_PROVIDERS >> OneViewDAG.SPLIT_IQVIA_PROVIDER_TABLE
-OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_IQVIA_PROVIDER_TABLE_0
-OneViewDAG.LOAD_IQVIA_UPDATE_TABLE >> OneViewDAG.LOAD_IQVIA_PROVIDER_TABLE_0
-
-OneViewDAG.SPLIT_IQVIA_PROVIDER_TABLE >> OneViewDAG.LOAD_IQVIA_PROVIDER_TABLE_0
-OneViewDAG.sequence('LOAD_IQVIA_PROVIDER_TABLE', 3)
-
-OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE
-OneViewDAG.LOAD_IQVIA_BUSINESS_TABLE_2 >> OneViewDAG.LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE
-OneViewDAG.LOAD_IQVIA_PROVIDER_TABLE_2 >> OneViewDAG.LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE
-OneViewDAG.LOAD_IQVIA_UPDATE_TABLE >> OneViewDAG.LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE
-
-OneViewDAG.EXTRACT_CREDENTIALING >> OneViewDAG.EXTRACT_CREDENTIALING_ADDRESSES \
-    >> OneViewDAG.MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
-OneViewDAG.MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> OneViewDAG.LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES
-OneViewDAG.MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> OneViewDAG.REMOVE_UNKNOWN_ORDERS
-OneViewDAG.REMOVE_UNKNOWN_ORDERS \
-    >> OneViewDAG.SPLIT_CREDENTIALING_ORDER_TABLE \
-    >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_0
-OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_0
-
-OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_0 >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_1 \
-    >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_2
+# OneViewDAG.CREATE_PROVIDER_TABLE >> OneViewDAG.REMOVE_UNKNOWN_PROVIDERS
+# OneViewDAG.REMOVE_UNKNOWN_PROVIDERS >> OneViewDAG.SPLIT_IQVIA_PROVIDER_TABLE
+# OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_IQVIA_PROVIDER_TABLE_0
+# OneViewDAG.LOAD_IQVIA_UPDATE_TABLE >> OneViewDAG.LOAD_IQVIA_PROVIDER_TABLE_0
+#
+# OneViewDAG.SPLIT_IQVIA_PROVIDER_TABLE >> OneViewDAG.LOAD_IQVIA_PROVIDER_TABLE_0
+# OneViewDAG.sequence('LOAD_IQVIA_PROVIDER_TABLE', 3)
+#
+# OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE
+# OneViewDAG.LOAD_IQVIA_BUSINESS_TABLE_2 >> OneViewDAG.LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE
+# OneViewDAG.LOAD_IQVIA_PROVIDER_TABLE_2 >> OneViewDAG.LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE
+# OneViewDAG.LOAD_IQVIA_UPDATE_TABLE >> OneViewDAG.LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE
+#
+# OneViewDAG.EXTRACT_CREDENTIALING >> OneViewDAG.EXTRACT_CREDENTIALING_ADDRESSES \
+#     >> OneViewDAG.MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE
+# OneViewDAG.MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> OneViewDAG.LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES
+# OneViewDAG.MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> OneViewDAG.REMOVE_UNKNOWN_ORDERS
+# OneViewDAG.REMOVE_UNKNOWN_ORDERS \
+#     >> OneViewDAG.SPLIT_CREDENTIALING_ORDER_TABLE \
+#     >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_0
+# OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_0
+#
+# OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_0 >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_1 \
+#     >> OneViewDAG.LOAD_CREDENTIALING_ORDER_TABLE_2
 
 
 # OneViewDAG.EXTRACT_HISTORICAL_RESIDENT \
 #     >> OneViewDAG.CREATE_HISTORICAL_RESIDENT_TABLE \
 #     >> OneViewDAG.REMOVE_UNKNOWN_HISTORICAL_RESIDENTS \
 #     >> OneViewDAG.SPLIT_HISTORICAL_RESIDENT_TABLE
-OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_HISTORICAL_RESIDENT_TABLE_0
-
-OneViewDAG.SPLIT_HISTORICAL_RESIDENT_TABLE >> OneViewDAG.LOAD_HISTORICAL_RESIDENT_TABLE_0
-OneViewDAG.sequence('LOAD_HISTORICAL_RESIDENT_TABLE', 6)
+# OneViewDAG.LOAD_PHYSICIAN_TABLE_5 >> OneViewDAG.LOAD_HISTORICAL_RESIDENT_TABLE_0
+#
+# OneViewDAG.SPLIT_HISTORICAL_RESIDENT_TABLE >> OneViewDAG.LOAD_HISTORICAL_RESIDENT_TABLE_0
+# OneViewDAG.sequence('LOAD_HISTORICAL_RESIDENT_TABLE', 6)
 
 # OneViewDAG.CREATE_STATIC_REFERENCE_TABLE >> OneViewDAG.LOAD_STATIC_REFERENCE_TABLE
 #
