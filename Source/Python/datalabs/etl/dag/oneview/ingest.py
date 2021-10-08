@@ -155,7 +155,7 @@ class OneViewDAG(DAG):
     LOAD_MEDICAL_SCHOOL_TABLE: ORMLoaderTask
 
 
-pylint: disable=pointless-statement
+# pylint: disable=pointless-statement
 OneViewDAG.EXTRACT_PPD >> OneViewDAG.SUPPLEMENT_PPD_TABLE
 OneViewDAG.EXTRACT_PHYSICIAN_RACE_ETHNICITY >> OneViewDAG.SUPPLEMENT_PPD_TABLE
 OneViewDAG.EXTRACT_MEDICAL_STUDENT >> OneViewDAG.SUPPLEMENT_PPD_TABLE
