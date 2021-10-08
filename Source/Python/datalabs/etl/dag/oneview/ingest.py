@@ -4,7 +4,7 @@ from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransform
 # from   datalabs.etl.http.extract import HTTPFileExtractorTask
 # from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 # from   datalabs.etl.manipulate.transform import SplitTransformerTask
-from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
+# from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 # from   datalabs.etl.oneview.credentialing.transform import \
 #     CredentialingTransformerTask, \
 #     CredentialingFinalTransformerTask, \
@@ -56,7 +56,7 @@ class OneViewDAG(DAG):
     #
     # EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     # EXTRACT_PHYSICIAN_EMAIL_STATUS: Repeat(JDBCExtractorTask, 4)
-    CONCATENATE_PHYSICIAN_EMAIL_STATUS: ConcatenateTransformerTask
+    # CONCATENATE_PHYSICIAN_EMAIL_STATUS: ConcatenateTransformerTask
     CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: PhysicianEmailStatusTransformer
     # CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 6)
     # CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
@@ -169,8 +169,8 @@ class OneViewDAG(DAG):
 
 # OneViewDAG.sequence('EXTRACT_PHYSICIAN_EMAIL_STATUS', 4)
 # OneViewDAG.EXTRACT_PHYSICIAN_EMAIL_STATUS_3 \
-OneViewDAG.CONCATENATE_PHYSICIAN_EMAIL_STATUS \
-    >> OneViewDAG.CREATE_PHYSICIAN_EMAIL_STATUS_TABLE
+#     >> OneViewDAG.CONCATENATE_PHYSICIAN_EMAIL_STATUS \
+#     >> OneViewDAG.CREATE_PHYSICIAN_EMAIL_STATUS_TABLE
 
 # OneViewDAG.fan_out('CREATE_PHYSICIAN_EMAIL_STATUS_TABLE', 'CREATE_PHYSICIAN_TABLE', 6)
 #
