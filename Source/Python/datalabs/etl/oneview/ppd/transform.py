@@ -200,9 +200,7 @@ class PhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_email_status(cls, ppd, email_status):
-        ppd_email = ppd.merge(
-            email_status['PARTY_ID', 'has_email'], on='PARTY_ID', how='left'
-        ).drop_duplicates(ignore_index=True)
+        ppd_email = ppd.merge(email_status, on='PARTY_ID', how='left').drop_duplicates(ignore_index=True)
 
         ppd_email.has_email.fillna(False, inplace=True)
 
