@@ -158,7 +158,7 @@ class PhysicianTransformerTask(TransformerTask):
     def _merge_data(cls, ppd, npi, membership, email_status):
         ppd_npi = cls._merge_npi(ppd, npi)
 
-        ppd_membership = cls._merge_membership(ppd_npi, ppd_membership)
+        ppd_membership = cls._merge_membership(ppd_npi, membership)
 
         ppd_email_status = cls._merge_email_status(ppd_membership, email_status)
 
@@ -190,7 +190,7 @@ class PhysicianTransformerTask(TransformerTask):
         return ppd.merge(npi, on='meNumber', how="left").drop_duplicates()
 
     @classmethod
-    def _merge_membership(cls, ppd, membershp):
+    def _merge_membership(cls, ppd, membership):
         membership = membership.rename(columns={'PARTY_ID_FROM': 'PARTY_ID', 'DESC': 'MEMBERSHIP_STATUS'})
 
         return ppd.merge(
@@ -201,7 +201,7 @@ class PhysicianTransformerTask(TransformerTask):
     @classmethod
     def _merge_email_status(cls, ppd, email_status):
         ppd_email = ppd.merge(
-            email['PARTY_ID', 'has_email'], on='PARTY_ID', how='left'
+            email_status['PARTY_ID', 'has_email'], on='PARTY_ID', how='left'
         ).drop_duplicates(ignore_index=True)
 
         ppd_email.has_email.fillna(False, inplace=True)

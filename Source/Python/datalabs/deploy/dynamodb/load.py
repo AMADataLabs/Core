@@ -53,7 +53,6 @@ class ConfigMapLoader():
     def _expand_macros(cls, parameters):
         deleted_tasks = []
         added_tasks = []
-        count = 0
 
         for task, task_parameters in parameters.items():
             if '@MACRO_COUNT@' in task_parameters:

@@ -116,6 +116,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             start = 0
 
         for index in range(start+1, count):
+            # pylint: disable=expression-not-assigned
             getattr(cls, f'{task}_{index-1}') >> getattr(cls, f'{task}_{index}')
 
     @classmethod
@@ -124,6 +125,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             start = 0
 
         for index in range(start, count):
+            # pylint: disable=expression-not-assigned
             getattr(cls, f'{task1}_{index}') >> getattr(cls, f'{task2}_{index}')
 
     @classmethod
@@ -132,6 +134,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             start = 0
 
         for index in range(start, count):
+            # pylint: disable=expression-not-assigned
             getattr(cls, f'{task1}_{index}') >> getattr(cls, task2)
 
     @classmethod
@@ -140,6 +143,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             start = 0
 
         for index in range(start, count):
+            # pylint: disable=expression-not-assigned
             getattr(cls, f'{task1}') >> getattr(cls, f'{task2}_{index}')
 
 @dataclass

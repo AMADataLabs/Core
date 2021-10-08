@@ -117,7 +117,7 @@ class JDBCExtractorTask(ExtractorTask):
 
             if self._parameters.start_index:
                 index = int(self._parameters.start_index) * count
-                stop_index = start_index + count
+                stop_index = index + count
 
         if self._parameters.max_parts is not None and self._parameters.part_index is not None:
             max_parts = int(self._parameters.max_parts)
