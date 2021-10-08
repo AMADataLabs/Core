@@ -116,7 +116,31 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             start = 0
 
         for index in range(start+1, count):
-            getattr(cls, f'{task}_{index-1}') >> getattr(cls, f'{task}_{index-1}')
+            getattr(cls, f'{task}_{index-1}') >> getattr(cls, f'{task}_{index}')
+
+    @classmethod
+    def parallel(cls, task1, task2, count, start=None):
+        if start is None:
+            start = 0
+
+        for index in range(start, count):
+            getattr(cls, f'{task1}_{index}') >> getattr(cls, f'{task2}_{index}')
+
+    @classmethod
+    def fan_in(cls, task1, task2, count, start=None):
+        if start is None:
+            start = 0
+
+        for index in range(start, count):
+            getattr(cls, f'{task1}_{index}') >> getattr(cls, task2)
+
+    @classmethod
+    def fan_out(cls, task1, task2, count, start=None):
+        if start is None:
+            start = 0
+
+        for index in range(start, count):
+            getattr(cls, f'{task1}') >> getattr(cls, f'{task2}_{index}')
 
 @dataclass
 class Repeat:
