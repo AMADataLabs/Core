@@ -1,6 +1,6 @@
 ''' DAG definition for the DAG Scheduler. '''
-from   datalabs.etl.dag.dag import DAG#, Repeat
-from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransformer
+from   datalabs.etl.dag.dag import DAG, Repeat
+# from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransformer
 # from   datalabs.etl.http.extract import HTTPFileExtractorTask
 # from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 # from   datalabs.etl.manipulate.transform import SplitTransformerTask
@@ -22,7 +22,7 @@ from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransform
 # from  datalabs.etl.oneview.link.transform import ResidencyProgramPhysicianTransformerTask
 # from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
 # from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask, NPITransformerTask
-# from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
+from   datalabs.etl.oneview.ppd.transform import PhysicianTransformerTask
 # from   datalabs.etl.oneview.reference.transform import \
 #     FederalInformationProcessingStandardCountyTransformerTask \
 #     StateTransformerTask, \
@@ -37,7 +37,7 @@ from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransform
 #     ClassOfTradeTransformerTask, \
 #     MedicalSchoolTransformerTask
 # from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
-# from   datalabs.etl.orm.load import ORMLoaderTask
+from   datalabs.etl.orm.load import ORMLoaderTask
 # from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 # from   datalabs.etl.sftp.extract import SFTPIBM437TextFileExtractorTask
 # from   datalabs.etl.transform import PassThroughTransformerTask
@@ -57,8 +57,8 @@ class OneViewDAG(DAG):
     # EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     # EXTRACT_PHYSICIAN_EMAIL_STATUS: Repeat(JDBCExtractorTask, 4)
     # CONCATENATE_PHYSICIAN_EMAIL_STATUS: ConcatenateTransformerTask
-    CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: PhysicianEmailStatusTransformer
-    # CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 6)
+    # CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: PhysicianEmailStatusTransformer
+    CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 6)
     # CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
 
     # EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY: HTTPFileExtractorTask
@@ -91,7 +91,7 @@ class OneViewDAG(DAG):
     # CREATE_TYPE_OF_PRACTICE_TABLE: TypeOfPracticeTransformerTask
     # LOAD_TYPE_OF_PRACTICE_TABLE: ORMLoaderTask
 
-    # LOAD_PHYSICIAN_TABLE: Repeat(ORMLoaderTask, 6)
+    LOAD_PHYSICIAN_TABLE: Repeat(ORMLoaderTask, 6)
 
     # EXTRACT_RESIDENCY: SFTPFileExtractorTask
     # CREATE_RESIDENCY_TABLES: ResidencyTransformerTask
@@ -202,7 +202,7 @@ class OneViewDAG(DAG):
 #     >> OneViewDAG.LOAD_TYPE_OF_PRACTICE_TABLE
 #
 
-# OneViewDAG.parallel('CREATE_PHYSICIAN_TABLE', 'LOAD_PHYSICIAN_TABLE', 6)
+OneViewDAG.parallel('CREATE_PHYSICIAN_TABLE', 'LOAD_PHYSICIAN_TABLE', 6)
 # OneViewDAG.LOAD_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
 # OneViewDAG.LOAD_STATE_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
 # OneViewDAG.LOAD_SPECIALTY_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
@@ -211,7 +211,7 @@ class OneViewDAG(DAG):
 # OneViewDAG.LOAD_PRESENT_EMPLOYMENT_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
 # OneViewDAG.LOAD_TYPE_OF_PRACTICE_TABLE >> OneViewDAG.LOAD_PHYSICIAN_TABLE_0
 
-# OneViewDAG.sequence('LOAD_PHYSICIAN_TABLE', 6)
+OneViewDAG.sequence('LOAD_PHYSICIAN_TABLE', 6)
 #
 # OneViewDAG.EXTRACT_RESIDENCY >> OneViewDAG.CREATE_RESIDENCY_TABLES \
 #     >> OneViewDAG.LOAD_RESIDENCY_INSTITUTION_TABLE \
