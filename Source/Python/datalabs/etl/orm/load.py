@@ -148,7 +148,7 @@ class ORMLoaderTask(LoaderTask):
 
     @classmethod
     def _get_current_row_hashes(cls, database, schema, table, primary_key):
-        get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM {schema}.{table}"
+        get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM {schema}.{table} LIMIT 10"
 
         current_hashes = database.read(get_current_hash).astype(str)
         LOGGER.debug('Current Row Hashes: %s', current_hashes)
@@ -158,7 +158,7 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _generate_row_hashes(cls, columns, data, primary_key):
         csv_data = data[columns].to_csv(header=None, index=False, quoting=csv.QUOTE_ALL).strip('\n').split('\n')
-        row_strings = ["(" + cls._remove_quotes(i) + ")" for i in csv_data]
+        row_strings = ["(" + cls._standardize_row_text(i) + ")" for i in csv_data]
 
         hashes = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
         primary_keys = data[primary_key].tolist()
@@ -187,11 +187,13 @@ class ORMLoaderTask(LoaderTask):
         cls._delete_data_from_table(database, table_parameters, deleted_data)
 
     @classmethod
-    def _remove_quotes(cls, csv_string):
+    def _standardize_row_text(cls, csv_string):
         # split at only unquoted commas
         columns = [term for term in re.split(r'("[^"]*,[^"]*"|[^,]*)', csv_string) if (term and term != ',')]
 
-        return ','.join(cls._unquote_term(column) for column in columns)
+        simplified_boolean_columns = [cls._replace_boolean(column) for column in columns]
+
+        return ','.join(cls._unquote_term(column) for column in simplified_boolean_columns)
 
     @classmethod
     def _select_new_data(cls, table_parameters):
@@ -276,6 +278,17 @@ class ORMLoaderTask(LoaderTask):
             quoted_csv_column = f'{csv_column[1:-1]}'
 
         return quoted_csv_column
+
+    @classmethod
+    def _replace_boolean(cls, quoted_column):
+        column = quoted_column
+
+        if quoted_column == '"True"':
+            column = '"t"'
+        elif quoted_column == '"False"':
+            column = '"f"'
+
+        return column
 
     @classmethod
     def _create_models(cls, model_class, data):
