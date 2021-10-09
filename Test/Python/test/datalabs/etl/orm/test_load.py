@@ -93,6 +93,26 @@ def test_select_updated_data(loader_parameters, table_parameters, expected_data)
     assert expected_data['updated'].equals(updated_data)
 
 
+# pylint: disable=protected-access
+def test_get_schema_from_dict_table_args():
+    class MockObject:
+        __table_args__ = {"schema": "ormloader"}
+
+    schema = ORMLoaderTask._get_schema(MockObject)
+
+    assert schema == "ormloader"
+
+
+# pylint: disable=protected-access
+def test_get_schema_from_tuple_table_args():
+    class MockObject:
+        __table_args__ = (42, {"stuff": "jfdi9049d0sjafe"}, {"schema": "ormloader"})
+
+    schema = ORMLoaderTask._get_schema(MockObject)
+
+    assert schema == "ormloader"
+
+
 # pylint: disable=blacklisted-name
 @pytest.fixture
 def data():

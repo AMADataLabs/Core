@@ -507,10 +507,12 @@ class ResidencyProgramPhysician(BASE):
     __table_args__ = {"schema": SCHEMA}
 
     id = sa.Column(sa.String, primary_key=True)
-    program = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program.id"),
-                                 nullable=False, unique=True)
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
-                                         nullable=False, unique=True)
+    program = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program.id"), nullable=False, unique=True)
+    medical_education_number = sa.Column(
+        sa.String,
+        sa.ForeignKey("oneview.physician.medical_education_number"),
+        nullable=False
+    )
 
 
 class CorporateParentBusiness(BASE):
