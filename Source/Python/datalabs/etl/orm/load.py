@@ -106,10 +106,14 @@ class ORMLoaderTask(LoaderTask):
 
     @classmethod
     def _get_schema(cls, model_class):
+        schema = None
+
         if hasattr(model_class.__table_args__, 'get'):
             schema = model_class.__table_args__.get('schema')
         else:
-            schema = model_class.__table_args__[1].get('schema')
+            for arg in model_class.__table_args__:
+                if hasattr(arg, 'get') and 'schema' in arg:
+                    schema = arg.get('schema')
 
         return schema
 
