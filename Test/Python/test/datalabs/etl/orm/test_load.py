@@ -30,7 +30,7 @@ def test_row_unquoting():
     csv_string = '"apple pants","1","yummy, yummy","","yip,yip!","chortle"'
     expected_string = '"apple pants",1,"yummy, yummy","","yip,yip!",chortle'
 
-    quoted_string = ORMLoaderTask._remove_quotes(csv_string)
+    quoted_string = ORMLoaderTask._standardize_row_text(csv_string)
 
     assert quoted_string == expected_string
 
