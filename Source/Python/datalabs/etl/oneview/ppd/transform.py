@@ -48,8 +48,6 @@ class NPITransformerTask(TransformerTask):
         merged_npi_me = medical_education_number_table.merge(npi_table, on='PARTY_ID', how="left").drop_duplicates()
         merged_npi_entity_me = merged_npi_me.merge(entity_table, on='PARTY_ID', how="left", sort=True).drop_duplicates()
 
-        merged_npi_entity_me['meNumber'] = merged_npi_entity_me['meNumber'].str.lstrip('0')
-
         return merged_npi_entity_me
 
     def _get_columns(self):
