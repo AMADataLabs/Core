@@ -50,7 +50,7 @@ class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
 
     COLUMN_TYPES = {
-        'BOOLEAN': bool,
+        'BOOLEAN': lambda x: x.map({'False': False, 'True': True}),
         'INTEGER': int
     }
 
