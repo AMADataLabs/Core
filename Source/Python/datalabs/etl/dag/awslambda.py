@@ -72,33 +72,23 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
         ''' An S3 notification implies that the DAG Scheduler should be run.'''
         record = event.get("Records", [{}])[0]
         event_source = record.get("EventSource", record.get("eventSource"))
+        parameters = None
 
         if event_source != 'aws:s3':
             raise ValueError(f'Invalid S3 notification event: {event}')
 
         s3_object_key = record["s3"]["object"]["key"]
-        splitted_key = s3_object_key.rsplit("__", 1)
+
         if s3_object_key == "schedule.csv":
-            return self._get_scheduler_event_parameters()
-        if len(splitted_key) == 2:
-            dag_id, execution_time = splitted_key
-            try:
-                # Checking if execution_time is ISO-8601
-                isoparse(execution_time)
-            except ValueError as error:
-                raise ValueError(f'S3 key must conform to the '\
-                    '"<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format. '\
-                    'execution time is not ISO-8601. '\
-                    f'execution_time: {execution_time}') from error
+            parameters = self._get_scheduler_event_parameters()
+        elif not '__' in s3_object_key:
+            raise ValueError(
+                f'Invalid S3 object name: {s3_object_key}. The name must either be equal to "schedule.csv" '
+                f'or conform to the format "<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format.')
+        else:
+            parameters = self._get_backfill_parameters(s3_object_key)
 
-            return dict(
-                    dag=dag_id,
-                    execution_time=execution_time
-                )
-        raise ValueError('S3 key must either be equal to '\
-            '"schedule.csv" or conform to the '\
-            f'"<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format. S3 key: {s3_object_key}')
-
+        return parameters
 
     def _get_cloudwatch_event_parameters(self, event):
         ''' A CloudWatch Event notification implies that the DAG Scheduler should be run.'''
@@ -114,6 +104,24 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
         return dict(
             dag="DAG_SCHEDULER",
             execution_time=self.execution_time.isoformat()
+        )
+
+    @classmethod
+    def _get_backfill_parameters(cls, s3_object_key):
+        dag_id, execution_time = s3_object_key.rsplit("__", 1)
+
+        try:
+            isoparse(execution_time)  # Check if execution_time is ISO-8601
+        except ValueError as error:
+            raise ValueError(
+                f'Backfill execution time is not a valid ISO-8601 timestamp: {execution_time}. ' \
+                f'The backfill S3 object name must conform to the format "<DAG_ID>__<ISO-8601_EXECUTION_TIME>".'
+            ) from error
+
+
+        return dict(
+            dag=dag_id,
+            execution_time=execution_time
         )
 
     def _handle_success(self) -> (int, dict):
