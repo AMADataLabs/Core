@@ -3,7 +3,8 @@ from   dataclasses import dataclass
 import json
 import logging
 import os
-from dateutil.parser import isoparse
+from   dateutil.parser import isoparse
+import urllib.parse
 
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
 from   datalabs.etl.task import ExecutionTimeMixin
@@ -78,6 +79,7 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
             raise ValueError(f'Invalid S3 notification event: {event}')
 
         s3_object_key = record["s3"]["object"]["key"]
+        LOGGER.debug('S3 Event Object: %s', s3_object_key)
 
         if s3_object_key == "schedule.csv":
             parameters = self._get_scheduler_event_parameters()
@@ -108,7 +110,8 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
 
     @classmethod
     def _get_backfill_parameters(cls, s3_object_key):
-        dag_id, execution_time = s3_object_key.rsplit("__", 1)
+        dag_id, escaped_execution_time = s3_object_key.rsplit("__", 1)
+        execution_time = urllib.parse.unquote(escaped_execution_time)
 
         try:
             isoparse(execution_time)  # Check if execution_time is ISO-8601
