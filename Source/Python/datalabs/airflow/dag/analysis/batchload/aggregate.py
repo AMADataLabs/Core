@@ -26,7 +26,7 @@ BASE_ENVIRONMENT = dict(
 
 ### DAG scheduling variables
 past_wednesday = datetime(year=2021, month=9, day=1, hour=14, tzinfo=timezone('America/Chicago'))
-week_intrval = timedelta(weeks=1)
+week_interval = timedelta(weeks=1)
 
 ADDRESS_LOAD_AGGREGATION_DAG = DAG(
     dag_id=DAG_ID,
@@ -44,7 +44,7 @@ ADDRESS_LOAD_AGGREGATION_DAG = DAG(
         get_logs=True,
     ),
     start_date=past_wednesday,
-    schedule_interval=week_intrval,
+    schedule_interval=week_interval,
     tags=['ADDRESS_LOAD'],
 )
 
