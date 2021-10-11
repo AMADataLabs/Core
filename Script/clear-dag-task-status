@@ -1,0 +1,13 @@
+#!/bin/bash
+
+
+main() {
+    dag=$1
+    task=$2
+    execution_time=$3  # 2021-09-29 22:45:00
+
+    aws dynamodb delete-item --table-name DataLake-dag-state-dev \
+        --key '{"name": {"S": "'${dag}'__'${task}'"}, "execution_time": {"S": "'"${execution_time}"'"}}'
+}
+
+main "$1" "$2" "$3"
