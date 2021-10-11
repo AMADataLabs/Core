@@ -110,8 +110,8 @@ class IQVIAProviderPruningTransformerTask(TransformerTask):
 
 class IQVIAUpdateTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
-        iqvia_update = data[0].iloc[0]['BATCH_BUSINESS_DATE']
-        iqvia_update = pandas.DataFrame.from_dict({'BATCH_BUSINESS_DATE': [iqvia_update]})
+        iqvia_update = data[0].iloc[0]['batch_business_date']
+        iqvia_update = pandas.DataFrame.from_dict({'batch_business_date': [iqvia_update]})
 
         return [iqvia_update]
 
