@@ -116,7 +116,7 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
     @classmethod
     def _get_backfill_parameters(cls, s3_object_key):
         dag_id, escaped_execution_time = s3_object_key.rsplit("__", 1)
-        execution_time = urllib.parse.unquote(escaped_execution_time)
+        execution_time = urllib.parse.unquote(escaped_execution_time).replace('T', ' ')
 
         try:
             isoparse(execution_time)  # Check if execution_time is ISO-8601
