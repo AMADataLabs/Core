@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 import json
 import logging
 import os
+from dateutil.parser import isoparse
 
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
 from   datalabs.etl.task import ExecutionTimeMixin
@@ -75,7 +76,30 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
         if event_source != 'aws:s3':
             raise ValueError(f'Invalid S3 notification event: {event}')
 
-        return self._get_scheduler_event_parameters()
+        s3_object_key = record["s3"]["object"]["key"]
+        splitted_key = s3_object_key.rsplit("__", 1)
+        if s3_object_key == "schedule.csv":
+            return self._get_scheduler_event_parameters()
+        elif len(splitted_key) == 2:
+            dag_id, execution_time = splitted_key
+            try:
+                # Checking if execution_time is ISO-8601
+                isoparse(execution_time)
+            except ValueError as error:
+                raise ValueError(f'S3 key must conform to the '\
+                    '"<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format. '\
+                    'execution time is not ISO-8601. '\
+                    f'execution_time: {execution_time}') from error
+
+            return dict(
+                    dag=dag_id,
+                    execution_time=execution_time
+                )
+        else:
+            raise ValueError('S3 key must either be equal to '\
+                '"schedule.csv" or conform to the '\
+                f'"<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format. S3 key: {s3_object_key}')
+        
 
     def _get_cloudwatch_event_parameters(self, event):
         ''' A CloudWatch Event notification implies that the DAG Scheduler should be run.'''
