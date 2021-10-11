@@ -80,7 +80,7 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
         splitted_key = s3_object_key.rsplit("__", 1)
         if s3_object_key == "schedule.csv":
             return self._get_scheduler_event_parameters()
-        elif len(splitted_key) == 2:
+        if len(splitted_key) == 2:
             dag_id, execution_time = splitted_key
             try:
                 # Checking if execution_time is ISO-8601
@@ -95,11 +95,10 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
                     dag=dag_id,
                     execution_time=execution_time
                 )
-        else:
-            raise ValueError('S3 key must either be equal to '\
-                '"schedule.csv" or conform to the '\
-                f'"<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format. S3 key: {s3_object_key}')
-        
+        raise ValueError('S3 key must either be equal to '\
+            '"schedule.csv" or conform to the '\
+            f'"<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format. S3 key: {s3_object_key}')
+
 
     def _get_cloudwatch_event_parameters(self, event):
         ''' A CloudWatch Event notification implies that the DAG Scheduler should be run.'''
