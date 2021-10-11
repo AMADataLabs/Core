@@ -82,12 +82,14 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
         LOGGER.debug('S3 Event Object: %s', s3_object_key)
 
         if s3_object_key == "schedule.csv":
+            LOGGER.info('Processing schedule file update trigger...')
             parameters = self._get_scheduler_event_parameters()
         elif not '__' in s3_object_key:
             raise ValueError(
                 f'Invalid S3 object name: {s3_object_key}. The name must either be equal to "schedule.csv" '
                 f'or conform to the format "<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format.')
         else:
+            LOGGER.info('Processing backfill file trigger...')
             parameters = self._get_backfill_parameters(s3_object_key)
 
         return parameters
