@@ -38,6 +38,7 @@ from   datalabs.etl.oneview.reference.transform import \
     MedicalSchoolTransformerTask
 from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
+from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPIBM437TextFileExtractorTask
 from   datalabs.etl.transform import PassThroughTransformerTask
@@ -79,7 +80,7 @@ class OneViewDAG(DAG):
     CREATE_MAJOR_PROFESSIONAL_ACTIVITY_TABLE: MajorProfessionalActivityTransformerTask
     LOAD_MAJOR_PROFESSIONAL_ACTIVITY_TABLE: ORMLoaderTask
 
-    EXTRACT_CORE_BASED_STATISTICAL_AREA: HTTPFileExtractorTask
+    EXTRACT_CORE_BASED_STATISTICAL_AREA: S3FileExtractorTask
     CREATE_CORE_BASED_STATISTICAL_AREA_TABLE: CoreBasedStatisticalAreaTransformerTask
     LOAD_CORE_BASED_STATISTICAL_AREA_TABLE: ORMLoaderTask
 

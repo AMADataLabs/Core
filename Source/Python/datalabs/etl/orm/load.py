@@ -46,12 +46,14 @@ class ORMLoaderParameters:
     append: str = None
 
 
+
+
 class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
 
-    COLUMN_TYPES = {
+    COLUMN_TYPE_CONVERTERS = {
         'BOOLEAN': lambda x: x.map({'False': False, 'True': True}),
-        'INTEGER': int
+        'INTEGER': lambda x: x.astype(int, copy=False)
     }
 
     def _load(self):
@@ -336,8 +338,8 @@ class ORMLoaderTask(LoaderTask):
 
     @classmethod
     def _set_column_type(cls, data, column, column_type):
-        if column_type in cls.COLUMN_TYPES:
-            data[column] = data[column].astype(cls.COLUMN_TYPES[column_type], copy=False)
+        if column_type in cls.COLUMN_TYPE_CONVERTERS:
+            data[column] = cls.COLUMN_TYPE_CONVERTERS[column_type](data[column])
 
 
 class ORMPreLoaderTask(LoaderTask):
