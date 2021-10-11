@@ -734,15 +734,15 @@ data:
     ONEVIEW__LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     # Credentialing Order Splitter
-    ONEVIEW__SPLIT_CREDENTIALING_ORDER_TABLE__COUNT: '6'
+    ONEVIEW__SPLIT_CREDENTIALING_ORDER_TABLE__COUNT: '12'
     ONEVIEW__SPLIT_CREDENTIALING_ORDER_TABLE__CACHE_CLASS: ${S3_CACHE_CLASS}
     ONEVIEW__SPLIT_CREDENTIALING_ORDER_TABLE__CACHE_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
     ONEVIEW__SPLIT_CREDENTIALING_ORDER_TABLE__CACHE_BASE_PATH: ${S3_BASE_PATH}
     ONEVIEW__SPLIT_CREDENTIALING_ORDER_TABLE__CACHE_INPUT_FILES: 'credentialing_order.csv'
-    ONEVIEW__SPLIT_CREDENTIALING_ORDER_TABLE__CACHE_OUTPUT_FILES: 'credentialing_order_0.csv,credentialing_order_1.csv,credentialing_order_2.csv,credentialing_order_3.csv,credentialing_order_4.csv,credentialing_order_5.csv'
+    ONEVIEW__SPLIT_CREDENTIALING_ORDER_TABLE__CACHE_OUTPUT_FILES: 'credentialing_order_0.csv,credentialing_order_1.csv,credentialing_order_2.csv,credentialing_order_3.csv,credentialing_order_4.csv,credentialing_order_5.csv,credentialing_order_6.csv,credentialing_order_7.csv,credentialing_order_8.csv,credentialing_order_9.csv,credentialing_order_10.csv,credentialing_order_11.csv'
 
     # Credentialing Order Loader
-    ONEVIEW__LOAD_CREDENTIALING_ORDER_TABLE__@MACRO_COUNT@: 6
+    ONEVIEW__LOAD_CREDENTIALING_ORDER_TABLE__@MACRO_COUNT@: 12
     ONEVIEW__LOAD_CREDENTIALING_ORDER_TABLE__MODEL_CLASSES: 'datalabs.model.masterfile.oneview.CredentialingOrder'
     ONEVIEW__LOAD_CREDENTIALING_ORDER_TABLE__DATABASE_HOST: ${DATABASE_HOST}
     ONEVIEW__LOAD_CREDENTIALING_ORDER_TABLE__DATABASE_PORT: ${DATABASE_PORT}
