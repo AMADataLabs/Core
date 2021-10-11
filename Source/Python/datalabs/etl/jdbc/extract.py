@@ -31,8 +31,10 @@ class JDBCExtractorParameters:
     data: object = None
     execution_time: str = None
     chunk_size: str = None
+    count: str = None
     start_index: str = '0'
-    stop_index: str = None
+    max_parts: str = None
+    part_index: str = None
     stream: str = None
 
 
@@ -105,13 +107,24 @@ class JDBCExtractorTask(ExtractorTask):
 
     def _iterate_over_chunks(self, query, connection):
         chunk_size = int(self._parameters.chunk_size)
-        start_index = int(self._parameters.start_index)
-        index = start_index
+        count = None
+        index = 0
         stop_index = None
         iterating = True
 
-        if self._parameters.stop_index is not None:
-            stop_index = int(self._parameters.stop_index)
+        if self._parameters.count:
+            count = int(self._parameters.count)
+
+            if self._parameters.start_index:
+                index = int(self._parameters.start_index) * count
+                stop_index = index + count
+
+        if self._parameters.max_parts is not None and self._parameters.part_index is not None:
+            max_parts = int(self._parameters.max_parts)
+            part_index = int(self._parameters.part_index)
+
+            if part_index >= (max_parts - 1):
+                stop_index = None
 
         while iterating:
             if stop_index and (index + chunk_size) > stop_index:
@@ -121,15 +134,16 @@ class JDBCExtractorTask(ExtractorTask):
 
             LOGGER.info('Reading chunk of size %d at index %d...', chunk_size, index)
             chunk = self._read_single_query(resolved_query, connection)
-            LOGGER.info('Read %d records.', len(chunk))
+            read_count = len(chunk)
+            LOGGER.info('Read %d records.', read_count)
             LOGGER.info('Chunk memory usage:\n%s', chunk.memory_usage(deep=True))
 
-            if stop_index and index > stop_index or len(chunk) == 0:
+            if stop_index and index > stop_index or read_count == 0:
                 iterating = False
             else:
                 yield chunk
 
-            index += chunk_size
+            index += read_count
 
 
 class JDBCParquetExtractorTask(JDBCExtractorTask):

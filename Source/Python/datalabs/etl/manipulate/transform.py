@@ -17,7 +17,7 @@ LOGGER.setLevel(logging.INFO)
 class DataFrameTransformerMixin:
     @classmethod
     def _csv_to_dataframe(cls, data, **kwargs):
-        return pandas.read_csv(BytesIO(data), dtype=str, **kwargs)
+        return pandas.read_csv(BytesIO(data), dtype=object, **kwargs)
 
     @classmethod
     def _dataframe_to_csv(cls, data, **kwargs):

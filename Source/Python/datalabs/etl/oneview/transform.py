@@ -27,9 +27,9 @@ class ScalableTransformerMixin():
     @classmethod
     def _csv_to_dataframe(cls, data, on_disk: bool, **kwargs):
         if on_disk:
-            dataframe = dask.dataframe.read_csv(data.decode(), dtype=str, **kwargs)
+            dataframe = dask.dataframe.read_csv(data.decode(), dtype=object, **kwargs)
         else:
-            dataframe = pandas.read_csv(BytesIO(data), dtype=str, **kwargs)
+            dataframe = pandas.read_csv(BytesIO(data), dtype=object, **kwargs)
 
         return dataframe
 

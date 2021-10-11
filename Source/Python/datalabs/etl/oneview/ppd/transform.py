@@ -48,8 +48,6 @@ class NPITransformerTask(TransformerTask):
         merged_npi_me = medical_education_number_table.merge(npi_table, on='PARTY_ID', how="left").drop_duplicates()
         merged_npi_entity_me = merged_npi_me.merge(entity_table, on='PARTY_ID', how="left", sort=True).drop_duplicates()
 
-        merged_npi_entity_me['meNumber'] = merged_npi_entity_me['meNumber'].str.lstrip('0')
-
         return merged_npi_entity_me
 
     def _get_columns(self):
@@ -115,10 +113,10 @@ class PPDTransformerTask(TransformerTask):
     def _add_person_type(cls, data):
         person_type = []
 
-        for row in data['topCode'].to_list():
+        for row in data.topCode.to_list():
             if row == '012':
                 person_type.append('Resident')
-            if row == '000':
+            elif row == '000':
                 person_type.append('Student')
             else:
                 person_type.append('Physician')
@@ -134,27 +132,14 @@ class PPDTransformerTask(TransformerTask):
 class PhysicianTransformerTask(TransformerTask):
     @classmethod
     def _preprocess_data(cls, data):
-        ppd, npi, membership = data
+        ppd, npi, membership, email_status = data
 
-        physician = cls._merge_data(ppd, npi, membership)
+        physician = cls._merge_data(ppd, npi, membership, email_status)
 
         return [physician]
 
     def _get_columns(self):
         return [PHYSICIAN_COLUMNS]
-
-    # pylint: disable=too-many-arguments
-    @classmethod
-    def _merge_data(cls, ppd_table, npi_table, membership):
-        ppd_npi = ppd_table.merge(npi_table, on='meNumber', how="left").drop_duplicates()
-
-        membership = membership.rename(columns={'PARTY_ID_FROM': 'PARTY_ID', 'DESC': 'MEMBERSHIP_STATUS'})
-        ppd_membership = ppd_npi.merge(
-            membership[['PARTY_ID', 'MEMBERSHIP_STATUS']],
-            on='PARTY_ID', how="left"
-        ).drop_duplicates(ignore_index=True)
-
-        return ppd_membership
 
     @classmethod
     def _postprocess_data(cls, data):
@@ -165,6 +150,17 @@ class PhysicianTransformerTask(TransformerTask):
         cleaned_physician = cls._clean_physician(filled_physician)
 
         return [cleaned_physician]
+
+    # pylint: disable=too-many-arguments
+    @classmethod
+    def _merge_data(cls, ppd, npi, membership, email_status):
+        ppd_npi = cls._merge_npi(ppd, npi)
+
+        ppd_membership = cls._merge_membership(ppd_npi, membership)
+
+        ppd_email_status = cls._merge_email_status(ppd_membership, email_status)
+
+        return ppd_email_status
 
     @classmethod
     def _fill_defaults(cls, physician):
@@ -186,6 +182,29 @@ class PhysicianTransformerTask(TransformerTask):
         cls._consolidate_duplicates(physician)
 
         return physician
+
+    @classmethod
+    def _merge_npi(cls, ppd, npi):
+        npi['meNumber'] = npi['meNumber'].astype(str).apply(lambda x: ('0' * 10 + x)[-11:])
+
+        return ppd.merge(npi, on='meNumber', how="left").drop_duplicates()
+
+    @classmethod
+    def _merge_membership(cls, ppd, membership):
+        membership = membership.rename(columns={'PARTY_ID_FROM': 'PARTY_ID', 'DESC': 'MEMBERSHIP_STATUS'})
+
+        return ppd.merge(
+            membership[['PARTY_ID', 'MEMBERSHIP_STATUS']],
+            on='PARTY_ID', how="left"
+        ).drop_duplicates(ignore_index=True)
+
+    @classmethod
+    def _merge_email_status(cls, ppd, email_status):
+        ppd_email = ppd.merge(email_status, on='PARTY_ID', how='left').drop_duplicates(ignore_index=True)
+
+        ppd_email.has_email.fillna(False, inplace=True)
+
+        return ppd_email
 
     @classmethod
     def _fix_pohnpei_fips_county_code(cls, physician):

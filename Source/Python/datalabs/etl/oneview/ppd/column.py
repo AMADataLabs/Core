@@ -224,5 +224,6 @@ PHYSICIAN_COLUMNS = {
     'entity_id': 'entity_id',
     'npi': 'national_provider_identifier',
     'person_type': 'type',
-    'MEMBERSHIP_STATUS': 'membership_status'
+    'MEMBERSHIP_STATUS': 'membership_status',
+    'has_email': 'has_email'
 }
