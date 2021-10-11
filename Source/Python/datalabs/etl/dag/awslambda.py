@@ -45,10 +45,13 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
             raise ValueError(f'Invalid Lambda event: {parameters}')
 
         event_parameters = self._get_sns_event_parameters(parameters)
+        LOGGER.debug('SNS Event Parameters: %s', event_parameters)
 
         if len(event_parameters) == 1 and 'Records' in event_parameters:
+            LOGGER.info('Processing S3 Event Trigger...')
             event_parameters = self._get_s3_event_parameters(event_parameters)
         elif "source" in event_parameters:
+            LOGGER.info('Processing CloudWatch Event Trigger...')
             event_parameters = self._get_cloudwatch_event_parameters(event_parameters)
 
         if "task" not in event_parameters:
