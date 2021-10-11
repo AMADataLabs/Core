@@ -134,7 +134,7 @@ class OneViewDAG(DAG):
     SPLIT_CREDENTIALING_ORDER_TABLE: SplitTransformerTask
 
     LOAD_CREDENTIALING_CUSTOMER_PRODUCT_TABLES: ORMLoaderTask
-    LOAD_CREDENTIALING_ORDER_TABLE: Repeat(ORMLoaderTask, 3)
+    LOAD_CREDENTIALING_ORDER_TABLE: Repeat(ORMLoaderTask, 12)
 
     # CREATE_CREDENTIALING_CUSTOMER_INSTITUTION_TABLE: CredentialingCustomerInstitutionTransformerTask  # v2
     # CREATE_CREDENTIALING_CUSTOMER_BUSINESS_TABLE: CredentialingCustomerBusinessTransformerTask  # v2
