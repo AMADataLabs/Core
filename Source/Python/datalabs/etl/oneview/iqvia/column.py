@@ -93,5 +93,5 @@ SUBSIDIARY_BUSINESS = {
 }
 
 IQVIA_DATE = {
-    'BATCH_BUSINESS_DATE': 'date'
+    'batch_business_date': 'date'
 }
