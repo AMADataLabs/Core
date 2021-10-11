@@ -46,12 +46,14 @@ class ORMLoaderParameters:
     append: str = None
 
 
+
+
 class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
 
-    COLUMN_TYPES = {
-        'BOOLEAN': bool,
-        'INTEGER': int
+    COLUMN_TYPE_CONVERTERS = {
+        'BOOLEAN': lambda x: x.map({'False': False, 'True': True}),
+        'INTEGER': lambda x: x.astype(int, copy=False)
     }
 
     def _load(self):
@@ -92,7 +94,7 @@ class ORMLoaderTask(LoaderTask):
         return dataframe
 
     def _generate_table_parameters(self, database, model_class, data):
-        schema = model_class.__table_args__.get('schema')
+        schema = self._get_schema(model_class)
         table = model_class.__tablename__
         primary_key = self._get_primary_key(database, schema, table)
         columns = self._get_database_columns(database, schema, table)
@@ -103,6 +105,19 @@ class ORMLoaderTask(LoaderTask):
         incoming_hashes = self._generate_row_hashes(columns, data, primary_key)
 
         return TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes)
+
+    @classmethod
+    def _get_schema(cls, model_class):
+        schema = None
+
+        if hasattr(model_class.__table_args__, 'get'):
+            schema = model_class.__table_args__.get('schema')
+        else:
+            for arg in model_class.__table_args__:
+                if hasattr(arg, 'get') and 'schema' in arg:
+                    schema = arg.get('schema')
+
+        return schema
 
     def _update(self, database, table_parameters):
         self._add_data(database, table_parameters)
@@ -145,7 +160,7 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _generate_row_hashes(cls, columns, data, primary_key):
         csv_data = data[columns].to_csv(header=None, index=False, quoting=csv.QUOTE_ALL).strip('\n').split('\n')
-        row_strings = ["(" + cls._remove_quotes(i) + ")" for i in csv_data]
+        row_strings = ["(" + cls._standardize_row_text(i) + ")" for i in csv_data]
 
         hashes = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
         primary_keys = data[primary_key].tolist()
@@ -174,11 +189,13 @@ class ORMLoaderTask(LoaderTask):
         cls._delete_data_from_table(database, table_parameters, deleted_data)
 
     @classmethod
-    def _remove_quotes(cls, csv_string):
+    def _standardize_row_text(cls, csv_string):
         # split at only unquoted commas
         columns = [term for term in re.split(r'("[^"]*,[^"]*"|[^,]*)', csv_string) if (term and term != ',')]
 
-        return ','.join(cls._unquote_term(column) for column in columns)
+        simplified_boolean_columns = [cls._replace_boolean(column) for column in columns]
+
+        return ','.join(cls._unquote_term(column) for column in simplified_boolean_columns)
 
     @classmethod
     def _select_new_data(cls, table_parameters):
@@ -265,6 +282,17 @@ class ORMLoaderTask(LoaderTask):
         return quoted_csv_column
 
     @classmethod
+    def _replace_boolean(cls, quoted_column):
+        column = quoted_column
+
+        if quoted_column == '"True"':
+            column = '"t"'
+        elif quoted_column == '"False"':
+            column = '"f"'
+
+        return column
+
+    @classmethod
     def _create_models(cls, model_class, data):
         columns = cls._get_model_columns(model_class)
 
@@ -310,8 +338,8 @@ class ORMLoaderTask(LoaderTask):
 
     @classmethod
     def _set_column_type(cls, data, column, column_type):
-        if column_type in cls.COLUMN_TYPES:
-            data[column] = data[column].astype(cls.COLUMN_TYPES[column_type], copy=False)
+        if column_type in cls.COLUMN_TYPE_CONVERTERS:
+            data[column] = cls.COLUMN_TYPE_CONVERTERS[column_type](data[column])
 
 
 class ORMPreLoaderTask(LoaderTask):

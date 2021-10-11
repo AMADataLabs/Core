@@ -133,7 +133,10 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _get_matches(cls, physicians, directors):
-        all_match = pandas.merge(physicians, directors, on=['first_name', 'last_name'], suffixes=('_physician', '_residency'))
+        all_match = pandas.merge(
+            physicians,
+            directors, on=['first_name', 'last_name'], suffixes=('_physician', '_residency')
+        )
         pure_match = pandas.merge(physicians, directors, on=[
             'first_name', 'last_name'], suffixes=('_physician', '_residency')).drop_duplicates('person_id', keep=False)
 

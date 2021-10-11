@@ -30,7 +30,7 @@ def test_row_unquoting():
     csv_string = '"apple pants","1","yummy, yummy","","yip,yip!","chortle"'
     expected_string = '"apple pants",1,"yummy, yummy","","yip,yip!",chortle'
 
-    quoted_string = ORMLoaderTask._remove_quotes(csv_string)
+    quoted_string = ORMLoaderTask._standardize_row_text(csv_string)
 
     assert quoted_string == expected_string
 
@@ -91,6 +91,26 @@ def test_select_updated_data(loader_parameters, table_parameters, expected_data)
     updated_data = loader._select_updated_data(table_parameters)
 
     assert expected_data['updated'].equals(updated_data)
+
+
+# pylint: disable=protected-access
+def test_get_schema_from_dict_table_args():
+    class MockObject:
+        __table_args__ = {"schema": "ormloader"}
+
+    schema = ORMLoaderTask._get_schema(MockObject)
+
+    assert schema == "ormloader"
+
+
+# pylint: disable=protected-access
+def test_get_schema_from_tuple_table_args():
+    class MockObject:
+        __table_args__ = (42, {"stuff": "jfdi9049d0sjafe"}, {"schema": "ormloader"})
+
+    schema = ORMLoaderTask._get_schema(MockObject)
+
+    assert schema == "ormloader"
 
 
 # pylint: disable=blacklisted-name

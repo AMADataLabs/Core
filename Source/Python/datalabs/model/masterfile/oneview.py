@@ -110,7 +110,7 @@ class Physician(BASE):
     race_ethnicity = sa.Column(sa.String, nullable=False)
     membership_status = sa.Column(sa.String)
     type = sa.Column(sa.String)
-    has_email = sa.column(sa.Boolean)
+    has_email = sa.Column(sa.Boolean)
 
 
 class ResidencyProgram(BASE):
@@ -507,10 +507,12 @@ class ResidencyProgramPhysician(BASE):
     __table_args__ = {"schema": SCHEMA}
 
     id = sa.Column(sa.String, primary_key=True)
-    program = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program.id"),
-                                 nullable=False, unique=True)
-    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
-                                         nullable=False, unique=True)
+    program = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program.id"), nullable=False, unique=True)
+    medical_education_number = sa.Column(
+        sa.String,
+        sa.ForeignKey("oneview.physician.medical_education_number"),
+        nullable=False
+    )
 
 
 class CorporateParentBusiness(BASE):
@@ -759,8 +761,8 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.party_id AS phy_party_id,
     phy.entity_id AS phy_entity_id,
     phy.race_ethnicity AS phy_race_ethnicity,
-	phy."type" as phy_type,
-	phy.membership_status as phy_membership_status,
+    phy."type" AS phy_type,
+    phy.membership_status AS phy_membership_status,
     bu.name AS aff_business_name,
     bu.owner_status AS aff_owner_status,
     bu.profit_status AS aff_profit_status,
@@ -789,7 +791,8 @@ FROM (((((((({SCHEMA}.physician phy
     LEFT JOIN {SCHEMA}.specialty spe ON (((phy.primary_specialty)::text = (spe.id)::text)))
     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON (((phy.core_based_statistical_area)::text = (cbsa.id)::text)))
     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON (((phy.medical_education_number)::text = (rpp.medical_education_number)::text)))
-ORDER BY phy.medical_education_number;'''
+ORDER BY phy.medical_education_number;
+'''
 )
 
 
@@ -885,8 +888,8 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.party_id AS phy_party_id,
     phy.entity_id AS phy_entity_id,
     phy.race_ethnicity AS phy_race_ethnicity,
-	phy."type" as phy_type,
-	phy.membership_status as phy_membership_status,
+    phy."type" AS phy_type,
+    phy.membership_status AS phy_membership_status,
     bu.name AS aff_business_name,
     bu.owner_status AS aff_owner_status,
     bu.profit_status AS aff_profit_status,
@@ -924,5 +927,6 @@ FROM ((((((((({SCHEMA}.physician phy
     LEFT JOIN {SCHEMA}.specialty spe ON (((phy.primary_specialty)::text = (spe.id)::text)))
     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON (((phy.core_based_statistical_area)::text = (cbsa.id)::text)))
     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON (((phy.medical_education_number)::text = (rpp.medical_education_number)::text)))
-ORDER BY phy.medical_education_number;'''
+ORDER BY phy.medical_education_number;
+'''
 )

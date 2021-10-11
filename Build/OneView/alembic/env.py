@@ -103,7 +103,18 @@ def run_migrations_online():
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    return not hasattr(object, 'schema') or object.schema == "oneview"
+    include = False
+
+    if type_ == 'grant_table':
+        include = False
+    elif not hasattr(object, 'schema'):
+        include = True
+    elif object.schema == "oneview":
+        include = True
+
+    # print(f'Include {name} ({type_})? {include}')
+
+    return include
 
 
 if context.is_offline_mode():

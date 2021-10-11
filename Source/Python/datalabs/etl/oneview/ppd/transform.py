@@ -48,8 +48,6 @@ class NPITransformerTask(TransformerTask):
         merged_npi_me = medical_education_number_table.merge(npi_table, on='PARTY_ID', how="left").drop_duplicates()
         merged_npi_entity_me = merged_npi_me.merge(entity_table, on='PARTY_ID', how="left", sort=True).drop_duplicates()
 
-        merged_npi_entity_me['meNumber'] = merged_npi_entity_me['meNumber'].str.lstrip('0')
-
         return merged_npi_entity_me
 
     def _get_columns(self):
@@ -115,10 +113,10 @@ class PPDTransformerTask(TransformerTask):
     def _add_person_type(cls, data):
         person_type = []
 
-        for row in data['topCode'].to_list():
+        for row in data.topCode.to_list():
             if row == '012':
                 person_type.append('Resident')
-            if row == '000':
+            elif row == '000':
                 person_type.append('Student')
             else:
                 person_type.append('Physician')
@@ -158,7 +156,7 @@ class PhysicianTransformerTask(TransformerTask):
     def _merge_data(cls, ppd, npi, membership, email_status):
         ppd_npi = cls._merge_npi(ppd, npi)
 
-        ppd_membership = cls._merge_membership(ppd_npi, ppd_membership)
+        ppd_membership = cls._merge_membership(ppd_npi, membership)
 
         ppd_email_status = cls._merge_email_status(ppd_membership, email_status)
 
@@ -187,10 +185,12 @@ class PhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_npi(cls, ppd, npi):
+        npi['meNumber'] = npi['meNumber'].astype(str).apply(lambda x: ('0' * 10 + x)[-11:])
+
         return ppd.merge(npi, on='meNumber', how="left").drop_duplicates()
 
     @classmethod
-    def _merge_membership(cls, ppd, membershp):
+    def _merge_membership(cls, ppd, membership):
         membership = membership.rename(columns={'PARTY_ID_FROM': 'PARTY_ID', 'DESC': 'MEMBERSHIP_STATUS'})
 
         return ppd.merge(
@@ -200,9 +200,7 @@ class PhysicianTransformerTask(TransformerTask):
 
     @classmethod
     def _merge_email_status(cls, ppd, email_status):
-        ppd_email = ppd.merge(
-            email['PARTY_ID', 'has_email'], on='PARTY_ID', how='left'
-        ).drop_duplicates(ignore_index=True)
+        ppd_email = ppd.merge(email_status, on='PARTY_ID', how='left').drop_duplicates(ignore_index=True)
 
         ppd_email.has_email.fillna(False, inplace=True)
 
