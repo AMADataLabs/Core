@@ -1,10 +1,13 @@
 ''' Masterfile OneView DAG definition. '''
+from datetime import datetime, timedelta
+
 from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.models import Variable
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
 from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
+from pytz import timezone
 
 
 ### Configuration Bootstraping ###
@@ -21,6 +24,10 @@ BASE_ENVIRONMENT = dict(
     TASK_WRAPPER_CLASS='datalabs.etl.dag.task.DAGTaskWrapper'
 )
 
+### DAG scheduling variables
+past_wednesday = datetime(year=2021, month=9, day=1, hour=14, tzinfo=timezone('America/Chicago'))
+week_interval = timedelta(weeks=1)
+
 ADDRESS_LOAD_AGGREGATION_DAG = DAG(
     dag_id=DAG_ID,
     default_args=dict(
@@ -29,15 +36,15 @@ ADDRESS_LOAD_AGGREGATION_DAG = DAG(
             limit_memory="8G",
             limit_cpu="1"
         ),
-        is_delete_operator_pod=False,
+        is_delete_operator_pod=True,
         namespace=f'hsg-data-labs-{DEPLOYMENT_ID}',
         image=IMAGE,
         do_xcom_push=False,
         in_cluster=True,
         get_logs=True,
     ),
-    schedule_interval=None,
-    start_date=days_ago(2),
+    start_date=past_wednesday,
+    schedule_interval=week_interval,
     tags=['ADDRESS_LOAD'],
 )
 
