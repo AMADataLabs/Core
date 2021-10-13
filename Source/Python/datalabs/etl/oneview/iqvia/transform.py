@@ -56,6 +56,7 @@ class IQVIAProviderTransformerTask(TransformerTask):
         ).drop_duplicates()
 
         affiliations = self._set_default_values(affiliations)
+        affiliations = self._clean_data(affiliations)
 
         return [providers, affiliations]
 
@@ -68,6 +69,16 @@ class IQVIAProviderTransformerTask(TransformerTask):
         affiliations = affiliations[affiliations['ME'].notna()]
 
         affiliations['id'] = affiliations.IMS_ORG_ID.astype(str) + affiliations.ME.astype(str)
+
+        return affiliations
+
+    @classmethod
+    def _clean_data(cls, affiliations):
+        row_data = []
+        for row in affiliations.AFFIL_GROUP_CODE.to_list():
+            row_data.append(row.rstrip())
+
+        affiliations['AFFIL_GROUP_CODE'] = row_data
 
         return affiliations
 
