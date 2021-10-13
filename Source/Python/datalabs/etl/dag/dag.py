@@ -101,6 +101,18 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
 
         return self.__task_classes__.get(name)
 
+    @property
+    def graph(self):
+        lines = ['digraph {']
+
+        for task in self.vertices():
+            for successor in task.successors:
+                lines.append(f'    {task.id} -> {successor.id}')
+
+        lines.append('}')
+
+        return '\n'.join(lines)
+
     @classmethod
     def task_class(cls, task: str):
         dag_task = cls.__task_classes__.get(task)
@@ -145,6 +157,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
         for index in range(start, count):
             # pylint: disable=expression-not-assigned
             getattr(cls, f'{task1}') >> getattr(cls, f'{task2}_{index}')
+
 
 @dataclass
 class Repeat:
