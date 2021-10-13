@@ -3,8 +3,8 @@ from   dataclasses import dataclass
 import json
 import logging
 import os
-from   dateutil.parser import isoparse
 import urllib.parse
+from   dateutil.parser import isoparse
 
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
 from   datalabs.etl.task import ExecutionTimeMixin
