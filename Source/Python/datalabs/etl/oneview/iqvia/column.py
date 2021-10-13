@@ -24,10 +24,11 @@ BUSINESS_COLUMNS = {
     'PROFIT_STATUS': 'profit_status',
     'PRIMARY_COT_ID': 'primary_class_of_trade',
     'COT_CLASSIFICATION_ID': 'class_of_trade_classification',
+    'class_of_trade_classification_description': 'class_of_trade_classification_description',
     'COT_FACILITY_TYPE_ID': 'class_of_trade_facility_type',
     'COT_FACILITY_TYPE': 'class_of_trade_facility_type_description',
     'COT_SPECIALTY_ID': 'class_of_trade_specialty',
-    'COT_SPECIALTY':'class_of_trade_specialty_description',
+    'COT_SPECIALTY': 'class_of_trade_specialty_description',
     'RECORD_TYPE': 'record_type',
     'TTL_LICENSE_BEDS': 'total_licensed_beds',
     'TTL_CENSUS_BEDS': 'total_census_beds',
@@ -48,8 +49,8 @@ BUSINESS_COLUMNS = {
 }
 
 PROVIDER_COLUMNS = {
-    'PROFESSIONAL_ID': 'id',
     'ME': 'medical_education_number',
+    'PROFESSIONAL_ID': 'iqvia_provider_id',
     'FIRST_NAME': 'first_name',
     'MIDDLE_NAME': 'middle_name',
     'LAST_NAME': 'last_name',
@@ -62,7 +63,7 @@ PROVIDER_COLUMNS = {
     'TERTIARY_SPEC': 'tertiary_specialty',
     'PRIMARY_PROF_CODE': 'primary_profession',
     'PRIMARY_PROF_DESC': 'primary_profession_description',
-    'UPIN': 'unique_physician_identification_number ',
+    'UPIN': 'unique_physician_identification_number',
     'NPI': 'national_provider_identifier',
     'STATUS_DESC': 'status_description',
     'BATCH_BUSINESS_DATE': 'batch_business_date'
@@ -78,7 +79,7 @@ PROVIDER_AFFILIATION_COLUMNS = {
     'AFFIL_RANK': 'rank',
     'AFFIL_GROUP_CODE': 'group',
     'AFFIL_GROUP_DESC': 'group_description',
-    'BATCH_BUSINESS_DATE': 'batch_business_date'
+    'BATCH_BUSINESS_DATE_y': 'batch_business_date'
 }
 
 CORPORATE_PARENT_BUSINESS = {
@@ -92,5 +93,5 @@ SUBSIDIARY_BUSINESS = {
 }
 
 IQVIA_DATE = {
-    'BATCH_BUSINESS_DATE': 'date'
+    'batch_business_date': 'date'
 }

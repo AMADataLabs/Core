@@ -3,6 +3,7 @@ from   datetime import datetime, timedelta
 from   io import BytesIO
 import json
 import logging
+import pickle
 import tempfile
 
 import mock
@@ -42,9 +43,9 @@ def test_execution_time_returns_next_execution_time(scheduler, target_execution_
 
     assert execution_time == expected_execution_time
 
+
 # pylint: disable=redefined-outer-name, protected-access
 def test_execution_time_bounds_are_correct(scheduler, target_execution_time):
-
     lower_bound, upper_bound = scheduler._get_execution_time_bounds(target_execution_time)
 
     assert lower_bound.year == target_execution_time.year
@@ -84,8 +85,8 @@ def test_scheduled_dags_are_correctly_identified(scheduler, schedule, base_time)
 
     scheduled_dags = scheduler._get_scheduled_dags(schedule, base_time)
 
-    assert len(scheduled_dags) == 3
-    assert all(actual == expected for actual, expected in zip(scheduled_dags, [True, False, False]))
+    assert len(scheduled_dags) == 4
+    assert all(actual == expected for actual, expected in zip(scheduled_dags, [True, False, False, True]))
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -98,42 +99,48 @@ def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
 
     started_dags = scheduler._get_started_dags(schedule)
 
-    assert len(started_dags) == 3
-    assert all(actual == expected for actual, expected in zip(started_dags, [True, False, False]))
+    assert len(started_dags) == 4
+    assert all(actual == expected for actual, expected in zip(started_dags, [True, False, False, False]))
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execution_time):
     scheduler = DAGSchedulerTask(parameters)
-    execution_times = scheduler._get_execution_times(schedule, target_execution_time - timedelta(minutes=15))
+    execution_times = scheduler._get_execution_times(schedule, target_execution_time - timedelta(minutes=int('15')))
     state = DAGState(dict(BASE_PATH=parameters["BASE_PATH"]))
 
     dags_to_run = scheduler._determine_dags_to_run(schedule, target_execution_time)
 
-    assert len(dags_to_run) == 1
+    assert len(dags_to_run) == 2
     assert dags_to_run.name[0] == 'archive_cat_photos'
 
     state.set_dag_status('archive_cat_photos', execution_times[0].to_pydatetime().isoformat(), Status.PENDING)
 
     dags_to_run = scheduler._determine_dags_to_run(schedule, target_execution_time)
 
-    assert len(dags_to_run) == 0
+    assert len(dags_to_run) == 1
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_dags_to_run_are_transformed_to_csv_bytes(parameters, schedule_csv, target_execution_time):
+def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, target_execution_time):
     parameters["data"] = [schedule_csv.encode('utf-8', errors='backslashreplace')]
     scheduler = DAGSchedulerTask(parameters)
+    data = None
 
     with mock.patch('datalabs.etl.dag.schedule.task.DAGSchedulerTask._get_target_execution_time') as get_execution_time:
         get_execution_time.return_value = target_execution_time
+        data = scheduler._transform()
 
-        dags_to_run = scheduler._transform()
+    assert len(data) == 1
 
-    assert len(dags_to_run) == 1
+    dags_to_run = pickle.loads(data[0])
 
-    dag_data = json.loads(dags_to_run[0].decode('utf8'))
-    assert all(column in dag_data for column in ['name', 'schedule', 'execution_time', 'scheduled'])
+    assert len(dags_to_run) == 2
+
+    dag_data = [json.loads(dag) for dag in dags_to_run]
+
+    for row in dag_data:
+        assert all(column in row for column in ['dag', 'execution_time'])
 
 
 @pytest.fixture
@@ -173,6 +180,7 @@ def schedule_csv():
 archive_cat_photos,15 * */1 * 1
 translate_meows,10 */5 * * 1-5
 scrape_ama_fan_pages,5 * */1 * 3
+boil_water,*/15 * * * *
 """
 
 

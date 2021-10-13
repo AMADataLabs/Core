@@ -3,7 +3,7 @@ from   datalabs.etl.dag import DAG
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 import datalabs.etl.oneview.credentialing.transform as credentialing
-from   datalabs.etl.oneview.iqvia.transform import IQVIATransformerTask
+from   datalabs.etl.oneview.iqvia.transform import IQVIABusinessTransformerTask, IQVIAProviderTransformerTask
 import datalabs.etl.oneview.link.transform as link
 from   datalabs.etl.oneview.melissa.transform import MelissaTransformerTask
 from   datalabs.etl.oneview.ppd.transform import PPDTransformerTask
@@ -38,7 +38,8 @@ class OneViewDAG(DAG):
     CREATE_CORE_BASED_STATISTICAL_AREA_TABLE: reference.CoreBasedStatisticalAreaTransformerTask
     REMOVE_UNUSED_SPECIALTIES: reference.SpecialtyMergeTransformerTask
     CREATE_RESIDENCY_PROGRAM_TABLES: residency.ResidencyTransformerTask
-    CREATE_BUSINESS_AND_PROVIDER_TABLES: IQVIATransformerTask
+    CREATE_BUSINESS_TABLE: IQVIABusinessTransformerTask
+    CREATE_PROVIDER_TABLE: IQVIAProviderTransformerTask
     CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES: credentialing.CredentialingTransformerTask
     MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE: credentialing.CredentialingFinalTransformerTask
     CREATE_PHYSICIAN_RACE_ETHNICITY_TABLE: RaceEthnicityTransformerTask

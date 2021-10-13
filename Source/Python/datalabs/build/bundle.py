@@ -93,6 +93,7 @@ class SourceBundle:
     @classmethod
     def _get_files_in_directory(cls, path):
         LOGGER.debug('Files path: %s', path)
+        all_files = []
 
         try:
             _, _, all_files = next(os.walk(path))

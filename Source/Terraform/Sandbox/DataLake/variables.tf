@@ -55,3 +55,21 @@ variable "datanow_version" {
     type            = string
     default         = "1.0.0"
 }
+
+variable "ingested_data_topic_name" {
+   description  = "Name of the SNS topic for ngestion router."
+   type = string
+   default = "ingested_data_notification"
+}
+
+variable "processed_data_topic_name" {
+   description  = "Name of the sns topic for processing router."
+   type = string
+   default = "processed_data_notification"
+}
+
+variable "outbound_security_groups" {
+    description = "Security groups using the DataLake VPC which need VPC endpoints"
+    type = list
+    default = ["sg-055c7d63be1f52d6f", "sg-01b1b0411a5f4a798"]  # OneView, CPT-API Lambdas
+}

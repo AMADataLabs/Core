@@ -1,6 +1,7 @@
 from logging.config import fileConfig
 import os
 
+from alembic_utils.replaceable_entity import register_entities
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
@@ -9,7 +10,9 @@ from alembic import context
 from datalabs.access.credentials import Credentials
 from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
-from datalabs.model.masterfile.oneview import Base
+from datalabs.model.masterfile.oneview import BASE, PHYSICIAN_VIEW, PHYSICIAN_PROVIDER_VIEW
+
+register_entities([PHYSICIAN_VIEW, PHYSICIAN_PROVIDER_VIEW])
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -33,7 +36,7 @@ fileConfig(config.config_file_name)
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = Base.metadata
+target_metadata = BASE.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -100,7 +103,18 @@ def run_migrations_online():
 
 
 def include_object(object, name, type_, reflected, compare_to):
-    return not hasattr(object, 'schema') or object.schema == "oneview"
+    include = False
+
+    if type_ == 'grant_table':
+        include = False
+    elif not hasattr(object, 'schema'):
+        include = True
+    elif object.schema == "oneview":
+        include = True
+
+    # print(f'Include {name} ({type_})? {include}')
+
+    return include
 
 
 if context.is_offline_mode():
