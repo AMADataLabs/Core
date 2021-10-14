@@ -1,0 +1,20 @@
+{
+  "Version": "2008-10-17",
+  "Statement": [
+    {
+      "Sid": "ama ecr policy",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": [
+          "arn:aws:iam::285887636563:role/oneview-prd-task-exe-role", 
+          "arn:aws:iam::285887636563:role/ama-ecs-task-deployment",
+          "arn:aws:iam::394406051370:role/ecrdeploymentrole"
+        ]
+      },
+      "Action": [
+        "cloudtrail:LookupEvents",
+        "ecr:*"
+      ]
+    }
+  ]
+}
