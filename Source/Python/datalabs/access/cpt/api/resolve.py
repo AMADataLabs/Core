@@ -2,10 +2,11 @@
 from   collections import namedtuple
 import re
 
-from   datalabs.access.cpt.api.default import DefaultEndpointTask
-from   datalabs.access.cpt.api.descriptor import DescriptorEndpointTask, AllDescriptorsEndpointTask
+from   datalabs.access.cpt.api.bulk import FilesEndpointTask
 import datalabs.access.cpt.api.clinician_descriptor as clinician_descriptor
 import datalabs.access.cpt.api.consumer_descriptor as consumer_descriptor
+from   datalabs.access.cpt.api.default import DefaultEndpointTask
+from   datalabs.access.cpt.api.descriptor import DescriptorEndpointTask, AllDescriptorsEndpointTask
 from   datalabs.access.cpt.api.modifier import ModifierEndpointTask, AllModifiersEndpointTask
 from   datalabs.access.cpt.api.pdf import LatestPDFsEndpointTask
 from   datalabs.access.cpt.api.pla import PLADetailsEndpointTask, AllPLADetailsEndpointTask
@@ -18,6 +19,7 @@ TaskClassMapping = namedtuple('TaskClassMapping', 'path task_class')
 class TaskResolver(task.TaskResolver):
     # pylint: disable=line-too-long
     TASK_CLASSES = [
+        # Granular Endpoints
         TaskClassMapping('/descriptor/*',             DescriptorEndpointTask),
         TaskClassMapping('/descriptors',              AllDescriptorsEndpointTask),
         TaskClassMapping('/consumer/descriptor/*',    consumer_descriptor.ConsumerDescriptorEndpointTask),
@@ -30,7 +32,10 @@ class TaskResolver(task.TaskResolver):
         TaskClassMapping('/modifiers',                AllModifiersEndpointTask),
         TaskClassMapping('/pdfs',                     LatestPDFsEndpointTask),
         TaskClassMapping('/releases',                 ReleasesEndpointTask),
-        TaskClassMapping('/*',                        DefaultEndpointTask)
+        TaskClassMapping('/*',                        DefaultEndpointTask),
+
+        # Bulk Endpoints
+        TaskClassMapping('/files',           FilesEndpointTask)
     ]
 
     @classmethod
