@@ -1,5 +1,6 @@
 """ Resolve task class name using the API Gateway event passed to the Lambda function. """
 from   collections import namedtuple
+import logging
 import re
 
 from   datalabs.access.cpt.api.bulk import FilesEndpointTask
@@ -12,6 +13,10 @@ from   datalabs.access.cpt.api.pdf import LatestPDFsEndpointTask
 from   datalabs.access.cpt.api.pla import PLADetailsEndpointTask, AllPLADetailsEndpointTask
 from   datalabs.access.cpt.api.release import ReleasesEndpointTask
 import datalabs.task as task
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 TaskClassMapping = namedtuple('TaskClassMapping', 'path task_class')
@@ -49,5 +54,6 @@ class TaskResolver(task.TaskResolver):
             if re.match(path_pattern, path):
                 task_class = mapping.task_class
                 break
+        LOGGING.info('Resolved path %s to implementation class %s', path, str(task_class))
 
         return task_class
