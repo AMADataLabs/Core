@@ -54,6 +54,6 @@ class TaskResolver(task.TaskResolver):
             if re.match(path_pattern, path):
                 task_class = mapping.task_class
                 break
-        LOGGING.info('Resolved path %s to implementation class %s', path, str(task_class))
+        LOGGER.info('Resolved path %s to implementation class %s', path, str(task_class))
 
         return task_class
