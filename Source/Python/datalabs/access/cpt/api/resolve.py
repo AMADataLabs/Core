@@ -37,10 +37,12 @@ class TaskResolver(task.TaskResolver):
         TaskClassMapping('/modifiers',                AllModifiersEndpointTask),
         TaskClassMapping('/pdfs',                     LatestPDFsEndpointTask),
         TaskClassMapping('/releases',                 ReleasesEndpointTask),
-        TaskClassMapping('/*',                        DefaultEndpointTask),
 
         # Bulk Endpoints
-        TaskClassMapping('/files',           FilesEndpointTask)
+        TaskClassMapping('/files',                    FilesEndpointTask),
+
+        # Default Endpoint (Must be the last endpoint in this list)
+        TaskClassMapping('/*',                        DefaultEndpointTask)
     ]
 
     @classmethod
