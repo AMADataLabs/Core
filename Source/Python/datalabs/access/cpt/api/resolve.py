@@ -1,16 +1,22 @@
 """ Resolve task class name using the API Gateway event passed to the Lambda function. """
 from   collections import namedtuple
+import logging
 import re
 
-from   datalabs.access.cpt.api.default import DefaultEndpointTask
-from   datalabs.access.cpt.api.descriptor import DescriptorEndpointTask, AllDescriptorsEndpointTask
+from   datalabs.access.cpt.api.bulk import FilesEndpointTask
 import datalabs.access.cpt.api.clinician_descriptor as clinician_descriptor
 import datalabs.access.cpt.api.consumer_descriptor as consumer_descriptor
+from   datalabs.access.cpt.api.default import DefaultEndpointTask
+from   datalabs.access.cpt.api.descriptor import DescriptorEndpointTask, AllDescriptorsEndpointTask
 from   datalabs.access.cpt.api.modifier import ModifierEndpointTask, AllModifiersEndpointTask
 from   datalabs.access.cpt.api.pdf import LatestPDFsEndpointTask
 from   datalabs.access.cpt.api.pla import PLADetailsEndpointTask, AllPLADetailsEndpointTask
 from   datalabs.access.cpt.api.release import ReleasesEndpointTask
 import datalabs.task as task
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 TaskClassMapping = namedtuple('TaskClassMapping', 'path task_class')
@@ -18,6 +24,7 @@ TaskClassMapping = namedtuple('TaskClassMapping', 'path task_class')
 class TaskResolver(task.TaskResolver):
     # pylint: disable=line-too-long
     TASK_CLASSES = [
+        # Granular Endpoints
         TaskClassMapping('/descriptor/*',             DescriptorEndpointTask),
         TaskClassMapping('/descriptors',              AllDescriptorsEndpointTask),
         TaskClassMapping('/consumer/descriptor/*',    consumer_descriptor.ConsumerDescriptorEndpointTask),
@@ -30,7 +37,10 @@ class TaskResolver(task.TaskResolver):
         TaskClassMapping('/modifiers',                AllModifiersEndpointTask),
         TaskClassMapping('/pdfs',                     LatestPDFsEndpointTask),
         TaskClassMapping('/releases',                 ReleasesEndpointTask),
-        TaskClassMapping('/*',                        DefaultEndpointTask)
+        TaskClassMapping('/*',                        DefaultEndpointTask),
+
+        # Bulk Endpoints
+        TaskClassMapping('/files',           FilesEndpointTask)
     ]
 
     @classmethod
@@ -44,5 +54,6 @@ class TaskResolver(task.TaskResolver):
             if re.match(path_pattern, path):
                 task_class = mapping.task_class
                 break
+        LOGGING.info('Resolved path %s to implementation class %s', path, str(task_class))
 
         return task_class
