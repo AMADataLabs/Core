@@ -242,23 +242,39 @@ pipelines:
         - step:
             name: Update Bundle
             script:
+            # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Create the code bundle
             - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/CPT/create-bundle
-            - bash Deploy/CPT/upload-bundle
+            - bash Deploy/Master/create-bundle CPT
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
         - step:
             name: Update Lambda Functions
             script:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Update Lambda functions
             - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - export ENVIRONMENT=sbx
-            - bash Deploy/CPT/update-functions
+            - export ENVIRONMENT=dev
+            - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
 
         Scheduler-dev:
         - step:
