@@ -1,0 +1,55 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/CPT-API/dev/ingest.yaml.jinja -f Deploy/CPT-API/dev/ingest.yaml \
+# -v "datalabs_password={{datalabs_password}},eft_password={{eft_password}},database_password={{database_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "CPTAPI"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: sbx
+    ACCOUNT: '644454719059'
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingested-data-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-processed-data-us-east-1
+
+    DATABASE_HOST: cpt-api-sbx-db.c3mn4zysffxi.us-east-1.rds.amazonaws.com
+    DATABASE_PORT: '5432'
+    DATABASE_BACKEND: 'postgresql+psycopg2'
+    DATABASE_NAME: 'cpt'
+    DATABASE_USERNAME:  cptadmin
+    DATABASE_PASSWORD:  '{{database_password}}'
+
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/CPTAPI'
+
+
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "CPTAPI"}, "Task": {"S": "DAG"}})
+    #######################################################################
+
+    CPTAPI__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-ETL'
+    CPTAPI__DAG__DAG_CLASS: 'datalabs.etl.dag.oneview.ingest.CPT-APIDAG'
+    CPTAPI__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    CPTAPI__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    CPTAPI__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    CPTAPI__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    CPTAPI__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    CPTAPI__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    CPTAPI__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "CPTAPI"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+    # PPD Extractor
+    CPTAPI__EXTRACT_TEXT_FILES__BASE_PATH: '/'
+    CPTAPI__EXTRACT_TEXT_FILES__FILES: 'physician_professional_data.psv'
+
+    CPTAPI__EXTRACT_TEXT_FILES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    CPTAPI__EXTRACT_TEXT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    CPTAPI__EXTRACT_TEXT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    CPTAPI__EXTRACT_TEXT_FILES__CACHE_OUTPUT_FILES: 'ppd_physician.csv'
