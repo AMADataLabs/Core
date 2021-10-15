@@ -26,7 +26,6 @@ class ParseToCSVTransformerTask(CSVWriterMixin, TransformerTask):
 
     def _transform(self):
         parsers = [self._instantiate_parser(parser) for parser in self._parameters.parsers.split(',')]
-        transformed_data = []
 
         parsed_data = [parser.parse(text) for parser, text in zip(parsers, self._parameters.data)]
 

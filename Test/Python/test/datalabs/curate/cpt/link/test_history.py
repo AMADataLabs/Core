@@ -74,6 +74,7 @@ Pre-1982	DELETED	1031084	14860		Descriptor not available
 
 @pytest.fixture
 def modifier_history_test_data():
+    # pylint: disable=line-too-long
     return """Date	Change Type	Concept Id	Modifier Code	Prior Value	CurrentValue
 Pre-1990	ADDED	1021517	1P		Performance Measure Exclusion Modifier due to Medical Reasons
 20140101	ADDED	1021516			Category II Modifiers

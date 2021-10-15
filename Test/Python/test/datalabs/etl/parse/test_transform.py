@@ -1,6 +1,5 @@
 """ source: datalabs.etl.parse.transform """
 import logging
-import pickle
 
 from   datalabs.etl.parse.transform import ParseToCSVTransformerTask
 

@@ -1,7 +1,6 @@
 """ source: datalabs.etl.ppd.expanded.transform """
 import logging
 import os
-import pickle
 
 import mock
 import pytest

@@ -4,13 +4,13 @@ from   dataclasses import dataclass
 from   datetime import datetime, date
 import io
 import logging
+import pickle
 
 import pandas
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.transform import TransformerTask
-import datalabs.model.cpt.api as dbmodel
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -59,7 +59,7 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 
     @classmethod
     def _generate_pla_releases(cls, release_schedules, pla_details):
-        effective_dates, publish_dates = cls._generate_pla_release_dates(release_schedules, pla_details)
+        effective_dates, publish_dates = cls._generate_pla_release_dates(pla_details)
 
         release_types = cls._generate_pla_release_types(release_schedules, publish_dates)
 
@@ -91,7 +91,7 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         return cls._generate_release_types(release_schedules, effective_dates, ReleaseScheduleType.NON_PLA)
 
     @classmethod
-    def _generate_pla_release_dates(cls, release_schedules, pla_details):
+    def _generate_pla_release_dates(cls, pla_details):
         pla = pla_details[['effective_date', 'published_date']].rename(
             columns=dict(published_date='publish_date')
         )
@@ -111,7 +111,10 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     @classmethod
     def _generate_release_publish_dates(cls, release_schedules, release_dates):
         publish_dates = []
-        release_schedules = cls._generate_release_schedules_map_from_type(release_schedules, ReleaseScheduleType.NON_PLA)
+        release_schedules = cls._generate_release_schedules_map_from_type(
+            release_schedules,
+            ReleaseScheduleType.NON_PLA
+        )
 
         for release_date in release_dates:
             release_date_for_lookup = date(release_date.year, release_date.month, release_date.day).strftime('%-d-%b')
@@ -230,7 +233,7 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         codes = self._generate_code_table(input_data.short_descriptor, input_data.pla)
 
         tables = OutputData(
-            release=self._generate_release_table(input_data.code_history, input_data.pla),
+            release=None,
             code=codes,
             release_code_mapping=self._generate_release_code_mapping_table(
                 input_data.code_history,
