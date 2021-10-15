@@ -375,7 +375,11 @@ class ModifierTypeTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTas
     def _generate_modifier_type_table(cls, modifiers):
         modifier_types = pandas.DataFrame(dict(name=modifiers.type.unique()))
 
-        return modifier_types[modifier_types.name != 'Ambulatory Service Center']
+        non_asc_modifier_types = modifier_types[modifier_types.name != 'Ambulatory Service Center']
+
+        non_asc_modifier_types['id'] = non_asc_modifier_types.index
+
+        return non_asc_modifier_types
 
 
 @add_schema
@@ -571,6 +575,8 @@ class ManufacturerTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTas
         manufacturer_table = manufacturer_table.dropna()
         manufacturer_table = manufacturer_table.drop_duplicates('name')
 
+        manufacturer_table['id'] = manufacturer_table.index
+
         return manufacturer_table
 
 
@@ -628,6 +634,8 @@ class LabTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 
         lab_table = lab_table.dropna()
         lab_table = lab_table.drop_duplicates('name')
+
+        lab_table['id'] = lab_table.index
 
         return lab_table
 

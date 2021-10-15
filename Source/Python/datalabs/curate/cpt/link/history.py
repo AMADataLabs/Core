@@ -26,8 +26,7 @@ class CPTLinkParser(Parser):
             sep=self._separator,
             header=self._header,
             dtype=str,
-            skiprows=1,
-            encoding='cp1252'
+            skiprows=1
         )
 
 
