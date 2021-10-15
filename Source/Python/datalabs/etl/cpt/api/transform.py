@@ -4,18 +4,165 @@ from   dataclasses import dataclass
 from   datetime import datetime, date
 import io
 import logging
-import pickle
 
 import pandas
 
 from   datalabs.access.orm import Database
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.transform import TransformerTask
-
 import datalabs.model.cpt.api as dbmodel
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class ReleasesTransformerParameters:
+    data: list
+    execution_time: str = None
+
+
+class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+    PARAMETER_CLASS = ReleasesTransformerParameters
+
+    def _transform(self):
+        code_history, pla, release_schedules = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+
+        releases = self._generate_release_table(code_history, pla, release_schedules)
+
+        return [self._dataframe_to_csv(releases)]
+
+    @classmethod
+    def _generate_release_table(cls, code_history, pla, release_schedules):
+        non_pla_release = cls._generate_non_pla_releases(release_schedules, code_history)
+        pla_release = cls._generate_pla_releases(release_schedules, pla)
+
+        releases = non_pla_release.append(pla_release, ignore_index=True)
+        releases = releases.drop_duplicates(ignore_index=True)
+
+        return releases
+
+    @classmethod
+    def _generate_non_pla_releases(cls, release_schedules, code_history):
+        history_unique = cls._get_unique_dates_from_history(code_history)
+
+        effective_dates, publish_dates = cls._generate_non_pla_release_dates(release_schedules, history_unique)
+
+        release_types = cls._generate_non_pla_release_types(release_schedules, effective_dates)
+
+        return pandas.DataFrame(
+            {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
+
+    @classmethod
+    def _generate_pla_releases(cls, release_schedules, pla_details):
+        effective_dates, publish_dates = cls._generate_pla_release_dates(release_schedules, pla_details)
+
+        release_types = cls._generate_pla_release_types(release_schedules, publish_dates)
+
+        return pandas.DataFrame(
+            {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
+
+    @classmethod
+    def _get_unique_dates_from_history(cls, code_history):
+        history = code_history[['date', 'cpt_code', 'change_type']].rename(
+            columns=dict(date='release', cpt_code='code', change_type='change')
+        )
+        history = history.loc[history.change == 'ADDED']
+        history = history.loc[~history.release.str.startswith('Pre')]
+        history = history.loc[~history.code.str.endswith('U', na=False)]
+        history_unique = history.release.unique()
+
+        return history_unique
+
+    @classmethod
+    def _generate_non_pla_release_dates(cls, release_schedules, history):
+        effective_dates = [datetime.strptime(date, '%Y%m%d').date() for date in history]
+
+        publish_dates = cls._generate_release_publish_dates(release_schedules, effective_dates)
+
+        return effective_dates, publish_dates
+
+    @classmethod
+    def _generate_non_pla_release_types(cls, release_schedules, effective_dates):
+        return cls._generate_release_types(release_schedules, effective_dates, ReleaseScheduleType.NON_PLA)
+
+    @classmethod
+    def _generate_pla_release_dates(cls, release_schedules, pla_details):
+        pla = pla_details[['effective_date', 'published_date']].rename(
+            columns=dict(published_date='publish_date')
+        )
+        pla_releases = pla.drop_duplicates(ignore_index=True)
+
+        effective_dates = [
+            datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.effective_date
+        ]
+        publish_dates = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.publish_date]
+
+        return effective_dates, publish_dates
+
+    @classmethod
+    def _generate_pla_release_types(cls, release_schedules, publish_dates):
+        return cls._generate_release_types(release_schedules, publish_dates, ReleaseScheduleType.PLA)
+
+    @classmethod
+    def _generate_release_publish_dates(cls, release_schedules, release_dates):
+        publish_dates = []
+        release_schedules = cls._generate_release_schedules_map_from_type(release_schedules, ReleaseScheduleType.NON_PLA)
+
+        for release_date in release_dates:
+            release_date_for_lookup = date(release_date.year, release_date.month, release_date.day).strftime('%-d-%b')
+            default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
+
+            publish_date = release_schedules.get(release_date_for_lookup, default_release_schedule).publish_date
+            publish_date = datetime.strptime(publish_date, '%d-%b').date()
+            publish_date = date(release_date.year, publish_date.month, publish_date.day)
+
+            if not publish_date:
+                publish_date = release_date
+
+            publish_dates.append(publish_date)
+
+        return publish_dates
+
+    @classmethod
+    def _generate_release_types(cls, release_schedules, release_dates, schedule_type):
+        release_types = []
+        release_schedules = cls._generate_release_schedules_map_from_type(release_schedules, schedule_type)
+
+        for release_date in release_dates:
+            release_date_for_lookup = date(1900, release_date.month, release_date.day).strftime('%-d-%b')
+            default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
+            release_types.append(release_schedules.get(release_date_for_lookup, default_release_schedule).type)
+
+        return release_types
+
+    @classmethod
+    def _generate_release_schedules_map_from_type(cls, release_schedules, schedule_type):
+        release_schedules_map = {}
+
+        for release_type in release_schedules.type:
+            if release_type.startswith(schedule_type.value):
+                release_schedule = release_schedules[release_schedules.type == release_type]
+                effective_date = f'{release_schedule.effective_day.iloc[0]}-{release_schedule.effective_month.iloc[0]}'
+                publish_date = f'{release_schedule.publish_day.iloc[0]}-{release_schedule.publish_month.iloc[0]}'
+
+                release_schedules_map[effective_date] = ReleaseSchedule(
+                    type=release_type,
+                    publish_date=publish_date,
+                    effective_date=effective_date
+                )
+
+        return release_schedules_map
+
+
+
+
+
+
 
 
 # pylint: disable=too-many-instance-attributes
@@ -67,7 +214,7 @@ class ReleaseScheduleType(Enum):
     PLA = 'PLA'
 
 
-class CSVToRelationalTablesTransformerTask(TransformerTask):
+class CSVToRelationalTableTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug(
             '%s parameters (sans data): %s', self.__class__.__name__,
@@ -145,15 +292,6 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
         mapping_table = non_pla_mappings.append(pla_mappings, ignore_index=True)
 
         return mapping_table
-
-    def _generate_release_table(self, code_history, pla):
-        non_pla_release = self._generate_non_pla_releases(code_history)
-        pla_release = self._generate_pla_releases(pla)
-
-        releases = non_pla_release.append(pla_release, ignore_index=True)
-        releases = releases.drop_duplicates(ignore_index=True)
-
-        return releases
 
     @classmethod
     def _generate_descriptor_table(cls, name, descriptors, pla_details):
@@ -294,117 +432,6 @@ class CSVToRelationalTablesTransformerTask(TransformerTask):
             lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d'))
 
         return pla_mapping_table
-
-    def _generate_non_pla_releases(self, code_history):
-        history_unique = self._get_unique_dates_from_history(code_history)
-
-        effective_dates, publish_dates = self._generate_non_pla_release_dates(history_unique)
-
-        release_types = self._generate_non_pla_release_types(effective_dates)
-
-        return pandas.DataFrame(
-            {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
-
-    def _generate_pla_releases(self, pla_details):
-        effective_dates, publish_dates = self._generate_pla_release_dates(pla_details)
-
-        release_types = self._generate_pla_release_types(publish_dates)
-
-        return pandas.DataFrame(
-            {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
-
-    @classmethod
-    def _get_unique_dates_from_history(cls, code_history):
-        history = code_history[['date', 'cpt_code', 'change_type']].rename(
-            columns=dict(date='release', cpt_code='code', change_type='change')
-        )
-        history = history.loc[history.change == 'ADDED']
-        history = history.loc[~history.release.str.startswith('Pre')]
-        history = history.loc[~history.code.str.endswith('U', na=False)]
-        history_unique = history.release.unique()
-
-        return history_unique
-
-    def _generate_non_pla_release_dates(self, history):
-        effective_dates = [datetime.strptime(date, '%Y%m%d').date() for date in history]
-
-        publish_dates = self._generate_release_publish_dates(effective_dates)
-
-        return effective_dates, publish_dates
-
-    def _generate_non_pla_release_types(self, effective_dates):
-        return self._generate_release_types(effective_dates, ReleaseScheduleType.NON_PLA)
-
-    @classmethod
-    def _generate_pla_release_dates(cls, pla_details):
-        pla = pla_details[['effective_date', 'published_date']].rename(
-            columns=dict(published_date='publish_date')
-        )
-        pla_releases = pla.drop_duplicates(ignore_index=True)
-
-        effective_dates = [
-            datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.effective_date
-        ]
-        publish_dates = [datetime.strptime(date, '%Y-%m-%dT%H:%M:%S%z').date() for date in pla_releases.publish_date]
-
-        return effective_dates, publish_dates
-
-    def _generate_pla_release_types(self, publish_dates):
-        return self._generate_release_types(publish_dates, ReleaseScheduleType.PLA)
-
-    def _generate_release_publish_dates(self, release_dates):
-        publish_dates = []
-        release_schedules = self._generate_release_schedules_map_from_type(ReleaseScheduleType.NON_PLA)
-
-        for release_date in release_dates:
-            release_date_for_lookup = date(release_date.year, release_date.month, release_date.day).strftime('%-d-%b')
-            default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
-
-            publish_date = release_schedules.get(release_date_for_lookup, default_release_schedule).publish_date
-            publish_date = datetime.strptime(publish_date, '%d-%b').date()
-            publish_date = date(release_date.year, publish_date.month, publish_date.day)
-
-            if not publish_date:
-                publish_date = release_date
-
-            publish_dates.append(publish_date)
-
-        return publish_dates
-
-    def _generate_release_types(self, release_dates, schedule_type):
-        release_types = []
-        release_schedules = self._generate_release_schedules_map_from_type(schedule_type)
-
-        for release_date in release_dates:
-            release_date_for_lookup = date(1900, release_date.month, release_date.day).strftime('%-d-%b')
-            default_release_schedule = ReleaseSchedule('OTHER', release_date_for_lookup, release_date_for_lookup)
-            release_types.append(release_schedules.get(release_date_for_lookup, default_release_schedule).type)
-
-        return release_types
-
-    def _generate_release_schedules_map_from_type(self, schedule_type):
-        release_schedules_map = {}
-        release_schedules = self._extract_release_schedules()
-
-        for release_schedule in release_schedules:
-            if release_schedule.type.startswith(schedule_type.value):
-                effective_date = f'{release_schedule.effective_day}-{release_schedule.effective_month}'
-                publish_date = f'{release_schedule.publish_day}-{release_schedule.publish_month}'
-
-                release_schedules_map[effective_date] = ReleaseSchedule(
-                    type=release_schedule.type,
-                    publish_date=publish_date,
-                    effective_date=effective_date
-                )
-
-        return release_schedules_map
-
-    def _extract_release_schedules(self):
-        with self._get_database() as database:
-            # pylint: disable=no-member
-            release_types = database.query(dbmodel.ReleaseType).all()
-
-        return release_types
 
     @classmethod
     def _dedupe_modifiers(cls, modifiers):
