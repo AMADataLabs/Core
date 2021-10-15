@@ -23,10 +23,23 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
         }
 
     def _handle_exception(self, exception: api.APIEndpointException) -> (int, dict):
+        status_code = None
+        message = None
+
+        if hasattr(exception, 'status_code'):
+            status_code = exception.status_code
+        else:
+            status_code = 500
+
+        if hasattr(exception, 'message'):
+            message = json.dumps(dict(message=exception.message))
+        else:
+            message = str(exception)
+
         return {
-            "statusCode": exception.status_code,
+            "statusCode": status_code,
             "headers": dict(),
-            "body": json.dumps(dict(message=exception.message)),
+            "body": message,
             "isBase64Encoded": False,
         }
 
