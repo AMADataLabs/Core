@@ -214,7 +214,7 @@ class ReleaseScheduleType(Enum):
     PLA = 'PLA'
 
 
-class CSVToRelationalTableTransformerTask(TransformerTask):
+class CSVToRelationalTablesTransformerTask(TransformerTask):
     def _transform(self):
         LOGGER.debug(
             '%s parameters (sans data): %s', self.__class__.__name__,

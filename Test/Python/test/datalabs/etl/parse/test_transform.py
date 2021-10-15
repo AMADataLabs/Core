@@ -14,7 +14,7 @@ def test_transforming_cpt_files_to_csv():
     parser_class = 'test.datalabs.etl.cpt.ingest.parse.TestParser'
     parameters = dict(
         PARSERS=','.join((parser_class, parser_class)),
-        data=[pickle.dumps([('HelloThere.txt', 'Hello, there!'), ('DearJohn.txt', 'Dear John')])]
+        data=[b'"Hello, there!"', b'Dear John']
     )
 
     transformer = ParseToCSVTransformerTask(parameters)

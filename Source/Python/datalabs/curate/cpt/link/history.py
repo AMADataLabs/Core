@@ -21,12 +21,13 @@ class CPTLinkParser(Parser):
 
     def parse(self, text: str) -> pandas.DataFrame:
         return pandas.read_csv(
-            io.StringIO(text),
+            io.BytesIO(text),
             names=self._column_names,
             sep=self._separator,
             header=self._header,
             dtype=str,
-            skiprows=1
+            skiprows=1,
+            encoding='cp1252'
         )
 
 

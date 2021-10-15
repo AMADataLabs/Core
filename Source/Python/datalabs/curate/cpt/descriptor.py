@@ -21,11 +21,12 @@ class DescriptorParser(Parser):
 
     def parse(self, text: str) -> pandas.DataFrame:
         return pandas.read_csv(
-            io.StringIO(text),
+            io.BytesIO(text),
             names=self._column_names,
             sep=self._separator,
             header=0,
-            dtype=str
+            dtype=str,
+            encoding='cp1252'
         )
 
 
@@ -34,11 +35,14 @@ class HeaderedDescriptorParser(DescriptorParser):
         headerless_text = self._remove_header(text)
         LOGGER.debug('Headerless Text: %s', headerless_text)
 
-        return super().parse(' '.join(self._column_names) + '\n' + headerless_text)
+        headered_text = ' '.join(self._column_names) + '\n' + headerless_text
+
+        return super().parse(headered_text.encode('cp1252'))
 
     @classmethod
     def _remove_header(cls, text):
-        lines = text.splitlines()
+        decoded_text = text.decode('cp1252', errors='backslashreplace')
+        lines = decoded_text.splitlines()
 
         reversed_lines = lines[::-1]
 
