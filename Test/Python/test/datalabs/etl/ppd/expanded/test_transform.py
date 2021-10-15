@@ -25,7 +25,6 @@ def test_data_setup_correctly(extractor_file):
 def test_transformer_produces_two_datasets(etl):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
-
     transformer = etl.task._transformer
 
     LOGGER.debug('Transformed Data: %s', transformer.data)
@@ -55,7 +54,7 @@ def environment(extractor_file, loader_directory):
     os.environ['EXTRACTOR__TASK_CLASS'] = 'datalabs.etl.ppd.expanded.extract.LocalPPDExtractorTask'
     os.environ['EXTRACTOR__BASE_PATH'] = os.path.dirname(extractor_file)
     os.environ['EXTRACTOR__FILES'] = 'PhysicianProfessionalDataFile_*'
-    os.environ['EXTRACTOR__INCLUDE_NAMES'] = 'True'
+    # os.environ['EXTRACTOR__INCLUDE_NAMES'] = 'True'
 
     os.environ['TRANSFORMER__TASK_CLASS'] = 'datalabs.etl.ppd.expanded.transform.ParseToPPDTransformerTask'
     os.environ['TRANSFORMER__PARSERS'] = 'datalabs.curate.ppd.expanded.parse.ExpandedPPDParser'
