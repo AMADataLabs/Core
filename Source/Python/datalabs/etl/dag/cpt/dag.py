@@ -24,6 +24,8 @@ from   datalabs.etl.parse.transform import ParseToCSVTransformerTask
 
 
 class CPTDAG(DAG):
+    CREATE_FILES_ZIP: ZipTransformerTask
+    CREATE_PDFS_ZIP: ZipTransformerTask
     CREATE_RELEASE_TYPES: ReleaseTypesTransformerTask
     LOAD_RELEASE_TYPES: ORMLoaderTask
     PARSE_TEXT_FILES: ParseToCSVTransformerTask
@@ -43,7 +45,6 @@ class CPTDAG(DAG):
     CREATE_MANUFACTURER_CODE_MAPPING_TABLE: ManufacturerCodeMappingTransformerTask
     CREATE_LAB_TABLE: LabTransformerTask
     CREATE_LAB_CODE_MAPPING_TABLE: LabCodeMappingTransformerTask
-    CREATE_PDFS_ZIP: ZipTransformerTask
     LOAD_RELEASE_TABLE: ORMLoaderTask
     LOAD_CODE_TABLE: ORMLoaderTask
     LOAD_RELEASE_CODE_MAPPING_TABLE: ORMLoaderTask
