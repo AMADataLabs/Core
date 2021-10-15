@@ -28,6 +28,11 @@ class IncludeNamesMixin:
         return include_names
 
 
+class NothingExtractorTask(ExtractorTask):
+    def _extract(self) -> "Extracted Data":
+        return []
+
+
 class FileExtractorTask(ExtractorTask, ABC):
     def __init__(self, parameters):
         super().__init__(parameters)

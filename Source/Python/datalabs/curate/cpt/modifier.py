@@ -83,7 +83,7 @@ class ModifierParser(Parser):
         self._modifiers[modifier_type][code] = description
 
     def parse(self, text: str):
-        lines = text.splitlines()
+        lines = text.decode('cp1252').splitlines()
 
         self._parse_lines(lines)
         LOGGER.debug('Dict: \n%s', self._modifiers)

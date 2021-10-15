@@ -6,6 +6,7 @@ TASKS_FILE=~/.tasks
 main() {
     execution_time=$1  # 2021-09-29 22:45:00
     echo $execution_time
+    task=$2
 
     if [[ ! -f "$TASKS_FILE" ]]; then
         initialize_tasks_file
@@ -15,6 +16,17 @@ main() {
 
     environment_file=$(apigw_assume_role.sh dev | grep source | awk '{print $2}')
     source ${environment_file}
+
+    if [[ ! -z "$task" ]]; then
+        TASKS=($task)
+    fi
+
+    echo DAG: $(aws dynamodb get-item \
+        --table-name DataLake-dag-state-dev \
+        --key '{"name": {"S": "ONEVIEW"}, "execution_time": {"S": "'"${execution_time}"'"}}' \
+        | grep -A 1 status | grep '"S"' | awk '{print $2}'
+    )
+
 
     for task in ${TASKS[@]}; do
         echo $task: $(aws dynamodb get-item \
@@ -168,4 +180,4 @@ initialize_tasks_file() {
     echo ")" >> $TASKS_FILE
 }
 
-main "$1"
+main "$1" "$2"

@@ -182,7 +182,8 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
     def _get_all_links(cls, pure_match, new_match, directors):
         linking_data = pandas.concat([pure_match[['medical_education_number', 'person_id']], new_match])
 
-        return pandas.merge(linking_data, directors, on='person_id')[['medical_education_number', 'program']]
+        return pandas.merge(linking_data, directors, on='person_id')[['medical_education_number',
+                                                                      'program']].drop_duplicates(ignore_index=True)
 
     @classmethod
     def _generate_primary_keys(cls, data):

@@ -1,0 +1,111 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/CPT-API/dev/ingest.yaml.jinja -f Deploy/CPT-API/dev/ingest.yaml \
+# -v "datalabs_password={{datalabs_password}},eft_password={{eft_password}},database_password={{database_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "CPTAPI"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: sbx
+    ACCOUNT: '644454719059'
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingested-data-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-processed-data-us-east-1
+
+    DATABASE_HOST: cpt-api-sbx-db.c3mn4zysffxi.us-east-1.rds.amazonaws.com
+    DATABASE_PORT: '5432'
+    DATABASE_BACKEND: 'postgresql+psycopg2'
+    DATABASE_NAME: 'cpt'
+    DATABASE_USERNAME:  cptadmin
+    DATABASE_PASSWORD:  '{{database_password}}'
+
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/CPTAPI'
+
+
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "CPTAPI"}, "Task": {"S": "DAG"}})
+    #######################################################################
+
+    CPTAPI__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-ETL'
+    CPTAPI__DAG__DAG_CLASS: 'datalabs.etl.dag.oneview.ingest.CPT-APIDAG'
+    CPTAPI__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    CPTAPI__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    CPTAPI__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    CPTAPI__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    CPTAPI__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    CPTAPI__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    CPTAPI__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "CPTAPI"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+    CPTAPI__CREATE_RELEASE__SCHEDULE: '{"ANNUAL": ["1-Sep", "1-Jan"], "Q1": ["1-Jan", "1-Apr"], "Q2": ["1-Apr", "1-Jul"], "Q3": ["1-Jul", "1-Oct"], "Q4": ["1-Oct", "1-Jan"]}''
+    CPTAPI__CREATE_RELEASE__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    CPTAPI__CREATE_RELEASE__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    CPTAPI__CREATE_RELEASE__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    CPTAPI__CREATE_RELEASE__CACHE_OUTPUT_FILES: 'release.csv'
+
+
+    CPTAPI__CREATE_RELEASE_TYPES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    CPTAPI__CREATE_RELEASE_TYPES__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    CPTAPI__CREATE_RELEASE_TYPES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    CPTAPI__CREATE_RELEASE_TYPES__CACHE_OUTPUT_FILES: 'release_types.csv'
+
+
+    CPTAPI__PARSE_TEXT_FILES__PARSERS: 'datalabs.curate.cpt.descriptor.ShortDescriptorParser,datalabs.curate.cpt.descriptor.MediumDescriptorParser,datalabs.curate.cpt.descriptor.LongDescriptorParser,datalabs.curate.cpt.modifier.ModifierParser,datalabs.curate.cpt.descriptor.ConsumerDescriptorParser,datalabs.curate.cpt.descriptor.ClinicianDescriptorParser,datalabs.curate.cpt.pla.PLAParser,datalabs.curate.cpt.link.history.DeletionHistoryParser,datalabs.curate.cpt.link.history.ModifierHistoryParser,datalabs.curate.cpt.link.history.CodeHistoryParser'
+    CPTAPI__PARSE_TEXT_FILES__CACHE_CLASS: ${S3_CACHE_CLASS}
+    CPTAPI__PARSE_TEXT_FILES__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    CPTAPI__PARSE_TEXT_FILES__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    CPTAPI__PARSE_TEXT_FILES__CACHE_INPUT_FILES: 'standard/SHORTU.txt,standard/MEDU.txt,standard/LONGULT.txt,standard/MODUL.txt,standard/Consumer Friendly Descriptors/ConsumerDescriptor.txt,standard/Clinician Descriptors/ClinicianDescriptor.txt,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA,CPT Link/history/Deleted_DTK_tab.txt,CPT Link/history/HistoryModifiers_DTK_tab.txt,CPT Link/history/History_DTK_tab.txt'
+    CPTAPI__PARSE_TEXT_FILES__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    CPTAPI__PARSE_TEXT_FILES__CACHE_OUTPUT_FILES: 'standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv,CPT Link/history/Deleted_DTK_tab.csv,CPT Link/history/HistoryModifiers_DTK_tab.csv,CPT Link/history/History_DTK_tab.csv'
+
+
+    CPTAPI__LOAD_RELEASE_TYPES__DATABASE_HOST: ${DATABASE_HOST}
+    CPTAPI__LOAD_RELEASE_TYPES__DATABASE_PORT: ${DATABASE_PORT}
+    CPTAPI__LOAD_RELEASE_TYPES__DATABASE_BACKEND: ${DATABASE_BACKEND}
+    CPTAPI__LOAD_RELEASE_TYPES__DATABASE_NAME: ${DATABASE_NAME}
+    CPTAPI__LOAD_RELEASE_TYPES__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    CPTAPI__LOAD_RELEASE_TYPES__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    CPTAPI__LOAD_RELEASE_TYPES__MODEL_CLASSES: 'datalabs.model.cpt.ReleaseType'
+    CPTAPI__LOAD_RELEASE_TYPES__CACHE_CLASS: ${S3_CACHE_CLASS}
+    CPTAPI__LOAD_RELEASE_TYPES__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    CPTAPI__LOAD_RELEASE_TYPES__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    CPTAPI__LOAD_RELEASE_TYPES__CACHE_INPUT_FILES: 'release_types.csv'
+
+
+    CPTAPI__CREATE_RELEASES__CACHE_CLASS: ${S3_CACHE_CLASS}
+    CPTAPI__CREATE_RELEASES__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    CPTAPI__CREATE_RELEASES__CACHE_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    CPTAPI__CREATE_RELEASES__CACHE_INPUT_FILES: 'CPT Link/history/History_DTK_tab.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv,release_types.csv'
+    CPTAPI__CREATE_RELEASES__CACHE_OUTPUT_FILES: releases.csv
+
+
+    CPTAPI__CREATE_TABLES__CACHE_CLASS: ${S3_CACHE_CLASS}
+    CPTAPI__CREATE_TABLES__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    CPTAPI__CREATE_TABLES__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    CPTAPI__CREATE_TABLES__CACHE_INPUT_FILES: 'release.csv,release_types.csv,standard/SHORTU.csv,standard/MEDU.csv,standard/LONGULT.csv,standard/MODUL.csv,standard/Consumer Friendly Descriptors/ConsumerDescriptor.csv,standard/Clinician Descriptors/ClinicianDescriptor.csv,standard/Proprietary Laboratory Analyses (PLA) Codes/CPTPLA.csv,CPT Link/history/Deleted_DTK_tab.csv,CPT Link/history/HistoryModifiers_DTK_tab.csv,CPT Link/history/History_DTK_tab.csv'
+
+
+    TRANSFORMER__TASK_CLASS         = "datalabs.etl.cpt.api.transform.CSVToRelationalTablesTransformerTask"
+    TRANSFORMER__DATABASE_HOST      = module.rds_instance.db_hostname
+    TRANSFORMER__DATABASE_SECRET    = aws_secretsmanager_secret.database.arn
+
+    LOADER__TASK_CLASS              = "datalabs.etl.cpt.api.load.CPTRelationalTableLoaderTask"
+    LOADER__DATABASE_HOST           = module.rds_instance.db_hostname
+    LOADER__DATABASE_SECRET         = aws_secretsmanager_secret.database.arn
+
+
+
+    CPTAPI__CREATE_TABLES__CACHE_CLASS: ${S3_CACHE_CLASS}
+    CPTAPI__CREATE_TABLES__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    CPTAPI__CREATE_TABLES__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    CPTAPI__CREATE_TABLES__CACHE_INPUT_FILES: 'CPT Link Release Notes *.pdf,standard/AnesthesiaGuidelines.pdf,standard/AppendixB.pdf,standard/AppendixN.pdf,standard/AppendixO.pdf,standard/AppendixQ.pdf,standard/AppendixR.pdf,standard/CategoryIIGuidelines.pdf,standard/CategoryIIIGuidelines.pdf,standard/CPT * README.pdf,standard/EvalManagementGuidelines.pdf,standard/MedicineGuidelines.pdf,standard/PathLabGuidelines.pdf,standard/RadiologyGuidelines.pdf,standard/Clinician Descriptors/* Clinician Descriptors README.pdf,standard/Consumer Friendly Descriptors/* Consumer Friendly Descriptors README.pdf,standard/SurgeryGuidelines.pdf'
+    CPTAPI__CREATE_TABLES__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    CPTAPI__CREATE_TABLES__CACHE_INPUT_FILES: pdfs.zip

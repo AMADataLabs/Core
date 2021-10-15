@@ -58,7 +58,7 @@ def text():
     return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 
 <plaCodes>
-    
+
 <plaCode cdCode="0001U" cdId="1">
         <cdDesc>Red blood cell antigen typing, DNA, human erythrocyte antigen gene analysis of 35 antigens from 11 blood groups, utilizing whole blood, common RBC alleles reported</cdDesc>
         <cdMDesc>RBC DNA HEA 35 AG 11 BLD GRP WHL BLD CMN ALLEL</cdMDesc>
@@ -176,4 +176,4 @@ def text():
         <testName>MatePair Targeted Rearrangements, Congenital</testName>
     </plaCode>
   </plaCodes>
-"""
+""".encode('cp1252').replace(b'\n', b'\r\n')
