@@ -8,7 +8,6 @@ import pandas
 import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
-import datalabs.etl.cpt.api.transform as transform
 from   datalabs.etl.load import LoaderTask
 import datalabs.model.cpt.api as dbmodel
 
@@ -37,7 +36,7 @@ class CPTRelationalTableLoaderTask(LoaderTask):
 
             self._update_tables(self._parameters['data'])
 
-    def _update_tables(self, data: transform.OutputData):
+    def _update_tables(self, data):
         release_table_updater = ReleaseTableUpdater(self._database)
         release_table_updater.update(data.release)
 
