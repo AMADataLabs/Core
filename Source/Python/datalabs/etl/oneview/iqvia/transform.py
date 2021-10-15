@@ -22,8 +22,6 @@ class IQVIABusinessTransformerTask(TransformerTask):
 
     @classmethod
     def _set_default_values(cls, business):
-        business['class_of_trade_classification_description'] = 'filler'
-
         business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].fillna(value='-1')
 
         business['PROFIT_STATUS'] = business['PROFIT_STATUS'].fillna(value='UNKNOWN')
