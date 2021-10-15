@@ -53,6 +53,8 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         releases = non_pla_release.append(pla_release, ignore_index=True)
         releases = releases.drop_duplicates(ignore_index=True)
 
+        releases['id'] = releases.index
+
         return releases
 
     @classmethod
@@ -233,6 +235,8 @@ class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
         pla_mappings = cls._generate_pla_release_code_mappings(pla)
 
         mapping_table = non_pla_mappings.append(pla_mappings, ignore_index=True)
+
+        mapping_table['id'] = mapping_table.index
 
         return mapping_table
 
@@ -455,7 +459,7 @@ class ClinicianDescriptorTransformerParameters:
     execution_time: str = None
 
 
-class ClinicianDescriptorTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ClinicianDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     PARAMETER_CLASS = ClinicianDescriptorTransformerParameters
 
     def _transform(self):
