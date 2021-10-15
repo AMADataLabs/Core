@@ -13,7 +13,8 @@ FUNCTIONS="${PROJECT}-API-${ENVIRONMENT}-Authorizer
            ${PROJECT}-API-${ENVIRONMENT}-BundlePDF
            ${PROJECT}-API-${ENVIRONMENT}-Load
            ${PROJECT}-API-${ENVIRONMENT}-IngestionRouter
-           ${PROJECT}-API-${ENVIRONMENT}-ProcessingRouter"
+           ${PROJECT}-API-${ENVIRONMENT}-ProcessingRouter
+           ${PROJECT}-API-${ENVIRONMENT}-BulkEndpoint"
 
 for FUNCTION in ${FUNCTIONS}; do
   aws lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key CPT/${BUNDLE}.zip || exit $?
