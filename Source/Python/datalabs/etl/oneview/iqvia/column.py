@@ -24,7 +24,7 @@ BUSINESS_COLUMNS = {
     'PROFIT_STATUS': 'profit_status',
     'PRIMARY_COT_ID': 'primary_class_of_trade',
     'COT_CLASSIFICATION_ID': 'class_of_trade_classification',
-    'class_of_trade_classification_description': 'class_of_trade_classification_description',
+    'COT_CLASSIFICATION': 'class_of_trade_classification_description',
     'COT_FACILITY_TYPE_ID': 'class_of_trade_facility_type',
     'COT_FACILITY_TYPE': 'class_of_trade_facility_type_description',
     'COT_SPECIALTY_ID': 'class_of_trade_specialty',
