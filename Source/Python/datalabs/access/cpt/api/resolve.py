@@ -39,7 +39,8 @@ class TaskResolver(task.TaskResolver):
         TaskClassMapping('/releases',                 ReleasesEndpointTask),
 
         # Bulk Endpoints
-        TaskClassMapping('/files',                    FilesEndpointTask),
+        TaskClassMapping('/bulk_zip/releases',        ReleasesEndpointTask),
+        TaskClassMapping('/bulk_zip/files',           FilesEndpointTask),
 
         # Default Endpoint (Must be the last endpoint in this list)
         TaskClassMapping('/*',                        DefaultEndpointTask)
