@@ -49,16 +49,18 @@ data:
 
     CPTAPI__CREATE_FILES_ZIP__CACHE_CLASS:  ${S3_CACHE_CLASS}
     CPTAPI__CREATE_FILES_ZIP__CACHE_BASE_PATH: ${S3_BASE_PATH}
-    CPTAPI__CREATE_FILES_ZIP__CACHE_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    CPTAPI__CREATE_FILES_ZIP__CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     CPTAPI__CREATE_FILES_ZIP__CACHE_INPUT_FILES: '*.pdf,CPT Link/*.pdf,CPT Link/changes annual/*,CPT Link/changes incremental/*,CPT Link/edits/*,CPT Link/extracts/*,CPT Link/history/*,CPT Link/owl/*,CPT Link/pipe/*,CPT Link/tab/*,CPT Link/xml/*,standard/*.pdf,standard/*.txt,standard/Clinician Descriptors/*,standard/Consumer Friendly Descriptors/*,standard/Proprietary Laboratory Analyses (PLA) Codes/*'
+    CPTAPI__CREATE_FILES_ZIP__CACHE_INPUT_INCLUDE_NAMES: 'True'
     CPTAPI__CREATE_FILES_ZIP__CACHE_OUTPUT_FILES: 'files.zip'
 
 
-    CPTAPI__CREATE_PDF_ZIP__CACHE_CLASS:  ${S3_CACHE_CLASS}
-    CPTAPI__CREATE_PDF_ZIP__CACHE_BASE_PATH: ${S3_BASE_PATH}
-    CPTAPI__CREATE_PDF_ZIP__CACHE_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
-    CPTAPI__CREATE_PDF_ZIP__CACHE_INPUT_FILES: 'CPT Link Release Notes *.pdf,standard/AnesthesiaGuidelines.pdf,standard/AppendixB.pdf,standard/AppendixN.pdf,standard/AppendixO.pdf,standard/AppendixQ.pdf,standard/AppendixR.pdf,standard/CategoryIIGuidelines.pdf,standard/CategoryIIIGuidelines.pdf,standard/CPT * README.pdf,standard/EvalManagementGuidelines.pdf,standard/MedicineGuidelines.pdf,standard/PathLabGuidelines.pdf,standard/RadiologyGuidelines.pdf,standard/Clinician Descriptors/* Clinician Descriptors README.pdf,standard/Consumer Friendly Descriptors/* Consumer Friendly Descriptors README.pdf,standard/SurgeryGuidelines.pdf'
-    CPTAPI__CREATE_PDF_ZIP__CACHE_OUTPUT_FILES: 'pdfs.zip'
+    CPTAPI__CREATE_PDFS_ZIP__CACHE_CLASS:  ${S3_CACHE_CLASS}
+    CPTAPI__CREATE_PDFS_ZIP__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    CPTAPI__CREATE_PDFS_ZIP__CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    CPTAPI__CREATE_PDFS_ZIP__CACHE_INPUT_FILES: 'CPT Link Release Notes *.pdf,standard/AnesthesiaGuidelines.pdf,standard/AppendixB.pdf,standard/AppendixN.pdf,standard/AppendixO.pdf,standard/AppendixQ.pdf,standard/AppendixR.pdf,standard/CategoryIIGuidelines.pdf,standard/CategoryIIIGuidelines.pdf,standard/CPT * README.pdf,standard/EvalManagementGuidelines.pdf,standard/MedicineGuidelines.pdf,standard/PathLabGuidelines.pdf,standard/RadiologyGuidelines.pdf,standard/Clinician Descriptors/* Clinician Descriptors README.pdf,standard/Consumer Friendly Descriptors/* Consumer Friendly Descriptors README.pdf,standard/SurgeryGuidelines.pdf'
+    CPTAPI__CREATE_PDFS_ZIP__CACHE_INPUT_INCLUDE_NAMES: 'True'
+    CPTAPI__CREATE_PDFS_ZIP__CACHE_OUTPUT_FILES: 'pdfs.zip'
 
 
     CPTAPI__CREATE_RELEASE_TYPES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}

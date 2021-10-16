@@ -199,6 +199,18 @@ resource "aws_vpc_endpoint" "lambda" {
 }
 
 
+resource "aws_vpc_endpoint" "sns" {
+  vpc_id              = aws_vpc.datalake.id
+  private_dns_enabled = true
+  service_name        = "com.amazonaws.${var.region}.sns"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = var.outbound_security_groups
+  subnet_ids          = local.subnets
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-lambda-vpce"})
+}
+
+
 # Security Groups
 
 # resource "aws_security_group" "datalake" {
