@@ -284,6 +284,8 @@ class DescriptorTransformerMixin:
 
         descriptor_table['deleted'] = False
         descriptor_table['modified_date'] = execution_date
+        descriptor_table['descriptor_spanish'] = ''
+        descriptor_table['descriptor_chinese'] = ''
 
         return descriptor_table
 
@@ -467,6 +469,8 @@ class ConsumerDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
             LOGGER.warning('Ignoring Consumer Descriptors for the following missing codes: %s', orphaned_codes)
 
         descriptor_table['modified_date'] = execution_date
+        descriptor_table['descriptor_spanish'] = ''
+        descriptor_table['descriptor_chinese'] = ''
 
         return descriptor_table[descriptor_table.code.isin(codes.code)]
 
@@ -500,6 +504,8 @@ class ClinicianDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfo
 
         descriptor_table['deleted'] = False
         descriptor_table['modified_date'] = execution_date
+        descriptor_table['descriptor_spanish'] = ''
+        descriptor_table['descriptor_chinese'] = ''
 
         return descriptor_table
 
