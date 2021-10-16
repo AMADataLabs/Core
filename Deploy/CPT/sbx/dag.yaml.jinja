@@ -31,7 +31,7 @@ data:
     #######################################################################
 
     CPTAPI__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-ETL'
-    CPTAPI__DAG__DAG_CLASS: 'datalabs.etl.dag.oneview.ingest.CPT-APIDAG'
+    CPTAPI__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.dag.CPTDAG'
     CPTAPI__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     CPTAPI__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
     CPTAPI__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'

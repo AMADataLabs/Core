@@ -39,6 +39,7 @@ modspec:
   - package: datalabs.etl.cpt
   - package: datalabs.etl.cpt.api
   - package: datalabs.etl.cpt.ingest
+  - package: datalabs.etl.cpt.release
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.cpt
