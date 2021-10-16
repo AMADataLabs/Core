@@ -44,6 +44,8 @@ class ORMLoaderParameters:
     data: object
     execution_time: str = None
     append: str = None
+    ignore_columns: str = None
+    soft_delete_column: str = None
 
 
 
@@ -98,11 +100,12 @@ class ORMLoaderTask(LoaderTask):
         table = model_class.__tablename__
         primary_key = self._get_primary_key(database, schema, table)
         columns = self._get_database_columns(database, schema, table)
+        hash_columns = self._get_hash_columns(columns)
 
         data[primary_key] = [str(key) for key in data[primary_key]]
 
-        current_hashes = self._get_current_row_hashes(database, schema, table, primary_key)
-        incoming_hashes = self._generate_row_hashes(columns, data, primary_key)
+        current_hashes = self._get_current_row_hashes(database, schema, table, primary_key, hash_columns)
+        incoming_hashes = self._generate_row_hashes(data, primary_key, hash_columns)
 
         return TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes)
 
@@ -148,9 +151,20 @@ class ORMLoaderTask(LoaderTask):
 
         return columns
 
+    def _get_hash_columns(self, columns):
+        ignore_columns = self._parameters.ignore_columns or ''
+        ignore_columns = ignore_columns.split(',')
+        hash_columns = columns
+
+        for ignore_column in ignore_columns:
+            if ignore_column in hash_columns:
+                hash_columns.remove(ignore_column)
+
+        return hash_columns
+
     @classmethod
-    def _get_current_row_hashes(cls, database, schema, table, primary_key):
-        get_current_hash = f"SELECT {primary_key}, md5({table}::TEXT) FROM {schema}.{table}"
+    def _get_current_row_hashes(cls, database, schema, table, primary_key, columns):
+        get_current_hash = f"SELECT {primary_key}, md5(({','.join(columns)})::TEXT) FROM {schema}.{table}"
 
         current_hashes = database.read(get_current_hash).astype(str)
         LOGGER.debug('Current Row Hashes: %s', current_hashes)
@@ -158,7 +172,7 @@ class ORMLoaderTask(LoaderTask):
         return current_hashes
 
     @classmethod
-    def _generate_row_hashes(cls, columns, data, primary_key):
+    def _generate_row_hashes(cls, data, primary_key, columns):
         csv_data = data[columns].to_csv(header=None, index=False, quoting=csv.QUOTE_ALL).strip('\n').split('\n')
         row_strings = ["(" + cls._standardize_row_text(i) + ")" for i in csv_data]
 
@@ -186,7 +200,10 @@ class ORMLoaderTask(LoaderTask):
     def _delete_data(cls, database, table_parameters):
         deleted_data = cls._select_deleted_data(table_parameters)
 
-        cls._delete_data_from_table(database, table_parameters, deleted_data)
+        if self._parameters.soft_delete_column:
+            cls._soft_delete_data_from_table(database, table_parameters, deleted_data)
+        else:
+            cls._delete_data_from_table(database, table_parameters, deleted_data)
 
     @classmethod
     def _standardize_row_text(cls, csv_string):
@@ -270,6 +287,17 @@ class ORMLoaderTask(LoaderTask):
 
             for model in deleted_models:
                 database.delete(model)  # pylint: disable=no-member
+
+    @classmethod
+    def _soft_delete_data_from_table(cls, database, table_parameters, data):
+        if not data.empty:
+            deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
+
+            deleted_models[self._parameters.soft_delete_column] = True
+
+            for model in deleted_models:
+                model[self._parameters.soft_delete_column] = True
+                cls._update_row_of_table(database, table_parameters, model)
 
     @classmethod
     def _unquote_term(cls, csv_column):

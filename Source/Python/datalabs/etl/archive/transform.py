@@ -8,7 +8,7 @@ from datalabs.etl.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class ZipTransformerTask(TransformerTask):

@@ -40,7 +40,7 @@ def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data
     columns = ['dumb', 'id', 'dumber']
     loader = ORMLoaderTask(loader_parameters)
     primary_key = 'id'
-    row_hashes = loader._generate_row_hashes(columns, hash_data, primary_key)
+    row_hashes = loader._generate_row_hashes(hash_data, primary_key, columns)
 
     for generated_hash, db_hash in zip(row_hashes['md5'], hash_query_results['md5']):
         assert generated_hash == db_hash
@@ -51,9 +51,9 @@ def test_select_new_data(loader_parameters, table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
     row_hashes = loader._generate_row_hashes(
-        table_parameters.columns,
         table_parameters.data,
-        table_parameters.primary_key
+        table_parameters.primary_key,
+        table_parameters.columns
     )
     table_parameters.incoming_hashes = row_hashes
 
@@ -67,9 +67,9 @@ def test_select_deleted_data(loader_parameters, table_parameters, expected_data)
     loader = ORMLoaderTask(loader_parameters)
 
     row_hashes = loader._generate_row_hashes(
-        table_parameters.columns,
         table_parameters.data,
-        table_parameters.primary_key
+        table_parameters.primary_key,
+        table_parameters.columns
     )
     table_parameters.incoming_hashes = row_hashes
 
@@ -82,9 +82,9 @@ def test_select_updated_data(loader_parameters, table_parameters, expected_data)
     loader = ORMLoaderTask(loader_parameters)
 
     row_hashes = loader._generate_row_hashes(
-        table_parameters.columns,
         table_parameters.data,
-        table_parameters.primary_key
+        table_parameters.primary_key,
+        table_parameters.columns
     )
     table_parameters.incoming_hashes = row_hashes
 
