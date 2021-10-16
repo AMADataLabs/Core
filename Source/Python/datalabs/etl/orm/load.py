@@ -196,14 +196,13 @@ class ORMLoaderTask(LoaderTask):
 
         cls._update_data_in_table(database, table_parameters, updated_data)
 
-    @classmethod
-    def _delete_data(cls, database, table_parameters):
-        deleted_data = cls._select_deleted_data(table_parameters)
+    def _delete_data(self, database, table_parameters):
+        deleted_data = self._select_deleted_data(table_parameters)
 
         if self._parameters.soft_delete_column:
-            cls._soft_delete_data_from_table(database, table_parameters, deleted_data)
+            self._soft_delete_data_from_table(database, table_parameters, deleted_data)
         else:
-            cls._delete_data_from_table(database, table_parameters, deleted_data)
+            self._delete_data_from_table(database, table_parameters, deleted_data)
 
     @classmethod
     def _standardize_row_text(cls, csv_string):
