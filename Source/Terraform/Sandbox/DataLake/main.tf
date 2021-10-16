@@ -117,6 +117,15 @@ resource "aws_vpc_endpoint" "s3" {
   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-s3-vpce"})
 }
 
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.datalake.id
+  service_name      = "com.amazonaws.${var.region}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.datalake_public.id]
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dynamodb-vpce"})
+}
+
 
 resource "aws_vpc_endpoint" "cloudwatch" {
   vpc_id              = aws_vpc.datalake.id

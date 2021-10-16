@@ -46,7 +46,7 @@
       "Resource": "arn:aws:sns:${region}:${account_id}:${topic_name}",
       "Condition": {
         "ArnLike": {
-          "aws:SourceArn": "arn:aws:events:us-east-1:${account_id}:rule/*"
+          "aws:SourceArn": "arn:aws:events:${region}:${account_id}:rule/*"
         }
       }
     }

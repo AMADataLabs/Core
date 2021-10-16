@@ -95,9 +95,9 @@ pipelines:
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/CPT/create-bundle
+                - bash Deploy/CPT/create-bundle CPT
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/CPT/upload-bundle
+                - bash Deploy/Master/upload-bundle CPT
         - parallel:
             # - step:
             #     name: Migrate Database
