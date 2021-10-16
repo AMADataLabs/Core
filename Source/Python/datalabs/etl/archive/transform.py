@@ -1,9 +1,14 @@
 """ Archival Transformer classes. """
 from   io import BytesIO
+import logging
 import pickle
 from   zipfile import ZipFile
 
 from datalabs.etl.transform import TransformerTask
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class ZipTransformerTask(TransformerTask):
