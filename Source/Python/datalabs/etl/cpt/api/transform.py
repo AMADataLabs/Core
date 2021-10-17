@@ -2,6 +2,7 @@
 from   enum import Enum
 from   dataclasses import dataclass
 from   datetime import datetime, date
+from   dateutil.parser import isoparse
 import logging
 
 import pandas
@@ -220,9 +221,10 @@ class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
     PARAMETER_CLASS = ReleaseCodeMappingTransformerParameters
 
     def _transform(self):
-        code_history, codes, pla = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+        releases, code_history, codes, pla = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
 
         release_code_mappings = self._generate_release_code_mapping_table(
+            releases,
             code_history,
             codes,
             pla
@@ -232,15 +234,17 @@ class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
 
     # pylint: disable=too-many-function-args
     @classmethod
-    def _generate_release_code_mapping_table(cls, code_history, codes, pla):
+    def _generate_release_code_mapping_table(cls, releases, code_history, codes, pla):
         non_pla_mappings = cls._generate_non_pla_release_code_mappings(code_history, codes)
         pla_mappings = cls._generate_pla_release_code_mappings(pla)
 
         mapping_table = non_pla_mappings.append(pla_mappings, ignore_index=True)
+        mapping_table = releases.merge(mapping_table, left_on='effective_date', right_on='release')
+        mapping_table.release = mapping_table.id
 
         mapping_table['id'] = mapping_table.index
 
-        return mapping_table
+        return mapping_table[['id', 'release', 'code']]
 
     @classmethod
     def _generate_non_pla_release_code_mappings(cls, code_history, codes):
