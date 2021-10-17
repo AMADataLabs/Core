@@ -630,20 +630,23 @@ class ManufacturerCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Tra
     PARAMETER_CLASS = ManufacturerCodeMappingTransformerParameters
 
     def _transform(self):
-        pla, = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+        pla,manufacturers = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
 
-        manufacturer_code_mapping_table = self._generate_pla_manufacturer_code_mapping_table(pla)
+        manufacturer_code_mapping_table = self._generate_pla_manufacturer_code_mapping_table(pla, manufacturers)
 
         return [self._dataframe_to_csv(manufacturer_code_mapping_table)]
 
     @classmethod
-    def _generate_pla_manufacturer_code_mapping_table(cls, pla_details):
+    def _generate_pla_manufacturer_code_mapping_table(cls, pla_details, manufacturers):
         columns = {'pla_code': 'code'}
         mapping_table = pla_details[['pla_code', 'manufacturer']].rename(columns=columns)
 
         mapping_table = mapping_table.dropna()
 
-        return mapping_table
+        mapping_table = mapping_table.merge(manufacturers, left_on='manufacturer', right_on='name')
+        mapping_table.manufacturer = mapping_table.id
+
+        return mapping_table[['code', 'manufacturer']]
 
 
 @add_schema
@@ -692,17 +695,20 @@ class LabCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerT
     PARAMETER_CLASS = LabCodeMappingTransformerParameters
 
     def _transform(self):
-        pla, = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+        pla, labs = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
 
-        lab_code_mapping_table = self._generate_pla_lab_code_mapping_table(pla)
+        lab_code_mapping_table = self._generate_pla_lab_code_mapping_table(pla, labs)
 
         return [self._dataframe_to_csv(lab_code_mapping_table)]
 
     @classmethod
-    def _generate_pla_lab_code_mapping_table(cls, pla_details):
+    def _generate_pla_lab_code_mapping_table(cls, pla_details, labs):
         columns = {'pla_code': 'code'}
         mapping_table = pla_details[['pla_code', 'lab']].rename(columns=columns)
 
         mapping_table = mapping_table.dropna()
 
-        return mapping_table
+        mapping_table = mapping_table.merge(labs, left_on='lab', right_on='name')
+        mapping_table.lab = mapping_table.id
+
+        return mapping_table[['code', 'lab']]
