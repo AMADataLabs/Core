@@ -411,22 +411,25 @@ class ModifierTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     PARAMETER_CLASS = ModifierTransformerParameters
 
     def _transform(self):
-        modifiers, = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+        modifiers, modifier_types = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
-        modifier_table = self._generate_modifier_table(modifiers, execution_date)
+        modifier_table = self._generate_modifier_table(modifiers, modifier_types, execution_date)
 
         return [self._dataframe_to_csv(modifier_table)]
 
-    def _generate_modifier_table(self, modifiers, execution_date):
+    def _generate_modifier_table(self, modifiers, modifier_types, execution_date):
         modifiers['general'] = False
         modifiers['ambulatory_service_center'] = False
         modifiers = self._dedupe_modifiers(modifiers)
 
+        modifiers = modifiers.merge(modifier_types, left_on='type', right_on='name')
+        modifiers.type = modifiers.id
+
         modifiers['deleted'] = False
         modifiers['modified_date'] = execution_date
 
-        return modifiers
+        return modifiers[['modifier', 'type', 'descriptor', 'ambulatory_service_center', 'deleted', 'modified_date']]
 
     @classmethod
     def _dedupe_modifiers(cls, modifiers):
