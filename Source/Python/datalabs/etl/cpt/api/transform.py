@@ -429,7 +429,7 @@ class ModifierTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         modifiers['deleted'] = False
         modifiers['modified_date'] = execution_date
 
-        return modifiers[['modifier', 'type', 'descriptor', 'ambulatory_service_center', 'deleted', 'modified_date']]
+        return modifiers[['modifier', 'type', 'descriptor', 'ambulatory_service_center', 'general', 'deleted', 'modified_date']]
 
     @classmethod
     def _dedupe_modifiers(cls, modifiers):
