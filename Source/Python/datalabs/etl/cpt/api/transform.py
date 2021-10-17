@@ -241,6 +241,7 @@ class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
         mapping_table = non_pla_mappings.append(pla_mappings, ignore_index=True)
         mapping_table = releases.merge(mapping_table, left_on='effective_date', right_on='release')
         mapping_table.release = mapping_table.id
+        mapping_table.drop_duplicates(subset='code', keep='first', inplace=True, ignore_index=True)
 
         mapping_table['id'] = mapping_table.index
 
