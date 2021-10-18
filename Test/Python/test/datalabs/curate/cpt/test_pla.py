@@ -176,4 +176,4 @@ def text():
         <testName>MatePair Targeted Rearrangements, Congenital</testName>
     </plaCode>
   </plaCodes>
-""".encode('cp1252').replace(b'\n', b'\r\n')
+""".encode().replace(b'\n', b'\r\n')

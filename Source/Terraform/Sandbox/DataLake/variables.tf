@@ -39,7 +39,7 @@ variable "scheduler_memory_size" {
 variable "scheduler_timeout" {
     description = "timeout in seconds"
     type        = number
-    default     = 15
+    default     = 60
 }
 
 

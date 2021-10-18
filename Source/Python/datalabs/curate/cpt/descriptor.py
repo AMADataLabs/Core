@@ -25,8 +25,7 @@ class DescriptorParser(Parser):
             names=self._column_names,
             sep=self._separator,
             header=0,
-            dtype=str,
-            encoding='cp1252'
+            dtype=str
         )
 
 
@@ -37,11 +36,11 @@ class HeaderedDescriptorParser(DescriptorParser):
 
         headered_text = ' '.join(self._column_names) + '\n' + headerless_text
 
-        return super().parse(headered_text.encode('cp1252'))
+        return super().parse(headered_text.encode())
 
     @classmethod
     def _remove_header(cls, text):
-        decoded_text = text.decode('cp1252', errors='backslashreplace')
+        decoded_text = text.decode()
         lines = decoded_text.splitlines()
 
         reversed_lines = lines[::-1]

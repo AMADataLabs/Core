@@ -117,6 +117,15 @@ resource "aws_vpc_endpoint" "s3" {
   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-s3-vpce"})
 }
 
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.datalake.id
+  service_name      = "com.amazonaws.${var.region}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.datalake_public.id]
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dynamodb-vpce"})
+}
+
 
 resource "aws_vpc_endpoint" "cloudwatch" {
   vpc_id              = aws_vpc.datalake.id
@@ -182,6 +191,18 @@ resource "aws_vpc_endpoint" "lambda" {
   vpc_id              = aws_vpc.datalake.id
   private_dns_enabled = true
   service_name        = "com.amazonaws.${var.region}.lambda"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = var.outbound_security_groups
+  subnet_ids          = local.subnets
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-lambda-vpce"})
+}
+
+
+resource "aws_vpc_endpoint" "sns" {
+  vpc_id              = aws_vpc.datalake.id
+  private_dns_enabled = true
+  service_name        = "com.amazonaws.${var.region}.sns"
   vpc_endpoint_type   = "Interface"
   security_group_ids  = var.outbound_security_groups
   subnet_ids          = local.subnets
