@@ -56,7 +56,7 @@ def deleted_test_data():
 1031085	15055	Pre-1982		Not available	Descriptor not available
 1031086	15265	Pre-1982		Not available	Descriptor not available
 1031087	24300	Pre-1982		Not available	Descriptor not available
-""".encode('cp1252').replace(b'\n', b'\r\n')
+""".encode().replace(b'\n', b'\r\n')
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ Pre-1982	DELETED	1031081	14845		Descriptor not available
 Pre-1982	DELETED	1031082	14850		Descriptor not available
 Pre-1982	DELETED	1031083	14855		Descriptor not available
 Pre-1982	DELETED	1031084	14860		Descriptor not available
-""".encode('cp1252').replace(b'\n', b'\r\n')
+""".encode().replace(b'\n', b'\r\n')
 
 
 @pytest.fixture
@@ -84,4 +84,4 @@ Pre-1990	ADDED	1021441	23		Unusual Anesthesia
 Pre-1990	ADDED	1021442	24		Unrelated Evaluation and Management Service by the Same Physician or Other Qualified Health Care Professional During a Postoperative Period
 Pre-1990	ADDED	1021443	25		Significant, Separately Identifiable Evaluation and Management Service by the Same Physician or Other Qualified Health Care Professional on the Same Day of the Procedure or Other Service
 20140101	ADDED	1021438			CPT Level I Modifiers for ASC
-20140101	ADDED	1021437			Modifiers Approved for Ambulatory Surgery Center (ASC) Hospital Outpatient Use""".encode('cp1252').replace(b'\n', b'\r\n')
+20140101	ADDED	1021437			Modifiers Approved for Ambulatory Surgery Center (ASC) Hospital Outpatient Use""".encode().replace(b'\n', b'\r\n')

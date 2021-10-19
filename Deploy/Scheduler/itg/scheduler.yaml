@@ -8,15 +8,15 @@ data:
     # Global Variables - {"DAG": {"S": "DAG_SCHEDULER"}, "Task": {"S": "GLOBAL"}}
     #######################################################################
 
-    ENVIRONMENT: sbx
-    ACCOUNT: '644454719059'
+    ENVIRONMENT: itg
+    ACCOUNT: '285887636563'
     TASK_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
     DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
     DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    S3_INGESTED_DATA_BUCKET: 'ama-hsg-datalabs-datalake-ingestion-sandbox'
-    S3_PROCESSED_DATA_BUCKET: 'ama-hsg-datalabs-datalake-processed-sandbox'
+    S3_INGESTED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-ingest-us-east-1'
+    S3_PROCESSED_DATA_BUCKET: 'ama-${ENVIRONMENT}-datalake-process-us-east-1'
 
 
     #######################################################################
@@ -39,7 +39,7 @@ data:
     ##########################################################################
 
     # DAG Schedule Extractor Variables
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__BUCKET: 'ama-${ENVIRONMENT}-datalake-scheduler-data-us-east-1'
+    DAG_SCHEDULER__EXTRACT_SCHEDULE__BUCKET: 'ama-${ENVIRONMENT}-datalake-scheduler-us-east-1'
     DAG_SCHEDULER__EXTRACT_SCHEDULE__BASE_PATH: ''
     DAG_SCHEDULER__EXTRACT_SCHEDULE__FILES: 'schedule.csv'
     DAG_SCHEDULER__EXTRACT_SCHEDULE__INCLUDE_DATESTAMP: 'False'

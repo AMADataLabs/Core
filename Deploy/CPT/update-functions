@@ -8,11 +8,8 @@ CODE_BUCKET="${CODE_BUCKET:-ama-${ENVIRONMENT}-datalake-lambda-us-east-1}"
 
 FUNCTIONS="${PROJECT}-API-${ENVIRONMENT}-Authorizer
            ${PROJECT}-API-${ENVIRONMENT}-Endpoint
-           ${PROJECT}-API-${ENVIRONMENT}-Convert
-           ${PROJECT}-API-${ENVIRONMENT}-BundlePDF
-           ${PROJECT}-API-${ENVIRONMENT}-Load
-           ${PROJECT}-API-${ENVIRONMENT}-IngestionRouter
-           ${PROJECT}-API-${ENVIRONMENT}-ProcessingRouter
+           ${PROJECT}-API-${ENVIRONMENT}-ETL
+           ${PROJECT}-API-${ENVIRONMENT}-BulkAuthorizer
            ${PROJECT}-API-${ENVIRONMENT}-BulkEndpoint"
 
 for FUNCTION in ${FUNCTIONS}; do

@@ -8,14 +8,13 @@ data:
     # Global Variables - {"DAG": {"S": "CPTAPI"}, "Task": {"S": "GLOBAL"}}
     #######################################################################
 
-    ENVIRONMENT: sbx
-    ACCOUNT: '644454719059'
+    ENVIRONMENT: tst
+    ACCOUNT: '194221139997'
 
-    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingested-data-us-east-1
-    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-processed-data-us-east-1
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    DATABASE_HOST: cpt-api-sbx-db.c3mn4zysffxi.us-east-1.rds.amazonaws.com
-    # DATABASE_HOST: localhost
+    DATABASE_HOST: cpt-api-tst-db.cvo5zwdixjdr.us-east-1.rds.amazonaws.com
     DATABASE_PORT: '5432'
     DATABASE_BACKEND: 'postgresql+psycopg2'
     DATABASE_NAME: 'cpt'
