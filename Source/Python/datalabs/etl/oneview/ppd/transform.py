@@ -71,6 +71,7 @@ class PPDTransformerTask(TransformerTask):
         medical_student_table = self.create_medical_student_table(medical_student)
 
         transformed_ppd = self._merge_data(ppd, race_ethnicity_table, medical_student_table, )
+        transformed_ppd = self._set_boolean(transformed_ppd)
 
         ########## REMOVE AFTER DATA SOURCE FIXED###########
         transformed_ppd['PDRP_flag'] = 'filler'
@@ -122,6 +123,12 @@ class PPDTransformerTask(TransformerTask):
                 person_type.append('Physician')
 
         data['person_type'] = person_type
+
+        return data
+
+    @classmethod
+    def _set_boolean(cls, data):
+        data['no_release_ind'] = data.no_release_ind == 'Y'
 
         return data
 
