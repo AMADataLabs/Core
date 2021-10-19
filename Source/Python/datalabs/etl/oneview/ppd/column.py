@@ -135,7 +135,8 @@ MEDICAL_STUDENT_COLUMNS = {
     'addr_type_ind': 'addressType',
     'phone_no': 'preferredPhoneNumber',
     'presumed_dead': 'pendingDeadIndicator',
-    'contact_flg': 'contactIndicator'
+    'contact_flg': 'contactIndicator',
+    'no_release_ind': 'no_release_ind'
 }
 
 

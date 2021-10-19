@@ -111,6 +111,7 @@ class Physician(BASE):
     membership_status = sa.Column(sa.String)
     type = sa.Column(sa.String)
     has_email = sa.Column(sa.Boolean)
+    no_release = sa.Column(sa.Boolean)
 
 
 class ResidencyProgram(BASE):
