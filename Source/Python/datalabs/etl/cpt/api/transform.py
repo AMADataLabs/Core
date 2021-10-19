@@ -2,7 +2,6 @@
 from   enum import Enum
 from   dataclasses import dataclass
 from   datetime import datetime, date
-from   dateutil.parser import isoparse
 import logging
 
 import pandas
@@ -429,7 +428,9 @@ class ModifierTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         modifiers['deleted'] = False
         modifiers['modified_date'] = execution_date
 
-        return modifiers[['modifier', 'type', 'descriptor', 'ambulatory_service_center', 'general', 'deleted', 'modified_date']]
+        return modifiers[[
+            'modifier', 'type', 'descriptor', 'ambulatory_service_center', 'general', 'deleted', 'modified_date'
+        ]]
 
     @classmethod
     def _dedupe_modifiers(cls, modifiers):
@@ -462,7 +463,11 @@ class ConsumerDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
         codes, consumer_descriptors = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
-        consumer_descriptor_table = self._generate_consumer_descriptor_table(codes, consumer_descriptors, execution_date)
+        consumer_descriptor_table = self._generate_consumer_descriptor_table(
+            codes,
+            consumer_descriptors,
+            execution_date
+        )
 
         return [self._dataframe_to_csv(consumer_descriptor_table)]
 

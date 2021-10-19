@@ -1,8 +1,9 @@
+''' CPT release data transformers. '''
 from   dataclasses import dataclass
 from   datetime import date, datetime
-from   dateutil.parser import isoparse
-
 import json
+
+from   dateutil.parser import isoparse
 import pandas
 
 from   datalabs.etl.cpt.release.type import RELEASE_TYPES
