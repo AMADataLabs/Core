@@ -42,7 +42,6 @@ ADDRESS_LOAD_AGGREGATION_DAG = DAG(
         in_cluster=True,
         get_logs=True,
     ),
-    execution_date=12,
     start_date=past_wednesday,
     schedule_interval=day_interval,
     catchup=False,
