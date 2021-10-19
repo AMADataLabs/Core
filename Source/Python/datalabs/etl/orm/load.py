@@ -162,6 +162,7 @@ class ORMLoaderTask(LoaderTask):
 
         return hash_columns
 
+    # pylint: disable=too-many-arguments
     @classmethod
     def _get_current_row_hashes(cls, database, schema, table, primary_key, columns):
         get_current_hash = f"SELECT {primary_key}, md5(({','.join(columns)})::TEXT) FROM {schema}.{table}"
@@ -285,20 +286,19 @@ class ORMLoaderTask(LoaderTask):
             deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
 
             for model in deleted_models:
-                LOGGER.debug(f'Deleting row: {model[table_parameters.primary_key]}')
+                LOGGER.debug('Deleting row: %s', model[table_parameters.primary_key])
                 database.delete(model)  # pylint: disable=no-member
 
-    @classmethod
-    def _soft_delete_data_from_table(cls, database, table_parameters, data):
+    def _soft_delete_data_from_table(self, database, table_parameters, data):
         if not data.empty:
-            deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
+            deleted_models = self._get_deleted_models_from_table(database, table_parameters, data)
 
             deleted_models[self._parameters.soft_delete_column] = True
 
             for model in deleted_models:
-                LOGGER.debug(f'Soft deleting row: {model[table_parameters.primary_key]}')
+                LOGGER.debug('Soft deleting row: %s', model[table_parameters.primary_key])
                 model[self._parameters.soft_delete_column] = True
-                cls._update_row_of_table(database, table_parameters, model)
+                self._update_row_of_table(database, table_parameters, model)
 
     @classmethod
     def _unquote_term(cls, csv_column):

@@ -18,7 +18,7 @@ class ZipTransformerTask(TransformerTask):
 
         with ZipFile(zip_data, 'w') as zip_file:
             for file, data in filename_data_tuples:
-                LOGGER.debug(f'Adding {len(data)} byte file {file} to the archive...')
+                LOGGER.debug('Adding %s byte file %s to the archive...', len(data), file)
                 zip_file.writestr(file, data)
 
         return [bytes(zip_data.getbuffer())]
