@@ -1,5 +1,6 @@
 """ Local file system extractors """
 from   dataclasses import dataclass
+from   pdb import set_trace as st
 import io
 import logging
 import os
@@ -37,6 +38,7 @@ class SFTPDirectoryListingExtractorParameters:
     username: str
     password: str
     execution_time: str = None
+    data: object = None
 
 
 # pylint: disable=too-many-ancestors
@@ -116,7 +118,8 @@ class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
 
         decoded_data = self._decode_dataset(data, directory_listing_file)
         decoded_data = [pickle.dumps(list(zip(directory_listing_file, decoded_data)))]
-        # st()
+        print(f"HADI: directory_listing_file: {directory_listing_file}")
+        print(f"HADI: data: {data}")
         return decoded_data
 
     def _get_directory_listing_file(self):
