@@ -36,6 +36,7 @@ class SFTPDirectoryListingExtractorParameters:
     host: str
     username: str
     password: str
+    execution_time: str = None
 
 
 # pylint: disable=too-many-ancestors
