@@ -111,6 +111,7 @@ class Physician(BASE):
     membership_status = sa.Column(sa.String)
     type = sa.Column(sa.String)
     has_email = sa.Column(sa.Boolean)
+    no_release = sa.Column(sa.Boolean)
 
 
 class ResidencyProgram(BASE):
@@ -408,6 +409,7 @@ class Census(BASE):
     age_50_to_54 = sa.Column(sa.Integer, nullable=False)
     age_55_to_59 = sa.Column(sa.Integer, nullable=False)
     age_60_to_61 = sa.Column(sa.Integer, nullable=False)
+    age_62_to_64 = sa.Column(sa.Integer, nullable=False)
     age_65_to_66 = sa.Column(sa.Integer, nullable=False)
     age_67_to_69 = sa.Column(sa.Integer, nullable=False)
     age_70_to_74 = sa.Column(sa.Integer, nullable=False)

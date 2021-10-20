@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-TASKS_FILE=~/.tasks
+TASKS_FILE=~/.oneview-tasks
 
 main() {
     execution_time=$1  # 2021-09-29 22:45:00
@@ -12,14 +12,7 @@ main() {
         initialize_tasks_file
     fi
 
-    source ~/.tasks
-
-    environment_file=$(apigw_assume_role.sh dev | grep source | awk '{print $2}')
-    source ${environment_file}
-
-    if [[ ! -z "$task" ]]; then
-        TASKS=($task)
-    fi
+    source ${TASKS_FILE}
 
     echo DAG: $(aws dynamodb get-item \
         --table-name DataLake-dag-state-dev \

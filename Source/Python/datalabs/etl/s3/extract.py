@@ -47,7 +47,7 @@ if feature.enabled("PROFILE"):
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -106,6 +106,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=logging-fstring-interpolation
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
+        LOGGER.debug(f'Extracting file {file} from bucket {self._parameters.bucket}...')
         data = None
 
         if feature.enabled("PROFILE"):

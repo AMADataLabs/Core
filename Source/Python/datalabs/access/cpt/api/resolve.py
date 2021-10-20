@@ -37,10 +37,13 @@ class TaskResolver(task.TaskResolver):
         TaskClassMapping('/modifiers',                AllModifiersEndpointTask),
         TaskClassMapping('/pdfs',                     LatestPDFsEndpointTask),
         TaskClassMapping('/releases',                 ReleasesEndpointTask),
-        TaskClassMapping('/*',                        DefaultEndpointTask),
 
         # Bulk Endpoints
-        TaskClassMapping('/files',           FilesEndpointTask)
+        TaskClassMapping('/bulk_zip/releases',        ReleasesEndpointTask),
+        TaskClassMapping('/bulk_zip/files',           FilesEndpointTask),
+
+        # Default Endpoint (Must be the last endpoint in this list)
+        TaskClassMapping('/*',                        DefaultEndpointTask)
     ]
 
     @classmethod
@@ -54,6 +57,6 @@ class TaskResolver(task.TaskResolver):
             if re.match(path_pattern, path):
                 task_class = mapping.task_class
                 break
-        LOGGING.info('Resolved path %s to implementation class %s', path, str(task_class))
+        LOGGER.info('Resolved path %s to implementation class %s', path, str(task_class))
 
         return task_class

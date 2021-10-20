@@ -313,8 +313,8 @@ module "dag_processor_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = false
-    api_arn                     = ""
+    create_lambda_permission    = true
+    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
 
     environment_variables = {
         variables = {
@@ -381,8 +381,8 @@ module "task_processor_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = false
-    api_arn                     = ""
+    create_lambda_permission    = true
+    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
 
     environment_variables = {
         variables = {
@@ -406,6 +406,7 @@ module "task_processor_lambda" {
     tag_maintwindow         = local.tags["MaintenanceWindow"]
 }
 
+
 module "scheduler_lambda" {
     source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
     function_name       = local.function_names.scheduler
@@ -424,8 +425,8 @@ module "scheduler_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = false
-    api_arn                     = ""
+    create_lambda_permission    = true
+    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
 
     environment_variables = {
         variables = {

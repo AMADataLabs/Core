@@ -4,10 +4,11 @@ modspec:
     include:
       - feature
       - awslambda
-      - parameter
       - plugin
+      - etl
       - sqlalchemy
       - task
+      - parameter
   - package: datalabs.access
     include:
       - aws
@@ -20,18 +21,33 @@ modspec:
   - package: datalabs.access.api
   - package: datalabs.access.authorize
   - package: datalabs.access.cpt.api
-  - package: datalabs.access.parameter
-  - package: datalabs.access.secret
   - package: datalabs.curate
     include:
       - parse
   - package: datalabs.curate.cpt
   - package: datalabs.curate.cpt.link
+  - package: datalabs.access.parameter
+  - package: datalabs.access.secret
   - package: datalabs.etl
+    include:
+      - csv
+      - task
+      - extract
+      - awslambda
+      - transform
+      - load
   - package: datalabs.etl.archive
   - package: datalabs.etl.cpt
   - package: datalabs.etl.cpt.api
   - package: datalabs.etl.cpt.ingest
+  - package: datalabs.etl.cpt.release
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.cpt
+  - package: datalabs.etl.dag.execute
+  - package: datalabs.etl.dag.notify
+  - package: datalabs.etl.dag.state
+  - package: datalabs.etl.orm
   - package: datalabs.etl.parse
   - package: datalabs.etl.s3
   - package: datalabs.model.cpt

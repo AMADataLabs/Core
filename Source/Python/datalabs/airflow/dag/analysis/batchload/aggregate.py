@@ -5,10 +5,8 @@ from airflow import DAG
 from airflow.kubernetes.secret import Secret
 from airflow.models import Variable
 from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from airflow.utils.dates import days_ago
 from kubernetes.client import models as k8s
 from pytz import timezone
-
 
 ### Configuration Bootstraping ###
 DAG_ID = 'address_load_aggregation'
@@ -25,8 +23,9 @@ BASE_ENVIRONMENT = dict(
 )
 
 ### DAG scheduling variables
-past_wednesday = datetime(year=2021, month=9, day=1, hour=14, tzinfo=timezone('America/Chicago'))
-week_interval = timedelta(weeks=1)
+past_wednesday = datetime(year=2021, month=9, day=1, hour=14, minute=0, second=0, tzinfo=timezone('America/Chicago'))
+# week_interval = timedelta(weeks=1)
+day_interval = timedelta(days=1)
 
 ADDRESS_LOAD_AGGREGATION_DAG = DAG(
     dag_id=DAG_ID,
@@ -44,7 +43,8 @@ ADDRESS_LOAD_AGGREGATION_DAG = DAG(
         get_logs=True,
     ),
     start_date=past_wednesday,
-    schedule_interval=week_interval,
+    schedule_interval=day_interval,
+    catchup=False,
     tags=['ADDRESS_LOAD'],
 )
 
