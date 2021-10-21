@@ -294,7 +294,7 @@ class ORMLoaderTask(LoaderTask):
             deleted_models = self._get_deleted_models_from_table(database, table_parameters, data)
 
             for model in deleted_models:
-                LOGGER.debug('Soft deleting row: %s', model[table_parameters.primary_key])
+                LOGGER.debug('Soft deleting row: %s', getattr(model, table_parameters.primary_key))
                 setattr(model, self._parameters.soft_delete_column, True)
                 self._update_row_of_table(database, table_parameters, model)
 
