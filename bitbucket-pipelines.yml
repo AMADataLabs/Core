@@ -562,7 +562,7 @@ pipelines:
             - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
 
             # Create the code bundle
             - export ENABLE_FEATURE_STAGE=True
@@ -579,7 +579,7 @@ pipelines:
             - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
 
             # Update Lambda functions
             - export ENABLE_FEATURE_STAGE=True
@@ -621,7 +621,7 @@ pipelines:
 
             # Update Lambda functions
             - export ENABLE_FEATURE_STAGE=True
-            - export ENVIRONMENT=prd
+            - export ENVIRONMENT=itg
             - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
 
 

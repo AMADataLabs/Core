@@ -25,9 +25,6 @@ case $environment in
     'stg')
         account=340826698851
     ;;
-    'itg')
-        account=285887636563
-    ;;
     'prd')
         account=285887636563
     ;;
