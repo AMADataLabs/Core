@@ -5,7 +5,8 @@
 
 FROM python:3.7
 ENV PYTHONPATH=/AMC:/AMC/site-packages
-ENV CLASSPATH=/AMC
+ENV JAVA_HOME /usr/lib/jvm/java-1.11.0-openjdk-amd64
+ENV CLASSPATH=/AMC:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 ENV HOME=/AMC
 WORKDIR $HOME
 
@@ -15,9 +16,9 @@ RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 RUN apt-get update && apt-get install -y openjdk-11-jre
-ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
-RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
-RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+# ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
+# RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
+# RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
 RUN unzip ./InformixJdbcDriver.zip && rm ./InformixJdbcDriver.zip
 
@@ -38,6 +39,6 @@ RUN find ./ -name "*.env.jinja" | sed 's/.jinja//' | xargs -t -I {}\
     --vars pythonpath=/AMC,$template_vars
 RUN ./Script/bundle-project -i --directory ./ AMC
 
-RUN rm -rf ./Script
+# RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source

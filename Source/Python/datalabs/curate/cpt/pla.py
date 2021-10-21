@@ -59,7 +59,7 @@ class PLAParser(Parser):
         'test'
     ]
     def parse(self, text: str) -> pandas.DataFrame:
-        fields = self._extract_fields(text)
+        fields = self._extract_fields(text.decode())
 
         return self._generate_dataframe(fields)
 

@@ -4,16 +4,47 @@ metadata:
     name: dbl-file-count
     namespace: hsg-data-labs-dev
 data:
-    # TASK_WRAPPER_CLASS: datalabs.etl.dag.task.DAGTaskWrapper
+    # Reference Variables
+    DBL_S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    DBL_S3_BASE_PATH: 'AMA/DBL'
 
 
     # EXTRACT_DBL
     DBL__EXTRACT_DBL__BASE_PATH: ''
     DBL__EXTRACT_DBL__FILES: 'changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt'
 
+    DBL__EXTRACT_DBL__HOST: ${HOST}
+    DBL__EXTRACT_DBL__USERNAME: ${USERNAME}
+    DBL__EXTRACT_DBL__PASSWORD: ${PASSWORD}
+
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_CLASS: ${DBL_S3_CACHE_CLASS}
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_BUCKET: ${DBL_S3_INGESTED_DATA_BUCKET}
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_BASE_PATH: ${DBL_S3_BASE_PATH}
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio-api.apps.openshifttest.ama-assn.org'
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_ACCESS_KEY: ${DBL_S3_ACCESS_KEY}
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_SECRET_KEY: ${DBL_S3_SECRET_KEY}
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_FILES: 'changefileaudit.csv,ReportByFieldFrom_SAS.csv,countofchangesbyfieldextract.csv,recordactionextract.csv,changebyrecordcount.csv,PE_counts.csv,TOP_counts.csv,topbyPEcounts.csv,PrimSpecbyMPA.csv,SecSpecbyMPA.csv'
+
     # CREATE_DBL_REPORT
-        # NONE
+    DBL__CREATE_DBL_REPORT__CACHE_CLASS: ${DBL_S3_CACHE_CLASS}
+    DBL__CREATE_DBL_REPORT__CACHE_BASE_PATH: ${DBL_S3_BASE_PATH}
+    DBL__CREATE_DBL_REPORT__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio-api.apps.openshifttest.ama-assn.org'
+    DBL__CREATE_DBL_REPORT__CACHE_ACCESS_KEY: ${DBL_S3_ACCESS_KEY}
+    DBL__CREATE_DBL_REPORT__CACHE_SECRET_KEY: ${DBL_S3_SECRET_KEY}
+
+    DBL__CREATE_DBL_REPORT__CACHE_INPUT_FILES: 'changefileaudit.csv,ReportByFieldFrom_SAS.csv,countofchangesbyfieldextract.csv,recordactionextract.csv,changebyrecordcount.csv,PE_counts.csv,TOP_counts.csv,topbyPEcounts.csv,PrimSpecbyMPA.csv,SecSpecbyMPA.csv'
+    DBL__CREATE_DBL_REPORT__CACHE_OUTPUT_FILES: 'dbl_report.xlsx'
+    DBL__CREATE_DBL_REPORT__CACHE_INPUT_BUCKET: ${DBL_S3_INGESTED_DATA_BUCKET}
+    DBL__CREATE_DBL_REPORT__CACHE_OUTPUT_BUCKET: ${DBL_S3_PROCESSED_DATA_BUCKET}
 
     # EMAIL_DBL_REPORT
-    DBL__EMAIL_DBL_REPORT__TO: 'Daniel.Ro@ama-assn.og'
+    DBL__EMAIL_DBL_REPORT__TO: 'Daniel.Ro@ama-assn.org'
     DBL__EMAIL_DBL_REPORT__CC: ''
+
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_CLASS: ${DBL_S3_CACHE_CLASS}
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_BUCKET: ${DBL_S3_PROCESSED_DATA_BUCKET}
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_BASE_PATH: ${DBL_S3_BASE_PATH}
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio-api.apps.openshifttest.ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_ACCESS_KEY: ${DBL_S3_ACCESS_KEY}
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_SECRET_KEY: ${DBL_S3_SECRET_KEY}
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_FILES: 'dbl_report.xlsx'

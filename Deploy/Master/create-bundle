@@ -2,7 +2,23 @@
 
 set -ex
 
-PROJECT=$1
+PROJECT=
+EXTRA_FILES=
+
+echo "# args: $#"
+
+while (( "$#" )); do
+  if [[ "${PROJECT}" == "" ]]; then
+      PROJECT=$1
+      echo "Set project to ${PROJECT}"
+  else
+      EXTRA_FILES+="-f $1 "
+      echo "Added extra file ${1}"
+  fi
+
+  shift
+done
+
 
 export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
 export PATH="$VIRTUAL_ENV/bin:$PATH"
@@ -13,4 +29,4 @@ pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip
 pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r Build/${PROJECT}/requirements.txt
 
 export PYTHONPATH=${PWD}/Source/Python
-python Script/bundle_project.py --in-place --directory Bundle/ ${PROJECT}
+python Script/bundle_project.py --in-place --directory Bundle/ ${EXTRA_FILES} ${PROJECT}

@@ -81,7 +81,7 @@ class RouterTask(task.Task):
 
             response = client.invoke(
                 FunctionName=f'arn:aws:lambda:{region}:{account}:function:{function}',
-                InvocationType='RequestResponse',
+                InvocationType='Event',
                 Payload=json.dumps(dict(execution_time=f'{execution_date}T00:00:00+00:00'))
             )
 

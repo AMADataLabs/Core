@@ -1,6 +1,7 @@
 """ AWS S3 Loader """
 from   dataclasses import dataclass
 import logging
+import pickle
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.load import LoaderTask
@@ -35,9 +36,9 @@ class SNSMessageLoaderTask(LoaderTask):
             aws_secret_access_key=self._parameters.secret_key,
             region_name=self._parameters.region_name
         ) as sns:
-            for message in self._parameters.data:
+            for message in pickle.loads(self._parameters.data[0]):
                 LOGGER.info('Publishing the following message to %s: %s', self._parameters.topic_arn, message)
                 sns.publish(
                     TargetArn=self._parameters.topic_arn,
-                    Message=message.decode('utf-8')
+                    Message=message
                 )

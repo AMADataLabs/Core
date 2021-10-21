@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 from   datetime import date, datetime
 import json
 import os
+import pickle
 
 from   dateutil.parser import isoparse
 import pandas
@@ -24,7 +25,10 @@ class CPTTextDataExtractorParameters:
     secret_key: str = None
     region_name: str = None
     include_names: str = None
+    include_datestamp: str = None
     execution_time: str = None
+    on_disk: str = False
+    assume_role: str = None
     data: object = None
 
 
@@ -41,7 +45,7 @@ class CPTTextDataExtractorTask(extract.S3FileExtractorTask):
 
         data.insert(0, (release_source_path, self._generate_release_details(release_schedule, release_date)))
 
-        return data
+        return [pickle.dumps(data)]
 
     def _extract_release_date(self):
         latest_release_path = self._get_latest_path()

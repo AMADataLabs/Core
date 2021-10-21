@@ -41,7 +41,7 @@ def test_generate_response_body(query_results):
         session.query.return_value.join.return_value.all.return_value = query_results
         task = DescriptorEndpointTask(event)
         query = task._query_for_descriptors(session)
-        response_body = task._generate_response_body(query.all(), ['short', 'long'])
+        response_body = task._generate_response_body(query.all(), ['short', 'long'], "english")
 
     assert type(response_body).__name__ == 'list'
     item = response_body[0]

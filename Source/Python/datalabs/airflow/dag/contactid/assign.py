@@ -18,6 +18,8 @@ ADVANTAGE_SECRET = Secret('env', None, 'contact-id-etl-advantage')
 ORGMANAGER_SECRET = Secret('env', None, 'contact-id-etl-orgmanager')
 VALID_EFT_SECRET = Secret('env', None, 'contact-id-etl-valid')
 MINIO_SECRET = Secret('env', None, 'contact-id-etl-minio')
+MINIO_SECRET = Secret('env', None, 'contact-id-etl-minio')
+S3_SECRET = Secret('env', None, 'contact-id-etl-s3')
 
 ### DAG definition ###
 BASE_ENVIRONMENT = dict(
@@ -118,8 +120,17 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         task_id="update_seed_files",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[MINIO_SECRET],
+        secrets=[S3_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.load.S3FileLoaderTask')},
+    )
+
+    LOL_EXTRACT_S3_DIR_LIST = KubernetesPodOperator(
+        name="lol_extract_s3_dir_list",
+        task_id="lol_extract_s3_dir_list",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[S3_SECRET, VALID_EFT_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPDirectoryListingExtractorTask')},
     )
 
 
@@ -134,3 +145,4 @@ EXTRACT_SEED_FILES >> ASSIGN_EXISTING_CONTACT_IDS
 ASSIGN_EXISTING_CONTACT_IDS >> MERGE_AND_GENERATE_NEW_IDS
 MERGE_AND_GENERATE_NEW_IDS >> DELIVER_OUTPUT_FILES
 MERGE_AND_GENERATE_NEW_IDS >> UPDATE_SEED_FILES
+LOL_EXTRACT_S3_DIR_LIST

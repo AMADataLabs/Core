@@ -200,22 +200,14 @@ resource "aws_sns_topic_subscription" "task_processor" {
 # Datalake - CloudWatch Events
 #####################################################################
 
-resource "aws_cloudwatch_event_rule" "console" {
-  name        = "${var.project}-invoke-scheduler-${var.environment}"
+resource "aws_cloudwatch_event_rule" "scheduler_trigger" {
+  name        = "${var.project}-${var.environment}-invoke-scheduler"
   description = "Trigger running of the scheduler periodically"
   schedule_expression = "cron(*/15 * * * ? *)"
-
-  event_pattern = <<EOF
-{
-  "detail-type": [
-    "Run Scheduler Event"
-  ]
-}
-EOF
 }
 
 resource "aws_cloudwatch_event_target" "sns" {
-  rule      = aws_cloudwatch_event_rule.console.name
+  rule      = aws_cloudwatch_event_rule.scheduler_trigger.name
   arn       = module.sns_scheduler_topic.topic_arn
 }
 
@@ -321,8 +313,8 @@ module "dag_processor_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = false
-    api_arn                     = ""
+    create_lambda_permission    = true
+    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
 
     environment_variables = {
         variables = {
@@ -346,6 +338,30 @@ module "dag_processor_lambda" {
     tag_maintwindow         = local.tags["MaintenanceWindow"]
 }
 
+resource "aws_lambda_permission" "lambda_dag_processor" {
+     statement_id    = "AllowSNSInvoke-DAG"
+     action          = "lambda:InvokeFunction"
+     function_name   = module.dag_processor_lambda.function_name
+     principal       = "sns.amazonaws.com"
+     source_arn      = module.sns_dag_topic.topic_arn
+}
+
+resource "aws_lambda_permission" "lambda_dag_processor_scheduler" {
+     statement_id    = "AllowSNSInvoke-Scheduler"
+     action          = "lambda:InvokeFunction"
+     function_name   = module.dag_processor_lambda.function_name
+     principal       = "sns.amazonaws.com"
+     source_arn      = module.sns_scheduler_topic.topic_arn
+}
+
+# resource "aws_lambda_permission" "lambda_dag_processor_cloudwatch" {
+#      statement_id    = "AllowCloudWatchSInvoke"
+#      action          = "lambda:InvokeFunction"
+#      function_name   = module.dag_processor_lambda.function_name
+#      principal       = "events.amazonaws.com"
+#      source_arn      = module.sns_scheduler.topic_arn
+# }
+
 
 module "task_processor_lambda" {
     source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
@@ -365,8 +381,8 @@ module "task_processor_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = false
-    api_arn                     = ""
+    create_lambda_permission    = true
+    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
 
     environment_variables = {
         variables = {
@@ -390,6 +406,7 @@ module "task_processor_lambda" {
     tag_maintwindow         = local.tags["MaintenanceWindow"]
 }
 
+
 module "scheduler_lambda" {
     source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
     function_name       = local.function_names.scheduler
@@ -408,8 +425,8 @@ module "scheduler_lambda" {
         project                     = var.project
     }
 
-    create_lambda_permission    = false
-    api_arn                     = ""
+    create_lambda_permission    = true
+    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
 
     environment_variables = {
         variables = {

@@ -19,12 +19,16 @@ resource "aws_vpc" "datalake" {
 }
 
 
+### Internet Gateway ###
+
 resource "aws_internet_gateway" "datalake" {
     vpc_id = aws_vpc.datalake.id
 
     tags = merge(local.tags, {Name = "Data Lake Internet Gateway"})
 }
 
+
+### Routes ###
 
 resource "aws_route_table" "datalake_public" {
   vpc_id = aws_vpc.datalake.id
@@ -39,6 +43,8 @@ resource "aws_route" "datalake_public" {
     gateway_id                  = aws_internet_gateway.datalake.id
 }
 
+
+### Subnets ###
 
 resource "aws_subnet" "datalake_public1" {
     vpc_id                  = aws_vpc.datalake.id
@@ -99,6 +105,113 @@ resource "aws_route_table_association" "datalake_private2" {
     route_table_id = aws_vpc.datalake.default_route_table_id
 }
 
+
+### VPC Endpoints ###
+
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id            = aws_vpc.datalake.id
+  service_name      = "com.amazonaws.${var.region}.s3"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.datalake_public.id]
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-s3-vpce"})
+}
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.datalake.id
+  service_name      = "com.amazonaws.${var.region}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.datalake_public.id]
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dynamodb-vpce"})
+}
+
+
+resource "aws_vpc_endpoint" "cloudwatch" {
+  vpc_id              = aws_vpc.datalake.id
+  private_dns_enabled = true
+  service_name        = "com.amazonaws.${var.region}.logs"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = var.outbound_security_groups
+  subnet_ids          = local.subnets
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dkr-vpce"})
+}
+
+
+resource "aws_vpc_endpoint" "dkr" {
+  vpc_id              = aws_vpc.datalake.id
+  private_dns_enabled = true
+  service_name        = "com.amazonaws.${var.region}.ecr.dkr"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = var.outbound_security_groups
+  subnet_ids          = local.subnets
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dkr-vpce"})
+}
+
+
+resource "aws_vpc_endpoint" "ecr" {
+  vpc_id              = aws_vpc.datalake.id
+  private_dns_enabled = true
+  service_name        = "com.amazonaws.${var.region}.ecr.api"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = var.outbound_security_groups
+  subnet_ids          = local.subnets
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-ecr-vpce"})
+}
+
+
+resource "aws_vpc_endpoint" "ssm" {
+  vpc_id              = aws_vpc.datalake.id
+  private_dns_enabled = true
+  service_name        = "com.amazonaws.${var.region}.ssm"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = var.outbound_security_groups
+  subnet_ids          = local.subnets
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-ssm-vpce"})
+}
+
+
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id              = aws_vpc.datalake.id
+  private_dns_enabled = true
+  service_name        = "com.amazonaws.${var.region}.secretsmanager"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = var.outbound_security_groups
+  subnet_ids          = local.subnets
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-secretsmanager-vpce"})
+}
+
+
+resource "aws_vpc_endpoint" "lambda" {
+  vpc_id              = aws_vpc.datalake.id
+  private_dns_enabled = true
+  service_name        = "com.amazonaws.${var.region}.lambda"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = var.outbound_security_groups
+  subnet_ids          = local.subnets
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-lambda-vpce"})
+}
+
+
+resource "aws_vpc_endpoint" "sns" {
+  vpc_id              = aws_vpc.datalake.id
+  private_dns_enabled = true
+  service_name        = "com.amazonaws.${var.region}.sns"
+  vpc_endpoint_type   = "Interface"
+  security_group_ids  = var.outbound_security_groups
+  subnet_ids          = local.subnets
+
+  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-lambda-vpce"})
+}
+
+
+# Security Groups
 
 # resource "aws_security_group" "datalake" {
 #   name        = "Data Lake"
@@ -509,14 +622,14 @@ module "sns_ingested_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "ingested_data-${var.environment}"
+    topic_name      = "${var.ingested_data_topic_name}-${var.environment}"
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_ingested_data.bucket_id
   }
 
-  name = "ingested_data-${var.environment}"
-  topic_display_name    = "ingested_data-${var.environment}"
+  name = "${var.ingested_data_topic_name}-${var.environment}"
+  topic_display_name    = "${var.ingested_data_topic_name}-${var.environment}"
   app_name              = lower(var.project)
   app_environment       = var.environment
 
@@ -543,14 +656,14 @@ module "sns_processed_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "processed_data-${var.environment}"
+    topic_name      = "${var.processed_data_topic_name}-${var.environment}"
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_processed_data.bucket_id
   }
 
-  name = "processed_data-${var.environment}"
-  topic_display_name    = "processed_data-${var.environment}"
+  name = "${var.processed_data_topic_name}-${var.environment}"
+  topic_display_name    = "${var.processed_data_topic_name}-${var.environment}"
   app_name              = lower(var.project)
   app_environment       = var.environment
 
@@ -1179,13 +1292,13 @@ module "webapp_alb" {
   name                              = "webapp"
   project                           = lower(var.project)
   description                       = "DataLabs Web APP Load Balancer"
-  # vpc_id                            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+  # vpc_id                            = aws_vpc.datalake.id
   vpc_id                            = aws_vpc.datalake.id
   # security_groups                   = [module.oneview_sg.security_group_id]
   security_groups                   = [module.webapp_sg.security_group_id]
   internal                          = true
   load_balancer_type                = "application"
-  # subnet_ids                        = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+  # subnet_ids                        = local.subnets
   subnet_ids                        = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
   enable_deletion_protection        = "false"
   target_type                       = "ip"

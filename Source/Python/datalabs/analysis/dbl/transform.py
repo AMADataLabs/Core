@@ -199,7 +199,7 @@ class DBLReportTransformer(TransformerTask):
 
         output.seek(0)
 
-        return output
+        return output.read()
 
     @classmethod
     def _format_workbook(cls, workbook: xlsxwriter.workbook):
