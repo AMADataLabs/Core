@@ -56,7 +56,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         task_id="extract_advantage",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[ADVANTAGE_SECRET, MINIO_SECRET],
+        secrets=[ADVANTAGE_SECRET, MINIO_SECRET, S3_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
