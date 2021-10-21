@@ -113,9 +113,7 @@ class ResidencyTransformerTask(TransformerTask):
         program_personnel['last_upd_dt'] = program_personnel['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970')
         )
-        institution_info = institution_info.append(pandas.DataFrame.from_dict({'ins_id': ['00'], 'ins_name': [''],
-                                                                               'ins_affiliation_type': [''],
-                                                                               'last_upd_dt': ['01/01/1970']}))
+
         institution_info['last_upd_dt'] = institution_info['last_upd_dt'].fillna(
             value=pandas.to_datetime('01/01/1970')
         )

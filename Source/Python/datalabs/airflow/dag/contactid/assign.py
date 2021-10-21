@@ -124,6 +124,15 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.load.S3FileLoaderTask')},
     )
 
+    LOL_EXTRACT_S3_DIR_LIST = KubernetesPodOperator(
+        name="lol_extract_s3_dir_list",
+        task_id="lol_extract_s3_dir_list",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[S3_SECRET, VALID_EFT_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPDirectoryListingExtractorTask')},
+    )
+
 
 #EXTRACT_VALID
 #EXTRACT_ADVANTAGE
@@ -136,3 +145,4 @@ EXTRACT_SEED_FILES >> ASSIGN_EXISTING_CONTACT_IDS
 ASSIGN_EXISTING_CONTACT_IDS >> MERGE_AND_GENERATE_NEW_IDS
 MERGE_AND_GENERATE_NEW_IDS >> DELIVER_OUTPUT_FILES
 MERGE_AND_GENERATE_NEW_IDS >> UPDATE_SEED_FILES
+LOL_EXTRACT_S3_DIR_LIST
