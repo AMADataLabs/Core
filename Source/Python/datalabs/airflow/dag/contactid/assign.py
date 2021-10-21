@@ -130,7 +130,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[S3_SECRET, VALID_EFT_SECRET],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.load.SFTPDirectoryListingExtractorTask')},
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPDirectoryListingExtractorTask')},
     )
 
 
