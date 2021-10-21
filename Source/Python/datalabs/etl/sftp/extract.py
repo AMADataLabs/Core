@@ -29,6 +29,7 @@ class SFTPFileExtractorParameters:
     include_names: str = None
     data: object = None
 
+#NOTE: Hadi, Add file name parameter for listing file
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
@@ -38,7 +39,6 @@ class SFTPDirectoryListingExtractorParameters:
     username: str
     password: str
     execution_time: str = None
-    data: object = None
 
 
 # pylint: disable=too-many-ancestors
@@ -118,8 +118,7 @@ class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
 
         decoded_data = self._decode_dataset(data, directory_listing_file)
         decoded_data = [pickle.dumps(list(zip(directory_listing_file, decoded_data)))]
-        print(f"HADI: directory_listing_file: {directory_listing_file}")
-        print(f"HADI: data: {data}")
+
         return decoded_data
 
     def _get_directory_listing_file(self):
@@ -140,4 +139,5 @@ class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
 
     def _list_directory_to_file(self, file):
         base_path = self._parameters.base_path
+        st()
         file.write(",".join(self._client.list(base_path)).encode())
