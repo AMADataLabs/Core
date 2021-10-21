@@ -6,23 +6,23 @@ image:
 
 pipelines:
     branches:
-        master:
-        - step:
-            name: Build
-            script:
-            - bash Script/bitbucket-pipelines-build.sh
-        - step:
-            name: Auto-Merge to dev
-            script:
-            - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-            - git fetch
-            - git checkout dev
-            - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
-            - git push origin dev
-        dev:
-        - step:
-            script:
-            - bash Script/bitbucket-pipelines-build.sh
+        # master:
+        # - step:
+        #     name: Build
+        #     script:
+        #     - bash Script/bitbucket-pipelines-build.sh
+        # - step:
+        #     name: Auto-Merge to dev
+        #     script:
+        #     - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+        #     - git fetch
+        #     - git checkout dev
+        #     - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
+        #     - git push origin dev
+        # dev:
+        # - step:
+        #     script:
+        #     - bash Script/bitbucket-pipelines-build.sh
         test:
         - step:
             script:
@@ -36,6 +36,10 @@ pipelines:
             script:
             - bash Script/bitbucket-pipelines-build.sh
     custom:
+        ##############################################################
+        # global targets
+        ##############################################################
+
         Test:
         - parallel:
             - step:
@@ -57,24 +61,30 @@ pipelines:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
                 - python --version
-                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+
+
+        ##############################################################
+        # master branch targets
+        ##############################################################
+
         CPT-master:
         - parallel:
-            - step:
-                name: Create Database
-                caches:
-                  - cpt-master-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment CPT
-                - export ENABLE_FEATURE_DEV=True
-                - export DATABASE_NAME=cpt
-                - export DATABASE_NAME_ADMIN=postgres
-                - export DATABASE_BACKEND=postgresql+psycopg2
-                - export DATABASE_HOST=$CPT_DATABASE_HOST_SANDBOX
-                - export DATABASE_PORT=5432
-                - export DATABASE_USERNAME=$CPT_DATABASE_USERNAME_SANDBOX
-                - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
-                - bash Deploy/CPT/create-database
+            # - step:
+            #     name: Create Database
+            #     caches:
+            #       - cpt-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment CPT
+            #     - export ENABLE_FEATURE_DEV=True
+            #     - export DATABASE_NAME=cpt
+            #     - export DATABASE_NAME_ADMIN=postgres
+            #     - export DATABASE_BACKEND=postgresql+psycopg2
+            #     - export DATABASE_HOST=$CPT_DATABASE_HOST_SANDBOX
+            #     - export DATABASE_PORT=5432
+            #     - export DATABASE_USERNAME=$CPT_DATABASE_USERNAME_SANDBOX
+            #     - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
+            #     - bash Deploy/CPT/create-database
             - step:
                 name: Update Bundle
                 caches:
@@ -85,21 +95,19 @@ pipelines:
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/CPT/create-bundle
-                - export AWS_S3_BUCKET='ama-hsg-datalabs-lambda-code-sandbox'
-                - bash Deploy/CPT/upload-bundle
+                - bash Deploy/CPT/create-bundle CPT
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/CPT/upload-bundle
+                - bash Deploy/Master/upload-bundle CPT
         - parallel:
-            - step:
-                name: Migrate Database
-                caches:
-                  - cpt-master-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - bash Script/migrate-database --host $CPT_DATABASE_HOST_SANDBOX --name cpt --username $CPT_DATABASE_USERNAME_SANDBOX --password $CPT_DATABASE_PASSWORD_SANDBOX upgrade CPT
+            # - step:
+            #     name: Migrate Database
+            #     caches:
+            #       - cpt-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #     - bash Script/migrate-database --host $CPT_DATABASE_HOST_SANDBOX --name cpt --username $CPT_DATABASE_USERNAME_SANDBOX --password $CPT_DATABASE_PASSWORD_SANDBOX upgrade CPT
             - step:
                 name: Update Lambda Functions
                 script:
@@ -109,6 +117,36 @@ pipelines:
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - export ENVIRONMENT=sbx
                 - bash Deploy/CPT/update-functions
+
+        Scheduler-master:
+        - step:
+            name: Update Bundle
+            caches:
+            - scheduler-master-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - bash Deploy/Master/create-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+            - bash Deploy/Master/upload-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - export ENVIRONMENT=sbx
+            - bash Deploy/Scheduler/update-functions
+
         OneView-master:
         - parallel:
             - step:
@@ -133,13 +171,24 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+                # Install the DB2 JDBC driver
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - unzip ./Db2JdbcDriver.zip
+
+                # Install the Informix JDBC driver
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - unzip ./InformixJdbcDriver.zip
+                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-bundle OneView/ETL
+                - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
@@ -151,6 +200,8 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
@@ -163,15 +214,15 @@ pipelines:
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
                 - bash Deploy/Master/upload-bundle OneView/API
         - parallel:
-            - step:
-                name: Migrate Database
-                caches:
-                  - oneview-master-create-database-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - bash Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
+            # - step:
+            #     name: Migrate Database
+            #     caches:
+            #       - oneview-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #     - Script/run.py Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
             - step:
                 name: Update Lambda Functions
                 script:
@@ -181,50 +232,88 @@ pipelines:
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - export ENVIRONMENT=sbx
                 - bash Deploy/OneView/update-functions
-        Scheduler-master:
-        - step:
-            name: Update Bundle
-            caches:
-                - scheduler-master-update-bundle-dependencies
-            script:
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/create-bundle Scheduler
-            - bash Deploy/Master/upload-bundle Scheduler
-        - step:
-            name: Update Lambda Functions
-            script:
-            - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - export ENVIRONMENT=sbx
-            - bash Deploy/Scheduler/update-functions
+
+
+        ##############################################################
+        # dev branch targets
+        ##############################################################
+
         CPT-dev:
         - step:
             name: Update Bundle
+            caches:
+                - cpt-dev-update-bundle-dependencies
             script:
+            # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Create the code bundle
             - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/CPT/create-bundle
-            - bash Deploy/CPT/upload-bundle
+            - bash Deploy/Master/create-bundle CPT
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
         - step:
             name: Update Lambda Functions
             script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Update Lambda functions
             - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - export ENVIRONMENT=sbx
-            - bash Deploy/CPT/update-functions
+            - export ENVIRONMENT=dev
+            - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
+
+        Scheduler-dev:
+        - step:
+            name: Update Bundle
+            caches:
+                - scheduler-dev-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - bash Deploy/Master/create-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_DEV=True
+            - export ENVIRONMENT=dev
+            - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
+
         OneView-dev:
         - parallel:
             # - step:
@@ -249,6 +338,17 @@ pipelines:
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+                # Install the DB2 JDBC driver
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - unzip ./Db2JdbcDriver.zip
+                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+
+                # Install the Informix JDBC driver
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - unzip ./InformixJdbcDriver.zip
 
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
@@ -259,34 +359,35 @@ pipelines:
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
-                - bash Deploy/Master/create-bundle OneView/ETL
+                - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash
                 - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
-            - step:
-                name: Update API Bundle
-                caches:
-                    - oneview-dev-update-bundle-dependencies
-                script:
-                # Setup virtual environment
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-                # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-                - aws configure set profile.apigw.region us-east-1
-                - aws configure set profile.apigw.output json
-                - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
-
-                # Create the code bundle
-                - export ENABLE_FEATURE_DEV=True
-                - bash Deploy/Master/create-bundle OneView/API
-
-                # Upload the code bundle
-                - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
+            # - step:
+            #     name: Update API Bundle
+            #     caches:
+            #         - oneview-dev-update-bundle-dependencies
+            #     script:
+            #     # Setup virtual environment
+            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #
+            #     # Assume maintenance role
+            #     - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            #     - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            #     - aws configure set profile.apigw.region us-east-1
+            #     - aws configure set profile.apigw.output json
+            #     - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+            #
+            #     # Create the code bundle
+            #     - export ENABLE_FEATURE_DEV=True
+            #     - bash Deploy/Master/create-bundle OneView/API
+            #
+            #     # Upload the code bundle
+            #     - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            #     - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -311,31 +412,371 @@ pipelines:
                 - export ENABLE_FEATURE_DEV=True
                 - export ENVIRONMENT=dev
                 - bash --rcfile assume_role.rc -i Deploy/OneView/update-functions
+
+
+        ##############################################################
+        # test branch targets
+        ##############################################################
+
         CPT-test:
         - step:
             name: Update Bundle
+            caches:
+                - cpt-test-update-bundle-dependencies
             script:
-            - export ENABLE_FEATURE_DEV=True
-            - echo "Hello there!"
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_TEST=True
+            - bash Deploy/Master/create-bundle CPT
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_TEST=True
+            - export ENVIRONMENT=tst
+            - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
+
+        Scheduler-test:
+        - step:
+            name: Update Bundle
+            caches:
+                - scheduler-test-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_TEST=True
+            - bash Deploy/Master/create-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_TEST=True
+            - export ENVIRONMENT=tst
+            - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
+
+        OneView-test:
+        - step:
+            name: Update ETL Bundle
+            caches:
+                - oneview-test-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+            # Install the DB2 JDBC driver
+            - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+            - unzip ./Db2JdbcDriver.zip
+            - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+
+            # Install the Informix JDBC driver
+            - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+            - unzip ./InformixJdbcDriver.zip
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_TEST=True
+            - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_TEST=True
+            - export ENVIRONMENT=tst
+            - bash --rcfile assume_role.rc -i Deploy/OneView/update-functions
+
+
+        ##############################################################
+        # stage branch targets
+        ##############################################################
+
         CPT-stage:
         - step:
-            name: Update Update Bundle
+            name: Update Bundle
+            caches:
+                - cpt-stage-update-bundle-dependencies
             script:
-            - echo "Hello there!"
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_STAGE=True
+            - bash Deploy/Master/create-bundle CPT
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-itg-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_STAGE=True
+            - export ENVIRONMENT=itg
+            - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
+
+        Scheduler-stage:
+        - step:
+            name: Update Bundle
+            caches:
+                - scheduler-stage-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_STAGE=True
+            - bash Deploy/Master/create-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-itg-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_STAGE=True
+            - export ENVIRONMENT=itg
+            - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
+
+
+        ##############################################################
+        # prod branch targets
+        ##############################################################
+
         CPT-prod:
         - step:
             name: Update Bundle
+            caches:
+                - cpt-prod-update-bundle-dependencies
             script:
-            - echo "Hello there!"
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_PROD=True
+            - bash Deploy/Master/create-bundle CPT
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_PROD=True
+            - export ENVIRONMENT=prd
+            - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
+
+        Scheduler-prod:
+        - step:
+            name: Update Bundle
+            caches:
+                - scheduler-prod-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_PROD=True
+            - bash Deploy/Master/create-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_PROD=True
+            - export ENVIRONMENT=prd
+            - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
+
+        OneView-prod:
+        - step:
+            name: Update ETL Bundle
+            caches:
+                - oneview-prod-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+            # Install the DB2 JDBC driver
+            - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+            - unzip ./Db2JdbcDriver.zip
+            - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+
+            # Install the Informix JDBC driver
+            - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+            - unzip ./InformixJdbcDriver.zip
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_PROD=True
+            - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-itg-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_PROD=True
+            - export ENVIRONMENT=prd
+            - bash --rcfile assume_role.rc -i Deploy/OneView/update-functions
+
 definitions:
   caches:
     unit-test-dependencies: Environment
     lint-test-dependencies: Environment
     cpt-master-create-database-dependencies: Environment
     cpt-master-update-bundle-dependencies: Environment
+    scheduler-master-update-bundle-dependencies: Environment
     oneview-master-create-database-dependencies: Environment
     oneview-master-update-bundle-dependencies: Environment
-    scheduler-master-update-bundle-dependencies: Environment
 
+    cpt-dev-update-bundle-dependencies: Environment
+    scheduler-dev-update-bundle-dependencies: Environment
     oneview-dev-create-database-dependencies: Environment
     oneview-dev-update-bundle-dependencies: Environment
+
+    cpt-test-update-bundle-dependencies: Environment
+    scheduler-test-update-bundle-dependencies: Environment
+    oneview-test-create-database-dependencies: Environment
+    oneview-test-update-bundle-dependencies: Environment
+
+    cpt-stage-update-bundle-dependencies: Environment
+    scheduler-stage-update-bundle-dependencies: Environment
+
+    cpt-prod-update-bundle-dependencies: Environment
+    scheduler-prod-update-bundle-dependencies: Environment
+    oneview-prod-update-bundle-dependencies: Environment

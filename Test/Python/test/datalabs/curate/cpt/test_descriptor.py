@@ -109,7 +109,7 @@ def test_clinician_descriptor_parser(clinician_descriptor_text):
 
 @pytest.fixture
 def long_descriptor_text():
-    return """To purchase additional CPT products, contact the American Medical
+    return """To purchase additional CPT® products, contact the American Medical
 Association customer service at 800-621-8335.
 
 To request a license for distribution of products with CPT content, please
@@ -119,12 +119,12 @@ Chicago, IL 60611-5885, 312 464-5022.
 
 00100\tAnesthesia for procedures on salivary glands, including biopsy
 00102\tAnesthesia for procedures involving plastic repair of cleft lip
-""".encode('utf-8').replace(b'\n', b'\r\n').decode('utf-8')
+""".encode().replace(b'\n', b'\r\n')
 
 
 @pytest.fixture
 def medium_descriptor_text():
-    return """To purchase additional CPT products, contact the American Medical
+    return """To purchase additional CPT® products, contact the American Medical
 Association customer service at 800-621-8335.
 
 To request a license for distribution of products with CPT content, please
@@ -134,11 +134,11 @@ Chicago, IL 60611-5885, 312 464-5022.
 
 00100 ANESTHESIA SALIVARY GLANDS WITH BIOPSY
 00102 ANESTHESIA CLEFT LIP INVOLVING PLASTIC REPAIR
-""".encode('utf-8').replace(b'\n', b'\r\n').decode('utf-8')
+""".encode().replace(b'\n', b'\r\n')
 
 @pytest.fixture
 def short_descriptor_text():
-    return """To purchase additional CPT products, contact the American Medical
+    return """To purchase additional CPT® products, contact the American Medical
 Association customer service at 800-621-8335.
 
 To request a license for distribution of products with CPT content, please
@@ -148,14 +148,14 @@ Chicago, IL 60611-5885, 312 464-5022.
 
 00100 ANESTH SALIVARY GLAND
 00102 ANESTH REPAIR OF CLEFT LIP
-""".encode('utf-8').replace(b'\n', b'\r\n').decode('utf-8')
+""".encode().replace(b'\n', b'\r\n')
 
 @pytest.fixture
 def consumer_descriptor_text():
     return """Concept Id\tCPT Code\tConsumer Friendly Descriptor
 1002798\t00100\tAnesthesia for procedure on salivary gland with biopsy
 1002799\t00102\tAnesthesia for procedure to repair lip defect present at birth
-""".encode('utf-8').replace(b'\n', b'\r\n').decode('utf-8')
+""".encode().replace(b'\n', b'\r\n')
 
 
 @pytest.fixture
@@ -163,4 +163,4 @@ def clinician_descriptor_text():
     return """Concept Id\tCPT Code\tClinician Descriptor Id\tClinician Descriptor
 1002798\t00100\t10000002\tAnesthesia for procedure on salivary gland with biopsy
 1002798\t00100\t10031990\tAnesthesia for procedure on salivary gland
-""".encode('utf-8').replace(b'\n', b'\r\n').decode('utf-8')
+""".encode().replace(b'\n', b'\r\n')

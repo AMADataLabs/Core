@@ -69,6 +69,7 @@ def test_resource_not_found_is_404():
 @pytest.fixture
 def parameters():
     return api.APIEndpointParameters(
+        path=None,
         query=None,
         database=dict(name=None, backend=None, host=None, username=None, password=None),
         bucket=None

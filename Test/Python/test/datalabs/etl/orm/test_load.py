@@ -26,22 +26,35 @@ def test_orm_loader(loader_parameters):
 
 
 # pylint: disable=redefined-outer-name, protected-access
+def test_row_unquoting():
+    csv_string = '"apple pants","1","yummy, yummy","","yip,yip!","chortle"'
+    expected_string = '"apple pants",1,"yummy, yummy","","yip,yip!",chortle'
+
+    quoted_string = ORMLoaderTask._standardize_row_text(csv_string)
+
+    assert quoted_string == expected_string
+
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data, hash_query_results):
     columns = ['dumb', 'id', 'dumber']
     loader = ORMLoaderTask(loader_parameters)
     primary_key = 'id'
-    row_hashes = loader._generate_row_hashes(columns, hash_data, primary_key)
+    row_hashes = loader._generate_row_hashes(hash_data, primary_key, columns)
 
     for generated_hash, db_hash in zip(row_hashes['md5'], hash_query_results['md5']):
         assert generated_hash == db_hash
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_select_new_data(table_parameters, expected_data):
+def test_select_new_data(loader_parameters, table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
-    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
-                                             table_parameters.primary_key)
+    row_hashes = loader._generate_row_hashes(
+        table_parameters.data,
+        table_parameters.primary_key,
+        table_parameters.columns
+    )
     table_parameters.incoming_hashes = row_hashes
 
     new_data = loader._select_new_data(table_parameters)
@@ -50,11 +63,14 @@ def test_select_new_data(table_parameters, expected_data):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_select_deleted_data(table_parameters, expected_data):
+def test_select_deleted_data(loader_parameters, table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
-    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
-                                             table_parameters.primary_key)
+    row_hashes = loader._generate_row_hashes(
+        table_parameters.data,
+        table_parameters.primary_key,
+        table_parameters.columns
+    )
     table_parameters.incoming_hashes = row_hashes
 
     deleted_data = loader._select_deleted_data(table_parameters)
@@ -62,16 +78,39 @@ def test_select_deleted_data(table_parameters, expected_data):
     assert expected_data['deleted'].equals(deleted_data)
 
 
-def test_select_updated_data(table_parameters, expected_data):
+def test_select_updated_data(loader_parameters, table_parameters, expected_data):
     loader = ORMLoaderTask(loader_parameters)
 
-    row_hashes = loader._generate_row_hashes(table_parameters.columns, table_parameters.data,
-                                             table_parameters.primary_key)
+    row_hashes = loader._generate_row_hashes(
+        table_parameters.data,
+        table_parameters.primary_key,
+        table_parameters.columns
+    )
     table_parameters.incoming_hashes = row_hashes
 
     updated_data = loader._select_updated_data(table_parameters)
 
     assert expected_data['updated'].equals(updated_data)
+
+
+# pylint: disable=protected-access
+def test_get_schema_from_dict_table_args():
+    class MockObject:
+        __table_args__ = {"schema": "ormloader"}
+
+    schema = ORMLoaderTask._get_schema(MockObject)
+
+    assert schema == "ormloader"
+
+
+# pylint: disable=protected-access
+def test_get_schema_from_tuple_table_args():
+    class MockObject:
+        __table_args__ = (42, {"stuff": "jfdi9049d0sjafe"}, {"schema": "ormloader"})
+
+    schema = ORMLoaderTask._get_schema(MockObject)
+
+    assert schema == "ormloader"
 
 
 # pylint: disable=blacklisted-name
@@ -128,18 +167,14 @@ def database(database_parameters):
 @pytest.fixture
 def loader_parameters(database, file, data):
     return dict(
-        TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
+        # TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
         MODEL_CLASSES='test.datalabs.access.model.Foo,'
                       'test.datalabs.access.model.Bar,'
                       'test.datalabs.access.model.Poof',
-        TABLES='foo,'
-               'bar,'
-               'poof',
-        thing=True,
-        DATABASE_BACKEND='sqlite',
-        DATABASE_NAME=file,
         DATABASE_HOST='',
         DATABASE_PORT='',
+        DATABASE_BACKEND='sqlite',
+        DATABASE_NAME=file,
         DATABASE_USERNAME='',
         DATABASE_PASSWORD='',
         data=data
@@ -149,7 +184,11 @@ def loader_parameters(database, file, data):
 # pylint: disable=blacklisted-name
 @pytest.fixture
 def hash_data():
-    data = {'dumb': ['apple', 'oranges', 'bananas'], 'id': [1, 2, 3], 'dumber': ['good', 'yummy', 'bad']}
+    data = {
+        'dumb': ['apple pants', 'oranges', 'nectarines', 'bananas'],
+        'id': [1, 2, 3, 4],
+        'dumber': ['good', 'yummy, yummy', '', 'bad']
+    }
 
     return pandas.DataFrame.from_dict(data)
 
@@ -158,11 +197,12 @@ def hash_data():
 def hash_query_results():
     return pandas.DataFrame.from_dict(
         {
-            'id': [1, 2, 3],
+            'id': [1, 2, 3, 4],
             'md5': [
-                'a0c4bd642e6d37a35dcca8a9e0d5ab43',
-                '0225525e6052c8be174995150a302e60',
-                '1409af11b29204e49ca9b8fe834b8270'
+                '25a93a044406f7d9d3d7a5c98bb9dd1a',
+                '5bdf77504ce234e0968bef50b65d5737',
+                '2611193cbb903e5ae23a7be15ca749d8',
+                '6a2b0a91ec079894f7a6b3e933f216fe'
             ]
         }
     )
@@ -171,9 +211,11 @@ def hash_query_results():
 # pylint: disable=blacklisted-name
 @pytest.fixture
 def incoming_data():
-    data = {'dumb': ['apples', 'oranges', 'grapes'],
-            'id': [1, 2, 4],
-            'dumber': ['good', 'yummy', 'yum']}
+    data = {
+        'dumb': ['apples', 'oranges', 'nectarines', 'grapes'],
+        'id': [1, 2, 3, 5],
+        'dumber': ['good', 'yummy, yummy', '', 'yum']
+    }
 
     return pandas.DataFrame.from_dict(data)
 
@@ -182,15 +224,15 @@ def incoming_data():
 @pytest.fixture
 def expected_data():
     new_data = pandas.DataFrame.from_dict({'dumb': ['grapes'],
-                                           'id': [4],
+                                           'id': [5],
                                            'dumber': ['yum']})
 
     updated_data = pandas.DataFrame.from_dict({'dumb': ['apples'],
                                                'id': [1],
                                                'dumber': ['good']})
 
-    deleted_data = pandas.DataFrame.from_dict({'id': [3],
-                                               'md5': ['1409af11b29204e49ca9b8fe834b8270']})
+    deleted_data = pandas.DataFrame.from_dict({'id': [4],
+                                               'md5': ['6a2b0a91ec079894f7a6b3e933f216fe']})
 
     return {'new': new_data,
             'updated': updated_data,
@@ -201,14 +243,11 @@ def expected_data():
 def table_parameters(incoming_data, hash_query_results):
     data = incoming_data
     model_class = 'test.datalabs.access.model.Foo'
-    table = 'foo'
     primary_key = 'id'
     columns = ['dumb', 'id', 'dumber']
-    schema = 'oneview'
     current_hashes = hash_query_results
     incoming_hashes = None
 
-    table_parameters = TableParameters(data, table, model_class, primary_key, columns, schema, current_hashes,
-                                       incoming_hashes)
+    table_parameters = TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes)
 
     return table_parameters

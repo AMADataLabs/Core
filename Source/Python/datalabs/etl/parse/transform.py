@@ -1,38 +1,35 @@
 """ Transformer task for running parsers on text data, converting it to CSVs. """
+from   dataclasses import dataclass
 import logging
-import pickle
 
+from   datalabs.etl.csv import CSVWriterMixin
 from   datalabs.etl.transform import TransformerTask
 from   datalabs.plugin import import_plugin
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class ParseToCSVTransformerTask(TransformerTask):
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class ParseToCSVTransformerParameters:
+    parsers: str
+    data: list
+    execution_time: str = None
+
+
+class ParseToCSVTransformerTask(CSVWriterMixin, TransformerTask):
+    PARAMETER_CLASS = ParseToCSVTransformerParameters
+
     def _transform(self):
-        LOGGER.debug('Data to transform: %s', self._parameters['data'])
-        named_files_data = pickle.loads(self._parameters['data'][0])
-        _, data = zip(*named_files_data)  # unpack the list of (filename, data) tuples
-        parsers = self._instantiate_parsers()
-        transformed_data = []
+        parsers = [self._instantiate_parser(parser) for parser in self._parameters.parsers.split(',')]
 
-        parsed_data = [parser.parse(text) for parser, text in zip(parsers, data)]
+        parsed_data = [parser.parse(text) for parser, text in zip(parsers, self._parameters.data)]
 
-        for datum in parsed_data:
-            if hasattr(datum, 'to_csv'):
-                transformed_data.append(datum.to_csv(index=False).encode())
-            else:
-                transformed_data.append(str(datum).encode())
-
-        return transformed_data
-
-    def _instantiate_parsers(self):
-        parser_classes = self._parameters['PARSERS'].split(',')
-
-        for parser_class in parser_classes:
-            yield self._instantiate_parser(parser_class)
+        return [self._dataframe_to_csv(data) for data in parsed_data]
 
     @classmethod
     def _instantiate_parser(cls, class_name):

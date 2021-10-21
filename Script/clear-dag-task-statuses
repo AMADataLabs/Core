@@ -1,0 +1,26 @@
+#!/bin/bash
+
+main() {
+    dag=$1
+    execution_time=$2  # 2021-09-29 22:45:00
+    echo $execution_time
+    environment=${3:-dev}
+
+    names=$(aws dynamodb scan \
+        --table-name DataLake-dag-state-${environment} \
+        --filter-expression "begins_with(#DAG, :dag) and execution_time = :execution_time" \
+        --expression-attribute-names '{"#DAG": "name"}' \
+        --expression-attribute-values '{":dag": {"S": "'${dag}'"}, ":execution_time": {"S": "'"${execution_time}"'"}}' \
+        | grep -A 1 '"name": {' | grep '"S":' | sed 's/  *"S": //' | sed -e 's/"\(CPTAPI.*\)"/\1/' -e 's/"\(..*\)"/\1/')
+
+    for name in ${names}; do
+        echo "Deleting status table item ${name} for DAG run ${execution_time}"
+        # aws dynamodb execute-statement \
+        #     --statement 'DELETE FROM "DataLake-dag-state-sbx" WHERE name='"'${name}'"' AND execution_time='"'${execution_time}'"'' \
+        #     > /dev/null
+        aws dynamodb delete-item --table-name DataLake-dag-state-${environment} \
+            --key '{"name": {"S": "'${name}'"}, "execution_time": {"S": "'"${execution_time}"'"}}'
+    done
+}
+
+main "$1" "$2" "$3"

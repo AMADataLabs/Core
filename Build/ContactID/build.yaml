@@ -15,14 +15,15 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: contact-id:1.0.34
+      name: contact-id:1.0.35
   postCommit: {}
   resources: {}
   runPolicy: Serial
   source:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-      ref: dev
+      # NOTE: CHANGE IT BACK TO DEV
+      ref: DL-2144-LOLExtractor
     sourceSecret:
       name: bitbucket
     type: Git

@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 import io
 import logging
 import os
+import pickle
 
 import datalabs.access.sftp as sftp
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
@@ -26,6 +27,15 @@ class SFTPFileExtractorParameters:
     execution_time: str = None
     include_names: str = None
     data: object = None
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class SFTPDirectoryListingExtractorParameters:
+    base_path: str
+    host: str
+    username: str
+    password: str
 
 
 # pylint: disable=too-many-ancestors
@@ -56,7 +66,6 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
             base_path = os.path.dirname(file_parts[0])
             unresolved_file = f'{os.path.basename(file_parts[0])}*{file_parts[1]}'
             matched_files = self._client.list(base_path, filter=unresolved_file)
-
             resolved_files = [os.path.join(base_path, file) for file in matched_files]
 
             if len(resolved_files) == 0:
@@ -86,3 +95,45 @@ class SFTPIBM437TextFileExtractorTask(SFTPFileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('ibm437', errors='backslashreplace').encode()
+
+
+class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
+    # PARAMETER_CLASS = SFTPDirectoryListingExtractorParameters
+    PARAMETER_CLASS = SFTPDirectoryListingExtractorParameters
+
+    def _extract(self):
+        # pylint: disable=not-context-manager
+        with self._get_client() as client:
+            self._client = client
+            # st()
+            # files = self._get_files()
+            directory_listing_file = self._get_directory_listing_file()
+
+            data = [self._extract_directory_listing_file()]
+
+        self._client = None
+
+        decoded_data = self._decode_dataset(data, directory_listing_file)
+        decoded_data = [pickle.dumps(list(zip(directory_listing_file, decoded_data)))]
+        # st()
+        return decoded_data
+
+    def _get_directory_listing_file(self):
+        base_path = self._parameters.base_path
+
+        return [os.path.join(base_path, "directory_listing.txt")]
+
+    def _extract_directory_listing_file(self):
+        base_path = self._parameters.base_path
+        buffer = io.BytesIO()
+
+        try:
+            self._list_directory_to_file(buffer)
+        except Exception as exception:
+            raise ETLException(f"Unable list the files in directory: '{base_path}'") from exception
+
+        return bytes(buffer.getbuffer())
+
+    def _list_directory_to_file(self, file):
+        base_path = self._parameters.base_path
+        file.write(",".join(self._client.list(base_path)).encode())

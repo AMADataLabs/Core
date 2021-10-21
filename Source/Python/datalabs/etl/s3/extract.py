@@ -30,10 +30,9 @@
     a new temporary role (previously would've been set as the 'apigw' profile). Then the Extract process
     will carry on with the temporary role just assumed.
 """
+from   dataclasses import dataclass
 import logging
 import tempfile
-
-from   dataclasses import dataclass
 
 from   dateutil.parser import isoparse
 
@@ -48,7 +47,7 @@ if feature.enabled("PROFILE"):
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -66,8 +65,8 @@ class S3FileExtractorParameters:
     include_datestamp: str = None
     execution_time: str = None
     on_disk: str = False
-    data: object = None
     assume_role: str = None
+    data: object = None
 
 
 # pylint: disable=too-many-ancestors
@@ -107,6 +106,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=logging-fstring-interpolation
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
+        LOGGER.debug(f'Extracting file {file} from bucket {self._parameters.bucket}...')
         data = None
 
         if feature.enabled("PROFILE"):
@@ -189,6 +189,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             objects.remove('')
 
         return objects
+
 
 # pylint: disable=too-many-ancestors
 class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
