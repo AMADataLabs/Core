@@ -14,7 +14,7 @@ main() {
         | grep -A 1 '"name": {' | grep '"S":' | sed 's/  *"S": //' | sed -e 's/"\(CPTAPI.*\)"/\1/' -e 's/"\(..*\)"/\1/')
 
     for name in ${names}; do
-        echo "Deleting ${name} for DAG run ${execution_time}"
+        echo "Deleting status table item ${name} for DAG run ${execution_time}"
         # aws dynamodb execute-statement \
         #     --statement 'DELETE FROM "DataLake-dag-state-sbx" WHERE name='"'${name}'"' AND execution_time='"'${execution_time}'"'' \
         #     > /dev/null
