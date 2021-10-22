@@ -56,7 +56,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         task_id="extract_advantage",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[ADVANTAGE_SECRET, MINIO_SECRET, S3_SECRET],
+        secrets=[ADVANTAGE_SECRET, S3_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
@@ -65,7 +65,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         task_id="extract_orgmanager",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[ORGMANAGER_SECRET, MINIO_SECRET, S3_SECRET],
+        secrets=[ORGMANAGER_SECRET, S3_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.jdbc.extract.JDBCExtractorTask')},
     )
 
@@ -74,7 +74,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
          task_id="extract_valid",
          cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
          env_from=[ETL_CONFIG],
-         secrets=[VALID_EFT_SECRET, MINIO_SECRET],
+         secrets=[VALID_EFT_SECRET, S3_SECRET],
          env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
      )
 
@@ -83,7 +83,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         task_id="extract_seed_files",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[MINIO_SECRET],
+        secrets=[S3_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.extract.S3FileExtractorTask')},
     )
 
@@ -92,7 +92,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         task_id="assign_existing_contact_ids",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[MINIO_SECRET],
+        secrets=[S3_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.idassign.transform.ContactIDAssignTransformerTask')},
     )
     #
@@ -101,7 +101,7 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         task_id="merge_and_generate_new_ids",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[MINIO_SECRET],
+        secrets=[S3_SECRET],
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.contactid.transform.ContactIDMergeTransformerTask')},
     )
     #
