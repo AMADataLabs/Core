@@ -33,6 +33,8 @@ class ContactIDMergeTransformerTask(etl.TransformerTask):
     def _to_dataframe(self):
         seperators = [',', ',', ',', ',']
         encodings_list = ['utf-8','utf-8','utf-8','utf-8' ]
+        #NOTE: HADI, remove the next line
+        LOGGER.debug(self._parameters.keys())
 
         return [
             pandas.read_csv(BytesIO(data), sep=seperator, encoding = encodings, dtype = 'str', low_memory=False)

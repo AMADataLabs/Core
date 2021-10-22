@@ -3,7 +3,8 @@
 # Run Example:
 #    docker run -e DOTENV_PATH=ppd.env -ti one-view python task.py
 
-FROM python:3.7
+# NOTE: HADI: chnge the image tage back to python:3.7
+FROM python:3.7-alpine
 ENV PYTHONPATH=/ContactID:/ContactID/site-packages
 ENV CLASSPATH=/ContactID
 #ENV AWS_SHARED_CREDENTIALS_FILE=/ContactID/.aws/credentials
