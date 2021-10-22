@@ -13,6 +13,6 @@ FUNCTIONS="${PROJECT}-API-${ENVIRONMENT}-Authorizer
            ${PROJECT}-API-${ENVIRONMENT}-BulkEndpoint"
 
 for FUNCTION in ${FUNCTIONS}; do
-  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key ${PROJECT}.zip || exit $?
+  aws lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key ${PROJECT}/ETL.zip || exit $?
   # aws --no-verify-ssl lambda update-function-code --function-name $FUNCTION --s3-bucket ${CODE_BUCKET} --s3-key ${BUNDLE}.zip || exit $?
 done

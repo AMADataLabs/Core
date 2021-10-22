@@ -97,7 +97,7 @@ pipelines:
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - bash Deploy/CPT/create-bundle CPT
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-bundle CPT
+                - bash Deploy/CPT/upload-bundle
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -260,7 +260,7 @@ pipelines:
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
             script:
@@ -440,7 +440,7 @@ pipelines:
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
             script:
@@ -570,7 +570,7 @@ pipelines:
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-itg-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
             script:
@@ -651,7 +651,7 @@ pipelines:
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
             script:
