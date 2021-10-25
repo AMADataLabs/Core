@@ -22,8 +22,8 @@ spec:
   source:
     git:
       uri: git@bitbucket.org:amaappdev/hs-datalabs.git
-      # NOTE: CHANGE IT BACK TO DEV
-      ref: DL-2144-LOLExtractor
+      # TODO: HADI, CHANGE IT BACK TO DEV
+      ref: DL-2156-ContactIDExtractLoadS3
     sourceSecret:
       name: bitbucket
     type: Git
