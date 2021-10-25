@@ -37,7 +37,8 @@ CONTACT_ID_ASSIGNMENT_DAG = DAG(
             limit_memory="8G",
             limit_cpu="1"
         ),
-        is_delete_operator_pod=True,
+        #NOTE: HADI, change is_delete_operator_pod to True
+        is_delete_operator_pod=False,
         namespace=f'hsg-data-labs-{DEPLOYMENT_ID}',
         image=IMAGE,
         do_xcom_push=False,
