@@ -47,5 +47,7 @@ RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
 
-# NOTE: HADI, remove the next 1 line
+# NOTE: HADI, remove all the lines from here
 RUN apt-get install -y vim
+RUN apt-get install -y bash-completion
+RUN apt-get install -y ranger
