@@ -48,6 +48,11 @@ RUN rm -rf ./Build
 RUN rm -rf ./Source
 
 # NOTE: HADI, remove all the lines from here
+# RUN useradd -r --uid "airflow" --password "password"
+RUN useradd -rm -d /home/ubuntu -s /bin/bash -g root -G sudo -u 1001 ubuntu --password password
+# RUN useradd -ms /bin/bash yourNewUserName
 RUN apt-get install -y vim
 RUN apt-get install -y bash-completion
 RUN apt-get install -y ranger
+USER ubuntu
+# USER ubuntuus
