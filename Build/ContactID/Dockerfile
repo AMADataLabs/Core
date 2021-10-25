@@ -3,7 +3,8 @@
 # Run Example:
 #    docker run -e DOTENV_PATH=ppd.env -ti one-view python task.py
 
-FROM python:3.7
+# NOTE: HADI: chnge the image tage back to python:3.7
+FROM python:3.7-alpine
 ENV PYTHONPATH=/ContactID:/ContactID/site-packages
 ENV CLASSPATH=/ContactID
 #ENV AWS_SHARED_CREDENTIALS_FILE=/ContactID/.aws/credentials
@@ -46,3 +47,6 @@ RUN echo "eft.ama-assn.org,10.195.141.136 ssh-rsa AAAAB3NzaC1yc2EAAAABEQAAAQEAqQ
 RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
+
+# NOTE: HADI, remove the next 1 line
+RUN apt-get install -y vim
