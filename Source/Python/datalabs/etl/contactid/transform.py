@@ -17,7 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class ContactIDMergeTransformerTask(etl.TransformerTask):
-    MAX_ID_ATTEMPTS = 10
+    MAX_ID_ATTEMPTS = 20
 
     def _transform(self):
         sfmc_contacts, active_subscription, users, api_orders = self._to_dataframe()
