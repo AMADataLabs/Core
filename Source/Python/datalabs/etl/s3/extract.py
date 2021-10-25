@@ -71,6 +71,7 @@ class S3FileExtractorParameters:
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
+#NOTE: HADI CHECK IF THIS IS NEEDED
 class S3DirectoryListingExtractorParameters:
     bucket: str
     base_path: str

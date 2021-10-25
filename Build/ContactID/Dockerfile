@@ -3,8 +3,7 @@
 # Run Example:
 #    docker run -e DOTENV_PATH=ppd.env -ti one-view python task.py
 
-# NOTE: HADI: chnge the image tage back to python:3.7
-FROM python:3.7-alpine
+FROM python:3.7
 ENV PYTHONPATH=/ContactID:/ContactID/site-packages
 ENV CLASSPATH=/ContactID
 #ENV AWS_SHARED_CREDENTIALS_FILE=/ContactID/.aws/credentials
@@ -48,5 +47,7 @@ RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
 
-# NOTE: HADI, remove the next 1 line
+# NOTE: HADI, remove all the lines from here
 RUN apt-get install -y vim
+RUN apt-get install -y bash-completion
+RUN apt-get install -y ranger
