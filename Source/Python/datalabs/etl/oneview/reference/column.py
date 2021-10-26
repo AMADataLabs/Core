@@ -54,7 +54,7 @@ COT_FACILITY = {
     'FACILITY_TYPE': 'description',
 }
 STATE = {
-    'AMA_STATE_CD': 'id',
+    'STATE_ID': 'id',
     'SRC_STATE_CD': 'code',
     'DESC': 'description'
 }
