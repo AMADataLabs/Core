@@ -2,6 +2,7 @@
 from bisect import bisect_left, insort_left
 import csv
 from   io import BytesIO
+from   pdb import set_trace
 import logging
 import random
 import string
@@ -17,6 +18,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class ContactIDMergeTransformerTask(etl.TransformerTask):
+    set_trace()
     MAX_ID_ATTEMPTS = 20
 
     def _transform(self):
