@@ -57,7 +57,6 @@ class OneViewDAG(DAG):
 
     EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     EXTRACT_PHYSICIAN_EMAIL_STATUS: JDBCExtractorTask
-    CONCATENATE_PHYSICIAN_EMAIL_STATUS: ConcatenateTransformerTask
     CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: PhysicianEmailStatusTransformer
     CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 6)
     CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
