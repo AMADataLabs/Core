@@ -111,8 +111,8 @@ with CONTACT_ID_ASSIGNMENT_DAG:
         task_id="deliver_output_files",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
-        secrets=[VALID_EFT_SECRET, MINIO_SECRET],
-        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask')},
+        secrets=[S3_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.s3.load.S3FileLoaderTask')},
      )
 
     UPDATE_SEED_FILES = KubernetesPodOperator(
