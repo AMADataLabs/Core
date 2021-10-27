@@ -92,7 +92,7 @@ data:
     CONTACT_ID__EXTRACT_ADVANTAGE__CACHE_OUTPUT_INCLUDE_DATESTAMP: 'false'
 
 
-    CONTACT_ID__EXTRACT_VALID__BASE_PATH: '/Valid/From_Valid/'
+    CONTACT_ID__EXTRACT_VALID__BASE_PATH: '/Data Analytics/Data Engineering/SFMC/'
     CONTACT_ID__EXTRACT_VALID__FILES: '%Y%m%d_*/SFMC_FlatFile_%Y%m%d.txt'
     CONTACT_ID__EXTRACT_VALID__HOST: 'eft.ama-assn.org'
     CONTACT_ID__EXTRACT_VALID__USERNAME: ${EFT_USERNAME}
@@ -223,7 +223,7 @@ data:
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_OUTPUT_SECRET_KEY: ${S3_APIGW_SECRET_KEY}
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_OUTPUT_BUCKET: 'ama-dev-datalake-ingest-us-east-1'
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_OUTPUT_ASSUME_ROLE: 'arn:aws:iam::191296302136:role/dev-ama-apigateway-invoke-role'
-    CONTACT_ID__EXTRACT_SEED_FILES__CACHE_OUTPUT_FILES: 'SFMC_FlatFile_seed.csv, Users_seed.csv'
+    CONTACT_ID__EXTRACT_SEED_FILES__CACHE_OUTPUT_FILES: 'SFMC_DataLabs_VALID_FlatFile_%Y%m%d.csv, SFMC_DataLabs_OrgManager_Users_%Y%m%d.csv'
     CONTACT_ID__EXTRACT_SEED_FILES__CACHE_OUTPUT_INCLUDE_DATESTAMP: 'false'
 
     CONTACT_ID__ASSIGN_EXISTING_CONTACT_IDS__CACHE_INPUT_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
@@ -289,13 +289,13 @@ data:
     CONTACT_ID__DELIVER_OUTPUT_FILES__INPUT_ASSUME_ROLE: 'arn:aws:iam::191296302136:role/dev-ama-apigateway-invoke-role'
     CONTACT_ID__DELIVER_OUTPUT_FILES__INPUT_CACHE_INPUT_FILES: 'SFMC_DataLabs_VALID_FlatFile_%Y%m%d.csv, SFMC_DataLabs_Advantage_ActiveSubscription_%Y%m%d.csv, SFMC_DataLabs_OrgManager_Users_%Y%m%d.csv, SFMC_DataLabs_Advantage_APIOrders_%Y%m%d.csv'
 
-    CONTACT_ID__DELIVER_OUTPUT_FILES__OUTPUT_CACHE_BASE_PATH: '/DataLabs/To_SFMC_SFTP/'
-    CONTACT_ID__DELIVER_OUTPUT_FILES__OUTPUT_CACHE_FILES: 'SFMC_DataLabs_VALID_FlatFile_%Y%m%d.csv, SFMC_DataLabs_Advantage_ActiveSubscription_%Y%m%d.csv, SFMC_DataLabs_OrgManager_Users_%Y%m%d.csv, SFMC_DataLabs_Advantage_APIOrders_%Y%m%d.csv'
-    CONTACT_ID__DELIVER_OUTPUT_FILES__OUTPUT_CACHE_HOST: 'eft.ama-assn.org'
-    CONTACT_ID__DELIVER_OUTPUT_FILES__OUTPUT_CACHE_USERNAME: ${EFT_USERNAME}
-    CONTACT_ID__DELIVER_OUTPUT_FILES__OUTPUT_CACHE_PASSWORD: ${EFT_PASSWORD}
-
-    CONTACT_ID__DELIVER_OUTPUT_FILES__CACHE_INCLUDE_DATESTAMP: 'false'
+    CONTACT_ID__DELIVER_OUTPUT_FILES__BASE_PATH: '/DataLabs/To_SFMC_SFTP/'
+    CONTACT_ID__DELIVER_OUTPUT_FILES__FILES: 'SFMC_DataLabs_VALID_FlatFile_%Y%m%d.csv, SFMC_DataLabs_Advantage_ActiveSubscription_%Y%m%d.csv, SFMC_DataLabs_OrgManager_Users_%Y%m%d.csv, SFMC_DataLabs_Advantage_APIOrders_%Y%m%d.csv'
+    CONTACT_ID__DELIVER_OUTPUT_FILES__USERNAME: ${S3_APIGW_ACCESS_KEY}
+    CONTACT_ID__DELIVER_OUTPUT_FILES__PASSWORD: ${S3_APIGW_SECRET_KEY}
+    CONTACT_ID__DELIVER_OUTPUT_FILES__BUCKET: 'ama-dev-datalake-ingest-us-east-1'
+    CONTACT_ID__DELIVER_OUTPUT_FILES__ASSUME_ROLE: 'arn:aws:iam::191296302136:role/dev-ama-apigateway-invoke-role'
+    CONTACT_ID__DELIVER_OUTPUT_FILES__INCLUDE_DATESTAMP: 'false'
 
 
     CONTACT_ID__LOL_EXTRACT_S3_DIR_LIST__BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/output'
