@@ -1,0 +1,14 @@
+#!/bin/bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+
+main() {
+    $RUN -c "from datalabs.deploy.api.diff import APISpecDifferentiator; APISpecDifferentiator.diff("'"'"${1}"'"'", "'"'"${2}"'"'")"
+}
+
+
+main "$@"
