@@ -46,6 +46,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask):
         id_list = []
         for index in sfmc_contacts.index:
             if sfmc_contacts['HSContact_ID'][index] != sfmc_contacts['HSContact_ID'][index]:
+                # NOTE, HADI must sort sfmc_contacts['HSContact_ID'] and pass it as a list
                 contact_id = self._get_new_id(id_list, sfmc_contacts['HSContact_ID'])
                 sfmc_contacts['HSContact_ID'][index] = contact_id
 
@@ -83,6 +84,8 @@ class ContactIDMergeTransformerTask(etl.TransformerTask):
         elif contact_id in existing_ids:
             pass
         else:
+            # NOTE, HADI must to this instead:
+            # insort_left(existing_ids, contact_id, lo=0, hi=len(existing_ids))
             insort_left(id_list, contact_id, lo=0, hi=len(id_list))
             found = True
 
