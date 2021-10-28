@@ -76,6 +76,8 @@ class TaskWrapper(ABC):
 
             self.task = self.task_class(self._task_parameters)
 
+            self._pre_run()
+
             self.task.run()
 
             response = self._handle_success()
@@ -102,6 +104,10 @@ class TaskWrapper(ABC):
             raise TypeError('Task class does not have a "run" method.')
 
         return task_class
+
+    # pylint: disable=unused-argument
+    def _pre_run(self):
+        pass
 
     # pylint: disable=unused-argument
     @classmethod
