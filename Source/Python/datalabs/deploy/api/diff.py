@@ -42,7 +42,7 @@ class APISpecDifferentiator:
         new_endpoints = cls._find_new_elements(spec1['paths'], spec2['paths'])
 
         if len(new_endpoints) > 0:
-            print(f'The following endpoints are new in {path2}:')
+            print('The following endpoints are new:')
             for endpoint in new_endpoints:
                 print(f"\t{endpoint}")
 
@@ -51,7 +51,7 @@ class APISpecDifferentiator:
         missing_endpoints = cls._find_missing_elements(spec1['paths'], spec2['paths'])
 
         if len(missing_endpoints) > 0:
-            print(f'The following endpoints are missing from {path2}:')
+            print('The following endpoints are missing:')
             for endpoint in missing_endpoints:
                 print(f"\t{endpoint}")
 
