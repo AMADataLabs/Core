@@ -186,14 +186,21 @@ class PhysicianTransformerTask(TransformerTask):
     def _clean_physician(cls, physician):
         cls._fix_pohnpei_fips_county_code(physician)
 
+        physician.federal_information_processing_standard_state[
+            (physician.federal_information_processing_standard_state == '02') & \
+            (physician.federal_information_processing_standard_county == '066')
+        ] = '  '
+        physician.federal_information_processing_standard_county[
+            (physician.federal_information_processing_standard_state == '  ') & \
+            (physician.federal_information_processing_standard_county == '066')
+        ] = '   '
+
         cls._consolidate_duplicates(physician)
 
         return physician
 
     @classmethod
     def _merge_npi(cls, ppd, npi):
-        npi['meNumber'] = npi['meNumber'].astype(str).apply(lambda x: ('0' * 10 + x)[-11:])
-
         return ppd.merge(npi, on='meNumber', how="left").drop_duplicates()
 
     @classmethod
