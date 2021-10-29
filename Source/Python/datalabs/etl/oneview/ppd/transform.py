@@ -186,6 +186,10 @@ class PhysicianTransformerTask(TransformerTask):
     def _clean_physician(cls, physician):
         cls._fix_pohnpei_fips_county_code(physician)
 
+        physician.federal_information_processing_standard_state[
+            (physician.federal_information_processing_standard_state == '02') & \
+            (physician.federal_information_processing_standard_county == '066')
+        ] = '  '
         physician.federal_information_processing_standard_county[
             (physician.federal_information_processing_standard_state == '02') & \
             (physician.federal_information_processing_standard_county == '066')
