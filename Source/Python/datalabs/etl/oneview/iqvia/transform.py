@@ -98,7 +98,7 @@ class IQVIAProviderPruningTransformerTask(TransformerTask):
         providers = providers.merge(
             physicians[['medical_education_number', 'truncated_me']],
             on='truncated_me', how='left'
-        ).drop_duplicates
+        ).drop_duplicates()
 
         affiliations = affiliations[
             affiliations.truncated_me.isin(physicians.truncated_me)
@@ -111,8 +111,8 @@ class IQVIAProviderPruningTransformerTask(TransformerTask):
         return [providers, affiliations]
 
     def _get_columns(self):
-        provider_columns = {value:value for value in column.PROVIDER_COLUMNS.values()}
-        affiliation_columns = {value:value for value in column.PROVIDER_AFFILIATION_COLUMNS.values()}
+        provider_columns = {value: value for value in column.PROVIDER_COLUMNS.values()}
+        affiliation_columns = {value: value for value in column.PROVIDER_AFFILIATION_COLUMNS.values()}
 
         return [provider_columns, affiliation_columns]
 
