@@ -301,7 +301,7 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _unquote_term(cls, csv_column):
         quoted_csv_column = csv_column
-        match = re.match(r'".*[, ].*"|""', csv_column)  # match quoted strings with spaces or commas
+        match = re.match(r'".*[, ].*"|""|"primary"', csv_column)  # match quoted strings with spaces or commas
 
         if match is None:
             quoted_csv_column = f'{csv_column[1:-1]}'
