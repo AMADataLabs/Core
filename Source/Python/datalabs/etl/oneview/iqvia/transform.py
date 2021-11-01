@@ -111,8 +111,8 @@ class IQVIAProviderPruningTransformerTask(TransformerTask):
         return [providers, affiliations]
 
     def _get_columns(self):
-        provider_columns = {value:value for value in column.PROVIDER_COLUMNS.values()}
-        affiliation_columns = {value:value for value in column.PROVIDER_AFFILIATION_COLUMNS.values()}
+        provider_columns = {value: value for value in column.PROVIDER_COLUMNS.values()}
+        affiliation_columns = {value: value for value in column.PROVIDER_AFFILIATION_COLUMNS.values()}
 
         return [provider_columns, affiliation_columns]
 
