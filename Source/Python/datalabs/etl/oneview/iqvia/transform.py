@@ -98,7 +98,7 @@ class IQVIAProviderPruningTransformerTask(TransformerTask):
         providers = providers.merge(
             physicians[['medical_education_number', 'truncated_me']],
             on='truncated_me', how='left'
-        ).drop_duplicates
+        ).drop_duplicates()
 
         affiliations = affiliations[
             affiliations.truncated_me.isin(physicians.truncated_me)
