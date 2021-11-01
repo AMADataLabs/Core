@@ -13,7 +13,6 @@ LOGGER.setLevel(logging.DEBUG)
 class IQVIABusinessTransformerTask(TransformerTask):
     def _preprocess_data(self, data):
         business, class_of_trade = data
-
         business = self._set_default_values(business)
 
         business = self._replace_unknown_values(business, class_of_trade)
@@ -23,6 +22,7 @@ class IQVIABusinessTransformerTask(TransformerTask):
     @classmethod
     def _set_default_values(cls, business):
         business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].fillna(value='-1')
+        business.COT_SPECIALTY_ID = [data.rstrip(".0") for data in business.COT_SPECIALTY_ID]
 
         business['PROFIT_STATUS'] = business['PROFIT_STATUS'].fillna(value='UNKNOWN')
 
@@ -111,8 +111,8 @@ class IQVIAProviderPruningTransformerTask(TransformerTask):
         return [providers, affiliations]
 
     def _get_columns(self):
-        provider_columns = {value:value for value in column.PROVIDER_COLUMNS.values()}
-        affiliation_columns = {value:value for value in column.PROVIDER_AFFILIATION_COLUMNS.values()}
+        provider_columns = {value: value for value in column.PROVIDER_COLUMNS.values()}
+        affiliation_columns = {value: value for value in column.PROVIDER_AFFILIATION_COLUMNS.values()}
 
         return [provider_columns, affiliation_columns]
 
