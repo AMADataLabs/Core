@@ -36,6 +36,16 @@ def test_row_unquoting():
 
 
 # pylint: disable=redefined-outer-name, protected-access
+def test_not_unquoting_keywords():
+    csv_string = '"primary"'
+    expected_string = '"primary"'
+
+    quoted_string = ORMLoaderTask._standardize_row_text(csv_string)
+
+    assert quoted_string == expected_string
+
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data, hash_query_results):
     columns = ['dumb', 'id', 'dumber']
     loader = ORMLoaderTask(loader_parameters)
