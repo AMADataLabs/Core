@@ -37,8 +37,8 @@ def test_row_unquoting():
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_not_unquoting_keywords():
-    csv_string = '"primary"'
-    expected_string = '"primary"'
+    csv_string = '"foo","primary","bar"'
+    expected_string = 'foo,"primary",bar'
 
     quoted_string = ORMLoaderTask._standardize_row_text(csv_string)
 
