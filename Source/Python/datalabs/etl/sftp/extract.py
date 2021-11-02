@@ -30,18 +30,6 @@ class SFTPFileExtractorParameters:
     include_names: str = None
     data: object = None
 
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class SFTPDirectoryListingExtractorParameters:
-    files: str
-    host: str
-    username: str
-    password: str
-    execution_time: str = None
-    include_names: str = None
-    data: object = None
-
 
 # pylint: disable=too-many-ancestors
 class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
@@ -118,14 +106,14 @@ class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
         In the example it's clear that spaces and the '/' in the end don't matter.
         So, ' ' and '/' are the same and mean the root directory.
 
+        base_path:
+            It must be set to "./"
+
         Except 'base_path' which was removed from the arguments,
         other Arguments have the same functionality as SFTPFileExtractorTask.
     """
 
-    PARAMETER_CLASS = SFTPDirectoryListingExtractorParameters
-
-    def _get_files(self):
-        return [file.strip() for file in self._parameters.files.split(',')]
+    PARAMETER_CLASS = SFTPFileExtractorParameters
 
     def _resolve_wildcard(self, file):
         if '*' in file:
@@ -139,12 +127,14 @@ class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
     def _extract_file(self, file):
         directory = file
         list_of_files = self._get_directory_listing(directory)
+
         return bytes(
-            Series(list_of_files).astype(str)\
-                                 .rename("list_of_files")\
-                                 .str.slice(start=2)\
-                                 .apply(lambda cell: os.path.join(directory, cell))\
-                                 .to_csv(index=False),
+            Series(list_of_files)\
+                .astype(str)\
+                .rename("list_of_files")\
+                .str.slice(start=2)\
+                .apply(lambda cell: os.path.join(directory, cell))\
+                .to_csv(index=False),
             encoding='utf-8'
         )
 
