@@ -628,8 +628,13 @@ pipelines:
         ##############################################################
         # prod branch targets
         ##############################################################
-
         CPT-prod:
+        - step:
+            name: Send Deployment Request
+            script:
+            - Script/run.py python -c "from datalabs.messaging.email_message import send_email; send_email('peter.lane@ama-assn.org', 'BitBucket Deployment Request', body='A CPT deployment has been triggered via BitBucket Pipelines. Please run the CPT-production target if you approve.', from_account='DataLabs@ama-assn.org')"
+
+        CPT-production:
         - step:
             name: Update Bundle
             caches:
@@ -669,6 +674,12 @@ pipelines:
 
         Scheduler-prod:
         - step:
+            name: Send Deployment Request
+            script:
+            - Script/run.py python -c "from datalabs.messaging.email_message import send_email; send_email('peter.lane@ama-assn.org', 'BitBucket Deployment Request', body='A Scheduler deployment has been triggered via BitBucket Pipelines. Please run the Scheduler-production target if you approve.', from_account='DataLabs@ama-assn.org')"
+
+        Scheduler-production:
+        - step:
             name: Update Bundle
             caches:
                 - scheduler-prod-update-bundle-dependencies
@@ -706,6 +717,12 @@ pipelines:
             - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
 
         OneView-prod:
+        - step:
+            name: Send Deployment Request
+            script:
+            - Script/run.py python -c "from datalabs.messaging.email_message import send_email; send_email('peter.lane@ama-assn.org', 'BitBucket Deployment Request', body='A OneView deployment has been triggered via BitBucket Pipelines. Please run the OneView-production target if you approve.', from_account='DataLabs@ama-assn.org')"
+
+        OneView-production:
         - step:
             name: Update ETL Bundle
             caches:
