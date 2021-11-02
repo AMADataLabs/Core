@@ -1,6 +1,7 @@
 """ DataFrame manipulation transformers. """
 from   dataclasses import dataclass
 from   io import BytesIO
+import itertools
 import logging
 
 import numpy
@@ -55,12 +56,21 @@ class ConcatenateTransformerParameters:
     data: object = None
 
 
-class ConcatenateTransformerTask(DataFrameTransformerMixin, TransformerTask):
+class ConcatenateTransformerTask(TransformerTask):
     PARAMETER_CLASS = ConcatenateTransformerParameters
 
     def _transform(self):
-        parts = [self._csv_to_dataframe(data) for data in self._parameters.data]
+        line_sets = [data.strip().split(b'\n') for data in self._parameters.data]
+        lines = list(itertools.chain.from_iterable(line_set[1:] for line_set in line_sets))
 
-        data = pandas.concat(parts, ignore_index=True)
+        if line_sets[0][0].startswith(b','):
+            line_sets[0][0] = self._strip_indices([line_sets[0][0]])[0]
+            lines = self._strip_indices(lines)
 
-        return [self._dataframe_to_csv(data)]
+        combined = [line_sets[0][0]] + lines
+
+        return [b'\n'.join(combined)]
+
+    @classmethod
+    def _strip_indices(cls, lines):
+        return [line.split(b',', 1)[1] for line in lines]

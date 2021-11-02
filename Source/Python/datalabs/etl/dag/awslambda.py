@@ -190,12 +190,20 @@ class DAGTaskWrapper(
 
         return parameters
 
+    def _pre_run(self):
+        super()._pre_run()
+
+        parameters = self._get_task_wrapper_parameters()
+
+        if parameters.task != "DAG":
+            state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
+
+            state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.RUNNING)
+
     def _handle_success(self) -> (int, dict):
         super()._handle_success()
 
-        parameters = self._runtime_parameters
-        parameters.update(self.DAG_PARAMETERS)
-        parameters = self._get_validated_parameters(parameters)
+        parameters = self._get_task_wrapper_parameters()
 
         if parameters.task == "DAG":
             for task in self.task.triggered_tasks:
@@ -212,9 +220,7 @@ class DAGTaskWrapper(
     def _handle_exception(self, exception) -> (int, dict):
         super()._handle_exception(exception)
 
-        parameters = self._runtime_parameters
-        parameters.update(self.DAG_PARAMETERS)
-        parameters = self._get_validated_parameters(parameters)
+        parameters = self._get_task_wrapper_parameters()
 
         if parameters.task != "DAG":
             state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
@@ -241,6 +247,13 @@ class DAGTaskWrapper(
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
         return dag_task_parameters
+
+    def _get_task_wrapper_parameters(self):
+        parameters = self._runtime_parameters
+        parameters.update(self.DAG_PARAMETERS)
+        parameters = self._get_validated_parameters(parameters)
+
+        return parameters
 
     def _notify_task_processor(self, task):
         task_topic = self._runtime_parameters["TASK_TOPIC_ARN"]

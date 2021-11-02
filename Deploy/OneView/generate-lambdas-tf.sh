@@ -10,6 +10,7 @@ RAW_NAMES=(
     "age-gender-mpa"
     "getAdminUsers"
     "getAffiliationMasterData"
+    "getBusinessMasterData"
     "getCounties"
     "getDepartment"
     "getDepartments"
@@ -21,6 +22,7 @@ RAW_NAMES=(
     "getOneviewData"
     "getOrgMasterData"
     "getOrgs"
+    "getPhysicianAffiliations"
     "getPhysicianColumns"
     "getPhysicianContactMasterData"
     "getProfile"
@@ -30,6 +32,8 @@ RAW_NAMES=(
     "getUserDetails"
     "getUsers"
     "lambdaAuthorizer"
+    "physician-type-ethnicity"
+    "physician-type-ethnicity-annual"
     "processAccessRequest"
     "removeDremioToken"
     "specialty-by-mpa-annual"
@@ -49,9 +53,25 @@ for name in ${RAW_NAMES[@]}; do
     SNAKE_CASE_NAMES+="$name "
 done
 
-rm -f lambdas.tf
 rm -f functions.txt
 rm -f bundles.txt
+cat > lambdas.tf << EOF
+##### Lambdas - Web App #####
+
+data "aws_s3_bucket_object" "layer_hash" {
+  bucket = local.s3_lambda_bucket
+  key    = "OneView/webapp-base-layer.zip"
+}
+
+resource "aws_lambda_layer_version" "webapp" {
+    layer_name              = "\${var.project}-\${local.environment}-webapp-lambda-layer"
+    description             = "OneView web app backend Lambda function base layer"
+    s3_bucket               = local.s3_lambda_bucket
+    s3_key                  = "OneView/webapp-base-layer.zip"
+    s3_object_version       = data.aws_s3_bucket_object.layer_hash.version_id
+    compatible_runtimes     = ["python3.8"]
+}
+EOF
 
 for name in $SNAKE_CASE_NAMES; do
   DASHED_NAME=${name//_/-}

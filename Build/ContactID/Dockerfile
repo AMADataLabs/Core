@@ -46,3 +46,5 @@ RUN echo "eft.ama-assn.org,10.195.141.136 ssh-rsa AAAAB3NzaC1yc2EAAAABEQAAAQEAqQ
 RUN rm -rf ./Script
 RUN rm -rf ./Build
 RUN rm -rf ./Source
+
+RUN apt-get install -y ranger

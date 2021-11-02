@@ -97,7 +97,7 @@ pipelines:
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - bash Deploy/CPT/create-bundle CPT
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-bundle CPT
+                - bash Deploy/CPT/upload-bundle
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -260,7 +260,7 @@ pipelines:
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
             script:
@@ -440,7 +440,7 @@ pipelines:
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
             script:
@@ -562,7 +562,7 @@ pipelines:
             - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
 
             # Create the code bundle
             - export ENABLE_FEATURE_STAGE=True
@@ -570,7 +570,7 @@ pipelines:
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-itg-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
             script:
@@ -579,7 +579,7 @@ pipelines:
             - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
 
             # Update Lambda functions
             - export ENABLE_FEATURE_STAGE=True
@@ -600,7 +600,7 @@ pipelines:
             - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
 
             # Create the code bundle
             - export ENABLE_FEATURE_STAGE=True
@@ -617,7 +617,7 @@ pipelines:
             - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh itg | grep source > assume_role.rc
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
 
             # Update Lambda functions
             - export ENABLE_FEATURE_STAGE=True
@@ -628,8 +628,13 @@ pipelines:
         ##############################################################
         # prod branch targets
         ##############################################################
-
         CPT-prod:
+        - step:
+            name: Send Deployment Request
+            script:
+            - echo "A CPT deployment has been triggered via BitBucket Pipelines. Please run the CPT-production target if you approve."
+
+        CPT-production:
         - step:
             name: Update Bundle
             caches:
@@ -651,7 +656,7 @@ pipelines:
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle CPT
+            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
         - step:
             name: Update Lambda Functions
             script:
@@ -668,6 +673,12 @@ pipelines:
             - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
 
         Scheduler-prod:
+        - step:
+            name: Send Deployment Request
+            script:
+            - echo "A Scheduler deployment has been triggered via BitBucket Pipelines. Please run the Scheduler-production target if you approve."
+
+        Scheduler-production:
         - step:
             name: Update Bundle
             caches:
@@ -706,6 +717,12 @@ pipelines:
             - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
 
         OneView-prod:
+        - step:
+            name: Send Deployment Request
+            script:
+            - echo "A OneView deployment has been triggered via BitBucket Pipelines. Please run the OneView-production target if you approve."
+
+        OneView-production:
         - step:
             name: Update ETL Bundle
             caches:

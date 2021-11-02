@@ -7,7 +7,7 @@ main() {
     environment=${3:-dev}
 
     aws dynamodb scan \
-        --table-name DataLake-dag-state-sbx \
+        --table-name DataLake-dag-state-${environment} \
         --filter-expression "begins_with(#DAG, :dag) and execution_time = :execution_time" \
         --expression-attribute-names '{"#DAG": "name"}' \
         --expression-attribute-values '{":dag": {"S": "'${dag}'"}, ":execution_time": {"S": "'"${execution_time}"'"}}' \

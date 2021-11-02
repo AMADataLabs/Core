@@ -226,5 +226,6 @@ PHYSICIAN_COLUMNS = {
     'npi': 'national_provider_identifier',
     'person_type': 'type',
     'MEMBERSHIP_STATUS': 'membership_status',
-    'has_email': 'has_email'
+    'has_email': 'has_email',
+    'no_release_ind': 'no_release'
 }

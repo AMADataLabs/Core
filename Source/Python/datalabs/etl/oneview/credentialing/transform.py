@@ -55,8 +55,11 @@ class CredentialingFinalTransformerTask(TransformerTask):
 class CredentialingOrderPruningTransformerTask(TransformerTask):
     @classmethod
     def _preprocess_data(cls, data):
-        orders, physicians = data
+        orders, physicians, customers = data
 
+        orders = orders[
+            orders.customer.isin(customers.number)
+        ]
         orders = orders[
             orders.medical_education_number.isin(physicians.medical_education_number)
         ]
