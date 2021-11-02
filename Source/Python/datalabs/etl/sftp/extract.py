@@ -1,10 +1,11 @@
 """ Local file system extractors """
 from   dataclasses import dataclass
-from   pdb import set_trace as st
 import io
 import logging
 import os
-import pickle
+
+from   pandas import Series
+from   paramiko.sftp import SFTPError
 
 import datalabs.access.sftp as sftp
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
@@ -34,11 +35,13 @@ class SFTPFileExtractorParameters:
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class SFTPDirectoryListingExtractorParameters:
-    base_path: str
+    files: str
     host: str
     username: str
     password: str
     execution_time: str = None
+    include_names: str = None
+    data: object = None
 
 
 # pylint: disable=too-many-ancestors
@@ -101,43 +104,57 @@ class SFTPIBM437TextFileExtractorTask(SFTPFileExtractorTask):
 
 
 class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
-    # PARAMETER_CLASS = SFTPDirectoryListingExtractorParameters
+    """
+    SFTP Directory Listing Extractor.
+    Will create a csv file containing the list of files in a directory.
+
+    Args (ETL parameters):
+        files:
+            Is the paths separated by commad which will look for the files in it.
+            Will raise 'FileNotFoundError' Exception if the directory doesn't exist.
+            Will raise 'paramiko.sftp.SFTPError' Exception if the value
+            is a file instead of a directory.
+        example:
+        "Path1/,   , / ,Some/Path"
+        In the example it's clear that spaces and the '/' in the end don't matter.
+        So, ' ' and '/' are the same and mean the root directory.
+
+        Except 'base_path' which was removed from the arguments,
+        other Arguments have the same functionality as SFTPFileExtractorTask.
+    """
+
     PARAMETER_CLASS = SFTPDirectoryListingExtractorParameters
 
-    def _extract(self):
-        # pylint: disable=not-context-manager
-        with self._get_client() as client:
-            self._client = client
-            # st()
-            # files = self._get_files()
-            directory_listing_file = self._get_directory_listing_file()
+    def _get_files(self):
+        return [file.strip() for file in self._parameters.files.split(',')]
 
-            data = [self._extract_directory_listing_file()]
+    def _resolve_wildcard(self, file):
+        if '*' in file:
+            raise ETLException(
+                "'files' parameter must not contain '*', "
+                "it is a comma-separated list of directories"
+            )
 
-        self._client = None
+        return [file]
 
-        decoded_data = self._decode_dataset(data, directory_listing_file)
-        decoded_data = [pickle.dumps(list(zip(directory_listing_file, decoded_data)))]
+    def _extract_file(self, file):
+        directory = file
+        list_of_files = self._get_directory_listing(directory)
+        return bytes(
+            Series(list_of_files).astype(str)\
+                                 .rename("list_of_files")\
+                                 .str.slice(start=2)\
+                                 .apply(lambda cell: os.path.join(directory, cell))\
+                                 .to_csv(index=False),
+            encoding='utf-8'
+        )
 
-        return decoded_data
-
-    def _get_directory_listing_file(self):
-        base_path = self._parameters.base_path
-
-        return [os.path.join(base_path, "directory_listing.txt")]
-
-    def _extract_directory_listing_file(self):
-        base_path = self._parameters.base_path
-        buffer = io.BytesIO()
-
+    def _get_directory_listing(self, directory):
         try:
-            self._list_directory_to_file(buffer)
-        except Exception as exception:
-            raise ETLException(f"Unable list the files in directory: '{base_path}'") from exception
+            list_of_files = self._client.list(directory)
+        except FileNotFoundError as exception:
+            raise FileNotFoundError(f"No such directory: '{directory}'") from exception
+        except SFTPError as exception:
+            raise ValueError(f"'files' parameter must be a directory not a file: '{directory}'") from exception
 
-        return bytes(buffer.getbuffer())
-
-    def _list_directory_to_file(self, file):
-        base_path = self._parameters.base_path
-        st()
-        file.write(",".join(self._client.list(base_path)).encode())
+        return list_of_files
