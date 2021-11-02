@@ -30,7 +30,6 @@ class SFTPFileExtractorParameters:
     include_names: str = None
     data: object = None
 
-#NOTE: Hadi, Add file name parameter for listing file
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
