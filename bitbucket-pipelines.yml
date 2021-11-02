@@ -632,7 +632,7 @@ pipelines:
         - step:
             name: Send Deployment Request
             script:
-            - Script/run.py python -c "from datalabs.messaging.email_message import send_email; send_email('peter.lane@ama-assn.org', 'BitBucket Deployment Request', body='A CPT deployment has been triggered via BitBucket Pipelines. Please run the CPT-production target if you approve.', from_account='DataLabs@ama-assn.org')"
+            - Script/run.py python3 -c "from datalabs.messaging.email_message import send_email; send_email('peter.lane@ama-assn.org', 'BitBucket Deployment Request', body='A CPT deployment has been triggered via BitBucket Pipelines. Please run the CPT-production target if you approve.', from_account='DataLabs@ama-assn.org')"
 
         CPT-production:
         - step:
@@ -676,7 +676,7 @@ pipelines:
         - step:
             name: Send Deployment Request
             script:
-            - Script/run.py python -c "from datalabs.messaging.email_message import send_email; send_email('peter.lane@ama-assn.org', 'BitBucket Deployment Request', body='A Scheduler deployment has been triggered via BitBucket Pipelines. Please run the Scheduler-production target if you approve.', from_account='DataLabs@ama-assn.org')"
+            - Script/run.py python3 -c "from datalabs.messaging.email_message import send_email; send_email('peter.lane@ama-assn.org', 'BitBucket Deployment Request', body='A Scheduler deployment has been triggered via BitBucket Pipelines. Please run the Scheduler-production target if you approve.', from_account='DataLabs@ama-assn.org')"
 
         Scheduler-production:
         - step:
@@ -720,7 +720,7 @@ pipelines:
         - step:
             name: Send Deployment Request
             script:
-            - Script/run.py python -c "from datalabs.messaging.email_message import send_email; send_email('peter.lane@ama-assn.org', 'BitBucket Deployment Request', body='A OneView deployment has been triggered via BitBucket Pipelines. Please run the OneView-production target if you approve.', from_account='DataLabs@ama-assn.org')"
+            - Script/run.py python3 -c "from datalabs.messaging.email_message import send_email; send_email('peter.lane@ama-assn.org', 'BitBucket Deployment Request', body='A OneView deployment has been triggered via BitBucket Pipelines. Please run the OneView-production target if you approve.', from_account='DataLabs@ama-assn.org')"
 
         OneView-production:
         - step:
