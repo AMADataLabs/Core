@@ -20,7 +20,6 @@ RAW_NAMES=(
     "getGroupUsers"
     "getMTPMasterData"
     "getOneviewData"
-    "getOneviewDataExcel"
     "getOrgMasterData"
     "getOrgs"
     "getPhysicianAffiliations"
