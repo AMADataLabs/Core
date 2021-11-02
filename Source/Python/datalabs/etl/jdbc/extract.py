@@ -49,8 +49,7 @@ class JDBCExtractorTask(ExtractorTask):
     def _connect(self):
         url = f"jdbc:{self._parameters.driver_type}://{self._parameters.database_host}:" \
               f"{self._parameters.database_port}/{self._parameters.database_name}"
-        print(url, self._parameters.jar_path.split(','), self._parameters.driver,
-              [self._parameters.database_username, self._parameters.database_password])
+
         connection = jaydebeapi.connect(
             self._parameters.driver,
             url,
