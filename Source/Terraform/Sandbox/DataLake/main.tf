@@ -459,6 +459,10 @@ resource "aws_s3_bucket" "datalabs_lambda_code_bucket" {
         prevent_destroy = true
     }
 
+    versioning {
+        enabled = true
+    }
+
     tags = merge(local.tags, {Name = "Data Labs Lambda Code Bucket"})
 }
 

@@ -36,13 +36,13 @@ def test_row_unquoting():
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_not_unquoting_keywords():
-    csv_string = '"foo","primary","bar"'
-    expected_string = 'foo,"primary",bar'
+def test_not_quoting_keywords_columns():
+    columns = ['foo', 'primary', 'bar', 'group']
+    expected_columns = ['foo', '"primary"', 'bar', '"group"']
 
-    quoted_string = ORMLoaderTask._standardize_row_text(csv_string)
+    quoted_columns = [ORMLoaderTask._quote_keyword(column) for column in columns]
 
-    assert quoted_string == expected_string
+    assert quoted_columns == expected_columns
 
 
 # pylint: disable=redefined-outer-name, protected-access
