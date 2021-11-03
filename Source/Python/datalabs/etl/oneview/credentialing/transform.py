@@ -60,7 +60,7 @@ class CredentialingOrderPruningTransformerTask(TransformerTask):
         orders = orders[(orders.customer.isin(customers.id))]
         orders = orders[(orders.medical_education_number.isin(physicians.medical_education_number))]
 
-        return [orders]
+        return [orders.drop_duplicates()]
 
     def _get_columns(self):
         columns = {value:value for value in column.ORDER_COLUMNS.values()}
