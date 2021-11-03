@@ -42,7 +42,7 @@ def test_task_wrapper_handle_success(event):
 
 
 class MockTask(api.APIEndpointTask):
-    def _run(self, session):
+    def _run(self, database):
         pass
 
 
@@ -52,7 +52,12 @@ def expected_parameters():
         path=dict(foo='bar'),
         query=dict(ping='pong'),
         database=dict(
-            name='name', backend='postgresql+psycopg2', host='host', port='5432', username='username', password='password'
+            name='name',
+            backend='postgresql+psycopg2',
+            host='host',
+            port='5432',
+            username='username',
+            password='password'
         ),
         bucket=dict(name='mybucket', base_path='AMA/SOMETHING', url_duration='30')
     )
