@@ -41,29 +41,36 @@ pipelines:
         ##############################################################
 
         Test:
-        - parallel:
-            - step:
-                name: Unit Tests
-                image: python:3.7
-                caches:
-                  - unit-test-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master
-                - export VIRTUAL_ENV=${PWD}/Environment/Master
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - python --version
-                - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
-            - step:
-                name: Lint
-                image: python:3.7
-                caches:
-                  - lint-test-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master
-                - export VIRTUAL_ENV=${PWD}/Environment/Master
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - python --version
-                - python Script/run.py Environment/Master/bin/pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+        - step:
+            name: Unit and Lint Tests
+            image: python3.7
+            caches:
+                test-dependencies
+            script:
+            - bash Script/bitbucket-pipelines-test.sh
+        # - parallel:
+        #     - step:
+        #         name: Unit Tests
+        #         image: python:3.7
+        #         caches:
+        #           - unit-test-dependencies
+        #         script:
+        #         - bash Script/setup-virtual-environment Master
+        #         - export VIRTUAL_ENV=${PWD}/Environment/Master
+        #         - export PATH="$VIRTUAL_ENV/bin:$PATH"
+        #         - python --version
+        #         - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+        #     - step:
+        #         name: Lint
+        #         image: python:3.7
+        #         caches:
+        #           - lint-test-dependencies
+        #         script:
+        #         - bash Script/setup-virtual-environment Master
+        #         - export VIRTUAL_ENV=${PWD}/Environment/Master
+        #         - export PATH="$VIRTUAL_ENV/bin:$PATH"
+        #         - python --version
+        #         - python Script/run.py Environment/Master/bin/pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
 
 
         ##############################################################
@@ -775,6 +782,7 @@ pipelines:
 
 definitions:
   caches:
+    test-dependencies: Environment
     unit-test-dependencies: Environment
     lint-test-dependencies: Environment
     cpt-master-create-database-dependencies: Environment
