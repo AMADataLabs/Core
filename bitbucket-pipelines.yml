@@ -10,6 +10,8 @@ pipelines:
         - step:
             name: Build and Auto-Merge to dev
             script:
+            - apt update
+            - apt install -y jq
             - bash Script/bitbucket-pipelines-build.sh
             - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
             - git fetch
@@ -20,21 +22,29 @@ pipelines:
         - step:
             name: Build dev
             script:
+            - apt update
+            - apt install -y jq
             - bash Script/bitbucket-pipelines-build.sh
         test:
         - step:
             name: Build test
             script:
+            - apt update
+            - apt install -y jq
             - bash Script/bitbucket-pipelines-build.sh
         stage:
         - step:
             name: Build stage
             script:
+            - apt update
+            - apt install -y jq
             - bash Script/bitbucket-pipelines-build.sh
         prod:
         - step:
             name: Build prod
             script:
+            - apt update
+            - apt install -y jq
             - bash Script/bitbucket-pipelines-build.sh
     custom:
         ##############################################################
