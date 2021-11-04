@@ -141,7 +141,7 @@ class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
                 .str.slice(start=2)\
                 .apply(lambda cell: os.path.join(directory, cell))\
                 .to_csv(index=False),
-            encoding="utf-8"
+            encoding='utf-8'
         )
 
     def _get_directory_listing(self, directory):
