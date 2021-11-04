@@ -45,9 +45,9 @@ pipelines:
             name: Unit and Lint Tests
             image: python3.7
             caches:
-                test-dependencies
+                - test-dependencies
             script:
-            - bash Script/bitbucket-pipelines-test.sh
+                - bash Script/bitbucket-pipelines-test.sh
         # - parallel:
         #     - step:
         #         name: Unit Tests
