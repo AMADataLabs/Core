@@ -44,6 +44,7 @@ pipelines:
         - parallel:
             - step:
                 name: Unit Tests
+                image: python:3.7
                 caches:
                   - unit-test-dependencies
                 script:
@@ -54,6 +55,7 @@ pipelines:
                 - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
             - step:
                 name: Lint
+                image: python:3.7
                 caches:
                   - lint-test-dependencies
                 script:
