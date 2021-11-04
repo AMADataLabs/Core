@@ -13,7 +13,8 @@ class BadTask(api.APIEndpointTask):
 
 # pylint: disable=protected-access
 class GoodTask(api.APIEndpointTask):
-    def _run(self, session):
+    # pylint: disable=unused-argument
+    def _run(self, database):
         GoodTask._run.called = True
 
 GoodTask._run.called = False  # pylint: disable=protected-access
@@ -31,7 +32,7 @@ def test_task_is_not_abstract():
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_runs_with_database(parameters):
-    with mock.patch('datalabs.access.api.task.Database') as database:
+    with mock.patch('datalabs.access.api.task.Database'):
         task = GoodTask(parameters)
         task.run()
 

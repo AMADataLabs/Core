@@ -6,34 +6,45 @@ image:
 
 pipelines:
     branches:
-        # master:
-        # - step:
-        #     name: Build
-        #     script:
-        #     - bash Script/bitbucket-pipelines-build.sh
-        # - step:
-        #     name: Auto-Merge to dev
-        #     script:
-        #     - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-        #     - git fetch
-        #     - git checkout dev
-        #     - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
-        #     - git push origin dev
-        # dev:
-        # - step:
-        #     script:
-        #     - bash Script/bitbucket-pipelines-build.sh
+        master:
+        - step:
+            name: Build and Auto-Merge to dev
+            script:
+            - apt update
+            - apt install -y jq
+            - bash Script/bitbucket-pipelines-build.sh
+            - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+            - git fetch
+            - git checkout dev
+            - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
+            - git push origin dev
+        dev:
+        - step:
+            name: Build dev
+            script:
+            - apt update
+            - apt install -y jq
+            - bash Script/bitbucket-pipelines-build.sh
         test:
         - step:
+            name: Build test
             script:
+            - apt update
+            - apt install -y jq
             - bash Script/bitbucket-pipelines-build.sh
         stage:
         - step:
+            name: Build stage
             script:
+            - apt update
+            - apt install -y jq
             - bash Script/bitbucket-pipelines-build.sh
         prod:
         - step:
+            name: Build prod
             script:
+            - apt update
+            - apt install -y jq
             - bash Script/bitbucket-pipelines-build.sh
     custom:
         ##############################################################
@@ -41,27 +52,13 @@ pipelines:
         ##############################################################
 
         Test:
-        - parallel:
-            - step:
-                name: Unit Tests
-                caches:
-                  - unit-test-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master
-                - export VIRTUAL_ENV=${PWD}/Environment/Master
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - python --version
-                - python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
-            - step:
-                name: Lint
-                caches:
-                  - lint-test-dependencies
-                script:
-                - bash Script/setup-virtual-environment Master
-                - export VIRTUAL_ENV=${PWD}/Environment/Master
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-                - python --version
-                - python Script/run.py pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*
+        - step:
+            name: Unit and Lint Tests
+            image: python:3.7
+            caches:
+                - test-dependencies
+            script:
+                - bash Script/bitbucket-pipelines-test.sh
 
 
         ##############################################################
@@ -773,8 +770,8 @@ pipelines:
 
 definitions:
   caches:
-    unit-test-dependencies: Environment
-    lint-test-dependencies: Environment
+    test-dependencies: Environment
+
     cpt-master-create-database-dependencies: Environment
     cpt-master-update-bundle-dependencies: Environment
     scheduler-master-update-bundle-dependencies: Environment
