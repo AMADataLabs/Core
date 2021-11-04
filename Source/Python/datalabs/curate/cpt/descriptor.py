@@ -40,7 +40,13 @@ class HeaderedDescriptorParser(DescriptorParser):
 
     @classmethod
     def _remove_header(cls, text):
-        decoded_text = text.decode()
+        decoded_text = None
+
+        try:
+            decoded_text = text.decode()
+        except UnicodeDecodeError:
+            decoded_text = text.decode('cp1252', errors='backslashreplace')
+
         lines = decoded_text.splitlines()
 
         reversed_lines = lines[::-1]
