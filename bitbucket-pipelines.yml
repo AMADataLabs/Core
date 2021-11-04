@@ -18,18 +18,22 @@ pipelines:
             - git push origin dev
         dev:
         - step:
+            name: Build dev
             script:
             - bash Script/bitbucket-pipelines-build.sh
         test:
         - step:
+            name: Build test
             script:
             - bash Script/bitbucket-pipelines-build.sh
         stage:
         - step:
+            name: Build stage
             script:
             - bash Script/bitbucket-pipelines-build.sh
         prod:
         - step:
+            name: Build prod
             script:
             - bash Script/bitbucket-pipelines-build.sh
     custom:
