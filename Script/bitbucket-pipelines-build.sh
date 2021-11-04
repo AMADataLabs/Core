@@ -50,7 +50,9 @@ fi
 
 # Run tests
 echo "Running tests..."
-CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
+if [[ $BITBUCKET_BRANCH != 'master' ]]; then
+    CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
+fi
 
 # Collect all modified projects
 PROJECTS_TO_BUILD=$($DIR/list-projects-to-build.sh $COMMIT_RANGE)

@@ -70,7 +70,7 @@ for FILE in $FILES; do
     fi
 done
 
-if [[ $BITBUCKET_BRANCH = 'master' || $BITBUCKET_BRANCH = 'dev' ]]; then
+if [[ $BITBUCKET_BRANCH == 'master' || $BITBUCKET_BRANCH == 'dev' ]]; then
     ${DIR}/run.py pylint --extension-pkg-whitelist=pyodbc,numpy $FILES_TO_LINT
 else
     ${DIR}/run.py pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${PWD}/Source/Python/datalabs/* ${PWD}/Test/Python/test/datalabs/*

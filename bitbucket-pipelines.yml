@@ -8,12 +8,9 @@ pipelines:
     branches:
         master:
         - step:
-            name: Build
+            name: Build and Auto-Merge to dev
             script:
             - bash Script/bitbucket-pipelines-build.sh
-        - step:
-            name: Auto-Merge to dev
-            script:
             - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
             - git fetch
             - git checkout dev
