@@ -48,6 +48,10 @@ if [[ -f $(git rev-parse --git-dir)/shallow ]]; then
     fi
 fi
 
+Script/setup-virtual-environment Master/BitBucketPipelines
+export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+
 # Run tests
 echo "Running tests..."
 if [[ $BITBUCKET_BRANCH != 'master' ]]; then

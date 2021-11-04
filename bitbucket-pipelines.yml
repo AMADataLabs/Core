@@ -9,6 +9,9 @@ pipelines:
         master:
         - step:
             name: Build and Auto-Merge to dev
+            image: python:3.7
+            caches:
+                - build-dependencies
             script:
             - apt update
             - apt install -y jq
@@ -21,6 +24,9 @@ pipelines:
         dev:
         - step:
             name: Build dev
+            image: python:3.7
+            caches:
+                - build-dependencies
             script:
             - apt update
             - apt install -y jq
@@ -28,6 +34,9 @@ pipelines:
         test:
         - step:
             name: Build test
+            image: python:3.7
+            caches:
+                - build-dependencies
             script:
             - apt update
             - apt install -y jq
@@ -35,6 +44,9 @@ pipelines:
         stage:
         - step:
             name: Build stage
+            image: python:3.7
+            caches:
+                - build-dependencies
             script:
             - apt update
             - apt install -y jq
@@ -770,6 +782,7 @@ pipelines:
 
 definitions:
   caches:
+    build-dependencies: Environment
     test-dependencies: Environment
 
     cpt-master-create-database-dependencies: Environment
