@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -ex
+
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
