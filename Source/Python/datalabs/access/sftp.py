@@ -81,6 +81,31 @@ class SFTP(Datastore):
 
         return self._filter_files(files, filter)
 
+    def list_directory(self, path: str, filter: str = None):
+        files = []
+
+        # pylint: disable=unused-argument
+        def file_callback(file):
+            pass
+
+        def directory_callback(directory):
+            files.append(directory)
+
+        # pylint: disable=unused-argument
+        def unknown_callback(file):
+            pass
+
+        with self._connection.cd(path):
+            self._connection.walktree(
+                './',
+                file_callback,
+                directory_callback,
+                unknown_callback,
+                recurse=(not filter is None)
+            )
+
+        return self._filter_files(files, filter)
+
     def get(self, path: str, file):
         base_path = os.path.dirname(path)
         filename = os.path.basename(path)
