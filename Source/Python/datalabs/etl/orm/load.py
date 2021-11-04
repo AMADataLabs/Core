@@ -296,7 +296,7 @@ class ORMLoaderTask(LoaderTask):
             deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
 
             for model in deleted_models:
-                LOGGER.debug('Deleting row: %s', model[table_parameters.primary_key])
+                LOGGER.debug('Deleting row: %s', getattr(model, table_parameters.primary_key))
                 database.delete(model)  # pylint: disable=no-member
 
     def _soft_delete_data_from_table(self, database, table_parameters, data):
