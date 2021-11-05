@@ -36,6 +36,16 @@ def test_row_unquoting():
 
 
 # pylint: disable=redefined-outer-name, protected-access
+def test_not_quoting_keywords_columns():
+    columns = ['foo', 'primary', 'bar', 'group']
+    expected_columns = ['foo', '"primary"', 'bar', '"group"']
+
+    quoted_columns = [ORMLoaderTask._quote_keyword(column) for column in columns]
+
+    assert quoted_columns == expected_columns
+
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_generated_row_hashes_match_postgres_hashes(loader_parameters, hash_data, hash_query_results):
     columns = ['dumb', 'id', 'dumber']
     loader = ORMLoaderTask(loader_parameters)

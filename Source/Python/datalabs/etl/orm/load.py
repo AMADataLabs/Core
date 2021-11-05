@@ -165,6 +165,7 @@ class ORMLoaderTask(LoaderTask):
     # pylint: disable=too-many-arguments
     @classmethod
     def _get_current_row_hashes(cls, database, schema, table, primary_key, columns):
+        columns = [cls._quote_keyword(column) for column in columns]
         get_current_hash = f"SELECT {primary_key}, md5(({','.join(columns)})::TEXT) FROM {schema}.{table}"
 
         current_hashes = database.read(get_current_hash).astype(str)
@@ -204,6 +205,15 @@ class ORMLoaderTask(LoaderTask):
             self._soft_delete_data_from_table(database, table_parameters, deleted_data)
         else:
             self._delete_data_from_table(database, table_parameters, deleted_data)
+
+    @classmethod
+    def _quote_keyword(cls, column):
+        quoted_column = column
+
+        if column in ['group', 'primary']:
+            quoted_column = f'"{column}"'
+
+        return quoted_column
 
     @classmethod
     def _standardize_row_text(cls, csv_string):
