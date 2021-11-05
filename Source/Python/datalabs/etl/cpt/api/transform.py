@@ -79,7 +79,11 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 
     @classmethod
     def _get_release_id(cls, release):
-        return int(str(release.publish_date).replace('-', ''))
+        publish_date = str(release.publish_date).replace('-', '')
+        difference = str((release.publish_date - release.effective_date).days)
+
+
+        return int(publish_date) + int(difference)
 
     @classmethod
     def _get_unique_dates_from_history(cls, code_history):

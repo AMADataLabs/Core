@@ -239,7 +239,7 @@ class ORMLoaderTask(LoaderTask):
 
         return deleted_data
 
-    def _soft_delete_data_from_table(self, database, table_parameters, data):
+    def _delete_data_from_table(self, database, table_parameters, data):
         if not data.empty:
             deleted_models = self._get_deleted_models_from_table(database, table_parameters, data)
 
@@ -249,7 +249,7 @@ class ORMLoaderTask(LoaderTask):
                 self._update_row_of_table(database, table_parameters, model)
 
     @classmethod
-    def _delete_data_from_table(cls, database, table_parameters, data):
+    def _soft_delete_data_from_table(cls, database, table_parameters, data):
         if not data.empty:
             deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
 
