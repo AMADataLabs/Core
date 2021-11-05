@@ -22,3 +22,11 @@ class ZipTransformerTask(TransformerTask):
                 zip_file.writestr(file, data)
 
         return [bytes(zip_data.getbuffer())]
+
+
+class UnzipTransformerTask(TransformerTask):
+    def _transform(self) -> 'Transformed Data':
+        zip_data = BytesIO(self._parameters['data'][0])
+        zip_file = ZipFile(zip_data)
+
+        return [bytes(zip_file.read(file)) for file in zip_file.infolist()]
