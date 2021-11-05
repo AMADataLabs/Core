@@ -10,8 +10,6 @@
 # Adapted from https://github.com/zladovan/monorepo/blob/master/tools/ci/core/build.sh
 ##
 
-set -ex
-
 echo $(python3.7 --version)
 
 # Find script directory (no support for symlinks)

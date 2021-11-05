@@ -69,9 +69,6 @@ class ORMLoaderTask(LoaderTask):
 
                 self._update(database, table_parameters)
 
-            # pylint: disable=no-member
-            database.commit()
-
     def _get_database(self):
         return Database.from_parameters(
             dict(
@@ -195,17 +192,23 @@ class ORMLoaderTask(LoaderTask):
         else:
             self._delete_data_from_table(database, table_parameters, deleted_data)
 
+        database.commit()  # pylint: disable=no-member
+
     @classmethod
     def _update_data(cls, database, table_parameters):
         updated_data = cls._select_updated_data(table_parameters)
 
         cls._update_data_in_table(database, table_parameters, updated_data)
 
+        database.commit()  # pylint: disable=no-member
+
     @classmethod
     def _add_data(cls, database, table_parameters):
         added_data = cls._select_new_data(table_parameters)
 
         cls._add_data_to_table(database, table_parameters, added_data)
+
+        database.commit()  # pylint: disable=no-member
 
     @classmethod
     def _quote_keyword(cls, column):
