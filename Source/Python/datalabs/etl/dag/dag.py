@@ -11,6 +11,7 @@ class DAGTask:
         self._id = task_id
         self._task_class = task_class
         self._successors = []
+        self._predecessors = []
         self._dag = None
         self._ready = True
         self._status = Status.UNKNOWN
@@ -34,6 +35,10 @@ class DAGTask:
         return self._successors
 
     @property
+    def predecessors(self):
+        return self._predecessors
+
+    @property
     def ready(self):
         return self._ready
 
@@ -47,6 +52,7 @@ class DAGTask:
 
     def __rshift__(self, other: 'DAGTask'):
         self._successors.append(other)
+        other._predecessors.append(self)
 
         return other
 
@@ -121,6 +127,34 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             raise ValueError(f'DAG {cls.__name__} has no task {task}')
 
         return dag_task.task_class
+
+    @classmethod
+    def downstream_tasks(cls, task: str):
+        dag_task = cls.__task_classes__.get(task)
+        downstream_tasks = []
+
+        if dag_task is None:
+            raise ValueError(f'DAG {cls.__name__} has no task {task}')
+
+        for successor in dag_task.successors:
+            downstream_tasks.append(successor.id)
+            downstream_tasks += cls.downstream_tasks(successor.id)
+
+        return downstream_tasks
+
+    @classmethod
+    def upstream_tasks(cls, task: str):
+        dag_task = cls.__task_classes__.get(task)
+        upstream_tasks = []
+
+        if dag_task is None:
+            raise ValueError(f'DAG {cls.__name__} has no task {task}')
+
+        for predecessor in dag_task.predecessors:
+            upstream_tasks.append(predecessor.id)
+            upstream_tasks += cls.upstream_tasks(predecessor.id)
+
+        return upstream_tasks
 
     @classmethod
     def sequence(cls, task, count, start=None):

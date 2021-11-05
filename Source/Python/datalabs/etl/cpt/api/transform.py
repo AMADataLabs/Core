@@ -53,7 +53,7 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         releases = non_pla_release.append(pla_release, ignore_index=True)
         releases = releases.drop_duplicates(ignore_index=True)
 
-        releases['id'] = releases.index
+        releases['id'] = releases.apply(cls._get_release_id, axis=1)
 
         return releases
 
@@ -76,6 +76,10 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 
         return pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
+
+    @classmethod
+    def _get_release_id(cls, release):
+        return int(str(release.publish_date).replace('-', ''))
 
     @classmethod
     def _get_unique_dates_from_history(cls, code_history):
