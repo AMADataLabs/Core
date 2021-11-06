@@ -1,5 +1,6 @@
 """ DynamoDB DAG state classes. """
 from   dataclasses import dataclass
+import logging
 import time
 
 import boto3
@@ -7,6 +8,10 @@ import botocore
 
 from   datalabs.etl.dag.state.base import State, Status
 from   datalabs.parameter import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class DynamoDBClientMixin:
@@ -134,6 +139,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
     def _set_status_if_later(self, dynamodb, primary_key: str, execution_time: str, status: Status):
         succeeded = False
         current_status = self._get_status_from_state(dynamodb, primary_key, execution_time)
+        LOGGER.debug('Setting status of %s from %s to %s', primary_key, current_status, status)
 
         if status > current_status:
             self._set_state(dynamodb, primary_key, execution_time, status)

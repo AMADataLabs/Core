@@ -75,4 +75,5 @@ class TaskProcessorTask(PluginExecutorMixin, Task):
         if not set_succeeded:
             raise ValueError(f'Task {task} for DAG {dag} has already been run for execution time {execution_time}')
 
+        LOGGER.info('Running task %s of dag %s...', task, dag)
         executor.run()
