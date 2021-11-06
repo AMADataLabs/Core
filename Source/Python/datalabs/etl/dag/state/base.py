@@ -18,7 +18,7 @@ class Status(Enum):
         greater_than = False
         successors = [s[1] for s in dropwhile(lambda item: item[1] != other, self.__class__.__members__.items())][1:]
 
-        if self != Status.FINISHED and self in successors:
+        if (other != Status.FINISHED) and self in successors:
             greater_than = True
 
         return greater_than
