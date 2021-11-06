@@ -287,7 +287,7 @@ class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
     def _generate_id(cls, mapping):
         last_summand = int(ord(mapping.code[-1]))
 
-        if last_summand >= 48 and last_summand <= 57:  # between '0' and '9'
+        if 48 <= last_summand <= 57:  # between '0' and '9'
             last_summand = int(mapping.code[-1])
 
         return int((mapping.release + mapping.code[:-1] + str(last_summand))[-10:])
@@ -646,9 +646,9 @@ class ManufacturerTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTas
 
     @classmethod
     def _generate_id(cls, manufacturer):
-        hash = hashlib.md5(manufacturer['name'].encode('utf-8')).hexdigest()
+        name_hash = hashlib.md5(manufacturer['name'].encode('utf-8')).hexdigest()
         prefix = ''.join(str(ord(x)-65) for x in re.sub('[^a-zA-Z0-9]', '', manufacturer['name']))[-6:]
-        suffix = ''.join(str(ord(x)-48) for x in hash)[-5:]
+        suffix = ''.join(str(ord(x)-48) for x in name_hash)[-5:]
 
         return int(prefix + suffix)
 
@@ -719,9 +719,9 @@ class LabTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 
     @classmethod
     def _generate_id(cls, lab):
-        hash = hashlib.md5(lab['name'].encode('utf-8')).hexdigest()
+        name_hash = hashlib.md5(lab['name'].encode('utf-8')).hexdigest()
         prefix = ''.join(str(ord(x)-65) for x in re.sub('[^a-zA-Z0-9]', '', lab['name']))[-6:]
-        suffix = ''.join(str(ord(x)-48) for x in hash)[-5:]
+        suffix = ''.join(str(ord(x)-48) for x in name_hash)[-5:]
 
         return int(prefix + suffix)
 
