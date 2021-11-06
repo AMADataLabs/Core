@@ -13,6 +13,7 @@ class Status(Enum):
     FINISHED = 'Finished'
     FAILED = 'Failed'
 
+    # pylint: disable=no-member
     def __gt__(self, other):
         greater_than = False
         successors = [s[1] for s in dropwhile(lambda item: item[1] != other, self.__class__.__members__.items())][1:]
