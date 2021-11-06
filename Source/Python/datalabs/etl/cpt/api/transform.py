@@ -647,8 +647,8 @@ class ManufacturerTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTas
     @classmethod
     def _generate_id(cls, manufacturer):
         name_hash = hashlib.md5(manufacturer['name'].encode('utf-8')).hexdigest()
-        prefix = ''.join(str(ord(x)-65) for x in re.sub('[^a-zA-Z0-9]', '', manufacturer['name']))[-5:]
-        suffix = ''.join(str(ord(x)-48) for x in name_hash)[-4:]
+        prefix = ''.join(str(ord(x)-65) for x in re.sub('[^a-zA-Z0-9]', '', manufacturer['name']))[-3:]
+        suffix = ''.join(str(ord(x)-48) for x in name_hash)[-6:]
 
         return int(prefix + suffix)
 
@@ -720,8 +720,8 @@ class LabTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     @classmethod
     def _generate_id(cls, lab):
         name_hash = hashlib.md5(lab['name'].encode('utf-8')).hexdigest()
-        prefix = ''.join(str(ord(x)-65) for x in re.sub('[^a-zA-Z0-9]', '', lab['name']))[-5:]
-        suffix = ''.join(str(ord(x)-48) for x in name_hash)[-4:]
+        prefix = ''.join(str(ord(x)-65) for x in re.sub('[^a-zA-Z0-9]', '', lab['name']))[-3:]
+        suffix = ''.join(str(ord(x)-48) for x in name_hash)[-6:]
 
         return int(prefix + suffix)
 
