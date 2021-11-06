@@ -26,21 +26,25 @@ class DynamoDBClientMixin:
 
 
 class LockingStateMixin():
+    TIMEOUT_SECONDS = 30
+
     def _lock_state(self, dynamodb, lock_id):
         locked = False
+        start_time = time.time()
 
-        try:
-            dynamodb.put_item(
-                TableName=self._parameters.state_lock_table,
-                Item={'LockID': {'S': lock_id}, 'ttl': {'N': str(time.time()+30)}},
-                ConditionExpression="attribute_not_exists(#r)",
-                ExpressionAttributeNames={"#r": "LockID"}
-            )
+        while not locked and (time.time()-start_time) < self.TIMEOUT_SECONDS:
+            try:
+                dynamodb.put_item(
+                    TableName=self._parameters.state_lock_table,
+                    Item={'LockID': {'S': lock_id}, 'ttl': {'N': str(time.time()+30)}},
+                    ConditionExpression="attribute_not_exists(#r)",
+                    ExpressionAttributeNames={"#r": "LockID"}
+                )
 
-            locked = True
-        except botocore.exceptions.ClientError as exception:
-            if exception.response['Error']['Code'] != 'ConditionalCheckFailedException':
-                raise
+                locked = True
+            except botocore.exceptions.ClientError as exception:
+                if exception.response['Error']['Code'] != 'ConditionalCheckFailedException':
+                    raise
 
         return locked
 
