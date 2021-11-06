@@ -52,7 +52,6 @@ class LockingStateMixin():
         unlocked = False
 
         try:
-
             dynamodb.delete_item(
                 TableName=self._parameters.state_lock_table,
                 Key={'LockID': {'S': lock_id}},
