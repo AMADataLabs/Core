@@ -87,10 +87,10 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         return self._get_status(dag, task, execution_time)
 
     def set_dag_status(self, dag: str, execution_time: str, status: Status):
-        self._set_status(dag, None, execution_time, status)
+        return self._set_status(dag, None, execution_time, status)
 
     def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
-        self._set_status(dag, task, execution_time, status)
+        return self._set_status(dag, task, execution_time, status)
 
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
