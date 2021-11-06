@@ -102,7 +102,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         locked = self._lock_state(dynamodb, lock_id)
 
         if locked:
-            succeeded = self._set_status_if_later(dynamodb, primary_key, execution_time)
+            succeeded = self._set_status_if_later(dynamodb, primary_key, execution_time, status)
 
         self._unlock_state(dynamodb, lock_id)
 
