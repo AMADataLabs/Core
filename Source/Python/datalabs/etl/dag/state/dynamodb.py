@@ -88,33 +88,25 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         self._set_status(dag, task, execution_time, status)
 
     def _get_status(self, dag: str, task: str, execution_time: str):
-        status = Status.UNKNOWN
         primary_key = self._get_primary_key(dag, task)
-        lock_id = self._get_lock_id(primary_key, execution_time)
-        state = None
         dynamodb = self._connect()
 
-        self._lock_state(dynamodb, lock_id)
-
-        state  = self._get_state(dynamodb, primary_key, execution_time)
-
-        self._unlock_state(dynamodb, lock_id)
-
-        if "Item" in state:
-            status = Status(state["Item"]["status"]["S"])
-
-        return status
+        return self._get_status_from_state(dynamodb, primary_key, execution_time)
 
     def _set_status(self, dag: str, task: str, execution_time: str, status: Status):
         primary_key = self._get_primary_key(dag, task)
         lock_id = self._get_lock_id(primary_key, execution_time)
         dynamodb = self._connect()
+        succeeded = False
 
-        self._lock_state(dynamodb, lock_id)
+        locked = self._lock_state(dynamodb, lock_id)
 
-        self._set_state(dynamodb, primary_key, execution_time, status)
+        if locked:
+            succeeded = self._set_status_if_later(dynamodb, primary_key, execution_time)
 
         self._unlock_state(dynamodb, lock_id)
+
+        return succeeded
 
     @classmethod
     def _get_primary_key(cls, dag: str, task: str):
@@ -128,6 +120,27 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
     @classmethod
     def _get_lock_id(cls, primary_key: str, execution_time: str):
         return primary_key + "__" + execution_time
+
+    def _get_status_from_state(self, dynamodb, primary_key: str, execution_time: str):
+        status = Status.UNKNOWN
+
+        state  = self._get_state(dynamodb, primary_key, execution_time)
+
+        if "Item" in state:
+            status = Status(state["Item"]["status"]["S"])
+
+        return status
+
+    def _set_status_if_later(self, dynamodb, primary_key: str, execution_time: str, status: Status):
+        succeeded = False
+        current_status = self._get_status_from_state(dynamodb, primary_key, execution_time)
+
+        if status > current_status:
+            self._set_state(dynamodb, primary_key, execution_time, status)
+
+            succeeded = True
+
+        return succeeded
 
     def _get_state(self, dynamodb, primary_key: str, execution_time: str):
         items = dynamodb.get_item(
