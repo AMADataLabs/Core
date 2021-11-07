@@ -70,6 +70,10 @@ class TaskProcessorTask(PluginExecutorMixin, Task):
         if status != Status.UNKNOWN:
             raise ValueError(f'Task {task} for DAG {dag} has already been run for execution time {execution_time}')
 
-        state.set_task_status(dag, task, execution_time, Status.PENDING)
+        set_succeeded = state.set_task_status(dag, task, execution_time, Status.PENDING)
 
+        if not set_succeeded:
+            raise ValueError(f'Task {task} for DAG {dag} has already been run for execution time {execution_time}')
+
+        LOGGER.info('Running task %s of dag %s...', task, dag)
         executor.run()

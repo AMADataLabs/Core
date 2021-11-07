@@ -1,5 +1,6 @@
 """ DynamoDB DAG state classes. """
 from   dataclasses import dataclass
+import logging
 import time
 
 import boto3
@@ -7,6 +8,10 @@ import botocore
 
 from   datalabs.etl.dag.state.base import State, Status
 from   datalabs.parameter import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class DynamoDBClientMixin:
@@ -21,21 +26,25 @@ class DynamoDBClientMixin:
 
 
 class LockingStateMixin():
+    TIMEOUT_SECONDS = 30
+
     def _lock_state(self, dynamodb, lock_id):
         locked = False
+        start_time = time.time()
 
-        try:
-            dynamodb.put_item(
-                TableName=self._parameters.state_lock_table,
-                Item={'LockID': {'S': lock_id}, 'ttl': {'N': str(time.time()+30)}},
-                ConditionExpression="attribute_not_exists(#r)",
-                ExpressionAttributeNames={"#r": "LockID"}
-            )
+        while not locked and (time.time()-start_time) < self.TIMEOUT_SECONDS:
+            try:
+                dynamodb.put_item(
+                    TableName=self._parameters.state_lock_table,
+                    Item={'LockID': {'S': lock_id}, 'ttl': {'N': str(time.time()+30)}},
+                    ConditionExpression="attribute_not_exists(#r)",
+                    ExpressionAttributeNames={"#r": "LockID"}
+                )
 
-            locked = True
-        except botocore.exceptions.ClientError as exception:
-            if exception.response['Error']['Code'] != 'ConditionalCheckFailedException':
-                raise
+                locked = True
+            except botocore.exceptions.ClientError as exception:
+                if exception.response['Error']['Code'] != 'ConditionalCheckFailedException':
+                    raise
 
         return locked
 
@@ -43,7 +52,6 @@ class LockingStateMixin():
         unlocked = False
 
         try:
-
             dynamodb.delete_item(
                 TableName=self._parameters.state_lock_table,
                 Key={'LockID': {'S': lock_id}},
@@ -82,39 +90,31 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         return self._get_status(dag, task, execution_time)
 
     def set_dag_status(self, dag: str, execution_time: str, status: Status):
-        self._set_status(dag, None, execution_time, status)
+        return self._set_status(dag, None, execution_time, status)
 
     def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
-        self._set_status(dag, task, execution_time, status)
+        return self._set_status(dag, task, execution_time, status)
 
     def _get_status(self, dag: str, task: str, execution_time: str):
-        status = Status.UNKNOWN
         primary_key = self._get_primary_key(dag, task)
-        lock_id = self._get_lock_id(primary_key, execution_time)
-        state = None
         dynamodb = self._connect()
 
-        self._lock_state(dynamodb, lock_id)
-
-        state  = self._get_state(dynamodb, primary_key, execution_time)
-
-        self._unlock_state(dynamodb, lock_id)
-
-        if "Item" in state:
-            status = Status(state["Item"]["status"]["S"])
-
-        return status
+        return self._get_status_from_state(dynamodb, primary_key, execution_time)
 
     def _set_status(self, dag: str, task: str, execution_time: str, status: Status):
         primary_key = self._get_primary_key(dag, task)
         lock_id = self._get_lock_id(primary_key, execution_time)
         dynamodb = self._connect()
+        succeeded = False
 
-        self._lock_state(dynamodb, lock_id)
+        locked = self._lock_state(dynamodb, lock_id)
 
-        self._set_state(dynamodb, primary_key, execution_time, status)
+        if locked:
+            succeeded = self._set_status_if_later(dynamodb, primary_key, execution_time, status)
 
         self._unlock_state(dynamodb, lock_id)
+
+        return succeeded
 
     @classmethod
     def _get_primary_key(cls, dag: str, task: str):
@@ -128,6 +128,28 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
     @classmethod
     def _get_lock_id(cls, primary_key: str, execution_time: str):
         return primary_key + "__" + execution_time
+
+    def _get_status_from_state(self, dynamodb, primary_key: str, execution_time: str):
+        status = Status.UNKNOWN
+
+        state  = self._get_state(dynamodb, primary_key, execution_time)
+
+        if "Item" in state:
+            status = Status(state["Item"]["status"]["S"])
+
+        return status
+
+    def _set_status_if_later(self, dynamodb, primary_key: str, execution_time: str, status: Status):
+        succeeded = False
+        current_status = self._get_status_from_state(dynamodb, primary_key, execution_time)
+        LOGGER.debug('Setting status of %s from %s to %s', primary_key, current_status, status)
+
+        if status > current_status:
+            self._set_state(dynamodb, primary_key, execution_time, status)
+
+            succeeded = True
+
+        return succeeded
 
     def _get_state(self, dynamodb, primary_key: str, execution_time: str):
         items = dynamodb.get_item(

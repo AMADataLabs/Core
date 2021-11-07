@@ -116,13 +116,19 @@ class SFTPDirectoryListingExtractorTask(SFTPFileExtractorTask):
     PARAMETER_CLASS = SFTPFileExtractorParameters
 
     def _resolve_wildcard(self, file):
-        if '*' in file:
-            raise ETLException(
-                "'files' parameter must not contain '*', "
-                "it is a comma-separated list of directories"
-            )
+        resolved_files = [file]
 
-        return [file]
+        if '*' in file:
+            file_parts = file.split('*')
+            base_path = os.path.dirname(file_parts[0])
+            unresolved_file = f'{os.path.basename(file_parts[0])}*{file_parts[1]}'
+            matched_files = self._client.list_directory(base_path, filter=unresolved_file)
+            resolved_files = [os.path.join(base_path, file) for file in matched_files]
+
+            if len(resolved_files) == 0:
+                raise FileNotFoundError(f"Unable to find directory '{file}'")
+
+        return resolved_files
 
     def _extract_file(self, file):
         directory = file

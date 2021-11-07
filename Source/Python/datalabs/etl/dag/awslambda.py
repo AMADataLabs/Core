@@ -211,7 +211,10 @@ class DAGTaskWrapper(
         else:
             state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
 
-            state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FINISHED)
+            success = state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FINISHED)
+
+            if not success:
+                LOGGER.error('Unable to set status of task %s of dag %s to Finished', parameters.task, parameters.dag)
 
             self._notify_dag_processor()
 
@@ -225,7 +228,10 @@ class DAGTaskWrapper(
         if parameters.task != "DAG":
             state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
 
-            state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FAILED)
+            success = state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FAILED)
+
+            if not success:
+                LOGGER.error('Unable to set status of task %s of dag %s to Failed', parameters.task, parameters.dag)
 
             self._notify_dag_processor()
 

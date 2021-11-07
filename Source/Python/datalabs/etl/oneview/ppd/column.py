@@ -124,7 +124,7 @@ MEDICAL_STUDENT_COLUMNS = {
     'metro_micro_indicator': 'Micro_Metro_ind',
     'cbsa': 'CBSA',
     'cbsa_division_indicator': 'CBSA_devision',
-    'school_name': 'gradSchoolCd',
+    'grad_school_cd': 'gradSchoolCd',
     'school_state': 'gradSchoolState',
     'grad_year': 'gradYear',
     'birth_year': 'birthYear',

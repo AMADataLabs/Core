@@ -2,7 +2,9 @@
 from   enum import Enum
 from   dataclasses import dataclass
 from   datetime import datetime, date
+import hashlib
 import logging
+import re
 
 import pandas
 
@@ -53,7 +55,7 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         releases = non_pla_release.append(pla_release, ignore_index=True)
         releases = releases.drop_duplicates(ignore_index=True)
 
-        releases['id'] = releases.index
+        releases['id'] = releases.apply(cls._generate_id, axis=1)
 
         return releases
 
@@ -76,6 +78,13 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 
         return pandas.DataFrame(
             {'publish_date': publish_dates, 'effective_date': effective_dates, 'type': release_types})
+
+    @classmethod
+    def _generate_id(cls, release):
+        publish_date = str(release.publish_date).replace('-', '')
+        difference = str((release.publish_date - release.effective_date).days)
+
+        return int(publish_date) + int(difference)
 
     @classmethod
     def _get_unique_dates_from_history(cls, code_history):
@@ -242,7 +251,7 @@ class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
         mapping_table.release = mapping_table.id
         mapping_table.drop_duplicates(subset='code', keep='first', inplace=True, ignore_index=True)
 
-        mapping_table['id'] = mapping_table.index
+        mapping_table['id'] = mapping_table.apply(cls._generate_id, axis=1)
 
         return mapping_table[['id', 'release', 'code']]
 
@@ -273,6 +282,15 @@ class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
             lambda x: datetime.strptime(x, '%Y-%m-%dT%H:%M:%S%z').strftime('%Y-%m-%d'))
 
         return pla_mapping_table
+
+    @classmethod
+    def _generate_id(cls, mapping):
+        last_summand = int(ord(mapping.code[-1]))
+
+        if 48 <= last_summand <= 57:  # between '0' and '9'
+            last_summand = int(mapping.code[-1])
+
+        return int((mapping.release + mapping.code[:-1] + str(last_summand))[-9:])
 
 
 class DescriptorTransformerMixin:
@@ -393,9 +411,13 @@ class ModifierTypeTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTas
 
         non_asc_modifier_types = modifier_types[modifier_types.name != 'Ambulatory Service Center']
 
-        non_asc_modifier_types['id'] = non_asc_modifier_types.index
+        non_asc_modifier_types['id'] = non_asc_modifier_types.apply(cls._generate_id, axis=1)
 
         return non_asc_modifier_types
+
+    @classmethod
+    def _generate_id(cls, modifier_type):
+        return int(''.join(str(ord(x)-65) for x in modifier_type['name'].replace(' ', ''))[-9:])
 
 
 @add_schema
@@ -617,10 +639,18 @@ class ManufacturerTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTas
         manufacturer_table = manufacturer_table.dropna()
         manufacturer_table = manufacturer_table.drop_duplicates('name')
 
-        manufacturer_table['id'] = manufacturer_table.index
+        manufacturer_table['id'] = manufacturer_table.apply(cls._generate_id, axis=1)
         manufacturer_table['modified_date'] = execution_date
 
         return manufacturer_table
+
+    @classmethod
+    def _generate_id(cls, manufacturer):
+        name_hash = hashlib.md5(manufacturer['name'].encode('utf-8')).hexdigest()
+        prefix = ''.join(str(ord(x)-65) for x in re.sub('[^a-zA-Z0-9]', '', manufacturer['name']))[-3:]
+        suffix = ''.join(str(ord(x)-48) for x in name_hash)[-6:]
+
+        return int(prefix + suffix)
 
 
 @add_schema
@@ -682,10 +712,18 @@ class LabTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         lab_table = lab_table.dropna()
         lab_table = lab_table.drop_duplicates('name')
 
-        lab_table['id'] = lab_table.index
+        lab_table['id'] = lab_table.apply(cls._generate_id, axis=1)
         lab_table['modified_date'] = execution_date
 
         return lab_table
+
+    @classmethod
+    def _generate_id(cls, lab):
+        name_hash = hashlib.md5(lab['name'].encode('utf-8')).hexdigest()
+        prefix = ''.join(str(ord(x)-65) for x in re.sub('[^a-zA-Z0-9]', '', lab['name']))[-3:]
+        suffix = ''.join(str(ord(x)-48) for x in name_hash)[-6:]
+
+        return int(prefix + suffix)
 
 
 @add_schema

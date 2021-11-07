@@ -10,8 +10,6 @@
 # Adapted from https://github.com/zladovan/monorepo/blob/master/tools/ci/core/build.sh
 ##
 
-set -ex
-
 echo $(python3.7 --version)
 
 # Find script directory (no support for symlinks)
@@ -48,9 +46,15 @@ if [[ -f $(git rev-parse --git-dir)/shallow ]]; then
     fi
 fi
 
+Script/setup-virtual-environment Master/BitBucketPipelines
+export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+
 # Run tests
 echo "Running tests..."
-CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
+if [[ $BITBUCKET_BRANCH != 'master' ]]; then
+    CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
+fi
 
 # Collect all modified projects
 PROJECTS_TO_BUILD=$($DIR/list-projects-to-build.sh $COMMIT_RANGE)

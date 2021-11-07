@@ -19,6 +19,9 @@ clean-test:
 	rm -f ${CWD}/Test/Python/test/datalabs/environment/*_template.txt
 
 lint:
+	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy $(shell find ${CWD}/Source/Python/datalabs -name "*.py"  | grep -v ${CWD}/Source/Python/datalabs/airflow | tr '\n' ' ') $(shell find ${CWD}/Test/Python/test/datalabs -name "*.py" | tr '\n' ' ')
+
+lint-old:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${CWD}/Source/Python/datalabs/* ${CWD}/Test/Python/test/datalabs/*
 
 lint-source:
