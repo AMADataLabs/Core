@@ -5,6 +5,7 @@ import pickle
 from   zipfile import ZipFile
 
 from datalabs.etl.transform import TransformerTask
+from datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -24,9 +25,15 @@ class ZipTransformerTask(TransformerTask):
         return [bytes(zip_data.getbuffer())]
 
 
-class UnzipTransformerTask(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        zip_data = BytesIO(self._parameters['data'][0])
-        zip_file = ZipFile(zip_data)
+class UnzipTransformerTask(FileExtractorTask, IncludeNamesMixin):
+    def _get_client(self) -> 'Context Manager':
+        return ZipFile(BytesIO(self._parameters['data'][0]))
 
-        return [bytes(zip_file.read(file)) for file in zip_file.infolist()]
+    def _get_files(self) -> list:
+        return self._client.namelist()
+
+    def _extract_file(self, file):
+        return self._client.read(file)
+
+    def _resolve_wildcard(self, file):
+        return [file]
