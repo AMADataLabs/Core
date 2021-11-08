@@ -10,8 +10,6 @@
 # Adapted from https://github.com/zladovan/monorepo/blob/master/tools/ci/core/build.sh
 ##
 
-set -ex
-
 echo $(python3.7 --version)
 
 # Find script directory (no support for symlinks)
@@ -47,6 +45,10 @@ if [[ -f $(git rev-parse --git-dir)/shallow ]]; then
         done
     fi
 fi
+
+Script/setup-virtual-environment Master/BitBucketPipelines
+export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Run tests
 echo "Running tests..."

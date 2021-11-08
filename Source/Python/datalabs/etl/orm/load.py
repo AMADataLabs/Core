@@ -69,8 +69,7 @@ class ORMLoaderTask(LoaderTask):
 
                 self._update(database, table_parameters)
 
-            # pylint: disable=no-member
-            database.commit()
+                database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
         return Database.from_parameters(
@@ -123,12 +122,13 @@ class ORMLoaderTask(LoaderTask):
         return schema
 
     def _update(self, database, table_parameters):
-        self._add_data(database, table_parameters)
+        if self._parameters.append is None or self._parameters.append.upper() != 'TRUE':
+            self._delete_data(database, table_parameters)
 
         self._update_data(database, table_parameters)
 
-        if self._parameters.append is None or self._parameters.append.upper() != 'TRUE':
-            self._delete_data(database, table_parameters)
+        self._add_data(database, table_parameters)
+
 
     @classmethod
     def _get_primary_key(cls, database, schema, table):
@@ -186,18 +186,6 @@ class ORMLoaderTask(LoaderTask):
 
         return incoming_hashes
 
-    @classmethod
-    def _add_data(cls, database, table_parameters):
-        added_data = cls._select_new_data(table_parameters)
-
-        cls._add_data_to_table(database, table_parameters, added_data)
-
-    @classmethod
-    def _update_data(cls, database, table_parameters):
-        updated_data = cls._select_updated_data(table_parameters)
-
-        cls._update_data_in_table(database, table_parameters, updated_data)
-
     def _delete_data(self, database, table_parameters):
         deleted_data = self._select_deleted_data(table_parameters)
 
@@ -205,6 +193,18 @@ class ORMLoaderTask(LoaderTask):
             self._soft_delete_data_from_table(database, table_parameters, deleted_data)
         else:
             self._delete_data_from_table(database, table_parameters, deleted_data)
+
+    @classmethod
+    def _update_data(cls, database, table_parameters):
+        updated_data = cls._select_updated_data(table_parameters)
+
+        cls._update_data_in_table(database, table_parameters, updated_data)
+
+    @classmethod
+    def _add_data(cls, database, table_parameters):
+        added_data = cls._select_new_data(table_parameters)
+
+        cls._add_data_to_table(database, table_parameters, added_data)
 
     @classmethod
     def _quote_keyword(cls, column):
@@ -225,27 +225,33 @@ class ORMLoaderTask(LoaderTask):
         return ','.join(cls._unquote_term(column) for column in simplified_boolean_columns)
 
     @classmethod
-    def _select_new_data(cls, table_parameters):
-        LOGGER.debug('DB data PK type: %s', table_parameters.current_hashes[table_parameters.primary_key].dtype)
-        LOGGER.debug('Incoming data PK type: %s', table_parameters.data[table_parameters.primary_key].dtype)
-        selected_data = table_parameters.data[
-            ~table_parameters.data[table_parameters.primary_key].isin(
-                table_parameters.current_hashes[table_parameters.primary_key]
+    def _select_deleted_data(cls, table_parameters):
+        deleted_data = table_parameters.current_hashes[
+            ~table_parameters.current_hashes[table_parameters.primary_key].isin(
+                table_parameters.data[table_parameters.primary_key]
             )
         ].reset_index(drop=True)
-        LOGGER.debug('Selected Data: %s', selected_data)
-        LOGGER.debug('Incoming Data Size: %d', len(table_parameters.data))
-        LOGGER.debug('Selected Data Size: %d', len(selected_data))
+        LOGGER.debug('Deleted Data: %s', deleted_data)
 
-        return selected_data
+        return deleted_data
+
+    def _soft_delete_data_from_table(self, database, table_parameters, data):
+        if not data.empty:
+            deleted_models = self._get_deleted_models_from_table(database, table_parameters, data)
+
+            for model in deleted_models:
+                LOGGER.debug('Soft deleting row: %s', getattr(model, table_parameters.primary_key))
+                setattr(model, self._parameters.soft_delete_column, True)
+                self._update_row_of_table(database, table_parameters, model)
 
     @classmethod
-    def _add_data_to_table(cls, database, table_parameters, data):
+    def _delete_data_from_table(cls, database, table_parameters, data):
         if not data.empty:
-            models = cls._create_models(table_parameters.model_class, data)
+            deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
 
-            for model in models:
-                database.add(model)  # pylint: disable=no-member
+            for model in deleted_models:
+                LOGGER.debug('Deleting row: %s', getattr(model, table_parameters.primary_key))
+                database.delete(model)  # pylint: disable=no-member
 
     @classmethod
     def _select_updated_data(cls, table_parameters):
@@ -280,43 +286,27 @@ class ORMLoaderTask(LoaderTask):
                 cls._update_row_of_table(database, table_parameters, model)
 
     @classmethod
-    def _select_deleted_data(cls, table_parameters):
-        deleted_data = table_parameters.current_hashes[
-            ~table_parameters.current_hashes[table_parameters.primary_key].isin(
-                table_parameters.data[table_parameters.primary_key]
+    def _select_new_data(cls, table_parameters):
+        LOGGER.debug('DB data PK type: %s', table_parameters.current_hashes[table_parameters.primary_key].dtype)
+        LOGGER.debug('Incoming data PK type: %s', table_parameters.data[table_parameters.primary_key].dtype)
+        selected_data = table_parameters.data[
+            ~table_parameters.data[table_parameters.primary_key].isin(
+                table_parameters.current_hashes[table_parameters.primary_key]
             )
         ].reset_index(drop=True)
-        LOGGER.debug('Deleted Data: %s', deleted_data)
+        LOGGER.debug('Selected Data: %s', selected_data)
+        LOGGER.debug('Incoming Data Size: %d', len(table_parameters.data))
+        LOGGER.debug('Selected Data Size: %d', len(selected_data))
 
-        return deleted_data
-
-    @classmethod
-    def _delete_data_from_table(cls, database, table_parameters, data):
-        if not data.empty:
-            deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
-
-            for model in deleted_models:
-                LOGGER.debug('Deleting row: %s', model[table_parameters.primary_key])
-                database.delete(model)  # pylint: disable=no-member
-
-    def _soft_delete_data_from_table(self, database, table_parameters, data):
-        if not data.empty:
-            deleted_models = self._get_deleted_models_from_table(database, table_parameters, data)
-
-            for model in deleted_models:
-                LOGGER.debug('Soft deleting row: %s', getattr(model, table_parameters.primary_key))
-                setattr(model, self._parameters.soft_delete_column, True)
-                self._update_row_of_table(database, table_parameters, model)
+        return selected_data
 
     @classmethod
-    def _unquote_term(cls, csv_column):
-        quoted_csv_column = csv_column
-        match = re.match(r'".*[, ].*"|""', csv_column)  # match quoted strings with spaces or commas
+    def _add_data_to_table(cls, database, table_parameters, data):
+        if not data.empty:
+            models = cls._create_models(table_parameters.model_class, data)
 
-        if match is None:
-            quoted_csv_column = f'{csv_column[1:-1]}'
-
-        return quoted_csv_column
+            for model in models:
+                database.add(model)  # pylint: disable=no-member
 
     @classmethod
     def _replace_boolean(cls, quoted_column):
@@ -328,6 +318,16 @@ class ORMLoaderTask(LoaderTask):
             column = '"f"'
 
         return column
+
+    @classmethod
+    def _unquote_term(cls, csv_column):
+        quoted_csv_column = csv_column
+        match = re.match(r'".*[, ].*"|""', csv_column)  # match quoted strings with spaces or commas
+
+        if match is None:
+            quoted_csv_column = f'{csv_column[1:-1]}'
+
+        return quoted_csv_column
 
     @classmethod
     def _create_models(cls, model_class, data):
