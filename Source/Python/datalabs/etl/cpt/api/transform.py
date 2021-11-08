@@ -285,12 +285,12 @@ class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
 
     @classmethod
     def _generate_id(cls, mapping):
-        last_summand = int(ord(mapping.code[-1]))
+        suffix = ord(mapping.code[-1])
 
-        if 48 <= last_summand <= 57:  # between '0' and '9'
-            last_summand = int(mapping.code[-1])
+        if 48 <= suffix <= 57:  # between '0' and '9'
+            suffix = int(mapping.code[-1])
 
-        return int((mapping.release + mapping.code[:-1] + str(last_summand))[-9:])
+        return int(mapping.code[:-1]) * 100 + suffix
 
 
 class DescriptorTransformerMixin:
