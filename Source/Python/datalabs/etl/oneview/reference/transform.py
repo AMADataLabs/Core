@@ -143,8 +143,8 @@ class ClassOfTradeTransformerTask(TransformerTask):
     def _add_facility_defaults(cls, facility_data):
         facility_data = facility_data.append(
             pandas.DataFrame(
-                data={'FACILITY_TYPE_ID': ['52', '53', '59', '63', '69', '70', '75', '76', '78'],
-                      'FACILITY_TYPE': ['Other Supply', 'Warehouse', 'Other Government', 'Other Pharmacy',
+                data={'FACILITY_TYPE_ID': ['52', '53', '54', '59', '63', '69', '70', '75', '76', '78'],
+                      'FACILITY_TYPE': ['Other Supply', 'Warehouse', 'Wholesaler', 'Other Government', 'Other Pharmacy',
                                         'Distributor - Medical/Surgical Supply', 'Distributor - Pharmaceutical Supply',
                                         'Internet', 'Non-Retail Pharmacy', 'Support Services']}
             )
