@@ -18,37 +18,47 @@ class HCPCSParserParameters:
     on_disk: str = False
     assume_role: str = None
     data: object = None
+    url: str = None
 
 
 # pylint: disable=too-many-ancestors
-class HCPCSListingExtractorTask(ExtractorTask):
+class HCPCSQuarterlyUpdateReportURLExtractorTask(ExtractorTask):
     PARAMETER_CLASS = HCPCSParserParameters
 
     def _extract(self):
-        page = requests.get("https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets/HCPCS-Quarterly-Update")
+        url_list = self._get_quarterly_update_report_urls(self._parameters.url)
+
+        latest_url = self._select_latest_quarterly_update_report_url(url_list)
+
+        return [latest_url.encode()]
+
+    def _get_quarterly_update_report_urls(self, url):
+        page = requests.get(url)
         soup = BeautifulSoup(page.content, "html.parser")
-        quarterly_update_reports = soup.find(id="block-cms-drupal-global-content").find('ul').find_all("li")
 
+        return soup.find(id="block-cms-drupal-global-content").find('ul').find_all("li")
+
+    def _select_latest_quarterly_update_report_url(self, url_list):
         reports = {}
-        months = {'january': '01',
-                  'february': '02',
-                  'march': '03',
-                  'april': '04',
-                  'may': '05',
-                  'june': '06',
-                  'july': '07',
-                  'august': '08',
-                  'september': '09',
-                  'october': '10',
-                  'november': '11',
-                  'december': '12'}
+        months = {
+            'january': '01',
+            'february': '02',
+            'march': '03',
+            'april': '04',
+            'may': '05',
+            'june': '06',
+            'july': '07',
+            'august': '08',
+            'september': '09',
+            'october': '10',
+            'november': '11',
+            'december': '12'
+        }
 
-        for report in quarterly_update_reports:
+        for report in url_list:
             url_suffix = report.find('a').get('href', '')
             url_split = url_suffix.replace('/files/zip/', '').split('-')
             year_month = url_split[1] + months[url_split[0].lower()]
             reports[year_month] = "https://www.cms.gov" + url_suffix
 
-        latest_url = reports[max(reports.keys())]
-
-        return [latest_url.encode()]
+        return reports[max(reports.keys())]
