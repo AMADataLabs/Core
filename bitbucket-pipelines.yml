@@ -116,7 +116,7 @@ pipelines:
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - export ENVIRONMENT=sbx
-                - bash Deploy/CPT/update-functions
+                - bash Deploy/CPT/sbx/update-functions
 
         Scheduler-master:
         - step:
@@ -274,7 +274,7 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_DEV=True
             - export ENVIRONMENT=dev
-            - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/CPT/dev/update-functions
 
         Scheduler-dev:
         - step:
@@ -454,7 +454,7 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_TEST=True
             - export ENVIRONMENT=tst
-            - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/CPT/tst/update-functions
 
         Scheduler-test:
         - step:
@@ -584,7 +584,7 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_STAGE=True
             - export ENVIRONMENT=itg
-            - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/CPT/itg/update-functions
 
         Scheduler-stage:
         - step:
@@ -665,7 +665,7 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_PROD=True
             - export ENVIRONMENT=prd
-            - bash --rcfile assume_role.rc -i Deploy/CPT/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/CPT/prd/update-functions
 
         Scheduler-prod:
         - step:
