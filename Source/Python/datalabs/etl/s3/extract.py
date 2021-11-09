@@ -68,20 +68,6 @@ class S3FileExtractorParameters:
     assume_role: str = None
     data: object = None
 
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-#NOTE: HADI CHECK IF THIS IS NEEDED
-class S3DirectoryListingExtractorParameters:
-    bucket: str
-    base_path: str
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
-    execution_time: str = None
-    on_disk: str = False
-    assume_role: str = None
 
 # pylint: disable=too-many-ancestors
 class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTask):
@@ -140,8 +126,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         if feature.enabled("PROFILE"):
             LOGGER.info(f'Post extraction memory {(hpy().heap())}')
-        # NOTE: HADI, REMOVE THIS
-        # st()
+
         return data
 
     def _get_latest_path(self):
@@ -172,7 +157,6 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
                     self._parameters.base_path
                 )
             )
-
             release_folder = release_folders[-1]
 
         return release_folder
@@ -198,12 +182,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     def _listdir(self, bucket, base_path):
         response = self._client.list_objects_v2(Bucket=bucket, Prefix=base_path)
 
-        # NOTE: HADI, ASK PETER IF TRY AND EXCEPT ARE NEEDED
-        # objects = None
-        # try:
         objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
-        # except IndexError:
-        #     objects = set()
 
         if  '' in objects:
             objects.remove('')
