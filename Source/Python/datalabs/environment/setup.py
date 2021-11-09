@@ -100,7 +100,7 @@ class PipEnvironmentGenerator(EnvironmentGenerator):
 
 
 class PipenvEnvironmentGenerator(PipEnvironmentGenerator):
-    def _generate_template_parameter_dictionary(self, sorted_dependencies):
+    def _generate_template_parameters(self, sorted_dependencies):
         return dict(package_versions=sorted_dependencies, python_version=self._parameters['python_version'])
 
 
