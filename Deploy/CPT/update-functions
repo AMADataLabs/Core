@@ -9,6 +9,7 @@ CODE_BUCKET="${CODE_BUCKET:-ama-${ENVIRONMENT}-datalake-lambda-us-east-1}"
 FUNCTIONS="${PROJECT}-API-${ENVIRONMENT}-Authorizer
            ${PROJECT}-API-${ENVIRONMENT}-Endpoint
            ${PROJECT}-API-${ENVIRONMENT}-ETL
+           ${PROJECT}-API-${ENVIRONMENT}-HCPCSDAG
            ${PROJECT}-API-${ENVIRONMENT}-BulkAuthorizer
            ${PROJECT}-API-${ENVIRONMENT}-BulkEndpoint"
 
