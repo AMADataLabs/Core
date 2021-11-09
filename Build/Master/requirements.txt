@@ -4,6 +4,7 @@ alembic==1.7.3
 alembic_utils==0.7.2
 arnparse==0.0.2
 boto3==1.18.12
+bs4==0.0.1
 coverage==5.1
 croniter==0.3.37
 cryptography==3.4.8
