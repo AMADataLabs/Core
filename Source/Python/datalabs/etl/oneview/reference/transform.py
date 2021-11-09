@@ -134,7 +134,7 @@ class ClassOfTradeTransformerTask(TransformerTask):
     def _add_classification_defaults(cls, classification_data):
         classification_data = classification_data.append(
             pandas.DataFrame(
-                data={'CLASSIFICATION_ID': ['-1'], 'CLASSIFICATION': ['Unknown/Not Specified']})
+                data={'CLASSIFICATION_ID': ['-1', '24'], 'CLASSIFICATION': ['Unknown/Not Specified', 'Other']})
         )
 
         return classification_data
@@ -143,7 +143,10 @@ class ClassOfTradeTransformerTask(TransformerTask):
     def _add_facility_defaults(cls, facility_data):
         facility_data = facility_data.append(
             pandas.DataFrame(
-                data={'FACILITY_TYPE_ID': ['53'], 'FACILITY_TYPE': ['Warehouse']}
+                data={'FACILITY_TYPE_ID': ['52', '53', '54', '59', '63', '69', '70', '75', '76', '78'],
+                      'FACILITY_TYPE': ['Other Supply', 'Warehouse', 'Wholesaler', 'Other Government', 'Other Pharmacy',
+                                        'Distributor - Medical/Surgical Supply', 'Distributor - Pharmaceutical Supply',
+                                        'Internet', 'Non-Retail Pharmacy', 'Support Services']}
             )
         )
         facility_data = facility_data.append(
@@ -159,7 +162,8 @@ class ClassOfTradeTransformerTask(TransformerTask):
 
         specialty_data = specialty_data.append(
             pandas.DataFrame(
-                data={'SPECIALTY_ID': ['219'], 'SPECIALTY': ['Other']}
+                data={'SPECIALTY_ID': ['129', '219', '224', '229', '231'],
+                      'SPECIALTY': ['Hemophilia Treatment Center', 'Other', 'Epilepsy', 'Chain', 'Mail Service']}
             )
         )
 

@@ -14,7 +14,6 @@ class MelissaTransformerTask(TransformerTask):
         zip_code_data, county_data, area_code_data, census_data, cbsa_data, zip_code_cbsa_data, msa_data = data
 
         zip_codes = self._generate_zip_code_primary_keys(zip_code_data)
-        zip_codes['FIPS_CD'] = zip_codes['FIPS_CD'].str.lstrip('0')
 
         area_codes = self._generate_area_code_primary_keys(area_code_data)
 

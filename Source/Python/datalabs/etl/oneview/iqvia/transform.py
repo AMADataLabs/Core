@@ -22,7 +22,6 @@ class IQVIABusinessTransformerTask(TransformerTask):
     @classmethod
     def _set_default_values(cls, business):
         business['COT_SPECIALTY_ID'] = business['COT_SPECIALTY_ID'].fillna(value='-1')
-        business.COT_SPECIALTY_ID = [data.rstrip(".0") for data in business.COT_SPECIALTY_ID]
 
         business['PROFIT_STATUS'] = business['PROFIT_STATUS'].fillna(value='UNKNOWN')
 
@@ -32,11 +31,18 @@ class IQVIABusinessTransformerTask(TransformerTask):
 
     @classmethod
     def _replace_unknown_values(cls, business, class_of_trade):
-        business.COT_CLASSIFICATION_ID[~business.COT_CLASSIFICATION_ID.isin(class_of_trade.CLASSIFICATION_ID)] = '-1'
+        class_of_trade_classification = class_of_trade.CLASSIFICATION_ID.to_list()
+        class_of_trade_classification.extend(['24'])
+        business.COT_CLASSIFICATION_ID[~business.COT_CLASSIFICATION_ID.isin(class_of_trade_classification)] = '-1'
 
-        business.COT_FACILITY_TYPE_ID[~business.COT_FACILITY_TYPE_ID.isin(class_of_trade.FACILITY_TYPE_ID)] = '-1'
+        class_of_trade_facility = class_of_trade.FACILITY_TYPE_ID.to_list()
+        class_of_trade_facility.extend(['52', '53', '54', '59', '63', '69', '70', '75', '76', '78'])
+        business.COT_FACILITY_TYPE_ID[~business.COT_FACILITY_TYPE_ID.isin(class_of_trade_facility)] = '-1'
 
-        business.COT_SPECIALTY_ID[~business.COT_SPECIALTY_ID.isin(class_of_trade.SPECIALTY_ID)] = '-1'
+        class_of_trade_specialty = class_of_trade.SPECIALTY_ID.to_list()
+        class_of_trade_specialty.extend(['129', '219', '224', '229', '231'])
+        business.COT_SPECIALTY_ID = [data.rstrip("0").rstrip('.') for data in business.COT_SPECIALTY_ID]
+        business.COT_SPECIALTY_ID[~business.COT_SPECIALTY_ID.isin(class_of_trade_specialty)] = '-1'
 
         return business
 

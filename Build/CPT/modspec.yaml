@@ -51,3 +51,6 @@ modspec:
   - package: datalabs.etl.parse
   - package: datalabs.etl.s3
   - package: datalabs.model.cpt
+  - package: datalabs.etl.cpt.hcpcs
+  - package: datalabs.etl.http
+  - package: datalabs.etl.dag.cpt.files

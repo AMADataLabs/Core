@@ -18,7 +18,7 @@ module "s3_scheduler_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${var.environment}-datalake-scheduler-data-${var.region}"
+  bucket_name = "ama-${var.environment}-datalake-scheduler-${var.region}"
 
   lifecycle_rule = [
     {

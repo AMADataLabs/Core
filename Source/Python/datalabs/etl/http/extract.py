@@ -35,3 +35,8 @@ class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
         text = self._client.get(file)
 
         return text.content
+
+
+class HTTPFileListExtractorTask(HTTPFileExtractorTask):
+    def _get_files(self):
+        return [url.decode() for url in self._parameters['data'][0].split(b'\n')]

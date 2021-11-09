@@ -1,0 +1,66 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/CPT-API/dev/ingest.yaml.jinja -f Deploy/CPT-API/dev/ingest.yaml \
+# -v "datalabs_password={{datalabs_password}},eft_password={{eft_password}},database_password={{database_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "HCPCSAPI"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+    DATABASE_HOST: cpt-api-dev-db.cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+    DATABASE_PORT: '5432'
+    DATABASE_BACKEND: 'postgresql+psycopg2'
+    DATABASE_NAME: 'cpt'
+    DATABASE_USERNAME:  cptadmin
+    DATABASE_PASSWORD:  '{{database_password}}'
+
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/CPT/%Y%m%d'
+
+
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "HCPCS"}, "Task": {"S": "DAG"}})
+    #######################################################################
+
+    HCPCS__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-ETL'
+    HCPCS__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.files.hcpcs.HCPCSDAG'
+    HCPCS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    HCPCS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    HCPCS__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    HCPCS__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    HCPCS__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    HCPCS__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    HCPCS__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "HCPCS"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+
+    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_CLASS:  ${S3_CACHE_CLASS}
+    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_FILES: 'hcpcs_url.txt'
+
+
+    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_CLASS:  ${S3_CACHE_CLASS}
+    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_INPUT_FILES: 'hcpcs_url.txt'
+    HCPCS__EXTRACT_HCPCS_REPORT__CACHE_OUTPUT_FILES: 'hcpcs_quarterly_report.zip'
+
+
+    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_CLASS: ${S3_CACHE_CLASS}
+    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_INPUT_FILES: 'hcpcs_quarterly_report.zip'
+    HCPCS__UNZIP_HCPCS_REPORTS__CACHE_OUTPUT_INCLUDE_NAMES: 'True'

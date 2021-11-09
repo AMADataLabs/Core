@@ -37,8 +37,12 @@ class DAGState(State):
     def set_dag_status(self, dag: str, execution_time: str, status: Status):
         self._set_status(dag, "", execution_time, status)
 
+        return True
+
     def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
         self._set_status(dag, task, execution_time, status)
+
+        return True
 
     def _get_status(self, dag: str, task: str, execution_time: str):
         state_path = self._generate_state_path(dag, task, execution_time)
