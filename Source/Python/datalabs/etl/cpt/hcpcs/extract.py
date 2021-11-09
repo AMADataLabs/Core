@@ -32,13 +32,15 @@ class HCPCSQuarterlyUpdateReportURLExtractorTask(ExtractorTask):
 
         return [latest_url.encode()]
 
-    def _get_quarterly_update_report_urls(self, url):
+    @classmethod
+    def _get_quarterly_update_report_urls(cls, url):
         page = requests.get(url)
         soup = BeautifulSoup(page.content, "html.parser")
 
         return soup.find(id="block-cms-drupal-global-content").find('ul').find_all("li")
 
-    def _select_latest_quarterly_update_report_url(self, url_list):
+    @classmethod
+    def _select_latest_quarterly_update_report_url(cls, url_list):
         reports = {}
         months = {
             'january': '01',

@@ -22,14 +22,14 @@ data:
     DATABASE_PASSWORD:  '{{database_password}}'
 
     S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/CPT/%Y%m%d'
+    S3_BASE_PATH: 'AMA/CPT/HCPCS/%Y%m%d'
 
 
     #######################################################################
     # DAG Variables - ({"DAG": {"S": "HCPCS"}, "Task": {"S": "DAG"}})
     #######################################################################
 
-    HCPCS__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-ETL'
+    HCPCS__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-HCPCSDAG'
     HCPCS__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.files.hcpcs.HCPCSDAG'
     HCPCS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     HCPCS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
