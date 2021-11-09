@@ -1,3 +1,4 @@
+""" Task Wrapper for DAG plugins running in ECS """
 import json
 
 import datalabs.etl.dag.awslambda as awslambda
