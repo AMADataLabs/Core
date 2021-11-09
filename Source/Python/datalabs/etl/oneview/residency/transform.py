@@ -144,7 +144,11 @@ class ResidencyTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, program_personnel):
-        program_personnel['id'] = program_personnel['pgm_id'].astype(str) + program_personnel['aamc_id'].astype(str)
+        program_personnel['id'] = program_personnel['pgm_id'].astype(str) + \
+                                  program_personnel['pers_name_first'].astype(str) + \
+                                  program_personnel['pers_name_mid'].astype(str) + \
+                                  program_personnel['pers_name_last'].astype(str) + \
+                                  program_personnel['pers_deg1'].astype(str)
 
         return program_personnel
 
