@@ -54,6 +54,9 @@ pipelines:
         prod:
         - step:
             name: Build prod
+            image: python:3.7
+            caches:
+                - build-dependencies
             script:
                 - apt update
                 - apt install -y jq
