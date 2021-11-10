@@ -3,8 +3,7 @@
         "name": "scheduler",
         "image": "${account}.dkr.ecr.${region}.amazonaws.com/${image}:${tag}",
         "cpu": 0,
-        // # HADI ENV VARS HERE
-        "environment": ["DYNAMODB_CONFIG_TABLE":],
+        "environment": [],
         "essential": true,
         "volumesFrom": [],
         "ulimits": [
