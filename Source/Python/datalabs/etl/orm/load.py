@@ -349,6 +349,7 @@ class ORMLoaderTask(LoaderTask):
         columns = cls._get_model_columns(table_parameters.model_class)
         primary_key = getattr(model, table_parameters.primary_key)
         row = database.query(table_parameters.model_class).get(primary_key)
+        import pdb; pdb.set_trace()
         for column in columns:
             setattr(row, column, getattr(model, column))
 
