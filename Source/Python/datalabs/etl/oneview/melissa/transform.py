@@ -14,6 +14,7 @@ class MelissaTransformerTask(TransformerTask):
         zip_code_data, county_data, area_code_data, census_data, cbsa_data, zip_code_cbsa_data, msa_data = data
 
         zip_codes = self._generate_zip_code_primary_keys(zip_code_data)
+        zip_codes = self._clean_data(zip_codes)
 
         area_codes = self._generate_area_code_primary_keys(area_code_data)
 
@@ -24,6 +25,12 @@ class MelissaTransformerTask(TransformerTask):
         data['id'] = data['ZIP'].astype(str) + data['CITY_CD'].astype(str)
 
         return data
+
+    @classmethod
+    def _clean_data(cls, zip_codes):
+        zip_codes.ZIP = [data.rstrip() for data in zip_codes.ZIP]
+
+        return zip_codes
 
     @classmethod
     def _generate_area_code_primary_keys(cls, data):
