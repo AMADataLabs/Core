@@ -106,6 +106,23 @@ resource "aws_route_table_association" "datalake_private2" {
 }
 
 
+### NAT Gateway ###
+resource "aws_eip" "nat_gateway" {
+    vpc = true
+
+    tags = merge(local.tags, {Name = "Data Lake NAT Gateway IP"})
+}
+
+resource "aws_nat_gateway" "datalake" {
+  allocation_id = aws_eip.nat_gateway.id
+  subnet_id     = aws_subnet.datalake_public1.id
+
+  depends_on = [aws_internet_gateway.datalake]
+
+  tags = merge(local.tags, {Name = "Data Lake NAT Gateway"})
+}
+
+
 ### VPC Endpoints ###
 
 resource "aws_vpc_endpoint" "s3" {
