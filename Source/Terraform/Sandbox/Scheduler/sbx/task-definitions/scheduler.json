@@ -1,0 +1,25 @@
+[
+    {
+        "name": "scheduler",
+        "image": "${account}.dkr.ecr.${region}.amazonaws.com/${image}:${tag}",
+        "cpu": 0,
+        "environment": [],
+        "essential": true,
+        "volumesFrom": [],
+        "ulimits": [
+            {
+                "name": "nofile",
+                "softLimit": 65536,
+                "hardLimit": 1048576
+            }
+        ],
+        "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+                "awslogs-region": "${region}",
+                "awslogs-group": "/ecs/scheduler/${environment}",
+                "awslogs-stream-prefix": "ecs"
+            }
+        }
+    }
+]
