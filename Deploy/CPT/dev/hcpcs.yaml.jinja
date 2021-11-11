@@ -8,21 +8,14 @@ data:
     # Global Variables - {"DAG": {"S": "HCPCSAPI"}, "Task": {"S": "GLOBAL"}}
     #######################################################################
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
+    ENVIRONMENT: sbx
+    ACCOUNT: '644454719059'
 
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    DATABASE_HOST: cpt-api-dev-db.cwp4vd8mllvz.us-east-1.rds.amazonaws.com
-    DATABASE_PORT: '5432'
-    DATABASE_BACKEND: 'postgresql+psycopg2'
-    DATABASE_NAME: 'cpt'
-    DATABASE_USERNAME:  cptadmin
-    DATABASE_PASSWORD:  '{{database_password}}'
-
     S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/CPT/HCPCS/%Y%m%d'
+    S3_BASE_PATH: 'AMA/CPT/HCPCS'
 
 
     #######################################################################
@@ -46,8 +39,10 @@ data:
     ##########################################################################
 
 
-    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_CLASS:  ${S3_CACHE_CLASS}
-    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    HCPCS__SCRAPE_HCPCS_REPORTS__URL:  'https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets/HCPCS-Quarterly-Update'
+
+    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_CLASS:  ${S3_CACHE_CLASS}
+    HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
     HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     HCPCS__SCRAPE_HCPCS_REPORTS__CACHE_OUTPUT_FILES: 'hcpcs_url.txt'
 

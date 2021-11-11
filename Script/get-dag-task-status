@@ -6,7 +6,7 @@ main() {
     task=$2
     execution_time=$3  # 2021-09-29 22:45:00
 
-    aws dynamodb get-item --table-name DataLake-dag-state-dev \
+    aws dynamodb get-item --table-name DataLake-dag-state-sbx \
         --key '{"name": {"S": "'${dag}'__'${task}'"}, "execution_time": {"S": "'"${execution_time}"'"}}' \
         | grep -A 1 status | grep '"S"' | awk '{print $2}'
 }
