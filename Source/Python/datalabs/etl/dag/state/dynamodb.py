@@ -11,7 +11,7 @@ from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class DynamoDBClientMixin:
@@ -95,6 +95,22 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
     def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
         return self._set_status(dag, task, execution_time, status)
 
+    def clear_all(self, dag: str, execution_time: str):
+        dynamodb = self._connect()
+        item_names = self._get_items_for_dag_run(dynamodb, dag, execution_time)
+
+        for items_subset in self._item_chunks(item_names, 25):
+            delete_statements = self._generate_delete_statements(dynamodb, dag, execution_time, items_subset)
+            LOGGER.debug('Delete Statements: %s', delete_statements)
+
+            responses = dynamodb.batch_execute_statement(
+                Statements=delete_statements
+            )
+
+            for response in responses["Responses"]:
+                if "Error" in response:
+                    LOGGER.error('Statement failed to execute: %s', response["Error"])
+
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
         dynamodb = self._connect()
@@ -115,6 +131,30 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         self._unlock_state(dynamodb, lock_id)
 
         return succeeded
+
+    def _get_items_for_dag_run(self, dynamodb, dag: str, execution_time: str):
+        response = dynamodb.scan(
+            TableName=self._parameters.dag_state_table,
+            FilterExpression="begins_with(#DAG, :dag) and execution_time = :execution_time",
+            ProjectionExpression="#DAG",
+            ExpressionAttributeNames={"#DAG": "name"},
+            ExpressionAttributeValues={":dag": {"S": dag}, ":execution_time": {"S": execution_time}},
+        )
+        items = response["Items"]
+        LOGGER.info('Deleting items for %s run of DAG %s: %s', execution_time, dag, items)
+
+        return [item["name"]["S"] for item in items]
+
+    def _generate_delete_statements(self, dynamodb, dag: str, execution_time: str, item_names: list):
+        statement_static = f'DELETE FROM "{self._parameters.dag_state_table}" '\
+                           f'WHERE "execution_time"=\'{execution_time}\''
+
+        return [dict(Statement=f'{statement_static} AND "name"=\'{item_name}\'') for item_name in item_names]
+
+    @classmethod
+    def _item_chunks(cls, items, chunk_size):
+        for index in range(0, len(items), chunk_size):
+            yield items[index:index + chunk_size]
 
     @classmethod
     def _get_primary_key(cls, dag: str, task: str):
