@@ -3,7 +3,7 @@ import logging
 
 import jinja2
 
-from   datalabs.deploy.etcd.load import ConfigMapLoader
+from   datalabs.deploy.config.etcd import ConfigMapLoader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
