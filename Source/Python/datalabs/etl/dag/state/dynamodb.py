@@ -100,16 +100,10 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         item_names = self._get_items_for_dag_run(dynamodb, dag, execution_time)
 
         for items_subset in self._item_chunks(item_names, 25):
-            delete_statements = self._generate_delete_statements(dynamodb, dag, execution_time, items_subset)
-            LOGGER.debug('Delete Statements: %s', delete_statements)
+            delete_requests = self._generate_delete_requests(execution_time, items_subset)
+            LOGGER.debug('Delete Statements: %s', delete_requests)
 
-            responses = dynamodb.batch_execute_statement(
-                Statements=delete_statements
-            )
-
-            for response in responses["Responses"]:
-                if "Error" in response:
-                    LOGGER.error('Statement failed to execute: %s', response["Error"])
+            dynamodb.batch_write_item(RequestItems={self._parameters.dag_state_table: delete_requests})
 
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
@@ -141,15 +135,25 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             ExpressionAttributeValues={":dag": {"S": dag}, ":execution_time": {"S": execution_time}},
         )
         items = response["Items"]
-        LOGGER.info('Deleting items for %s run of DAG %s: %s', execution_time, dag, items)
 
-        return [item["name"]["S"] for item in items]
+        item_names = [item["name"]["S"] for item in items]
+        LOGGER.info('Deleting items for %s run of DAG %s: %s', execution_time, dag, item_names)
 
-    def _generate_delete_statements(self, dynamodb, dag: str, execution_time: str, item_names: list):
-        statement_static = f'DELETE FROM "{self._parameters.dag_state_table}" '\
-                           f'WHERE "execution_time"=\'{execution_time}\''
+        return item_names
 
-        return [dict(Statement=f'{statement_static} AND "name"=\'{item_name}\'') for item_name in item_names]
+    @classmethod
+    def _generate_delete_requests(cls, execution_time: str, item_names: list):
+        return [
+            dict(
+                DeleteRequest=dict(
+                    Key=dict(
+                        name=dict(S=item_name),
+                        execution_time=dict(S=execution_time)
+                    )
+                )
+            )
+            for item_name in item_names
+        ]
 
     @classmethod
     def _item_chunks(cls, items, chunk_size):
