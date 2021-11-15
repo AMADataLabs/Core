@@ -1,3 +1,6 @@
+""" Humach Archive definitions - will be removed """
+
+# pylint: disable=trailing-whitespace,no-name-in-module,import-error,wildcard-import,undefined-variable,invalid-name,unnecessary-comprehension,unused-import,use-a-generator,singleton-comparison,f-string-without-interpolation,logging-fstring-interpolation,unused-variable,consider-using-sys-exit,bare-except,unused-wildcard-import
 from dataclasses import dataclass
 from datetime import datetime
 import logging
@@ -299,7 +302,7 @@ class HumachResultsArchive:
             self.connection = Connection(os.environ.get('ARCHIVE_DB_PATH'))
 
     def _preprocess_standard_result_file(self, filename: str) -> pd.DataFrame:
-        data = pd.read_excel(filename, dtye=str)
+        data = pd.read_excel(filename, dtype=str)
 
         if 'SPECIALTY' not in data.columns.values:
             data['SPECIALTY'] = 0

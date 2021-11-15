@@ -9,7 +9,7 @@ import pandas as pd
 
 from datalabs.access import excel
 from datalabs.analysis.amc.keywords import FALSE_POSITIVES, FLAGWORDS
-import datalabs.feature as feature
+from datalabs import feature
 
 if feature.enabled("WINDOWS"):
     from datalabs.access.aims import AIMS
@@ -141,7 +141,7 @@ class AMCAddressFlagger:
         results_summary += f"\nCount of all flagged amc-sourced addresses: {len(data[data['any_flag']])}"
         results_summary += '\nFlagging summary: (addresses can be flagged by multiple fields, ' \
                            'so the sum of these counts may exceed count above)'
-        for f in flags:
+        for f in flags:  # pylint: disable=consider-using-dict-items
             count = flags[f]
             if count > 0:
                 results_summary += f'\n\t{f}: {count}'

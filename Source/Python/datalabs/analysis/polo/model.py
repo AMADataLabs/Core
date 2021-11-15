@@ -3,6 +3,7 @@ Preferred office location (POLO) address fitness model class.
 
 TODO: remove code elsewhere that uses the function score_polo_addr_ppd_data.score_polo_wslive_data()
 """
+# pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace,consider-using-from-import,function-redefined
 from   collections import namedtuple
 from   dataclasses import dataclass
 import datetime
@@ -91,7 +92,10 @@ class POLOFitnessModel():
 
         merged_input_data = self._merge_ppd_and_aims_data(input_data.ppd, input_data.entity)
 
-        model_input_data, cleaned_merged_data = self._curate_input_data_for_model(merged_input_data, input_data.variables)
+        model_input_data, cleaned_merged_data = self._curate_input_data_for_model(
+            merged_input_data,
+            input_data.variables
+        )
 
         self._archive_model_input_data(model_input_data)
 
