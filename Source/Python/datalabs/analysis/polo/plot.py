@@ -1,3 +1,5 @@
+""" More old code that will be deprecated """
+# pylint: disable=import-error
 from class_model_creation import get_prob_info, get_pred_info
 
 def scoring_statistics(scored_data):
