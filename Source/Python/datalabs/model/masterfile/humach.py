@@ -1,4 +1,4 @@
-from   alembic_utils.pg_view import PGView  # pylint: disable=import-error
+""" SQLAlchemy models for humach """
 import sqlalchemy as sa
 from   sqlalchemy.ext.declarative import declarative_base
 
@@ -82,4 +82,3 @@ class Results(BASE):
     result_of_call = sa.Column(sa.String, nullable=False)
     result_filename = sa.Column(sa.String, nullable=False)
     result_date = sa.Column(sa.Date, nullable=False)
-
