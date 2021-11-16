@@ -1,3 +1,4 @@
+""" Docfile string go brrrrrrrr """
 MAKE_TABLE_RESULTS = \
     """
     CREATE TABLE IF NOT EXISTS humach_result(

@@ -1,3 +1,6 @@
+""" Old code for PoC project to identify metadata files without ME number filled """
+# pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace,consider-using-from-import,function-redefined,use-a-generator
+
 import json
 import os
 import pandas as pd
@@ -31,13 +34,11 @@ class SanctionsMEScan:
         self._marklogic_con = MarkLogic(key='MARKLOGIC_PROD')
         self._marklogic_con.connect()
 
-        # if using pyodbc
-        """
-        self._aims_con = pyodbc.connect("DSN=aims_prod; UID={}; PWD={}".format(
-            self._aims_username,
-            self._aims_password)
-        )
-        """
+        # # if using pyodbc
+        # self._aims_con = pyodbc.connect("DSN=aims_prod; UID={}; PWD={}".format(
+        #     self._aims_username,
+        #     self._aims_password)
+        # )
 
         # if using jaydebeapi
         self._aims_con = jaydebeapi.connect(

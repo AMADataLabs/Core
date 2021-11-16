@@ -1,4 +1,6 @@
 """ Apply the POLO address fitness model to the PPD. """
+# pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace,consider-using-from-import
+
 import logging
 import os
 from   pathlib import Path

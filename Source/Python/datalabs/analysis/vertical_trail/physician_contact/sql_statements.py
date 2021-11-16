@@ -1,3 +1,4 @@
+""" SQL """
 MAKE_TABLE_SAMPLES = \
     """
     CREATE TABLE IF NOT EXISTS vertical_trail_samples(

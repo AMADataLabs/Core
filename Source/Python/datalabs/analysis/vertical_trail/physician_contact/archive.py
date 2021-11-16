@@ -1,3 +1,6 @@
+""" Dear God what is this """
+# pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace,consider-using-from-import,function-redefined,use-a-generator,f-string-without-interpolation,invalid-name,bare-except,unnecessary-comprehension,unused-variable,consider-using-dict-items
+
 from dataclasses import dataclass
 from datetime import datetime
 import logging
