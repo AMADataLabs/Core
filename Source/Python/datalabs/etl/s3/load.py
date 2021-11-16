@@ -30,7 +30,7 @@ class S3FileLoaderParameters:
     secret_key: str = None
     region_name: str = None
     includes_names: str = None
-    includes_datestamp: str = None
+    include_datestamp: str = None
     execution_time: str = None
     assume_role: str = None
     on_disk: str = False
@@ -79,7 +79,7 @@ class S3FileLoaderTask(ExecutionTimeMixin, IncludesNamesMixin, FileLoaderTask):
         release_folder = self._get_execution_date() or datetime.utcnow().date().strftime('%Y%m%d')
         path = self._parameters.base_path
 
-        if self._parameters.includes_datestamp is None or self._parameters.includes_datestamp.lower() == 'true':
+        if self._parameters.include_datestamp is None or self._parameters.include_datestamp.lower() == 'true':
             path = '/'.join((self._parameters.base_path, release_folder))
 
         return path
