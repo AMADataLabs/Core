@@ -1,8 +1,11 @@
+""" More code that will no longer be used soon """
+# pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace
+
 from dataclasses import dataclass
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 import logging
 import os
+from dateutil.relativedelta import relativedelta
 import pandas as pd
 
 from datalabs.access.aims import AIMS
@@ -343,4 +346,3 @@ def make_validation_survey():
 def make_vertical_trail_verification_sample():
     gen = HumachSampleGenerator(survey_type='VERTICAL_TRAIL')
     gen.create_vertical_trail_verification_sample()
-

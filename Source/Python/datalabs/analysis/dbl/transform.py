@@ -2,14 +2,16 @@
 
 from io import BytesIO
 import logging
+import pickle as pk
 from string import ascii_uppercase
 
 import numpy as np
 import pandas as pd
 import xlsxwriter
 
-# pylint: disable=import-error
+# pylint: disable=import-error,consider-using-dict-items
 from datalabs.etl.transform import TransformerTask
+from datalabs.analysis.dbl.validation import Validation
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -22,7 +24,7 @@ def get_letters_between(start, end):
 
 class DBLReportTransformer(TransformerTask):
     def _transform(self) -> 'Transformed Data':
-        dataframes = self._get_dataframes(self._parameters['data'])
+        dataframes = self._get_dataframes(self._parameters['data'][:10])  # index 10 contains previous report (.xlsx)
         dataframes[0] = self._transform_tab1(dataframes[0])
         dataframes[1] = self._transform_tab2(dataframes[1])
         dataframes[2] = self._transform_tab3(dataframes[2])
@@ -34,8 +36,17 @@ class DBLReportTransformer(TransformerTask):
         dataframes[8] = self._transform_tab9(dataframes[8])
         dataframes[9] = self._transform_tab10(dataframes[9])
 
+        previous_report = self._parameters['data'][10]
+
         output = self._make_excel_workbook(sheet_dataframes=dataframes)
-        return [output]
+
+        validation = Validation(output, previous_report)
+        passing, log, tab_validations = validation.passing, validation.log, validation.tab_validations
+
+        comparison = {'Passing': passing, 'Log': log, 'Validations': tab_validations}
+
+        # output is returned twice because it's saved to two files, one datestamped, other as "latest" file
+        return [output, output, previous_report, pk.dumps(comparison)]
 
     @classmethod
     def _get_dataframes(cls, data):

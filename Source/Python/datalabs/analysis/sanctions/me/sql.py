@@ -1,3 +1,4 @@
+""" SQL Query """
 SQL_TEMPLATE = \
     """
     SELECT

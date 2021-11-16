@@ -1,4 +1,4 @@
-# database table columns
+""" Table column definitions - will be removed / reworked """
 STANDARD_RESULTS_COLUMNS = [
     'sample_id',
     'row_id',
