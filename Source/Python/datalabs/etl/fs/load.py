@@ -39,13 +39,13 @@ class LocalFileLoaderTask(IncludesNamesMixin, FileLoaderTask):
         return DummyFSClient()
 
     def _load_file(self, data, file):
-        data = self._encode_data(data)
-
         try:
             with open(file, 'wb') as _file:
                 _file.write(data)
         except Exception as exception:
             raise ETLException(f"Unable to write file '{file}'") from exception
+
+        return data
 
     @classmethod
     def _encode_data(cls, data):
