@@ -70,7 +70,7 @@ done
 
 # if [[ $BITBUCKET_BRANCH != 'master' && $BITBUCKET_BRANCH != 'dev' ]]; then
 if [[ $BITBUCKET_BRANCH != 'master' ]]; then
-    FILES_TO_LINT="$(find ${CWD}/Source/Python/datalabs -name "*.py"  | grep -v ${PWD}/Source/Python/datalabs/airflow | tr '\n' ' ') $(find ${PWD}/Test/Python/test/datalabs -name "*.py" | tr '\n' ' ')"
+    FILES_TO_LINT="$(find ${PWD}/Source/Python/datalabs -name "*.py"  | grep -v ${PWD}/Source/Python/datalabs/airflow | tr '\n' ' ') $(find ${PWD}/Test/Python/test/datalabs -name "*.py" | tr '\n' ' ')"
 fi
 
 ${DIR}/run.py pylint --extension-pkg-whitelist=pyodbc,numpy $FILES_TO_LINT
