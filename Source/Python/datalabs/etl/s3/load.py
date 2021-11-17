@@ -8,7 +8,7 @@ import logging
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin, BasePathMixin
+from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin, CurrentPathMixin
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
 
@@ -36,7 +36,7 @@ class S3FileLoaderParameters:
     on_disk: str = False
 
 
-class S3FileLoaderTask(ExecutionTimeMixin, BasePathMixin, IncludesNamesMixin, FileLoaderTask):
+class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin, FileLoaderTask):
     PARAMETER_CLASS = S3FileLoaderParameters
 
     def _get_client(self):

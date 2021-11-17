@@ -47,14 +47,19 @@ class IncludesNamesMixin:
 
 class BasePathMixin:
     def _unpack_files_and_data(self, packed_data):
-        named_files_data = pickle.loads(packed_data)
+        files, data = super()._unpack_files_and_data(packed_data)
 
-        if hasattr(self, "_get_current_path"):
-            path = self._get_current_path()
-        else:
-            path = self._parameters.base_path
+        path = self._parameters.base_path
+        files = [os.path.join(path, file.strip()) for file in files]
 
-        files, data = zip(*named_files_data)
+        return files, data
+
+
+class CurrentPathMixin:
+    def _unpack_files_and_data(self, packed_data):
+        files, data = super()._unpack_files_and_data(packed_data)
+
+        path = self._get_current_path()
         files = [os.path.join(path, file.strip()) for file in files]
 
         return files, data
