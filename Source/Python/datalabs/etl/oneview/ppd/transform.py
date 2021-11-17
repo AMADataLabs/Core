@@ -175,7 +175,7 @@ class PhysicianTransformerTask(TransformerTask):
         physician.federal_information_processing_standard_county.fillna('   ', inplace=True)
         physician.core_based_statistical_area.fillna('00000', inplace=True)
         physician.type_of_practice.fillna('100', inplace=True)
-        physician.present_employment.fillna('100', inplace=True)
+        physician.present_employment.fillna('110', inplace=True)
         physician.primary_specialty.fillna('000', inplace=True)
         physician.secondary_specialty.fillna('000', inplace=True)
         physician.major_professional_activity.fillna('NCL', inplace=True)
