@@ -80,7 +80,6 @@ class JDBCExtractorTask(ExtractorTask):
         return data.to_csv().encode('utf-8')
 
     def _read_query(self, query, connection):
-        LOGGER.info('Sending query: %s', query)
         result = None
 
         if self._parameters.chunk_size is not None:
@@ -91,6 +90,7 @@ class JDBCExtractorTask(ExtractorTask):
         return result
 
     def _read_chunked_query(self, query, connection):
+        LOGGER.info('Sending query: %s', query)
         chunks = self._iterate_over_chunks(query, connection)
         results = None
 
@@ -102,8 +102,9 @@ class JDBCExtractorTask(ExtractorTask):
 
         return results
 
-    @classmethod
-    def _read_single_query(cls, query, connection):
+    # pylint: disable=no-self-use
+    def _read_single_query(self, query, connection):
+        LOGGER.info('Sending query: %s', query)
         return pandas.read_sql(query, connection)
 
     def _iterate_over_chunks(self, query, connection):
@@ -184,9 +185,15 @@ class JDBCParametricExtractorTask(CSVReaderMixin, JDBCExtractorTask):
 
         self._query_parameters = self._csv_to_dataframe(self._parameters.data[0])
 
+    def _read_single_query(self, query, connection):
+        resolved_query = self._resolve_query(query, 0, 0)
+
+        return super()._read_single_query(resolved_query, connection)
+
     def _resolve_query(self, query, record_index, record_count):
-        formatter = PartialFormatter()
         resolved_query = super()._resolve_query(query, record_index, record_count)
+
+        formatter = PartialFormatter()
         part_index = int(self._parameters.part_index)
         parameters = self._query_parameters.iloc[part_index].to_dict()
 
