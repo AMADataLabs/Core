@@ -2,7 +2,7 @@
 from   datalabs.etl.dag.dag import DAG, Repeat
 from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransformer
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
-from   datalabs.etl.jdbc.extract import JDBCExtractorTask
+from   datalabs.etl.jdbc.extract import JDBCExtractorTask, JDBCParametricExtractorTask
 from   datalabs.etl.manipulate.transform import SplitTransformerTask
 from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 from   datalabs.etl.oneview.credentialing.transform import \
@@ -129,7 +129,8 @@ class OneViewDAG(DAG):
 
     EXTRACT_CREDENTIALING_CUSTOMER: JDBCExtractorTask
     EXTRACT_CREDENTIALING_PRODUCT: JDBCExtractorTask
-    EXTRACT_CREDENTIALING_ORDER: Repeat(JDBCExtractorTask, 12)
+    EXTRACT_CREDENTIALING_ORDER_YEARS: JDBCExtractorTask
+    EXTRACT_CREDENTIALING_ORDER: Repeat(JDBCParametricExtractorTask, 9)
     EXTRACT_CREDENTIALING_ADDRESSES: SFTPFileExtractorTask
     CONCATENATE_CREDENTIALING_ORDER: ConcatenateTransformerTask
     CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES: CredentialingTransformerTask
@@ -281,8 +282,9 @@ OneViewDAG.EXTRACT_CREDENTIALING_CUSTOMER >> OneViewDAG.EXTRACT_CREDENTIALING_AD
 OneViewDAG.EXTRACT_CREDENTIALING_CUSTOMER >> OneViewDAG.CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 OneViewDAG.EXTRACT_CREDENTIALING_PRODUCT >> OneViewDAG.CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 
-OneViewDAG.sequence('EXTRACT_CREDENTIALING_ORDER', 12)
-OneViewDAG.EXTRACT_CREDENTIALING_ORDER_11 >> OneViewDAG.CONCATENATE_CREDENTIALING_ORDER \
+OneViewDAG.fan_out('EXTRACT_CREDENTIALING_ORDER_YEARS', 'EXTRACT_CREDENTIALING_ORDER', 9)
+OneViewDAG.sequence('EXTRACT_CREDENTIALING_ORDER', 9)
+OneViewDAG.EXTRACT_CREDENTIALING_ORDER_8 >> OneViewDAG.CONCATENATE_CREDENTIALING_ORDER \
     >> OneViewDAG.CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES
 
 OneViewDAG.CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES \
