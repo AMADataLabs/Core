@@ -44,7 +44,7 @@ python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/bui
 PROJECTS_TO_LINT=$($DIR/list-projects-to-build.sh $COMMIT_RANGE)
 
 # If nothing to lint inform and exit
-if [[ -z "$PROJECTS_TO_LINT" ]]; then
+if [[ $BITBUCKET_BRANCH == 'master' && -z "$PROJECTS_TO_LINT" ]]; then
     echo "No projects to lint"
     exit 0
 fi
