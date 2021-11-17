@@ -1,16 +1,27 @@
 """ Archival Transformer classes. """
 from   io import BytesIO
+from   dataclasses import dataclass
 import logging
 import pickle
 from   zipfile import ZipFile
 
 from datalabs.etl.transform import TransformerTask
 from datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class UnzipTransformerParameters:
+    data: object
+    files: str = None
+    include_names: str = None
+    include_datestamp: str = None
+    execution_time: str = None
 
 class ZipTransformerTask(TransformerTask):
     def _transform(self) -> 'Transformed Data':
@@ -25,9 +36,11 @@ class ZipTransformerTask(TransformerTask):
         return [bytes(zip_data.getbuffer())]
 
 
-class UnzipTransformerTask(FileExtractorTask, IncludeNamesMixin):
+class UnzipTransformerTask(IncludeNamesMixin, FileExtractorTask):
+    PARAMETER_CLASS = UnzipTransformerParameters
+
     def _get_client(self) -> 'Context Manager':
-        return ZipFile(BytesIO(self._parameters['data'][0]))
+        return ZipFile(BytesIO(self._parameters.data[0]))
 
     def _get_files(self) -> list:
         return self._client.namelist()

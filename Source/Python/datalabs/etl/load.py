@@ -3,6 +3,7 @@ from   abc import ABC, abstractmethod
 from   datetime import datetime
 import logging
 import pickle
+import os
 
 from datalabs.etl.task import ETLException, ETLComponentTask
 
@@ -42,6 +43,21 @@ class IncludesNamesMixin:
             includes_names = self._parameters.get('INCLUDES_NAMES', 'false').upper() == 'TRUE'
 
         return includes_names
+
+
+class BasePathMixin:
+    def _unpack_files_and_data(self, packed_data):
+        named_files_data = pickle.loads(packed_data)
+
+        if hasattr(self, "_get_current_path"):
+            path = self._get_current_path()
+        else:
+            path = self._parameters.base_path
+
+        files, data = zip(*named_files_data)
+        files = [os.path.join(path, file.strip()) for file in files]
+
+        return files, data
 
 
 class FileLoaderTask(LoaderTask, ABC):
