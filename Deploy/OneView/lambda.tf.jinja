@@ -17,7 +17,7 @@ module "webapp_{{SNAKE_CASE_NAME}}_lambda" {
   handler                   = "lambda_function.lambda_handler"
   runtime                   = "python3.8"
   memory_size               = var.webapp_lambda_memory_size
-  timeout                   = var.webapp_lambda_timeout
+  timeout                   = {{TIMEOUT}}
   tracing_config            = { mode = "Active" }
 
   vpc_config = {
