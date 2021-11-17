@@ -146,6 +146,7 @@ class JDBCExtractorTask(ExtractorTask):
 
             index += read_count
 
+    # pylint: disable=no-self-use
     def _resolve_query(self, query, record_index, record_count):
         formatter = PartialFormatter()
 
@@ -236,8 +237,12 @@ class PartialFormatter(string.Formatter):
     def __init__(self, default='{{{0}}}'):
         self.default=default
 
-    def get_value(self, key, args, substitutions):
+    def get_value(self, key, args, kwargs):
+        formatted_value = None
+
         if isinstance(key, str):
-            return substitutions.get(key, self.default.format(key))
+            formatted_value = kwargs.get(key, self.default.format(key))
         else:
-            return string.Formatter.get_value(key, args, substitutions)
+            formatted_value = super().get_value(key, args, kwargs)
+
+        return formatted_value
