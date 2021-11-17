@@ -48,8 +48,6 @@ class ORMLoaderParameters:
     soft_delete_column: str = None
 
 
-
-
 class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
 

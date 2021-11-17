@@ -28,7 +28,7 @@ def test_orm_loader(loader_parameters):
 # pylint: disable=redefined-outer-name, protected-access
 def test_row_unquoting():
     csv_string = '"apple pants","1","yummy, yummy","","yip,yip!","chortle"'
-    expected_string = '"apple pants",1,"yummy, yummy","","yip,yip!",chortle'
+    expected_string = '"apple pants",1,"yummy, yummy",,"yip,yip!",chortle'
 
     quoted_string = ORMLoaderTask._standardize_row_text(csv_string)
 
@@ -211,7 +211,7 @@ def hash_query_results():
             'md5': [
                 '25a93a044406f7d9d3d7a5c98bb9dd1a',
                 '5bdf77504ce234e0968bef50b65d5737',
-                '2611193cbb903e5ae23a7be15ca749d8',
+                '5bffaf8d5a76dd29c65ca75e690ce459',
                 '6a2b0a91ec079894f7a6b3e933f216fe'
             ]
         }
