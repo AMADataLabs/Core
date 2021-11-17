@@ -90,8 +90,6 @@ class ORMLoaderTask(LoaderTask):
     def _csv_to_dataframe(cls, data):
         dataframe = pandas.read_csv(io.BytesIO(data), dtype=object)
 
-        dataframe.fillna('', inplace=True)
-
         return dataframe
 
     def _generate_table_parameters(self, database, model_class, data):
@@ -322,7 +320,7 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _unquote_term(cls, csv_column):
         quoted_csv_column = csv_column
-        match = re.match(r'".*[, ].*"|""', csv_column)  # match quoted strings with spaces or commas
+        match = re.match(r'".*[, ].*"', csv_column)  # match quoted strings with spaces or commas
 
         if match is None:
             quoted_csv_column = f'{csv_column[1:-1]}'
