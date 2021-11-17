@@ -1,14 +1,13 @@
 """ Address Load Aggregation Transformer """
+# pylint: disable=bare-except,logging-fstring-interpolation,unused-import,trailing-newlines,import-error
 from datetime import datetime
 from io import BytesIO
 import logging
 from string import ascii_uppercase, digits
-import pandas as pd
 import pickle as pk
+import pandas as pd
 
-from datalabs.etl.transform import TransformerTask  # pylint: disable=import-error
-
-# pylint: disable=bare-except,logging-fstring-interpolation
+from datalabs.etl.transform import TransformerTask
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
