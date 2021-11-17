@@ -58,7 +58,7 @@ class BasePathMixin:
 
 class CurrentPathMixin:
     def _unpack_files_and_data(self, packed_data):
-        """Used in tandem with INCLUDES_NAMES to include BASE_PATH parameter adn timestamped dir for S3 Loader"""
+        """Used in tandem with INCLUDES_NAMES to include BASE_PATH parameter and timestamped dir for S3 Loader"""
         files, data = super()._unpack_files_and_data(packed_data)
 
         path = self._get_current_path()
