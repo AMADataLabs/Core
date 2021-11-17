@@ -32,6 +32,7 @@ modspec:
   - package: datalabs.access.secret
   - package: datalabs.etl
     include:
+      - csv
       - task
       - extract
       - awslambda
