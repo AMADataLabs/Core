@@ -2,12 +2,14 @@
 from   dataclasses import dataclass
 import logging
 from   pathlib import Path
+import string
 import tempfile
 
 import jaydebeapi
 import pandas
 
 from   datalabs.etl.extract import ExtractorTask
+from   datalabs.etl.csv import CSVReaderMixin
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -22,12 +24,12 @@ class JDBCExtractorParameters:
     driver: str
     driver_type: str
     database_host: str
-    database_name: str = None
-    database_username: str = None
-    database_password: str = None
-    database_port: str = None
-    jar_path: str = None
-    sql: str = None
+    database_name: str
+    database_username: str
+    database_password: str
+    database_port: str
+    jar_path: str
+    sql: str
     data: object = None
     execution_time: str = None
     chunk_size: str = None
@@ -129,7 +131,7 @@ class JDBCExtractorTask(ExtractorTask):
             if stop_index and (index + chunk_size) > stop_index:
                 chunk_size = stop_index - index
 
-            resolved_query = query.format(index=index, count=chunk_size)
+            resolved_query = self._resolve_query(query, index, chunk_size)
 
             LOGGER.info('Reading chunk of size %d at index %d...', chunk_size, index)
             chunk = self._read_single_query(resolved_query, connection)
@@ -143,6 +145,51 @@ class JDBCExtractorTask(ExtractorTask):
                 yield chunk
 
             index += read_count
+
+    def _resolve_query(self, query, record_index, record_count):
+        formatter = PartialFormatter()
+
+        return formatter.format(query, index=record_index, count=record_count)
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class JDBCParametricExtractorParameters:
+    driver: str
+    driver_type: str
+    database_host: str
+    database_name: str
+    database_username: str
+    database_password: str
+    database_port: str
+    jar_path: str
+    sql: str
+    max_parts: str
+    part_index: str
+    data: object = None
+    execution_time: str = None
+    chunk_size: str = None
+    count: str = None
+    start_index: str = '0'
+    stream: str = None
+
+
+class JDBCParametricExtractorTask(CSVReaderMixin, JDBCExtractorTask):
+    PARAMETER_CLASS = JDBCParametricExtractorParameters
+
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+        self._query_parameters = self._csv_to_dataframe(self._parameters.data[0])
+
+    def _resolve_query(self, query, record_index, record_count):
+        formatter = PartialFormatter()
+        resolved_query = super()._resolve_query(query, record_index, record_count)
+        part_index = int(self._parameters.part_index)
+        parameters = self._query_parameters.iloc[part_index].to_dict()
+
+        return formatter.format(resolved_query, **parameters)
 
 
 class JDBCParquetExtractorTask(JDBCExtractorTask):
@@ -184,3 +231,13 @@ class JDBCParquetExtractorTask(JDBCExtractorTask):
         results.to_parquet(path)
 
         return directory
+
+class PartialFormatter(string.Formatter):
+    def __init__(self, default='{{{0}}}'):
+        self.default=default
+
+    def get_value(self, key, args, substitutions):
+        if isinstance(key, str):
+            return substitutions.get(key, self.default.format(key))
+        else:
+            return string.Formatter.get_value(key, args, substitutions)
