@@ -7,7 +7,7 @@ import mock
 import pandas
 import pytest
 
-from   datalabs.etl.jdbc.extract import JDBCExtractorTask, JDBCParquetExtractorTask
+from   datalabs.etl.jdbc.extract import JDBCExtractorTask, JDBCParametricExtractorTask, JDBCParquetExtractorTask
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -96,6 +96,20 @@ def test_chunked_query_results_saved_as_parquet(parameters, chunked_read):
     assert 'column2' in data
 
 
+# pylint: disable=redefined-outer-name, protected-Access
+def test_parametric_extra_resolves_query_variables(parameters, parametric_data):
+    parameters['SQL'] = "SELECT * FROM some_table WHERE year = '{year}'"
+    parameters['PART_INDEX'] = '1'
+    parameters['MAX_PARTS'] = '3'
+    parameters['data'] = [parametric_data.to_csv(index=False).encode()]
+    expected_query = parameters['SQL'].format(year='2014')
+
+    extractor = JDBCParametricExtractorTask(parameters)
+
+    resolved_query = extractor._resolve_query(parameters['SQL'], 0, 0)
+    assert expected_query == resolved_query
+
+
 # pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.skip(reason="Integration test. Input Credentials")
 def test_jdbc_connection(parameters):
@@ -121,6 +135,10 @@ def parameters():
         DRIVER_TYPE='db2',
         JAR_PATH='./db2jcc4.jar',
     )
+
+@pytest.fixture
+def parametric_data():
+    return pandas.DataFrame(data=dict(year=['2003', '2014', '2015']))
 
 
 @pytest.fixture
