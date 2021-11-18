@@ -207,8 +207,8 @@ module "scheduler_task_definition" {
     version = "2.0.0"
     task_name                       = "scheduler"
     environment_name                = local.environment
-    task_role_arn                   = "arn:aws:iam::${local.account}:role/scheduler-${local.environment}-task-exe-role"
-    execution_role_arn              = "arn:aws:iam::${local.account}:role/scheduler-${local.environment}-task-exe-role"
+    task_role_arn                   = "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
+    execution_role_arn              = "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
     container_cpu                   = 1024
     container_memory                = 8192
     container_definition_vars       = {
