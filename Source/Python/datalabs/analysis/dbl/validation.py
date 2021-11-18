@@ -1,5 +1,5 @@
 """ New DBL Report Validation - Sanity Checks / Comparisons to Previous Report """
-# pylint: disable=consider-using-dict-items,too-many-locals,invalid-name
+# pylint: disable=too-many-locals,invalid-name
 from datetime import datetime
 import pandas as pd
 
@@ -255,13 +255,13 @@ class Validation:
                 current[i] = row['Grand Total']
 
         # compare
-        for val in current:
-            if val in previous:
-                val1 = previous[val]
-                val2 = current[val]
+        for key, val in current.items():
+            if key in previous:
+                val1 = previous[key]
+                val2 = val
                 change = get_percent_change(val1, val2)
                 if change >= change_threshold:
-                    errors.append(f'PE - "{val}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
+                    errors.append(f'PE - "{key}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
 
         total = data['Grand Total'].values[-1]
         if total != self.current_dls_file_read:
@@ -298,13 +298,13 @@ class Validation:
                 current[i] = row['Grand Total']
 
         # compare
-        for val in current:
-            if val in previous:
-                val1 = previous[val]
-                val2 = current[val]
+        for key, val in current.items():
+            if key in previous:
+                val1 = previous[key]
+                val2 = val
                 change = get_percent_change(val1, val2)
                 if change >= change_threshold:
-                    errors.append(f'Spec - "{val}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
+                    errors.append(f'Spec - "{key}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
 
         # "unspecified counts must be LOWER than the unspecified counts in the 10th tab (SecSpecbyMPA)"
         unspecified = data.reset_index()[['index', 'US']]
@@ -361,13 +361,13 @@ class Validation:
                 current[i] = row['Grand Total']
 
         # compare
-        for val in current:
-            if val in previous:
-                val1 = previous[val]
-                val2 = current[val]
+        for key, val in current.items():
+            if key in previous:
+                val1 = previous[key]
+                val2 = val
                 change = get_percent_change(val1, val2)
                 if change >= change_threshold:
-                    errors.append(f'Spec - {val} - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
+                    errors.append(f'Spec - {key} - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
 
         total = data['Grand Total'].values[-1]
         if total != self.current_dls_file_read:
@@ -388,14 +388,14 @@ class Validation:
             '\n\n'
         ]
 
-        for tab in self.tab_validations:
+        for tab, name in self.tab_validations.items():
             report_lines.append(tab.ljust(22))
-            report_lines.append(str(self.tab_validations[tab]) + '\n')
+            report_lines.append(str(name) + '\n')
 
         self.log = '\n'.join(report_lines)
 
     def _is_passing(self):
-        for tab in self.tab_validations:
-            if self.tab_validations[tab]['status'] == 'FAILING':
+        for _, name in self.tab_validations.items():
+            if name['status'] == 'FAILING':
                 return False
         return True
