@@ -248,3 +248,101 @@ module "scheduler_task_definition" {
     tag_maintwindow                   = "N/A"
     tags = {}
 }
+
+#####################################################################
+# AWS Batch
+#####################################################################
+
+##### batch_compute_environment - Scheduler #####
+resource "aws_batch_compute_environment" "ecs_scheduler_env" {
+  compute_environment_name = "ecs-scheduler-env"
+
+  compute_resources {
+    max_vcpus = 1
+
+    security_group_ids = [
+      module.scheduler_sg.security_group_id
+    ]
+
+    #NOTE: HADI, are you sure? ask Peter
+    subnets = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+
+    type = "FARGATE"
+  }
+
+  # service_role = aws_iam_role.aws_batch_service_role.arn
+  type         = "MANAGED"
+  # depends_on   = [aws_iam_role_policy_attachment.aws_batch_service_role]
+  tags = {
+    Name = "${var.project}-${local.environment}-ecs-scheduler-env"
+    Environment             = local.environment
+    Contact                 = var.contact
+    BudgetCode              = var.budget_code
+    Owner                   = var.owner
+    ProjectName             = var.project
+    SystemTier              = "0"
+    DRTier                  = "0"
+    DataClassification      = "N/A"
+    Notes                   = "N/A"
+    OS                      = "N/A"
+    EOL                     = "N/A"
+    MaintenanceWindow       = "N/A"
+    Group                   = "Health Solutions"
+    Department              = "DataLabs"
+  }
+}
+
+##### batch_job_queue - Scheduler #####
+resource "aws_batch_job_queue" "ecs_scheduler_job_queue" {
+  name     = "ecs-scheduler-job-queue"
+  state    = "ENABLED"
+  priority = 1
+  compute_environments = [
+    aws_batch_compute_environment.ecs_scheduler_env.arn,
+  ]
+
+  tags = {
+    Name = "${var.project}-${local.environment}-ecs-scheduler-job-queue"
+    Environment             = local.environment
+    Contact                 = var.contact
+    BudgetCode              = var.budget_code
+    Owner                   = var.owner
+    ProjectName             = var.project
+    SystemTier              = "0"
+    DRTier                  = "0"
+    DataClassification      = "N/A"
+    Notes                   = "N/A"
+    OS                      = "N/A"
+    EOL                     = "N/A"
+    MaintenanceWindow       = "N/A"
+    Group                   = "Health Solutions"
+    Department              = "DataLabs"
+  }
+}
+
+##### batch_job_definition - Scheduler #####
+resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
+  name = "ecs-scheduler-job-definition"
+  type = "container"
+  platform_capabilities = [
+    "FARGATE",
+  ]
+
+  container_properties = <<CONTAINER_PROPERTIES
+{
+  "command": ["python","task.py","'{\"dag\": \"DAG_SCHEDULER\", \"type\": \"DAG\", \"task\": \"_\", \"execution_time\": \"2020-11-10 21:30:00.000\"}'"],
+  "image": "644454719059.dkr.ecr.us-east-1.amazonaws.com/datalake-sbx:latest",
+  "fargatePlatformConfiguration": {
+    "platformVersion": "LATEST"
+  },
+  "resourceRequirements": [
+    {"type": "VCPU", "value": "1"},
+    {"type": "MEMORY", "value": "2048"}
+  ],
+  "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role",
+  "networkConfiguration": { 
+      "assignPublicIp": "ENABLED"
+  }
+}
+CONTAINER_PROPERTIES
+}
