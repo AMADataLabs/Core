@@ -96,7 +96,7 @@ def test_chunked_query_results_saved_as_parquet(parameters, chunked_read):
     assert 'column2' in data
 
 
-# pylint: disable=redefined-outer-name, protected-Access
+# pylint: disable=redefined-outer-name, protected-access
 def test_parametric_extra_resolves_query_variables(parameters, parametric_data):
     parameters['SQL'] = "SELECT * FROM some_table WHERE year = '{year}'"
     parameters['PART_INDEX'] = '1'
