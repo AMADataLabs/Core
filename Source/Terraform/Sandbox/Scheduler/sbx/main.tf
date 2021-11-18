@@ -253,6 +253,51 @@ module "scheduler_task_definition" {
 # AWS Batch
 #####################################################################
 
+##### aws_iam_role - Scheduler #####
+resource "aws_iam_role" "aws_batch_service_role" {
+  name = "aws_batch_service_role"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+    {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {
+        "Service": "batch.amazonaws.com"
+        }
+    }
+    ]
+}
+EOF
+
+  tags = {
+    Name = "${var.project}-${local.environment}-aws-batch-service-role"
+    Environment             = local.environment
+    Contact                 = var.contact
+    BudgetCode              = var.budget_code
+    Owner                   = var.owner
+    ProjectName             = var.project
+    SystemTier              = "0"
+    DRTier                  = "0"
+    DataClassification      = "N/A"
+    Notes                   = "N/A"
+    OS                      = "N/A"
+    EOL                     = "N/A"
+    MaintenanceWindow       = "N/A"
+    Group                   = "Health Solutions"
+    Department              = "DataLabs"
+  }
+}
+
+
+##### aws_iam_role_policy_attachment - Scheduler #####
+resource "aws_iam_role_policy_attachment" "aws_batch_service_role" {
+  role       = aws_iam_role.aws_batch_service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
+}
+
 ##### batch_compute_environment - Scheduler #####
 resource "aws_batch_compute_environment" "ecs_scheduler_env" {
   compute_environment_name = "ecs-scheduler-env"
@@ -270,9 +315,10 @@ resource "aws_batch_compute_environment" "ecs_scheduler_env" {
     type = "FARGATE"
   }
 
-  # service_role = aws_iam_role.aws_batch_service_role.arn
+  service_role = aws_iam_role.aws_batch_service_role.arn
+  # service_role = "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
   type         = "MANAGED"
-  # depends_on   = [aws_iam_role_policy_attachment.aws_batch_service_role]
+  depends_on   = [aws_iam_role_policy_attachment.aws_batch_service_role]
   tags = {
     Name = "${var.project}-${local.environment}-ecs-scheduler-env"
     Environment             = local.environment
