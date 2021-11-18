@@ -115,7 +115,6 @@ class OneViewDAG(DAG):
     CREATE_BUSINESS_TABLE: Repeat(IQVIABusinessTransformerTask, 5)
     CREATE_IQVIA_UPDATE_TABLE: IQVIAUpdateTransformerTask
     CONCATENATE_BUSINESS_TABLE: ConcatenateTransformerTask
-    SPLIT_IQVIA_BUSINESS_TABLE: SplitTransformerTask
     LOAD_BUSINESS_TABLE: Repeat(ORMLoaderTask, 5)
     EXTRACT_IQVIA_PROVIDER: JDBCExtractorTask
     EXTRACT_IQVIA_PROVIDER_AFFILIATION: JDBCExtractorTask
