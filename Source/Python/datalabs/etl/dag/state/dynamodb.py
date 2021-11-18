@@ -1,4 +1,5 @@
 """ DynamoDB DAG state classes. """
+import collections
 from   dataclasses import dataclass
 import logging
 import time
@@ -95,28 +96,35 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
     def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
         return self._set_status(dag, task, execution_time, status)
 
+    def get_all_statuses(self, dag: str, execution_time: str):
+        dynamodb = self._connect()
+        items = self._get_items_for_dag_run(dynamodb, dag, execution_time)
+
+        return self._get_item_statuses(dynamodb, execution_time, items)
+
     def clear_task(self, dag: str, execution_time: str, task: str):
         dynamodb = self._connect()
 
-        self._clear_items(dynamodb, dag, execution_time, [dag, f"{dag}__{task}"])
+        self._clear_items(dynamodb, execution_time, [dag, f"{dag}__{task}"])
 
     def clear_all(self, dag: str, execution_time: str):
         dynamodb = self._connect()
         items = self._get_items_for_dag_run(dynamodb, dag, execution_time)
+        LOGGER.info('Deleting items for %s run of DAG %s: %s', execution_time, dag, items)
 
-        self._clear_items(dynamodb, dag, execution_time, items)
+        self._clear_items(dynamodb, execution_time, items)
 
     def clear_upstream_tasks(self, dag_class, dag: str, execution_time: str, task: str):
         dynamodb = self._connect()
         tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.upstream_tasks(task)]
 
-        self._clear_items(dynamodb, dag, execution_time, tasks)
+        self._clear_items(dynamodb, execution_time, tasks)
 
     def clear_downstream_tasks(self, dag_class, dag: str, execution_time: str, task: str):
         dynamodb = self._connect()
         tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.downstream_tasks(task)]
 
-        self._clear_items(dynamodb, dag, execution_time, tasks)
+        self._clear_items(dynamodb, execution_time, tasks)
 
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
@@ -150,11 +158,22 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         items = response["Items"]
 
         item_names = [item["name"]["S"] for item in items]
-        LOGGER.info('Deleting items for %s run of DAG %s: %s', execution_time, dag, item_names)
 
         return item_names
 
-    def _clear_items(self, dynamodb, dag: str, execution_time: str, items):
+    def _get_item_statuses(self, dynamodb, execution_time: str, items):
+        for items_subset in self._item_chunks(items, 25):
+            get_requests = self._generate_get_requests(execution_time, items_subset)
+
+            LOGGER.debug('Get Requests: %s', get_requests)
+
+            response = dynamodb.batch_get_item(RequestItems={self._parameters.dag_state_table: get_requests})
+
+            statuses = response["Responses"][collections.deque(response["Responses"].keys())[0]]
+
+            return {status["name"]["S"]:status["status"]["S"] for status in statuses}
+
+    def _clear_items(self, dynamodb, execution_time: str, items):
         for items_subset in self._item_chunks(items, 25):
             delete_requests = self._generate_delete_requests(execution_time, items_subset)
             LOGGER.debug('Delete Statements: %s', delete_requests)
@@ -167,17 +186,29 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             yield items[index:index + chunk_size]
 
     @classmethod
-    def _generate_delete_requests(cls, execution_time: str, item_names: list):
+    def _generate_get_requests(cls, execution_time: str, items: list):
+        return dict(
+            Keys=[
+                dict(
+                    name=dict(S=item),
+                    execution_time=dict(S=execution_time)
+                )
+                for item in items
+            ]
+        )
+
+    @classmethod
+    def _generate_delete_requests(cls, execution_time: str, items: list):
         return [
             dict(
                 DeleteRequest=dict(
                     Key=dict(
-                        name=dict(S=item_name),
+                        name=dict(S=item),
                         execution_time=dict(S=execution_time)
                     )
                 )
             )
-            for item_name in item_names
+            for item in items
         ]
 
     @classmethod
