@@ -358,7 +358,7 @@ class ORMLoaderTask(LoaderTask):
 
     @classmethod
     def _create_model(cls, model_class, row, columns):
-        parameters = {column: getattr(row, column) for column in columns if hasattr(row, column)}
+        parameters = {column: cls._replace_nan(getattr(row, column)) for column in columns if hasattr(row, column)}
         model = model_class(**parameters)
 
         return model
@@ -375,6 +375,14 @@ class ORMLoaderTask(LoaderTask):
         if column_type in cls.COLUMN_TYPE_CONVERTERS:
             data[column] = cls.COLUMN_TYPE_CONVERTERS[column_type](data[column])
 
+    @classmethod
+    def _replace_nan(cls, value):
+        replacement_value = value
+
+        if value != value:  # test for NaN
+            replacement_value = None
+
+        return replacement_value
 
 class ORMPreLoaderTask(LoaderTask):
     def _load(self):
