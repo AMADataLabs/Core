@@ -138,8 +138,8 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
     def _handle_exception(self, exception) -> (int, dict):
         LOGGER.exception(
             'An exception occured while attempting to send a run notification for task %s of DAG %s.',
-            self.get_dag_id(),
-            self.get_task_id()
+            self._get_task_id(),
+            self._get_dag_id()
         )
 
         return f'Failed: {str(exception)}'
@@ -241,8 +241,8 @@ class DAGTaskWrapper(
 
         LOGGER.exception(
             'An exception occured while attempting to run task %s of DAG %s.',
-            self.get_dag_id(),
-            self.get_task_id()
+            self._get_task_id(),
+            self._get_dag_id()
         )
 
         return f'Failed: {str(exception)}'
