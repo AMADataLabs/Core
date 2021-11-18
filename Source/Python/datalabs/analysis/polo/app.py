@@ -1,15 +1,14 @@
 """ Apply the POLO address fitness model to the PPD. """
-# pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace,consider-using-from-import
+# pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace
 
 import logging
 import os
 from   pathlib import Path
 import re
 
-import settings  # pylint: disable=unused-import
-import datalabs.analysis.polo.model as polo
-import datalabs.analysis.polo.plot as plot
-import datalabs.curate.polo.ppd as data
+from datalabs.analysis.polo import model as polo
+from datalabs.analysis.polo import plot
+from datalabs.curate.polo import ppd as data
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

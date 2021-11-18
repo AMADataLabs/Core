@@ -141,10 +141,9 @@ class AMCAddressFlagger:
         results_summary += f"\nCount of all flagged amc-sourced addresses: {len(data[data['any_flag']])}"
         results_summary += '\nFlagging summary: (addresses can be flagged by multiple fields, ' \
                            'so the sum of these counts may exceed count above)'
-        for f in flags:  # pylint: disable=consider-using-dict-items
-            count = flags[f]
+        for flag, count in flags.items():
             if count > 0:
-                results_summary += f'\n\t{f}: {count}'
+                results_summary += f'\n\t{flag}: {count}'
 
         data.drop(columns='address', axis=1, inplace=True)  # delete temp column
 

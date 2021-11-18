@@ -1,5 +1,5 @@
 """ Address Load Aggregation Transformer """
-# pylint: disable=bare-except,logging-fstring-interpolation,unused-import,trailing-newlines,import-error
+# pylint: disable=bare-except,logging-fstring-interpolation,unused-import,trailing-newlines,import-error,invalid-name
 from datetime import datetime
 from io import BytesIO
 import logging

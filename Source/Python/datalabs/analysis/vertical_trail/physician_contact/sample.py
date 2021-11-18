@@ -1,5 +1,5 @@
 """ VT Contact Request Sample Generation """
-# pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace,consider-using-from-import,function-redefined,use-a-generator,f-string-without-interpolation,invalid-name,bare-except,unnecessary-comprehension,unused-variable,consider-using-dict-items
+# pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace,function-redefined,use-a-generator,f-string-without-interpolation,invalid-name,bare-except,unnecessary-comprehension,unused-variable
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -252,8 +252,8 @@ class VTPhysicianContactSampleGenerator:
             name = 'oldphone' + str((i + 1))
             old_phone_data[name] = ''
 
-        for entity_id in temp_phone_dict:
-            phone_list = temp_phone_dict[entity_id]['old_phones']
+        for entity_id, data in temp_phone_dict.items():
+            phone_list = data['old_phones']
             entity_id_index = old_phone_data[old_phone_data['entity_id'] == entity_id].index[0]
 
             for i in range(min(20, len(phone_list))):

@@ -1,10 +1,9 @@
 """ DBL report email loader task class """
-
+# pylint: disable=import-error,too-many-instance-attributes,invalid-name
 from dataclasses import dataclass
 from datetime import datetime
 import pickle as pk
 
-# pylint: disable=import-error
 from datalabs.etl.load import LoaderTask
 from datalabs.messaging.email_message import send_email, Attachment
 from datalabs.parameter import add_schema
@@ -12,7 +11,6 @@ from datalabs.parameter import add_schema
 
 @add_schema
 @dataclass
-# pylint: disable=too-many-instance-attributes, invalid-name
 class DBLReportEmailLoaderParameters:
     to: str
     cc: str

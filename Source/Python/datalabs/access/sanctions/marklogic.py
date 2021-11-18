@@ -1,3 +1,5 @@
+""" MarkLogic connection operations """
+# pylint: disable=import-error
 import json
 import os
 from requests.auth import HTTPDigestAuth
@@ -21,7 +23,6 @@ class MarkLogic(ml.MarkLogic):
         json_file['sanction']['physician']['license'] = license_number
 
         self._set_file(uri=uri, data=json.dumps(json_file))
-        return
 
     def set_me_number(self, uri, me_number, json_file=None, database='PhysicianSanctions'):
         if json_file is None:

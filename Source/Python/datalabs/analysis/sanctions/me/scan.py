@@ -8,7 +8,7 @@ import jaydebeapi
 from datalabs.access.sanctions.marklogic import MarkLogic
 from datalabs.analysis.sanctions.me.sql import SQL_TEMPLATE
 import settings
-import pyodbc
+
 
 class SanctionsMEScan:
     def __init__(self):
