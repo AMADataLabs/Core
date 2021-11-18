@@ -1,7 +1,7 @@
 """ Extractor class for CPT standard release text data from the S3 ingestion bucket. """
 from   dataclasses import dataclass
-from   bs4 import BeautifulSoup
 from   datetime import datetime
+from   bs4 import BeautifulSoup
 
 import requests
 
