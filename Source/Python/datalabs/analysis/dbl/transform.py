@@ -1,5 +1,5 @@
 """ Transformer for DBL Report Creation """
-
+# pylint: disable=import-error
 from io import BytesIO
 import logging
 import pickle as pk
@@ -9,7 +9,6 @@ import numpy as np
 import pandas as pd
 import xlsxwriter
 
-# pylint: disable=import-error,consider-using-dict-items
 from datalabs.etl.transform import TransformerTask
 from datalabs.analysis.dbl.validation import Validation
 
@@ -277,9 +276,8 @@ class DBLReportTransformer(TransformerTask):
             sheet_column_widths['PrimSpecbyMPA'][colname] = 8
             sheet_column_widths['SecSpecbyMPA'][colname] = 8
 
-        for sheetname in sheet_column_widths:
-            for column in sheet_column_widths[sheetname]:
-                width = sheet_column_widths[sheetname][column]
+        for sheetname, columns in sheet_column_widths.items():
+            for column, width in columns.items():
                 workbook.get_worksheet_by_name(sheetname).set_column(column, width)
 
     @classmethod
@@ -291,7 +289,6 @@ class DBLReportTransformer(TransformerTask):
 
         percentage_format = workbook.add_format({'num_format': '0.00%'})
 
-        for sheet_name in sheet_percentage_columns:
-            columns = sheet_percentage_columns[sheet_name]
+        for sheet_name, columns in sheet_percentage_columns.items():
             for column in columns:
                 workbook.get_worksheet_by_name(sheet_name).set_column(column, 12, percentage_format)
