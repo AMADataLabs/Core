@@ -95,15 +95,28 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
     def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
         return self._set_status(dag, task, execution_time, status)
 
+    def clear_task(self, dag: str, execution_time: str, task: str):
+        dynamodb = self._connect()
+
+        self._clear_items(dynamodb, dag, execution_time, [dag, f"{dag}__{task}"])
+
     def clear_all(self, dag: str, execution_time: str):
         dynamodb = self._connect()
-        item_names = self._get_items_for_dag_run(dynamodb, dag, execution_time)
+        items = self._get_items_for_dag_run(dynamodb, dag, execution_time)
 
-        for items_subset in self._item_chunks(item_names, 25):
-            delete_requests = self._generate_delete_requests(execution_time, items_subset)
-            LOGGER.debug('Delete Statements: %s', delete_requests)
+        self._clear_items(dynamodb, dag, execution_time, items)
 
-            dynamodb.batch_write_item(RequestItems={self._parameters.dag_state_table: delete_requests})
+    def clear_upstream_tasks(self, dag_class, dag: str, execution_time: str, task: str):
+        dynamodb = self._connect()
+        tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.upstream_tasks(task)]
+
+        self._clear_items(dynamodb, dag, execution_time, tasks)
+
+    def clear_downstream_tasks(self, dag_class, dag: str, execution_time: str, task: str):
+        dynamodb = self._connect()
+        tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.downstream_tasks(task)]
+
+        self._clear_items(dynamodb, dag, execution_time, tasks)
 
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
@@ -141,6 +154,18 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
         return item_names
 
+    def _clear_items(self, dynamodb, dag: str, execution_time: str, items):
+        for items_subset in self._item_chunks(items, 25):
+            delete_requests = self._generate_delete_requests(execution_time, items_subset)
+            LOGGER.debug('Delete Statements: %s', delete_requests)
+
+            dynamodb.batch_write_item(RequestItems={self._parameters.dag_state_table: delete_requests})
+
+    @classmethod
+    def _item_chunks(cls, items, chunk_size):
+        for index in range(0, len(items), chunk_size):
+            yield items[index:index + chunk_size]
+
     @classmethod
     def _generate_delete_requests(cls, execution_time: str, item_names: list):
         return [
@@ -154,11 +179,6 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             )
             for item_name in item_names
         ]
-
-    @classmethod
-    def _item_chunks(cls, items, chunk_size):
-        for index in range(0, len(items), chunk_size):
-            yield items[index:index + chunk_size]
 
     @classmethod
     def _get_primary_key(cls, dag: str, task: str):

@@ -23,7 +23,7 @@ if __name__ == '__main__':
 
     ap = argparse.ArgumentParser()
     ap.add_argument('-d', '--dag', required=True, help='DAG name')
-    ap.add_argument('-t', '--execution-time', required=True, help='YY-MM-DD hh:mm:ss')
+    ap.add_argument('-T', '--execution-time', required=True, help='YY-MM-DD hh:mm:ss')
     ap.add_argument('-e', '--environment', required=True, help='sbx, dev, tst, itg, or prd')
     args = vars(ap.parse_args())
 
