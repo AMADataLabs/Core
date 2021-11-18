@@ -4,6 +4,7 @@ from   dataclasses import dataclass
 import io
 import hashlib
 import logging
+import math
 import re
 
 import pandas
@@ -379,7 +380,7 @@ class ORMLoaderTask(LoaderTask):
     def _replace_nan(cls, value):
         replacement_value = value
 
-        if value != value:  # test for NaN
+        if isinstance(value, float) and math.isnan(value):
             replacement_value = None
 
         return replacement_value
