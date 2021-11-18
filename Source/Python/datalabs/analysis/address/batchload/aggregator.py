@@ -179,13 +179,12 @@ class AddressBatchLoadAggregator:
     def _get_staging_files_from_directory(cls, directory):
         return glob(directory + '/address_load*.csv')
 
-    # pylint: disable=consider-using-dict-items
     def _move_staging_files_to_archive(self):
-        for directory in self.directory_staging_file_dict:
+        for directory, files in self.directory_staging_file_dict.items():
             archive_directory = directory + '/archive'
             if not os.path.exists(archive_directory):
                 os.mkdir(archive_directory)
-            for file in self.directory_staging_file_dict[directory]:
+            for file in files:
                 filename = file.replace('\\', '/').split('/')[-1]
                 filename = self._insert_datestamp(filename)
 
