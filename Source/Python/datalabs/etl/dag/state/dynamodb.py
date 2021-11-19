@@ -96,9 +96,15 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
     def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
         return self._set_status(dag, task, execution_time, status)
 
+    def get_task_statuses(self, dag: str, execution_time: str, tasks: str):
+        dynamodb = self._connect()
+        items = [dag] + [f"{dag}__{task}" for task in tasks]
+
+        return self._get_item_statuses(dynamodb, execution_time, items)
+
     def get_all_statuses(self, dag: str, execution_time: str):
         dynamodb = self._connect()
-        items = self._get_items_for_dag_run(dynamodb, dag, execution_time)
+        items = [dag] + self._get_items_for_dag_run(dynamodb, dag, execution_time)
 
         return self._get_item_statuses(dynamodb, execution_time, items)
 
