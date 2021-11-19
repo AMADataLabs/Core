@@ -140,7 +140,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             downstream_tasks.append(successor.id)
             downstream_tasks += cls.downstream_tasks(successor.id)
 
-        return downstream_tasks
+        return set(downstream_tasks)
 
     @classmethod
     def upstream_tasks(cls, task: str):
@@ -154,7 +154,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             upstream_tasks.append(predecessor.id)
             upstream_tasks += cls.upstream_tasks(predecessor.id)
 
-        return upstream_tasks
+        return set(upstream_tasks)
 
     @classmethod
     def sequence(cls, task, count, start=None):

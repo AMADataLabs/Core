@@ -13,6 +13,7 @@ RAW_NAMES=(
     "getAffiliationMasterData"
     "getBusinessMasterData"
     "getCounties"
+    "getDatalabsQuestions"
     "getDepartment"
     "getDepartments"
     "getDremioToken"
@@ -20,6 +21,7 @@ RAW_NAMES=(
     "getGroupUsers"
     "getMTPMasterData"
     "getOneviewData"
+    "getOneviewQuestions"
     "getOrgMasterData"
     "getOrgs"
     "getPhysicianAffiliations"
@@ -37,6 +39,8 @@ RAW_NAMES=(
     "physician-type-ethnicity-annual"
     "processAccessRequest"
     "removeDremioToken"
+    "saveDatalabsFeedback"
+    "saveOneviewFeedback"
     "specialty-by-mpa-annual"
     "specialty-by-mpa"
     "updateDepartment"
@@ -46,12 +50,63 @@ RAW_NAMES=(
     "updateUserProfile"
     "validateUser"
 )
-SNAKE_CASE_NAMES=
+
+TIMEOUTS=(
+"3"
+"20"
+"3"
+"3"
+"3"
+"20"
+"20"
+"20"
+"3"
+"20"
+"20"
+"20"
+"20"
+"3"
+"3"
+"3"
+"20"
+"20"
+"20"
+"900"
+"20"
+"20"
+"3"
+"20"
+"20"
+"20"
+"3"
+"3"
+"3"
+"3"
+"10"
+"3"
+"3"
+"3"
+"20"
+"20"
+"30"
+"3"
+"20"
+"20"
+"20"
+"20"
+"3"
+"20"
+"3"
+"3"
+"3"
+"3"
+)
+SNAKE_CASE_NAMES=()
 
 for name in ${RAW_NAMES[@]}; do
     name=${name//-/_}
     name=$(echo $name | sed 's/\([A-Z]\)/_\1/g' | tr '[:upper:]' '[:lower:]')
-    SNAKE_CASE_NAMES+="$name "
+    SNAKE_CASE_NAMES+=( $name )
 done
 
 rm -f functions.txt
@@ -74,11 +129,13 @@ resource "aws_lambda_layer_version" "webapp" {
 }
 EOF
 
-for name in $SNAKE_CASE_NAMES; do
+for index in ${!SNAKE_CASE_NAMES[@]}; do
+  name=${SNAKE_CASE_NAMES[$index]}
   DASHED_NAME=${name//_/-}
   HUMAN_READABLE_NAME=""
   CAMEL_CASE_NAME=""
   parts=${name//_/ }
+  timeout=${TIMEOUTS[$index]}
 
   for part in $parts; do
     capitalized_part="$(tr '[:lower:]' '[:upper:]' <<< ${part:0:1})${part:1}"
@@ -88,7 +145,7 @@ for name in $SNAKE_CASE_NAMES; do
 
   CAMEL_CASE_NAME="$(tr '[:upper:]' '[:lower:]' <<< ${CAMEL_CASE_NAME:0:1})${CAMEL_CASE_NAME:1}"
 
-  render-template -t lambda.tf.jinja -f lambda.tf -v "SNAKE_CASE_NAME=${name},DASHED_NAME=${DASHED_NAME},HUMAN_READABLE_NAME=${HUMAN_READABLE_NAME},CAMEL_CASE_NAME=${CAMEL_CASE_NAME}"
+  render-template -t lambda.tf.jinja -f lambda.tf -v "TIMEOUT=${timeout},SNAKE_CASE_NAME=${name},DASHED_NAME=${DASHED_NAME},HUMAN_READABLE_NAME=${HUMAN_READABLE_NAME},CAMEL_CASE_NAME=${CAMEL_CASE_NAME}"
 
   cat lambda.tf >> lambdas.tf
 

@@ -1,4 +1,4 @@
-
+""" DOC STRING TO APPEASE LINT GODS """
 import os
 import sys
 

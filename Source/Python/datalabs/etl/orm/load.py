@@ -4,6 +4,7 @@ from   dataclasses import dataclass
 import io
 import hashlib
 import logging
+import math
 import re
 
 import pandas
@@ -48,8 +49,6 @@ class ORMLoaderParameters:
     soft_delete_column: str = None
 
 
-
-
 class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
 
@@ -89,8 +88,6 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _csv_to_dataframe(cls, data):
         dataframe = pandas.read_csv(io.BytesIO(data), dtype=object)
-
-        dataframe.fillna('', inplace=True)
 
         return dataframe
 
@@ -322,7 +319,7 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _unquote_term(cls, csv_column):
         quoted_csv_column = csv_column
-        match = re.match(r'".*[, ].*"|""', csv_column)  # match quoted strings with spaces or commas
+        match = re.match(r'".*[, ].*"', csv_column)  # match quoted strings with spaces or commas
 
         if match is None:
             quoted_csv_column = f'{csv_column[1:-1]}'
@@ -362,7 +359,7 @@ class ORMLoaderTask(LoaderTask):
 
     @classmethod
     def _create_model(cls, model_class, row, columns):
-        parameters = {column: getattr(row, column) for column in columns if hasattr(row, column)}
+        parameters = {column: cls._replace_nan(getattr(row, column)) for column in columns if hasattr(row, column)}
         model = model_class(**parameters)
 
         return model
@@ -379,6 +376,14 @@ class ORMLoaderTask(LoaderTask):
         if column_type in cls.COLUMN_TYPE_CONVERTERS:
             data[column] = cls.COLUMN_TYPE_CONVERTERS[column_type](data[column])
 
+    @classmethod
+    def _replace_nan(cls, value):
+        replacement_value = value
+
+        if isinstance(value, float) and math.isnan(value):
+            replacement_value = None
+
+        return replacement_value
 
 class ORMPreLoaderTask(LoaderTask):
     def _load(self):

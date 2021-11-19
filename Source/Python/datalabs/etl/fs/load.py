@@ -2,7 +2,7 @@
 from   dataclasses import dataclass
 import os
 
-from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin
+from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin, BasePathMixin
 from   datalabs.etl.task import ETLException
 from   datalabs.parameter import add_schema
 
@@ -12,13 +12,13 @@ from   datalabs.parameter import add_schema
 # pylint: disable=too-many-instance-attributes
 class LocalFileLoaderParameters:
     base_path: str
-    files: str
     data: list
+    files: str = None
     includes_names: str = None
     execution_time: str = None
 
 
-class LocalFileLoaderTask(IncludesNamesMixin, FileLoaderTask):
+class LocalFileLoaderTask(BasePathMixin, IncludesNamesMixin, FileLoaderTask):
     PARAMETER_CLASS = LocalFileLoaderParameters
 
     def _get_files(self):
@@ -39,13 +39,13 @@ class LocalFileLoaderTask(IncludesNamesMixin, FileLoaderTask):
         return DummyFSClient()
 
     def _load_file(self, data, file):
-        data = self._encode_data(data)
-
         try:
             with open(file, 'wb') as _file:
                 _file.write(data)
         except Exception as exception:
             raise ETLException(f"Unable to write file '{file}'") from exception
+
+        return data
 
     @classmethod
     def _encode_data(cls, data):

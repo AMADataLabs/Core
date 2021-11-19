@@ -6,7 +6,7 @@ import os
 import shutil
 from string import digits, ascii_uppercase
 import pandas as pd
-# pylint: disable=unused-import
+# pylint: disable=unused-import,import-error
 import settings
 
 
@@ -85,6 +85,7 @@ class AddressBatchLoadAggregator:
             LOGGER.info(f'FOUND COMPONENT FILE - {file}')
         return files
 
+    # pylint: disable=unsupported-assignment-operation,unsubscriptable-object
     def _process_component_file(self, path_to_file: str):
         this_file_data = pd.read_csv(path_to_file, dtype=str)
         for col in this_file_data.columns.values:
@@ -179,11 +180,11 @@ class AddressBatchLoadAggregator:
         return glob(directory + '/address_load*.csv')
 
     def _move_staging_files_to_archive(self):
-        for directory in self.directory_staging_file_dict:
+        for directory, files in self.directory_staging_file_dict.items():
             archive_directory = directory + '/archive'
             if not os.path.exists(archive_directory):
                 os.mkdir(archive_directory)
-            for file in self.directory_staging_file_dict[directory]:
+            for file in files:
                 filename = file.replace('\\', '/').split('/')[-1]
                 filename = self._insert_datestamp(filename)
 

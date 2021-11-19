@@ -1,4 +1,5 @@
 """ DynamoDB DAG state classes. """
+import collections
 from   dataclasses import dataclass
 import logging
 import time
@@ -11,7 +12,7 @@ from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class DynamoDBClientMixin:
@@ -95,6 +96,61 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
     def set_task_status(self, dag: str, task: str, execution_time: str, status: Status):
         return self._set_status(dag, task, execution_time, status)
 
+    def get_task_statuses(self, dag: str, execution_time: str, tasks: str):
+        dynamodb = self._connect()
+        items = [dag] + [f"{dag}__{task}" for task in tasks]
+
+        return self._get_item_statuses(dynamodb, execution_time, items)
+
+    def get_all_statuses(self, dag: str, execution_time: str):
+        dynamodb = self._connect()
+        items = [dag] + self._get_items_for_dag_run(dynamodb, dag, execution_time)
+
+        return self._get_item_statuses(dynamodb, execution_time, items)
+
+    def get_dag_runs(self, dag: str, limit: int = None):
+        dynamodb = self._connect()
+
+        if limit is None:
+            limit = 10
+
+        response = dynamodb.query(
+            TableName=self._parameters.dag_state_table,
+            KeyConditionExpression='#DAG=:dag',
+            ExpressionAttributeNames={"#DAG": "name"},
+            ExpressionAttributeValues={":dag": {"S": dag}},
+            ScanIndexForward=False,
+            Limit=limit
+        )
+        items = response["Items"]
+
+        return {item["execution_time"]["S"]:item["status"]["S"] for item in items}
+
+
+    def clear_task(self, dag: str, execution_time: str, task: str):
+        dynamodb = self._connect()
+
+        self._clear_items(dynamodb, execution_time, [dag, f"{dag}__{task}"])
+
+    def clear_all(self, dag: str, execution_time: str):
+        dynamodb = self._connect()
+        items = self._get_items_for_dag_run(dynamodb, dag, execution_time)
+        LOGGER.info('Deleting items for %s run of DAG %s: %s', execution_time, dag, items)
+
+        self._clear_items(dynamodb, execution_time, items)
+
+    def clear_upstream_tasks(self, dag_class, dag: str, execution_time: str, task: str):
+        dynamodb = self._connect()
+        tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.upstream_tasks(task)]
+
+        self._clear_items(dynamodb, execution_time, tasks)
+
+    def clear_downstream_tasks(self, dag_class, dag: str, execution_time: str, task: str):
+        dynamodb = self._connect()
+        tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.downstream_tasks(task)]
+
+        self._clear_items(dynamodb, execution_time, tasks)
+
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
         dynamodb = self._connect()
@@ -115,6 +171,75 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         self._unlock_state(dynamodb, lock_id)
 
         return succeeded
+
+    def _get_items_for_dag_run(self, dynamodb, dag: str, execution_time: str):
+        items = []
+        done = False
+        start_key = None
+
+        while not done:
+            items_subset, start_key = self._scan_dags(dynamodb, dag, execution_time, start_key)
+
+            items += items_subset
+
+            if start_key is None:
+                done = True
+
+        return items
+
+    def _get_item_statuses(self, dynamodb, execution_time: str, items):
+        statuses = {}
+
+        for items_subset in self._item_chunks(items, 25):
+            get_requests = self._generate_get_requests(execution_time, items_subset)
+
+            LOGGER.debug('Get Requests: %s', get_requests)
+
+            response = dynamodb.batch_get_item(RequestItems={self._parameters.dag_state_table: get_requests})
+
+            status_data = response["Responses"][collections.deque(response["Responses"].keys())[0]]
+
+            statuses.update({status["name"]["S"]:status["status"]["S"] for status in status_data})
+
+        return statuses
+
+    def _clear_items(self, dynamodb, execution_time: str, items):
+        for items_subset in self._item_chunks(items, 25):
+            delete_requests = self._generate_delete_requests(execution_time, items_subset)
+            LOGGER.debug('Delete Statements: %s', delete_requests)
+
+            dynamodb.batch_write_item(RequestItems={self._parameters.dag_state_table: delete_requests})
+
+    @classmethod
+    def _item_chunks(cls, items, chunk_size):
+        for index in range(0, len(items), chunk_size):
+            yield items[index:index + chunk_size]
+
+    @classmethod
+    def _generate_get_requests(cls, execution_time: str, items: list):
+        return dict(
+            Keys=[
+                dict(
+                    name=dict(S=item),
+                    execution_time=dict(S=execution_time)
+                )
+                for item in items
+            ]
+        )
+
+    @classmethod
+    def _generate_delete_requests(cls, execution_time: str, items: list):
+        return [
+            dict(
+                DeleteRequest=dict(
+                    Key=dict(
+                        name=dict(S=item),
+                        execution_time=dict(S=execution_time)
+                    )
+                )
+            )
+            for item in items
+        ]
 
     @classmethod
     def _get_primary_key(cls, dag: str, task: str):
@@ -150,6 +275,23 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             succeeded = True
 
         return succeeded
+
+    def _scan_dags(self, dynamodb, dag: str, execution_time: str, start_key):
+        parameters = dict(
+            TableName=self._parameters.dag_state_table,
+            FilterExpression="begins_with(#DAG, :dag) and execution_time = :execution_time",
+            ProjectionExpression="#DAG",
+            ExpressionAttributeNames={"#DAG": "name"},
+            ExpressionAttributeValues={":dag": {"S": dag}, ":execution_time": {"S": execution_time}}
+        )
+
+        if start_key:
+            parameters["ExclusiveStartKey"] = start_key
+
+        response = dynamodb.scan(**parameters)
+        items = response["Items"]
+
+        return [item["name"]["S"] for item in items], response.get("LastEvaluatedKey")
 
     def _get_state(self, dynamodb, primary_key: str, execution_time: str):
         items = dynamodb.get_item(

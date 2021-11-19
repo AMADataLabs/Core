@@ -36,7 +36,7 @@ class ConfigMapLoader():
                 config.update(yaml.safe_load(file.read())['data'])
 
         for key, value in config.items():
-            if not isinstance(value, str):
+            if not key.endswith('@MACRO_COUNT@') and not isinstance(value, str):
                 raise ValueError(f'The value for parameter {key} is not a string, but is {type(value)}: {value}.')
 
         return config

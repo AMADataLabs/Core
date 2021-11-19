@@ -1,10 +1,10 @@
-""" Source: datalabs.deploy.etcd.load """
+""" Source: datalabs.deploy.config.etcd """
 import base64
 import tempfile
 
 import pytest
 
-from   datalabs.deploy.etcd.load import ConfigMapLoader
+from   datalabs.deploy.config.etcd import ConfigMapLoader
 
 
 # pylint: disable=redefined-outer-name, protected-access

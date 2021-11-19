@@ -1,14 +1,14 @@
 #!/bin/bash
 
 
-main() {
-    dag=$1
-    execution_time=$2  # 2021-09-29 22:45:00
-    environment=${3:-dev}
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
 
-    aws dynamodb get-item --table-name DataLake-dag-state-${environment} \
-        --key '{"name": {"S": "'${dag}'"}, "execution_time": {"S": "'"${execution_time}"'"}}' \
-        | grep -A 1 status | grep '"S"' | awk '{print $2}'
+
+main() {
+    $RUN ${SCRIPT_BASE_PATH}/get_dag_status.py "$@"
 }
 
-main "$1" "$2" "$3"
+
+main "$@"

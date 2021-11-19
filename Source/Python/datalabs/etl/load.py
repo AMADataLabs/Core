@@ -3,6 +3,7 @@ from   abc import ABC, abstractmethod
 from   datetime import datetime
 import logging
 import pickle
+import os
 
 from datalabs.etl.task import ETLException, ETLComponentTask
 
@@ -44,6 +45,28 @@ class IncludesNamesMixin:
         return includes_names
 
 
+class BasePathMixin:
+    def _unpack_files_and_data(self, packed_data):
+        """Used in tandem with INCLUDES_NAMES to include BASE_PATH parameter"""
+        files, data = super()._unpack_files_and_data(packed_data)
+
+        path = self._parameters.base_path
+        files = [os.path.join(path, file.strip()) for file in files]
+
+        return files, data
+
+
+class CurrentPathMixin:
+    def _unpack_files_and_data(self, packed_data):
+        """Used in tandem with INCLUDES_NAMES to include BASE_PATH parameter and timestamped dir for S3 Loader"""
+        files, data = super()._unpack_files_and_data(packed_data)
+
+        path = self._get_current_path()
+        files = [os.path.join(path, file.strip()) for file in files]
+
+        return files, data
+
+
 class FileLoaderTask(LoaderTask, ABC):
     def __init__(self, parameters):
         super().__init__(parameters)
@@ -61,13 +84,18 @@ class FileLoaderTask(LoaderTask, ABC):
     def _load(self):
         # pylint: disable=not-context-manager
         with self._get_client() as client:
+            data = self._parameters.data
+
             self._client = client
 
-            files = self._get_files()
+            if self.includes_names:
+                files, data = self._unpack_files_and_data(self._parameters.data[0])
+            else:
+                files = self._get_files()
 
             resolved_files = self._resolve_files(files)
 
-            encoded_data = self._encode_dataset(self._parameters.data, resolved_files)
+            encoded_data = self._encode_dataset(data, resolved_files)
 
             data = self._load_files(encoded_data, resolved_files)
 
@@ -79,6 +107,13 @@ class FileLoaderTask(LoaderTask, ABC):
     def _get_client(self) -> 'Context Manager':
         return None
 
+    @classmethod
+    def _unpack_files_and_data(cls, packed_data):
+        named_files_data = pickle.loads(packed_data)
+        files, data = zip(*named_files_data)
+
+        return files, data
+
     @abstractmethod
     def _get_files(self) -> list:
         return None
@@ -87,15 +122,6 @@ class FileLoaderTask(LoaderTask, ABC):
         timestamped_files = self._resolve_timestamps(files)
 
         return timestamped_files
-
-    def _load_files(self, data, files):
-        if self.includes_names:
-            named_files_data = pickle.loads(data[0])
-            _, data = zip(*named_files_data)
-
-        data = [self._load_file(data, file) for file, data in zip(files, data)]
-
-        return data
 
     def _encode_dataset(self, dataset, files):
         encoded_dataset = []
@@ -107,6 +133,9 @@ class FileLoaderTask(LoaderTask, ABC):
                 raise ETLException(f'Unable to encode {files[index]}') from exception
 
         return encoded_dataset
+
+    def _load_files(self, data, files):
+        return [self._load_file(data, file) for file, data in zip(files, data)]
 
     def _resolve_timestamps(self, files):
         return [datetime.strftime(self.execution_time, file) for file in files]

@@ -1,3 +1,4 @@
+""" Not gonna be required """
 TABLE_SAMPLE_COLUMNS = [
     'sample_id',
     'row_id',
