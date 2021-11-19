@@ -10,9 +10,10 @@ from alembic import context
 from datalabs.access.credentials import Credentials
 from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
-from datalabs.model.masterfile.oneview import BASE, PHYSICIAN_VIEW, PHYSICIAN_PROVIDER_VIEW
+# from datalabs.model.masterfile.oneview import BASE, PHYSICIAN_VIEW, PHYSICIAN_PROVIDER_VIEW
+from datalabs.model.masterfile.oneview import BASE
 
-register_entities([PHYSICIAN_VIEW, PHYSICIAN_PROVIDER_VIEW])
+# register_entities([PHYSICIAN_VIEW, PHYSICIAN_PROVIDER_VIEW])
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
