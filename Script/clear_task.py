@@ -23,14 +23,15 @@ def main(args):
     )
     state = DAGState(parameters)
     dag_class = import_plugin(DAGClasses.__members__[args["dag"]].value)
+    execution_time = f'{args["date"]} {args["time"]}'
 
     for task in args["task"]:
         if args["upstream"]:
-            state.clear_upstream_tasks(dag_class, args["dag"], args["execution_time"], task)
+            state.clear_upstream_tasks(dag_class, args["dag"], execution_time, task)
         elif args["downstream"]:
-            state.clear_downstream_tasks(dag_class, args["dag"], args["execution_time"], task)
+            state.clear_downstream_tasks(dag_class, args["dag"], execution_time, task)
         else:
-            state.clear_task(args["dag"], args["execution_time"], task)
+            state.clear_task(args["dag"], execution_time, task)
 
 if __name__ == '__main__':
     return_code = 0
@@ -38,10 +39,11 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-d', '--dag', required=True, help='DAG ID')
     ap.add_argument('-t', '--task', action='append', required=True, help='task ID')
-    ap.add_argument('-T', '--execution-time', required=True, help='YY-MM-DD hh:mm:ss')
+    ap.add_argument('-D', '--date', required=True, help='YY-MM-DD')
+    ap.add_argument('-T', '--time', required=True, help='hh:mm:ss')
     ap.add_argument('-e', '--environment', required=True, help='sbx, dev, tst, itg, or prd')
-    ap.add_argument('-U', '--upstream', action='store_true', default=False, help='also clear all upstream tasks')
-    ap.add_argument('-D', '--downstream', action='store_true', default=False, help='also clear all downstream tasks')
+    ap.add_argument('-p', '--upstream', action='store_true', default=False, help='also clear all upstream tasks')
+    ap.add_argument('-w', '--downstream', action='store_true', default=False, help='also clear all downstream tasks')
     args = vars(ap.parse_args())
 
     try:

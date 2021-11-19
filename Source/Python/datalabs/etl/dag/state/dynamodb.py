@@ -118,7 +118,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             TableName=self._parameters.dag_state_table,
             KeyConditionExpression='#DAG=:dag',
             ExpressionAttributeNames={"#DAG": "name"},
-            ExpressionAttributeValues={":dag": {"S": "ONEVIEW"}},
+            ExpressionAttributeValues={":dag": {"S": dag}},
             ScanIndexForward=False,
             Limit=limit
         )
