@@ -31,3 +31,6 @@ class Database(db.Database):
 
     def query(self, *models, **kwargs):
         return self._connection.query(*models, **kwargs)
+
+    def execute(self, sql, **kwargs):
+        return self._connection.execute(sql, **kwargs)
