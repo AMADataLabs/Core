@@ -29,7 +29,7 @@ def main(args):
         for task in sorted(statuses.keys()):
             print(f'{task.split("__")[1]}: {statuses[task]}')
     else:
-        print(f'No status found for DAG {args["dag"]}')
+        print(f'No status was found for {args["dag"]} run {args["date"]} {args["time"]}.')
 
 if __name__ == '__main__':
     return_code = 0
