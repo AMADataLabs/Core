@@ -111,6 +111,10 @@ def upgrade():
                existing_type=sa.VARCHAR(),
                nullable=True,
                schema='oneview')
+    op.alter_column('credentialing_order', 'unique_physician_identification_number',
+               existing_type=sa.VARCHAR(),
+               nullable=True,
+               schema='oneview')
     op.alter_column('historical_resident', 'training_type',
                existing_type=sa.VARCHAR(),
                nullable=True,
@@ -131,6 +135,10 @@ def downgrade():
                nullable=False,
                schema='oneview')
     op.alter_column('historical_resident', 'training_type',
+               existing_type=sa.VARCHAR(),
+               nullable=False,
+               schema='oneview')
+    op.alter_column('credentialing_order', 'unique_physician_identification_number',
                existing_type=sa.VARCHAR(),
                nullable=False,
                schema='oneview')

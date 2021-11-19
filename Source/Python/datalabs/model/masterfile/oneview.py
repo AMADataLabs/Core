@@ -319,7 +319,7 @@ class CredentialingOrder(BASE):
                                          nullable=False)
     date = sa.Column(sa.String, nullable=False)
     quantity = sa.Column(sa.String, nullable=False)
-    unique_physician_identification_number = sa.Column(sa.String, nullable=False)
+    unique_physician_identification_number = sa.Column(sa.String, nullable=True)
 
 
 ################################################################
