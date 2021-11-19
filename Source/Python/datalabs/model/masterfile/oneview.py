@@ -1,5 +1,5 @@
 """ SQLAlchemy models for OneView """
-from   alembic_utils.pg_view import PGView  # pylint: disable=import-error
+# from   alembic_utils.pg_view import PGView  # pylint: disable=import-error
 import sqlalchemy as sa
 from   sqlalchemy.ext.declarative import declarative_base
 
