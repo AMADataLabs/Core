@@ -108,6 +108,25 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
         return self._get_item_statuses(dynamodb, execution_time, items)
 
+    def get_dag_runs(self, dag: str, limit: int = None):
+        dynamodb = self._connect()
+
+        if limit is None:
+            limit = 10
+
+        response = dynamodb.query(
+            TableName=self._parameters.dag_state_table,
+            KeyConditionExpression='#DAG=:dag',
+            ExpressionAttributeNames={"#DAG": "name"},
+            ExpressionAttributeValues={":dag": {"S": "ONEVIEW"}},
+            ScanIndexForward=False,
+            Limit=limit
+        )
+        items = response["Items"]
+
+        return {item["execution_time"]["S"]:item["status"]["S"] for item in items}
+
+
     def clear_task(self, dag: str, execution_time: str, task: str):
         dynamodb = self._connect()
 
