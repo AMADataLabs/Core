@@ -15,6 +15,13 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class CredentialingTransformerTask(TransformerTask):
+    def _postprocess_data(self, data):
+        products, orders = data
+
+        products = products.dropna(subset=['description'])
+
+        return [products, orders]
+
     def _get_columns(self):
         return [column.PRODUCT_COLUMNS, column.ORDER_COLUMNS]
 
