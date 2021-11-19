@@ -67,6 +67,10 @@ def upgrade():
                existing_type=sa.VARCHAR(),
                nullable=False,
                schema='oneview')
+    op.alter_column('credentialing_customer', 'name',
+               existing_type=sa.VARCHAR(),
+               nullable=True,
+               schema='oneview')
     op.alter_column('credentialing_customer', 'category',
                existing_type=sa.VARCHAR(),
                nullable=True,
@@ -159,6 +163,10 @@ def downgrade():
                nullable=False,
                schema='oneview')
     op.alter_column('credentialing_customer', 'category',
+               existing_type=sa.VARCHAR(),
+               nullable=False,
+               schema='oneview')
+    op.alter_column('credentialing_customer', 'name',
                existing_type=sa.VARCHAR(),
                nullable=False,
                schema='oneview')

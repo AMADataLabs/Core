@@ -173,20 +173,23 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         return succeeded
 
     def _get_items_for_dag_run(self, dynamodb, dag: str, execution_time: str):
-        response = dynamodb.scan(
-            TableName=self._parameters.dag_state_table,
-            FilterExpression="begins_with(#DAG, :dag) and execution_time = :execution_time",
-            ProjectionExpression="#DAG",
-            ExpressionAttributeNames={"#DAG": "name"},
-            ExpressionAttributeValues={":dag": {"S": dag}, ":execution_time": {"S": execution_time}},
-        )
-        items = response["Items"]
+        items = []
+        done = False
+        start_key = None
 
-        item_names = [item["name"]["S"] for item in items]
+        while not done:
+            items_subset, start_key = self._scan_dags(dynamodb, dag, execution_time, start_key)
 
-        return item_names
+            items += items_subset
+
+            if start_key is None:
+                done = True
+
+        return items
 
     def _get_item_statuses(self, dynamodb, execution_time: str, items):
+        statuses = {}
+
         for items_subset in self._item_chunks(items, 25):
             get_requests = self._generate_get_requests(execution_time, items_subset)
 
@@ -194,9 +197,11 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
             response = dynamodb.batch_get_item(RequestItems={self._parameters.dag_state_table: get_requests})
 
-            statuses = response["Responses"][collections.deque(response["Responses"].keys())[0]]
+            status_data = response["Responses"][collections.deque(response["Responses"].keys())[0]]
 
-            return {status["name"]["S"]:status["status"]["S"] for status in statuses}
+            statuses.update({status["name"]["S"]:status["status"]["S"] for status in status_data})
+
+        return statuses
 
     def _clear_items(self, dynamodb, execution_time: str, items):
         for items_subset in self._item_chunks(items, 25):
@@ -270,6 +275,23 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             succeeded = True
 
         return succeeded
+
+    def _scan_dags(self, dynamodb, dag: str, execution_time: str, start_key):
+        parameters = dict(
+            TableName=self._parameters.dag_state_table,
+            FilterExpression="begins_with(#DAG, :dag) and execution_time = :execution_time",
+            ProjectionExpression="#DAG",
+            ExpressionAttributeNames={"#DAG": "name"},
+            ExpressionAttributeValues={":dag": {"S": dag}, ":execution_time": {"S": execution_time}}
+        )
+
+        if start_key:
+            parameters["ExclusiveStartKey"] = start_key
+
+        response = dynamodb.scan(**parameters)
+        items = response["Items"]
+
+        return [item["name"]["S"] for item in items], response.get("LastEvaluatedKey")
 
     def _get_state(self, dynamodb, primary_key: str, execution_time: str):
         items = dynamodb.get_item(

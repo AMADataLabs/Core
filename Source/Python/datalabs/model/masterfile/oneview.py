@@ -291,7 +291,7 @@ class CredentialingCustomer(BASE):
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     number = sa.Column(sa.String, nullable=False)
-    name = sa.Column(sa.String, nullable=False)
+    name = sa.Column(sa.String, nullable=True)
     type = sa.Column(sa.String, nullable=False)
     type_description = sa.Column(sa.String, nullable=False)
     category = sa.Column(sa.String, nullable=True)
