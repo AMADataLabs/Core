@@ -22,11 +22,11 @@ def main(args):
     else:
         statuses = state.get_task_statuses(args["dag"], execution_time)
 
-    for task, status in statuses.items():
-        if task == args["dag"]:
-            print(f'DAG: {status}')
-        else:
-            print(f'{task.split("__")[1]}: {status}')
+    print(f'DAG: {statuses[args["dag"]]}')
+    statuses.pop(args["dag"])
+
+    for task in sorted(statuses.keys()):
+        print(f'{task.split("__")[1]}: {statuses[task]}')
 
 if __name__ == '__main__':
     return_code = 0
