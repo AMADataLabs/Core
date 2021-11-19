@@ -15,8 +15,12 @@ def main(args):
         DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}',
     )
     state = DAGState(parameters)
+    limit = None
 
-    run_info = state.get_dag_runs(args["dag"], limit=int(args["limit"]))
+    if args["limit"]:
+        limit = int(args["limit"])
+
+    run_info = state.get_dag_runs(args["dag"], limit=limit)
 
     for execution_time, status in run_info.items():
         print(f'{execution_time} {status}')
@@ -26,7 +30,7 @@ if __name__ == '__main__':
 
     ap = argparse.ArgumentParser()
     ap.add_argument('-d', '--dag', required=True, help='DAG name')
-    ap.add_argument('-n', '--limit', default=None, help='maximum number of results')
+    ap.add_argument('-n', '--limit', default=None, help='maximum number of results (default=10)')
     ap.add_argument('-e', '--environment', required=True, help='sbx, dev, tst, itg, or prd')
     args = vars(ap.parse_args())
 
