@@ -488,7 +488,7 @@ class ReindexerTask(LoaderTask):
                 database.execute('REINDEX INDEX {index}'.format(index=index))
 
             for table in tables:
-                database.execute('REINDEX TABLE {table}'.format(table=index))
+                database.execute('REINDEX TABLE {table}'.format(table=table))
 
             database.commit()  # pylint: disable=no-member
 
