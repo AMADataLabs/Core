@@ -9,6 +9,7 @@ RAW_NAMES=(
     "addUsers"
     "age-gender-mpa-annual"
     "age-gender-mpa"
+    "dpc-by-age-annual"
     "getAdminUsers"
     "getAffiliationMasterData"
     "getBusinessMasterData"
@@ -49,7 +50,9 @@ RAW_NAMES=(
     "updateUserDetails"
     "updateUserProfile"
     "validateUser"
+    "workforce-stats-annual"
 )
+
 
 TIMEOUTS=(
 "3"
@@ -60,6 +63,7 @@ TIMEOUTS=(
 "20"
 "20"
 "20"
+"180"
 "3"
 "20"
 "20"
@@ -100,6 +104,7 @@ TIMEOUTS=(
 "3"
 "3"
 "3"
+"180"
 )
 SNAKE_CASE_NAMES=()
 
