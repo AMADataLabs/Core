@@ -298,6 +298,11 @@ resource "aws_iam_role_policy_attachment" "aws_batch_service_role" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
 }
 
+resource "aws_iam_role_policy_attachment" "secret_manager_read_write" {
+  role       = aws_iam_role.aws_batch_service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+
 ##### batch_compute_environment - Scheduler #####
 resource "aws_batch_compute_environment" "ecs_scheduler_env" {
   compute_environment_name = "ecs-scheduler-env"
@@ -311,6 +316,8 @@ resource "aws_batch_compute_environment" "ecs_scheduler_env" {
 
     #NOTE: HADI, are you sure? ask Peter
     subnets = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+    # subnets = ["subnet-0a508711165923924"]
+    # subnets = ["arn:aws:ec2:us-east-1:644454719059:subnet/subnet-0a508711165923924"]
 
     type = "FARGATE"
   }
@@ -377,18 +384,29 @@ resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
   container_properties = <<CONTAINER_PROPERTIES
 {
   "command": ["python","task.py","'{\"dag\": \"DAG_SCHEDULER\", \"type\": \"DAG\", \"task\": \"_\", \"execution_time\": \"2020-11-10 21:30:00.000\"}'"],
-  "image": "644454719059.dkr.ecr.us-east-1.amazonaws.com/datalake-sbx:latest",
+  "image": "644454719059.dkr.ecr.us-east-1.amazonaws.com/datalake-sbx",
   "fargatePlatformConfiguration": {
-    "platformVersion": "LATEST"
+    "platformVersion": "1.3.0"
   },
   "resourceRequirements": [
     {"type": "VCPU", "value": "1"},
     {"type": "MEMORY", "value": "2048"}
   ],
-  "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role",
-  "networkConfiguration": { 
-      "assignPublicIp": "ENABLED"
-  }
+  "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
 }
 CONTAINER_PROPERTIES
+#   container_properties = <<CONTAINER_PROPERTIES
+# {
+#   "command": ["echo", "test"],
+#   "image": "busybox",
+#   "fargatePlatformConfiguration": {
+#     "platformVersion": "LATEST"
+#   },
+#   "resourceRequirements": [
+#     {"type": "VCPU", "value": "1"},
+#     {"type": "MEMORY", "value": "2048"}
+#   ],
+#   "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
+# }
+# CONTAINER_PROPERTIES
 }
