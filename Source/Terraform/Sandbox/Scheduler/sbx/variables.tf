@@ -51,7 +51,7 @@ variable "days_to_recover" {
 variable "scheduler_image_template" {
    description  = "The image name of the container image stored in ECR"
    type = string
-   default = "scheduler"
+   default = "datalake-sbx"
 }
 
 variable "scheduler_version" {

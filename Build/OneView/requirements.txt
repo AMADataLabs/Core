@@ -3,7 +3,7 @@ arnparse==0.0.2
 boto3==1.18.12
 cryptography==3.4.8
 gremlinpython==3.4.8
-dask==2021.7.1
+dask==2021.10.0
 guppy3==3.1.1
 JayDeBeApi==1.2.3
 jinja2==2.11.3
