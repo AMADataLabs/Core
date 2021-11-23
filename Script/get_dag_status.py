@@ -22,11 +22,14 @@ def main(args):
     else:
         statuses = state.get_task_statuses(args["dag"], execution_time)
 
-    print(f'DAG: {statuses[args["dag"]]}')
-    statuses.pop(args["dag"])
+    if statuses:
+        print(f'DAG: {statuses[args["dag"]]}')
+        statuses.pop(args["dag"])
 
-    for task in sorted(statuses.keys()):
-        print(f'{task.split("__")[1]}: {statuses[task]}')
+        for task in sorted(statuses.keys()):
+            print(f'{task.split("__")[1]}: {statuses[task]}')
+    else:
+        print(f'No status was found for {args["dag"]} run {args["date"]} {args["time"]}.')
 
 if __name__ == '__main__':
     return_code = 0
