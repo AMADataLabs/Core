@@ -2,8 +2,21 @@
     {
         "name": "scheduler",
         "image": "${account}.dkr.ecr.${region}.amazonaws.com/${image}:${tag}",
-        "cpu": 0,
-        "environment": [],
+        "cpu": 1,
+        "environment": [
+            {
+                "name": "TASK_WRAPPER_CLASS",
+                "value": "datalabs.etl.dag.ecs.ProcessorTaskWrapper"
+            },
+            {
+                "name": "TASK_RESOLVER_CLASS",
+                "value": "datalabs.etl.dag.resolve.TaskResolver"
+            },
+            {
+                "name": "DYNAMODB_CONFIG_TABLE",
+                "value": "DataLake-configuration-sbx"
+            }
+        ],
         "essential": true,
         "volumesFrom": [],
         "ulimits": [
