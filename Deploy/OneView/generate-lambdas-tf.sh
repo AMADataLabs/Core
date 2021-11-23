@@ -49,6 +49,7 @@ RAW_NAMES=(
     "updateProfile"
     "updateUserDetails"
     "updateUserProfile"
+    "userDataNowFiles"
     "validateUser"
     "workforce-stats-annual"
 )
@@ -103,6 +104,7 @@ TIMEOUTS=(
 "3"
 "3"
 "3"
+"5"
 "3"
 "180"
 )
