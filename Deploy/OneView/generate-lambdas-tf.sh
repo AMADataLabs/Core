@@ -108,17 +108,23 @@ TIMEOUTS=(
 "3"
 "180"
 )
+
 SNAKE_CASE_NAMES=()
 
-for name in ${RAW_NAMES[@]}; do
-    name=${name//-/_}
-    name=$(echo $name | sed 's/\([A-Z]\)/_\1/g' | tr '[:upper:]' '[:lower:]')
-    SNAKE_CASE_NAMES+=( $name )
-done
 
-rm -f functions.txt
-rm -f bundles.txt
-cat > lambdas.tf << EOF
+main() {
+    initialize_lambdas_tf
+
+    initialize_update_lambdas_sh
+
+    generate_snake_case_names
+
+    generate_code
+}
+
+
+initialize_lambdas_tf() {
+    cat > lambdas.tf << EOF
 ##### Lambdas - Web App #####
 
 data "aws_s3_bucket_object" "layer_hash" {
@@ -135,29 +141,77 @@ resource "aws_lambda_layer_version" "webapp" {
     compatible_runtimes     = ["python3.8"]
 }
 EOF
+}
 
-for index in ${!SNAKE_CASE_NAMES[@]}; do
-  name=${SNAKE_CASE_NAMES[$index]}
-  DASHED_NAME=${name//_/-}
-  HUMAN_READABLE_NAME=""
-  CAMEL_CASE_NAME=""
-  parts=${name//_/ }
-  timeout=${TIMEOUTS[$index]}
 
-  for part in $parts; do
-    capitalized_part="$(tr '[:lower:]' '[:upper:]' <<< ${part:0:1})${part:1}"
-    HUMAN_READABLE_NAME="${HUMAN_READABLE_NAME} $capitalized_part"
-    CAMEL_CASE_NAME="${CAMEL_CASE_NAME}$capitalized_part"
-  done
+initialize_update_lambdas_sh() {
+    cat > update_lambdas.sh << EOF
+#!/bin/bash
 
-  CAMEL_CASE_NAME="$(tr '[:upper:]' '[:lower:]' <<< ${CAMEL_CASE_NAME:0:1})${CAMEL_CASE_NAME:1}"
+set -ex
 
-  render-template -t lambda.tf.jinja -f lambda.tf -v "TIMEOUT=${timeout},SNAKE_CASE_NAME=${name},DASHED_NAME=${DASHED_NAME},HUMAN_READABLE_NAME=${HUMAN_READABLE_NAME},CAMEL_CASE_NAME=${CAMEL_CASE_NAME}"
+PROJECT="${PROJECT:-OneView}"
+ENVIRONMENT="${ENVIRONMENT:-sbx}"
 
-  cat lambda.tf >> lambdas.tf
+CODE_BUCKET="ama-${ENVIRONMENT}-datalake-lambda-us-east-1"
+FUNCTIONS=(
+EOF
+}
 
-  echo "    "'"'"\${PROJECT}-\${ENVIRONMENT}-${CAMEL_CASE_NAME}"'"'"" >> functions.txt
-  echo "    "'"'"\${PROJECT}/${CAMEL_CASE_NAME}.zip"'"'"" >> bundles.txt
+
+generate_snake_case_names() {
+    for name in ${RAW_NAMES[@]}; do
+        name=${name//-/_}
+        name=$(echo $name | sed 's/\([A-Z]\)/_\1/g' | tr '[:upper:]' '[:lower:]')
+        SNAKE_CASE_NAMES+=( $name )
+    done
+}
+
+
+generate_code() {
+    for index in ${!SNAKE_CASE_NAMES[@]}; do
+        name=${SNAKE_CASE_NAMES[$index]}
+        DASHED_NAME=${name//_/-}
+        HUMAN_READABLE_NAME=""
+        CAMEL_CASE_NAME=""
+        parts=${name//_/ }
+        timeout=${TIMEOUTS[$index]}
+
+        for part in $parts; do
+            capitalized_part="$(tr '[:lower:]' '[:upper:]' <<< ${part:0:1})${part:1}"
+            HUMAN_READABLE_NAME="${HUMAN_READABLE_NAME} $capitalized_part"
+            CAMEL_CASE_NAME="${CAMEL_CASE_NAME}$capitalized_part"
+        done
+
+        CAMEL_CASE_NAME="$(tr '[:upper:]' '[:lower:]' <<< ${CAMEL_CASE_NAME:0:1})${CAMEL_CASE_NAME:1}"
+
+        render-template -t lambda.tf.jinja -f lambda.tf -v "TIMEOUT=${timeout},SNAKE_CASE_NAME=${name},DASHED_NAME=${DASHED_NAME},HUMAN_READABLE_NAME=${HUMAN_READABLE_NAME},CAMEL_CASE_NAME=${CAMEL_CASE_NAME}"
+
+        cat lambda.tf >> lambdas.tf
+
+        echo "    "'"'"\${PROJECT}-\${ENVIRONMENT}-${CAMEL_CASE_NAME}"'"'"" >> functions.txt
+        echo "    "'"'"\${PROJECT}/${CAMEL_CASE_NAME}.zip"'"'"" >> bundles.txt
+    done
+
+    rm lambda.tf
+
+    cat functions.txt >> update_lambdas.sh
+
+    cat >> update_lambdas.sh << EOF
+)
+BUNDLES=(
+EOF
+
+    cat bundles.txt >> update_lambdas.sh
+
+    cat >> update_lambdas.sh << EOF
+)
+
+for index in "${!FUNCTIONS[@]}"; do
+  aws --no-paginate lambda update-function-code --function-name ${FUNCTIONS[index]} --s3-bucket ${CODE_BUCKET} --s3-key ${BUNDLES[index]} || exit $?
 done
+EOF
+}
 
-rm lambda.tf
+
+main
