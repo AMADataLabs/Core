@@ -256,21 +256,7 @@ module "scheduler_task_definition" {
 ##### aws_iam_role - Scheduler #####
 resource "aws_iam_role" "aws_batch_service_role" {
   name = "aws_batch_service_role"
-
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-    {
-        "Action": "sts:AssumeRole",
-        "Effect": "Allow",
-        "Principal": {
-        "Service": "batch.amazonaws.com"
-        }
-    }
-    ]
-}
-EOF
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_role.json
 
   tags = {
     Name = "${var.project}-${local.environment}-aws-batch-service-role"
@@ -308,7 +294,7 @@ resource "aws_batch_compute_environment" "ecs_scheduler_env" {
   compute_environment_name = "ecs-scheduler-env"
 
   compute_resources {
-    max_vcpus = 1
+    max_vcpus = 2
 
     security_group_ids = [
       module.scheduler_sg.security_group_id
@@ -392,9 +378,18 @@ resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
     {"type": "VCPU", "value": "1"},
     {"type": "MEMORY", "value": "2048"}
   ],
-  "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
+  "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role",
+  "jobRoleArn": "${aws_iam_role.aws_batch_service_role.arn}",
+  "environment": [ 
+         { 
+            "name": "ECS_AVAILABLE_LOGGING_DRIVERS",
+            "value": "awslogs"
+         }
+      ]
 }
 CONTAINER_PROPERTIES
+  # "jobRoleArn": "${aws_iam_role.ecs_task_role.arn}"
+
 #   container_properties = <<CONTAINER_PROPERTIES
 # {
 #   "command": ["echo", "test"],
