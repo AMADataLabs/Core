@@ -49,65 +49,8 @@ module "scheduler_sg" {
 # AWS Batch
 #####################################################################
 
-##### aws_iam_role - Scheduler #####
-resource "aws_iam_role" "scheduler_batch_service_role" {
-  name = "scheduler_batch_service_role"
-  assume_role_policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-    {
-        "Action": "sts:AssumeRole",
-        "Effect": "Allow",
-        "Principal": {
-        "Service": [
-            "batch.amazonaws.com",
-            "ecs-tasks.amazonaws.com"
-        ]
-        }
-    }
-    ]
-}
-EOF
+##### Compute Environment #####
 
-  tags = {
-    Name = "${var.project}-${local.environment}-scheduler-batch-service-role"
-    Environment             = local.environment
-    Contact                 = var.contact
-    BudgetCode              = var.budget_code
-    Owner                   = var.owner
-    ProjectName             = var.project
-    SystemTier              = "0"
-    DRTier                  = "0"
-    DataClassification      = "N/A"
-    Notes                   = "N/A"
-    OS                      = "N/A"
-    EOL                     = "N/A"
-    MaintenanceWindow       = "N/A"
-    Group                   = "Health Solutions"
-    Department              = "DataLabs"
-  }
-}
-
-
-##### aws_iam_role_policy_attachment - Scheduler #####
-resource "aws_iam_role_policy_attachment" "aws_batch_service_role" {
-  role       = aws_iam_role.scheduler_batch_service_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
-}
-
-resource "aws_iam_role_policy_attachment" "secret_manager_read_write" {
-  role       = aws_iam_role.scheduler_batch_service_role.name
-  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
-}
-#
-# resource "aws_iam_role_policy_attachment" "ecs_instance_role" {
-#   role       = aws_iam_role.ecs_instance_role.name
-#   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
-# }
-
-
-##### batch_compute_environment - Scheduler #####
 resource "aws_batch_compute_environment" "ecs_scheduler_env" {
   compute_environment_name = "ecs-scheduler-env"
 
@@ -151,7 +94,8 @@ resource "aws_batch_compute_environment" "ecs_scheduler_env" {
 }
 
 
-##### batch_job_queue - Scheduler #####
+##### Job Queue #####
+
 resource "aws_batch_job_queue" "ecs_scheduler_job_queue" {
   name     = "ecs-scheduler-job-queue"
   state    = "ENABLED"
@@ -179,7 +123,7 @@ resource "aws_batch_job_queue" "ecs_scheduler_job_queue" {
   }
 }
 
-##### batch_job_definition - Scheduler #####
+##### Scheduler Job Definition #####
 resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
   name = "ecs-scheduler-job-definition"
   type = "container"
@@ -198,7 +142,7 @@ resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
     {"type": "VCPU", "value": "1"},
     {"type": "MEMORY", "value": "2048"}
   ],
-  "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role",
+  "executionRoleArn": "arn:aws:iam::${local.account}:role/${lower(var.project)}-${local.environment}-task-exe-role",
   "jobRoleArn": "${aws_iam_role.scheduler_batch_service_role.arn}",
   "environment": [
       {
@@ -232,4 +176,113 @@ CONTAINER_PROPERTIES
 #   "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
 # }
 # CONTAINER_PROPERTIES
+}
+
+
+##### Scheduler Service Role #####
+
+resource "aws_iam_role" "scheduler_batch_service_role" {
+  name = "scheduler_batch_service_role"
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+    {
+        "Action": "sts:AssumeRole",
+        "Effect": "Allow",
+        "Principal": {
+        "Service": [
+            "batch.amazonaws.com",
+            "ecs-tasks.amazonaws.com"
+        ]
+        }
+    }
+    ]
+}
+EOF
+
+  tags = {
+    Name = "${var.project}-${local.environment}-scheduler-batch-service-role"
+    Environment             = local.environment
+    Contact                 = var.contact
+    BudgetCode              = var.budget_code
+    Owner                   = var.owner
+    ProjectName             = var.project
+    SystemTier              = "0"
+    DRTier                  = "0"
+    DataClassification      = "N/A"
+    Notes                   = "N/A"
+    OS                      = "N/A"
+    EOL                     = "N/A"
+    MaintenanceWindow       = "N/A"
+    Group                   = "Health Solutions"
+    Department              = "DataLabs"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "aws_batch_service_role" {
+  role       = aws_iam_role.scheduler_batch_service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
+}
+
+resource "aws_iam_role_policy_attachment" "secret_manager_read_write" {
+  role       = aws_iam_role.scheduler_batch_service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
+}
+
+
+#### ECS Task Role ####
+
+data "aws_iam_policy_document" "ecs_task_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "ecs_task_role" {
+    name                    = "${lower(var.project)}-${local.environment}-task-exe-role"
+    assume_role_policy      = data.aws_iam_policy_document.ecs_task_role.json
+    description             = "Allows ECS tasks to call AWS services on your behalf."
+
+    tags                    = {
+        Name                    = "ECS Task Role for OneView"
+        Environment             = local.environment
+        Contact                 = var.contact
+        BudgetCode              = var.budget_code
+        Owner                   = var.owner
+        ProjectName             = var.project
+        SystemTier              = "0"
+        DRTier                  = "0"
+        DataClassification      = "N/A"
+        Notes                   = "N/A"
+        OS                      = "N/A"
+        EOL                     = "N/A"
+        MaintenanceWindow       = "N/A"
+        Group                   = "Health Solutions"
+        Department              = "DataLabs"
+    }
+}
+
+data "aws_iam_policy" "AmazonECSTaskExecutionRolePolicy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_role" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = data.aws_iam_policy.AmazonECSTaskExecutionRolePolicy.arn
+}
+
+
+data "aws_iam_policy" "AmazonSSMReadOnlyAccess" {
+  arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_ssm" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = data.aws_iam_policy.AmazonSSMReadOnlyAccess.arn
 }
