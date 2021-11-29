@@ -3,7 +3,7 @@ import logging
 
 import jinja2
 
-from   datalabs.deploy.dynamodb.load import ConfigMapLoader
+from   datalabs.deploy.config.dynamodb import ConfigMapLoader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

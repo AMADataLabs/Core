@@ -8,7 +8,7 @@ import logging
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.load import FileLoaderTask
+from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin, CurrentPathMixin
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
 
@@ -23,20 +23,20 @@ LOGGER.setLevel(logging.DEBUG)
 class S3FileLoaderParameters:
     bucket: str
     base_path: str
-    files: str
     data: object
+    files: str = None
     endpoint_url: str = None
     access_key: str = None
     secret_key: str = None
     region_name: str = None
-    include_names: str = None
+    includes_names: str = None
     include_datestamp: str = None
     execution_time: str = None
     assume_role: str = None
     on_disk: str = False
 
 
-class S3FileLoaderTask(ExecutionTimeMixin, FileLoaderTask):
+class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin, FileLoaderTask):
     PARAMETER_CLASS = S3FileLoaderParameters
 
     def _get_client(self):

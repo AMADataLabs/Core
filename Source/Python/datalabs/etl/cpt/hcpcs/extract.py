@@ -1,5 +1,6 @@
 """ Extractor class for CPT standard release text data from the S3 ingestion bucket. """
 from   dataclasses import dataclass
+from   datetime import datetime
 from   bs4 import BeautifulSoup
 
 import requests
@@ -63,4 +64,17 @@ class HCPCSQuarterlyUpdateReportURLExtractorTask(ExtractorTask):
             year_month = url_split[1] + months[url_split[0].lower()]
             reports[year_month] = "https://www.cms.gov" + url_suffix
 
+        reports = cls._filter_future_reports(reports)
+
         return reports[max(reports.keys())]
+
+
+    @classmethod
+    def _filter_future_reports(cls, report_dict):
+        current_year_month = datetime.today().strftime('%Y%m')
+
+        for key in list(report_dict.keys()):
+            if key > current_year_month:
+                del report_dict[key]
+
+        return report_dict

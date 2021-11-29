@@ -102,6 +102,11 @@ class ETLComponentTask(task.Task):
         return self._data
 
 
+class DummyTask(ETLComponentTask):
+    def run(self):
+        return []
+
+
 class ETLTaskParametersGetterMixin(task.TaskWrapper):
     def _get_task_parameters(self):
         var_tree = VariableTree.from_environment()

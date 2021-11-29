@@ -28,10 +28,27 @@ resource "aws_internet_gateway" "datalake" {
 }
 
 
+### NAT Gateway ###
+resource "aws_eip" "nat_gateway" {
+    vpc = true
+
+    tags = merge(local.tags, {Name = "Data Lake NAT Gateway IP"})
+}
+
+resource "aws_nat_gateway" "datalake" {
+  allocation_id = aws_eip.nat_gateway.id
+  subnet_id     = aws_subnet.datalake_public1.id
+
+  depends_on = [aws_internet_gateway.datalake]
+
+  tags = merge(local.tags, {Name = "Data Lake NAT Gateway"})
+}
+
+
 ### Routes ###
 
 resource "aws_route_table" "datalake_public" {
-  vpc_id = aws_vpc.datalake.id
+    vpc_id = aws_vpc.datalake.id
 
     tags = merge(local.tags, {Name = "Data Lake Public Route Table"})
 }
@@ -41,6 +58,19 @@ resource "aws_route" "datalake_public" {
     route_table_id              = aws_route_table.datalake_public.id
     destination_cidr_block      = "0.0.0.0/0"
     gateway_id                  = aws_internet_gateway.datalake.id
+}
+
+resource "aws_route_table" "datalake_private" {
+    vpc_id = aws_vpc.datalake.id
+
+    tags = merge(local.tags, {Name = "Data Lake Private Route Table"})
+}
+
+
+resource "aws_route" "datalake_private" {
+    route_table_id              = aws_route_table.datalake_private.id
+    destination_cidr_block      = "0.0.0.0/0"
+    nat_gateway_id                = aws_nat_gateway.datalake.id
 }
 
 
@@ -87,7 +117,7 @@ resource "aws_subnet" "datalake_private1" {
 
 resource "aws_route_table_association" "datalake_private1" {
     subnet_id      = aws_subnet.datalake_private1.id
-    route_table_id = aws_vpc.datalake.default_route_table_id
+    route_table_id = aws_route_table.datalake_private.id
 }
 
 
@@ -102,130 +132,113 @@ resource "aws_subnet" "datalake_private2" {
 
 resource "aws_route_table_association" "datalake_private2" {
     subnet_id      = aws_subnet.datalake_private2.id
-    route_table_id = aws_vpc.datalake.default_route_table_id
-}
-
-
-### NAT Gateway ###
-resource "aws_eip" "nat_gateway" {
-    vpc = true
-
-    tags = merge(local.tags, {Name = "Data Lake NAT Gateway IP"})
-}
-
-resource "aws_nat_gateway" "datalake" {
-  allocation_id = aws_eip.nat_gateway.id
-  subnet_id     = aws_subnet.datalake_public1.id
-
-  depends_on = [aws_internet_gateway.datalake]
-
-  tags = merge(local.tags, {Name = "Data Lake NAT Gateway"})
+    route_table_id = aws_route_table.datalake_private.id
 }
 
 
 ### VPC Endpoints ###
-
-resource "aws_vpc_endpoint" "s3" {
-  vpc_id            = aws_vpc.datalake.id
-  service_name      = "com.amazonaws.${var.region}.s3"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.datalake_public.id]
-
-  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-s3-vpce"})
-}
-
-resource "aws_vpc_endpoint" "dynamodb" {
-  vpc_id            = aws_vpc.datalake.id
-  service_name      = "com.amazonaws.${var.region}.dynamodb"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.datalake_public.id]
-
-  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dynamodb-vpce"})
-}
-
-
-resource "aws_vpc_endpoint" "cloudwatch" {
-  vpc_id              = aws_vpc.datalake.id
-  private_dns_enabled = true
-  service_name        = "com.amazonaws.${var.region}.logs"
-  vpc_endpoint_type   = "Interface"
-  security_group_ids  = var.outbound_security_groups
-  subnet_ids          = local.subnets
-
-  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dkr-vpce"})
-}
-
-
-resource "aws_vpc_endpoint" "dkr" {
-  vpc_id              = aws_vpc.datalake.id
-  private_dns_enabled = true
-  service_name        = "com.amazonaws.${var.region}.ecr.dkr"
-  vpc_endpoint_type   = "Interface"
-  security_group_ids  = var.outbound_security_groups
-  subnet_ids          = local.subnets
-
-  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dkr-vpce"})
-}
-
-
-resource "aws_vpc_endpoint" "ecr" {
-  vpc_id              = aws_vpc.datalake.id
-  private_dns_enabled = true
-  service_name        = "com.amazonaws.${var.region}.ecr.api"
-  vpc_endpoint_type   = "Interface"
-  security_group_ids  = var.outbound_security_groups
-  subnet_ids          = local.subnets
-
-  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-ecr-vpce"})
-}
-
-
-resource "aws_vpc_endpoint" "ssm" {
-  vpc_id              = aws_vpc.datalake.id
-  private_dns_enabled = true
-  service_name        = "com.amazonaws.${var.region}.ssm"
-  vpc_endpoint_type   = "Interface"
-  security_group_ids  = var.outbound_security_groups
-  subnet_ids          = local.subnets
-
-  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-ssm-vpce"})
-}
-
-
-resource "aws_vpc_endpoint" "secretsmanager" {
-  vpc_id              = aws_vpc.datalake.id
-  private_dns_enabled = true
-  service_name        = "com.amazonaws.${var.region}.secretsmanager"
-  vpc_endpoint_type   = "Interface"
-  security_group_ids  = var.outbound_security_groups
-  subnet_ids          = local.subnets
-
-  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-secretsmanager-vpce"})
-}
-
-
-resource "aws_vpc_endpoint" "lambda" {
-  vpc_id              = aws_vpc.datalake.id
-  private_dns_enabled = true
-  service_name        = "com.amazonaws.${var.region}.lambda"
-  vpc_endpoint_type   = "Interface"
-  security_group_ids  = var.outbound_security_groups
-  subnet_ids          = local.subnets
-
-  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-lambda-vpce"})
-}
-
-
-resource "aws_vpc_endpoint" "sns" {
-  vpc_id              = aws_vpc.datalake.id
-  private_dns_enabled = true
-  service_name        = "com.amazonaws.${var.region}.sns"
-  vpc_endpoint_type   = "Interface"
-  security_group_ids  = var.outbound_security_groups
-  subnet_ids          = local.subnets
-
-  tags = merge(local.tags, {Name = "${var.project}-${var.environment}-lambda-vpce"})
-}
+#
+# resource "aws_vpc_endpoint" "s3" {
+#   vpc_id            = aws_vpc.datalake.id
+#   service_name      = "com.amazonaws.${var.region}.s3"
+#   vpc_endpoint_type = "Gateway"
+#   route_table_ids   = [aws_route_table.datalake_public.id]
+#
+#   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-s3-vpce"})
+# }
+#
+# resource "aws_vpc_endpoint" "dynamodb" {
+#   vpc_id            = aws_vpc.datalake.id
+#   service_name      = "com.amazonaws.${var.region}.dynamodb"
+#   vpc_endpoint_type = "Gateway"
+#   route_table_ids   = [aws_route_table.datalake_public.id]
+#
+#   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dynamodb-vpce"})
+# }
+#
+#
+# resource "aws_vpc_endpoint" "cloudwatch" {
+#   vpc_id              = aws_vpc.datalake.id
+#   private_dns_enabled = true
+#   service_name        = "com.amazonaws.${var.region}.logs"
+#   vpc_endpoint_type   = "Interface"
+#   security_group_ids  = var.outbound_security_groups
+#   subnet_ids          = local.subnets
+#
+#   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dkr-vpce"})
+# }
+#
+#
+# resource "aws_vpc_endpoint" "dkr" {
+#   vpc_id              = aws_vpc.datalake.id
+#   private_dns_enabled = true
+#   service_name        = "com.amazonaws.${var.region}.ecr.dkr"
+#   vpc_endpoint_type   = "Interface"
+#   security_group_ids  = var.outbound_security_groups
+#   subnet_ids          = local.subnets
+#
+#   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-dkr-vpce"})
+# }
+#
+#
+# resource "aws_vpc_endpoint" "ecr" {
+#   vpc_id              = aws_vpc.datalake.id
+#   private_dns_enabled = true
+#   service_name        = "com.amazonaws.${var.region}.ecr.api"
+#   vpc_endpoint_type   = "Interface"
+#   security_group_ids  = var.outbound_security_groups
+#   subnet_ids          = local.subnets
+#
+#   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-ecr-vpce"})
+# }
+#
+#
+# resource "aws_vpc_endpoint" "ssm" {
+#   vpc_id              = aws_vpc.datalake.id
+#   private_dns_enabled = true
+#   service_name        = "com.amazonaws.${var.region}.ssm"
+#   vpc_endpoint_type   = "Interface"
+#   security_group_ids  = var.outbound_security_groups
+#   subnet_ids          = local.subnets
+#
+#   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-ssm-vpce"})
+# }
+#
+#
+# resource "aws_vpc_endpoint" "secretsmanager" {
+#   vpc_id              = aws_vpc.datalake.id
+#   private_dns_enabled = true
+#   service_name        = "com.amazonaws.${var.region}.secretsmanager"
+#   vpc_endpoint_type   = "Interface"
+#   security_group_ids  = var.outbound_security_groups
+#   subnet_ids          = local.subnets
+#
+#   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-secretsmanager-vpce"})
+# }
+#
+#
+# resource "aws_vpc_endpoint" "lambda" {
+#   vpc_id              = aws_vpc.datalake.id
+#   private_dns_enabled = true
+#   service_name        = "com.amazonaws.${var.region}.lambda"
+#   vpc_endpoint_type   = "Interface"
+#   security_group_ids  = var.outbound_security_groups
+#   subnet_ids          = local.subnets
+#
+#   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-lambda-vpce"})
+# }
+#
+#
+# resource "aws_vpc_endpoint" "sns" {
+#   vpc_id              = aws_vpc.datalake.id
+#   private_dns_enabled = true
+#   service_name        = "com.amazonaws.${var.region}.sns"
+#   vpc_endpoint_type   = "Interface"
+#   security_group_ids  = var.outbound_security_groups
+#   subnet_ids          = local.subnets
+#
+#   tags = merge(local.tags, {Name = "${var.project}-${var.environment}-lambda-vpce"})
+# }
 
 
 # Security Groups
@@ -294,7 +307,7 @@ resource "aws_vpc_endpoint" "apigw" {
     module.apigw_sg.security_group_id
   ]
 
-  subnet_ids        = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
+  subnet_ids        = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
 
   private_dns_enabled = true
 
@@ -494,7 +507,6 @@ resource "aws_s3_bucket_public_access_block" "datalabs_lambda_code_bucket_public
 
     depends_on = [aws_s3_bucket.datalabs_lambda_code_bucket]
 }
-##### END REMOVE #####
 
 module "s3_ingested_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
@@ -539,15 +551,6 @@ module "s3_ingested_data" {
     Group                               = local.group
     Department                          = local.department
   }
-}
-
-
-resource "aws_s3_bucket_notification" "sns_ingested_data" {
-    bucket = module.s3_ingested_data.bucket_id
-    topic {
-        topic_arn           = module.sns_ingested_data.topic_arn
-        events              = ["s3:ObjectCreated:*"]
-    }
 }
 
 
@@ -596,10 +599,113 @@ module "s3_processed_data" {
     Department                          = local.department
   }
 }
+##### END REMOVE #####
+
+
+module "s3_ingest" {
+  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
+
+  enable_versioning = true
+  bucket_name = "ama-${var.environment}-datalake-ingest-${var.region}"
+
+  lifecycle_rule = [
+    {
+      enabled = true
+
+      transition = [
+        {
+          days          = 90
+          storage_class = "STANDARD_IA"
+          },
+          {
+          days          = 365
+          storage_class = "GLACIER"
+        }
+      ]
+
+    }
+  ]
+
+  app_name                          = lower(var.project)
+  app_environment                   = var.environment
+
+  tag_name                          = "${var.project}-${var.environment}-s3-ingested-data"
+  tag_environment                   = var.environment
+  tag_contact                       = local.contact
+  tag_budgetcode                    = local.budget_code
+  tag_owner                         = local.owner
+  tag_projectname                   = local.project
+  tag_systemtier                    = local.tier
+  tag_drtier                        = local.tier
+  tag_dataclassification            = local.na
+  tag_notes                         = local.na
+  tag_eol                           = local.na
+  tag_maintwindow                   = local.na
+  tags = {
+    Group                               = local.group
+    Department                          = local.department
+  }
+}
+
+
+resource "aws_s3_bucket_notification" "sns_ingested_data" {
+    bucket = module.s3_ingest.bucket_id
+    topic {
+        topic_arn           = module.sns_ingested_data.topic_arn
+        events              = ["s3:ObjectCreated:*"]
+    }
+}
+
+
+module "s3_process" {
+  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
+
+  enable_versioning = true
+  bucket_name = "ama-${var.environment}-datalake-process-${var.region}"
+
+  lifecycle_rule = [
+    {
+      enabled = true
+
+      transition = [
+        {
+          days          = 90
+          storage_class = "STANDARD_IA"
+          },
+          {
+          days          = 365
+          storage_class = "GLACIER"
+        }
+      ]
+
+
+    }
+  ]
+
+  app_name                          = lower(var.project)
+  app_environment                   = var.environment
+
+  tag_name                          = "${var.project}-${var.environment}-s3-processed-data"
+  tag_environment                   = var.environment
+  tag_contact                       = local.contact
+  tag_budgetcode                    = local.budget_code
+  tag_owner                         = local.owner
+  tag_projectname                   = local.project
+  tag_systemtier                    = local.tier
+  tag_drtier                        = local.tier
+  tag_dataclassification            = local.na
+  tag_notes                         = local.na
+  tag_eol                           = local.na
+  tag_maintwindow                   = local.na
+  tags = {
+    Group                               = local.group
+    Department                          = local.department
+  }
+}
 
 
 resource "aws_s3_bucket_notification" "sns_processed_data" {
-    bucket = module.s3_processed_data.bucket_id
+    bucket = module.s3_process.bucket_id
     topic {
         topic_arn           = module.sns_processed_data.topic_arn
         events              = ["s3:ObjectCreated:*"]
@@ -646,7 +752,7 @@ module "sns_ingested_data" {
     topic_name      = "${var.ingested_data_topic_name}-${var.environment}"
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
-    s3_bucket_name  = module.s3_ingested_data.bucket_id
+    s3_bucket_name  = module.s3_ingest.bucket_id
   }
 
   name = "${var.ingested_data_topic_name}-${var.environment}"
@@ -680,7 +786,7 @@ module "sns_processed_data" {
     topic_name      = "${var.processed_data_topic_name}-${var.environment}"
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
-    s3_bucket_name  = module.s3_processed_data.bucket_id
+    s3_bucket_name  = module.s3_process.bucket_id
   }
 
   name = "${var.processed_data_topic_name}-${var.environment}"
@@ -766,8 +872,8 @@ resource "aws_ecs_service" "datanow" {
         ]
 
         subnets             = [
-            aws_subnet.datalake_public1.id,
-            aws_subnet.datalake_public2.id
+            aws_subnet.datalake_private1.id,
+            aws_subnet.datalake_private2.id
         ]
     }
 

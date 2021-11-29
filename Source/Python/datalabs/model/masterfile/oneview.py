@@ -1,5 +1,5 @@
 """ SQLAlchemy models for OneView """
-from   alembic_utils.pg_view import PGView  # pylint: disable=import-error
+from   alembic_utils.pg_materialized_view import PGMaterializedView  # pylint: disable=import-error
 import sqlalchemy as sa
 from   sqlalchemy.ext.declarative import declarative_base
 
@@ -107,7 +107,7 @@ class Physician(BASE):
     national_provider_identifier = sa.Column(sa.String)
     party_id = sa.Column(sa.String)
     entity_id = sa.Column(sa.String)
-    race_ethnicity = sa.Column(sa.String, nullable=False)
+    race_ethnicity = sa.Column(sa.String)
     membership_status = sa.Column(sa.String)
     type = sa.Column(sa.String)
     has_email = sa.Column(sa.Boolean)
@@ -196,17 +196,17 @@ class Business(BASE):
     id = sa.Column(sa.String, primary_key=True)
     name = sa.Column(sa.String, nullable=False)
     doing_business_as = sa.Column(sa.String)
-    iqvia_address_id = sa.Column(sa.String)
-    physical_address_1 = sa.Column(sa.String)
+    iqvia_address_id = sa.Column(sa.String, nullable=False)
+    physical_address_1 = sa.Column(sa.String, nullable=False)
     physical_address_2 = sa.Column(sa.String)
-    physical_city = sa.Column(sa.String)
-    physical_state = sa.Column(sa.String)
-    physical_zipcode = sa.Column(sa.String)
-    postal_address_1 = sa.Column(sa.String)
+    physical_city = sa.Column(sa.String, nullable=False)
+    physical_state = sa.Column(sa.String, nullable=False)
+    physical_zipcode = sa.Column(sa.String, nullable=False)
+    postal_address_1 = sa.Column(sa.String, nullable=False)
     postal_address_2 = sa.Column(sa.String)
-    postal_city = sa.Column(sa.String)
-    postal_state = sa.Column(sa.String)
-    postal_zipcode = sa.Column(sa.String)
+    postal_city = sa.Column(sa.String, nullable=False)
+    postal_state = sa.Column(sa.String, nullable=False)
+    postal_zipcode = sa.Column(sa.String, nullable=False)
     phone = sa.Column(sa.String)
     fax = sa.Column(sa.String)
     website = sa.Column(sa.String)
@@ -214,14 +214,14 @@ class Business(BASE):
     longitude = sa.Column(sa.String)
     owner_status = sa.Column(sa.String, sa.ForeignKey("oneview.owner_status.id"))
     profit_status = sa.Column(sa.String, sa.ForeignKey("oneview.profit_status.id"))
-    primary_class_of_trade = sa.Column(sa.String)
+    primary_class_of_trade = sa.Column(sa.String, nullable=False)
     class_of_trade_classification = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_classification.id"))
     class_of_trade_classification_description = sa.Column(sa.String)
     class_of_trade_facility_type = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_facility.id"))
     class_of_trade_facility_type_description = sa.Column(sa.String)
     class_of_trade_specialty = sa.Column(sa.String, sa.ForeignKey("oneview.class_of_trade_specialty.id"))
     class_of_trade_specialty_description = sa.Column(sa.String)
-    record_type = sa.Column(sa.String)
+    record_type = sa.Column(sa.String, nullable=False)
     total_licensed_beds = sa.Column(sa.String)
     total_census_beds = sa.Column(sa.String)
     total_staffed_beds = sa.Column(sa.String)
@@ -236,7 +236,7 @@ class Business(BASE):
     pay_for_performance = sa.Column(sa.String)
     deactivation_reason = sa.Column(sa.String)
     replacement_business = sa.Column(sa.String)
-    status_indicator = sa.Column(sa.String)
+    status_indicator = sa.Column(sa.String, nullable=False)
     batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
 
 
@@ -291,20 +291,20 @@ class CredentialingCustomer(BASE):
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     number = sa.Column(sa.String, nullable=False)
-    name = sa.Column(sa.String, nullable=False)
+    name = sa.Column(sa.String, nullable=True)
     type = sa.Column(sa.String, nullable=False)
     type_description = sa.Column(sa.String, nullable=False)
-    category = sa.Column(sa.String, nullable=False)
-    category_description = sa.Column(sa.String, nullable=False)
+    category = sa.Column(sa.String, nullable=True)
+    category_description = sa.Column(sa.String, nullable=True)
     current_indicator = sa.Column(sa.String, nullable=False)
-    address_1 = sa.Column(sa.String, nullable=False)
-    address_2 = sa.Column(sa.String, nullable=False)
-    address_3 = sa.Column(sa.String, nullable=False)
-    city = sa.Column(sa.String, nullable=False)
-    state = sa.Column(sa.String, nullable=False)
-    zipcode = sa.Column(sa.String, nullable=False)
-    phone_number = sa.Column(sa.String, nullable=False)
-    company_name = sa.Column(sa.String, nullable=False)
+    address_1 = sa.Column(sa.String, nullable=True)
+    address_2 = sa.Column(sa.String, nullable=True)
+    address_3 = sa.Column(sa.String, nullable=True)
+    city = sa.Column(sa.String, nullable=True)
+    state = sa.Column(sa.String, nullable=True)
+    zipcode = sa.Column(sa.String, nullable=True)
+    phone_number = sa.Column(sa.String, nullable=True)
+    company_name = sa.Column(sa.String, nullable=True)
 
 
 class CredentialingOrder(BASE):
@@ -319,7 +319,7 @@ class CredentialingOrder(BASE):
                                          nullable=False)
     date = sa.Column(sa.String, nullable=False)
     quantity = sa.Column(sa.String, nullable=False)
-    unique_physician_identification_number = sa.Column(sa.String, nullable=False)
+    unique_physician_identification_number = sa.Column(sa.String, nullable=True)
 
 
 ################################################################
@@ -468,7 +468,7 @@ class HistoricalResident(BASE):
                                          nullable=False)
     institution_code = sa.Column(sa.String, nullable=False)
     specialty = sa.Column(sa.String, nullable=False)
-    training_type = sa.Column(sa.String, nullable=False)
+    training_type = sa.Column(sa.String, nullable=True)
     start_year = sa.Column(sa.Integer, nullable=False)
     end_year = sa.Column(sa.Integer, nullable=False)
 
@@ -671,9 +671,10 @@ class MedicalSchool(BASE):
 
 ### UI Views ###
 
-PHYSICIAN_VIEW = PGView(
+PHYSICIAN_MATERIALIZED_VIEW = PGMaterializedView(
     schema=SCHEMA,
-    signature='physician_view',
+    signature='mat_phy_view',
+    with_data=True,
     definition=f'''
 SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.address_type AS phy_address_type,
@@ -719,7 +720,7 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.presumed_dead AS phy_presumed_dead,
     phy.fax_number AS phy_fax_number,
     phy.type_of_practice AS phy_type_of_practice,
-    top.description AS phy_top_description,
+    top.description AS phy_type_of_practice_description,
     phy.present_employment AS phy_present_employment_id,
     pe.description AS phy_present_employment,
     phy.primary_specialty AS phy_primary_specialty_id,
@@ -741,6 +742,7 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.graduate_medical_education_hospital AS phy_graduate_medical_education_hospital,
     phy.medical_school_state AS phy_medical_school_state,
     phy.medical_school AS phy_medical_school,
+	ms.description AS phy_medical_school_name,
     phy.medical_school_graduation_year AS phy_medical_school_graduation_year,
     phy.no_contact_type AS phy_no_contact_type,
     phy.no_web AS phy_no_web,
@@ -762,45 +764,60 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.national_provider_identifier AS phy_national_provider_identifier,
     phy.party_id AS phy_party_id,
     phy.entity_id AS phy_entity_id,
-    phy.race_ethnicity AS phy_race_ethnicity,
-    phy."type" AS phy_type,
+    phy.type AS phy_type,
+	phy.no_release AS phy_no_release,
     phy.membership_status AS phy_membership_status,
-    bu.name AS aff_business_name,
+	phy.has_email AS phy_has_email,
+	bu.name AS aff_business_name,
     bu.owner_status AS aff_owner_status,
     bu.profit_status AS aff_profit_status,
     bu.status_indicator AS aff_status_indicator,
     bu.electronically_prescribe AS aff_electronically_prescribe,
     bu.number_of_providers AS aff_physicians_affiliated,
-    bu.class_of_trade_classification_description AS aff_class_of_trade_classification,
-    bu.class_of_trade_facility_type_description AS aff_facility_classification,
-    bu.class_of_trade_specialty_description AS aff_business_specialty,
+    bu.class_of_trade_classification_description AS aff_organization_classification,
+    bu.class_of_trade_facility_type_description AS aff_organization_type,
+    bu.class_of_trade_specialty_description AS aff_organization_specialty,
     bu.physical_state AS aff_physical_state,
     bu.federal_information_processing_standard_county AS aff_federal_information_processing_standard_county,
     bu.physical_city AS aff_physical_city,
     bu.metropolitan_statistical_area AS aff_msa,
     bu.physical_zipcode AS aff_physical_zipcode,
+	substr(bu.physical_zipcode,1,5) AS aff_physician_zipcode_5digits,
+	bu.teaching_hospital AS aff_teaching_hospital,
     pa.type AS aff_type,
     pa.description AS aff_hospital_affiliation,
     pa.group_description AS aff_group_affiliation,
     pa."primary" AS aff_affiliation_status,
-    rpp.id AS phy_residency_id
-FROM (((((((({SCHEMA}.physician phy
-    LEFT JOIN {SCHEMA}.type_of_practice top ON (((phy.type_of_practice)::text = (top.id)::text)))
-    LEFT JOIN {SCHEMA}.present_employment pe ON (((phy.present_employment)::text = (pe.id)::text)))
-    LEFT JOIN {SCHEMA}.major_professional_activity mpa ON (((phy.major_professional_activity)::text = (mpa.id)::text)))
-    LEFT JOIN {SCHEMA}.provider_affiliation pa ON (((phy.medical_education_number)::text = (pa.medical_education_number)::text)))
-    LEFT JOIN {SCHEMA}.business bu ON (((pa.business)::text = (bu.id)::text)))
-    LEFT JOIN {SCHEMA}.specialty spe ON (((phy.primary_specialty)::text = (spe.id)::text)))
-    LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON (((phy.core_based_statistical_area)::text = (cbsa.id)::text)))
-    LEFT JOIN {SCHEMA}.residency_program_physician rpp ON (((phy.medical_education_number)::text = (rpp.medical_education_number)::text)))
+    rpp.id AS phy_residency_id,
+	zc.metropolitan_statistical_area AS phy_metropolitan_statistical_area,
+    zc.primary_metropolitan_statistical_area AS phy_primary_metropolitan_statistical_area,
+	zc.county_federal_information_processing AS phy_zipcode_county_federal_information_processing,
+    zc.state AS phy_zipcode_state,
+    msa.name AS phy_metropolitan_statistical_area_description,
+	msa.code AS phy_msa_code,
+    msa.type AS phy_msa_type,
+    msa.consolidated_metropolitan_statistical_area
+FROM ((((((((((({SCHEMA}.physician phy
+     LEFT JOIN {SCHEMA}.type_of_practice top ON (((phy.type_of_practice)::text = (top.id)::text)))
+     LEFT JOIN {SCHEMA}.present_employment pe ON (((phy.present_employment)::text = (pe.id)::text)))
+     LEFT JOIN {SCHEMA}.major_professional_activity mpa ON (((phy.major_professional_activity)::text = (mpa.id)::text)))
+	 LEFT JOIN {SCHEMA}.provider_affiliation pa ON (((phy.medical_education_number)::text = (pa.medical_education_number)::text)))
+     LEFT JOIN {SCHEMA}.business bu ON (((pa.business)::text = (bu.id)::text)))
+     LEFT JOIN {SCHEMA}.specialty spe ON (((phy.primary_specialty)::text = (spe.id)::text)))
+     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON (((phy.core_based_statistical_area)::text = (cbsa.id)::TEXT)))
+     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON (((phy.medical_education_number)::text = (rpp.medical_education_number)::TEXT)))
+	 LEFT JOIN {SCHEMA}.zip_code zc ON (((phy.zipcode)::text = (zc.zip_code)::TEXT)))
+     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON (((msa.code)::text = (zc.zip_code)::TEXT)))
+     LEFT JOIN {SCHEMA}.medical_school ms ON ((SUBSTR((ms.id),1,3)::text = (phy.medical_school_state)::TEXT) AND (SUBSTR((ms.id),4,5)::text = (phy.medical_school)::TEXT) ))
 ORDER BY phy.medical_education_number;
 '''
 )
 
 
-PHYSICIAN_PROVIDER_VIEW = PGView(
+PHYSICIAN_PROVIDER_MATERIALIZED_VIEW = PGMaterializedView(
     schema=SCHEMA,
-    signature='physician_provider_view',
+    signature='mat_phy_pro_view',
+    with_data=True,
     definition=f'''
 SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.address_type AS phy_address_type,
@@ -846,7 +863,7 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.presumed_dead AS phy_presumed_dead,
     phy.fax_number AS phy_fax_number,
     phy.type_of_practice AS phy_type_of_practice,
-    top.description AS phy_top_description,
+    top.description AS phy_type_of_practice_description,
     phy.present_employment AS phy_present_employment_id,
     pe.description AS phy_present_employment,
     phy.primary_specialty AS phy_primary_specialty_id,
@@ -868,6 +885,7 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.graduate_medical_education_hospital AS phy_graduate_medical_education_hospital,
     phy.medical_school_state AS phy_medical_school_state,
     phy.medical_school AS phy_medical_school,
+    ms.description AS phy_medical_school_name,
     phy.medical_school_graduation_year AS phy_medical_school_graduation_year,
     phy.no_contact_type AS phy_no_contact_type,
     phy.no_web AS phy_no_web,
@@ -889,23 +907,26 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.national_provider_identifier AS phy_national_provider_identifier,
     phy.party_id AS phy_party_id,
     phy.entity_id AS phy_entity_id,
-    phy.race_ethnicity AS phy_race_ethnicity,
-    phy."type" AS phy_type,
+    phy.type AS phy_type,
+    phy.no_release AS phy_no_release,
     phy.membership_status AS phy_membership_status,
+    phy.has_email AS phy_has_email,
     bu.name AS aff_business_name,
     bu.owner_status AS aff_owner_status,
     bu.profit_status AS aff_profit_status,
     bu.status_indicator AS aff_status_indicator,
     bu.electronically_prescribe AS aff_electronically_prescribe,
     bu.number_of_providers AS aff_physicians_affiliated,
-    bu.class_of_trade_classification_description AS aff_class_of_trade_classification,
-    bu.class_of_trade_facility_type_description AS aff_facility_classification,
-    bu.class_of_trade_specialty_description AS aff_business_specialty,
+    bu.class_of_trade_classification_description AS aff_organization_classification,
+    bu.class_of_trade_facility_type_description AS aff_organization_type,
+    bu.class_of_trade_specialty_description AS aff_organization_specialty,
     bu.physical_state AS aff_physical_state,
     bu.federal_information_processing_standard_county AS aff_federal_information_processing_standard_county,
     bu.physical_city AS aff_physical_city,
     bu.metropolitan_statistical_area AS aff_msa,
     bu.physical_zipcode AS aff_physical_zipcode,
+    substr(bu.physical_zipcode,1,5) AS aff_physician_zipcode_5digits,
+    bu.teaching_hospital AS aff_teaching_hospital,
     pa.type AS aff_type,
     pa.description AS aff_hospital_affiliation,
     pa.group_description AS aff_group_affiliation,
@@ -918,17 +939,28 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     pr.gender AS pro_gender,
     pr.national_provider_identifier AS pro_national_provider_identifier,
     pr.secondary_specialty AS pro_secondary_speciality,
-    rpp.id AS phy_residency_id
-FROM ((((((((({SCHEMA}.physician phy
-    LEFT JOIN {SCHEMA}.type_of_practice top ON (((phy.type_of_practice)::text = (top.id)::text)))
-    LEFT JOIN {SCHEMA}.present_employment pe ON (((phy.present_employment)::text = (pe.id)::text)))
-    LEFT JOIN {SCHEMA}.major_professional_activity mpa ON (((phy.major_professional_activity)::text = (mpa.id)::text)))
-    LEFT JOIN {SCHEMA}.provider_affiliation pa ON (((phy.medical_education_number)::text = (pa.medical_education_number)::text)))
-    LEFT JOIN {SCHEMA}.business bu ON (((pa.business)::text = (bu.id)::text)))
-    LEFT JOIN {SCHEMA}.provider pr ON (((phy.medical_education_number)::text = (pr.medical_education_number)::text)))
-    LEFT JOIN {SCHEMA}.specialty spe ON (((phy.primary_specialty)::text = (spe.id)::text)))
-    LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON (((phy.core_based_statistical_area)::text = (cbsa.id)::text)))
-    LEFT JOIN {SCHEMA}.residency_program_physician rpp ON (((phy.medical_education_number)::text = (rpp.medical_education_number)::text)))
+    rpp.id AS phy_residency_id,
+    zc.metropolitan_statistical_area AS phy_metropolitan_statistical_area,
+    zc.primary_metropolitan_statistical_area AS phy_primary_metropolitan_statistical_area,
+    zc.county_federal_information_processing AS phy_zipcode_county_federal_information_processing,
+    zc.state AS phy_zipcode_state,
+    msa.name AS phy_metropolitan_statistical_area_description,
+    msa.code AS phy_msa_code,
+    msa.type AS phy_msa_type,
+    msa.consolidated_metropolitan_statistical_area
+FROM (((((((((((({SCHEMA}.physician phy
+     LEFT JOIN {SCHEMA}.type_of_practice top ON (((phy.type_of_practice)::text = (top.id)::text)))
+     LEFT JOIN {SCHEMA}.present_employment pe ON (((phy.present_employment)::text = (pe.id)::text)))
+     LEFT JOIN {SCHEMA}.major_professional_activity mpa ON (((phy.major_professional_activity)::text = (mpa.id)::text)))
+     LEFT JOIN {SCHEMA}.provider_affiliation pa ON (((phy.medical_education_number)::text = (pa.medical_education_number)::text)))
+     LEFT JOIN {SCHEMA}.business bu ON (((pa.business)::text = (bu.id)::text)))
+     LEFT JOIN {SCHEMA}.provider pr ON (((phy.medical_education_number)::text = (pr.medical_education_number)::text)))
+     LEFT JOIN {SCHEMA}.specialty spe ON (((phy.primary_specialty)::text = (spe.id)::text)))
+     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON (((phy.core_based_statistical_area)::text = (cbsa.id)::text)))
+     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON (((phy.medical_education_number)::text = (rpp.medical_education_number)::text)))
+     LEFT JOIN {SCHEMA}.zip_code zc ON (((phy.zipcode)::text = (zc.zip_code)::text)))
+     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON (((msa.code)::text = (zc.zip_code)::text)))
+     LEFT JOIN {SCHEMA}.medical_school ms ON ((SUBSTR((ms.id),1,3)::text = (phy.medical_school_state)::TEXT) AND (SUBSTR((ms.id),4,5)::text = (phy.medical_school)::TEXT) ))
 ORDER BY phy.medical_education_number;
 '''
 )

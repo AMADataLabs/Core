@@ -1,4 +1,4 @@
-
+""" DOC STRING FOR USELESS MODULE TO APPEASE LINT GODS """
 import os
 import sys
 

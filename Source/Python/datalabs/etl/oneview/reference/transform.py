@@ -22,6 +22,18 @@ class MajorProfessionalActivityTransformerTask(TransformerTask):
 
 
 class TypeOfPracticeTransformerTask(TransformerTask):
+    def _preprocess_data(self, data):
+        type_of_practice = data[0]
+
+        type_of_practice = type_of_practice.append(
+            pandas.DataFrame(
+                data={'TOP_CD': ['000'],
+                      'DESC': ['Student']}
+            )
+        )
+
+        return [type_of_practice]
+
     def _get_columns(self):
         return [col.TOP_COLUMNS]
 

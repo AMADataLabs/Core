@@ -4,6 +4,7 @@ from   dataclasses import dataclass
 import io
 import hashlib
 import logging
+import math
 import re
 
 import pandas
@@ -48,8 +49,6 @@ class ORMLoaderParameters:
     soft_delete_column: str = None
 
 
-
-
 class ORMLoaderTask(LoaderTask):
     PARAMETER_CLASS = ORMLoaderParameters
 
@@ -89,8 +88,6 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _csv_to_dataframe(cls, data):
         dataframe = pandas.read_csv(io.BytesIO(data), dtype=object)
-
-        dataframe.fillna('', inplace=True)
 
         return dataframe
 
@@ -322,7 +319,7 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _unquote_term(cls, csv_column):
         quoted_csv_column = csv_column
-        match = re.match(r'".*[, ].*"|""', csv_column)  # match quoted strings with spaces or commas
+        match = re.match(r'".*[, ].*"', csv_column)  # match quoted strings with spaces or commas
 
         if match is None:
             quoted_csv_column = f'{csv_column[1:-1]}'
@@ -362,7 +359,7 @@ class ORMLoaderTask(LoaderTask):
 
     @classmethod
     def _create_model(cls, model_class, row, columns):
-        parameters = {column: getattr(row, column) for column in columns if hasattr(row, column)}
+        parameters = {column: cls._replace_nan(getattr(row, column)) for column in columns if hasattr(row, column)}
         model = model_class(**parameters)
 
         return model
@@ -379,6 +376,14 @@ class ORMLoaderTask(LoaderTask):
         if column_type in cls.COLUMN_TYPE_CONVERTERS:
             data[column] = cls.COLUMN_TYPE_CONVERTERS[column_type](data[column])
 
+    @classmethod
+    def _replace_nan(cls, value):
+        replacement_value = value
+
+        if isinstance(value, float) and math.isnan(value):
+            replacement_value = None
+
+        return replacement_value
 
 class ORMPreLoaderTask(LoaderTask):
     def _load(self):
@@ -404,3 +409,97 @@ class ORMPreLoaderTask(LoaderTask):
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class MaterializedViewRefresherParameters:
+    database_host: str
+    database_port: str
+    database_name: str
+    database_backend: str
+    database_username: str
+    database_password: str
+    views: str
+    data: object = None
+    execution_time: str = None
+
+
+class MaterializedViewRefresherTask(LoaderTask):
+    PARAMETER_CLASS = MaterializedViewRefresherParameters
+
+    def _load(self):
+        with self._get_database() as database:
+            views = []
+
+            if self._parameters.views:
+                views = [view.strip() for view in self._parameters.views.split(',')]
+
+            for view in views:
+                database.execute('REFRESH MATERIALIZED VIEW {view}'.format(view=view))
+
+            database.commit()  # pylint: disable=no-member
+
+    def _get_database(self):
+        return Database.from_parameters(
+            dict(
+                host=self._parameters.database_host,
+                port=self._parameters.database_port,
+                backend=self._parameters.database_backend,
+                name=self._parameters.database_name,
+                username=self._parameters.database_username,
+                password=self._parameters.database_password
+            )
+        )
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class ReindexerParameters:
+    database_host: str
+    database_port: str
+    database_name: str
+    database_backend: str
+    database_username: str
+    database_password: str
+    indexes: str = None
+    tables: str = None
+    data: object = None
+    execution_time: str = None
+
+
+class ReindexerTask(LoaderTask):
+    PARAMETER_CLASS = ReindexerParameters
+
+    def _load(self):
+        with self._get_database() as database:
+            indexes = []
+            tables = []
+
+            if self._parameters.indexes:
+                indexes = [index.strip() for index in self._parameters.indexes.split(',')]
+
+            if self._parameters.tables:
+                tables = [index.strip() for index in self._parameters.tables.split(',')]
+
+            for index in indexes:
+                database.execute('REINDEX INDEX {index}'.format(index=index))
+
+            for table in tables:
+                database.execute('REINDEX TABLE {table}'.format(table=table))
+
+            database.commit()  # pylint: disable=no-member
+
+    def _get_database(self):
+        return Database.from_parameters(
+            dict(
+                host=self._parameters.database_host,
+                port=self._parameters.database_port,
+                backend=self._parameters.database_backend,
+                name=self._parameters.database_name,
+                username=self._parameters.database_username,
+                password=self._parameters.database_password
+            )
+        )

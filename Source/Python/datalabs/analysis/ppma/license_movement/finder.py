@@ -1,4 +1,5 @@
-
+""" License movement - state match/mismatch data finder """
+# pylint: disable=unused-import,protected-access,import-error
 import pandas as pd
 from datalabs.access.aims import AIMS
 from datalabs.analysis.ppma.license_movement.sql_statements import GET_LICENSE_PPMA_MISMATCH_DATA

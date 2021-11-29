@@ -38,7 +38,7 @@ DBL_REPORT_DAG = DAG(
         get_logs=True,
     ),
     schedule_interval="0 20 * * 0",
-    start_date=days_ago(7),
+    start_date=datetime(2021, 11, 12),
     tags=['DBL_Report'],
     catchup=True
 )

@@ -60,7 +60,7 @@ def test_whitespace_removed_from_filenames(parameters):
     assert files[2] == 'dir1/dir2/dir3/the_other_one.csv'
 
 
-def test_named_files_loading(etl, loader_directory):
+def test_named_files_loading(etl, extractor_file):
     os.environ['EXTRACTOR__INCLUDE_NAMES'] = 'True'
     os.environ['LOADER__INCLUDES_NAMES'] = 'True'
 
@@ -72,7 +72,7 @@ def test_named_files_loading(etl, loader_directory):
     LOGGER.debug('Loaded Data: %s', data)
     assert len(data) == 1
 
-    files = glob(os.path.join(loader_directory, '*'))
+    files = glob(os.path.join(os.path.dirname(extractor_file), '*'))
     assert len(files) == 2
 
 
