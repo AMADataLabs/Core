@@ -6,7 +6,7 @@ from datalabs.etl.dag.state.dynamodb import DAGState
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 def main(args):
@@ -23,8 +23,9 @@ def main(args):
         statuses = state.get_task_statuses(args["dag"], execution_time)
 
     if statuses:
-        print(f'DAG: {statuses[args["dag"]]}')
-        statuses.pop(args["dag"])
+        print(f'DAG: {statuses.get(args["dag"], "Unknown")}')
+        if args["dag"] in statuses:
+            statuses.pop(args["dag"])
 
         for task in sorted(statuses.keys()):
             print(f'{task.split("__")[1]}: {statuses[task]}')
