@@ -4,6 +4,6 @@ import json
 import datalabs.etl.dag.awslambda as awslambda
 
 
-class ProcessorTaskWrapper(awslambda.ProcessorTaskWrapper):
+class DAGTaskWrapper(awslambda.DAGTaskWrapper):
     def _get_runtime_parameters(self, parameters):
         return json.loads(parameters[1])
