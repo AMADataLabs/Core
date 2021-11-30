@@ -27,8 +27,9 @@ module "webapp_{{SNAKE_CASE_NAME}}_lambda" {
 
   lambda_policy_vars = {
     account_id = local.account
-    region     = var.region
-    project    = var.project
+    region      = var.region
+    project     = var.project
+    environment = local.environment
   }
 
   tag_name                          = "${upper(var.project)}-${upper(local.environment)}-{{CAMEL_CASE_NAME}}"

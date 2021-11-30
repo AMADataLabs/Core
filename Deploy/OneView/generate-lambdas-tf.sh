@@ -150,10 +150,10 @@ initialize_update_lambdas_sh() {
 
 set -ex
 
-PROJECT="${PROJECT:-OneView}"
-ENVIRONMENT="${ENVIRONMENT:-sbx}"
+PROJECT="\${PROJECT:-OneView}"
+ENVIRONMENT="\${ENVIRONMENT:-sbx}"
 
-CODE_BUCKET="ama-${ENVIRONMENT}-datalake-lambda-us-east-1"
+CODE_BUCKET="ama-\${ENVIRONMENT}-datalake-lambda-us-east-1"
 FUNCTIONS=(
 EOF
 }
@@ -168,6 +168,7 @@ generate_snake_case_names() {
 }
 
 
+echo "### Generating lambdas.tf ###"
 generate_code() {
     for index in ${!SNAKE_CASE_NAMES[@]}; do
         name=${SNAKE_CASE_NAMES[$index]}
@@ -193,8 +194,7 @@ generate_code() {
         echo "    "'"'"\${PROJECT}/${CAMEL_CASE_NAME}.zip"'"'"" >> bundles.txt
     done
 
-    rm lambda.tf
-
+    echo "### Generating update_lambdas.sh ###"
     cat functions.txt >> update_lambdas.sh
 
     cat >> update_lambdas.sh << EOF
@@ -207,11 +207,14 @@ EOF
     cat >> update_lambdas.sh << EOF
 )
 
-for index in "${!FUNCTIONS[@]}"; do
-  aws --no-paginate lambda update-function-code --function-name ${FUNCTIONS[index]} --s3-bucket ${CODE_BUCKET} --s3-key ${BUNDLES[index]} || exit $?
+for index in "\${!FUNCTIONS[@]}"; do
+  aws --no-paginate lambda update-function-code --function-name \${FUNCTIONS[index]} --s3-bucket \${CODE_BUCKET} --s3-key \${BUNDLES[index]} || exit \$?
 done
 EOF
 }
 
+rm lambda.tf
+rm functions.txt
+rm bundles.txt
 
 main
