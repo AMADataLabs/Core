@@ -59,7 +59,7 @@ if __name__ == '__main__':
         '-v', '--variable', action='append', required=False, help='Template variable to set in the form name=value.'
     )
     ap.add_argument(
-        '-a', '--args', required=False, help='Command-line arguments to send to the task wrapper.'
+        '-a', '--args', action='append', help='Command-line arguments to send to the task wrapper.'
     )
     ap.add_argument(
         '-e', '--event', required=False, help='JSON event passed in as a single command-line argument.'

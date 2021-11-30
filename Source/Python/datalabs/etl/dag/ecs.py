@@ -6,4 +6,7 @@ import datalabs.etl.dag.awslambda as awslambda
 
 class DAGTaskWrapper(awslambda.DAGTaskWrapper):
     def _get_runtime_parameters(self, parameters):
-        return json.loads(parameters[1])
+        if "task" not in event_parameters:
+            event_parameters["task"] = "DAG"
+
+        return json.loads(parameters[0])
