@@ -19,11 +19,8 @@ locals {
         endpoint                    = "${upper(var.project)}-${local.environment}-Endpoint"
         # API Authorizer Lambda
         authorizer                  = "${upper(var.project)}-${local.environment}-Authorizer"
-        # ETL Lambda
-        etl                         = "${upper(var.project)}-${local.environment}-ETL"
-        # API Bulk Lambdas
-        bulk_endpoint               = "${upper(var.project)}-${local.environment}-BulkEndpoint"
-        bulk_authorizer             = "${upper(var.project)}-${local.environment}-BulkAuthorizer"
+        # Java package
+        java                         = "${upper(var.project)}-${local.environment}-java"
     }
 
     tags                = {
