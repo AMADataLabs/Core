@@ -28,13 +28,11 @@ variable "lambda_code_bucket" {
     default         = "ama-sbx-datalake-lambda-us-east-1"
 }
 
-
 variable "scheduler_memory_size" {
     description = "memory size in Mb"
     type        = number
     default     = 1024
 }
-
 
 variable "scheduler_timeout" {
     description = "timeout in seconds"
@@ -42,18 +40,22 @@ variable "scheduler_timeout" {
     default     = 60
 }
 
-
 variable "datanow_image" {
     description     = "ECR repository (image name) for the DataNow container image."
     type            = string
     default         = "datanow"
 }
 
-
 variable "datanow_version" {
     description     = "Version number of the DataNow container image."
     type            = string
     default         = "1.0.0"
+}
+
+variable "datanow_host_prefix" {
+    description = "Host name prefix for DataNow"
+    type        = string
+    default     = "datanow"
 }
 
 variable "ingested_data_topic_name" {
@@ -72,4 +74,21 @@ variable "outbound_security_groups" {
     description = "Security groups using the DataLake VPC which need VPC endpoints"
     type = list
     default = ["sg-055c7d63be1f52d6f", "sg-01b1b0411a5f4a798"]  # OneView, CPT-API Lambdas
+}
+
+variable "host_suffixes" {
+   description  = "Host name suffixes by environment."
+   default = {
+     sbx = "-sbx"
+     dev = "-dev"
+     tst = "-test"
+     stg = "-intg"
+     prd = ""
+   }
+}
+
+variable "domain" {
+    description = "Base domain name for public CNAMEs"
+    type        = string
+    default     = "amaaws.org"
 }
