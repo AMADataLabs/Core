@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import xlsxwriter
 
-# pylint: disable=import-error,consider-using-dict-items
+# pylint: disable=import-error
 from datalabs.etl.transform import TransformerTask
 from datalabs.analysis.dbl.validation import Validation
 
