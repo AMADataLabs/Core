@@ -1,5 +1,5 @@
 """ New DBL Report Validation - Sanity Checks / Comparisons to Previous Report """
-# pylint: disable=consider-using-dict-items,too-many-locals,invalid-name
+# pylint: disable=too-many-locals,invalid-name
 from datetime import datetime
 import pandas as pd
 
