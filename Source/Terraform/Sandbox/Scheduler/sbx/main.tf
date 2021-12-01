@@ -133,7 +133,7 @@ resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
 
   container_properties = <<CONTAINER_PROPERTIES
 {
-  "command": ["python","task.py","'{\"dag\": \"DAG_SCHEDULER\", \"type\": \"DAG\", \"task\": \"_\", \"execution_time\": \"2020-11-10 21:30:00.000\"}'"],
+  "command": ["python","task.py","{\"dag\": \"DAG_SCHEDULER\", \"type\": \"DAG\", \"execution_time\": \"2020-11-10 21:30:00.000\"}"],
   "image": "644454719059.dkr.ecr.us-east-1.amazonaws.com/datalake-sbx",
   "fargatePlatformConfiguration": {
     "platformVersion": "1.3.0"
@@ -155,7 +155,7 @@ resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
       },
       {
         "name": "DYNAMODB_CONFIG_TABLE",
-        "value": "local.dynamodb_config_table"
+        "value": "DataLake-configuration-${local.environment}"
       }
   ]
 }
@@ -285,4 +285,45 @@ data "aws_iam_policy" "AmazonSSMReadOnlyAccess" {
 resource "aws_iam_role_policy_attachment" "ecs_task_ssm" {
   role       = aws_iam_role.ecs_task_role.name
   policy_arn = data.aws_iam_policy.AmazonSSMReadOnlyAccess.arn
+}
+
+data "aws_iam_policy_document" "ecs_task_dynamodb_get_item" {
+  statement {
+    actions = ["dynamodb:GetItem"]
+
+    resources = [
+      "arn:aws:dynamodb:us-east-1:${local.account}:table/DataLake-configuration-${local.environment}",
+      "arn:aws:dynamodb:us-east-1:${local.account}:table/DataLake-dag-state-${local.environment}"
+    ]
+  }
+}
+
+
+resource "aws_iam_policy" "ecs_task_dynamodb_get_item_policy" {
+    name                    = "${lower(var.project)}-${local.environment}-task-dynamodb-get-item-policy"
+    policy      = data.aws_iam_policy_document.ecs_task_dynamodb_get_item.json
+    description             = "Allows ECS tasks to get table items from DynamoDB"
+
+    tags                    = {
+        Name                    = "ECS Task Policy for AWS Batch"
+        Environment             = local.environment
+        Contact                 = var.contact
+        BudgetCode              = var.budget_code
+        Owner                   = var.owner
+        ProjectName             = var.project
+        SystemTier              = "0"
+        DRTier                  = "0"
+        DataClassification      = "N/A"
+        Notes                   = "N/A"
+        OS                      = "N/A"
+        EOL                     = "N/A"
+        MaintenanceWindow       = "N/A"
+        Group                   = "Health Solutions"
+        Department              = "DataLabs"
+    }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_dynamodb_get_item_role" {
+  role       = aws_iam_role.scheduler_batch_service_role.name
+  policy_arn = aws_iam_policy.ecs_task_dynamodb_get_item_policy.arn
 }
