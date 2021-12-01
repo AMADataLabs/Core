@@ -3,8 +3,8 @@
 #####################################################################
 
 module "scheduler_sg" {
-  source  = "app.terraform.io/AMA/security-group/aws"
-  version = "1.0.0"
+  source      = "app.terraform.io/AMA/security-group/aws"
+  version     = "1.0.0"
   name        = "${var.project}-${local.environment}-scheduler-sg"
   description = "Security group for Lambda VPC interfaces"
   vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
@@ -71,25 +71,25 @@ resource "aws_batch_compute_environment" "ecs_scheduler_env" {
 
   service_role = aws_iam_role.scheduler_batch_service_role.arn
   # service_role = "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
-  type         = "MANAGED"
-  depends_on   = [aws_iam_role_policy_attachment.aws_batch_service_role]
+  type       = "MANAGED"
+  depends_on = [aws_iam_role_policy_attachment.aws_batch_service_role]
 
   tags = {
-    Name = "${var.project}-${local.environment}-ecs-scheduler-env"
-    Environment             = local.environment
-    Contact                 = var.contact
-    BudgetCode              = var.budget_code
-    Owner                   = var.owner
-    ProjectName             = var.project
-    SystemTier              = "0"
-    DRTier                  = "0"
-    DataClassification      = "N/A"
-    Notes                   = "N/A"
-    OS                      = "N/A"
-    EOL                     = "N/A"
-    MaintenanceWindow       = "N/A"
-    Group                   = "Health Solutions"
-    Department              = "DataLabs"
+    Name               = "${var.project}-${local.environment}-ecs-scheduler-env"
+    Environment        = local.environment
+    Contact            = var.contact
+    BudgetCode         = var.budget_code
+    Owner              = var.owner
+    ProjectName        = var.project
+    SystemTier         = "0"
+    DRTier             = "0"
+    DataClassification = "N/A"
+    Notes              = "N/A"
+    OS                 = "N/A"
+    EOL                = "N/A"
+    MaintenanceWindow  = "N/A"
+    Group              = "Health Solutions"
+    Department         = "DataLabs"
   }
 }
 
@@ -105,21 +105,21 @@ resource "aws_batch_job_queue" "ecs_scheduler_job_queue" {
   ]
 
   tags = {
-    Name = "${var.project}-${local.environment}-ecs-scheduler-job-queue"
-    Environment             = local.environment
-    Contact                 = var.contact
-    BudgetCode              = var.budget_code
-    Owner                   = var.owner
-    ProjectName             = var.project
-    SystemTier              = "0"
-    DRTier                  = "0"
-    DataClassification      = "N/A"
-    Notes                   = "N/A"
-    OS                      = "N/A"
-    EOL                     = "N/A"
-    MaintenanceWindow       = "N/A"
-    Group                   = "Health Solutions"
-    Department              = "DataLabs"
+    Name               = "${var.project}-${local.environment}-ecs-scheduler-job-queue"
+    Environment        = local.environment
+    Contact            = var.contact
+    BudgetCode         = var.budget_code
+    Owner              = var.owner
+    ProjectName        = var.project
+    SystemTier         = "0"
+    DRTier             = "0"
+    DataClassification = "N/A"
+    Notes              = "N/A"
+    OS                 = "N/A"
+    EOL                = "N/A"
+    MaintenanceWindow  = "N/A"
+    Group              = "Health Solutions"
+    Department         = "DataLabs"
   }
 }
 
@@ -162,27 +162,27 @@ resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
 CONTAINER_PROPERTIES
   # "jobRoleArn": "${aws_iam_role.ecs_task_role.arn}"
 
-#   container_properties = <<CONTAINER_PROPERTIES
-# {
-#   "command": ["echo", "test"],
-#   "image": "busybox",
-#   "fargatePlatformConfiguration": {
-#     "platformVersion": "LATEST"
-#   },
-#   "resourceRequirements": [
-#     {"type": "VCPU", "value": "1"},
-#     {"type": "MEMORY", "value": "2048"}
-#   ],
-#   "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
-# }
-# CONTAINER_PROPERTIES
+  #   container_properties = <<CONTAINER_PROPERTIES
+  # {
+  #   "command": ["echo", "test"],
+  #   "image": "busybox",
+  #   "fargatePlatformConfiguration": {
+  #     "platformVersion": "LATEST"
+  #   },
+  #   "resourceRequirements": [
+  #     {"type": "VCPU", "value": "1"},
+  #     {"type": "MEMORY", "value": "2048"}
+  #   ],
+  #   "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
+  # }
+  # CONTAINER_PROPERTIES
 }
 
 
 ##### Scheduler Service Role #####
 
 resource "aws_iam_role" "scheduler_batch_service_role" {
-  name = "scheduler_batch_service_role"
+  name               = "scheduler_batch_service_role"
   assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -202,21 +202,21 @@ resource "aws_iam_role" "scheduler_batch_service_role" {
 EOF
 
   tags = {
-    Name = "${var.project}-${local.environment}-scheduler-batch-service-role"
-    Environment             = local.environment
-    Contact                 = var.contact
-    BudgetCode              = var.budget_code
-    Owner                   = var.owner
-    ProjectName             = var.project
-    SystemTier              = "0"
-    DRTier                  = "0"
-    DataClassification      = "N/A"
-    Notes                   = "N/A"
-    OS                      = "N/A"
-    EOL                     = "N/A"
-    MaintenanceWindow       = "N/A"
-    Group                   = "Health Solutions"
-    Department              = "DataLabs"
+    Name               = "${var.project}-${local.environment}-scheduler-batch-service-role"
+    Environment        = local.environment
+    Contact            = var.contact
+    BudgetCode         = var.budget_code
+    Owner              = var.owner
+    ProjectName        = var.project
+    SystemTier         = "0"
+    DRTier             = "0"
+    DataClassification = "N/A"
+    Notes              = "N/A"
+    OS                 = "N/A"
+    EOL                = "N/A"
+    MaintenanceWindow  = "N/A"
+    Group              = "Health Solutions"
+    Department         = "DataLabs"
   }
 }
 
@@ -245,27 +245,27 @@ data "aws_iam_policy_document" "ecs_task_role" {
 }
 
 resource "aws_iam_role" "ecs_task_role" {
-    name                    = "${lower(var.project)}-${local.environment}-task-exe-role"
-    assume_role_policy      = data.aws_iam_policy_document.ecs_task_role.json
-    description             = "Allows ECS tasks to call AWS services on your behalf."
+  name               = "${lower(var.project)}-${local.environment}-task-exe-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task_role.json
+  description        = "Allows ECS tasks to call AWS services on your behalf."
 
-    tags                    = {
-        Name                    = "ECS Task Role for OneView"
-        Environment             = local.environment
-        Contact                 = var.contact
-        BudgetCode              = var.budget_code
-        Owner                   = var.owner
-        ProjectName             = var.project
-        SystemTier              = "0"
-        DRTier                  = "0"
-        DataClassification      = "N/A"
-        Notes                   = "N/A"
-        OS                      = "N/A"
-        EOL                     = "N/A"
-        MaintenanceWindow       = "N/A"
-        Group                   = "Health Solutions"
-        Department              = "DataLabs"
-    }
+  tags = {
+    Name               = "ECS Task Role for OneView"
+    Environment        = local.environment
+    Contact            = var.contact
+    BudgetCode         = var.budget_code
+    Owner              = var.owner
+    ProjectName        = var.project
+    SystemTier         = "0"
+    DRTier             = "0"
+    DataClassification = "N/A"
+    Notes              = "N/A"
+    OS                 = "N/A"
+    EOL                = "N/A"
+    MaintenanceWindow  = "N/A"
+    Group              = "Health Solutions"
+    Department         = "DataLabs"
+  }
 }
 
 data "aws_iam_policy" "AmazonECSTaskExecutionRolePolicy" {
