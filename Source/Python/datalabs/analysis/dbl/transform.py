@@ -1,5 +1,5 @@
 """ Transformer for DBL Report Creation """
-
+# pylint: disable=import-error
 from io import BytesIO
 import logging
 import pickle as pk
