@@ -1,19 +1,43 @@
 variable "project" {
-    description     = "Name of the project associated with this application stack."
-    type            = string
-    default         = "DataLake"
+   description  = "Name of the project used primarily in resource names."
+   type = string
+   default = "DataLake"
 }
 
-variable "environment" {
-    description     = "Name of the AWS deployment environment."
-    type            = string
-    default         = "sbx"
+variable "contact" {
+   description  = "Email of the contact for this app stack."
+   type = string
+   default = "DataLabs@ama-assn.org"
+}
+
+variable "owner" {
+   description  = "Name of the owner of this application."
+   type = string
+   default = "DataLabs"
+}
+
+variable "budget_code" {
+   description  = "Budget code for accounting purposes."
+   type = string
+   default = "PBW"
+}
+
+variable "accounts" {
+   description  = "AWS accounts into which this app stack is deployed."
+   default = {
+     sbx = "644454719059"
+     dev = "191296302136"
+     tst = "194221139997"
+     stg = "340826698851"
+     itg = "285887636563"
+     prd = "285887636563"
+   }
 }
 
 variable "region" {
-    description     = "Name of the AWS deployment region."
-    type            = string
-    default         = "us-east-1"
+   description  = "AWS region into which this app stack is deployed."
+   type = string
+   default = "us-east-1"
 }
 
 variable "old_lambda_code_bucket" {
@@ -49,7 +73,7 @@ variable "datanow_image" {
 variable "datanow_version" {
     description     = "Version number of the DataNow container image."
     type            = string
-    default         = "1.0.0"
+    default         = "1.1.0"
 }
 
 variable "datanow_host_prefix" {

@@ -18,7 +18,7 @@ module "s3_scheduler_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${var.environment}-datalake-scheduler-${var.region}"
+  bucket_name = "ama-${local.environment}-datalake-scheduler-${var.region}"
 
   lifecycle_rule = [
     {
@@ -39,20 +39,20 @@ module "s3_scheduler_data" {
   ]
 
   app_name                          = lower(var.project)
-  app_environment                   = var.environment
+  app_environment                   = local.environment
 
-  tag_name                          = "${var.project}-${var.environment}-s3-scheduler-data"
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_name                          = "${var.project}-${local.environment}-s3-scheduler-data"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -86,20 +86,20 @@ module "sns_scheduler_topic" {
   name = local.topic_names.scheduler
   topic_display_name    = local.topic_names.scheduler
   app_name              = lower(var.project)
-  app_environment       = var.environment
+  app_environment       = local.environment
 
   tag_name                         = local.topic_names.scheduler
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -127,20 +127,20 @@ module "sns_dag_topic" {
   name = local.topic_names.dag_processor
   topic_display_name    = local.topic_names.dag_processor
   app_name              = lower(var.project)
-  app_environment       = var.environment
+  app_environment       = local.environment
 
   tag_name                         = local.topic_names.dag_processor
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -168,20 +168,20 @@ module "sns_task_topic" {
   name = local.topic_names.task_processor
   topic_display_name    = local.topic_names.task_processor
   app_name              = lower(var.project)
-  app_environment       = var.environment
+  app_environment       = local.environment
 
   tag_name                         = local.topic_names.task_processor
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -201,7 +201,7 @@ resource "aws_sns_topic_subscription" "task_processor" {
 #####################################################################
 
 resource "aws_cloudwatch_event_rule" "scheduler_trigger" {
-  name        = "${var.project}-${var.environment}-invoke-scheduler"
+  name        = "${var.project}-${local.environment}-invoke-scheduler"
   description = "Trigger running of the scheduler periodically"
   schedule_expression = "cron(*/15 * * * ? *)"
 }
@@ -217,7 +217,7 @@ resource "aws_cloudwatch_event_target" "sns" {
 #####################################################################
 
 resource "aws_dynamodb_table" "scheduler_locks" {
-    name            = "${var.project}-scheduler-locks-${var.environment}"
+    name            = "${var.project}-scheduler-locks-${local.environment}"
     billing_mode    = "PAY_PER_REQUEST"
     # read_capacity   = 10
     # write_capacity  = 2
@@ -238,7 +238,7 @@ resource "aws_dynamodb_table" "scheduler_locks" {
 
 
 resource "aws_dynamodb_table" "configuration" {
-    name            = "${var.project}-configuration-${var.environment}"
+    name            = "${var.project}-configuration-${local.environment}"
     billing_mode    = "PAY_PER_REQUEST"
     # read_capacity   = 10
     # write_capacity  = 2
@@ -265,7 +265,7 @@ resource "aws_dynamodb_table" "configuration" {
 
 
 resource "aws_dynamodb_table" "dag_state" {
-    name            = "${var.project}-dag-state-${var.environment}"
+    name            = "${var.project}-dag-state-${local.environment}"
     billing_mode    = "PAY_PER_REQUEST"
     # read_capacity  = 10
     # write_capacity = 2
