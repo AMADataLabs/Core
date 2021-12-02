@@ -19,7 +19,7 @@ def main(args):
 
 
 def _get_runtime_args(args):
-    runtime_args = args["args"]
+    runtime_args = ['run-task'] + args["args"]
 
     if not runtime_args:
         runtime_args = json.loads(args["event"] or "{}")

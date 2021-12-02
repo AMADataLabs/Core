@@ -54,6 +54,15 @@ with DBL_REPORT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
     )
 
+    GET_LAST_REPORT = KubernetesPodOperator(
+        name="get_last_report",
+        task_id="get_last_report",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[EFT_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
+    )
+
     CREATE_DBL_REPORT = KubernetesPodOperator(
         name="create_dbl_report",
         task_id="create_dbl_report",
@@ -72,4 +81,16 @@ with DBL_REPORT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.analysis.dbl.load.DBLReportEmailLoaderTask')},
     )
 
-EXTRACT_DBL >> CREATE_DBL_REPORT >> EMAIL_DBL_REPORT
+    LOAD_DBL_REPORT = KubernetesPodOperator(
+        name="load_dbl_report",
+        task_id="load_dbl_report",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[EFT_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.load.SFTPFileLoaderTask')},
+    )
+
+EXTRACT_DBL >> CREATE_DBL_REPORT
+GET_LAST_REPORT >> CREATE_DBL_REPORT
+CREATE_DBL_REPORT >> EMAIL_DBL_REPORT
+CREATE_DBL_REPORT >> LOAD_DBL_REPORT

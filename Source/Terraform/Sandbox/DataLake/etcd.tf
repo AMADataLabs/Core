@@ -50,7 +50,7 @@ resource "aws_ecs_service" "etcd" {
 module "etcd_task_definition" {
     source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-ecs-fargate-task-definition.git?ref=2.0.0"
     task_name                       = "etcd"
-    environment_name                = var.environment
+    environment_name                = local.environment
     execution_role_arn              = aws_iam_role.etcd_execution.arn
     task_role_arn                   = aws_iam_role.etcd_task.arn
     container_cpu                   = 1024
@@ -80,17 +80,17 @@ module "etcd_task_definition" {
     ]
 
     tag_name                        = "${var.project} etcd Task"
-    tag_environment                   = var.environment
-    tag_contact                       = local.contact
-    tag_budgetcode                    = local.budget_code
-    tag_owner                         = local.owner
-    tag_projectname                   = local.project
-    tag_systemtier                    = local.tier
-    tag_drtier                        = local.tier
-    tag_dataclassification            = local.na
-    tag_notes                         = local.na
-    tag_eol                           = local.na
-    tag_maintwindow                   = local.na
+    tag_environment                   = local.environment
+    tag_contact                       = var.contact
+    tag_budgetcode                    = var.budget_code
+    tag_owner                         = var.owner
+    tag_projectname                   = var.project
+    tag_systemtier                    = "0"
+    tag_drtier                        = "0"
+    tag_dataclassification            = "N/A"
+    tag_notes                         = "N/A"
+    tag_eol                           = "N/A"
+    tag_maintwindow                   = "N/A"
     tags = {
         Group                               = local.group
         Department                          = local.department
@@ -150,7 +150,7 @@ resource "aws_lb_target_group" "etcd" {
 module "etcd_sg" {
     source = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-security-group.git?ref=1.0.0"
 
-    name        = "${lower(var.project)}-${var.environment}-etcd"
+    name        = "${lower(var.project)}-${local.environment}-etcd"
     description = "Security group for Datanow"
     vpc_id      = aws_vpc.datalake.id
 
@@ -283,22 +283,22 @@ module "etcd_efs" {
     path_permissions = 755
     access_point_path = "/etcd"
     app_name                         = lower(var.project)
-    app_environment                  = var.environment
+    app_environment                  = local.environment
     subnet_ids                       = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
     security_groups                  = [module.etcd_sg.security_group_id]
 
-    tag_name                         = "${var.project}-${var.environment}-etcd-efs"
-    tag_environment                   = var.environment
-    tag_contact                       = local.contact
-    tag_budgetcode                    = local.budget_code
-    tag_owner                         = local.owner
-    tag_projectname                   = local.project
-    tag_systemtier                    = local.tier
-    tag_drtier                        = local.tier
-    tag_dataclassification            = local.na
-    tag_notes                         = local.na
-    tag_eol                           = local.na
-    tag_maintwindow                   = local.na
+    tag_name                         = "${var.project}-${local.environment}-etcd-efs"
+    tag_environment                   = local.environment
+    tag_contact                       = var.contact
+    tag_budgetcode                    = var.budget_code
+    tag_owner                         = var.owner
+    tag_projectname                   = var.project
+    tag_systemtier                    = "0"
+    tag_drtier                        = "0"
+    tag_dataclassification            = "N/A"
+    tag_notes                         = "N/A"
+    tag_eol                           = "N/A"
+    tag_maintwindow                   = "N/A"
     tags = {
         Group                               = local.group
         Department                          = local.department
