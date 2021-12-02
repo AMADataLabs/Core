@@ -458,12 +458,11 @@ resource "aws_iam_role_policy_attachment" "ecs_task_dynamodb_put_item_role_dag_s
 data "aws_iam_policy_document" "ecs_task_s3_get_object" {
   statement {
     actions = [
-      "s3:Get*",
-      # "s3-object-lambda:Get*",
+                "s3:Get*",
+                "s3:List*",
     ]
 
     resources = [
-      # "arn:aws:s3:us-east-1:644454719059:bucket:ama-${local.environment}-datalake-scheduler-us-east-1",
       "arn:aws:s3:::ama-${local.environment}-datalake-scheduler-us-east-1",
       "arn:aws:s3:::ama-${local.environment}-datalake-scheduler-us-east-1/*"
     ]
@@ -471,7 +470,7 @@ data "aws_iam_policy_document" "ecs_task_s3_get_object" {
 }
 
 resource "aws_iam_policy" "ecs_task_s3_get_object_policy" {
-  name        = "${lower(var.project)}-${local.environment}-ecs-task-s3-get-object"
+  name        = "${lower(var.project)}-${local.environment}-task-s3-get-object"
   policy      = data.aws_iam_policy_document.ecs_task_s3_get_object.json
   description = "Allows AWS Batch jobs to get objects from ama-${local.environment}-datalake-scheduler-us-east-1 Bucket"
 
