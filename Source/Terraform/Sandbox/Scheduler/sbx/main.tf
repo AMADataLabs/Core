@@ -458,8 +458,8 @@ resource "aws_iam_role_policy_attachment" "ecs_task_dynamodb_put_item_role_dag_s
 data "aws_iam_policy_document" "ecs_task_s3_get_object" {
   statement {
     actions = [
-                "s3:Get*",
-                "s3:List*",
+      "s3:Get*",
+      "s3:List*",
     ]
 
     resources = [
