@@ -133,7 +133,7 @@ resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
 
   container_properties = <<CONTAINER_PROPERTIES
 {
-  "command": ["python","task.py","{\"dag\": \"DAG_SCHEDULER\", \"type\": \"DAG\", \"execution_time\": \"2020-11-10 21:30:00.000\"}"],
+  "command": ["python","task.py","{\"dag\": \"ECS_SCHEDULER\", \"type\": \"DAG\", \"execution_time\": \"2020-11-10 21:30:00.000\"}"],
   "image": "644454719059.dkr.ecr.us-east-1.amazonaws.com/datalake-sbx",
   "fargatePlatformConfiguration": {
     "platformVersion": "1.3.0"
@@ -289,7 +289,10 @@ resource "aws_iam_role_policy_attachment" "ecs_task_ssm" {
 
 data "aws_iam_policy_document" "ecs_task_dynamodb_get_item" {
   statement {
-    actions = ["dynamodb:GetItem"]
+    actions = [
+      "dynamodb:GetItem",
+      # "dynamodb:PutItem"
+    ]
 
     resources = [
       "arn:aws:dynamodb:us-east-1:${local.account}:table/DataLake-configuration-${local.environment}",
@@ -298,11 +301,10 @@ data "aws_iam_policy_document" "ecs_task_dynamodb_get_item" {
   }
 }
 
-
 resource "aws_iam_policy" "ecs_task_dynamodb_get_item_policy" {
     name                    = "${lower(var.project)}-${local.environment}-task-dynamodb-get-item-policy"
     policy      = data.aws_iam_policy_document.ecs_task_dynamodb_get_item.json
-    description             = "Allows ECS tasks to get table items from DynamoDB"
+    description             = "Allows AWS Batch jobs to get table items from DynamoDB DataLake-configuration-${local.environment} table"
 
     tags                    = {
         Name                    = "ECS Task Policy for AWS Batch"
@@ -326,4 +328,182 @@ resource "aws_iam_policy" "ecs_task_dynamodb_get_item_policy" {
 resource "aws_iam_role_policy_attachment" "ecs_task_dynamodb_get_item_role" {
   role       = aws_iam_role.scheduler_batch_service_role.name
   policy_arn = aws_iam_policy.ecs_task_dynamodb_get_item_policy.arn
+}
+
+
+data "aws_iam_policy_document" "ecs_task_dynamodb_put_item" {
+  statement {
+    actions = [
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem"
+    ]
+
+    resources = [
+      # "arn:aws:dynamodb:us-east-1:${local.account}:table/DataLake-configuration-${local.environment}",
+      # "arn:aws:dynamodb:us-east-1:${local.account}:table/DataLake-dag-state-${local.environment}"
+      "arn:aws:dynamodb:us-east-1:644454719059:table/DataLake-scheduler-locks-${local.environment}"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "ecs_task_dynamodb_put_item_policy" {
+    name                    = "${lower(var.project)}-${local.environment}-task-dynamodb-put-item-policy"
+    policy      = data.aws_iam_policy_document.ecs_task_dynamodb_put_item.json
+    description             = "Allows AWS Batch jobs to put and delete table items into/fromye DynamoDB DataLake-scheduler-locks-${local.environment} table"
+
+    tags                    = {
+        Name                    = "ECS Task Policy for AWS Batch"
+        Environment             = local.environment
+        Contact                 = var.contact
+        BudgetCode              = var.budget_code
+        Owner                   = var.owner
+        ProjectName             = var.project
+        SystemTier              = "0"
+        DRTier                  = "0"
+        DataClassification      = "N/A"
+        Notes                   = "N/A"
+        OS                      = "N/A"
+        EOL                     = "N/A"
+        MaintenanceWindow       = "N/A"
+        Group                   = "Health Solutions"
+        Department              = "DataLabs"
+    }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_dynamodb_put_item_role" {
+  role       = aws_iam_role.scheduler_batch_service_role.name
+  policy_arn = aws_iam_policy.ecs_task_dynamodb_put_item_policy.arn
+}
+
+##########
+data "aws_iam_policy_document" "ecs_task_sns_publish" {
+  statement {
+    actions = [
+      "SNS:Publish"
+    ]
+
+    resources = [
+      "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGProcessor"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "ecs_task_sns_publish_policy" {
+    name                    = "${lower(var.project)}-${local.environment}-task-sns-publish-policy"
+    policy      = data.aws_iam_policy_document.ecs_task_sns_publish.json
+    description             = "Allows AWS Batch jobs to put and delete table items into/fromye DynamoDB DataLake-scheduler-locks-${local.environment} table"
+
+    tags                    = {
+        Name                    = "ECS Task Policy for publishing sns topics"
+        Environment             = local.environment
+        Contact                 = var.contact
+        BudgetCode              = var.budget_code
+        Owner                   = var.owner
+        ProjectName             = var.project
+        SystemTier              = "0"
+        DRTier                  = "0"
+        DataClassification      = "N/A"
+        Notes                   = "N/A"
+        OS                      = "N/A"
+        EOL                     = "N/A"
+        MaintenanceWindow       = "N/A"
+        Group                   = "Health Solutions"
+        Department              = "DataLabs"
+    }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_sns_publish_role" {
+  role       = aws_iam_role.scheduler_batch_service_role.name
+  policy_arn = aws_iam_policy.ecs_task_sns_publish_policy.arn
+}
+
+
+
+
+#########################
+
+data "aws_iam_policy_document" "ecs_task_dynamodb_put_item_dag_state" {
+  statement {
+    actions = [
+      "dynamodb:PutItem",
+    ]
+
+    resources = [
+      "arn:aws:dynamodb:us-east-1:644454719059:table/DataLake-dag-state-${local.environment}"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "ecs_task_dynamodb_put_item_policy_dag_state" {
+    name                    = "${lower(var.project)}-${local.environment}-task-dynamodb-put-item-policy_dag_state"
+    policy      = data.aws_iam_policy_document.ecs_task_dynamodb_put_item_dag_state.json
+    description             = "Allows AWS Batch jobs to put table items into DynamoDB DataLake-dag-state-${local.environment} table"
+
+    tags                    = {
+        Name                    = "ECS Task Policy for AWS Batch"
+        Environment             = local.environment
+        Contact                 = var.contact
+        BudgetCode              = var.budget_code
+        Owner                   = var.owner
+        ProjectName             = var.project
+        SystemTier              = "0"
+        DRTier                  = "0"
+        DataClassification      = "N/A"
+        Notes                   = "N/A"
+        OS                      = "N/A"
+        EOL                     = "N/A"
+        MaintenanceWindow       = "N/A"
+        Group                   = "Health Solutions"
+        Department              = "DataLabs"
+    }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_dynamodb_put_item_role_dag_state" {
+  role       = aws_iam_role.scheduler_batch_service_role.name
+  policy_arn = aws_iam_policy.ecs_task_dynamodb_put_item_policy_dag_state.arn
+}
+
+#########################
+data "aws_iam_policy_document" "ecs_task_s3_get_object" {
+  statement {
+    actions = [
+      "s3:Get*",
+      "s3-object-lambda:Get*",
+    ]
+
+    resources = [
+      # "arn:aws:s3:us-east-1:644454719059:bucket:ama-${local.environment}-datalake-scheduler-us-east-1",
+      "arn:aws:s3:::ama-${local.environment}-datalake-scheduler-us-east-1",
+      "arn:aws:s3:::ama-${local.environment}-datalake-scheduler-us-east-1/*"
+    ]
+  }
+}
+
+resource "aws_iam_policy" "ecs_task_s3_get_object_policy" {
+    name                    = "${lower(var.project)}-${local.environment}-ecs-task-s3-get-object"
+    policy      = data.aws_iam_policy_document.ecs_task_s3_get_object.json
+    description             = "Allows AWS Batch jobs to get objects from ama-${local.environment}-datalake-scheduler-us-east-1 Bucket"
+
+    tags                    = {
+        Name                    = "ECS Task Policy for AWS Batch"
+        Environment             = local.environment
+        Contact                 = var.contact
+        BudgetCode              = var.budget_code
+        Owner                   = var.owner
+        ProjectName             = var.project
+        SystemTier              = "0"
+        DRTier                  = "0"
+        DataClassification      = "N/A"
+        Notes                   = "N/A"
+        OS                      = "N/A"
+        EOL                     = "N/A"
+        MaintenanceWindow       = "N/A"
+        Group                   = "Health Solutions"
+        Department              = "DataLabs"
+    }
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_s3_get_object_policy_role" {
+  role       = aws_iam_role.scheduler_batch_service_role.name
+  policy_arn = aws_iam_policy.ecs_task_s3_get_object_policy.arn
 }
