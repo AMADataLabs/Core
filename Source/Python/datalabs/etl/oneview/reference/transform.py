@@ -32,6 +32,8 @@ class TypeOfPracticeTransformerTask(TransformerTask):
             )
         )
 
+        type_of_practice = type_of_practice[type_of_practice.TOP_CD != '070']
+
         return [type_of_practice]
 
     def _get_columns(self):
