@@ -25,18 +25,18 @@ owner_status = {
 
 
 fips_supplement = dict(
-    id=['70030', '64002', '64005', '64040', '64060', '     '],
-    state=['70', '64', '64', '64', '64', '  '],
-    county=['030', '002', '005', '040', '060', '   '],
+    id=['70030', '64002', '64005', '64040', '64060', '02063', '     '],
+    state=['70', '64', '64', '64', '64', '02', '  '],
+    county=['030', '002', '005', '040', '060', '063', '   '],
     description=[
         'Koror, Palau',
         'Chuuk, Federated States of Micronesia',
         'Kosrae, Federated States of Micronesia',
         'Pohnpei, Federated States of Micronesia',
         'Yap, Federated States of Micronesia',
+        'Chugach Census Area, AK'
         'Unknown/Not Specified'
     ]
 )
-
 
 tables = [provider_affiliation_group, provider_affiliation_type, profit_status, owner_status]
