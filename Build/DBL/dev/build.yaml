@@ -15,7 +15,7 @@ spec:
   output:
     to:
       kind: ImageStreamTag
-      name: dbl:1.0.1
+      name: dbl:1.0.21
   postCommit: {}
   resources: {}
   runPolicy: Serial

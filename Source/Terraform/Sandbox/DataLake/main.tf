@@ -36,7 +36,7 @@ resource "random_password" "datanow_password" {
 module "apigw_sg" {
   source  = "app.terraform.io/AMA/security-group/aws"
   version = "1.0.0"
-  name        = "${var.project}-${var.environment}-apigw-sg"
+  name        = "${var.project}-${local.environment}-apigw-sg"
   description = "Security group for API Gateway VPC interfaces"
   vpc_id      = aws_vpc.datalake.id
 
@@ -76,7 +76,7 @@ resource "aws_vpc_endpoint" "apigw" {
 
   private_dns_enabled = true
 
-  tags = merge(local.tags, {Name = "${var.environment}-execute-api_vpc_endpoint"})
+  tags = merge(local.tags, {Name = "${local.environment}-execute-api_vpc_endpoint"})
 }
 
 
@@ -277,7 +277,7 @@ module "s3_ingested_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${var.environment}-datalake-ingested-data-${var.region}"
+  bucket_name = "ama-${local.environment}-datalake-ingested-data-${var.region}"
 
   lifecycle_rule = [
     {
@@ -298,20 +298,20 @@ module "s3_ingested_data" {
   ]
 
   app_name                          = lower(var.project)
-  app_environment                   = var.environment
+  app_environment                   = local.environment
 
-  tag_name                          = "${var.project}-${var.environment}-s3-ingested-data"
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_name                          = "${var.project}-${local.environment}-s3-ingested-data"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -323,7 +323,7 @@ module "s3_processed_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${var.environment}-datalake-processed-data-${var.region}"
+  bucket_name = "ama-${local.environment}-datalake-processed-data-${var.region}"
 
   lifecycle_rule = [
     {
@@ -345,20 +345,20 @@ module "s3_processed_data" {
   ]
 
   app_name                          = lower(var.project)
-  app_environment                   = var.environment
+  app_environment                   = local.environment
 
-  tag_name                          = "${var.project}-${var.environment}-s3-processed-data"
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_name                          = "${var.project}-${local.environment}-s3-processed-data"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -371,7 +371,7 @@ module "s3_ingest" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${var.environment}-datalake-ingest-${var.region}"
+  bucket_name = "ama-${local.environment}-datalake-ingest-${var.region}"
 
   lifecycle_rule = [
     {
@@ -392,20 +392,20 @@ module "s3_ingest" {
   ]
 
   app_name                          = lower(var.project)
-  app_environment                   = var.environment
+  app_environment                   = local.environment
 
-  tag_name                          = "${var.project}-${var.environment}-s3-ingested-data"
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_name                          = "${var.project}-${local.environment}-s3-ingested-data"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -426,7 +426,7 @@ module "s3_process" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${var.environment}-datalake-process-${var.region}"
+  bucket_name = "ama-${local.environment}-datalake-process-${var.region}"
 
   lifecycle_rule = [
     {
@@ -448,20 +448,65 @@ module "s3_process" {
   ]
 
   app_name                          = lower(var.project)
-  app_environment                   = var.environment
+  app_environment                   = local.environment
 
-  tag_name                          = "${var.project}-${var.environment}-s3-processed-data"
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_name                          = "${var.project}-${local.environment}-s3-processed-data"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
+  tags = {
+    Group                               = local.group
+    Department                          = local.department
+  }
+}
+
+module "s3_webapp_content" {
+  source  = "app.terraform.io/AMA/s3/aws"
+  version = "2.0.0"
+
+  enable_versioning = true
+  bucket_name = "ama-${local.environment}-datalake-webapp-content-${var.region}"
+
+  lifecycle_rule = [
+    {
+      enabled = true
+
+      transition = [
+        {
+          days          = 90
+          storage_class = "STANDARD_IA"
+          },
+          {
+          days          = 365
+          storage_class = "GLACIER"
+        }
+      ]
+
+    }
+  ]
+
+  app_name                          = lower(var.project)
+  app_environment                   = local.environment
+  tag_name                          = "${var.project}-${local.environment}-s3-webapp-content-bucket"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -482,23 +527,23 @@ module "lambda_code_bucket" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-s3.git?ref=2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${var.environment}-${lower(var.project)}-lambda-code-${var.region}"
+  bucket_name = "ama-${local.environment}-${lower(var.project)}-lambda-code-${var.region}"
 
   app_name                          = lower(var.project)
-  app_environment                   = var.environment
+  app_environment                   = local.environment
 
-  tag_name                          = "${var.project}-${var.environment}-s3-lambda-code"
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_name                          = "${var.project}-${local.environment}-s3-lambda-code"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -514,29 +559,29 @@ module "sns_ingested_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "${var.ingested_data_topic_name}-${var.environment}"
+    topic_name      = "${var.ingested_data_topic_name}-${local.environment}"
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_ingest.bucket_id
   }
 
-  name = "${var.ingested_data_topic_name}-${var.environment}"
-  topic_display_name    = "${var.ingested_data_topic_name}-${var.environment}"
+  name = "${var.ingested_data_topic_name}-${local.environment}"
+  topic_display_name    = "${var.ingested_data_topic_name}-${local.environment}"
   app_name              = lower(var.project)
-  app_environment       = var.environment
+  app_environment       = local.environment
 
-  tag_name                          = "${var.project}-${var.environment}-sns-ingested-topic"
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_name                          = "${var.project}-${local.environment}-sns-ingested-topic"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -548,29 +593,29 @@ module "sns_processed_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "${var.processed_data_topic_name}-${var.environment}"
+    topic_name      = "${var.processed_data_topic_name}-${local.environment}"
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_process.bucket_id
   }
 
-  name = "${var.processed_data_topic_name}-${var.environment}"
-  topic_display_name    = "${var.processed_data_topic_name}-${var.environment}"
+  name = "${var.processed_data_topic_name}-${local.environment}"
+  topic_display_name    = "${var.processed_data_topic_name}-${local.environment}"
   app_name              = lower(var.project)
-  app_environment       = var.environment
+  app_environment       = local.environment
 
-  tag_name                         = "${var.project}-${var.environment}-sns-processed-data"
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
-  tag_projectname                   = local.project
-  tag_systemtier                    = local.tier
-  tag_drtier                        = local.tier
-  tag_dataclassification            = local.na
-  tag_notes                         = local.na
-  tag_eol                           = local.na
-  tag_maintwindow                   = local.na
+  tag_name                         = "${var.project}-${local.environment}-sns-processed-data"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
   tags = {
     Group                               = local.group
     Department                          = local.department
@@ -592,20 +637,20 @@ resource "aws_ecr_repository" "datanow" {
 module "datalake_ecs_cluster" {
     source                            = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-fargate.git?ref=2.0.0"
     app_name                          =  lower(var.project)
-    app_environment                   = var.environment
+    app_environment                   = local.environment
 
     tag_name                          = "${upper(var.project)}-${local.environment}-ECS-CLUSTER"
-    tag_environment                   = var.environment
-    tag_contact                       = local.contact
-    tag_budgetcode                    = local.budget_code
-    tag_owner                         = local.owner
-    tag_projectname                   = local.project
-    tag_systemtier                    = local.tier
-    tag_drtier                        = local.tier
-    tag_dataclassification            = local.na
-    tag_notes                         = local.na
-    tag_eol                           = local.na
-    tag_maintwindow                   = local.na
+    tag_environment                   = local.environment
+    tag_contact                       = var.contact
+    tag_budgetcode                    = var.budget_code
+    tag_owner                         = var.owner
+    tag_projectname                   = var.project
+    tag_systemtier                    = "0"
+    tag_drtier                        = "0"
+    tag_dataclassification            = "N/A"
+    tag_notes                         = "N/A"
+    tag_eol                           = "N/A"
+    tag_maintwindow                   = "N/A"
     tags = {
         Group                               = local.group
         Department                          = local.department
@@ -681,17 +726,17 @@ resource "aws_ecs_service" "datanow" {
 #     sd_record_name                      = "DataNow"  # Service Discovery is not currently implemented, but this has no default
 #
 #     tag_name                            = "${var.project} DataNow Service"
-#     tag_environment                   = var.environment
-#     tag_contact                       = local.contact
-#     tag_budgetcode                    = local.budget_code
-#     tag_owner                         = local.owner
-#     tag_projectname                   = local.project
-#     tag_systemtier                    = local.tier
-#     tag_drtier                        = local.tier
-#     tag_dataclassification            = local.na
-#     tag_notes                         = local.na
-#     tag_eol                           = local.na
-#     tag_maintwindow                   = local.na
+#     tag_environment                   = local.environment
+#     tag_contact                       = var.contact
+#     tag_budgetcode                    = var.budget_code
+#     tag_owner                         = var.owner
+#     tag_projectname                   = var.project
+#     tag_systemtier                    = "0"
+#     tag_drtier                        = "0"
+#     tag_dataclassification            = "N/A"
+#     tag_notes                         = "N/A"
+#     tag_eol                           = "N/A"
+#     tag_maintwindow                   = "N/A"
 #     tags = {
 #         Group                               = local.group
 #         Department                          = local.department
@@ -702,7 +747,7 @@ resource "aws_ecs_service" "datanow" {
 module "datanow_task_definition" {
     source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-ecs-fargate-task-definition.git?ref=2.0.0"
     task_name                       = "datanow"
-    environment_name                = var.environment
+    environment_name                = local.environment
     execution_role_arn              = aws_iam_role.datanow_execution.arn
     task_role_arn                   = aws_iam_role.datanow_task.arn
     container_cpu                   = 1024
@@ -735,17 +780,17 @@ module "datanow_task_definition" {
     ]
 
     tag_name                        = "${var.project} DataNow Task"
-    tag_environment                   = var.environment
-    tag_contact                       = local.contact
-    tag_budgetcode                    = local.budget_code
-    tag_owner                         = local.owner
-    tag_projectname                   = local.project
-    tag_systemtier                    = local.tier
-    tag_drtier                        = local.tier
-    tag_dataclassification            = local.na
-    tag_notes                         = local.na
-    tag_eol                           = local.na
-    tag_maintwindow                   = local.na
+    tag_environment                   = local.environment
+    tag_contact                       = var.contact
+    tag_budgetcode                    = var.budget_code
+    tag_owner                         = var.owner
+    tag_projectname                   = var.project
+    tag_systemtier                    = "0"
+    tag_drtier                        = "0"
+    tag_dataclassification            = "N/A"
+    tag_notes                         = "N/A"
+    tag_eol                           = "N/A"
+    tag_maintwindow                   = "N/A"
     tags = {
         Group                               = local.group
         Department                          = local.department
@@ -810,7 +855,7 @@ resource "aws_lb_target_group" "datanow" {
 module "datanow_sg" {
     source = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-security-group.git?ref=1.0.0"
 
-    name        = "${lower(var.project)}-${var.environment}-datanow"
+    name        = "${lower(var.project)}-${local.environment}-datanow"
     description = "Security group for Datanow"
     vpc_id      = aws_vpc.datalake.id
 
@@ -1015,22 +1060,22 @@ module "datanow_efs" {
     path_permissions = 755
     access_point_path = "/dremio"
     app_name                         = lower(var.project)
-    app_environment                  = var.environment
+    app_environment                  = local.environment
     subnet_ids                       = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
     security_groups                  = [module.datanow_sg.security_group_id]
 
-    tag_name                         = "${var.project}-${var.environment}-datanow-efs"
-    tag_environment                   = var.environment
-    tag_contact                       = local.contact
-    tag_budgetcode                    = local.budget_code
-    tag_owner                         = local.owner
-    tag_projectname                   = local.project
-    tag_systemtier                    = local.tier
-    tag_drtier                        = local.tier
-    tag_dataclassification            = local.na
-    tag_notes                         = local.na
-    tag_eol                           = local.na
-    tag_maintwindow                   = local.na
+    tag_name                         = "${var.project}-${local.environment}-datanow-efs"
+    tag_environment                   = local.environment
+    tag_contact                       = var.contact
+    tag_budgetcode                    = var.budget_code
+    tag_owner                         = var.owner
+    tag_projectname                   = var.project
+    tag_systemtier                    = "0"
+    tag_drtier                        = "0"
+    tag_dataclassification            = "N/A"
+    tag_notes                         = "N/A"
+    tag_eol                           = "N/A"
+    tag_maintwindow                   = "N/A"
     tags = {
         Group                               = local.group
         Department                          = local.department
@@ -1103,20 +1148,20 @@ module "datanow_efs" {
 #     instance_id                       = lower(var.project)
 #     neptune_subnet_list     = [aws_subnet.lineage_frontend.id, aws_subnet.lineage_backend.id]
 #     security_group_ids      = [aws_security_group.lineage.id]
-#     environment                       = var.environment
+#     environment                       = local.environment
 #
-#     tag_name                          = "${var.project}-${var.environment}-neptune-cluster"
-#     tag_environment                   = var.environment
-#     tag_contact                       = local.contact
-#     tag_budgetcode                    = local.budget_code
-#     tag_owner                         = local.owner
-#     tag_projectname                   = local.project
-#     tag_systemtier                    = local.tier
-#     tag_drtier                        = local.tier
-#     tag_dataclassification            = local.na
-#     tag_notes                         = local.na
-#     tag_eol                           = local.na
-#     tag_maintwindow                   = local.na
+#     tag_name                          = "${var.project}-${local.environment}-neptune-cluster"
+#     tag_environment                   = local.environment
+#     tag_contact                       = var.contact
+#     tag_budgetcode                    = var.budget_code
+#     tag_owner                         = var.owner
+#     tag_projectname                   = var.project
+#     tag_systemtier                    = "0"
+#     tag_drtier                        = "0"
+#     tag_dataclassification            = "N/A"
+#     tag_notes                         = "N/A"
+#     tag_eol                           = "N/A"
+#     tag_maintwindow                   = "N/A"
 #     tags = {
 #         Group                               = local.group
 #         Department                          = local.department
@@ -1143,7 +1188,7 @@ module "datalabs_terraform_state" {
 module "webapp_sg" {
   source  = "app.terraform.io/AMA/security-group/aws"
   version = "1.0.0"
-  name        = "${var.project}-${var.environment}-webapp-sg"
+  name        = "${var.project}-${local.environment}-webapp-sg"
   description = "Security group for DataLabs web app load balancer"
   vpc_id      = aws_vpc.datalake.id
 
@@ -1180,7 +1225,7 @@ module "webapp_sg" {
 module "webapp_alb" {
   source                            = "app.terraform.io/AMA/alb/aws"
   version                           = "1.0.2"
-  environment                       = var.environment
+  environment                       = local.environment
   name                              = "webapp"
   project                           = lower(var.project)
   description                       = "DataLabs Web APP Load Balancer"
@@ -1210,11 +1255,11 @@ module "webapp_alb" {
   health_check_healthy_threshold    = "5"
   health_check_unhealthy_threshold  = "10"
   health_check_matcher              = "200"
-  tag_name                          = "${var.project}-${var.environment}-webapp-alb"
-  tag_environment                   = var.environment
-  tag_contact                       = local.contact
-  tag_budgetcode                    = local.budget_code
-  tag_owner                         = local.owner
+  tag_name                          = "${var.project}-${local.environment}-webapp-alb"
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
   tag_projectname                   = var.project
   tag_systemtier                    = "0"
   tag_drtier                        = "0"
