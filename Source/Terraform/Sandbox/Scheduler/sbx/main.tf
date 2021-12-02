@@ -160,22 +160,6 @@ resource "aws_batch_job_definition" "ecs-scheduler-job-definition" {
   ]
 }
 CONTAINER_PROPERTIES
-  # "jobRoleArn": "${aws_iam_role.ecs_task_role.arn}"
-
-  #   container_properties = <<CONTAINER_PROPERTIES
-  # {
-  #   "command": ["echo", "test"],
-  #   "image": "busybox",
-  #   "fargatePlatformConfiguration": {
-  #     "platformVersion": "LATEST"
-  #   },
-  #   "resourceRequirements": [
-  #     {"type": "VCPU", "value": "1"},
-  #     {"type": "MEMORY", "value": "2048"}
-  #   ],
-  #   "executionRoleArn": "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
-  # }
-  # CONTAINER_PROPERTIES
 }
 
 
@@ -229,7 +213,6 @@ resource "aws_iam_role_policy_attachment" "secret_manager_read_write" {
   role       = aws_iam_role.scheduler_batch_service_role.name
   policy_arn = "arn:aws:iam::aws:policy/SecretsManagerReadWrite"
 }
-
 
 #### ECS Task Role ####
 
@@ -287,6 +270,8 @@ resource "aws_iam_role_policy_attachment" "ecs_task_ssm" {
   policy_arn = data.aws_iam_policy.AmazonSSMReadOnlyAccess.arn
 }
 
+#### DynamoDB GetItem Policy ####
+
 data "aws_iam_policy_document" "ecs_task_dynamodb_get_item" {
   statement {
     actions = [
@@ -330,6 +315,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_dynamodb_get_item_role" {
   policy_arn = aws_iam_policy.ecs_task_dynamodb_get_item_policy.arn
 }
 
+#### DynamoDB PutItem and DeleteItem Policy ####
 
 data "aws_iam_policy_document" "ecs_task_dynamodb_put_item" {
   statement {
@@ -373,6 +359,8 @@ resource "aws_iam_role_policy_attachment" "ecs_task_dynamodb_put_item_role" {
   policy_arn = aws_iam_policy.ecs_task_dynamodb_put_item_policy.arn
 }
 
+#### SNS Publish Policy ####
+
 data "aws_iam_policy_document" "ecs_task_sns_publish" {
   statement {
     actions = [
@@ -413,6 +401,8 @@ resource "aws_iam_role_policy_attachment" "ecs_task_sns_publish_role" {
   role       = aws_iam_role.scheduler_batch_service_role.name
   policy_arn = aws_iam_policy.ecs_task_sns_publish_policy.arn
 }
+
+#### DynamoDB PutItem Policy ####
 
 data "aws_iam_policy_document" "ecs_task_dynamodb_put_item_dag_state" {
   statement {
@@ -455,7 +445,9 @@ resource "aws_iam_role_policy_attachment" "ecs_task_dynamodb_put_item_role_dag_s
   policy_arn = aws_iam_policy.ecs_task_dynamodb_put_item_policy_dag_state.arn
 }
 
-data "aws_iam_policy_document" "ecs_task_s3_get_object" {
+#### S3 Get and List policy ####
+
+data "aws_iam_policy_document" "ecs_task_s3_get_list_object" {
   statement {
     actions = [
       "s3:Get*",
@@ -469,9 +461,9 @@ data "aws_iam_policy_document" "ecs_task_s3_get_object" {
   }
 }
 
-resource "aws_iam_policy" "ecs_task_s3_get_object_policy" {
-  name        = "${lower(var.project)}-${local.environment}-task-s3-get-object"
-  policy      = data.aws_iam_policy_document.ecs_task_s3_get_object.json
+resource "aws_iam_policy" "ecs_task_s3_get_list_object_policy" {
+  name        = "${lower(var.project)}-${local.environment}-task-s3-get-list-object"
+  policy      = data.aws_iam_policy_document.ecs_task_s3_get_list_object.json
   description = "Allows AWS Batch jobs to get objects from ama-${local.environment}-datalake-scheduler-us-east-1 Bucket"
 
   tags = {
@@ -493,7 +485,7 @@ resource "aws_iam_policy" "ecs_task_s3_get_object_policy" {
   }
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_s3_get_object_policy_role" {
+resource "aws_iam_role_policy_attachment" "ecs_task_s3_get_list_object_role" {
   role       = aws_iam_role.scheduler_batch_service_role.name
-  policy_arn = aws_iam_policy.ecs_task_s3_get_object_policy.arn
+  policy_arn = aws_iam_policy.ecs_task_s3_get_list_object_policy.arn
 }
