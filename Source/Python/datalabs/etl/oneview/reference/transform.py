@@ -99,14 +99,6 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 
         return [fips]
 
-    @classmethod
-    def _postprocess_data(cls, data):
-        fips = data[0]
-        fips_supplement = pandas.DataFrame(data=static.fips_supplement)
-        supplemented_fips = pandas.concat([fips, fips_supplement], ignore_index=True)
-
-        return [supplemented_fips]
-
     def _get_columns(self):
         return [col.FIPSC_COLUMNS]
 
