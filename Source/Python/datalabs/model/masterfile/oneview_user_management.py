@@ -28,8 +28,8 @@ class AgeGenderMPAAnnual(BASE):
     count = sa.Column(sa.String, default=None)
 
 
-class OneviewFeedbackQuestions(BASE):
-    __tablename__ = 'Oneview_Feedback_Questions'
+class DatalabsFeedbackQuestions(BASE):
+    __tablename__ = 'Datalabs_Feedback_Questions'
     __table_args__ = {"schema": SCHEMA}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
@@ -42,13 +42,13 @@ class OneviewFeedbackQuestions(BASE):
     question_order = sa.Column(sa.Integer, default=None)
 
 
-class OneviewFeedbackResponses(BASE):
-    __tablename__ = 'Oneview_Feedback_Responses'
+class DatalabsFeedbackResponses(BASE):
+    __tablename__ = 'Datalabs_Feedback_Responses'
     __table_args__ = {"schema": SCHEMA}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     user_id = sa.Column(sa.String, default=None)
-    question_id = sa.Column(sa.String, sa.ForeignKey(f"{SCHEMA}.Oneview_Feedback_Questions.id"))
+    question_id = sa.Column(sa.String, sa.ForeignKey(f"{SCHEMA}.Datalabs_Feedback_Questions.id"))
     response = sa.Column(sa.String, default=None)
     response_time = sa.Column(sa.String, default=None)
 
@@ -68,7 +68,7 @@ class Departments(BASE):
     default = sa.Column(sa.Boolean, default=None)
 
 
-class Departments(BASE):
+class Domains(BASE):
     __tablename__ = 'Domains'
     __table_args__ = {"schema": SCHEMA}
 
@@ -91,8 +91,8 @@ class Groups(BASE):
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     name = sa.Column(sa.String, default=None)
-    department_id = sa.Column(sa.Integer, default=None, sa.ForeignKey(f"{SCHEMA}.Departments.id"))
-    organization_id = sa.Column(sa.Integer, default=None, sa.ForeignKey(f"{SCHEMA}.Organization.id"))
+    department_id = sa.Column(sa.Integer, sa.ForeignKey(f"{SCHEMA}.Departments.id"))
+    organization_id = sa.Column(sa.Integer, sa.ForeignKey(f"{SCHEMA}.Organization.id"))
     description = sa.Column(sa.String, default=None)
     default = sa.Column(sa.Boolean, default=None)
 
@@ -102,8 +102,8 @@ class GroupsResourcePermission(BASE):
     __table_args__ = {"schema": SCHEMA}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    group_id = sa.Column(sa.Integer, default=None, sa.ForeignKey(f"{SCHEMA}.Groups.id"))
-    resource_permission_id = sa.Column(sa.Integer, default=None, sa.ForeignKey(f"{SCHEMA}.Resource_Permission.id"))
+    group_id = sa.Column(sa.Integer, sa.ForeignKey(f"{SCHEMA}.Groups.id"))
+    resource_permission_id = sa.Column(sa.Integer, sa.ForeignKey(f"{SCHEMA}.Resource_Permission.id"))
 
 
 class GroupsResources(BASE):
@@ -111,9 +111,9 @@ class GroupsResources(BASE):
     __table_args__ = {"schema": SCHEMA}
 
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
-    group_id = sa.Column(sa.Integer, default=None, sa.ForeignKey(f"{SCHEMA}.Groups.id"))
-    resource_id = sa.Column(sa.Integer, default=None, sa.ForeignKey(f"{SCHEMA}.Resource.id"))
-    access_id = sa.Column(sa.Integer, default=None, sa.ForeignKey(f"{SCHEMA}.Access.id"))
+    group_id = sa.Column(sa.Integer, sa.ForeignKey(f"{SCHEMA}.Groups.id"))
+    resource_id = sa.Column(sa.Integer, sa.ForeignKey(f"{SCHEMA}.Resource.id"))
+    access_id = sa.Column(sa.Integer, sa.ForeignKey(f"{SCHEMA}.Access.id"))
 
 
 
@@ -142,6 +142,7 @@ class OneviewFeedbackResponses(BASE):
     response = sa.Column(sa.String, default=None)
     response_time = sa.Column(sa.String, default=None)
 
+# pylint: disable=pointless-string-statement
 """
 CREATE TABLE `Organization` (
   `id` int(11) NOT NULL,
