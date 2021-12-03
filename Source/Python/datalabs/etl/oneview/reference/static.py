@@ -34,7 +34,7 @@ fips_supplement = dict(
         'Kosrae, Federated States of Micronesia',
         'Pohnpei, Federated States of Micronesia',
         'Yap, Federated States of Micronesia',
-        'Chugach Census Area, AK'
+        'Chugach Census Area, Alaska',
         'Unknown/Not Specified'
     ]
 )
