@@ -17,6 +17,7 @@ class HCPCSParserParameters:
     include_datestamp: str = None
     execution_time: str = None
     on_disk: str = False
+    filter_future: str = False
     assume_role: str = None
     data: object = None
     url: str = None
@@ -40,8 +41,7 @@ class HCPCSQuarterlyUpdateReportURLExtractorTask(ExtractorTask):
 
         return soup.find(id="block-cms-drupal-global-content").find('ul').find_all("li")
 
-    @classmethod
-    def _select_latest_quarterly_update_report_url(cls, url_list):
+    def _select_latest_quarterly_update_report_url(self, url_list):
         reports = {}
         months = {
             'january': '01',
@@ -64,10 +64,10 @@ class HCPCSQuarterlyUpdateReportURLExtractorTask(ExtractorTask):
             year_month = url_split[1] + months[url_split[0].lower()]
             reports[year_month] = "https://www.cms.gov" + url_suffix
 
-        reports = cls._filter_future_reports(reports)
+        if self._parameters.filter_future.upper() == 'TRUE':
+            reports = self._filter_future_reports(reports)
 
         return reports[max(reports.keys())]
-
 
     @classmethod
     def _filter_future_reports(cls, report_dict):
