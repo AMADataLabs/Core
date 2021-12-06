@@ -13,17 +13,21 @@ modspec:
     include:
       - plugin
       - feature
-      - etl
       - task
+      - parameter
+  - package: datalabs.etl
+  - package: datalabs.etl.jdbc
   - package: datalabs.access
     include:
       - credentials
       - database
       - datastore
       - environment
+      - etcd
   - package: datalabs.access.parameter
     include:
       - system
+      - etcd
   - package: datalabs.analysis.ppma.license_movement
     include:
       - finder
