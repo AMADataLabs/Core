@@ -23,6 +23,7 @@ class LocalDAGExecutorParameters:
     execution_time: str
     dag_class: str
     dag_state_class: str
+    status: str
     unknowns: dict=None
 
 
