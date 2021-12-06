@@ -37,6 +37,7 @@ resource "aws_secretsmanager_secret_version" "database" {
   )
 }
 
+
 locals {
     system_tier         = "Application"
     na                  = "N/A"

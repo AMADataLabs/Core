@@ -1,3 +1,9 @@
+provider "aws" {
+    region = "us-east-1"
+    version = "~> 3.0"
+}
+
+
 terraform {
     backend "s3" {
         bucket          = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
@@ -5,4 +11,11 @@ terraform {
         region          = "us-east-1"
         dynamodb_table  = "hsg-datalabs-terraform-locks"
     }
+
+    required_providers {
+        aws = "3.37"
+    }
 }
+
+
+data "aws_caller_identity" "account" {}
