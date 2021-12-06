@@ -55,7 +55,7 @@ COT_FACILITY = {
 }
 STATE = {
     'STATE_ID': 'id',
-    'SRC_STATE_CD': 'code',
+    'SRC_STATE_CD': 'abbreviation',
     'DESC': 'description'
 }
 MEDICAL_SCHOOL = {
