@@ -602,6 +602,7 @@ class State(BASE):
     __table_args__ = {"schema": SCHEMA}
 
     id = sa.Column(sa.String, primary_key=True, nullable=False)
+    abbreviation = sa.Column(sa.String)
     description = sa.Column(sa.String, nullable=False)
 
 
