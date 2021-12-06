@@ -1,3 +1,6 @@
+JPype1==0.6.3
+marshmallow==3.10.0
+pyodbc==4.0.28
 JayDeBeApi==1.1.1
 PyYAML==5.3.1
 boto3==1.12.45
@@ -11,7 +14,6 @@ pgeocode==0.3.0
 pip==20.0.2
 pipenv==2018.5.18
 pylint==2.4.4
-pyodbc==4.0.28
 pysftp==0.2.9
 python-dotenv==0.12.0
 pywin32==223; platform_system=="Windows"
