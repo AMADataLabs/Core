@@ -114,6 +114,9 @@ set -ex
 PROJECT="\${PROJECT:-OneView}"
 ENVIRONMENT="\${ENVIRONMENT:-sbx}"
 
+\$(apigw_assume_role.sh \$ENVIRONMENT | grep source)
+
+
 CODE_BUCKET="ama-\${ENVIRONMENT}-datalake-lambda-us-east-1"
 FUNCTIONS=(
 EOF
