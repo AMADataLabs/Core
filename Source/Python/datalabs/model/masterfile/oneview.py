@@ -743,7 +743,7 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.graduate_medical_education_hospital AS phy_graduate_medical_education_hospital,
     phy.medical_school_state AS phy_medical_school_state,
     phy.medical_school AS phy_medical_school,
-	ms.description AS phy_medical_school_name,
+    ms.description AS phy_medical_school_name,
     phy.medical_school_graduation_year AS phy_medical_school_graduation_year,
     phy.no_contact_type AS phy_no_contact_type,
     phy.no_web AS phy_no_web,
@@ -766,10 +766,10 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     phy.party_id AS phy_party_id,
     phy.entity_id AS phy_entity_id,
     phy.type AS phy_type,
-	phy.no_release AS phy_no_release,
+    phy.no_release AS phy_no_release,
     phy.membership_status AS phy_membership_status,
-	phy.has_email AS phy_has_email,
-	bu.name AS aff_business_name,
+    phy.has_email AS phy_has_email,
+    bu.name AS aff_business_name,
     bu.owner_status AS aff_owner_status,
     bu.profit_status AS aff_profit_status,
     bu.status_indicator AS aff_status_indicator,
@@ -783,34 +783,34 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     bu.physical_city AS aff_physical_city,
     bu.metropolitan_statistical_area AS aff_msa,
     bu.physical_zipcode AS aff_physical_zipcode,
-	substr(bu.physical_zipcode,1,5) AS aff_physician_zipcode_5digits,
-	bu.teaching_hospital AS aff_teaching_hospital,
+    substr(bu.physical_zipcode::text, 1, 5) AS aff_physician_zipcode_5digits,
+    bu.teaching_hospital AS aff_teaching_hospital,
     pa.type AS aff_type,
     pa.description AS aff_hospital_affiliation,
     pa.group_description AS aff_group_affiliation,
     pa."primary" AS aff_affiliation_status,
     rpp.id AS phy_residency_id,
-	zc.metropolitan_statistical_area AS phy_metropolitan_statistical_area,
+    zc.metropolitan_statistical_area AS phy_metropolitan_statistical_area,
     zc.primary_metropolitan_statistical_area AS phy_primary_metropolitan_statistical_area,
-	zc.county_federal_information_processing AS phy_zipcode_county_federal_information_processing,
+    zc.county_federal_information_processing AS phy_zipcode_county_federal_information_processing,
     zc.state AS phy_zipcode_state,
     msa.name AS phy_metropolitan_statistical_area_description,
-	msa.code AS phy_msa_code,
+    msa.code AS phy_msa_code,
     msa.type AS phy_msa_type,
     msa.consolidated_metropolitan_statistical_area
-FROM ((((((((((({SCHEMA}.physician phy
-     LEFT JOIN {SCHEMA}.type_of_practice top ON (((phy.type_of_practice)::text = (top.id)::text)))
-     LEFT JOIN {SCHEMA}.present_employment pe ON (((phy.present_employment)::text = (pe.id)::text)))
-     LEFT JOIN {SCHEMA}.major_professional_activity mpa ON (((phy.major_professional_activity)::text = (mpa.id)::text)))
-	 LEFT JOIN {SCHEMA}.provider_affiliation pa ON (((phy.medical_education_number)::text = (pa.medical_education_number)::text)))
-     LEFT JOIN {SCHEMA}.business bu ON (((pa.business)::text = (bu.id)::text)))
-     LEFT JOIN {SCHEMA}.specialty spe ON (((phy.primary_specialty)::text = (spe.id)::text)))
-     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON (((phy.core_based_statistical_area)::text = (cbsa.id)::TEXT)))
-     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON (((phy.medical_education_number)::text = (rpp.medical_education_number)::TEXT)))
-	 LEFT JOIN {SCHEMA}.zip_code zc ON (((phy.zipcode)::text = (zc.zip_code)::TEXT)))
-     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON (((msa.code)::text = (zc.zip_code)::TEXT)))
-     LEFT JOIN {SCHEMA}.medical_school ms ON ((SUBSTR((ms.id),1,3)::text = (phy.medical_school_state)::TEXT) AND (SUBSTR((ms.id),4,5)::text = (phy.medical_school)::TEXT) ))
-ORDER BY phy.medical_education_number;
+   FROM {SCHEMA}.physician phy
+     LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
+     LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text
+     LEFT JOIN {SCHEMA}.major_professional_activity mpa ON phy.major_professional_activity::text = mpa.id::text
+     LEFT JOIN {SCHEMA}.provider_affiliation pa ON phy.medical_education_number::text = pa.medical_education_number::text
+     LEFT JOIN {SCHEMA}.business bu ON pa.business::text = bu.id::text
+     LEFT JOIN {SCHEMA}.specialty spe ON phy.primary_specialty::text = spe.id::text
+     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON phy.core_based_statistical_area::text = cbsa.id::text
+     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON phy.medical_education_number::text = rpp.medical_education_number::text
+     LEFT JOIN {SCHEMA}.zip_code zc ON phy.zipcode::text = zc.zip_code::text
+     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON msa.code::text = zc.metropolitan_statistical_area::text
+     LEFT JOIN {SCHEMA}.medical_school ms ON substr(ms.id::text, 1, 3) = phy.medical_school_state::text AND substr(ms.id::text, 4, 5) = phy.medical_school::text
+  ORDER BY phy.medical_education_number;
 '''
 )
 
@@ -926,7 +926,7 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     bu.physical_city AS aff_physical_city,
     bu.metropolitan_statistical_area AS aff_msa,
     bu.physical_zipcode AS aff_physical_zipcode,
-    substr(bu.physical_zipcode,1,5) AS aff_physician_zipcode_5digits,
+    substr(bu.physical_zipcode::text, 1, 5) AS aff_physician_zipcode_5digits,
     bu.teaching_hospital AS aff_teaching_hospital,
     pa.type AS aff_type,
     pa.description AS aff_hospital_affiliation,
@@ -949,19 +949,19 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     msa.code AS phy_msa_code,
     msa.type AS phy_msa_type,
     msa.consolidated_metropolitan_statistical_area
-FROM (((((((((((({SCHEMA}.physician phy
-     LEFT JOIN {SCHEMA}.type_of_practice top ON (((phy.type_of_practice)::text = (top.id)::text)))
-     LEFT JOIN {SCHEMA}.present_employment pe ON (((phy.present_employment)::text = (pe.id)::text)))
-     LEFT JOIN {SCHEMA}.major_professional_activity mpa ON (((phy.major_professional_activity)::text = (mpa.id)::text)))
-     LEFT JOIN {SCHEMA}.provider_affiliation pa ON (((phy.medical_education_number)::text = (pa.medical_education_number)::text)))
-     LEFT JOIN {SCHEMA}.business bu ON (((pa.business)::text = (bu.id)::text)))
-     LEFT JOIN {SCHEMA}.provider pr ON (((phy.medical_education_number)::text = (pr.medical_education_number)::text)))
-     LEFT JOIN {SCHEMA}.specialty spe ON (((phy.primary_specialty)::text = (spe.id)::text)))
-     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON (((phy.core_based_statistical_area)::text = (cbsa.id)::text)))
-     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON (((phy.medical_education_number)::text = (rpp.medical_education_number)::text)))
-     LEFT JOIN {SCHEMA}.zip_code zc ON (((phy.zipcode)::text = (zc.zip_code)::text)))
-     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON (((msa.code)::text = (zc.zip_code)::text)))
-     LEFT JOIN {SCHEMA}.medical_school ms ON ((SUBSTR((ms.id),1,3)::text = (phy.medical_school_state)::TEXT) AND (SUBSTR((ms.id),4,5)::text = (phy.medical_school)::TEXT) ))
-ORDER BY phy.medical_education_number;
+   FROM {SCHEMA}.physician phy
+     LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
+     LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text
+     LEFT JOIN {SCHEMA}.major_professional_activity mpa ON phy.major_professional_activity::text = mpa.id::text
+     LEFT JOIN {SCHEMA}.provider_affiliation pa ON phy.medical_education_number::text = pa.medical_education_number::text
+     LEFT JOIN {SCHEMA}.business bu ON pa.business::text = bu.id::text
+     LEFT JOIN {SCHEMA}.provider pr ON phy.medical_education_number::text = pr.medical_education_number::text
+     LEFT JOIN {SCHEMA}.specialty spe ON phy.primary_specialty::text = spe.id::text
+     LEFT JOIN {SCHEMA}.core_based_statistical_area cbsa ON phy.core_based_statistical_area::text = cbsa.id::text
+     LEFT JOIN {SCHEMA}.residency_program_physician rpp ON phy.medical_education_number::text = rpp.medical_education_number::text
+     LEFT JOIN {SCHEMA}.zip_code zc ON phy.zipcode::text = zc.zip_code::text
+     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON msa.code::text = zc.metropolitan_statistical_area::text
+     LEFT JOIN {SCHEMA}.medical_school ms ON substr(ms.id::text, 1, 3) = phy.medical_school_state::text AND substr(ms.id::text, 4, 5) = phy.medical_school::text
+  ORDER BY phy.medical_education_number;
 '''
 )
