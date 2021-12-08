@@ -37,6 +37,15 @@ def upgrade():
 
     op.replace_entity(oneview_mat_phy_pro_view)
 
+    ### Re-add Indexes ###
+    op.create_index('mat_phy_aff_zipcode_index', 'mat_phy_view', ['aff_physician_zipcode_5digits'], schema='oneview')
+    op.create_index('mat_phy_phy_zipcode_index', 'mat_phy_view', ['phy_zipcode'], schema='oneview')
+    op.create_index('mat_phy_phy_polo_zipcode_index', 'mat_phy_view', ['phy_polo_zipcode'], schema='oneview')
+
+    op.create_index('mat_phy_pro_aff_zipcode_index', 'mat_phy_pro_view', ['aff_physician_zipcode_5digits'], schema='oneview')
+    op.create_index('mat_phy_pro_phy_zipcode_index', 'mat_phy_pro_view', ['phy_zipcode'], schema='oneview')
+    op.create_index('mat_phy_pro_phy_polo_zipcode_index', 'mat_phy_pro_view', ['phy_polo_zipcode'], schema='oneview')
+
     # ### end Alembic commands ###
 
 
@@ -58,4 +67,14 @@ def downgrade():
             )
 
     op.replace_entity(oneview_mat_phy_view)
+
+
+    ### Re-add Indexes ###
+    op.create_index('mat_phy_aff_zipcode_index', 'mat_phy_view', ['aff_physician_zipcode_5digits'], schema='oneview')
+    op.create_index('mat_phy_phy_zipcode_index', 'mat_phy_view', ['phy_zipcode'], schema='oneview')
+    op.create_index('mat_phy_phy_polo_zipcode_index', 'mat_phy_view', ['phy_polo_zipcode'], schema='oneview')
+
+    op.create_index('mat_phy_pro_aff_zipcode_index', 'mat_phy_pro_view', ['aff_physician_zipcode_5digits'], schema='oneview')
+    op.create_index('mat_phy_pro_phy_zipcode_index', 'mat_phy_pro_view', ['phy_zipcode'], schema='oneview')
+    op.create_index('mat_phy_pro_phy_polo_zipcode_index', 'mat_phy_pro_view', ['phy_polo_zipcode'], schema='oneview')
     # ### end Alembic commands ###
