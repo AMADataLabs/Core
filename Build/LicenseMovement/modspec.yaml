@@ -17,6 +17,8 @@ modspec:
       - parameter
   - package: datalabs.etl
   - package: datalabs.etl.jdbc
+  - package: datalabs.etl.s3
+  - package: datalabs.etl.sftp
   - package: datalabs.access
     include:
       - credentials
@@ -24,6 +26,8 @@ modspec:
       - datastore
       - environment
       - etcd
+      - aws
+      - sftp
   - package: datalabs.access.parameter
     include:
       - system
