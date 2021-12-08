@@ -5,6 +5,9 @@ set -ex
 PROJECT="${PROJECT:-OneView}"
 ENVIRONMENT="${ENVIRONMENT:-sbx}"
 
+$(apigw_assume_role.sh $ENVIRONMENT | grep source)
+
+
 CODE_BUCKET="ama-${ENVIRONMENT}-datalake-lambda-us-east-1"
 FUNCTIONS=(
     "${PROJECT}-${ENVIRONMENT}-addDepartment"
@@ -34,6 +37,7 @@ FUNCTIONS=(
     "${PROJECT}-${ENVIRONMENT}-getPhysicianAffiliations"
     "${PROJECT}-${ENVIRONMENT}-getPhysicianColumns"
     "${PROJECT}-${ENVIRONMENT}-getPhysicianContactMasterData"
+    "${PROJECT}-${ENVIRONMENT}-getPowerBIReportEmbedConfig"
     "${PROJECT}-${ENVIRONMENT}-getProfile"
     "${PROJECT}-${ENVIRONMENT}-getProfiles"
     "${PROJECT}-${ENVIRONMENT}-getResources"
@@ -87,6 +91,7 @@ BUNDLES=(
     "${PROJECT}/getPhysicianAffiliations.zip"
     "${PROJECT}/getPhysicianColumns.zip"
     "${PROJECT}/getPhysicianContactMasterData.zip"
+    "${PROJECT}/getPowerBIReportEmbedConfig.zip"
     "${PROJECT}/getProfile.zip"
     "${PROJECT}/getProfiles.zip"
     "${PROJECT}/getResources.zip"

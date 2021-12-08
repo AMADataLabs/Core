@@ -768,7 +768,7 @@ pipelines:
             - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
 
             # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-itg-datalake-lambda-us-east-1'
+            - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
             - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
         - step:
             name: Update Lambda Functions

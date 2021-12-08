@@ -20,7 +20,7 @@ def main(args):
     if not args["task"]:
         statuses = state.get_all_statuses(args["dag"], execution_time)
     else:
-        statuses = state.get_task_statuses(args["dag"], execution_time)
+        statuses = state.get_task_statuses(args["dag"], execution_time, args["task"])
 
     if statuses:
         print(f'DAG: {statuses.get(args["dag"], "Unknown")}')

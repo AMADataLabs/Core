@@ -1,118 +1,69 @@
 #!/bin/bash
 
-RAW_NAMES=(
-    "addDepartment"
-    "addFilter"
-    "addOrg"
-    "addProfile"
-    "addSavedColumn"
-    "addUsers"
-    "age-gender-mpa-annual"
-    "age-gender-mpa"
-    "dpc-by-age-annual"
-    "getAdminUsers"
-    "getAffiliationMasterData"
-    "getBusinessMasterData"
-    "getCounties"
-    "getDatalabsQuestions"
-    "getDepartment"
-    "getDepartments"
-    "getDremioToken"
-    "getFilters"
-    "getGroupUsers"
-    "getMTPMasterData"
-    "getOneviewData"
-    "getOneviewQuestions"
-    "getOrgMasterData"
-    "getOrgs"
-    "getPhysicianAffiliations"
-    "getPhysicianColumns"
-    "getPhysicianContactMasterData"
-    "getProfile"
-    "getProfiles"
-    "getResources"
-    "getSavedColumns"
-    "getToken"
-    "getUserDetails"
-    "getUsers"
-    "lambdaAuthorizer"
-    "physician-type-ethnicity"
-    "physician-type-ethnicity-annual"
-    "processAccessRequest"
-    "removeDremioToken"
-    "saveDatalabsFeedback"
-    "saveOneviewFeedback"
-    "specialty-by-mpa-annual"
-    "specialty-by-mpa"
-    "updateDepartment"
-    "updateGroupUsers"
-    "updateProfile"
-    "updateUserDetails"
-    "updateUserProfile"
-    "userDataNowFiles"
-    "validateUser"
-    "workforce-stats-annual"
-)
+declare -a RAW_NAMES
+declare -a TIMEOUTS
 
-
-TIMEOUTS=(
-"3"
-"20"
-"3"
-"3"
-"3"
-"20"
-"20"
-"20"
-"180"
-"3"
-"20"
-"20"
-"20"
-"20"
-"3"
-"3"
-"3"
-"20"
-"20"
-"20"
-"900"
-"20"
-"20"
-"3"
-"20"
-"20"
-"20"
-"3"
-"3"
-"3"
-"3"
-"10"
-"3"
-"3"
-"3"
-"20"
-"20"
-"30"
-"3"
-"20"
-"20"
-"20"
-"20"
-"3"
-"20"
-"3"
-"3"
-"3"
-"5"
-"3"
-"180"
+LAMBDA_DATA=(
+    "addDepartment:3"
+    "addFilter:20"
+    "addOrg:3"
+    "addProfile:3"
+    "addSavedColumn:3"
+    "addUsers:20"
+    "ageGenderMpaAnnual:20"
+    "ageGenderMpa:20"
+    "dpcByAgeAnnual:180"
+    "getAdminUsers:3"
+    "getAffiliationMasterData:20"
+    "getBusinessMasterData:20"
+    "getCounties:20"
+    "getDatalabsQuestions:20"
+    "getDepartment:3"
+    "getDepartments:3"
+    "getDremioToken:3"
+    "getFilters:20"
+    "getGroupUsers:20"
+    "getMTPMasterData:20"
+    "getOneviewData:900"
+    "getOneviewQuestions:20"
+    "getOrgMasterData:20"
+    "getOrgs:3"
+    "getPhysicianAffiliations:20"
+    "getPhysicianColumns:20"
+    "getPhysicianContactMasterData:20"
+    "getPowerBIReportEmbedConfig:20"
+    "getProfile:3"
+    "getProfiles:3"
+    "getResources:3"
+    "getSavedColumns:3"
+    "getToken:10"
+    "getUserDetails:3"
+    "getUsers:3"
+    "lambdaAuthorizer:3"
+    "physicianTypeEthnicity:20"
+    "physicianTypeEthnicityAnnual:20"
+    "processAccessRequest:30"
+    "removeDremioToken:3"
+    "saveDatalabsFeedback:20"
+    "saveOneviewFeedback:20"
+    "specialtyByMpaAnnual:20"
+    "specialtyByMpa:20"
+    "updateDepartment:3"
+    "updateGroupUsers:20"
+    "updateProfile:3"
+    "updateUserDetails:3"
+    "updateUserProfile:3"
+    "userDataNowFiles:5"
+    "validateUser:3"
+    "workforceStatsAnnual:180"
 )
 
 SNAKE_CASE_NAMES=()
 
 
 main() {
+    breakout_lambda_data
+
     initialize_lambdas_tf
 
     initialize_update_lambdas_sh
@@ -120,6 +71,16 @@ main() {
     generate_snake_case_names
 
     generate_code
+}
+
+
+breakout_lambda_data() {
+    for datum in "${LAMBDA_DATA[@]}" ; do
+        name=${datum%%:*}
+        timeout=${datum#*:}
+        RAW_NAMES+=($name)
+        TIMEOUTS+=($timeout)
+    done
 }
 
 
@@ -152,6 +113,9 @@ set -ex
 
 PROJECT="\${PROJECT:-OneView}"
 ENVIRONMENT="\${ENVIRONMENT:-sbx}"
+
+\$(apigw_assume_role.sh \$ENVIRONMENT | grep source)
+
 
 CODE_BUCKET="ama-\${ENVIRONMENT}-datalake-lambda-us-east-1"
 FUNCTIONS=(
