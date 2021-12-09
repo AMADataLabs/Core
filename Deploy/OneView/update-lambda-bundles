@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+export ENVIRONMENT=dev
+$(/home/plane/apigw_assume_role.sh $ENVIRONMENT | grep source)
+aws s3 cp --recursive s3://ama-$ENVIRONMENT-datalake-lambda-us-east-1/OneView/ /home/plane/OneView/
+rm /home/plane/OneView/webapp-base-layer.*
+
+export ENVIRONMENT=tst
+$(/home/plane/apigw_assume_role.sh $ENVIRONMENT | grep source)
+aws s3 cp --recursive /home/plane/OneView/ s3://ama-$ENVIRONMENT-datalake-lambda-us-east-1/OneView/
+/home/plane/update_lambdas.sh
+
+export ENVIRONMENT=prd
+$(/home/plane/apigw_assume_role.sh $ENVIRONMENT | grep source)
+aws s3 cp --recursive /home/plane/OneView/ s3://ama-$ENVIRONMENT-datalake-lambda-us-east-1/OneView/
+/home/plane/update_lambdas.sh
