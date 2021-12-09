@@ -247,16 +247,16 @@ resource "aws_s3_bucket_notification" "sns_scheduler" {
 
 
 module "s3_lambda" {
-  source  = "app.terraform.io/AMA/s3/aws"
-  version = "2.0.0"
+  source            = "app.terraform.io/AMA/s3/aws"
+  version           = "2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${local.environment}-${lower(var.project)}-lambda-code-${var.region}"
+  bucket_name       = local.s3_lambda_bucket
 
-  app_name                          = lower(var.project)
-  app_environment                   = local.environment
+  app_name          = lower(var.project)
+  app_environment   = local.environment
 
-  tag_name                          = "${var.project}-${local.environment}-s3-lambda-code"
+  tag_name                          = local.s3_lambda_bucket
   tag_environment                   = local.environment
   tag_contact                       = var.contact
   tag_budgetcode                    = var.budget_code
@@ -442,18 +442,18 @@ module "lambda_scheduler" {
         }
     }
 
-    tag_name                = local.lambda_names.scheduler
-    tag_environment         = local.tags["Environment"]
-    tag_contact             = local.tags["Contact"]
-    tag_systemtier          = local.tags["SystemTier"]
-    tag_drtier              = local.tags["DRTier"]
-    tag_dataclassification  = local.tags["DataClassification"]
-    tag_budgetcode          = local.tags["BudgetCode"]
-    tag_owner               = local.tags["Owner"]
-    tag_projectname         = var.project
-    tag_notes               = ""
-    tag_eol                 = local.tags["EOL"]
-    tag_maintwindow         = local.tags["MaintenanceWindow"]
+    tag_name                          = local.lambda_names.scheduler
+    tag_environment                   = local.environment
+    tag_contact                       = var.contact
+    tag_budgetcode                    = var.budget_code
+    tag_owner                         = var.owner
+    tag_projectname                   = var.project
+    tag_systemtier                    = "0"
+    tag_drtier                        = "0"
+    tag_dataclassification            = "N/A"
+    tag_notes                         = "N/A"
+    tag_eol                           = "N/A"
+    tag_maintwindow                   = "N/A"
 }
 
 
