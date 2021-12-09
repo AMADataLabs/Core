@@ -3,23 +3,30 @@ locals {
 	account                 = lookup(var.accounts, local.environment)
 	ecr_account				= local.account
 
-    department          = "HS"
-    group               = "DataLabs"
+    datanow_image           = "${var.datanow_image_prefix}-${local.environment}"
+    s3_lambda_bucket        = "ama-${local.environment}-datalake-${var.s3_lambda_bucket_base_name}-us-east-1"
 
-    function_names = {
-        scheduler                   = "${var.project}-${local.environment}-Scheduler"
-        dag_processor               = "${var.project}-${local.environment}-DAGProcessor"
-        task_processor              = "${var.project}-${local.environment}-TaskProcessor"
+	host_suffix 			= lookup(var.host_suffixes, local.environment)
+	datanow_domain      	= "${var.datanow_host_prefix}${local.host_suffix}.${var.domain}"
+
+	parameter_name_prefix 	= "/${var.project}/${local.environment}/"
+
+    lambda_names = {
+        scheduler       = "${var.project}-${local.environment}-Scheduler"
+        dag_processor   = "${var.project}-${local.environment}-DAGProcessor"
+        task_processor  = "${var.project}-${local.environment}-TaskProcessor"
     }
 
     topic_names = {
-      ingested_data               = "${var.project}-${local.environment}-ingested-data"
-      processed_data              = "${var.project}-${local.environment}-processed-data"
-      scheduler                   = "${var.project}-${local.environment}-Scheduler"
-      dag_processor               = "${var.project}-${local.environment}-DAGProcessor"
-      task_processor              = "${var.project}-${local.environment}-TaskProcessor"
+      ingested_data     = "${var.project}-${local.environment}-ingested-data"
+      processed_data    = "${var.project}-${local.environment}-processed-data"
+      scheduler         = "${var.project}-${local.environment}-Scheduler"
+      dag_processor     = "${var.project}-${local.environment}-DAGProcessor"
+      task_processor    = "${var.project}-${local.environment}-TaskProcessor"
     }
 
+    department          = "HS"
+    group               = "DataLabs"
     runtime = "python3.7"
     region = "us-east-1"
 
@@ -42,8 +49,4 @@ locals {
 
     ### replicate TE stacks ##
     subnets = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
-    host_suffix = lookup(var.host_suffixes, local.environment)
-    datanow_domain      = "${var.datanow_host_prefix}${local.host_suffix}.${var.domain}"
-
-    parameter_name_prefix = "/${var.project}/${local.environment}/"
 }
