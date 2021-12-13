@@ -15,6 +15,7 @@ modspec:
       - feature
       - task
       - parameter
+  - package: datalabs.curate
   - package: datalabs.etl
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.s3
@@ -28,6 +29,8 @@ modspec:
       - etcd
       - aws
       - sftp
+      - aims
+      - odbc
   - package: datalabs.access.parameter
     include:
       - system
@@ -36,3 +39,4 @@ modspec:
     include:
       - finder
       - sql_statements
+      - transform
