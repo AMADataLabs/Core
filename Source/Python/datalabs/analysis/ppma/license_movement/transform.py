@@ -34,7 +34,6 @@ class LicenseMovementTransformerTask(TransformerTask):
 
         batch_data = finder.format_batch_load_file(data=data)
 
-        output = BytesIO()
-        batch_data.to_csv(output, sep='|', index=False)
+        output = batch_data.to_csv(sep='|', index=False).encode()
 
-        return [output.getvalue()]
+        return [output]
