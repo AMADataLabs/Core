@@ -30,6 +30,9 @@ spec:
   strategy:
     dockerStrategy:
       dockerfilePath: Build/LicenseMovement/Dockerfile
+      from:
+        kind: ImageStreamTag
+        name: python:3.7
     type: Docker
   successfulBuildsHistoryLimit: 5
   triggers:
