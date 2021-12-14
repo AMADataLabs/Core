@@ -33,7 +33,7 @@ RUN find ./ -name "*.env.jinja" -exec \
     --template {} \
     --file {} \
    --vars pythonpath=/LicenseMovement,$template_vars \;
-
+RUN echo "Hadi"
 RUN ./Script/bundle-project -i --directory ./ LicenseMovement
 
 RUN apt-get update && apt-get install -y openjdk-11-jre
