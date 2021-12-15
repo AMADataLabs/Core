@@ -84,7 +84,7 @@ module "s3_ingested" {
 resource "aws_s3_bucket_notification" "ingested_data_sns_notification" {
     bucket = module.s3_ingested.bucket_id
     topic {
-        topic_arn           = module.sns_ingested_data.topic_arn
+        topic_arn           = module.sns_ingested.topic_arn
         events              = ["s3:ObjectCreated:*"]
     }
 }
@@ -461,8 +461,9 @@ module "lambda_scheduler" {
 # Datalake - SNS Topics                                             #
 #####################################################################
 
-module "sns_ingested_data" {
-  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+module "sns_ingested" {
+  source  = "app.terraform.io/AMA/sns/aws"
+  version = "1.0.0"
 
   policy_template_vars = {
     topic_name      = local.topic_names.ingested_data
