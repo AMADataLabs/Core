@@ -14,7 +14,7 @@ DEPLOYMENT_ID = Variable.get('DEPLOYMENT_ID')
 IMAGE = Variable.get(f'{DAG_ID.upper()}_IMAGE')
 
 ### Kubernets Configuration ###
-ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='dbl-file-count'))
+ETL_CONFIG = k8s.V1EnvFromSource(config_map_ref=k8s.V1ConfigMapEnvSource(name='license-movement-etl'))
 EFT_SECRET = Secret('env', None, 'license-movement-etl-secret')
 
 ### DAG definition ###
