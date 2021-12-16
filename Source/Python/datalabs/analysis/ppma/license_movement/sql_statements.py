@@ -10,6 +10,7 @@ GET_LICENSE_PPMA_MISMATCH_DATA = \
         l.lic_sts,
         ppma.comm_id AS ppma_comm_id,
         ppma.state_cd as ppma_state,
+        ppma.zip as ppma_zip,
         ppma.usg_begin_dt AS ppma_begin_dt,
         addr.comm_id AS license_addr_comm_id,
         addr.addr_line0, 
@@ -23,7 +24,7 @@ GET_LICENSE_PPMA_MISMATCH_DATA = \
         license_lt l
         INNER JOIN
         (
-            SELECT usg.entity_id, usg.comm_id, usg.usg_begin_dt, usg.comm_usage, addr.state_cd 
+            SELECT usg.entity_id, usg.comm_id, usg.usg_begin_dt, usg.comm_usage, addr.state_cd, addr.zip
             FROM 
                 entity_comm_usg_at usg 
                 INNER JOIN post_addr_at addr 
@@ -42,4 +43,18 @@ GET_LICENSE_PPMA_MISMATCH_DATA = \
         l.lic_issue_dt > ppma.usg_begin_dt AND
         l.state_cd <> ppma.state_cd AND
         ppma.state_cd <> addr.state_cd
+    """.strip()
+
+GET_PREVIOUS_PPMA_DATA = \
+    """
+    SELECT 
+        usg.entity_id, 
+        usg.comm_id AS previous_ppma_comm_id
+    FROM 
+        entity_comm_usg_at usg 
+        INNER JOIN post_addr_at addr 
+        ON addr.comm_id = usg.comm_id 
+    WHERE 
+        usg.comm_usage = 'PP' AND 
+        usg.end_dt IS NOT NULL
     """.strip()
