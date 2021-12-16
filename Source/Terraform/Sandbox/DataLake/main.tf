@@ -84,7 +84,7 @@ module "s3_ingested" {
 resource "aws_s3_bucket_notification" "ingested_data_sns_notification" {
     bucket = module.s3_ingested.bucket_id
     topic {
-        topic_arn           = module.sns_ingested_data.topic_arn
+        topic_arn           = module.sns_ingested.topic_arn
         events              = ["s3:ObjectCreated:*"]
     }
 }
@@ -247,16 +247,16 @@ resource "aws_s3_bucket_notification" "sns_scheduler" {
 
 
 module "s3_lambda" {
-  source  = "app.terraform.io/AMA/s3/aws"
-  version = "2.0.0"
+  source            = "app.terraform.io/AMA/s3/aws"
+  version           = "2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${local.environment}-${lower(var.project)}-lambda-code-${var.region}"
+  bucket_name       = local.s3_lambda_bucket
 
-  app_name                          = lower(var.project)
-  app_environment                   = local.environment
+  app_name          = lower(var.project)
+  app_environment   = local.environment
 
-  tag_name                          = "${var.project}-${local.environment}-s3-lambda-code"
+  tag_name                          = local.s3_lambda_bucket
   tag_environment                   = local.environment
   tag_contact                       = var.contact
   tag_budgetcode                    = var.budget_code
@@ -282,15 +282,15 @@ module "s3_lambda" {
 module "lambda_dag_processor" {
     source  = "app.terraform.io/AMA/lambda/aws"
     version = "2.0.0"
-    function_name       = local.function_names.dag_processor
-    lambda_name         = local.function_names.dag_processor
-    s3_lambda_bucket    = var.lambda_code_bucket
+    function_name       = local.lambda_names.dag_processor
+    lambda_name         = local.lambda_names.dag_processor
+    s3_lambda_bucket    = local.s3_lambda_bucket
     s3_lambda_key       = "Scheduler.zip"
     handler             = "awslambda.handler"
     runtime             = local.runtime
     create_alias        = false
-    memory_size         = var.scheduler_memory_size
-    timeout             = var.scheduler_timeout
+    memory_size         = var.lambda_memory_size
+    timeout             = var.lambda_timeout
 
     vpc_config = {
         subnet_ids              = data.terraform_remote_state.infrastructure.outputs.subnet_ids
@@ -315,18 +315,18 @@ module "lambda_dag_processor" {
         }
     }
 
-    tag_name                = local.function_names.dag_processor
-    tag_environment         = local.tags["Environment"]
-    tag_contact             = local.tags["Contact"]
-    tag_systemtier          = local.tags["SystemTier"]
-    tag_drtier              = local.tags["DRTier"]
-    tag_dataclassification  = local.tags["DataClassification"]
-    tag_budgetcode          = local.tags["BudgetCode"]
-    tag_owner               = local.tags["Owner"]
-    tag_projectname         = var.project
-    tag_notes               = ""
-    tag_eol                 = local.tags["EOL"]
-    tag_maintwindow         = local.tags["MaintenanceWindow"]
+    tag_name                          = local.lambda_names.dag_processor
+    tag_environment                   = local.environment
+    tag_contact                       = var.contact
+    tag_budgetcode                    = var.budget_code
+    tag_owner                         = var.owner
+    tag_projectname                   = var.project
+    tag_systemtier                    = "0"
+    tag_drtier                        = "0"
+    tag_dataclassification            = "N/A"
+    tag_notes                         = "N/A"
+    tag_eol                           = "N/A"
+    tag_maintwindow                   = "N/A"
 }
 
 resource "aws_lambda_permission" "lambda_dag_processor" {
@@ -346,17 +346,18 @@ resource "aws_lambda_permission" "lambda_dag_processor_scheduler" {
 }
 
 
-module "task_processor_lambda" {
-    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
-    function_name       = local.function_names.task_processor
-    lambda_name         = local.function_names.task_processor
-    s3_lambda_bucket    = var.lambda_code_bucket
+module "lambda_task_processor" {
+    source  = "app.terraform.io/AMA/lambda/aws"
+    version = "2.0.0"
+    function_name       = local.lambda_names.task_processor
+    lambda_name         = local.lambda_names.task_processor
+    s3_lambda_bucket    = local.s3_lambda_bucket
     s3_lambda_key       = "Scheduler.zip"
     handler             = "awslambda.handler"
     runtime             = local.runtime
     create_alias        = false
-    memory_size         = var.scheduler_memory_size
-    timeout             = var.scheduler_timeout
+    memory_size         = var.lambda_memory_size
+    timeout             = var.lambda_timeout
 
     vpc_config = {
         subnet_ids              = data.terraform_remote_state.infrastructure.outputs.subnet_ids
@@ -381,27 +382,78 @@ module "task_processor_lambda" {
         }
     }
 
-    tag_name                = local.function_names.task_processor
-    tag_environment         = local.tags["Environment"]
-    tag_contact             = local.tags["Contact"]
-    tag_systemtier          = local.tags["SystemTier"]
-    tag_drtier              = local.tags["DRTier"]
-    tag_dataclassification  = local.tags["DataClassification"]
-    tag_budgetcode          = local.tags["BudgetCode"]
-    tag_owner               = local.tags["Owner"]
-    tag_projectname         = var.project
-    tag_notes               = ""
-    tag_eol                 = local.tags["EOL"]
-    tag_maintwindow         = local.tags["MaintenanceWindow"]
+    tag_name                          = local.lambda_names.task_processor
+    tag_environment                   = local.environment
+    tag_contact                       = var.contact
+    tag_budgetcode                    = var.budget_code
+    tag_owner                         = var.owner
+    tag_projectname                   = var.project
+    tag_systemtier                    = "0"
+    tag_drtier                        = "0"
+    tag_dataclassification            = "N/A"
+    tag_notes                         = "N/A"
+    tag_eol                           = "N/A"
+    tag_maintwindow                   = "N/A"
 }
 
 
 resource "aws_lambda_permission" "lambda_task_processor" {
     statement_id    = "AllowSNSInvoke"
     action          = "lambda:InvokeFunction"
-    function_name   = module.task_processor_lambda.function_name
+    function_name   = module.lambda_task_processor.function_name
     principal       = "sns.amazonaws.com"
     source_arn      = module.sns_task_topic.topic_arn
+}
+
+
+module "lambda_scheduler" {
+    source  = "app.terraform.io/AMA/lambda/aws"
+    version = "2.0.0"
+    function_name       = local.lambda_names.scheduler
+    lambda_name         = local.lambda_names.scheduler
+    s3_lambda_bucket    = local.s3_lambda_bucket
+    s3_lambda_key       = "Scheduler.zip"
+    handler             = "awslambda.handler"
+    runtime             = local.runtime
+    create_alias        = false
+    memory_size         = var.lambda_memory_size
+    timeout             = var.lambda_timeout
+
+    vpc_config = {
+      subnet_ids              = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+      security_group_ids      = [module.datanow_sg.security_group_id]
+    }
+
+    lambda_policy_vars  = {
+        account_id                  = data.aws_caller_identity.account.account_id
+        region                      = local.region
+        project                     = var.project
+    }
+
+    create_lambda_permission    = true
+    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
+
+    environment_variables = {
+        variables = {
+            TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
+            TASK_RESOLVER_CLASS     = "datalabs.etl.dag.resolve.TaskResolver"
+            DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
+            DAG_CLASS               = "datalabs.etl.dag.schedule.dag.DAGSchedulerDAG"
+        }
+    }
+
+    tag_name                          = local.lambda_names.scheduler
+    tag_environment                   = local.environment
+    tag_contact                       = var.contact
+    tag_budgetcode                    = var.budget_code
+    tag_owner                         = var.owner
+    tag_projectname                   = var.project
+    tag_systemtier                    = "0"
+    tag_drtier                        = "0"
+    tag_dataclassification            = "N/A"
+    tag_notes                         = "N/A"
+    tag_eol                           = "N/A"
+    tag_maintwindow                   = "N/A"
 }
 
 
@@ -409,18 +461,19 @@ resource "aws_lambda_permission" "lambda_task_processor" {
 # Datalake - SNS Topics                                             #
 #####################################################################
 
-module "sns_ingested_data" {
-  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+module "sns_ingested" {
+  source  = "app.terraform.io/AMA/sns/aws"
+  version = "1.0.0"
 
   policy_template_vars = {
-    topic_name      = "${var.ingested_data_topic_name}-${local.environment}"
+    topic_name      = local.topic_names.ingested_data
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_ingested.bucket_id
   }
 
-  name = "${var.ingested_data_topic_name}-${local.environment}"
-  topic_display_name    = "${var.ingested_data_topic_name}-${local.environment}"
+  name = local.topic_names.ingested_data
+  topic_display_name    = local.topic_names.ingested_data
   app_name              = lower(var.project)
   app_environment       = local.environment
 
@@ -447,18 +500,18 @@ module "sns_processed_data" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = "${var.processed_data_topic_name}-${local.environment}"
+    topic_name      = local.topic_names.processed_data
     region          = var.region
     account_id      = data.aws_caller_identity.account.account_id
     s3_bucket_name  = module.s3_processed.bucket_id
   }
 
-  name = "${var.processed_data_topic_name}-${local.environment}"
-  topic_display_name    = "${var.processed_data_topic_name}-${local.environment}"
+  name                  = local.topic_names.processed_data
+  topic_display_name    = local.topic_names.processed_data
   app_name              = lower(var.project)
   app_environment       = local.environment
 
-  tag_name                         = "${var.project}-${local.environment}-sns-processed-data"
+  tag_name                          = "${local.topic_names.processed_data}-topic"
   tag_environment                   = local.environment
   tag_contact                       = var.contact
   tag_budgetcode                    = var.budget_code
@@ -610,7 +663,7 @@ module "datanow_task_definition" {
     container_definition_vars       = {
         account_id  = data.aws_caller_identity.account.account_id,
         region      = var.region
-        image       = var.datanow_image
+        image       = local.datanow_image
         tag         = var.datanow_version
     }
 

@@ -8,8 +8,8 @@ data:
     # Global Variables - {"DAG": {"S": "ONEVIEW"}, "Task": {"S": "GLOBAL"}}
     #######################################################################
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
+    ENVIRONMENT: prd
+    ACCOUNT: '285887636563'
 
     EDW_HOST: rdbp1190.ama-assn.org
     EDW_PORT: '54000'
@@ -33,14 +33,14 @@ data:
     UDRIVE_USERNAME: datalabs
     UDRIVE_PASSWORD: '{{udrive_password}}'
 
-    EFT_HOST: efttest.ama-assn.org
-    EFT_USERNAME: oneviewtst
+    EFT_HOST: eft.ama-assn.org
+    EFT_USERNAME: oneviewprd
     EFT_PASSWORD: '{{eft_password}}'
 
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    DATABASE_HOST: oneview-dev-content-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
+    DATABASE_HOST: oneview-prd-content-aurora-cluster.cluster-cxgp9osuwqi3.us-east-1.rds.amazonaws.com
     DATABASE_PORT: '5432'
     DATABASE_BACKEND: 'postgresql+psycopg2'
     DATABASE_NAME: 'oneview_content'

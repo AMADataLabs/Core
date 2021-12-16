@@ -40,40 +40,25 @@ variable "region" {
    default = "us-east-1"
 }
 
-variable "old_lambda_code_bucket" {
-    description     = "Name of the S3 bucket used to hold Lambda function code artifacts."
-    type            = string
-    default         = "ama-hsg-datalabs-lambda-code-sandbox"
+variable "days_to_recover" {
+   description  = "AWS Secrets Manager Recovery Window in Days"
+   type = number
+   default = 0
 }
 
-variable "lambda_code_bucket" {
-    description     = "Name of the S3 bucket used to hold Lambda function code artifacts."
-    type            = string
-    default         = "ama-sbx-datalake-lambda-us-east-1"
-}
 
-variable "scheduler_memory_size" {
-    description = "memory size in Mb"
-    type        = number
-    default     = 1024
-}
+#Task Definition Variables
 
-variable "scheduler_timeout" {
-    description = "timeout in seconds"
-    type        = number
-    default     = 60
-}
-
-variable "datanow_image" {
-    description     = "ECR repository (image name) for the DataNow container image."
-    type            = string
-    default         = "datanow"
+variable "datanow_image_prefix" {
+   description  = "The image name prefix of the container image stored in ECR"
+   type = string
+   default = "datanow"
 }
 
 variable "datanow_version" {
-    description     = "Version number of the DataNow container image."
-    type            = string
-    default         = "1.1.0"
+   description  = "The version of the image stored in the ECR repository"
+   type = string
+   default = "1.1.0"
 }
 
 variable "datanow_host_prefix" {
@@ -82,22 +67,46 @@ variable "datanow_host_prefix" {
     default     = "datanow"
 }
 
-variable "ingested_data_topic_name" {
-   description  = "Name of the SNS topic for ngestion router."
+variable "s3_lambda_bucket_base_name" {
+   description  = "Base name of the S3 bucket where Lambda function code artifacts are stored."
    type = string
-   default = "ingested_data_notification"
+   default = "lambda"
 }
 
-variable "processed_data_topic_name" {
-   description  = "Name of the sns topic for processing router."
+variable "s3_scheduler_lambda_key" {
+   description  = "CPT API Lambda function code artifact name."
    type = string
-   default = "processed_data_notification"
+   default = "Scheduler.zip"
 }
 
-variable "outbound_security_groups" {
-    description = "Security groups using the DataLake VPC which need VPC endpoints"
-    type = list
-    default = ["sg-055c7d63be1f52d6f", "sg-01b1b0411a5f4a798"]  # OneView, CPT-API Lambdas
+variable "runtime" {
+   description  = "Lambda function runtime."
+   type = string
+   default = "python3.7"
+}
+
+variable "lambda_memory_size" {
+   description  = "Router Lambda function memory size in MB."
+   type = number
+   default = 1024
+}
+
+variable "lambda_timeout" {
+   description  = "Router Lambda function timeout in seconds."
+   type = number
+   default = 10
+}
+
+variable "s3_data_base_path" {
+   description  = "Base path in the Data Lake S3 bucket where CPT API data is located."
+   type = string
+   default = "AMA/CPT"
+}
+
+variable "public_certificate_arn" {
+    description = "ARN of certificate for AMA-wide CNAME"
+    type        = string
+    default     = "arn:aws:acm:us-east-1:191296302136:certificate/41af8728-d9c8-46e8-8ec0-2420cf8a5924"
 }
 
 variable "host_suffixes" {
@@ -106,7 +115,8 @@ variable "host_suffixes" {
      sbx = "-sbx"
      dev = "-dev"
      tst = "-test"
-     stg = "-intg"
+     stg = "-stg"
+     itg = "-intg"
      prd = ""
    }
 }

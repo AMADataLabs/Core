@@ -270,7 +270,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         LOGGER.debug('Setting status of %s from %s to %s', primary_key, current_status, status)
 
         if status > current_status:
-            response = self._set_state(dynamodb, primary_key, execution_time, status)
+            self._set_state(dynamodb, primary_key, execution_time, status)
 
             succeeded = True
 
