@@ -30,15 +30,15 @@ LICENSE_MOVEMENT_DAG = DAG(
             limit_memory="8G",
             limit_cpu="1"
         ),
-        is_delete_operator_pod=True,
+        is_delete_operator_pod=False,
         namespace=f'hsg-data-labs-{DEPLOYMENT_ID}',
         image=IMAGE,
         do_xcom_push=False,
         in_cluster=True,
         get_logs=True,
     ),
-    schedule_interval="0 20 * * 0",
-    start_date=datetime(2022, 12, 4),
+    schedule_interval="0 0 12 ? * WED",
+    start_date=datetime(2021, 12, 4),
     tags=['LICENSE_MOVEMENT'],
     # catchup=True
 )
