@@ -3,7 +3,6 @@
 
 FROM python:3.7
 ENV PYTHONPATH=/LicenseMovement:/LicenseMovement/site-packages
-RUN echo "hadi_test"
 ENV JAVA_HOME /usr/lib/jvm/java-1.11.0-openjdk-amd64
 ENV CLASSPATH=/AMC:$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar
 ENV HOME=/LicenseMovement
@@ -34,7 +33,6 @@ RUN find ./ -name "*.env.jinja" -exec \
     --template {} \
     --file {} \
    --vars pythonpath=/LicenseMovement,$template_vars \;
-RUN echo "hadi_test"
 RUN ./Script/bundle-project -i --directory ./ LicenseMovement
 
 RUN apt-get update && apt-get install -y openjdk-11-jre
