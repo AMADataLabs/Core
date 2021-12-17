@@ -11,9 +11,19 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class SourceBundle:
-    def __init__(self, modspec_path):
-        self._modspec_path = modspec_path
+class PythonSourceBundle:
+    def __init__(self, modspec_yaml):
+        self._modspec_yaml = modspec_yaml
+
+    @classmethod
+    def from_file(cls, modspec_path):
+        LOGGER.debug('Modspec path: %s', modspec_path)
+        modspec_yaml = None
+
+        with open(modspec_path, 'r') as file:
+            modspec_yaml = file.read()
+
+        return PythonSourceBundle(modspec_yaml)
 
     def copy(self, base_path, app_path):
         shared_source_path = os.path.join(base_path)
@@ -28,21 +38,9 @@ class SourceBundle:
         return relative_file_paths
 
     def files(self, base_path):
-        modspec_yaml = self._load_module_spec(self._modspec_path)
-
-        modspec = self._parse_module_spec(modspec_yaml)
+        modspec = self._parse_module_spec(self._modspec_yaml)
 
         return self._generate_module_paths(modspec, base_path)
-
-    @classmethod
-    def _load_module_spec(cls, modspec_path) -> str:
-        LOGGER.debug('Modspec path: %s', modspec_path)
-        modspec_yaml = None
-
-        with open(modspec_path, 'r') as file:
-            modspec_yaml = file.read()
-
-        return modspec_yaml
 
     @classmethod
     def _parse_module_spec(cls, modspec_yaml) -> dict:
