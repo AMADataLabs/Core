@@ -30,4 +30,4 @@ modspec:
   - package: datalabs.access.oneview.api
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
-  - package: datalabs.model.masterfile
+  - package: datalabs.model.masterfile.oneview
