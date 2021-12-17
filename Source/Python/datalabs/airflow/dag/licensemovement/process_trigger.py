@@ -54,4 +54,14 @@ with LICENSE_MOVEMENT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
     )
 
+with LICENSE_MOVEMENT_DAG:
+    GET_CREDENTIALING_DATA = KubernetesPodOperator(
+        name="get_credentialing_data",
+        task_id="get_credentialing_data",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[EFT_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
+    )
+
 GET_PPD
