@@ -37,7 +37,7 @@ LICENSE_MOVEMENT_DAG = DAG(
         in_cluster=True,
         get_logs=True,
     ),
-    schedule_interval="0 0 12 ? * WED",
+    schedule_interval="0 0 12 ? * 4",
     start_date=datetime(2021, 12, 4),
     tags=['LICENSE_MOVEMENT'],
     # catchup=True
