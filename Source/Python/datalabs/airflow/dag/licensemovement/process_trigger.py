@@ -37,7 +37,7 @@ LICENSE_MOVEMENT_DAG = DAG(
         in_cluster=True,
         get_logs=True,
     ),
-    schedule_interval="0 0 12 ? * WED",
+    schedule_interval=None,
     start_date=datetime(2021, 12, 4),
     tags=['LICENSE_MOVEMENT'],
     # catchup=True
@@ -48,6 +48,16 @@ with LICENSE_MOVEMENT_DAG:
     GET_PPD = KubernetesPodOperator(
         name="get_ppd",
         task_id="get_ppd",
+        cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
+        env_from=[ETL_CONFIG],
+        secrets=[EFT_SECRET],
+        env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
+    )
+
+with LICENSE_MOVEMENT_DAG:
+    GET_CREDENTIALING_DATA = KubernetesPodOperator(
+        name="get_credentialing_data",
+        task_id="get_credentialing_data",
         cmds=['python', 'task.py', '{{ task_instance_key_str }}'],
         env_from=[ETL_CONFIG],
         secrets=[EFT_SECRET],
