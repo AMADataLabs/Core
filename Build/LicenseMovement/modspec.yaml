@@ -18,6 +18,8 @@ modspec:
   - package: datalabs.curate
   - package: datalabs.etl
   - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.state
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.s3
   - package: datalabs.etl.sftp
