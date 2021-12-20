@@ -9,7 +9,7 @@ import shutil
 import sys
 from   zipfile import ZipFile
 
-from datalabs.build.bundle import SourceBundle
+from datalabs.build.bundle import PythonSourceBundle
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -66,7 +66,7 @@ class LocalProjectBundler(ProjectBundler):
 
     def _copy_source_files(self, project, target_path):
         modspec_path = os.path.join(self._build_path, project, 'modspec.yaml')
-        bundle = SourceBundle(modspec_path)
+        bundle = PythonSourceBundle.from_file(modspec_path)
 
         return bundle.copy(self._shared_source_path, target_path)
 
@@ -207,7 +207,7 @@ if __name__ == '__main__':
     ap.add_argument('-s', '--serverless', action='store_true', default=False,
         help='Create a zip archive of the bundle for serverless deployment.')
     ap.add_argument(
-        '-f', '--file', action='append', required=False, help='Include the give file in the bundle.'
+        '-f', '--file', action='append', required=False, help='Include the given file in the bundle.'
     )
     ap.add_argument('project', help='Name of the project.')
     args = vars(ap.parse_args())

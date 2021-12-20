@@ -5,7 +5,7 @@ import tempfile
 
 import pytest
 
-import datalabs.build.bundle as bundle
+from   datalabs.build.bundle import PythonSourceBundle
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -13,33 +13,33 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_load_module_spec(modspec_file):
-    modspec_yaml = bundle.SourceBundle._load_module_spec(modspec_file)
+def test_load_python_modspec(python_modspec_path):
+    bundle = PythonSourceBundle.from_file(python_modspec_path)
 
-    LOGGER.debug(modspec_yaml)
-    assert modspec_yaml.startswith('\n---\nmodspec:\n')
+    LOGGER.debug(bundle._modspec_yaml)
+    assert bundle._modspec_yaml.startswith('\n---\nmodspec:\n')
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_parse_module_spec(modspec_file):
-    modspec_yaml = bundle.SourceBundle._load_module_spec(modspec_file)
-    modspec = bundle.SourceBundle._parse_module_spec(modspec_yaml)
+def test_parse_python_module_spec(python_modspec_path):
+    bundle = PythonSourceBundle.from_file(python_modspec_path)
+    modspec = PythonSourceBundle._parse_module_spec(bundle._modspec_yaml)
 
     LOGGER.debug(modspec)
     assert 'modspec' in modspec
 
 
 # pylint: disable=redefined-outer-name
-def test_files(modspec_file, base_path):
-    source_files = bundle.SourceBundle(modspec_file).files(base_path)
+def test_generate_python_files_list(python_modspec_path, base_path):
+    source_files = PythonSourceBundle.from_file(python_modspec_path).files(base_path)
 
     LOGGER.debug(source_files)
     assert len(source_files) == 8
 
 
 # pylint: disable=redefined-outer-name
-def test_copy(modspec_file, base_path, app_path):
-    bundle.SourceBundle(modspec_file).copy(base_path, app_path)
+def test_copy_python_files(python_modspec_path, base_path, app_path):
+    PythonSourceBundle.from_file(python_modspec_path).copy(base_path, app_path)
     file_count = 0
 
     for _, _, files in os.walk(app_path):
@@ -49,7 +49,7 @@ def test_copy(modspec_file, base_path, app_path):
 
 
 @pytest.fixture
-def modspec_file():
+def python_modspec_path():
     modspec = '''
 ---
 modspec:
