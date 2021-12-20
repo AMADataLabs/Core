@@ -1,3 +1,4 @@
+paradag==1.2.0
 openpyxl==3.0.7
 JPype1==0.6.3
 marshmallow==3.10.0
