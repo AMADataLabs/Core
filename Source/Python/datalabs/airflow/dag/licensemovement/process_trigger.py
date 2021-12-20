@@ -64,4 +64,4 @@ with LICENSE_MOVEMENT_DAG:
         env_vars={**BASE_ENVIRONMENT, **dict(TASK_CLASS='datalabs.etl.sftp.extract.SFTPFileExtractorTask')},
     )
 
-GET_PPD
+GET_PPD >> GET_CREDENTIALING_DATA
