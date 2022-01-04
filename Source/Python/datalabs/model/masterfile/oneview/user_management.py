@@ -1,4 +1,4 @@
-""" SQLAlchemy models for OneView """
+""" SQLAlchemy models for OneView UI database """
 import sqlalchemy as sa
 from   sqlalchemy.ext.declarative import declarative_base
 
