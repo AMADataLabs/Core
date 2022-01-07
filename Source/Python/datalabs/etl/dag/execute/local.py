@@ -90,7 +90,7 @@ class LocalDAGExecutorTask(Task):
             status = Status.FAILED
         elif (task_status_counts[Status.FAILED]) == 0:
             status = Status.RUNNING
-        LOGGER.info(status)
+        self._status = status
 
         if current_status != status:
             self._status = status

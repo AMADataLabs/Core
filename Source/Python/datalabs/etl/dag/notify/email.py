@@ -19,5 +19,5 @@ class StatusEmailNotifier():
                                                                                   self.environment, status)
         subject = '[DAG Status] {} {} {}'.format(self.environment, dag, status)
 
-        send_email(self.emails, subject, body=message)
+        send_email(self.emails, subject, body=message, from_account='datalabs@ama-assn.org')
         LOGGER.info('EMAIL SENT TO {}'.format(self.emails))
