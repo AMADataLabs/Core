@@ -23,7 +23,6 @@ class LocalDAGExecutorParameters:
     execution_time: str
     dag_class: str
     dag_state_class: str
-    status: str
     unknowns: dict=None
 
 
@@ -34,6 +33,7 @@ class LocalDAGExecutorTask(Task):
         super().__init__(parameters)
 
         self._triggered_tasks = []
+        self._status = None
         self._parameters.dag_state_class = import_plugin(self._parameters.dag_state_class)
 
     def run(self):
@@ -53,6 +53,10 @@ class LocalDAGExecutorTask(Task):
     @property
     def triggered_tasks(self):
         return self._triggered_tasks
+
+    @property
+    def status(self):
+        return self._status
 
     # pylint: disable=no-self-use
     def param(self, task: 'DAGTask'):
@@ -86,8 +90,10 @@ class LocalDAGExecutorTask(Task):
             status = Status.FAILED
         elif (task_status_counts[Status.FAILED]) == 0:
             status = Status.RUNNING
+        LOGGER.info(status)
 
         if current_status != status:
+            self._status = status
             dag_state.set_dag_status(self._parameters.dag, self._parameters.execution_time, status)
             LOGGER.info(
                 'Setting status of dag "%s" (%s) to %s',
@@ -108,7 +114,7 @@ class LocalDAGExecutorTask(Task):
 
     def _trigger_task(self, task):
         LOGGER.info('Triggering task "%s" of DAG "%s"', task.id, self._parameters.dag)
-
+        LOGGER.info(self._triggered_tasks)
         self._triggered_tasks.append(task.id)
 
     def _get_state_parameters(self, task=None):

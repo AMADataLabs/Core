@@ -213,8 +213,9 @@ class DAGTaskWrapper(
         if parameters.task == "DAG":
             for task in self.task.triggered_tasks:
                 self._notify_task_processor(task)
+            LOGGER.debug(self.task.triggered_tasks)
 
-            if self.task.status in [Status.FINISHED, Status.FINISHED]:
+            if self.task.status in [Status.FINISHED, Status.FAILED]:
                 self._send_status_notification()
         else:
             state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
@@ -293,4 +294,4 @@ class DAGTaskWrapper(
             environment = self._runtime_parameters.get("ENVIRONMENT")
             notifier = StatusEmailNotifier(environment, emails)
 
-            notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
+            notifier.notify(self._get_dag_id(), self._get_execution_time(), self.task.status)

@@ -14,10 +14,10 @@ class StatusEmailNotifier():
         self.emails = emails
         self.environment = environment
 
-    def notify(self, dag, execution_time):
-        message = json.dumps(dict(
-            dag=dag,
-            execution_time=execution_time
-        ))
+    def notify(self, dag, execution_time, status):
+        message = 'The {} DAG run at {} UTC in the {} environment has {}.'.format(dag, execution_time,
+                                                                                  self.environment, status)
+        subject = '[DAG Status] {} {} {}'.format(self.environment, dag, status)
 
-        send_email(self.emails, 'Dag Notification', body=message)
+        send_email(self.emails, subject, body=message)
+        LOGGER.info('EMAIL SENT TO {}'.format(self.emails))
