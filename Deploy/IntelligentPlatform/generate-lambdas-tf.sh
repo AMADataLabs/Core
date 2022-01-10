@@ -6,64 +6,56 @@ declare -a TIMEOUTS
 LAMBDA_TEMPLATE=lambda.tf.jinja
 
 LAMBDA_DATA=(
-    "addDepartment:3"
-    "addFilter:20"
-    "addOrg:3"
-    "addProfile:3"
-    "addSavedColumn:3"
-    "addUsers:20"
-    "ageGenderMpaAnnual:20"
-    "ageGenderMpa:20"
-    "dpcByAgeAnnual:180"
-    "getAdminUsers:3"
-    "getAffiliationMasterData:20"
-    "getBusinessMasterData:20"
-    "getCounties:20"
-    "getDatalabsQuestions:20"
-    "getDepartment:3"
-    "getDepartments:3"
-    "getDremioToken:3"
-    "getFilters:20"
-    "getGroupUsers:20"
-    "getMTPMasterData:20"
-    "getOneviewData:900"
-    "getOneviewQuestions:20"
-    "getOrgMasterData:20"
-    "getOrgs:3"
-    "getPhysicianAffiliations:20"
-    "getPhysicianColumns:20"
-    "getPhysicianContactMasterData:20"
-    "getPowerBIReportEmbedConfig:20"
-    "getProfile:3"
-    "getProfiles:3"
-    "getResources:3"
-    "getSavedColumns:3"
-    "getToken:10"
-    "getUserDetails:3"
-    "getUsers:3"
+    "addOrg:5"
+    "addUsers:30"
+    "bulkEditUsers:18"
+    "createAgreementDetail:28"
+    "createNewQuote:20"
+    "clearTokens:45"
+    "contactBackDetail:28"
+    "deleteTaxExemptCertificate:5"
+    "getAgreementDetail:5"
+    "getAPILicenseTypes:5"
+    "getAPIRateLimits:5"
+    "getCategories:5"
+    "getContent:5"
+    "getDLLicenseAgreementContent:5"
+    "getDomains:5"
+    "getExistingCustomers:5"
+    "getOrg:5"
+    "getOrgs:18"
+    "getPermissions:5"
+    "getQuestions:45"
+    "getQuotePrice:20"
+    "getRefOrganizations:10"
+    "getSources:5"
+    "getToken:75"
+    "getTabContent:20"
+    "getTaxExemptS3BucketSignedURL:20"
+    "getTypes:5"
+    "getUserDetails:60"
+    "getUsers:25"
     "lambdaAuthorizer:3"
-    "physicianTypeEthnicity:20"
-    "physicianTypeEthnicityAnnual:20"
-    "processAccessRequest:30"
-    "removeDremioToken:3"
-    "saveDatalabsFeedback:20"
-    "saveOneviewFeedback:20"
-    "specialtyByMpaAnnual:20"
-    "specialtyByMpa:20"
-    "updateDepartment:3"
-    "updateGroupUsers:20"
-    "updateProfile:3"
-    "updateUserDetails:3"
-    "updateUserProfile:3"
-    "userDataNowFiles:5"
-    "validateUser:3"
-    "workforceStatsAnnual:180"
+    "listGroups:18"
+    "listRoles:18"
+    "saveContent:5"
+    "saveEmailSuggestions:20"
+    "saveFeedback:45"
+    "saveTabContent:20"
+    "submitQuote:28"
+    "updateOrg:18"
+    "updateTaxExemptCertificates:5"
+    "updateUserDetails:30"
+    "updateUserPermissions:26"
+    "validateUser:18"
 )
 
 SNAKE_CASE_NAMES=()
 
 
 main() {
+    cleanup_old_files
+
     breakout_lambda_data
 
     initialize_lambdas_tf
@@ -73,6 +65,12 @@ main() {
     generate_snake_case_names
 
     generate_code
+}
+
+cleanup_old_files() {
+    rm -f lambda.tf
+    rm -f functions.txt
+    rm -f bundles.txt
 }
 
 
@@ -90,17 +88,17 @@ initialize_lambdas_tf() {
     cat > lambdas.tf << EOF
 ##### Lambdas - Web App #####
 
-data "aws_s3_bucket_object" "layer_hash" {
+data "aws_s3_bucket_object" "authpython_layer_hash" {
   bucket = local.s3_lambda_bucket
-  key    = "OneView/webapp-base-layer.zip"
+  key    = "authpython.zip"
 }
 
-resource "aws_lambda_layer_version" "webapp" {
-    layer_name              = "\${var.project}-\${local.environment}-webapp-lambda-layer"
-    description             = "OneView web app backend Lambda function base layer"
+resource "aws_lambda_layer_version" "authpython" {
+    layer_name              = "\${var.project}-\${local.environment}-authpython-lambda-layer"
+    description             = "Intelligent Platform web app backend Lambda function base layer"
     s3_bucket               = local.s3_lambda_bucket
-    s3_key                  = "OneView/webapp-base-layer.zip"
-    s3_object_version       = data.aws_s3_bucket_object.layer_hash.version_id
+    s3_key                  = "authpython.zip"
+    s3_object_version       = data.aws_s3_bucket_object.authpython_layer_hash.version_id
     compatible_runtimes     = ["python3.8"]
 }
 EOF
@@ -178,9 +176,5 @@ for index in "\${!FUNCTIONS[@]}"; do
 done
 EOF
 }
-
-rm lambda.tf
-rm functions.txt
-rm bundles.txt
 
 main
