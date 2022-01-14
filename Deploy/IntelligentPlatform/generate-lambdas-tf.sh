@@ -6,6 +6,7 @@ declare -a TIMEOUTS
 LAMBDA_TEMPLATE=lambda.tf.jinja
 
 LAMBDA_DATA=(
+    "addDLUser:26"
     "addOrg:5"
     "addUsers:30"
     "bulkEditUsers:18"
@@ -94,7 +95,7 @@ data "aws_s3_bucket_object" "authpython_layer_hash" {
 }
 
 resource "aws_lambda_layer_version" "authpython" {
-    layer_name              = "\${var.project}-\${local.environment}-authpython-lambda-layer"
+    layer_name              = "AIP-\${local.environment}-authpython-lambda-layer"
     description             = "Intelligent Platform web app backend Lambda function base layer"
     s3_bucket               = local.s3_lambda_bucket
     s3_key                  = "authpython.zip"
