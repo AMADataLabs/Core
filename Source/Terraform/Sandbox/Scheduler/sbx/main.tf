@@ -451,12 +451,12 @@ data "aws_iam_policy_document" "ecs_task_s3_get_list_object" {
   statement {
     actions = [
       "s3:Get*",
-      "s3:List*",
+      "s3:Put*",
+      "s3:List*"
     ]
 
     resources = [
-      "arn:aws:s3:::ama-${local.environment}-datalake-scheduler-us-east-1",
-      "arn:aws:s3:::ama-${local.environment}-datalake-scheduler-us-east-1/*"
+      "arn:aws:s3:::*"
     ]
   }
 }
