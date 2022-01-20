@@ -1,5 +1,8 @@
-import software.amazon.awssdk.*;
-import java.util.*;
+package datalabs.etl.dag;
+
+import java.util.HashMap;
+
+import software.amazon.awssdk.Parameter_Class;
 
 public class Task {
     HashMap<String, String> _parameters;
@@ -17,9 +20,6 @@ public class Task {
     public static String run() {
         ;
     }
-
-
-
 }
 
 public class DAGTaskWrapper {
