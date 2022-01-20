@@ -1,25 +1,24 @@
 package datalabs.task;
 
 import java.lang.reflect.Type;
-import java.util.HashMap;
+import java.util.Map;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
 import datalabs.task.Parameters;
 
 
-public abstract class Task {
+public abstract class TaskWrapper {
     private static Class PARAMETER_CLASS = null;
     private Parameters parameters = null;
     private byte[] data = null;
 
-    public Task(String parameters) {
+    public TaskWrapper(String parameters) {
         this.parameters = new Gson().fromJson(parameters, PARAMETER_CLASS);
     }
 
-    public Task(String parameters, byte[] data) {
-        Task(parameters);
+    public TaskWrapper(String parameters, byte[] data) {
+        TaskWrapper(parameters);
 
         this.data = data;
     }

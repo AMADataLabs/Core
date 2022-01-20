@@ -5,5 +5,6 @@ public final class PluginImporter {
          ClassLoader classLoader = PluginImporter.class.getClassLoader();
          Class plugin_class = classLoader.loadClass("name");
 
-         return plugin_class.newInstance()
+         return plugin_class.newInstance();
     }
+}
