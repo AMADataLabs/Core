@@ -1,27 +1,95 @@
 package datalabs.task;
 
-import java.lang.reflect.Type;
 import java.util.Map;
 
-import com.google.gson.Gson;
-
-import datalabs.task.Parameters;
+import datalabs.plugin.PluginImporter;
 
 
 public abstract class TaskWrapper {
-    private static Class PARAMETER_CLASS = null;
-    private Parameters parameters = null;
-    private byte[] data = null;
+    Map<String, String> parameters;
+    Map<String, String> runtimeParameters;
+    Map<String, String> taskParameters;
+    Map<String, String> cacheParameters;
+    Class taskClass;
+    Task task;
 
-    public TaskWrapper(String parameters) {
-        this.parameters = new Gson().fromJson(parameters, PARAMETER_CLASS);
+    public TaskWrapper(Map<String, String> parameters) {
+        this.parameters = parameters;
     }
 
-    public TaskWrapper(String parameters, byte[] data) {
-        TaskWrapper(parameters);
+    public static String run() {
+        String response;
 
-        this.data = data;
+        try {
+            this.setupEnvironment();
+
+            this._runtimeParameters = this.getRuntimeParameters(this.parameters);
+
+            this.taskParameters = this.getTaskParameters();
+
+            this.taskData = this.getTaskData(this.taskParameters)
+
+            this.taskClass = this.getTaskClass();
+
+            this.task = TaskWrapper.createTask(this.taskClass, this.taskParameters, this.taskData)
+
+            this.preRun();
+
+            this.task.run();
+
+            response = this.handleSuccess();
+
+        } catch (Exception e) {
+            response = this.handleException(e);
+        }
+
+        return response
     }
 
-    public abstract void run();
+    void setupEnvironment() {
+        /* TODO: implement ReferenceEnvironmentLoader
+        environmentLoader = ReferenceEnvironmentLoader.fromEnviron()
+        environmentLoader.load()
+        */
+    }
+
+    Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
+        return new Map<String, String>();
+    }
+
+    Map<String, String> getTaskParameters() {
+        return this._parameters;
+    }
+
+    Vector<byte[]> getTaskInputData(Map<String, String> parameters) {
+        return null;
+    }
+
+    Class getTaskClass() {
+        taskResolverClass = this.getTaskResolverClass();
+
+        taskClass = taskResolverClass.getTaskClass(this.runtimeParameters);
+
+        return taskClass
+    }
+
+    static Task createTask(Class taskClass, Map<String, String> parameters) {
+        return taskClass.getConstructor(new Class[] {Map<String, String>, byte[][]}).newInstance([taskParameters]);
+    }
+
+    void preRun() {
+    }
+
+    abstract String handleSuccess() {
+    }
+
+    abstract String handleException() {
+    }
+
+    Class getTaskResolverClass() {
+        taskResolverClassName = System.getProperty("TASK_RESOLVER_CLASS", "datalabs.task.EnvironmentTaskResolver");
+        Class taskResolverClass = PluginImporter.importPlugin(taskResolverClassName);
+
+        return taskResolverClass
+    }
 }

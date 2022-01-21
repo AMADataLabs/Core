@@ -1,10 +1,7 @@
 package datalabs.task;
 
-import java.lang.reflect.Type;
-import java.util.HashMap;
-
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
+import java.util.Map;
+import java.util.Vector;
 
 import datalabs.task.Parameters;
 
@@ -12,17 +9,21 @@ import datalabs.task.Parameters;
 public abstract class Task {
     private static Class PARAMETER_CLASS = null;
     private Parameters parameters = null;
-    private byte[] data = null;
+    private Vector<byte[]> data = null;
 
-    public Task(String parameters) {
-        this.parameters = new Gson().fromJson(parameters, PARAMETER_CLASS);
+    public Task(Map<String, String> parameters) {
+        this.parameters = PARAMETER_CLASS.getConstructor(new Class[] {Map<String, String>}).newInstance(parameters);
     }
 
-    public Task(String parameters, byte[] data) {
+    public Task(String parameters, Vector<byte[]> data) {
         Task(parameters);
 
         this.data = data;
     }
 
     public abstract void run();
+
+    public Vector<byte[]> getData() {
+        return this.data;
+    }
 }
