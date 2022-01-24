@@ -1,9 +1,6 @@
 """ Python source file bundle class to aid in packaging apps. """
 import logging
 import os
-import shutil
-
-import yaml
 
 from   datalabs.build.bundle.base import SourceBundle
 
