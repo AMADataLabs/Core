@@ -1,216 +1,208 @@
-import software.amazon.awssdk.*;
-import java.util.*;
+package datalabs.etl.dag;
 
-public class Task {
-    HashMap<String, String> _parameters;
-    Parameter_Class _parameter_class = null;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
 
-    public Task(HashMap<String, String> parameter) {
-        this._parameters = parameter;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
-        if (this._parameter_class != null) {
-            // Need to add parameter validation
-            ;
-        }
+import datalabs.etl.dag.cache.TaskDataCache;
+import datalabs.plugin.PluginImporter;
+import datalabs.task.TaskWrapper;
+
+
+public class DAGTaskWrapper extends TaskWrapper {
+    Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
+    static final Logger LOGGER = LogManager.getLogger();
+
+    public DAGTaskWrapper(Map<String, String> parameters) {
+        super(parameters);
+
+        this.cacheParameters = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
+            put(TaskDataCache.Direction.INPUT, null);
+            put(TaskDataCache.Direction.OUTPUT, null);
+        }};
     }
 
-    public static String run() {
-        ;
+    @Override
+    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
+        String[] runtimeParameterValues = parameters.get("args").split("__", 3);
+
+        return new HashMap<String, String>() {{
+            put("dag", runtimeParameterValues[0]);
+            put("task", runtimeParameterValues[1]);
+            put("execution_time", runtimeParameterValues[2]);
+        }};
     }
 
+    @Override
+    protected Map<String, String> getTaskParameters() {
+        Map<String, String> defaultParameters = this.getDefaultParameters();
+        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, this.getDAGTaskParameters());
 
+        taskParameters = this.extractCacheParameters(taskParameters);
 
-}
-
-public class DAGTaskWrapper {
-    Task task;
-    Task task_class;
-    HashMap<String, String> _parameters;
-    HashMap<String, String> _runtime_parameters;
-    HashMap<String, String> _task_parameters;
-    HashMap<String, String> _cache_parameters;
-
-
-    public DAGTaskWrapper(HashMap<String, String> parameter) {
-        this._parameters = parameter;
-        // Need to add parameter validation
+        return taskParameters;
     }
 
-    public static String run() {
-        String response = null;
+    @Override
+    protected Vector<byte[]> getTaskInputData(Map<String, String> parameters) {
+        Vector<byte[]> inputData = new Vector<byte[]>();
 
         try {
-            this._setup_environment();
+            TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.INPUT);
 
-            this._runtime_parameters = this._get_runtime_parameters(this._parameters);
-
-            this._task_parameters = this._get_task_parameters();
-
-            this.task = this.task_class(this._task_parameters);
-
-            this._pre_run();
-
-            this.task.run();
-
-            response = this._handle_success();
-
-        } catch (Exception e) {
-            response = this._handle_exception(e);
+            if (cachePlugin != null) {
+                inputData = cachePlugin.extractData();
+            }
+        } catch (Exception exception) {
+            LOGGER.error("Unable to extract data from the task input cache.");
         }
 
-        return response;
+        return inputData;
     }
 
-    public static String _setup_environment() {
-        // Need to add funcitonality
+    @Override
+    protected String handleException(Exception exception) {
+        LOGGER.error("Handling DAG task exception: " + exception.getMessage());
+
         return null;
     }
 
-    public static HashMap<String, String> _get_runtime_parameters(HashMap parameters) {
-        String[] runtime = parameters.get(1).split("__", 3);
-        String dag = runtime[0];
-        String task = runtime[1];
-        String execution_time = runtime[2];
+    @Override
+    protected String handleSuccess() {
+        try {
+            TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
 
-        HashMap<String, String> runtime_parameters;
-        runtime_parameters.put("dag", dag);
-        runtime_parameters.put("task", task);
-        runtime_parameters.put("execution_time", execution_time);
+            if (cachePlugin != null) {
+                cachePlugin.loadData(this.task.getData());
+            }
+        } catch (Exception exception) {
+            LOGGER.error("Unable to load data into the task output cache.");
+        }
 
-        return runtime_parameters;
+        return null;
     }
 
-    public static HashMap<String, String> _get_task_parameters(String arg) {
-        HashMap<String, String> task_parameters, default_parameters;
+    protected Map<String, String> getDefaultParameters() {
+        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDAGID());
+        String execution_time = getExecutionTime();
 
-        default_parameters = _get_default_parameters();
+        dagParameters.put("EXECUTION_TIME", execution_time);
+        dagParameters.put("CACHE_EXECUTION_TIME", execution_time);
 
-        task_parameters = _merge_parameters(default_parameters, task_parameters);
-
-        task_parameters = _extract_cache_parameters(task_parameters);
-
-        // Add Cache Plugin functionality, Python equivalent below:
-        //
-        // cache_plugin = self._get_cache_plugin(CacheDirection.INPUT)
-        // if cache_plugin:
-        // input_data = cache_plugin.extract_data()
-        //
-        // task_parameters['data'] = input_data
-
-        return task_parameters;
+        return dagParameters;
     }
 
-    public static HashMap<String, String> _get_default_parameters() {
-        HashMap<String, String> dag_parameters = _get_default_parameters_from_environment(_get_dag_id());
-        String execution_time = _get_execution_time();
-
-        dag_parameters.put("EXECUTION_TIME", execution_time);
-        dag_parameters.put("CACHE_EXECUTION_TIME", execution_time);
-
-        return dag_parameters;
+    protected Map<String, String> getDAGTaskParameters() {
+        /* TODO: port from Python
+        return self._get_task_parameters_from_environment(self._get_dag_id(), self._get_task_id())
+        */
+        return null;
     }
 
-    public static HashMap<String, String> _extract_cache_parameters(HashMap<String, String> task_parameters) {
-        // Uses explicit directions as Strings rather than as a direction object like in Pyton implementation
-        this._cache_parameters.put("INPUT", _get_cache_parameters(this._task_parameters, "INPUT"));
-        this._cache_parameters.put("OUTPUT", _get_cache_parameters(this._task_parameters, "OUTPUT"));
+    Map<String, String> mergeParameters(Map<String, String> parameters, Map<String, String>  newParameters) {
+        Map<String, String> mergedParameters = new HashMap<>(parameters);
 
-        for (Map.Entry mapElement : task_parameters.entrySet()) {
-            String key = mapElement.getKey();
+        newParameters.forEach(
+            (key, value) -> mergedParameters.merge(key, value, (oldValue, newValue) -> newValue)
+        );
+
+        return mergedParameters;
+    }
+
+    Map<String, String> extractCacheParameters(Map<String, String> taskParameters) {
+        final TaskDataCache.Direction INPUT = TaskDataCache.Direction.INPUT;
+        final TaskDataCache.Direction OUTPUT = TaskDataCache.Direction.OUTPUT;
+
+        this.cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
+        this.cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
+
+        for (Map.Entry mapElement : taskParameters.entrySet()) {
+            String key = (String) mapElement.getKey();
+
             if (key.startsWith("CACHE_")) {
-                task_parameters.remove(key);
+                taskParameters.remove(key);
             }
         }
 
-        return task_parameters;
+        return taskParameters;
     }
 
-    public static String _get_dag_id() {
-        return this._runtime_parameters.get("dag").toUpperCase();
+    TaskDataCache getCachePlugin(TaskDataCache.Direction direction)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
+                   ClassNotFoundException {
+        TaskDataCache plugin = null;
+        Map<String, String> cacheParameters = this.cacheParameters.get(direction);
+
+        if (cacheParameters.size() > 1) {
+            String pluginName = "datalabs.etl.dag.cache.s3.S3TaskTaskDataCache";
+
+            if (cacheParameters.containsKey("CLASS")) {
+                pluginName = cacheParameters.remove("CLASS");
+            }
+
+            Class pluginClass = PluginImporter.importPlugin(pluginName);
+
+            Constructor pluginConstructor = pluginClass.getConstructor(new Class[] {Map.class});
+
+            plugin = (TaskDataCache) pluginConstructor.newInstance(cacheParameters);
+        }
+
+        return plugin;
     }
 
-    public static HashMap<String, String> _get_default_parameters_from_environment(String dag_id) {
-        HashMap<String, String> parameters;
+    protected String getDAGID() {
+        return this.runtimeParameters.get("dag").toUpperCase();
+    }
+
+    protected String getTaskID() {
+        return this.runtimeParameters.get("task").toUpperCase();
+    }
+
+    protected String getExecutionTime() {
+        return this.runtimeParameters.get("execution_time").toUpperCase();
+    }
+
+    static Map<String, String> getDefaultParametersFromEnvironment(String dagID) {
+        Map<String, String> parameters;
 
         try {
-            parameters = _get_parameters(dag_id);
-        } catch (Exception e) {
-            ;
+            parameters = DAGTaskWrapper.getParameters(new String[] {dagID.toUpperCase()});
+        } catch (Exception exception) {  // FIXME: use a more specific exception
+            parameters = new HashMap<String, String>();
         }
 
         return parameters;
     }
 
-    public static HashMap<String, String> _merge_parameters(HashMap<String, String> parameters, HashMap<String, String> new_parameters) {
-        for (Map.Entry mapElement : parameters.entrySet()) {
-            String key = mapElement.getKey();
-            if (new_parameters.containsKey(key)) {
-                parameters.put(key, new_parameters.get(key));
-            }
-        }
+    static Map<String, String> getCacheParameters(Map<String, String> taskParameters, TaskDataCache.Direction direction) {
+        /* TODO: Port from Python
+        cache_parameters = {}
+        other_direction = [d[1] for d in CacheDirection.__members__.items() if d[1] != direction][0]  # pylint: disable=no-member
 
-        return parameters;
+        for key, value in task_parameters.items():
+            match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
+
+            if match and not match.group(2).startswith(other_direction.value+'_'):
+                cache_parameters[match.group(2)] = value
+
+        return cache_parameters
+        */
+        return null;
     }
 
-    public static String _get_dag_id() {
-        return this._runtime_parameters.get("dag").toUpperCase();
-    }
+    static Map<String, String> getParameters(String[] branch) {
+        /* TODO: Port from Python
+        var_tree = VariableTree.from_environment()
 
-    public static String _get_task_id() {
-        return this._runtime_parameters.get("task").toUpperCase();
-    }
+        candidate_parameters = var_tree.get_branch_values(branch)
 
-    public static String _get_execution_time() {
-        return this._runtime_parameters.get("execution_time").toUpperCase();
-    }
-
-    public static void _handle_exception(Exception error) {
-        // Need to add Logging message for errors
-        String dag = _get_dag_id();
-        String task = _get_task_id();
-
-        return "An exception occured while attempting to send a run notification for task " + task + " of DAG " + dag + ".";
-    }
-
-    public static String _handle_success(String arg) {
-        // Need to add cache_plugin method functionality
-        //
-        // cache_plugin = self._get_cache_plugin(CacheDirection.OUTPUT)  # pylint: disable=no-member
-        // if cache_plugin:
-        // cache_plugin.load_data(self.task.data)
-        //
-        // LOGGER.info('DAG task has finished')
-        return "Success";
-    }
-
-    public static String _get_parameters(String arg) {
-        // Need to add functionality
-        //
-        // var_tree = VariableTree.from_environment()
-        // candidate_parameters = var_tree.get_branch_values(branch)
-        // return {key:value for key, value in candidate_parameters.items() if value is not None}
-    }
-
-    public static HashMap<String, String> _get_cache_parameters(HashMap<String, String> task_parameters, String cache_direction) {
-        HashMap<String, String> cache_parameters;
-        String other_direction;
-
-        // Python version uses more complex logic, see: Source/Python/datalabs/etl/dag/task.py
-        if (cache_direction == "INPUT") {
-            other_direction = "OUTPUT";
-        } else {
-            other_direction = "INPUT";
-        }
-
-        for (Map.Entry mapElement : this._task_parameters.entrySet()) {
-            String key = mapElement.getKey();
-            String value = mapElement.getValue();
-            String prefix = "CACHE_" + cache_direction + "_";
-            if (key.startsWith(prefix)) {
-                cache_parameters.put(key.split("_", 3)[2], value);
-            }
-        }
-
-        return cache_parameters;
+        return {key:value for key, value in candidate_parameters.items() if value is not None}
+        */
+        return null;
     }
 }

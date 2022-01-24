@@ -9,7 +9,7 @@ import shutil
 import sys
 from   zipfile import ZipFile
 
-from datalabs.build.bundle import PythonSourceBundle
+from datalabs.build.bundle.python import PythonSourceBundle
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
