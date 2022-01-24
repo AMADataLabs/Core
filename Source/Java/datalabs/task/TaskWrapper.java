@@ -1,95 +1,99 @@
 package datalabs.task;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
+import datalabs.task.TaskResolver;
 import datalabs.plugin.PluginImporter;
 
 
 public abstract class TaskWrapper {
-    Map<String, String> parameters;
-    Map<String, String> runtimeParameters;
-    Map<String, String> taskParameters;
-    Map<String, String> cacheParameters;
-    Class taskClass;
-    Task task;
+    protected Map<String, String> parameters;
+    protected Map<String, String> runtimeParameters;
+    protected Task task;
 
     public TaskWrapper(Map<String, String> parameters) {
         this.parameters = parameters;
     }
 
-    public static String run() {
+    public String run() {
         String response;
 
         try {
             this.setupEnvironment();
 
-            this._runtimeParameters = this.getRuntimeParameters(this.parameters);
+            this.runtimeParameters = this.getRuntimeParameters(this.parameters);
 
-            this.taskParameters = this.getTaskParameters();
+            Map<String, String> taskParameters = this.getTaskParameters();
 
-            this.taskData = this.getTaskData(this.taskParameters)
+            Vector<byte[]> taskData = this.getTaskInputData(taskParameters);
 
-            this.taskClass = this.getTaskClass();
+            Class taskClass = this.getTaskClass(this.runtimeParameters);
 
-            this.task = TaskWrapper.createTask(this.taskClass, this.taskParameters, this.taskData)
+            this.task = TaskWrapper.createTask(taskClass, taskParameters, taskData);
 
             this.preRun();
 
             this.task.run();
 
             response = this.handleSuccess();
-
         } catch (Exception e) {
             response = this.handleException(e);
         }
 
-        return response
+        return response;
     }
 
-    void setupEnvironment() {
+    public Task getTask() {
+        return this.task;
+    }
+
+    protected void setupEnvironment() {
         /* TODO: implement ReferenceEnvironmentLoader
         environmentLoader = ReferenceEnvironmentLoader.fromEnviron()
         environmentLoader.load()
         */
     }
 
-    Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
-        return new Map<String, String>();
+    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
+        return new HashMap<String, String>();
     }
 
-    Map<String, String> getTaskParameters() {
-        return this._parameters;
+    protected Map<String, String> getTaskParameters() {
+        return this.parameters;
     }
 
-    Vector<byte[]> getTaskInputData(Map<String, String> parameters) {
+    protected Vector<byte[]> getTaskInputData(Map<String, String> parameters) {
         return null;
     }
 
-    Class getTaskClass() {
-        taskResolverClass = this.getTaskResolverClass();
+    Class getTaskClass(Map<String, String> runtimeParameters)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
+                   ClassNotFoundException {
+        Class taskResolverClass = this.getTaskResolverClass();
+        Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class});
 
-        taskClass = taskResolverClass.getTaskClass(this.runtimeParameters);
-
-        return taskClass
+        return (Class) getTaskClass.invoke(null, runtimeParameters);
     }
 
-    static Task createTask(Class taskClass, Map<String, String> parameters) {
-        return taskClass.getConstructor(new Class[] {Map<String, String>, byte[][]}).newInstance([taskParameters]);
+    static Task createTask(Class taskClass, Map<String, String> parameters, Vector<byte[]> data)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        return (Task) taskClass.getConstructor(new Class[] {Map.class, Vector.class}).newInstance(parameters, data);
     }
 
-    void preRun() {
+    protected void preRun() {
     }
 
-    abstract String handleSuccess() {
-    }
+    protected abstract String handleSuccess();
 
-    abstract String handleException() {
-    }
+    protected abstract String handleException(Exception exception);
 
-    Class getTaskResolverClass() {
-        taskResolverClassName = System.getProperty("TASK_RESOLVER_CLASS", "datalabs.task.EnvironmentTaskResolver");
-        Class taskResolverClass = PluginImporter.importPlugin(taskResolverClassName);
+    Class getTaskResolverClass() throws ClassNotFoundException {
+        String taskResolverClassName = System.getProperty("TASK_RESOLVER_CLASS", "datalabs.task.EnvironmentTaskResolver");
 
-        return taskResolverClass
+        return PluginImporter.importPlugin(taskResolverClassName);
     }
 }

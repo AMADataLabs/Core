@@ -3,7 +3,7 @@ package datalabs.etl.dag.cache;
 import java.util.Vector;
 
 
-public static abstract TaskDataCache {
+public abstract class TaskDataCache {
     public static enum Direction {
         INPUT, OUTPUT
     }

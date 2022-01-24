@@ -1,7 +1,7 @@
 package datalabs.plugin;
 
-public final class PluginImporter {
-     public static Class importPlugin(String name) {
+public class PluginImporter {
+     public static Class importPlugin(String name) throws ClassNotFoundException {
          ClassLoader classLoader = PluginImporter.class.getClassLoader();
          Class pluginClass = classLoader.loadClass("name");
 

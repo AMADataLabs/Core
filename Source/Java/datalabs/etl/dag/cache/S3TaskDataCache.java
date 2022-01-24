@@ -3,10 +3,10 @@ package datalabs.etl.dag.cache;
 import java.util.Vector;
 
 
-public static class S3TaskDataCache extends TaskDataCache {
+public class S3TaskDataCache extends TaskDataCache {
     public Vector<byte[]> extractData() {
         // TODO: implement
-        return null
+        return null;
     }
 
     public void loadData(Vector<byte[]> outputData) {
