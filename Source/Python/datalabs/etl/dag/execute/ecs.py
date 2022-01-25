@@ -15,7 +15,8 @@ LOGGER.setLevel(logging.INFO)
 @dataclass
 class FargateDAGExecutorParameters:
     dag: str
-    job: str
+    job_queue: str
+    job_definition: str
     execution_time: str
     unknowns: dict = None
 
@@ -26,19 +27,16 @@ class FargateDAGExecutorTask(Task):
     def run(self):
         with AWSClient("batch") as awslambda:
             container_overrides = dict(
-                command=["python", "task.py",
-                         {
-                             'dag': self._parameters.dag,
-                             'type': 'DAG',
-                             'execution_time': self._parameters.execution_time
-                         }
+                command=["python", "task.py", str({'dag': self._parameters.dag,
+                                                   'type': 'DAG',
+                                                   'execution_time': self._parameters.execution_time})
                          ]
             )
 
             awslambda.submit_job(
                 jobName=self._parameters.dag,
-                jobQueue='{}-job-definition'.format(self._job),
-                jobDefinition='{}-job-queue'.format(self._job),
+                jobQueue=self._parameters.job_queue,
+                jobDefinition=self._parameters.job_definition,
                 containerOverrides=container_overrides
             )
 
