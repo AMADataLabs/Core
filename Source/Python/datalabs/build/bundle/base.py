@@ -23,7 +23,7 @@ class SourceBundle:
         with open(modspec_path, 'r') as file:
             modspec_yaml = file.read()
 
-        return SourceBundle(modspec_yaml)
+        return cls(modspec_yaml)
 
     def copy(self, base_path, app_path):
         shared_source_path = os.path.join(base_path)

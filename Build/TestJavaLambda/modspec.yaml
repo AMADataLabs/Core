@@ -8,3 +8,6 @@ modspec:
       - HelloWorldTask
   - package: datalabs.plugin
   - package: datalabs.task
+    exclude:
+      - LocalProcess
+      - LambdaFunction

@@ -4,7 +4,6 @@ import os
 
 from   datalabs.build.bundle.base import SourceBundle
 
-
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
