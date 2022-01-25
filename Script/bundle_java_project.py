@@ -44,7 +44,7 @@ class LocalProjectBundler(ProjectBundler):
         os.makedirs(target_path, exist_ok=True)
 
         LOGGER.info('=== Copying Build Files ===')
-        self._copy_build_files(project, target_path)
+        self._copy_build_files(project, target_path, kwargs['use_pom'])
 
         LOGGER.info('=== Generating Project Object Model ===')
         self._render_project_object_model_file(project, version, target_path)
@@ -58,8 +58,13 @@ class LocalProjectBundler(ProjectBundler):
         LOGGER.info('=== Creating Jar Archive ===')
         self._jar_source_directory(project, target_path)
 
-    def _copy_build_files(self, project, target_path):
-        shutil.copy(os.path.join(self._build_path, 'Master', 'pom.xml.jinja'), os.path.join(target_path, 'pom.xml.jinja'))
+    def _copy_build_files(self, project, target_path, use_pom):
+        LOGGER.debug('Use Build/%s/pom.xml? %s', project, use_pom)
+        if use_pom:
+            LOGGER.debug('Copying file %s to %s', os.path.join(self._build_path, project, 'pom.xml'), os.path.join(target_path, 'pom.xml'))
+            shutil.copy(os.path.join(self._build_path, project, 'pom.xml'), os.path.join(target_path, 'pom.xml'))
+        else:
+            shutil.copy(os.path.join(self._build_path, 'Master', 'pom.xml.jinja'), os.path.join(target_path, 'pom.xml.jinja'))
 
     def _render_project_object_model_file(self, project, version, target_path):
         template_path = os.path.join(target_path, 'pom.xml.jinja')
@@ -108,11 +113,13 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-d', '--directory',
         help='Specify the target directory into which files will be bundled (default Build/<PROJECT>/<PROJECT>)')
-    ap.add_argument('-i', '--in-place', action='store_true', default=False,
-        help='Do not pre-clean the target directory.')
     ap.add_argument(
         '-f', '--file', action='append', required=False, help='Include the given file in the bundle.'
     )
+    ap.add_argument('-i', '--in-place', action='store_true', default=False,
+        help='Do not pre-clean the target directory.')
+    ap.add_argument('-p', '--use-pom', action='store_true', default=False,
+        help='Use the pom.xml in the Build/<PROJECT>/ directory instead of the default template.')
     ap.add_argument(
         '-v', '--version', default="1.0.0", help='Version of the bundle (default 1.0.0).'
     )
@@ -133,7 +140,8 @@ if __name__ == '__main__':
             args['version'],
             target_path=args['directory'],
             extra_files=args['file'],
-            in_place=args['in_place']
+            in_place=args['in_place'],
+            use_pom=args.get('use_pom', False)
         )
     except Exception as e:
         LOGGER.exception(f"Failed to create project bundle.")
