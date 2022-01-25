@@ -9,8 +9,8 @@ import datalabs.task.Parameters;
 
 public abstract class Task {
     private static Class PARAMETER_CLASS = null;
-    private Parameters parameters = null;
-    private Vector<byte[]> data = null;
+    protected Parameters parameters = null;
+    protected Vector<byte[]> data = null;
 
     public Task(Map<String, String> parameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {

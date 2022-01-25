@@ -81,7 +81,7 @@ class LocalProjectBundler(ProjectBundler):
         modspec_path = os.path.join(self._build_path, project, 'modspec.yaml')
         bundle = JavaSourceBundle.from_file(modspec_path)
 
-        return bundle.copy(self._shared_source_path, os.path.join(target_path, 'src', 'main'))
+        return bundle.copy(self._shared_source_path, os.path.join(target_path, 'src', 'main', 'java'))
 
     def _copy_extra_files(self, files, target_path):
         files = files or []
@@ -91,20 +91,6 @@ class LocalProjectBundler(ProjectBundler):
 
     def _jar_source_directory(self, project, target_path):
         os.system(f'mvn -f {os.path.join(target_path, "pom.xml")} package')
-
-    def _archive_contents(self, archive, target_path, contents):
-        root, dirs, files = contents
-        relative_root = Path(root).relative_to(target_path)
-        LOGGER.debug('Build Path: %s', target_path)
-        LOGGER.debug('Root Path: %s', root)
-        LOGGER.debug('Relative Root Path: %s', relative_root)
-
-        for d in dirs:
-            archive.write(os.path.join(root, d), arcname=os.path.join(relative_root, d))
-
-        for f in files:
-            archive.write(os.path.join(root, f), arcname=os.path.join(relative_root, f))
-
 
 
 if __name__ == '__main__':
