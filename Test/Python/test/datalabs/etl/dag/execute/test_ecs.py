@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from   datalabs.etl.dag.execute.ecs import FargateDAGExecutorTask
+from   datalabs.etl.dag.execute.ecs import FargateTaskExecutorTask
 
 
 @pytest.mark.skipif(
@@ -11,20 +11,18 @@ from   datalabs.etl.dag.execute.ecs import FargateDAGExecutorTask
     reason="Normally skip integration tests to increase testing speed."
 )
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_dag_processor_runs():
-    os.environ['TASK_CLASS'] = 'datalabs.etl.dag.process.DAGProcessorTask'
-    os.environ['DAG_CLASS'] = 'datalabs.etl.dag.schedule.dag.DAGSchedulerDAG'
+def test_fargate_task_executor(runtime_parameters):
+    task = FargateTaskExecutorTask(runtime_parameters)
 
-    wrapper = FargateDAGExecutorTask()
-
-    wrapper.run()
+    task.run()
 
 
 @pytest.fixture
 def runtime_parameters():
     return dict(
         dag="SOME_DAG",
-        job="SOME_JOB",
-        task="SOME_TASK",
-        execution_time="2021-01-01T00:00:00.000000"
+        job_queue="ecs-scheduler-job-queue",
+        job_definition="ecs-scheduler-job-definition",
+        execution_time="2021-01-01T00:00:00.000000",
+        task="SOME_TASK"
     )

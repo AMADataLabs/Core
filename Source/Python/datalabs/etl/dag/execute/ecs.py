@@ -47,31 +47,29 @@ class FargateDAGExecutorTask(Task):
 @dataclass
 class FargateTaskExecutorParameters:
     dag: str
-    task: str
-    job: str
+    job_queue: str
+    job_definition: str
     execution_time: str
+    task: str
     unknowns: dict = None
 
 
 class FargateTaskExecutorTask(Task):
-    PARAMETER_CLASS = FargateDAGExecutorParameters
+    PARAMETER_CLASS = FargateTaskExecutorParameters
 
     def run(self):
         with AWSClient("batch") as awslambda:
             container_overrides = dict(
-                command=["python", "task.py",
-                         {
-                             'dag': self._parameters.dag,
-                             'type': 'Task',
-                             'task': self._parameters.task,
-                             'execution_time': self._parameters.execution_time
-                         }
+                command=["python", "task.py", str({'dag': self._parameters.dag,
+                                                   'type': 'Task',
+                                                   'task': self._parameters.task,
+                                                   'execution_time': self._parameters.execution_time})
                          ]
             )
 
             awslambda.submit_job(
                 jobName=self._parameters.dag,
-                jobQueue='{}-job-definition'.format(self._parameters.job),
-                jobDefinition='{}-job-queue'.format(self._parameters.job),
+                jobQueue=self._parameters.job_queue,
+                jobDefinition=self._parameters.job_definition,
                 containerOverrides=container_overrides
             )
