@@ -14,12 +14,13 @@ class StatusEmailNotifier():
         self.emails = emails
         self.environment = environment
 
-    def notify(self, dag, execution_time, status):
-        message = 'The {} DAG run at {} UTC in the {} environment has {}.'.format(dag, execution_time,
-                                                                                  self.environment,
-                                                                                  status.split('.')[1]
-                                                                                  )
-        subject = '[DAG STATUS] {} {} {}'.format(self.environment, dag, status.split('.')[1])
+    def notify(self, dag, execution_time, status, from_account):
+        message = 'The {} DAG run at {} UTC in the {} environment has status {}.'.format(dag,
+                                                                                         execution_time,
+                                                                                         self.environment,
+                                                                                         status.name
+                                                                                         )
+        subject = '[DAG STATUS] {} {} {}'.format(self.environment, dag, status.name)
 
-        send_email(self.emails, subject, body=message, from_account='datalabs@ama-assn.org')
+        send_email(self.emails, subject, body=message, from_account=from_account)
         LOGGER.info('EMAIL SENT TO {}'.format(self.emails))

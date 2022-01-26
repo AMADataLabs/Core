@@ -291,6 +291,7 @@ class DAGTaskWrapper(
         if raw_email_list is not None:
             emails = raw_email_list.split(',')
             environment = self._runtime_parameters.get("ENVIRONMENT")
+            from_account = self._runtime_parameters.get("ACCOUNT")
             notifier = StatusEmailNotifier(emails, environment)
 
-            notifier.notify(self._get_dag_id(), self._get_execution_time(), self.task.status)
+            notifier.notify(self._get_dag_id(), self._get_execution_time(), self.task.status, from_account)
