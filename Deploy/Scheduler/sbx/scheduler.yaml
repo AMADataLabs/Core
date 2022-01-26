@@ -34,7 +34,7 @@ data:
     DAG_SCHEDULER__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
     DAG_SCHEDULER__DAG__ENVIRONMENT: ${ENVIRONMENT}
     DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org'
-
+    DAG_SCHEDULER__DAG__ACCOUNT: 'datalabs@ama-assn.org'
 
     ##########################################################################
     # Task Variables - ({"DAG": {"S": "DAG_SCHEDULER"}, "Task": {"S": "<Task ID>"}})
