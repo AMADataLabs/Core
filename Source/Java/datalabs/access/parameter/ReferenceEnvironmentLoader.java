@@ -98,7 +98,6 @@ public class ReferenceEnvironmentLoader {
         Matcher matcher = Pattern.compile("\\$\\{(?<name>[^${}]+)\\}").matcher(value);
         String resolvedValue = "";
         int index = 0;
-        LOGGER.debug("Reference Value: " + value);
 
         while (matcher.find()) {
             resolvedValue += value.substring(index, matcher.start());
@@ -106,11 +105,9 @@ public class ReferenceEnvironmentLoader {
             resolvedValue += parameters.getOrDefault(matcher.group("name"), "${" + matcher.group("name") + "}");
 
             index = matcher.end();
-            LOGGER.debug("Resolved Value (Part): " + resolvedValue);
         }
 
         resolvedValue += value.substring(index);
-        LOGGER.debug("Resolved Value: " + resolvedValue);
 
         return resolvedValue;
     }

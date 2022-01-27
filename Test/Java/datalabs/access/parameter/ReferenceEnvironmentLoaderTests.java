@@ -2,6 +2,8 @@ package datalabs.access.parameter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -9,9 +11,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-// Temporary
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import datalabs.access.parameter.ReferenceEnvironmentLoader;
 
@@ -67,8 +66,6 @@ class ReferenceEnvironmentLoaderTests {
             ReferenceEnvironmentLoaderTests.ENVIRONMENT
         );
 
-        LOGGER.debug("Referent Variables: " + referentVariables.toString());
-
         Assertions.assertEquals(2, referentVariables.size());
         Assertions.assertTrue(referentVariables.containsKey("REFERENT_VARIABLE"));
         Assertions.assertTrue(referentVariables.containsKey("PHRASE_VARIABLE"));
@@ -82,8 +79,6 @@ class ReferenceEnvironmentLoaderTests {
         Map<String, String> referenceVariables = ReferenceEnvironmentLoader.getReferenceVariables(
             ReferenceEnvironmentLoaderTests.ENVIRONMENT
         );
-
-        LOGGER.debug("Referent Variables: " + referenceVariables.toString());
 
         Assertions.assertEquals(4, referenceVariables.size());
         Assertions.assertTrue(referenceVariables.containsKey("SIMPLE_REFERENCE_VARIABLE"));

@@ -1,39 +1,62 @@
 package datalabs.access.environment;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
+
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 
 public class VariableTree {
+    static final Logger LOGGER = LogManager.getLogger();
+
     String value;
     HashMap<String, VariableTree> branches = new HashMap<String, VariableTree>();
 
     private VariableTree() { }
 
     public static VariableTree fromEnvironment() {
-        return VariableTree.fromEnvironment("__")
+        return VariableTree.generate(System.getenv());
     }
 
     public static VariableTree fromEnvironment(String separator) {
+        return VariableTree.generate(System.getenv(), separator);
+    }
+
+    public static VariableTree generate(Map<String, String> variables) {
+        return generate(variables, "__");
+    }
+
+    public static VariableTree generate(Map<String, String> variables, String separator) {
+        VariableTree root = new VariableTree();
+
         variables.forEach(
-            (key, value) -> insertValue(this, key, value, separator)
+            (key, value) -> root.insertValue(key, value, separator)
         );
+
+        return root;
     }
 
     public String getValue(String[] branchPath) {
         String value = null;
-
         if (branchPath.length == 0) {
             value = this.value;
         } else {
             VariableTree branch = this.branches.get(branchPath[0]);
 
-            value = branch.getValue(Arrays.copyOfRange(branchPath, 1, branchPath.length()));
+            if (branch == null) {
+                throw new IllegalArgumentException("No branch \"" + branchPath[0] + "\"");
+            }
+
+            value = branch.getValue(Arrays.copyOfRange(branchPath, 1, branchPath.length));
         }
 
         return value;
     }
 
-    public String[] getBranches(String[] branches) {
+    public String[] getBranches(String[] branchPath) {
         String[] branchNames;
 
         if (branchPath.length == 0) {
@@ -41,43 +64,71 @@ public class VariableTree {
         } else {
             VariableTree branch = this.branches.get(branchPath[0]);
 
-            branchNames = branch.getBranches(Arrays.copyOfRange(branchPath, 1, branchPath.length()));
+            if (branch == null) {
+                throw new IllegalArgumentException("No branch \"" + branchPath[0] + "\"");
+            }
+
+            branchNames = branch.getBranches(Arrays.copyOfRange(branchPath, 1, branchPath.length));
         }
 
         return branchNames;
     }
 
-    public Map<String, String> getBranchValues(String[] branches) {
-        Map<String, String> branches = this.branches;
+    public Map<String, String> getBranchValues(String[] branchPath) {
+        Map<String, String> branches;
 
         if (branchPath.length > 0) {
             VariableTree branch = this.branches.get(branchPath[0]);
 
-            branches = branch.getBranchValues(Arrays.copyOfRange(branchPath, 1, branchPath.length()));
+            if (branch == null) {
+                throw new IllegalArgumentException("No branch \"" + branchPath[0] + "\"");
+            }
+
+            branches = branch.getBranchValues(Arrays.copyOfRange(branchPath, 1, branchPath.length));
+        } else {
+            branches = new HashMap<String, String>();
+
+            this.branches.forEach(
+                (name, branch) -> branches.put(name, branch.value)
+            );
         }
 
         return branches;
     }
 
-    insertValue(VariableTree trunk, String name, String value, String separator) {
-        if (value.contains(separator)) {
-            createBranch(trunk, name, value, separator);
-        } else {
+    void insertValue(String name, String value, String separator) {
+        if (name == null) {
             this.value = value;
+        } else {
+            String[] nameParts = getNameParts(name, separator);
+
+            VariableTree branch = getOrCreateBranch(nameParts[0], separator);
+
+            branch.insertValue(nameParts[1], value, separator);
         }
     }
 
-    createBranch(VariableTree trunk, String name, String value, String separator) {
-        VariableTree branch = null;
-        String[] nameParts = name.split(separator, 1);
+    String[] getNameParts(String name, String separator) {
+        String[] nameParts = new String[] {name, null};
 
-        if (!this.branches.containsKey(nameParts[0])) {
-            branch = new VariableTree();
-            this.branches.put(nameParts[0], branch);
-        } else {
-            branch = this.branches.get(nameParts[0]);
+        if (name.contains(separator)) {
+            nameParts = name.split(separator, 2);
         }
 
-        insertValue(branch, nameParts[1], value, separator);
+        return nameParts;
+    }
+
+    VariableTree getOrCreateBranch(String name, String separator) {
+        VariableTree branch;
+
+        if (!this.branches.containsKey(name)) {
+            branch = new VariableTree();
+
+            this.branches.put(name, branch);
+        } else {
+            branch = this.branches.get(name);
+        }
+
+        return branch;
     }
 }
