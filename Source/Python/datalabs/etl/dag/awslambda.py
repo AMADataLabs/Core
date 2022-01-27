@@ -152,14 +152,21 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
             dag=dag,
             execution_time=self._get_execution_time(),
         )
+        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
         task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
 
-        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
-
-        dag_parameters["LAMBDA_FUNCTION"] = task_parameters.get("LAMBDA_FUNCTION", dag_parameters["LAMBDA_FUNCTION"])
+        dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
 
         if task != "DAG":
             dag_parameters["task"] = task
+
+        return dag_parameters
+
+    @classmethod
+    def _override_dag_parameters(cls, dag_parameters, task_parameters):
+        for key, value in task_parameters.items():
+            if key in dag_parameters:
+                dag_parameters[key] = task_parameters[key]
 
         return dag_parameters
 

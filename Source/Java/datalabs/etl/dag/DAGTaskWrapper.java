@@ -5,10 +5,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+import datalabs.access.environment.VariableTree;
 import datalabs.etl.dag.cache.TaskDataCache;
 import datalabs.plugin.PluginImporter;
 import datalabs.task.TaskWrapper;
@@ -188,30 +191,35 @@ public class DAGTaskWrapper extends TaskWrapper {
         return parameters;
     }
 
-    static Map<String, String> getCacheParameters(Map<String, String> taskParameters, TaskDataCache.Direction direction) {
-        /* TODO: Port from Python
-        cache_parameters = {}
-        other_direction = [d[1] for d in CacheDirection.__members__.items() if d[1] != direction][0]  # pylint: disable=no-member
+    static Map<String, String> getCacheParameters(
+        Map<String, String> taskParameters,
+        TaskDataCache.Direction direction
+    ) {
+        HashMap<String, String> cacheParameters = new HashMap<String, String>();
+        TaskDataCache.Direction otherDirection = TaskDataCache.Direction.INPUT;
 
-        for key, value in task_parameters.items():
-            match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
+        if (direction == TaskDataCache.Direction.INPUT) {
+            otherDirection = TaskDataCache.Direction.OUTPUT;
+        }
 
-            if match and not match.group(2).startswith(other_direction.value+'_'):
-                cache_parameters[match.group(2)] = value
+        taskParameters.forEach(
+            (key, value) -> DAGTaskWrapper.putIfCacheVariable(key, value, cacheParameters)
+        );
 
-        return cache_parameters
-        */
-        return null;
+        return cacheParameters;
     }
 
     static Map<String, String> getParameters(String[] branch) {
-        /* TODO: Port from Python
-        var_tree = VariableTree.from_environment()
+        VariableTree variableTree = VariableTree.fromEnvironment();
 
-        candidate_parameters = var_tree.get_branch_values(branch)
+        return variableTree.getBranchValues(branch);
+    }
 
-        return {key:value for key, value in candidate_parameters.items() if value is not None}
-        */
-        return null;
+    static void putIfCacheVariable(String name, String value, Map<String, String> cacheParameters) {
+        Matcher matcher = Pattern.compile("CACHE_" + direction.name + "_(?<name>..*)").matcher(name);
+
+        if (matcher.find()) {
+            cacheParameters.put(matcher.group("name"), value);
+        }
     }
 }
