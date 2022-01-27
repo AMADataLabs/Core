@@ -98,10 +98,7 @@ public class DAGTaskWrapper extends TaskWrapper {
     }
 
     protected Map<String, String> getDAGTaskParameters() {
-        /* TODO: port from Python
-        return self._get_task_parameters_from_environment(self._get_dag_id(), self._get_task_id())
-        */
-        return null;
+        return getTaskParametersFromEnvironment(self.getDAGID(), self.getTaskID());
     }
 
     Map<String, String> mergeParameters(Map<String, String> parameters, Map<String, String>  newParameters) {
@@ -172,6 +169,21 @@ public class DAGTaskWrapper extends TaskWrapper {
 
         try {
             parameters = DAGTaskWrapper.getParameters(new String[] {dagID.toUpperCase()});
+        } catch (Exception exception) {  // FIXME: use a more specific exception
+            parameters = new HashMap<String, String>();
+        }
+
+        return parameters;
+    }
+
+    static Map<String, String> getParametersFromEnvironment(String dagID, String taskID) {
+        Map<String, String> parameters;
+
+        try {
+            parameters = DAGTaskWrapper.getParameters(
+                new String[] {dagID.toUpperCase()},
+                new String[] {taskID.toUpperCase()}
+            );
         } catch (Exception exception) {  // FIXME: use a more specific exception
             parameters = new HashMap<String, String>();
         }

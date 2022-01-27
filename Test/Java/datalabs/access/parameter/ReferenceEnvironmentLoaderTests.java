@@ -165,18 +165,4 @@ class ReferenceEnvironmentLoaderTests {
         Assertions.assertEquals(getenv("MULTI_REFERENCE_VARIABLE"), "He said, \"Woopideedoo, I love you!\"");
         Assertions.assertEquals(getenv("BAD_REFERENCE_VARIABLE"), "${SOME_NONEXISTANT_VARIABLE}");
     }
-/*
-
-
-# pylint: disable=redefined-outer-name, unused-argument
-def test_load_resolves_all_references(environment):
-    loader = ReferenceEnvironmentLoader.from_environ()
-    loader.load()
-
-    assert len(os.environ) == 7
-    assert os.environ.get('SIMPLE_REFERENCE_VARIABLE') == 'Woopideedoo'
-    assert os.environ.get('COMPLEX_REFERENCE_VARIABLE') == 'I said, "Woopideedoo!"'
-    assert os.environ.get('MULTI_REFERENCE_VARIABLE') == 'He said, "Woopideedoo, I love you!"'
-    assert os.environ.get('BAD_REFERENCE_VARIABLE') == '${SOME_NONEXISTANT_VARIABLE}'
-*/
 }

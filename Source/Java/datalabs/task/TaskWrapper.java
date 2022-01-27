@@ -6,11 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import datalabs.access.parameter.ReferenceEnvironmentLoader;
 import datalabs.task.TaskResolver;
 import datalabs.plugin.PluginImporter;
 
 
 public abstract class TaskWrapper {
+    protected Map<String, String> environment;
     protected Map<String, String> parameters;
     protected Map<String, String> runtimeParameters;
     protected Task task;
@@ -52,10 +54,8 @@ public abstract class TaskWrapper {
     }
 
     protected void setupEnvironment() {
-        /* TODO: implement ReferenceEnvironmentLoader
-        environmentLoader = ReferenceEnvironmentLoader.fromEnviron()
-        environmentLoader.load()
-        */
+        ReferenceEnvironmentLoader environmentLoader = ReferenceEnvironmentLoader.fromSystem();
+        this.environment = environmentLoader.load();
     }
 
     protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
@@ -74,9 +74,9 @@ public abstract class TaskWrapper {
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
                    ClassNotFoundException {
         Class taskResolverClass = this.getTaskResolverClass();
-        Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class});
+        Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class, Map.class});
 
-        return (Class) getTaskClass.invoke(null, runtimeParameters);
+        return (Class) getTaskClass.invoke(null, this.environment, runtimeParameters);
     }
 
     static Task createTask(Class taskClass, Map<String, String> parameters, Vector<byte[]> data)
@@ -92,7 +92,10 @@ public abstract class TaskWrapper {
     protected abstract String handleException(Exception exception);
 
     Class getTaskResolverClass() throws ClassNotFoundException {
-        String taskResolverClassName = System.getProperty("TASK_RESOLVER_CLASS", "datalabs.task.EnvironmentTaskResolver");
+        String taskResolverClassName = (String) this.environment.getOrDefault(
+            "TASK_RESOLVER_CLASS",
+            "datalabs.task.EnvironmentTaskResolver"
+        );
 
         return PluginImporter.importPlugin(taskResolverClassName);
     }
