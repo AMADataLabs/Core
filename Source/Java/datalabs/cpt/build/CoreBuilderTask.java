@@ -24,7 +24,7 @@ import datalabs.task.Task;
 public class CoreBuilderTask extends Task {
     private static final Logger logger = LoggerFactory.getLogger(CoreBuilderTask.class);
 
-    public static final Path out_dir = Paths.get("target", "buildcore_export" + "2022_from2021u05");
+    public static final Path outDir = Paths.get("target", "buildcore_export" + "2022_from2021u05");
 
     public CoreBuilderTask(Map<String, String> parameters) throws IllegalAccessException, InstantiationException,
             InvocationTargetException, NoSuchMethodException {
@@ -32,28 +32,29 @@ public class CoreBuilderTask extends Task {
     }
 
     public void run() {
-        dtkUpdate();
+        DtkAccess priorDtk = DtkAccessTest.load("2021u05");
 
-        DtkAccess prior_dtk = DtkAccessTest.load("2021u05");
-        ConceptIdFactory.init(prior_dtk);
+        coreDtkUpdate(priorDtk);
+
+        ConceptIdFactory.init(priorDtk);
         DtkAccess dtk = new BuildCore(prior_dtk, "20220101").run();
         ArrayList<DtkConcept> cons = dtk.getConcepts();
         DtkConcept.sort(cons);
 
         try {
-            fileExporter();
+            fileExporter(dtk);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void dtkUpdate() {
-        DtkAccess core_dtk = DtkAccessTest.load("2021core");
-        for (DtkConcept con : core_dtk.getConcepts()) {
+    private void coreDtkUpdate(DtkAccess priorDtk) {
+        DtkAccess coreDtk = DtkAccessTest.load("2021core");
+        for (DtkConcept con : coreDtk.getConcepts()) {
             if (con.getProperty(PropertyType.CORE_ID) != null) {
-                DtkConcept prior_con = prior_dtk.getConcept(con.getConceptId());
-                if (prior_con != null) {
-                    prior_con.update(PropertyType.CORE_ID, con.getProperty(PropertyType.CORE_ID));
+                DtkConcept priorCon = priorDtk.getConcept(con.getConceptId());
+                if (priorCon != null) {
+                    priorCon.update(PropertyType.CORE_ID, con.getProperty(PropertyType.CORE_ID));
                 } else {
                     logger.warn("Apparently deleted: " + con.getLogString());
                 }
@@ -61,9 +62,9 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-    private void fileExporter() throws IOException {
-        Files.createDirectories(out_dir);
-        Exporter exp = new Exporter(dtk, out_dir.toString());
+    private void fileExporter(DtkAccess dtk) throws IOException {
+        Files.createDirectories(outDir);
+        Exporter exp = new Exporter(dtk, outDir.toString());
         exp.setDelimiter(Delimiter.Pipe);
         exp.export(cons, true);
     }
