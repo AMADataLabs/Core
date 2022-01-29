@@ -11,7 +11,7 @@ import datalabs.task.TaskResolver;
 import datalabs.plugin.PluginImporter;
 
 
-public abstract class TaskWrapper {
+public class TaskWrapper {
     protected Map<String, String> environment;
     protected Map<String, String> parameters;
     protected Map<String, String> runtimeParameters;
@@ -75,6 +75,10 @@ public abstract class TaskWrapper {
                    ClassNotFoundException {
         Class taskResolverClass = this.getTaskResolverClass();
         Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class, Map.class});
+        System.out.println("Task Resolver: " + taskResolverClass);
+        System.out.println("Method: " + getTaskClass);
+        System.out.println("Environment: " + this.environment);
+        System.out.println("Runtime Parameters: " + runtimeParameters);
 
         return (Class) getTaskClass.invoke(null, this.environment, runtimeParameters);
     }
@@ -87,9 +91,15 @@ public abstract class TaskWrapper {
     protected void preRun() {
     }
 
-    protected abstract String handleSuccess();
+    protected String handleSuccess() {
+        return "Success";
+    }
 
-    protected abstract String handleException(Exception exception);
+    protected String handleException(Exception exception) {
+        exception.printStackTrace();
+
+        return exception.getMessage();
+    }
 
     Class getTaskResolverClass() throws ClassNotFoundException {
         String taskResolverClassName = (String) this.environment.getOrDefault(

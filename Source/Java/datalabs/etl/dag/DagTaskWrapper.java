@@ -17,11 +17,11 @@ import datalabs.plugin.PluginImporter;
 import datalabs.task.TaskWrapper;
 
 
-public class DAGTaskWrapper extends TaskWrapper {
+public class DagTaskWrapper extends TaskWrapper {
     Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
     static final Logger LOGGER = LogManager.getLogger();
 
-    public DAGTaskWrapper(Map<String, String> parameters) {
+    public DagTaskWrapper(Map<String, String> parameters) {
         super(parameters);
 
         this.cacheParameters = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
@@ -31,8 +31,11 @@ public class DAGTaskWrapper extends TaskWrapper {
     }
 
     @Override
-    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
-        String[] runtimeParameterValues = parameters.get("args").split("__", 3);
+    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws IllegalArgumentException {
+        if (!parameters.containsKey("args")) {
+            throw new IllegalArgumentException("Missing \"args\" runtime parameter.");
+        }
+        String[] runtimeParameterValues = parameters.get("args").split(" ", 2)[1].split("__", 3);
 
         return new HashMap<String, String>() {{
             put("dag", runtimeParameterValues[0]);
@@ -44,7 +47,7 @@ public class DAGTaskWrapper extends TaskWrapper {
     @Override
     protected Map<String, String> getTaskParameters() {
         Map<String, String> defaultParameters = this.getDefaultParameters();
-        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, this.getDAGTaskParameters());
+        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, this.getDagTaskParameters());
 
         taskParameters = this.extractCacheParameters(taskParameters);
 
@@ -71,6 +74,7 @@ public class DAGTaskWrapper extends TaskWrapper {
     @Override
     protected String handleException(Exception exception) {
         LOGGER.error("Handling DAG task exception: " + exception.getMessage());
+        exception.printStackTrace();
 
         return null;
     }
@@ -91,7 +95,7 @@ public class DAGTaskWrapper extends TaskWrapper {
     }
 
     protected Map<String, String> getDefaultParameters() {
-        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDAGID());
+        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDagID());
         String execution_time = getExecutionTime();
 
         dagParameters.put("EXECUTION_TIME", execution_time);
@@ -100,8 +104,8 @@ public class DAGTaskWrapper extends TaskWrapper {
         return dagParameters;
     }
 
-    protected Map<String, String> getDAGTaskParameters() {
-        return getTaskParametersFromEnvironment(getDAGID(), getTaskID());
+    protected Map<String, String> getDagTaskParameters() {
+        return getTaskParametersFromEnvironment(getDagID(), getTaskID());
     }
 
     Map<String, String> mergeParameters(Map<String, String> parameters, Map<String, String>  newParameters) {
@@ -155,7 +159,7 @@ public class DAGTaskWrapper extends TaskWrapper {
         return plugin;
     }
 
-    protected String getDAGID() {
+    protected String getDagID() {
         return this.runtimeParameters.get("dag").toUpperCase();
     }
 
@@ -171,7 +175,7 @@ public class DAGTaskWrapper extends TaskWrapper {
         Map<String, String> parameters;
 
         try {
-            parameters = DAGTaskWrapper.getParameters(new String[] {dagID.toUpperCase()});
+            parameters = DagTaskWrapper.getParameters(new String[] {dagID.toUpperCase()});
         } catch (Exception exception) {  // FIXME: use a more specific exception
             parameters = new HashMap<String, String>();
         }
@@ -183,7 +187,7 @@ public class DAGTaskWrapper extends TaskWrapper {
         Map<String, String> parameters;
 
         try {
-            parameters = DAGTaskWrapper.getParameters(new String[] {dagID.toUpperCase(), taskID.toUpperCase()});
+            parameters = DagTaskWrapper.getParameters(new String[] {dagID.toUpperCase(), taskID.toUpperCase()});
         } catch (Exception exception) {  // FIXME: use a more specific exception
             parameters = new HashMap<String, String>();
         }
@@ -203,7 +207,7 @@ public class DAGTaskWrapper extends TaskWrapper {
         }
 
         taskParameters.forEach(
-            (key, value) -> DAGTaskWrapper.putIfCacheVariable(key, value, cacheParameters)
+            (key, value) -> DagTaskWrapper.putIfCacheVariable(key, value, direction, cacheParameters)
         );
 
         return cacheParameters;
@@ -215,8 +219,13 @@ public class DAGTaskWrapper extends TaskWrapper {
         return variableTree.getBranchValues(branch);
     }
 
-    static void putIfCacheVariable(String name, String value, Map<String, String> cacheParameters) {
-        Matcher matcher = Pattern.compile("CACHE_" + direction.name + "_(?<name>..*)").matcher(name);
+    static void putIfCacheVariable(
+        String name,
+        String value,
+        TaskDataCache.Direction direction,
+        Map<String, String> cacheParameters
+    ) {
+        Matcher matcher = Pattern.compile("CACHE_" + direction.name() + "_(?<name>..*)").matcher(name);
 
         if (matcher.find()) {
             cacheParameters.put(matcher.group("name"), value);

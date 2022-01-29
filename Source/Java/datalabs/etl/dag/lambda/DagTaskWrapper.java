@@ -2,25 +2,28 @@ package datalabs.etl.dag.lambda;
 
 import java.util.Map;
 
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+
 import datalabs.task.Task;
 
 
 /*
 @add_schema(unknowns=True)
 @dataclass
-class DAGTaskWrapperParameters:
+class DagTaskWrapperParameters:
     dag: str
     task: str
     execution_time: str
     unknowns: dict=None
 */
 
-public class DAGTaskWrapper extends datalabs.etl.dag.DAGTaskWrapper {
-    public DAGTaskWrapper(Map<String, String> parameters) {
+public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
+    public DagTaskWrapper(Map<String, String> parameters) {
         super(parameters);
     }
 
-    protected getDAGTaskParametersFromDynamoDB(String dag, String task) {
+    protected Map<String, String> getDAGTaskParametersFromDynamoDB(String dag, String task) {
+        // DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
     /*
         @classmethod
         def _get_dag_task_parameters_from_dynamodb(cls, dag: str, task: str):
@@ -35,6 +38,7 @@ public class DAGTaskWrapper extends datalabs.etl.dag.DAGTaskWrapper {
 
             return parameters
     */
+        return null;
     }
 
     protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
@@ -62,7 +66,7 @@ public class DAGTaskWrapper extends datalabs.etl.dag.DAGTaskWrapper {
         return parameters
         */
 
-        return runtimeParameters;
+        return null;
     }
 
     protected void preRun() {
@@ -96,6 +100,7 @@ public class DAGTaskWrapper extends datalabs.etl.dag.DAGTaskWrapper {
         //
         // return "Success"
 
+        return null;
     }
 
     protected String handleException(Exception exception) {
@@ -120,6 +125,7 @@ public class DAGTaskWrapper extends datalabs.etl.dag.DAGTaskWrapper {
         // )
         //
         // return f'Failed: {str(exception)}'
+        return null;
     }
 
     protected Map<String, String> getDAGTaskParameters() {
@@ -137,6 +143,7 @@ public class DAGTaskWrapper extends datalabs.etl.dag.DAGTaskWrapper {
         //
         // return dag_task_parameters
 
+        return null;
     }
 
     Map<String, String> getTaskWrapperParameters() {
@@ -145,6 +152,7 @@ public class DAGTaskWrapper extends datalabs.etl.dag.DAGTaskWrapper {
         // parameters = self._get_validated_parameters(parameters)
         //
         // return parameters
+        return null;
     }
 
     void notifyTaskProcessor(Task task) {

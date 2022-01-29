@@ -164,7 +164,7 @@ class ProcessorTaskWrapper(ExecutionTimeMixin, DynamoDBTaskParameterGetterMixin,
 
     @classmethod
     def _override_dag_parameters(cls, dag_parameters, task_parameters):
-        for key, value in task_parameters.items():
+        for key, _ in task_parameters.items():
             if key in dag_parameters:
                 dag_parameters[key] = task_parameters[key]
 
