@@ -6,11 +6,12 @@ import datalabs.plugin.PluginImporter;
 
 
 public class EnvironmentTaskResolver {
-    public Class getTaskClass(Map<String, String> parameters) throws ClassNotFoundException {
-        String taskClassName = System.getProperty("TASK_RESOLVER_CLASS");
+    public static Class getTaskClass(Map<String, String>  environment, Map<String, String> parameters)
+            throws ClassNotFoundException {
+        String taskClassName = environment.get("TASK_CLASS");
 
         if (taskClassName == null) {
-            throw new IllegalArgumentException("The environment variable \"TASK_RESOLVER_CLASS\" is not set.");
+            throw new IllegalArgumentException("The environment variable \"TASK_CLASS\" is not set.");
         }
 
         return PluginImporter.importPlugin(taskClassName);

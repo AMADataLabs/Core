@@ -14,7 +14,9 @@ public abstract class Task {
 
     public Task(Map<String, String> parameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        this.parameters = (Parameters) PARAMETER_CLASS.getConstructor(new Class[] {Map.class}).newInstance(parameters);
+        if (PARAMETER_CLASS != null) {
+            this.parameters = (Parameters) PARAMETER_CLASS.getConstructor(new Class[] {Map.class}).newInstance(parameters);
+        }
     }
 
     public Task(Map<String, String> parameters, Vector<byte[]> data)

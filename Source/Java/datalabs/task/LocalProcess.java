@@ -16,7 +16,7 @@ public class LocalProcess {
                    ClassNotFoundException {
         String taskWrapperClassName = System.getProperty("TASK_WRAPPER_CLASS");
         Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
-        Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {String[].class});
+        Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
         HashMap<String, String> parameters = new HashMap<String, String>() {{
             put("args", String.join(" ", args));
         }};

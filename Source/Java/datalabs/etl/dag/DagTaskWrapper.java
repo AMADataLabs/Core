@@ -5,20 +5,23 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+import datalabs.access.environment.VariableTree;
 import datalabs.etl.dag.cache.TaskDataCache;
 import datalabs.plugin.PluginImporter;
 import datalabs.task.TaskWrapper;
 
 
-public class DAGTaskWrapper extends TaskWrapper {
+public class DagTaskWrapper extends TaskWrapper {
     Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
     static final Logger LOGGER = LogManager.getLogger();
 
-    public DAGTaskWrapper(Map<String, String> parameters) {
+    public DagTaskWrapper(Map<String, String> parameters) {
         super(parameters);
 
         this.cacheParameters = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
@@ -28,8 +31,11 @@ public class DAGTaskWrapper extends TaskWrapper {
     }
 
     @Override
-    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
-        String[] runtimeParameterValues = parameters.get("args").split("__", 3);
+    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws IllegalArgumentException {
+        if (!parameters.containsKey("args")) {
+            throw new IllegalArgumentException("Missing \"args\" runtime parameter.");
+        }
+        String[] runtimeParameterValues = parameters.get("args").split(" ", 2)[1].split("__", 3);
 
         return new HashMap<String, String>() {{
             put("dag", runtimeParameterValues[0]);
@@ -41,7 +47,7 @@ public class DAGTaskWrapper extends TaskWrapper {
     @Override
     protected Map<String, String> getTaskParameters() {
         Map<String, String> defaultParameters = this.getDefaultParameters();
-        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, this.getDAGTaskParameters());
+        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, this.getDagTaskParameters());
 
         taskParameters = this.extractCacheParameters(taskParameters);
 
@@ -68,6 +74,7 @@ public class DAGTaskWrapper extends TaskWrapper {
     @Override
     protected String handleException(Exception exception) {
         LOGGER.error("Handling DAG task exception: " + exception.getMessage());
+        exception.printStackTrace();
 
         return null;
     }
@@ -88,7 +95,7 @@ public class DAGTaskWrapper extends TaskWrapper {
     }
 
     protected Map<String, String> getDefaultParameters() {
-        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDAGID());
+        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDagID());
         String execution_time = getExecutionTime();
 
         dagParameters.put("EXECUTION_TIME", execution_time);
@@ -97,11 +104,8 @@ public class DAGTaskWrapper extends TaskWrapper {
         return dagParameters;
     }
 
-    protected Map<String, String> getDAGTaskParameters() {
-        /* TODO: port from Python
-        return self._get_task_parameters_from_environment(self._get_dag_id(), self._get_task_id())
-        */
-        return null;
+    protected Map<String, String> getDagTaskParameters() {
+        return getTaskParametersFromEnvironment(getDagID(), getTaskID());
     }
 
     Map<String, String> mergeParameters(Map<String, String> parameters, Map<String, String>  newParameters) {
@@ -155,7 +159,7 @@ public class DAGTaskWrapper extends TaskWrapper {
         return plugin;
     }
 
-    protected String getDAGID() {
+    protected String getDagID() {
         return this.runtimeParameters.get("dag").toUpperCase();
     }
 
@@ -171,7 +175,7 @@ public class DAGTaskWrapper extends TaskWrapper {
         Map<String, String> parameters;
 
         try {
-            parameters = DAGTaskWrapper.getParameters(new String[] {dagID.toUpperCase()});
+            parameters = DagTaskWrapper.getParameters(new String[] {dagID.toUpperCase()});
         } catch (Exception exception) {  // FIXME: use a more specific exception
             parameters = new HashMap<String, String>();
         }
@@ -179,30 +183,52 @@ public class DAGTaskWrapper extends TaskWrapper {
         return parameters;
     }
 
-    static Map<String, String> getCacheParameters(Map<String, String> taskParameters, TaskDataCache.Direction direction) {
-        /* TODO: Port from Python
-        cache_parameters = {}
-        other_direction = [d[1] for d in CacheDirection.__members__.items() if d[1] != direction][0]  # pylint: disable=no-member
+    static Map<String, String> getTaskParametersFromEnvironment(String dagID, String taskID) {
+        Map<String, String> parameters;
 
-        for key, value in task_parameters.items():
-            match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
+        try {
+            parameters = DagTaskWrapper.getParameters(new String[] {dagID.toUpperCase(), taskID.toUpperCase()});
+        } catch (Exception exception) {  // FIXME: use a more specific exception
+            parameters = new HashMap<String, String>();
+        }
 
-            if match and not match.group(2).startswith(other_direction.value+'_'):
-                cache_parameters[match.group(2)] = value
+        return parameters;
+    }
 
-        return cache_parameters
-        */
-        return null;
+    static Map<String, String> getCacheParameters(
+        Map<String, String> taskParameters,
+        TaskDataCache.Direction direction
+    ) {
+        HashMap<String, String> cacheParameters = new HashMap<String, String>();
+        TaskDataCache.Direction otherDirection = TaskDataCache.Direction.INPUT;
+
+        if (direction == TaskDataCache.Direction.INPUT) {
+            otherDirection = TaskDataCache.Direction.OUTPUT;
+        }
+
+        taskParameters.forEach(
+            (key, value) -> DagTaskWrapper.putIfCacheVariable(key, value, direction, cacheParameters)
+        );
+
+        return cacheParameters;
     }
 
     static Map<String, String> getParameters(String[] branch) {
-        /* TODO: Port from Python
-        var_tree = VariableTree.from_environment()
+        VariableTree variableTree = VariableTree.fromEnvironment();
 
-        candidate_parameters = var_tree.get_branch_values(branch)
+        return variableTree.getBranchValues(branch);
+    }
 
-        return {key:value for key, value in candidate_parameters.items() if value is not None}
-        */
-        return null;
+    static void putIfCacheVariable(
+        String name,
+        String value,
+        TaskDataCache.Direction direction,
+        Map<String, String> cacheParameters
+    ) {
+        Matcher matcher = Pattern.compile("CACHE_" + direction.name() + "_(?<name>..*)").matcher(name);
+
+        if (matcher.find()) {
+            cacheParameters.put(matcher.group("name"), value);
+        }
     }
 }

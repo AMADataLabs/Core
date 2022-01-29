@@ -26,11 +26,11 @@ public class ReferenceEnvironmentLoader {
         this.matchLimit = matchLimit;
     }
 
-    public void load() {
-        load(null);
+    public Map<String, String> load() {
+        return load(null);
     }
 
-    public void load(Map<String, String> environment) {
+    public Map<String, String> load(Map<String, String> environment) {
         if (environment == null) {
             environment = new HashMap(System.getenv());
         }
@@ -40,13 +40,15 @@ public class ReferenceEnvironmentLoader {
         Map<String, String> resolvedReferenceVariables = resolveReferenceVariables(referenceVariables, this.parameters);
 
         environment.putAll(resolvedReferenceVariables);
+
+        return environment;
     }
 
-    public static ReferenceEnvironmentLoader fromEnvironment() {
-        return fromEnvironment(50);
+    public static ReferenceEnvironmentLoader fromSystem() {
+        return fromSystem(50);
     }
 
-    public static ReferenceEnvironmentLoader fromEnvironment(int matchLimit) {
+    public static ReferenceEnvironmentLoader fromSystem(int matchLimit) {
         Map<String, String> parameters = getReferentVariables(System.getenv());
 
         return new ReferenceEnvironmentLoader(parameters, matchLimit=matchLimit);
@@ -96,7 +98,6 @@ public class ReferenceEnvironmentLoader {
         Matcher matcher = Pattern.compile("\\$\\{(?<name>[^${}]+)\\}").matcher(value);
         String resolvedValue = "";
         int index = 0;
-        LOGGER.debug("Reference Value: " + value);
 
         while (matcher.find()) {
             resolvedValue += value.substring(index, matcher.start());
@@ -104,11 +105,9 @@ public class ReferenceEnvironmentLoader {
             resolvedValue += parameters.getOrDefault(matcher.group("name"), "${" + matcher.group("name") + "}");
 
             index = matcher.end();
-            LOGGER.debug("Resolved Value (Part): " + resolvedValue);
         }
 
         resolvedValue += value.substring(index);
-        LOGGER.debug("Resolved Value: " + resolvedValue);
 
         return resolvedValue;
     }
