@@ -65,7 +65,7 @@ public class DTKBuilderTask extends Task {
             e.printStackTrace();
         }
 
-        siUpdate();
+        updateSnomedInactives();
 
         try {
             createHeading(priorDtk, dtk);
@@ -80,7 +80,7 @@ public class DTKBuilderTask extends Task {
         }
 
         try {
-            workBookRoles(dtk);
+            buildWorkBookRoles(dtk);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -89,13 +89,13 @@ public class DTKBuilderTask extends Task {
         DtkConcept.sort(cons);
 
         try {
-            fileExporter(dtk);
+            exportFiles(dtk);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
         try {
-            fileExtractor(dtk);
+            extractFiles(dtk);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -185,7 +185,7 @@ public class DTKBuilderTask extends Task {
 
     }
     
-    private void siUpdate() {
+    private void updateSnomedInactives() {
         SnomedInactivesUpdate siUpdate = new SnomedInactivesUpdate(dtk, snomed);
         siUpdate.processUpdate(Paths.get("dtk-versions", "2022", "00inputs", "snomed-inactives.xlsx").toString());
         siUpdate.retireUnusedInactive();
@@ -219,14 +219,14 @@ public class DTKBuilderTask extends Task {
         wb.createSnomedInactives(directory);
     }
 
-    private void workBookRoles(DtkAccess dtk) throws IOException {
+    private void buildWorkBookRoles(DtkAccess dtk) throws IOException {
         Path directory = Paths.get("target", "builddtk_roles" + "2022");
         Files.createDirectories(directory);
         RolesWorkbookBuilder wb = new RolesWorkbookBuilder(dtk);
         wb.list(directory, "2022", "20210101");
     }
 
-    private void fileExporter(DtkAccess dtk) throws IOException {
+    private void exportFiles(DtkAccess dtk) throws IOException {
         Path directory = Paths.get("target", "builddtk_export" + "2022");
         Files.createDirectories(directory);
         Exporter exp = new Exporter(dtk, directory.toString());
@@ -238,7 +238,7 @@ public class DTKBuilderTask extends Task {
         expOwl.export(cons);
     }
 
-    private void fileExtractor(DtkAccess dtk) throws IOException {
+    private void extractFiles(DtkAccess dtk) throws IOException {
         Path directory = Paths.get("target", "builddtk_extracts" + "2022");
         Files.createDirectories(directory);
         Extracts extracts = new Extracts(dtk, directory.toString());
