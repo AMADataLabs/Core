@@ -33,7 +33,7 @@ public class CoreBuilderTask extends Task {
     public void run() {
         DtkAccess priorDtk = DtkAccessTest.load("2021u05");
 
-        coreDtkUpdate(priorDtk);
+        updateConcepts(priorDtk);
 
         ConceptIdFactory.init(priorDtk);
         DtkAccess dtk = new BuildCore(prior_dtk, "20220101").run();
@@ -41,13 +41,13 @@ public class CoreBuilderTask extends Task {
         DtkConcept.sort(cons);
 
         try {
-            fileExporter(dtk);
+            exportConcepts(dtk);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void coreDtkUpdate(DtkAccess priorDtk) {
+    private void updateConcepts(DtkAccess priorDtk) {
         DtkAccess coreDtk = DtkAccessTest.load("2021core");
         for (DtkConcept con : coreDtk.getConcepts()) {
             if (con.getProperty(PropertyType.CORE_ID) != null) {
@@ -61,7 +61,7 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-    private void fileExporter(DtkAccess dtk) throws IOException {
+    private void exportConcepts(DtkAccess dtk) throws IOException {
         Files.createDirectories(outDir);
         Exporter exp = new Exporter(dtk, outDir.toString());
         exp.setDelimiter(Delimiter.Pipe);
