@@ -10,6 +10,7 @@ from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
+from   datalabs.etl.dag.notify.email import StatusEmailNotifier
 from   datalabs.etl.dag.state import Status
 from   datalabs.etl.dag.plugin import PluginExecutorMixin
 import datalabs.etl.dag.task
@@ -219,6 +220,9 @@ class DAGTaskWrapper(
         if parameters.task == "DAG":
             for task in self.task.triggered_tasks:
                 self._notify_task_processor(task)
+
+            if self.task.status in [Status.FINISHED, Status.FAILED]:
+                self._send_status_notification()
         else:
             state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
 
@@ -287,3 +291,14 @@ class DAGTaskWrapper(
         notifier = SNSDAGNotifier(dag_topic)
 
         notifier.notify(self._get_dag_id(), self._get_execution_time())
+
+    def _send_status_notification(self):
+        raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")
+
+        if raw_email_list is not None:
+            emails = raw_email_list.split(',')
+            environment = self._runtime_parameters.get("ENVIRONMENT")
+            from_account = self._runtime_parameters.get("STATUS_NOTIFICATION_FROM")
+            notifier = StatusEmailNotifier(emails, environment, from_account)
+
+            notifier.notify(self._get_dag_id(), self._get_execution_time(), self.task.status)
