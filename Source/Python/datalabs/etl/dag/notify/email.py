@@ -17,11 +17,11 @@ class StatusEmailNotifier():
 
     def notify(self, dag, execution_time, status):
         message = 'The {} DAG run at {} UTC in the {} environment has status {}.'.format(
-                                                                                dag,
-                                                                                execution_time,
-                                                                                self.environment,
-                                                                                status.name
-                                                                                )
+            dag,
+            execution_time,
+            self.environment,
+            status.name
+        )
         subject = '[DAG STATUS] {} {} {}'.format(self.environment, dag, status.name)
 
         send_email(self.emails, subject, body=message, from_account=self.from_account)
