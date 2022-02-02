@@ -1,10 +1,4 @@
 """ source: datalabs.etl.http.extract """
-import os
-from   pathlib import Path
-import random
-
-import mock
-import pandas
 import pytest
 
 from   datalabs.etl.http.extract import HTTPFileExtractorTask, HTTPFileListExtractorTask
@@ -42,14 +36,11 @@ def expected_urls():
         'https://your.bogus.domain.test/harhar',
         'https://mystical.ginger.prince.com/faces/everywhere'
     ]
-    return dict(
-        URLS='https://my.bogus.domain.test/hardee,https://your.bogus.domain.test/harhar,https://mystical.ginger.prince.com/faces/everywhere',
-        EXECUTION_TIME='1997-08-29T07:14:00'
-    )
 
 
 @pytest.fixture
 def parameters():
+    # pylint: disable=line-too-long
     return dict(
         URLS='https://my.bogus.domain.test/hardee,https://your.bogus.domain.test/harhar,https://mystical.ginger.prince.com/faces/everywhere',
         EXECUTION_TIME='1997-08-29T07:14:00'

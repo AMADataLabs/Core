@@ -1,5 +1,4 @@
 """Task for DAG status notifications"""
-import json
 import logging
 
 from   datalabs.messaging.email_message import send_email
@@ -25,4 +24,4 @@ class StatusEmailNotifier():
         subject = '[DAG STATUS] {} {} {}'.format(self.environment, dag, status.name)
 
         send_email(self.emails, subject, body=message, from_account=self.from_account)
-        LOGGER.info('EMAIL SENT TO {}'.format(self.emails))
+        LOGGER.info('EMAIL SENT TO %s', self.emails)
