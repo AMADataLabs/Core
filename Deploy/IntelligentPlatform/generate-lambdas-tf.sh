@@ -10,6 +10,8 @@ LAMBDA_DATA=(
     "addOrg:5"
     "addUsers:30"
     "bulkEditUsers:18"
+    "checkOrganizationExists:5"
+    "checkSubmittedQuote:5"
     "createAgreementDetail:28"
     "createNewQuote:20"
     "clearTokens:45"
