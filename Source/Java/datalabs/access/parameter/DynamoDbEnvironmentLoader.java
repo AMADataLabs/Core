@@ -8,7 +8,9 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.DynamoDbException;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 
 import datalabs.access.parameter.ReferenceEnvironmentLoader;
 
@@ -44,7 +46,7 @@ public class DynamoDbEnvironmentLoader {
         Map<String, String> globalVariables = getParametersFromDynamoDb("GLOBAL");
         Map<String, String> parameters = getParametersFromDynamoDB(this.task);
 
-        ReferenceEnvironmentLoader(globalVariables).load(environment=parameters)
+        ReferenceEnvironmentLoader(globalVariables).load(environment=parameters);
 
         environment.putAll(parameters);
     }
@@ -52,7 +54,7 @@ public class DynamoDbEnvironmentLoader {
     Map<String, String> getParametersFromDynamoDB(String task) {
         DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
         Map<String, AttributeValue> key = this.getKey(task);
-        Map<String, String> parameters = null
+        Map<String, String> parameters = null;
 
         try {
             parameters = DynamoDbEnvironmentLoader.getRowFromTable(this.table, key);
@@ -73,7 +75,7 @@ public class DynamoDbEnvironmentLoader {
 
     Map<String, String> getItemFromTable(String table, Map<String, AttributeValue> key) throws DynamoDbException{
         GetItemRequest request = GetItemRequest.builder().key(key).tableName(this.table).build();
-        HashMap<String, String> parameters = new HashMap<String, String();
+        HashMap<String, String> parameters = new HashMap<String, String>();
 
         Map<String, AttributeValue> item = dynamodb.getItem(request).item();
 
@@ -82,7 +84,7 @@ public class DynamoDbEnvironmentLoader {
         }
 
         item.forEach(
-            (column, value) -> parameters.put(column, value.toString()
+            (column, value) -> parameters.put(column, value.toString())
         );
 
         return parameters;
