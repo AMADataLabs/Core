@@ -2,8 +2,6 @@ package datalabs.etl.dag.lambda;
 
 import java.util.Map;
 
-import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-
 import datalabs.task.Task;
 
 

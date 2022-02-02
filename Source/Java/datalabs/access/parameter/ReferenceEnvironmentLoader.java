@@ -27,14 +27,10 @@ public class ReferenceEnvironmentLoader {
     }
 
     public Map<String, String> load() {
-        return load(null);
+        return load(new HashMap(System.getenv()));
     }
 
     public Map<String, String> load(Map<String, String> environment) {
-        if (environment == null) {
-            environment = new HashMap(System.getenv());
-        }
-
         Map<String, String> referenceVariables = getReferenceVariables(environment);
 
         Map<String, String> resolvedReferenceVariables = resolveReferenceVariables(referenceVariables, this.parameters);
