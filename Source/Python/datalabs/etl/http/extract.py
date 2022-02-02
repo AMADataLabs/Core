@@ -1,5 +1,6 @@
 """ HTTP File Extractor """
 from   dataclasses import dataclass
+import itertools
 import requests
 
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
@@ -37,8 +38,21 @@ class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
         return text.content
 
 
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class HTTPFileListExtractorParameters:
+    execution_time: str = None
+    data: object = None
+
+
 class HTTPFileListExtractorTask(HTTPFileExtractorTask):
-    PARAMETER_CLASS = None
+    PARAMETER_CLASS = HTTPFileListExtractorParameters
 
     def _get_files(self):
-        return [url.decode() for url in self._parameters['data'][0].split(b'\n')]
+        return list(itertools.chain.from_iterable(self._parse_url_lists(self._parameters.data)))
+
+    @classmethod
+    def _parse_url_lists(cls, data):
+        for url_list in data:
+            yield [url.decode().strip() for url in url_list.split(b'\n')]
