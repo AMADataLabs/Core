@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbException;
 
 import datalabs.access.parameter.ReferenceEnvironmentLoader;
 
@@ -50,31 +51,41 @@ public class DynamoDbEnvironmentLoader {
 
     Map<String, String> getParametersFromDynamoDB(String task) {
         DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
+        Map<String, AttributeValue> key = this.getKey(task);
+        Map<String, String> parameters = null
 
-        HashMap<String, AttributeValue> key = new HashMap<String, AttributeValue>() {{
+        try {
+            parameters = DynamoDbEnvironmentLoader.getRowFromTable(this.table, key);
+        } catch (DynamoDbException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
+
+        return parameters;
+    }
+
+    HashMap<String, AttributeValue> getKey(String task) {
+        return new HashMap<String, AttributeValue>() {{
             put("DAG", AttributeValue.builder().s(this.dag).build());
             put("Task", AttributeValue.builder().s(task).build());
         }};
+    }
 
+    Map<String, String> getItemFromTable(String table, Map<String, AttributeValue> key) throws DynamoDbException{
         GetItemRequest request = GetItemRequest.builder().key(key).tableName(this.table).build();
+        HashMap<String, String> parameters = new HashMap<String, String();
 
-        // try {
-        //     Map<String,AttributeValue> returnedItem = ddb.getItem(request).item();
-        //
-        //     if (returnedItem != null) {
-        //         Set<String> keys = returnedItem.keySet();
-        //         System.out.println("Amazon DynamoDB table attributes: \n");
-        //
-        //         for (String key1 : keys) {
-        //             System.out.format("%s: %s\n", key1, returnedItem.get(key1).toString());
-        //         }
-        //     } else {
-        //         System.out.format("No item found with the key %s!\n", key);
-        //     }
-        // } catch (DynamoDbException e) {
-        //     System.err.println(e.getMessage());
-        //     System.exit(1);
-        // }
+        Map<String, AttributeValue> item = dynamodb.getItem(request).item();
+
+        if (item == null) {
+            throw IllegalArgumentException("Not data in DynamoDB table \"" + table + "\" for the given key.");
+        }
+
+        item.forEach(
+            (column, value) -> parameters.put(column, value.toString()
+        );
+
+        return parameters;
     }
 }
 
