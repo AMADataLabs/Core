@@ -195,3 +195,14 @@ class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252', errors='backslashreplace').encode()
+
+
+class S3FileListExtractorTask(S3FileExtractorTask):
+    def _get_files(self):
+        base_path = self._get_latest_path()
+        files = self._parameters.files.splitlines()
+
+        if base_path:
+            files = ['/'.join((base_path, file.strip())) for file in files]
+
+        return files
