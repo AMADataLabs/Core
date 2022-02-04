@@ -10,7 +10,6 @@ import java.util.Map;
 
 import org.ama.dtk.Delimiter;
 import org.ama.dtk.DtkAccess;
-import org.ama.dtk.DtkAccessTest;
 import org.ama.dtk.Exporter;
 import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.PropertyType;
@@ -31,7 +30,7 @@ public class CoreBuilderTask extends Task {
     }
 
     public void run() {
-        DtkAccess priorDtk = DtkAccessTest.load("2021u05");
+        DtkAccess priorDtk = CoreBuilderTask.loadDtk("dtk-versions/2021u05/");
 
         updateConcepts(priorDtk);
 
@@ -47,8 +46,19 @@ public class CoreBuilderTask extends Task {
         }
     }
 
+	private static DtkAccess loadDtk(String directory) throws Exception {
+		DtkAccess dtk = new DtkAccess();
+
+		dtk.load(
+            directory + ExporterFiles.PropertyInternal.getFileNameExt(),
+			directory + ExporterFiles.RelationshipGroup.getFileNameExt()
+        );
+
+		return dtk;
+	}
+
     private void updateConcepts(DtkAccess priorDtk) {
-        DtkAccess coreDtk = DtkAccessTest.load("2021core");
+        DtkAccess coreDtk = CoreBuilderTask.loadDtk("dtk-versions/2021core/");
         for (DtkConcept con : coreDtk.getConcepts()) {
             if (con.getProperty(PropertyType.CORE_ID) != null) {
                 DtkConcept priorCon = priorDtk.getConcept(con.getConceptId());
