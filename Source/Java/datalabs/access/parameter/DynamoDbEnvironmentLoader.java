@@ -42,50 +42,59 @@ public class DynamoDbEnvironmentLoader {
         load(new HashMap(System.getenv()));
     }
 
-    public void load(Map<String, String> environment) {
+    public Map<String, String> load(Map<String, String> environment) throws IllegalArgumentException {
         Map<String, String> globalVariables = getParametersFromDynamoDb("GLOBAL");
-        Map<String, String> parameters = getParametersFromDynamoDB(this.task);
-
-        ReferenceEnvironmentLoader(globalVariables).load(environment=parameters);
-
-        environment.putAll(parameters);
-    }
-
-    Map<String, String> getParametersFromDynamoDB(String task) {
-        DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
-        Map<String, AttributeValue> key = this.getKey(task);
-        Map<String, String> parameters = null;
+        Map<String, String> parameters;
 
         try {
-            parameters = DynamoDbEnvironmentLoader.getRowFromTable(this.table, key);
+            parameters = getParametersFromDynamoDB(this.task);
         } catch (DynamoDbException e) {
             System.err.println(e.getMessage());
             System.exit(1);
         }
 
+        if (parameters == null) {
+            throw IllegalArgumentException(
+                "No data in DynamoDB table \"" + this.table + "\" for " + this.dag + " DAG task \"" + this.task + "\"."
+            );
+        }
+
+        ReferenceEnvironmentLoader(globalVariables).load(parameters);
+
+        environment.putAll(parameters);
+
+        return environment;
+    }
+
+    Map<String, String> getParametersFromDynamoDB(String task) throws DynamoDbException {
+        DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
+        Map<String, AttributeValue> key = DynamoDbEnvironmentLoader.getKey(this.dag, task);
+
+        return DynamoDbEnvironmentLoader.getParametersFromTable(this.table, key);
+
         return parameters;
     }
 
-    HashMap<String, AttributeValue> getKey(String task) {
+    static HashMap<String, AttributeValue> getKey(String dag, String task) {
         return new HashMap<String, AttributeValue>() {{
-            put("DAG", AttributeValue.builder().s(this.dag).build());
+            put("DAG", AttributeValue.builder().s(dag).build());
             put("Task", AttributeValue.builder().s(task).build());
         }};
     }
 
-    Map<String, String> getItemFromTable(String table, Map<String, AttributeValue> key) throws DynamoDbException{
-        GetItemRequest request = GetItemRequest.builder().key(key).tableName(this.table).build();
-        HashMap<String, String> parameters = new HashMap<String, String>();
+    static Map<String, String> getParametersFromTable(String table, Map<String, AttributeValue> key) throws DynamoDbException{
+        GetItemRequest request = GetItemRequest.builder().key(key).tableName(ttable).build();
+        HashMap<String, String> parameters = null;
 
         Map<String, AttributeValue> item = dynamodb.getItem(request).item();
 
-        if (item == null) {
-            throw IllegalArgumentException("Not data in DynamoDB table \"" + table + "\" for the given key.");
-        }
+        if (item != null) {
+            parameters = new HashMap<String, String>();
 
-        item.forEach(
-            (column, value) -> parameters.put(column, value.toString())
-        );
+            item.forEach(
+                (column, value) -> parameters.put(column, value.toString())
+            );
+        }
 
         return parameters;
     }

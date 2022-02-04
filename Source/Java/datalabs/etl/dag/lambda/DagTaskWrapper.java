@@ -1,8 +1,10 @@
 package datalabs.etl.dag.lambda;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import datalabs.task.Task;
+import datalabs.access.parameter.DynamoDbEnvironmentLoader;
 
 
 /*
@@ -20,51 +22,18 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         super(parameters);
     }
 
-    protected Map<String, String> getDAGTaskParametersFromDynamoDB(String dag, String task) {
-        // DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
-    /*
-        @classmethod
-        def _get_dag_task_parameters_from_dynamodb(cls, dag: str, task: str):
-            parameters = {}
-
-            dynamodb_loader = DynamoDBEnvironmentLoader(dict(
-                table=os.environ["DYNAMODB_CONFIG_TABLE"],
-                dag=dag,
-                task=task
-            ))
-            dynamodb_loader.load(environment=parameters)
-
-            return parameters
-    */
-        return null;
-    }
-
     protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
-        /* TODO: FIXME
-        String[] runtime = parameters.get(1).split("__", 3);
-        String dag = runtime[0];
-        String task = runtime[1];
-        String execution_time = runtime[2];
-
-        Map<String, String> runtimeParameters;
-        runtimeParameters.put("dag", dag);
-        runtimeParameters.put("task", task);
-        runtimeParameters.put("execution_time", execution_time);
-        */
-
-        /*
-        LOGGER.info('Event Parameters: %s', parameters)
-        cls.DAG_PARAMETERS = cls._get_dag_task_parameters_from_dynamodb(parameters["dag"], "DAG")
-
-        parameters["dag_class"] = cls.DAG_PARAMETERS["DAG_CLASS"]
-
-        if "task" not in parameters:
-            parameters["task"] = "DAG"
-
-        return parameters
-        */
-
-        return null;
+        // @classmethod
+        // def _get_runtime_parameters(cls, parameters):
+        //     LOGGER.info('Event Parameters: %s', parameters)
+        //     cls.DAG_PARAMETERS = cls._get_dag_task_parameters_from_dynamodb(parameters["dag"], "DAG")
+        //
+        //     parameters["dag_class"] = cls.DAG_PARAMETERS["DAG_CLASS"]
+        //
+        //     if "task" not in parameters:
+        //         parameters["task"] = "DAG"
+        //
+        //     return parameters
     }
 
     protected void preRun() {
@@ -124,6 +93,18 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         //
         // return f'Failed: {str(exception)}'
         return null;
+    }
+
+    protected Map<String, String> getDAGTaskParametersFromDynamoDB(String dag, String task) {
+        HashMap<String, String> parameters = new HashMap<String, String>();
+
+        DynamoDbEnvironmentLoader loader = DynamoDbEnvironmentLoader(
+            this.environment.get("DYNAMODB_CONFIG_TABLE"),
+            dag,
+            task
+        );
+
+        return loader.load(parameters);
     }
 
     protected Map<String, String> getDAGTaskParameters() {
