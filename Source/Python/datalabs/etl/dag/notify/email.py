@@ -19,9 +19,9 @@ class StatusEmailNotifier():
             dag,
             execution_time,
             self.environment,
-            status.name
+            status.value
         )
-        subject = '[DAG STATUS] {} {} {}'.format(self.environment, dag, status.name)
+        subject = '[DAG STATUS] {} {} {}'.format(self.environment, dag, status.value)
 
         send_email(self.emails, subject, body=message, from_account=self.from_account)
         LOGGER.info('EMAIL SENT TO %s', self.emails)

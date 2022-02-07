@@ -3,40 +3,47 @@ package datalabs.etl.dag.lambda;
 import java.util.HashMap;
 import java.util.Map;
 
-import datalabs.task.Task;
 import datalabs.access.parameter.DynamoDbEnvironmentLoader;
+import datalabs.etl.dag.state.Status;
+import datalabs.plugin.PluginImporter;
+import datalabs.task.Parameters;
+import datalabs.task.Task;
 
 
-/*
-@add_schema(unknowns=True)
-@dataclass
-class DagTaskWrapperParameters:
-    dag: str
-    task: str
-    execution_time: str
-    unknowns: dict=None
-*/
+class DagTaskWrapperParameters extends Parameters {
+    public String dag;
+    public String task;
+    public String executionTime;
+    public Map<String String> unknowns;
+}
+
 
 public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
+    Map<String, String> dagParameters = null;
+
     public DagTaskWrapper(Map<String, String> parameters) {
         super(parameters);
     }
 
     protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
-        // @classmethod
-        // def _get_runtime_parameters(cls, parameters):
-        //     LOGGER.info('Event Parameters: %s', parameters)
-        //     cls.DAG_PARAMETERS = cls._get_dag_task_parameters_from_dynamodb(parameters["dag"], "DAG")
-        //
-        //     parameters["dag_class"] = cls.DAG_PARAMETERS["DAG_CLASS"]
-        //
-        //     if "task" not in parameters:
-        //         parameters["task"] = "DAG"
-        //
-        //     return parameters
+        this.dagParameters = getDagTaskParametersFromDynamoDB(parameters.getOrDefault("dag"), "DAG");
+        HashMap<String, String> runtimeParameters = new HashMap<String, String>() {{
+            putAll(parameters);
+        }};
+
+        runtimeParameters.put("dag_class", dagParameters.get("DAG_CLASS"));
+
+        if (!parameters.containsKey("task")) {
+            runtimeParameters.put("task", "DAG");
+        }
     }
 
     protected void preRun() {
+        DagTaskWrapperParameters parameters = getTaskWrapperParameters();
+
+        if (parameters.task != "DAG") {
+            setTaskState(parameters, Status.RUNNING);
+        }
         // super()._pre_run()
         //
         // parameters = self._get_task_wrapper_parameters()
@@ -45,6 +52,11 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         //     state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
         //
         //     state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.RUNNING)
+    }
+
+    static void setTaskStatus(Map<String, String> parameters, Status.RUNNING) throws ClassNotFoundException {
+        Class stateClass = PluginImporter.importPlugin(this.dagParameters.get("DAG_STATE_CLASS"));
+
     }
 
     protected String handleSuccess() {
@@ -95,7 +107,7 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         return null;
     }
 
-    protected Map<String, String> getDAGTaskParametersFromDynamoDB(String dag, String task) {
+    protected Map<String, String> getDagTaskParametersFromDynamoDB(String dag, String task) {
         HashMap<String, String> parameters = new HashMap<String, String>();
 
         DynamoDbEnvironmentLoader loader = DynamoDbEnvironmentLoader(
@@ -107,7 +119,7 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         return loader.load(parameters);
     }
 
-    protected Map<String, String> getDAGTaskParameters() {
+    protected Map<String, String> getDagTaskParameters() {
         // dag = self._get_dag_id()
         // task = self._get_task_id()
         // LOGGER.debug('Getting DAG Task Parameters for %s__%s...', dag, task)
@@ -125,13 +137,13 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         return null;
     }
 
-    Map<String, String> getTaskWrapperParameters() {
-        // parameters = self._runtime_parameters
-        // parameters.update(self.DAG_PARAMETERS)
-        // parameters = self._get_validated_parameters(parameters)
-        //
-        // return parameters
-        return null;
+    DagTaskWrapperParameters getTaskWrapperParameters() {
+        HashMap<String, String> parameters = new HashMap<String, String>() {{
+            putAll(this.runtimeParameters);
+            putAll(this.dagParameters);
+        }};
+
+        return new DagTaskWrapperParameters(parameters);
     }
 
     void notifyTaskProcessor(Task task) {

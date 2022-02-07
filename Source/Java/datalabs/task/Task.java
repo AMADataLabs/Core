@@ -4,19 +4,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Vector;
 
+import datalabs.ParameterizedClassMixin;
 import datalabs.task.Parameters;
 
 
-public abstract class Task {
-    private static Class PARAMETER_CLASS = null;
-    protected Parameters parameters = null;
+public abstract class Task extends ParameterizedClassMixin {
     protected Vector<byte[]> data = null;
 
     public Task(Map<String, String> parameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        if (PARAMETER_CLASS != null) {
-            this.parameters = (Parameters) PARAMETER_CLASS.getConstructor(new Class[] {Map.class}).newInstance(parameters);
-        }
+        super(parameters);
     }
 
     public Task(Map<String, String> parameters, Vector<byte[]> data)

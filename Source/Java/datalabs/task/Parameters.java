@@ -13,7 +13,7 @@ public abstract class Parameters {
     protected static final Logger LOGGER = LogManager.getLogger();
 
     public Parameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
-        Field[] fields = this.getClass().getFields();
+        Field[] fields = getClass().getFields();
 
         Parameters.validate(parameters, fields);
 
@@ -21,14 +21,12 @@ public abstract class Parameters {
     }
 
     static void validate(Map<String, String> parameters, Field[] fields) throws IllegalArgumentException {
-        String[] fieldNames = new String[fields.length];
+        String[] fieldNames = Parameters.getFieldNames(fields);
         String[] unexpectedFields = Parameters.getUnexpectedFields(parameters, fieldNames);
         String[] missingFields = Parameters.getMissingFields(parameters, fieldNames);
 
         if (unexpectedFields.length > 0) {
-            throw new IllegalArgumentException(
-                "The following parameters are not expected: " + Arrays.toString(unexpectedFields)
-            );
+            addUnknowns(parameters, fieldNames, unexpectedFields)
         }
 
         if (missingFields.length > 0) {
@@ -42,6 +40,16 @@ public abstract class Parameters {
         Arrays.stream(fields).forEach(
             field -> setField(field, parameters.get(field.getName()))
         );
+    }
+
+    static String[] getFieldNames(Map<String, String> fields) {
+        Vector<String> fieldNames = new Vector<String>();
+
+        for (Field field : fields) {
+            fieldNames.add(field.getName());
+        }
+
+        return fieldNames.toArray();
     }
 
     static String[] getUnexpectedFields(Map<String, String> parameters, String[] fieldNames) {
@@ -68,6 +76,24 @@ public abstract class Parameters {
         return (String[]) missingFields.toArray();
     }
 
+    void addUnknowns(Map<String, String> parameters, String[] fieldNames, String[] unexpectedFields)
+            throws IllegalArgumentException {
+        HashMap<Sting, String> unknowns = new HashMap<String, String>();
+
+        if (!hashUnknownsField(fieldNames)) {
+            throw new IllegalArgumentException(
+                "The following parameters are not expected: " + Arrays.toString(unexpectedFields)
+            );
+        }
+
+
+        for (String field : unexpectedFields) {
+            unknows.put(field, parameters.get(field));
+        }
+
+        setField(getClass().getField("unknowns"), unknowns);
+    }
+
     void setField(Field field, String value) {
         try {
             field.set(this, value);
@@ -75,5 +101,20 @@ public abstract class Parameters {
             LOGGER.error("Unable to set value for field " + field.getName());
             exception.printStackTrace();
         }
+    }
+
+
+
+    static boolean hashUnknownsField(String fieldNames) {
+        boolean hasUnknowns = false;
+
+
+        for (String field : fieldNames) {
+            if (field == "unknowns") {
+                hasUnknowns = true;
+            }
+        }
+
+        return hasUnknowns;
     }
 }
