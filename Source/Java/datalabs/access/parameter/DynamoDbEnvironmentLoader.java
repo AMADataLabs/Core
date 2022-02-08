@@ -42,10 +42,10 @@ public class DynamoDbEnvironmentLoader {
 
     public Map<String, String> load(Map<String, String> environment) throws IllegalArgumentException {
         Map<String, String> globalVariables = getParametersFromDynamoDb("GLOBAL");
-        Map<String, String> parameters;
+        Map<String, String> parameters = null;
 
         try {
-            parameters = getParametersFromDynamoDB(this.task);
+            parameters = getParametersFromDynamoDb(this.task);
         } catch (DynamoDbException e) {
             System.err.println(e.getMessage());
             System.exit(1);
@@ -57,7 +57,7 @@ public class DynamoDbEnvironmentLoader {
             );
         }
 
-        ReferenceEnvironmentLoader(globalVariables).load(parameters);
+        parameters = (new ReferenceEnvironmentLoader(globalVariables)).load(parameters);
 
         environment.putAll(parameters);
 
@@ -81,13 +81,11 @@ public class DynamoDbEnvironmentLoader {
             throws DynamoDbException {
         DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
         GetItemRequest request = GetItemRequest.builder().key(key).tableName(table).build();
-        HashMap<String, String> parameters = null;
+        HashMap<String, String> parameters = new HashMap<String, String>();
 
         Map<String, AttributeValue> item = dynamoDb.getItem(request).item();
 
         if (item != null) {
-            parameters = new HashMap<String, String>();
-
             item.forEach(
                 (column, value) -> parameters.put(column, value.toString())
             );

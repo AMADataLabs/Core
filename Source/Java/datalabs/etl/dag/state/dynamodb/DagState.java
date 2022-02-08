@@ -19,6 +19,10 @@ class DagStateParameters extends Parameters {
     String stateLockTable;
     String dagStateTable;
     Map<String, String> unknowns;
+
+    DagStateParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
+        super(parameters);
+    }
 }
 
 
@@ -38,15 +42,15 @@ public class DagState extends datalabs.etl.dag.state.DagState {
         Map<String, AttributeValue> item = getItem(dag, task, executionTime);
 
         if (item == null) {
-            throw IllegalArgumentException("Unable to find status for \"" + dag + "\" DAG task \"" + task + "\"");
+            throw new IllegalArgumentException("Unable to find status for \"" + dag + "\" DAG task \"" + task + "\"");
         }
 
-        return item.get("status");
+        return Status.valueOf(item.get("status").toString());
     }
 
     public void setDagStatus(String dag, String executionTime, Status status)
             throws IllegalArgumentException, DynamoDbException {
-        setTaskStatus(dag, "DAG", executionTime);
+        setTaskStatus(dag, "DAG", executionTime, status);
     }
 
     public void setTaskStatus(String dag, String task, String executionTime, Status status)
@@ -54,35 +58,34 @@ public class DagState extends datalabs.etl.dag.state.DagState {
         putItem(dag, task, executionTime, status);
     }
 
-    static Map<String, AttributeValue> getItem(String dag, String task, String executionTime) throws DynamoDbException {
+    Map<String, AttributeValue> getItem(String dag, String task, String executionTime) throws DynamoDbException {
         DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
-        Map<String, AttributeValue> key = DynamoDbState.getKey(dag, task);
-        GetItemRequest request = GetItemRequest.builder().key(key).tableName(this.parameters.dagStateTable).build();
+        Map<String, AttributeValue> key = DagState.getKey(dag, task, executionTime);
+        String table = ((DagStateParameters) this.parameters).dagStateTable;
+        GetItemRequest request = GetItemRequest.builder().key(key).tableName(table).build();
 
-        return dynamodb.getItem(request).item();
+        return dynamoDb.getItem(request).item();
     }
 
-    static void putItem(String dag, String task, String executionTime, Status status)
+    void putItem(String dag, String task, String executionTime, Status status)
             throws ResourceNotFoundException, DynamoDbException {
         DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
+        String table = ((DagStateParameters) this.parameters).dagStateTable;
         HashMap<String,AttributeValue> columnValues = new HashMap<String,AttributeValue>() {{
             put("name", AttributeValue.builder().s(dag + "__" + task).build());
-            put("execution_time", AttributeValue.builder().s(executionTime).build());
+            put("executionTime", AttributeValue.builder().s(executionTime).build());
             put("status", AttributeValue.builder().s(status.getValue()).build());
         }};
 
-        PutItemRequest request = PutItemRequest.builder()
-            .tableName(this.parameters.dagStateTable)
-            .item(columnValues)
-            .build();
+        PutItemRequest request = PutItemRequest.builder().tableName(table).item(columnValues).build();
 
         dynamoDb.putItem(request);
      }
 
-    static HashMap<String, AttributeValue> getKey(String dag, String task, String execution_time) {
+    static HashMap<String, AttributeValue> getKey(String dag, String task, String executionTime) {
         return new HashMap<String, AttributeValue>() {{
             put("name", AttributeValue.builder().s(dag + "__" + task).build());
-            put("execution_time", AttributeValue.builder().s(execution_time).build());
+            put("executionTime", AttributeValue.builder().s(executionTime).build());
         }};
     }
 }

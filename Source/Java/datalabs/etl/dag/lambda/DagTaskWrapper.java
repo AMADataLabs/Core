@@ -1,9 +1,12 @@
 package datalabs.etl.dag.lambda;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 import datalabs.access.parameter.DynamoDbEnvironmentLoader;
+import datalabs.etl.dag.state.DagState;
 import datalabs.etl.dag.state.Status;
 import datalabs.parameter.Parameters;
 import datalabs.plugin.PluginImporter;
@@ -15,6 +18,10 @@ class DagTaskWrapperParameters extends Parameters {
     public String task;
     public String executionTime;
     public Map<String, String> unknowns;
+
+    DagTaskWrapperParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
+        super(parameters);
+    }
 }
 
 
@@ -26,7 +33,7 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
     }
 
     protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
-        this.dagParameters = getDagTaskParametersFromDynamoDB(parameters.getOrDefault("dag"), "DAG");
+        this.dagParameters = getDagTaskParametersFromDynamoDb(parameters.get("dag"), "DAG");
         HashMap<String, String> runtimeParameters = new HashMap<String, String>() {{
             putAll(parameters);
         }};
@@ -36,27 +43,48 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         if (!parameters.containsKey("task")) {
             runtimeParameters.put("task", "DAG");
         }
+
+        return runtimeParameters;
     }
 
     protected void preRun() {
-        DagTaskWrapperParameters parameters = getTaskWrapperParameters();
+        DagTaskWrapperParameters parameters = null;
+
+        try {
+            parameters = getTaskWrapperParameters();
+        } catch (IllegalAccessException | IllegalArgumentException exception) {
+                LOGGER.error("Unable to get TaskWrapper parameters.");
+                exception.printStackTrace();
+        }
 
         if (parameters.task != "DAG") {
-            setTaskStatus(parameters, Status.RUNNING);
+            try {
+                setTaskStatus(parameters, Status.RUNNING);
+            } catch (
+                ClassNotFoundException |
+                NoSuchMethodException |
+                InstantiationException |
+                IllegalAccessException |
+                InvocationTargetException exception
+            ) {
+                LOGGER.error(
+                    "Unable to set the status of " + parameters.dag +
+                    " DAG task " + parameters.task +
+                    " to Running."
+                );
+            }
         }
-        // super()._pre_run()
-        //
-        // parameters = self._get_task_wrapper_parameters()
-        //
-        // if parameters.task != "DAG":
-        //     state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
-        //
-        //     state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.RUNNING)
     }
 
-    static void setTaskStatus(Map<String, String> parameters, Status status) throws ClassNotFoundException {
+    void setTaskStatus(DagTaskWrapperParameters parameters, Status status)
+        throws ClassNotFoundException,
+               NoSuchMethodException,
+               InstantiationException,
+               IllegalAccessException,
+               InvocationTargetException
+    {
         Class stateClass = PluginImporter.importPlugin(this.dagParameters.get("DAG_STATE_CLASS"));
-        DagState state = (DagState) taskClass.getConstructor(new Class[] {Map.class, Vector.class}).newInstance(
+        DagState state = (DagState) stateClass.getConstructor(new Class[] {Map.class, Vector.class}).newInstance(
             parameters
         );
 
@@ -111,10 +139,10 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         return null;
     }
 
-    protected Map<String, String> getDagTaskParametersFromDynamoDB(String dag, String task) {
+    protected Map<String, String> getDagTaskParametersFromDynamoDb(String dag, String task) {
         HashMap<String, String> parameters = new HashMap<String, String>();
 
-        DynamoDbEnvironmentLoader loader = DynamoDbEnvironmentLoader(
+        DynamoDbEnvironmentLoader loader = new DynamoDbEnvironmentLoader(
             this.environment.get("DYNAMODB_CONFIG_TABLE"),
             dag,
             task
@@ -141,10 +169,12 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         return null;
     }
 
-    DagTaskWrapperParameters getTaskWrapperParameters() {
+    DagTaskWrapperParameters getTaskWrapperParameters() throws IllegalAccessException, IllegalArgumentException {
+        Map<String, String> runtimeParameters = this.runtimeParameters;
+        Map<String, String> dagParameters = this.dagParameters;
         HashMap<String, String> parameters = new HashMap<String, String>() {{
-            putAll(this.runtimeParameters);
-            putAll(this.dagParameters);
+            putAll(runtimeParameters);
+            putAll(dagParameters);
         }};
 
         return new DagTaskWrapperParameters(parameters);
