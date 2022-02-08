@@ -1,7 +1,10 @@
-package datalabs;
+package datalabs.parameter;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
 
 
-class ParameterizedClassMixin {
+public class ParameterizedClassMixin {
     protected static Class PARAMETER_CLASS = null;
     protected Parameters parameters = null;
 

@@ -4,8 +4,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Vector;
 
-import datalabs.ParameterizedClassMixin;
-import datalabs.task.Parameters;
+import datalabs.parameter.ParameterizedClassMixin;
+import datalabs.parameter.Parameters;
 
 
 public abstract class Task extends ParameterizedClassMixin {

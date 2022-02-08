@@ -1,12 +1,15 @@
 package datalabs.etl.dag.state;
 
-import datalabs.ParameterizedClassMixin;
-import datalabs.task.Parameters;
+import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+
+import datalabs.parameter.ParameterizedClassMixin;
+import datalabs.parameter.Parameters;
 import datalabs.etl.dag.state.Status;
 
 
-abstract public class State extends ParameterizedClassMixin {
-    public State(Map<String, String> parameters) {
+abstract public class DagState extends ParameterizedClassMixin {
+    public DagState(Map<String, String> parameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         super(parameters);
     }

@@ -5,8 +5,8 @@ import java.util.Map;
 
 import datalabs.access.parameter.DynamoDbEnvironmentLoader;
 import datalabs.etl.dag.state.Status;
+import datalabs.parameter.Parameters;
 import datalabs.plugin.PluginImporter;
-import datalabs.task.Parameters;
 import datalabs.task.Task;
 
 
@@ -14,7 +14,7 @@ class DagTaskWrapperParameters extends Parameters {
     public String dag;
     public String task;
     public String executionTime;
-    public Map<String String> unknowns;
+    public Map<String, String> unknowns;
 }
 
 
@@ -42,7 +42,7 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         DagTaskWrapperParameters parameters = getTaskWrapperParameters();
 
         if (parameters.task != "DAG") {
-            setTaskState(parameters, Status.RUNNING);
+            setTaskStatus(parameters, Status.RUNNING);
         }
         // super()._pre_run()
         //
@@ -54,9 +54,13 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         //     state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.RUNNING)
     }
 
-    static void setTaskStatus(Map<String, String> parameters, Status.RUNNING) throws ClassNotFoundException {
+    static void setTaskStatus(Map<String, String> parameters, Status status) throws ClassNotFoundException {
         Class stateClass = PluginImporter.importPlugin(this.dagParameters.get("DAG_STATE_CLASS"));
+        DagState state = (DagState) taskClass.getConstructor(new Class[] {Map.class, Vector.class}).newInstance(
+            parameters
+        );
 
+        state.setTaskStatus(parameters.dag, parameters.task, parameters.executionTime, status);
     }
 
     protected String handleSuccess() {
