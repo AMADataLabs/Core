@@ -4,6 +4,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
@@ -12,29 +14,24 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
 import datalabs.etl.dag.state.Status;
+import datalabs.parameter.ParameterizedClassMixin;
 import datalabs.parameter.Parameters;
 
 
-class DagStateParameters extends Parameters {
-    String stateLockTable;
-    String dagStateTable;
-    Map<String, String> unknowns;
+public class DagState extends ParameterizedClassMixin implements datalabs.etl.dag.state.DagState {
+    protected static final Logger LOGGER = LogManager.getLogger();
 
-    DagStateParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
-        super(parameters);
-    }
-}
-
-
-public class DagState extends datalabs.etl.dag.state.DagState {
     public DagState(Map<String, String> parameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters);
+        super(parameters, DagStateParameters.class);
+
+        LOGGER.debug("State Lock Table: " + ((DagStateParameters) this.parameters).stateLockTable);
+        LOGGER.debug("DAG State Table: " + ((DagStateParameters) this.parameters).dagStateTable);
     }
 
     public Status getDagStatus(String dag, String executionTime)
             throws IllegalArgumentException, DynamoDbException {
-        return getTaskStatus(dag, "DAG", executionTime);
+        return getTaskStatus(dag, null, executionTime);
     }
 
     public Status getTaskStatus(String dag, String task, String executionTime)
@@ -45,7 +42,10 @@ public class DagState extends datalabs.etl.dag.state.DagState {
             throw new IllegalArgumentException("Unable to find status for \"" + dag + "\" DAG task \"" + task + "\"");
         }
 
-        return Status.valueOf(item.get("status").toString());
+        LOGGER.debug("Get Item Response: " + item);
+        LOGGER.debug("Status: " + item.get("status").s());
+
+        return Status.fromValue(item.get("status").s());
     }
 
     public void setDagStatus(String dag, String executionTime, Status status)
@@ -63,6 +63,7 @@ public class DagState extends datalabs.etl.dag.state.DagState {
         Map<String, AttributeValue> key = DagState.getKey(dag, task, executionTime);
         String table = ((DagStateParameters) this.parameters).dagStateTable;
         GetItemRequest request = GetItemRequest.builder().key(key).tableName(table).build();
+        LOGGER.debug("Get Item Request: " + request);
 
         return dynamoDb.getItem(request).item();
     }
@@ -83,9 +84,17 @@ public class DagState extends datalabs.etl.dag.state.DagState {
      }
 
     static HashMap<String, AttributeValue> getKey(String dag, String task, String executionTime) {
+        String name = dag;
+
+        if (task != null) {
+            name += "__" + task;
+        }
+
+        AttributeValue nameAttribute = AttributeValue.builder().s(name).build();
+
         return new HashMap<String, AttributeValue>() {{
-            put("name", AttributeValue.builder().s(dag + "__" + task).build());
-            put("executionTime", AttributeValue.builder().s(executionTime).build());
+            put("name", nameAttribute);
+            put("execution_time", AttributeValue.builder().s(executionTime).build());
         }};
     }
 }

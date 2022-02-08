@@ -19,11 +19,28 @@ public abstract class Parameters {
 
     public Parameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
         Field[] fields = getClass().getFields();
+        LOGGER.debug("Class: " + getClass());
         Map<String, String> fieldNames = Parameters.getFieldNames(fields);
+        for (Field field : fields) {
+            LOGGER.debug("Field: " + field.getName());
+        }
+        LOGGER.debug("Field Names: " + fieldNames);
+
+        parameters = Parameters.standardizeParameters(parameters);
 
         validate(parameters, fields, fieldNames);
 
-        populate(parameters, fields, fieldNames);
+        populate(parameters, fieldNames);
+    }
+
+    static Map<String, String> standardizeParameters(Map<String, String> parameters) {
+        HashMap<String, String> standardizedParameters = new HashMap<String, String>();
+
+        for (String key : parameters.keySet()) {
+            standardizedParameters.put(Parameters.standardizeName(key), parameters.get(key));
+        }
+
+        return standardizedParameters;
     }
 
     void validate(Map<String, String> parameters, Field[] fields, Map<String, String> fieldNames)
@@ -32,7 +49,7 @@ public abstract class Parameters {
         String[] missingFields = Parameters.getMissingFields(parameters, fieldNames);
 
         if (unexpectedFields.length > 0) {
-            addUnknowns(parameters, fieldNames, unexpectedFields);
+            moveUnknowns(parameters, fieldNames, unexpectedFields);
         }
 
         if (missingFields.length > 0) {
@@ -42,10 +59,9 @@ public abstract class Parameters {
         }
     }
 
-    void populate(Map<String, String> parameters, Field[] fields, Map<String, String> fieldNames)
-            throws IllegalAccessException {
-        Arrays.stream(fields).forEach(
-            field -> setField(field, parameters.get(fieldNames.get(field.getName())))
+    void populate(Map<String, String> parameters, Map<String, String> fieldNames) {
+        parameters.forEach(
+            (key, value) -> setField(fieldNames.get(key), value)
         );
     }
 
@@ -53,7 +69,7 @@ public abstract class Parameters {
         HashMap<String, String> fieldNames = new HashMap<String, String>();
 
         for (Field field : fields) {
-            fieldNames.put(Parameters.canonicalizeName(field.getName()), field.getName());
+            fieldNames.put(Parameters.standardizeName(field.getName()), field.getName());
         }
 
         return fieldNames;
@@ -63,46 +79,50 @@ public abstract class Parameters {
         Vector<String> unexpectedFields = new Vector<String>();
 
         for (String fieldName : parameters.keySet()) {
-            if (fieldNames.keySet().stream().anyMatch(n -> n.equals(fieldName))) {
+            LOGGER.debug("Validating field \"" + fieldName + "\"...");
+            if (fieldNames.keySet().stream().anyMatch(n -> n.equals(parameters.get(fieldName)))) {
                 unexpectedFields.add(fieldName);
             }
         }
 
-        return (String[]) unexpectedFields.toArray();
+        return Arrays.stream(unexpectedFields.toArray()).toArray(String[]::new);
     }
 
     static String[] getMissingFields(Map<String, String> parameters, Map<String, String> fieldNames) {
         Vector<String> missingFields = new Vector<String>();
 
         for (String fieldName : fieldNames.keySet()) {
-            if (!parameters.keySet().stream().anyMatch(n -> n.equals(fieldName))) {
+            if (!fieldName.equals("UNKNOWNS") && !parameters.keySet().stream().anyMatch(n -> n.equals(fieldName))) {
                 missingFields.add(fieldName);
             }
         }
 
-        return (String[]) missingFields.toArray();
+        return Arrays.stream(missingFields.toArray()).toArray(String[]::new);
     }
 
-    static String canonicalizeName(String name) {
-        String lower_name = name.toLowerCase();
-        Matcher matcher = Pattern.compile("_(?<letter>[a-z])}").matcher(lower_name);
-        String canonicalizedName = "";
+    static String standardizeName(String name) {
+        LOGGER.debug("Name: " + name);
+        Matcher matcher = Pattern.compile("(?<before>[a-z])(?<after>[A-Z])").matcher(name);
+        String standardizedName = "";
         int index = 0;
 
         while (matcher.find()) {
-            canonicalizedName += lower_name.substring(index, matcher.start());
+            standardizedName += name.substring(index, matcher.start());
+            LOGGER.debug("Standardized Name: " + standardizedName);
 
-            canonicalizedName += matcher.group("letter").toUpperCase();
+            standardizedName += matcher.group("before") + "_" + matcher.group("after");
+            LOGGER.debug("Standardized Name: " + standardizedName);
 
             index = matcher.end();
         }
+        LOGGER.debug("Final Index: " + index);
 
-        canonicalizedName += lower_name.substring(index);
+        standardizedName += name.substring(index);
 
-        return canonicalizedName;
+        return standardizedName.toUpperCase();
     }
 
-    void addUnknowns(Map<String, String> parameters, Map<String, String> fieldNames, String[] unexpectedFields)
+    void moveUnknowns(Map<String, String> parameters, Map<String, String> fieldNames, String[] unexpectedFields)
             throws IllegalArgumentException {
         HashMap<String, String> unknowns = new HashMap<String, String>();
 
@@ -112,24 +132,19 @@ public abstract class Parameters {
             );
         }
 
-
         for (String field : unexpectedFields) {
-            unknowns.put(field, parameters.get(field));
+            unknowns.put(field, parameters.remove(field));
         }
+        LOGGER.debug("Unknowns: " + unknowns);
 
-        try {
-            setField(getClass().getField("unknowns"), unknowns);
-        } catch (NoSuchFieldException exception) {
-            exception.printStackTrace();
-            LOGGER.error(exception.getMessage());
-        }
+        setField("unknowns", unknowns);
     }
 
-    void setField(Field field, Object value) {
+    void setField(String field, Object value) {
         try {
-            field.set(this, value);
-        } catch (IllegalAccessException exception) {
-            LOGGER.error("Unable to set value for field " + field.getName());
+            getClass().getField(field).set(this, value);
+        } catch (IllegalAccessException | NoSuchFieldException exception) {
+            LOGGER.error("Unable to set value for field " + field);
             exception.printStackTrace();
         }
     }
@@ -141,10 +156,13 @@ public abstract class Parameters {
 
 
         for (String field : fieldNames) {
-            if (field == "unknowns") {
+            LOGGER.debug("Field Name: |" + field + "|");
+            if (field.equals("UNKNOWNS")) {
+                LOGGER.debug("Flagging Has Unknowns...");
                 hasUnknowns = true;
             }
         }
+        LOGGER.debug("Has Unknowns: " + hasUnknowns);
 
         return hasUnknowns;
     }

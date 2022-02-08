@@ -17,4 +17,17 @@ public enum Status {
     public String getValue() {
         return this.value;
     }
+
+	public static Status fromValue(String value) {
+		System.out.println(value);
+		Status instance = null;
+
+	    for (Status status : values()) {
+			System.out.println(status.value);
+	        if (value.equals(status.value)) {
+	            instance = status;
+	        }
+	    }
+	    return instance;
+	}
 }
