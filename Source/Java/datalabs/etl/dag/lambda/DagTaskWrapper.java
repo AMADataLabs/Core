@@ -115,28 +115,32 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
     }
 
     protected String handleException(Exception exception) {
-        // super()._handle_exception(exception)
-        //
-        // parameters = self._get_task_wrapper_parameters()
-        //
-        // if parameters.task != "DAG":
-        //     state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
-        //
-        //     success = state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FAILED)
-        //
-        //     if not success:
-        //         LOGGER.error('Unable to set status of task %s of dag %s to Failed', parameters.task, parameters.dag)
-        //
-        //     self._notify_dag_processor()
-        //
-        // LOGGER.exception(
-        //     'An exception occured while attempting to run task %s of DAG %s.',
-        //     self._get_task_id(),
-        //     self._get_dag_id()
-        // )
-        //
-        // return f'Failed: {str(exception)}'
-        return null;
+        super.handleException(exception);
+        DagTaskWrapperParameters parameters = null;
+
+        try {
+            parameters = getTaskWrapperParameters();
+        } catch (IllegalAccessException | IllegalArgumentException secondaryException) {
+            LOGGER.error("Unable to get TaskWrapper parameters.");
+            secondaryException.printStackTrace();
+        }
+
+        try {
+            DagState state = getDagStatePlugin(parameters);
+
+            state.setTaskStatus(parameters.dag, parameters.task, parameters.executionTime, Status.FAILED);
+        } catch (Exception secondaryException) {
+            LOGGER.error(
+                "Unable to set status of task " + parameters.task + " of dag " + parameters.dag + " to Failed"
+            );
+            secondaryException.printStackTrace();
+        }
+
+        notifyDagProcessor();
+
+        exception.printStackTrace();
+
+        return "Failed: " + exception.getMessage();
     }
 
     protected Map<String, String> getDagTaskParametersFromDynamoDb(String dag, String task) {
