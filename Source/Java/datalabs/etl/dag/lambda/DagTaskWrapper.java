@@ -41,7 +41,7 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         runtimeParameters.put("dag_class", dagParameters.get("DAG_CLASS"));
 
         if (!parameters.containsKey("task")) {
-            runtimeParameters.put("task", "DAG");
+            throw new UnsupportedOperationException("DAG processing is not supported in Java.");
         }
 
         return runtimeParameters;
@@ -83,35 +83,35 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
                IllegalAccessException,
                InvocationTargetException
     {
-        Class stateClass = PluginImporter.importPlugin(this.dagParameters.get("DAG_STATE_CLASS"));
-        DagState state = (DagState) stateClass.getConstructor(new Class[] {Map.class, Vector.class}).newInstance(
-            parameters
-        );
+        DagState state = getDagStatePlugin(parameters);
 
         state.setTaskStatus(parameters.dag, parameters.task, parameters.executionTime, status);
     }
 
     protected String handleSuccess() {
-        // super()._handle_success()
-        //
-        // parameters = self._get_task_wrapper_parameters()
-        //
-        // if parameters.task == "DAG":
-        //     for task in self.task.triggered_tasks:
-        //         self._notify_task_processor(task)
-        // else:
-        //     state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
-        //
-        //     success = state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FINISHED)
-        //
-        //     if not success:
-        //         LOGGER.error('Unable to set status of task %s of dag %s to Finished', parameters.task, parameters.dag)
-        //
-        //     self._notify_dag_processor()
-        //
-        // return "Success"
+        super.handleSuccess();
+        DagTaskWrapperParameters parameters = null;
 
-        return null;
+        try {
+            parameters = getTaskWrapperParameters();
+        } catch (IllegalAccessException | IllegalArgumentException exception) {
+                LOGGER.error("Unable to get TaskWrapper parameters.");
+                exception.printStackTrace();
+        }
+
+        try {
+            DagState state = getDagStatePlugin(parameters);
+
+            state.setTaskStatus(parameters.dag, parameters.task, parameters.executionTime, Status.FINISHED);
+        } catch (Exception exception) {
+            LOGGER.error(
+                "Unable to set status of task " + parameters.task + " of dag " + parameters.dag + " to Finished"
+            );
+        }
+
+        notifyDagProcessor();
+
+        return "Success";
     }
 
     protected String handleException(Exception exception) {
@@ -151,6 +151,45 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         return loader.load(parameters);
     }
 
+    DagTaskWrapperParameters getTaskWrapperParameters() throws IllegalAccessException, IllegalArgumentException {
+        Map<String, String> runtimeParameters = this.runtimeParameters;
+        Map<String, String> dagParameters = this.dagParameters;
+        HashMap<String, String> parameters = new HashMap<String, String>() {{
+            putAll(runtimeParameters);
+            putAll(dagParameters);
+        }};
+
+        return new DagTaskWrapperParameters(parameters);
+    }
+
+    DagState getDagStatePlugin(DagTaskWrapperParameters parameters)
+        throws ClassNotFoundException,
+               NoSuchMethodException,
+               InstantiationException,
+               IllegalAccessException,
+               InvocationTargetException
+    {
+        Class stateClass = PluginImporter.importPlugin(this.dagParameters.get("DAG_STATE_CLASS"));
+
+        return (DagState) stateClass.getConstructor(new Class[] {Map.class, Vector.class}).newInstance(
+            parameters
+        );
+    }
+
+    void notifyTaskProcessor(Task task) {
+        // task_topic = self._runtime_parameters["TASK_TOPIC_ARN"]
+        // notifier = SNSTaskNotifier(task_topic)
+        //
+        // notifier.notify(self._get_dag_id(), task, self._get_execution_time())
+    }
+
+    void notifyDagProcessor() {
+        // dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
+        // notifier = SNSDAGNotifier(dag_topic)
+        //
+        // notifier.notify(self._get_dag_id(), self._get_execution_time())
+    }
+
     protected Map<String, String> getDagTaskParameters() {
         // dag = self._get_dag_id()
         // task = self._get_task_id()
@@ -167,30 +206,5 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         // return dag_task_parameters
 
         return null;
-    }
-
-    DagTaskWrapperParameters getTaskWrapperParameters() throws IllegalAccessException, IllegalArgumentException {
-        Map<String, String> runtimeParameters = this.runtimeParameters;
-        Map<String, String> dagParameters = this.dagParameters;
-        HashMap<String, String> parameters = new HashMap<String, String>() {{
-            putAll(runtimeParameters);
-            putAll(dagParameters);
-        }};
-
-        return new DagTaskWrapperParameters(parameters);
-    }
-
-    void notifyTaskProcessor(Task task) {
-        // task_topic = self._runtime_parameters["TASK_TOPIC_ARN"]
-        // notifier = SNSTaskNotifier(task_topic)
-        //
-        // notifier.notify(self._get_dag_id(), task, self._get_execution_time())
-    }
-
-    void notifyDAGProcessor() {
-        // dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
-        // notifier = SNSDAGNotifier(dag_topic)
-        //
-        // notifier.notify(self._get_dag_id(), self._get_execution_time())
     }
 }
