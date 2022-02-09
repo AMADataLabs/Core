@@ -1,9 +1,14 @@
 """ API endpoint-specific Lambda function Task wrapper. """
 import json
+import logging
 import os
 
 import datalabs.access.api.task as api
 from   datalabs.awslambda import TaskWrapper
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
@@ -15,12 +20,16 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
         return super()._get_task_parameters()
 
     def _handle_success(self) -> (int, dict):
-        return {
+        response = {
             "statusCode": self.task.status_code,
             "headers": self.task.headers,
             "body": json.dumps(self.task.response_body),
             "isBase64Encoded": False,
         }
+
+        LOGGER.debug("API endpoint response: %s", response)
+
+        return response
 
     def _handle_exception(self, exception: api.APIEndpointException) -> (int, dict):
         status_code = None
@@ -35,6 +44,8 @@ class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
             message = json.dumps(dict(message=exception.message))
         else:
             message = str(exception)
+
+        LOGGER.exception("Handling API endpoint exception: %s", exception)
 
         return {
             "statusCode": status_code,

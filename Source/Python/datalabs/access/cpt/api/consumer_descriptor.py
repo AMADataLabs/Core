@@ -4,7 +4,7 @@ import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin
-from   datalabs.model.cpt.api import ConsumerDescriptor
+from   datalabs.model.cpt.api import ConsumerDescriptor, Code
 from   datalabs.access.cpt.api import languages
 
 logging.basicConfig()
@@ -93,4 +93,5 @@ class AllConsumerDescriptorsEndpointTask(
 
         query = self._filter_for_wildcard(ConsumerDescriptor, query, code)
 
-        return query
+        # pylint: disable=singleton-comparison
+        return query.filter(ConsumerDescriptor.deleted == False)
