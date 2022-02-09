@@ -18,8 +18,8 @@ import datalabs.task.TaskWrapper;
 
 
 public class DagTaskWrapper extends TaskWrapper {
-    Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
-    static final Logger LOGGER = LogManager.getLogger();
+    protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
+    protected static final Logger LOGGER = LogManager.getLogger();
 
     public DagTaskWrapper(Map<String, String> parameters) {
         super(parameters);

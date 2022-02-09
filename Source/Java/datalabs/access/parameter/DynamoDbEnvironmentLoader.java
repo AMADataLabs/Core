@@ -2,8 +2,6 @@ package datalabs.access.parameter;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -42,82 +40,57 @@ public class DynamoDbEnvironmentLoader {
         load(new HashMap(System.getenv()));
     }
 
-    public void load(Map<String, String> environment) {
+    public Map<String, String> load(Map<String, String> environment) throws IllegalArgumentException {
         Map<String, String> globalVariables = getParametersFromDynamoDb("GLOBAL");
-        Map<String, String> parameters = getParametersFromDynamoDB(this.task);
-
-        ReferenceEnvironmentLoader(globalVariables).load(environment=parameters);
-
-        environment.putAll(parameters);
-    }
-
-    Map<String, String> getParametersFromDynamoDB(String task) {
-        DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
-        Map<String, AttributeValue> key = this.getKey(task);
         Map<String, String> parameters = null;
 
         try {
-            parameters = DynamoDbEnvironmentLoader.getRowFromTable(this.table, key);
+            parameters = getParametersFromDynamoDb(this.task);
         } catch (DynamoDbException e) {
             System.err.println(e.getMessage());
             System.exit(1);
         }
 
-        return parameters;
+        if (parameters == null) {
+            throw new IllegalArgumentException(
+                "No data in DynamoDB table \"" + this.table + "\" for " + this.dag + " DAG task \"" + this.task + "\"."
+            );
+        }
+
+        parameters = (new ReferenceEnvironmentLoader(globalVariables)).load(parameters);
+
+        environment.putAll(parameters);
+
+        return environment;
     }
 
-    HashMap<String, AttributeValue> getKey(String task) {
+    Map<String, String> getParametersFromDynamoDb(String task) throws DynamoDbException {
+        Map<String, AttributeValue> key = DynamoDbEnvironmentLoader.getKey(this.dag, task);
+
+        return DynamoDbEnvironmentLoader.getParametersFromTable(this.table, key);
+    }
+
+    static HashMap<String, AttributeValue> getKey(String dag, String task) {
         return new HashMap<String, AttributeValue>() {{
-            put("DAG", AttributeValue.builder().s(this.dag).build());
+            put("DAG", AttributeValue.builder().s(dag).build());
             put("Task", AttributeValue.builder().s(task).build());
         }};
     }
 
-    Map<String, String> getItemFromTable(String table, Map<String, AttributeValue> key) throws DynamoDbException{
-        GetItemRequest request = GetItemRequest.builder().key(key).tableName(this.table).build();
+    static Map<String, String> getParametersFromTable(String table, Map<String, AttributeValue> key)
+            throws DynamoDbException {
+        DynamoDbClient dynamoDb = DynamoDbClient.builder().build();
+        GetItemRequest request = GetItemRequest.builder().key(key).tableName(table).build();
         HashMap<String, String> parameters = new HashMap<String, String>();
 
-        Map<String, AttributeValue> item = dynamodb.getItem(request).item();
+        Map<String, AttributeValue> item = dynamoDb.getItem(request).item();
 
-        if (item == null) {
-            throw IllegalArgumentException("Not data in DynamoDB table \"" + table + "\" for the given key.");
+        if (item != null) {
+            item.forEach(
+                (column, value) -> parameters.put(column, value.toString())
+            );
         }
-
-        item.forEach(
-            (column, value) -> parameters.put(column, value.toString())
-        );
 
         return parameters;
     }
 }
-
-
-// class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
-//     PARAMETER_CLASS = DynamoDBParameters
-//
-//
-//     def _get_parameters_from_dynamodb(self, task):
-//         response = None
-//
-//         with AWSClient("dynamodb") as dynamodb:
-//             response = dynamodb.get_item(
-//                 TableName=self._parameters.table,
-//                 Key=dict(
-//                     DAG=dict(S=self._parameters.dag),
-//                     Task=dict(S=task)
-//                 )
-//             )
-//
-//         return self._extract_parameters(response)
-//
-//     @classmethod
-//     def _extract_parameters(cls, response):
-//         parameters = {}
-//
-//         if "Item" in response:
-//             if "Variables" not in response["Item"]:
-//                 raise ValueError(f'Invalid DynamoDB configuration item: {json.dumps(response)}')
-//
-//             parameters = json.loads(response["Item"]["Variables"]["S"])
-//
-//         return parameters
