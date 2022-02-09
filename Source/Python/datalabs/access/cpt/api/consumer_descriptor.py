@@ -4,7 +4,7 @@ import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin
-from   datalabs.model.cpt.api import ConsumerDescriptor, Code
+from   datalabs.model.cpt.api import ConsumerDescriptor
 from   datalabs.access.cpt.api import languages
 
 logging.basicConfig()
