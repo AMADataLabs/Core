@@ -123,7 +123,8 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask, ReleaseFilterMixin,
 
         query = self._filter_for_wildcard(dbmodel.Code, query, code)
 
-        return query
+        # pylint: disable=singleton-comparison
+        return query.filter(dbmodel.Code.deleted == False)
 
     @classmethod
     def _filter_for_keywords(cls, query, keywords, lengths):

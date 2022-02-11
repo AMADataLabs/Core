@@ -12,6 +12,14 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
+<!--
+	<repositories>
+		<repository>
+			<id>datalabs-cpt-link-sbx</id>
+            <name>datalabs-cpt-link-sbx</name>
+			<url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/cpt-link-sbx/</url>
+		</repository>
+	</repositories> -->
 
     <dependencyManagement>
         <dependencies>
@@ -78,6 +86,16 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -97,7 +115,28 @@
 
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sns</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>netty-nio-client</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>software.amazon.awssdk</groupId>
+                    <artifactId>apache-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>url-connection-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ama-assn.dtk</groupId>
+            <artifactId>dtk-core</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
