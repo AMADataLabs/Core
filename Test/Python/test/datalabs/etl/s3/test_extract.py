@@ -138,8 +138,9 @@ def newline_parameters():
         REGION_NAME='us-east-42',
         BUCKET='jumanji',
         BASE_PATH='dir1/dir2/dir3',
-        FILES="""this_one.csv   
-        that_one.csv
-        the_other_one.csv""",
+        DATA=[
+            """this_one.csv   
+            that_one.csv""".encode(),
+            'the_other_one.csv'.encode()],
         EXECUTION_TIME='19000101'
     )
