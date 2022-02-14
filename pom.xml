@@ -11,6 +11,7 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+		<java.version>1.8</java.version>
     </properties>
 <!--
 	<repositories>
@@ -151,6 +152,16 @@
         </resources>
 
         <plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<exclude>**/datalabs/etl/cpt/build/*.java</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -192,5 +203,43 @@
                 <version>2.22.2</version>
             </plugin>
         </plugins>
+
+        <pluginManagement>
+            <plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.7.0</version>
+					<configuration>
+						<source>${java.version}</source>
+						<target>${java.version}</target>
+					</configuration>
+				</plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>cpt</id>
+            <activation>
+                <property>
+                    <name>cpt</name>
+                    <value>true</value>
+                </property>
+            </activation>
+
+            <build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <excludes combine.self="override"/>
+                        </configuration>
+					</plugin>
+				</plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
