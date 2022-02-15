@@ -167,7 +167,7 @@ class OneViewDAG(DAG):
     # REINDEX_PROVIDER_VIEW: ReindexerTask
 
 
-# pylint: disable=pointless-statement
+# pylint: disable=pointless-statement, expression-not-assigned
 OneViewDAG.EXTRACT_PPD >> OneViewDAG.SUPPLEMENT_PPD_TABLE
 OneViewDAG.EXTRACT_PHYSICIAN_RACE_ETHNICITY >> OneViewDAG.SUPPLEMENT_PPD_TABLE
 OneViewDAG.EXTRACT_MEDICAL_STUDENT >> OneViewDAG.SUPPLEMENT_PPD_TABLE
