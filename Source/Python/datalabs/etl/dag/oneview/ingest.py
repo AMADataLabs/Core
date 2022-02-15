@@ -1,4 +1,4 @@
-''' DAG definition for the DAG Scheduler. '''
+''' DAG definition for the OneView ETL. '''
 from   datalabs.etl.dag.dag import DAG, Repeat
 from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransformer
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
