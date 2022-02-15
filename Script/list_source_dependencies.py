@@ -4,7 +4,7 @@ import os
 from   pathlib import Path
 import sys
 
-from   datalabs.build.bundle import SourceBundle
+from   datalabs.build.bundle.python import PythonSourceBundle
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     LOGGER.debug('Repository Path: %s', repository_path)
     modspec_path = os.path.join(repository_path, 'Build', args['project'], 'modspec.yaml')
     shared_source_path = repository_path.joinpath('Source', 'Python')
-    bundle = SourceBundle(modspec_path)
+    bundle = PythonSourceBundle.from_file(modspec_path)
 
     for file in bundle.files(shared_source_path):
         root_relative_path = shared_source_path.joinpath(file).relative_to(repository_path)

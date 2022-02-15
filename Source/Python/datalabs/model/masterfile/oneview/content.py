@@ -236,7 +236,6 @@ class Business(BASE):
     deactivation_reason = sa.Column(sa.String)
     replacement_business = sa.Column(sa.String)
     status_indicator = sa.Column(sa.String, nullable=False)
-    batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
 
 
 class Provider(BASE):
@@ -261,7 +260,6 @@ class Provider(BASE):
     unique_physician_identification_number = sa.Column(sa.String)
     national_provider_identifier = sa.Column(sa.String)
     status_description = sa.Column(sa.String)
-    batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
 
 
 class ProviderAffiliation(BASE):
@@ -277,7 +275,6 @@ class ProviderAffiliation(BASE):
     rank = sa.Column(sa.String)
     group = sa.Column(sa.String, sa.ForeignKey("oneview.provider_affiliation_group.id"))
     group_description = sa.Column(sa.String)
-    batch_business_date = sa.Column(sa.Date, sa.ForeignKey("oneview.iqvia_update.date"))
 
 
 ################################################################

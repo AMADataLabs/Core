@@ -93,4 +93,5 @@ class AllConsumerDescriptorsEndpointTask(
 
         query = self._filter_for_wildcard(ConsumerDescriptor, query, code)
 
-        return query
+        # pylint: disable=singleton-comparison
+        return query.filter(ConsumerDescriptor.deleted == False)

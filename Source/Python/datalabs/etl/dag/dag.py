@@ -1,5 +1,6 @@
 """ Class for defining a DAG. """
 from   dataclasses import dataclass
+import re
 
 import paradag
 
@@ -157,40 +158,76 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
         return set(upstream_tasks)
 
     @classmethod
-    def sequence(cls, task, count, start=None):
+    def sequence(cls, task, start=None, count=None):
         if start is None:
             start = 0
 
+        if count is None:
+            count = len(cls._subtasks(task))
         for index in range(start+1, count):
             # pylint: disable=expression-not-assigned
             getattr(cls, f'{task}_{index-1}') >> getattr(cls, f'{task}_{index}')
 
     @classmethod
-    def parallel(cls, task1, task2, count, start=None):
+    def parallel(cls, task1, task2, start=None, count=None):
         if start is None:
             start = 0
+
+        if count is None:
+            count = len(cls._subtasks(task1))
 
         for index in range(start, count):
             # pylint: disable=expression-not-assigned
             getattr(cls, f'{task1}_{index}') >> getattr(cls, f'{task2}_{index}')
 
     @classmethod
-    def fan_in(cls, task1, task2, count, start=None):
+    def fan_in(cls, task1, task2, start=None, count=None):
         if start is None:
             start = 0
+
+        if count is None:
+            count = len(cls._subtasks(task1))
 
         for index in range(start, count):
             # pylint: disable=expression-not-assigned
             getattr(cls, f'{task1}_{index}') >> getattr(cls, task2)
 
     @classmethod
-    def fan_out(cls, task1, task2, count, start=None):
+    def fan_out(cls, task1, task2, start=None, count=None):
         if start is None:
             start = 0
+
+        if count is None:
+            count = len(cls._subtasks(task1))
 
         for index in range(start, count):
             # pylint: disable=expression-not-assigned
             getattr(cls, f'{task1}') >> getattr(cls, f'{task2}_{index}')
+
+    @classmethod
+    def first(cls, task: str):
+        subtasks = cls._subtasks(task)
+
+        if len(subtasks) == 0:
+            raise ValueError(f'DAG {cls.__name__} has no subtasks with base name {task}')
+
+        return subtasks[0]
+
+    @classmethod
+    def last(cls, task: str):
+        subtasks = cls._subtasks(task)
+
+        if len(subtasks) == 0:
+            raise ValueError(f'DAG {cls.__name__} has no subtasks with base name {task}')
+
+        return subtasks[-1]
+
+    @classmethod
+    def _subtasks(cls, task: str):
+        regex = re.compile(f'{task}_[0-9]+')
+        subtasks = sorted(key for key in cls.__task_classes__.keys() if regex.match(key))
+
+        return [getattr(cls, key) for key in subtasks]
 
 
 @dataclass

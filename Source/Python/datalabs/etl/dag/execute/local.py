@@ -33,6 +33,7 @@ class LocalDAGExecutorTask(Task):
         super().__init__(parameters)
 
         self._triggered_tasks = []
+        self._status = Status.PENDING
         self._parameters.dag_state_class = import_plugin(self._parameters.dag_state_class)
 
     def run(self):
@@ -52,6 +53,10 @@ class LocalDAGExecutorTask(Task):
     @property
     def triggered_tasks(self):
         return self._triggered_tasks
+
+    @property
+    def status(self):
+        return self._status
 
     # pylint: disable=no-self-use
     def param(self, task: 'DAGTask'):
@@ -77,22 +82,21 @@ class LocalDAGExecutorTask(Task):
         dag_state = self._parameters.dag_state_class(self._get_state_parameters())
         current_status = dag_state.get_dag_status(self._parameters.dag, self._parameters.execution_time)
         task_status_counts = Counter(task_statuses)
-        status = Status.PENDING
 
         if task_status_counts[Status.FINISHED] == len(task_statuses):
-            status = Status.FINISHED
+            self._status = Status.FINISHED
         elif task_status_counts[Status.FAILED] > 0:
-            status = Status.FAILED
+            self._status = Status.FAILED
         elif (task_status_counts[Status.FAILED]) == 0:
-            status = Status.RUNNING
+            self._status = Status.RUNNING
 
-        if current_status != status:
-            dag_state.set_dag_status(self._parameters.dag, self._parameters.execution_time, status)
+        if current_status != self._status:
+            dag_state.set_dag_status(self._parameters.dag, self._parameters.execution_time, self._status)
             LOGGER.info(
                 'Setting status of dag "%s" (%s) to %s',
                 self._parameters.dag,
                 self._parameters.execution_time,
-                status
+                self._status
             )
 
     def _get_task_status(self, task):
@@ -107,7 +111,7 @@ class LocalDAGExecutorTask(Task):
 
     def _trigger_task(self, task):
         LOGGER.info('Triggering task "%s" of DAG "%s"', task.id, self._parameters.dag)
-
+        LOGGER.info(self._triggered_tasks)
         self._triggered_tasks.append(task.id)
 
     def _get_state_parameters(self, task=None):

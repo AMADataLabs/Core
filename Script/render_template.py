@@ -4,8 +4,6 @@ import logging
 from   pathlib import Path
 import re
 
-import jinja2
-
 from datalabs.common.setup import FileGeneratorFilenames, SimpleFileGenerator
 
 logging.basicConfig()

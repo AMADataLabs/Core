@@ -97,7 +97,8 @@ class AllClinicianDescriptorsEndpointTask(
 
         query = self._filter_for_wildcard(ClinicianDescriptorCodeMapping, query, code)
 
-        return query
+        # pylint: disable=singleton-comparison
+        return query.filter(ClinicianDescriptor.deleted == False)
 
     @classmethod
     def _filter_for_release(cls, query, since):

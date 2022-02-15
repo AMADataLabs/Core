@@ -530,6 +530,128 @@ module "sns_processed" {
   }
 }
 
+module "sns_scheduler_topic" {
+  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+
+  policy_template_vars = {
+    topic_name      = local.topic_names.scheduler
+    region          = var.region
+    account_id      = data.aws_caller_identity.account.account_id
+    s3_bucket_name  = module.s3_scheduler.bucket_id
+  }
+
+  name = local.topic_names.scheduler
+  topic_display_name    = local.topic_names.scheduler
+  app_name              = lower(var.project)
+  app_environment       = local.environment
+
+  tag_name                         = local.topic_names.scheduler
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
+  tags = {
+    Group                               = local.group
+    Department                          = local.department
+  }
+}
+
+
+resource "aws_sns_topic_subscription" "scheduler" {
+  topic_arn = module.sns_scheduler_topic.topic_arn
+  protocol  = "lambda"
+  endpoint  = module.lambda_dag_processor.function_arn
+}
+
+
+module "sns_dag_topic" {
+  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+
+  policy_template_vars = {
+    topic_name      = local.topic_names.dag_processor
+    region          = var.region
+    account_id      = data.aws_caller_identity.account.account_id
+    s3_bucket_name  = "not_applicable"
+  }
+
+  name = local.topic_names.dag_processor
+  topic_display_name    = local.topic_names.dag_processor
+  app_name              = lower(var.project)
+  app_environment       = local.environment
+
+  tag_name                         = local.topic_names.dag_processor
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
+  tags = {
+    Group                               = local.group
+    Department                          = local.department
+  }
+}
+
+
+resource "aws_sns_topic_subscription" "dag_processor" {
+  topic_arn = module.sns_dag_topic.topic_arn
+  protocol  = "lambda"
+  endpoint  = module.lambda_dag_processor.function_arn
+}
+
+
+module "sns_task_topic" {
+  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+
+  policy_template_vars = {
+    topic_name      = local.topic_names.task_processor
+    region          = var.region
+    account_id      = data.aws_caller_identity.account.account_id
+    s3_bucket_name  = "not_applicable"
+  }
+
+  name = local.topic_names.task_processor
+  topic_display_name    = local.topic_names.task_processor
+  app_name              = lower(var.project)
+  app_environment       = local.environment
+
+  tag_name                         = local.topic_names.task_processor
+  tag_environment                   = local.environment
+  tag_contact                       = var.contact
+  tag_budgetcode                    = var.budget_code
+  tag_owner                         = var.owner
+  tag_projectname                   = var.project
+  tag_systemtier                    = "0"
+  tag_drtier                        = "0"
+  tag_dataclassification            = "N/A"
+  tag_notes                         = "N/A"
+  tag_eol                           = "N/A"
+  tag_maintwindow                   = "N/A"
+  tags = {
+    Group                               = local.group
+    Department                          = local.department
+  }
+}
+
+
+resource "aws_sns_topic_subscription" "task_processor" {
+  topic_arn = module.sns_task_topic.topic_arn
+  protocol  = "lambda"
+  endpoint  = module.lambda_task_processor.function_arn
+}
+
 
 #####################################################################
 # Datalake - ECS Cluster, Service, and Task Definitions             #

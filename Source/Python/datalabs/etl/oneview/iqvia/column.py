@@ -45,7 +45,6 @@ BUSINESS_COLUMNS = {
     'DEACTIVATION_REASON': 'deactivation_reason',
     'REFERBACK_IMS_ORG_ID': 'replacement_business',
     'STATUS_INDICATOR': 'status_indicator',
-    'BATCH_BUSINESS_DATE': 'batch_business_date'
 }
 
 PROVIDER_COLUMNS = {
@@ -66,7 +65,6 @@ PROVIDER_COLUMNS = {
     'UPIN': 'unique_physician_identification_number',
     'NPI': 'national_provider_identifier',
     'STATUS_DESC': 'status_description',
-    'BATCH_BUSINESS_DATE': 'batch_business_date'
 }
 
 PROVIDER_AFFILIATION_COLUMNS = {
@@ -79,7 +77,6 @@ PROVIDER_AFFILIATION_COLUMNS = {
     'AFFIL_RANK': 'rank',
     'AFFIL_GROUP_CODE': 'group',
     'AFFIL_GROUP_DESC': 'group_description',
-    'BATCH_BUSINESS_DATE_y': 'batch_business_date'
 }
 
 CORPORATE_PARENT_BUSINESS = {
@@ -93,5 +90,5 @@ SUBSIDIARY_BUSINESS = {
 }
 
 IQVIA_DATE = {
-    'batch_business_date': 'date'
+    'BATCH_BUSINESS_DATE': 'date'
 }

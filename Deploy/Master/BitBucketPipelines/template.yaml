@@ -1,0 +1,128 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: bitbucket-pipelines
+metadata:
+  name: bitbucket-pipelines
+  namespace: hsg-data-labs-dev
+  annotations:
+    description: |-
+      BitBucket Pipelines build environment.
+    iconClass: database
+    openshift.io/display-name: BitBucket Pipelines
+    openshift.io/long-description: This template provides the environment used when building via BitBucket Pipelines.
+    openshift.io/provider-display-name: HS DataLabs
+    tags:
+objects:
+#######################################
+# Builds
+#######################################
+
+### BitBucket Pipelines environment ###
+
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: BitBucket Pipelines
+    name: ${APPLICATION_NAME}
+    namespace: hsg-data-labs-dev
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: ${APPLICATION_NAME}:latest
+      generation: 1
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
+
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/description: BitBucket Pipelines build environment
+      openshift.io/display-name: BitBucket Pipelines
+    creationTimestamp: null
+    labels:
+      app: BitBucket Pipelines
+    name: ${APPLICATION_NAME}
+    namespace: hsg-data-labs-dev
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${APPLICATION_NAME}:1.0.0
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+        ref: dev
+      sourceSecret:
+        name: bitbucket
+      type: Git
+    strategy:
+      dockerStrategy:
+        dockerfilePath: Build/Master/BitBucketPipelines/Dockerfile
+        from:
+          kind: ImageStreamTag
+          name: python:3.7
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - type: ConfigChange
+
+
+#######################################
+# Deployments
+#######################################
+
+### Dummy Deployment used for running debug containers ###
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: "true"
+    name: ${APPLICATION_NAME}-dummy
+  spec:
+    replicas: 1
+    selector:
+      name: ${APPLICATION_NAME}-dummy
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: ${APPLICATION_NAME}-dummy
+      spec:
+        containers:
+        - capabilities: {}
+          image: ' '
+          imagePullPolicy: IfNotPresent
+          name: dummy
+          resources:
+            limits:
+              memory: 512Mi
+          securityContext:
+            capabilities: {}
+            privileged: false
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+    triggers:
+    - type: ConfigChange
+  status: {}
+parameters:
+- name: APPLICATION_NAME
+  description: The name of the OpenShift applications.
+  displayName: BitBucket Pipelines application
+  value: bitbucket-pipelines

@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class PythonSourceBundle:
+class SourceBundle:
     def __init__(self, modspec_yaml):
         self._modspec_yaml = modspec_yaml
 
@@ -23,7 +23,7 @@ class PythonSourceBundle:
         with open(modspec_path, 'r') as file:
             modspec_yaml = file.read()
 
-        return PythonSourceBundle(modspec_yaml)
+        return cls(modspec_yaml)
 
     def copy(self, base_path, app_path):
         shared_source_path = os.path.join(base_path)
@@ -62,7 +62,6 @@ class PythonSourceBundle:
     def _find_package_files(cls, package, base_path):
         relative_package_path = cls._generate_package_path(package['package'])
         absolute_package_path = os.path.join(base_path, relative_package_path)
-        init_path = os.path.join(relative_package_path, '__init__.py')
         filtered_files = None
         all_files = cls._get_files_in_directory(absolute_package_path)
 
@@ -76,9 +75,6 @@ class PythonSourceBundle:
             ]
         else:
             filtered_files = [os.path.join(relative_package_path, f) for f in all_files]
-
-        if init_path not in filtered_files:
-            filtered_files.append(init_path)
 
         return filtered_files
 

@@ -5,7 +5,7 @@ import tempfile
 
 import pytest
 
-from   datalabs.build.bundle import PythonSourceBundle
+from   datalabs.build.bundle.python import PythonSourceBundle
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
