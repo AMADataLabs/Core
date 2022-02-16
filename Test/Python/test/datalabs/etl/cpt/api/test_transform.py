@@ -1,5 +1,5 @@
 """ source: datalabs.etl.cpt.api.transform """
-from datetime import datetime, date
+from datetime import date
 import logging
 
 import pandas
@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access, redefined-outer-name
 def test_get_correct_number_of_unique_release_dates_from_history(code_history):
     non_pla_releases, pla_releases = ReleasesTransformerTask._get_unique_dates_from_history(code_history)
 
@@ -20,7 +20,7 @@ def test_get_correct_number_of_unique_release_dates_from_history(code_history):
     assert len(pla_releases) == 4
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access, redefined-outer-name
 def test_get_correct_unique_release_dates_from_history(code_history, expected_releases):
     non_pla_release_dates, pla_release_dates = ReleasesTransformerTask._get_unique_dates_from_history(code_history)
     non_pla_expected_releases = expected_releases.loc[~expected_releases.type.str.startswith('PLA')]
@@ -33,14 +33,14 @@ def test_get_correct_unique_release_dates_from_history(code_history, expected_re
         assert effective_date in pla_release_dates
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access, redefined-outer-name
 def test_non_pla_release_types_are_correct(release_schedules):
     assert ReleasesTransformerTask._get_release_type(date(2264, 1, 1), release_schedules) == 'ANNUAL'
 
     assert ReleasesTransformerTask._get_release_type(date(2264, 8, 1), release_schedules) == 'OTHER'
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access, redefined-outer-name
 def test_pla_release_types_are_correct(release_schedules):
     assert ReleasesTransformerTask._get_release_type(date(2264, 1, 1), release_schedules, "PLA-") == 'PLA-Q4'
 
@@ -51,14 +51,14 @@ def test_pla_release_types_are_correct(release_schedules):
     assert ReleasesTransformerTask._get_release_type(date(2264, 10, 1), release_schedules, "PLA-") == 'PLA-Q3'
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access, redefined-outer-name
 def test_non_pla_publish_dates_are_correct(release_schedules):
     assert ReleasesTransformerTask._get_publish_date(date(2264, 1, 1), release_schedules) == date(2263, 9, 1)
 
     assert ReleasesTransformerTask._get_publish_date(date(2264, 8, 1), release_schedules) == date(2264, 8, 1)
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access, redefined-outer-name
 def test_pla_publish_dates_are_correct(release_schedules):
     assert ReleasesTransformerTask._get_publish_date(date(2264, 1, 1), release_schedules, "PLA-") == date(2263, 10, 1)
 
@@ -69,7 +69,7 @@ def test_pla_publish_dates_are_correct(release_schedules):
     assert ReleasesTransformerTask._get_publish_date(date(2264, 10, 1), release_schedules, "PLA-") == date(2264, 7, 1)
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access, redefined-outer-name
 def test_generated_release_ids_are_correct(expected_releases):
     release_ids = expected_releases.apply(
         lambda r: ReleasesTransformerTask._generate_release_id(
@@ -82,7 +82,7 @@ def test_generated_release_ids_are_correct(expected_releases):
     assert all(release_ids == expected_releases.id)
 
 
-# pylint: disable=protected-access
+# pylint: disable=protected-access, redefined-outer-name
 def test_generated_releases_are_correct(code_history, release_schedules, expected_releases):
     releases = ReleasesTransformerTask._generate_release_table(code_history, release_schedules)
 
@@ -94,45 +94,6 @@ def test_generated_releases_are_correct(code_history, release_schedules, expecte
 
 @pytest.fixture
 def code_history():
-    # effective_date
-    # 20210101,ADDED,1036624,0227U,PC,,...
-    #               effective_date                 publish_date
-    # 227,0227U,...,2021-01-01T00:00:00-05:00,...,,2020-10-01T00:00:00-06:00,...
-    # PLA-Q4,20210101,20201001
-
-
-    # effective_date
-    # 20210401,ADDED,1036639,0242U,PC,,...
-    #               effective_date                publish_date
-    # 242,0242U,...,2021-04-01T00:00:00-05:00,...,2021-01-01T00:00:00-06:00,...
-    # PLA-Q1,20210401,20210101
-
-
-    # effective_date
-    # 20210701,ADDED,1036675,0248U,PC,,...
-    #               effective_date                publish_date
-    # 248,0248U,...,2021-07-01T00:00:00-05:00,...,,2021-04-01T00:00:00-06:00,...
-    # PLA-Q2,20210701,20210401
-
-
-    # effective_date
-    # 20210812,ADDED,1036914,0003A,...
-    # OTHER,20210812,20210812
-
-
-    # effective_date
-    # 20211001,ADDED,1036816,0284U,PC,,"von...",
-    #               effective_date            publish_date
-    # 284,0284U,...,2021-10-01T00:00:00-05:00,2021-07-01T00:00:00-06:00,...
-    # type,effective_date,publish_date
-    # PLA-Q3,20211001,20210701
-
-
-    # effective_date
-    # 20220101,ADDED,1036845,98980,PC,,"Remote therapeutic monitoring
-    # type,effective_date,publish_date
-    # ANNUAL,20220101,20210901
-
     return pandas.DataFrame(
         dict(
             date=['20210101', '20210401', '20210701', '20210812', '20211001', '20220101', '20220101'],
@@ -162,7 +123,9 @@ def release_schedules():
 
 @pytest.fixture
 def expected_releases():
-    # id: publish_date + (publish_date - effective_date).days
+    ''' Expected release data with IDs calculcated as follows (pseudo-code):
+        id = publish_date + (publish_date - effective_date).days
+    '''
 
     return pandas.DataFrame(
         dict(

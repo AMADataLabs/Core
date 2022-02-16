@@ -91,8 +91,6 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
             )
         )
 
-        return releases
-
     @classmethod
     def _get_release_type(cls, effective_date, release_schedules, type_prefix=None):
         release_type = "OTHER"
