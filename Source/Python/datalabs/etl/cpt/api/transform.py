@@ -54,7 +54,7 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         non_pla_releases = cls._generate_releases(non_pla_effective_dates, release_schedules)
         pla_releases = cls._generate_releases(pla_effective_dates, release_schedules, "PLA-")
 
-        return pandas.concat(non_pla_releases, pla_releases).sort("effective_date")
+        return non_pla_releases.append(pla_releases).sort_values("effective_date", ignore_index=True)
 
     @classmethod
     def _get_unique_dates_from_history(cls, code_history: pandas.DataFrame):

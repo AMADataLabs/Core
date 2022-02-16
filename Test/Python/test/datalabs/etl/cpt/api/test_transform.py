@@ -34,19 +34,6 @@ def test_get_correct_unique_release_dates_from_history(code_history, expected_re
 
 
 # pylint: disable=protected-access
-def test_generated_release_ids_are_correct(expected_releases):
-    release_ids = expected_releases.apply(
-        lambda r: ReleasesTransformerTask._generate_release_id(
-            r.effective_date,
-            r.publish_date
-        ),
-        axis=1
-    )
-
-    assert all(release_ids == expected_releases.id)
-
-
-# pylint: disable=protected-access
 def test_non_pla_release_types_are_correct(release_schedules):
     assert ReleasesTransformerTask._get_release_type(date(2264, 1, 1), release_schedules) == 'ANNUAL'
 
@@ -80,6 +67,29 @@ def test_pla_publish_dates_are_correct(release_schedules):
     assert ReleasesTransformerTask._get_publish_date(date(2264, 7, 1), release_schedules, "PLA-") == date(2264, 4, 1)
 
     assert ReleasesTransformerTask._get_publish_date(date(2264, 10, 1), release_schedules, "PLA-") == date(2264, 7, 1)
+
+
+# pylint: disable=protected-access
+def test_generated_release_ids_are_correct(expected_releases):
+    release_ids = expected_releases.apply(
+        lambda r: ReleasesTransformerTask._generate_release_id(
+            r.effective_date,
+            r.publish_date
+        ),
+        axis=1
+    )
+
+    assert all(release_ids == expected_releases.id)
+
+
+# pylint: disable=protected-access
+def test_generated_releases_are_correct(code_history, release_schedules, expected_releases):
+    releases = ReleasesTransformerTask._generate_release_table(code_history, release_schedules)
+
+    assert all(expected_releases.type == releases.type)
+    assert all(expected_releases.publish_date == releases.publish_date)
+    assert all(expected_releases.effective_date == releases.effective_date)
+    assert all(expected_releases.id == releases.id)
 
 
 @pytest.fixture
