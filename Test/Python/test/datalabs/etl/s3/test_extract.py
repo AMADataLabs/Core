@@ -141,6 +141,7 @@ def newline_parameters():
         DATA=[
             """this_one.csv   
             that_one.csv""".encode(),
-            'the_other_one.csv'.encode()],
+            'the_other_one.csv'.encode()
+        ],
         EXECUTION_TIME='19000101'
     )
