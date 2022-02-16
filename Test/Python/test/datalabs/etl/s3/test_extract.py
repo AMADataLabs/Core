@@ -94,6 +94,17 @@ def test_cp1252_decoding(parameters):
     assert unicode_encoded_text == '¥'.encode("utf-8")
 
 
+# pylint: disable=redefined-outer-name, protected-access
+def test_newline_separator_filenames(newline_parameters):
+    with mock.patch('boto3.client'):
+        task = s3.S3FileListExtractorTask(newline_parameters)
+
+        files = task._get_files()
+
+        assert len(files) == 3
+        assert files[2] == 'dir1/dir2/dir3/19000101/the_other_one.csv'
+
+
 @pytest.fixture
 def parameters():
     return dict(
@@ -107,6 +118,7 @@ def parameters():
         EXECUTION_TIME='19000101'
     )
 
+
 @pytest.fixture
 def body():
     data = \
@@ -117,3 +129,21 @@ ping,24680
 '''
 
     return StreamingBody(BytesIO(data), len(data))
+
+
+@pytest.fixture
+def newline_parameters():
+    return dict(
+        ENDPOINT_URL='https://bogus.host.fqdn/path/file',
+        ACCESS_KEY='nviowaj4902hfisafh9402fdni0ph8',
+        SECRET_KEY='wr9e0afe90afohf90aw',
+        REGION_NAME='us-east-42',
+        BUCKET='jumanji',
+        BASE_PATH='dir1/dir2/dir3',
+        DATA=[
+            """this_one.csv   
+            that_one.csv""".encode(),
+            'the_other_one.csv'.encode()
+        ],
+        EXECUTION_TIME='19000101'
+    )
