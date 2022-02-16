@@ -118,6 +118,7 @@ def parameters():
         EXECUTION_TIME='19000101'
     )
 
+
 @pytest.fixture
 def body():
     data = \
@@ -128,6 +129,7 @@ ping,24680
 '''
 
     return StreamingBody(BytesIO(data), len(data))
+
 
 @pytest.fixture
 def newline_parameters():
