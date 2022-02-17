@@ -43,9 +43,19 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     def _transform(self):
         code_history, release_schedules = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
 
+        release_schedules = self._convert_months_to_integers(release_schedules)
+
         releases = self._generate_release_table(code_history, release_schedules)
 
         return [self._dataframe_to_csv(releases)]
+
+    @classmethod
+    def _convert_months_to_integers(cls, release_schedules):
+        release_schedules.publish_day = release_schedules.publish_day.astype(int)
+
+        release_schedules.effective_day = release_schedules.effective_day.astype(int)
+
+        return release_schedules
 
     @classmethod
     def _generate_release_table(cls, code_history, release_schedules):
@@ -98,7 +108,10 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         candidate_schedules = cls._get_schedules_by_effective_date(effective_date, release_schedules)
 
         if len(candidate_schedules) > 0:
-            release_type = cls._get_schedule_by_prefix(candidate_schedules, type_prefix).type.iloc[0]
+            try:
+                release_type = cls._get_schedule_by_prefix(candidate_schedules, type_prefix).type.iloc[0]
+            except IndexError:
+                pass
 
         return release_type
 
@@ -109,9 +122,12 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         candidate_schedules = cls._get_schedules_by_effective_date(effective_date, release_schedules)
 
         if len(candidate_schedules) > 0:
-            release_schedule = cls._get_schedule_by_prefix(candidate_schedules, type_prefix)
+            try:
+                release_schedule = cls._get_schedule_by_prefix(candidate_schedules, type_prefix)
 
-            publish_date = cls._generate_publish_date(effective_date, release_schedule)
+                publish_date = cls._generate_publish_date(effective_date, release_schedule)
+            except IndexError:
+                pass
 
         return publish_date
 
