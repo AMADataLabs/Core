@@ -24,9 +24,9 @@ class ReleaseSchedule:
     effective_date: str
 
 
-class ReleaseScheduleType(Enum):
-    NON_PLA = 'ANNUAL'
-    PLA = 'PLA'
+class ReleaseTypePrefix(Enum):
+    NON_PLA = None
+    PLA = 'PLA-'
 
 
 @add_schema
@@ -61,8 +61,8 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     def _generate_release_table(cls, code_history, release_schedules):
         non_pla_effective_dates, pla_effective_dates = cls._get_unique_dates_from_history(code_history)
 
-        non_pla_releases = cls._generate_releases(non_pla_effective_dates, release_schedules)
-        pla_releases = cls._generate_releases(pla_effective_dates, release_schedules, "PLA-")
+        non_pla_releases = cls._generate_releases(non_pla_effective_dates, release_schedules, ReleaseTypePrefix.NON_PLA)
+        pla_releases = cls._generate_releases(pla_effective_dates, release_schedules, ReleaseTypePrefix.PLA)
 
         return non_pla_releases.append(pla_releases).sort_values("effective_date", ignore_index=True)
 
@@ -85,24 +85,24 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         )
 
     @classmethod
-    def _generate_releases(cls, effective_dates, release_schedules, type_prefix=None):
+    def _generate_releases(cls, effective_dates, release_schedules, type_prefix):
         release_types = [cls._get_release_type(d, release_schedules, type_prefix) for d in effective_dates]
 
         publish_dates = [cls._get_publish_date(d, release_schedules, type_prefix) for d in effective_dates]
 
-        release_ids = [cls._generate_release_id(e, p) for e, p in zip(effective_dates, publish_dates)]
+        ids = [cls._generate_release_id(t, p, e) for t, p, e in zip(release_types, publish_dates, effective_dates)]
 
         return pandas.DataFrame(
             dict(
                 type=release_types,
                 publish_date=publish_dates,
                 effective_date=effective_dates,
-                id=release_ids
+                id=ids
             )
         )
 
     @classmethod
-    def _get_release_type(cls, effective_date, release_schedules, type_prefix=None):
+    def _get_release_type(cls, effective_date, release_schedules, type_prefix):
         release_type = "OTHER"
 
         candidate_schedules = cls._get_schedules_by_effective_date(effective_date, release_schedules)
@@ -132,10 +132,15 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
         return publish_date
 
     @classmethod
-    def _generate_release_id(cls, effective_date, publish_date):
-        difference = str((publish_date - effective_date).days)
+    def _generate_release_id(cls, release_type, publish_date, effective_date):
+        suffix = str(effective_date)
 
-        return int(str(publish_date).replace('-', '')) + int(difference)
+        if release_type == "ANNUAL":
+            suffix = str(effective_date.year)
+        elif release_type.startswith("PLA-"):
+            suffix = str(publish_date.year)
+
+        return f'{release_type}-{suffix}'
 
     @classmethod
     def _get_schedules_by_effective_date(cls, effective_date, release_schedules):
@@ -151,10 +156,10 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     def _get_schedule_by_prefix(cls, release_schedules, type_prefix):
         release_schedule = None
 
-        if type_prefix is None:
+        if type_prefix == ReleaseTypePrefix.NON_PLA:
             release_schedule = release_schedules[~release_schedules.type.str.contains("-")]
         else:
-            release_schedule = release_schedules[release_schedules.type.str.startswith(type_prefix)]
+            release_schedule = release_schedules[release_schedules.type.str.startswith(type_prefix.value)]
 
         return release_schedule
 
