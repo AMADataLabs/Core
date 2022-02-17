@@ -141,8 +141,8 @@ def newline_parameters():
         BUCKET='jumanji',
         BASE_PATH='dir1/dir2/dir3',
         DATA=[
-            """this_one.csv   
-            that_one.csv""".encode(),
+            """this_one.csv
+            that_one.csv   """.encode(),
             'the_other_one.csv'.encode()
         ],
         EXECUTION_TIME='19000101'
