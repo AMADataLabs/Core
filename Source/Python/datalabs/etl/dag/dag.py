@@ -201,7 +201,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             start = 0
 
         if count is None:
-            count = len(cls._subtasks(task1))
+            count = len(cls._subtasks(task2))
 
         for index in range(start, count):
             # pylint: disable=expression-not-assigned
