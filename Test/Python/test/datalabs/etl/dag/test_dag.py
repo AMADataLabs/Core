@@ -104,6 +104,7 @@ def test_predecessors(dag_class):
 
 # pylint: disable=redefined-outer-name
 def test_upstream_tasks(dag_class):
+    # pylint: disable=expression-not-assigned
     dag_class.CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY >> dag_class.first('WAX_ON_WITH_KARATE')
     dag_class.sequence('WAX_ON_WITH_KARATE')
 
@@ -131,6 +132,7 @@ def test_successors(dag_class):
 
 # pylint: disable=redefined-outer-name
 def test_downstream_tasks(dag_class):
+    # pylint: disable=expression-not-assigned
     dag_class.CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY >> dag_class.first('WAX_ON_WITH_KARATE')
     dag_class.sequence('WAX_ON_WITH_KARATE')
 
