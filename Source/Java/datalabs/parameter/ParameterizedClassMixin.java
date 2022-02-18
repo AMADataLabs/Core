@@ -12,14 +12,16 @@ public class ParameterizedClassMixin {
 
     protected Parameters parameters = null;
 
-    public ParameterizedClassMixin(Map<String, String> parameters)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        this(parameters, null);
+    private ParameterizedClassMixin() {
     }
 
     protected ParameterizedClassMixin(Map<String, String> parameters, Class parameterClass)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+            throws IllegalAccessException, InvalidArgumentException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         if (parameterClass != null) {
+            if (parameters == null) {
+                throw new InvalidArgumentException("A parameter class, but not parameters input map, was specified.")
+            }
+
             this.parameters = (Parameters) parameterClass.getConstructor(new Class[] {Map.class}).newInstance(parameters);
         }
     }

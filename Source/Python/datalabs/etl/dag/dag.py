@@ -17,6 +17,9 @@ class DAGTask:
         self._ready = True
         self._status = Status.UNKNOWN
 
+    def __repr__(self):
+        return f"DAGTask('{self.id}', {self._task_class})"
+
     def __str__(self):
         return self.id
 
