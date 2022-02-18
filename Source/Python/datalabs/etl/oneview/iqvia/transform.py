@@ -93,7 +93,7 @@ class IQVIAProviderTransformerTask(TransformerTask):
 class IQVIAProviderPruningTransformerTask(TransformerTask):
     @classmethod
     def _preprocess_data(cls, data):
-        providers, affiliations, physicians = data
+        providers, affiliations, physicians, businesses = data
         physicians['truncated_me'] = physicians.medical_education_number.apply(lambda me: me[:-1])
         providers.rename(columns=dict(medical_education_number='truncated_me'), inplace=True)
         affiliations.rename(columns=dict(medical_education_number='truncated_me'), inplace=True)
@@ -113,6 +113,7 @@ class IQVIAProviderPruningTransformerTask(TransformerTask):
             physicians[['medical_education_number', 'truncated_me']],
             on='truncated_me', how='left'
         ).drop_duplicates()
+        affiliations = affiliations[affiliations.business.isin(businesses.id)]
 
         return [providers, affiliations]
 
