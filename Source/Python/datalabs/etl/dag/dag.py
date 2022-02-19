@@ -17,6 +17,9 @@ class DAGTask:
         self._ready = True
         self._status = Status.UNKNOWN
 
+    def __repr__(self):
+        return f"DAGTask('{self.id}', {self._task_class})"
+
     def __str__(self):
         return self.id
 
@@ -198,7 +201,7 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
             start = 0
 
         if count is None:
-            count = len(cls._subtasks(task1))
+            count = len(cls._subtasks(task2))
 
         for index in range(start, count):
             # pylint: disable=expression-not-assigned
