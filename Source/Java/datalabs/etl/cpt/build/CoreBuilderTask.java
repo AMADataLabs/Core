@@ -1,5 +1,6 @@
 package datalabs.etl.cpt.build;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,7 +26,7 @@ import datalabs.task.Task;
 public class CoreBuilderTask extends Task {
     private static final Logger logger = LoggerFactory.getLogger(CoreBuilderTask.class);
 
-    public final Path outDir = Paths.get(((CoreBuilderTaskParameters) this.parameters).output_directory);
+    public final Path outputDirectory = Paths.get(((CoreBuilderTaskParameters) this.parameters).outputDirectory);
 
     public CoreBuilderTask(Map<String, String> parameters) throws IllegalAccessException, InstantiationException,
             InvocationTargetException, NoSuchMethodException {
@@ -35,67 +36,63 @@ public class CoreBuilderTask extends Task {
     public void run() {
         DtkAccess priorDtk = null;
         try {
-            priorDtk = CoreBuilderTask.loadDtk(
-                    "dtk-versions/" +
-                    ((CoreBuilderTaskParameters) this.parameters).prior_dtk_version +
+            priorDtk = CoreBuilderTask.loadDtk("dtk-versions/" +
+                    ((CoreBuilderTaskParameters) this.parameters).priorDtkVersion +
                     "/"
+            );
+            updateConcepts(priorDtk);
+
+            ConceptIdFactory.init(priorDtk);
+            DtkAccess dtk = new BuildCore(priorDtk, ((CoreBuilderTaskParameters) this.parameters).releaseDate).walk();
+            ArrayList<DtkConcept> concepts = dtk.getConcepts();
+            DtkConcept.sort(concepts);
+            exportConcepts(dtk, concepts);
+
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+	private static DtkAccess loadDtk(String directory) throws IOException {
+		DtkAccess dtk = new DtkAccess();
+
+        try {
+            dtk.load(directory + ExporterFiles.PropertyInternal.getFileNameExt(),
+                    directory + ExporterFiles.RelationshipGroup.getFileNameExt()
             );
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        try {
-            updateConcepts(priorDtk);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        ConceptIdFactory.init(priorDtk);
-        DtkAccess dtk = new BuildCore(priorDtk, ((CoreBuilderTaskParameters) this.parameters).release_date).walk();
-        ArrayList<DtkConcept> cons = dtk.getConcepts();
-        DtkConcept.sort(cons);
-
-        try {
-            exportConcepts(dtk, cons);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-	private static DtkAccess loadDtk(String directory) throws Exception {
-		DtkAccess dtk = new DtkAccess();
-
-		dtk.load(
-            directory + ExporterFiles.PropertyInternal.getFileNameExt(),
-			directory + ExporterFiles.RelationshipGroup.getFileNameExt()
-        );
-
-		return dtk;
+        return dtk;
 	}
 
-    private void updateConcepts(DtkAccess priorDtk) throws Exception {
-        DtkAccess coreDtk = CoreBuilderTask.loadDtk(
-                "dtk-versions/" +
-                ((CoreBuilderTaskParameters) this.parameters).current_dtk_version +
+    private void updateConcepts(DtkAccess priorDtk) throws IOException {
+        DtkAccess coreDtk = CoreBuilderTask.loadDtk("dtk-versions/" +
+                ((CoreBuilderTaskParameters) this.parameters).currentDtkVersion +
                 "/"
         );
-        for (DtkConcept con : coreDtk.getConcepts()) {
-            if (con.getProperty(PropertyType.CORE_ID) != null) {
-                DtkConcept priorCon = priorDtk.getConcept(con.getConceptId());
-                if (priorCon != null) {
-                    priorCon.update(PropertyType.CORE_ID, con.getProperty(PropertyType.CORE_ID));
+        for (DtkConcept concept : coreDtk.getConcepts()) {
+            if (concept.getProperty(PropertyType.CORE_ID) != null) {
+                DtkConcept priorConcept = priorDtk.getConcept(concept.getConceptId());
+                if (priorConcept != null) {
+                    priorConcept.update(PropertyType.CORE_ID, concept.getProperty(PropertyType.CORE_ID));
                 } else {
-                    logger.warn("Apparently deleted: " + con.getLogString());
+                    logger.warn("Apparently deleted: " + concept.getLogString());
                 }
             }
         }
     }
 
-    private void exportConcepts(DtkAccess dtk, ArrayList<DtkConcept> cons) throws Exception {
-        Files.createDirectories(outDir);
-        Exporter exp = new Exporter(dtk, outDir.toString());
+    private void exportConcepts(DtkAccess dtk, ArrayList<DtkConcept> concepts) throws IOException {
+        Files.createDirectories(outputDirectory);
+        Exporter exp = new Exporter(dtk, outputDirectory.toString());
         exp.setDelimiter(Delimiter.Pipe);
-        exp.export(cons, true);
+        try {
+            exp.export(concepts, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

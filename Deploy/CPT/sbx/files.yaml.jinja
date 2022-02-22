@@ -1,6 +1,6 @@
 data:
   #######################################################################
-  # Global Variables - {"DAG": {"S": "CPTLINK"}, "Task": {"S": "GLOBAL"}}
+  # Global Variables - {"DAG": {"S": "CPT_FILES"}, "Task": {"S": "GLOBAL"}}
   #######################################################################
 
   ENVIRONMENT: sbx
@@ -10,11 +10,11 @@ data:
   S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
   S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-  S3_BASE_PATH: 'AMA/CPT/LINK'
+  S3_BASE_PATH: 'AMA/CPT/Files'
 
 
   #######################################################################
-  # DAG Variables - ({"DAG": {"S": "CPTLINK"}, "Task": {"S": "DAG"}})
+  # DAG Variables - ({"DAG": {"S": "CPT_FILES"}, "Task": {"S": "DAG"}})
   #######################################################################
 
   CPTLINK__DAG__LAMBDA_FUNCTION: ''
@@ -30,7 +30,7 @@ data:
 
 
   ##########################################################################
-  # Task Variables - ({"DAG": {"S": "CPTLINK"}, "Task": {"S": "<Task ID>"}})
+  # Task Variables - ({"DAG": {"S": "CPT_FILES"}, "Task": {"S": "<Task ID>"}})
   ##########################################################################
 
 
