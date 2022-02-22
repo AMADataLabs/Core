@@ -112,11 +112,11 @@ class OneViewDAG(DAG):
     LOAD_CENSUS_TABLE: ORMLoaderTask
     LOAD_ZIP_CODE_CORE_BASED_STATISTICAL_AREA_TABLE: ORMLoaderTask
 
-    EXTRACT_IQVIA_BUSINESS: Repeat(JDBCExtractorTask, 5)
-    CREATE_BUSINESS_TABLE: Repeat(IQVIABusinessTransformerTask, 5)
+    EXTRACT_IQVIA_BUSINESS: Repeat(JDBCExtractorTask, 6)
+    CREATE_BUSINESS_TABLE: Repeat(IQVIABusinessTransformerTask, 6)
     CREATE_IQVIA_UPDATE_TABLE: IQVIAUpdateTransformerTask
     CONCATENATE_BUSINESS_TABLE: ConcatenateTransformerTask
-    LOAD_BUSINESS_TABLE: Repeat(ORMLoaderTask, 5)
+    LOAD_BUSINESS_TABLE: Repeat(ORMLoaderTask, 6)
     EXTRACT_IQVIA_PROVIDER: JDBCExtractorTask
     EXTRACT_IQVIA_PROVIDER_AFFILIATION: JDBCExtractorTask
     CREATE_PROVIDER_TABLE: IQVIAProviderTransformerTask
