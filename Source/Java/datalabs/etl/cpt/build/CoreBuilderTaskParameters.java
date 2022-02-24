@@ -8,8 +8,8 @@ import datalabs.parameter.Parameters;
 
 public class CoreBuilderTaskParameters extends Parameters {
     public String outputDirectory;
-    public String priorDtkVersion;
-    public String currentDtkVersion;
+    public String priorLinkVersion;
+    public String currentLinkVersion;
     public String releaseDate;
     public Map<String, String> unknowns;
 

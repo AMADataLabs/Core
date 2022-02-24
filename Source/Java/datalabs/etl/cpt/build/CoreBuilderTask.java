@@ -34,47 +34,47 @@ public class CoreBuilderTask extends Task {
     }
 
     public void run() {
-        DtkAccess priorDtk = null;
+        DtkAccess priorLink;
         try {
-            priorDtk = CoreBuilderTask.loadDtk("dtk-versions/" +
-                    ((CoreBuilderTaskParameters) this.parameters).priorDtkVersion +
+            priorLink = CoreBuilderTask.loadLink("dtk-versions/" +
+                    ((CoreBuilderTaskParameters) this.parameters).priorLinkVersion +
                     "/"
             );
-            updateConcepts(priorDtk);
+            updateConcepts(priorLink);
 
-            ConceptIdFactory.init(priorDtk);
-            DtkAccess dtk = new BuildCore(priorDtk, ((CoreBuilderTaskParameters) this.parameters).releaseDate).walk();
-            ArrayList<DtkConcept> concepts = dtk.getConcepts();
+            ConceptIdFactory.init(priorLink);
+            DtkAccess link = new BuildCore(priorLink, ((CoreBuilderTaskParameters) this.parameters).releaseDate).walk();
+            ArrayList<DtkConcept> concepts = link.getConcepts();
             DtkConcept.sort(concepts);
-            exportConcepts(dtk, concepts);
+            exportConcepts(link, concepts);
 
         } catch (IOException exception) {
             exception.printStackTrace();
         }
     }
 
-	private static DtkAccess loadDtk(String directory) throws IOException {
-		DtkAccess dtk = new DtkAccess();
+	private static DtkAccess loadLink(String directory) {
+		DtkAccess link = new DtkAccess();
 
         try {
-            dtk.load(directory + ExporterFiles.PropertyInternal.getFileNameExt(),
+            link.load(directory + ExporterFiles.PropertyInternal.getFileNameExt(),
                     directory + ExporterFiles.RelationshipGroup.getFileNameExt()
             );
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return dtk;
+        return link;
 	}
 
-    private void updateConcepts(DtkAccess priorDtk) throws IOException {
-        DtkAccess coreDtk = CoreBuilderTask.loadDtk("dtk-versions/" +
-                ((CoreBuilderTaskParameters) this.parameters).currentDtkVersion +
+    private void updateConcepts(DtkAccess priorLink) throws IOException {
+        DtkAccess coreDtk = CoreBuilderTask.loadLink("dtk-versions/" +
+                ((CoreBuilderTaskParameters) this.parameters).currentLinkVersion +
                 "/"
         );
         for (DtkConcept concept : coreDtk.getConcepts()) {
             if (concept.getProperty(PropertyType.CORE_ID) != null) {
-                DtkConcept priorConcept = priorDtk.getConcept(concept.getConceptId());
+                DtkConcept priorConcept = priorLink.getConcept(concept.getConceptId());
                 if (priorConcept != null) {
                     priorConcept.update(PropertyType.CORE_ID, concept.getProperty(PropertyType.CORE_ID));
                 } else {
@@ -84,9 +84,9 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-    private void exportConcepts(DtkAccess dtk, ArrayList<DtkConcept> concepts) throws IOException {
+    private void exportConcepts(DtkAccess link, ArrayList<DtkConcept> concepts) throws IOException {
         Files.createDirectories(outputDirectory);
-        Exporter exp = new Exporter(dtk, outputDirectory.toString());
+        Exporter exp = new Exporter(link, outputDirectory.toString());
         exp.setDelimiter(Delimiter.Pipe);
         try {
             exp.export(concepts, true);

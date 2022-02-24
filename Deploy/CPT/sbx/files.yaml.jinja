@@ -1,6 +1,6 @@
 data:
   #######################################################################
-  # Global Variables - {"DAG": {"S": "CPT_FILES"}, "Task": {"S": "GLOBAL"}}
+  # Global Variables - {"DAG": {"S": "CPTFILES"}, "Task": {"S": "GLOBAL"}}
   #######################################################################
 
   ENVIRONMENT: sbx
@@ -14,32 +14,32 @@ data:
 
 
   #######################################################################
-  # DAG Variables - ({"DAG": {"S": "CPT_FILES"}, "Task": {"S": "DAG"}})
+  # DAG Variables - ({"DAG": {"S": "CPTFILES"}, "Task": {"S": "DAG"}})
   #######################################################################
 
-  CPTLINK__DAG__LAMBDA_FUNCTION: ''
-  CPTLINK__DAG__DAG_CLASS: ''
-  CPTLINK__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
-  CPTLINK__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-  CPTLINK__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-  CPTLINK__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-  CPTLINK__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-  CPTLINK__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-  CPTLINK__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+  CPTFILE__DAG__LAMBDA_FUNCTION: ''
+  CPTFILES__DAG__DAG_CLASS: ''
+  CPTFILES__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+  CPTFILES__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+  CPTFILES__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+  CPTFILES__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+  CPTFILES__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+  CPTFILES__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+  CPTFILES__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
 
 
   ##########################################################################
-  # Task Variables - ({"DAG": {"S": "CPT_FILES"}, "Task": {"S": "<Task ID>"}})
+  # Task Variables - ({"DAG": {"S": "CPTFILES"}, "Task": {"S": "<Task ID>"}})
   ##########################################################################
 
 
-  CPTLINK__BUILD_CORE__OUTPUT_DIRECTORY:  'target/buildcore_export2022_from2021u05'
-  CPTLINK__BUILD_CORE__PRIOR_DTK_VERSION:  '2021u05'
-  CPTLINK__BUILD_CORE__CURRENT_DTK_VERSION:  '2021core'
-  CPTLINK__BUILD_CORE__RELEASE_DATE:  '20220101'
+  CPTFILES__BUILD_CORE__OUTPUT_DIRECTORY:  'target/buildcore_export2022_from2021u05'
+  CPTFILES__BUILD_CORE__PRIOR_LINK_VERSION:  '2021u05'
+  CPTFILES__BUILD_CORE__CURRENT_LINK_VERSION:  '2021core'
+  CPTFILES__BUILD_CORE__RELEASE_DATE:  '20220101'
 
-  CPTLINK__BUILD_CORE__CACHE_OUTPUT_CLASS:  ${S3_CACHE_CLASS}
-  CPTLINK__BUILD_CORE__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-  CPTLINK__BUILD_CORE__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-  CPTLINK__BUILD_CORE__CACHE_OUTPUT_FILES: ''
+  CPTFILES__BUILD_CORE__CACHE_OUTPUT_CLASS:  ${S3_CACHE_CLASS}
+  CPTFILES__BUILD_CORE__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPTFILES__BUILD_CORE__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPTFILES__BUILD_CORE__CACHE_OUTPUT_FILES: ''
