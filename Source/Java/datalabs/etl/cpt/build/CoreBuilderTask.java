@@ -22,7 +22,7 @@ import datalabs.task.Task;
 public class CoreBuilderTask extends Task {
     private static final Logger logger = LoggerFactory.getLogger(CoreBuilderTask.class);
 
-    public static final Path outDir = Paths.get("target", "buildcore_export" + "2022_from2021u05");
+    public static final Path outputDirectory = Paths.get("target", "buildcore_export" + "2022_from2021u05");
 
     public CoreBuilderTask(Map<String, String> parameters) throws IllegalAccessException, InstantiationException,
             InvocationTargetException, NoSuchMethodException {
@@ -72,8 +72,8 @@ public class CoreBuilderTask extends Task {
     }
 
     private void exportConcepts(DtkAccess dtk) throws IOException {
-        Files.createDirectories(outDir);
-        Exporter exp = new Exporter(dtk, outDir.toString());
+        Files.createDirectories(outputDirectory);
+        Exporter exp = new Exporter(dtk, outputDirectory.toString());
         exp.setDelimiter(Delimiter.Pipe);
         exp.export(cons, true);
     }
