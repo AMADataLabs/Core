@@ -6,16 +6,20 @@ from   cryptography.hazmat.primitives.serialization import pkcs12
 from   endesive import pdf
 
 
-def sign(pdf_path, signed_pdf_path, credentials_path, password):
+def sign(pdf_path, signed_pdf_path, credentials_path, password, recipient=None):
     timezone = pytz.timezone('US/Central')
     current_time = datetime.now(timezone).strftime('%Y%m%d%H%M%S%z')[:-2] + "'00'"
+    message = "Download"
+
+    if recipient is not None:
+        message += f" by {recipient}"
 
     signature_details = {
         'sigflags': 3,
         'contact': 'DataLabs@ama-assn.org',
         'location': 'Chicago',
         'signingdate': current_time,
-        'reason': 'API Download',
+        'reason': message,
     }
 
     with open(pdf_path, 'br') as pdf_file:

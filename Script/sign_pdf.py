@@ -28,11 +28,13 @@ if __name__ == '__main__':
         help='The path to the PKCS12 signing credentials file.')
     ap.add_argument('-p', '--password',
         help='The password to decrypt the signing key (Default: None).')
+    ap.add_argument('-r', '--recipient', default=None,
+        help='The recipient of the downloaded PDF.')
     args = vars(ap.parse_args())
     LOGGER.debug('Args: %s', args)
 
     try:
-        pdf.sign(args["input_pdf"], args["output_pdf"], args["creds_file"], args["password"])
+        pdf.sign(args["input_pdf"], args["output_pdf"], args["creds_file"], args["password"], args["recipient"])
     except Exception as exception:
         LOGGER.exception(f"Failed to sign PDF.")
         return_code = 1
