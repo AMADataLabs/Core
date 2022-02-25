@@ -38,7 +38,7 @@ public abstract class Task extends ParameterizedClassMixin {
         super(parameters, parameterClass);
     }
 
-    public abstract void run();
+    public abstract void run() throws TaskException;
 
     public Vector<byte[]> getData() {
         return this.data;

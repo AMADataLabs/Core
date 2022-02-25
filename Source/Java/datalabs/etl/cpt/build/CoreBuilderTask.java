@@ -21,29 +21,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import datalabs.task.Task;
+import datalabs.task.TaskException;
 
 
 public class CoreBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoreBuilderTask.class);
 
-    public CoreBuilderTask(Map<String, String> parameters) throws IllegalAccessException, InstantiationException,
-            InvocationTargetException, NoSuchMethodException {
+    public CoreBuilderTask(Map<String, String> parameters)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         super(parameters);
     }
 
-    public void run() {
-        CoreBuilderTaskParameters parameters = (CoreBuilderTaskParameters) this.parameters
-        DtkAccess priorLink = CoreBuilderTask.loadLink(parameters.priorLinkVersion);
-        DtkAccess priorCore = CoreBuilderTask.loadLink(parameters.currentLinkVersion);
+    public void run() throws TaskException {
+        try {
+            CoreBuilderTaskParameters parameters = (CoreBuilderTaskParameters) this.parameters;
+            DtkAccess priorLink = CoreBuilderTask.loadLink(parameters.priorLinkVersion);
+            DtkAccess priorCore = CoreBuilderTask.loadLink(parameters.currentLinkVersion);
 
-        updateConcepts(priorLink, priorCore);
+            CoreBuilderTask.updateConcepts(priorLink, priorCore);
 
-        DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate);
+            DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate);
 
-        exportConcepts(core, parameters.outputDirectory);
+            CoreBuilderTask.exportConcepts(core, parameters.outputDirectory);
+        } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
+            throw new TaskException(exception);
+        }
     }
 
-	private static DtkAccess loadLink(String linkVersion) {
+	private static DtkAccess loadLink(String linkVersion) throws Exception {
         String directory = "dtk-versions/" + linkVersion + "/";
 		DtkAccess link = new DtkAccess();
 
@@ -69,28 +74,13 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-<<<<<<< HEAD
-    private void exportConcepts(DtkAccess dtk) throws IOException {
-        Files.createDirectories(outputDirectory);
-        Exporter exp = new Exporter(dtk, outputDirectory.toString());
-        exp.setDelimiter(Delimiter.Pipe);
-        exp.export(cons, true);
-=======
-    private static DtkAccess buildCore(DtkAccess priorLink, String releaseDate) {
+    private static DtkAccess buildCore(DtkAccess priorLink, String releaseDate) throws Exception {
         ConceptIdFactory.init(priorLink);
 
         return new BuildCore(priorLink, releaseDate).walk();
     }
 
-    private static ArrayList<DtkConcept> getConcepts(DtkAccess link) {
-        ArrayList<DtkConcept> concepts = link.getConcepts();
-
-        DtkConcept.sort(concepts);
-
-        return concepts;
-    }
-
-    private void exportConcepts(DtkAccess core, String outputDirectory) throws IOException {
+    private static void exportConcepts(DtkAccess core, String outputDirectory) throws Exception {
         ArrayList<DtkConcept> concepts = CoreBuilderTask.getConcepts(core);
 
         Files.createDirectories(Paths.get(outputDirectory));
@@ -100,7 +90,13 @@ public class CoreBuilderTask extends Task {
         exporter.setDelimiter(Delimiter.Pipe);
 
         exporter.export(concepts, true);
->>>>>>> DL-2413_tweaks
     }
 
+    private static ArrayList<DtkConcept> getConcepts(DtkAccess link) {
+        ArrayList<DtkConcept> concepts = link.getConcepts();
+
+        DtkConcept.sort(concepts);
+
+        return concepts;
+    }
 }
