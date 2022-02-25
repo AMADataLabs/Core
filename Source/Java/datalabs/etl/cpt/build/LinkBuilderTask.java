@@ -28,18 +28,18 @@ import org.slf4j.LoggerFactory;
 import datalabs.task.Task;
 import datalabs.etl.cpt.build.CoreBuilderTask;
 
-public class DtkBuilderTask extends Task {
+public class LinkBuilderTask extends Task {
 
-    private static final Logger logger = LoggerFactory.getLogger(DtkBuilderTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(LinkBuilderTask.class);
 
-    public DtkBuilderTask(Map<String, String> parameters) throws IllegalAccessException, InstantiationException,
+    public LinkBuilderTask(Map<String, String> parameters) throws IllegalAccessException, InstantiationException,
             InvocationTargetException, NoSuchMethodException {
         super(parameters);
     }
 
     public void run() {
-        DtkAccess priorDtk = DtkBuilderTask.loadDtk("dtk-versions/2021u05/");
-        DtkAccess dtk = DtkBuilderTask.loadDtk(CoreBuilderTask.outDir + "/");
+        DtkAccess priorDtk = LinkBuilderTask.loadDtk("dtk-versions/2021u05/");
+        DtkAccess dtk = LinkBuilderTask.loadDtk(CoreBuilderTask.outDir + "/");
 
         ConceptIdFactory.init(dtk);
 
@@ -91,9 +91,9 @@ public class DtkBuilderTask extends Task {
         final String version = "2022";
         final String incVersion = "2021u05";
         final String annVersion = "2021";
-        DtkAccess dtk = DtkBuilderTask.loadDtk(directory);
-        DtkAccess dtkInc = DtkBuilderTask.loadDtk(versions_directory + incVersion + "/");
-        DtkAccess dtkAnn = DtkBuilderTask.loadDtk(versions_directory + annVersion + "/");
+        DtkAccess dtk = LinkBuilderTask.loadDtk(directory);
+        DtkAccess dtkInc = LinkBuilderTask.loadDtk(versions_directory + incVersion + "/");
+        DtkAccess dtkAnn = LinkBuilderTask.loadDtk(versions_directory + annVersion + "/");
 
         Builder builder = new Builder(dtk, "20210901", dtkInc, "20210501", dtkAnn, "20200901",
             Arrays.asList("20210101"), Paths.get("dtk-versions/", incVersion, "changes"),
