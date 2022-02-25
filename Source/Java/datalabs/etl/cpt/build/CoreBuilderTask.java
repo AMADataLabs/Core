@@ -11,6 +11,9 @@ import java.util.Map;
 import org.ama.dtk.Delimiter;
 import org.ama.dtk.DtkAccess;
 import org.ama.dtk.Exporter;
+import org.ama.dtk.ExporterFiles;
+import org.ama.dtk.core.BuildCore;
+import org.ama.dtk.core.ConceptIdFactory;
 import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.PropertyType;
 
@@ -19,10 +22,9 @@ import org.slf4j.LoggerFactory;
 
 import datalabs.task.Task;
 
-public class CoreBuilderTask extends Task {
-    private static final Logger logger = LoggerFactory.getLogger(CoreBuilderTask.class);
 
-    public static final Path outputDirectory = Paths.get("target", "buildcore_export" + "2022_from2021u05");
+public class CoreBuilderTask extends Task {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CoreBuilderTask.class);
 
     public CoreBuilderTask(Map<String, String> parameters) throws IllegalAccessException, InstantiationException,
             InvocationTargetException, NoSuchMethodException {
@@ -30,52 +32,75 @@ public class CoreBuilderTask extends Task {
     }
 
     public void run() {
-        DtkAccess priorDtk = CoreBuilderTask.loadDtk("dtk-versions/2021u05/");
+        CoreBuilderTaskParameters parameters = (CoreBuilderTaskParameters) this.parameters
+        DtkAccess priorLink = CoreBuilderTask.loadLink(parameters.priorLinkVersion);
+        DtkAccess priorCore = CoreBuilderTask.loadLink(parameters.currentLinkVersion);
 
-        updateConcepts(priorDtk);
+        updateConcepts(priorLink, priorCore);
 
-        ConceptIdFactory.init(priorDtk);
-        DtkAccess dtk = new BuildCore(prior_dtk, "20220101").run();
-        ArrayList<DtkConcept> cons = dtk.getConcepts();
-        DtkConcept.sort(cons);
+        DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate);
 
-        try {
-            exportConcepts(dtk);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        exportConcepts(core, parameters.outputDirectory);
     }
 
-	private static DtkAccess loadDtk(String directory) throws Exception {
-		DtkAccess dtk = new DtkAccess();
+	private static DtkAccess loadLink(String linkVersion) {
+        String directory = "dtk-versions/" + linkVersion + "/";
+		DtkAccess link = new DtkAccess();
 
-		dtk.load(
+        link.load(
             directory + ExporterFiles.PropertyInternal.getFileNameExt(),
-			directory + ExporterFiles.RelationshipGroup.getFileNameExt()
+            directory + ExporterFiles.RelationshipGroup.getFileNameExt()
         );
 
-		return dtk;
+        return link;
 	}
 
-    private void updateConcepts(DtkAccess priorDtk) {
-        DtkAccess coreDtk = CoreBuilderTask.loadDtk("dtk-versions/2021core/");
-        for (DtkConcept con : coreDtk.getConcepts()) {
-            if (con.getProperty(PropertyType.CORE_ID) != null) {
-                DtkConcept priorCon = priorDtk.getConcept(con.getConceptId());
-                if (priorCon != null) {
-                    priorCon.update(PropertyType.CORE_ID, con.getProperty(PropertyType.CORE_ID));
+    private static void updateConcepts(DtkAccess priorLink, DtkAccess priorCore) throws IOException {
+        for (DtkConcept concept : priorCore.getConcepts()) {
+            if (concept.getProperty(PropertyType.CORE_ID) != null) {
+                DtkConcept priorConcept = priorLink.getConcept(concept.getConceptId());
+
+                if (priorConcept != null) {
+                    priorConcept.update(PropertyType.CORE_ID, concept.getProperty(PropertyType.CORE_ID));
                 } else {
-                    logger.warn("Apparently deleted: " + con.getLogString());
+                    LOGGER.warn("Concept deleted: " + concept.getLogString());
                 }
             }
         }
     }
 
+<<<<<<< HEAD
     private void exportConcepts(DtkAccess dtk) throws IOException {
         Files.createDirectories(outputDirectory);
         Exporter exp = new Exporter(dtk, outputDirectory.toString());
         exp.setDelimiter(Delimiter.Pipe);
         exp.export(cons, true);
+=======
+    private static DtkAccess buildCore(DtkAccess priorLink, String releaseDate) {
+        ConceptIdFactory.init(priorLink);
+
+        return new BuildCore(priorLink, releaseDate).walk();
+    }
+
+    private static ArrayList<DtkConcept> getConcepts(DtkAccess link) {
+        ArrayList<DtkConcept> concepts = link.getConcepts();
+
+        DtkConcept.sort(concepts);
+
+        return concepts;
+    }
+
+    private void exportConcepts(DtkAccess core, String outputDirectory) throws IOException {
+        ArrayList<DtkConcept> concepts = CoreBuilderTask.getConcepts(core);
+
+        Files.createDirectories(Paths.get(outputDirectory));
+
+        Exporter exporter = new Exporter(core, outputDirectory);
+
+        exporter.setDelimiter(Delimiter.Pipe);
+
+        exporter.export(concepts, true);
+>>>>>>> DL-2413_tweaks
     }
 
 }
