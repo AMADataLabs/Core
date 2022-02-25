@@ -10,9 +10,9 @@ def test_dag_task_attributes_are_created(dag_class):
     assert hasattr(dag_class.CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY, 'task_class')
     assert dag_class.CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY.task_class == TestTask1
 
-    assert hasattr(dag_class, 'POOR_CHAMPAIGN_INTO_GLASS')
-    assert hasattr(dag_class.POOR_CHAMPAIGN_INTO_GLASS, 'task_class')
-    assert dag_class.POOR_CHAMPAIGN_INTO_GLASS.task_class == TestTask2
+    assert hasattr(dag_class, 'POUR_CHAMPAIGN_INTO_GLASS')
+    assert hasattr(dag_class.POUR_CHAMPAIGN_INTO_GLASS, 'task_class')
+    assert dag_class.POUR_CHAMPAIGN_INTO_GLASS.task_class == TestTask2
 
 
 # pylint: disable=redefined-outer-name
@@ -26,7 +26,7 @@ def test_dag_vertices_are_created(dag_class):
 # pylint: disable=redefined-outer-name
 def test_dag_edges_are_created(dag_class):
     # pylint: disable=pointless-statement
-    dag_class.CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY >> dag_class.POOR_CHAMPAIGN_INTO_GLASS
+    dag_class.CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY >> dag_class.POUR_CHAMPAIGN_INTO_GLASS
 
     dag = dag_class()
 
@@ -44,7 +44,7 @@ def test_repeat(dag_class):
 
 # pylint: disable=redefined-outer-name
 def test_fan_out(dag_class):
-    dag_class.fan_out('POOR_CHAMPAIGN_INTO_GLASS', 'WAX_ON_WITH_KARATE')
+    dag_class.fan_out('POUR_CHAMPAIGN_INTO_GLASS', 'WAX_ON_WITH_KARATE')
 
     dag = dag_class()
 
@@ -158,7 +158,7 @@ class TestTask2:
 def dag_class():
     class TestDAG(DAG):
         CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY: TestTask1
-        POOR_CHAMPAIGN_INTO_GLASS: TestTask2
+        POUR_CHAMPAIGN_INTO_GLASS: TestTask2
         WAX_ON_WITH_KARATE: Repeat(TestTask2, 3)
         WAX_OFF_WITH_KARATE: Repeat(TestTask2, 3)
 
