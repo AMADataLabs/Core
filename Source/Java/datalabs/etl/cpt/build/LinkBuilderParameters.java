@@ -7,6 +7,7 @@ import datalabs.parameter.Parameters;
 
 
 public class LinkBuilderParameters extends Parameters {
+    public String coreDirectory;
     public String snomedDerbyHome;
     public String priorDtkVersion;
     public String releaseYear;

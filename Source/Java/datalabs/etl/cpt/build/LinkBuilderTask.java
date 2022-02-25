@@ -40,20 +40,20 @@ public class LinkBuilderTask extends Task {
         DtkAccess priorLink = LinkBuilderTask.loadLink("dtk-versions/" + parameters.priorDtkVersion + "/");
         DtkAccess core = LinkBuilderTask.loadLink(parameters.coreDirectory + "/");
 
-        LinkBuilderTask.buildLink(priorLink, core, parameters.hcpcsInputDirectory);
+        LinkBuilderTask.buildLink(priorLink, core, parameters);
 
         LinkBuilderTask.updateEmTables(priorLink, core, parameters);
 
         LinkBuilderTask.createHeadings(priorLink, core, parameters);
 
-        LinkBuilderTask.exportConcepts(link, parameters.exportDirectory);
+        LinkBuilderTask.exportConcepts(core, parameters.exportDirectory);
 
-        LinkBuilderTask.createExtracts(link, parameters.extractDirectory);
+        LinkBuilderTask.createExtracts(core, parameters.extractDirectory);
 
-        LinkBuilderTask.createDistribution(parameters.exportDirectory);
+        LinkBuilderTask.createDistribution(parameters);
     }
 
-	private static DtkAccess loadLink(String directory) throws Exception {
+	private static DtkAccess loadLink(String directory) {
 		DtkAccess link = new DtkAccess();
 
 		link.load(
@@ -64,7 +64,7 @@ public class LinkBuilderTask extends Task {
 		return link;
 	}
 
-    private static void buildLink(DtkAccess priorLink, DtkAccess core, LinkBuilderParameters parameters) throws Exception {
+    private static void buildLink(DtkAccess priorLink, DtkAccess core, LinkBuilderParameters parameters) {
         Path directory = Paths.get(parameters.hcpcsInputDirectory);
 
         ConceptIdFactory.init(core);
@@ -122,7 +122,7 @@ public class LinkBuilderTask extends Task {
     private static void exportConcepts(DtkAccess link, String directory) throws IOException {
         ArrayList<DtkConcept> concepts = LinkBuilderTask.getConcepts(link);
 
-        Files.createDirectories(Paths.get(directory);
+        Files.createDirectories(Paths.get(directory));
 
         LinkBuilderTask.exportPsvConcepts(link, concepts, directory);
 
@@ -132,21 +132,23 @@ public class LinkBuilderTask extends Task {
     }
 
     private static void createExtracts(DtkAccess link, String directory) throws IOException {
-        Files.createDirectories(Paths.get(parameters.extractDirectory));
+        Files.createDirectories(Paths.get(directory));
 
         Extracts extracts = new Extracts(link, directory);
 
-        ArrayList<DtkConcept> concepts = DtkConcept.sort(LinkBuilderTask.getAllConcepts(link));
+        ArrayList<DtkConcept> concepts = LinkBuilderTask.getAllConcepts(link);
+
+        DtkConcept.sort(concepts);
 
         extracts.extract(concepts);
     }
 
-    public static void createDistribution(String directory, LinkBuilderParameters parameters) throws Exception {
+    public static void createDistribution(LinkBuilderParameters parameters) {
         final String versionsDirectory = "dtk-versions/";
         final String version = parameters.version;
         final String incrementalVersion = parameters.incrementalVersion;
         final String annualVersion = parameters.annualVersion;
-        DtkAccess link = LinkBuilderTask.loadLink(directory);
+        DtkAccess link = LinkBuilderTask.loadLink(parameters.exportDirectory);
         DtkAccess linkIncremental = LinkBuilderTask.loadLink(versionsDirectory + incrementalVersion + "/");
         DtkAccess linkAnnual = LinkBuilderTask.loadLink(versionsDirectory + annualVersion + "/");
 
@@ -188,10 +190,10 @@ public class LinkBuilderTask extends Task {
         expXml.export(concepts);
     }
 
-    private static void exportPsvConcepts(DtkAccess link, ArrayList<DtkConcept> concepts, String directory) {
+    private static void exportOwlConcepts(DtkAccess link, ArrayList<DtkConcept> concepts, String directory) {
         ExporterOwl expOwl = new ExporterOwl(link, directory);
 
-        expOwl.export(concepts)
+        expOwl.export(concepts);
     }
 
     private static ArrayList<DtkConcept> getAllConcepts(DtkAccess link) {
