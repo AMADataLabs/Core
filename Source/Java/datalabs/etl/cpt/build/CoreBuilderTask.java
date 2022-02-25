@@ -34,7 +34,7 @@ public class CoreBuilderTask extends Task {
 
     public void run() throws TaskException {
         try {
-            CoreBuilderTaskParameters parameters = (CoreBuilderTaskParameters) this.parameters;
+            CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
             DtkAccess priorLink = CoreBuilderTask.loadLink(parameters.priorLinkVersion);
             DtkAccess priorCore = CoreBuilderTask.loadLink(parameters.currentLinkVersion);
 
@@ -74,7 +74,6 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-<<<<<<< HEAD
     private static DtkAccess buildCore(DtkAccess priorLink, String releaseDate) throws Exception {
         ConceptIdFactory.init(priorLink);
 
@@ -91,23 +90,6 @@ public class CoreBuilderTask extends Task {
         exporter.setDelimiter(Delimiter.Pipe);
 
         exporter.export(concepts, true);
-=======
-<<<<<<< HEAD
-    private void exportConcepts(DtkAccess dtk) throws IOException {
-        Files.createDirectories(outputDirectory);
-        Exporter exp = new Exporter(dtk, outputDirectory.toString());
-=======
-    private void exportConcepts(DtkAccess link, ArrayList<DtkConcept> concepts) throws IOException {
-        Files.createDirectories(outputDirectory);
-        Exporter exp = new Exporter(link, outputDirectory.toString());
->>>>>>> story/DL-2413
-        exp.setDelimiter(Delimiter.Pipe);
-        try {
-            exp.export(concepts, true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
->>>>>>> story/DL-2306
     }
 
     private static ArrayList<DtkConcept> getConcepts(DtkAccess link) {
