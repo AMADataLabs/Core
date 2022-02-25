@@ -5,7 +5,7 @@ from   sqlalchemy import func
 from   sqlalchemy.orm import defer, undefer
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
-from   datalabs.model.masterfile.oneview import Physician
+from   datalabs.model.masterfile.oneview.content import Physician
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
