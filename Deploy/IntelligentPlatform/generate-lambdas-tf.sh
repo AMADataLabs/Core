@@ -11,6 +11,7 @@ LAMBDA_DATA=(
     "addUsers:30"
     "bulkEditUsers:18"
     "checkOrganizationExists:5"
+    "checkProductExists:5"
     "checkSubmittedQuote:5"
     "createAgreementDetail:28"
     "createNewQuote:20"
