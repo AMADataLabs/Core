@@ -4,23 +4,38 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import datalabs.parameter.ParameterizedClassMixin;
 import datalabs.parameter.Parameters;
 
 
 public abstract class Task extends ParameterizedClassMixin {
-    protected Vector<byte[]> data = null;
+    protected static final Logger LOGGER = LogManager.getLogger();
 
-    public Task(Map<String, String> parameters)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters);
-    }
+    protected Vector<byte[]> data = null;
 
     public Task(Map<String, String> parameters, Vector<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        this(parameters);
+        this(parameters, data, null);
+    }
+
+    public Task(Map<String, String> parameters, Vector<byte[]> data, Class parameterClass)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        this(parameters, parameterClass);
 
         this.data = data;
+    }
+
+    public Task(Map<String, String> parameters)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        this(parameters, (Class) null);
+    }
+
+    public Task(Map<String, String> parameters, Class parameterClass)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        super(parameters, parameterClass);
     }
 
     public abstract void run();

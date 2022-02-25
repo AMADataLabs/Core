@@ -26,7 +26,7 @@ class Release(Base):
         {"schema": "cpt"},
     )
 
-    id = sa.Column(sa.Integer, primary_key=True)
+    id = sa.Column(sa.String, primary_key=True)
     publish_date = sa.Column(sa.Date, nullable=False)
     effective_date = sa.Column(sa.Date, nullable=False)
     type = sa.Column(sa.String(6), sa.ForeignKey("cpt.release_type.type"), nullable=False)
@@ -46,7 +46,7 @@ class ReleaseCodeMapping(Base):
     __table_args__ = {"schema": "cpt"}
 
     id = sa.Column(sa.Integer, primary_key=True)
-    release = sa.Column(sa.Integer, sa.ForeignKey("cpt.release.id"), nullable=False)
+    release = sa.Column(sa.String, sa.ForeignKey("cpt.release.id"), nullable=False)
     code = sa.Column(sa.String(5), sa.ForeignKey("cpt.code.code"), nullable=False, unique=True)
 
 
