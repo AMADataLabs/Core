@@ -6,7 +6,7 @@ import java.util.Map;
 import datalabs.parameter.Parameters;
 
 
-public class DtkBuilderTaskParameters extends Parameters {
+public class LinkBuilderParameters extends Parameters {
     public String snomedDerbyHome;
     public String priorDtkVersion;
     public String releaseYear;
@@ -43,7 +43,7 @@ public class DtkBuilderTaskParameters extends Parameters {
 
     public Map<String, String> unknowns;
 
-    public DtkBuilderTaskParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
+    public LinkBuilderParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
         super(parameters);
     }
 }
