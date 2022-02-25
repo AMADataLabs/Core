@@ -37,23 +37,26 @@ public class DtkBuilderTask extends Task {
     }
 
     public void run() {
-        DtkAccess priorDtk = null;
+        DtkAccess priorLink;
         try {
-            priorDtk = DtkBuilderTask.loadDtk("dtk-versions/2021u05/");
-            DtkAccess dtk = null;
-            dtk = DtkBuilderTask.loadDtk(CoreBuilderTask.outputDirectory + "/");
+            priorLink = DtkBuilderTask.loadLink("dtk-versions/" +
+                    ((DtkBuilderTaskParameters) this.parameters).priorDtkVersion +
+                    "/"
+            );
+            DtkAccess link;
+            link = DtkBuilderTask.loadLink(CoreBuilderTask.outputDirectory + "/");
 
-            buildFiles(priorDtk, dtk);
-            ConceptIdFactory.init(dtk);
-            updateEmTables(priorDtk, dtk);
+            buildFiles(priorLink, link);
+            ConceptIdFactory.init(link);
+            updateEmTables(priorLink, link);
 
-            ArrayList<DtkConcept> concepts = dtk.getConcepts();
+            ArrayList<DtkConcept> concepts = link.getConcepts();
             DtkConcept.sort(concepts);
-            exportFiles(dtk, concepts);
+            exportFiles(link, concepts);
 
-            extractFiles(dtk);
+            extractFiles(link);
 
-            build(Paths.get("target", "builddtk_export" + "2022").toString());
+            build(Paths.get(((DtkBuilderTaskParameters) this.parameters).exportDirectory).toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -61,32 +64,37 @@ public class DtkBuilderTask extends Task {
 
     public void build(String directory) throws Exception {
         final String versionsDirectory = "dtk-versions/";
-        final String version = "2022";
-        final String incVersion = "2021u05";
-        final String annVersion = "2021";
-        DtkAccess dtk = DtkBuilderTask.loadDtk(directory);
-        DtkAccess dtkInc = DtkBuilderTask.loadDtk(versionsDirectory + incVersion + "/");
-        DtkAccess dtkAnn = DtkBuilderTask.loadDtk(versionsDirectory + annVersion + "/");
+        final String version = ((DtkBuilderTaskParameters) this.parameters).version;
+        final String incrementalVersion = ((DtkBuilderTaskParameters) this.parameters).incrementalVersion;
+        final String annualVersion = ((DtkBuilderTaskParameters) this.parameters).annualVersion;
+        DtkAccess link = DtkBuilderTask.loadLink(directory);
+        DtkAccess linkIncremental = DtkBuilderTask.loadLink(versionsDirectory + incrementalVersion + "/");
+        DtkAccess linkAnnual = DtkBuilderTask.loadLink(versionsDirectory + annualVersion + "/");
 
-        Builder builder = new Builder(dtk, "20210901", dtkInc, "20210501", dtkAnn, "20200901",
-                Collections.singletonList("20210101"), Paths.get("dtk-versions/", incVersion, "changes"),
-            null,
-            Paths.get(versionsDirectory, version, "00inputs", "no-op.txt"),
-            Paths.get(versionsDirectory, version, "00inputs", "reviewed used input.xlsx"),
-            Paths.get("target", "build" + version)
+        Builder builder = new Builder(link, ((DtkBuilderTaskParameters) this.parameters).linkDate,
+                linkIncremental,
+                ((DtkBuilderTaskParameters) this.parameters).linkIncrementalDate,
+                linkAnnual,
+                ((DtkBuilderTaskParameters) this.parameters).linkAnnualDate,
+                Collections.singletonList(((DtkBuilderTaskParameters) this.parameters).revisionDate),
+                Paths.get(((DtkBuilderTaskParameters) this.parameters).priorHistoryDirectory),
+                Paths.get(((DtkBuilderTaskParameters) this.parameters).indexFile),
+                Paths.get(((DtkBuilderTaskParameters) this.parameters).guidelinesQAFile),
+                Paths.get(((DtkBuilderTaskParameters) this.parameters).editsFile),
+                Paths.get(((DtkBuilderTaskParameters) this.parameters).outputDirectory)
         );
 
         builder.index_format_2021 = true;
-        dtkAnn.getConcepts().forEach(con -> con.setCoreSequence(0));
+        linkAnnual.getConcepts().forEach(con -> con.setCoreSequence(0));
 
         builder.build();
     }
 
-    private ArrayList<DtkConcept> getConcepts(DtkAccess dtk) {
+    private ArrayList<DtkConcept> getConcepts(DtkAccess link) {
         ArrayList<DtkConcept> concepts = new ArrayList<>();
         List<Integer> roots = DtkConceptIds.getRoots(false);
         for (int id : roots) {
-            DtkConcept root = dtk.getConcept(id);
+            DtkConcept root = link.getConcept(id);
             if (root != null) {
                 concepts.add(root);
                 concepts.addAll(root.getDescendants());
@@ -98,19 +106,19 @@ public class DtkBuilderTask extends Task {
         return concepts;
     }
 
-	private static DtkAccess loadDtk(String directory) throws Exception {
-		DtkAccess dtk = new DtkAccess();
+	private static DtkAccess loadLink(String directory) throws Exception {
+		DtkAccess link = new DtkAccess();
 
-		dtk.load(
+		link.load(
             directory + ExporterFiles.PropertyInternal.getFileNameExt(),
 			directory + ExporterFiles.RelationshipGroup.getFileNameExt()
         );
 
-		return dtk;
+		return link;
 	}
 
-    private void buildFiles(DtkAccess priorDtk, DtkAccess dtk) throws Exception {
-        Path directory = Paths.get("dtk-versions", "2022", "00inputs");
+    private void buildFiles(DtkAccess priorLink, DtkAccess link) throws Exception {
+        Path directory = Paths.get(((DtkBuilderTaskParameters) this.parameters).hcpcsInputDirectory);
 
 //			BuildDtkFiles files = new BuildDtk.BuildDtkFiles(dir.resolve("HCPC2020_ANWEB_w_disclaimer.xls").toString(),
 //					dir.resolve("headings update.xlsx").toString(),
@@ -119,61 +127,71 @@ public class DtkBuilderTask extends Task {
 //					dir.resolve("44398_CPT Prof 2021_00_FM iv-xix.docx").toString(),
 //					dir.resolve("CPTRVU20T_q1.txt").toString());
 
-        BuildDtkFiles files = new BuildDtk.BuildDtkFiles(directory.resolve("HCPC2021_JULY_ANWEB_v2.xlsx").toString(),
-                null, null, null, null, null);
-        new BuildDtk(priorDtk, dtk, "20220101", "20220101", files).run();
+        BuildDtkFiles files = new BuildDtk.BuildDtkFiles(directory.resolve(
+                ((DtkBuilderTaskParameters) this.parameters).hcpcsDataFile).toString(),
+                null, null, null, null, null
+        );
+        new BuildDtk(priorLink,
+                link,
+                ((DtkBuilderTaskParameters) this.parameters).revisionDate,
+                ((DtkBuilderTaskParameters) this.parameters).hcpsTerminationDate,
+                files
+        ).run();
     }
 
-    private void updateEmTables(DtkAccess priorDtk, DtkAccess dtk) throws IOException {
+    private void updateEmTables(DtkAccess priorLink, DtkAccess link) throws IOException {
         // Note: 2021 for this sample code
-        Path directory = Paths.get("dtk-versions", "2021", "00inputs", "intro-em-tables");
-        Path outDirectory = Paths.get("target", "builddtk_introemtables" + "2022");
+        Path directory = Paths.get(((DtkBuilderTaskParameters) this.parameters).emInputDirectory);
+        Path outDirectory = Paths.get(((DtkBuilderTaskParameters) this.parameters).emOutputDirectory);
         Files.createDirectories(outDirectory);
-        IntroEmTables introEmTables = new IntroEmTables(priorDtk, dtk);
+        IntroEmTables introEmTables = new IntroEmTables(priorLink, link);
         try {
-            introEmTables.buildTableFiles(directory, "44398_CPT Prof 2021_00_FM xx-xxvii.docx", outDirectory);
+            introEmTables.buildTableFiles(directory,
+                    ((DtkBuilderTaskParameters) this.parameters).emDataFile,
+                    outDirectory
+            );
             introEmTables.updateEmTables(outDirectory);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
 
-    private void createHeading(DtkAccess priorDtk, DtkAccess dtk) throws IOException {
-        Path dir = Paths.get("target", "builddtk_headings" + "2022");
-        Files.createDirectories(dir);
-        HeadingsWorkbookBuilder workBook = new HeadingsWorkbookBuilder(priorDtk, dtk);
+    private void createHeading(DtkAccess priorLink, DtkAccess link) throws IOException {
+        Path outputDirectory = Paths.get(((DtkBuilderTaskParameters) this.parameters).headingsOutputDirectory);
+        Files.createDirectories(outputDirectory);
+        HeadingsWorkbookBuilder workBook = new HeadingsWorkbookBuilder(priorLink, link);
         try {
-            workBook.createHeadings(dtk.getConcept(DtkConceptIds.CPT_ROOT_ID).getDescendants(),
-                    dir.resolve("headings.xlsx").toString());
+            workBook.createHeadings(link.getConcept(DtkConceptIds.CPT_ROOT_ID).getDescendants(),
+                    outputDirectory.resolve(((DtkBuilderTaskParameters) this.parameters).headingDataFile).toString());
         } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
 
-    private void exportFiles(DtkAccess dtk, ArrayList<DtkConcept> concepts) throws IOException {
-        Path directory = Paths.get("target", "builddtk_export" + "2022");
+    private void exportFiles(DtkAccess link, ArrayList<DtkConcept> concepts) throws IOException {
+        Path directory = Paths.get(((DtkBuilderTaskParameters) this.parameters).exportDirectory);
         Files.createDirectories(directory);
-        Exporter exporter = new Exporter(dtk, directory.toString());
+        Exporter exporter = new Exporter(link, directory.toString());
         exporter.setDelimiter(Delimiter.Pipe);
         try {
             exporter.export(concepts);
-            ExporterXml expXml = new ExporterXml(dtk, directory.toString());
+            ExporterXml expXml = new ExporterXml(link, directory.toString());
             expXml.export(concepts);
-            ExporterOwl expOwl = new ExporterOwl(dtk, directory.toString());
+            ExporterOwl expOwl = new ExporterOwl(link, directory.toString());
             expOwl.export(concepts);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
     }
 
-    private void extractFiles(DtkAccess dtk) throws IOException {
-        Path directory = Paths.get("target", "builddtk_extracts" + "2022");
+    private void extractFiles(DtkAccess link) throws IOException {
+        Path directory = Paths.get(((DtkBuilderTaskParameters) this.parameters).extractDirectory);
         Files.createDirectories(directory);
-        Extracts extracts = new Extracts(dtk, directory.toString());
-        ArrayList<DtkConcept> extractCons = getConcepts(dtk);
-        DtkConcept.sort(extractCons);
+        Extracts extracts = new Extracts(link, directory.toString());
+        ArrayList<DtkConcept> extractConcepts = getConcepts(link);
+        DtkConcept.sort(extractConcepts);
         try {
-            extracts.extract(extractCons);
+            extracts.extract(extractConcepts);
         } catch (Exception exception) {
             exception.printStackTrace();
         }

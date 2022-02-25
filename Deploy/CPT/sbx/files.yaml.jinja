@@ -1,0 +1,79 @@
+data:
+  #######################################################################
+  # Global Variables - {"DAG": {"S": "CPTFILES"}, "Task": {"S": "GLOBAL"}}
+  #######################################################################
+
+  ENVIRONMENT: sbx
+  ACCOUNT: '644454719059'
+
+  S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+  S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+  S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+  S3_BASE_PATH: 'AMA/CPT/Files'
+
+
+  #######################################################################
+  # DAG Variables - ({"DAG": {"S": "CPTFILES"}, "Task": {"S": "DAG"}})
+  #######################################################################
+
+  CPTFILE__DAG__LAMBDA_FUNCTION: ''
+  CPTFILES__DAG__DAG_CLASS: ''
+  CPTFILES__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+  CPTFILES__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+  CPTFILES__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+  CPTFILES__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+  CPTFILES__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+  CPTFILES__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+  CPTFILES__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+
+
+  ##########################################################################
+  # Task Variables - ({"DAG": {"S": "CPTFILES"}, "Task": {"S": "<Task ID>"}})
+  ##########################################################################
+
+
+  CPTFILES__BUILD_CORE__OUTPUT_DIRECTORY:  'target/buildcore_export2022_from2021u05'
+  CPTFILES__BUILD_CORE__PRIOR_LINK_VERSION:  '2021u05'
+  CPTFILES__BUILD_CORE__CURRENT_LINK_VERSION:  '2021core'
+  CPTFILES__BUILD_CORE__RELEASE_DATE:  '20220101'
+
+  CPTFILES__BUILD_CORE__CACHE_OUTPUT_CLASS:  ${S3_CACHE_CLASS}
+  CPTFILES__BUILD_CORE__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPTFILES__BUILD_CORE__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPTFILES__BUILD_CORE__CACHE_OUTPUT_FILES: ''
+
+
+  CPTFILES__DTK_BUILDER__SNOMED_DERBY_HOME: 'target/ddb/snomed20210301'
+  CPTFILES__DTK_BUILDER__PRIOR_LINK_VERSION: '2021u05'
+  CPTFILES__DTK_BUILDER__PRIOR_RELEASE_YEAR: '2022'
+  CPTFILES__DTK_BUILDER__PRIOR_RELEASE_DATE: '20220101'
+  CPTFILES__DTK_BUILDER__PRIOR_YEARLY_RELEASE_DATE: '20220101'
+  CPTFILES__DTK_BUILDER__HCPCS_INPUT_DIRECTORY: 'dtk-versions/2022/00inputs'
+  CPTFILES__DTK_BUILDER__HCPCS_DATA_FILE: 'HCPC2021_JULY_ANWEB_v2.xlsx'
+  CPTFILES__DTK_BUILDER__HCPCS_TERMINATION_DATE: '20220101'
+  CPTFILES__DTK_BUILDER__EM_INPUT_DIRECTORY: 'dtk-versions/2021/00inputs/intro-em-tables'
+  CPTFILES__DTK_BUILDER__EM_OUTPUT_DIRECTORY: 'target/buildddtk_introemtables/2022'
+  CPTFILES__DTK_BUILDER__EM_DATA_FILE: '44398_CPT Prof 2021_00_FM xx-xxvii.docx'
+  CPTFILES__DTK_BUILDER__SNOMED_INPUT_DIRECTORY: 'dtk-versions/2022/00inputs'
+  CPTFILES__DTK_BUILDER__SNOMED_OUTPUT_DIRECTORY: 'target/builddtk_snomedinactives2022'
+  CPTFILES__DTK_BUILDER__SNOMED_DATA_FILE: 'snomed-inactives.xlsx'
+  CPTFILES__DTK_BUILDER__HEADINGS_OUTPUT_DIRECTORY: 'target/buildddtk_headings/2022'
+  CPTFILES__DTK_BUILDER__HEADINGS_DATA_FILE: 'headings.xlsx'
+  CPTFILES__DTK_BUILDER__ROLES_WORKBOOK_OUTPUT_DIRECTORY: 'target/builddtk_roles/2022'
+  CPTFILES__DTK_BUILDER__EXPORT_DIRECTORY: 'target/builddtk_export2022'
+  CPTFILES__DTK_BUILDER__EXTRACT_DIRECTORY: 'target/builddtk_extracts2022'
+  CPTFILES__DTK_BUILDER__VERSION: '2022'
+  CPTFILES__DTK_BUILDER__INCREMENTAL_VERSION: '2021u05'
+  CPTFILES__DTK_BUILDER__ANNUAL_VERSION: '2021'
+  CPTFILES__DTK_BUILDER__LINK_DATE: '20210901'
+  CPTFILES__DTK_BUILDER__LINK_INCREMENTAL_DATE: '20210501'
+  CPTFILES__DTK_BUILDER__LINK_ANNUAL_DATE: '20200901'
+  CPTFILES__DTK_BUILDER__REVISION_DATE: ["20210101"]
+  CPTFILES__DTK_BUILDER__PRIOR_HISTORY_DIRECTORY: 'dtk-versions/2021u05/changes'
+  CPTFILES__DTK_BUILDER__INDEX_FILE: ''
+  CPTFILES__DTK_BUILDER__GUILDLINES_QA_FILE: 'dtk-versions/2022/00inputs/no-op.txt'
+  CPTFILES__DTK_BUILDER__EDITS_FILE: 'dtk-versions/2022/00inputs/reviewed\ used\ input.xlsx'
+  CPTFILES__DTK_BUILDER__OUTPUT_DIRECTORY: 'target/build/2022'
+  CPTFILES__DTK_BUILDER__INDEX_FORMAT_2021: 'true'

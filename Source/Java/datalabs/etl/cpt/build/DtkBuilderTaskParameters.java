@@ -14,6 +14,7 @@ public class DtkBuilderTaskParameters extends Parameters {
     public String priorYearlyRelease;
     public String hcpcsInputDirectory;
     public String hcpcsDataFile;
+    public String hcpsTerminationDate;
     public String emInputDirectory;
     public String emOutputDirectory;
     public String emDataFile;
