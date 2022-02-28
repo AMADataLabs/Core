@@ -378,30 +378,30 @@ pipelines:
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
                 - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
-            # - step:
-            #     name: Update API Bundle
-            #     caches:
-            #         - oneview-dev-update-bundle-dependencies
-            #     script:
-            #     # Setup virtual environment
-            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
-            #
-            #     # Assume maintenance role
-            #     - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            #     - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            #     - aws configure set profile.apigw.region us-east-1
-            #     - aws configure set profile.apigw.output json
-            #     - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
-            #
-            #     # Create the code bundle
-            #     - export ENABLE_FEATURE_DEV=True
-            #     - bash Deploy/Master/create-bundle OneView/API
-            #
-            #     # Upload the code bundle
-            #     - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-            #     - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
+            - step:
+                name: Update API Bundle
+                caches:
+                    - oneview-dev-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+                # Assume maintenance role
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.region us-east-1
+                - aws configure set profile.apigw.output json
+                - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_DEV=True
+                - bash Deploy/Master/create-bundle OneView/API
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -509,39 +509,64 @@ pipelines:
             - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
 
         OneView-test:
-        - step:
-            name: Update ETL Bundle
-            caches:
-                - oneview-test-update-bundle-dependencies
-            script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+        - parallel:
+            - step:
+                name: Update ETL Bundle
+                caches:
+                    - oneview-test-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
-            # Install the DB2 JDBC driver
-            - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
-            - unzip ./Db2JdbcDriver.zip
-            - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+                # Install the DB2 JDBC driver
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - unzip ./Db2JdbcDriver.zip
+                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
-            # Install the Informix JDBC driver
-            - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
-            - unzip ./InformixJdbcDriver.zip
+                # Install the Informix JDBC driver
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - unzip ./InformixJdbcDriver.zip
 
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+                # Assume maintenance role
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.region us-east-1
+                - aws configure set profile.apigw.output json
+                - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
 
-            # Create the code bundle
-            - export ENABLE_FEATURE_TEST=True
-            - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
+                # Create the code bundle
+                - export ENABLE_FEATURE_TEST=True
+                - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
 
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
+            - step:
+                name: Update API Bundle
+                caches:
+                    - oneview-test-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+                # Assume maintenance role
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.region us-east-1
+                - aws configure set profile.apigw.output json
+                - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_TEST=True
+                - bash Deploy/Master/create-bundle OneView/API
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
         - step:
             name: Update Lambda Functions
             script:
@@ -737,39 +762,64 @@ pipelines:
             - echo "A OneView deployment has been triggered via BitBucket Pipelines. Please run the OneView-production target if you approve."
 
         OneView-production:
-        - step:
-            name: Update ETL Bundle
-            caches:
-                - oneview-prod-update-bundle-dependencies
-            script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+        - parallel:
+            - step:
+                name: Update ETL Bundle
+                caches:
+                    - oneview-prod-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
-            # Install the DB2 JDBC driver
-            - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
-            - unzip ./Db2JdbcDriver.zip
-            - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+                # Install the DB2 JDBC driver
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - unzip ./Db2JdbcDriver.zip
+                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
-            # Install the Informix JDBC driver
-            - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
-            - unzip ./InformixJdbcDriver.zip
+                # Install the Informix JDBC driver
+                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - unzip ./InformixJdbcDriver.zip
 
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+                # Assume maintenance role
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.region us-east-1
+                - aws configure set profile.apigw.output json
+                - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
 
-            # Create the code bundle
-            - export ENABLE_FEATURE_PROD=True
-            - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
+                # Create the code bundle
+                - export ENABLE_FEATURE_PROD=True
+                - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
 
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
+            - step:
+                name: Update API Bundle
+                caches:
+                    - oneview-prod-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+                - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+                # Assume maintenance role
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.region us-east-1
+                - aws configure set profile.apigw.output json
+                - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_PROD=True
+                - bash Deploy/Master/create-bundle OneView/API
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
         - step:
             name: Update Lambda Functions
             script:
