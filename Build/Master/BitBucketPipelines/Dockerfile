@@ -5,7 +5,8 @@ RUN yum update -y
 RUN amazon-linux-extras enable docker
 RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel wget tar gzip make gcc-c++ \
                    python python3-devel python3-pip git awscli \
-                   xvfb jq java-1.8.0-openjdk-devel docker unzip
+                   xvfb jq java-1.8.0-openjdk-devel docker unzip \
+                   swig
 
 RUN curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zip && \
     unzip awscliv2.zip && \
