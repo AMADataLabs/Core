@@ -9,7 +9,7 @@ import shutil
 import sys
 from   zipfile import ZipFile
 
-import datalabs.tool.pdf as pdf
+from   datalabs.tool.pdf import PDFSigner
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     LOGGER.debug('Args: %s', args)
 
     try:
-        pdf.sign(args["input_pdf"], args["output_pdf"], args["creds_file"], args["password"], args["recipient"])
+        PDFSigner.sign(args["input_pdf"], args["output_pdf"], args["creds_file"], args["password"], args["recipient"])
     except Exception as exception:
         LOGGER.exception(f"Failed to sign PDF.")
         return_code = 1

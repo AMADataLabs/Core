@@ -1,5 +1,5 @@
 # Build from repository root
-FROM amazonlinux:2.0.20210617.0 as amazon-python
+FROM amazonlinux:2.0.20220121.0 as amazon-python
 WORKDIR /Build
 RUN yum update -y
 RUN amazon-linux-extras enable docker
