@@ -2,7 +2,6 @@
 from   datetime import datetime
 import pytz
 
-from   cryptography.hazmat import backends
 from   cryptography.hazmat.primitives.serialization import pkcs12
 from   endesive import pdf
 
