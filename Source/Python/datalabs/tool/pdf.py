@@ -7,6 +7,7 @@ from   endesive import pdf
 
 
 class PDFSigner:
+    # pylint: disable=too-many-arguments
     @classmethod
     def sign(cls, pdf_path, signed_pdf_path, credentials_path, password, recipient=None):
         signature_details = cls._generate_signature_details(recipient)
