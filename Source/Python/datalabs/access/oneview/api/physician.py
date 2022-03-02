@@ -26,8 +26,6 @@ class PhysiciansEndpointTask(APIEndpointTask):
         if not self._response_body:
             raise ResourceNotFound('No data exists for the given column filters')
 
-        self._response_body = self._response_body[0]
-
     @classmethod
     def _query_for_physicians(cls, database):
         return database.query(Physician)
