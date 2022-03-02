@@ -13,16 +13,20 @@ LOGGER.setLevel(logging.INFO)
 def main(args):
     authorization_token = base64.b64encode(f'{args["user"]}:{args["password"]}'.encode()).decode()
 
-    for id in _pull_request_ids(authorization_token, args["title"]):
-        LOGGER.info(f'Declining pull request {id}')
-        response = _decline_pull_request(authorization_token, id)
-        time.sleep(1)
+    for name in _branch_names(authorization_token, "snyk-fix-"):
+        LOGGER.info(f'Deleting branch {name}')
+        response = _delete_branch(authorization_token, name)
 
-        LOGGER.info('Response to declining PR %s: %s', response.json()["id"], response.status_code)
+        if response.status_code == 204:
+            LOGGER.info('Successfully deleted branch %s', name)
+        elif response.status_code == 403:
+            LOGGER.info('User is not authorized to delete branch %s', name)
+        elif response.status_code == 404:
+            LOGGER.info('Branch %s does not exist', name)
+        time.sleep(4)
 
-
-def _pull_request_ids(authorization_token, title):
-    url = "https://api.bitbucket.org/2.0/repositories/amaappdev/hs-datalabs/pullrequests"
+def _branch_names(authorization_token, prefix):
+    url = "https://api.bitbucket.org/2.0/repositories/amaappdev/hs-datalabs/refs/branches"
 
     headers = {
        "Accept": "application/json",
@@ -32,28 +36,28 @@ def _pull_request_ids(authorization_token, title):
     while url is not None:
         response = requests.request("GET", url, headers=headers)
 
-        pull_requests = _get_pull_requests(response)
+        branches = _get_branches(response)
 
-        for pull_request in pull_requests:
-            if title == pull_request["title"]:
-                yield pull_request["id"]
+        for branch in branches:
+            if prefix is None or (prefix is not None and branch["name"].startswith(prefix)):
+                yield branch["name"]
 
         url = _get_next_url(response)
         LOGGER.debug("Next URL: %s", url)
 
 
-def _decline_pull_request(authorization_token, id):
-    url = f"https://api.bitbucket.org/2.0/repositories/amaappdev/hs-datalabs/pullrequests/{id}/decline"
+def _delete_branch(authorization_token, name):
+    url = f"https://api.bitbucket.org/2.0/repositories/amaappdev/hs-datalabs/refs/branches/{name}"
 
     headers = {
        "Accept": "application/json",
        "Authorization": f"Basic {authorization_token}"
     }
 
-    return requests.request("POST", url, headers=headers)
+    return requests.request("DELETE", url, headers=headers)
 
 
-def _get_pull_requests(response):
+def _get_branches(response):
     pull_requests = []
 
     '''
@@ -62,7 +66,7 @@ def _get_pull_requests(response):
         'size': 89,
         'values': [...],
         'page': 1,
-        'next': 'https://api.bitbucket.org/2.0/repositories/amaappdev/hs-datalabs/pullrequests?page=2'
+        'next': 'https://api.bitbucket.org/2.0/repositories/amaappdev/hs-datalabs/refs/branches?page=2'
     }
     '''
 
@@ -85,7 +89,6 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument('-u', '--user', required=True, help='Username')
     ap.add_argument('-p', '--password', required=True, help='Password')
-    ap.add_argument('-t', '--title', required=True, help='Title')
     args = vars(ap.parse_args())
 
     main(args)
