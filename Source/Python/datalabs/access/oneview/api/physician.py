@@ -63,11 +63,11 @@ class PhysiciansEndpointTask(APIEndpointTask):
         for field, value in query_params.items():
             if hasattr(Physician, field) is False:
                 raise InvalidRequest(f"Invalid table field: field={query_params.items()}")
+
+            if value.isnumeric():
+                query = query.filter(func.lower(getattr(Physician, field)) == value)
             else:
-                if value.isnumeric():
-                    query = query.filter(func.lower(getattr(Physician, field)) == value)
-                else:
-                    query = query.filter(func.lower(getattr(Physician, field)) == func.lower(value))
+                query = query.filter(func.lower(getattr(Physician, field)) == func.lower(value))
 
         return query
 
