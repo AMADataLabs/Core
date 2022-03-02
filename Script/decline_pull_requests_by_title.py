@@ -3,6 +3,7 @@ import base64
 from   json.decoder import JSONDecodeError
 import logging
 import requests
+import time
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -15,8 +16,9 @@ def main(args):
     for id in _pull_request_ids(authorization_token, args["title"]):
         LOGGER.info(f'Declining pull request {id}')
         response = _decline_pull_request(authorization_token, id)
+        time.sleep(1)
 
-        LOGGER.info('Response to declining PR %s: %s', response["id"], response["status_code"])
+        LOGGER.info('Response to declining PR %s: %s', response.json()["id"], response.status_code)
 
 def _pull_request_ids(authorization_token, title):
     url = "https://api.bitbucket.org/2.0/repositories/amaappdev/hs-datalabs/pullrequests"
@@ -47,9 +49,7 @@ def _decline_pull_request(authorization_token, id):
        "Authorization": f"Basic {authorization_token}"
     }
 
-    response = requests.request("POST", url, headers=headers)
-
-    return response.json()
+    return requests.request("POST", url, headers=headers)
 
 
 def _get_pull_requests(response):
