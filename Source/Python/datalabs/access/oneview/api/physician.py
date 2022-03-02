@@ -65,7 +65,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
                 raise InvalidRequest(f"Invalid table field: field={field}")
 
             for value in values:
-                query = cls._query_for_values(value, query)
+                query = cls._query_for_values(value, field, query)
 
         return query
 
@@ -81,7 +81,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
         return query
 
     @classmethod
-    def _query_for_values(cls, value, query):
+    def _query_for_values(cls, value, field, query):
         if value.isnumeric():
             query = query.filter(func.lower(getattr(Physician, field)) == value)
         else:
