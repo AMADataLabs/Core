@@ -1,5 +1,5 @@
 image:
-  name: 644454719059.dkr.ecr.us-east-1.amazonaws.com/datalabs-bitbucket-pipelines:1.1.0
+  name: 644454719059.dkr.ecr.us-east-1.amazonaws.com/datalabs-bitbucket-pipelines:1.2.1
   aws:
     access-key: $AWS_ACCESS_KEY_ID
     secret-key: $AWS_SECRET_ACCESS_KEY
@@ -74,7 +74,7 @@ pipelines:
                 - test-dependencies
             script:
                 - apt update
-                - apt install -y jq
+                - apt install -y jq swig
                 - bash Script/bitbucket-pipelines-test.sh
 
 
