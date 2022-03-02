@@ -60,14 +60,12 @@ class PhysiciansEndpointTask(APIEndpointTask):
     @classmethod
     def _filter_by_fields(cls, query, query_params):
         # Add WHERE filters to query
-        for field, value in query_params.items():
+        for field, values in query_params.items():
             if hasattr(Physician, field) is False:
-                raise InvalidRequest(f"Invalid table field: field={query_params.items()}")
+                raise InvalidRequest(f"Invalid table field: field={field}")
 
-            if value.isnumeric():
-                query = query.filter(func.lower(getattr(Physician, field)) == value)
-            else:
-                query = query.filter(func.lower(getattr(Physician, field)) == func.lower(value))
+            for value in values:
+                query = cls._query_for_values(value, query)
 
         return query
 
@@ -79,5 +77,14 @@ class PhysiciansEndpointTask(APIEndpointTask):
         # Add back in specified fields to SELECT
         for field in return_fields:
             query = query.options(undefer(getattr(Physician, field)))
+
+        return query
+
+    @classmethod
+    def _query_for_values(cls, value, query):
+        if value.isnumeric():
+            query = query.filter(func.lower(getattr(Physician, field)) == value)
+        else:
+            query = query.filter(func.lower(getattr(Physician, field)) == func.lower(value))
 
         return query
