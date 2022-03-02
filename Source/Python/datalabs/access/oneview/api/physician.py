@@ -4,7 +4,7 @@ import logging
 from   sqlalchemy import func
 from   sqlalchemy.orm import defer, undefer
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
 from   datalabs.model.masterfile.oneview.content import Physician
 
 logging.basicConfig()
@@ -61,7 +61,13 @@ class PhysiciansEndpointTask(APIEndpointTask):
     def _filter_by_fields(cls, query, query_params):
         # Add WHERE filters to query
         for field, value in query_params.items():
-            query = query.filter(func.lower(getattr(Physician, field)) == func.lower(value))
+            if hasattr(Physician, field) is False:
+                raise InvalidRequest(f"Invalid table field: field={query_params.items()}")
+            else:
+                if value.isnumeric():
+                    query = query.filter(func.lower(getattr(Physician, field)) == value)
+                else:
+                    query = query.filter(func.lower(getattr(Physician, field)) == func.lower(value))
 
         return query
 
