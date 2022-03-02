@@ -15,7 +15,7 @@ paradag==1.2.0
 pip==20.0.2
 pipenv==2018.5.18
 psycopg2-binary==2.8.5
-pylint==2.4.4
+pylint==2.7.0
 pysftp==0.2.9
 pytest==5.3.5
 python-dateutil==2.8.1
