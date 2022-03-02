@@ -27,6 +27,7 @@ LAMBDA_DATA=(
     "getDomains:5"
     "getExistingCustomers:5"
     "getOrg:5"
+    "getOrgSuggestions:5"
     "getOrgs:18"
     "getPermissions:5"
     "getQuestions:45"
