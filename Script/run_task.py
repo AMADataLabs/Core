@@ -17,9 +17,6 @@ def main(language, args):
     _configure_app(args)
 
     if language == "java":
-        if isinstance(runtime_args, list):
-            runtime_args = ' '.join(runtime_args)
-
         _run_java_task(runtime_args)
     else:
         _run_python_task(runtime_args)

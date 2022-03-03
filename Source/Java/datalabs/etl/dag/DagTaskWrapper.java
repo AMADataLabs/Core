@@ -125,9 +125,7 @@ public class DagTaskWrapper extends TaskWrapper {
         this.cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
         this.cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
 
-        for (Map.Entry mapElement : taskParameters.entrySet()) {
-            String key = (String) mapElement.getKey();
-
+        for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
             if (key.startsWith("CACHE_")) {
                 taskParameters.remove(key);
             }
