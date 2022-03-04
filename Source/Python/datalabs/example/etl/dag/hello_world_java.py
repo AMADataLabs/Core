@@ -1,5 +1,5 @@
 ''' Definition for the HelloWorldJava DAG. '''
-from   datalabs.etl.dag.dag import DAG, Repeat
+from   datalabs.etl.dag.dag import DAG
 
 
 class HelloWorldJavaDAG(DAG):
