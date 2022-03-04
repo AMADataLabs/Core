@@ -18,8 +18,8 @@ import datalabs.task.TaskWrapper;
 
 
 public class DagTaskWrapper extends TaskWrapper {
+    static final Logger LOGGER = LogManager.getLogger();
     protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
-    protected static final Logger LOGGER = LogManager.getLogger();
 
     public DagTaskWrapper(Map<String, String> parameters) {
         super(parameters);
@@ -47,7 +47,10 @@ public class DagTaskWrapper extends TaskWrapper {
     @Override
     protected Map<String, String> getTaskParameters() {
         Map<String, String> defaultParameters = this.getDefaultParameters();
-        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, this.getDagTaskParameters());
+        Map<String, String> dagTaskParameters = this.getDagTaskParameters();
+        LOGGER.debug("Default Parameters: " + defaultParameters);
+        LOGGER.debug("DAG Task Parameters: " + dagTaskParameters);
+        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
 
         taskParameters = this.extractCacheParameters(taskParameters);
 
@@ -95,7 +98,7 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     protected Map<String, String> getDefaultParameters() {
-        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDagID());
+        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDagId());
         String execution_time = getExecutionTime();
 
         dagParameters.put("EXECUTION_TIME", execution_time);
@@ -105,7 +108,7 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     protected Map<String, String> getDagTaskParameters() {
-        return getTaskParametersFromEnvironment(getDagID(), getTaskID());
+        return getTaskParametersFromEnvironment(getDagId(), getTaskId());
     }
 
     Map<String, String> mergeParameters(Map<String, String> parameters, Map<String, String>  newParameters) {
@@ -157,11 +160,11 @@ public class DagTaskWrapper extends TaskWrapper {
         return plugin;
     }
 
-    protected String getDagID() {
+    protected String getDagId() {
         return this.runtimeParameters.get("dag").toUpperCase();
     }
 
-    protected String getTaskID() {
+    protected String getTaskId() {
         return this.runtimeParameters.get("task").toUpperCase();
     }
 
@@ -214,7 +217,15 @@ public class DagTaskWrapper extends TaskWrapper {
     static Map<String, String> getParameters(String[] branch) {
         VariableTree variableTree = VariableTree.fromEnvironment();
 
-        return variableTree.getBranchValues(branch);
+        Map<String, String> parameters = variableTree.getBranchValues(branch);
+        LOGGER.debug("Branch Values: " + parameters);
+
+        if (parameters == null) {
+            parameters = new HashMap<String, String>();
+        }
+        LOGGER.debug("Environment Parameters: " + parameters);
+
+        return parameters;
     }
 
     static void putIfCacheVariable(
