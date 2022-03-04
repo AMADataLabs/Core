@@ -40,34 +40,32 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
     }
 
     protected void preRun() {
-        DagTaskWrapperParameters parameters = null;
+        Map<String, String> pluginParameters = null;
+
+        this.dagParameters = getDagParameters();
 
         try {
-            parameters = getTaskWrapperParameters();
+            pluginParameters = getPluginParameters();
         } catch (IllegalAccessException | IllegalArgumentException exception) {
                 LOGGER.error("Unable to get TaskWrapper parameters.");
                 exception.printStackTrace();
         }
 
-        this.dagParameters = getDagParameters();
-
-        if (parameters.task != "DAG") {
-            setTaskStatus(parameters, Status.RUNNING);
-        }
+        setTaskStatus(pluginParameters, Status.RUNNING);
     }
 
     protected String handleSuccess() {
         super.handleSuccess();
-        DagTaskWrapperParameters parameters = null;
+        Map<String, String> pluginParameters = null;
 
         try {
-            parameters = getTaskWrapperParameters();
+            pluginParameters = getPluginParameters();
         } catch (IllegalAccessException | IllegalArgumentException exception) {
                 LOGGER.error("Unable to get TaskWrapper parameters.");
                 exception.printStackTrace();
         }
 
-        setTaskStatus(parameters, Status.FINISHED);
+        setTaskStatus(pluginParameters, Status.FINISHED);
 
         notifyDagProcessor();
 
@@ -76,16 +74,16 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
 
     protected String handleException(Exception exception) {
         super.handleException(exception);
-        DagTaskWrapperParameters parameters = null;
+        Map<String, String> pluginParameters = null;
 
         try {
-            parameters = getTaskWrapperParameters();
+            pluginParameters = getPluginParameters();
         } catch (IllegalAccessException | IllegalArgumentException secondaryException) {
             LOGGER.error("Unable to get TaskWrapper parameters.");
             secondaryException.printStackTrace();
         }
 
-        setTaskStatus(parameters, Status.FAILED);
+        setTaskStatus(pluginParameters, Status.FAILED);
 
         notifyDagProcessor();
 
@@ -96,7 +94,7 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
 
     protected Map<String, String> getDagTaskParameters() {
         String dag = getDagId();
-        String task = getDagId();
+        String task = getTaskId();
         LOGGER.debug("Getting DAG Task Parameters for " + dag + "__" + task);
         Map<String, String> dagTaskParameters = getDagTaskParametersFromDynamoDb(dag, task);
         LOGGER.debug("Raw DAG Task Parameters: " + dagTaskParameters);
@@ -109,15 +107,17 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         return dagTaskParameters;
     }
 
-    DagTaskWrapperParameters getTaskWrapperParameters() throws IllegalAccessException, IllegalArgumentException {
+    Map<String, String> getPluginParameters() throws IllegalAccessException, IllegalArgumentException {
         Map<String, String> runtimeParameters = this.runtimeParameters;
         Map<String, String> dagParameters = this.dagParameters;
+        LOGGER.debug("Runtime Parameters: " + runtimeParameters);
+        LOGGER.debug("DAG Parameters: " + dagParameters);
         HashMap<String, String> parameters = new HashMap<String, String>() {{
             putAll(runtimeParameters);
             putAll(dagParameters);
         }};
 
-        return new DagTaskWrapperParameters(parameters);
+        return parameters;
     }
 
     protected Map<String, String> getDagParameters() {
@@ -130,11 +130,11 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         return dagParameters;
     }
 
-    void setTaskStatus(DagTaskWrapperParameters parameters, Status status) {
+    void setTaskStatus(Map<String, String> pluginParameters, Status status) {
         try {
-            DagState state = getDagStatePlugin(parameters);
+            DagState state = getDagStatePlugin(pluginParameters);
 
-            state.setTaskStatus(parameters.dag, parameters.task, parameters.executionTime, status);
+            state.setTaskStatus(getDagId(), getTaskId(), getExecutionTime(), status);
         } catch (
             ClassNotFoundException |
             NoSuchMethodException |
@@ -143,8 +143,8 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
             InvocationTargetException exception
         ) {
             LOGGER.error(
-                "Unable to set the status of " + parameters.dag +
-                " DAG task " + parameters.task +
+                "Unable to set the status of " + getDagId() +
+                " DAG task " + getTaskId() +
                 " to Running."
             );
 
@@ -184,17 +184,21 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         }
     }
 
-    DagState getDagStatePlugin(DagTaskWrapperParameters parameters)
+    DagState getDagStatePlugin(Map<String, String> pluginParameters)
         throws ClassNotFoundException,
                NoSuchMethodException,
                InstantiationException,
                IllegalAccessException,
                InvocationTargetException
     {
-        Class stateClass = PluginImporter.importPlugin(this.dagParameters.get("DAG_STATE_CLASS"));
+        Class stateClass = null;
 
-        return (DagState) stateClass.getConstructor(new Class[] {Map.class, Vector.class}).newInstance(
-            parameters
-        );
+        if (this.dagParameters.containsKey("DAG_STATE_CLASS")) {
+            stateClass = PluginImporter.importPlugin(this.dagParameters.get("DAG_STATE_CLASS"));
+        } else {
+            throw new IllegalArgumentException("Missing value for DAG parameter 'DAG_STATE_CLASS'");
+        }
+
+        return (DagState) stateClass.getConstructor(new Class[] {Map.class}).newInstance(pluginParameters);
     }
 }
