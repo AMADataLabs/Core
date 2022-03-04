@@ -6,12 +6,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 import datalabs.access.parameter.ReferenceEnvironmentLoader;
 import datalabs.task.TaskResolver;
 import datalabs.plugin.PluginImporter;
 
 
 public class TaskWrapper {
+    static final Logger LOGGER = LogManager.getLogger();
     protected Map<String, String> environment;
     protected Map<String, String> parameters;
     protected Map<String, String> runtimeParameters;
@@ -33,7 +37,7 @@ public class TaskWrapper {
 
             Vector<byte[]> taskData = this.getTaskInputData(taskParameters);
 
-            Class taskClass = this.getTaskClass(this.runtimeParameters);
+            Class taskClass = this.getTaskClass();
 
             this.task = TaskWrapper.createTask(taskClass, taskParameters, taskData);
 
@@ -70,17 +74,15 @@ public class TaskWrapper {
         return null;
     }
 
-    Class getTaskClass(Map<String, String> runtimeParameters)
+    Class getTaskClass()
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
                    ClassNotFoundException {
         Class taskResolverClass = this.getTaskResolverClass();
         Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class, Map.class});
-        System.out.println("Task Resolver: " + taskResolverClass);
-        System.out.println("Method: " + getTaskClass);
-        System.out.println("Environment: " + this.environment);
-        System.out.println("Runtime Parameters: " + runtimeParameters);
+        LOGGER.debug("Runtime Parameters: " + this.runtimeParameters);
+        LOGGER.debug("Task Resolver Class: " + taskResolverClass);
 
-        return (Class) getTaskClass.invoke(null, this.environment, runtimeParameters);
+        return (Class) getTaskClass.invoke(null, this.environment, this.runtimeParameters);
     }
 
     static Task createTask(Class taskClass, Map<String, String> parameters, Vector<byte[]> data)

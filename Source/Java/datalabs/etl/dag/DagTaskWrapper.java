@@ -48,11 +48,16 @@ public class DagTaskWrapper extends TaskWrapper {
     protected Map<String, String> getTaskParameters() {
         Map<String, String> defaultParameters = this.getDefaultParameters();
         Map<String, String> dagTaskParameters = this.getDagTaskParameters();
-        LOGGER.debug("Default Parameters: " + defaultParameters);
-        LOGGER.debug("DAG Task Parameters: " + dagTaskParameters);
         Map<String, String> taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
 
         taskParameters = this.extractCacheParameters(taskParameters);
+        LOGGER.debug("Task Parameters: " + dagTaskParameters);
+
+        LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
+        taskParameters.forEach(
+            (key, value) -> overrideParameter(this.runtimeParameters, key, value)
+        );
+        LOGGER.debug("Runtime parameters AFTER task parameter overrides: " + this.runtimeParameters);
 
         return taskParameters;
     }
@@ -135,6 +140,12 @@ public class DagTaskWrapper extends TaskWrapper {
         }
 
         return taskParameters;
+    }
+
+    void overrideParameter(Map<String, String> parameters, String key, String value) {
+        if (parameters.containsKey(key)) {
+            parameters.put(key, value);
+        }
     }
 
     TaskDataCache getCachePlugin(TaskDataCache.Direction direction)
