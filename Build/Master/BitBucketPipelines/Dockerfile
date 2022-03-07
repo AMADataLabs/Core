@@ -1,5 +1,5 @@
 # Build from repository root
-FROM amazonlinux:2.0.20210617.0 as amazon-python
+FROM amazonlinux:2.0.20220121.0 as amazon-python
 WORKDIR /Build
 RUN yum update -y
 RUN amazon-linux-extras enable docker
@@ -12,10 +12,15 @@ RUN curl https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o awscliv2.zi
     ./aws/install && \
     rm -rf aws awscliv2.zip
 
-# RUN rm /usr/bin/python && ln -s /usr/bin/python3.7 /usr/bin/python
+RUN curl https://www.python.org/ftp/python/3.9.10/Python-3.9.10.tgz -o Python-3.9.10.tgz && \
+    tar xzf Python-3.9.10.tgz && \
+    cd Python-3.9.10 && \
+    ./configure --enable-optimzations && \
+    make altinstall && \
+    rm -rf /opt/Python-3.9.10.tgz
 
 COPY Build/Master/BitBucketPipelines/requirements.txt .
 
 RUN cat requirements.txt | grep pip== > pip-requirements.txt &&\
-    pip3.7 install -r pip-requirements.txt &&\
-    pip install -r requirements.txt
+    pip3.9 install -r pip-requirements.txt &&\
+    pip3.9 install -r requirements.txt
