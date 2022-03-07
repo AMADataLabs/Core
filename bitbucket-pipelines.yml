@@ -146,11 +146,11 @@ pipelines:
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
-            - bash Deploy/Master/create-bundle Scheduler
+            - bash Deploy/Master/create-python-bundle Scheduler
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/upload-bundle Scheduler
+            - bash Deploy/Master/upload-python-bundle Scheduler
         - step:
             name: Update Lambda Functions
             script:
@@ -202,11 +202,11 @@ pipelines:
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
+                - bash Deploy/Master/create-python-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-bundle OneView/ETL
+                - bash Deploy/Master/upload-python-bundle OneView/ETL
             - step:
                 name: Update API Bundle
                 caches:
@@ -222,11 +222,11 @@ pipelines:
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-bundle OneView/API
+                - bash Deploy/Master/create-python-bundle OneView/API
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-bundle OneView/API
+                - bash Deploy/Master/upload-python-bundle OneView/API
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -262,15 +262,15 @@ pipelines:
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-bundle HelloWorldJavaDAG
+                - bash Deploy/Master/create-python-bundle HelloWorldJava/DAG
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-bundle HelloWorldJava/DAG
+                - bash Deploy/Master/upload-python-bundle HelloWorldJava/DAG
             - step:
                 name: Update Task Bundle
-                caches:
-                - scheduler-master-update-bundle-dependencies
+                # caches:
+                # - scheduler-master-update-bundle-dependencies
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -280,11 +280,11 @@ pipelines:
                 - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-bundle HelloWorldJavaTask
+                - bash Deploy/Master/create-java-bundle HelloWorldJava/Task
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-bundle HelloWorldJava/Task
+                - bash Deploy/Master/upload-java-bundle HelloWorldJava/Task
         # - step:
         #     name: Update Lambda Functions
         #     script:
@@ -318,7 +318,7 @@ pipelines:
 
             # Create the code bundle
             - export ENABLE_FEATURE_DEV=True
-            - bash Deploy/Master/create-bundle CPT
+            - bash Deploy/Master/create-python-bundle CPT
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
@@ -356,11 +356,11 @@ pipelines:
 
             # Create the code bundle
             - export ENABLE_FEATURE_DEV=True
-            - bash Deploy/Master/create-bundle Scheduler
+            - bash Deploy/Master/create-python-bundle Scheduler
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle Scheduler
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
         - step:
             name: Update Lambda Functions
             script:
@@ -421,11 +421,11 @@ pipelines:
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
-                - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
+                - bash Deploy/Master/create-python-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle OneView/ETL
             - step:
                 name: Update API Bundle
                 caches:
@@ -445,11 +445,11 @@ pipelines:
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
-                - bash Deploy/Master/create-bundle OneView/API
+                - bash Deploy/Master/create-python-bundle OneView/API
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle OneView/API
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -498,7 +498,7 @@ pipelines:
 
             # Create the code bundle
             - export ENABLE_FEATURE_TEST=True
-            - bash Deploy/Master/create-bundle CPT
+            - bash Deploy/Master/create-python-bundle CPT
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
@@ -536,11 +536,11 @@ pipelines:
 
             # Create the code bundle
             - export ENABLE_FEATURE_TEST=True
-            - bash Deploy/Master/create-bundle Scheduler
+            - bash Deploy/Master/create-python-bundle Scheduler
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle Scheduler
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
         - step:
             name: Update Lambda Functions
             script:
@@ -586,11 +586,11 @@ pipelines:
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_TEST=True
-                - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
+                - bash Deploy/Master/create-python-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle OneView/ETL
             - step:
                 name: Update API Bundle
                 caches:
@@ -610,11 +610,11 @@ pipelines:
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_TEST=True
-                - bash Deploy/Master/create-bundle OneView/API
+                - bash Deploy/Master/create-python-bundle OneView/API
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle OneView/API
         - step:
             name: Update Lambda Functions
             script:
@@ -653,7 +653,7 @@ pipelines:
 
             # Create the code bundle
             - export ENABLE_FEATURE_STAGE=True
-            - bash Deploy/Master/create-bundle CPT
+            - bash Deploy/Master/create-python-bundle CPT
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-itg-datalake-lambda-us-east-1'
@@ -691,11 +691,11 @@ pipelines:
 
             # Create the code bundle
             - export ENABLE_FEATURE_STAGE=True
-            - bash Deploy/Master/create-bundle Scheduler
+            - bash Deploy/Master/create-python-bundle Scheduler
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-itg-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle Scheduler
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
         - step:
             name: Update Lambda Functions
             script:
@@ -739,7 +739,7 @@ pipelines:
 
             # Create the code bundle
             - export ENABLE_FEATURE_PROD=True
-            - bash Deploy/Master/create-bundle CPT
+            - bash Deploy/Master/create-python-bundle CPT
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
@@ -783,11 +783,11 @@ pipelines:
 
             # Create the code bundle
             - export ENABLE_FEATURE_PROD=True
-            - bash Deploy/Master/create-bundle Scheduler
+            - bash Deploy/Master/create-python-bundle Scheduler
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle Scheduler
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
         - step:
             name: Update Lambda Functions
             script:
@@ -839,11 +839,11 @@ pipelines:
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_PROD=True
-                - bash Deploy/Master/create-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
+                - bash Deploy/Master/create-python-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/ETL
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle OneView/ETL
             - step:
                 name: Update API Bundle
                 caches:
@@ -863,11 +863,11 @@ pipelines:
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_PROD=True
-                - bash Deploy/Master/create-bundle OneView/API
+                - bash Deploy/Master/create-python-bundle OneView/API
 
                 # Upload the code bundle
                 - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
-                - bash --rcfile assume_role.rc -i Deploy/Master/upload-bundle OneView/API
+                - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle OneView/API
         - step:
             name: Update Lambda Functions
             script:
