@@ -247,6 +247,54 @@ pipelines:
                 - export ENVIRONMENT=sbx
                 - bash Deploy/OneView/update-functions
 
+        HelloWorldJava-master:
+        - parallel:
+            - step:
+                name: Update DAG Bundle
+                caches:
+                - scheduler-master-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_DEV=True
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+                - bash Deploy/Master/create-bundle HelloWorldJavaDAG
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+                - bash Deploy/Master/upload-bundle HelloWorldJava/DAG
+            - step:
+                name: Update Task Bundle
+                caches:
+                - scheduler-master-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_DEV=True
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+                - bash Deploy/Master/create-bundle HelloWorldJavaTask
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+                - bash Deploy/Master/upload-bundle HelloWorldJava/Task
+        # - step:
+        #     name: Update Lambda Functions
+        #     script:
+        #     - export ENABLE_FEATURE_DEV=True
+        #     - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+        #     - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+        #     - export AWS_DEFAULT_REGION='us-east-1'
+        #     - export ENVIRONMENT=sbx
+        #     - bash Deploy/Scheduler/update-functions
+
 
         ##############################################################
         # dev branch targets
