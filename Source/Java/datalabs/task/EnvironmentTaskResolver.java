@@ -6,7 +6,7 @@ import datalabs.plugin.PluginImporter;
 
 
 public class EnvironmentTaskResolver {
-    public static Class getTaskClass(Map<String, String>  environment, Map<String, String> parameters)
+    public static Class getTaskClass(Map<String, String>  environment, Map<String, String> runtimeParameters)
             throws ClassNotFoundException {
         String taskClassName = environment.get("TASK_CLASS");
 

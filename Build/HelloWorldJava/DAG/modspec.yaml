@@ -1,0 +1,22 @@
+modspec:
+  - package: datalabs
+    include:
+      - parameter
+      - plugin
+      - task
+      - awslambda
+  - package: datalabs.access
+    include:
+      - aws
+      - credentials
+      - environment
+      - etcd
+  - package: datalabs.access.parameter
+    include:
+    - system
+    - etcd
+  - package: datalabs.etl
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.state
+  - package: datalabs.example.etl.dag

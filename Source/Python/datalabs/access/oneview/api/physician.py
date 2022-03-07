@@ -4,8 +4,8 @@ import logging
 from   sqlalchemy import func
 from   sqlalchemy.orm import defer, undefer
 
-from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
-from   datalabs.model.masterfile.oneview import Physician
+from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
+from   datalabs.model.masterfile.oneview.content import Physician
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -25,8 +25,6 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
         if not self._response_body:
             raise ResourceNotFound('No data exists for the given column filters')
-
-        self._response_body = self._response_body[0]
 
     @classmethod
     def _query_for_physicians(cls, database):
@@ -60,8 +58,12 @@ class PhysiciansEndpointTask(APIEndpointTask):
     @classmethod
     def _filter_by_fields(cls, query, query_params):
         # Add WHERE filters to query
-        for field, value in query_params.items():
-            query = query.filter(func.lower(getattr(Physician, field)) == func.lower(value))
+        for field, values in query_params.items():
+            if hasattr(Physician, field) is False:
+                raise InvalidRequest(f"Invalid table field: field={field}")
+
+            for value in values:
+                query = cls._query_for_values(value, field, query)
 
         return query
 
@@ -73,5 +75,14 @@ class PhysiciansEndpointTask(APIEndpointTask):
         # Add back in specified fields to SELECT
         for field in return_fields:
             query = query.options(undefer(getattr(Physician, field)))
+
+        return query
+
+    @classmethod
+    def _query_for_values(cls, value, field, query):
+        if value.isnumeric():
+            query = query.filter(func.lower(getattr(Physician, field)) == value)
+        else:
+            query = query.filter(func.lower(getattr(Physician, field)) == func.lower(value))
 
         return query

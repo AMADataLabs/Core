@@ -18,8 +18,8 @@ import datalabs.task.TaskWrapper;
 
 
 public class DagTaskWrapper extends TaskWrapper {
+    static final Logger LOGGER = LogManager.getLogger();
     protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
-    protected static final Logger LOGGER = LogManager.getLogger();
 
     public DagTaskWrapper(Map<String, String> parameters) {
         super(parameters);
@@ -47,9 +47,17 @@ public class DagTaskWrapper extends TaskWrapper {
     @Override
     protected Map<String, String> getTaskParameters() {
         Map<String, String> defaultParameters = this.getDefaultParameters();
-        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, this.getDagTaskParameters());
+        Map<String, String> dagTaskParameters = this.getDagTaskParameters();
+        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
 
         taskParameters = this.extractCacheParameters(taskParameters);
+        LOGGER.debug("Task Parameters: " + dagTaskParameters);
+
+        LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
+        taskParameters.forEach(
+            (key, value) -> overrideParameter(this.runtimeParameters, key, value)
+        );
+        LOGGER.debug("Runtime parameters AFTER task parameter overrides: " + this.runtimeParameters);
 
         return taskParameters;
     }
@@ -95,7 +103,7 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     protected Map<String, String> getDefaultParameters() {
-        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDagID());
+        Map<String, String> dagParameters = getDefaultParametersFromEnvironment(getDagId());
         String execution_time = getExecutionTime();
 
         dagParameters.put("EXECUTION_TIME", execution_time);
@@ -105,7 +113,7 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     protected Map<String, String> getDagTaskParameters() {
-        return getTaskParametersFromEnvironment(getDagID(), getTaskID());
+        return getTaskParametersFromEnvironment(getDagId(), getTaskId());
     }
 
     Map<String, String> mergeParameters(Map<String, String> parameters, Map<String, String>  newParameters) {
@@ -125,15 +133,19 @@ public class DagTaskWrapper extends TaskWrapper {
         this.cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
         this.cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
 
-        for (Map.Entry mapElement : taskParameters.entrySet()) {
-            String key = (String) mapElement.getKey();
-
+        for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
             if (key.startsWith("CACHE_")) {
                 taskParameters.remove(key);
             }
         }
 
         return taskParameters;
+    }
+
+    void overrideParameter(Map<String, String> parameters, String key, String value) {
+        if (parameters.containsKey(key)) {
+            parameters.put(key, value);
+        }
     }
 
     TaskDataCache getCachePlugin(TaskDataCache.Direction direction)
@@ -159,11 +171,11 @@ public class DagTaskWrapper extends TaskWrapper {
         return plugin;
     }
 
-    protected String getDagID() {
+    protected String getDagId() {
         return this.runtimeParameters.get("dag").toUpperCase();
     }
 
-    protected String getTaskID() {
+    protected String getTaskId() {
         return this.runtimeParameters.get("task").toUpperCase();
     }
 
@@ -216,7 +228,15 @@ public class DagTaskWrapper extends TaskWrapper {
     static Map<String, String> getParameters(String[] branch) {
         VariableTree variableTree = VariableTree.fromEnvironment();
 
-        return variableTree.getBranchValues(branch);
+        Map<String, String> parameters = variableTree.getBranchValues(branch);
+        LOGGER.debug("Branch Values: " + parameters);
+
+        if (parameters == null) {
+            parameters = new HashMap<String, String>();
+        }
+        LOGGER.debug("Environment Parameters: " + parameters);
+
+        return parameters;
     }
 
     static void putIfCacheVariable(

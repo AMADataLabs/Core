@@ -47,6 +47,9 @@ public abstract class Parameters {
             throws IllegalArgumentException {
         String[] unexpectedFields = Parameters.getUnexpectedFields(parameters, fieldNames);
         String[] missingFields = Parameters.getMissingFields(parameters, fieldNames);
+        LOGGER.debug("Parameters: " + parameters);
+        LOGGER.debug("Unexpected Fields: " + Arrays.toString(unexpectedFields));
+        LOGGER.debug("Missing Fields: " + Arrays.toString(missingFields));
 
         if (unexpectedFields.length > 0) {
             moveUnknowns(parameters, fieldNames, unexpectedFields);
@@ -60,6 +63,8 @@ public abstract class Parameters {
     }
 
     void populate(Map<String, String> parameters, Map<String, String> fieldNames) {
+        LOGGER.debug("Parameters: " + parameters);
+        LOGGER.debug("Field Names: " + fieldNames);
         parameters.forEach(
             (key, value) -> setField(fieldNames.get(key), value)
         );
@@ -80,7 +85,7 @@ public abstract class Parameters {
 
         for (String fieldName : parameters.keySet()) {
             LOGGER.debug("Validating field \"" + fieldName + "\"...");
-            if (fieldNames.keySet().stream().anyMatch(n -> n.equals(parameters.get(fieldName)))) {
+            if (!fieldNames.keySet().stream().anyMatch(n -> n.equals(fieldName))) {
                 unexpectedFields.add(fieldName);
             }
         }
@@ -141,9 +146,10 @@ public abstract class Parameters {
     }
 
     void setField(String field, Object value) {
+        LOGGER.debug("Setting value of field " + field + " to " + value);
         try {
             getClass().getField(field).set(this, value);
-        } catch (IllegalAccessException | NoSuchFieldException exception) {
+        } catch (IllegalAccessException | NoSuchFieldException | NullPointerException exception) {
             LOGGER.error("Unable to set value for field " + field);
             exception.printStackTrace();
         }
@@ -153,7 +159,6 @@ public abstract class Parameters {
 
     static boolean hasUnknownsField(Set<String> fieldNames) {
         boolean hasUnknowns = false;
-
 
         for (String field : fieldNames) {
             LOGGER.debug("Field Name: |" + field + "|");
