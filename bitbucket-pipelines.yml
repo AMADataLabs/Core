@@ -269,8 +269,8 @@ pipelines:
                 - bash Deploy/Master/upload-python-bundle HelloWorldJava/DAG
             - step:
                 name: Update Task Bundle
-                # caches:
-                # - scheduler-master-update-bundle-dependencies
+                caches:
+                - scheduler-master-update-bundle-dependencies
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
