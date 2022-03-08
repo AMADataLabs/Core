@@ -20,7 +20,12 @@ create_python_virtual_environment() {
 install_python_virtual_environment_dependencies() {
     environment_path=$1
 
-    . $environment_path/bin/activate
+    echo Still using $(which python3.7)
+    current_path=$PATH
+    export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+    echo Adjusting path to use $VIRTUAL_ENV/bin/python3.7
+    export PATH="$VIRTUAL_ENV/bin:$PATH"
+    echo Now using $(which python3.7)
 
     echo "--- Upgrading pip ---"
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
@@ -28,5 +33,6 @@ install_python_virtual_environment_dependencies() {
     echo "--- Installing Python packages from requirements file $environment_path/requirements.txt ---"
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r $environment_path/requirements.txt
 
-    deactivate
+    unsetenv VIRTUAL_ENV
+    export PATH=$current_path
 }
