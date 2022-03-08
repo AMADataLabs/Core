@@ -12,9 +12,9 @@ setup_python_virtual_environment() {
 create_python_virtual_environment() {
     environment_path=$1
 
-    ls $environment_path
-    mkdir -p $environment_path
-    /usr/bin/env python3.7 -m venv $environment_path
+    if [[ ! -f "$environment_path/bin/python3.7" ]]; then
+        python3.7 -m venv $environment_path
+    fi
     echo "Done creating virtual environment"
 }
 
