@@ -9,7 +9,6 @@ pipelines:
         master:
         - step:
             name: Build and Auto-Merge to dev
-            image: python:3.7
             caches:
                 - build-dependencies
             script:
