@@ -3,6 +3,7 @@ package datalabs.access.parameter;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.gson.Gson;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -66,6 +67,7 @@ public class DynamoDbEnvironmentLoader {
 
     Map<String, String> getParametersFromDynamoDb(String task) throws DynamoDbException {
         Map<String, AttributeValue> key = DynamoDbEnvironmentLoader.getKey(this.dag, task);
+        LOGGER.debug("DynamoDB item key: " + key);
 
         return DynamoDbEnvironmentLoader.getParametersFromTable(this.table, key);
     }
@@ -84,13 +86,23 @@ public class DynamoDbEnvironmentLoader {
         HashMap<String, String> parameters = new HashMap<String, String>();
 
         Map<String, AttributeValue> item = dynamoDb.getItem(request).item();
+        LOGGER.debug("Item: " + item);
 
         if (item != null) {
-            item.forEach(
+            Map<String, String> variables = parseJson(item.get("Variables").s());
+            LOGGER.debug("Variables: " + variables);
+
+            variables.forEach(
                 (column, value) -> parameters.put(column, value.toString())
             );
         }
 
         return parameters;
+    }
+
+    static Map<String, String> parseJson(String json) {
+        Gson parser = new Gson();
+
+        return parser.fromJson(json, HashMap.class);
     }
 }

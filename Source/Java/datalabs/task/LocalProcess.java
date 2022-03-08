@@ -6,23 +6,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.amazonaws.services.lambda.runtime.Context;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import datalabs.plugin.PluginImporter;
 import datalabs.task.TaskWrapper;
 
 public class LocalProcess {
-     public static void main(String[] args)
+    protected static final Logger LOGGER = LogManager.getLogger();
+
+    public static void main(String[] args)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
                    ClassNotFoundException {
-        String taskWrapperClassName = System.getProperty("TASK_WRAPPER_CLASS");
-        Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
-        Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
         HashMap<String, String> parameters = new HashMap<String, String>() {{
             put("args", String.join(" ", args));
         }};
 
-        TaskWrapper taskWrapper = (TaskWrapper) taskWrapperConstructor.newInstance(parameters);
+        LocalProcess.runTask(parameters);
+    }
+
+    public static void runTask(Map<String, String> runtimeParameters)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
+                   ClassNotFoundException {
+        String taskWrapperClassName = System.getenv("TASK_WRAPPER_CLASS");
+        LOGGER.debug("Task Wrapper Class: " + taskWrapperClassName);
+        Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
+        Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
+
+        TaskWrapper taskWrapper = (TaskWrapper) taskWrapperConstructor.newInstance(runtimeParameters);
 
         taskWrapper.run();
-     }
- }
+    }
+}

@@ -1,0 +1,18 @@
+---
+modspec:
+  - package: datalabs.access.environment
+  - package: datalabs.access.parameter
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.lambda
+  - package: datalabs.etl.dag.state
+  - package: datalabs.etl.dag.state.dynamodb
+  - package: datalabs.example.etl
+    include:
+      - HelloWorldTask
+  - package: datalabs.parameter
+  - package: datalabs.plugin
+  - package: datalabs.task
+    exclude:
+      - LocalProcess
+      - LambdaFunction

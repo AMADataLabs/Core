@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
 import datalabs.plugin.PluginImporter;
-import datalabs.task.TaskWrapper;
+import datalabs.task.LocalProcess;
 
 
 public class TaskRunner {
@@ -36,7 +36,7 @@ public class TaskRunner {
 
             Map<String, String> runtimeParameters = getRuntimeParameters(commandLineArgs);
 
-            runTask(runtimeParameters);
+            LocalProcess.runTask(runtimeParameters);
         } catch (ParseException exception) {
             System.out.println(exception.getMessage());
 
@@ -61,7 +61,7 @@ public class TaskRunner {
         Options options = new Options();
 
         options.addOption("h", "help", false, "Print this usage message.");
-        options.addOption("a", "args", true, "Command-line arguments to send to the task wrapper.");
+        options.addOption("a", "arg", true, "Command-line argument to send to the task wrapper.");
         options.addOption("e", "event", true, "JSON event passed in as a single command-line argument.");
 
         return options;
@@ -82,9 +82,10 @@ public class TaskRunner {
 
     static Map<String, String> getRuntimeParameters(CommandLine args) {
         Map<String, String> parameters = new HashMap<String, String>();
+        LOGGER.debug(parameters);
 
-        if (args.hasOption("args")) {
-            String commandLine = String.join(" ", args.getOptionValues("args"));
+        if (args.hasOption("arg")) {
+            String commandLine = String.join(" ", args.getOptionValues("arg"));
 
             parameters.put("args", commandLine);
         } else if (args.hasOption("event")) {
@@ -93,18 +94,5 @@ public class TaskRunner {
         LOGGER.debug("Parameters: " + parameters);
 
         return parameters;
-    }
-
-    static void runTask(Map<String, String> runtimeParameters)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
-                   ClassNotFoundException {
-        String taskWrapperClassName = System.getenv("TASK_WRAPPER_CLASS");
-        LOGGER.debug("Task Wrapper Class: " + taskWrapperClassName);
-        Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
-        Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
-
-        TaskWrapper taskWrapper = (TaskWrapper) taskWrapperConstructor.newInstance(runtimeParameters);
-
-        taskWrapper.run();
     }
 }
