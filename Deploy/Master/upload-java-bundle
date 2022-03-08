@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -ex
+
+PROJECT=$1
+
+rm Bundle/target/original*.jar
+
+aws s3 cp Bundle/target/*.jar s3://${AWS_S3_BUCKET}/${PROJECT}.jar
+
+aws s3 ls s3://${AWS_S3_BUCKET}/${PROJECT}.jar

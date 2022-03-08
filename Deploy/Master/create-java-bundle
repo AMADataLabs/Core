@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -ex
+
+PROJECT=
+EXTRA_FILES=
+
+echo "# args: $#"
+
+while (( "$#" )); do
+  if [[ "${PROJECT}" == "" ]]; then
+      PROJECT=$1
+      echo "Set project to ${PROJECT}"
+  else
+      EXTRA_FILES+="-f $1 "
+      echo "Added extra file ${1}"
+  fi
+
+  shift
+done
+
+
+export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+export PYTHONPATH=${PWD}/Source/Python
+
+python Script/bundle_java_project.py --use-pom --directory Bundle/ ${EXTRA_FILES} ${PROJECT}
