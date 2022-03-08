@@ -13,7 +13,9 @@ create_python_virtual_environment() {
     environment_path=$1
 
     echo Using python3.7 at $(which python3.7)
+    which python3.7
     python3.7 -m venv $environment_path
+    echo "Done creating virtual environment"
 }
 
 
