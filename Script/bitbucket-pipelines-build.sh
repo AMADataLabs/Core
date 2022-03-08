@@ -12,6 +12,10 @@
 
 echo $(python3.7 --version)
 
+Script/setup-virtual-environment Master/BitBucketPipelines
+export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+
 # Find script directory (no support for symlinks)
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
@@ -45,10 +49,6 @@ if [[ -f $(git rev-parse --git-dir)/shallow ]]; then
         done
     fi
 fi
-
-Script/setup-virtual-environment Master/BitBucketPipelines
-export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Run tests
 echo "Running tests..."
