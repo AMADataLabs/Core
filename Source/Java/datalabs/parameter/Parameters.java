@@ -10,12 +10,12 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public abstract class Parameters {
-    protected static final Logger LOGGER = LogManager.getLogger();
+    protected static final Logger LOGGER = LoggerFactory.getLogger(Parameters.class);
 
     public Parameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
         Field[] fields = getClass().getFields();

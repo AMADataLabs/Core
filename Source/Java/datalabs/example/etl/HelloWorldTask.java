@@ -4,15 +4,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import datalabs.task.Task;
 
 
 public class HelloWorldTask extends Task {
     private static Class PARAMETER_CLASS = null;
-    static final Logger LOGGER = LogManager.getLogger();
+    static final Logger LOGGER = LoggerFactory.getLogger(HelloWorldTask.class);
 
     public HelloWorldTask(Map<String, String> parameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
