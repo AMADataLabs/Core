@@ -94,7 +94,7 @@ module "hello_world_java_task_lambda" {
   lambda_name         = local.task_lambda
   s3_lambda_bucket    = local.s3_lambda_bucket
   s3_lambda_key       = "HelloWorldJava/Task.jar"
-  handler             = "awslambda.handler"
+  handler             = "datalabs.task.LambdaFunction"
   runtime             = "java11"
   create_alias        = false
   memory_size         = 3072

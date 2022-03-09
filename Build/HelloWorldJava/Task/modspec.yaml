@@ -15,4 +15,3 @@ modspec:
   - package: datalabs.task
     exclude:
       - LocalProcess
-      - LambdaFunction
