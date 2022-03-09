@@ -6,14 +6,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import datalabs.plugin.PluginImporter;
 import datalabs.task.TaskWrapper;
 
 public class LocalProcess {
-    protected static final Logger LOGGER = LogManager.getLogger();
+    protected static final Logger LOGGER = LoggerFactory.getLogger(LocalProcess.class);
 
     public static void main(String[] args)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,

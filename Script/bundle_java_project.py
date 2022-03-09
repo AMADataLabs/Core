@@ -85,9 +85,12 @@ class LocalProjectBundler(ProjectBundler):
 
     def _copy_extra_files(self, files, target_path):
         files = files or []
+        destination_directory = os.path.join(target_path, 'src', 'main', 'resources')
+
+        os.makedirs(destination_directory, exist_ok=True)
 
         for file in files:
-            shutil.copy(file, os.path.join(target_path, file))
+            shutil.copy(file, os.path.join(destination_directory, file))
 
     def _jar_source_directory(self, project, target_path):
         os.system(f'mvn -f {os.path.join(target_path, "pom.xml")} package')
