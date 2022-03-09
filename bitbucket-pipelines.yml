@@ -258,7 +258,7 @@ pipelines:
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
 
                 # Copy Log4j Configuration
-                - cp Build/HelloWorldJava/log4j2.xml ./log4j2.xml
+                - cp Build/HelloWorldJava/Task/log4j2.xml ./log4j2.xml
 
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
