@@ -327,6 +327,8 @@ module "lambda_dag_processor" {
     tag_notes                         = "N/A"
     tag_eol                           = "N/A"
     tag_maintwindow                   = "N/A"
+
+    tags = merge(local.tags, {Name = "DataLake-sbx-glue-crawler-policy"})
 }
 
 resource "aws_lambda_permission" "lambda_dag_processor" {
@@ -711,10 +713,7 @@ resource "aws_ecs_service" "datanow" {
             module.datanow_sg.security_group_id
         ]
 
-        subnets             = [
-            aws_subnet.datalake_private1.id,
-            aws_subnet.datalake_private2.id
-        ]
+        subnets             = data.terraform_remote_state.infrastructure.outputs.subnet_ids
     }
 
     load_balancer {
@@ -743,7 +742,7 @@ resource "aws_ecs_service" "datanow" {
 #     create_discovery_record             = false  # Service Discovery is not currently implemented anyway
 #     health_check_grace_period_seconds   = 0
 #     ecs_security_groups                 = [module.datanow_sg.security_group_id]
-#     alb_subnets_private                 = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
+#     alb_subnets_private                 = data.terraform_remote_state.infrastructure.outputs.subnet_ids
 #
 #     load_balancers                      = [
 #         {
@@ -833,18 +832,13 @@ resource "aws_alb" "datanow" {
     internal           = false  # Internet-facing. Requires an Internet Gateway
     load_balancer_type = "application"
 
-    subnets = [
-        aws_subnet.datalake_public1.id,
-        aws_subnet.datalake_public2.id
-    ]
+    subnets = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
 
     security_groups = [
         module.datanow_sg.security_group_id,
     ]
 
     tags = merge(local.tags, {Name = "Data Lake DataNow Load Balancer"})
-
-    depends_on = [aws_internet_gateway.datalake]
 }
 
 
@@ -871,7 +865,7 @@ resource "aws_lb_target_group" "datanow" {
     port        = 9047
     protocol    = "HTTP"
     target_type = "ip"
-    vpc_id      = aws_vpc.datalake.id
+    vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 
     health_check {
         enabled             = true
@@ -879,6 +873,8 @@ resource "aws_lb_target_group" "datanow" {
         healthy_threshold   = 5
         unhealthy_threshold = 2
     }
+
+    tags = merge(local.tags, {Name = "DataLake-sbx-datanow-tg"})
 }
 
 
@@ -887,7 +883,7 @@ module "datanow_sg" {
 
     name        = "${lower(var.project)}-${local.environment}-datanow"
     description = "Security group for Datanow"
-    vpc_id      = aws_vpc.datalake.id
+    vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 
     ingress_with_cidr_blocks = [
         {
@@ -987,6 +983,8 @@ resource "aws_iam_role" "datanow_execution" {
   ]
 }
 EOF
+
+    tags = merge(local.tags, {Name = "DataLake-sbx-datanow-ecs-task-execution-role"})
 }
 
 
@@ -1010,6 +1008,8 @@ resource "aws_iam_policy" "ecs_task_execution" {
     ]
 }
 EOF
+
+    tags = merge(local.tags, {Name = "DataLake-sbx-datanow-ecs-task-execution-policy"})
 }
             # "Condition": {
             #     "StringEquals": {
@@ -1024,7 +1024,7 @@ resource "aws_iam_role_policy_attachment" "datanow_execution" {
 
 
 # resource "aws_vpc_endpoint" "ecr_api" {
-#     vpc_id              = aws_vpc.datalake.id
+#     vpc_id              = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 #     service_name        = "com.amazonaws.${var.region}.ecr.api"
 #     vpc_endpoint_type   = "Interface"
 #     private_dns_enabled = true
@@ -1033,13 +1033,13 @@ resource "aws_iam_role_policy_attachment" "datanow_execution" {
 #         module.datanow_sg.security_group_id
 #     ]
 #
-#     subnet_ids          = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
+#     subnet_ids          = data.terraform_remote_state.infrastructure.outputs.subnet_ids
 #
 #     tags = merge(local.tags, {Name = "Data Lake ECR API VPC Endpoint"})
 # }
 #
 # resource "aws_vpc_endpoint" "ecr" {
-#     vpc_id              = aws_vpc.datalake.id
+#     vpc_id              = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 #     service_name        = "com.amazonaws.${var.region}.ecr.dkr"
 #     vpc_endpoint_type   = "Interface"
 #     private_dns_enabled = true
@@ -1048,13 +1048,13 @@ resource "aws_iam_role_policy_attachment" "datanow_execution" {
 #         module.datanow_sg.security_group_id
 #     ]
 #
-#     subnet_ids          = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
+#     subnet_ids          = data.terraform_remote_state.infrastructure.outputs.subnet_ids
 #
 #     tags = merge(local.tags, {Name = "Data Lake ECR VPC Endpoint"})
 # }
 #
 # resource "aws_vpc_endpoint" "logs" {
-#     vpc_id              = aws_vpc.datalake.id
+#     vpc_id              = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 #     service_name        = "com.amazonaws.${var.region}.logs"
 #     vpc_endpoint_type   = "Interface"
 #     private_dns_enabled = true
@@ -1063,13 +1063,13 @@ resource "aws_iam_role_policy_attachment" "datanow_execution" {
 #         module.datanow_sg.security_group_id
 #     ]
 #
-#     subnet_ids          = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
+#     subnet_ids          = data.terraform_remote_state.infrastructure.outputs.subnet_ids
 #
 #     tags = merge(local.tags, {Name = "Data Lake Logs VPC Endpoint"})
 # }
 #
 # resource "aws_vpc_endpoint" "s3" {
-#     vpc_id              = aws_vpc.datalake.id
+#     vpc_id              = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 #     service_name        = "com.amazonaws.${var.region}.s3"
 #     vpc_endpoint_type   = "Gateway"
 #
@@ -1091,7 +1091,7 @@ module "datanow_efs" {
     access_point_path = "/dremio"
     app_name                         = lower(var.project)
     app_environment                  = local.environment
-    subnet_ids                       = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
+    subnet_ids                       = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
     security_groups                  = [module.datanow_sg.security_group_id]
 
     tag_name                         = "${var.project}-${local.environment}-datanow-efs"
@@ -1120,7 +1120,7 @@ module "datanow_efs" {
 # resource "aws_security_group" "lineage" {
 #     name        = "Data Lake Lineage"
 #     description = "Allow inbound traffic to Neptune"
-#     vpc_id      = aws_vpc.datalake.id
+#     vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 #
 #     ingress {
 #         description = "Gremlin"
@@ -1143,7 +1143,7 @@ module "datanow_efs" {
 #
 #
 # resource "aws_subnet" "lineage_frontend" {
-#     vpc_id            = aws_vpc.datalake.id
+#     vpc_id            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 #     cidr_block        = "172.31.0.0/24"
 #     availability_zone = "us-east-1a"
 #
@@ -1158,7 +1158,7 @@ module "datanow_efs" {
 #
 #
 # resource "aws_subnet" "lineage_backend" {
-#     vpc_id            = aws_vpc.datalake.id
+#     vpc_id            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 #     cidr_block        = "172.31.1.0/24"
 #     availability_zone = "us-east-1b"
 #
@@ -1220,7 +1220,7 @@ module "webapp_sg" {
   version = "1.0.0"
   name        = "${var.project}-${local.environment}-webapp-sg"
   description = "Security group for DataLabs web app load balancer"
-  vpc_id      = aws_vpc.datalake.id
+  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 
   ingress_with_cidr_blocks = [
     {
@@ -1259,14 +1259,14 @@ module "webapp_alb" {
   name                              = "webapp"
   project                           = lower(var.project)
   description                       = "DataLabs Web APP Load Balancer"
-  # vpc_id                            = aws_vpc.datalake.id
-  vpc_id                            = aws_vpc.datalake.id
+  # vpc_id                            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+  vpc_id                            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
   # security_groups                   = [module.oneview_sg.security_group_id]
   security_groups                   = [module.webapp_sg.security_group_id]
   internal                          = true
   load_balancer_type                = "application"
   # subnet_ids                        = local.subnets
-  subnet_ids                        = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
+  subnet_ids                        = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
   enable_deletion_protection        = "false"
   target_type                       = "ip"
   target_group_port                 = 80

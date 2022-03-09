@@ -48,5 +48,5 @@ locals {
     }
 
     ### replicate TE stacks ##
-    subnets = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
+    subnets = ["subnet-020fca7291c7d0074", "subnet-0962128cae1b4816d"]
 }
