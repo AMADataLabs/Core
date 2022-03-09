@@ -317,4 +317,3 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
 class DagState(DAGState):
     ''' Alternative name for Java compatibility '''
-    pass
