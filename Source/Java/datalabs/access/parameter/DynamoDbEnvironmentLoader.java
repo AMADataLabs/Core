@@ -31,9 +31,9 @@ public class DynamoDbEnvironmentLoader {
 
     public static DynamoDbEnvironmentLoader fromEnvironment() {
         return new DynamoDbEnvironmentLoader(
-            System.getProperty("DYNAMODB_CONFIG_TABLE"),
-            System.getProperty("DYNAMODB_CONFIG_DAG"),
-            System.getProperty("DYNAMODB_CONFIG_TASK")
+            System.getenv("DYNAMODB_CONFIG_TABLE"),
+            System.getenv("DYNAMODB_CONFIG_DAG"),
+            System.getenv("DYNAMODB_CONFIG_TASK")
         );
     }
 

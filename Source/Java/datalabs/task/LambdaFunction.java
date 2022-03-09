@@ -18,7 +18,7 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
 
     @Override
      public String handleRequest(Map<String,String> event, Context context) {
-        String taskWrapperClassName = System.getProperty("TASK_WRAPPER_CLASS");
+        String taskWrapperClassName = System.getenv("TASK_WRAPPER_CLASS");
         TaskWrapper taskWrapper;
         String response;
 
