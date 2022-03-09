@@ -9,6 +9,7 @@ modspec:
     include:
       - aws
       - credentials
+      - datastore
       - environment
       - etcd
   - package: datalabs.access.parameter
