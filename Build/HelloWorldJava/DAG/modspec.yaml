@@ -9,6 +9,7 @@ modspec:
     include:
       - aws
       - credentials
+      - dynamodb
       - environment
       - etcd
   - package: datalabs.access.parameter
