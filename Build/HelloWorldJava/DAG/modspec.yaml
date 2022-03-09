@@ -9,13 +9,14 @@ modspec:
     include:
       - aws
       - credentials
-      - dynamodb
       - environment
       - etcd
   - package: datalabs.access.parameter
     include:
+    - aws
     - system
     - etcd
+    - dynamodb
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
