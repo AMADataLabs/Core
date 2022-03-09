@@ -84,11 +84,9 @@ class PhysiciansEndpointTask(APIEndpointTask):
         filter_conditions = []
         for value in values:
             if value.isnumeric():
-                filter_conditions += [(Physician.func.lower(getattr(Physician, field)) == value) for value in values]
+                filter_conditions += [(func.lower(getattr(Physician, field)) == value)]
             else:
-                filter_conditions += [(Physician.func.lower(getattr(Physician, field)) == func.lower(value))
-                                      for value in values
-                                      ]
+                filter_conditions += [(func.lower(getattr(Physician, field)) == func.lower(value))]
 
         query = query.filter(or_(*filter_conditions))
 
