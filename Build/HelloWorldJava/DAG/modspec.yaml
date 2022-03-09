@@ -12,6 +12,9 @@ modspec:
       - datastore
       - environment
       - etcd
+  - package: datalabs.messaging
+    include:
+    - email_message
   - package: datalabs.access.parameter
     include:
     - aws
