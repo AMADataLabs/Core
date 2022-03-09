@@ -26,8 +26,6 @@ modspec:
     - awslambda
     - local
   - package: datalabs.etl.dag.notify
-    include:
-    - sns
   - package: datalabs.etl.dag.state
     include:
     - base
