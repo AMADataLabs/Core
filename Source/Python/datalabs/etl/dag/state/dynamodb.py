@@ -314,3 +314,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
                 status=dict(S=status.value)
             )
         )
+
+class DagState(DAGState):
+    ''' Alternative name for Java compatibility '''
+    pass
