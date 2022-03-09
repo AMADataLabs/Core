@@ -6,25 +6,13 @@ provider "aws" {
 
 terraform {
     backend "s3" {
-        bucket          = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
+        bucket          = "ama-ivl-foundations-terraform-state"
         key             = "Foundations/ivl.tfstate"
         region          = "us-east-1"
-        dynamodb_table  = "hsg-datalabs-terraform-locks"
+        dynamodb_table  = "ama-ivl-foundations-terraform-locks"
     }
 
     required_providers {
         aws = "3.37"
     }
-}
-
-
-data "terraform_remote_state" "infrastructure" {
-  backend = "s3"
-
-  config = {
-    bucket          = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
-    key             = "Foundations/ivl.tfstate"
-    region          = "us-east-1"
-    dynamodb_table  = "hsg-datalabs-terraform-locks"
-  }
 }

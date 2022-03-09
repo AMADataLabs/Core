@@ -16,15 +16,3 @@ terraform {
         aws = "3.37"
     }
 }
-
-
-data "terraform_remote_state" "infrastructure" {
-  backend = "s3"
-
-  config = {
-    bucket          = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
-    key             = "Foundations/sandbox.tfstate"
-    region          = "us-east-1"
-    dynamodb_table  = "hsg-datalabs-terraform-locks"
-  }
-}
