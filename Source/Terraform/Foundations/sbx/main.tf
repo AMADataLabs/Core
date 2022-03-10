@@ -205,12 +205,12 @@ module "apigw_sg" {
 
   ingress_with_cidr_blocks = [
     {
-      from_port   = "-1"
-      to_port     = "-1"
-      protocol    = "-1"
+      from_port   = "443"
+      to_port     = "443"
+      protocol    = "443"
       description = "User-service ports"
-      cidr_blocks = "0.0.0.0/0,10.96.64.0/20,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
-    },
+      cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    }
   ]
 
   egress_with_cidr_blocks = [
@@ -220,7 +220,7 @@ module "apigw_sg" {
       protocol    = "-1"
       description = "outbound ports"
       cidr_blocks = "0.0.0.0/0"
-    },
+    }
   ]
 
   tags = merge(local.tags, {Name = "${local.project}-${local.environment}-datalake-sg"})
