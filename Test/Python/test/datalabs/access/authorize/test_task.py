@@ -15,7 +15,7 @@ def test_authorized(authorized_passport_response, parameters):
         post.return_value = authorized_passport_response
         authorizer.run()
 
-        assert authorizer.policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
+        assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
 
 
 # pylint: disable=redefined-outer-name
@@ -26,7 +26,20 @@ def test_not_authorized(unauthorized_passport_response, parameters):
         post.return_value = unauthorized_passport_response
         authorizer.run()
 
-        assert authorizer.policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
+        assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
+
+
+# pylint: disable=redefined-outer-name
+def test_authorization_contains_subscriptions(authorized_passport_response, parameters):
+    authorizer = AuthorizerTask(parameters)
+
+    with mock.patch('requests.Session.post') as post:
+        post.return_value = authorized_passport_response
+        authorizer.run()
+
+        subscriptions = authorizer.authorization.get('context').get("subscriptions")
+        assert len(subscriptions) == 1
+        assert subscriptions[0].get("productCode") == "CPTAPI"
 
 
 @pytest.fixture
