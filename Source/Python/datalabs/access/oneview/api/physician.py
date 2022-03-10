@@ -46,7 +46,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
     @classmethod
     def _generate_response_body(cls, rows, return_fields, query_params, filter_conditions):
         # pylint: disable=no-member
-        columns = return_fields or [column.name for column in Physician.__table__.columns.keys()]
+        columns = return_fields or [column for column in Physician.__table__.columns.keys()]
         output = []
 
         # If return fields is not specified
