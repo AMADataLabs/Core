@@ -42,17 +42,25 @@ class AuthorizerTask(Task, ABC):
 
     def _authorize(self, subscriptions):
         policy = None
+        context = None
+        active_subscriptions = self._get_active_subscriptions(subscriptions)
 
-        if subscriptions and len(subscriptions) > 0:
+        if active_subscriptions and len(active_subscriptions) > 0:
             policy = self._generate_policy(effect='Allow')
+            context = self._generate_context_from_subscriptions(active_subscriptions)
         else:
             policy = self._generate_policy(effect='Deny')
 
         return {
             "principalId": "username",
-            "context": {"subscriptions": subscriptions},
+            "context": context,
             "policyDocument": policy
         }
+
+    @classmethod
+    def _get_active_subscriptions(cls, subscriptions):
+        return [s for s in subscriptions if s.get("agreementStatus") == "A"]
+
 
     def _generate_policy(self, effect):
         base, stage, action, _ = self._parameters.endpoint.split('/', 3)
@@ -68,6 +76,16 @@ class AuthorizerTask(Task, ABC):
                 }
             ]
         }
+
+    @classmethod
+    def _generate_context_from_subscriptions(cls, subscriptions):
+        context = {}
+
+        for subscription in subscriptions:
+            context[subscription.get("productCode")] = subscription.get("accessEndDt")
+
+        return context
+
 
 
 class AuthorizerTaskException(TaskException):

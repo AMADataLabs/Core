@@ -37,9 +37,9 @@ def test_authorization_contains_subscriptions(authorized_passport_response, para
         post.return_value = authorized_passport_response
         authorizer.run()
 
-        subscriptions = authorizer.authorization.get('context').get("subscriptions")
-        assert len(subscriptions) == 1
-        assert subscriptions[0].get("productCode") == "CPTAPI"
+        context = authorizer.authorization.get('context')
+        assert len(context) == 1
+        assert context.get("CPTAPI") == "2021-06-19-05:00"
 
 
 @pytest.fixture
@@ -88,6 +88,15 @@ def authorized_passport_response():
                         "expirationDt": "2021-06-19-05:00",
                         "productCode": "CPTAPI",
                         "agreementStatus": "A",
+                        "subscriptionId": 6613481,
+                        "asOfDate": "2020-08-06-08:39",
+                        "startDate": "2020-06-20-05:00"
+                    },
+                    {
+                        "accessEndDt": "2021-06-19-05:00",
+                        "expirationDt": "2021-06-19-05:00",
+                        "productCode": "STUFF",
+                        "agreementStatus": "I",
                         "subscriptionId": 6613481,
                         "asOfDate": "2020-08-06-08:39",
                         "startDate": "2020-06-20-05:00"
