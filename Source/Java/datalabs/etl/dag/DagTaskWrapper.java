@@ -8,8 +8,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import datalabs.access.environment.VariableTree;
 import datalabs.etl.dag.cache.TaskDataCache;
@@ -18,7 +18,7 @@ import datalabs.task.TaskWrapper;
 
 
 public class DagTaskWrapper extends TaskWrapper {
-    static final Logger LOGGER = LogManager.getLogger();
+    static final Logger LOGGER = LoggerFactory.getLogger(DagTaskWrapper.class);
     protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
 
     public DagTaskWrapper(Map<String, String> parameters) {

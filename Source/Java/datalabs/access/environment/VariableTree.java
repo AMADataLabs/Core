@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class VariableTree {
-    static final Logger LOGGER = LogManager.getLogger();
+    static final Logger LOGGER = LoggerFactory.getLogger(VariableTree.class);
 
     String value;
     HashMap<String, VariableTree> branches = new HashMap<String, VariableTree>();

@@ -16,15 +16,15 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import datalabs.plugin.PluginImporter;
 import datalabs.task.LocalProcess;
 
 
 public class TaskRunner {
-    protected static final Logger LOGGER = LogManager.getLogger();
+    protected static final Logger LOGGER = LoggerFactory.getLogger(TaskRunner.class);
 
     public static void main(String[] args) {
         Options commandLineOptions = null;
@@ -82,7 +82,7 @@ public class TaskRunner {
 
     static Map<String, String> getRuntimeParameters(CommandLine args) {
         Map<String, String> parameters = new HashMap<String, String>();
-        LOGGER.debug(parameters);
+        LOGGER.debug(parameters.toString());
 
         if (args.hasOption("arg")) {
             String commandLine = String.join(" ", args.getOptionValues("arg"));

@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import datalabs.access.parameter.DynamoDbEnvironmentLoader;
 import datalabs.etl.dag.state.DagState;
@@ -16,7 +16,7 @@ import datalabs.task.Task;
 
 
 public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
-    static final Logger LOGGER = LogManager.getLogger();
+    static final Logger LOGGER = LoggerFactory.getLogger(DagTaskWrapper.class);
     Map<String, String> taskParameters;
 
     public DagTaskWrapper(Map<String, String> parameters) {

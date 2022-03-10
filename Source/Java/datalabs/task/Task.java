@@ -4,15 +4,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import datalabs.parameter.ParameterizedClassMixin;
 import datalabs.parameter.Parameters;
 
 
 public abstract class Task extends ParameterizedClassMixin {
-    protected static final Logger LOGGER = LogManager.getLogger();
+    protected static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
     protected Vector<byte[]> data = null;
 

@@ -81,6 +81,8 @@ resource "aws_iam_policy" "glue_crawler" {
     ]
 }
 EOF
+
+    tags = merge(local.tags, {Name = "DataLake-sbx-glue-crawler-policy"})
 }
 
 resource "aws_iam_policy_attachment" "glue_crawler" {

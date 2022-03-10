@@ -1,14 +1,14 @@
 # Compatibility with TE state
 output "vpc_id" {
-  value = [aws_vpc.datalake.id]
+  value = data.terraform_remote_state.infrastructure.outputs.vpc_id
 }
 
 
 output "subnet_ids" {
-  value = local.subnets
+  value = data.terraform_remote_state.infrastructure.outputs.subnet_ids
 }
 
 
 output "vpc_endpoint_execapi_id" {
-    value = aws_vpc_endpoint.apigw.id
+    value = data.terraform_remote_state.infrastructure.outputs.vpc_endpoint_execapi_id
 }

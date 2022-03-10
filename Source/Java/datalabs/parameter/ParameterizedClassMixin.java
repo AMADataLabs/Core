@@ -3,12 +3,12 @@ package datalabs.parameter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ParameterizedClassMixin {
-    protected static final Logger LOGGER = LogManager.getLogger();
+    protected static final Logger LOGGER = LoggerFactory.getLogger(ParameterizedClassMixin.class);
 
     protected Parameters parameters = null;
 

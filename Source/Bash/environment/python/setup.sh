@@ -13,9 +13,12 @@ create_python_virtual_environment() {
     environment_path=$1
 
     if [[ ! -f "$environment_path/bin/python3.7" ]]; then
+        echo "Creating virtual environment..."
         python3.7 -m venv $environment_path
+        echo "Done creating virtual environment"
+    else
+        echo "Virtual environment already exists."
     fi
-    echo "Done creating virtual environment"
 }
 
 

@@ -7,13 +7,9 @@ provider "aws" {
 terraform {
     backend "s3" {
         bucket          = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
-        key             = "DataLake/sandbox.tfstate"
+        key             = "JavaLambda/sbx.tfstate"
         region          = "us-east-1"
         dynamodb_table  = "hsg-datalabs-terraform-locks"
-    }
-
-    required_providers {
-        aws = "3.37"
     }
 }
 
@@ -23,7 +19,7 @@ data "terraform_remote_state" "infrastructure" {
 
   config = {
     bucket          = "ama-hsg-datalabs-datalake-terraform-state-sandbox"
-    key             = "Foundations/sandbox.tfstate"
+    key             = "DataLake/sandbox.tfstate"
     region          = "us-east-1"
     dynamodb_table  = "hsg-datalabs-terraform-locks"
   }

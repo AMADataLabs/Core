@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import datalabs.access.parameter.ReferenceEnvironmentLoader;
 import datalabs.task.TaskResolver;
@@ -15,7 +15,7 @@ import datalabs.plugin.PluginImporter;
 
 
 public class TaskWrapper {
-    static final Logger LOGGER = LogManager.getLogger();
+    static final Logger LOGGER = LoggerFactory.getLogger(TaskWrapper.class);
     protected Map<String, String> environment;
     protected Map<String, String> parameters;
     protected Map<String, String> runtimeParameters;

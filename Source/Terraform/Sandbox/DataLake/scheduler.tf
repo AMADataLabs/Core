@@ -15,14 +15,16 @@ resource "random_password" "etcd_scheduler_password" {
 #####################################################################
 
 resource "aws_cloudwatch_event_rule" "scheduler_trigger" {
-  name        = "${var.project}-${local.environment}-invoke-scheduler"
-  description = "Trigger running of the scheduler periodically"
-  schedule_expression = "cron(*/15 * * * ? *)"
+    name        = "${var.project}-${local.environment}-invoke-scheduler"
+    description = "Trigger running of the scheduler periodically"
+    schedule_expression = "cron(*/15 * * * ? *)"
+
+    tags = merge(local.tags, {Name = "Data Lake Scheduler Periodic Trigger"})
 }
 
 resource "aws_cloudwatch_event_target" "sns" {
-  rule      = aws_cloudwatch_event_rule.scheduler_trigger.name
-  arn       = module.sns_scheduler_topic.topic_arn
+    rule      = aws_cloudwatch_event_rule.scheduler_trigger.name
+    arn       = module.sns_scheduler_topic.topic_arn
 }
 
 
