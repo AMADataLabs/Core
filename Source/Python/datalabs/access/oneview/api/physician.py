@@ -46,15 +46,16 @@ class PhysiciansEndpointTask(APIEndpointTask):
     @classmethod
     def _generate_response_body(cls, rows, return_fields):
         # pylint: disable=no-member
-        columns = return_fields or [column.name for column in Physician.__table__.columns]
+        columns = return_fields or [column.name for column in Physician.__table__.columns.keys()]
         output = []
 
         # If return fields is not specified
         for row in rows:
-            row_data = {column: getattr(row, column) for column in columns}
+            for column in columns:
+                row_data = {column: getattr(row, column)}
+                output.append(row_data)
 
-            output.append(row_data)
-
+        output.append({'rows': columns})
         return output
 
     @classmethod
@@ -62,7 +63,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
         # Add WHERE filters to query
         for field, values in query_params.items():
             if hasattr(Physician, field) is False:
-                raise InvalidRequest(f"Invalid table field: field={field}")
+                raise InvalidRequest(f"Invalid table field: {field}")
 
             query = cls._query_for_values(values, field, query)
 
