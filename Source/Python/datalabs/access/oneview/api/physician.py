@@ -67,10 +67,10 @@ class PhysiciansEndpointTask(APIEndpointTask):
         filter_conditions = []
 
         for fields, values in query_params.items():
-            if hasattr(Physician, field) is False:
+            if hasattr(Physician, fields) is False:
                 raise InvalidRequest(f"Invalid table field: {field}")
 
-            filter_conditions = cls._query_for_values(values, fields, query, filter_conditions)
+            filter_conditions = cls._query_for_values(values, fields, filter_conditions)
 
         query = query.filter(or_(*filter_conditions))
 
