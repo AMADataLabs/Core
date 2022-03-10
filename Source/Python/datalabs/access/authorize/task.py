@@ -17,12 +17,12 @@ class AuthorizerParameters:
 class AuthorizerTask(Task, ABC):
     def __init__(self, parameters: AuthorizerParameters):
         super().__init__(parameters)
-        self._policy_document = dict()
+        self._authorization = dict()
         self._session = requests.Session()
 
     @property
-    def policy_document(self):
-        return self._policy_document
+    def authorization(self):
+        return self._authorization
 
     @property
     def generate_session(self):
@@ -36,37 +36,56 @@ class AuthorizerTask(Task, ABC):
 
         if response.status_code == 200 or response.status_code == 401:
             subscriptions = json.loads(response.text).get('subscriptionsList')
-            self._policy_document = self._authorize(subscriptions)
+            self._authorization = self._authorize(subscriptions)
         else:
             raise AuthorizerTaskException(f'Unable to authorize: {response.text}')
 
-    def _authorize(self, result):
+    def _authorize(self, subscriptions):
         policy = None
+        context = None
+        active_subscriptions = self._get_active_subscriptions(subscriptions)
 
-        if result and len(result) > 0:
+        if active_subscriptions and len(active_subscriptions) > 0:
             policy = self._generate_policy(effect='Allow')
+            context = self._generate_context_from_subscriptions(active_subscriptions)
         else:
             policy = self._generate_policy(effect='Deny')
 
-        return policy
+        return {
+            "principalId": "username",
+            "context": context,
+            "policyDocument": policy
+        }
+
+    @classmethod
+    def _get_active_subscriptions(cls, subscriptions):
+        return [s for s in subscriptions if s.get("agreementStatus") == "A"]
+
 
     def _generate_policy(self, effect):
         base, stage, action, _ = self._parameters.endpoint.split('/', 3)
         resource = '/'.join((base, stage, action, '*'))
 
         return {
-            "principalId": "username",
-            "policyDocument": {
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Action": "execute-api:Invoke",
-                        "Effect": effect,
-                        "Resource": resource
-                    }
-                ]
-            }
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Action": "execute-api:Invoke",
+                    "Effect": effect,
+                    "Resource": resource
+                }
+            ]
         }
+
+    @classmethod
+    def _generate_context_from_subscriptions(cls, subscriptions):
+        context = {}
+
+        for subscription in subscriptions:
+            context[subscription.get("productCode")] = subscription.get("accessEndDt")
+
+        return context
+
 
 
 class AuthorizerTaskException(TaskException):

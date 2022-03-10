@@ -15,7 +15,7 @@ def test_authorized(authorized_passport_response, parameters):
         post.return_value = authorized_passport_response
         authorizer.run()
 
-        assert authorizer.policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
+        assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Allow'
 
 
 # pylint: disable=redefined-outer-name
@@ -26,7 +26,20 @@ def test_not_authorized(unauthorized_passport_response, parameters):
         post.return_value = unauthorized_passport_response
         authorizer.run()
 
-        assert authorizer.policy_document.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
+        assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
+
+
+# pylint: disable=redefined-outer-name
+def test_authorization_contains_subscriptions(authorized_passport_response, parameters):
+    authorizer = AuthorizerTask(parameters)
+
+    with mock.patch('requests.Session.post') as post:
+        post.return_value = authorized_passport_response
+        authorizer.run()
+
+        context = authorizer.authorization.get('context')
+        assert len(context) == 1
+        assert context.get("CPTAPI") == "2021-06-19-05:00"
 
 
 @pytest.fixture
@@ -75,6 +88,15 @@ def authorized_passport_response():
                         "expirationDt": "2021-06-19-05:00",
                         "productCode": "CPTAPI",
                         "agreementStatus": "A",
+                        "subscriptionId": 6613481,
+                        "asOfDate": "2020-08-06-08:39",
+                        "startDate": "2020-06-20-05:00"
+                    },
+                    {
+                        "accessEndDt": "2021-06-19-05:00",
+                        "expirationDt": "2021-06-19-05:00",
+                        "productCode": "STUFF",
+                        "agreementStatus": "I",
                         "subscriptionId": 6613481,
                         "asOfDate": "2020-08-06-08:39",
                         "startDate": "2020-06-20-05:00"

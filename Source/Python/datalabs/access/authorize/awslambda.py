@@ -37,5 +37,5 @@ class AuthorizerLambdaTaskWrapper(TaskWrapper):
         return dict(message=exception.message)
 
     def _handle_success(self) -> (int, dict):
-        LOGGER.info('Policy document:\n%s', self.task.policy_document)
-        return self.task.policy_document
+        LOGGER.info('Authorization:\n%s', self.task.authorization)
+        return self.task.authorization
