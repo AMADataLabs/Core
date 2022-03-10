@@ -48,10 +48,4 @@ locals {
         Group                   = local.group
         Department              = local.department
     }
-
-    public_subnets = [aws_subnet.datalake_public1.id, aws_subnet.datalake_public2.id]
-
-
-    ### replicate TE stacks ##
-    subnets = [aws_subnet.datalake_private1.id, aws_subnet.datalake_private2.id]
 }
