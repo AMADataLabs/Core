@@ -45,6 +45,7 @@ class ORMLoaderParameters:
     data: object
     execution_time: str = None
     append: str = None
+    delete: str = None
     ignore_columns: str = None
     soft_delete_column: str = None
 
@@ -119,13 +120,18 @@ class ORMLoaderTask(LoaderTask):
         return schema
 
     def _update(self, database, table_parameters):
-        if self._parameters.append is None or self._parameters.append.upper() != 'TRUE':
+        if self._parameters.append is None or \
+                self._parameters.append.upper() != 'TRUE' or \
+                self._parameters.delete.upper() == 'TRUE':
             self._delete_data(database, table_parameters)
 
-        self._update_data(database, table_parameters)
+        if self._parameters.append.upper() == 'TRUE' or\
+                self._parameters.delete.upper() != 'TRUE' or\
+                self._parameters.delete is None:
 
-        self._add_data(database, table_parameters)
+            self._update_data(database, table_parameters)
 
+            self._add_data(database, table_parameters)
 
     @classmethod
     def _get_primary_key(cls, database, schema, table):
