@@ -328,7 +328,7 @@ module "lambda_dag_processor" {
     tag_eol                           = "N/A"
     tag_maintwindow                   = "N/A"
 
-    tags = merge(local.tags, {Name = "DataLake-sbx-glue-crawler-policy"})
+    tags = merge(local.tags, {Name = "DataLake-sbx DAG Processor Lambda"})
 }
 
 resource "aws_lambda_permission" "lambda_dag_processor" {
@@ -1197,18 +1197,6 @@ module "datanow_efs" {
 #         Department                          = local.department
 #     }
 # }
-
-
-
-#####################################################################
-# Datalake - Lambda Functions
-#####################################################################
-
-
-module "datalabs_terraform_state" {
-    source  = "../../Module/DataLake"
-    project = "DataLake"
-}
 
 
 #####################################################################
