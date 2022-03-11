@@ -53,7 +53,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
         # If return fields is not specified
         for row in rows:
             for column in columns:
-                row_data = row_data.update({column: getattr(row, column)})
+                row_data = {column: getattr(row, column)}
 
         row_data.update({'query_params': query_params})
         row_data.update({'rows': columns})
