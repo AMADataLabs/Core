@@ -120,8 +120,6 @@ class ORMLoaderTask(LoaderTask):
         return schema
 
     def _update(self, database, table_parameters):
-        import pdb
-        pdb.set_trace()
         append = self._parameters.append
         delete = self._parameters.delete
 
