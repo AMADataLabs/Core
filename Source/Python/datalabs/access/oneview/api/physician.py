@@ -54,12 +54,6 @@ class PhysiciansEndpointTask(APIEndpointTask):
             row_data = {column: getattr(row, column) for column in columns}
             output.append(row_data)
 
-        output.append({'query_params': query_params})
-        output.append({'rows': columns})
-        output.append({'filter': filter_conditions})
-
-
-
         return output
 
     @classmethod
