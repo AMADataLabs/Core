@@ -53,11 +53,11 @@ class PhysiciansEndpointTask(APIEndpointTask):
         # If return fields is not specified
         for row in rows:
             for column in columns:
-                row_data = row_data.updates({column: getattr(row, column)})
+                row_data = row_data.update({column: getattr(row, column)})
 
-        row_data.append({'query_params': query_params})
-        row_data.append({'rows': columns})
-        row_data.append({'filter': filter_conditions})
+        row_data.update({'query_params': query_params})
+        row_data.update({'rows': columns})
+        row_data.update({'filter': filter_conditions})
 
         output.append(row_data)
 
