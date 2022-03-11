@@ -120,13 +120,15 @@ class ORMLoaderTask(LoaderTask):
         return schema
 
     def _update(self, database, table_parameters):
-        append = self._parameters.get('APPEND', 'False')
-        delete = self._parameters.get('DELETE', 'False')
+        import pdb
+        pdb.set_trace()
+        append = self._parameters.append
+        delete = self._parameters.delete
 
-        if append.upper() != 'TRUE' or delete.upper() == 'TRUE':
+        if append is None or append.upper() != 'TRUE' or (delete is not None and delete.upper() == 'TRUE'):
             self._delete_data(database, table_parameters)
 
-        if append.upper() == 'TRUE' or delete.upper() != 'TRUE':
+        if delete is None or delete.upper() != 'TRUE' or (append is not None and append.upper() == 'TRUE'):
             self._update_data(database, table_parameters)
 
             self._add_data(database, table_parameters)
