@@ -19,9 +19,9 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
         query = self._query_for_physicians(database)
 
-        query, fields, query_params, filter_conditions = self._filter(query)
+        # query, fields, query_params, filter_conditions = self._filter(query)
 
-        self._response_body = self._generate_response_body(query.all(), fields, query_params,filter_conditions)
+        self._response_body = self._generate_response_body(query.all())
 
         if not self._response_body:
             raise ResourceNotFound('No data exists for the given column filters')
@@ -52,12 +52,11 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
         # If return fields is not specified
         for row in rows:
-            for column in columns:
-                row_data = {column: getattr(row, column)}
+            row_data = {column: getattr(row, column) for column in columns}
 
-        row_data.update({'query_params': query_params})
-        row_data.update({'rows': columns})
-        row_data.update({'filter': filter_conditions})
+        # row_data.update({'query_params': query_params})
+        # row_data.update({'rows': columns})
+        # row_data.update({'filter': filter_conditions})
 
         output.append(row_data)
 
