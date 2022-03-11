@@ -21,7 +21,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
         query, fields, query_params, filter_conditions = self._filter(query)
 
-        self._response_body = self._generate_response_body(query.all(), return_fields, query_params, filter_conditions)
+        self._response_body = self._generate_response_body(query.all(), fields, query_params, filter_conditions)
 
         if not self._response_body:
             raise ResourceNotFound('No data exists for the given column filters')
