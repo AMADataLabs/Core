@@ -120,14 +120,13 @@ class ORMLoaderTask(LoaderTask):
         return schema
 
     def _update(self, database, table_parameters):
-        if self._parameters.append is None or \
-                self._parameters.append.upper() != 'TRUE' or \
+        if self._parameters.append is None or self._parameters.append.upper() != 'TRUE' or \
                 self._parameters.delete.upper() == 'TRUE':
+
             self._delete_data(database, table_parameters)
 
-        if self._parameters.append.upper() == 'TRUE' or\
-                self._parameters.delete.upper() != 'TRUE' or\
-                self._parameters.delete is None:
+        if self._parameters.delete is None or self._parameters.delete.upper() != 'TRUE' or \
+                self._parameters.append.upper() == 'TRUE':
 
             self._update_data(database, table_parameters)
 
