@@ -26,7 +26,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
         if not self._response_body:
             raise ResourceNotFound('No data exists for the given column filters')
 
-        self._response_body = self._response_body
+        self._response_body = self._response_body[0]
 
     @classmethod
     def _query_for_physicians(cls, database):
@@ -48,16 +48,18 @@ class PhysiciansEndpointTask(APIEndpointTask):
         # pylint: disable=no-member
         columns = return_fields or [column for column in Physician.__table__.columns.keys()]
         output = []
+        row_data = {}
 
         # If return fields is not specified
         for row in rows:
             for column in columns:
-                row_data = {column: getattr(row, column)}
-                output.append(row_data)
+                row_data = row_data.updates({column: getattr(row, column)})
 
-        output.append({'query_params': query_params})
-        output.append({'rows': columns})
-        output.append({'filter': filter_conditions})
+        row_data.append({'query_params': query_params})
+        row_data.append({'rows': columns})
+        row_data.append({'filter': filter_conditions})
+
+        output.append(row_data)
 
         return output
 
