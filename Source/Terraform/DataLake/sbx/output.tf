@@ -10,5 +10,5 @@ output "subnet_ids" {
 
 
 output "vpc_endpoint_execapi_id" {
-    value = data.terraform_remote_state.infrastructure.outputs.vpc_endpoint_execapi_id
+  value = data.terraform_remote_state.infrastructure.outputs.vpc_endpoint_execapi_id
 }

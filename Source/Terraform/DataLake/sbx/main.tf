@@ -2,29 +2,29 @@
 data "aws_caller_identity" "account" {}
 
 #####################################################################
-# Datalake - Keys           #
+# Datalake - Keys                                                   #
 #####################################################################
 
 resource "aws_kms_key" "key" {
-    customer_master_key_spec = "SYMMETRIC_DEFAULT"
-    description              = "DynamoDB Encryption"
-    enable_key_rotation      = true
-    is_enabled               = true
-    key_usage                = "ENCRYPT_DECRYPT"
+  customer_master_key_spec = "SYMMETRIC_DEFAULT"
+  description              = "DynamoDB Encryption"
+  enable_key_rotation      = true
+  is_enabled               = true
+  key_usage                = "ENCRYPT_DECRYPT"
 }
 
 resource "aws_kms_alias" "key_alias" {
-    name           = "alias/dl-${local.environment}-dynamodb-us-east-1"
-    target_key_id  = aws_kms_key.key.id
+  name          = "alias/dl-${local.environment}-dynamodb-us-east-1"
+  target_key_id = aws_kms_key.key.id
 }
 
 #####################################################################
-# Datalake - Add application specific modules, data, locals, etc....           #
+# Datalake - Add application specific modules, data, locals, etc....#
 #####################################################################
 
 resource "random_password" "datanow_password" {
-  length = 16
-  special = true
+  length           = 16
+  special          = true
   override_special = "_%"
   # Reference with random_password.datanow_password.result
 }
@@ -35,11 +35,11 @@ resource "random_password" "datanow_password" {
 #####################################################################
 
 module "s3_ingested" {
-    source  = "app.terraform.io/AMA/s3/aws"
-    version = "2.0.0"
+  source  = "app.terraform.io/AMA/s3/aws"
+  version = "2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${local.environment}-datalake-ingest-${var.region}"
+  bucket_name       = "ama-${local.environment}-datalake-ingest-${var.region}"
 
   lifecycle_rule = [
     {
@@ -49,8 +49,8 @@ module "s3_ingested" {
         {
           days          = 90
           storage_class = "STANDARD_IA"
-          },
-          {
+        },
+        {
           days          = 365
           storage_class = "GLACIER"
         }
@@ -59,34 +59,34 @@ module "s3_ingested" {
     }
   ]
 
-  app_name                          = lower(var.project)
-  app_environment                   = local.environment
+  app_name        = lower(var.project)
+  app_environment = local.environment
 
-  tag_name                          = "${var.project}-${local.environment}-s3-ingested-data"
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  tag_name               = "${var.project}-${local.environment}-s3-ingested-data"
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
 #s3 event notifications here
 resource "aws_s3_bucket_notification" "ingested_data_sns_notification" {
-    bucket = module.s3_ingested.bucket_id
-    topic {
-        topic_arn           = module.sns_ingested.topic_arn
-        events              = ["s3:ObjectCreated:*"]
-    }
+  bucket = module.s3_ingested.bucket_id
+  topic {
+    topic_arn = module.sns_ingested.topic_arn
+    events    = ["s3:ObjectCreated:*"]
+  }
 }
 
 
@@ -95,7 +95,7 @@ module "s3_processed" {
   version = "2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${local.environment}-datalake-process-${var.region}"
+  bucket_name       = "ama-${local.environment}-datalake-process-${var.region}"
 
   lifecycle_rule = [
     {
@@ -105,8 +105,8 @@ module "s3_processed" {
         {
           days          = 90
           storage_class = "STANDARD_IA"
-          },
-          {
+        },
+        {
           days          = 365
           storage_class = "GLACIER"
         }
@@ -116,24 +116,24 @@ module "s3_processed" {
     }
   ]
 
-  app_name                          = lower(var.project)
-  app_environment                   = local.environment
+  app_name        = lower(var.project)
+  app_environment = local.environment
 
-  tag_name                          = "${var.project}-${local.environment}-s3-processed-data"
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  tag_name               = "${var.project}-${local.environment}-s3-processed-data"
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
@@ -142,7 +142,7 @@ module "s3_scheduler" {
   version = "2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${local.environment}-datalake-scheduler-${var.region}"
+  bucket_name       = "ama-${local.environment}-datalake-scheduler-${var.region}"
 
   lifecycle_rule = [
     {
@@ -152,8 +152,8 @@ module "s3_scheduler" {
         {
           days          = 90
           storage_class = "STANDARD_IA"
-          },
-          {
+        },
+        {
           days          = 365
           storage_class = "GLACIER"
         }
@@ -162,24 +162,24 @@ module "s3_scheduler" {
     }
   ]
 
-  app_name                          = lower(var.project)
-  app_environment                   = local.environment
+  app_name        = lower(var.project)
+  app_environment = local.environment
 
-  tag_name                          = "${var.project}-${local.environment}-s3-scheduler-data"
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  tag_name               = "${var.project}-${local.environment}-s3-scheduler-data"
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
@@ -188,7 +188,7 @@ module "s3_webapp_content" {
   version = "2.0.0"
 
   enable_versioning = true
-  bucket_name = "ama-${local.environment}-datalake-webapp-content-${var.region}"
+  bucket_name       = "ama-${local.environment}-datalake-webapp-content-${var.region}"
 
   lifecycle_rule = [
     {
@@ -198,8 +198,8 @@ module "s3_webapp_content" {
         {
           days          = 90
           storage_class = "STANDARD_IA"
-          },
-          {
+        },
+        {
           days          = 365
           storage_class = "GLACIER"
         }
@@ -208,69 +208,69 @@ module "s3_webapp_content" {
     }
   ]
 
-  app_name                          = lower(var.project)
-  app_environment                   = local.environment
-  tag_name                          = "${var.project}-${local.environment}-s3-webapp-content-bucket"
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  app_name               = lower(var.project)
+  app_environment        = local.environment
+  tag_name               = "${var.project}-${local.environment}-s3-webapp-content"
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
 # S3 event notifications here
 resource "aws_s3_bucket_notification" "processed_data_sns_notification" {
-    bucket = module.s3_processed.bucket_id
-    topic {
-        topic_arn           = module.sns_processed.topic_arn
-        events              = ["s3:ObjectCreated:*"]
-    }
+  bucket = module.s3_processed.bucket_id
+  topic {
+    topic_arn = module.sns_processed.topic_arn
+    events    = ["s3:ObjectCreated:*"]
+  }
 }
 
 resource "aws_s3_bucket_notification" "sns_scheduler" {
-    bucket = module.s3_scheduler.bucket_id
-    topic {
-        topic_arn           = module.sns_scheduler_topic.topic_arn
-        events              = ["s3:ObjectCreated:*"]
-    }
+  bucket = module.s3_scheduler.bucket_id
+  topic {
+    topic_arn = module.sns_scheduler_topic.topic_arn
+    events    = ["s3:ObjectCreated:*"]
+  }
 }
 
 
 module "s3_lambda" {
-  source            = "app.terraform.io/AMA/s3/aws"
-  version           = "2.0.0"
+  source  = "app.terraform.io/AMA/s3/aws"
+  version = "2.0.0"
 
   enable_versioning = true
   bucket_name       = local.s3_lambda_bucket
 
-  app_name          = lower(var.project)
-  app_environment   = local.environment
+  app_name        = lower(var.project)
+  app_environment = local.environment
 
-  tag_name                          = local.s3_lambda_bucket
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  tag_name               = local.s3_lambda_bucket
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
@@ -280,182 +280,182 @@ module "s3_lambda" {
 #####################################################################
 
 module "lambda_dag_processor" {
-    source  = "app.terraform.io/AMA/lambda/aws"
-    version = "2.0.0"
-    function_name       = local.lambda_names.dag_processor
-    lambda_name         = local.lambda_names.dag_processor
-    s3_lambda_bucket    = local.s3_lambda_bucket
-    s3_lambda_key       = "Scheduler.zip"
-    handler             = "awslambda.handler"
-    runtime             = local.runtime
-    create_alias        = false
-    memory_size         = var.lambda_memory_size
-    timeout             = var.lambda_timeout
+  source           = "app.terraform.io/AMA/lambda/aws"
+  version          = "2.0.0"
+  function_name    = local.lambda_names.dag_processor
+  lambda_name      = local.lambda_names.dag_processor
+  s3_lambda_bucket = local.s3_lambda_bucket
+  s3_lambda_key    = "Scheduler.zip"
+  handler          = "awslambda.handler"
+  runtime          = local.runtime
+  create_alias     = false
+  memory_size      = var.lambda_memory_size
+  timeout          = var.lambda_timeout
 
-    vpc_config = {
-        subnet_ids              = data.terraform_remote_state.infrastructure.outputs.subnet_ids
-        security_group_ids      = [module.datanow_sg.security_group_id]
+  vpc_config = {
+    subnet_ids         = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+    security_group_ids = [module.datanow_sg.security_group_id]
+  }
+
+  lambda_policy_vars = {
+    account_id = data.aws_caller_identity.account.account_id
+    region     = local.region
+    project    = var.project
+  }
+
+  create_lambda_permission = true
+  #Bogus ARN Used to satisfy module requirement
+  api_arn = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
+
+  environment_variables = {
+    variables = {
+      TASK_WRAPPER_CLASS    = "datalabs.etl.dag.awslambda.ProcessorTaskWrapper"
+      TASK_CLASS            = "datalabs.etl.dag.process.DAGProcessorTask"
+      DYNAMODB_CONFIG_TABLE = aws_dynamodb_table.configuration.id
     }
+  }
 
-    lambda_policy_vars  = {
-        account_id                  = data.aws_caller_identity.account.account_id
-        region                      = local.region
-        project                     = var.project
-    }
+  tag_name               = local.lambda_names.dag_processor
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
 
-    create_lambda_permission    = true
-    #Bogus ARN Used to satisfy module requirement
-    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
-
-    environment_variables = {
-        variables = {
-          TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.ProcessorTaskWrapper"
-          TASK_CLASS              = "datalabs.etl.dag.process.DAGProcessorTask"
-          DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
-        }
-    }
-
-    tag_name                          = local.lambda_names.dag_processor
-    tag_environment                   = local.environment
-    tag_contact                       = var.contact
-    tag_budgetcode                    = var.budget_code
-    tag_owner                         = var.owner
-    tag_projectname                   = var.project
-    tag_systemtier                    = "0"
-    tag_drtier                        = "0"
-    tag_dataclassification            = "N/A"
-    tag_notes                         = "N/A"
-    tag_eol                           = "N/A"
-    tag_maintwindow                   = "N/A"
-
-    tags = merge(local.tags, {Name = "DataLake-sbx DAG Processor Lambda"})
+  tags = merge(local.tags, { Name = "DataLake-sbx DAG Processor Lambda" })
 }
 
 resource "aws_lambda_permission" "lambda_dag_processor" {
-     statement_id    = "AllowSNSInvoke-DAG"
-     action          = "lambda:InvokeFunction"
-     function_name   = module.lambda_dag_processor.function_name
-     principal       = "sns.amazonaws.com"
-     source_arn      = module.sns_dag_topic.topic_arn
+  statement_id  = "AllowSNSInvoke-DAG"
+  action        = "lambda:InvokeFunction"
+  function_name = module.lambda_dag_processor.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = module.sns_dag_topic.topic_arn
 }
 
 resource "aws_lambda_permission" "lambda_dag_processor_scheduler" {
-     statement_id    = "AllowSNSInvoke-Scheduler"
-     action          = "lambda:InvokeFunction"
-     function_name   = module.lambda_dag_processor.function_name
-     principal       = "sns.amazonaws.com"
-     source_arn      = module.sns_scheduler_topic.topic_arn
+  statement_id  = "AllowSNSInvoke-Scheduler"
+  action        = "lambda:InvokeFunction"
+  function_name = module.lambda_dag_processor.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = module.sns_scheduler_topic.topic_arn
 }
 
 
 module "lambda_task_processor" {
-    source  = "app.terraform.io/AMA/lambda/aws"
-    version = "2.0.0"
-    function_name       = local.lambda_names.task_processor
-    lambda_name         = local.lambda_names.task_processor
-    s3_lambda_bucket    = local.s3_lambda_bucket
-    s3_lambda_key       = "Scheduler.zip"
-    handler             = "awslambda.handler"
-    runtime             = local.runtime
-    create_alias        = false
-    memory_size         = var.lambda_memory_size
-    timeout             = var.lambda_timeout
+  source           = "app.terraform.io/AMA/lambda/aws"
+  version          = "2.0.0"
+  function_name    = local.lambda_names.task_processor
+  lambda_name      = local.lambda_names.task_processor
+  s3_lambda_bucket = local.s3_lambda_bucket
+  s3_lambda_key    = "Scheduler.zip"
+  handler          = "awslambda.handler"
+  runtime          = local.runtime
+  create_alias     = false
+  memory_size      = var.lambda_memory_size
+  timeout          = var.lambda_timeout
 
-    vpc_config = {
-        subnet_ids              = data.terraform_remote_state.infrastructure.outputs.subnet_ids
-        security_group_ids      = [module.datanow_sg.security_group_id]
+  vpc_config = {
+    subnet_ids         = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+    security_group_ids = [module.datanow_sg.security_group_id]
+  }
+
+  lambda_policy_vars = {
+    account_id = data.aws_caller_identity.account.account_id
+    region     = local.region
+    project    = var.project
+  }
+
+  create_lambda_permission = true
+  #Bogus ARN Used to satisfy module requirement
+  api_arn = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
+
+  environment_variables = {
+    variables = {
+      TASK_WRAPPER_CLASS    = "datalabs.etl.dag.awslambda.ProcessorTaskWrapper"
+      TASK_CLASS            = "datalabs.etl.dag.process.TaskProcessorTask"
+      DYNAMODB_CONFIG_TABLE = aws_dynamodb_table.configuration.id
     }
+  }
 
-    lambda_policy_vars  = {
-        account_id                  = data.aws_caller_identity.account.account_id
-        region                      = local.region
-        project                     = var.project
-    }
-
-    create_lambda_permission    = true
-    #Bogus ARN Used to satisfy module requirement
-    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
-
-    environment_variables = {
-        variables = {
-          TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.ProcessorTaskWrapper"
-          TASK_CLASS              = "datalabs.etl.dag.process.TaskProcessorTask"
-          DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
-        }
-    }
-
-    tag_name                          = local.lambda_names.task_processor
-    tag_environment                   = local.environment
-    tag_contact                       = var.contact
-    tag_budgetcode                    = var.budget_code
-    tag_owner                         = var.owner
-    tag_projectname                   = var.project
-    tag_systemtier                    = "0"
-    tag_drtier                        = "0"
-    tag_dataclassification            = "N/A"
-    tag_notes                         = "N/A"
-    tag_eol                           = "N/A"
-    tag_maintwindow                   = "N/A"
+  tag_name               = local.lambda_names.task_processor
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
 }
 
 
 resource "aws_lambda_permission" "lambda_task_processor" {
-    statement_id    = "AllowSNSInvoke"
-    action          = "lambda:InvokeFunction"
-    function_name   = module.lambda_task_processor.function_name
-    principal       = "sns.amazonaws.com"
-    source_arn      = module.sns_task_topic.topic_arn
+  statement_id  = "AllowSNSInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = module.lambda_task_processor.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = module.sns_task_topic.topic_arn
 }
 
 
 module "lambda_scheduler" {
-    source  = "app.terraform.io/AMA/lambda/aws"
-    version = "2.0.0"
-    function_name       = local.lambda_names.scheduler
-    lambda_name         = local.lambda_names.scheduler
-    s3_lambda_bucket    = local.s3_lambda_bucket
-    s3_lambda_key       = "Scheduler.zip"
-    handler             = "awslambda.handler"
-    runtime             = local.runtime
-    create_alias        = false
-    memory_size         = var.lambda_memory_size
-    timeout             = var.lambda_timeout
+  source           = "app.terraform.io/AMA/lambda/aws"
+  version          = "2.0.0"
+  function_name    = local.lambda_names.scheduler
+  lambda_name      = local.lambda_names.scheduler
+  s3_lambda_bucket = local.s3_lambda_bucket
+  s3_lambda_key    = "Scheduler.zip"
+  handler          = "awslambda.handler"
+  runtime          = local.runtime
+  create_alias     = false
+  memory_size      = var.lambda_memory_size
+  timeout          = var.lambda_timeout
 
-    vpc_config = {
-      subnet_ids              = data.terraform_remote_state.infrastructure.outputs.subnet_ids
-      security_group_ids      = [module.datanow_sg.security_group_id]
+  vpc_config = {
+    subnet_ids         = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+    security_group_ids = [module.datanow_sg.security_group_id]
+  }
+
+  lambda_policy_vars = {
+    account_id = data.aws_caller_identity.account.account_id
+    region     = local.region
+    project    = var.project
+  }
+
+  create_lambda_permission = true
+  api_arn                  = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
+
+  environment_variables = {
+    variables = {
+      TASK_WRAPPER_CLASS    = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
+      TASK_RESOLVER_CLASS   = "datalabs.etl.dag.resolve.TaskResolver"
+      DYNAMODB_CONFIG_TABLE = aws_dynamodb_table.configuration.id
+      DAG_CLASS             = "datalabs.etl.dag.schedule.dag.DAGSchedulerDAG"
     }
+  }
 
-    lambda_policy_vars  = {
-        account_id                  = data.aws_caller_identity.account.account_id
-        region                      = local.region
-        project                     = var.project
-    }
-
-    create_lambda_permission    = true
-    api_arn                   = "arn:aws-partition:service:${var.region}:${data.aws_caller_identity.account.account_id}:resource-id"
-
-    environment_variables = {
-        variables = {
-            TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
-            TASK_RESOLVER_CLASS     = "datalabs.etl.dag.resolve.TaskResolver"
-            DYNAMODB_CONFIG_TABLE   = aws_dynamodb_table.configuration.id
-            DAG_CLASS               = "datalabs.etl.dag.schedule.dag.DAGSchedulerDAG"
-        }
-    }
-
-    tag_name                          = local.lambda_names.scheduler
-    tag_environment                   = local.environment
-    tag_contact                       = var.contact
-    tag_budgetcode                    = var.budget_code
-    tag_owner                         = var.owner
-    tag_projectname                   = var.project
-    tag_systemtier                    = "0"
-    tag_drtier                        = "0"
-    tag_dataclassification            = "N/A"
-    tag_notes                         = "N/A"
-    tag_eol                           = "N/A"
-    tag_maintwindow                   = "N/A"
+  tag_name               = local.lambda_names.scheduler
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
 }
 
 
@@ -468,32 +468,32 @@ module "sns_ingested" {
   version = "1.0.0"
 
   policy_template_vars = {
-    topic_name      = local.topic_names.ingested_data
-    region          = var.region
-    account_id      = data.aws_caller_identity.account.account_id
-    s3_bucket_name  = module.s3_ingested.bucket_id
+    topic_name     = local.topic_names.ingested_data
+    region         = var.region
+    account_id     = data.aws_caller_identity.account.account_id
+    s3_bucket_name = module.s3_ingested.bucket_id
   }
 
-  name = local.topic_names.ingested_data
-  topic_display_name    = local.topic_names.ingested_data
-  app_name              = lower(var.project)
-  app_environment       = local.environment
+  name               = local.topic_names.ingested_data
+  topic_display_name = local.topic_names.ingested_data
+  app_name           = lower(var.project)
+  app_environment    = local.environment
 
-  tag_name                          = "${var.project}-${local.environment}-sns-ingested-topic"
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  tag_name               = "${var.project}-${local.environment}-sns-ingested-topic"
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
@@ -503,32 +503,32 @@ module "sns_processed" {
   version = "1.0.0"
 
   policy_template_vars = {
-    topic_name      = local.topic_names.processed_data
-    region          = var.region
-    account_id      = data.aws_caller_identity.account.account_id
-    s3_bucket_name  = module.s3_processed.bucket_id
+    topic_name     = local.topic_names.processed_data
+    region         = var.region
+    account_id     = data.aws_caller_identity.account.account_id
+    s3_bucket_name = module.s3_processed.bucket_id
   }
 
-  name                  = local.topic_names.processed_data
-  topic_display_name    = local.topic_names.processed_data
-  app_name              = lower(var.project)
-  app_environment       = local.environment
+  name               = local.topic_names.processed_data
+  topic_display_name = local.topic_names.processed_data
+  app_name           = lower(var.project)
+  app_environment    = local.environment
 
-  tag_name                          = "${local.topic_names.processed_data}-topic"
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  tag_name               = "${local.topic_names.processed_data}-topic"
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
@@ -536,32 +536,32 @@ module "sns_scheduler_topic" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = local.topic_names.scheduler
-    region          = var.region
-    account_id      = data.aws_caller_identity.account.account_id
-    s3_bucket_name  = module.s3_scheduler.bucket_id
+    topic_name     = local.topic_names.scheduler
+    region         = var.region
+    account_id     = data.aws_caller_identity.account.account_id
+    s3_bucket_name = module.s3_scheduler.bucket_id
   }
 
-  name = local.topic_names.scheduler
-  topic_display_name    = local.topic_names.scheduler
-  app_name              = lower(var.project)
-  app_environment       = local.environment
+  name               = local.topic_names.scheduler
+  topic_display_name = local.topic_names.scheduler
+  app_name           = lower(var.project)
+  app_environment    = local.environment
 
-  tag_name                         = local.topic_names.scheduler
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  tag_name               = local.topic_names.scheduler
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
@@ -577,32 +577,32 @@ module "sns_dag_topic" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = local.topic_names.dag_processor
-    region          = var.region
-    account_id      = data.aws_caller_identity.account.account_id
-    s3_bucket_name  = "not_applicable"
+    topic_name     = local.topic_names.dag_processor
+    region         = var.region
+    account_id     = data.aws_caller_identity.account.account_id
+    s3_bucket_name = "not_applicable"
   }
 
-  name = local.topic_names.dag_processor
-  topic_display_name    = local.topic_names.dag_processor
-  app_name              = lower(var.project)
-  app_environment       = local.environment
+  name               = local.topic_names.dag_processor
+  topic_display_name = local.topic_names.dag_processor
+  app_name           = lower(var.project)
+  app_environment    = local.environment
 
-  tag_name                         = local.topic_names.dag_processor
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  tag_name               = local.topic_names.dag_processor
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
@@ -618,32 +618,32 @@ module "sns_task_topic" {
   source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
 
   policy_template_vars = {
-    topic_name      = local.topic_names.task_processor
-    region          = var.region
-    account_id      = data.aws_caller_identity.account.account_id
-    s3_bucket_name  = "not_applicable"
+    topic_name     = local.topic_names.task_processor
+    region         = var.region
+    account_id     = data.aws_caller_identity.account.account_id
+    s3_bucket_name = "not_applicable"
   }
 
-  name = local.topic_names.task_processor
-  topic_display_name    = local.topic_names.task_processor
-  app_name              = lower(var.project)
-  app_environment       = local.environment
+  name               = local.topic_names.task_processor
+  topic_display_name = local.topic_names.task_processor
+  app_name           = lower(var.project)
+  app_environment    = local.environment
 
-  tag_name                         = local.topic_names.task_processor
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
+  tag_name               = local.topic_names.task_processor
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
   tags = {
-    Group                               = local.group
-    Department                          = local.department
+    Group      = local.group
+    Department = local.department
   }
 }
 
@@ -660,75 +660,75 @@ resource "aws_sns_topic_subscription" "task_processor" {
 #####################################################################
 
 resource "aws_ecr_repository" "datanow" {
-    name = "datanow"
+  name = "datanow"
 
-    tags = merge(local.tags, {Name = "Data Labs Data Lake DataNow Container Repository"})
+  tags = merge(local.tags, { Name = "Data Labs Data Lake DataNow Container Repository" })
 }
 
 
 module "datalake_ecs_cluster" {
-    source                            = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-fargate.git?ref=2.0.0"
-    app_name                          =  lower(var.project)
-    app_environment                   = local.environment
+  source          = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-fargate.git?ref=2.0.0"
+  app_name        = lower(var.project)
+  app_environment = local.environment
 
-    tag_name                          = "${upper(var.project)}-${local.environment}-ECS-CLUSTER"
-    tag_environment                   = local.environment
-    tag_contact                       = var.contact
-    tag_budgetcode                    = var.budget_code
-    tag_owner                         = var.owner
-    tag_projectname                   = var.project
-    tag_systemtier                    = "0"
-    tag_drtier                        = "0"
-    tag_dataclassification            = "N/A"
-    tag_notes                         = "N/A"
-    tag_eol                           = "N/A"
-    tag_maintwindow                   = "N/A"
-    tags = {
-        Group                               = local.group
-        Department                          = local.department
-    }
+  tag_name               = "${upper(var.project)}-${local.environment}-ECS-CLUSTER"
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
+  tags = {
+    Group      = local.group
+    Department = local.department
+  }
 }
 
 
 resource "aws_ecs_service" "datanow" {
-    name                                = "DataNow"
-    task_definition                     = module.datanow_task_definition.aws_ecs_task_definition_td_arn
-    launch_type                         = "FARGATE"
-    cluster                             = module.datalake_ecs_cluster.ecs_cluster_id
-    desired_count                       = 1
-    platform_version                    = "1.4.0"
-    health_check_grace_period_seconds   = 0
-    propagate_tags                      = "TASK_DEFINITION"
+  name                              = "DataNow"
+  task_definition                   = module.datanow_task_definition.aws_ecs_task_definition_td_arn
+  launch_type                       = "FARGATE"
+  cluster                           = module.datalake_ecs_cluster.ecs_cluster_id
+  desired_count                     = 1
+  platform_version                  = "1.4.0"
+  health_check_grace_period_seconds = 0
+  propagate_tags                    = "TASK_DEFINITION"
 
-    deployment_controller {
-        type                = "ECS"
-    }
+  deployment_controller {
+    type = "ECS"
+  }
 
-    timeouts {}
+  timeouts {}
 
-    network_configuration {
-        assign_public_ip    = true
+  network_configuration {
+    assign_public_ip = true
 
-        security_groups     = [
-            module.datanow_sg.security_group_id
-        ]
-
-        subnets             = data.terraform_remote_state.infrastructure.outputs.subnet_ids
-    }
-
-    load_balancer {
-        target_group_arn    = aws_lb_target_group.datanow.arn
-        container_name      = "datanow"
-        container_port      = "9047"
-    }
-
-
-    tags = merge(local.tags, {Name = "Data Labs Data Lake DataNow Service"})
-
-    depends_on = [
-        module.datanow_task_definition,
-        aws_lb_target_group.datanow
+    security_groups = [
+      module.datanow_sg.security_group_id
     ]
+
+    subnets = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.datanow.arn
+    container_name   = "datanow"
+    container_port   = "9047"
+  }
+
+
+  tags = merge(local.tags, { Name = "Data Labs Data Lake DataNow Service" })
+
+  depends_on = [
+    module.datanow_task_definition,
+    aws_lb_target_group.datanow
+  ]
 }
 # module "datanow_service" {
 #     source                              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-fargate-service.git?ref=2.0.0"
@@ -774,71 +774,71 @@ resource "aws_ecs_service" "datanow" {
 
 
 module "datanow_task_definition" {
-    source                          = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-ecs-fargate-task-definition.git?ref=2.0.0"
-    task_name                       = "datanow"
-    environment_name                = local.environment
-    execution_role_arn              = aws_iam_role.datanow_execution.arn
-    task_role_arn                   = aws_iam_role.datanow_task.arn
-    container_cpu                   = 1024
-    container_memory                = 8192
+  source             = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-ecs-fargate-task-definition.git?ref=2.0.0"
+  task_name          = "datanow"
+  environment_name   = local.environment
+  execution_role_arn = aws_iam_role.datanow_execution.arn
+  task_role_arn      = aws_iam_role.datanow_task.arn
+  container_cpu      = 1024
+  container_memory   = 8192
 
-    container_definition_vars       = {
-        account_id  = data.aws_caller_identity.account.account_id,
-        region      = var.region
-        image       = local.datanow_image
-        tag         = var.datanow_version
-    }
+  container_definition_vars = {
+    account_id = data.aws_caller_identity.account.account_id,
+    region     = var.region
+    image      = local.datanow_image
+    tag        = var.datanow_version
+  }
 
-    volume = [
+  volume = [
+    {
+      name = "DataNow"
+
+      efs_volume_configuration = [
         {
-            name                        = "DataNow"
+          "file_system_id" : module.datanow_efs.filesystem_id
+          "root_directory" : "/"
+          "transit_encryption" : "ENABLED"
 
-            efs_volume_configuration    = [
-                {
-                    "file_system_id":       module.datanow_efs.filesystem_id
-                    "root_directory":       "/"
-                    "transit_encryption":   "ENABLED"
-
-                    "authorization_config": {
-                        "access_point_id":  module.datanow_efs.access_point_id
-                        "iam":              "ENABLED"
-                    }
-                }
-            ]
+          "authorization_config" : {
+            "access_point_id" : module.datanow_efs.access_point_id
+            "iam" : "ENABLED"
+          }
         }
-    ]
-
-    tag_name                        = "${var.project} DataNow Task"
-    tag_environment                   = local.environment
-    tag_contact                       = var.contact
-    tag_budgetcode                    = var.budget_code
-    tag_owner                         = var.owner
-    tag_projectname                   = var.project
-    tag_systemtier                    = "0"
-    tag_drtier                        = "0"
-    tag_dataclassification            = "N/A"
-    tag_notes                         = "N/A"
-    tag_eol                           = "N/A"
-    tag_maintwindow                   = "N/A"
-    tags = {
-        Group                               = local.group
-        Department                          = local.department
+      ]
     }
+  ]
+
+  tag_name               = "${var.project} DataNow Task"
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
+  tags = {
+    Group      = local.group
+    Department = local.department
+  }
 }
 
 
 resource "aws_alb" "datanow" {
-    name               = "DataNow"
-    internal           = false  # Internet-facing. Requires an Internet Gateway
-    load_balancer_type = "application"
+  name               = "DataNow"
+  internal           = false # Internet-facing. Requires an Internet Gateway
+  load_balancer_type = "application"
 
-    subnets = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
+  subnets = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
 
-    security_groups = [
-        module.datanow_sg.security_group_id,
-    ]
+  security_groups = [
+    module.datanow_sg.security_group_id,
+  ]
 
-    tags = merge(local.tags, {Name = "Data Lake DataNow Load Balancer"})
+  tags = merge(local.tags, { Name = "Data Lake DataNow Load Balancer" })
 }
 
 
@@ -856,98 +856,98 @@ resource "aws_alb_listener" "datanow-https" {
 
 
 data "aws_acm_certificate" "amaaws" {
-    domain = "*.amaaws.org"
+  domain = "*.amaaws.org"
 }
 
 
 resource "aws_lb_target_group" "datanow" {
-    name        = "${var.project}DataNow"
-    port        = 9047
-    protocol    = "HTTP"
-    target_type = "ip"
-    vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+  name        = "${var.project}DataNow"
+  port        = 9047
+  protocol    = "HTTP"
+  target_type = "ip"
+  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 
-    health_check {
-        enabled             = true
-        path                = "/apiv2/server_status"
-        healthy_threshold   = 5
-        unhealthy_threshold = 2
-    }
+  health_check {
+    enabled             = true
+    path                = "/apiv2/server_status"
+    healthy_threshold   = 5
+    unhealthy_threshold = 2
+  }
 
-    tags = merge(local.tags, {Name = "DataLake-sbx-datanow-tg"})
+  tags = merge(local.tags, { Name = "DataLake-sbx-datanow-tg" })
 }
 
 
 module "datanow_sg" {
-    source = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-security-group.git?ref=1.0.0"
+  source = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-security-group.git?ref=1.0.0"
 
-    name        = "${lower(var.project)}-${local.environment}-datanow"
-    description = "Security group for Datanow"
-    vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+  name        = "${lower(var.project)}-${local.environment}-datanow"
+  description = "Security group for Datanow"
+  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 
-    ingress_with_cidr_blocks = [
-        {
-            description = "HTTP Client"
-            from_port   = "9047"
-            to_port     = "9047"
-            protocol    = "tcp"
-            cidr_blocks = "0.0.0.0/0"
-        },
-        {
-            description = "HTTP"
-            from_port   = "80"
-            to_port     = "80"
-            protocol    = "tcp"
-            cidr_blocks = "0.0.0.0/0"
-        },
-        {
-            description = "HTTPS"
-            from_port   = "443"
-            to_port     = "443"
-            protocol    = "tcp"
-            cidr_blocks = "0.0.0.0/0"
-        },
-        {
-            description = "ODBC/JDBC Client"
-            from_port   = "31010"
-            to_port     = "31010"
-            protocol    = "tcp"
-            cidr_blocks = "0.0.0.0/0"
-        },
-        {
-            description = "EFS"
-            from_port   = "2049"
-            to_port     = "2049"
-            protocol    = "tcp"
-            cidr_blocks = "0.0.0.0/0"
-        }
-    ]
+  ingress_with_cidr_blocks = [
+    {
+      description = "HTTP Client"
+      from_port   = "9047"
+      to_port     = "9047"
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      description = "HTTP"
+      from_port   = "80"
+      to_port     = "80"
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      description = "HTTPS"
+      from_port   = "443"
+      to_port     = "443"
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      description = "ODBC/JDBC Client"
+      from_port   = "31010"
+      to_port     = "31010"
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      description = "EFS"
+      from_port   = "2049"
+      to_port     = "2049"
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
 
-    egress_with_cidr_blocks = [
-        {
-            description = "Outbound Ports"
-            from_port   = "0"
-            to_port     = "0"
-            protocol    = "-1"
-            cidr_blocks = "0.0.0.0/0"
-        }
-    ]
+  egress_with_cidr_blocks = [
+    {
+      description = "Outbound Ports"
+      from_port   = "0"
+      to_port     = "0"
+      protocol    = "-1"
+      cidr_blocks = "0.0.0.0/0"
+    }
+  ]
 
-    tags = merge(local.tags, {Name = "Data Lake DataNow Security Group"})
+  tags = merge(local.tags, { Name = "Data Lake DataNow Security Group" })
 }
 
 
 resource "aws_cloudwatch_log_group" "datanow" {
-    name = "/ecs/datanow"
+  name = "/ecs/datanow"
 
-    tags = merge(local.tags, {Name = "Data Lake DataNow Log Group"})
+  tags = merge(local.tags, { Name = "Data Lake DataNow Log Group" })
 }
 
 
 resource "aws_iam_role" "datanow_task" {
-    name                = "${var.project}DataNowAssumeRole"
+  name = "${var.project}DataNowAssumeRole"
 
-    assume_role_policy  = <<EOF
+  assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -966,9 +966,9 @@ EOF
 
 
 resource "aws_iam_role" "datanow_execution" {
-    name                = "${var.project}DataNowExecutionRole"
+  name = "${var.project}DataNowExecutionRole"
 
-    assume_role_policy  = <<EOF
+  assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -984,12 +984,12 @@ resource "aws_iam_role" "datanow_execution" {
 }
 EOF
 
-    tags = merge(local.tags, {Name = "DataLake-sbx-datanow-ecs-task-execution-role"})
+  tags = merge(local.tags, { Name = "DataLake-sbx-datanow-ecs-task-execution-role" })
 }
 
 
 resource "aws_iam_policy" "ecs_task_execution" {
-    policy = <<EOF
+  policy = <<EOF
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -1009,17 +1009,17 @@ resource "aws_iam_policy" "ecs_task_execution" {
 }
 EOF
 
-    tags = merge(local.tags, {Name = "DataLake-sbx-datanow-ecs-task-execution-policy"})
+  tags = merge(local.tags, { Name = "DataLake-sbx-datanow-ecs-task-execution-policy" })
 }
-            # "Condition": {
-            #     "StringEquals": {
-            #         "aws:sourceVpce": "${aws_vpc_endpoint.ecr.id}"
-            #     }
-            # }
+# "Condition": {
+#     "StringEquals": {
+#         "aws:sourceVpce": "${aws_vpc_endpoint.ecr.id}"
+#     }
+# }
 
 resource "aws_iam_role_policy_attachment" "datanow_execution" {
-    role        = aws_iam_role.datanow_execution.name
-    policy_arn  = aws_iam_policy.ecs_task_execution.arn
+  role       = aws_iam_role.datanow_execution.name
+  policy_arn = aws_iam_policy.ecs_task_execution.arn
 }
 
 
@@ -1082,34 +1082,34 @@ resource "aws_iam_role_policy_attachment" "datanow_execution" {
 #####################################################################
 
 module "datanow_efs" {
-    source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-efs.git?ref=2.0.0"
-    performance_mode = "generalPurpose"
-    transition_to_ia = "AFTER_14_DAYS"
-    posix_user_gid   = 999
-    posix_user_uid   = 999
-    path_permissions = 755
-    access_point_path = "/dremio"
-    app_name                         = lower(var.project)
-    app_environment                  = local.environment
-    subnet_ids                       = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
-    security_groups                  = [module.datanow_sg.security_group_id]
+  source            = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-efs.git?ref=2.0.0"
+  performance_mode  = "generalPurpose"
+  transition_to_ia  = "AFTER_14_DAYS"
+  posix_user_gid    = 999
+  posix_user_uid    = 999
+  path_permissions  = 755
+  access_point_path = "/dremio"
+  app_name          = lower(var.project)
+  app_environment   = local.environment
+  subnet_ids        = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
+  security_groups   = [module.datanow_sg.security_group_id]
 
-    tag_name                         = "${var.project}-${local.environment}-datanow-efs"
-    tag_environment                   = local.environment
-    tag_contact                       = var.contact
-    tag_budgetcode                    = var.budget_code
-    tag_owner                         = var.owner
-    tag_projectname                   = var.project
-    tag_systemtier                    = "0"
-    tag_drtier                        = "0"
-    tag_dataclassification            = "N/A"
-    tag_notes                         = "N/A"
-    tag_eol                           = "N/A"
-    tag_maintwindow                   = "N/A"
-    tags = {
-        Group                               = local.group
-        Department                          = local.department
-    }
+  tag_name               = "${var.project}-${local.environment}-datanow-efs"
+  tag_environment        = local.environment
+  tag_contact            = var.contact
+  tag_budgetcode         = var.budget_code
+  tag_owner              = var.owner
+  tag_projectname        = var.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
+  tags = {
+    Group      = local.group
+    Department = local.department
+  }
 }
 
 
@@ -1204,8 +1204,8 @@ module "datanow_efs" {
 #####################################################################
 
 module "webapp_sg" {
-  source  = "app.terraform.io/AMA/security-group/aws"
-  version = "1.0.0"
+  source      = "app.terraform.io/AMA/security-group/aws"
+  version     = "1.0.0"
   name        = "${var.project}-${local.environment}-webapp-sg"
   description = "Security group for DataLabs web app load balancer"
   vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
@@ -1237,53 +1237,53 @@ module "webapp_sg" {
     }
   ]
 
-  tags = merge(local.tags, {Name = "DataLabs web app load balancer security group"})
+  tags = merge(local.tags, { Name = "DataLabs web app load balancer security group" })
 }
 
 module "webapp_alb" {
-  source                            = "app.terraform.io/AMA/alb/aws"
-  version                           = "1.0.2"
-  environment                       = local.environment
-  name                              = "webapp"
-  project                           = lower(var.project)
-  description                       = "DataLabs Web APP Load Balancer"
+  source      = "app.terraform.io/AMA/alb/aws"
+  version     = "1.0.2"
+  environment = local.environment
+  name        = "webapp"
+  project     = lower(var.project)
+  description = "DataLabs Web APP Load Balancer"
   # vpc_id                            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
-  vpc_id                            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+  vpc_id = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
   # security_groups                   = [module.oneview_sg.security_group_id]
-  security_groups                   = [module.webapp_sg.security_group_id]
-  internal                          = true
-  load_balancer_type                = "application"
+  security_groups    = [module.webapp_sg.security_group_id]
+  internal           = true
+  load_balancer_type = "application"
   # subnet_ids                        = local.subnets
-  subnet_ids                        = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
-  enable_deletion_protection        = "false"
-  target_type                       = "ip"
-  target_group_port                 = 80
-  target_group_protocol             = "HTTP"
-  listener_port                     = 443
-  listener_protocol                 = "HTTPS"
-  ssl_policy                        = "ELBSecurityPolicy-2020-10"
+  subnet_ids                 = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
+  enable_deletion_protection = "false"
+  target_type                = "ip"
+  target_group_port          = 80
+  target_group_protocol      = "HTTP"
+  listener_port              = 443
+  listener_protocol          = "HTTPS"
+  ssl_policy                 = "ELBSecurityPolicy-2020-10"
   # certificate_arn                   = var.private_certificate_arn
-  certificate_arn                   = data.aws_acm_certificate.amaaws.arn
-  action                            = "forward"
-  health_check_protocol             = "HTTP"
-  health_check_port                 = 80
-  health_check_interval             = 300
-  health_check_path                 = "/"
-  health_check_timeout              = "3"
-  health_check_healthy_threshold    = "5"
-  health_check_unhealthy_threshold  = "10"
-  health_check_matcher              = "200"
-  tag_name                          = "${var.project}-${local.environment}-webapp-alb"
-  tag_environment                   = local.environment
-  tag_contact                       = var.contact
-  tag_budgetcode                    = var.budget_code
-  tag_owner                         = var.owner
-  tag_projectname                   = var.project
-  tag_systemtier                    = "0"
-  tag_drtier                        = "0"
-  tag_dataclassification            = "N/A"
-  tag_notes                         = "N/A"
-  tag_eol                           = "N/A"
-  tag_maintwindow                   = "N/A"
-  tags = {}
+  certificate_arn                  = data.aws_acm_certificate.amaaws.arn
+  action                           = "forward"
+  health_check_protocol            = "HTTP"
+  health_check_port                = 80
+  health_check_interval            = 300
+  health_check_path                = "/"
+  health_check_timeout             = "3"
+  health_check_healthy_threshold   = "5"
+  health_check_unhealthy_threshold = "10"
+  health_check_matcher             = "200"
+  tag_name                         = "${var.project}-${local.environment}-webapp-alb"
+  tag_environment                  = local.environment
+  tag_contact                      = var.contact
+  tag_budgetcode                   = var.budget_code
+  tag_owner                        = var.owner
+  tag_projectname                  = var.project
+  tag_systemtier                   = "0"
+  tag_drtier                       = "0"
+  tag_dataclassification           = "N/A"
+  tag_notes                        = "N/A"
+  tag_eol                          = "N/A"
+  tag_maintwindow                  = "N/A"
+  tags                             = {}
 }
