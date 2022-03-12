@@ -58,7 +58,7 @@ class OneViewDAG(DAG):
     EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
     EXTRACT_PHYSICIAN_EMAIL_STATUS: JDBCExtractorTask
     CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: PhysicianEmailStatusTransformer
-    CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 6)
+    CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 8)
     CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
 
     EXTRACT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY: HTTPFileExtractorTask
@@ -92,7 +92,7 @@ class OneViewDAG(DAG):
     CREATE_TYPE_OF_PRACTICE_TABLE: TypeOfPracticeTransformerTask
     LOAD_TYPE_OF_PRACTICE_TABLE: ORMLoaderTask
 
-    LOAD_PHYSICIAN_TABLE: Repeat(ORMLoaderTask, 6)
+    LOAD_PHYSICIAN_TABLE: Repeat(ORMLoaderTask, 8)
     PRUNE_PHYSICIAN_TABLE: ORMLoaderTask
 
     EXTRACT_RESIDENCY: SFTPFileExtractorTask
