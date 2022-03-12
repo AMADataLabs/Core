@@ -36,7 +36,7 @@ locals {
   group       = "DataLabs"
   budget_code = "PBW"
 
-  runtime = "python3.7"
+  python_runtime = "python3.7"
 
 
   ### Dynamic Constants ###
@@ -51,34 +51,34 @@ locals {
   host_suffix    = lookup(var.host_suffixes, local.environment)
   datanow_domain = "${var.datanow_host_prefix}${local.host_suffix}.${var.domain}"
 
-  parameter_name_prefix = "/${var.project}/${local.environment}/"
+  parameter_name_prefix = "/${local.project}/${local.environment}/"
 
   lambda_names = {
-    scheduler      = "${var.project}-${local.environment}-Scheduler"
-    dag_processor  = "${var.project}-${local.environment}-DAGProcessor"
-    task_processor = "${var.project}-${local.environment}-TaskProcessor"
+    scheduler      = "${local.project}-${local.environment}-Scheduler"
+    dag_processor  = "${local.project}-${local.environment}-DAGProcessor"
+    task_processor = "${local.project}-${local.environment}-TaskProcessor"
   }
 
   topic_names = {
-    ingested_data  = "${var.project}-${local.environment}-ingested-data"
-    processed_data = "${var.project}-${local.environment}-processed-data"
-    scheduler      = "${var.project}-${local.environment}-Scheduler"
-    dag_processor  = "${var.project}-${local.environment}-DAGProcessor"
-    task_processor = "${var.project}-${local.environment}-TaskProcessor"
+    ingested_data  = "${local.project}-${local.environment}-ingested-data"
+    processed_data = "${local.project}-${local.environment}-processed-data"
+    scheduler      = "${local.project}-${local.environment}-Scheduler"
+    dag_processor  = "${local.project}-${local.environment}-DAGProcessor"
+    task_processor = "${local.project}-${local.environment}-TaskProcessor"
   }
 
   tags = {
-    Name               = "Data Labs ${var.project} Parameter"
+    Name               = "Data Labs ${local.project} Parameter"
     Environment        = local.environment
-    Contact            = var.contact
+    Contact            = local.contact
     SystemTier         = "0"
     DRTier             = "0"
     DataClassification = "N/A"
-    BudgetCode         = var.budget_code
-    Owner              = var.owner
+    BudgetCode         = local.budget_code
+    Owner              = local.owner
     Group              = local.group
     Department         = local.department
-    ProjectName        = var.project
+    ProjectName        = local.project
     OS                 = "N/A"
     EOL                = "N/A"
     MaintenanceWindow  = "N/A"

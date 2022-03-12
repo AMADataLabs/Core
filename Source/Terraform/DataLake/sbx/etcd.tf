@@ -78,9 +78,9 @@
 #
 #     tag_name                        = "${var.project} etcd Task"
 #     tag_environment                   = local.environment
-#     tag_contact                       = var.contact
-#     tag_budgetcode                    = var.budget_code
-#     tag_owner                         = var.owner
+#     tag_contact                       = local.contact
+#     tag_budgetcode                    = local.budget_code
+#     tag_owner                         = local.owner
 #     tag_projectname                   = var.project
 #     tag_systemtier                    = "0"
 #     tag_drtier                        = "0"
@@ -283,9 +283,9 @@
 #
 #     tag_name                         = "${var.project}-${local.environment}-etcd-efs"
 #     tag_environment                   = local.environment
-#     tag_contact                       = var.contact
-#     tag_budgetcode                    = var.budget_code
-#     tag_owner                         = var.owner
+#     tag_contact                       = local.contact
+#     tag_budgetcode                    = local.budget_code
+#     tag_owner                         = local.owner
 #     tag_projectname                   = var.project
 #     tag_systemtier                    = "0"
 #     tag_drtier                        = "0"

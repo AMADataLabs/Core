@@ -1,43 +1,7 @@
-variable "project" {
-  description = "Name of the project used primarily in resource names."
-  type        = string
-  default     = "DataLake"
-}
-
-variable "contact" {
-  description = "Email of the contact for this app stack."
-  type        = string
-  default     = "DataLabs@ama-assn.org"
-}
-
-variable "owner" {
-  description = "Name of the owner of this application."
-  type        = string
-  default     = "DataLabs"
-}
-
-variable "budget_code" {
-  description = "Budget code for accounting purposes."
-  type        = string
-  default     = "PBW"
-}
-
-variable "accounts" {
-  description = "AWS accounts into which this app stack is deployed."
-  default = {
-    sbx = "644454719059"
-    dev = "191296302136"
-    tst = "194221139997"
-    stg = "340826698851"
-    itg = "285887636563"
-    prd = "285887636563"
-  }
-}
-
-variable "region" {
-  description = "AWS region into which this app stack is deployed."
-  type        = string
-  default     = "us-east-1"
+variable "create_neptune" {
+  description = "Set to true to create the lambda resourc based policy (invoke policy)"
+  type        = bool
+  default     = false
 }
 
 variable "days_to_recover" {
@@ -71,18 +35,6 @@ variable "s3_lambda_bucket_base_name" {
   description = "Base name of the S3 bucket where Lambda function code artifacts are stored."
   type        = string
   default     = "lambda"
-}
-
-variable "s3_scheduler_lambda_key" {
-  description = "CPT API Lambda function code artifact name."
-  type        = string
-  default     = "Scheduler.zip"
-}
-
-variable "runtime" {
-  description = "Lambda function runtime."
-  type        = string
-  default     = "python3.7"
 }
 
 variable "lambda_memory_size" {

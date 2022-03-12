@@ -41,7 +41,7 @@ resource "aws_ssm_parameter" "datanow_password" {
 }
 
 resource "aws_ssm_parameter" "s3_webapp_content_url" {
-  name  = "/${var.project}/${local.environment}/s3_webapp_content_url"
+  name  = "/${local.project}/${local.environment}/s3_webapp_content_url"
   type  = "String"
   value = "https://${module.s3_webapp_content.bucket_id}.s3.amazonaws.com/"
 
