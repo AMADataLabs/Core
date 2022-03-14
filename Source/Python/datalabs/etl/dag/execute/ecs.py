@@ -43,7 +43,7 @@ class FargateDAGExecutorTask(Task):
 
 @add_schema(unknowns=True)
 @dataclass
-class FargateTaskExecutorParameters:
+class FargatePythonTaskExecutorParameters:
     dag: str
     job_queue: str
     job_definition: str
@@ -52,20 +52,53 @@ class FargateTaskExecutorParameters:
     unknowns: dict = None
 
 
-class FargateTaskExecutorTask(Task):
+class FargatePythonTaskExecutorTask(Task):
     PARAMETER_CLASS = FargateTaskExecutorParameters
 
     def run(self):
-        with AWSClient("batch") as awslambda:
+        with AWSClient("batch") as batch:
             container_overrides = dict(
-                command=["python", "task.py", str({'dag': self._parameters.dag,
-                                                   'type': 'Task',
-                                                   'task': self._parameters.task,
-                                                   'execution_time': self._parameters.execution_time})
-                         ]
+                command=[
+                    "python",
+                    "task.py",
+                    f"{self._parameters.dag}__{self._parameters.task}__{self._parameters.execution_time}"
+                ]
             )
 
-            awslambda.submit_job(
+            batch.submit_job(
+                jobName=self._parameters.dag,
+                jobQueue=self._parameters.job_queue,
+                jobDefinition=self._parameters.job_definition,
+                containerOverrides=container_overrides
+            )
+
+
+@add_schema(unknowns=True)
+@dataclass
+class FargateJavaTaskExecutorParameters:
+    dag: str
+    job_queue: str
+    job_definition: str
+    execution_time: str
+    task: str
+    unknowns: dict = None
+
+
+class FargateJavaTaskExecutorTask(Task):
+    PARAMETER_CLASS = FargateTaskExecutorParameters
+
+    def run(self):
+        with AWSClient("batch") as batch:
+            container_overrides = dict(
+                command=[
+                    "java",
+                    "datalabs.tool.TaskRunner",
+                    "--arg",
+                    f"{self._parameters.dag}__{self._parameters.task}__{self._parameters.execution_time}"
+                ]
+            )
+
+            batch.submit_job(
                 jobName=self._parameters.dag,
                 jobQueue=self._parameters.job_queue,
                 jobDefinition=self._parameters.job_definition,
