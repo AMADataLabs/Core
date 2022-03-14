@@ -92,7 +92,7 @@ class OneViewDAG(DAG):
     CREATE_TYPE_OF_PRACTICE_TABLE: TypeOfPracticeTransformerTask
     LOAD_TYPE_OF_PRACTICE_TABLE: ORMLoaderTask
 
-    LOAD_PHYSICIAN_TABLE: Repeat(ORMLoaderTask, 8)
+    LOAD_PHYSICIAN_TABLE: Repeat(ORMLoaderTask, 10)
     PRUNE_PHYSICIAN_TABLE: ORMLoaderTask
 
     EXTRACT_RESIDENCY: SFTPFileExtractorTask
