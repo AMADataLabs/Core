@@ -288,8 +288,8 @@ module "lambda_dag_processor" {
   handler          = "awslambda.handler"
   runtime          = local.python_runtime
   create_alias     = false
-  memory_size      = var.lambda_memory_size
-  timeout          = var.lambda_timeout
+  memory_size      = 1024
+  timeout          = 5
 
   vpc_config = {
     subnet_ids         = data.terraform_remote_state.infrastructure.outputs.subnet_ids
@@ -302,7 +302,7 @@ module "lambda_dag_processor" {
     project    = local.project
   }
 
-  create_lambda_permission = true
+  create_lambda_permission = false
   #Bogus ARN Used to satisfy module requirement
   api_arn = "arn:aws-partition:service:${local.region}:${local.account}:resource-id"
 
@@ -326,8 +326,6 @@ module "lambda_dag_processor" {
   tag_notes              = "N/A"
   tag_eol                = "N/A"
   tag_maintwindow        = "N/A"
-
-  tags = merge(local.tags, { Name = "DataLake-sbx DAG Processor Lambda" })
 }
 
 resource "aws_lambda_permission" "lambda_dag_processor" {
@@ -335,7 +333,7 @@ resource "aws_lambda_permission" "lambda_dag_processor" {
   action        = "lambda:InvokeFunction"
   function_name = module.lambda_dag_processor.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = module.sns_dag_topic.topic_arn
+  source_arn    = module.sns_dag.topic_arn
 }
 
 resource "aws_lambda_permission" "lambda_dag_processor_scheduler" {
@@ -357,8 +355,8 @@ module "lambda_task_processor" {
   handler          = "awslambda.handler"
   runtime          = local.python_runtime
   create_alias     = false
-  memory_size      = var.lambda_memory_size
-  timeout          = var.lambda_timeout
+  memory_size      = 1024
+  timeout          = 5
 
   vpc_config = {
     subnet_ids         = data.terraform_remote_state.infrastructure.outputs.subnet_ids
@@ -371,7 +369,7 @@ module "lambda_task_processor" {
     project    = local.project
   }
 
-  create_lambda_permission = true
+  create_lambda_permission = false
   #Bogus ARN Used to satisfy module requirement
   api_arn = "arn:aws-partition:service:${local.region}:${local.account}:resource-id"
 
@@ -403,7 +401,7 @@ resource "aws_lambda_permission" "lambda_task_processor" {
   action        = "lambda:InvokeFunction"
   function_name = module.lambda_task_processor.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = module.sns_task_topic.topic_arn
+  source_arn    = module.sns_task.topic_arn
 }
 
 
@@ -417,8 +415,8 @@ module "lambda_scheduler" {
   handler          = "awslambda.handler"
   runtime          = local.python_runtime
   create_alias     = false
-  memory_size      = var.lambda_memory_size
-  timeout          = var.lambda_timeout
+  memory_size      = 1024
+  timeout          = 15
 
   vpc_config = {
     subnet_ids         = data.terraform_remote_state.infrastructure.outputs.subnet_ids
@@ -431,8 +429,9 @@ module "lambda_scheduler" {
     project    = local.project
   }
 
-  create_lambda_permission = true
-  api_arn                  = "arn:aws-partition:service:${local.region}:${local.account}:resource-id"
+  create_lambda_permission = false
+  #Bogus ARN Used to satisfy module requirement
+  api_arn = "arn:aws-partition:service:${local.region}:${local.account}:resource-id"
 
   environment_variables = {
     variables = {
@@ -491,7 +490,7 @@ module "lambda_sg" {
 
 
 #####################################################################
-# Datalake - SNS Topics                                             #
+# Datalake - SNS Topics and Subscriptions                           #
 #####################################################################
 
 module "sns_ingested" {
@@ -510,7 +509,7 @@ module "sns_ingested" {
   app_name           = lower(local.project)
   app_environment    = local.environment
 
-  tag_name               = "${local.project}-${local.environment}-sns-ingested-topic"
+  tag_name               = "${local.topic_names.ingested_data}-topic"
   tag_environment        = local.environment
   tag_contact            = local.contact
   tag_budgetcode         = local.budget_code
@@ -563,8 +562,10 @@ module "sns_processed" {
   }
 }
 
+
 module "sns_scheduler" {
-  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+  source  = "app.terraform.io/AMA/sns/aws"
+  version = "1.0.0"
 
   policy_template_vars = {
     topic_name     = local.topic_names.scheduler
@@ -604,8 +605,9 @@ resource "aws_sns_topic_subscription" "scheduler" {
 }
 
 
-module "sns_dag_topic" {
-  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+module "sns_dag" {
+  source  = "app.terraform.io/AMA/sns/aws"
+  version = "1.0.0"
 
   policy_template_vars = {
     topic_name     = local.topic_names.dag_processor
@@ -639,14 +641,15 @@ module "sns_dag_topic" {
 
 
 resource "aws_sns_topic_subscription" "dag_processor" {
-  topic_arn = module.sns_dag_topic.topic_arn
+  topic_arn = module.sns_dag.topic_arn
   protocol  = "lambda"
   endpoint  = module.lambda_dag_processor.function_arn
 }
 
 
-module "sns_task_topic" {
-  source = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-sns.git?ref=1.0.0"
+module "sns_task" {
+  source  = "app.terraform.io/AMA/sns/aws"
+  version = "1.0.0"
 
   policy_template_vars = {
     topic_name     = local.topic_names.task_processor
@@ -680,7 +683,7 @@ module "sns_task_topic" {
 
 
 resource "aws_sns_topic_subscription" "task_processor" {
-  topic_arn = module.sns_task_topic.topic_arn
+  topic_arn = module.sns_task.topic_arn
   protocol  = "lambda"
   endpoint  = module.lambda_task_processor.function_arn
 }

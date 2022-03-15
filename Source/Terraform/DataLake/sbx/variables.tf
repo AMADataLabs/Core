@@ -37,18 +37,6 @@ variable "s3_lambda_bucket_base_name" {
   default     = "lambda"
 }
 
-variable "lambda_memory_size" {
-  description = "Router Lambda function memory size in MB."
-  type        = number
-  default     = 1024
-}
-
-variable "lambda_timeout" {
-  description = "Router Lambda function timeout in seconds."
-  type        = number
-  default     = 10
-}
-
 variable "s3_data_base_path" {
   description = "Base path in the Data Lake S3 bucket where CPT API data is located."
   type        = string
