@@ -1,5 +1,27 @@
-#Get the running execution context
-data "aws_caller_identity" "account" {}
+#####################################################################
+# Storage (S3, Database)                                            #
+#####################################################################
+
+
+#####################################################################
+# Lineage (Neptune)                                                 #
+#####################################################################
+
+
+#####################################################################
+# Exploration (DataNow)                                            #
+#####################################################################
+
+
+#####################################################################
+# DAG Scheduler(Lambda, SNS, DynamoDB)                              #
+#####################################################################
+
+
+#####################################################################
+# DataLabs Webapp Load Balancer (ALB)                               #
+#####################################################################
+
 
 #####################################################################
 # Datalake - Keys                                                   #
@@ -486,6 +508,22 @@ module "lambda_sg" {
   ]
 
   tags = merge(local.tags, { Name = "${upper(local.project)}-${upper(local.environment)}-LAMBDA-SG" })
+  # tag_name               = "${upper(local.project)}-${upper(local.environment)}-LAMBDA-SG"
+  # tag_environment        = local.environment
+  # tag_contact            = local.contact
+  # tag_budgetcode         = local.budget_code
+  # tag_owner              = local.owner
+  # tag_projectname        = local.project
+  # tag_systemtier         = "0"
+  # tag_drtier             = "0"
+  # tag_dataclassification = "N/A"
+  # tag_notes              = "N/A"
+  # tag_eol                = "N/A"
+  # tag_maintwindow        = "N/A"
+  # tags = {
+  #   Group      = local.group
+  #   Department = local.department
+  # }
 }
 
 
@@ -579,7 +617,7 @@ module "sns_scheduler" {
   app_name           = lower(local.project)
   app_environment    = local.environment
 
-  tag_name               = local.topic_names.scheduler
+  tag_name               = "${local.topic_names.scheduler}-topic"
   tag_environment        = local.environment
   tag_contact            = local.contact
   tag_budgetcode         = local.budget_code
@@ -597,8 +635,7 @@ module "sns_scheduler" {
   }
 }
 
-
-resource "aws_sns_topic_subscription" "scheduler" {
+resource "aws_sns_topic_subscription" "lambda_scheduler" {
   topic_arn = module.sns_scheduler.topic_arn
   protocol  = "lambda"
   endpoint  = module.lambda_dag_processor.function_arn
@@ -613,7 +650,7 @@ module "sns_dag" {
     topic_name     = local.topic_names.dag_processor
     region         = local.region
     account_id     = local.account
-    s3_bucket_name = "not_applicable"
+    s3_bucket_name = module.s3_scheduler.bucket_id
   }
 
   name               = local.topic_names.dag_processor
@@ -621,7 +658,7 @@ module "sns_dag" {
   app_name           = lower(local.project)
   app_environment    = local.environment
 
-  tag_name               = local.topic_names.dag_processor
+  tag_name               = "${local.topic_names.dag_processor}-topic"
   tag_environment        = local.environment
   tag_contact            = local.contact
   tag_budgetcode         = local.budget_code
@@ -639,8 +676,7 @@ module "sns_dag" {
   }
 }
 
-
-resource "aws_sns_topic_subscription" "dag_processor" {
+resource "aws_sns_topic_subscription" "lambda_dag_processor" {
   topic_arn = module.sns_dag.topic_arn
   protocol  = "lambda"
   endpoint  = module.lambda_dag_processor.function_arn
@@ -655,7 +691,7 @@ module "sns_task" {
     topic_name     = local.topic_names.task_processor
     region         = local.region
     account_id     = local.account
-    s3_bucket_name = "not_applicable"
+    s3_bucket_name = module.s3_scheduler.bucket_id
   }
 
   name               = local.topic_names.task_processor
@@ -663,7 +699,7 @@ module "sns_task" {
   app_name           = lower(local.project)
   app_environment    = local.environment
 
-  tag_name               = local.topic_names.task_processor
+  tag_name               = "${local.topic_names.task_processor}-topic"
   tag_environment        = local.environment
   tag_contact            = local.contact
   tag_budgetcode         = local.budget_code
@@ -682,7 +718,7 @@ module "sns_task" {
 }
 
 
-resource "aws_sns_topic_subscription" "task_processor" {
+resource "aws_sns_topic_subscription" "lambda_task_processor" {
   topic_arn = module.sns_task.topic_arn
   protocol  = "lambda"
   endpoint  = module.lambda_task_processor.function_arn
@@ -690,16 +726,17 @@ resource "aws_sns_topic_subscription" "task_processor" {
 
 
 #####################################################################
-# Datalake - ECS Cluster, Service, and Task Definitions             #
+# ECS Cluster                                                       #
 #####################################################################
 
+module "ecs_cluster" {
+  source          = "app.terraform.io/AMA/fargate/aws"
+  version         = "2.0.0"
 
-module "datalake_ecs_cluster" {
-  source          = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-fargate.git?ref=2.0.0"
   app_name        = lower(local.project)
   app_environment = local.environment
 
-  tag_name               = "${upper(local.project)}-${local.environment}-ECS-CLUSTER"
+  tag_name               = "${local.project}-${local.environment}-ecs-cluster"
   tag_environment        = local.environment
   tag_contact            = local.contact
   tag_budgetcode         = local.budget_code
@@ -718,84 +755,130 @@ module "datalake_ecs_cluster" {
 }
 
 
-resource "aws_ecs_service" "datanow" {
-  name                              = "DataNow"
-  task_definition                   = module.datanow_task_definition.aws_ecs_task_definition_td_arn
-  launch_type                       = "FARGATE"
-  cluster                           = module.datalake_ecs_cluster.ecs_cluster_id
-  desired_count                     = 1
-  platform_version                  = "1.4.0"
+#####################################################################
+# DataLake - DataNow                                                #
+#####################################################################
+
+module "datanow_service" {
+  source                            = "app.terraform.io/AMA/fargate-service/aws"
+  version                           = "2.0.0"
+  app_name                          = "datanow"
+  container_name                    = "datanow" # The module should be using just app_name
+  resource_prefix                   = lower(local.project)
+  ecs_cluster_id                    = module.ecs_cluster.ecs_cluster_id
+  ecs_task_definition_arn           = module.datanow_task_definition.aws_ecs_task_definition_td_arn
+  task_count                        = 1
+  enable_autoscaling                = false
+  create_discovery_record           = false # Service Discovery is not currently implemented anyway
   health_check_grace_period_seconds = 0
-  propagate_tags                    = "TASK_DEFINITION"
-
-  deployment_controller {
-    type = "ECS"
-  }
-
-  timeouts {}
-
-  network_configuration {
-    assign_public_ip = true
-
-    security_groups = [
-      module.datanow_alb_sg.security_group_id
-    ]
-
-    subnets = data.terraform_remote_state.infrastructure.outputs.subnet_ids
-  }
-
-  load_balancer {
-    target_group_arn = aws_lb_target_group.datanow.arn
-    container_name   = "datanow"
-    container_port   = "9047"
-  }
-
-
-  tags = merge(local.tags, { Name = "Data Labs Data Lake DataNow Service" })
-
-  depends_on = [
-    module.datanow_task_definition,
-    aws_lb_target_group.datanow
+  ecs_security_groups               = [module.datanow_ecs_service_sg.security_group_id]
+  alb_subnets_private               = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+  load_balancers = [
+    {
+      target_group_arn = module.datanow-alb.aws_lb_target_group_arn
+      container_name   = "datanow"
+      container_port   = "9047"
+    }
   ]
+  sd_record_name         = "DataNow" # Service Discovery is not currently implemented, but this has no default
+  tag_name               = "${local.project}-${local.environment}-datanow-ecs-service"
+  tag_environment        = local.environment
+  tag_contact            = local.contact
+  tag_budgetcode         = local.budget_code
+  tag_owner              = local.owner
+  tag_projectname        = local.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
+  tags = {
+    Group      = local.group
+    Department = local.department
+  }
 }
 
+module "datanow-alb" {
+  source                           = "app.terraform.io/AMA/alb/aws"
+  version                          = "1.0.2"
+  environment                      = local.environment
+  name                             = "datanow"
+  project                          = lower(local.project)
+  description                      = "UI to access the datalake data"
+  vpc_id                           = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+  security_groups                  = [module.datanow_alb_sg.security_group_id]
+  internal                         = true
+  load_balancer_type               = "application"
+  subnet_ids                       = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+  enable_deletion_protection       = "false"
+  target_type                      = "ip"
+  target_group_port                = 9047
+  target_group_protocol            = "HTTP"
+  listener_port                    = 443
+  listener_protocol                = "HTTPS"
+  ssl_policy                       = "ELBSecurityPolicy-2020-10"
+  certificate_arn                  = var.public_certificate_arn
+  action                           = "forward"
+  health_check_protocol            = "HTTP"
+  health_check_port                = 9047
+  health_check_interval            = 300
+  health_check_path                = "/apiv2/server_status"
+  health_check_timeout             = "3"
+  health_check_healthy_threshold   = "5"
+  health_check_unhealthy_threshold = "10"
+  health_check_matcher             = "200"
+  tag_name                         = "${local.project}-${local.environment}-datanow-alb"
+  tag_environment                  = local.environment
+  tag_contact                      = local.contact
+  tag_budgetcode                   = local.budget_code
+  tag_owner                        = local.owner
+  tag_projectname                  = local.project
+  tag_systemtier                   = "0"
+  tag_drtier                       = "0"
+  tag_dataclassification           = "N/A"
+  tag_notes                        = "N/A"
+  tag_eol                          = "N/A"
+  tag_maintwindow                  = "N/A"
+  tags = {
+    Group      = local.group
+    Department = local.department
+  }
+}
 
 module "datanow_task_definition" {
-  source             = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-ecs-fargate-task-definition.git?ref=2.0.0"
+  source             = "app.terraform.io/AMA/ecs-fargate-task-definition/aws"
+  version            = "2.0.0"
   task_name          = "datanow"
   environment_name   = local.environment
-  execution_role_arn = aws_iam_role.datanow_execution.arn
-  task_role_arn      = aws_iam_role.datanow_task.arn
+  task_role_arn      = "arn:aws:iam::${local.account}:role/dl-${local.environment}-task-exe-role"
+  execution_role_arn = "arn:aws:iam::${local.account}:role/dl-${local.environment}-task-exe-role"
   container_cpu      = 1024
   container_memory   = 8192
-
   container_definition_vars = {
-    account_id = local.account,
-    region     = local.region
-    image      = local.datanow_image
-    tag        = var.datanow_version
+    account_id  = local.account,
+    region      = local.region
+    image       = local.datanow_image
+    tag         = var.datanow_version
+    environment = local.environment
   }
-
   volume = [
     {
       name = "DataNow"
-
       efs_volume_configuration = [
         {
-          "file_system_id" : module.datanow_efs.filesystem_id
+          "file_system_id" : module.efs_cluster.filesystem_id
           "root_directory" : "/"
           "transit_encryption" : "ENABLED"
-
           "authorization_config" : {
-            "access_point_id" : module.datanow_efs.access_point_id
+            "access_point_id" : module.efs_cluster.access_point_id
             "iam" : "ENABLED"
           }
         }
       ]
     }
   ]
-
-  tag_name               = "${local.project} DataNow Task"
+  tag_name               = "${local.project}-${local.environment}-datanow-td"
   tag_environment        = local.environment
   tag_contact            = local.contact
   tag_budgetcode         = local.budget_code
@@ -813,221 +896,223 @@ module "datanow_task_definition" {
   }
 }
 
+module efs_cluster {
+  source                 = "app.terraform.io/AMA/efs/aws"
+  version                = "2.0.0"
+  performance_mode       = "generalPurpose"
+  transition_to_ia       = "AFTER_14_DAYS"
+  posix_user_gid         = 999
+  posix_user_uid         = 999
+  path_permissions       = 755
+  access_point_path      = "/dremio"
+  app_name               = lower(local.project)
+  app_environment        = local.environment
+  subnet_ids             = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+  security_groups        = [module.efs_sg.security_group_id]
 
-resource "aws_alb" "datanow" {
-  name               = "DataNow"
-  internal           = false # Internet-facing. Requires an Internet Gateway
-  load_balancer_type = "application"
-
-  subnets = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
-
-  security_groups = [
-    module.datanow_alb_sg.security_group_id,
-  ]
-
-  tags = merge(local.tags, { Name = "Data Lake DataNow Load Balancer" })
-}
-
-
-resource "aws_alb_listener" "datanow-https" {
-  load_balancer_arn = aws_alb.datanow.arn
-  port              = "443"
-  protocol          = "HTTPS"
-  certificate_arn   = data.aws_acm_certificate.amaaws.arn
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.datanow.arn
+  tag_name               = "${local.project}-${local.environment}-datanow-efs-cluster"
+  tag_environment        = local.environment
+  tag_contact            = local.contact
+  tag_budgetcode         = local.budget_code
+  tag_owner              = local.owner
+  tag_projectname        = local.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
+  tags = {
+    Group      = local.group
+    Department = local.department
   }
 }
 
+module "datanow_ecs_service_sg" {
+  source  = "app.terraform.io/AMA/security-group/aws"
+  version = "1.0.0"
 
-data "aws_acm_certificate" "amaaws" {
-  domain = "*.amaaws.org"
-}
-
-
-resource "aws_lb_target_group" "datanow" {
-  name        = "${local.project}DataNow"
-  port        = 9047
-  protocol    = "HTTP"
-  target_type = "ip"
-  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
-
-  health_check {
-    enabled             = true
-    path                = "/apiv2/server_status"
-    healthy_threshold   = 5
-    unhealthy_threshold = 2
-  }
-
-  tags = merge(local.tags, { Name = "DataLake-sbx-datanow-tg" })
-}
-
-
-module "datanow_alb_sg" {
-  source = "git::ssh://tf_svc@bitbucket.ama-assn.org:7999/te/terraform-aws-security-group.git?ref=1.0.0"
-
-  name        = "${lower(local.project)}-${local.environment}-datanow"
-  description = "Security group for Datanow"
+  name        = "datalake-${local.environment}-datanow-ecs-service-sg"
+  description = "Security group for Fargate (ECS) service interfaces"
   vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 
   ingress_with_cidr_blocks = [
     {
-      description = "HTTP Client"
       from_port   = "9047"
       to_port     = "9047"
       protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
+      description = "Dremio UI (HTTPS)"
+      cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
     },
-    {
-      description = "HTTP"
-      from_port   = "80"
-      to_port     = "80"
-      protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
-    },
-    {
-      description = "HTTPS"
-      from_port   = "443"
-      to_port     = "443"
-      protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
-    },
-    {
-      description = "ODBC/JDBC Client"
-      from_port   = "31010"
-      to_port     = "31010"
-      protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
-    },
-    {
-      description = "EFS"
-      from_port   = "2049"
-      to_port     = "2049"
-      protocol    = "tcp"
-      cidr_blocks = "0.0.0.0/0"
-    }
   ]
 
   egress_with_cidr_blocks = [
     {
-      description = "Outbound Ports"
-      from_port   = "0"
-      to_port     = "0"
+      from_port   = "-1"
+      to_port     = "-1"
       protocol    = "-1"
+      description = "outbound ports"
       cidr_blocks = "0.0.0.0/0"
-    }
+    },
   ]
 
-  tags = merge(local.tags, { Name = "Data Lake DataNow Security Group" })
+  tags = merge(local.tags, { Name = "${upper(local.project)}-${upper(local.environment)}-DATANOW-ECS-SG" })
+  # tag_name               = "${upper(local.project)}-${upper(local.environment)}-DATANOW-ECS-SG"
+  # tag_environment        = local.environment
+  # tag_contact            = local.contact
+  # tag_budgetcode         = local.budget_code
+  # tag_owner              = local.owner
+  # tag_projectname        = local.project
+  # tag_systemtier         = "0"
+  # tag_drtier             = "0"
+  # tag_dataclassification = "N/A"
+  # tag_notes              = "N/A"
+  # tag_eol                = "N/A"
+  # tag_maintwindow        = "N/A"
+  # tags = {
+  #   Group      = local.group
+  #   Department = local.department
+  # }
 }
 
+module "datanow_alb_sg" {
+  source  = "app.terraform.io/AMA/security-group/aws"
+  version = "1.0.0"
 
-resource "aws_cloudwatch_log_group" "datanow" {
-  name = "/ecs/datanow"
+  name        = "datalake-${local.environment}-datanow-alb-sg"
+  description = "Security group for DataNow Load Balancer"
+  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
 
-  tags = merge(local.tags, { Name = "Data Lake DataNow Log Group" })
-}
-
-
-resource "aws_iam_role" "datanow_task" {
-  name = "${local.project}DataNowAssumeRole"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
+  ingress_with_cidr_blocks = [
     {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "ecs-tasks.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
+      from_port   = "443"
+      to_port     = "443"
+      protocol    = "tcp"
+      description = "HTTPS"
+      cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    },
   ]
-}
-EOF
-}
 
-
-resource "aws_iam_role" "datanow_execution" {
-  name = "${local.project}DataNowExecutionRole"
-
-  assume_role_policy = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
+  egress_with_cidr_blocks = [
     {
-      "Action": "sts:AssumeRole",
-      "Principal": {
-        "Service": "ecs-tasks.amazonaws.com"
-      },
-      "Effect": "Allow",
-      "Sid": ""
-    }
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "outbound ports"
+      cidr_blocks = "0.0.0.0/0"
+    },
   ]
+
+  tags = merge(local.tags, { Name = "${upper(local.project)}-${upper(local.environment)}-DATANOW-ALB-SG" })
+  # tag_name               = "${upper(local.project)}-${upper(local.environment)}-DATANOW-ALB-SG"
+  # tag_environment        = local.environment
+  # tag_contact            = local.contact
+  # tag_budgetcode         = local.budget_code
+  # tag_owner              = local.owner
+  # tag_projectname        = local.project
+  # tag_systemtier         = "0"
+  # tag_drtier             = "0"
+  # tag_dataclassification = "N/A"
+  # tag_notes              = "N/A"
+  # tag_eol                = "N/A"
+  # tag_maintwindow        = "N/A"
+  # tags = {
+  #   Group      = local.group
+  #   Department = local.department
+  # }
 }
-EOF
 
-  tags = merge(local.tags, { Name = "DataLake-sbx-datanow-ecs-task-execution-role" })
+module "efs_sg" {
+  source  = "app.terraform.io/AMA/security-group/aws"
+  version = "1.0.0"
+
+  name        = "datalake-${local.environment}-datanow-efs-sg"
+  description = "Security group for the Datanow EFS cluster"
+  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = "2049"
+      to_port     = "2049"
+      protocol    = "tcp"
+      description = "EFS (NFS)"
+      cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    },
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "outbound ports"
+      cidr_blocks = "0.0.0.0/0"
+    },
+  ]
+
+  tags = merge(local.tags, { Name = "${upper(local.project)}-${upper(local.environment)}-EFS-SG" })
+  # tag_name               = "${upper(local.project)}-${upper(local.environment)}-EFS-SG"
+  # tag_environment        = local.environment
+  # tag_contact            = local.contact
+  # tag_budgetcode         = local.budget_code
+  # tag_owner              = local.owner
+  # tag_projectname        = local.project
+  # tag_systemtier         = "0"
+  # tag_drtier             = "0"
+  # tag_dataclassification = "N/A"
+  # tag_notes              = "N/A"
+  # tag_eol                = "N/A"
+  # tag_maintwindow        = "N/A"
+  # tags = {
+  #   Group      = local.group
+  #   Department = local.department
+  # }
 }
 
+module "datanow_log_group" {
+  source                 = "app.terraform.io/AMA/cloudwatch-group/aws"
+  version                = "1.0.0"
 
-resource "aws_iam_policy" "ecs_task_execution" {
-  policy = <<EOF
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ecr:GetAuthorizationToken",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:BatchGetImage"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-EOF
+  log_group_name         = "/ecs/datanow/${local.environment}"
+  environment            = local.environment
+  project                = lower(local.project)
 
-  tags = merge(local.tags, { Name = "DataLake-sbx-datanow-ecs-task-execution-policy" })
-}
-# "Condition": {
-#     "StringEquals": {
-#         "aws:sourceVpce": "${aws_vpc_endpoint.ecr.id}"
-#     }
-# }
-
-resource "aws_iam_role_policy_attachment" "datanow_execution" {
-  role       = aws_iam_role.datanow_execution.name
-  policy_arn = aws_iam_policy.ecs_task_execution.arn
+  tag_name               = "${local.project}-${local.environment}-datanow-log-group"
+  tag_environment        = local.environment
+  tag_contact            = local.contact
+  tag_budgetcode         = local.budget_code
+  tag_owner              = local.owner
+  tag_projectname        = local.project
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
+  # tags = {
+  #   Group      = local.group
+  #   Department = local.department
+  # }
 }
 
 
 #####################################################################
-# Datalake - EFS Volume                                             #
+# Datalake - Data Linage Graph Database (Neptune)                   #
 #####################################################################
 
-module "datanow_efs" {
-  source            = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-efs.git?ref=2.0.0"
-  performance_mode  = "generalPurpose"
-  transition_to_ia  = "AFTER_14_DAYS"
-  posix_user_gid    = 999
-  posix_user_uid    = 999
-  path_permissions  = 755
-  access_point_path = "/dremio"
-  app_name          = lower(local.project)
-  app_environment   = local.environment
-  subnet_ids        = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
-  security_groups   = [module.datanow_alb_sg.security_group_id]
+module "neptune_lineage" {
+  source                 = "app.terraform.io/AMA/neptune-cluster/aws"
+  version                = "1.0.0"
 
-  tag_name               = "${local.project}-${local.environment}-datanow-efs"
+  count = var.create_neptune ? 1 : 0
+
+  app_name               = lower(local.project)
+  instance_id            = lower(local.project)
+  neptune_subnet_list    = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+  security_group_ids     = [module.neptune_sg.security_group_id]
+  environment            = local.environment
+
+  tag_name               = "${local.project}-${local.environment}-neptune-cluster"
   tag_environment        = local.environment
   tag_contact            = local.contact
   tag_budgetcode         = local.budget_code
@@ -1044,12 +1129,6 @@ module "datanow_efs" {
     Department = local.department
   }
 }
-
-
-#####################################################################
-# Datalake - Neptune Cluster                                        #
-#####################################################################
-
 
 module "neptune_sg" {
   source  = "app.terraform.io/AMA/security-group/aws"
@@ -1080,36 +1159,22 @@ module "neptune_sg" {
   ]
 
   tags = merge(local.tags, { Name = "${upper(local.project)}-${upper(local.environment)}-NEPTUNE-SG" })
-}
-
-
-
-#Don't forget to update tags
-module "neptune_lineage" {
-  source                 = "app.terraform.io/AMA/neptune-cluster/aws"
-  version                = "1.0.0"
-
-  count = var.create_neptune ? 1 : 0
-
-  app_name               = lower(local.project)
-  instance_id            = lower(local.project)
-  neptune_subnet_list    = data.terraform_remote_state.infrastructure.outputs.subnet_ids
-  security_group_ids     = [module.neptune_sg.security_group_id]
-  environment            = local.environment
-
-  tag_name               = "${local.project}-${local.environment}-neptune-cluster"
-  tag_environment        = local.environment
-  tag_contact            = local.contact
-  tag_budgetcode         = local.budget_code
-  tag_owner              = local.owner
-  tag_projectname        = local.project
-  tag_systemtier         = "0"
-  tag_drtier             = "0"
-  tag_dataclassification = "N/A"
-  tag_notes              = "N/A"
-  tag_eol                = "N/A"
-  tag_maintwindow        = "N/A"
-  tags                   = {}
+  # tag_name               = "${local.project}-${local.environment}-neptune-cluster"
+  # tag_environment        = local.environment
+  # tag_contact            = local.contact
+  # tag_budgetcode         = local.budget_code
+  # tag_owner              = local.owner
+  # tag_projectname        = local.project
+  # tag_systemtier         = "0"
+  # tag_drtier             = "0"
+  # tag_dataclassification = "N/A"
+  # tag_notes              = "N/A"
+  # tag_eol                = "N/A"
+  # tag_maintwindow        = "N/A"
+  # tags = {
+  #   Group      = local.group
+  #   Department = local.department
+  # }
 }
 
 
@@ -1209,6 +1274,7 @@ module "dynamodb_dag_state" {
       type = "S"
     }
   ]
+
   tag_name               = "${local.project}-${local.environment}-dynamodb"
   tag_environment        = local.environment
   tag_contact            = local.contact
@@ -1230,8 +1296,9 @@ module "dynamodb_dag_state" {
 #####################################################################
 
 module "webapp_sg" {
-  source      = "app.terraform.io/AMA/security-group/aws"
-  version     = "1.0.0"
+  source  = "app.terraform.io/AMA/security-group/aws"
+  version = "1.0.0"
+
   name        = "${local.project}-${local.environment}-webapp-sg"
   description = "Security group for DataLabs web app load balancer"
   vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
@@ -1263,33 +1330,45 @@ module "webapp_sg" {
     }
   ]
 
-  tags = merge(local.tags, { Name = "DataLabs web app load balancer security group" })
+  tags = merge(local.tags, { Name = "${upper(local.project)}-${upper(local.environment)}-WEBAPP-ALB-SG" })
+  # tag_name               = "${upper(local.project)}-${upper(local.environment)}-WEBAPP-ALB-SG"
+  # tag_environment        = local.environment
+  # tag_contact            = local.contact
+  # tag_budgetcode         = local.budget_code
+  # tag_owner              = local.owner
+  # tag_projectname        = local.project
+  # tag_systemtier         = "0"
+  # tag_drtier             = "0"
+  # tag_dataclassification = "N/A"
+  # tag_notes              = "N/A"
+  # tag_eol                = "N/A"
+  # tag_maintwindow        = "N/A"
+  # tags = {
+  #   Group      = local.group
+  #   Department = local.department
+  # }
 }
 
 module "webapp_alb" {
-  source      = "app.terraform.io/AMA/alb/aws"
-  version     = "1.0.2"
-  environment = local.environment
-  name        = "webapp"
-  project     = lower(local.project)
-  description = "DataLabs Web APP Load Balancer"
-  # vpc_id                            = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
-  vpc_id = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
-  # security_groups                   = [module.oneview_sg.security_group_id]
-  security_groups    = [module.webapp_sg.security_group_id]
-  internal           = true
-  load_balancer_type = "application"
-  # subnet_ids                        = local.subnets
-  subnet_ids                 = data.terraform_remote_state.infrastructure.outputs.public_subnet_ids
-  enable_deletion_protection = "false"
-  target_type                = "ip"
-  target_group_port          = 80
-  target_group_protocol      = "HTTP"
-  listener_port              = 443
-  listener_protocol          = "HTTPS"
-  ssl_policy                 = "ELBSecurityPolicy-2020-10"
-  # certificate_arn                   = var.private_certificate_arn
-  certificate_arn                  = data.aws_acm_certificate.amaaws.arn
+  source                           = "app.terraform.io/AMA/alb/aws"
+  version                          = "1.0.2"
+  environment                      = local.environment
+  name                             = "webapp"
+  project                          = lower(local.project)
+  description                      = "DataLabs Web APP Load Balancer"
+  vpc_id                           = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+  security_groups                  = [module.webapp_sg.security_group_id]
+  internal                         = true
+  load_balancer_type               = "application"
+  subnet_ids                       = data.terraform_remote_state.infrastructure.outputs.subnet_ids
+  enable_deletion_protection       = "false"
+  target_type                      = "ip"
+  target_group_port                = 80
+  target_group_protocol            = "HTTP"
+  listener_port                    = 443
+  listener_protocol                = "HTTPS"
+  ssl_policy                       = "ELBSecurityPolicy-2020-10"
+  certificate_arn                  = var.public_certificate_arn
   action                           = "forward"
   health_check_protocol            = "HTTP"
   health_check_port                = 80
@@ -1299,6 +1378,7 @@ module "webapp_alb" {
   health_check_healthy_threshold   = "5"
   health_check_unhealthy_threshold = "10"
   health_check_matcher             = "200"
+
   tag_name                         = "${local.project}-${local.environment}-webapp-alb"
   tag_environment                  = local.environment
   tag_contact                      = local.contact
@@ -1311,23 +1391,26 @@ module "webapp_alb" {
   tag_notes                        = "N/A"
   tag_eol                          = "N/A"
   tag_maintwindow                  = "N/A"
-  tags                             = {}
+  tags = {
+    Group      = local.group
+    Department = local.department
+  }
 }
 
 
 #####################################################################
-# Datalake - CloudWatch Events
+# DataLake - CloudWatch Events
 #####################################################################
 
-resource "aws_cloudwatch_event_rule" "scheduler_trigger" {
+resource "aws_cloudwatch_event_rule" "invoke_scheduler" {
   name                = "${local.project}-${local.environment}-invoke-scheduler"
   description         = "Trigger running of the scheduler periodically"
   schedule_expression = "cron(*/15 * * * ? *)"
 
-  tags = merge(local.tags, { Name = "Data Lake Scheduler Periodic Trigger" })
+  tags = merge(local.tags, { Name = "${local.project}-${local.environment}-scheduler-event" })
 }
 
 resource "aws_cloudwatch_event_target" "sns" {
-  rule = aws_cloudwatch_event_rule.scheduler_trigger.name
+  rule = aws_cloudwatch_event_rule.invoke_scheduler.name
   arn  = module.sns_scheduler.topic_arn
 }

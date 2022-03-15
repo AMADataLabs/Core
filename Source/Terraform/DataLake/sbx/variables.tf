@@ -46,7 +46,7 @@ variable "s3_data_base_path" {
 variable "public_certificate_arn" {
   description = "ARN of certificate for AMA-wide CNAME"
   type        = string
-  default     = "arn:aws:acm:us-east-1:191296302136:certificate/41af8728-d9c8-46e8-8ec0-2420cf8a5924"
+  default     = "arn:aws:acm:us-east-1:644454719059:certificate/e3976dc3-ad98-4303-b357-557e364ae3ce"
 }
 
 variable "host_suffixes" {
