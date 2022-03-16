@@ -21,12 +21,12 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
         query, fields, query_params, filter_conditions = self._filter(query)
 
-        self._response_body = self._generate_response_body(query.all(), fields, query_params,filter_conditions)
+        self._response_body = self._generate_response_body(query.all(), fields, query_params, filter_conditions)
 
         if not self._response_body:
             raise ResourceNotFound('No data exists for the given column filters')
 
-        self._response_body = self._response_body[0]
+        self._response_body = self._response_body
 
     @classmethod
     def _query_for_physicians(cls, database):
@@ -37,8 +37,6 @@ class PhysiciansEndpointTask(APIEndpointTask):
         return_fields = query_params.pop("field", None)
 
         query, filter_conditions = self._filter_by_fields(query, query_params)
-        if return_fields is not None:
-            query = self._filter_return_fields(query, return_fields)
 
         # pylint: disable=singleton-comparison
         return query, return_fields, query_params, filter_conditions
@@ -46,20 +44,14 @@ class PhysiciansEndpointTask(APIEndpointTask):
     @classmethod
     def _generate_response_body(cls, rows, return_fields, query_params, filter_conditions):
         # pylint: disable=no-member
-        columns = return_fields or [column for column in Physician.__table__.columns.keys()]
+        if return_fields is None:
+            return_fields = [column.key for column in Physician.__table__.columns]
         output = []
-        row_data = {}
 
         # If return fields is not specified
         for row in rows:
-            for column in columns:
-                row_data = row_data.update({column: getattr(row, column)})
-
-        row_data.update({'query_params': query_params})
-        row_data.update({'rows': columns})
-        row_data.update({'filter': filter_conditions})
-
-        output.append(row_data)
+            row_data = {column: getattr(row, column) for column in return_fields}
+            output.append(row_data)
 
         return output
 
@@ -79,21 +71,8 @@ class PhysiciansEndpointTask(APIEndpointTask):
         return query, filter_conditions
 
     @classmethod
-    def _filter_return_fields(cls, query, return_fields):
-        # Remove all columns from SELECT statement
-        query = query.options(defer('*'))
-
-        # Add back in specified fields to SELECT
-        for field in return_fields:
-            query = query.options(undefer(getattr(Physician, field)))
-
-        return query
-
-    @classmethod
     def _query_for_values(cls, values, field, filter_conditions):
         for value in values:
-            if value.isnumeric() is False:
-                func.lower(value)
             filter_conditions += [(func.lower(getattr(Physician, field)) == value)]
 
         return filter_conditions
