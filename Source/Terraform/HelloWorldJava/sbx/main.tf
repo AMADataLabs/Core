@@ -128,12 +128,19 @@ module "lambda_sg" {
 
 ### Batch Task ###
 
-module "../Module/BatchJobDefinition" {
-    project   = ${local.project}
+# module "../Module/BatchComputeEnvironment" {
+# }
+#
+# module "../Module/BatchJobQueue" {
+# }
+
+module "batch_job" {
+  source  = "../Module/BatchJobDefinition"
+    project   = local.project
     task_name = "hello_world_java_task"
-    ecr_account = ${local.ecr_account}
-    exec_account = ${local.account}
-    region = ${local.region}
+    ecr_account = local.ecr_account
+    exec_account = local.account
+    region = local.region
     exec_role = ""
     job_role = ""
     image_name = "hello_world_java"

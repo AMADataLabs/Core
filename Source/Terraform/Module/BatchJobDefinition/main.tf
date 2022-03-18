@@ -41,22 +41,6 @@ EOF
   tags = merge(local.tags,  {Name = "upper(${var.project}-${local.environment}-${var.task}-job-exe-role")})
 }
 
-resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
-  role       = aws_iam_role.job_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-resource "aws_iam_role_policy_attachment" "ssm_read_only_access" {
-  role       = aws_iam_role.job_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
-}
-
-resource "aws_iam_role_policy_attachment" "aws_batch_service_role" {
-  role       = aws_iam_role.job_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
-}
-
-
 resource "aws_iam_role" "job_role" {
   name               = "${var.tag_projectname}-${var.environment}-${var.task_name}-job-role"
   assume_role_policy = <<EOF
@@ -78,4 +62,19 @@ resource "aws_iam_role" "job_role" {
 EOF
 
   tags = merge(local.tags,  {Name = "upper(${var.project}-${local.environment}-${var.task}-job-role")})
+}
+
+resource "aws_iam_role_policy_attachment" "service_ecs_policy" {
+  role       = aws_iam_role.service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "job_ssm_policy" {
+  role       = aws_iam_role.job_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+}
+
+resource "aws_iam_role_policy_attachment" "job_batch_policy" {
+  role       = aws_iam_role.job_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
 }
