@@ -3,6 +3,7 @@ import sqlalchemy as sa
 from   sqlalchemy.ext.declarative import declarative_base
 
 from   datalabs.sqlalchemy import metadata
+from   sqlalchemy.orm import relationship, backref
 
 BASE = declarative_base(metadata=metadata())
 SCHEMA = 'oneview'
@@ -242,6 +243,7 @@ class Provider(BASE):
     __tablename__ = 'provider'
     __table_args__ = {"schema": SCHEMA}
 
+    physician = relationship("Physician", backref=backref("providers", cascade="all, delete-orphan"))
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          primary_key=True)
     iqvia_provider_id = sa.Column(sa.String)
@@ -266,6 +268,7 @@ class ProviderAffiliation(BASE):
     __tablename__ = 'provider_affiliation'
     __table_args__ = {"schema": SCHEMA}
 
+    physician = relationship("Physician", backref=backref("providers", cascade="all, delete-orphan"))
     id = sa.Column(sa.String, primary_key=True, nullable=False)
     business = sa.Column(sa.String, sa.ForeignKey("oneview.business.id"))
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"))
@@ -307,6 +310,7 @@ class CredentialingOrder(BASE):
     __tablename__ = 'credentialing_order'
     __table_args__ = {"schema": SCHEMA}
 
+    physician = relationship("Physician", backref=backref("providers", cascade="all, delete-orphan"))
     id = sa.Column(sa.Integer, primary_key=True, nullable=False)
     customer = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_customer.id"), nullable=False)
     product = sa.Column(sa.Integer, sa.ForeignKey("oneview.credentialing_product.id"), nullable=False)
@@ -459,6 +463,7 @@ class HistoricalResident(BASE):
     __tablename__ = 'historical_resident'
     __table_args__ = {"schema": SCHEMA}
 
+    physician = relationship("Physician", backref=backref("providers", cascade="all, delete-orphan"))
     id = sa.Column(sa.String, primary_key=True)
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          nullable=False)
@@ -504,6 +509,7 @@ class ResidencyProgramPhysician(BASE):
     __tablename__ = 'residency_program_physician'
     __table_args__ = {"schema": SCHEMA}
 
+    physician = relationship("Physician", backref=backref("providers", cascade="all, delete-orphan"))
     id = sa.Column(sa.String, primary_key=True)
     program = sa.Column(sa.String, sa.ForeignKey("oneview.residency_program.id"), nullable=False, unique=True)
     medical_education_number = sa.Column(

@@ -1,43 +1,3 @@
-#####################################################################
-# Security Groups
-#####################################################################
-
-module "lambda_sg" {
-  source  = "app.terraform.io/AMA/security-group/aws"
-  version = "1.0.0"
-  name        = "cptapi-${local.environment}-lambda-sg"
-  description = "Security group for Lambda VPC interfaces"
-  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
-
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = "443"
-      to_port     = "443"
-      protocol    = "tcp"
-      description = "User-service ports"
-      cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
-    },
-  ]
-
-  egress_with_cidr_blocks = [
-    {
-      from_port   = "-1"
-      to_port     = "-1"
-      protocol    = "-1"
-      description = "outbound ports"
-      cidr_blocks = "0.0.0.0/0"
-    },
-  ]
-
-}
-
-
-#####################################################################
-# Lambda
-#####################################################################
-
-# Maven Java .jar program
-
 module "hello_world_java_dag_lambda" {
   source  = "app.terraform.io/AMA/lambda/aws"
   version = "2.0.0"
@@ -133,4 +93,113 @@ module "hello_world_java_task_lambda" {
   tag_notes                         = "N/A"
   tag_eol                           = "N/A"
   tag_maintwindow                   = "N/A"
+}
+
+
+module "lambda_sg" {
+  source  = "app.terraform.io/AMA/security-group/aws"
+  version = "1.0.0"
+  name        = "${loca.project}-${local.environment}-hello-world-java-lambda-sg"
+  description = "Security group for Lambda VPC interfaces"
+  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = "443"
+      to_port     = "443"
+      protocol    = "tcp"
+      description = "User-service ports"
+      cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    },
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "outbound ports"
+      cidr_blocks = "0.0.0.0/0"
+    },
+  ]
+
+}
+
+
+### Batch Task ###
+
+# module "../Module/BatchComputeEnvironment" {
+# }
+#
+# module "../Module/BatchJobQueue" {
+# }
+
+module "batch_job" {
+  source  = "../Module/BatchJobDefinition"
+    project   = local.project
+    task_name = "hello_world_java_task"
+    ecr_account = local.ecr_account
+    exec_account = local.account
+    region = local.region
+    exec_role = ""
+    job_role = ""
+    image_name = "hello_world_java"
+    image_version = "1.0.0"
+
+    job_definition_env = [
+      {
+        "name": "TASK_WRAPPER_CLASS",
+        "value": "datalabs.etl.dag.ecs.DAGTaskWrapper"
+      },
+      {
+        "name": "TASK_RESOLVER_CLASS",
+        "value": "datalabs.etl.dag.resolve.TaskResolver"
+      },
+      {
+        "name": "DYNAMODB_CONFIG_TABLE",
+        "value": "${project}-configuration-${environment}"
+      }
+    ]
+}
+
+module "batch_sg" {
+  source      = "app.terraform.io/AMA/security-group/aws"
+  version     = "1.0.0"
+  name        = "${loca.project}-${local.environment}-hello-world-java-batch-sg"
+  description = "Security group for Lambda VPC interfaces"
+  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = "443"
+      to_port     = "443"
+      protocol    = "tcp"
+      description = "User-service ports"
+      cidr_blocks = "10.96.64.0/20,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    },
+    {
+      from_port   = "5432"
+      to_port     = "5432"
+      protocol    = "tcp"
+      description = "PostgreSQL ports"
+      cidr_blocks = "10.96.64.0/20,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    },
+    {
+      from_port   = "3306"
+      to_port     = "3306"
+      protocol    = "tcp"
+      description = "MySQL ports"
+      cidr_blocks = "10.96.64.0/20,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    },
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "outbound ports"
+      cidr_blocks = "0.0.0.0/0"
+    },
+  ]
 }

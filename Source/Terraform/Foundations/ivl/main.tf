@@ -177,12 +177,12 @@ resource "aws_instance" "foundations_bastion" {
 }
 
 
-data "aws_ami" "foundations_bastion" {
+data "aws_ami" "ubuntu" {
     most_recent = true
 
     filter {
         name   = "name"
-        values = ["Temporary development box 2021-08-09"]
+        values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-20200821.1"]
         }
 
     filter {
@@ -190,7 +190,7 @@ data "aws_ami" "foundations_bastion" {
         values = ["hvm"]
     }
 
-    owners = [local.account]
+    owners = ["099720109477"] # Canonical
 }
 
 
@@ -207,7 +207,7 @@ module "apigw_sg" {
     {
       from_port   = "443"
       to_port     = "443"
-      protocol    = "443"
+      protocol    = "tcp"
       description = "User-service ports"
       cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
     }

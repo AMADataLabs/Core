@@ -19,6 +19,7 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+RESOLVED_FLAGWORDS = [word.lower() for word in FLAGWORDS]
 
 # pylint: disable=too-many-locals, too-many-instance-attributes, invalid-name
 class AMCAddressFlagger:
@@ -178,7 +179,8 @@ class AMCAddressFlagger:
         if not flag_null:
             if text is not None and len(text) != 0:
                 text = text.lower()
-                if not cls._contains_n_unique_chars(text, 2):
+                # do not flag "A" but flag "AAAAA", etc.
+                if len(text) >= 3 and not cls._contains_n_unique_chars(text, 2):
                     flag = True
         else:
             if text is None or len(text) == 0 or text == '':
@@ -248,6 +250,25 @@ class AMCAddressFlagger:
         return flag
 
     @classmethod
+    def _flag_mailstop(cls, address_string):
+        address_string = address_string.lower().strip()
+
+        if address_string == 'stop':
+            return True
+
+        tokens = address_string.split()
+        tokens = list()
+        if 'stop' in tokens or 'mailstop' in tokens:
+            i = tokens.index('stop')
+
+            if i < len(tokens) - 2:
+                next = i + 1
+                if next.isdigit():
+                    return False  # false positive, "stop 8501"
+            return True
+        return False
+
+    @classmethod
     def _contains_flagword(cls, address_string):
         """
         We want to avoid false positive markers from flagging the method that checks for flag words.
@@ -257,8 +278,17 @@ class AMCAddressFlagger:
         address_string = address_string.lower()
         for fp in FALSE_POSITIVES:
             if fp in address_string:
-                address_string = address_string.replace(fp, '')
+                address_string = address_string.replace(fp, ' ')
 
         tokens = address_string.split()
 
-        return any(t in FLAGWORDS for t in tokens)
+        mailstop_flag = cls._flag_mailstop(address_string)
+
+        if mailstop_flag:
+            return True
+
+        if 'stop' in tokens:
+            tokens.remove('stop')
+        if 'mailstop' in tokens:
+            tokens.remove('mailstop')
+        return any(t in RESOLVED_FLAGWORDS for t in tokens)

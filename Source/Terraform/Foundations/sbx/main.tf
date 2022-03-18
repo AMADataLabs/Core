@@ -207,7 +207,7 @@ module "apigw_sg" {
     {
       from_port   = "443"
       to_port     = "443"
-      protocol    = "443"
+      protocol    = "tcp"
       description = "User-service ports"
       cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
     }
