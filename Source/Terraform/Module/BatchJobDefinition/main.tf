@@ -20,8 +20,6 @@ data "template_file" "container_properties" {
       region = local.region
       image = var.image
       version = var.image_version
-      vcpus = var.vcpus
-      memory = var.memory
       command = jsonencode(var.command)
       environment = var.environment_vars
       job_role = aws_iam_role.job_role.arn
@@ -31,7 +29,6 @@ data "template_file" "container_properties" {
       readonly_filesystem = var.readonly_filesystem
       ulimits = var.ulimits
       user = var.user
-      instance_type = var.instance_type
       resource_requirements = var.resource_requirements
       linux_parameters = var.linux_parameters
       log_configuration = var.log_configuration
