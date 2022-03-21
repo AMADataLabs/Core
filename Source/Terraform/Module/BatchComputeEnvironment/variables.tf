@@ -1,10 +1,15 @@
 variable "name" {
-  description = "name of the job"
+  description = "Application Name"
+  type        = string
+}
+
+variable "project" {
+  description = "application project name"
   type        = string
 }
 
 variable "environment" {
-  description = "ID of the account in which the job will run"
+  description = "deployment environment ID"
   type        = string
 }
 
@@ -24,13 +29,8 @@ variable "max_vcpus" {
   default     = 2
 }
 
-### tags ###
 
-variable "tag_name" {
-  description = "Application Name"
-  type        = string
-  default     = "name testng"
-}
+### tags ###
 
 variable "tag_environment" {
   description = "environment"
@@ -72,12 +72,6 @@ variable "tag_owner" {
   description = "owner"
   type        = string
   default     = "owner testng"
-}
-
-variable "tag_projectname" {
-  description = "project name"
-  type        = string
-  default     = "project name testng"
 }
 
 variable "tag_notes" {

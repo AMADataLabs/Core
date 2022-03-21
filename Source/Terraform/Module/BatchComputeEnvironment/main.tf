@@ -1,5 +1,5 @@
 resource "aws_batch_compute_environment" "compute_environment" {
-  compute_environment_name = "${var.tag_projectname}-${var.environment}-${var.name}-${var.name}"
+  compute_environment_name = "${var.project}-${var.environment}-${var.name}"
 
   compute_resources {
     max_vcpus          = var.max_vcpus
@@ -11,13 +11,13 @@ resource "aws_batch_compute_environment" "compute_environment" {
   service_role = aws_iam_role.service_role.arn
   type         = "MANAGED"
 
-  tags = merge(local.tags, { Name = upper("${var.tag_projectname}-${var.environment}-${var.name}-${var.name}-ce") })
+  tags = merge(local.tags, { Name = upper("${var.project}-${var.environment}-${var.name}-ce") })
 
   depends_on = [aws_iam_role_policy_attachment.service_ecs_policy]
 }
 
 resource "aws_iam_role" "service_role" {
-  name = "${var.tag_projectname}-${var.environment}-${var.name}-service-role"
+  name = "${var.project}-${var.environment}-${var.name}-service-role"
 
   assume_role_policy = <<EOF
 {
@@ -38,7 +38,7 @@ resource "aws_iam_role" "service_role" {
 }
 EOF
 
-  tags = merge(local.tags, { Name = upper("${var.tag_projectname}-${var.environment}-${var.name}-service-role") })
+  tags = merge(local.tags, { Name = upper("${var.project}-${var.environment}-${var.name}-service-role") })
 }
 
 resource "aws_iam_role_policy_attachment" "service_ecs_policy" {

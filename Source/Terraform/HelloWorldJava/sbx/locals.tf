@@ -33,7 +33,7 @@ locals {
 
   dag_lambda            = "${local.project}-${local.environment}-HelloWorldJavaDAG"
   task_lambda           = "${local.project}-${local.environment}-HelloWorldJavaTask"
-  task_job              = "${local.project}-${local.environment}-HelloWorldJavaTask"
+  task_job              = "HelloWorldJavaTask"
   s3_lambda_bucket      = "ama-${local.environment}-datalake-lambda-us-east-1"
   dynamodb_config_table = "DataLake-configuration-${local.environment}"
 

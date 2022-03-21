@@ -1,19 +1,24 @@
 variable "name" {
-  description = "name of the job"
+  description = "Application Name"
+  type        = string
+}
+
+variable "project" {
+  description = "application project name"
   type        = string
 }
 
 variable "environment" {
-  description = "ID of the account in which the job will run"
+  description = "deployment environment ID"
   type        = string
 }
-
 
 variable "container_vars" {
   description = "container properties template variables"
   type        = map(string)
   default     = {}
 }
+
 
 ### Container Properties ###
 variable "ecr_account" {
@@ -104,19 +109,8 @@ variable "service_role" {
   type        = string
 }
 
+
 ### tags ###
-
-variable "tag_name" {
-  description = "Application Name"
-  type        = string
-  default     = "name testng"
-}
-
-variable "tag_environment" {
-  description = "environment"
-  type        = string
-  default     = "environment testng"
-}
 
 variable "tag_contact" {
   description = "contact"
@@ -152,12 +146,6 @@ variable "tag_owner" {
   description = "owner"
   type        = string
   default     = "owner testng"
-}
-
-variable "tag_projectname" {
-  description = "project name"
-  type        = string
-  default     = "project name testng"
 }
 
 variable "tag_notes" {

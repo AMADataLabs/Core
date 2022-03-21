@@ -1,5 +1,5 @@
 resource "aws_batch_job_definition" "job_definition" {
-  name = "${var.tag_projectname}-${var.environment}-${var.name}-jd"
+  name = "${var.project}-${var.environment}-${var.name}"
   type = "container"
 
   platform_capabilities = [
@@ -8,7 +8,7 @@ resource "aws_batch_job_definition" "job_definition" {
 
   container_properties = data.template_file.container_properties.rendered
 
-  tags = merge(local.tags, { Name = upper("${var.tag_projectname}-${var.environment}-${var.name}-jd") })
+  tags = merge(local.tags, { Name = upper("${var.project}-${var.environment}-${var.name}-jd") })
 }
 
 
@@ -37,7 +37,7 @@ data "template_file" "container_properties" {
 }
 
 resource "aws_iam_role" "job_role" {
-  name               = "${var.tag_projectname}-${var.environment}-${var.name}-job-role"
+  name               = "${var.project}-${var.environment}-${var.name}-job-role"
   assume_role_policy = <<EOF
 {
     "Version": "2012-10-17",
@@ -55,7 +55,7 @@ resource "aws_iam_role" "job_role" {
 }
 EOF
 
-  tags = merge(local.tags, { Name = upper("${var.tag_projectname}-${var.environment}-${var.name}-job-role") })
+  tags = merge(local.tags, { Name = upper("${var.project}-${var.environment}-${var.name}-job-role") })
 }
 
 resource "aws_iam_role_policy_attachment" "job_ssm_policy" {

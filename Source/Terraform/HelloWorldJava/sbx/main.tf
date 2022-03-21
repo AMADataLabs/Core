@@ -131,17 +131,15 @@ module "lambda_sg" {
 module "batch_compute_environment" {
   source = "../../Module/BatchComputeEnvironment"
 
-  name            = "hello_world_java_task"
+  name            = local.task_job
+  project         = local.project
   environment     = local.environment
   security_groups = [module.batch_sg.security_group_id]
   subnets         = data.terraform_remote_state.infrastructure.outputs.subnet_ids
 
-  tag_name               = local.task_job
-  tag_environment        = local.environment
   tag_contact            = local.contact
   tag_budgetcode         = local.budget_code
   tag_owner              = local.owner
-  tag_projectname        = local.project
   tag_systemtier         = "0"
   tag_drtier             = "0"
   tag_dataclassification = "N/A"
@@ -150,16 +148,32 @@ module "batch_compute_environment" {
   tag_maintwindow        = "N/A"
 }
 
-# module "batch_job_queue" {
-#   source = "../Module/BatchJobQueue"
-# }
+module "batch_job_queue" {
+  source = "../../Module/BatchJobQueue"
+
+  name                = local.task_job
+  project             = local.project
+  environment         = local.environment
+  compute_environment = module.batch_compute_environment.arn
+
+  tag_contact            = local.contact
+  tag_budgetcode         = local.budget_code
+  tag_owner              = local.owner
+  tag_systemtier         = "0"
+  tag_drtier             = "0"
+  tag_dataclassification = "N/A"
+  tag_notes              = "N/A"
+  tag_eol                = "N/A"
+  tag_maintwindow        = "N/A"
+}
 
 module "batch_job" {
   source = "../../Module/BatchJobDefinition"
 
-  name                  = "hello_world_java_task"
+  name                  = local.task_job
+  project               = local.project
   environment           = local.environment
-  service_role          = module.batch_compute_environment.service_role
+  service_role          = module.batch_compute_environment.service_role.arn
   ecr_account           = local.ecr_account
   image                 = "hello_world_java"
   image_version         = "1.0.0"
@@ -186,12 +200,9 @@ EOF
 ]
 EOF
 
-  tag_name               = local.task_job
-  tag_environment        = local.environment
   tag_contact            = local.contact
   tag_budgetcode         = local.budget_code
   tag_owner              = local.owner
-  tag_projectname        = local.project
   tag_systemtier         = "0"
   tag_drtier             = "0"
   tag_dataclassification = "N/A"
