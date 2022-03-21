@@ -1,6 +1,6 @@
 variable "name" {
-    description = "name of the job"
-    type = string
+  description = "name of the job"
+  type        = string
 }
 
 variable "environment" {
@@ -10,9 +10,9 @@ variable "environment" {
 
 
 variable "container_vars" {
-    description = "container properties template variables"
-    type        = map(string)
-    default     = {}
+  description = "container properties template variables"
+  type        = map(string)
+  default     = {}
 }
 
 ### Container Properties ###
@@ -39,21 +39,21 @@ variable "command" {
 }
 
 variable "environment_vars" {
-    description = "AWS Batch job description specific JSON string describing job environment variables"
-    type        = string
-    default     = "null"
+  description = "AWS Batch job description specific JSON string describing job environment variables"
+  type        = string
+  default     = "null"
 }
 
 variable "volumes" {
-    description = "AWS Batch job description specific JSON string describing attached volumes"
-    type        = string
-    default     = "null"
+  description = "AWS Batch job description specific JSON string describing attached volumes"
+  type        = string
+  default     = "null"
 }
 
 variable "mount_points" {
-    description = "AWS Batch job description specific JSON string describing mount points"
-    type        = string
-    default     = "null"
+  description = "AWS Batch job description specific JSON string describing mount points"
+  type        = string
+  default     = "null"
 }
 
 variable "readonly_filesystem" {
@@ -63,39 +63,45 @@ variable "readonly_filesystem" {
 }
 
 variable "ulimits" {
-    description = "AWS Batch job description specific JSON string describing Unix-type user limits"
-    type        = string
-    default     = "null"
+  description = "AWS Batch job description specific JSON string describing Unix-type user limits"
+  type        = string
+  default     = "null"
 }
 
 variable "user" {
-    description = "username to under which the job is run"
-    type        = string
-    default     = ""
+  description = "username to under which the job is run"
+  type        = string
+  default     = ""
 }
 
 variable "resource_requirements" {
-    description = "AWS Batch job description specific JSON string describing resource requirements"
-    type        = string
-    default     = "null"
+  description = "AWS Batch job description specific JSON string describing resource requirements"
+  type        = string
+  default     = "null"
 }
 
 variable "linux_parameters" {
-    description = "AWS Batch job description specific JSON string describing linux parameters"
-    type        = string
-    default     = "null"
+  description = "AWS Batch job description specific JSON string describing linux parameters"
+  type        = string
+  default     = "null"
 }
 
 variable "log_configuration" {
-    description = "AWS Batch job description specific JSON string describing the log configuration"
-    type        = string
-    default     = "null"
+  description = "AWS Batch job description specific JSON string describing the log configuration"
+  type        = string
+  default     = "null"
 }
 
 variable "secrets" {
-    description = "job secrets"
-    type        = string
-    default     = "null"
+  description = "job secrets"
+  type        = string
+  default     = "null"
+}
+
+
+variable "service_role" {
+  description = "service/execution role ARN"
+  type        = string
 }
 
 ### tags ###
