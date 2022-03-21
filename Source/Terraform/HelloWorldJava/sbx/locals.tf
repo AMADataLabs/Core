@@ -31,8 +31,9 @@ locals {
     account                         = lookup(local.accounts, local.environment)
     ecr_account                     = local.environment == "sbx" ? local.account : "394406051370"
 
-    task_lambda                     = "${local.project}-${local.environment}-HelloWorldJavaTask"
     dag_lambda                      = "${local.project}-${local.environment}-HelloWorldJavaDAG"
+    task_lambda                     = "${local.project}-${local.environment}-HelloWorldJavaTask"
+    task_job                        = "${local.project}-${local.environment}-HelloWorldJavaTask"
     s3_lambda_bucket                = "ama-${local.environment}-datalake-lambda-us-east-1"
     dynamodb_config_table           = "DataLake-configuration-${local.environment}"
 

@@ -1,20 +1,23 @@
-variable "task" {
-  type = "string"
+variable "name" {
+    description = "name of the job"
+    type = string
 }
 
-variable "account" {
+variable "environment" {
   description = "ID of the account in which the job will run"
   type        = string
 }
 
-variable "ecr_account" {
-  description = "ECR Account ID"
-  type        = string
-  default     = "394406051370"
+
+variable "container_vars" {
+    description = "container properties template variables"
+    type        = map(string)
+    default     = {}
 }
 
-variable "region" {
-  description = "AWS region"
+### Container Properties ###
+variable "ecr_account" {
+  description = "ECR Account ID"
   type        = string
   default     = "394406051370"
 }
@@ -41,16 +44,76 @@ variable "memory" {
   default     = 2048
 }
 
-variable "container_properties_vars" {
-  type        = map(string)
-  description = "Variables to pass to the container properites template"
-  default     = {}
+variable "command" {
+  description = "job command argument list"
+  type        = list(string)
+  default     = []
 }
 
-variable "job_policy_vars" {
-  type        = map(string)
-  description = "Variables to pass to the job iam policy template"
-  default     = {}
+variable "environment_vars" {
+    description = "AWS Batch job description specific JSON string describing job environment variables"
+    type        = string
+    default     = ""
+}
+
+variable "volumes" {
+    description = "AWS Batch job description specific JSON string describing attached volumes"
+    type        = string
+    default     = "[]"
+}
+
+variable "mount_points" {
+    description = "AWS Batch job description specific JSON string describing mount points"
+    type        = string
+    default     = "[]"
+}
+
+variable "readonly_filesystem" {
+  description = "whether the root filesystem should be readonly"
+  type        = bool
+  default     = true
+}
+
+variable "ulimits" {
+    description = "AWS Batch job description specific JSON string describing Unix-type user limits"
+    type        = string
+    default     = "[]"
+}
+
+variable "user" {
+    description = "username to under which the job is run"
+    type        = string
+    default     = ""
+}
+
+variable "instance_type" {
+    description = "EC2 instance type in which to launch the job"
+    type        = string
+    default     = ""
+}
+
+variable "resource_requirements" {
+    description = "AWS Batch job description specific JSON string describing resource requirements"
+    type        = string
+    default     = "[]"
+}
+
+variable "linux_parameters" {
+    description = "AWS Batch job description specific JSON string describing linux parameters"
+    type        = string
+    default     = "{}"
+}
+
+variable "log_configuration" {
+    description = "AWS Batch job description specific JSON string describing the log configuration"
+    type        = string
+    default     = "{}"
+}
+
+variable "secrets" {
+    description = "job secrets"
+    type        = string
+    default     = "[]"
 }
 
 ### tags ###

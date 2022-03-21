@@ -1,4 +1,5 @@
 locals {
+  region = "us-east-1"
 
   tags = merge(
     var.tags,
@@ -10,7 +11,7 @@ locals {
       "DataClassification", upper(var.tag_dataclassification),
       "BudgetCode", upper(var.tag_budgetcode),
       "Owner", upper(var.tag_owner),
-      "ProjectName", upper(var.project),
+      "ProjectName", upper(var.tag_projectname),
       "Notes", upper(var.tag_notes),
       "EOL", upper(var.tag_eol),
       "MaintenanceWindow", upper(var.tag_maintwindow)

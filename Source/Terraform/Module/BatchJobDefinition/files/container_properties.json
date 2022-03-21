@@ -1,0 +1,26 @@
+{
+    "image": "${ecr_account}.dkr.ecr.${region}.amazonaws.com/${image}:${version}",
+    "vcpus": ${vcpus},
+    "memory": ${memory},
+    "command": ${command},
+    "environment": ${environment},
+    "jobRoleArn": "${job_role}",
+    "executionRoleArn": "${service_role}",
+    "volumes": ${volumes},
+    "mountPoints": ${mount_points},
+    "readonlyRootFilesystem": ${readonly_filesystem},
+    "privileged": true,
+    "ulimits": ${ulimits},
+    "user": "${user}",
+    "instanceType": "${instance_type}",
+    "resourceRequirements": ${resource_requirements},
+    "linuxParameters": ${linux_parameters},
+    "logConfiguration": ${log_configuration},
+    "secrets": ${secrets},
+    "networkConfiguration": {
+        "assignPublicIp": "DISABLED"
+    },
+    "fargatePlatformConfiguration": {
+        "platformVersion": "1.4.0"
+    }
+}
