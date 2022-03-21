@@ -13,15 +13,15 @@ LOGGER.setLevel(logging.INFO)
 
 @add_schema(unknowns=True)
 @dataclass
-class FargateDAGExecutorParameters:
+class BatchDAGExecutorParameters:
     dag: str
+    execution_time: str
     job_queue: str
     job_definition: str
-    execution_time: str
     unknowns: dict = None
 
 
-class FargateDAGExecutorTask(Task):
+class BatchDAGExecutorTask(Task):
     PARAMETER_CLASS = FargateDAGExecutorParameters
 
     def run(self):
@@ -43,16 +43,16 @@ class FargateDAGExecutorTask(Task):
 
 @add_schema(unknowns=True)
 @dataclass
-class FargatePythonTaskExecutorParameters:
+class BatchPythonTaskExecutorParameters:
     dag: str
-    job_queue: str
-    job_definition: str
     execution_time: str
     task: str
+    job_queue: str
+    job_definition: str
     unknowns: dict = None
 
 
-class FargatePythonTaskExecutorTask(Task):
+class BatchPythonTaskExecutorTask(Task):
     PARAMETER_CLASS = FargateTaskExecutorParameters
 
     def run(self):
@@ -75,16 +75,16 @@ class FargatePythonTaskExecutorTask(Task):
 
 @add_schema(unknowns=True)
 @dataclass
-class FargateJavaTaskExecutorParameters:
+class BatchJavaTaskExecutorParameters:
     dag: str
-    job_queue: str
-    job_definition: str
     execution_time: str
     task: str
+    job_queue: str
+    job_definition: str
     unknowns: dict = None
 
 
-class FargateJavaTaskExecutorTask(Task):
+class BatchJavaTaskExecutorTask(Task):
     PARAMETER_CLASS = FargateTaskExecutorParameters
 
     def run(self):
