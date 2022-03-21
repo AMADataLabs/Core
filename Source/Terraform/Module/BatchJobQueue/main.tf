@@ -1,4 +1,4 @@
-resource "aws_batch_job_queue" "ecs_scheduler_job_queue" {
+resource "aws_batch_job_queue" "job_queue" {
   name     = "${var.project}-${var.environment}-${var.name}"
   state    = "ENABLED"
   priority = var.priority
