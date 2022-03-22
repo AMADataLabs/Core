@@ -12,7 +12,7 @@ from   datalabs.etl.dag.execute.batch import BatchDAGExecutorTask
 )
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_fargate_task_executor(task_runtime_parameters):
-    task = BatchTaskExecutorTask(task_runtime_parameters)
+    task = BatchDAGExecutorTask(task_runtime_parameters)
 
     task.run()
 
