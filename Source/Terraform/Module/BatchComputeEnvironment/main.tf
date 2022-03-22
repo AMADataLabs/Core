@@ -1,39 +1,52 @@
 resource "aws_batch_compute_environment" "compute_environment" {
-  compute_environment_name = "ecs-scheduler-env"
+  compute_environment_name = "${var.project}-${var.environment}-${var.name}"
 
   compute_resources {
-    max_vcpus = 2
-
-    security_group_ids = security_groups
-
-    #NOTE: HADI, are you sure? ask Peter
-    subnets = data.terraform_remote_state.infrastructure.outputs.subnet_ids
-    # subnets = ["subnet-0a508711165923924"]
-    # subnets = ["arn:aws:ec2:us-east-1:644454719059:subnet/subnet-0a508711165923924"]
-
-    type = "FARGATE"
+    max_vcpus          = var.max_vcpus
+    security_group_ids = var.security_groups
+    subnets            = var.subnets
+    type               = "FARGATE"
   }
 
-  service_role = aws_iam_role.scheduler_batch_service_role.arn
-  # service_role = "arn:aws:iam::${local.account}:role/datalake-${local.environment}-task-exe-role"
-  type       = "MANAGED"
-  depends_on = [aws_iam_role_policy_attachment.aws_batch_service_role]
+  service_role = aws_iam_role.service_role.arn
+  type         = "MANAGED"
 
-  tags = {
-    Name               = "${var.project}-${local.environment}-ecs-scheduler-env"
-    Environment        = local.environment
-    Contact            = var.contact
-    BudgetCode         = var.budget_code
-    Owner              = var.owner
-    ProjectName        = var.project
-    SystemTier         = "0"
-    DRTier             = "0"
-    DataClassification = "N/A"
-    Notes              = "N/A"
-    OS                 = "N/A"
-    EOL                = "N/A"
-    MaintenanceWindow  = "N/A"
-    Group              = "Health Solutions"
-    Department         = "DataLabs"
-  }
+  tags = merge(local.tags, { Name = upper("${var.project}-${var.environment}-${var.name}-ce") })
+
+  depends_on = [aws_iam_role_policy_attachment.service_ecs_policy]
+}
+
+resource "aws_iam_role" "service_role" {
+  name = "${var.project}-${var.environment}-${var.name}-service-role"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "",
+            "Effect": "Allow",
+            "Principal": {
+                "Service": [
+                    "batch.amazonaws.com",
+                    "ecs-tasks.amazonaws.com"
+                ]
+            },
+            "Action": "sts:AssumeRole"
+        }
+    ]
+}
+EOF
+
+  tags = merge(local.tags, { Name = upper("${var.project}-${var.environment}-${var.name}-service-role") })
+}
+
+resource "aws_iam_role_policy_attachment" "service_ecs_policy" {
+  role       = aws_iam_role.service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "service_batch_policy" {
+  role       = aws_iam_role.service_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
 }

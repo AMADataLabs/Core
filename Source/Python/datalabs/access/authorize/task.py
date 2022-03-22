@@ -35,19 +35,22 @@ class AuthorizerTask(Task, ABC):
         )
 
         if response.status_code == 200 or response.status_code == 401:
-            subscriptions = json.loads(response.text).get('subscriptionsList')
-            self._authorization = self._authorize(subscriptions)
+            entitlements = json.loads(response.text)
+            self._authorization = self._authorize(entitlements)
         else:
             raise AuthorizerTaskException(f'Unable to authorize: {response.text}')
 
-    def _authorize(self, subscriptions):
+    def _authorize(self, entitlements):
         policy = None
-        context = None
-        active_subscriptions = self._get_active_subscriptions(subscriptions)
+        context = dict(
+            customerNumber=entitlements.get("customerNumber"),
+            customerName=entitlements.get("customerName")
+        )
+        active_subscriptions = self._get_active_subscriptions(entitlements)
 
         if active_subscriptions and len(active_subscriptions) > 0:
             policy = self._generate_policy(effect='Allow')
-            context = self._generate_context_from_subscriptions(active_subscriptions)
+            context.update(self._generate_context_from_subscriptions(active_subscriptions))
         else:
             policy = self._generate_policy(effect='Deny')
 
@@ -58,8 +61,8 @@ class AuthorizerTask(Task, ABC):
         }
 
     @classmethod
-    def _get_active_subscriptions(cls, subscriptions):
-        return [s for s in subscriptions if s.get("agreementStatus") == "A"]
+    def _get_active_subscriptions(cls, entitlements):
+        return [s for s in entitlements.get('subscriptionsList') if s.get("agreementStatus") == "A"]
 
 
     def _generate_policy(self, effect):

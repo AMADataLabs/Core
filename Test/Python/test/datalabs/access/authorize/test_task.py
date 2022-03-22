@@ -28,6 +28,11 @@ def test_not_authorized(unauthorized_passport_response, parameters):
 
         assert authorizer.authorization.get('policyDocument').get('Statement')[0].get('Effect') == 'Deny'
 
+        context = authorizer.authorization.get('context')
+        assert len(context) == 2
+        assert context.get("customerNumber") == "000003570999"
+        assert context.get("customerName") == "Cahaba Medical Center - Maplesville"
+
 
 # pylint: disable=redefined-outer-name
 def test_authorization_contains_subscriptions(authorized_passport_response, parameters):
@@ -38,7 +43,9 @@ def test_authorization_contains_subscriptions(authorized_passport_response, para
         authorizer.run()
 
         context = authorizer.authorization.get('context')
-        assert len(context) == 1
+        assert len(context) == 3
+        assert context.get("customerNumber") == "000003570997"
+        assert context.get("customerName") == "Chelsea Village Medical Office"
         assert context.get("CPTAPI") == "2021-06-19-05:00"
 
 

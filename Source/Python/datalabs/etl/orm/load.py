@@ -357,7 +357,7 @@ class ORMLoaderTask(LoaderTask):
     @classmethod
     def _get_model_columns(cls, model_class):
         mapper = sa.inspect(model_class)
-        columns = [column.key for column in mapper.attrs]
+        columns = [column.key for column in mapper.attrs if hasattr(column, "columns")]
 
         return columns
 
