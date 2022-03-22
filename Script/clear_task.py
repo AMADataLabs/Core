@@ -17,6 +17,7 @@ class DAGClasses(Enum):
     ECS_SCHEDULER = "datalabs.etl.dag.schedule.dag.DAGSchedulerDAG"
     ONEVIEW = "datalabs.etl.dag.oneview.ingest.OneViewDAG"
     CPTAPI = "datalabs.etl.dag.cpt.api.CPTAPIDAG"
+    HELLO_WORLD_JAVA = "datalabs.example.etl.dag.hello_world_java.HelloWorldJavaDAG"
 
 
 def main(args):

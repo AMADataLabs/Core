@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from   datalabs.etl.dag.execute.ecs import FargateTaskExecutorTask, FargateDAGExecutorTask
+from   datalabs.etl.dag.execute.batch import BatchPythonTaskExecutorTask, BatchDAGExecutorTask
 
 
 @pytest.mark.skipif(
@@ -12,7 +12,7 @@ from   datalabs.etl.dag.execute.ecs import FargateTaskExecutorTask, FargateDAGEx
 )
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_fargate_task_executor(task_runtime_parameters):
-    task = FargateTaskExecutorTask(task_runtime_parameters)
+    task = BatchTaskExecutorTask(task_runtime_parameters)
 
     task.run()
 
@@ -23,7 +23,7 @@ def test_fargate_task_executor(task_runtime_parameters):
 )
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_fargate_dag_executor(dag_runtime_parameters):
-    task = FargateDAGExecutorTask(dag_runtime_parameters)
+    task = BatchDAGExecutorTask(dag_runtime_parameters)
 
     task.run()
 
