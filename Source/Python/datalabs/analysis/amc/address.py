@@ -263,7 +263,7 @@ class AMCAddressFlagger:
 
             if index < len(tokens) - 2:
                 next_index = index + 1
-                if nenext_indexxt.isdigit():
+                if next_index.isdigit():
                     return False  # false positive, "stop 8501"
             return True
         return False
