@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-from   datalabs.etl.dag.execute.batch import BatchPythonTaskExecutorTask, BatchDAGExecutorTask
+from   datalabs.etl.dag.execute.batch import BatchDAGExecutorTask
 
 
 @pytest.mark.skipif(

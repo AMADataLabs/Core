@@ -2,7 +2,6 @@
 import logging
 
 from   sqlalchemy import func, or_
-from   sqlalchemy.orm import defer, undefer
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
 from   datalabs.model.masterfile.oneview.content import Physician
@@ -21,7 +20,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
         query, fields, query_params, filter_conditions = self._filter(query)
 
-        self._response_body = self._generate_response_body(query.all(), fields, query_params, filter_conditions)
+        self._response_body = self._generate_response_body(query.all(), fields)
 
         if not self._response_body:
             raise ResourceNotFound('No data exists for the given column filters')
@@ -42,7 +41,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
         return query, return_fields, query_params, filter_conditions
 
     @classmethod
-    def _generate_response_body(cls, rows, return_fields, query_params, filter_conditions):
+    def _generate_response_body(cls, rows, return_fields):
         # pylint: disable=no-member
         if return_fields is None:
             return_fields = [column.key for column in Physician.__table__.columns]
