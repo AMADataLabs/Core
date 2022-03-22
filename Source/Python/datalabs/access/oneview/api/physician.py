@@ -18,7 +18,7 @@ class PhysiciansEndpointTask(APIEndpointTask):
 
         query = self._query_for_physicians(database)
 
-        query, fields, query_params, filter_conditions = self._filter(query)
+        query, fields = self._filter(query)
 
         self._response_body = self._generate_response_body(query.all(), fields)
 
@@ -35,10 +35,10 @@ class PhysiciansEndpointTask(APIEndpointTask):
         query_params = self._parameters.query
         return_fields = query_params.pop("field", None)
 
-        query, filter_conditions = self._filter_by_fields(query, query_params)
+        query = self._filter_by_fields(query, query_params)
 
         # pylint: disable=singleton-comparison
-        return query, return_fields, query_params, filter_conditions
+        return query, return_fields
 
     @classmethod
     def _generate_response_body(cls, rows, return_fields):
@@ -59,15 +59,15 @@ class PhysiciansEndpointTask(APIEndpointTask):
         # Add WHERE filters to query
         filter_conditions = []
 
-        for fields, values in query_params.items():
+        for field, values in query_params.items():
             if hasattr(Physician, fields) is False:
                 raise InvalidRequest(f"Invalid table field: {field}")
 
-            filter_conditions = cls._query_for_values(values, fields, filter_conditions)
+            filter_conditions = cls._query_for_values(values, field, filter_conditions)
 
         query = query.filter(or_(*filter_conditions))
 
-        return query, filter_conditions
+        return query
 
     @classmethod
     def _query_for_values(cls, values, field, filter_conditions):

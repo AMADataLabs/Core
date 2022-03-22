@@ -1,9 +1,9 @@
 """ SQLAlchemy models for OneView content database """
 import sqlalchemy as sa
 from   sqlalchemy.ext.declarative import declarative_base
+from   sqlalchemy.orm import relationship, backref
 
 from   datalabs.sqlalchemy import metadata
-from   sqlalchemy.orm import relationship, backref
 
 BASE = declarative_base(metadata=metadata())
 SCHEMA = 'oneview'
