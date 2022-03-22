@@ -16,7 +16,8 @@ data:
     #######################################################################
 
     HELLO_WORLD_JAVA__DAG__LAMBDA_FUNCTION: 'DataLake-${ENVIRONMENT}-HelloWorldJavaDAG'
-    HELLO_WORLD_JAVA__DAG__TASK_CLASS: ''
+    HELLO_WORLD_JAVA__DAG__JOB_DEFINITION: 'DataLake-${ENVIRONMENT}-HelloWorldJavaTask'
+    HELLO_WORLD_JAVA__DAG__JOB_QUEUE: 'DataLake-${ENVIRONMENT}-HelloWorldJavaTask'
     HELLO_WORLD_JAVA__DAG__DAG_CLASS: 'datalabs.example.etl.dag.hello_world_java.HelloWorldJavaDAG'
     HELLO_WORLD_JAVA__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     HELLO_WORLD_JAVA__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
@@ -34,6 +35,3 @@ data:
     # Message Logger
     HELLO_WORLD_JAVA__LOG_MESSAGE__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchJavaTaskExecutorTask'
     HELLO_WORLD_JAVA__LOG_MESSAGE__TASK_CLASS: 'datalabs.example.etl.HelloWorldTask'
-    HELLO_WORLD_JAVA__LOG_MESSAGE__JOB_DEFINITION: 'DataLake-${ENVIRONMENT}-HelloWorldJavaTask'
-    HELLO_WORLD_JAVA__LOG_MESSAGE__JOB_QUEUE: 'DataLake-${ENVIRONMENT}-HelloWorldJavaTask'
-    HELLO_WORLD_JAVA__LOG_MESSAGE__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
