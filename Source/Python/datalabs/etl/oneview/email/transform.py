@@ -14,6 +14,9 @@ class PhysicianEmailStatusTransformer(TransformerTask):
     def _preprocess_data(self, data):
         email_status = data[0]
 
+        email_status.sort_values('EMAIL_STATUS')
+        email_status.drop_duplicates('PARTY_ID', keep='last', inplace=True)
+
         email_status['has_email'] = email_status.EMAIL_STATUS == 'valid'
 
         return [email_status]
