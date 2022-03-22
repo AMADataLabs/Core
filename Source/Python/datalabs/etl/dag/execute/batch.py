@@ -22,7 +22,7 @@ class BatchDAGExecutorParameters:
 
 
 class BatchDAGExecutorTask(Task):
-    PARAMETER_CLASS = FargateDAGExecutorParameters
+    PARAMETER_CLASS = BatchDAGExecutorParameters
 
     def run(self):
         with AWSClient("batch") as awslambda:
@@ -53,7 +53,7 @@ class BatchPythonTaskExecutorParameters:
 
 
 class BatchPythonTaskExecutorTask(Task):
-    PARAMETER_CLASS = FargateTaskExecutorParameters
+    PARAMETER_CLASS = BatchPythonTaskExecutorParameters
 
     def run(self):
         with AWSClient("batch") as batch:
@@ -85,7 +85,7 @@ class BatchJavaTaskExecutorParameters:
 
 
 class BatchJavaTaskExecutorTask(Task):
-    PARAMETER_CLASS = FargateTaskExecutorParameters
+    PARAMETER_CLASS = BatchJavaTaskExecutorParameters
 
     def run(self):
         with AWSClient("batch") as batch:
