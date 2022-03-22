@@ -259,11 +259,11 @@ class AMCAddressFlagger:
         tokens = address_string.split()
         tokens = list()
         if 'stop' in tokens or 'mailstop' in tokens:
-            i = tokens.index('stop')
+            index = tokens.index('stop')
 
-            if i < len(tokens) - 2:
-                next = i + 1
-                if next.isdigit():
+            if index < len(tokens) - 2:
+                next_index = index + 1
+                if nenext_indexxt.isdigit():
                     return False  # false positive, "stop 8501"
             return True
         return False
