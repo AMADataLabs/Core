@@ -156,7 +156,7 @@ EOF
 [
     {
         "name": "TASK_WRAPPER_CLASS",
-        "value": "datalabs.etl.dag.lambda.DAGTaskWrapper"
+        "value": "datalabs.etl.dag.aws.DAGTaskWrapper"
     },
     {
         "name": "TASK_RESOLVER_CLASS",
@@ -164,7 +164,7 @@ EOF
     },
     {
         "name": "DYNAMODB_CONFIG_TABLE",
-        "value": "${local.project}-configuration-${local.environment}"
+        "value": "${local.dynamodb_config_table}"
     }
 ]
 EOF
