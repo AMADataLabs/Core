@@ -275,6 +275,8 @@ pipelines:
                 - bash Deploy/Master/upload-java-bundle HelloWorldJava/Task
 
                 # Create the Docker image
+                - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
+                - cp Bundle/target/hello_world_java-${VERSION}.jar ./hello_world_java.jar
                 - docker build -t hello_world_java-sbx -f Build/HelloWorldJava/Task/Dockerfile ./
 
                 # Push the Docker image to ECR

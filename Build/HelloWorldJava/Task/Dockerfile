@@ -9,4 +9,4 @@ WORKDIR /HelloWorldJava
 ENV CLASSPATH=/HelloWorldJava
 ENV AWS_DEFAULT_REGION=us-east-1
 
-COPY ./Bundle/target/*.jar .
+COPY ./hello_world_java.jar .
