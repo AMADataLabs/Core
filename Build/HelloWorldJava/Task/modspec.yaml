@@ -6,6 +6,7 @@ modspec:
   - package: datalabs.etl.dag.aws
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.notify.sns
+  - package: datalabs.etl.dag.state
   - package: datalabs.etl.dag.state.dynamodb
   - package: datalabs.example.etl
     include:
