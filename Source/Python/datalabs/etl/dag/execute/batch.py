@@ -25,12 +25,16 @@ class BatchDAGExecutorTask(Task):
     PARAMETER_CLASS = BatchDAGExecutorParameters
 
     def run(self):
+        execution_time = self._parameters.execution_time.replace(" ", "T")
+
         with AWSClient("batch") as awslambda:
             container_overrides = dict(
-                command=["python", "task.py", str({'dag': self._parameters.dag,
-                                                   'type': 'DAG',
-                                                   'execution_time': self._parameters.execution_time})
-                         ]
+                command=[
+                    "python",
+                    "task.py",
+                    f'{{"dag": "{self._parameters.dag}","type": "DAG", "execution_time": "{execution_time}"}}')
+                ]
+
             )
 
             awslambda.submit_job(
@@ -56,12 +60,14 @@ class BatchPythonTaskExecutorTask(Task):
     PARAMETER_CLASS = BatchPythonTaskExecutorParameters
 
     def run(self):
+        execution_time = self._parameters.execution_time.replace(" ", "T")
+
         with AWSClient("batch") as batch:
             container_overrides = dict(
                 command=[
                     "python",
                     "task.py",
-                    f"{self._parameters.dag}__{self._parameters.task}__{self._parameters.execution_time}"
+                    f"{self._parameters.dag}__{self._parameters.task}__{execution_time}"
                 ]
             )
 
@@ -88,13 +94,15 @@ class BatchJavaTaskExecutorTask(Task):
     PARAMETER_CLASS = BatchJavaTaskExecutorParameters
 
     def run(self):
+        execution_time = self._parameters.execution_time.replace(" ", "T")
+
         with AWSClient("batch") as batch:
             container_overrides = dict(
                 command=[
                     "java",
                     "datalabs.tool.TaskRunner",
                     "--arg",
-                    f"{self._parameters.dag}__{self._parameters.task}__{self._parameters.execution_time}"
+                    f"{self._parameters.dag}__{self._parameters.task}__{execution_time}"
                 ]
             )
 
