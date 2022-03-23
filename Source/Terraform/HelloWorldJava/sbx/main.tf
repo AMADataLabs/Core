@@ -156,11 +156,11 @@ EOF
 [
     {
         "name": "TASK_WRAPPER_CLASS",
-        "value": "datalabs.etl.dag.ecs.DAGTaskWrapper"
+        "value": "datalabs.etl.dag.lambda.DAGTaskWrapper"
     },
     {
         "name": "TASK_RESOLVER_CLASS",
-        "value": "datalabs.etl.dag.resolve.TaskResolver"
+        "value": "datalabs.task.RuntimeTaskResolver"
     },
     {
         "name": "DYNAMODB_CONFIG_TABLE",
