@@ -286,25 +286,6 @@ pipelines:
                     AWS_DEFAULT_REGION: 'us-east-1'
                     IMAGE_NAME: 'hello_world_java-sbx'
                     TAGS: '$VERSION latest'
-
-              - step:
-                  name: 'Deployment to ECR'
-                  deployment: staging
-                  size: 2x
-                  script:
-                    - echo "Deployment to ECR"
-
-                    # build the image
-                    - docker build -t vericre-sbx2-backend-ecr .
-
-                    # use the pipe to push to AWS ECR
-                    - pipe: atlassian/aws-ecr-push-image:1.5.0
-                      variables:
-                        AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-                        AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-                        AWS_DEFAULT_REGION: 'us-east-1'
-                        IMAGE_NAME: 'vericre-sbx2-backend-ecr'
-                        TAGS: '${BITBUCKET_TAG} latest'
         - step:
             name: Update Lambda Functions
             script:
