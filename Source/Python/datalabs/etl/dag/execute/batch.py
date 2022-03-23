@@ -32,7 +32,7 @@ class BatchDAGExecutorTask(Task):
                 command=[
                     "python",
                     "task.py",
-                    f'{{"dag": "{self._parameters.dag}","type": "DAG", "execution_time": "{execution_time}"}}')
+                    f'{{"dag": "{self._parameters.dag}","type": "DAG", "execution_time": "{execution_time}"}}'
                 ]
 
             )
