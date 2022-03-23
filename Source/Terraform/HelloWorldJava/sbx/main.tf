@@ -1,3 +1,5 @@
+### Main Component Resources ###
+
 module "hello_world_java_dag_lambda" {
   source           = "app.terraform.io/AMA/lambda/aws"
   version          = "2.0.0"
@@ -95,39 +97,6 @@ module "hello_world_java_task_lambda" {
   tag_maintwindow        = "N/A"
 }
 
-
-module "lambda_sg" {
-  source      = "app.terraform.io/AMA/security-group/aws"
-  version     = "1.0.0"
-  name        = "${local.project}-${local.environment}-hello-world-java-lambda-sg"
-  description = "Security group for Lambda VPC interfaces"
-  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
-
-  ingress_with_cidr_blocks = [
-    {
-      from_port   = "443"
-      to_port     = "443"
-      protocol    = "tcp"
-      description = "User-service ports"
-      cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
-    },
-  ]
-
-  egress_with_cidr_blocks = [
-    {
-      from_port   = "-1"
-      to_port     = "-1"
-      protocol    = "-1"
-      description = "outbound ports"
-      cidr_blocks = "0.0.0.0/0"
-    },
-  ]
-
-}
-
-
-## Batch Task ###
-
 module "batch_compute_environment" {
   source = "../../Module/BatchComputeEnvironment"
 
@@ -175,7 +144,7 @@ module "batch_job" {
   environment           = local.environment
   service_role          = module.batch_compute_environment.service_role.arn
   ecr_account           = local.ecr_account
-  image                 = "hello_world_java"
+  image                 = "hello_world_java-${local.environment}"
   image_version         = "1.0.0"
   resource_requirements = <<EOF
 [
@@ -209,6 +178,38 @@ EOF
   tag_notes              = "N/A"
   tag_eol                = "N/A"
   tag_maintwindow        = "N/A"
+}
+
+
+### Security Groups ###
+
+module "lambda_sg" {
+  source      = "app.terraform.io/AMA/security-group/aws"
+  version     = "1.0.0"
+  name        = "${local.project}-${local.environment}-hello-world-java-lambda-sg"
+  description = "Security group for Lambda VPC interfaces"
+  vpc_id      = data.terraform_remote_state.infrastructure.outputs.vpc_id[0]
+
+  ingress_with_cidr_blocks = [
+    {
+      from_port   = "443"
+      to_port     = "443"
+      protocol    = "tcp"
+      description = "User-service ports"
+      cidr_blocks = "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
+    },
+  ]
+
+  egress_with_cidr_blocks = [
+    {
+      from_port   = "-1"
+      to_port     = "-1"
+      protocol    = "-1"
+      description = "outbound ports"
+      cidr_blocks = "0.0.0.0/0"
+    },
+  ]
+
 }
 
 module "batch_sg" {
