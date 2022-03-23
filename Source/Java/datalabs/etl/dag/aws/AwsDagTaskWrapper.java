@@ -93,15 +93,15 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     }
 
     void notifyTaskProcessor(Task task) {
-        String topic = self._runtime_parameters.get("TASK_TOPIC_ARN");
-        TaskNotifier notifier = TaskNotifier(topic);
+        String topic = this.runtimeParameters.get("TASK_TOPIC_ARN");
+        TaskNotifier notifier = new TaskNotifier(topic);
 
         notifier.notify(this.getDagId(), this.getTaskId(), this.getExecutionTime());
     }
 
     void notifyDagProcessor() {
-        String topic = self._runtime_parameters.get("DAG_TOPIC_ARN");
-        DagNotifier notifier = DagNotifier(topic);
+        String topic = this.runtimeParameters.get("DAG_TOPIC_ARN");
+        DagNotifier notifier = new DagNotifier(topic);
 
         notifier.notify(this.getDagId(), this.getExecutionTime());
     }

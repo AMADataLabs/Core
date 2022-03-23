@@ -15,28 +15,28 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 
-import datalabs.etl.dag.notify.SnsDagNotifier;
+import datalabs.etl.dag.notify.sns.TaskNotifier;
 
 
 @TestMethodOrder(OrderAnnotation.class)
-class SnsDagNotifierTests {
-    protected static final Logger LOGGER = LoggerFactory.getLogger(SnsDagNotifierTests.class);
+class TaskNotifierTests {
+    protected static final Logger LOGGER = LoggerFactory.getLogger(TaskNotifierTests.class);
 
-    static final String DAG_TOPIC_ARN = "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGProcessor";
+    static final String DAG_TOPIC_ARN = "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-TaskProcessor";
 
     @BeforeEach
     void beforeEach() {
     }
 
     @Test
-    @DisplayName("notify() for BABYLON5 on 2256-03-09 08:00:00 succeeds")
+    @DisplayName("notify() for BABYLON5 task LOCK_DOWN on 2256-03-09 08:00:00 succeeds")
     @EnabledIfSystemProperty(named="integration-tests", matches="true")
     @Order(1)
     void notifySucceeds() {
         try {
-            SnsDagNotifier notifier = new SnsDagNotifier(SnsDagNotifierTests.DAG_TOPIC_ARN);
+            TaskNotifier notifier = new TaskNotifier(TaskNotifierTests.DAG_TOPIC_ARN);
 
-            notifier.notify("BABYLON5", "2256-03-09 08:00:00");
+            notifier.notify("BABYLON5", "LOCK_DOWN", "2256-03-09 08:00:00");
         } catch (
             Exception exception
         ) {
