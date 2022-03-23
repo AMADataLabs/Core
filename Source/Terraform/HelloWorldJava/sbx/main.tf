@@ -77,7 +77,7 @@ module "hello_world_java_task_lambda" {
 
   environment_variables = {
     variables = {
-      TASK_WRAPPER_CLASS    = "datalabs.etl.dag.lambda.DagTaskWrapper"
+      TASK_WRAPPER_CLASS    = "datalabs.etl.dag.aws.LambdaDagTaskWrapper"
       TASK_RESOLVER_CLASS   = "datalabs.task.RuntimeTaskResolver"
       DYNAMODB_CONFIG_TABLE = local.dynamodb_config_table
     }
@@ -156,7 +156,7 @@ EOF
 [
     {
         "name": "TASK_WRAPPER_CLASS",
-        "value": "datalabs.etl.dag.aws.DAGTaskWrapper"
+        "value": "datalabs.etl.dag.aws.AwsDagTaskWrapper"
     },
     {
         "name": "TASK_RESOLVER_CLASS",
