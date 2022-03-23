@@ -35,6 +35,7 @@ public class TaskRunner {
             CommandLine commandLineArgs = getCommandLineArgs(commandLineOptions, args);
 
             Map<String, String> runtimeParameters = getRuntimeParameters(commandLineArgs);
+            System.out.println("Runtime Parameters: " + runtimeParameters);
 
             LocalProcess.runTask(runtimeParameters);
         } catch (ParseException exception) {

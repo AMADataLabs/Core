@@ -35,7 +35,14 @@ public class DagTaskWrapper extends TaskWrapper {
         if (!parameters.containsKey("args")) {
             throw new IllegalArgumentException("Missing \"args\" runtime parameter.");
         }
-        String[] runtimeParameterValues = parameters.get("args").split(" ", 2)[1].split("__", 3);
+        String[] commandLineArguments = parameters.get("args").split(" ", 2);
+
+        if (commandLineArguments.length != 2) {
+            throw new IllegalArgumentException(
+                "Expecting two command-line arguments (<executable name>, <DAG run ID>)."
+            );
+        }
+        String[] runtimeParameterValues = commandLineArguments[1].split("__", 3);
 
         return new HashMap<String, String>() {{
             put("dag", runtimeParameterValues[0]);

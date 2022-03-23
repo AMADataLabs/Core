@@ -24,6 +24,10 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
 
     public AwsDagTaskWrapper(Map<String, String> parameters) {
         super(parameters);
+
+        if (System.getenv("DYNAMODB_CONFIG_TABLE") == null) {
+            throw new IllegalArgumentException("DYNAMODB_CONFIG_TABLE environment variable is not set.");
+        }
     }
 
     protected void preRun() {

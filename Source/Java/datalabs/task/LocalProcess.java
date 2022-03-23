@@ -30,6 +30,9 @@ public class LocalProcess {
                    ClassNotFoundException {
         String taskWrapperClassName = System.getenv("TASK_WRAPPER_CLASS");
         LOGGER.debug("Task Wrapper Class: " + taskWrapperClassName);
+        if (taskWrapperClassName == null) {
+            throw new IllegalArgumentException("TASK_WRAPPER_CLASS environment variable is not set.");
+        }
         Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
         Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
 
