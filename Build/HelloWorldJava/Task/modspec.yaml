@@ -13,5 +13,6 @@ modspec:
   - package: datalabs.parameter
   - package: datalabs.plugin
   - package: datalabs.task
-    exclude:
-      - LocalProcess
+  - package: datalabs.tool
+    include:
+      - TaskRunner
