@@ -14,7 +14,7 @@ Usage:
                             format is HASH1..HASH2
 EOM
 
-set -e
+set -ex
 
 # Capture input parameter and validate it
 COMMIT_RANGE=$1
@@ -53,7 +53,7 @@ CHANGED_DEPENDENCIES=""
 ##
 function process_dependants {
     local PROJECT=$1
-    local DEPENDENCIES=$(echo "$PROJECT_DEPENDENCIES" | grep ".* $PROJECT")
+    local DEPENDENCIES=$(echo "$PROJECT_DEPENDENCIES" | grep ".* $PROJECT_DIR")
     echo "$NEW_DEPENDENCEIS" | while read DEPENDENCY; do
         DEPENDENCY=$(echo "$DEPENDENCY" | cut -d " " -f1)
         if [[ ! $(echo "$CHANGED_PROJECTS" | grep "$DEPENDENCY") ]]; then
@@ -74,22 +74,22 @@ function process_dependants {
 
 # If [rebuild-all] command passed it's enough to take all projects and all dependencies as changed
 if [[ $(git log "$COMMIT_RANGE_FOR_LOG" | grep "\[rebuild-all\]") ]]; then
-    CHANGED_PROJECTS="$(${DIR}/list-projects.sh)"
+    CHANGED_PROJECTS=$(cat ${DIR}/../.ci/projects.txt)
     CHANGED_DEPENDENCIES="$PROJECT_DEPENDENCIES"
 else
     # For all known projects check if there was a change and look for all dependant projects
     # echo "Changed Paths:\n$CHANGED_PATHS"
-    for PROJECT in $(${DIR}/list-projects.sh); do
-        PROJECT_NAME=$(basename $PROJECT)
-        if [[ $(echo -e "$CHANGED_PATHS" | grep "$PROJECT") ]]; then
-            CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT"
-            CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT)"
+    for PROJECT_DIR in $(cat ${DIR}/../.ci/projects.txt); do
+        PROJECT_NAME=$(cat ${DIR}/../Build/${PROJECT_DIR}/.ci/project.txt)
+        if [[ $(echo -e "$CHANGED_PATHS" | grep "$PROJECT_DIR") ]]; then
+            CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT_NAME"
+            CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT_DIR)"
         else
             # echo "$PROJECT Source Files:\n$(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT)"
-            for SOURCE_FILE in $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT); do
-                if [[ $(echo -e "$CHANGED_PATHS" | grep -e "$SOURCE_FILE" -e "Build/$PROJECT")  ]]; then
-                    CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT"
-                    CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT)"
+            for SOURCE_FILE in $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT_DIR); do
+                if [[ $(echo -e "$CHANGED_PATHS" | grep -e "$SOURCE_FILE" -e "Build/$PROJECT_DIR")  ]]; then
+                    CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT_NAME"
+                    CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT_DIR)"
                 fi
             done
         fi
@@ -98,9 +98,9 @@ fi
 
 # Build output
 PROJECTS_TO_BUILD=$(echo -e "$CHANGED_DEPENDENCIES" | tsort | tac)
-for PROJECT in $(echo -e "$CHANGED_PROJECTS"); do
-    if [[ ! $(echo -e "$PROJECTS_TO_BUILD" | grep "$PROJECT") ]]; then
-        PROJECTS_TO_BUILD="$PROJECT-${BITBUCKET_BRANCH} $PROJECTS_TO_BUILD"
+for PROJECT_NAME in $(echo -e "$CHANGED_PROJECTS"); do
+    if [[ ! $(echo -e "$PROJECTS_TO_BUILD" | grep "$PROJECT_NAME") ]]; then
+        PROJECTS_TO_BUILD="$PROJECT_NAME-${BITBUCKET_BRANCH} $PROJECTS_TO_BUILD"
     fi
 done
 
