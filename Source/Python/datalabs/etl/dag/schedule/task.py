@@ -54,14 +54,19 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         return isoparse(self._parameters.execution_time)
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
-        base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
-        LOGGER.debug('Base time: %s', base_time)
-        schedule["execution_time"] = self._get_execution_times(schedule, base_time)
-        schedule["scheduled"] = self._get_scheduled_dags(schedule, base_time)
-        schedule["started"] = self._get_started_dags(schedule)
-        LOGGER.debug('Schedule: %s', schedule)
+        scheduled_dags = []
 
-        return schedule[schedule.scheduled & ~schedule.started]
+        if len(schedule) > 0:
+            base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
+            LOGGER.debug('Base time: %s', base_time)
+            schedule["execution_time"] = self._get_execution_times(schedule, base_time)
+            schedule["scheduled"] = self._get_scheduled_dags(schedule, base_time)
+            schedule["started"] = self._get_started_dags(schedule)
+            LOGGER.debug('Schedule: %s', schedule)
+
+            scheduled_dags = schedule[schedule.scheduled & ~schedule.started]
+
+        return scheduled_dags
 
     @classmethod
     def _generate_notification_messages(cls, dags):
