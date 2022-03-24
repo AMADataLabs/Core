@@ -54,7 +54,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         return isoparse(self._parameters.execution_time)
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
-        scheduled_dags = []
+        scheduled_dags = schedule
 
         if len(schedule) > 0:
             base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
