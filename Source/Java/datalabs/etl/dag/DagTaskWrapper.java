@@ -47,7 +47,7 @@ public class DagTaskWrapper extends TaskWrapper {
         return new HashMap<String, String>() {{
             put("dag", runtimeParameterValues[0]);
             put("task", runtimeParameterValues[1]);
-            put("execution_time", runtimeParameterValues[2]);
+            put("execution_time", runtimeParameterValues[2].replace("T", " "));
         }};
     }
 
