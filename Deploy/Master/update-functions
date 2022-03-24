@@ -1,0 +1,91 @@
+#!/bin/bash
+
+set -e
+
+ENVIRONMENT=
+BASE_PATH=
+LAMBDAS=
+STACK=
+CODE_BUCKET=
+
+
+main() {
+    process_arguments "$@"
+
+    update_lambdas
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -e|--environment)
+            ENVIRONMENT=$2
+            shift
+            shift
+            ;;
+        -p|--base-path)
+            BASE_PATH=$2
+            shift
+            shift
+            ;;
+        -s|--stack)
+            STACK=$2
+            shift
+            shift
+            ;;
+        *)
+            LAMBDAS="$LAMBDAS\n$1"
+            shift
+            ;;
+      esac
+    done
+
+    if [[ "$STACK" == "" ]]; then
+        echo "Error: The app stack name was not specified."
+        print_usage
+        exit 1
+    elif [[ "$ENVIRONMENT" == "" ]]; then
+        echo "Error: The deployment environment was not specified."
+        print_usage
+        exit 1
+    fi
+
+    CODE_BUCKET="ama-${ENVIRONMENT}-datalake-lambda-us-east-1"
+}
+
+print_usage() {
+    echo "Usage: update-functions [OPTION]... <project>"
+    echo "Reload the code for set of Lambda functions from the specified code artificats."
+    echo
+    echo "Options:"
+    echo "  -h|--help                       Print usage."
+    echo "  -e|--environment <environment>  Deployment environment ID (i.e. sbx, dev, tst, stg, itg, prd)."
+    echo "  -p|--base-path <path>           Base path to the Lambda function code bundle zip"
+    echo "  -s|--stack <stack>              Name of the app stack (i.e. DataLake, CPT, OneView, etc...)"
+}
+
+update_lambdas() {
+    for LAMBDA in ${LAMBDAS}; do
+        LAMBDA=${LAMBDA//\\n/}
+        FUNCTION=${STACK}-${ENVIRONMENT}-${LAMBDA//=..*/}
+        ARTIFACT=${LAMBDA//[^=]+=/}
+
+        if [[ "$BASE_PATH" != "" ]]; then
+            ARTIFACT=${BASE_PATH}/${ARTIFACT}
+        fi
+
+        echo "Reloading code of Lambda function ${FUNCTION} from s3://${CODE_BUCKET}/${ARTIFACT}"
+        aws lambda update-function-code \
+            --function-name $FUNCTION \
+            --s3-bucket ${CODE_BUCKET} \
+            --s3-key ${ARTIFACT} \
+            || exit $?
+    done
+}
+
+main "$@"

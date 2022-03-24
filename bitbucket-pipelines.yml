@@ -115,7 +115,13 @@ pipelines:
                 - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - export ENVIRONMENT=sbx
-                - bash Deploy/CPT/sbx/update-functions
+                - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT >-
+                    Authorizer=ETL.zip
+                    Endpoint=ETL.zip
+                    ETL=ETL.zip
+                    HCPCSDAG=ETL.zip
+                    BulkAuthorizer=ETL.zip
+                    BulkEndpoint=ETL.zip
 
         Scheduler-master:
         - step:
@@ -144,7 +150,10 @@ pipelines:
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
             - export ENVIRONMENT=sbx
-            - bash Deploy/Scheduler/update-functions
+            - bash Deploy/Master/update-functions -e sbx -s DataLake >-
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
 
         OneView-master:
         - parallel:
@@ -296,7 +305,38 @@ pipelines:
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
             - export ENVIRONMENT=sbx
-            - bash Deploy/HelloWorldJava/update-functions
+            - bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava >-
+                HelloWorldJavaDAG=DAG.zip
+                HelloWorldJavaTask=Task.zip
+
+        ContactID-master:
+        - step:
+            name: Update Bundle
+            caches:
+            - scheduler-master-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - bash Deploy/Master/create-python-bundle ContactID
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+            - bash Deploy/Master/upload-python-bundle ContactID
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - export ENVIRONMENT=sbx
+            - bash Deploy/Master/update-functions -e sbx -s DataLake ContactID=ContactID.zip
 
 
         ##############################################################
@@ -339,7 +379,13 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_DEV=True
             - export ENVIRONMENT=dev
-            - bash --rcfile assume_role.rc -i Deploy/CPT/dev/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT >-
+                Authorizer=ETL.zip
+                Endpoint=ETL.zip
+                ETL=ETL.zip
+                HCPCSDAG=ETL.zip
+                BulkAuthorizer=ETL.zip
+                BulkEndpoint=ETL.zip
 
         Scheduler-dev:
         - step:
@@ -377,7 +423,10 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_DEV=True
             - export ENVIRONMENT=dev
-            - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake >-
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
 
         OneView-dev:
         - parallel:
@@ -519,7 +568,13 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_TEST=True
             - export ENVIRONMENT=tst
-            - bash --rcfile assume_role.rc -i Deploy/CPT/tst/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT >-
+                Authorizer=ETL.zip
+                Endpoint=ETL.zip
+                ETL=ETL.zip
+                HCPCSDAG=ETL.zip
+                BulkAuthorizer=ETL.zip
+                BulkEndpoint=ETL.zip
 
         Scheduler-test:
         - step:
@@ -557,7 +612,10 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_TEST=True
             - export ENVIRONMENT=tst
-            - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake >-
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
 
         OneView-test:
         - parallel:
@@ -674,7 +732,13 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_STAGE=True
             - export ENVIRONMENT=itg
-            - bash --rcfile assume_role.rc -i Deploy/CPT/itg/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT >-
+                Authorizer=ETL.zip
+                Endpoint=ETL.zip
+                ETL=ETL.zip
+                HCPCSDAG=ETL.zip
+                BulkAuthorizer=ETL.zip
+                BulkEndpoint=ETL.zip
 
         Scheduler-stage:
         - step:
@@ -712,7 +776,10 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_STAGE=True
             - export ENVIRONMENT=itg
-            - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake >-
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
 
 
         ##############################################################
@@ -760,7 +827,13 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_PROD=True
             - export ENVIRONMENT=prd
-            - bash --rcfile assume_role.rc -i Deploy/CPT/prd/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT >-
+                Authorizer=ETL.zip
+                Endpoint=ETL.zip
+                ETL=ETL.zip
+                HCPCSDAG=ETL.zip
+                BulkAuthorizer=ETL.zip
+                BulkEndpoint=ETL.zip
 
         Scheduler-prod:
         - step:
@@ -804,7 +877,10 @@ pipelines:
             # Update Lambda functions
             - export ENABLE_FEATURE_PROD=True
             - export ENVIRONMENT=prd
-            - bash --rcfile assume_role.rc -i Deploy/Scheduler/update-functions
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake >-
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
 
         OneView-prod:
         - step:
