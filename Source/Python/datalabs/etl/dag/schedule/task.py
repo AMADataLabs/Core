@@ -54,7 +54,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         return isoparse(self._parameters.execution_time)
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
-        scheduled_dags = schedule
+        scheduled_dags = pandas.DataFrame(columns=["name", "execution_time"])
 
         if len(schedule) > 0:
             base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
@@ -64,7 +64,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
             schedule["started"] = self._get_started_dags(schedule)
             LOGGER.debug('Schedule: %s', schedule)
 
-            scheduled_dags = schedule[schedule.scheduled & ~schedule.started]
+            scheduled_dags = schedule[schedule.scheduled & ~schedule.started][["name", "execution_time"]]
 
         return scheduled_dags
 
