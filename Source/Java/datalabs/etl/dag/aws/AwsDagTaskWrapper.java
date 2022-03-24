@@ -34,7 +34,7 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
         Map<String, String> commandLineParameters = super.getRuntimeParameters(parameters);
 
         HashMap<String, String> runtimeParameters = new HashMap<String, String>() {{
-            putAll(getDagParameters(parameters));
+            putAll(getDagParameters(commandLineParameters));
             putAll(commandLineParameters);
         }};
 
@@ -74,8 +74,10 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
         String task = getTaskId();
         LOGGER.debug("Getting DAG Task Parameters for " + dag + "__" + task);
         Map<String, String> dagTaskParameters = getDagTaskParametersFromDynamoDb(dag, task);
-        LOGGER.debug("DAG Task Parameters: " + dagTaskParameters);
 
+        overrideRuntimeParameters(dagTaskParameters);
+
+        LOGGER.debug("DAG Task Parameters: " + dagTaskParameters);
         return dagTaskParameters;
     }
 
@@ -131,6 +133,14 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
         );
 
         return loader.load(parameters);
+    }
+
+    protected void overrideRuntimeParameters(Map<String, String> taskParameters) {
+        for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
+            if (this.runtimeParameters.containsKey(key)) {
+                this.runtimeParameters.put(key, taskParameters.remove(key));
+            }
+        }
     }
 
     DagState getDagStatePlugin()
