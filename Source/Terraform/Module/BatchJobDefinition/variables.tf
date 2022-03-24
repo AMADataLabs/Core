@@ -19,6 +19,12 @@ variable "container_vars" {
   default     = {}
 }
 
+variable "policy_vars" {
+  description = "container properties template variables"
+  type        = map(string)
+  default     = {}
+}
+
 
 ### Container Properties ###
 variable "ecr_account" {

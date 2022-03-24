@@ -58,7 +58,21 @@ EOF
   tags = merge(local.tags, { Name = upper("${var.project}-${var.environment}-${var.name}-job-role") })
 }
 
-resource "aws_iam_role_policy_attachment" "job_ssm_policy" {
+
+data "template_file" "policy" {
+  template = file("policies/${var.name}.json")
+  vars = var.policy_vars
+}
+
+resource "aws_iam_policy" "policy" {
+  name        = "${var.project}-${var.environment}-${var.name}-job-policy"
+  path        = "/"
+  description = "IAM policy for ${var.name} jobs"
+
+  policy = data.template_file.policy.rendered
+}
+
+resource "aws_iam_role_policy_attachment" "policy" {
   role       = aws_iam_role.job_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+  policy_arn = aws_iam_policy.policy.arn
 }

@@ -30,6 +30,17 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
         }
     }
 
+    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
+        Map<String, String> commandLineParameters = super.getRuntimeParameters(parameters);
+
+        HashMap<String, String> runtimeParameters = new HashMap<String, String>() {{
+            putAll(getDagParameters(parameters));
+            putAll(commandLineParameters);
+        }};
+
+        return runtimeParameters;
+    }
+
     protected void preRun() {
         setTaskStatus(Status.RUNNING);
     }
