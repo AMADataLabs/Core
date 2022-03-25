@@ -24,7 +24,6 @@ class JDBCExtractorParameters:
     driver: str
     driver_type: str
     database_host: str
-    database_name: str
     database_username: str
     database_password: str
     database_port: str
@@ -38,6 +37,8 @@ class JDBCExtractorParameters:
     max_parts: str = None
     part_index: str = None
     stream: str = None
+    database_name: str = None
+    database_parameters: str = None
 
 
 class JDBCExtractorTask(ExtractorTask):
@@ -50,7 +51,13 @@ class JDBCExtractorTask(ExtractorTask):
 
     def _connect(self):
         url = f"jdbc:{self._parameters.driver_type}://{self._parameters.database_host}:" \
-              f"{self._parameters.database_port}/{self._parameters.database_name}"
+              f"{self._parameters.database_port}"
+
+        if self._parameters.database_name is not None:
+            url += f"/{self._parameters.database_name}"
+
+        if self._parameters.database_parameters is not None:
+            url += f";{self._parameters.database_parameters}"
 
         connection = jaydebeapi.connect(
             self._parameters.driver,
@@ -70,7 +77,7 @@ class JDBCExtractorTask(ExtractorTask):
     def _split_queries(cls, queries):
         queries_split = queries.split(';')
 
-        if queries_split[-1] == '':
+        if queries_split[-1].strip() == '':
             queries_split.pop()
 
         return [q.strip() for q in queries_split]

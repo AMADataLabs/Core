@@ -183,12 +183,17 @@ pipelines:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
+                # Setup AWS CLI
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+
                 # Install the DB2 JDBC driver
-                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
                 - unzip ./Db2JdbcDriver.zip
 
                 # Install the Informix JDBC driver
-                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
                 - unzip ./InformixJdbcDriver.zip
                 - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
@@ -241,6 +246,35 @@ pipelines:
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - export ENVIRONMENT=sbx
                 - bash Deploy/OneView/update-functions
+
+        Organizations-master:
+        - step:
+            name: Update ETL Bundle
+            caches:
+                - organizations-master-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+            # Setup AWS CLI
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+
+            # Install the SQL Server JDBC driver
+            - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
+            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
+            - unzip ./SqlServerJdbcDriver.zip
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar DB2JccConfiguration.properties
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+            - bash Deploy/Master/upload-python-bundle IntelligentPlatform/OrganizationsETL
 
         HelloWorldJava-master:
         - parallel:
@@ -458,14 +492,19 @@ pipelines:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
+                # Setup AWS CLI
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+
                 # Install the DB2 JDBC driver
-                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
                 - unzip ./Db2JdbcDriver.zip
-                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Install the Informix JDBC driver
-                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
                 - unzip ./InformixJdbcDriver.zip
+                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
@@ -529,6 +568,56 @@ pipelines:
                 - export ENABLE_FEATURE_DEV=True
                 - export ENVIRONMENT=dev
                 - bash --rcfile assume_role.rc -i Deploy/OneView/update-functions
+
+        Organizations-dev:
+        - step:
+            name: Update ETL Bundle
+            caches:
+                - organizations-dev-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+            # Setup AWS CLI
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+
+            # Install the SQL Server JDBC driver
+            - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
+            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
+            - unzip ./SqlServerJdbcDriver.zip
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar DB2JccConfiguration.properties
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            - bash Deploy/Master/upload-python-bundle IntelligentPlatform/OrganizationsETL
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - >-
+                bash Deploy/Master/update-functions -e sbx -s AIP -p IntelligentPlatform
+                OrganizationsETL=Organizations.zip
 
 
         ##############################################################
@@ -633,14 +722,19 @@ pipelines:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
+                # Setup AWS CLI
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+
                 # Install the DB2 JDBC driver
-                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
                 - unzip ./Db2JdbcDriver.zip
-                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Install the Informix JDBC driver
-                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
                 - unzip ./InformixJdbcDriver.zip
+                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
@@ -906,14 +1000,19 @@ pipelines:
                 - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
+                # Setup AWS CLI
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+
                 # Install the DB2 JDBC driver
-                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip
+                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
                 - unzip ./Db2JdbcDriver.zip
-                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Install the Informix JDBC driver
-                - wget --no-check-certificate https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip
+                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
                 - unzip ./InformixJdbcDriver.zip
+                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Assume maintenance role
                 - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
@@ -978,16 +1077,19 @@ definitions:
     scheduler-master-update-bundle-dependencies: Environment
     oneview-master-create-database-dependencies: Environment
     oneview-master-update-bundle-dependencies: Environment
+    organizations-master-update-bundle-dependencies: Environment
 
     cpt-dev-update-bundle-dependencies: Environment
     scheduler-dev-update-bundle-dependencies: Environment
     oneview-dev-create-database-dependencies: Environment
     oneview-dev-update-bundle-dependencies: Environment
+    organizations-dev-update-bundle-dependencies: Environment
 
     cpt-test-update-bundle-dependencies: Environment
     scheduler-test-update-bundle-dependencies: Environment
     oneview-test-create-database-dependencies: Environment
     oneview-test-update-bundle-dependencies: Environment
+    organizations-test-update-bundle-dependencies: Environment
 
     cpt-stage-update-bundle-dependencies: Environment
     scheduler-stage-update-bundle-dependencies: Environment
@@ -995,3 +1097,4 @@ definitions:
     cpt-prod-update-bundle-dependencies: Environment
     scheduler-prod-update-bundle-dependencies: Environment
     oneview-prod-update-bundle-dependencies: Environment
+    organizations-prod-update-bundle-dependencies: Environment
