@@ -151,11 +151,11 @@ pipelines:
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
             - export ENVIRONMENT=sbx
-            -  >-
+            - >-
                 bash Deploy/Master/update-functions -e sbx -s DataLake
-                    Scheduler=Scheduler.zip
-                    DAGProcessor=Scheduler.zip
-                    TaskProcessor=Scheduler.zip
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
 
         OneView-master:
         - parallel:
