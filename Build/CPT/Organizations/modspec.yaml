@@ -36,7 +36,7 @@ modspec:
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.jdbc
-    - package: datalabs.etl.cpt.organization
+  - package: datalabs.etl.cpt.organization
   - package: datalabs.etl.orm
   - package: datalabs.etl.s3
   - package: datalabs.messaging
