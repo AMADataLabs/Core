@@ -4,7 +4,7 @@ set -e
 
 ENVIRONMENT=
 BASE_PATH=
-LAMBDAS=
+LAMBDAS=()
 STACK=
 CODE_BUCKET=
 
@@ -39,7 +39,7 @@ process_arguments() {
             shift
             ;;
         *)
-            LAMBDAS="$LAMBDAS\n$1"
+            LAMBDAS+=($1)
             shift
             ;;
       esac
@@ -70,10 +70,9 @@ print_usage() {
 }
 
 update_lambdas() {
-    for LAMBDA in ${LAMBDAS}; do
-        LAMBDA=${LAMBDA//\\n/}
-        FUNCTION=${STACK}-${ENVIRONMENT}-${LAMBDA//=..*/}
-        ARTIFACT=${LAMBDA//[^=]+=/}
+    for LAMBDA in ${LAMBDAS[@]}; do
+        FUNCTION=${STACK}-${ENVIRONMENT}-${LAMBDA//=*/}
+        ARTIFACT=${LAMBDA/*=}
 
         if [[ "$BASE_PATH" != "" ]]; then
             ARTIFACT=${BASE_PATH}/${ARTIFACT}
