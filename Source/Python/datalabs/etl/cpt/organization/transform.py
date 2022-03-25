@@ -1,4 +1,5 @@
-""" Oneview Residency Transformer"""
+""" Transformer to convert raw CPT licensed organizations list to a curated organization list for
+frictionless licensing front-end validation"""
 from   dataclasses import dataclass
 import logging
 
@@ -28,6 +29,6 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
 
         frictionless_licensing_organizations = frictionless_licensing_organizations.drop_duplicates()
 
-        frictionless_licensing_organizations["id"] = [i for i in range(len(frictionless_licensing_organizations))]
+        frictionless_licensing_organizations["id"] = range(len(frictionless_licensing_organizations))
 
         return [self._dataframe_to_csv(frictionless_licensing_organizations)]
