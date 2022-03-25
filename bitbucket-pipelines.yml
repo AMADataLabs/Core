@@ -265,8 +265,8 @@ pipelines:
 
             # Install the SQL Server JDBC driver
             - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
-            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
             - unzip ./SqlServerJdbcDriver.zip
+            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
 
             # Create the code bundle
             - export ENABLE_FEATURE_DEV=True
