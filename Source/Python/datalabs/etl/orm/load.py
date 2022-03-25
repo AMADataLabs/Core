@@ -60,6 +60,8 @@ class ORMLoaderTask(LoaderTask):
 
     def _load(self):
         LOGGER.info(self._parameters)
+        self._assert_backend_is_supported(self._parameters.database_backend)
+
         model_classes = self._get_model_classes()
         data = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
 
@@ -82,6 +84,11 @@ class ORMLoaderTask(LoaderTask):
                 password=self._parameters.database_password
             )
         )
+    @classmethod
+    def _assert_backend_is_supported(cls, backend):
+        if not backend.startswith("postgresql") and \
+           not backend.startswith("mysql"):
+            raise ValueError(f"SQLAlchemy backend '{backend}' is not supported.")
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
@@ -110,12 +117,13 @@ class ORMLoaderTask(LoaderTask):
     def _get_schema(cls, model_class):
         schema = None
 
-        if hasattr(model_class.__table_args__, 'get'):
-            schema = model_class.__table_args__.get('schema')
-        else:
-            for arg in model_class.__table_args__:
-                if hasattr(arg, 'get') and 'schema' in arg:
-                    schema = arg.get('schema')
+        if hasattr(model_class, "__table_args__"):
+            if hasattr(model_class.__table_args__, 'get'):
+                schema = model_class.__table_args__.get('schema')
+            else:
+                for arg in model_class.__table_args__:
+                    if hasattr(arg, 'get') and 'schema' in arg:
+                        schema = arg.get('schema')
 
         return schema
 
@@ -131,23 +139,40 @@ class ORMLoaderTask(LoaderTask):
 
             self._add_data(database, table_parameters)
 
-    @classmethod
-    def _get_primary_key(cls, database, schema, table):
-        query = "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i " \
-                "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
-                f"WHERE  i.indrelid = '{schema}.{table}'::regclass AND i.indisprimary"
+    def _get_primary_key(self, database, schema, table):
+        query = None
+
+        if schema:
+            table = f'{schema}.{table}'
+
+        if self._parameters.database_backend.startswith("postgresql"):
+            query = "SELECT a.attname AS Column_name, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i " \
+                    "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
+                    f"WHERE  i.indrelid = '{table}'::regclass AND i.indisprimary"
+        elif self._parameters.database_backend.startswith("mysql"):
+            query = f"SHOW KEYS FROM {table} WHERE Key_name = 'PRIMARY'"
 
         primary_key_table = database.read(query)
 
-        return primary_key_table['attname'][0]
+        return primary_key_table["Column_name"][0]
 
-    @classmethod
-    def _get_database_columns(cls, database, schema, table):
+    def _get_database_columns(self, database, schema, table):
+        schema_clause = ""
+        key_column = None
+
+        if schema:
+            schema_clause = f"table_schema = '{schema}' AND "
+
         query = "SELECT * FROM information_schema.columns " \
-                f"WHERE table_schema = '{schema}' AND table_name = '{table}';"
+                f"WHERE {schema_clause}table_name = '{table}';"
         column_data = database.read(query)
 
-        columns = column_data.column_name.to_list()
+        if self._parameters.database_backend.startswith("postgresql"):
+            key_column = "column_name"
+        elif self._parameters.database_backend.startswith("mysql"):
+            key_column = "COLUMN_NAME"
+
+        columns = column_data[key_column].to_list()
         LOGGER.debug('Columns in table %s.%s: %s', schema, table, columns)
 
         return columns
@@ -164,10 +189,17 @@ class ORMLoaderTask(LoaderTask):
         return hash_columns
 
     # pylint: disable=too-many-arguments
-    @classmethod
-    def _get_current_row_hashes(cls, database, schema, table, primary_key, columns):
-        columns = [cls._quote_keyword(column) for column in columns]
-        get_current_hash = f"SELECT {primary_key}, md5(({','.join(columns)})::TEXT) FROM {schema}.{table}"
+    def _get_current_row_hashes(self, database, schema, table, primary_key, columns):
+        get_current_hash = None
+        if schema:
+            table = f'{schema}.{table}'
+
+        columns = [self._quote_keyword(column) for column in columns]
+
+        if self._parameters.database_backend.startswith("postgresql"):
+            get_current_hash = f"SELECT {primary_key}, md5(({','.join(columns)})::TEXT) as md5 FROM {table}"
+        elif self._parameters.database_backend.startswith("mysql"):
+            get_current_hash = f"SELECT {primary_key}, MD5(CONCAT({','.join(columns)})) as md5 FROM {table}"
 
         current_hashes = database.read(get_current_hash).astype(str)
         LOGGER.debug('Current Row Hashes: %s', current_hashes)

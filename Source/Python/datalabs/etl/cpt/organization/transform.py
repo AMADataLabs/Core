@@ -22,8 +22,12 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
     def _transform(self):
         licensed_organizations = self._csv_to_dataframe(self._parameters.data[0])
 
-        frictionless_licensing_organizations = licensed_organizations[["OrganizationsUniqueID", "licensee"]].rename(
-            columns=dict(OrganizationsUniqueID='id', licensee='name')
+        frictionless_licensing_organizations = licensed_organizations[["licensee"]].rename(
+            columns=dict(licensee='name')
         )
+
+        frictionless_licensing_organizations = frictionless_licensing_organizations.drop_duplicates()
+
+        frictionless_licensing_organizations["id"] = [i for i in range(len(frictionless_licensing_organizations))]
 
         return [self._dataframe_to_csv(frictionless_licensing_organizations)]
