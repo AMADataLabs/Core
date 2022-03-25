@@ -120,7 +120,6 @@ pipelines:
                     Authorizer=ETL.zip
                     Endpoint=ETL.zip
                     ETL=ETL.zip
-                    HCPCSDAG=ETL.zip
                     BulkAuthorizer=ETL.zip
                     BulkEndpoint=ETL.zip
 
@@ -310,7 +309,7 @@ pipelines:
             - >-
                 bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava
                 HelloWorldJavaDAG=DAG.zip
-                HelloWorldJavaTask=Task.zip
+                HelloWorldJavaTask=Task.jar
 
         ContactID-master:
         - step:
@@ -387,7 +386,6 @@ pipelines:
                 Authorizer=ETL.zip
                 Endpoint=ETL.zip
                 ETL=ETL.zip
-                HCPCSDAG=ETL.zip
                 BulkAuthorizer=ETL.zip
                 BulkEndpoint=ETL.zip
 
@@ -578,7 +576,6 @@ pipelines:
                 Authorizer=ETL.zip
                 Endpoint=ETL.zip
                 ETL=ETL.zip
-                HCPCSDAG=ETL.zip
                 BulkAuthorizer=ETL.zip
                 BulkEndpoint=ETL.zip
 
@@ -744,7 +741,6 @@ pipelines:
                 Authorizer=ETL.zip
                 Endpoint=ETL.zip
                 ETL=ETL.zip
-                HCPCSDAG=ETL.zip
                 BulkAuthorizer=ETL.zip
                 BulkEndpoint=ETL.zip
 
@@ -841,7 +837,6 @@ pipelines:
                 Authorizer=ETL.zip
                 Endpoint=ETL.zip
                 ETL=ETL.zip
-                HCPCSDAG=ETL.zip
                 BulkAuthorizer=ETL.zip
                 BulkEndpoint=ETL.zip
 
