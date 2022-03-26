@@ -49,12 +49,11 @@ class DAGTaskWrapper(
     datalabs.etl.dag.task.DAGTaskWrapper
 ):
     PARAMETER_CLASS = DAGTaskWrapperParameters
-    DAG_PARAMETERS = None
 
     def _get_runtime_parameters(self, parameters):
         command_line_parameters = super()._get_runtime_parameters(parameters)
         LOGGER.info('Event Parameters: %s', parameters)
-        runtime_parameters = self._get_dag_parameters()
+        runtime_parameters = self._get_dag_parameters(command_line_parameters["dag"].upper())
 
         runtime_parameters.update(command_line_parameters)
 
@@ -62,32 +61,34 @@ class DAGTaskWrapper(
 
     def _pre_run(self):
         super()._pre_run()
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        execution_time = self._get_execution_time()
 
-        parameters = self._get_task_wrapper_parameters()
+        if task != "DAG":
+            state = self._get_plugin(self._runtime_parameters["DAG_STATE_CLASS"], self._runtime_parameters)
 
-        if parameters.task != "DAG":
-            state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
-
-            state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.RUNNING)
+            state.set_task_status(dag, task, execution_time, Status.RUNNING)
 
     def _handle_success(self) -> (int, dict):
         super()._handle_success()
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        execution_time = self._get_execution_time()
 
-        parameters = self._get_task_wrapper_parameters()
-
-        if parameters.task == "DAG":
+        if task == "DAG":
             for task in self.task.triggered_tasks:
                 self._notify_task_processor(task)
 
             if self.task.status in [Status.FINISHED, Status.FAILED]:
                 self._send_status_notification()
         else:
-            state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
+            state = self._get_plugin(self._runtime_parameters["DAG_STATE_CLASS"], self._runtime_parameters)
 
-            success = state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FINISHED)
+            success = state.set_task_status(dag, task, execution_time, Status.FINISHED)
 
             if not success:
-                LOGGER.error('Unable to set status of task %s of dag %s to Finished', parameters.task, parameters.dag)
+                LOGGER.error('Unable to set status of task %s of dag %s to Finished', task, dag)
 
             self._notify_dag_processor()
 
@@ -95,16 +96,17 @@ class DAGTaskWrapper(
 
     def _handle_exception(self, exception) -> (int, dict):
         super()._handle_exception(exception)
+        dag = self._get_dag_id()
+        task = self._get_task_id()
+        execution_time = self._get_execution_time()
 
-        parameters = self._get_task_wrapper_parameters()
+        if task != "DAG":
+            state = self._get_plugin(self._runtime_parameters["DAG_STATE_CLASS"], self._runtime_parameters)
 
-        if parameters.task != "DAG":
-            state = self._get_plugin(self.DAG_PARAMETERS["DAG_STATE_CLASS"], parameters)
-
-            success = state.set_task_status(parameters.dag, parameters.task, parameters.execution_time, Status.FAILED)
+            success = state.set_task_status(dag, task, execution_time, Status.FAILED)
 
             if not success:
-                LOGGER.error('Unable to set status of task %s of dag %s to Failed', parameters.task, parameters.dag)
+                LOGGER.error('Unable to set status of task %s of dag %s to Failed', task, dag)
 
             self._notify_dag_processor()
 
@@ -116,8 +118,7 @@ class DAGTaskWrapper(
 
         return f'Failed: {str(exception)}'
 
-    def _get_dag_parameters(self):
-        dag = self._get_dag_id()
+    def _get_dag_parameters(self, dag):
         LOGGER.debug('Getting DAG Parameters for %s...', dag)
         dag_parameters = self._get_dag_task_parameters_from_dynamodb(dag, "DAG")
         LOGGER.debug('Raw DAG Parameters: %s', dag_parameters)
@@ -165,7 +166,7 @@ class DAGTaskWrapper(
             notifier.notify(self._get_dag_id(), self._get_execution_time(), self.task.status)
 
     def _override_runtime_parameters(self, task_parameters):
-        for name, value in task_parameters.iteritems():
+        for name, value in list(task_parameters.items()):
             if name in self._runtime_parameters:
                 self._runtime_parameters[name] = value
                 task_parameters.pop(name)

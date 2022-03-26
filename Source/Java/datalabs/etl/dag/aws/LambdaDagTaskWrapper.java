@@ -22,7 +22,7 @@ public class LambdaDagTaskWrapper extends AwsDagTaskWrapper {
         }
 
         HashMap<String, String> runtimeParameters = new HashMap<String, String>() {{
-            putAll(getDagParameters(parameters));
+            putAll(getDagParameters(parameters.get("dag")));
             putAll(parameters);
         }};
 

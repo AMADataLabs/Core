@@ -34,7 +34,7 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
         Map<String, String> commandLineParameters = super.getRuntimeParameters(parameters);
 
         HashMap<String, String> runtimeParameters = new HashMap<String, String>() {{
-            putAll(getDagParameters(commandLineParameters));
+            putAll(getDagParameters(commandLineParameters.get("dag")));
             putAll(commandLineParameters);
         }};
 
@@ -81,8 +81,8 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
         return dagTaskParameters;
     }
 
-    protected Map<String, String> getDagParameters(Map<String, String> taskWrapperParameters) {
-        Map<String, String> dagParameters = getDagTaskParametersFromDynamoDb(taskWrapperParameters.get("dag"), "DAG");
+    protected Map<String, String> getDagParameters(String dag) {
+        Map<String, String> dagParameters = getDagTaskParametersFromDynamoDb(dag, "DAG");
 
         return dagParameters;
     }
