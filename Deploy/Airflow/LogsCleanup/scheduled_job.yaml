@@ -19,7 +19,7 @@ spec:
             - -rf
             - /home/airflow/shared/scheduler/`date "+%Y-%m*"`
             volumeMounts:
-            - name: shared:
+            - name: shared
               mountPath: /home/airflow/shared
           restartPolicy: Never
           volumes:
