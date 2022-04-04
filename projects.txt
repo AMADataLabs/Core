@@ -1,3 +1,0 @@
-CPT
-OneView
-Scheduler

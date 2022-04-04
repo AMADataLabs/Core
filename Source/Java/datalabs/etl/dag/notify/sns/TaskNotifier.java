@@ -1,4 +1,4 @@
-package datalabs.etl.dag.notify;
+package datalabs.etl.dag.notify.sns;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -12,19 +12,19 @@ import datalabs.parameter.Parameters;
 import datalabs.plugin.PluginImporter;
 
 
-public class SnsDagNotifier {
+public class TaskNotifier {
     String topicArn;
 
-    public SnsDagNotifier(String topicArn) {
+    public TaskNotifier(String topicArn) {
         this.topicArn = topicArn;
     }
 
-    public void notify(String dag, String executionTime) {
+    public void notify(String dag, String task, String executionTime) {
         SnsClient sns = SnsClient.builder().build();
         PublishRequest request = PublishRequest.builder().targetArn(
             this.topicArn
         ).message(
-            "{\"dag\": \"" + dag + "\", \"execution_time\": \"" + executionTime + "\"}"
+            "{\"dag\": \"" + dag + "\", \"dag\": \"" + task + "\", \"execution_time\": \"" + executionTime + "\"}"
         ).build();
 
         sns.publish(request);

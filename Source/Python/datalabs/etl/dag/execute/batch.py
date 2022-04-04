@@ -102,6 +102,8 @@ class BatchJavaTaskExecutorTask(Task):
                     "java",
                     "datalabs.tool.TaskRunner",
                     "--arg",
+                    "java",
+                    "--arg",
                     f"{self._parameters.dag}__{self._parameters.task}__{execution_time}"
                 ]
             )

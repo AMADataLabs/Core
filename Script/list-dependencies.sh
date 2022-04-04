@@ -28,7 +28,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 : "${CI_DEPENDENCIES_FILE:=.ci/dependencies.txt}"
 
 # Look for dependecies of each project
-for PROJECT in $(${DIR}/list-projects.sh); do
+for PROJECT in $(cat ${DIR}/../.ci/projects.txt); do
 
     # If project contain `includeBuild` function in any of it's *.gradle file
     # then there is dependency on included project
