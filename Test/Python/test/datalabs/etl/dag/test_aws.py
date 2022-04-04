@@ -1,12 +1,14 @@
 ''' Source: datalabs.etl.dag.aws '''
-import mock
 import os
+
+import mock
 
 import pytest
 
 from   datalabs.etl.dag.aws import DAGTaskWrapper
 
 
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_runtime_parameters_are_combined(args, environment, dag_parameters, expected_runtime_parameters):
     with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
             as _get_dag_task_parameters_from_dynamodb:
@@ -18,6 +20,7 @@ def test_runtime_parameters_are_combined(args, environment, dag_parameters, expe
         assert runtime_parameters == expected_runtime_parameters
 
 
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_parameters_override_runtime_parameters(args, environment, dag_parameters, task_parameters):
     with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
             as _get_dag_task_parameters_from_dynamodb:
