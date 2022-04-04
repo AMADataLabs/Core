@@ -16,6 +16,7 @@ from datalabs.parameter import add_schema
 # pylint: disable=too-many-instance-attributes
 class AMCAddressFlaggingTransformerParameters:
     data: list
+    execution_time: str
 
 
 # pylint: disable=no-self-use
