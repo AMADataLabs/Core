@@ -5,6 +5,7 @@ jinja2==2.11.3
 json5==0.8.5
 JayDeBeApi==1.1.1
 JPype1==0.6.3
+MarkupSafe==1.1.1  # pinned for compatibility with jinja2
 marshmallow==3.10.0
 minio==6.0.0
 mock==4.0.2
