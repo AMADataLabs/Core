@@ -1,0 +1,28 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: airflow-logs-cleanup
+spec:
+  schedule: "0 11 * * 1"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: airflow-logs-cleanup
+            image: ubi8/python-38
+            imagePullPolicy: IfNotPresent
+            command:
+            - rm
+            args:
+            - -rf
+            - /home/airflow/shared/scheduler/`date "+%Y-%m*"`
+            volumeMounts:
+            - name: shared:
+              mountPath: /home/airflow/shared
+          restartPolicy: Never
+          volumes:
+          - name: shared
+            persistentVolumeClaim:
+              claimName: hsg-data-labs-airflow-shared
