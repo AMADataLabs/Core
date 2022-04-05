@@ -789,6 +789,56 @@ pipelines:
             - export ENVIRONMENT=tst
             - bash --rcfile assume_role.rc -i Deploy/OneView/update-functions
 
+        Organizations-test:
+        - step:
+            name: Update ETL Bundle
+            caches:
+                - organizations-test-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+            # Setup AWS CLI
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+
+            # Install the SQL Server JDBC driver
+            - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
+            - unzip ./SqlServerJdbcDriver.zip
+            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle IntelligentPlatform/OrganizationsETL
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP -p IntelligentPlatform
+                OrganizationsETL=Organizations.zip
+
 
         ##############################################################
         # stage branch targets
@@ -1066,6 +1116,56 @@ pipelines:
             - export ENABLE_FEATURE_PROD=True
             - export ENVIRONMENT=prd
             - bash --rcfile assume_role.rc -i Deploy/OneView/update-functions
+
+        Organizations-prod:
+        - step:
+            name: Update ETL Bundle
+            caches:
+                - organizations-prod-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+            # Setup AWS CLI
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+
+            # Install the SQL Server JDBC driver
+            - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
+            - unzip ./SqlServerJdbcDriver.zip
+            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle IntelligentPlatform/OrganizationsETL
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
+                OrganizationsETL=Organizations.zip
 
 definitions:
   caches:
