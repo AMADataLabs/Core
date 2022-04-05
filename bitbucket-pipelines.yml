@@ -811,7 +811,7 @@ pipelines:
             - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
 
             # Create the code bundle
-            - export ENABLE_FEATURE_DEV=True
+            - export ENABLE_FEATURE_TEST=True
             - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar
 
             # Assume maintenance role
@@ -1139,7 +1139,7 @@ pipelines:
             - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
 
             # Create the code bundle
-            - export ENABLE_FEATURE_DEV=True
+            - export ENABLE_FEATURE_PROD=True
             - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar
 
             # Assume maintenance role
@@ -1147,10 +1147,10 @@ pipelines:
             - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
 
             # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
             - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle IntelligentPlatform/OrganizationsETL
         - step:
             name: Update Lambda Functions
@@ -1160,11 +1160,11 @@ pipelines:
             - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
 
             # Update Lambda functions
             - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP -p IntelligentPlatform
                 OrganizationsETL=OrganizationsETL.zip
 
 definitions:
