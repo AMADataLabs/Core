@@ -617,7 +617,7 @@ pipelines:
             # Update Lambda functions
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
-                OrganizationsETL=Organizations.zip
+                OrganizationsETL=OrganizationsETL.zip
 
 
         ##############################################################
@@ -837,7 +837,7 @@ pipelines:
             # Update Lambda functions
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP -p IntelligentPlatform
-                OrganizationsETL=Organizations.zip
+                OrganizationsETL=OrganizationsETL.zip
 
 
         ##############################################################
@@ -1165,7 +1165,7 @@ pipelines:
             # Update Lambda functions
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
-                OrganizationsETL=Organizations.zip
+                OrganizationsETL=OrganizationsETL.zip
 
 definitions:
   caches:
