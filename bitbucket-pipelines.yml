@@ -96,7 +96,45 @@ pipelines:
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/upload-python-bundle AMC
+            - bash Deploy/Master/upload-python-bundle Masterfile/AMC
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - export ENVIRONMENT=sbx
+            - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AMC=AMC.zip
+
+        ContactID-master:
+        - step:
+            name: Update Bundle
+            caches:
+            - contactid-master-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - bash Deploy/Master/create-python-bundle ContactID
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+            - bash Deploy/Master/upload-python-bundle ContactID
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - export ENVIRONMENT=sbx
+            - bash Deploy/Master/update-functions -e sbx -s DataLake -p CustomerIntelligence ContactID=ContactID.zip
 
         CPT-master:
         - parallel:
@@ -154,25 +192,62 @@ pipelines:
                     BulkAuthorizer=ETL.zip
                     BulkEndpoint=ETL.zip
 
-        Scheduler-master:
-        - step:
-            name: Update Bundle
-            caches:
-            - scheduler-master-update-bundle-dependencies
-            script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+        HelloWorldJava-master:
+        - parallel:
+            - step:
+                name: Update DAG Bundle
+                caches:
+                - scheduler-master-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
 
-            # Create the code bundle
-            - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - bash Deploy/Master/create-python-bundle Scheduler
+                # Create the code bundle
+                - export ENABLE_FEATURE_DEV=True
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+                - bash Deploy/Master/create-python-bundle HelloWorldJava/DAG
 
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/upload-python-bundle Scheduler
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+                - bash Deploy/Master/upload-python-bundle HelloWorldJava/DAG
+            - step:
+                name: Update Task Bundle
+                caches:
+                - scheduler-master-update-bundle-dependencies
+                script:
+                # Setup virtual environment
+                - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+                # Copy Log4j Configuration
+                - cp Build/HelloWorldJava/Task/log4j2.xml ./log4j2.xml
+
+                # Create the code bundle
+                - export ENABLE_FEATURE_DEV=True
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_DEFAULT_REGION='us-east-1'
+                - bash Deploy/Master/create-java-bundle HelloWorldJava/Task log4j2.xml
+
+                # Upload the code bundle
+                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+                - bash Deploy/Master/upload-java-bundle HelloWorldJava/Task
+
+                # Create the Docker image
+                - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
+                - cp Bundle/target/hello_world_java-${VERSION}.jar ./hello_world_java.jar
+                - docker build -t hello_world_java-sbx -f Build/HelloWorldJava/Task/Dockerfile ./
+
+                # Push the Docker image to ECR
+                - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
+                - pipe: atlassian/aws-ecr-push-image:1.5.0
+                  variables:
+                    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
+                    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                    AWS_DEFAULT_REGION: 'us-east-1'
+                    IMAGE_NAME: 'hello_world_java-sbx'
+                    TAGS: '$VERSION latest'
         - step:
             name: Update Lambda Functions
             script:
@@ -182,10 +257,9 @@ pipelines:
             - export AWS_DEFAULT_REGION='us-east-1'
             - export ENVIRONMENT=sbx
             - >-
-                bash Deploy/Master/update-functions -e sbx -s DataLake
-                Scheduler=Scheduler.zip
-                DAGProcessor=Scheduler.zip
-                TaskProcessor=Scheduler.zip
+                bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava
+                HelloWorldJavaDAG=DAG.zip
+                HelloWorldJavaTask=Task.jar
 
         OneView-master:
         - parallel:
@@ -307,80 +381,11 @@ pipelines:
             - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
             - bash Deploy/Master/upload-python-bundle IntelligentPlatform/OrganizationsETL
 
-        HelloWorldJava-master:
-        - parallel:
-            - step:
-                name: Update DAG Bundle
-                caches:
-                - scheduler-master-update-bundle-dependencies
-                script:
-                # Setup virtual environment
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-                # Create the code bundle
-                - export ENABLE_FEATURE_DEV=True
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-python-bundle HelloWorldJava/DAG
-
-                # Upload the code bundle
-                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-python-bundle HelloWorldJava/DAG
-            - step:
-                name: Update Task Bundle
-                caches:
-                - scheduler-master-update-bundle-dependencies
-                script:
-                # Setup virtual environment
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-                # Copy Log4j Configuration
-                - cp Build/HelloWorldJava/Task/log4j2.xml ./log4j2.xml
-
-                # Create the code bundle
-                - export ENABLE_FEATURE_DEV=True
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-java-bundle HelloWorldJava/Task log4j2.xml
-
-                # Upload the code bundle
-                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-java-bundle HelloWorldJava/Task
-
-                # Create the Docker image
-                - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
-                - cp Bundle/target/hello_world_java-${VERSION}.jar ./hello_world_java.jar
-                - docker build -t hello_world_java-sbx -f Build/HelloWorldJava/Task/Dockerfile ./
-
-                # Push the Docker image to ECR
-                - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
-                - pipe: atlassian/aws-ecr-push-image:1.5.0
-                  variables:
-                    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-                    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
-                    AWS_DEFAULT_REGION: 'us-east-1'
-                    IMAGE_NAME: 'hello_world_java-sbx'
-                    TAGS: '$VERSION latest'
-        - step:
-            name: Update Lambda Functions
-            script:
-            - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - export ENVIRONMENT=sbx
-            - >-
-                bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava
-                HelloWorldJavaDAG=DAG.zip
-                HelloWorldJavaTask=Task.jar
-
-        ContactID-master:
+        Scheduler-master:
         - step:
             name: Update Bundle
             caches:
-            - contactid-master-update-bundle-dependencies
+            - scheduler-master-update-bundle-dependencies
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -390,11 +395,11 @@ pipelines:
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
-            - bash Deploy/Master/create-python-bundle ContactID
+            - bash Deploy/Master/create-python-bundle Scheduler
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/upload-python-bundle ContactID
+            - bash Deploy/Master/upload-python-bundle Scheduler
         - step:
             name: Update Lambda Functions
             script:
@@ -403,7 +408,11 @@ pipelines:
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
             - export ENVIRONMENT=sbx
-            - bash Deploy/Master/update-functions -e sbx -s DataLake ContactID=ContactID.zip
+            - >-
+                bash Deploy/Master/update-functions -e sbx -s DataLake
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
 
 
         ##############################################################
@@ -453,48 +462,6 @@ pipelines:
                 ETL=ETL.zip
                 BulkAuthorizer=ETL.zip
                 BulkEndpoint=ETL.zip
-
-        Scheduler-dev:
-        - step:
-            name: Update Bundle
-            caches:
-                - scheduler-dev-update-bundle-dependencies
-            script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_DEV=True
-            - bash Deploy/Master/create-python-bundle Scheduler
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
-        - step:
-            name: Update Lambda Functions
-            script:
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
-
-            # Update Lambda functions
-            - export ENABLE_FEATURE_DEV=True
-            - export ENVIRONMENT=dev
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
-                Scheduler=Scheduler.zip
-                DAGProcessor=Scheduler.zip
-                TaskProcessor=Scheduler.zip
 
         OneView-dev:
         - parallel:
@@ -650,6 +617,48 @@ pipelines:
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
                 OrganizationsETL=OrganizationsETL.zip
 
+        Scheduler-dev:
+        - step:
+            name: Update Bundle
+            caches:
+                - scheduler-dev-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - bash Deploy/Master/create-python-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_DEV=True
+            - export ENVIRONMENT=dev
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
+
 
         ##############################################################
         # test branch targets
@@ -698,48 +707,6 @@ pipelines:
                 ETL=ETL.zip
                 BulkAuthorizer=ETL.zip
                 BulkEndpoint=ETL.zip
-
-        Scheduler-test:
-        - step:
-            name: Update Bundle
-            caches:
-                - scheduler-test-update-bundle-dependencies
-            script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_TEST=True
-            - bash Deploy/Master/create-python-bundle Scheduler
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
-        - step:
-            name: Update Lambda Functions
-            script:
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
-
-            # Update Lambda functions
-            - export ENABLE_FEATURE_TEST=True
-            - export ENVIRONMENT=tst
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
-                Scheduler=Scheduler.zip
-                DAGProcessor=Scheduler.zip
-                TaskProcessor=Scheduler.zip
 
         OneView-test:
         - parallel:
@@ -869,6 +836,48 @@ pipelines:
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP -p IntelligentPlatform
                 OrganizationsETL=OrganizationsETL.zip
+
+        Scheduler-test:
+        - step:
+            name: Update Bundle
+            caches:
+                - scheduler-test-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_TEST=True
+            - bash Deploy/Master/create-python-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_TEST=True
+            - export ENVIRONMENT=tst
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
 
 
         ##############################################################
@@ -1015,54 +1024,6 @@ pipelines:
                 BulkAuthorizer=ETL.zip
                 BulkEndpoint=ETL.zip
 
-        Scheduler-prod:
-        - step:
-            name: Send Deployment Request
-            script:
-            - echo "A Scheduler deployment has been triggered via BitBucket Pipelines. Please run the Scheduler-production target if you approve."
-
-        Scheduler-production:
-        - step:
-            name: Update Bundle
-            caches:
-                - scheduler-prod-update-bundle-dependencies
-            script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_PROD=True
-            - bash Deploy/Master/create-python-bundle Scheduler
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
-        - step:
-            name: Update Lambda Functions
-            script:
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
-
-            # Update Lambda functions
-            - export ENABLE_FEATURE_PROD=True
-            - export ENVIRONMENT=prd
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake
-                Scheduler=Scheduler.zip
-                DAGProcessor=Scheduler.zip
-                TaskProcessor=Scheduler.zip
-
         OneView-prod:
         - step:
             name: Send Deployment Request
@@ -1204,36 +1165,84 @@ pipelines:
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP -p IntelligentPlatform
                 OrganizationsETL=OrganizationsETL.zip
 
+        Scheduler-prod:
+        - step:
+            name: Send Deployment Request
+            script:
+            - echo "A Scheduler deployment has been triggered via BitBucket Pipelines. Please run the Scheduler-production target if you approve."
+
+        Scheduler-production:
+        - step:
+            name: Update Bundle
+            caches:
+                - scheduler-prod-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_PROD=True
+            - bash Deploy/Master/create-python-bundle Scheduler
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
+            - bash --rcfile assume_role.rc -i Deploy/Master/upload-python-bundle Scheduler
+        - step:
+            name: Update Lambda Functions
+            script:
+            # Assume maintenance role
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.region us-east-1
+            - aws configure set profile.apigw.output json
+            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+
+            # Update Lambda functions
+            - export ENABLE_FEATURE_PROD=True
+            - export ENVIRONMENT=prd
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake
+                Scheduler=Scheduler.zip
+                DAGProcessor=Scheduler.zip
+                TaskProcessor=Scheduler.zip
+
 definitions:
   caches:
     build-dependencies: Environment
     test-dependencies: Environment
 
+    amc-master-update-bundle-dependencies: Environment
+    contactid-master-update-bundle-dependencies: Environment
     cpt-master-create-database-dependencies: Environment
     cpt-master-update-bundle-dependencies: Environment
-    scheduler-master-update-bundle-dependencies: Environment
     oneview-master-create-database-dependencies: Environment
     oneview-master-update-bundle-dependencies: Environment
-    contactid-master-update-bundle-dependencies: Environment
     organizations-master-update-bundle-dependencies: Environment
-    amc-master-update-bundle-dependencies: Environment
+    scheduler-master-update-bundle-dependencies: Environment
 
     cpt-dev-update-bundle-dependencies: Environment
-    scheduler-dev-update-bundle-dependencies: Environment
     oneview-dev-create-database-dependencies: Environment
     oneview-dev-update-bundle-dependencies: Environment
     organizations-dev-update-bundle-dependencies: Environment
+    scheduler-dev-update-bundle-dependencies: Environment
 
     cpt-test-update-bundle-dependencies: Environment
-    scheduler-test-update-bundle-dependencies: Environment
     oneview-test-create-database-dependencies: Environment
     oneview-test-update-bundle-dependencies: Environment
     organizations-test-update-bundle-dependencies: Environment
+    scheduler-test-update-bundle-dependencies: Environment
 
     cpt-stage-update-bundle-dependencies: Environment
     scheduler-stage-update-bundle-dependencies: Environment
 
     cpt-prod-update-bundle-dependencies: Environment
-    scheduler-prod-update-bundle-dependencies: Environment
     oneview-prod-update-bundle-dependencies: Environment
     organizations-prod-update-bundle-dependencies: Environment
+    scheduler-prod-update-bundle-dependencies: Environment
