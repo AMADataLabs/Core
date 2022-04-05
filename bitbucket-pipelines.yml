@@ -1119,6 +1119,12 @@ pipelines:
 
         Organizations-prod:
         - step:
+            name: Send Deployment Request
+            script:
+            - echo "A Organizations deployment has been triggered via BitBucket Pipelines. Please run the Organizations-production target if you approve."
+
+        Organizations-production:
+        - step:
             name: Update ETL Bundle
             caches:
                 - organizations-prod-update-bundle-dependencies
