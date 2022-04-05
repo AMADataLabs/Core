@@ -67,6 +67,37 @@ pipelines:
         # master branch targets
         ##############################################################
 
+        AMC-master:
+        - step:
+            name: Update ETL Bundle
+            caches:
+                - amc-master-update-bundle-dependencies
+            script:
+            # Setup virtual environment
+            - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            - export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+            # Setup AWS CLI
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+
+            # Install the Informix JDBC driver
+            - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
+            - unzip ./InformixJdbcDriver.zip
+
+            # Create the code bundle
+            - export ENABLE_FEATURE_DEV=True
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_DEFAULT_REGION='us-east-1'
+            - bash Deploy/Master/create-python-bundle AMC jdbc-4.50.4.1.jar bson-4.2.0.jar
+
+            # Upload the code bundle
+            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+            - bash Deploy/Master/upload-python-bundle AMC
+
         CPT-master:
         - parallel:
             # - step:
@@ -349,7 +380,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-            - scheduler-master-update-bundle-dependencies
+            - contactid-master-update-bundle-dependencies
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -1183,7 +1214,9 @@ definitions:
     scheduler-master-update-bundle-dependencies: Environment
     oneview-master-create-database-dependencies: Environment
     oneview-master-update-bundle-dependencies: Environment
+    contactid-master-update-bundle-dependencies: Environment
     organizations-master-update-bundle-dependencies: Environment
+    amc-master-update-bundle-dependencies: Environment
 
     cpt-dev-update-bundle-dependencies: Environment
     scheduler-dev-update-bundle-dependencies: Environment
