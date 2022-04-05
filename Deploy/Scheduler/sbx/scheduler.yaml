@@ -33,15 +33,13 @@ data:
     DAG_SCHEDULER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     DAG_SCHEDULER__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
     DAG_SCHEDULER__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org'
-    DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
 
     ##########################################################################
     # Task Variables - ({"DAG": {"S": "DAG_SCHEDULER"}, "Task": {"S": "<Task ID>"}})
     ##########################################################################
 
     # DAG Schedule Extractor Variables
-    DAG_SCHEDULER__EXTRACT_SCHEDULE__BUCKET: 'ama-${ENVIRONMENT}-datalake-scheduler-data-us-east-1'
+    DAG_SCHEDULER__EXTRACT_SCHEDULE__BUCKET: 'ama-${ENVIRONMENT}-datalake-scheduler-us-east-1'
     DAG_SCHEDULER__EXTRACT_SCHEDULE__BASE_PATH: ''
     DAG_SCHEDULER__EXTRACT_SCHEDULE__FILES: 'schedule.csv'
     DAG_SCHEDULER__EXTRACT_SCHEDULE__INCLUDE_DATESTAMP: 'False'

@@ -122,6 +122,15 @@ def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execu
 
 
 # pylint: disable=redefined-outer-name, protected-access
+def test_dags_to_run_handles_empty_schedule_nicely(parameters, empty_schedule, target_execution_time):
+    scheduler = DAGSchedulerTask(parameters)
+
+    dags_to_run = scheduler._determine_dags_to_run(empty_schedule, target_execution_time)
+
+    assert len(dags_to_run) == 0
+
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, target_execution_time):
     parameters["data"] = [schedule_csv.encode('utf-8', errors='backslashreplace')]
     scheduler = DAGSchedulerTask(parameters)
@@ -185,5 +194,16 @@ boil_water,*/15 * * * *
 
 
 @pytest.fixture
+def empty_schedule_csv():
+    return """name,schedule
+"""
+
+
+@pytest.fixture
 def schedule(schedule_csv):
     return pandas.read_csv(BytesIO(schedule_csv.encode('utf8')))
+
+
+@pytest.fixture
+def empty_schedule(empty_schedule_csv):
+    return pandas.read_csv(BytesIO(empty_schedule_csv.encode('utf8')))

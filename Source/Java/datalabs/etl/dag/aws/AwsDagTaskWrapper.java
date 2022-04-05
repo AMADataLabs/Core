@@ -1,4 +1,4 @@
-package datalabs.etl.dag.lambda;
+package datalabs.etl.dag.aws;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
@@ -9,28 +9,33 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import datalabs.access.parameter.DynamoDbEnvironmentLoader;
+import datalabs.etl.dag.DagTaskWrapper;
+import datalabs.etl.dag.notify.sns.DagNotifier;
+import datalabs.etl.dag.notify.sns.TaskNotifier;
 import datalabs.etl.dag.state.DagState;
 import datalabs.etl.dag.state.Status;
 import datalabs.plugin.PluginImporter;
 import datalabs.task.Task;
 
 
-public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
-    static final Logger LOGGER = LoggerFactory.getLogger(DagTaskWrapper.class);
+public class AwsDagTaskWrapper extends DagTaskWrapper {
+    static final Logger LOGGER = LoggerFactory.getLogger(AwsDagTaskWrapper.class);
     Map<String, String> taskParameters;
 
-    public DagTaskWrapper(Map<String, String> parameters) {
+    public AwsDagTaskWrapper(Map<String, String> parameters) {
         super(parameters);
+
+        if (System.getenv("DYNAMODB_CONFIG_TABLE") == null) {
+            throw new IllegalArgumentException("DYNAMODB_CONFIG_TABLE environment variable is not set.");
+        }
     }
 
     protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
-        if ("DAG".equals(parameters.get("type"))) {
-            throw new UnsupportedOperationException("DAG processing is not supported in Java.");
-        }
+        Map<String, String> commandLineParameters = super.getRuntimeParameters(parameters);
 
         HashMap<String, String> runtimeParameters = new HashMap<String, String>() {{
-            putAll(getDagParameters(parameters));
-            putAll(parameters);
+            putAll(getDagParameters(commandLineParameters.get("dag")));
+            putAll(commandLineParameters);
         }};
 
         return runtimeParameters;
@@ -69,13 +74,15 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         String task = getTaskId();
         LOGGER.debug("Getting DAG Task Parameters for " + dag + "__" + task);
         Map<String, String> dagTaskParameters = getDagTaskParametersFromDynamoDb(dag, task);
-        LOGGER.debug("DAG Task Parameters: " + dagTaskParameters);
 
+        overrideRuntimeParameters(dagTaskParameters);
+
+        LOGGER.debug("DAG Task Parameters: " + dagTaskParameters);
         return dagTaskParameters;
     }
 
-    protected Map<String, String> getDagParameters(Map<String, String> taskWrapperParameters) {
-        Map<String, String> dagParameters = getDagTaskParametersFromDynamoDb(taskWrapperParameters.get("dag"), "DAG");
+    protected Map<String, String> getDagParameters(String dag) {
+        Map<String, String> dagParameters = getDagTaskParametersFromDynamoDb(dag, "DAG");
 
         return dagParameters;
     }
@@ -103,17 +110,17 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
     }
 
     void notifyTaskProcessor(Task task) {
-        // task_topic = self._runtime_parameters["TASK_TOPIC_ARN"]
-        // notifier = SNSTaskNotifier(task_topic)
-        //
-        // notifier.notify(self._get_dag_id(), task, self._get_execution_time())
+        String topic = this.runtimeParameters.get("TASK_TOPIC_ARN");
+        TaskNotifier notifier = new TaskNotifier(topic);
+
+        notifier.notify(this.getDagId(), this.getTaskId(), this.getExecutionTime());
     }
 
     void notifyDagProcessor() {
-        // dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
-        // notifier = SNSDAGNotifier(dag_topic)
-        //
-        // notifier.notify(self._get_dag_id(), self._get_execution_time())
+        String topic = this.runtimeParameters.get("DAG_TOPIC_ARN");
+        DagNotifier notifier = new DagNotifier(topic);
+
+        notifier.notify(this.getDagId(), this.getExecutionTime());
     }
 
     protected Map<String, String> getDagTaskParametersFromDynamoDb(String dag, String task) {
@@ -126,6 +133,14 @@ public class DagTaskWrapper extends datalabs.etl.dag.DagTaskWrapper {
         );
 
         return loader.load(parameters);
+    }
+
+    protected void overrideRuntimeParameters(Map<String, String> taskParameters) {
+        for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
+            if (this.runtimeParameters.containsKey(key)) {
+                this.runtimeParameters.put(key, taskParameters.remove(key));
+            }
+        }
     }
 
     DagState getDagStatePlugin()
