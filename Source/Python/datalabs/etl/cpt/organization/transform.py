@@ -15,6 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema
 @dataclass
 class LicensedOrganizationsTransformerParameters:
+    execution_time: str
     data: object = None
 
 class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
