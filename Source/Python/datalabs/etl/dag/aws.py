@@ -8,7 +8,7 @@ from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.etl.dag.notify.email import StatusEmailNotifier
 from   datalabs.etl.dag.state import Status
-from   datalabs.etl.dag.plugin import PluginExecutorMixin
+from   datalabs.plugin import import_plugin
 import datalabs.etl.dag.task
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
@@ -45,7 +45,6 @@ class DAGTaskWrapperParameters:
 class DAGTaskWrapper(
     DynamoDBTaskParameterGetterMixin,
     ParameterValidatorMixin,
-    PluginExecutorMixin,
     datalabs.etl.dag.task.DAGTaskWrapper
 ):
     PARAMETER_CLASS = DAGTaskWrapperParameters
@@ -63,7 +62,7 @@ class DAGTaskWrapper(
         execution_time = self._get_execution_time()
 
         if task != "DAG":
-            state = self._get_plugin(self._runtime_parameters["DAG_STATE_CLASS"], self._runtime_parameters)
+            state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
 
             state.set_task_status(dag, task, execution_time, Status.RUNNING)
 
@@ -80,7 +79,7 @@ class DAGTaskWrapper(
             if self.task.status in [Status.FINISHED, Status.FAILED]:
                 self._send_status_notification()
         else:
-            state = self._get_plugin(self._runtime_parameters["DAG_STATE_CLASS"], self._runtime_parameters)
+            state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
 
             success = state.set_task_status(dag, task, execution_time, Status.FINISHED)
 
@@ -98,7 +97,7 @@ class DAGTaskWrapper(
         execution_time = self._get_execution_time()
 
         if task != "DAG":
-            state = self._get_plugin(self._runtime_parameters["DAG_STATE_CLASS"], self._runtime_parameters)
+            state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
 
             success = state.set_task_status(dag, task, execution_time, Status.FAILED)
 
