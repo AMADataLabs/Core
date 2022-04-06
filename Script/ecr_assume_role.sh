@@ -52,7 +52,6 @@ filename=".ecrtoken_$(date +%Y%m%d%H%M%S)"
 
  
 aws_registry_url="${account}.dkr.ecr.${region}.amazonaws.com"
-aws ecr get-login-password --region $region | docker login --username AWS --password-stdin ${aws_registry_url}
 
 echo "unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN" > ${filename}
 echo "export AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"" >> ${filename}
@@ -61,3 +60,4 @@ echo "export AWS_SESSION_TOKEN="$AWS_SESSION_TOKEN"" >> ${filename}
 echo "export AWS_REGION="$region"" >> ${filename}
 echo "export AWS_REGISTRY_URL="${aws_registry_url}"" >> ${filename}
 echo "source ./${filename}"
+echo "aws ecr get-login-password --region $region | docker login --username AWS --password-stdin ${aws_registry_url}"

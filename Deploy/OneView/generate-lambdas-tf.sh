@@ -51,6 +51,7 @@ LAMBDA_DATA=(
     "specialtyByMpaAnnual:20"
     "specialtyByMpa:20"
     "updateDepartment:3"
+    "updateFilter:15"
     "updateGroupUsers:20"
     "updateProfile:3"
     "updateUserDetails:3"

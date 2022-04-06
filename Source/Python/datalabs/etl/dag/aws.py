@@ -52,10 +52,12 @@ class DAGTaskWrapper(
 
     def _get_runtime_parameters(self, parameters):
         command_line_parameters = super()._get_runtime_parameters(parameters)
-        LOGGER.info('Event Parameters: %s', parameters)
+        LOGGER.debug('Event Parameters: %s', parameters)
         runtime_parameters = self._get_dag_parameters(command_line_parameters["dag"].upper())
+        LOGGER.debug('DAG Parameters: %s', parameters)
 
         runtime_parameters.update(command_line_parameters)
+        LOGGER.debug('Runtime Parameters: %s', self._runtime_parameters)
 
         return runtime_parameters
 
