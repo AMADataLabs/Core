@@ -51,15 +51,10 @@ class DAGTaskWrapper(
     PARAMETER_CLASS = DAGTaskWrapperParameters
 
     def _get_runtime_parameters(self, parameters):
-        command_line_parameters = super()._get_runtime_parameters(parameters)
-        LOGGER.debug('Event Parameters: %s', parameters)
-        runtime_parameters = self._get_dag_parameters(command_line_parameters["dag"].upper())
-        LOGGER.debug('DAG Parameters: %s', parameters)
+        command_line_parameters = self._parse_command_line_parameters(parameters)
+        LOGGER.debug('Command-line Parameters: %s', command_line_parameters)
 
-        runtime_parameters.update(command_line_parameters)
-        LOGGER.debug('Runtime Parameters: %s', self._runtime_parameters)
-
-        return runtime_parameters
+        return self._supplement_runtime_parameters(command_line_parameters)
 
     def _pre_run(self):
         super()._pre_run()
@@ -119,6 +114,18 @@ class DAGTaskWrapper(
         )
 
         return f'Failed: {str(exception)}'
+
+    def _supplement_runtime_parameters(self, runtime_parameters):
+        dag_parameters = self._get_dag_parameters(runtime_parameters["dag"].upper())
+        LOGGER.debug('DAG Parameters: %s', dag_parameters)
+
+        runtime_parameters.update(dag_parameters)
+        LOGGER.debug('Runtime Parameters: %s', runtime_parameters)
+
+        if "task" not in runtime_parameters:
+            runtime_parameters["task"] = "DAG"
+
+        return runtime_parameters
 
     def _get_dag_parameters(self, dag):
         LOGGER.debug('Getting DAG Parameters for %s...', dag)
