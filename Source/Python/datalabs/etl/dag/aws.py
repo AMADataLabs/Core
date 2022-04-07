@@ -8,7 +8,7 @@ from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.etl.dag.notify.email import StatusEmailNotifier
 from   datalabs.etl.dag.state import Status
-from   datalabs.etl.dag.plugin import PluginExecutorMixin
+from   datalabs.plugin import import_plugin
 import datalabs.etl.dag.task
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
@@ -45,19 +45,15 @@ class DAGTaskWrapperParameters:
 class DAGTaskWrapper(
     DynamoDBTaskParameterGetterMixin,
     ParameterValidatorMixin,
-    PluginExecutorMixin,
     datalabs.etl.dag.task.DAGTaskWrapper
 ):
     PARAMETER_CLASS = DAGTaskWrapperParameters
 
     def _get_runtime_parameters(self, parameters):
-        command_line_parameters = super()._get_runtime_parameters(parameters)
-        LOGGER.info('Event Parameters: %s', parameters)
-        runtime_parameters = self._get_dag_parameters(command_line_parameters["dag"].upper())
+        command_line_parameters = self._parse_command_line_parameters(parameters)
+        LOGGER.debug('Command-line Parameters: %s', command_line_parameters)
 
-        runtime_parameters.update(command_line_parameters)
-
-        return runtime_parameters
+        return self._supplement_runtime_parameters(command_line_parameters)
 
     def _pre_run(self):
         super()._pre_run()
@@ -66,7 +62,7 @@ class DAGTaskWrapper(
         execution_time = self._get_execution_time()
 
         if task != "DAG":
-            state = self._get_plugin(self._runtime_parameters["DAG_STATE_CLASS"], self._runtime_parameters)
+            state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
 
             state.set_task_status(dag, task, execution_time, Status.RUNNING)
 
@@ -83,7 +79,7 @@ class DAGTaskWrapper(
             if self.task.status in [Status.FINISHED, Status.FAILED]:
                 self._send_status_notification()
         else:
-            state = self._get_plugin(self._runtime_parameters["DAG_STATE_CLASS"], self._runtime_parameters)
+            state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
 
             success = state.set_task_status(dag, task, execution_time, Status.FINISHED)
 
@@ -101,7 +97,7 @@ class DAGTaskWrapper(
         execution_time = self._get_execution_time()
 
         if task != "DAG":
-            state = self._get_plugin(self._runtime_parameters["DAG_STATE_CLASS"], self._runtime_parameters)
+            state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
 
             success = state.set_task_status(dag, task, execution_time, Status.FAILED)
 
@@ -117,6 +113,18 @@ class DAGTaskWrapper(
         )
 
         return f'Failed: {str(exception)}'
+
+    def _supplement_runtime_parameters(self, runtime_parameters):
+        dag_parameters = self._get_dag_parameters(runtime_parameters["dag"].upper())
+        LOGGER.debug('DAG Parameters: %s', dag_parameters)
+
+        runtime_parameters.update(dag_parameters)
+        LOGGER.debug('Runtime Parameters: %s', runtime_parameters)
+
+        if "task" not in runtime_parameters:
+            runtime_parameters["task"] = "DAG"
+
+        return runtime_parameters
 
     def _get_dag_parameters(self, dag):
         LOGGER.debug('Getting DAG Parameters for %s...', dag)

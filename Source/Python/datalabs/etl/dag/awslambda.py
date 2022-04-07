@@ -152,14 +152,7 @@ class ProcessorTaskWrapper(
         return dag_parameters
 
 class DAGTaskWrapper(aws.DAGTaskWrapper):
-    @classmethod
-    def _get_runtime_parameters(cls, parameters):
-        LOGGER.info('Event Parameters: %s', parameters)
-        cls.DAG_PARAMETERS = cls._get_dag_task_parameters_from_dynamodb(parameters["dag"], "DAG")
+    def _get_runtime_parameters(self, parameters):
+        LOGGER.debug('Event Parameters: %s', parameters)
 
-        parameters["dag_class"] = cls.DAG_PARAMETERS["DAG_CLASS"]
-
-        if "task" not in parameters:
-            parameters["task"] = "DAG"
-
-        return parameters
+        return self._supplement_runtime_parameters(parameters)

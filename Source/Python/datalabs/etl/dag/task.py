@@ -18,15 +18,8 @@ class DAGTaskWrapper(TaskWrapper):
 
         self._cache_parameters = {}
 
-    # pylint: disable=no-self-use
     def _get_runtime_parameters(self, parameters):
-        dag, task, execution_time = parameters[1].split('__')
-
-        return dict(
-            dag=dag,
-            task=task,
-            execution_time=execution_time
-        )
+        return self._parse_command_line_parameters(parameters)
 
     def _get_task_parameters(self):
         task_parameters = None
@@ -55,6 +48,16 @@ class DAGTaskWrapper(TaskWrapper):
             cache_plugin.load_data(self.task.data)
 
         LOGGER.info('DAG task has finished')
+
+    @classmethod
+    def _parse_command_line_parameters(cls, command_line_parameters):
+        dag, task, execution_time = command_line_parameters[1].split('__')
+
+        return dict(
+            dag=dag,
+            task=task,
+            execution_time=execution_time
+        )
 
     def _get_default_parameters(self):
         dag_parameters = self._get_default_parameters_from_environment(self._get_dag_id())
