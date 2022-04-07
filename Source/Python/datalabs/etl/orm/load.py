@@ -146,13 +146,14 @@ class ORMLoaderTask(LoaderTask):
             table = f'{schema}.{table}'
 
         if self._parameters.database_backend.startswith("postgresql"):
-            query = "SELECT a.attname AS Column_name, format_type(a.atttypid, a.atttypmod) AS data_type "\
+            query = "SELECT a.attname AS \"Column_name\", format_type(a.atttypid, a.atttypmod) AS data_type "\
                     "FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
                     f"WHERE  i.indrelid = '{table}'::regclass AND i.indisprimary"
         elif self._parameters.database_backend.startswith("mysql"):
             query = f"SHOW KEYS FROM {table} WHERE Key_name = 'PRIMARY'"
 
         primary_key_table = database.read(query)
+
 
         return primary_key_table["Column_name"][0]
 
