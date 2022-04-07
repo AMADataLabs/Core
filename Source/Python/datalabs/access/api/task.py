@@ -18,6 +18,7 @@ class APIEndpointParameters:
     query: dict
     database: dict
     bucket: dict
+    authorization: dict
 
 
 class APIEndpointException(task.TaskException):
@@ -78,8 +79,7 @@ class APIEndpointTask(task.Task):
 
 # pylint: disable=abstract-method
 class APIEndpointParametersGetterMixin(task.TaskWrapper):
-    @classmethod
-    def _get_runtime_parameters(cls, parameters):
+    def _get_runtime_parameters(self, parameters):
         return dict(
             path = parameters.get('path') or dict()
         )
