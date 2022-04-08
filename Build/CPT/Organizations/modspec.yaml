@@ -20,7 +20,6 @@ modspec:
       - orm
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
-  - paclage: datalabs.etl.dag.cpt.api
   - package: datalabs.etl
     include:
       - csv
@@ -40,6 +39,10 @@ modspec:
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.cpt.organization
   - package: datalabs.etl.orm
+  - package: datalabs.etl.orm.provider
+    include:
+      - base
+      - mysql
   - package: datalabs.etl.s3
   - package: datalabs.messaging
     include:
