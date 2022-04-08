@@ -21,7 +21,7 @@ variable "rds_storage_type" {
 variable "endpoint_timeout" {
     description = "timeout in seconds"
     type        = number
-    default     = 15
+    default     = 900
 }
 
 
