@@ -67,7 +67,6 @@ class ORMLoaderProvider(datalabs.etl.orm.provider.base.ORMLoaderProvider):
 
         incoming_hashes = pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
         LOGGER.debug('Incoming Row Hashes: %s', incoming_hashes)
-        import pdb; pdb.set_trace()
 
         return incoming_hashes
 
@@ -88,6 +87,17 @@ class ORMLoaderProvider(datalabs.etl.orm.provider.base.ORMLoaderProvider):
         simplified_boolean_columns = [cls._replace_boolean(column) for column in columns]
 
         return ','.join(cls._unquote_term(column) for column in simplified_boolean_columns)
+
+    @classmethod
+    def _replace_boolean(cls, quoted_column):
+        column = quoted_column
+
+        if quoted_column == '"True"':
+            column = '"t"'
+        elif quoted_column == '"False"':
+            column = '"f"'
+
+        return column
 
     @classmethod
     def _unquote_term(cls, csv_column):

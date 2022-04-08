@@ -98,7 +98,8 @@ class ORMLoaderTask(LoaderTask):
         try:
             provider = get_provider(self._parameters.database_backend)
         except ModuleNotFoundError as exception:
-            raise ValueError(f"SQLAlchemy backend '{self._parameters.database_backend}' is not supported.")
+            dialect = self._parameters.database_backend.split('+')[0]
+            raise ValueError(f"SQLAlchemy backend dialect '{dialect}' is not supported.") from exception
 
         primary_key = provider.get_primary_key(database, schema, table)
         columns = provider.get_database_columns(database, schema, table)
@@ -251,17 +252,6 @@ class ORMLoaderTask(LoaderTask):
 
             for model in models:
                 database.add(model)  # pylint: disable=no-member
-
-    @classmethod
-    def _replace_boolean(cls, quoted_column):
-        column = quoted_column
-
-        if quoted_column == '"True"':
-            column = '"t"'
-        elif quoted_column == '"False"':
-            column = '"f"'
-
-        return column
 
     @classmethod
     def _create_models(cls, model_class, data):

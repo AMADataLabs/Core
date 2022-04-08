@@ -68,6 +68,5 @@ class ORMLoaderProvider(datalabs.etl.orm.provider.base.ORMLoaderProvider):
 
         incoming_hashes = pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
         LOGGER.debug('Incoming Row Hashes: %s', incoming_hashes)
-        import pdb; pdb.set_trace()
 
         return incoming_hashes

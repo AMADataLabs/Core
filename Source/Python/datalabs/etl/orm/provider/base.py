@@ -12,6 +12,7 @@ class ORMLoaderProvider(ABC):
     def get_database_columns(self, database, schema, table):
         pass
 
+    # pylint: disable=too-many-arguments
     @abstractmethod
     def get_current_row_hashes(self, database, schema, table, primary_key, columns):
         pass
