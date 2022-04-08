@@ -15,7 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema
 @dataclass
 class LicensedOrganizationsTransformerParameters:
-    execution_time: str
+    execution_time: str = None
     data: object = None
 
 class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
@@ -30,6 +30,6 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
 
         frictionless_licensing_organizations = frictionless_licensing_organizations.drop_duplicates()
 
-        frictionless_licensing_organizations["id"] = range(len(frictionless_licensing_organizations))
+        frictionless_licensing_organizations["id"] = range(1, len(frictionless_licensing_organizations)+1)
 
         return [self._dataframe_to_csv(frictionless_licensing_organizations)]
