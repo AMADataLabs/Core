@@ -27,7 +27,7 @@ data:
     PLATFORM_DB_PORT: '3306'
     PLATFORM_DB_BACKEND: 'mysql+pymysql'
     PLATFORM_DB_NAME: 'frictionlesslicensing'
-    PLATFORM_DB_USERNAME:  usermgmt
+    PLATFORM_DB_USERNAME:  platform
     PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
 
     S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
@@ -39,7 +39,7 @@ data:
     #######################################################################
 
     LICENSED_ORGANIZATIONS__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-OrganizationsETL'
-    LICENSED_ORGANIZATIONS__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.api.LicensedOrganizationDAG'
+    LICENSED_ORGANIZATIONS__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.organization.LicensedOrganizationDAG'
     LICENSED_ORGANIZATIONS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     LICENSED_ORGANIZATIONS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
     LICENSED_ORGANIZATIONS__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
