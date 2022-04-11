@@ -18,11 +18,13 @@ BUNDLE=
 RUNTIME=
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
+AWS_ACCESS_KEY_ID_ROLE=
+AWS_SECRET_ACCESS_KEY_ROLE=
 EXTRA_FILES=
 
 
 main() {
-    process_arguments
+    process_arguments "$@"
 
     setup_virtual_environment
 
@@ -63,6 +65,17 @@ process_arguments() {
             shift
             shift
             ;;
+        -j|--jdbc-driver)
+            if [[ "$2" == "DB2" ]]; then
+                INSTALL_DB2_DRIVER=True
+            elif [[ "$2" == "Informix" ]]; then
+                INSTALL_INFORMIX_DRIVER=True
+            elif [[ "$2" == "SQLServer" ]]; then
+                INSTALL_SQLSERVER_DRIVER=True
+            fi
+            shift
+            shift
+            ;;
         -i|--access-id)
             AWS_ACCESS_KEY_ID=$2
             shift
@@ -73,13 +86,13 @@ process_arguments() {
             shift
             shift
             ;;
-        -j|--jdbc-driver)
-            if [[ "$2" == "DB2" ]]; then
-                INSTALL_DB2_DRIVER=True
-            elif [[ "$2" == "Informix" ]]; then
-                INSTALL_INFORMIX_DRIVER=True
-            elif [[ "$2" == "SQLServer" ]]; then
-                INSTALL_SQLSERVER_DRIVER=True
+        -I|--role-id)
+            AWS_ACCESS_KEY_ID_ROLE=$2
+            shift
+            shift
+            ;;
+        -S|--role-secret)
+            AWS_SECRET_ACCESS_KEY_ROLE=$2
             shift
             shift
             ;;
@@ -111,7 +124,7 @@ setup_aws_cli() {
 }
 
 
-install_jdbc_driver() {
+install_jdbc_drivers() {
     if [[ "$INSTALL_DB2_DRIVER" == "True" ]]; then
         install_db2_driver
     elif [[ "$INSTALL_INFORMIX_DRIVER" == "True" ]]; then
@@ -125,15 +138,21 @@ install_jdbc_driver() {
 create_code_bundle() {
     if [[ "$ENVIRONMENT" == "sbx" || "$ENVIRONMENT" == "dev" ]]; then
         export ENABLE_FEATURE_DEV=True
-    elif [[ "$ENVIRONMENT" == "tst"]]; then
+    elif [[ "$ENVIRONMENT" == "tst" ]]; then
         export ENABLE_FEATURE_TEST=True
-    elif [[ "$ENVIRONMENT" == "itg"]]; then
+    elif [[ "$ENVIRONMENT" == "itg" ]]; then
         export ENABLE_FEATURE_STAGE=True
-    elif [[ "$ENVIRONMENT" == "prd"]]; then
+    elif [[ "$ENVIRONMENT" == "prd" ]]; then
         export ENABLE_FEATURE_PROD=True
     fi
 
-    ${PWD}/Deploy/Master/create-python-bundle $PROJECT
+    if [[ "$RUNTIME" == "Python" ]]; then
+        ${PWD}/Deploy/Master/create-python-bundle $PROJECT $EXTRA_FILES
+    elif [[ "$RUNTIME" == "JAVA" ]]; then
+        cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
+
+        ${PWD}/Deploy/Master/create-java-bundle $PROJECT $EXTRA_FILES ./log4j2.xml
+    fi
 }
 
 
@@ -177,28 +196,28 @@ print_usage() {
 
 
 install_db2_driver() {
-    aws s3 cp s3://${LAMBDA_BUCKET}/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
+    aws s3 cp s3://${DRIVER_BUCKET}/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
     unzip ./Db2JdbcDriver.zip
     echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
-    EXTRA_FILES=${EXTRA_FILES} db2jcc4.jar DB2JccConfiguration.properties
+    EXTRA_FILES="${EXTRA_FILES} db2jcc4.jar DB2JccConfiguration.properties"
 }
 
 
 install_informix_driver() {
-    aws s3 cp s3://${LAMBDA_BUCKET}/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
+    aws s3 cp s3://${DRIVER_BUCKET}/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
     unzip ./InformixJdbcDriver.zip
 
-    EXTRA_FILES=${EXTRA_FILES} jdbc-4.50.4.1.jar bson-4.2.0.jar
+    EXTRA_FILES="${EXTRA_FILES} jdbc-4.50.4.1.jar bson-4.2.0.jar"
 }
 
 
 install_sqlserver_driver() {
-    aws s3 cp s3://${LAMBDA_BUCKET}/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
+    aws s3 cp s3://${DRIVER_BUCKET}/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
     unzip ./SqlServerJdbcDriver.zip
     mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
 
-    EXTRA_FILES=${EXTRA_FILES} mssql-jdbc-10.2.0.jre8.jar
+    EXTRA_FILES="${EXTRA_FILES} mssql-jdbc-10.2.0.jre8.jar"
 }
 
 

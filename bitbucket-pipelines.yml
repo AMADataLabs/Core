@@ -82,30 +82,6 @@ pipelines:
                 --access-id $AWS_ACCESS_KEY_ID
                 --access-secret $AWS_SECRET_ACCESS_KEY
                 --jdbc-driver Informix
-            # # Setup virtual environment
-            # - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            # - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            # - export PATH="$VIRTUAL_ENV/bin:$PATH"
-            #
-            # # Setup AWS CLI
-            # - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            # - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            # - export AWS_DEFAULT_REGION='us-east-1'
-            #
-            # # Install the Informix JDBC driver
-            # - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
-            # - unzip ./InformixJdbcDriver.zip
-            #
-            # # Create the code bundle
-            # - export ENABLE_FEATURE_DEV=True
-            # - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            # - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            # - export AWS_DEFAULT_REGION='us-east-1'
-            # - bash Deploy/Master/create-python-bundle AMC jdbc-4.50.4.1.jar bson-4.2.0.jar
-            #
-            # # Upload the code bundle
-            # - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            # - bash Deploy/Master/upload-python-bundle Masterfile/AMC
         # - step:
         #     name: Update Lambda Functions
         #     script:
@@ -122,19 +98,14 @@ pipelines:
             caches:
             - contactid-master-update-bundle-dependencies
             script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - bash Deploy/Master/create-python-bundle ContactID
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/upload-python-bundle ContactID
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project ContactID
+                --bundle CustomerIntelligence/ContactID.zip
+                --runtime Python
+                --access-id $AWS_ACCESS_KEY_ID
+                --access-secret $AWS_SECRET_ACCESS_KEY
         - step:
             name: Update Lambda Functions
             script:
@@ -142,7 +113,6 @@ pipelines:
             - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
             - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
             - export AWS_DEFAULT_REGION='us-east-1'
-            - export ENVIRONMENT=sbx
             - bash Deploy/Master/update-functions -e sbx -s DataLake -p CustomerIntelligence ContactID=ContactID.zip
 
         CPT-master:
@@ -167,14 +137,14 @@ pipelines:
                 caches:
                     - cpt-master-update-bundle-dependencies
                 script:
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export ENABLE_FEATURE_DEV=True
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/CPT/create-bundle CPT
-                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/CPT/upload-bundle
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT
+                    --bundle CPT/ETL.zip
+                    --runtime Python
+                    --access-id $AWS_ACCESS_KEY_ID
+                    --access-secret $AWS_SECRET_ACCESS_KEY
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -208,40 +178,27 @@ pipelines:
                 caches:
                 - scheduler-master-update-bundle-dependencies
                 script:
-                # Setup virtual environment
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-                # Create the code bundle
-                - export ENABLE_FEATURE_DEV=True
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-python-bundle HelloWorldJava/DAG
-
-                # Upload the code bundle
-                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-python-bundle HelloWorldJava/DAG
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project HelloWorldJava/DAG
+                    --bundle HelloWorldJava/DAG.zip
+                    --runtime Python
+                    --access-id $AWS_ACCESS_KEY_ID
+                    --access-secret $AWS_SECRET_ACCESS_KEY
             - step:
                 name: Update Task Bundle
                 caches:
                 - scheduler-master-update-bundle-dependencies
                 script:
-                # Setup virtual environment
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-                # Copy Log4j Configuration
-                - cp Build/HelloWorldJava/Task/log4j2.xml ./log4j2.xml
-
-                # Create the code bundle
-                - export ENABLE_FEATURE_DEV=True
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-java-bundle HelloWorldJava/Task log4j2.xml
-
-                # Upload the code bundle
-                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-java-bundle HelloWorldJava/Task
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project HelloWorldJava/Task
+                    --bundle HelloWorldJava/DAG.zip
+                    --runtime Python
+                    --access-id $AWS_ACCESS_KEY_ID
+                    --access-secret $AWS_SECRET_ACCESS_KEY
 
                 # Create the Docker image
                 - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
@@ -292,55 +249,29 @@ pipelines:
                 caches:
                     - oneview-master-update-bundle-dependencies
                 script:
-                # Setup virtual environment
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-
-                # Setup AWS CLI
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                - export AWS_DEFAULT_REGION='us-east-1'
-
-                # Install the DB2 JDBC driver
-                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
-                - unzip ./Db2JdbcDriver.zip
-
-                # Install the Informix JDBC driver
-                - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
-                - unzip ./InformixJdbcDriver.zip
-                - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
-
-                # Create the code bundle
-                - export ENABLE_FEATURE_DEV=True
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-python-bundle OneView/ETL db2jcc4.jar DB2JccConfiguration.properties jdbc-4.50.4.1.jar bson-4.2.0.jar
-
-                # Upload the code bundle
-                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-python-bundle OneView/ETL
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project OneView/ETL
+                    --bundle OneView/ETL.zip
+                    --runtime Python
+                    --access-id $AWS_ACCESS_KEY_ID
+                    --access-secret $AWS_SECRET_ACCESS_KEY
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
             - step:
                 name: Update API Bundle
                 caches:
                     - oneview-master-update-bundle-dependencies
                 script:
-                # Setup virtual environment
-                - bash Script/setup-virtual-environment Master/BitBucketPipelines
-                - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-                - export PATH="$VIRTUAL_ENV/bin:$PATH"
-
-                # Create the code bundle
-                - export ENABLE_FEATURE_DEV=True
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-                - export AWS_DEFAULT_REGION='us-east-1'
-                - bash Deploy/Master/create-python-bundle OneView/API
-
-                # Upload the code bundle
-                - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-                - bash Deploy/Master/upload-python-bundle OneView/API
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project OneView/API
+                    --bundle OneView/API.zip
+                    --runtime Python
+                    --access-id $AWS_ACCESS_KEY_ID
+                    --access-secret $AWS_SECRET_ACCESS_KEY
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -367,28 +298,15 @@ pipelines:
             caches:
                 - organizations-master-update-bundle-dependencies
             script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            - export PATH="$VIRTUAL_ENV/bin:$PATH"
-
-            # Setup AWS CLI
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-
-            # Install the SQL Server JDBC driver
-            - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
-            - unzip ./SqlServerJdbcDriver.zip
-            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_DEV=True
-            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre8.jar
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/upload-python-bundle IntelligentPlatform/OrganizationsETL
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project CPT/Organizations
+                --bundle IntelligentPlatform/OrganizationsETL.zip
+                --runtime Python
+                --access-id $AWS_ACCESS_KEY_ID
+                --access-secret $AWS_SECRET_ACCESS_KEY
+                --jdbc-driver SQLServer
 
         Scheduler-master:
         - step:
@@ -396,19 +314,14 @@ pipelines:
             caches:
             - scheduler-master-update-bundle-dependencies
             script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - bash Deploy/Master/create-python-bundle Scheduler
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/upload-python-bundle Scheduler
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project Scheduler
+                --bundle Scheduler.zip
+                --runtime Python
+                --access-id $AWS_ACCESS_KEY_ID
+                --access-secret $AWS_SECRET_ACCESS_KEY
         - step:
             name: Update Lambda Functions
             script:
