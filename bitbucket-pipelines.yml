@@ -74,7 +74,7 @@ pipelines:
                 - amc-master-update-bundle-dependencies
             script:
             - >-
-                bash Build/Master/deploy-lambda-function
+                bash Deploy/Master/deploy-lambda-function
                 --environment sbx
                 --project AMC
                 --bundle Masterfile/AMC.zip
