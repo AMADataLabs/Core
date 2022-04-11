@@ -371,11 +371,11 @@ pipelines:
             # Install the SQL Server JDBC driver
             - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
             - unzip ./SqlServerJdbcDriver.zip
-            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
+            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
 
             # Create the code bundle
             - export ENABLE_FEATURE_DEV=True
-            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar
+            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre8.jar
 
             # Upload the code bundle
             - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
@@ -586,11 +586,11 @@ pipelines:
             # Install the SQL Server JDBC driver
             - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
             - unzip ./SqlServerJdbcDriver.zip
-            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
+            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
 
             # Create the code bundle
             - export ENABLE_FEATURE_DEV=True
-            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar
+            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre8.jar
 
             # Assume maintenance role
             - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
@@ -806,11 +806,11 @@ pipelines:
             # Install the SQL Server JDBC driver
             - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
             - unzip ./SqlServerJdbcDriver.zip
-            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
+            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
 
             # Create the code bundle
             - export ENABLE_FEATURE_TEST=True
-            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar
+            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre8.jar
 
             # Assume maintenance role
             - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
@@ -1134,11 +1134,11 @@ pipelines:
             # Install the SQL Server JDBC driver
             - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
             - unzip ./SqlServerJdbcDriver.zip
-            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre11.jar mssql-jdbc-10.2.0.jre11.jar
+            - mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
 
             # Create the code bundle
             - export ENABLE_FEATURE_PROD=True
-            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre11.jar
+            - bash Deploy/Master/create-python-bundle CPT/Organizations mssql-jdbc-10.2.0.jre.jar
 
             # Assume maintenance role
             - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
