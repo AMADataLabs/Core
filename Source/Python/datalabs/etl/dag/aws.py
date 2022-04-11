@@ -143,6 +143,8 @@ class DAGTaskWrapper(
             dag_task_parameters["dag"] = dag
         else:
             dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
+
+            dag_task_parameters.self._remove_bootstrap_parameters(dag_task_parameters)
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
         return dag_task_parameters
@@ -178,5 +180,10 @@ class DAGTaskWrapper(
             if name in self._runtime_parameters:
                 self._runtime_parameters[name] = value
                 task_parameters.pop(name)
+
+        return task_parameters
+
+    def _remove_bootstrap_parameters(self, task_parameters):
+        task_parameters.pop("TASK_CLASS")
 
         return task_parameters
