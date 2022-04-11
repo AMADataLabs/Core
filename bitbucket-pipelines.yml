@@ -73,30 +73,39 @@ pipelines:
             caches:
                 - amc-master-update-bundle-dependencies
             script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            - export PATH="$VIRTUAL_ENV/bin:$PATH"
-
-            # Setup AWS CLI
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-
-            # Install the Informix JDBC driver
-            - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
-            - unzip ./InformixJdbcDriver.zip
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_DEV=True
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-            - export AWS_DEFAULT_REGION='us-east-1'
-            - bash Deploy/Master/create-python-bundle AMC jdbc-4.50.4.1.jar bson-4.2.0.jar
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
-            - bash Deploy/Master/upload-python-bundle Masterfile/AMC
+            - >-
+                bash Build/Master/deploy-lambda-function
+                --environment sbx
+                --project AMC
+                --bundle Masterfile/AMC.zip
+                --runtime Python
+                --access-id $AWS_ACCESS_KEY_ID
+                --access-secret $AWS_SECRET_ACCESS_KEY
+                --jdbc-driver Informix
+            # # Setup virtual environment
+            # - bash Script/setup-virtual-environment Master/BitBucketPipelines
+            # - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+            # - export PATH="$VIRTUAL_ENV/bin:$PATH"
+            #
+            # # Setup AWS CLI
+            # - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            # - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            # - export AWS_DEFAULT_REGION='us-east-1'
+            #
+            # # Install the Informix JDBC driver
+            # - aws s3 cp s3://ama-sbx-datalake-lambda-us-east-1/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
+            # - unzip ./InformixJdbcDriver.zip
+            #
+            # # Create the code bundle
+            # - export ENABLE_FEATURE_DEV=True
+            # - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+            # - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            # - export AWS_DEFAULT_REGION='us-east-1'
+            # - bash Deploy/Master/create-python-bundle AMC jdbc-4.50.4.1.jar bson-4.2.0.jar
+            #
+            # # Upload the code bundle
+            # - export AWS_S3_BUCKET='ama-sbx-datalake-lambda-us-east-1'
+            # - bash Deploy/Master/upload-python-bundle Masterfile/AMC
         # - step:
         #     name: Update Lambda Functions
         #     script:
