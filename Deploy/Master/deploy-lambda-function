@@ -1,0 +1,205 @@
+#!/bin/bash
+
+set -x
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+AWS_DEFAULT_REGION=us-east-1
+DRIVER_BUCKET=ama-sbx-datalake-lambda-us-east-1
+INSTALL_DB2_DRIVER=False
+INSTALL_INFORMIX_DRIVER=False
+INSTALL_SQLSERVER_DRIVER=False
+
+ENVIRONMENT=
+PROJECT=
+BUNDLE=
+RUNTIME=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+EXTRA_FILES=
+
+
+main() {
+    process_arguments
+
+    setup_virtual_environment
+
+    setup_aws_cli
+
+    install_jdbc_drivers
+
+    create_code_bundle
+
+    upload_code_bundle
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -e|--environment)
+            ENVIRONMENT=$2
+            shift
+            shift
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        -b|--bundle)
+            BUNDLE=$2
+            shift
+            shift
+            ;;
+        -r|--runtime)
+            RUNTIME=$2
+            shift
+            shift
+            ;;
+        -i|--access-id)
+            AWS_ACCESS_KEY_ID=$2
+            shift
+            shift
+            ;;
+        -s|--access-secret)
+            AWS_SECRET_ACCESS_KEY=$2
+            shift
+            shift
+            ;;
+        -j|--jdbc-driver)
+            if [[ "$2" == "DB2" ]]; then
+                INSTALL_DB2_DRIVER=True
+            elif [[ "$2" == "Informix" ]]; then
+                INSTALL_INFORMIX_DRIVER=True
+            elif [[ "$2" == "SQLServer" ]]; then
+                INSTALL_SQLSERVER_DRIVER=True
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+}
+
+
+setup_virtual_environment() {
+    ${PWD}/Script/setup-virtual-environment Master/BitBucketPipelines
+    export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+    export PATH="${VIRTUAL_ENV}/bin:$PATH"
+}
+
+
+setup_aws_cli() {
+    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+    export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
+
+    if [[ "$ENVIRONMENT" != "sbx" ]]; then
+        assume_maintenance_role
+    fi
+}
+
+
+install_jdbc_driver() {
+    if [[ "$INSTALL_DB2_DRIVER" == "True" ]]; then
+        install_db2_driver
+    elif [[ "$INSTALL_INFORMIX_DRIVER" == "True" ]]; then
+        install_informix_driver
+    elif [[ "$INSTALL_SQLSERVER_DRIVER" == "True" ]]; then
+        install_sqlserver_driver
+    fi
+}
+
+
+create_code_bundle() {
+    if [[ "$ENVIRONMENT" == "sbx" || "$ENVIRONMENT" == "dev" ]]; then
+        export ENABLE_FEATURE_DEV=True
+    elif [[ "$ENVIRONMENT" == "tst"]]; then
+        export ENABLE_FEATURE_TEST=True
+    elif [[ "$ENVIRONMENT" == "itg"]]; then
+        export ENABLE_FEATURE_STAGE=True
+    elif [[ "$ENVIRONMENT" == "prd"]]; then
+        export ENABLE_FEATURE_PROD=True
+    fi
+
+    ${PWD}/Deploy/Master/create-python-bundle $PROJECT
+}
+
+
+upload_code_bundle() {
+    run_as_role=
+
+    if [[ "$ENVIRONMENT" != "sbx" ]]; then
+        run_as_role=bash --rcfile assume_role.rc -i
+    fi
+
+    if [[ "$RUNTIME" == "Python" ]]; then
+        ${run_as_role} aws s3 cp Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
+    elif [[ "$RUNTIME" == "Java" ]]; then
+        ${run_as_role} aws s3 cp Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${PROJECT}.jar
+    fi
+}
+
+
+assume_maintenance_role() {
+    aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+    aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+    aws configure set profile.apigw.region $AWS_DEFAULT_REGION
+    aws configure set profile.apigw.output json
+
+    ${PWD}/Script/apigw_assume_role.sh ${ENVIRONMENT} | grep source > assume_role.rc
+}
+
+
+print_usage() {
+    echo "Usage: deploy-lambda-function [OPTIONS]..."
+    echo "Bundle and upload a code bundle for a Lambda function."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
+    echo "  -p, --project                         project path relative to Build/"
+    echo "  -b, --bundle                          name of the uploaded bundle file in S3"
+    echo "  -i, --access-id                       AWS access key id"
+    echo "  -s, --access-secret                   AWS secret access key"
+}
+
+
+install_db2_driver() {
+    aws s3 cp s3://${LAMBDA_BUCKET}/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
+    unzip ./Db2JdbcDriver.zip
+    echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
+
+    EXTRA_FILES=${EXTRA_FILES} db2jcc4.jar DB2JccConfiguration.properties
+}
+
+
+install_informix_driver() {
+    aws s3 cp s3://${LAMBDA_BUCKET}/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
+    unzip ./InformixJdbcDriver.zip
+
+    EXTRA_FILES=${EXTRA_FILES} jdbc-4.50.4.1.jar bson-4.2.0.jar
+}
+
+
+install_sqlserver_driver() {
+    aws s3 cp s3://${LAMBDA_BUCKET}/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
+    unzip ./SqlServerJdbcDriver.zip
+    mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
+
+    EXTRA_FILES=${EXTRA_FILES} mssql-jdbc-10.2.0.jre8.jar
+}
+
+
+main "$@"
