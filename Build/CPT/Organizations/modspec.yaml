@@ -31,14 +31,16 @@ modspec:
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.cpt
-    include:
-        - organization.py
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.cpt.organization
   - package: datalabs.etl.orm
+  - package: datalabs.etl.orm.provider
+    include:
+      - base
+      - mysql
   - package: datalabs.etl.s3
   - package: datalabs.messaging
     include:
