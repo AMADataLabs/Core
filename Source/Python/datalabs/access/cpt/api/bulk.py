@@ -1,23 +1,24 @@
 """ Release endpoint classes."""
+from   dataclasses import dataclass
 import logging
 
 import boto3
 from   botocore.exceptions import ClientError
 
 from   datalabs.access.api.task import APIEndpointTask, APIEndpointParameters, InternalServerError
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@add_schema
 @dataclass
 class FilesEndpointParameters:
     path: dict
     query: dict
-    user_id: str
-    user_name: str
-    authorizations: dict
+    authorization: dict
     bucket_name: str
     bucket_base_path: str
     bucket_url_duration: str
@@ -53,22 +54,33 @@ class FilesEndpointTask(APIEndpointTask):
         self._headers['Location'] = files_archive_url
 
     def _get_files_archive_path(self):
-        release_folders = sorted(
-            self._listdir(
-                self._parameters.bucket_name,
-                self._parameters.bucket_base_path
-            )
-        )
-        user_directory = '/'.join((self._parameters.bucket_base_path, release_folders[-1], 'Files', user_id))
-        files_directory = '/'.join((self._parameters.bucket_base_path, release_folders[-1]))
-        user_files = self._listdir(user_directory)
+        release_directory = self._get_release_directory()
+        user_directory = self._get_user_directory(release_directory)
+        files_directory = '/'.join((self._parameters.bucket_base_path, release_directory[-1]))
+        user_files = self._list_directory(user_directory)
 
         if 'files.zip' in user_files:
             files_directory = user_directory
 
         return '/'.join((files_directory, 'files.zip'))
 
-    def _listdir(self, bucket, base_path):
+    def _get_release_directory(self):
+        return sorted(
+            self._list_directory(
+                self._parameters.bucket_name,
+                self._parameters.bucket_base_path
+            )
+        )
+
+    def _get_user_directory(self, release_directory):
+        return '/'.join((
+            self._parameters.bucket_base_path,
+            release_directory[-1],
+            'Files',
+            self._parameters.authorization["user_id"]
+        ))
+
+    def _list_directory(self, bucket, base_path):
         response = self._s3.list_objects_v2(Bucket=bucket, Prefix=base_path)
 
         objects = {x['Key'].split('/')[-1] for x in response['Contents']}

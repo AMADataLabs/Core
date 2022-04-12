@@ -18,7 +18,6 @@ class APIEndpointParameters:
     query: dict
     database: dict
     bucket: dict
-    authorization: dict
 
 
 class APIEndpointException(task.TaskException):

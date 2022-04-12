@@ -22,7 +22,7 @@ class APIEndpointTaskWrapper(TaskWrapper):
             path=self._parameters.get('pathParameters', {}),
             query={
                 **self._parameters.get('queryStringParameters', {}),
-                **self._parameters.get('multiValueQueryStringParameters')
+                **self._parameters.get('multiValueQueryStringParameters', {})
             },
             authorization=self._extract_authorization_parameters(self._parameters)
         )
@@ -68,12 +68,13 @@ class APIEndpointTaskWrapper(TaskWrapper):
     @classmethod
     def _extract_authorization_parameters(cls, parameters):
         known_keys = ["customerNumber", "customerName", "principalId", "integrationLatency"]
-        authorization_context = parameters["requestContext"].copy()
+        authorization_context = parameters["requestContext"]["authorizer"].copy()
+        authorizations = {key:value for key, value in authorization_context.items() if key not in known_keys}
 
         return dict(
             user_id=authorization_context.get("customerNumber"),
-            user_name=authorization_context.get("customerName")
-            authorizations={key:value for key, value in context.iteritems() if key not in known_keys}
+            user_name=authorization_context.get("customerName"),
+            authorizations=authorizations
         )
 
     def _get_task_specific_parameters(self):
