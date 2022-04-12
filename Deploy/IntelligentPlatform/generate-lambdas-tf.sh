@@ -30,6 +30,7 @@ LAMBDA_DATA=(
     "getOrgSuggestions:5"
     "getOrgs:18"
     "getPermissions:5"
+    "getProductSuggestions:20"
     "getQuestions:45"
     "getQuotePrice:20"
     "getRefOrganizations:10"
