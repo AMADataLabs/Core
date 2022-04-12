@@ -47,7 +47,7 @@ class InternalServerError(APIEndpointException):
 
 
 class APIEndpointTask(task.Task):
-    def __init__(self, parameters: APIEndpointParameters):
+    def __init__(self, parameters: dict):
         super().__init__(parameters)
         self._status_code = 200
         self._response_body = dict()

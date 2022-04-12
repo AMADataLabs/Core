@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class APIEndpointTaskWrapper(api.APIEndpointParametersGetterMixin, TaskWrapper):
+class APIEndpointTaskWrapper(TaskWrapper):
     def _get_runtime_parameters(self, parameters):
         return dict(
             path = parameters.get('path', ""),

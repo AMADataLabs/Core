@@ -11,8 +11,23 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@dataclass
+class FilesEndpointParameters:
+    path: dict
+    query: dict
+    user_id: str
+    user_name: str
+    authorizations: dict
+    bucket_name: str
+    bucket_base_path: str
+    bucket_url_duration: str
+    unknowns: dict=None
+
+
 class FilesEndpointTask(APIEndpointTask):
-    def __init__(self, parameters: APIEndpointParameters):
+    PARAMETER_CLASS = None
+
+    def __init__(self, parameters: dict):
         super().__init__(parameters)
 
         self._s3 = boto3.client('s3')
@@ -25,10 +40,10 @@ class FilesEndpointTask(APIEndpointTask):
             files_archive_url = self._s3.generate_presigned_url(
                 'get_object',
                 Params={
-                    'Bucket': self._parameters.bucket['name'],
+                    'Bucket': self._parameters.bucket_name,
                     'Key': files_archive_path
                 },
-                ExpiresIn=self._parameters.bucket['url_duration']
+                ExpiresIn=self._parameters.bucket_url_duration
             )
         except ClientError as exception:
             LOGGER.error(exception)
@@ -40,19 +55,25 @@ class FilesEndpointTask(APIEndpointTask):
     def _get_files_archive_path(self):
         release_folders = sorted(
             self._listdir(
-                self._parameters.bucket['name'],
-                self._parameters.bucket['base_path']
+                self._parameters.bucket_name,
+                self._parameters.bucket_base_path
             )
         )
+        user_directory = '/'.join((self._parameters.bucket_base_path, release_folders[-1], 'Files', user_id))
+        files_directory = '/'.join((self._parameters.bucket_base_path, release_folders[-1]))
+        user_files = self._listdir(user_directory)
 
-        return '/'.join((self._parameters.bucket['base_path'], release_folders[-1], 'files.zip'))
+        if 'files.zip' in user_files:
+            files_directory = user_directory
+
+        return '/'.join((files_directory, 'files.zip'))
 
     def _listdir(self, bucket, base_path):
         response = self._s3.list_objects_v2(Bucket=bucket, Prefix=base_path)
 
-        objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
+        objects = {x['Key'].split('/')[-1] for x in response['Contents']}
 
-        if  '' in objects:
+        if '' in objects:
             objects.remove('')
 
         return objects
