@@ -1,6 +1,6 @@
 ''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag.dag import DAG
-from   datalabs.etl.dag.schedule.task import DAGSchedulerTask
+from   datalabs.etl.dag.schedule.transform import DAGSchedulerTask
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.sns.load import SNSMessageLoaderTask
 
