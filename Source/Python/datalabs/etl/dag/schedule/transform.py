@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 from   datetime import datetime, timedelta
 from   functools import partial
 from   io import BytesIO
+import json
 import logging
 import pickle
 
@@ -26,10 +27,9 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 class DAGSchedulerParameters:
     interval_minutes: str
-    task_dag_state_class: str
+    dag_state_parameters: str
     execution_time: str
     data: object = None
-    unknowns: dict = None
 
 
 class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
@@ -113,9 +113,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         return status != Status.UNKNOWN
 
     def _get_state_plugin(self):
-        parameters = self._parameters.unknowns
-        state_plugin = import_plugin(self._parameters.task_dag_state_class)
-        state_parameter_keys = list(state_plugin.PARAMETER_CLASS.SCHEMA.fields.keys())
-        state_parameters = {key:value for key, value in parameters.items() if key in state_parameter_keys}
+        parameters = json.loads(self._parameters.dag_state_parameters)
+        plugin = import_plugin(parameters.pop("DAG_STATE_CLASS"))
 
-        return state_plugin(state_parameters)
+        return plugin(parameters)
