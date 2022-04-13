@@ -166,6 +166,8 @@ upload_code_bundle() {
     if [[ "$RUNTIME" == "Python" ]]; then
         ${run_as_role} aws s3 cp Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
     elif [[ "$RUNTIME" == "Java" ]]; then
+        rm Bundle/target/original-*.jar
+
         ${run_as_role} aws s3 cp Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${PROJECT}.jar
     fi
 }
