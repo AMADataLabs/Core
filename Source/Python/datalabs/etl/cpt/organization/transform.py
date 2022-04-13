@@ -1,7 +1,9 @@
 """ Transformer to convert raw CPT licensed organizations list to a curated organization list for
 frictionless licensing front-end validation"""
 from   dataclasses import dataclass
+import hashlib
 import logging
+import re
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.transform import TransformerTask
@@ -30,6 +32,15 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
 
         frictionless_licensing_organizations = frictionless_licensing_organizations.drop_duplicates()
 
-        frictionless_licensing_organizations["id"] = range(1, len(frictionless_licensing_organizations)+1)
+        frictionless_licensing_organizations["id"] = frictionless_licensing_organizations.apply(self._generate_id,
+                                                                                                axis=1)
 
         return [self._dataframe_to_csv(frictionless_licensing_organizations)]
+
+    @classmethod
+    def _generate_id(cls, licence_organization):
+        name_hash = hashlib.md5(licence_organization['name'].encode('utf-8')).hexdigest()
+        prefix = ''.join(str(ord(x) - 65) for x in re.sub('[^a-zA-Z0-9]', '', licence_organization['name']))[-3:]
+        suffix = ''.join(str(ord(x) - 48) for x in name_hash)[-6:]
+
+        return int(prefix + suffix)
