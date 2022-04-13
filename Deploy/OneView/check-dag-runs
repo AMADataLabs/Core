@@ -32,18 +32,21 @@ check_dag_runs_by_environment() {
     execution_time="$*"
 
     $(apigw_assume_role.sh $environment | grep source)
-    dag_status=$(${RUN} get-dag-runs -d ONEVIEW -e $environment -n 1 | awk '{print $3}')
-    echo $dag_status
+    last_run=$(${RUN} get-dag-runs -d ONEVIEW -e $environment -n 1)
+    last_execution_time=$(echo $last_run | awk '{print $1, $2}')
+    status=$(echo $last_run | awk '{print $3}')
+    echo $last_execution_time $status
 
     environment_upper=$(echo "$environment" | tr '[:upper:]' '[:lower:]')
 
-    if [[ "$dag_status" == "Finished" ]]; then
-        echo "OneView DAG was started on ${environment_upper} at ${execution_time}" >&3
-    else
+    if [[ "$last_execution_time" != "$execution_time" ]]; then
         echo "OneView DAG did not start on ${environment_upper} at ${execution_time}" >&3
+    elif [[ "$status" != "Finished" ]]; then
+        echo "OneView DAG did not finish on ${environment_upper} at ${execution_time}" >&3
+        echo "Status: ${status}" >&3
+    else
+        echo "OneView DAG ran successfully on ${environment_upper} at ${execution_time}" >&3
     fi
-
-    echo "Status: ${dag_status}" >&3
 }
 
 
