@@ -142,6 +142,7 @@ class PhysicianTransformerTask(TransformerTask):
         ppd, npi, membership, email_status = data
 
         physician = cls._merge_data(ppd, npi, membership, email_status)
+        physician = cls._drop_no_release_physicians(physician)
 
         return [physician]
 
@@ -168,6 +169,12 @@ class PhysicianTransformerTask(TransformerTask):
         ppd_email_status = cls._merge_email_status(ppd_membership, email_status)
 
         return ppd_email_status
+
+    @classmethod
+    def _drop_no_release_physicians(cls, physician):
+        physician = physician[physician.no_release_ind != 'True']
+
+        return physician
 
     @classmethod
     def _fill_defaults(cls, physician):
