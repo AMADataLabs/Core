@@ -4,7 +4,7 @@ import logging
 import os
 
 import datalabs.access.api.task as api
-from   datalabs.task import TaskWrapper
+from   datalabs.awslambda import TaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -77,6 +77,7 @@ class APIEndpointTaskWrapper(TaskWrapper):
             authorizations=authorizations
         )
 
+    # pylint: disable=no-self-use
     def _get_task_specific_parameters(self):
         ''' Get parameters specific to a particular endpoint. '''
 

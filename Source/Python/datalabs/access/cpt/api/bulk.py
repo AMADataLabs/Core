@@ -5,7 +5,7 @@ import logging
 import boto3
 from   botocore.exceptions import ClientError
 
-from   datalabs.access.api.task import APIEndpointTask, APIEndpointParameters, InternalServerError
+from   datalabs.access.api.task import APIEndpointTask, InternalServerError
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -26,7 +26,7 @@ class FilesEndpointParameters:
 
 
 class FilesEndpointTask(APIEndpointTask):
-    PARAMETER_CLASS = None
+    PARAMETER_CLASS = FilesEndpointParameters
 
     def __init__(self, parameters: dict):
         super().__init__(parameters)
@@ -65,12 +65,7 @@ class FilesEndpointTask(APIEndpointTask):
         return '/'.join((files_directory, 'files.zip'))
 
     def _get_release_directory(self):
-        return sorted(
-            self._list_directory(
-                self._parameters.bucket_name,
-                self._parameters.bucket_base_path
-            )
-        )
+        return sorted(self._list_directory(self._parameters.bucket_base_path))
 
     def _get_user_directory(self, release_directory):
         return '/'.join((
@@ -80,8 +75,8 @@ class FilesEndpointTask(APIEndpointTask):
             self._parameters.authorization["user_id"]
         ))
 
-    def _list_directory(self, bucket, base_path):
-        response = self._s3.list_objects_v2(Bucket=bucket, Prefix=base_path)
+    def _list_directory(self, base_path):
+        response = self._s3.list_objects_v2(Bucket=self._parameters.bucket_name, Prefix=base_path)
 
         objects = {x['Key'].split('/')[-1] for x in response['Contents']}
 
