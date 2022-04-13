@@ -136,7 +136,8 @@ def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, 
     scheduler = DAGSchedulerTask(parameters)
     data = None
 
-    with mock.patch('datalabs.etl.dag.schedule.transform.DAGSchedulerTask._get_target_execution_time') as get_execution_time:
+    with mock.patch('datalabs.etl.dag.schedule.transform.DAGSchedulerTask._get_target_execution_time') \
+            as get_execution_time:
         get_execution_time.return_value = target_execution_time
         data = scheduler._transform()
 
