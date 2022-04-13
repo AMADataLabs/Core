@@ -7,6 +7,7 @@ import time
 import boto3
 import botocore
 
+from   datalabs.access.aws import AWSClient
 from   datalabs.etl.dag.state.base import State, Status
 from   datalabs.parameter import add_schema
 
@@ -16,9 +17,8 @@ LOGGER.setLevel(logging.INFO)
 
 
 class DynamoDBClientMixin:
-    def _connect(self):
-        return boto3.client(
-            'dynamodb',
+    def _connection_parameters(self):
+        return dict(
             endpoint_url=self._parameters.endpoint_url,
             aws_access_key_id=self._parameters.access_key,
             aws_secret_access_key=self._parameters.secret_key,
@@ -97,78 +97,91 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
         return self._set_status(dag, task, execution_time, status)
 
     def get_task_statuses(self, dag: str, execution_time: str, tasks: str):
-        dynamodb = self._connect()
-        items = [dag] + [f"{dag}__{task}" for task in tasks]
+        statuses = None
 
-        return self._get_item_statuses(dynamodb, execution_time, items)
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            items = [dag] + [f"{dag}__{task}" for task in tasks]
+
+            statuses = self._get_item_statuses(dynamodb, execution_time, items)
+
+        return statuses
 
     def get_all_statuses(self, dag: str, execution_time: str):
-        dynamodb = self._connect()
-        items = self._get_items_for_dag_run(dynamodb, dag, execution_time)
+        statuses = None
 
-        return self._get_item_statuses(dynamodb, execution_time, items)
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            items = self._get_items_for_dag_run(dynamodb, dag, execution_time)
+
+            statuses = self._get_item_statuses(dynamodb, execution_time, items)
+
+        return statuses
 
     def get_dag_runs(self, dag: str, limit: int = None):
-        dynamodb = self._connect()
+        runs = None
 
-        if limit is None:
-            limit = 10
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            if limit is None:
+                limit = 10
 
-        response = dynamodb.query(
-            TableName=self._parameters.dag_state_table,
-            KeyConditionExpression='#DAG=:dag',
-            ExpressionAttributeNames={"#DAG": "name"},
-            ExpressionAttributeValues={":dag": {"S": dag}},
-            ScanIndexForward=False,
-            Limit=limit
-        )
-        items = response["Items"]
+            response = dynamodb.query(
+                TableName=self._parameters.dag_state_table,
+                KeyConditionExpression='#DAG=:dag',
+                ExpressionAttributeNames={"#DAG": "name"},
+                ExpressionAttributeValues={":dag": {"S": dag}},
+                ScanIndexForward=False,
+                Limit=limit
+            )
+            items = response["Items"]
 
-        return {item["execution_time"]["S"]:item["status"]["S"] for item in items}
+            runs = {item["execution_time"]["S"]:item["status"]["S"] for item in items}
+
+        return runs
 
 
     def clear_task(self, dag: str, execution_time: str, task: str):
-        dynamodb = self._connect()
-
-        self._clear_items(dynamodb, execution_time, [dag, f"{dag}__{task}"])
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            self._clear_items(dynamodb, execution_time, [dag, f"{dag}__{task}"])
 
     def clear_all(self, dag: str, execution_time: str):
-        dynamodb = self._connect()
-        items = self._get_items_for_dag_run(dynamodb, dag, execution_time)
-        LOGGER.info('Deleting items for %s run of DAG %s: %s', execution_time, dag, items)
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            items = self._get_items_for_dag_run(dynamodb, dag, execution_time)
+            LOGGER.info('Deleting items for %s run of DAG %s: %s', execution_time, dag, items)
 
-        self._clear_items(dynamodb, execution_time, items)
+            self._clear_items(dynamodb, execution_time, items)
 
     def clear_upstream_tasks(self, dag_class, dag: str, execution_time: str, task: str):
-        dynamodb = self._connect()
-        tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.upstream_tasks(task)]
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.upstream_tasks(task)]
 
-        self._clear_items(dynamodb, execution_time, tasks)
+            self._clear_items(dynamodb, execution_time, tasks)
 
     def clear_downstream_tasks(self, dag_class, dag: str, execution_time: str, task: str):
-        dynamodb = self._connect()
-        tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.downstream_tasks(task)]
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            tasks = [dag, f"{dag}__{task}"] + [f"{dag}__{task}" for task in dag_class.downstream_tasks(task)]
 
-        self._clear_items(dynamodb, execution_time, tasks)
+            self._clear_items(dynamodb, execution_time, tasks)
 
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
-        dynamodb = self._connect()
+        status = None
 
-        return self._get_status_from_state(dynamodb, primary_key, execution_time)
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            status = self._get_status_from_state(dynamodb, primary_key, execution_time)
+
+        return status
 
     def _set_status(self, dag: str, task: str, execution_time: str, status: Status):
         primary_key = self._get_primary_key(dag, task)
         lock_id = self._get_lock_id(primary_key, execution_time)
-        dynamodb = self._connect()
         succeeded = False
 
-        locked = self._lock_state(dynamodb, lock_id)
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            locked = self._lock_state(dynamodb, lock_id)
 
-        if locked:
-            succeeded = self._set_status_if_later(dynamodb, primary_key, execution_time, status)
+            if locked:
+                succeeded = self._set_status_if_later(dynamodb, primary_key, execution_time, status)
 
-        self._unlock_state(dynamodb, lock_id)
+            self._unlock_state(dynamodb, lock_id)
 
         return succeeded
 

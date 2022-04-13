@@ -195,8 +195,8 @@ pipelines:
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
                     --project HelloWorldJava/Task
-                    --bundle HelloWorldJava/DAG.zip
-                    --runtime Python
+                    --bundle HelloWorldJava/Task.zip
+                    --runtime Java
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
 
