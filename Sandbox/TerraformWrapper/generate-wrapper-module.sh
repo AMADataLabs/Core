@@ -2,13 +2,10 @@
 
 
 VARIABLES=
-OUTPUTS=
 
 
 main() {
     extract_variables
-
-    extract_outputs
 
     generate_main
 
@@ -20,11 +17,6 @@ main() {
 
 extract_variables() {
     VARIABLES=(`cat terraform-aws-lambda/variables.tf | grep 'variable "' | sed -e 's/variable "//' -e 's/" {//'`)
-}
-
-
-extract_outputs() {
-    OUTPUTS=(`cat terraform-aws-lambda/outputs.tf | grep 'output "' | sed -e 's/output "//' -e 's/" {//'`)
 }
 
 
