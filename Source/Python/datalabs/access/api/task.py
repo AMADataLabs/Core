@@ -46,7 +46,7 @@ class InternalServerError(APIEndpointException):
 
 
 class APIEndpointTask(task.Task):
-    def __init__(self, parameters: APIEndpointParameters):
+    def __init__(self, parameters: dict):
         super().__init__(parameters)
         self._status_code = 200
         self._response_body = dict()
@@ -78,8 +78,7 @@ class APIEndpointTask(task.Task):
 
 # pylint: disable=abstract-method
 class APIEndpointParametersGetterMixin(task.TaskWrapper):
-    @classmethod
-    def _get_runtime_parameters(cls, parameters):
+    def _get_runtime_parameters(self, parameters):
         return dict(
             path = parameters.get('path') or dict()
         )
