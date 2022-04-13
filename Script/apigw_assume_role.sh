@@ -2,6 +2,11 @@
 
 environment=${1:-dev}
 profile=${2:-apigw}
+no_verify_ssl=
+
+if [[ "$AWS_NO_VERIFY_SSL" == "True" ]]; then
+  no_verify_ssl=--no-verify-ssl
+fi
 
 profile_available=0
 for p in $(aws configure list-profiles); do
@@ -38,7 +43,7 @@ echo "Account: $account ($region)"
 unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
 
 
-for i in $(aws sts --profile ${profile} assume-role --role-arn "arn:aws:iam::${account}:role/${environment}-ama-apigateway-invoke-role" --role-session-name datalabs | egrep "AccessKeyId|SecretAccessKey|SessionToken"|sed 's/: /|/g'|sed 's/"//g'|sed 's/,$//')
+for i in $(aws ${no_verify_ssl} sts --profile ${profile} assume-role --role-arn "arn:aws:iam::${account}:role/${environment}-ama-apigateway-invoke-role" --role-session-name datalabs | egrep "AccessKeyId|SecretAccessKey|SessionToken"|sed 's/: /|/g'|sed 's/"//g'|sed 's/,$//')
 do
 declare -a LIST
 LIST=($(echo $i|sed 's/|/ /g'))

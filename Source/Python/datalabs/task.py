@@ -109,10 +109,8 @@ class TaskWrapper(ABC):
     def _pre_run(self):
         pass
 
-    # pylint: disable=unused-argument
-    @classmethod
-    def _get_runtime_parameters(cls, parameters):
-        return {}
+    def _get_runtime_parameters(self, parameters):
+        return parameters
 
     def _get_task_parameters(self):
         return self._parameters

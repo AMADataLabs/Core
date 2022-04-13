@@ -18,6 +18,7 @@ class DAGClasses(Enum):
     ONEVIEW = "datalabs.etl.dag.oneview.ingest.OneViewDAG"
     CPTAPI = "datalabs.etl.dag.cpt.api.CPTAPIDAG"
     HELLO_WORLD_JAVA = "datalabs.example.etl.dag.hello_world_java.HelloWorldJavaDAG"
+    LICENSED_ORGANIZATIONS = "datalabs.etl.dag.cpt.organization.LicensedOrganizationDAG"
 
 
 def main(args):
