@@ -4,7 +4,6 @@ from   dataclasses import dataclass
 import logging
 import time
 
-import boto3
 import botocore
 
 from   datalabs.access.aws import AWSClient

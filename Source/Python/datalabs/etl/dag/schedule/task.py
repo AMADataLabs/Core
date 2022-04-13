@@ -26,7 +26,7 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 class DAGSchedulerParameters:
     interval_minutes: str
-    dag_state_class: str
+    task_dag_state_class: str
     execution_time: str
     data: object = None
     unknowns: dict = None
@@ -114,7 +114,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
 
     def _get_state_plugin(self):
         parameters = self._parameters.unknowns
-        state_plugin = import_plugin(self._parameters.dag_state_class)
+        state_plugin = import_plugin(self._parameters.task_dag_state_class)
         state_parameter_keys = list(state_plugin.PARAMETER_CLASS.SCHEMA.fields.keys())
         state_parameters = {key:value for key, value in parameters.items() if key in state_parameter_keys}
 
