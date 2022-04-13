@@ -182,6 +182,7 @@ class JDBCParametricExtractorParameters:
     count: str = None
     start_index: str = '0'
     stream: str = None
+    database_parameters: str = None
 
 
 class JDBCParametricExtractorTask(CSVReaderMixin, JDBCExtractorTask):
