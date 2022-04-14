@@ -89,6 +89,7 @@ def event():
     yield dict(
         pathParameters=dict(foo='bar'),
         queryStringParameters=dict(ping='pong'),
+        multiValueQueryStringParameters=None,
         requestContext=dict(
             resourceId="jnokm4",
             authorizer=dict(
