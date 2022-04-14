@@ -31,11 +31,13 @@ class ReferenceEnvironmentLoader:
 
     @classmethod
     def _get_referent_variables(cls):
-        return {key:value for key, value in os.environ.items() if re.match(r'.*\$\{[^${}]+\}', value) is None}
+        environment = os.environ.items()
+
+        return {key:value for key, value in environment if re.match(r'.*\$\{[^${}]+\}', value, re.DOTALL) is None}
 
     @classmethod
     def _get_reference_variables(cls, environment):
-        return {key:value for key, value in environment.items() if re.match(r'.*\$\{[^${}]+\}', value)}
+        return {key:value for key, value in environment.items() if re.match(r'.*\$\{[^${}]+\}', value, re.DOTALL)}
 
     def _resolve_references_variables(self, variables, parameters):
         for key, value in variables.items():
@@ -53,13 +55,13 @@ class ReferenceEnvironmentLoader:
 
     def _resolve_references_in_value(self, value, parameters):
         match_count = 0
-        match = re.match(r'.*\$\{([^${}]+)\}', value)
+        match = re.match(r'.*\$\{([^${}]+)\}', value, re.DOTALL)
 
         while match is not None and match_count < self._match_limit:
             match_count += 1
             match_value = match.group(1)
             value = value.replace('${'+match_value+'}', str(parameters[match_value]))
 
-            match = re.match(r'.*\$\{([^${}]+)\}', value)
+            match = re.match(r'.*\$\{([^${}]+)\}', value, re.DOTALL)
 
         return value
