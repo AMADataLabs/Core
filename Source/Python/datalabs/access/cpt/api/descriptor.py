@@ -17,6 +17,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=too-many-instance-attributes
 @add_schema
 @dataclass
 class DescriptorEndpointParameters:

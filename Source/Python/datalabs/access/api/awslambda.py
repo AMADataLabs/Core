@@ -100,15 +100,11 @@ class APIEndpointTaskWrapper(TaskWrapper):
             cls._populate_database_parameters_from_secret()
 
     @classmethod
-    def _populate_database_parameters_from_secret(cls, parameters):
-        secret = {}
+    def _populate_database_parameters_from_secret(cls):
+        secret = os.getenv('DATABASE_SECRET')
 
-        if 'DATABASE_SECRET' in parameters:
-            secret = parameters.pop('DATABASE_SECRET')
-
-            for name, value in cls._get_database_parameters_from_secret('DATABASE_SECRET', secret).items():
-                if name not in parameters:
-                    parameters[name] = value
+        for name, value in cls._get_database_parameters_from_secret('DATABASE_SECRET', secret).items():
+            os.environ[name] = value
 
     @classmethod
     def _get_database_parameters_from_secret(cls, name, secret_string):
