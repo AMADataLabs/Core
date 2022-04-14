@@ -16,7 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=too-many-instance-attributes
-@add_schema
+@add_schema(unknowns=True)
 @dataclass
 class ModifierEndpointParameters:
     path: dict
