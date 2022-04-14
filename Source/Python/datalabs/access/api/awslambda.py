@@ -18,12 +18,11 @@ class APIEndpointTaskWrapper(TaskWrapper):
         )
 
     def _get_task_parameters(self):
+        query_parameters = self._parameters["queryStringParameters"] or {}
+        multivalue_query_parameters = self._parameters["multiValueQueryStringParameters"] or {}
         standard_parameters = dict(
-            path=self._parameters.get('pathParameters', {}),
-            query={
-                **self._parameters.get('queryStringParameters', {}),
-                **self._parameters.get('multiValueQueryStringParameters', {})
-            },
+            path=self._parameters["pathParameters"] or {},
+            query={**query_parameters, **multivalue_query_parameters},
             authorization=self._extract_authorization_parameters(self._parameters)
         )
         task_specific_parameters = self._get_task_specific_parameters()
