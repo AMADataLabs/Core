@@ -1,17 +1,44 @@
 """ OneView Physician endpoint classes """
+from   dataclasses import dataclass
 import logging
 
 from   sqlalchemy import func, or_
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
 from   datalabs.model.masterfile.oneview.content import Physician
+from   datalabs.access.orm import Database
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=too-many-instance-attributes
+@add_schema
+@dataclass
+class PhysiciansEndpointParameters:
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    unknowns: dict=None
+
+
 class PhysiciansEndpointTask(APIEndpointTask):
+    PARAMETER_CLASS = PhysiciansEndpointParameters
+
+    def run(self):
+        LOGGER.debug('Parameters: %s', self._parameters)
+
+        with Database.from_parameters(self._parameters) as database:
+            self._run(database)
+
     def _run(self, database):
         LOGGER.debug('Parameters: %s', self._parameters)
         LOGGER.debug('Parameters: %s', self._parameters)

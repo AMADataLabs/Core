@@ -1,8 +1,6 @@
 """ source: datalabs.access.api.task """
 import pytest
 
-import mock
-
 import datalabs.access.api.task as api
 
 
@@ -14,7 +12,7 @@ class BadTask(api.APIEndpointTask):
 # pylint: disable=protected-access
 class GoodTask(api.APIEndpointTask):
     # pylint: disable=unused-argument
-    def run(self, database):
+    def run(self):
         GoodTask.run.called = True
 
 GoodTask.run.called = False  # pylint: disable=protected-access
@@ -27,7 +25,7 @@ def test_task_is_abstract():
 
 # pylint: disable=protected-access
 def test_task_is_not_abstract():
-    GoodTask(None).run(None)
+    GoodTask(None).run()
 
 
 def test_api_endpoint_exceptions_have_status_and_message():
