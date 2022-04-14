@@ -95,9 +95,20 @@ class Database(Datastore):
 
     @classmethod
     def from_parameters(cls, parameters, prefix=None):
+        database = None
+
         if not prefix:
             prefix = ""
 
+        if hasattr(parameters, "get"):
+            database = cls._from_dict_parameters(parameters, prefix=prefix)
+        else:
+            database = cls._from_class_parameters(parameters)
+
+        return database
+
+    @classmethod
+    def _from_dict_parameters(cls, parameters, prefix):
         prefix_lc = prefix.lower()
 
         config = Configuration(
@@ -109,6 +120,21 @@ class Database(Datastore):
         credentials = Credentials(
             username=parameters.get(f'{prefix_lc}username') or parameters.get(f'{prefix}USERNAME'),
             password=parameters.get(f'{prefix_lc}password') or parameters.get(f'{prefix}PASSWORD')
+        )
+
+        return cls(config, credentials)
+
+    @classmethod
+    def _from_class_parameters(cls, parameters):
+        config = Configuration(
+            name=parameters.database_name,
+            backend=parameters.database_backend,
+            host=parameters.database_host,
+            port=parameters.database_port
+        )
+        credentials = Credentials(
+            username=parameters.database_username,
+            password=parameters.database_password
         )
 
         return cls(config, credentials)
