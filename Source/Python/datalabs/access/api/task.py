@@ -1,6 +1,5 @@
 """ API endpoint task classes. """
 import logging
-import os
 
 import datalabs.task as task
 
