@@ -33,7 +33,7 @@ class FilesEndpointTask(APIEndpointTask):
 
         self._s3 = boto3.client('s3')
 
-    def _run(self, database):
+    def run(self):
         files_archive_path = self._get_files_archive_path()
         files_archive_url = None
 

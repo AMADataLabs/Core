@@ -33,7 +33,7 @@ class LatestPDFsEndpointTask(APIEndpointTask):
 
         self._s3 = boto3.client('s3')
 
-    def _run(self, database):
+    def run(self):
         pdf_archive_path = self._get_pdf_archive_path()
         pdfs_archive_url = None
 

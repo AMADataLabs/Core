@@ -42,7 +42,7 @@ def test_task_wrapper_handle_success(event):
 
 
 class MockTask(api.APIEndpointTask):
-    def _run(self, database):
+    def run(self):
         pass
 
 
