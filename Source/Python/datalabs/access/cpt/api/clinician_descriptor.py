@@ -9,6 +9,7 @@ from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterM
 from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping
 from   datalabs.model.cpt.api import Code, Release, ReleaseCodeMapping
 from   datalabs.access.cpt.api import languages
+from   datalabs.access.orm import Database
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -16,8 +17,13 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
-    def _run(self, database):
+    def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
+
+        with Database.from_parameters(self._parameters) as database:
+            self._run(database)
+
+    def _run(self, database):
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 

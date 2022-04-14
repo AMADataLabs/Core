@@ -8,6 +8,7 @@ from   datalabs.access.api.task import APIEndpointTask, InvalidRequest, Resource
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, WildcardFilterMixin
 import datalabs.model.cpt.api as dbmodel
 from   datalabs.access.cpt.api import languages
+from   datalabs.access.orm import Database
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -17,8 +18,14 @@ LOGGER.setLevel(logging.DEBUG)
 class BaseDescriptorEndpointTask(APIEndpointTask):
     LENGTH_MODEL_NAMES = dict(short='ShortDescriptor', medium='MediumDescriptor', long='LongDescriptor')
 
-    def _run(self, database):
+    def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
+
+        with Database.from_parameters(self._parameters) as database:
+            self._run(database)
+
+
+    def _run(self, database):
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 

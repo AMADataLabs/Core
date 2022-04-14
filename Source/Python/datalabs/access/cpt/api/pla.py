@@ -5,6 +5,7 @@ import logging
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin
 import datalabs.model.cpt.api as dbmodel
+from   datalabs.access.orm import Database
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -12,8 +13,13 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class BasePLADetailsEndpointTask(APIEndpointTask):
-    def _run(self, database):
+    def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
+
+        with Database.from_parameters(self._parameters) as database:
+            self._run(database)
+
+    def _run(self, database):
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 

@@ -14,10 +14,10 @@ class BadTask(api.APIEndpointTask):
 # pylint: disable=protected-access
 class GoodTask(api.APIEndpointTask):
     # pylint: disable=unused-argument
-    def _run(self, database):
-        GoodTask._run.called = True
+    def run(self, database):
+        GoodTask.run.called = True
 
-GoodTask._run.called = False  # pylint: disable=protected-access
+GoodTask.run.called = False  # pylint: disable=protected-access
 
 
 def test_task_is_abstract():
@@ -27,16 +27,7 @@ def test_task_is_abstract():
 
 # pylint: disable=protected-access
 def test_task_is_not_abstract():
-    GoodTask(None)._run(None)
-
-
-# pylint: disable=redefined-outer-name, protected-access
-def test_task_runs_with_database(parameters):
-    with mock.patch('datalabs.access.api.task.Database'):
-        task = GoodTask(parameters)
-        task.run()
-
-        assert GoodTask._run.called
+    GoodTask(None).run(None)
 
 
 def test_api_endpoint_exceptions_have_status_and_message():
@@ -65,13 +56,3 @@ def test_resource_not_found_is_404():
 
     assert exception.status_code == 404
     assert exception.message == 'failed'
-
-
-@pytest.fixture
-def parameters():
-    return api.APIEndpointParameters(
-        path=None,
-        query=None,
-        database=dict(name=None, backend=None, host=None, username=None, password=None),
-        bucket=None
-    )

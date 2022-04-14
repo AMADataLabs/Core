@@ -25,7 +25,7 @@ def test_lengths_are_valid(event):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_query_for_descriptors(event, query_results):
-    with mock.patch('datalabs.access.cpt.api.descriptor.DescriptorEndpointTask._get_database'):
+    with mock.patch('datalabs.access.cpt.api.descriptor.Database.from_parameters'):
         session = mock.MagicMock()
         session.query.return_value.join.return_value.filter.return_value = query_results
         task = DescriptorEndpointTask(event)
@@ -36,7 +36,7 @@ def test_query_for_descriptors(event, query_results):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_generate_response_body(query_results):
-    with mock.patch('datalabs.access.cpt.api.descriptor.DescriptorEndpointTask._get_database'):
+    with mock.patch('datalabs.access.cpt.api.descriptor.Database.from_parameters'):
         session = mock.MagicMock()
         session.query.return_value.join.return_value.all.return_value = query_results
         task = DescriptorEndpointTask(event)
