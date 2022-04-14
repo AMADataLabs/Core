@@ -1,5 +1,6 @@
 """ Consumer Descriptor endpoint classes. """
 from   abc import abstractmethod
+from   dataclasses import dataclass
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound, InvalidRequest
@@ -7,13 +8,31 @@ from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMi
 from   datalabs.model.cpt.api import ConsumerDescriptor
 from   datalabs.access.cpt.api import languages
 from   datalabs.access.orm import Database
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@add_schema
+@dataclass
+class ConsumerDescriptorEndpointParameters:
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    unknowns: dict=None
+
+
 class BaseConsumerDescriptorEndpointTask(APIEndpointTask):
+    PARAMETER_CLASS = ConsumerDescriptorEndpointParameters
+
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 

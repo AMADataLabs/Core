@@ -1,5 +1,6 @@
 """ CPT Modifier endpoint classes. """
 from   abc import abstractmethod
+from   dataclasses import dataclass
 import logging
 
 from   sqlalchemy import or_
@@ -7,13 +8,31 @@ from   sqlalchemy import or_
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.model.cpt.api import Modifier, ModifierType, Release
 from   datalabs.access.orm import Database
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@add_schema
+@dataclass
+class ModifierEndpointParameters:
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    unknowns: dict=None
+
+
 class BaseModifierEndpointTask(APIEndpointTask):
+    PARAMETER_CLASS = ModifierEndpointParameters
+
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 

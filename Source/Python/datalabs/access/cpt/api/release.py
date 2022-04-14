@@ -1,16 +1,35 @@
 """ Release endpoint classes. """
+from   dataclasses import dataclass
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, InvalidRequest
 from   datalabs.model.cpt.api import Release
 from   datalabs.access.orm import Database
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@add_schema
+@dataclass
+class ReleasesEndpointParameters:
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    unknowns: dict=None
+
+
 class ReleasesEndpointTask(APIEndpointTask):
+    PARAMETER_CLASS = ReleasesEndpointParameters
+
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 

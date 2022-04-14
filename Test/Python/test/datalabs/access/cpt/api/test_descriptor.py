@@ -35,7 +35,7 @@ def test_query_for_descriptors(event, query_results):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_generate_response_body(query_results):
+def test_generate_response_body(event, query_results):
     with mock.patch('datalabs.access.cpt.api.descriptor.Database.from_parameters'):
         session = mock.MagicMock()
         session.query.return_value.join.return_value.all.return_value = query_results
@@ -54,10 +54,17 @@ def test_generate_response_body(query_results):
 @pytest.fixture
 def event():
     return dict(
-        pathParameters=dict(code='00100'),
-        multiValueQueryStringParameters=dict(
+        path=dict(code='00100'),
+        query=dict(
             length=['short', 'long']
-        )
+        ),
+        authorization={},
+        database_host='',
+        database_port='',
+        database_backend='',
+        database_name='',
+        database_username='',
+        database_password='',
     )
 
 

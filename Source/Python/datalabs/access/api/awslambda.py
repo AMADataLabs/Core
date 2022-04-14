@@ -18,10 +18,10 @@ class APIEndpointTaskWrapper(TaskWrapper):
         )
 
     def _get_task_parameters(self):
-        query_parameters = self._parameters["queryStringParameters"] or {}
-        multivalue_query_parameters = self._parameters["multiValueQueryStringParameters"] or {}
+        query_parameters = self._parameters.pop("queryStringParameters") or {}
+        multivalue_query_parameters = self._parameters.pop("multiValueQueryStringParameters") or {}
         standard_parameters = dict(
-            path=self._parameters["pathParameters"] or {},
+            path=self._parameters.pop("pathParameters") or {},
             query={**query_parameters, **multivalue_query_parameters},
             authorization=self._extract_authorization_parameters(self._parameters)
         )
@@ -100,21 +100,25 @@ class APIEndpointTaskWrapper(TaskWrapper):
             cls._populate_database_parameters_from_secret()
 
     @classmethod
-    def _populate_database_parameters_from_secret(cls):
-        secret = os.getenv('DATABASE_SECRET')
+    def _populate_database_parameters_from_secret(cls, parameters):
+        secret = {}
 
-        for name, value in cls._get_database_parameters_from_secret('DATABASE_SECRET', secret).items():
-            os.environ[name] = value
+        if 'DATABASE_SECRET' in parameters:
+            secret = parameters.pop('DATABASE_SECRET')
+
+            for name, value in cls._get_database_parameters_from_secret('DATABASE_SECRET', secret).items():
+                if name not in parameters:
+                    parameters[name] = value
 
     @classmethod
     def _get_database_parameters_from_secret(cls, name, secret_string):
         secret = json.loads(secret_string)
         engine = secret.get('engine')
         variables = dict(
-            DATABASE_NAME=os.getenv('DATABASE_NAME') or secret.get('dbname'),
-            DATABASE_PORT=os.getenv('DATABASE_PORT') or str(secret.get('port')),
-            DATABASE_USERNAME=os.getenv('DATABASE_USERNAME') or secret.get('username'),
-            DATABASE_PASSWORD=os.getenv('DATABASE_PASSWORD') or secret.get('password')
+            DATABASE_NAME=secret.get('dbname'),
+            DATABASE_PORT=str(secret.get('port')),
+            DATABASE_USERNAME=secret.get('username'),
+            DATABASE_PASSWORD=secret.get('password')
         )
 
         if engine == 'postgres':

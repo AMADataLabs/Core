@@ -1,18 +1,37 @@
 """ PLA Details endpoints. """
 from   abc import abstractmethod
+from   dataclasses import dataclass
 import logging
 
 from   datalabs.access.api.task import APIEndpointTask, ResourceNotFound
 from   datalabs.access.cpt.api.filter import ReleaseFilterMixin, KeywordFilterMixin, WildcardFilterMixin
 import datalabs.model.cpt.api as dbmodel
 from   datalabs.access.orm import Database
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@add_schema
+@dataclass
+class PLADetailsEndpointParameters:
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    unknowns: dict=None
+
+
 class BasePLADetailsEndpointTask(APIEndpointTask):
+    PARAMETER_CLASS = PLADetailsEndpointParameters
+
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
 
