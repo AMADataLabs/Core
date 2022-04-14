@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-@add_schema
+@add_schema(unknowns=True)
 @dataclass
 class FilesEndpointParameters:
     path: dict

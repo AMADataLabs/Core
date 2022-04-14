@@ -1,4 +1,4 @@
-''' common test functions for datalabs.etl.orm.provider modules '''
+''' common test functions and fixtures for datalabs.etl.orm.provider modules '''
 import tempfile
 
 import pandas

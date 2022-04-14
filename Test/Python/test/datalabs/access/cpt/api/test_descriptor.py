@@ -1,4 +1,4 @@
-""" source: datalabs.etl.cpt.extract """
+""" source: datalabs.access.cpt.api.descriptor """
 from   collections import namedtuple
 from   datetime import date
 import logging
@@ -15,6 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=redefined-outer-name, protected-access
+@pytest.mark.usefixtures("event")
 def test_lengths_are_valid(event):
     task = DescriptorEndpointTask(event)
 
@@ -24,7 +25,11 @@ def test_lengths_are_valid(event):
 
 
 # pylint: disable=redefined-outer-name, protected-access
+@pytest.mark.usefixtures("event")
 def test_query_for_descriptors(event, query_results):
+    event["path"] = dict(code='00100')
+    event["query"] = dict(length=['short', 'long'])
+
     with mock.patch('datalabs.access.cpt.api.descriptor.Database.from_parameters'):
         session = mock.MagicMock()
         session.query.return_value.join.return_value.filter.return_value = query_results
@@ -35,6 +40,7 @@ def test_query_for_descriptors(event, query_results):
 
 
 # pylint: disable=redefined-outer-name, protected-access
+@pytest.mark.usefixtures("event")
 def test_generate_response_body(event, query_results):
     with mock.patch('datalabs.access.cpt.api.descriptor.Database.from_parameters'):
         session = mock.MagicMock()
@@ -49,23 +55,6 @@ def test_generate_response_body(event, query_results):
     assert 'short_descriptor' in item
     assert 'medium_descriptor' not in item
     assert 'long_descriptor' in item
-
-
-@pytest.fixture
-def event():
-    return dict(
-        path=dict(code='00100'),
-        query=dict(
-            length=['short', 'long']
-        ),
-        authorization={},
-        database_host='',
-        database_port='',
-        database_backend='',
-        database_name='',
-        database_username='',
-        database_password='',
-    )
 
 
 @pytest.fixture
