@@ -1,7 +1,8 @@
 # Render as follows:
 #
 # Script/render-template -t Deploy/CPT-API/dev/ingest.yaml.jinja -f Deploy/CPT-API/dev/ingest.yaml \
-# -v "datalabs_password={{datalabs_password}},eft_password={{eft_password}},database_password={{database_password}}"
+# -v "datalabs_password={{datalabs_password}}" -v "eft_password={{eft_password}}" \
+# -v "database_password={{database_password}}"
 ---
 data:
     #######################################################################

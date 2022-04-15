@@ -83,5 +83,9 @@ class FilesEndpointTask(APIEndpointTask):
 
     def _list_directory(self, base_path):
         response = self._s3.list_objects_v2(Bucket=self._parameters.bucket_name, Prefix=base_path)
+        files = []
 
-        return {x['Key'] for x in response['Contents']}
+        if "Contents" in response:
+            files = {x["Key"] for x in response["Contents"]}
+
+        return files
