@@ -54,33 +54,27 @@ class FilesEndpointTask(APIEndpointTask):
         self._headers['Location'] = files_archive_url
 
     def _get_files_archive_path(self):
-        release_directory = self._get_release_directory()
-        user_directory = self._get_user_directory(release_directory)
-        files_directory = '/'.join((self._parameters.bucket_base_path, release_directory[-1]))
-        user_files = self._list_directory(user_directory)
-
-        if 'files.zip' in user_files:
-            files_directory = user_directory
-
-        return '/'.join((files_directory, 'files.zip'))
-
-    def _get_release_directory(self):
-        return sorted(self._list_directory(self._parameters.bucket_base_path))
-
-    def _get_user_directory(self, release_directory):
-        return '/'.join((
-            self._parameters.bucket_base_path,
-            release_directory[-1],
-            'Files',
-            self._parameters.authorization["user_id"]
+        all_paths = sorted(self._list_directory(self._parameters.bucket_base_path))
+        latest_release_directory = self._extract_latest_release_directory(all_paths[-1])
+        archive_path = '/'.join((
+            latest_release_directory,
+            "Files",
+            self._parameters.authorization["user_id"],
+            "files.zip"
         ))
+
+        if archive_path not in all_paths:
+            archive_path = '/'.join((latest_release_directory, 'files.zip'))
+
+        return archive_path
+
+    def _extract_latest_release_directory(self, example_path):
+        relative_path = example_path.replace(f"{self._parameters.bucket_base_path}/", "")
+        release_directory = relative_path.split('/')[0]
+
+        return '/'.join((self._parameters.bucket_base_path, release_directory))
 
     def _list_directory(self, base_path):
         response = self._s3.list_objects_v2(Bucket=self._parameters.bucket_name, Prefix=base_path)
 
-        objects = {x['Key'].split('/')[-1] for x in response['Contents']}
-
-        if '' in objects:
-            objects.remove('')
-
-        return objects
+        return {x['Key'] for x in response['Contents']}
