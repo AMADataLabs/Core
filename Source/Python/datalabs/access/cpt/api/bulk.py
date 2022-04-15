@@ -1,6 +1,7 @@
 """ Release endpoint classes."""
 from   dataclasses import dataclass
 import logging
+import re
 
 import boto3
 from   botocore.exceptions import ClientError
@@ -37,6 +38,8 @@ class FilesEndpointTask(APIEndpointTask):
         files_archive_path = self._get_files_archive_path()
         files_archive_url = None
 
+        LOGGER.info(f'Creating presigned URL for file s3://{self._parameters.bucket_name}/{files_archive_path}')
+
         try:
             files_archive_url = self._s3.generate_presigned_url(
                 'get_object',
@@ -58,7 +61,6 @@ class FilesEndpointTask(APIEndpointTask):
         latest_release_directory = self._extract_latest_release_directory(all_paths[-1])
         archive_path = '/'.join((
             latest_release_directory,
-            "Files",
             self._parameters.authorization["user_id"],
             "files.zip"
         ))
@@ -69,10 +71,15 @@ class FilesEndpointTask(APIEndpointTask):
         return archive_path
 
     def _extract_latest_release_directory(self, example_path):
-        relative_path = example_path.replace(f"{self._parameters.bucket_base_path}/", "")
-        release_directory = relative_path.split('/')[0]
+        relative_path = re.sub(f'^{self._parameters.bucket_base_path}', '', example_path)
+        relative_release_directory = relative_path.split('/')[0]
+        release_directory = relative_release_directory
 
-        return '/'.join((self._parameters.bucket_base_path, release_directory))
+        if len(self._parameters.bucket_base_path) > 0:
+            release_directory = '/'.join((self._parameters.bucket_base_path, release_directory))
+
+
+        return release_directory
 
     def _list_directory(self, base_path):
         response = self._s3.list_objects_v2(Bucket=self._parameters.bucket_name, Prefix=base_path)
