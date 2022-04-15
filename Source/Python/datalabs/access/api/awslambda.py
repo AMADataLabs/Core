@@ -18,12 +18,11 @@ class APIEndpointTaskWrapper(TaskWrapper):
         )
 
     def _get_task_parameters(self):
+        query_parameters = self._parameters.pop("queryStringParameters") or {}
+        multivalue_query_parameters = self._parameters.pop("multiValueQueryStringParameters") or {}
         standard_parameters = dict(
-            path=self._parameters.get('pathParameters', {}),
-            query={
-                **self._parameters.get('queryStringParameters', {}),
-                **self._parameters.get('multiValueQueryStringParameters', {})
-            },
+            path=self._parameters.pop("pathParameters") or {},
+            query={**query_parameters, **multivalue_query_parameters},
             authorization=self._extract_authorization_parameters(self._parameters)
         )
         task_specific_parameters = self._get_task_specific_parameters()
@@ -112,10 +111,10 @@ class APIEndpointTaskWrapper(TaskWrapper):
         secret = json.loads(secret_string)
         engine = secret.get('engine')
         variables = dict(
-            DATABASE_NAME=os.getenv('DATABASE_NAME') or secret.get('dbname'),
-            DATABASE_PORT=os.getenv('DATABASE_PORT') or str(secret.get('port')),
-            DATABASE_USERNAME=os.getenv('DATABASE_USERNAME') or secret.get('username'),
-            DATABASE_PASSWORD=os.getenv('DATABASE_PASSWORD') or secret.get('password')
+            DATABASE_NAME=secret.get('dbname'),
+            DATABASE_PORT=str(secret.get('port')),
+            DATABASE_USERNAME=secret.get('username'),
+            DATABASE_PASSWORD=secret.get('password')
         )
 
         if engine == 'postgres':

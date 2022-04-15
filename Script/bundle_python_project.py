@@ -41,23 +41,24 @@ class LocalProjectBundler(ProjectBundler):
 
         os.makedirs(target_path, exist_ok=True)
 
-        LOGGER.info('=== Copying Build Files ===')
-        self._copy_build_files(project, target_path)
-
         LOGGER.info('=== Copying Source Files ===')
         self._copy_source_files(project, target_path)
 
-        LOGGER.info('=== Copying Extra Files ===')
-        self._copy_extra_files(extra_files, target_path)
+        if not kwargs['partial']:
+            LOGGER.info('=== Copying Build Files ===')
+            self._copy_build_files(project, target_path)
 
-        LOGGER.info('=== Copying Lambda Function Handler ===')
-        self._copy_lambda_function_handler(target_path)
+            LOGGER.info('=== Copying Extra Files ===')
+            self._copy_extra_files(extra_files, target_path)
 
-        LOGGER.info('=== Copying Local Task Script ===')
-        self._copy_local_task_script(target_path)
+            LOGGER.info('=== Copying Lambda Function Handler ===')
+            self._copy_lambda_function_handler(target_path)
 
-        LOGGER.info('=== Creating Zip Archive ===')
-        self._zip_bundle_directory(project, target_path)
+            LOGGER.info('=== Copying Local Task Script ===')
+            self._copy_local_task_script(target_path)
+
+            LOGGER.info('=== Creating Zip Archive ===')
+            self._zip_bundle_directory(project, target_path)
 
     def _copy_build_files(self, project, target_path):
         self._copy_alembic_files(project, target_path)
@@ -203,9 +204,11 @@ if __name__ == '__main__':
     ap.add_argument('-d', '--directory',
         help='Specify the target directory into which files will be bundled (default Build/<PROJECT>/<PROJECT>)')
     ap.add_argument('-i', '--in-place', action='store_true', default=False,
-        help='Do not pre-clean the target directory.')
+        help='Do not pre-clean the target directory. Ignored when using --serverless.')
+    ap.add_argument('-p', '--partial', action='store_true', default=False,
+        help='Only copy source files. Ignored when using --serverless.')
     ap.add_argument('-s', '--serverless', action='store_true', default=False,
-        help='Create a zip archive of the bundle for serverless deployment.')
+        help='Use Docker install dependencies required for a serverless deployment.')
     ap.add_argument(
         '-f', '--file', action='append', required=False, help='Include the given file in the bundle.'
     )
@@ -228,7 +231,8 @@ if __name__ == '__main__':
             args['project'],
             target_path=args['directory'],
             extra_files=args['file'],
-            in_place=args['in_place']
+            in_place=args['in_place'],
+            partial=args['partial']
         )
     except Exception as e:
         LOGGER.exception(f"Failed to create project bundle.")

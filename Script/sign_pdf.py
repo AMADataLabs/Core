@@ -20,15 +20,15 @@ if __name__ == '__main__':
     return_code = 0
 
     ap = argparse.ArgumentParser()
-    ap.add_argument('-i', '--input-pdf',
+    ap.add_argument('-i', '--input-pdf', required=True,
         help='The path to the PDF document to be signed.')
-    ap.add_argument('-o', '--output-pdf',
+    ap.add_argument('-o', '--output-pdf', required=True,
         help='The path to where the signed PDF should be written.')
-    ap.add_argument('-c', '--creds-file',
+    ap.add_argument('-c', '--creds-file', required=True,
         help='The path to the PKCS12 signing credentials file.')
-    ap.add_argument('-p', '--password',
-        help='The password to decrypt the signing key (Default: None).')
-    ap.add_argument('-r', '--recipient', default=None,
+    ap.add_argument('-p', '--password', required=True,
+        help='The password to decrypt the signing key.')
+    ap.add_argument('-r', '--recipient', required=True,
         help='The recipient of the downloaded PDF.')
     args = vars(ap.parse_args())
     LOGGER.debug('Args: %s', args)

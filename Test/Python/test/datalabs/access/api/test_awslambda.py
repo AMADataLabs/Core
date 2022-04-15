@@ -42,7 +42,7 @@ def test_task_wrapper_handle_success(event):
 
 
 class MockTask(api.APIEndpointTask):
-    def _run(self, database):
+    def run(self):
         pass
 
 
@@ -89,6 +89,7 @@ def event():
     yield dict(
         pathParameters=dict(foo='bar'),
         queryStringParameters=dict(ping='pong'),
+        multiValueQueryStringParameters=None,
         requestContext=dict(
             resourceId="jnokm4",
             authorizer=dict(

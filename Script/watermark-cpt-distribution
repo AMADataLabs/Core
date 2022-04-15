@@ -1,0 +1,134 @@
+#!/bin/bash
+
+FILE=
+USER_ID=
+CREDENTIALS=
+PASSWORD=
+DIRECTORY=
+PDF_FILES=
+
+
+main() {
+    process_arguments "$@"
+
+    extract_files_directory
+
+    unpack_files
+
+    find_pdf_files
+
+    sign_pdf_files
+
+    create_user_directory
+
+    pack_files
+
+    remove_archive_directory
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -f|--file)
+            FILE=$2
+            shift
+            shift
+            ;;
+        -u|--user)
+            USER_ID=$2
+            shift
+            shift
+            ;;
+        -c|--credentials)
+            CREDENTIALS=$2
+            shift
+            shift
+            ;;
+        -p|--password)
+            PASSWORD=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Error: unexpected argument $1"
+            exit 1
+            ;;
+      esac
+    done
+
+    if [[ "$FILE" == "" ]]; then
+        echo "Error: missing archive file argument (--file)"
+        exit 1
+    elif [[ "$USER_ID" == "" ]]; then
+        echo "Error: missing user ID argument (--user)"
+        exit 1
+    elif [[ "$CREDENTIALS" == "" ]]; then
+        echo "Error: missing PKCS12 credentials argument (--credentials)"
+        exit 1
+    elif [[ "$PASSWORD" == "" ]]; then
+        echo "Error: missing credentials password argument (--password)"
+        exit 1
+    fi
+}
+
+
+print_usage() {
+    echo "Usage: watermark-cpt-distribution [OPTION]..."
+    echo "Sign all the PDFs in the given CPT files distribution zip."
+    echo
+    echo "OPTIONS"
+    echo "  -f, --file                            CPT distribution zip file path"
+    echo "  -u, --user                            AMA Passport user ID"
+    echo "  -c, --credentials                     PKCS12 credentials file path"
+    echo "  -p, --password                        decryption password for the credentials file"
+}
+
+
+extract_files_directory() {
+    DIRECTORY=$(unzip -t "${FILE}" | grep testing: | sed -e 's/  *testing: //' -e 's/\/..*//' | head -1 | tr -d '\n')
+}
+
+
+unpack_files() {
+    unzip ${FILE} > /dev/null
+}
+
+
+find_pdf_files() {
+    PDF_FILES=($(find "${DIRECTORY}" -type f -name "*.pdf" | sed 's/ /#/g'))
+}
+
+
+sign_pdf_files() {
+    for file in ${PDF_FILES[@]}; do
+        file="${file//#/ }"
+        echo "Signing PDF $file"
+
+        sign-pdf -i "$file" -o "$file.signed" -c ${CREDENTIALS} -r ${USER_ID} -p ${PASSWORD}
+
+        mv "$file.signed" "$file"
+    done
+}
+
+
+create_user_directory() {
+    mkdir -p ${USER_ID}
+}
+
+
+pack_files() {
+    zip -r ${USER_ID}/files.zip "${DIRECTORY}"/*
+}
+
+
+remove_archive_directory() {
+    rm -rf "${DIRECTORY}"
+}
+
+
+main "$@"
