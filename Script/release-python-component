@@ -1,0 +1,122 @@
+#!/bin/bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+PROJECT=
+NAME=
+VERSION=
+DESCRIPTION=
+BUILD_BASE_PATH=
+
+
+main() {
+    process_arguments "$@"
+
+    initialize_release_directory
+
+    collect_source_files
+
+    build_distibution
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -n|--name)
+            NAME=$2
+            shift
+            shift
+            ;;
+        -v|--version)
+            VERSION=$2
+            shift
+            shift
+            ;;
+        -d|--description)
+            DESCRIPTION=$2
+            shift
+            shift
+            ;;
+        *)
+            if [[ "$PROJECT" != "" ]]; then
+                echo "Error: unexpected argument $1"
+                exit 1
+            fi
+
+            PROJECT=$1
+            shift
+            ;;
+      esac
+    done
+
+    if [[ "$PROJECT" == "" ]]; then
+        echo "Error: missing project Build-relative path"
+        exit 1
+    elif [[ "$NAME" == "" ]]; then
+        echo "Error: missing component name argument (--name)"
+        exit 1
+    elif [[ "$VERSION" == "" ]]; then
+        echo "Error: missing component version argument (--version)"
+        exit 1
+    fi
+
+    BUILD_BASE_PATH=`realpath ${SCRIPT_BASE_PATH}/../Build`
+}
+
+
+print_usage() {
+    echo "Usage: release-python-component [OPTION]... PROJECT"
+    echo "Create a component library package for the given project"
+    echo
+    echo "OPTIONS"
+    echo "  -n, --name                            name of component to release"
+    echo "  -v, --version                         version tag for this release"
+    echo "  -d, --description                     component description"
+}
+
+
+initialize_release_directory() {
+    mkdir Release
+
+    generate_setup
+
+    generate_readme
+}
+
+
+collect_source_files() {
+    ${SCRIPT_BASE_PATH}/bundle-python-project --partial --directory Release/datalabs-${NAME} ${PROJECT}
+}
+
+
+build_distibution() {
+    python Release/setup.py bdist_wheel
+}
+
+
+generate_setup() {
+    requirements=($(cat ${BUILD_BASE_PATH}/${PROJECT}/requirements.txt))
+    requirements_var=
+
+    for requirement in ${requirements[@]}; do
+        requirements_var="${requirements_var}\"${requirement}\","
+    done
+
+    render-template -t ${BUILD_BASE_PATH}/Master/setup.py.jinja -f Release/setup.py \
+        -v name=${NAME} -v version=${VERSION} -v "description=${DESCRIPTION}" -v requirements=${requirements_var}
+}
+
+
+generate_readme() {
+    touch Release/README.md
+}
+
+main "$@"

@@ -12,18 +12,22 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 def main(args):
-    kwargs = parse_kwargs(args['vars'])
+    kwargs = {}
 
-    b64_kwargs = parse_kwargs(args['b64vars'], b64encode=True)
+    if args['vars']:
+        kwargs.update(parse_kwargs(args['vars'].split(',')))
 
-    kwargs.update(b64_kwargs)
+    if args['var']:
+        kwargs.update(parse_kwargs(args['var']))
+
+    if args['b64var']:
+        kwargs.update(parse_kwargs(args['b64var']), b64encode=True)
 
     render_template(args['template'], args['file'], **kwargs)
 
 
-def parse_kwargs(kwargs_string, b64encode=False):
-    kwarg_strings = kwargs_string.split(',')
-    kwarg_regex = re.compile(r'\s*([a-zA-Z0-9_]+)=([^$]+)')
+def parse_kwargs(kwarg_strings, b64encode=False):
+    kwarg_regex = re.compile(r'\s*([a-zA-Z0-9_.]+)=([^$]+)')
     kwargs = {}
 
     for kwarg_string in kwarg_strings:
@@ -56,10 +60,12 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-t', '--template', required=True, help='Template file path.')
     ap.add_argument('-f', '--file', required=True, help='File resulting from rendering the template.')
-    ap.add_argument('-v', '--vars', default='',
-                    help='Comma-separated <KEY>=<VALUE> pairs used to resolve the template variables.')
-    ap.add_argument('-b', '--b64vars', default='',
-                    help='Comma-separated <KEY>=<VALUE> equivalent to -v KEY_b64=b64encode(VALUE).')
+    ap.add_argument('-V', '--vars',
+                    help='String of comma-separated <KEY>=<VALUE> pair used to resolve the template variables.')
+    ap.add_argument('-v', '--var', action='append',
+                    help='<KEY>=<VALUE> pair used to resolve the template variables.')
+    ap.add_argument('-b', '--b64var', action='append',
+                    help='<KEY>=<VALUE> equivalent to -v KEY_b64=b64encode(VALUE).')
     args = vars(ap.parse_args())
 
     try:
