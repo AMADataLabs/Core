@@ -38,7 +38,7 @@ class FilesEndpointTask(APIEndpointTask):
         files_archive_path = self._get_files_archive_path()
         files_archive_url = None
 
-        LOGGER.info(f'Creating presigned URL for file s3://{self._parameters.bucket_name}/{files_archive_path}')
+        LOGGER.info('Creating presigned URL for file s3://%s/%s', self._parameters.bucket_name, files_archive_path)
 
         try:
             files_archive_url = self._s3.generate_presigned_url(

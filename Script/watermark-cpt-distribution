@@ -122,7 +122,7 @@ create_user_directory() {
 
 
 pack_files() {
-    zip ${USER_ID}/files.zip "${DIRECTORY}"
+    zip -r ${USER_ID}/files.zip "${DIRECTORY}"/*
 }
 
 
