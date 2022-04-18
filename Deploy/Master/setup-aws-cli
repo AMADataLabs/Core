@@ -65,6 +65,17 @@ process_arguments() {
             ;;
       esac
     done
+
+    if [[ "$ENVIRONMENT" == "" ]]; then
+        echo "Missing environment argument."
+        exit 1
+    elif  [[ "$AWS_ACCESS_KEY_ID" == "" ]]; then
+        echo "Missing access key ID argument."
+        exit 1
+    elif  [[ "$AWS_SECRET_ACCESS_KEY" == "" ]]; then
+        echo "Missing secret access key argument."
+        exit 1
+    fi
 }
 
 

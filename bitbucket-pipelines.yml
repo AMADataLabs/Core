@@ -75,6 +75,7 @@ pipelines:
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli
+                --environment sbx
                 --access-id $AWS_ACCESS_KEY_ID
                 --access-secret $AWS_SECRET_ACCESS_KEY
             - >-
@@ -104,6 +105,7 @@ pipelines:
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli
+                --environment sbx
                 --access-id $AWS_ACCESS_KEY_ID
                 --access-secret $AWS_SECRET_ACCESS_KEY
             - >-
@@ -117,6 +119,7 @@ pipelines:
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli
+                --environment sbx
                 --access-id $AWS_ACCESS_KEY_ID
                 --access-secret $AWS_SECRET_ACCESS_KEY
             - bash Deploy/Master/update-functions -e sbx -s DataLake -p CustomerIntelligence ContactID=ContactID.zip
@@ -130,6 +133,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment sbx
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -145,6 +149,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment sbx
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -159,6 +164,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment sbx
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -178,6 +184,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment sbx
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -193,6 +200,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment sbx
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -221,6 +229,7 @@ pipelines:
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli
+                --environment sbx
                 --access-id $AWS_ACCESS_KEY_ID
                 --access-secret $AWS_SECRET_ACCESS_KEY
             - >-
@@ -252,6 +261,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment sbx
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -269,6 +279,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment sbx
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -292,6 +303,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment sbx
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                 - export ENVIRONMENT=sbx
@@ -305,6 +317,7 @@ pipelines:
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli
+                --environment sbx
                 --access-id $AWS_ACCESS_KEY_ID
                 --access-secret $AWS_SECRET_ACCESS_KEY
             - >-
@@ -323,6 +336,7 @@ pipelines:
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli
+                --environment sbx
                 --access-id $AWS_ACCESS_KEY_ID
                 --access-secret $AWS_SECRET_ACCESS_KEY
             - >-
@@ -336,6 +350,7 @@ pipelines:
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli
+                --environment sbx
                 --access-id $AWS_ACCESS_KEY_ID
                 --access-secret $AWS_SECRET_ACCESS_KEY
             - >-
@@ -358,6 +373,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment dev
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                     --role-id $AWS_ACCESS_KEY_ID_ROLE
@@ -375,6 +391,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli
+                    --environment dev
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
                     --role-id $AWS_ACCESS_KEY_ID_ROLE
@@ -393,6 +410,7 @@ pipelines:
             - export ENVIRONMENT=dev
             - >-
                 bash Deploy/Master/setup-aws-cli
+                --environment dev
                 --access-id $AWS_ACCESS_KEY_ID
                 --access-secret $AWS_SECRET_ACCESS_KEY
                 --role-id $AWS_ACCESS_KEY_ID_ROLE
