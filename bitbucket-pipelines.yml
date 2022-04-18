@@ -330,6 +330,17 @@ pipelines:
 
         Scheduler-master:
         - step:
+            name: Update Component Package
+            caches:
+            - environment-master
+            script:
+            - source Build/Scheduler/.ci/release.sh sbx
+            - >-
+                release-python-component --name $RELEASE_NAME --version $RELEASE_VERSION
+                --description "cloud-native DAG execution components"
+            - aws codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
+            - twine upload --repository codeartifact dist/*.whl
+        - step:
             name: Update Bundle
             caches:
             - scheduler-master-update-bundle-dependencies
@@ -1178,6 +1189,7 @@ definitions:
     build-dependencies: Environment
     test-dependencies: Environment
 
+    environment-master: Environment
     amc-master-update-bundle-dependencies: Environment
     contactid-master-update-bundle-dependencies: Environment
     cpt-master-create-database-dependencies: Environment
