@@ -1,0 +1,193 @@
+012|Resident|011|10
+012|Resident|013|3
+012|Resident|021|9
+012|Resident|030|26
+012|Resident|040|9
+012|Resident|050|119989
+012|Resident|063|28
+012|Resident|081|10
+012|Resident|082|7
+012|Resident|083|3
+012|Resident|085|1
+012|Resident|086|1
+012|Resident|110|26
+020|Direct Patient Care|011|99010
+020|Direct Patient Care|013|21482
+020|Direct Patient Care|021|5948
+020|Direct Patient Care|022|1833
+020|Direct Patient Care|030|364230
+020|Direct Patient Care|035|1770
+020|Direct Patient Care|040|7159
+020|Direct Patient Care|050|38935
+020|Direct Patient Care|063|76811
+020|Direct Patient Care|064|2780
+020|Direct Patient Care|081|2840
+020|Direct Patient Care|082|2583
+020|Direct Patient Care|083|1819
+020|Direct Patient Care|084|906
+020|Direct Patient Care|085|7363
+020|Direct Patient Care|086|4124
+020|Direct Patient Care|110|177295
+030|Administration|011|713
+030|Administration|013|103
+030|Administration|021|391
+030|Administration|022|13
+030|Administration|030|3025
+030|Administration|035|302
+030|Administration|040|950
+030|Administration|050|1183
+030|Administration|063|1880
+030|Administration|064|826
+030|Administration|081|208
+030|Administration|082|130
+030|Administration|083|102
+030|Administration|084|233
+030|Administration|085|431
+030|Administration|086|602
+030|Administration|101|1908
+030|Administration|110|418
+040|Medical Teaching|011|388
+040|Medical Teaching|013|60
+040|Medical Teaching|021|75
+040|Medical Teaching|022|3
+040|Medical Teaching|030|2648
+040|Medical Teaching|035|12
+040|Medical Teaching|040|5639
+040|Medical Teaching|050|736
+040|Medical Teaching|063|1839
+040|Medical Teaching|064|68
+040|Medical Teaching|081|86
+040|Medical Teaching|082|42
+040|Medical Teaching|083|38
+040|Medical Teaching|084|15
+040|Medical Teaching|085|247
+040|Medical Teaching|086|133
+040|Medical Teaching|101|187
+040|Medical Teaching|110|256
+050|Medical Research|011|475
+050|Medical Research|013|56
+050|Medical Research|021|161
+050|Medical Research|022|6
+050|Medical Research|030|2188
+050|Medical Research|035|17
+050|Medical Research|040|3176
+050|Medical Research|050|1321
+050|Medical Research|063|1888
+050|Medical Research|064|152
+050|Medical Research|081|80
+050|Medical Research|082|30
+050|Medical Research|083|13
+050|Medical Research|084|397
+050|Medical Research|085|476
+050|Medical Research|086|427
+050|Medical Research|101|1397
+050|Medical Research|110|629
+062|Non-Patient Care|011|564
+062|Non-Patient Care|013|68
+062|Non-Patient Care|021|146
+062|Non-Patient Care|022|23
+062|Non-Patient Care|030|1022
+062|Non-Patient Care|035|20
+062|Non-Patient Care|040|143
+062|Non-Patient Care|050|205
+062|Non-Patient Care|063|368
+062|Non-Patient Care|064|250
+062|Non-Patient Care|081|35
+062|Non-Patient Care|082|26
+062|Non-Patient Care|083|16
+062|Non-Patient Care|084|93
+062|Non-Patient Care|085|69
+062|Non-Patient Care|086|257
+062|Non-Patient Care|101|1229
+062|Non-Patient Care|110|226
+071|Retired|011|33089
+071|Retired|013|6212
+071|Retired|021|2316
+071|Retired|022|687
+071|Retired|030|47957
+071|Retired|035|477
+071|Retired|040|3682
+071|Retired|050|6500
+071|Retired|063|7710
+071|Retired|064|2358
+071|Retired|081|353
+071|Retired|082|275
+071|Retired|083|180
+071|Retired|084|279
+071|Retired|085|2178
+071|Retired|086|942
+071|Retired|101|2700
+071|Retired|110|43077
+072|Semi-Retired|011|6985
+072|Semi-Retired|013|731
+072|Semi-Retired|021|652
+072|Semi-Retired|022|672
+072|Semi-Retired|030|4932
+072|Semi-Retired|035|109
+072|Semi-Retired|040|567
+072|Semi-Retired|050|688
+072|Semi-Retired|063|797
+072|Semi-Retired|064|410
+072|Semi-Retired|081|39
+072|Semi-Retired|082|29
+072|Semi-Retired|083|21
+072|Semi-Retired|084|52
+072|Semi-Retired|085|284
+072|Semi-Retired|086|179
+072|Semi-Retired|101|666
+072|Semi-Retired|110|376
+074|Temporarily Not In Practice|011|516
+074|Temporarily Not In Practice|013|68
+074|Temporarily Not In Practice|021|103
+074|Temporarily Not In Practice|022|135
+074|Temporarily Not In Practice|030|717
+074|Temporarily Not In Practice|035|10
+074|Temporarily Not In Practice|040|78
+074|Temporarily Not In Practice|050|171
+074|Temporarily Not In Practice|063|92
+074|Temporarily Not In Practice|064|81
+074|Temporarily Not In Practice|081|8
+074|Temporarily Not In Practice|082|11
+074|Temporarily Not In Practice|083|7
+074|Temporarily Not In Practice|084|13
+074|Temporarily Not In Practice|085|29
+074|Temporarily Not In Practice|086|31
+074|Temporarily Not In Practice|101|535
+074|Temporarily Not In Practice|110|1477
+075|Not Active For Other Reasons|011|3052
+075|Not Active For Other Reasons|013|368
+075|Not Active For Other Reasons|021|252
+075|Not Active For Other Reasons|022|68
+075|Not Active For Other Reasons|030|1889
+075|Not Active For Other Reasons|035|27
+075|Not Active For Other Reasons|040|279
+075|Not Active For Other Reasons|050|561
+075|Not Active For Other Reasons|063|385
+075|Not Active For Other Reasons|064|253
+075|Not Active For Other Reasons|081|21
+075|Not Active For Other Reasons|082|13
+075|Not Active For Other Reasons|083|9
+075|Not Active For Other Reasons|084|25
+075|Not Active For Other Reasons|085|82
+075|Not Active For Other Reasons|086|71
+075|Not Active For Other Reasons|101|991
+075|Not Active For Other Reasons|110|4761
+100|Unclassified|011|157
+100|Unclassified|013|72
+100|Unclassified|021|30
+100|Unclassified|022|8
+100|Unclassified|030|1644
+100|Unclassified|035|5
+100|Unclassified|040|148
+100|Unclassified|050|119
+100|Unclassified|063|1071
+100|Unclassified|064|26
+100|Unclassified|081|32
+100|Unclassified|082|81
+100|Unclassified|083|18
+100|Unclassified|084|7
+100|Unclassified|085|23
+100|Unclassified|086|73
+100|Unclassified|101|82
+100|Unclassified|110|81814
+

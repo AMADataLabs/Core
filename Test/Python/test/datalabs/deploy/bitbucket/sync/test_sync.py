@@ -26,47 +26,46 @@ def configuration():
 
 @pytest.fixture
 def request_data():
-  # pylint: disable=bad-continuation
     return {
-      "eventKey":"repo:refs_changed",
-      "date":"2017-09-19T09:45:32+1000",
-      "actor":{
-        "name":"admin",
-        "emailAddress":"admin@example.com",
-        "id":1,
-        "displayName":"Administrator",
-        "active":True,
-        "slug":"admin",
-        "type":"NORMAL"
-      },
-      "repository":{
-        "slug":"test-repository",
-        "id":84,
-        "name":"test-repository",
-        "scmId":"git",
-        "state":"AVAILABLE",
-        "statusMessage":"Available",
-        "forkable":True,
-        "project":{
-          "key":"TEST-PROJECT",
-          "id":84,
-          "name":"Test Project",
-          "public":True,
-          "type":"NORMAL"
+        "eventKey": "repo:refs_changed",
+        "date": "2017-09-19T09:45:32+1000",
+        "actor": {
+            "name": "admin",
+            "emailAddress": "admin@example.com",
+            "id": 1,
+            "displayName": "Administrator",
+            "active": True,
+            "slug": "admin",
+            "type": "NORMAL"
         },
-        "public":False
-      },
-      "changes":[
-        {
-          "ref":{
-            "id":"refs/heads/master",
-            "displayId":"master",
-            "type":"BRANCH"
-          },
-          "refId":"refs/heads/master",
-          "fromHash":"ecddabb624f6f5ba43816f5926e580a5f680a932",
-          "toHash":"178864a7d521b6f5e720b386b2c2b0ef8563e0dc",
-          "type":"UPDATE"
-        }
-      ]
+        "repository": {
+            "slug": "test-repository",
+            "id": 84,
+            "name": "test-repository",
+            "scmId": "git",
+            "state": "AVAILABLE",
+            "statusMessage": "Available",
+            "forkable": True,
+            "project": {
+                "key": "TEST-PROJECT",
+                "id": 84,
+                "name": "Test Project",
+                "public": True,
+                "type": "NORMAL"
+            },
+            "public": False
+        },
+        "changes": [
+            {
+                "ref": {
+                    "id": "refs/heads/master",
+                    "displayId": "master",
+                    "type": "BRANCH"
+                },
+                "refId": "refs/heads/master",
+                "fromHash": "ecddabb624f6f5ba43816f5926e580a5f680a932",
+                "toHash": "178864a7d521b6f5e720b386b2c2b0ef8563e0dc",
+                "type": "UPDATE"
+            }
+        ]
     }

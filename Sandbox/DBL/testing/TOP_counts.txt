@@ -1,0 +1,12 @@
+120122|012|Resident
+816888|020|Direct Patient Care
+13418|030|Administration
+12472|040|Medical Teaching
+12889|050|Medical Research
+4760|062|Non-Patient Care
+160972|071|Retired
+18189|072|Semi-Retired
+4082|074|Temporarily Not In Practice
+13107|075|Not Active For Other Reasons
+85410|100|Unclassified
+

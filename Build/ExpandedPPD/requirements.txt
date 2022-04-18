@@ -1,0 +1,9 @@
+cryptography==3.4.8
+PyYAML==5.4
+jinja2==2.11.3
+json5==0.8.5
+pandas==1.0.1
+pysftp==0.2.9
+python-dateutil==2.8.1
+python-dotenv==0.12.0
+setuptools==41.0.0

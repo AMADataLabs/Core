@@ -1,0 +1,13 @@
+#!/bin/bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+
+
+main() {
+    ${SCRIPT_BASE_PATH}/run-python-task "$@"
+}
+
+
+main "$@"

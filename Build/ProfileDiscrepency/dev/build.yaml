@@ -1,0 +1,38 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: Talend ETL job for extracting from Jira on-prem and Loading to S3.
+    openshift.io/display-name: ProfileDiscrepencyReportETL
+  creationTimestamp: null
+  labels:
+    app: ProfileDiscrepencyReportETL
+  name: profile-discrepency-report-etl
+  namespace: hsg-data-labs-dev
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: profile-discrepency-report-etl:1.0.0
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+      ref: dev
+    sourceSecret:
+      name: bitbucket
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Build/ProfileDiscrepency/dev/Dockerfile
+      from:
+        kind: DockerImage
+        name: anapsix/alpine-java:8u121b13_jdk
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - type: ConfigChange

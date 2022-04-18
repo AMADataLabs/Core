@@ -7,7 +7,7 @@ RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pi
 FROM Base as PythonDependencies
 WORKDIR /BitBucketSync
 
-COPY ./Environment/BitBucketSync/Pipfile .
+COPY ./Build/BitBucketSync/Pipfile .
 
 RUN pipenv install
 
@@ -17,8 +17,8 @@ WORKDIR /BitBucketSync
 
 COPY ./Source/Python/ .
 COPY ./Test/Python/ .
-COPY ./Environment/BitBucketSync/.env .
-COPY ./Environment/Master/settings.py .
+COPY ./Build/BitBucketSync/.env .
+COPY ./Build/Master/settings.py .
 
 COPY ./Build/BitBucketSync/server-ssl.conf .
 RUN openssl req --batch -config server-ssl.conf -newkey rsa:2048 -nodes -keyout key.pem -x509 -days 365 -out certificate.pem

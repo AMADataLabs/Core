@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: amc-address-flagging-report
+    namespace: hsg-data-labs-dev
+data:
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+    CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    INGESTED_DATA_BUCKET: 'ama-dev-datalake-ingest-us-east-1'
+    PROCESSED_DATA_BUCKET: 'ama-dev-datalake-process-us-east-1'
+    S3_BASE_PATH: 'AMA/AMC'
+
+
+    # Address-Flagging-Report Extractor
+    AMC__EXTRACT_AMC__DRIVER: 'com.informix.jdbc.IfxDriver'
+    AMC__EXTRACT_AMC__DRIVER_TYPE: 'informix-sqli'
+    AMC__EXTRACT_AMC__DATABASE_HOST: '${AIMS_HOST}'
+    AMC__EXTRACT_AMC__DATABASE_PORT: '${AIMS_PORT}'
+    AMC__EXTRACT_AMC__DATABASE_NAME: '${AIMS_NAME}'
+    AMC__EXTRACT_AMC__DATABASE_USERNAME: '${AIMS_USERNAME}'
+    AMC__EXTRACT_AMC__DATABASE_PASSWORD: '${AIMS_PASSWORD}'
+    AMC__EXTRACT_AMC__JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
+    AMC__EXTRACT_AMC__SQL: >-
+        SELECT
+            eke.key_type_val as ME,
+            ecu.entity_id,
+            ecu.comm_id,
+            first_nm,
+            middle_nm,
+            last_nm,
+            pa.addr_line0,
+            pa.addr_line1,
+            pa.addr_line2,
+            pa.city_cd,
+            pa.zip,
+            pa.state_cd,
+            ecu.usg_begin_dt,
+            ecu.comm_usage
+
+        FROM
+            entity_comm_usg_at ecu
+            INNER JOIN
+            entity_key_et eke
+            ON eke.entity_id = ecu.entity_id
+            INNER JOIN
+            post_addr_at pa
+            ON pa.comm_id = ecu.comm_id
+            INNER JOIN
+            person_name_et pn
+            ON pn.entity_id = ecu.entity_id
+
+        WHERE
+            ecu.src_cat_code = 'AMC' AND
+            ecu.end_dt is null       AND
+            eke.key_type ='ME';
+    AMC__EXTRACT_AMC__CACHE_OUTPUT_CLASS: ${CACHE_CLASS}
+    AMC__EXTRACT_AMC__CACHE_OUTPUT_ACCESS_KEY: ${S3_ACCESS_KEY}
+    AMC__EXTRACT_AMC__CACHE_OUTPUT_SECRET_KEY: ${S3_SECRET_KEY}
+    AMC__EXTRACT_AMC__CACHE_OUTPUT_ASSUME_ROLE: 'arn:aws:iam::${ACCOUNT}:role/${ENVIRONMENT}-ama-apigateway-invoke-role'
+    AMC__EXTRACT_AMC__CACHE_OUTPUT_BUCKET: ${INGESTED_DATA_BUCKET}
+    AMC__EXTRACT_AMC__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    AMC__EXTRACT_AMC__CACHE_OUTPUT_FILES: 'amc.csv'
+
+    # Address-Flagging-Report Transformer
+    AMC__FLAG_ADDRESSES__CACHE_CLASS: ${CACHE_CLASS}
+    AMC__FLAG_ADDRESSES__CACHE_ACCESS_KEY: ${S3_ACCESS_KEY}
+    AMC__FLAG_ADDRESSES__CACHE_SECRET_KEY: ${S3_SECRET_KEY}
+    AMC__FLAG_ADDRESSES__CACHE_OUTPUT_ASSUME_ROLE: 'arn:aws:iam::${ACCOUNT}:role/${ENVIRONMENT}-ama-apigateway-invoke-role'
+    AMC__FLAG_ADDRESSES__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    AMC__FLAG_ADDRESSES__CACHE_INPUT_FILES: 'amc.csv'
+    AMC__FLAG_ADDRESSES__CACHE_INPUT_BUCKET: ${INGESTED_DATA_BUCKET}
+    AMC__FLAG_ADDRESSES__CACHE_OUTPUT_FILES: 'flagged_addresses_report.pkl'
+    AMC__FLAG_ADDRESSES__CACHE_OUTPUT_BUCKET: ${PROCESSED_DATA_BUCKET}
+
+    # Address-Flagging-Report Loader
+    AMC__EMAIL_AMC_REPORT__TO: 'DataLabs@ama-assn.org'
+    AMC__EMAIL_AMC_REPORT__CC: ''
+    AMC__EMAIL_AMC_REPORT__CACHE_INPUT_CLASS: ${CACHE_CLASS}
+    AMC__EMAIL_AMC_REPORT__CACHE_INPUT_ACCESS_KEY: ${S3_ACCESS_KEY}
+    AMC__EMAIL_AMC_REPORT__CACHE_INPUT_SECRET_KEY: ${S3_SECRET_KEY}
+    AMC__EMAIL_AMC_REPORT__CACHE_OUTPUT_ASSUME_ROLE: 'arn:aws:iam::${ACCOUNT}:role/${ENVIRONMENT}-ama-apigateway-invoke-role'
+    AMC__EMAIL_AMC_REPORT__CACHE_INPUT_BUCKET: ${PROCESSED_DATA_BUCKET}
+    AMC__EMAIL_AMC_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    AMC__EMAIL_AMC_REPORT__CACHE_INPUT_FILES: 'flagged_addresses_report.pkl'

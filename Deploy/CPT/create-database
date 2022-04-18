@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -ex
+
+PROJECT="${PROJECT:-CPT}"
+
+export VIRTUAL_ENV=${PWD}/Environment/CPT
+export PATH="$VIRTUAL_ENV/bin:$PATH"
+
+export PYTHONPATH=${PWD}/Source/Python
+python -c 'from datalabs.deploy.cpt.database import create_unless_exists; create_unless_exists()'

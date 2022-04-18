@@ -12,7 +12,7 @@ import werkzeug.exceptions as exceptions
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 ValidatedData = namedtuple('ValidatedData', 'actor project repository branch action')
@@ -27,6 +27,8 @@ class BitBucketSynchronizer():
 
         self._repository_name = path.name.split('.')[0]
         self._project_name = path.parent.name
+        LOGGER.debug('On-Prem BitBucket repository URL: %s', self._config.url_on_prem)
+        LOGGER.debug('Cloud BitBucket repository URL: %s', self._config.url_cloud)
 
     def sync(self, request_data: dict):
         data = self._validate_request_data(request_data)

@@ -1,20 +1,22 @@
 #!/bin/bash
 
+set -e
+
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
-. ${SCRIPT_BASE_PATH}/../Source/Bash/datalabs/environment/setup/venv.sh
+. ${SCRIPT_BASE_PATH}/../Source/Bash/environment/python/setup.sh
 PROJECT_NAME=
 
 
 main() {
-    process_arguments $*
+    process_arguments "$@"
 
     create_environment_directory
 
     link_to_requirements_file
 
-    setup_python_virtual_environment ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+    setup_virtual_environment
 }
 
 
@@ -45,11 +47,21 @@ print_usage() {
 
 
 create_environment_directory() {
-    mkdir ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+    mkdir -p ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
 }
+
 
 link_to_requirements_file() {
-    ln -s ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}/requirements.txt ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}/requirements.txt
+    BUILD_REQUIREMENTS=${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}/requirements.txt
+    ENVIRONMENT_REQUIREMENTS=${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}/requirements.txt
+
+    rm -f ${ENVIRONMENT_REQUIREMENTS}
+    ln -s ${BUILD_REQUIREMENTS} ${ENVIRONMENT_REQUIREMENTS}
 }
 
-main $*
+
+setup_virtual_environment() {
+    setup_python_virtual_environment ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}
+}
+
+main "$@"

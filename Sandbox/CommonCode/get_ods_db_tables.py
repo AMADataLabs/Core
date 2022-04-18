@@ -52,6 +52,7 @@ def get_iqvia_all_phys_info(ODS_conn):
         """
             SELECT
             p.ME AS IMS_ME,
+            p.LAST_NAME AS IMS_LAST_NAME,
             b.PHYSICAL_ADDR_2 AS IMS_POLO_MAILING_LINE_1,
             b.PHYSICAL_ADDR_1 AS IMS_POLO_MAILING_LINE_2,
             b.PHYSICAL_CITY AS IMS_POLO_CITY,

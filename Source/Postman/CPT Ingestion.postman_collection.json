@@ -1,0 +1,612 @@
+{
+	"info": {
+		"_postman_id": "e5511c32-8916-4828-aac1-8dd711abba63",
+		"name": "CPT Ingestion",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "MarkLogic",
+			"item": [
+				{
+					"name": "Basic Test Query",
+					"protocolProfileBehavior": {
+						"followAuthorizationHeader": false
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{MARKLOGIC_BASE_URL}}/LATEST/search?database=ama-cce-FINAL&q=Immucor, Inc&pageLength=203",
+							"host": [
+								"{{MARKLOGIC_BASE_URL}}"
+							],
+							"path": [
+								"LATEST",
+								"search"
+							],
+							"query": [
+								{
+									"key": "database",
+									"value": "ama-cce-FINAL"
+								},
+								{
+									"key": "q",
+									"value": "Immucor, Inc"
+								},
+								{
+									"key": "pageLength",
+									"value": "203"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Extract Concepts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var parseString = require('xml2js').parseString;\r",
+									"var concepts = {};\r",
+									"\r",
+									"parseString(responseBody, function(err, results) {\r",
+									"    // console.log(results['search:response']['search:result'])\r",
+									"    for (result of results['search:response']['search:result']) {\r",
+									"        var data = result['search:extracted'][0];\r",
+									"        var concept_id = data['Concept'][0]['$']['id'];\r",
+									"        console.log(concept_id)\r",
+									"\r",
+									"        concepts[concept_id] = {\r",
+									"            code: String(data['CPT_Code']).trim(),\r",
+									"            long: String(data['Descriptor'][0]).trim(),\r",
+									"            medium: String(data['Medium_Descriptor'][0]).trim(),\r",
+									"            short: String(data['Short_Descriptor'][0]).trim(),\r",
+									"            consumer: String(data['Consumer_Friendly_Descriptor'][0]).trim(),\r",
+									"            clinician: String(data['Clinician_Descriptor'][0]).trim(),\r",
+									"        };\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.globals.set(\"concepts\", concepts);\r",
+									"\r",
+									"console.log(pm.globals.get(\"concepts\"));\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<search:search xmlns:search=\"http://marklogic.com/appservices/search\">\r\n    <cts:and-query xmlns:cts=\"http://marklogic.com/cts\">\r\n        <cts:directory-query>\r\n            <cts:uri>/data/legacy/link/concepts/</cts:uri>\r\n        </cts:directory-query>\r\n        <cts:element-query>\r\n            <cts:element xmlns:cpt=\"http://www.ama-assn.org/cpt\">cpt:cptCode</cts:element>\r\n            <cts:and-query/>\r\n        </cts:element-query>\r\n        <cts:element-query>\r\n            <cts:element xmlns:cpt=\"http://www.ama-assn.org/cpt\">cpt:notation</cts:element>\r\n            <cts:and-query/>\r\n        </cts:element-query>\r\n    </cts:and-query>\r\n    <search:options>\r\n        <search:extract-document-data selected=\"include\">\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\" xmlns:cpt=\"http://www.ama-assn.org/cpt\">/entity:envelope/entity:instance/cpt:cptCode/cpt:meta/cpt:notation</search:extract-path>\r\n            <!-- <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\">/entity:envelope/entity:instance/Concept/@id</search:extract-path>\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\">/entity:envelope/entity:instance/Concept/CPT_Code</search:extract-path>\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\">/entity:envelope/entity:instance/Concept/Descriptor</search:extract-path>\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\">/entity:envelope/entity:instance/Concept/Medium_Descriptor</search:extract-path>\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\">/entity:envelope/entity:instance/Concept/Short_Descriptor</search:extract-path>\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\">/entity:envelope/entity:instance/Concept/Consumer_Friendly_Descriptor</search:extract-path>\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\">/entity:envelope/entity:instance/Concept/Clinician_Descriptor</search:extract-path> -->\r\n        </search:extract-document-data>\r\n        <search:transform-results apply=\"empty-snippet\"/>\r\n        <search:search-option>filtered</search:search-option>\r\n    </search:options>\r\n</search:search>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MARKLOGIC_BASE_URL}}/v1/search?database=ama-cce-FINAL&pageLength=10",
+							"host": [
+								"{{MARKLOGIC_BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"search"
+							],
+							"query": [
+								{
+									"key": "database",
+									"value": "ama-cce-FINAL"
+								},
+								{
+									"key": "database",
+									"value": "ama-cpt-integration-STAGING",
+									"disabled": true
+								},
+								{
+									"key": "start",
+									"value": "10155",
+									"disabled": true
+								},
+								{
+									"key": "pageLength",
+									"value": "20000",
+									"disabled": true
+								},
+								{
+									"key": "pageLength",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Extract Modifiers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var parseString = require('xml2js').parseString;\r",
+									"var modifiers = {};\r",
+									"\r",
+									"parseString(responseBody, function(err, results) {\r",
+									"    for (result of results['search:response']['search:result']) {\r",
+									"        var data = result['search:extracted'][0];\r",
+									"        var code = String(data['cpt-mod:modifierCode'][0]['_']).trim();\r",
+									"        var descriptor = data['cpt-mod:description'][0];\r",
+									"        console.log(code)\r",
+									"        console.log(descriptor);\r",
+									"\r",
+									"        if ('tag:p' in descriptor) {\r",
+									"            descriptor = String(descriptor['tag:p'][0]['_']).trim();\r",
+									"        } else {\r",
+									"            descriptor = \"\";\r",
+									"        }\r",
+									"\r",
+									"        modifiers[code] = {\r",
+									"            type: String(data['cpt-mod:type'][0]['_']).trim(),\r",
+									"            descriptor: descriptor,\r",
+									"        };\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"pm.globals.set(\"modifiers\", modifiers);\r",
+									"\r",
+									"console.log(pm.globals.get(\"modifiers\"));\r",
+									"\r",
+									"\r",
+									"/*\r",
+									"        <search:extracted kind=\"element\">\r",
+									"            <cpt-mod:modifierCode xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">51</cpt-mod:modifierCode>\r",
+									"            <cpt-mod:type xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">CPT</cpt-mod:type>\r",
+									"            <tag:p xml:space=\"preserve\" xmlns:tag=\"http://www.ama-assn.org/cpt/typesetter-tag\">When multiple procedures, other than E/M services, Physical Medicine and Rehabilitation services or provision of supplies (eg, vaccines), are performed at the same session by the same individual, the primary procedure or service may be reported as listed. The additional procedure(s) or service(s) may be identified by appending modifier \r",
+									"                <tag:cptModifierCodeRef>51</tag:cptModifierCodeRef> to the additional procedure or service code(s).\r",
+									"                <tag:strong xml:space=\"preserve\">Note:</tag:strong> This modifier should not be appended to designated “add-on” codes (see Appendix D).\r",
+									"            </tag:p>\r",
+									"        </search:extracted>\r",
+									"    </search:result>\r",
+									"    <search:result index=\"2\" uri=\"/data/legacy/studio/records/cptModifiers/records.xml-0-11\" path=\"fn:doc(&quot;/data/legacy/studio/records/cptModifiers/records.xml-0-11&quot;)\" score=\"0\" confidence=\"0\" fitness=\"0\" href=\"/v1/documents?uri=%2Fdata%2Flegacy%2Fstudio%2Frecords%2FcptModifiers%2Frecords.xml-0-11&amp;database=ama-cpt-integration-STAGING\" mimetype=\"application/xml\" format=\"xml\">\r",
+									"        <search:snippet/>\r",
+									"        <search:extracted kind=\"element\">\r",
+									"            <cpt-mod:modifierCode xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">52</cpt-mod:modifierCode>\r",
+									"            <cpt-mod:type xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">CPT</cpt-mod:type>\r",
+									"            <tag:p xml:space=\"preserve\" xmlns:tag=\"http://www.ama-assn.org/cpt/typesetter-tag\">Under certain circumstances a service or procedure is partially reduced or eliminated at the discretion of the physician or other qualified health care professional. Under these circumstances the service provided can be identified by its usual procedure number and the addition of modifier \r",
+									"                <tag:cptModifierCodeRef>52</tag:cptModifierCodeRef>, signifying that the service is reduced. This provides a means of reporting reduced services without disturbing the identification of the basic service.\r",
+									"                <tag:strong xml:space=\"preserve\">Note:</tag:strong> For hospital outpatient reporting of a previously scheduled procedure/service that is partially reduced or cancelled as a result of extenuating circumstances or those that threaten the well-being of the patient prior to or after administration of anesthesia, see modifiers 73 and 74 (see modifiers approved for ASC hospital outpatient use).\r",
+									"            </tag:p>\r",
+									"        </search:extracted>\r",
+									"*/"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<search:search xmlns:search=\"http://marklogic.com/appservices/search\">\r\n    <cts:and-query xmlns:cts=\"http://marklogic.com/cts\">\r\n        <cts:directory-query>\r\n            <cts:uri>/data/legacy/studio/records/cptModifiers/</cts:uri>\r\n        </cts:directory-query>\r\n        <cts:element-query>\r\n            <cts:element xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">cpt-mod:modifierCode</cts:element>\r\n            <cts:and-query/>\r\n        </cts:element-query>\r\n    </cts:and-query>\r\n    <search:options>\r\n        <search:extract-document-data selected=\"include\">\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\" xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">/entity:envelope/entity:instance/cpt-mod:cptModifier/cpt-mod:modifierCode</search:extract-path>\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\" xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">/entity:envelope/entity:instance/cpt-mod:cptModifier/cpt-mod:type</search:extract-path>\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\" xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">/entity:envelope/entity:instance/cpt-mod:cptModifier/cpt-mod:description</search:extract-path>\r\n        </search:extract-document-data>\r\n        <search:transform-results apply=\"empty-snippet\"/>\r\n        <!-- <search:search-option>filtered</search:search-option> -->\r\n    </search:options>\r\n</search:search>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MARKLOGIC_BASE_URL}}/LATEST/search?database=ama-cpt-integration-STAGING&pageLength=1000",
+							"host": [
+								"{{MARKLOGIC_BASE_URL}}"
+							],
+							"path": [
+								"LATEST",
+								"search"
+							],
+							"query": [
+								{
+									"key": "database",
+									"value": "ama-cce-FINAL",
+									"disabled": true
+								},
+								{
+									"key": "database",
+									"value": "ama-cpt-integration-STAGING"
+								},
+								{
+									"key": "start",
+									"value": "10155",
+									"disabled": true
+								},
+								{
+									"key": "pageLength",
+									"value": "1000"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Extract CPT Codes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var parseString = require('xml2js').parseString;\r",
+									"var descriptors = {};\r",
+									"\r",
+									"function log_properties(obj) {\r",
+									"   var property_list = \"\";\r",
+									"\r",
+									"   for(var property_name in obj) {\r",
+									"      if(typeof(obj[property_name]) != \"undefined\") {\r",
+									"         property_list += (property_name + \", \");\r",
+									"      }\r",
+									"   }\r",
+									"\r",
+									"   console.log(property_list);\r",
+									"}\r",
+									"parseString(responseBody, function(err, response) {\r",
+									"    // console.log(results['search:response']['search:result'])\r",
+									"    var results = response['search:response']['search:result']\r",
+									"    console.log(\"cptCode Count: \" + response['search:response'].$.total)\r",
+									"\r",
+									"    for (result of results) {\r",
+									"        var data = result['search:extracted'][0];\r",
+									"        var code = data['cpt:notation'][0][\"_\"]\r",
+									"\r",
+									"        console.log(code)\r",
+									"\r",
+									"        // log_properties(code)\r",
+									"\r",
+									"        // for(var property in code) {\r",
+									"        //     if(typeof(code[property]) != \"undefined\") {\r",
+									"        //         console.log(code[property]);\r",
+									"        //     }\r",
+									"        // }\r",
+									"\r",
+									"        // descriptors[code] = {\r",
+									"            // long: String(data['Descriptor'][0]).trim(),\r",
+									"            // medium: String(data['Medium_Descriptor'][0]).trim(),\r",
+									"            // short: String(data['Short_Descriptor'][0]).trim(),\r",
+									"            // consumer: String(data['Consumer_Friendly_Descriptor'][0]).trim(),\r",
+									"            // clinician: String(data['Clinician_Descriptor'][0]).trim(),\r",
+									"        // };\r",
+									"    }\r",
+									"});\r",
+									"\r",
+									"// pm.globals.set(\"concepts\", concepts);\r",
+									"\r",
+									"// console.log(pm.globals.get(\"concepts\"));\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<search:search xmlns:search=\"http://marklogic.com/appservices/search\">\r\n    <cts:and-query xmlns:cts=\"http://marklogic.com/cts\">\r\n        <!-- <cts:collection-query>\r\n            <cts:uri>cptCode</cts:uri>\r\n        </cts:collection-query> -->\r\n        <!-- <cts:collection-query>\r\n            <cts:uri>http://marklogic.com/collections/dls/latest-version</cts:uri>\r\n        </cts:collection-query> -->\r\n        <cts:directory-query>\r\n            <cts:uri>/data/legacy/studio/records/</cts:uri>\r\n        </cts:directory-query>\r\n        <cts:element-query>\r\n            <cts:element xmlns:cpt=\"http://www.ama-assn.org/cpt\">cpt:cptCode</cts:element>\r\n            <cts:and-query/>\r\n        </cts:element-query>\r\n    </cts:and-query>\r\n    <search:options>\r\n        <search:extract-document-data selected=\"include\">\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\" xmlns:cpt=\"http://www.ama-assn.org/cpt\">/entity:envelope/entity:instance/cpt:cptCode/cpt:meta/cpt:notation</search:extract-path>\r\n            <!-- <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\" xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">/entity:envelope/entity:instance/cpt-mod:cptModifier/cpt-mod:type</search:extract-path> -->\r\n        </search:extract-document-data>\r\n        <search:transform-results apply=\"empty-snippet\"/>\r\n        <!-- <search:search-option>filtered</search:search-option> -->\r\n    </search:options>\r\n</search:search>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MARKLOGIC_BASE_URL}}/LATEST/search?database=ama-cce-FINAL&pageLength=200",
+							"host": [
+								"{{MARKLOGIC_BASE_URL}}"
+							],
+							"path": [
+								"LATEST",
+								"search"
+							],
+							"query": [
+								{
+									"key": "database",
+									"value": "ama-cce-FINAL"
+								},
+								{
+									"key": "database",
+									"value": "ama-cpt-integration-STAGING",
+									"disabled": true
+								},
+								{
+									"key": "start",
+									"value": "4012",
+									"disabled": true
+								},
+								{
+									"key": "pageLength",
+									"value": "200"
+								},
+								{
+									"key": "pageLength",
+									"value": "10500",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Extract PLA Codes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// var parseString = require('xml2js').parseString;\r",
+									"// var descriptors = {};\r",
+									"\r",
+									"// function log_properties(obj) {\r",
+									"//    var property_list = \"\";\r",
+									"\r",
+									"//    for(var property_name in obj) {\r",
+									"//       if(typeof(obj[property_name]) != \"undefined\") {\r",
+									"//          property_list += (property_name + \", \");\r",
+									"//       }\r",
+									"//    }\r",
+									"\r",
+									"//    console.log(property_list);\r",
+									"// }\r",
+									"// parseString(responseBody, function(err, response) {\r",
+									"//     // console.log(results['search:response']['search:result'])\r",
+									"//     var results = response['search:response']['search:result']\r",
+									"//     console.log(\"cptCode Count: \" + response['search:response'].$.total)\r",
+									"\r",
+									"//     for (result of results) {\r",
+									"//         var data = result['search:extracted'][0];\r",
+									"//         var code = data['cpt:notation'][0][\"_\"]\r",
+									"\r",
+									"//         console.log(code)\r",
+									"\r",
+									"//         // log_properties(code)\r",
+									"\r",
+									"//         // for(var property in code) {\r",
+									"//         //     if(typeof(code[property]) != \"undefined\") {\r",
+									"//         //         console.log(code[property]);\r",
+									"//         //     }\r",
+									"//         // }\r",
+									"\r",
+									"//         // descriptors[code] = {\r",
+									"//             // long: String(data['Descriptor'][0]).trim(),\r",
+									"//             // medium: String(data['Medium_Descriptor'][0]).trim(),\r",
+									"//             // short: String(data['Short_Descriptor'][0]).trim(),\r",
+									"//             // consumer: String(data['Consumer_Friendly_Descriptor'][0]).trim(),\r",
+									"//             // clinician: String(data['Clinician_Descriptor'][0]).trim(),\r",
+									"//         // };\r",
+									"//     }\r",
+									"// });\r",
+									"\r",
+									"// pm.globals.set(\"concepts\", concepts);\r",
+									"\r",
+									"// console.log(pm.globals.get(\"concepts\"));\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"type": "text",
+								"value": "application/xml"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "<search:search xmlns:search=\"http://marklogic.com/appservices/search\">\r\n    <cts:and-query xmlns:cts=\"http://marklogic.com/cts\">\r\n        <!-- <cts:collection-query>\r\n            <cts:uri>cptCode</cts:uri>\r\n        </cts:collection-query> -->\r\n        <!-- <cts:collection-query>\r\n            <cts:uri>http://marklogic.com/collections/dls/latest-version</cts:uri>\r\n        </cts:collection-query> -->\r\n        <cts:directory-query>\r\n            <cts:uri>/data/legacy/link/concepts/</cts:uri>\r\n        </cts:directory-query>\r\n        <cts:element-query>\r\n            <cts:element xmlns:cpt=\"http://www.ama-assn.org/cpt\">cpt:cptCode</cts:element>\r\n            <cts:and-query/>\r\n        </cts:element-query>\r\n    </cts:and-query>\r\n    <search:options>\r\n        <search:extract-document-data selected=\"include\">\r\n            <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\" xmlns:cpt=\"http://www.ama-assn.org/cpt\">/entity:envelope/entity:instance/cpt:cptCode/cpt:meta/cpt:notation</search:extract-path>\r\n            <!-- <search:extract-path xmlns:entity=\"http://marklogic.com/entity-services\" xmlns:cpt-mod=\"http://www.ama-assn.org/cpt/record/cpt-modifier\">/entity:envelope/entity:instance/cpt-mod:cptModifier/cpt-mod:type</search:extract-path> -->\r\n        </search:extract-document-data>\r\n        <search:transform-results apply=\"empty-snippet\"/>\r\n        <!-- <search:search-option>filtered</search:search-option> -->\r\n    </search:options>\r\n</search:search>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MARKLOGIC_BASE_URL}}/LATEST/search?database=ama-cce-FINAL&pageLength=225",
+							"host": [
+								"{{MARKLOGIC_BASE_URL}}"
+							],
+							"path": [
+								"LATEST",
+								"search"
+							],
+							"query": [
+								{
+									"key": "database",
+									"value": "ama-cce-FINAL"
+								},
+								{
+									"key": "database",
+									"value": "ama-cpt-integration-STAGING",
+									"disabled": true
+								},
+								{
+									"key": "start",
+									"value": "4012",
+									"disabled": true
+								},
+								{
+									"key": "pageLength",
+									"value": "225"
+								},
+								{
+									"key": "pageLength",
+									"value": "10500",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List Collections",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "xquery",
+									"value": "fn:distinct-values(for $c in for $d in xdmp:directory(“/”, “infinity”) return xdmp:document-get-collections(xdmp:node-uri($d)) return $c)",
+									"type": "text"
+								}
+							],
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{MARKLOGIC_BASE_URL}}/LATEST/eval",
+							"host": [
+								"{{MARKLOGIC_BASE_URL}}"
+							],
+							"path": [
+								"LATEST",
+								"eval"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "digest",
+				"digest": [
+					{
+						"key": "realm",
+						"value": "public",
+						"type": "string"
+					},
+					{
+						"key": "password",
+						"value": "{{MARKLOGIC_PASSWORD}}",
+						"type": "string"
+					},
+					{
+						"key": "username",
+						"value": "{{MARKLOGIC_USERNAME}}",
+						"type": "string"
+					},
+					{
+						"key": "algorithm",
+						"value": "MD5",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "username",
+				"value": "{{MARKLOGIC_USERNAME}}",
+				"type": "string"
+			},
+			{
+				"key": "password",
+				"value": "{{MARKLOGIC_PASSWORD}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "MARKLOGIC_USERNAME",
+			"value": "plane"
+		},
+		{
+			"key": "MARKLOGIC_PASSWORD",
+			"value": "pL@n3_dev"
+		},
+		{
+			"key": "MARKLOGIC_BASE_URL",
+			"value": "http://appd1454:8000"
+		}
+	]
+}

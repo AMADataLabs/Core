@@ -69,7 +69,8 @@ def environment():
 
     yield current_environment
 
-    os.environ = current_environment
+    os.environ.clear()
+    os.environ.update(current_environment)
 
 @pytest.fixture
 def dotenv_file(temp_directory):

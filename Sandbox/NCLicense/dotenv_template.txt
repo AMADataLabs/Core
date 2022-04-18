@@ -1,0 +1,39 @@
+#Change the paths and run setup_repository.py
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+# Database Settings
+DATABASE_AIMS_NAME='prd1srvxnet/aims_prod'       # Test: etstods
+CREDENTIALS_AIMS_USERNAME=''
+CREDENTIALS_AIMS_PASSWORD=''
+DATABASE_AIMS_HOST='rdbp1627'
+DATABASE_AIMS_PORT='22093'
+
+DATABASE_EDW_NAME='PRDDW'       # Test: etstods
+CREDENTIALS_EDW_USERNAME=
+CREDENTIALS_EDW_PASSWORD=
+DATABASE_EDW_HOST='rdbp1190'
+DATABASE_EDW_PORT='54000'
+
+DATABASE_DATAMART_NAME='PRDDM'
+CREDENTIALS_DATAMART_USERNAME=
+CREDENTIALS_DATAMART_PASSWORD=
+DATABASE_DATAMART_HOST='rdbp1190'
+DATABASE_DATAMART_PORT='54050'
+
+# Project Settings
+PROJECT_NAME='NCLicense'
+
+#URLs
+URL = 'https://portal.ncmedboard.org/verification/search.aspx'
+
+#Download Folder
+LICENSES_TO_SEARCH = "C:/Users/vigrose/Data/License/NC_LIC_NEW.csv"
+
+#Out Directory
+OUT_DIR = 'C:/Users/vigrose/Data/License/'
+
+#Executable path
+DRIVER_PATH = 'C:/Users/vigrose/Jupyter Notebooks/chromedriver.exe'
+
+LICENSE_DIR = 'U:/Infoverity/Full Source Files - '

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+export CLASSPATH=${SCRIPT_BASE_PATH}/../target/DataLabs-dev.jar
+
+
+main() {
+    $RUN ${SCRIPT_BASE_PATH}/run_task.py "$@" java
+}
+
+
+main "$@"

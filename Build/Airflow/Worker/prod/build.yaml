@@ -1,0 +1,38 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: Airflow worker
+    openshift.io/display-name: Airflow
+  creationTimestamp: null
+  labels:
+    app: Airflow
+  name: airflow-worker
+  namespace: hsg-data-labs-prod
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: airflow-worker:1.0.4
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+      ref: prod
+    sourceSecret:
+      name: bitbucket
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Build/Airflow/Worker/Dockerfile
+      from:
+        kind: ImageStreamTag
+        name: python:3.7
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - type: ConfigChange

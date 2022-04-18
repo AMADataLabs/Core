@@ -1,0 +1,12 @@
+# Repository Settings
+DATALABS_PYTHONPATH='{{ pythonpath }}'
+
+# Driver Settings
+DRIVER_PATH = 'C:/Users/vigrose/hsg-data-labs/Sandbox/HealthPlanList/chromedriver.exe'
+PLAN_URL = 'https://reportcards.ncqa.org/#/health-plans/list'
+ORG_URL = 'https://reportcards.ncqa.org/#/other-health-care-organizations/list?program=Credentialing&program=Credentials%20Verification%20Organization'
+
+OUTPUT_DIR = 'U:/Source Files/Data Analytics/Data-Science/Data/NCQA/'
+
+# Project Settings
+PROJECT_NAME='HealthPlans'

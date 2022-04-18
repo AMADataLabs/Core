@@ -1,0 +1,36 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  annotations:
+    openshift.io/description: Contact ID ETL runtime environment
+    openshift.io/display-name: contact-id
+  creationTimestamp: null
+  labels:
+    app: OneView
+  name: contact-id
+  namespace: hsg-data-labs-dev
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: contact-id:1.0.35
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: git@bitbucket.org:amaappdev/hs-datalabs.git
+      # TODO: HADI, CHANGE IT BACK TO DEV
+      ref: DL-2156-ContactIDExtractLoadS3
+    sourceSecret:
+      name: bitbucket
+    type: Git
+  strategy:
+    dockerStrategy:
+      dockerfilePath: Build/ContactID/Dockerfile
+    type: Docker
+  successfulBuildsHistoryLimit: 5
+  triggers:
+  - type: ConfigChange

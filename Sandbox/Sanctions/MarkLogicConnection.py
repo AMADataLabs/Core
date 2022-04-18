@@ -8,12 +8,11 @@ from pprint import pprint
 
 class MarkLogicConnection(object):
 
-    def __init__(self, username, password, url=None, server=None):
-
+    def __init__(self, username, password, url=None, server='prod'):
         self.auth = HTTPDigestAuth(username=username, password=password)
-        self.url = url  # url takes the following form: "http://appd1454:8000/LATEST", "http://address:port/version"
+        self.url = url  # url takes the following form: "http://address:port/version"
 
-        if server is not None:
+        if url is None:
             # server URLs
             prod = 'http://appp1462:8000/LATEST'
             test = 'http://appt1456:8000/LATEST'
@@ -36,10 +35,13 @@ class MarkLogicConnection(object):
         response = requests.get(self.url.replace('/LATEST', ''), auth=self.auth)
         response.raise_for_status()
 
-    # returns a list of URIs resulting from a search query within some database/collection
-    # empty query string will return all URIs in that collection
-    # can be used to query json_data or pdf_data collections
+
     def get_file_uris(self, database='PhysicianSanctions', collection='json_data', query=''):
+        """
+        returns a list of URIs resulting from a search query within some database/collection
+        empty query string will return all URIs in that collection
+        can be used to query json_data or pdf_data collections
+        """
         start = 1
         page_length = 100
         uris = []
@@ -47,25 +49,13 @@ class MarkLogicConnection(object):
 
         # iterate through each page of results
         while num_res > 0:
-            url = '{}/search?q={}&collection={}&start={}&pageLength={}&database={}'.format(self.url,
-                                                                                           query,
-                                                                                           collection,
-                                                                                           str(start),
-                                                                                           str(page_length),
-                                                                                           database)
-            # print(url)
+            url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \
+                  f'pageLength={page_length}&database={database}'
             search = requests.get(url, auth=self.auth)
-            #print(search.content)
-            with open('pdf_search_results.xml', 'wb') as s:
-               s.write(search.content)
-            xmldoc = minidom.parse('pdf_search_results.xml')
-
-            #xmldoc = minidom.parseString(search.content)
-
+            xmldoc = minidom.parse(search.content)
             res = xmldoc.getElementsByTagName('search:result')
 
             num_res = 0
-            print('results len:', len(res))
             for r in res:
                 num_res += 1
                 uri = r.attributes['uri'].value
@@ -74,45 +64,46 @@ class MarkLogicConnection(object):
             start += page_length
         return uris
 
-    def set_lic_nbr(self, uri, lic_nbr, database='PhysicianSanctions'):
+    def set_lic_nbr(self, uri, lic_nbr, json_file=None, database='PhysicianSanctions'):
         # step 1, download current metadata file
-        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
-        response = requests.get(url=url, auth=self.auth)
+        url = f'{self.url}/documents?uri={uri}&database={database}'
 
-        json_file = json.loads(response.content)
+        # if json_file can be passed from a previous download, we don't need to re-download the file
+        if json_file is None:
+            # Download file
+            response = requests.get(url=url,
+                                    auth=self.auth)
+            json_file = json.loads(response.content)
 
-        # step 2, fill in license number
+        # Fill in license number
         json_file['sanction']['physician']['license'] = lic_nbr
-        # print('Data to write:')
-        # pprint(json_file)
 
-        # step 3, upload edited file to update the document in MarkLogic
-        response = requests.put('{}/documents?uri={}&database={}'.format(self.url, uri, database),
+        # Upload edited file to update the document in MarkLogic
+        response = requests.put(url,
                                 auth=self.auth,
                                 data=json.dumps(json_file))
         response.raise_for_status()
         return
 
-    def set_me_nbr(self, uri, me_nbr, database='PhysicianSanctions'):
-        # step 1, download current metadata file
-        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
-        response = requests.get(url=url, auth=self.auth)
+    def set_me_nbr(self, uri, me_nbr, json_file=None, database='PhysicianSanctions'):
+        url = f'{self.url}/documents?uri={uri}&database={database}'
 
-        json_file = json.loads(response.content)
+        # if json_file can be passed from a previous download, we don't need to re-download the file
+        if json_file is None:
+            # Download file
+            response = requests.get(url=url,
+                                    auth=self.auth)
+            json_file = json.loads(response.content)
 
-        # step 2, fill in ME number
+        # Fill ME number
         json_file['sanction']['physician']['me'] = me_nbr
         json_file['app']['assignment']['me'] = me_nbr
-        # print('Data to write:')
-        # pprint(json_file)
 
-        # step 3, upload edited file to update the document in MarkLogic
-        response = requests.put('{}/documents?uri={}&database={}'.format(self.url, uri, database),
+        # Upload edited file to update the document in MarkLogic
+        response = requests.put(url=url,
                                 auth=self.auth,
                                 data=json.dumps(json_file))
-
         response.raise_for_status()
-        return
 
     def get_file(self, uri, database='PhysicianSanctions'):
         url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
@@ -129,10 +120,6 @@ class MarkLogicConnection(object):
         response = requests.get(url=url, auth=self.auth)
         response.raise_for_status()
 
-        # write the file
-        # if not os.path.exists(save_dir):
-        #     os.mkdir(save_dir)
-
         file = (save_dir + uri).replace('/', '\\').replace('\\\\', '\\')
         file_dir = file[:file.rindex('\\')]
 
@@ -141,4 +128,3 @@ class MarkLogicConnection(object):
 
         with open(file, 'wb+') as f:
             f.write(response.content)
-        return

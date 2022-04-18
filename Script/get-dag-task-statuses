@@ -1,0 +1,18 @@
+#!/bin/bash
+
+main() {
+    dag=$1
+    execution_time=$2  # 2021-09-29 22:45:00
+    echo $execution_time
+    environment=${3:-dev}
+
+    aws dynamodb scan \
+        --table-name DataLake-dag-state-${environment} \
+        --filter-expression "begins_with(#DAG, :dag) and execution_time = :execution_time" \
+        --expression-attribute-names '{"#DAG": "name"}' \
+        --expression-attribute-values '{":dag": {"S": "'${dag}'"}, ":execution_time": {"S": "'"${execution_time}"'"}}' \
+        | grep -A 4 '"name": {' | grep '"S":' | sed 's/  *"S": //' \
+        | sed -e 's/"\('${dag}'.*\)"/\1: /' -e 's/"\(..*\)"/\1/' | sed 's/'${dag}'__//' | sed 's/'${dag}'/DAG/' | sed 'N;s/\n//'
+}
+
+main "$1" "$2" "$3"

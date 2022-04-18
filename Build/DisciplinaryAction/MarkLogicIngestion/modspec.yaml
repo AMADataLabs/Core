@@ -1,0 +1,11 @@
+modspec:
+  - package: datalabs.access
+    include:
+      - aims
+      - odbc
+      - database
+      - credentials
+      - datastore
+  - package: datalabs.curate
+    include:
+      - dataframe

@@ -1,19 +1,18 @@
-FROM python:3.7 AS Base
-WORKDIR /Master
+FROM python:3.7
+WORKDIR /DisciplinaryAction
 
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org pipenv
+COPY ./Build/DisciplinaryAction/requirements.txt .
+RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
+COPY ./Script ./Script
+COPY ./Build/DisciplinaryAction ./Build/DisciplinaryAction
+COPY ./Source ./Source
+RUN ./Script/bundle-app -i --directory ./ DisciplinaryAction
 
-FROM Base as PythonDependencies
-WORKDIR /Master
+RUN rm -rf ./Script
+RUN rm -rf ./Build
+RUN rm -rf ./Source
 
-COPY ./Environment/Master/Pipfile .
+# COPY ./Test/Python/ .
 
-RUN pipenv install
-
-
-FROM PythonDependencies as Code
-WORKDIR /Master
-
-COPY ./Source/ .
-COPY ./Test/ .
+# EXPOSE 8080

@@ -3,7 +3,7 @@ import datalabs.plugin as plugin
 
 
 def test_plugin_loads():
-    TestPlugin = plugin.import_plugin('test.datalabs.test_plugin.Plugin')
+    TestPlugin = plugin.import_plugin('test.datalabs.test_plugin.Plugin')  # pylint: disable=invalid-name
     test_plugin = TestPlugin()
 
     assert hasattr(test_plugin, 'do_stuff')
@@ -12,5 +12,6 @@ def test_plugin_loads():
 
 
 class Plugin:
-    def do_stuff(self):
+    @classmethod
+    def do_stuff(cls):
         return True

@@ -7,7 +7,7 @@ PROJECT_NAME=
 
 
 main() {
-    process_arguments $*
+    process_arguments "$@"
 
     bash --rcfile <(echo ". ~/.bashrc; . ${SCRIPT_BASE_PATH}/../Environment/${PROJECT_NAME}/bin/activate")
 }
@@ -39,4 +39,4 @@ print_usage() {
 }
 
 
-main $*
+main "$@"

@@ -6,11 +6,12 @@ import jinja2
 from   datalabs.environment.setup import EnvironmentGenerator
 
 logging.basicConfig()
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 def main(args):
+    LOGGER.debug('Running virtual environment generator...')
     generator = EnvironmentGenerator.create(args)
 
     generator.generate()
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     try:
         return_code = main(args)
     except Exception as e:
-        logger.exception(f'Failed to generate configuration for environment "{args["env"]}"')
+        LOGGER.exception(f'Failed to generate configuration for environment "{args["env"]}"')
         return_code = 1
 
     exit(return_code)

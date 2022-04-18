@@ -7,7 +7,7 @@ PROJECT_NAME=
 
 
 main() {
-    process_arguments $*
+    process_arguments "$@"
 
     build_project
 }
@@ -41,4 +41,4 @@ build_project() {
 }
 
 
-main $*
+main "$@"

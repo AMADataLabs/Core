@@ -13,7 +13,7 @@ def test_standardize(samples):
     max_date = datetime(1913, 2, 19)
     standardized_data = SampleFile._standardize(samples, data_date)
 
-    assert all([c in standardized_data.columns.values for c in ['SAMPLE_DATE', 'SAMPLE_MAX_DATE']])
+    assert all(c in standardized_data.columns.values for c in ['SAMPLE_DATE', 'SAMPLE_MAX_DATE'])
     assert all(data_date == standardized_data['SAMPLE_DATE'])
     assert all(max_date == standardized_data['SAMPLE_MAX_DATE'])
 

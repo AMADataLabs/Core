@@ -1,0 +1,22 @@
+---
+modspec:
+  - package: datalabs
+    include:
+      - plugin
+      - task
+  - package: datalabs.access
+    include:
+      - credentials
+      - datastore
+      - environment
+      - sftp
+  - package: datalabs.curate
+    include:
+      - parse
+  - package: datalabs.curate.ppd.expanded
+  - package: datalabs.etl
+    exclude: awslambda
+  - package: datalabs.etl.ppd.expanded
+  - package: datalabs.etl.parse
+  - package: datalabs.etl.sftp
+  - package: datalabs.etl.fs

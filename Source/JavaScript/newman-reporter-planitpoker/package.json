@@ -1,0 +1,12 @@
+{
+  "name": "newman-reporter-planitpoker",
+  "version": "1.0.0",
+  "description": "Generate a CSV output of Jira data for use with PlanItPoker.com.",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": "",
+  "author": "",
+  "license": "ISC"
+}

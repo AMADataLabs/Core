@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: oneview-database-setup
+spec:
+  template:
+    spec:
+      containers:
+      - name: oneview-database-setup
+        image: >-
+          docker-registry.default.svc:5000/hsg-data-labs-dev/oneview-database-setup:latest
+        imagePullPolicy: Always
+        command:
+        - /OneView/migrate-database
+        args:
+        - -H
+        - $(DATABASE_HOST)
+        - -P
+        - $(DATABASE_PORT)
+        - -n
+        - $(DATABASE_NAME)
+        - -u
+        - $(DATABASE_USERNAME)
+        - -p
+        - $(DATABASE_PASSWORD)
+        - upgrade
+        - OneView
+        env:
+        - name: DATABASE_HOST
+          value: hsg-data-labs-db.hsg-data-labs-dev.svc.cluster.local
+        - name: DATABASE_PORT
+          value: "5432"
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: hsg-data-labs-db
+              key: database-user
+        - name: DATABASE_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: hsg-data-labs-db
+              key: database-user
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: hsg-data-labs-db
+              key: database-password
+      restartPolicy: Never

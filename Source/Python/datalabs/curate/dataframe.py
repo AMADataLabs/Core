@@ -26,6 +26,6 @@ class DatalabsAccessor:
         """ Apply string.strip() to all string values in the DataFrame. """
         column_names = self._data.columns[self._data.dtypes == 'object']
 
-        self._data[column_names] = self._data[column_names].apply(lambda column: column.str.strip())
+        self._data[column_names] = self._data[column_names].astype(str).apply(lambda column: column.str.strip())
 
         return self._data

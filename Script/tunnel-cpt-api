@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ssh -L 4433:yfvkvs2uxc.execute-api.us-east-1.amazonaws.com:443 datalake

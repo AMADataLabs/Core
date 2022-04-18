@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: BitBucketSync
+  name: bitbucket-sync
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    app: BitBucketSync
+    deploymentconfig: bitbucket-sync
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

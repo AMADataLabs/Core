@@ -1,0 +1,53 @@
+#!/bin/bash
+
+REPO_DIR=/Users/plane/Development/hs-datalabs
+RUN=${REPO_DIR}/Script/run.py
+export VIRTUAL_ENV=${REPO_DIR}/Environment/Master
+export PATH="$REPO_DIR/Script:$VIRTUAL_ENV/bin:/usr/local/bin:$PATH"
+. /Users/plane/.ssh/agent-env.sh
+aws configure list-profiles
+
+
+main() {
+    temp_file=$(mktemp /tmp/oneview-dag-status.XXXXXX)
+    exec 3>"$temp_file"
+    exec 4<"$temp_file"
+    rm $temp_file
+
+    check_dag_runs_by_environment dev $(date "+%Y-%m-%d 00:00:00")
+
+    check_dag_runs_by_environment tst $(date "+%Y-%m-%d 01:00:00")
+
+    check_dag_runs_by_environment prd $(date "+%Y-%m-%d 10:00:00")
+
+    message=$(cat <&4)
+    echo $message
+    ssh jump-box "echo '$message' | mail -v -s '[DAG Status] OneView' -S smtp=amamx.ama-assn.org -S from=peter.lane@ama-assn.org DataLabs@ama-assn.org"
+}
+
+
+check_dag_runs_by_environment() {
+    environment=$1
+    shift
+    execution_time="$*"
+
+    $(apigw_assume_role.sh $environment | grep source)
+    last_run=$(${RUN} get-dag-runs -d ONEVIEW -e $environment -n 1)
+    last_execution_time=$(echo $last_run | awk '{print $1, $2}')
+    status=$(echo $last_run | awk '{print $3}')
+    echo $last_execution_time $status
+
+    environment_upper=$(echo "$environment" | tr '[:upper:]' '[:lower:]')
+
+    if [[ "$last_execution_time" != "$execution_time" ]]; then
+        echo "OneView DAG did not start on ${environment_upper} at ${execution_time}" >&3
+    elif [[ "$status" != "Finished" ]]; then
+        echo "OneView DAG did not finish on ${environment_upper} at ${execution_time}" >&3
+        echo "Status: ${status}" >&3
+    else
+        echo "OneView DAG ran successfully on ${environment_upper} at ${execution_time}" >&3
+    fi
+}
+
+
+main

@@ -1,0 +1,131 @@
+openapi: 3.0.2
+info:
+  title: CPT Bulk Zip API
+  description: CPT Bulk Zip API Phase I
+  version: "1.0.0"
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: datalabs@ama-assn.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Files
+    description: Provides a zip archive of the standard CPT distribution files
+  - name: Releases
+    description: All release data in descending order of date
+    externalDocs:
+      url: 'http://swagger.io'
+paths:
+  /files:
+    get:
+      tags:
+        - Files
+      summary: Zip archive of the CPT standard distribution data files
+      description: Provides a zip archive of the standard CPT distribution files
+      operationId: getFiles
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '303':
+          description: successful creation of a time-limited download URL
+          headers:
+            Location:
+              schema:
+                type: "string"
+      security:
+        - gateway_authorizer: []
+  /releases:
+    get:
+      tags:
+        - Releases
+      summary: Release data in descending order of date
+      description: Allows user to query for updates to expose release data in descending order of date
+      operationId: getReleaseDate
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Release'
+      security:
+        - gateway_authorizer: []
+  /{proxy+}:
+    get:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: 200
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        cacheNamespace: "www3v9"
+        cacheKeyParameters:
+          - "method.request.path.proxy"
+        type: "aws_proxy"
+      responses:
+        '404':
+          description: Invalid resource.
+      security:
+        - gateway_authorizer: []
+components:
+  schemas:
+    Release:
+      type: object
+      required:
+        - id
+        - type
+        - effective_date
+        - publish_date
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+          format: byte
+        effective_date:
+          type: string
+          format: byte
+        publish_date:
+          type: string
+          format: byte
+  securitySchemes:
+    gateway_authorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+          type: token
+          authorizerUri: ${authorizer_uri}
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+servers:
+  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.0.0'
