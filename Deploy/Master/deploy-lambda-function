@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 RUN="${SCRIPT_BASE_PATH}/run.py python"
@@ -194,6 +192,8 @@ print_usage() {
     echo "  -b, --bundle                          name of the uploaded bundle file in S3"
     echo "  -i, --access-id                       AWS access key id"
     echo "  -s, --access-secret                   AWS secret access key"
+    echo "  -I, --role-id                         AWS assume role access key id"
+    echo "  -S, --role-secret                     AWS assume role secret access key"
 }
 
 

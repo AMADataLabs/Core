@@ -133,7 +133,7 @@ pipelines:
             #     - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
             #     - bash Deploy/CPT/create-database
             - step:
-                name: Update Bundle
+                name: Update ETL Bundle
                 caches:
                     - cpt-master-update-bundle-dependencies
                 script:
@@ -145,6 +145,13 @@ pipelines:
                     --runtime Python
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
+                    --role-id $AWS_ACCESS_KEY_ID_ROLE
+                    --role-secret $AWS_SECRET_ACCESS_KEY_ROLE
+            - step:
+                name: Update Endpoint Bundle
+                caches:
+                    - cpt-master-update-bundle-dependencies
+                script:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -153,6 +160,8 @@ pipelines:
                     --runtime Python
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
+                    --role-id $AWS_ACCESS_KEY_ID_ROLE
+                    --role-secret $AWS_SECRET_ACCESS_KEY_ROLE
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -386,12 +395,12 @@ pipelines:
             - export ENABLE_FEATURE_DEV=True
             - export ENVIRONMENT=dev
             -  >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT
-                Authorizer=ETL.zip
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
                 Endpoint=ETL.zip
-                ETL=ETL.zip
-                BulkAuthorizer=ETL.zip
-                BulkEndpoint=ETL.zip
+                Authorizer=Endpoint.zip
+                ETL=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
 
         OneView-dev:
         - parallel:
