@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 RUN="${SCRIPT_BASE_PATH}/run.py python"
@@ -16,10 +14,6 @@ ENVIRONMENT=
 PROJECT=
 BUNDLE=
 RUNTIME=
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_ACCESS_KEY_ID_ROLE=
-AWS_SECRET_ACCESS_KEY_ROLE=
 EXTRA_FILES=
 
 
@@ -27,8 +21,6 @@ main() {
     process_arguments "$@"
 
     setup_virtual_environment
-
-    setup_aws_cli
 
     install_jdbc_drivers
 
@@ -76,26 +68,6 @@ process_arguments() {
             shift
             shift
             ;;
-        -i|--access-id)
-            AWS_ACCESS_KEY_ID=$2
-            shift
-            shift
-            ;;
-        -s|--access-secret)
-            AWS_SECRET_ACCESS_KEY=$2
-            shift
-            shift
-            ;;
-        -I|--role-id)
-            AWS_ACCESS_KEY_ID_ROLE=$2
-            shift
-            shift
-            ;;
-        -S|--role-secret)
-            AWS_SECRET_ACCESS_KEY_ROLE=$2
-            shift
-            shift
-            ;;
         *)
             echo "Unexpected argument $1"
             print_usage
@@ -110,17 +82,6 @@ setup_virtual_environment() {
     ${PWD}/Script/setup-virtual-environment Master/BitBucketPipelines
     export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
     export PATH="${VIRTUAL_ENV}/bin:$PATH"
-}
-
-
-setup_aws_cli() {
-    export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-    export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-    export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
-
-    if [[ "$ENVIRONMENT" != "sbx" ]]; then
-        assume_maintenance_role
-    fi
 }
 
 
@@ -157,29 +118,13 @@ create_code_bundle() {
 
 
 upload_code_bundle() {
-    run_as_role=
-
-    if [[ "$ENVIRONMENT" != "sbx" ]]; then
-        run_as_role="bash --rcfile assume_role.rc"
-    fi
-
     if [[ "$RUNTIME" == "Python" ]]; then
-        ${run_as_role} aws s3 cp Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
+        aws s3 cp Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
     elif [[ "$RUNTIME" == "Java" ]]; then
         rm Bundle/target/original-*.jar
 
-        ${run_as_role} aws s3 cp Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${PROJECT}.jar
+        aws s3 cp Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${PROJECT}.jar
     fi
-}
-
-
-assume_maintenance_role() {
-    aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-    aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-    aws configure set profile.apigw.region $AWS_DEFAULT_REGION
-    aws configure set profile.apigw.output json
-
-    ${PWD}/Script/apigw_assume_role.sh ${ENVIRONMENT} | grep source > assume_role.rc
 }
 
 
@@ -192,10 +137,6 @@ print_usage() {
     echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
     echo "  -p, --project                         project path relative to Build/"
     echo "  -b, --bundle                          name of the uploaded bundle file in S3"
-    echo "  -i, --access-id                       AWS access key id"
-    echo "  -s, --access-secret                   AWS secret access key"
-    echo "  -I, --role-id                         AWS assume role access key id"
-    echo "  -S, --role-secret                     AWS assume role secret access key"
 }
 
 

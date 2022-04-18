@@ -1,0 +1,106 @@
+#!/bin/bash
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+AWS_DEFAULT_REGION=us-east-1
+
+ENVIRONMENT=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_ACCESS_KEY_ID_ROLE=
+AWS_SECRET_ACCESS_KEY_ROLE=
+
+
+main() {
+    process_arguments "$@"
+
+    configure_default_profile
+
+    if [[ "$AWS_ACCESS_KEY_ID_ROLE" != "" ]]; then
+        configure_assume_role_profile
+
+        assume_role
+    fi
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -e|--environment)
+            ENVIRONMENT=$2
+            shift
+            shift
+            ;;
+        -i|--access-id)
+            AWS_ACCESS_KEY_ID=$2
+            shift
+            shift
+            ;;
+        -s|--access-secret)
+            AWS_SECRET_ACCESS_KEY=$2
+            shift
+            shift
+            ;;
+        -I|--role-id)
+            AWS_ACCESS_KEY_ID_ROLE=$2
+            shift
+            shift
+            ;;
+        -S|--role-secret)
+            AWS_SECRET_ACCESS_KEY_ROLE=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+}
+
+
+print_usage() {
+    echo "Usage: setup-assume-role [OPTIONS]..."
+    echo "Configure the AWS CLI with assume role credentials."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
+    echo "  -i, --access-id                       AWS access key id"
+    echo "  -s, --access-secret                   AWS secret access key"
+    echo "  -I, --role-id                         AWS assume role access key id"
+    echo "  -S, --role-secret                     AWS assume role secret access key"
+}
+
+
+configure_default_profile() {
+    aws configure set profile.default.aws_access_key_id $AWS_ACCESS_KEY_ID
+    aws configure set profile.default.aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+    aws configure set profile.default.region $AWS_DEFAULT_REGION
+    aws configure set profile.default.output json
+}
+
+
+configure_assume_role_profile() {
+    aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+    aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+    aws configure set profile.apigw.region $AWS_DEFAULT_REGION
+    aws configure set profile.apigw.output json
+}
+
+
+assume_role() {
+    ${PWD}/Script/apigw_assume_role.sh ${ENVIRONMENT} apigw | grep source > assume_role.rc
+}
+
+
+main "$@"
