@@ -356,21 +356,6 @@ pipelines:
 
         CPT-dev:
         - parallel:
-            # - step:
-            #     name: Create Database
-            #     caches:
-            #       - cpt-master-create-database-dependencies
-            #     script:
-            #     - bash Script/setup-virtual-environment CPT
-            #     - export ENABLE_FEATURE_DEV=True
-            #     - export DATABASE_NAME=cpt
-            #     - export DATABASE_NAME_ADMIN=postgres
-            #     - export DATABASE_BACKEND=postgresql+psycopg2
-            #     - export DATABASE_HOST=$CPT_DATABASE_HOST_SANDBOX
-            #     - export DATABASE_PORT=5432
-            #     - export DATABASE_USERNAME=$CPT_DATABASE_USERNAME_SANDBOX
-            #     - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
-            #     - bash Deploy/CPT/create-database
             - step:
                 name: Update ETL Bundle
                 caches:
@@ -378,7 +363,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
+                    --environment dev
                     --project CPT/API/ETL
                     --bundle CPT/API/ETL.zip
                     --runtime Python
@@ -393,7 +378,7 @@ pipelines:
                 script:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
+                    --environment dev
                     --project CPT/API/Endpoint
                     --bundle CPT/API/Endpoint.zip
                     --runtime Python
