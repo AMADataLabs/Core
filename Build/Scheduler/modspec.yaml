@@ -19,15 +19,19 @@ modspec:
   - package: datalabs.access.secret
   - package: datalabs.etl
     include:
-      - task
-      - extract
       - awslambda
-      - transform
+      - extract
       - load
-  - package: datalabs.etl.dag
+      - task
+      - transform
   - package: datalabs.etl.dag
     include:
-      - ecs
+      - aws
+      - awslambda
+      - dag
+      - plugin
+      - resolve
+      - task
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify

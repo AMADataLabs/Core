@@ -140,8 +140,16 @@ pipelines:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
-                    --project CPT
-                    --bundle CPT/ETL.zip
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --access-id $AWS_ACCESS_KEY_ID
+                    --access-secret $AWS_SECRET_ACCESS_KEY
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT/API/Endpoint
+                    --bundle CPT/API/Endpoint.zip
                     --runtime Python
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
@@ -164,12 +172,12 @@ pipelines:
                 - export AWS_DEFAULT_REGION='us-east-1'
                 - export ENVIRONMENT=sbx
                 - >-
-                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT
-                    Authorizer=ETL.zip
-                    Endpoint=ETL.zip
+                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API
                     ETL=ETL.zip
-                    BulkAuthorizer=ETL.zip
-                    BulkEndpoint=ETL.zip
+                    Authorizer=Endpoint.zip
+                    Endpoint=Endpoint.zip
+                    BulkAuthorizer=Endpoint.zip
+                    BulkEndpoint=Endpoint.zip
 
         HelloWorldJava-master:
         - parallel:
