@@ -158,7 +158,7 @@ upload_code_bundle() {
     run_as_role=
 
     if [[ "$ENVIRONMENT" != "sbx" ]]; then
-        run_as_role=bash --rcfile assume_role.rc -i
+        run_as_role="bash --rcfile assume_role.rc -i"
     fi
 
     if [[ "$RUNTIME" == "Python" ]]; then
