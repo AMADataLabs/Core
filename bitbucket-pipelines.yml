@@ -145,8 +145,6 @@ pipelines:
                     --runtime Python
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
-                    --role-id $AWS_ACCESS_KEY_ID_ROLE
-                    --role-secret $AWS_SECRET_ACCESS_KEY_ROLE
             - step:
                 name: Update Endpoint Bundle
                 caches:
@@ -160,8 +158,6 @@ pipelines:
                     --runtime Python
                     --access-id $AWS_ACCESS_KEY_ID
                     --access-secret $AWS_SECRET_ACCESS_KEY
-                    --role-id $AWS_ACCESS_KEY_ID_ROLE
-                    --role-secret $AWS_SECRET_ACCESS_KEY_ROLE
         - parallel:
             # - step:
             #     name: Migrate Database
@@ -359,28 +355,52 @@ pipelines:
         ##############################################################
 
         CPT-dev:
-        - step:
-            name: Update Bundle
-            caches:
+        - parallel:
+            # - step:
+            #     name: Create Database
+            #     caches:
+            #       - cpt-master-create-database-dependencies
+            #     script:
+            #     - bash Script/setup-virtual-environment CPT
+            #     - export ENABLE_FEATURE_DEV=True
+            #     - export DATABASE_NAME=cpt
+            #     - export DATABASE_NAME_ADMIN=postgres
+            #     - export DATABASE_BACKEND=postgresql+psycopg2
+            #     - export DATABASE_HOST=$CPT_DATABASE_HOST_SANDBOX
+            #     - export DATABASE_PORT=5432
+            #     - export DATABASE_USERNAME=$CPT_DATABASE_USERNAME_SANDBOX
+            #     - export DATABASE_PASSWORD=$CPT_DATABASE_PASSWORD_SANDBOX
+            #     - bash Deploy/CPT/create-database
+            - step:
+                name: Update ETL Bundle
+                caches:
                 - cpt-dev-update-bundle-dependencies
-            script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_DEV=True
-            - bash Deploy/Master/create-python-bundle CPT
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-dev-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
+                script:
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --access-id $AWS_ACCESS_KEY_ID
+                    --access-secret $AWS_SECRET_ACCESS_KEY
+                    --role-id $AWS_ACCESS_KEY_ID_ROLE
+                    --role-secret $AWS_SECRET_ACCESS_KEY_ROLE
+            - step:
+                name: Update Endpoint Bundle
+                caches:
+                - cpt-dev-update-bundle-dependencies
+                script:
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT/API/Endpoint
+                    --bundle CPT/API/Endpoint.zip
+                    --runtime Python
+                    --access-id $AWS_ACCESS_KEY_ID
+                    --access-secret $AWS_SECRET_ACCESS_KEY
+                    --role-id $AWS_ACCESS_KEY_ID_ROLE
+                    --role-secret $AWS_SECRET_ACCESS_KEY_ROLE
         - step:
             name: Update Lambda Functions
             script:
