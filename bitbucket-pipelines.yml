@@ -338,6 +338,7 @@ pipelines:
             - >-
                 bash Script/release-python-component --name $RELEASE_NAME --version $RELEASE_VERSION
                 --description "cloud-native DAG execution components"
+                Scheduler
             - aws codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
             - twine upload --repository codeartifact dist/*.whl
         - step:
