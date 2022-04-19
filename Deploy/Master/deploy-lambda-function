@@ -14,6 +14,7 @@ ENVIRONMENT=
 PROJECT=
 BUNDLE=
 RUNTIME=
+PACKAGE=
 EXTRA_FILES=
 
 
@@ -68,6 +69,11 @@ process_arguments() {
             shift
             shift
             ;;
+        -P|--package)
+            PACKAGE=$2
+            shift
+            shift
+            ;;
         *)
             echo "Unexpected argument $1"
             print_usage
@@ -108,11 +114,11 @@ create_code_bundle() {
     fi
 
     if [[ "$RUNTIME" == "Python" ]]; then
-        ${PWD}/Deploy/Master/create-python-bundle $PROJECT $EXTRA_FILES
+        ${PWD}/Deploy/Master/create-python-bundle $PROJECT $EXTRA_FILES $PACKAGE
     elif [[ "$RUNTIME" == "Java" ]]; then
         cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
 
-        ${PWD}/Deploy/Master/create-java-bundle $PROJECT $EXTRA_FILES ./log4j2.xml
+        ${PWD}/Deploy/Master/create-java-bundle $PROJECT $EXTRA_FILES ./log4j2.xml $PACKAGE
     fi
 }
 
