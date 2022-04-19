@@ -1,17 +1,15 @@
 """OneView ETL ORM Loader"""
-import csv
 from   dataclasses import dataclass
 import io
-import hashlib
 import logging
 import math
-import re
 
 import pandas
 import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
 from   datalabs.etl.load import LoaderTask
+from   datalabs.etl.orm.provider import get_provider
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
 
@@ -95,14 +93,22 @@ class ORMLoaderTask(LoaderTask):
     def _generate_table_parameters(self, database, model_class, data):
         schema = self._get_schema(model_class)
         table = model_class.__tablename__
-        primary_key = self._get_primary_key(database, schema, table)
-        columns = self._get_database_columns(database, schema, table)
+        provider = None
+
+        try:
+            provider = get_provider(self._parameters.database_backend)
+        except ModuleNotFoundError as exception:
+            dialect = self._parameters.database_backend.split('+')[0]
+            raise ValueError(f"SQLAlchemy backend dialect '{dialect}' is not supported.") from exception
+
+        primary_key = provider.get_primary_key(database, schema, table)
+        columns = provider.get_database_columns(database, schema, table)
         hash_columns = self._get_hash_columns(columns)
 
         data[primary_key] = [str(key) for key in data[primary_key]]
 
-        current_hashes = self._get_current_row_hashes(database, schema, table, primary_key, hash_columns)
-        incoming_hashes = self._generate_row_hashes(data, primary_key, hash_columns)
+        current_hashes = provider.get_current_row_hashes(database, schema, table, primary_key, hash_columns)
+        incoming_hashes = provider.generate_row_hashes(data, primary_key, hash_columns)
 
         return TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes)
 
@@ -110,12 +116,13 @@ class ORMLoaderTask(LoaderTask):
     def _get_schema(cls, model_class):
         schema = None
 
-        if hasattr(model_class.__table_args__, 'get'):
-            schema = model_class.__table_args__.get('schema')
-        else:
-            for arg in model_class.__table_args__:
-                if hasattr(arg, 'get') and 'schema' in arg:
-                    schema = arg.get('schema')
+        if hasattr(model_class, "__table_args__"):
+            if hasattr(model_class.__table_args__, 'get'):
+                schema = model_class.__table_args__.get('schema')
+            else:
+                for arg in model_class.__table_args__:
+                    if hasattr(arg, 'get') and 'schema' in arg:
+                        schema = arg.get('schema')
 
         return schema
 
@@ -131,27 +138,6 @@ class ORMLoaderTask(LoaderTask):
 
             self._add_data(database, table_parameters)
 
-    @classmethod
-    def _get_primary_key(cls, database, schema, table):
-        query = "SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type FROM pg_index i " \
-                "JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) " \
-                f"WHERE  i.indrelid = '{schema}.{table}'::regclass AND i.indisprimary"
-
-        primary_key_table = database.read(query)
-
-        return primary_key_table['attname'][0]
-
-    @classmethod
-    def _get_database_columns(cls, database, schema, table):
-        query = "SELECT * FROM information_schema.columns " \
-                f"WHERE table_schema = '{schema}' AND table_name = '{table}';"
-        column_data = database.read(query)
-
-        columns = column_data.column_name.to_list()
-        LOGGER.debug('Columns in table %s.%s: %s', schema, table, columns)
-
-        return columns
-
     def _get_hash_columns(self, columns):
         ignore_columns = self._parameters.ignore_columns or ''
         ignore_columns = ignore_columns.split(',')
@@ -162,30 +148,6 @@ class ORMLoaderTask(LoaderTask):
                 hash_columns.remove(ignore_column)
 
         return hash_columns
-
-    # pylint: disable=too-many-arguments
-    @classmethod
-    def _get_current_row_hashes(cls, database, schema, table, primary_key, columns):
-        columns = [cls._quote_keyword(column) for column in columns]
-        get_current_hash = f"SELECT {primary_key}, md5(({','.join(columns)})::TEXT) FROM {schema}.{table}"
-
-        current_hashes = database.read(get_current_hash).astype(str)
-        LOGGER.debug('Current Row Hashes: %s', current_hashes)
-
-        return current_hashes
-
-    @classmethod
-    def _generate_row_hashes(cls, data, primary_key, columns):
-        csv_data = data[columns].to_csv(header=None, index=False, quoting=csv.QUOTE_ALL).strip('\n').split('\n')
-        row_strings = ["(" + cls._standardize_row_text(i) + ")" for i in csv_data]
-
-        hashes = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
-        primary_keys = data[primary_key].tolist()
-
-        incoming_hashes = pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
-        LOGGER.debug('Incoming Row Hashes: %s', incoming_hashes)
-
-        return incoming_hashes
 
     def _delete_data(self, database, table_parameters):
         deleted_data = self._select_deleted_data(table_parameters)
@@ -206,24 +168,6 @@ class ORMLoaderTask(LoaderTask):
         added_data = cls._select_new_data(table_parameters)
 
         cls._add_data_to_table(database, table_parameters, added_data)
-
-    @classmethod
-    def _quote_keyword(cls, column):
-        quoted_column = column
-
-        if column in ['group', 'primary']:
-            quoted_column = f'"{column}"'
-
-        return quoted_column
-
-    @classmethod
-    def _standardize_row_text(cls, csv_string):
-        # split at only unquoted commas
-        columns = [term for term in re.split(r'("[^"]*,[^"]*"|[^,]*)', csv_string) if (term and term != ',')]
-
-        simplified_boolean_columns = [cls._replace_boolean(column) for column in columns]
-
-        return ','.join(cls._unquote_term(column) for column in simplified_boolean_columns)
 
     @classmethod
     def _select_deleted_data(cls, table_parameters):
@@ -308,27 +252,6 @@ class ORMLoaderTask(LoaderTask):
 
             for model in models:
                 database.add(model)  # pylint: disable=no-member
-
-    @classmethod
-    def _replace_boolean(cls, quoted_column):
-        column = quoted_column
-
-        if quoted_column == '"True"':
-            column = '"t"'
-        elif quoted_column == '"False"':
-            column = '"f"'
-
-        return column
-
-    @classmethod
-    def _unquote_term(cls, csv_column):
-        quoted_csv_column = csv_column
-        match = re.match(r'".*[, ].*"', csv_column)  # match quoted strings with spaces or commas
-
-        if match is None:
-            quoted_csv_column = f'{csv_column[1:-1]}'
-
-        return quoted_csv_column
 
     @classmethod
     def _create_models(cls, model_class, data):

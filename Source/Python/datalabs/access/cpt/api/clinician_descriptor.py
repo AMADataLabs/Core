@@ -1,5 +1,6 @@
 """ Clinician Descriptor endpoints """
 from   abc import abstractmethod
+from   dataclasses import dataclass
 import logging
 
 from   sqlalchemy import and_
@@ -9,15 +10,40 @@ from   datalabs.access.cpt.api.filter import KeywordFilterMixin, WildcardFilterM
 from   datalabs.model.cpt.api import ClinicianDescriptor, ClinicianDescriptorCodeMapping
 from   datalabs.model.cpt.api import Code, Release, ReleaseCodeMapping
 from   datalabs.access.cpt.api import languages
+from   datalabs.access.orm import Database
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=too-many-instance-attributes
+@add_schema(unknowns=True)
+@dataclass
+class ClinicianDescriptorsEndpointParameters:
+    path: dict
+    query: dict
+    authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
+    unknowns: dict=None
+
+
 class BaseClinicianDescriptorsEndpointTask(APIEndpointTask):
-    def _run(self, database):
+    PARAMETER_CLASS = ClinicianDescriptorsEndpointParameters
+
+    def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
+
+        with Database.from_parameters(self._parameters) as database:
+            self._run(database)
+
+    def _run(self, database):
         self._set_parameter_defaults()
         LOGGER.debug('Parameters: %s', self._parameters)
 

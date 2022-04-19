@@ -50,6 +50,10 @@ modspec:
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.orm
+  - package: datalabs.etl.orm.provider
+    include:
+      - base
+      - postgresql
   - package: datalabs.etl.parse
   - package: datalabs.etl.s3
   - package: datalabs.etl.http

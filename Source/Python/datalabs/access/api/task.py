@@ -1,23 +1,11 @@
 """ API endpoint task classes. """
-from   abc import abstractmethod
-from   dataclasses import dataclass
 import logging
-import os
 
-from   datalabs.access.orm import Database
 import datalabs.task as task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-
-
-@dataclass
-class APIEndpointParameters:
-    path: dict
-    query: dict
-    database: dict
-    bucket: dict
 
 
 class APIEndpointException(task.TaskException):
@@ -46,7 +34,7 @@ class InternalServerError(APIEndpointException):
 
 
 class APIEndpointTask(task.Task):
-    def __init__(self, parameters: APIEndpointParameters):
+    def __init__(self, parameters: dict):
         super().__init__(parameters)
         self._status_code = 200
         self._response_body = dict()
@@ -64,47 +52,8 @@ class APIEndpointTask(task.Task):
     def headers(self):
         return self._headers
 
-    def run(self):
-        with self._get_database() as database:
-            self._run(database)  # pylint: disable=no-member
 
-    def _get_database(self):
-        return Database.from_parameters(self._parameters.database)
-
-    @abstractmethod
-    def _run(self, database):
-        pass
-
-
-# pylint: disable=abstract-method
-class APIEndpointParametersGetterMixin(task.TaskWrapper):
-    @classmethod
-    def _get_runtime_parameters(cls, parameters):
-        return dict(
-            path = parameters.get('path') or dict()
-        )
-
-    def _get_task_parameters(self):
-        return APIEndpointParameters(
-            path=self._parameters.get('path') or dict(),
-            query=self._parameters.get('query') or dict(),
-            database=dict(
-                name=os.getenv('DATABASE_NAME'),
-                backend=os.getenv('DATABASE_BACKEND'),
-                host=os.getenv('DATABASE_HOST'),
-                port=os.getenv('DATABASE_PORT'),
-                username=os.getenv('DATABASE_USERNAME'),
-                password=os.getenv('DATABASE_PASSWORD')
-            ),
-            bucket=dict(
-                name=os.getenv('BUCKET_NAME'),
-                base_path=os.getenv('BUCKET_BASE_PATH'),
-                url_duration=os.getenv('BUCKET_URL_DURATION'),
-            )
-        )
-
-
-class APIEndpointTaskWrapper(APIEndpointParametersGetterMixin, task.TaskWrapper):
+class APIEndpointTaskWrapper(task.TaskWrapper):
     # pylint: disable=abstract-method
     def _handle_success(self) -> (int, dict):
         return self.task.status_code, self.task.headers, self.task.response_body

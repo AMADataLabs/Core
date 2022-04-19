@@ -20,7 +20,7 @@ def test_get_referent_variables_returns_only_referenceless_variables(environment
 def test_get_reference_variables_returns_no_referenceless_variables(environment):
     reference_variables = ReferenceEnvironmentLoader._get_reference_variables(environment)
 
-    assert len(reference_variables) == len(environment) - 3
+    assert len(reference_variables) == 5
     assert 'PYTEST_CURRENT_TEST' not in reference_variables
     assert 'REFERENT_VARIABLE' not in reference_variables
     assert 'PHRASE_VARIABLE' not in reference_variables
@@ -58,11 +58,21 @@ def test_load_resolves_all_references(environment):
     loader = ReferenceEnvironmentLoader.from_environ()
     loader.load()
 
-    assert len(os.environ) == 7
+    assert len(os.environ) == 8
     assert os.environ.get('SIMPLE_REFERENCE_VARIABLE') == 'Woopideedoo'
     assert os.environ.get('COMPLEX_REFERENCE_VARIABLE') == 'I said, "Woopideedoo!"'
     assert os.environ.get('MULTI_REFERENCE_VARIABLE') == 'He said, "Woopideedoo, I love you!"'
     assert os.environ.get('BAD_REFERENCE_VARIABLE') == '${SOME_NONEXISTANT_VARIABLE}'
+    assert os.environ.get('JSON_REFERENCE_VARIABLE') == '{\n"BLAH": "Woopideedoo"\n}'
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_resolve_references_in_value_matches_json_reference(environment):
+    loader = ReferenceEnvironmentLoader.from_environ()
+    referent_variables = loader._get_referent_variables()
+    resolved_value = loader._resolve_references_in_value(environment['JSON_REFERENCE_VARIABLE'], referent_variables)
+
+    assert resolved_value == '{\n"BLAH": "Woopideedoo"\n}'
 
 
 @pytest.fixture
@@ -76,6 +86,7 @@ def environment():
     os.environ['PHRASE_VARIABLE'] = 'I love you!'
     os.environ['MULTI_REFERENCE_VARIABLE'] = 'He said, "${REFERENT_VARIABLE}, ${PHRASE_VARIABLE}"'
     os.environ['BAD_REFERENCE_VARIABLE'] = '${SOME_NONEXISTANT_VARIABLE}'
+    os.environ['JSON_REFERENCE_VARIABLE']='{\n"BLAH": "${REFERENT_VARIABLE}"\n}'
 
     yield os.environ
 

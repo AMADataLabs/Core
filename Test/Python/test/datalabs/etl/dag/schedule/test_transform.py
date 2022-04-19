@@ -10,7 +10,7 @@ import mock
 import pandas
 import pytest
 
-from   datalabs.etl.dag.schedule.task import DAGSchedulerTask
+from   datalabs.etl.dag.schedule.transform import DAGSchedulerTask
 from   datalabs.etl.dag.state.base import Status
 from   datalabs.etl.dag.state.file import DAGState
 
@@ -93,7 +93,7 @@ def test_scheduled_dags_are_correctly_identified(scheduler, schedule, base_time)
 def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
     scheduler = DAGSchedulerTask(parameters)
     schedule["execution_time"] = scheduler._get_execution_times(schedule, base_time)
-    state = DAGState(dict(BASE_PATH=parameters["BASE_PATH"]))
+    state = DAGState(dict(BASE_PATH=json.loads(parameters["DAG_STATE_PARAMETERS"])["BASE_PATH"]))
 
     state.set_dag_status('archive_cat_photos', schedule.execution_time[0].to_pydatetime().isoformat(), Status.PENDING)
 
@@ -107,7 +107,7 @@ def test_started_dags_are_correctly_identified(parameters, schedule, base_time):
 def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execution_time):
     scheduler = DAGSchedulerTask(parameters)
     execution_times = scheduler._get_execution_times(schedule, target_execution_time - timedelta(minutes=int('15')))
-    state = DAGState(dict(BASE_PATH=parameters["BASE_PATH"]))
+    state = DAGState(dict(BASE_PATH=json.loads(parameters["DAG_STATE_PARAMETERS"])["BASE_PATH"]))
 
     dags_to_run = scheduler._determine_dags_to_run(schedule, target_execution_time)
 
@@ -122,12 +122,22 @@ def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execu
 
 
 # pylint: disable=redefined-outer-name, protected-access
+def test_dags_to_run_handles_empty_schedule_nicely(parameters, empty_schedule, target_execution_time):
+    scheduler = DAGSchedulerTask(parameters)
+
+    dags_to_run = scheduler._determine_dags_to_run(empty_schedule, target_execution_time)
+
+    assert len(dags_to_run) == 0
+
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, target_execution_time):
     parameters["data"] = [schedule_csv.encode('utf-8', errors='backslashreplace')]
     scheduler = DAGSchedulerTask(parameters)
     data = None
 
-    with mock.patch('datalabs.etl.dag.schedule.task.DAGSchedulerTask._get_target_execution_time') as get_execution_time:
+    with mock.patch('datalabs.etl.dag.schedule.transform.DAGSchedulerTask._get_target_execution_time') \
+            as get_execution_time:
         get_execution_time.return_value = target_execution_time
         data = scheduler._transform()
 
@@ -153,8 +163,12 @@ def state_directory():
 def parameters(state_directory):
     return dict(
         INTERVAL_MINUTES='15',
-        DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
-        BASE_PATH=state_directory,
+        DAG_STATE_PARAMETERS=json.dumps(
+            dict(
+                DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
+                BASE_PATH=state_directory
+            )
+        ),
         EXECUTION_TIME='2021-08-02T21:30:00.000000'
     )
 
@@ -179,11 +193,22 @@ def schedule_csv():
     return """name,schedule
 archive_cat_photos,15 * */1 * 1
 translate_meows,10 */5 * * 1-5
-scrape_ama_fan_pages,5 * */1 * 3
+scrape_ama_fan_pages,"5 * */1 * 3,4"
 boil_water,*/15 * * * *
+"""
+
+
+@pytest.fixture
+def empty_schedule_csv():
+    return """name,schedule
 """
 
 
 @pytest.fixture
 def schedule(schedule_csv):
     return pandas.read_csv(BytesIO(schedule_csv.encode('utf8')))
+
+
+@pytest.fixture
+def empty_schedule(empty_schedule_csv):
+    return pandas.read_csv(BytesIO(empty_schedule_csv.encode('utf8')))

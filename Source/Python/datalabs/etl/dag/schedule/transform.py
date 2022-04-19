@@ -3,6 +3,7 @@ from   dataclasses import dataclass
 from   datetime import datetime, timedelta
 from   functools import partial
 from   io import BytesIO
+import json
 import logging
 import pickle
 
@@ -26,10 +27,9 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 class DAGSchedulerParameters:
     interval_minutes: str
-    dag_state_class: str
+    dag_state_parameters: str
     execution_time: str
     data: object = None
-    unknowns: dict = None
 
 
 class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
@@ -54,14 +54,19 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         return isoparse(self._parameters.execution_time)
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
-        base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
-        LOGGER.debug('Base time: %s', base_time)
-        schedule["execution_time"] = self._get_execution_times(schedule, base_time)
-        schedule["scheduled"] = self._get_scheduled_dags(schedule, base_time)
-        schedule["started"] = self._get_started_dags(schedule)
-        LOGGER.debug('Schedule: %s', schedule)
+        scheduled_dags = pandas.DataFrame(columns=["name", "execution_time"])
 
-        return schedule[schedule.scheduled & ~schedule.started]
+        if len(schedule) > 0:
+            base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
+            LOGGER.debug('Base time: %s', base_time)
+            schedule["execution_time"] = self._get_execution_times(schedule, base_time)
+            schedule["scheduled"] = self._get_scheduled_dags(schedule, base_time)
+            schedule["started"] = self._get_started_dags(schedule)
+            LOGGER.debug('Schedule: %s', schedule)
+
+            scheduled_dags = schedule[schedule.scheduled & ~schedule.started][["name", "execution_time"]]
+
+        return scheduled_dags
 
     @classmethod
     def _generate_notification_messages(cls, dags):
@@ -108,9 +113,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         return status != Status.UNKNOWN
 
     def _get_state_plugin(self):
-        parameters = self._parameters.unknowns
-        state_plugin = import_plugin(self._parameters.dag_state_class)
-        state_parameter_keys = list(state_plugin.PARAMETER_CLASS.SCHEMA.fields.keys())
-        state_parameters = {key:value for key, value in parameters.items() if key in state_parameter_keys}
+        parameters = json.loads(self._parameters.dag_state_parameters)
+        plugin = import_plugin(parameters.pop("DAG_STATE_CLASS"))
 
-        return state_plugin(state_parameters)
+        return plugin(parameters)

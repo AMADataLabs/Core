@@ -42,24 +42,31 @@ def test_task_wrapper_handle_success(event):
 
 
 class MockTask(api.APIEndpointTask):
-    def _run(self, database):
+    def run(self):
         pass
 
 
 @pytest.fixture
 def expected_parameters():
-    return api.APIEndpointParameters(
+    return dict(
         path=dict(foo='bar'),
         query=dict(ping='pong'),
-        database=dict(
-            name='name',
-            backend='postgresql+psycopg2',
-            host='host',
-            port='5432',
-            username='username',
-            password='password'
+        authorization=dict(
+            user_id="000002164389",
+            user_name="TEST Health Solutions",
+            authorizations=dict(
+                CPTAPI="2022-10-06-05:00"
+            )
         ),
-        bucket=dict(name='mybucket', base_path='AMA/SOMETHING', url_duration='30')
+        database_name='name',
+        database_backend='postgresql+psycopg2',
+        database_host='host',
+        database_port='5432',
+        database_username='username',
+        database_password='password',
+        bucket_name='mybucket',
+        bucket_base_path='AMA/SOMETHING',
+        bucket_url_duration='30'
     )
 
 
@@ -70,8 +77,11 @@ def event():
 
     os.environ['TASK_CLASS'] = 'test.datalabs.access.api.test_awslambda.MockTask'
     os.environ['DATABASE_HOST'] = 'host'
-    os.environ['DATABASE_SECRET'] = '{"username":"username", "password":"password", "port":5432, ' \
-                                             '"dbname":"name", "engine": "postgres"}'
+    os.environ['DATABASE_PORT'] = '5432'
+    os.environ['DATABASE_BACKEND'] = 'postgresql+psycopg2'
+    os.environ['DATABASE_NAME'] = 'name'
+    os.environ['DATABASE_USERNAME'] = 'username'
+    os.environ['DATABASE_PASSWORD'] = 'password'
     os.environ['BUCKET_NAME'] = 'mybucket'
     os.environ['BUCKET_BASE_PATH'] = 'AMA/SOMETHING'
     os.environ['BUCKET_URL_DURATION'] = '30'
@@ -79,6 +89,17 @@ def event():
     yield dict(
         pathParameters=dict(foo='bar'),
         queryStringParameters=dict(ping='pong'),
+        multiValueQueryStringParameters=None,
+        requestContext=dict(
+            resourceId="jnokm4",
+            authorizer=dict(
+                principalId="username",
+                integrationLatency=4036,
+                customerNumber="000002164389",
+                customerName="TEST Health Solutions",
+                CPTAPI="2022-10-06-05:00"
+            )
+        )
     )
 
     os.environ.clear()

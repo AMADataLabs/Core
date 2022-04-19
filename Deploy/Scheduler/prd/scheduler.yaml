@@ -1,7 +1,7 @@
 # Render as follows:
 #
 # Script/render-template -t Deploy/Scheduler/scheduler.yaml.jinja -f Deploy/Scheduler/scheduler.yaml \
-# -v "lambda=DataLake-Scheduler-${ENVIRONMENT},dag_state_table=DataLake-dag-state-${ENVIRONMENT},state_lock_table=DataLake-scheduler-locks-${ENVIRONMENT},dag_topic_arn=arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-DAG-Processor-${ENVIRONMENT},task_topic_arn=arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-Task-Processor-${ENVIRONMENT},scheduler_bucket=ama-${ENVIRONMENT}-datalake-scheduler-data-us-east-1"
+# -V "lambda=DataLake-Scheduler-${ENVIRONMENT},dag_state_table=DataLake-dag-state-${ENVIRONMENT},state_lock_table=DataLake-scheduler-locks-${ENVIRONMENT},dag_topic_arn=arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-DAG-Processor-${ENVIRONMENT},task_topic_arn=arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-Task-Processor-${ENVIRONMENT},scheduler_bucket=ama-${ENVIRONMENT}-datalake-scheduler-data-us-east-1"
 ---
 data:
     #######################################################################
@@ -32,6 +32,8 @@ data:
     DAG_SCHEDULER__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
     DAG_SCHEDULER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     DAG_SCHEDULER__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org'
+    DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
 
 
     ##########################################################################
