@@ -80,7 +80,7 @@ create_bundle() {
 
 
 print_usage() {
-    echo "Usage: deploy-lambda-function [OPTIONS]..."
+    echo "Usage: create-python-bundle [OPTIONS]..."
     echo "Bundle and upload a code bundle for a Lambda function."
     echo
     echo "OPTIONS"
