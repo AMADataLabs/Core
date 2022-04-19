@@ -10,7 +10,7 @@ AWS_DEFAULT_REGION=us-east-1
 
 ENVIRONMENT=
 PROJECT=
-BUNDLE=
+VERSION=
 
 
 main() {
@@ -68,12 +68,14 @@ setup_virtual_environment() {
 
 build_package() {
     source Build/Scheduler/.ci/release.sh ${ENVIRONMENT}
+    VERSION=$RELEASE_VERSION
 
-    if [[ "$ENVIRONMENT" == "dev" ]]; then
+    if [[ "$RELEASE_VERSION" == "dev" ]]; then
         generate_dev_version
     fi
+    echo "Version: $VERSION"
 
-    Script/release-python-component --name $RELEASE_NAME --version $RELEASE_VERSION \
+    Script/release-python-component --name $RELEASE_NAME --version $VERSION \
         --description "$RELEASE_DESCRIPTION" ${PROJECT}
 }
 
@@ -108,9 +110,9 @@ generate_dev_version() {
     dev_version=$(echo $current_version | sed 's/..*dev//')
 
     if [[ "$dev_version" == "$current_version" ]]; then
-        RELEASE_VERSION="${current_version}.dev0"
+        VERSION="${current_version}.dev0"
     else
-        RELEASE_VERSION="${base_version}.dev$(expr $dev_version + 1)"
+        VERSION="${base_version}.dev$(expr $dev_version + 1)"
     fi
 }
 

@@ -1,4 +1,4 @@
-setuptools==41.0.0
+setuptools==47.1.0
 alembic==1.7.3
 alembic_utils==0.7.6
 jinja2==2.11.3
