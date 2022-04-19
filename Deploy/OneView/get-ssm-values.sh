@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export AWS_PAGER=""
 OUTPUT_FILE=ssm_parameter_values.json

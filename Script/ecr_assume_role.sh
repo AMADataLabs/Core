@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 profile=${1:-shared}
 no_verify_ssl=
