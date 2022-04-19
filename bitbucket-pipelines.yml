@@ -334,13 +334,7 @@ pipelines:
             caches:
             - environment-master
             script:
-            - source Build/Scheduler/.ci/release.sh sbx
-            - >-
-                bash Script/release-python-component --name $RELEASE_NAME --version $RELEASE_VERSION
-                --description "cloud-native DAG execution components"
-                Scheduler
-            - aws codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
-            - twine upload --repository codeartifact dist/*.whl
+            - bash Deploy/Master/deploy-python-package --project Scheduler --environment sbx
         - step:
             name: Update Bundle
             caches:

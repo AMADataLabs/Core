@@ -14,6 +14,7 @@ main() {
 
     export RELEASE_NAME="datalabs-scheduler"
     export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
+    export RELEASE_DESCRIPTION="cloud-native DAG execution components"
 }
 
 
