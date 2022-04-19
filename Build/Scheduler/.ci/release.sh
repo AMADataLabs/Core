@@ -5,8 +5,8 @@ ENVIRONMENT=$1
 
 main() {
     declare -A VERSIONS=(
-        [sbx]=dev
-        [dev]=dev
+        [sbx]=0.dev
+        [dev]=0.dev
         [tst]=1.0.0
         [itg]=1.0.0
         [prd]=1.0.0
