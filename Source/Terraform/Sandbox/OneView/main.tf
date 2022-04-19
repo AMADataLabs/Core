@@ -1,13 +1,13 @@
 provider "aws" {
-    region = "us-east-1"
-    version = "~> 3.0"
+  region  = "us-east-1"
+  version = "~> 3.0"
 }
 
 
 # Generate a new random password with the "random" provider
 resource "random_password" "database_password" {
-  length = 16
-  special = true
+  length           = 16
+  special          = true
   override_special = "_%" #Supply your own list of special characters to use (if application can only handle certain special characters)
   # Reference with random_password.database_password.result
 }
@@ -62,70 +62,70 @@ resource "random_password" "database_password" {
 
 
 resource "aws_db_instance" "oneview_database" {
-    identifier                    = "${var.project}-${var.environment}"
-    instance_class                = var.rds_instance_class
-    storage_type                  = var.rds_storage_type
-    port                          = 5432
-    allocated_storage             = 20
-    engine                        = "postgres"
-    engine_version                = var.db_engine_version
-    max_allocated_storage         = 1000
-    publicly_accessible           = true
-    copy_tags_to_snapshot         = true
-    performance_insights_enabled  = true
-    skip_final_snapshot           = true
-    username                      = var.database_username
-    password                      = random_password.database_password.result
+  identifier                   = "${var.project}-${var.environment}"
+  instance_class               = var.rds_instance_class
+  storage_type                 = var.rds_storage_type
+  port                         = 5432
+  allocated_storage            = 20
+  engine                       = "postgres"
+  engine_version               = var.db_engine_version
+  max_allocated_storage        = 1000
+  publicly_accessible          = true
+  copy_tags_to_snapshot        = true
+  performance_insights_enabled = true
+  skip_final_snapshot          = true
+  username                     = var.database_username
+  password                     = random_password.database_password.result
 
-    tags = merge(local.tags, {Name = "${var.project} Database"})
+  tags = merge(local.tags, { Name = "${var.project} Database" })
 }
 
 
 module "etl_lambda" {
-    source              = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
-    function_name       = local.function_names.etl
-    lambda_name         = local.function_names.etl
-    s3_lambda_bucket    = var.lambda_code_bucket
-    s3_lambda_key       = "OneView.zip"
-    handler             = "awslambda.handler"
-    runtime             = local.runtime
-    create_alias        = false
-    memory_size         = var.etl_memory_size
-    timeout             = var.etl_timeout
+  source           = "git::ssh://git@bitbucket.ama-assn.org:7999/te/terraform-aws-lambda.git?ref=2.0.0"
+  function_name    = local.function_names.etl
+  lambda_name      = local.function_names.etl
+  s3_lambda_bucket = var.lambda_code_bucket
+  s3_lambda_key    = "OneView.zip"
+  handler          = "awslambda.handler"
+  runtime          = local.runtime
+  create_alias     = false
+  memory_size      = var.etl_memory_size
+  timeout          = var.etl_timeout
 
-    lambda_policy_vars  = {
-        account_id                  = var.account
-        region                      = local.region
-        project                     = var.project
+  lambda_policy_vars = {
+    account_id = var.account
+    region     = local.region
+    project    = var.project
+  }
+
+  create_lambda_permission = true
+  api_arn                  = "arn:aws-partition:service:${local.region}:${var.account}:resource-id"
+
+  environment_variables = {
+    variables = {
+      TASK_WRAPPER_CLASS    = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
+      TASK_RESOLVER         = "datalabs.etl.dag.resolve.TaskResolver"
+      DYNAMODB_CONFIG_TABLE = var.dynamodb_config_table
+      DAG_STATE_CLASS       = "datalabs.etl.dag.state.dynamodb.DAGState"
+      TASK_STATE_CLASS      = "datalabs.etl.dag.state.dynamodb.TaskState"
+      DAG                   = "ONEVIEW"
+      DAG_CLASS             = "datalabs.etl.oneview.dag.OneViewDAG"
     }
+  }
 
-    create_lambda_permission    = true
-    api_arn                     = "arn:aws-partition:service:${local.region}:${var.account}:resource-id"
-
-    environment_variables = {
-        variables = {
-          TASK_WRAPPER_CLASS      = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
-          TASK_RESOLVER           = "datalabs.etl.dag.resolve.TaskResolver"
-          DYNAMODB_CONFIG_TABLE   = var.dynamodb_config_table
-          DAG_STATE_CLASS         = "datalabs.etl.dag.state.dynamodb.DAGState"
-          TASK_STATE_CLASS        = "datalabs.etl.dag.state.dynamodb.TaskState"
-          DAG                     = "ONEVIEW"
-          DAG_CLASS               = "datalabs.etl.oneview.dag.OneViewDAG"
-        }
-    }
-
-    tag_name                = local.function_names.task_processor
-    tag_environment         = local.tags["Environment"]
-    tag_contact             = local.tags["Contact"]
-    tag_systemtier          = local.tags["SystemTier"]
-    tag_drtier              = local.tags["DRTier"]
-    tag_dataclassification  = local.tags["DataClassification"]
-    tag_budgetcode          = local.tags["BudgetCode"]
-    tag_owner               = local.tags["Owner"]
-    tag_projectname         = var.project
-    tag_notes               = ""
-    tag_eol                 = local.tags["EOL"]
-    tag_maintwindow         = local.tags["MaintenanceWindow"]
+  tag_name               = local.function_names.task_processor
+  tag_environment        = local.tags["Environment"]
+  tag_contact            = local.tags["Contact"]
+  tag_systemtier         = local.tags["SystemTier"]
+  tag_drtier             = local.tags["DRTier"]
+  tag_dataclassification = local.tags["DataClassification"]
+  tag_budgetcode         = local.tags["BudgetCode"]
+  tag_owner              = local.tags["Owner"]
+  tag_projectname        = var.project
+  tag_notes              = ""
+  tag_eol                = local.tags["EOL"]
+  tag_maintwindow        = local.tags["MaintenanceWindow"]
 }
 
 
@@ -225,20 +225,6 @@ module "batch_sg" {
       to_port     = "443"
       protocol    = "tcp"
       description = "User-service ports"
-      cidr_blocks = "10.96.64.0/20,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
-    },
-    {
-      from_port   = "5432"
-      to_port     = "5432"
-      protocol    = "tcp"
-      description = "PostgreSQL ports"
-      cidr_blocks = "10.96.64.0/20,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
-    },
-    {
-      from_port   = "3306"
-      to_port     = "3306"
-      protocol    = "tcp"
-      description = "MySQL ports"
       cidr_blocks = "10.96.64.0/20,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,199.164.8.1/32"
     },
   ]
