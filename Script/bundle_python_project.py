@@ -42,9 +42,10 @@ class LocalProjectBundler(ProjectBundler):
         os.makedirs(target_path, exist_ok=True)
 
         LOGGER.info('=== Copying Source Files ===')
-        self._copy_source_files(project, target_path)
+        if not kwargs['no_sources']:
+            self._copy_source_files(project, target_path)
 
-        if not kwargs['partial']:
+        if not kwargs['no_dependencies']:
             LOGGER.info('=== Copying Build Files ===')
             self._copy_build_files(project, target_path)
 
@@ -205,8 +206,10 @@ if __name__ == '__main__':
         help='Specify the target directory into which files will be bundled (default Build/<PROJECT>/<PROJECT>)')
     ap.add_argument('-i', '--in-place', action='store_true', default=False,
         help='Do not pre-clean the target directory. Ignored when using --serverless.')
-    ap.add_argument('-p', '--partial', action='store_true', default=False,
+    ap.add_argument('-n', '--no-dependencies', action='store_true', default=False,
         help='Only copy source files. Ignored when using --serverless.')
+    ap.add_argument('-N', '--no-sources', action='store_true', default=False,
+        help='Only dependencies and extra files. Ignored when using --serverless.')
     ap.add_argument('-s', '--serverless', action='store_true', default=False,
         help='Use Docker install dependencies required for a serverless deployment.')
     ap.add_argument(
@@ -232,7 +235,8 @@ if __name__ == '__main__':
             target_path=args['directory'],
             extra_files=args['file'],
             in_place=args['in_place'],
-            partial=args['partial']
+            no_dependencies=args['no_dependencies'],
+            no_sources=args['no_sources']
         )
     except Exception as e:
         LOGGER.exception(f"Failed to create project bundle.")

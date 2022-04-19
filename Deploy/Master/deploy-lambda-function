@@ -68,6 +68,11 @@ process_arguments() {
             shift
             shift
             ;;
+        -P|--package)
+            PACKAGE=$2
+            shift
+            shift
+            ;;
         *)
             echo "Unexpected argument $1"
             print_usage

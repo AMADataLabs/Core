@@ -93,7 +93,7 @@ initialize_release_directory() {
 
 
 collect_source_files() {
-    ${SCRIPT_BASE_PATH}/bundle-python-project --partial --directory Release/datalabs-${NAME} ${PROJECT}
+    ${SCRIPT_BASE_PATH}/bundle-python-project --no-dependencies --directory Release/datalabs-${NAME} ${PROJECT}
 }
 
 
@@ -110,7 +110,7 @@ generate_setup() {
         requirements_var="${requirements_var}\"${requirement}\","
     done
 
-    render-template -t ${BUILD_BASE_PATH}/Master/setup.py.jinja -f Release/setup.py \
+    ${SCRIPT_BASE_PATH}/render-template -t ${BUILD_BASE_PATH}/Master/setup.py.jinja -f Release/setup.py \
         -v name=${NAME} -v version=${VERSION} -v "description=${DESCRIPTION}" -v requirements=${requirements_var}
 }
 
