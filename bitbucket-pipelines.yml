@@ -407,7 +407,7 @@ pipelines:
                 # Create the code bundle
                 - export ENABLE_FEATURE_DEV=True
                 - >-
-                    bash Deploy/Master/create-python-bundle --project --project OneView/ETL
+                    bash Deploy/Master/create-python-bundle --project OneView/ETL
                     -f db2jcc4.jar -f DB2JccConfiguration.properties -f jdbc-4.50.4.1.jar -f bson-4.2.0.jar
 
                 # Upload the code bundle
