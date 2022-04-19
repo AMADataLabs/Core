@@ -106,7 +106,7 @@ module "etl_lambda" {
     variables = {
       TASK_WRAPPER_CLASS    = "datalabs.etl.dag.awslambda.DAGTaskWrapper"
       TASK_RESOLVER         = "datalabs.etl.dag.resolve.TaskResolver"
-      DYNAMODB_CONFIG_TABLE = var.dynamodb_config_table
+      DYNAMODB_CONFIG_TABLE = local.dynamodb_config_table
       DAG_STATE_CLASS       = "datalabs.etl.dag.state.dynamodb.DAGState"
       TASK_STATE_CLASS      = "datalabs.etl.dag.state.dynamodb.TaskState"
       DAG                   = "ONEVIEW"
@@ -114,7 +114,7 @@ module "etl_lambda" {
     }
   }
 
-  tag_name               = local.function_names.task_processor
+  tag_name               = local.function_names.etl
   tag_environment        = local.tags["Environment"]
   tag_contact            = local.tags["Contact"]
   tag_systemtier         = local.tags["SystemTier"]

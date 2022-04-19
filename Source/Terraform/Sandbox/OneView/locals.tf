@@ -22,6 +22,7 @@ locals {
   budget_code = "PBW"
   owner       = "DataLabs"
   project     = "OneView"
+  contact     = "DataLabs@ama-assn.org"
 
   environment = data.aws_ssm_parameter.account_environment.value
   account     = lookup(local.accounts, local.environment)
@@ -36,7 +37,7 @@ locals {
   tags = {
     Name               = "Data Labs OneView Parameter"
     Env                = local.environment
-    Contact            = data.aws_ssm_parameter.contact.value
+    Contact            = local.contact
     SystemTier         = local.system_tier
     DRTier             = local.na
     DataClassification = local.na
