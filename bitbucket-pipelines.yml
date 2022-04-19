@@ -73,11 +73,7 @@ pipelines:
             caches:
                 - amc-master-update-bundle-dependencies
             script:
-            - >-
-                bash Deploy/Master/setup-aws-cli
-                --environment sbx
-                --access-id $AWS_ACCESS_KEY_ID
-                --access-secret $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
                 bash Deploy/Master/deploy-lambda-function
                 --environment sbx
@@ -103,11 +99,7 @@ pipelines:
             caches:
             - contactid-master-update-bundle-dependencies
             script:
-            - >-
-                bash Deploy/Master/setup-aws-cli
-                --environment sbx
-                --access-id $AWS_ACCESS_KEY_ID
-                --access-secret $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
                 bash Deploy/Master/deploy-lambda-function
                 --environment sbx
@@ -117,11 +109,7 @@ pipelines:
         - step:
             name: Update Lambda Functions
             script:
-            - >-
-                bash Deploy/Master/setup-aws-cli
-                --environment sbx
-                --access-id $AWS_ACCESS_KEY_ID
-                --access-secret $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - bash Deploy/Master/update-functions -e sbx -s DataLake -p CustomerIntelligence ContactID=ContactID.zip
 
         CPT-master:
@@ -131,11 +119,7 @@ pipelines:
                 caches:
                     - cpt-master-update-bundle-dependencies
                 script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment sbx
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -147,11 +131,7 @@ pipelines:
                 caches:
                     - cpt-master-update-bundle-dependencies
                 script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment sbx
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -162,11 +142,7 @@ pipelines:
             - step:
                 name: Update Lambda Functions
                 script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment sbx
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
                     bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API
                     ETL=ETL.zip
@@ -182,11 +158,7 @@ pipelines:
                 caches:
                 - scheduler-master-update-bundle-dependencies
                 script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment sbx
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -198,11 +170,7 @@ pipelines:
                 caches:
                 - scheduler-master-update-bundle-dependencies
                 script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment sbx
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -227,11 +195,7 @@ pipelines:
         - step:
             name: Update Lambda Functions
             script:
-            - >-
-                bash Deploy/Master/setup-aws-cli
-                --environment sbx
-                --access-id $AWS_ACCESS_KEY_ID
-                --access-secret $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
                 bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava
                 HelloWorldJavaDAG=DAG.zip
@@ -259,11 +223,7 @@ pipelines:
                 caches:
                     - oneview-master-update-bundle-dependencies
                 script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment sbx
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -277,11 +237,7 @@ pipelines:
                 caches:
                     - oneview-master-update-bundle-dependencies
                 script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment sbx
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -301,11 +257,7 @@ pipelines:
             - step:
                 name: Update Lambda Functions
                 script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment sbx
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - export ENVIRONMENT=sbx
                 - bash Deploy/OneView/update-functions
 
@@ -315,11 +267,7 @@ pipelines:
             caches:
                 - organizations-master-update-bundle-dependencies
             script:
-            - >-
-                bash Deploy/Master/setup-aws-cli
-                --environment sbx
-                --access-id $AWS_ACCESS_KEY_ID
-                --access-secret $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
                 bash Deploy/Master/deploy-lambda-function
                 --environment sbx
@@ -334,17 +282,14 @@ pipelines:
             caches:
             - environment-master
             script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - bash Deploy/Master/deploy-python-package --project Scheduler --environment sbx
         - step:
             name: Update Bundle
             caches:
             - scheduler-master-update-bundle-dependencies
             script:
-            - >-
-                bash Deploy/Master/setup-aws-cli
-                --environment sbx
-                --access-id $AWS_ACCESS_KEY_ID
-                --access-secret $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
                 bash Deploy/Master/deploy-lambda-function
                 --environment sbx
@@ -354,11 +299,7 @@ pipelines:
         - step:
             name: Update Lambda Functions
             script:
-            - >-
-                bash Deploy/Master/setup-aws-cli
-                --environment sbx
-                --access-id $AWS_ACCESS_KEY_ID
-                --access-secret $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
                 bash Deploy/Master/update-functions -e sbx -s DataLake
                 Scheduler=Scheduler.zip
@@ -378,12 +319,8 @@ pipelines:
                 - cpt-dev-update-bundle-dependencies
                 script:
                 - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment dev
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
-                    --role-id $AWS_ACCESS_KEY_ID_ROLE
-                    --role-secret $AWS_SECRET_ACCESS_KEY_ROLE
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
@@ -396,12 +333,8 @@ pipelines:
                 - cpt-dev-update-bundle-dependencies
                 script:
                 - >-
-                    bash Deploy/Master/setup-aws-cli
-                    --environment dev
-                    --access-id $AWS_ACCESS_KEY_ID
-                    --access-secret $AWS_SECRET_ACCESS_KEY
-                    --role-id $AWS_ACCESS_KEY_ID_ROLE
-                    --role-secret $AWS_SECRET_ACCESS_KEY_ROLE
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
@@ -415,12 +348,8 @@ pipelines:
             - export ENABLE_FEATURE_DEV=True
             - export ENVIRONMENT=dev
             - >-
-                bash Deploy/Master/setup-aws-cli
-                --environment dev
-                --access-id $AWS_ACCESS_KEY_ID
-                --access-secret $AWS_SECRET_ACCESS_KEY
-                --role-id $AWS_ACCESS_KEY_ID_ROLE
-                --role-secret $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
                 Endpoint=ETL.zip
