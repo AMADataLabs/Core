@@ -93,12 +93,14 @@ initialize_release_directory() {
 
 
 collect_source_files() {
-    ${SCRIPT_BASE_PATH}/bundle-python-project --no-dependencies --directory Release/datalabs-${NAME} ${PROJECT}
+    ${SCRIPT_BASE_PATH}/bundle-python-project --in-place --no-dependencies --directory Release/ ${PROJECT}
 }
 
 
 build_distibution() {
-    python Release/setup.py bdist_wheel
+    cd Release
+
+    python setup.py bdist_wheel
 }
 
 
