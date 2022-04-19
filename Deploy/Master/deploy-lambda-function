@@ -30,7 +30,7 @@ main() {
 
     create_code_bundle
 
-    # upload_code_bundle
+    upload_code_bundle
 }
 
 
