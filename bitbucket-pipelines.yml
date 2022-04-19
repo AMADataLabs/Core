@@ -80,8 +80,6 @@ pipelines:
                 --project AMC
                 --bundle Masterfile/AMC.zip
                 --runtime Python
-                --access-id $AWS_ACCESS_KEY_ID
-                --access-secret $AWS_SECRET_ACCESS_KEY
                 --jdbc-driver Informix
         # - step:
         #     name: Update Lambda Functions
