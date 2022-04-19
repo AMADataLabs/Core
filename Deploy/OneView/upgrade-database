@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ETCD_HOST=${ETCD_HOST:-}
 ETCD_USERNAME=oneview

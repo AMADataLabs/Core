@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Documentation
 read -r -d '' USAGE_TEXT << EOM

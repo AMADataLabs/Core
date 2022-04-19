@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -eu
+set -eux
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
@@ -11,12 +11,14 @@ DRIVER_BUCKET=ama-sbx-datalake-lambda-us-east-1
 INSTALL_DB2_DRIVER=False
 INSTALL_INFORMIX_DRIVER=False
 INSTALL_SQLSERVER_DRIVER=False
+USE_PACKAGE=False
 
 ENVIRONMENT=
 PROJECT=
 BUNDLE=
 RUNTIME=
 EXTRA_FILES=
+PACKAGE=
 
 
 main() {
@@ -28,7 +30,7 @@ main() {
 
     create_code_bundle
 
-    upload_code_bundle
+    # upload_code_bundle
 }
 
 
@@ -70,9 +72,8 @@ process_arguments() {
             shift
             shift
             ;;
-        -P|--package)
-            PACKAGE=$2
-            shift
+        -P|--use-package)
+            USE_PACKAGE=True
             shift
             ;;
         *)
@@ -115,7 +116,11 @@ create_code_bundle() {
     fi
 
     if [[ "$RUNTIME" == "Python" ]]; then
-        ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $EXTRA_FILES
+        if [[ "$USE_PACKAGE" == "True" ]]; then
+            determine_python_package
+        fi
+
+        ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE $EXTRA_FILES
     elif [[ "$RUNTIME" == "Java" ]]; then
         cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
 
@@ -144,9 +149,10 @@ print_usage() {
     echo
     echo "OPTIONS"
     echo "  -h, --help                            print this usage text"
-    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
-    echo "  -p, --project                         project path relative to Build/"
-    echo "  -b, --bundle                          name of the uploaded bundle file in S3"
+    echo "  -e, --environment <environment>       deployment environment (dev, tst, itg, prd)"
+    echo "  -p, --project <project>               project path relative to Build/"
+    echo "  -P, --package                         use the latest pre-packaged component instead of sources"
+    echo "  -b, --bundle <bundle>                 name of the uploaded bundle file in S3"
 }
 
 
@@ -173,6 +179,23 @@ install_sqlserver_driver() {
     mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
 
     EXTRA_FILES+="-f mssql-jdbc-10.2.0.jre8.jar"
+}
+
+
+determine_python_package() {
+    source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
+    version="$RELEASE_VERSION"
+
+    if [[ "$RELEASE_VERSION" == "dev" ]]; then
+        version=$(
+            aws codeartifact list-package-versions \
+                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
+                --format pypi --sort-by PUBLISHED_TIME \
+                | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+        )
+    fi
+
+    PACKAGE="--package ${RELEASE_NAME}==${version}"
 }
 
 

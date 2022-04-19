@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 environment=${1:-dev}
 profile=${2:-shared}

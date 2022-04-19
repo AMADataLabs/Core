@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 Script/setup-virtual-environment Master
 export VIRTUAL_ENV=${PWD}/Environment/Master
