@@ -72,7 +72,7 @@ build_package() {
     Script/release-python-component --name $RELEASE_NAME --version $RELEASE_VERSION \
         --description "$RELEASE_DESCRIPTION" ${PROJECT}
 
-    aws codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
+    aws codeartifact login --tool twine --domain datalabs --repository datalabs-sbx
 
     twine upload --repository codeartifact dist/*.whl
 }
