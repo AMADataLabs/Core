@@ -5,29 +5,69 @@ set -ex
 PROJECT=
 EXTRA_FILES=
 
-echo "# args: $#"
-
-while (( "$#" )); do
-  if [[ "${PROJECT}" == "" ]]; then
-      PROJECT=$1
-      echo "Set project to ${PROJECT}"
-  else
-      EXTRA_FILES+="-f $1 "
-      echo "Added extra file ${1}"
-  fi
-
-  shift
-done
 
 
-export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-export PATH="$VIRTUAL_ENV/bin:$PATH"
+main() {
+    process_arguments "$@"
 
-cat Build/Master/requirements.txt | grep pip== > pip-requirements.txt
-pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt
+    install_dependencies
 
-pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r Build/${PROJECT}/requirements.txt
+    create_bundle
+}
 
-export PYTHONPATH=${PWD}/Source/Python
 
-python Script/bundle_python_project.py --in-place --directory Bundle/ ${EXTRA_FILES} ${PROJECT}
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -f|--file)
+            EXTRA_FILES+="-f $2 "
+            shift
+            shift
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+}
+
+
+install_dependencies() {
+    cat Build/Master/requirements.txt | grep pip== > pip-requirements.txt
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt
+
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r Build/${PROJECT}/requirements.txt
+}
+
+
+create_bundle() {
+    export PYTHONPATH=${PWD}/Source/Python
+
+    python Script/bundle_python_project.py --in-place --directory Bundle/ ${EXTRA_FILES} ${PROJECT}
+
+}
+
+
+print_usage() {
+    echo "Usage: deploy-lambda-function [OPTIONS]..."
+    echo "Bundle and upload a code bundle for a Lambda function."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -f, --file <file>                     include <file> in the bundle"
+    echo "  -p, --project <project>               project path relative to Build/"
+}
+
+
+main "$@"

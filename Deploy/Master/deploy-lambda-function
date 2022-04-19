@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eu
+
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 RUN="${SCRIPT_BASE_PATH}/run.py python"
@@ -113,11 +115,14 @@ create_code_bundle() {
     fi
 
     if [[ "$RUNTIME" == "Python" ]]; then
-        ${PWD}/Deploy/Master/create-python-bundle $PROJECT $EXTRA_FILES
+        ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $EXTRA_FILES
     elif [[ "$RUNTIME" == "Java" ]]; then
         cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
 
-        ${PWD}/Deploy/Master/create-java-bundle $PROJECT $EXTRA_FILES ./log4j2.xml
+        ${PWD}/Deploy/Master/create-java-bundle --project $PROJECT $EXTRA_FILES -f ./log4j2.xml
+    else
+        echo "Error: invalid runtime "'"'"$RUNTIME"'"'""
+        exit 1
     fi
 }
 
@@ -150,7 +155,7 @@ install_db2_driver() {
     unzip ./Db2JdbcDriver.zip
     echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
-    EXTRA_FILES="${EXTRA_FILES} db2jcc4.jar DB2JccConfiguration.properties"
+    EXTRA_FILES+="-f db2jcc4.jar -f DB2JccConfiguration.properties"
 }
 
 
@@ -158,7 +163,7 @@ install_informix_driver() {
     aws s3 cp s3://${DRIVER_BUCKET}/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
     unzip ./InformixJdbcDriver.zip
 
-    EXTRA_FILES="${EXTRA_FILES} jdbc-4.50.4.1.jar bson-4.2.0.jar"
+    EXTRA_FILES+="-f jdbc-4.50.4.1.jar -f bson-4.2.0.jar"
 }
 
 
@@ -167,7 +172,7 @@ install_sqlserver_driver() {
     unzip ./SqlServerJdbcDriver.zip
     mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
 
-    EXTRA_FILES="${EXTRA_FILES} mssql-jdbc-10.2.0.jre8.jar"
+    EXTRA_FILES+="-f mssql-jdbc-10.2.0.jre8.jar"
 }
 
 
