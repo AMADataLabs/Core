@@ -184,8 +184,18 @@ install_sqlserver_driver() {
 
 determine_python_package() {
     source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
+    version="$RELEASE_VERSION"
 
-    PACKAGE="--package ${RELEASE_NAME}==${RELEASE_VERSION}"
+    if [[ "$RELEASE_VERSION" == "dev" ]]; then
+        version=$(
+            aws codeartifact list-package-versions \
+                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
+                --format pypi --sort-by PUBLISHED_TIME \
+                | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+        )
+    fi
+
+    PACKAGE="--package ${RELEASE_NAME}==${version}"
 }
 
 
