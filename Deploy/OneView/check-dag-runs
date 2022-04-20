@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 REPO_DIR=/Users/plane/Development/hs-datalabs
 RUN=${REPO_DIR}/Script/run.py
@@ -41,7 +41,7 @@ check_dag_runs_by_environment() {
 
     if [[ "$last_execution_time" != "$execution_time" ]]; then
         echo "OneView DAG did not start on ${environment_upper} at ${execution_time}" >&3
-    elif [[ "$status" != "Finished" ]]; then
+    elif [[ ":${status}:" != ":Finished:" ]]; then
         echo "OneView DAG did not finish on ${environment_upper} at ${execution_time}" >&3
         echo "Status: ${status}" >&3
     else

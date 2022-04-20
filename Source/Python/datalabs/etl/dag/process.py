@@ -1,4 +1,4 @@
-''' Classes for processing DAG scheduler events. '''
+''' DAG and Task Processor component classes. '''
 from   dataclasses import dataclass
 import logging
 

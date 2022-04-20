@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 declare -a RAW_NAMES
 declare -a TIMEOUTS
@@ -110,7 +110,7 @@ EOF
 
 initialize_update_lambdas_sh() {
     cat > update_lambdas.sh << EOF
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -ex
 
