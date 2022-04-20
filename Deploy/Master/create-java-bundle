@@ -1,27 +1,62 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -ex
 
 PROJECT=
 EXTRA_FILES=
 
-echo "# args: $#"
-
-while (( "$#" )); do
-  if [[ "${PROJECT}" == "" ]]; then
-      PROJECT=$1
-      echo "Set project to ${PROJECT}"
-  else
-      EXTRA_FILES+="-f $1 "
-      echo "Added extra file ${1}"
-  fi
-
-  shift
-done
 
 
-export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-export PATH="$VIRTUAL_ENV/bin:$PATH"
-export PYTHONPATH=${PWD}/Source/Python
+main() {
+    process_arguments "$@"
 
-python Script/bundle_java_project.py --use-pom --directory Bundle/ ${EXTRA_FILES} ${PROJECT}
+    create_bundle
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -f|--file)
+            EXTRA_FILES+="-f $1 "
+            shift
+            shift
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+}
+
+
+create_bundle() {
+    export PYTHONPATH=${PWD}/Source/Python
+
+    python Script/bundle_java_project.py --use-pom --directory Bundle/ ${EXTRA_FILES} ${PROJECT}
+}
+
+
+print_usage() {
+    echo "Usage: deploy-lambda-function [OPTIONS]..."
+    echo "Bundle and upload a code bundle for a Lambda function."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -f, --file <file>                     include <file> in the bundle"
+    echo "  -p, --project <project>               project path relative to Build/"
+}
+
+
+main "$@"

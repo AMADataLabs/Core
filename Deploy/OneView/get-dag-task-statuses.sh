@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 
 TASKS_FILE=~/.oneview-tasks

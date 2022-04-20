@@ -1,33 +1,94 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -ex
 
 PROJECT=
+PACKAGE=
 EXTRA_FILES=
-
-echo "# args: $#"
-
-while (( "$#" )); do
-  if [[ "${PROJECT}" == "" ]]; then
-      PROJECT=$1
-      echo "Set project to ${PROJECT}"
-  else
-      EXTRA_FILES+="-f $1 "
-      echo "Added extra file ${1}"
-  fi
-
-  shift
-done
+NO_SOURCES=
 
 
-export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-export PATH="$VIRTUAL_ENV/bin:$PATH"
 
-cat Build/Master/requirements.txt | grep pip== > pip-requirements.txt
-pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt
+main() {
+    process_arguments "$@"
 
-pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r Build/${PROJECT}/requirements.txt
+    install_dependencies
 
-export PYTHONPATH=${PWD}/Source/Python
+    create_bundle
+}
 
-python Script/bundle_python_project.py --in-place --directory Bundle/ ${EXTRA_FILES} ${PROJECT}
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -f|--file)
+            EXTRA_FILES+="-f $2 "
+            shift
+            shift
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        -P|--package)
+            PACKAGE=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+
+    if [[ "$PROJECT" == "" ]]; then
+        echo "Error: missing project argument"
+        exit 1
+    fi
+}
+
+
+install_dependencies() {
+    cat Build/Master/requirements.txt | grep pip== > pip-requirements.txt
+
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt
+
+    cp Build/${PROJECT}/requirements.txt requirements.txt
+    if [[ "$PACKAGE" != "" ]]; then
+        NO_SOURCES=--no-sources
+
+        echo "$PACKAGE" >> requirements.txt
+    fi
+
+    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r requirements.txt
+}
+
+
+create_bundle() {
+    export PYTHONPATH=${PWD}/Source/Python
+
+    python Script/bundle_python_project.py --in-place --directory Bundle/ ${EXTRA_FILES} ${NO_SOURCES} ${PROJECT}
+
+}
+
+
+print_usage() {
+    echo "Usage: create-python-bundle [OPTIONS]..."
+    echo "Bundle and upload a code bundle for a Lambda function."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -f, --file <file>                     include <file> in the bundle"
+    echo "  -p, --project <project>               project path relative to Build/"
+    echo "  -P, --package <package==version>      use pre-packaged code instead of sources"
+}
+
+
+main "$@"
