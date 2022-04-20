@@ -83,7 +83,7 @@ build_package() {
 upload_package() {
     aws codeartifact login --tool twine --domain datalabs --repository datalabs-sbx
 
-    twine upload --repository codeartifact dist/*.whl
+    twine upload --repository codeartifact Release/dist/*.whl
 }
 
 
