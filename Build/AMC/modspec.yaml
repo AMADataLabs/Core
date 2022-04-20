@@ -24,7 +24,6 @@ modspec:
       - environment
       - excel
       - etcd
-  - package: datalabs.common
   - package: datalabs.access.parameter
   - package: datalabs.etl
   - package: datalabs.etl.dag
