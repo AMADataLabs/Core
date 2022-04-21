@@ -31,12 +31,14 @@ class TaskWrapper(task.TaskWrapper):
 
     @classmethod
     def _resolve_parameter_store_environment_variables(cls):
+        # pylint: disable=import-outside-toplevel
         from datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
         parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
         parameter_loader.load()
 
     @classmethod
     def _resolve_secrets_manager_environment_variables(cls):
+        # pylint: disable=import-outside-toplevel
         from datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
         secrets_loader = SecretsManagerEnvironmentLoader.from_environ()
         secrets_loader.load()

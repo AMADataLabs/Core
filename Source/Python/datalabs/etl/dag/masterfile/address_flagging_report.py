@@ -11,4 +11,5 @@ class DAG(dag.DAG):
     EMAIL_ADDRESS_REPORT: AMCReportSMTPLoaderTask
 
 
+# pylint: disable=pointless-statement
 DAG.EXTRACT_AMC >> DAG.FLAG_ADDRESSES >> DAG.EMAIL_ADDRESS_REPORT
