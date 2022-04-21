@@ -64,7 +64,7 @@ install_dependencies() {
     if [[ "$PACKAGE" != "" ]]; then
         NO_SOURCES=--no-sources
 
-        echo "$PACKAGE" >> requirements.txt
+        echo "$PACKAGE" > requirements.txt
 
         aws codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
     fi
