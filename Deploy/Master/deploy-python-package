@@ -67,7 +67,7 @@ setup_virtual_environment() {
 
 
 build_package() {
-    source Build/Scheduler/.ci/release.sh ${ENVIRONMENT}
+    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
     VERSION=$RELEASE_VERSION
 
     if [[ "$RELEASE_VERSION" == "dev" ]]; then
