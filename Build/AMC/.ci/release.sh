@@ -13,8 +13,8 @@ main() {
     )
     export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
 
-    export RELEASE_NAME="datalabs-scheduler"
-    export RELEASE_DESCRIPTION="cloud-native DAG execution components"
+    export RELEASE_NAME="datalabs-amc"
+    export RELEASE_DESCRIPTION="AMC Address Flagging Report DAG"
 }
 
 
