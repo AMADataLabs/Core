@@ -107,7 +107,7 @@ generate_dev_version() {
     )
 
     if [[ "$current_version" == "" ]]; then
-        current_version="1.0.0"
+        current_version="0.1.0"
     fi
 
     base_version=$(echo $current_version | sed 's/\.dev.*//')
