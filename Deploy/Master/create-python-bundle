@@ -56,10 +56,6 @@ process_arguments() {
 
 
 install_dependencies() {
-    cat Build/Master/requirements.txt | grep pip== > pip-requirements.txt
-
-    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r pip-requirements.txt
-
     cp Build/${PROJECT}/requirements.txt requirements.txt
     if [[ "$PACKAGE" != "" ]]; then
         NO_SOURCES=--no-sources
