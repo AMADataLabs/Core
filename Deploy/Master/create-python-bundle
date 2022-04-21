@@ -65,6 +65,8 @@ install_dependencies() {
         NO_SOURCES=--no-sources
 
         echo "$PACKAGE" >> requirements.txt
+
+        aws codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
     fi
 
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r requirements.txt
