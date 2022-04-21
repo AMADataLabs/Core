@@ -106,6 +106,10 @@ generate_dev_version() {
             | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
     )
 
+    if [[ "$current_version" == "" ]]; then
+        current_version="1.0.0"
+    fi
+
     base_version=$(echo $current_version | sed 's/\.dev.*//')
     dev_version=$(echo $current_version | sed 's/..*dev//')
 
