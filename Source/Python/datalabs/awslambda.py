@@ -5,7 +5,6 @@ import logging
 import datalabs.feature as feature
 import datalabs.task as task
 
-
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

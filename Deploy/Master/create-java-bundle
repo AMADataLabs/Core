@@ -22,7 +22,7 @@ process_arguments() {
             exit 0
             ;;
         -f|--file)
-            EXTRA_FILES+="-f $1 "
+            EXTRA_FILES+="-f $2 "
             shift
             shift
             ;;
