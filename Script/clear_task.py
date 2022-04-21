@@ -15,7 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 class DAGClasses(Enum):
     DAG_SCHEDULER = "datalabs.etl.dag.schedule.dag.DAGSchedulerDAG"
     ECS_SCHEDULER = "datalabs.etl.dag.schedule.dag.DAGSchedulerDAG"
-    ONEVIEW = "datalabs.etl.dag.oneview.ingest.OneViewDAG"
+    ONEVIEW = "datalabs.etl.dag.masterfile.oneview.OneViewDAG"
     CPTAPI = "datalabs.etl.dag.cpt.api.CPTAPIDAG"
     HELLO_WORLD_JAVA = "datalabs.example.etl.dag.hello_world_java.HelloWorldJavaDAG"
     LICENSED_ORGANIZATIONS = "datalabs.etl.dag.cpt.organization.LicensedOrganizationDAG"
