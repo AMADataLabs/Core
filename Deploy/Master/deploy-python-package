@@ -7,7 +7,7 @@ SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 AWS_DEFAULT_REGION=us-east-1
-ENVIRONMENTS=(
+declare -A ENVIRONMENTS=(
     [master]=sbx
     [dev]=dev
     [test]=tst
