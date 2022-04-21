@@ -7,7 +7,15 @@ SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 AWS_DEFAULT_REGION=us-east-1
+ENVIRONMENTS=(
+    [master]=sbx
+    [dev]=dev
+    [test]=tst
+    [stage]=itg
+    [prod]=prd
+)
 
+BRANCH=
 ENVIRONMENT=
 PROJECT=
 VERSION=
@@ -31,6 +39,11 @@ process_arguments() {
             print_usage
             exit 0
             ;;
+        -b|--branch)
+            BRANCH=$2
+            shift
+            shift
+            ;;
         -e|--environment)
             ENVIRONMENT=$2
             shift
@@ -49,7 +62,9 @@ process_arguments() {
       esac
     done
 
-    if [[ "$ENVIRONMENT" == "" ]]; then
+    if [[ "$BRANCH" != "" ]]; then
+        ENVIRONMENT=${ENVIRONMENTS[$BRANCH]}
+    elif [[ "$ENVIRONMENT" == "" ]]; then
         echo "Missing environment argument."
         exit 1
     elif  [[ "$PROJECT" == "" ]]; then
