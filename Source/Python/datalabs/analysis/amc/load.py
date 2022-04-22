@@ -15,8 +15,9 @@ from   datalabs.parameter import add_schema
 # pylint: disable=too-many-instance-attributes
 class AMCReportSMTPLoaderParameters:
     to: str
-    cc: str
     data: list
+    cc: str = None
+    execution_time: str = None
 
 class AMCReportSMTPLoaderTask(LoaderTask):
     PARAMETER_CLASS = AMCReportSMTPLoaderParameters
@@ -35,5 +36,5 @@ class AMCReportSMTPLoaderTask(LoaderTask):
                 subject=f'AMC Sweep Results - {date}',
                 body=summary,
                 attachments=[file],
-                from_account='datalabbs@ama-assn.org'
+                from_account='datalabs@ama-assn.org'
             )

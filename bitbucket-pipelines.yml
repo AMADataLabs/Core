@@ -69,6 +69,13 @@ pipelines:
 
         AMC-master:
         - step:
+            name: Update Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/deploy-python-package --project AMC --branch $BITBUCKET_BRANCH
+        - step:
             name: Update ETL Bundle
             caches:
                 - amc-master-update-bundle-dependencies
@@ -81,6 +88,7 @@ pipelines:
                 --bundle Masterfile/AMC.zip
                 --runtime Python
                 --jdbc-driver Informix
+                --use-package
         # - step:
         #     name: Update Lambda Functions
         #     script:
@@ -294,6 +302,7 @@ pipelines:
                 --project Scheduler
                 --bundle Scheduler.zip
                 --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
