@@ -52,14 +52,14 @@ pipelines:
     tags:
         'datalabs-*_*.*.*':
         - step:
-            name: Update Component Package
+            name: Build Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - source Deploy/Master/release-info.sh $BITBUCKET_TAG
             - >-
-                bash Deploy/Master/deploy-python-package
+                bash Deploy/Master/deploy-package
                 --project ${PROJECT}
                 --version ${RELEASE_VERSION}
     custom:
