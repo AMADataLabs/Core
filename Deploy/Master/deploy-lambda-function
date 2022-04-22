@@ -157,7 +157,7 @@ print_usage() {
 
 
 install_db2_driver() {
-    aws s3 cp s3://${DRIVER_BUCKET}/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
+    aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/Db2JdbcDriver.zip Db2JdbcDriver.zip
     unzip ./Db2JdbcDriver.zip
     echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
@@ -166,7 +166,7 @@ install_db2_driver() {
 
 
 install_informix_driver() {
-    aws s3 cp s3://${DRIVER_BUCKET}/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
+    aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
     unzip ./InformixJdbcDriver.zip
 
     EXTRA_FILES+="-f jdbc-4.50.4.1.jar -f bson-4.2.0.jar"
@@ -174,7 +174,7 @@ install_informix_driver() {
 
 
 install_sqlserver_driver() {
-    aws s3 cp s3://${DRIVER_BUCKET}/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
+    aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/SqlServerJdbcDriver.zip SqlServerJdbcDriver.zip
     unzip ./SqlServerJdbcDriver.zip
     mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
 
@@ -188,7 +188,7 @@ determine_python_package() {
 
     if [[ "$RELEASE_VERSION" == "dev" ]]; then
         version=$(
-            aws codeartifact list-package-versions \
+            aws --profile default codeartifact list-package-versions \
                 --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
                 --format pypi --sort-by PUBLISHED_TIME \
                 | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'

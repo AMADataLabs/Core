@@ -15,6 +15,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
+    os.environ['ENABLE_FEATURE_PARAMETERS'] = "True"
+    os.environ['ENABLE_FEATURE_SECRETS'] = "True"
+
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         with mock.patch('datalabs.access.secret.aws.boto3'):
             wrapper = ETLTaskWrapper(parameters=event)

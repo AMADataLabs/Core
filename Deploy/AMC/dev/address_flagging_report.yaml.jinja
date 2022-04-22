@@ -1,0 +1,115 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/AMC/dev/organizations.yaml.jinja -f Deploy/AMC/dev/organizations.yaml \
+# -v "aims_db_password={{aims_db_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "ADDRESS_FLAGGING_REPORT"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+    APP_STACK: OneView
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+    AIMS_DB_DRIVER: com.informix.jdbc.IfxDriver
+    AIMS_DB_DRIVER_TYPE: informix-sqli
+    AIMS_DB_JAR_PATH: ./jdbc-4.50.4.1.jar,./bson-4.2.0.jar
+    AIMS_DB_HOST: rdbt1511.ama-assn.org
+    AIMS_DB_PORT: '22035'
+    AIMS_DB_NAME: 'test_100_pct'
+    AIMS_DB_USERNAME: dlabs
+    AIMS_DB_PASSWORD: '{{aims_db_password}}'
+
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/AMC/AddressFlaggingReport'
+
+
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "ADDRESS_FLAGGING_REPORT"}, "Task": {"S": "DAG"}})
+    #######################################################################
+
+    ADDRESS_FLAGGING_REPORT__DAG__LAMBDA_FUNCTION: '${APP_STACK}-${ENVIRONMENT}-AMC'
+    ADDRESS_FLAGGING_REPORT__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.address_flagging_report.DAG'
+    ADDRESS_FLAGGING_REPORT__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    ADDRESS_FLAGGING_REPORT__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    ADDRESS_FLAGGING_REPORT__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    ADDRESS_FLAGGING_REPORT__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    ADDRESS_FLAGGING_REPORT__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    ADDRESS_FLAGGING_REPORT__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    ADDRESS_FLAGGING_REPORT__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "ADDRESS_FLAGGING_REPORT"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+    # AMC Extractor
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_HOST: ${AIMS_DB_HOST}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_PORT: ${AIMS_DB_PORT}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_PARAMETERS: ${AIMS_DB_PARAMETERS}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_USERNAME: ${AIMS_DB_USERNAME}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_PASSWORD: ${AIMS_DB_PASSWORD}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__SQL: "
+SELECT
+    eke.key_type_val as ME,
+    ecu.entity_id,
+    ecu.comm_id,
+    first_nm,
+    middle_nm,
+    last_nm,
+    pa.addr_line0,
+    pa.addr_line1,
+    pa.addr_line2,
+    pa.city_cd,
+    pa.zip,
+    pa.state_cd,
+    ecu.usg_begin_dt,
+    ecu.comm_usage
+
+FROM
+    entity_comm_usg_at ecu
+    INNER JOIN
+    entity_key_et eke
+    ON eke.entity_id = ecu.entity_id
+    INNER JOIN
+    post_addr_at pa
+    ON pa.comm_id = ecu.comm_id
+    INNER JOIN
+    person_name_et pn
+    ON pn.entity_id = ecu.entity_id
+
+WHERE
+    ecu.src_cat_code = 'AMC' AND
+    ecu.end_dt is null       AND
+    eke.key_type ='ME'
+"
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__CHUNK_SIZE: '100000'
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DRIVER: ${AIMS_DB_DRIVER}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DRIVER_TYPE: ${AIMS_DB_DRIVER_TYPE}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__JAR_PATH: ${AIMS_DB_JAR_PATH}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__CACHE_OUTPUT_FILES: addresses.csv
+
+
+    # Address Flagging Report Transformer
+    ADDRESS_FLAGGING_REPORT__FLAG_ADDRESSES__CACHE_CLASS: ${S3_CACHE_CLASS}
+    ADDRESS_FLAGGING_REPORT__FLAG_ADDRESSES__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    ADDRESS_FLAGGING_REPORT__FLAG_ADDRESSES__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    ADDRESS_FLAGGING_REPORT__FLAG_ADDRESSES__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    ADDRESS_FLAGGING_REPORT__FLAG_ADDRESSES__CACHE_INPUT_FILES: 'addresses.csv'
+    ADDRESS_FLAGGING_REPORT__FLAG_ADDRESSES__CACHE_OUTPUT_FILES: 'report_data.pk, report_body.pk'
+
+
+    # Email Notifier
+    ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__CACHE_INPUT_FILES: 'report_data.pk, summary.pk'
+
+    ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__TO: 'datalabs@ama-assn.org'
