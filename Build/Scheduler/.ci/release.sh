@@ -11,16 +11,16 @@ main() {
         [itg]=1.0.0
         [prd]=1.0.0
     )
-    export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
 
+    if [[ "$ENVIRONMENT" != "" ]]; then
+        export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
+    fi
+
+    export RELEASE_TYPE="Python"
     export RELEASE_NAME="datalabs-scheduler"
     export RELEASE_DESCRIPTION="cloud-native DAG execution components"
 }
 
 
 
-if [[ "$ENVIRONMENT" == "" ]]; then
-    echo "Error: missing environment argument"
-else
-    main
-fi
+main

@@ -54,6 +54,11 @@ process_arguments() {
             shift
             shift
             ;;
+        -v|--version)
+            VERSION=$2
+            shift
+            shift
+            ;;
         *)
             echo "Unexpected argument $1"
             print_usage
@@ -62,7 +67,9 @@ process_arguments() {
       esac
     done
 
-    if [[ "$BRANCH" != "" ]]; then
+    if [[ "$VERSION" != "" ]]; then
+        ENVIRONMENT=sbx
+    elif [[ "$BRANCH" != "" ]]; then
         ENVIRONMENT=${ENVIRONMENTS[$BRANCH]}
     elif [[ "$ENVIRONMENT" == "" ]]; then
         echo "Missing environment argument."
@@ -83,7 +90,12 @@ setup_virtual_environment() {
 
 build_package() {
     source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
-    VERSION=$RELEASE_VERSION
+
+    if [[ "$VERSION" != "" ]]; then
+        RELEASE_VERSION=$VERSION
+    else
+        VERSION=$RELEASE_VERSION
+    fi
 
     if [[ "$RELEASE_VERSION" == "dev" ]]; then
         generate_dev_version

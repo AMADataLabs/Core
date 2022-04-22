@@ -8,19 +8,19 @@ main() {
         [sbx]=dev
         [dev]=dev
         [tst]=1.0.0
-        [itg]=1.0.0
+        [itg]=
         [prd]=1.0.0
     )
-    export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
 
+    if [[ "$ENVIRONMENT" != "" ]]; then
+        export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
+    fi
+
+    export RELEASE_TYPE="Python"
     export RELEASE_NAME="datalabs-amc"
     export RELEASE_DESCRIPTION="AMC Address Flagging Report DAG"
 }
 
 
 
-if [[ "$ENVIRONMENT" == "" ]]; then
-    echo "Error: missing environment argument"
-else
-    main
-fi
+main
