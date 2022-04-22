@@ -16,8 +16,6 @@ modspec:
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.masterfile
-    include:
-      - address_flagging_report
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.schedule
   - package: datalabs.etl.dag.state
