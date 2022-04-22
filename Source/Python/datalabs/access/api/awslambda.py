@@ -12,12 +12,6 @@ LOGGER.setLevel(logging.INFO)
 
 
 class APIEndpointTaskWrapper(TaskWrapper):
-    def _init_(self, parameters: dict):
-        super().__init__(parameters)
-
-        # Secrets are still used in APIs
-        os.environ["ENABLE_FEATURE_SECRETS"] = "True"
-
     def _get_runtime_parameters(self, parameters):
         return dict(
             path = parameters.get('path', ""),
