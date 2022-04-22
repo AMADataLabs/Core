@@ -318,6 +318,42 @@ pipelines:
         # dev branch targets
         ##############################################################
 
+        AMC-dev:
+        - step:
+            name: Update Component Package
+            caches:
+            - environment-dev
+            script:
+            - bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/deploy-python-package --project AMC --branch $BITBUCKET_BRANCH
+        - step:
+            name: Update ETL Bundle
+            caches:
+            - amc-dev-update-bundle-dependencies
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment dev
+                --project AMC
+                --bundle Masterfile/AMC.zip
+                --runtime Python
+                --jdbc-driver Informix
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - export ENVIRONMENT=dev
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
+                AMC=AMC.zip
+
         CPT-dev:
         - parallel:
             - step:
@@ -1150,6 +1186,7 @@ definitions:
     organizations-master-update-bundle-dependencies: Environment
     scheduler-master-update-bundle-dependencies: Environment
 
+    environment-dev: Environment
     cpt-dev-update-bundle-dependencies: Environment
     oneview-dev-create-database-dependencies: Environment
     oneview-dev-update-bundle-dependencies: Environment
