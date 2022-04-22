@@ -17,8 +17,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-amc"
-    export RELEASE_DESCRIPTION="AMC Address Flagging Report DAG"
+    export RELEASE_NAME="datalabs-scheduler"
+    export RELEASE_DESCRIPTION="cloud-native DAG execution components"
 }
 
 
