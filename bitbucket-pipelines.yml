@@ -333,13 +333,6 @@ pipelines:
 
         AMC-dev:
         - step:
-            name: Update Component Package
-            caches:
-            - environment-dev
-            script:
-            - bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - bash Deploy/Master/deploy-python-package --project AMC --branch $BITBUCKET_BRANCH
-        - step:
             name: Update ETL Bundle
             caches:
             - environment-dev
