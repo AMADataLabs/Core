@@ -401,9 +401,9 @@ pipelines:
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
-                Endpoint=ETL.zip
-                Authorizer=Endpoint.zip
                 ETL=Endpoint.zip
+                Endpoint=Endpoint.zip
+                Authorizer=Endpoint.zip
                 BulkAuthorizer=Endpoint.zip
                 BulkEndpoint=Endpoint.zip
 
