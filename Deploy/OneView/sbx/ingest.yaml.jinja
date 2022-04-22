@@ -56,6 +56,8 @@ data:
     ONEVIEW__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.oneview.OneViewDAG'
     ONEVIEW__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     ONEVIEW__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    ONEVIEW__DAG__JOB_DEFINITION: 'DataLake-${ENVIRONMENT}-OneViewTask'
+    ONEVIEW__DAG__DAG__JOB_QUEUE: 'DataLake-${ENVIRONMENT}-OneViewTask'
     ONEVIEW__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
     ONEVIEW__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
     ONEVIEW__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
