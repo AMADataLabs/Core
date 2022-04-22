@@ -108,7 +108,7 @@ build_package() {
 
 
 upload_package() {
-    aws codeartifact login --tool twine --domain datalabs --repository datalabs-sbx
+    aws --profile default codeartifact login --tool twine --domain datalabs --repository datalabs-sbx
 
     twine upload --repository codeartifact Release/dist/*.whl
 }
@@ -127,7 +127,7 @@ print_usage() {
 
 generate_dev_version() {
     current_version=$(
-        aws codeartifact list-package-versions \
+        aws --profile default codeartifact list-package-versions \
             --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
             --format pypi --sort-by PUBLISHED_TIME \
             | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
