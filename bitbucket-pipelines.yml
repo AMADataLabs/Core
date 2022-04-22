@@ -91,7 +91,7 @@ pipelines:
         - step:
             name: Update ETL Bundle
             caches:
-                - amc-master-update-bundle-dependencies
+                - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
@@ -116,7 +116,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-            - contactid-master-update-bundle-dependencies
+            - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
@@ -136,7 +136,7 @@ pipelines:
             - step:
                 name: Update ETL Bundle
                 caches:
-                    - cpt-master-update-bundle-dependencies
+                    - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -148,7 +148,7 @@ pipelines:
             - step:
                 name: Update Endpoint Bundle
                 caches:
-                    - cpt-master-update-bundle-dependencies
+                    - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -175,7 +175,7 @@ pipelines:
             - step:
                 name: Update DAG Bundle
                 caches:
-                - scheduler-master-update-bundle-dependencies
+                - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -187,7 +187,7 @@ pipelines:
             - step:
                 name: Update Task Bundle
                 caches:
-                - scheduler-master-update-bundle-dependencies
+                - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -225,7 +225,7 @@ pipelines:
             - step:
                 name: Create Database
                 caches:
-                  - oneview-master-create-database-dependencies
+                  - environment-master
                 script:
                 - bash Script/setup-virtual-environment OneView
                 - export ENABLE_FEATURE_DEV=True
@@ -240,7 +240,7 @@ pipelines:
             - step:
                 name: Update ETL Bundle
                 caches:
-                    - oneview-master-update-bundle-dependencies
+                    - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -254,7 +254,7 @@ pipelines:
             - step:
                 name: Update API Bundle
                 caches:
-                    - oneview-master-update-bundle-dependencies
+                    - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
@@ -267,7 +267,7 @@ pipelines:
             # - step:
             #     name: Migrate Database
             #     caches:
-            #       - oneview-master-create-database-dependencies
+            #       - environment-master
             #     script:
             #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
             #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
@@ -284,7 +284,7 @@ pipelines:
         - step:
             name: Update ETL Bundle
             caches:
-                - organizations-master-update-bundle-dependencies
+                - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
@@ -306,7 +306,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-            - scheduler-master-update-bundle-dependencies
+            - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - >-
@@ -342,7 +342,7 @@ pipelines:
         - step:
             name: Update ETL Bundle
             caches:
-            - amc-dev-update-bundle-dependencies
+            - environment-dev
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
@@ -372,7 +372,7 @@ pipelines:
             - step:
                 name: Update ETL Bundle
                 caches:
-                - cpt-dev-update-bundle-dependencies
+                - environment-dev
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
@@ -386,7 +386,7 @@ pipelines:
             - step:
                 name: Update Endpoint Bundle
                 caches:
-                - cpt-dev-update-bundle-dependencies
+                - environment-dev
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
@@ -419,7 +419,7 @@ pipelines:
             # - step:
             #     name: Create Database
             #     caches:
-            #       - oneview-dev-create-database-dependencies
+            #       - environment-dev
             #     script:
             #     - bash Script/setup-virtual-environment OneView
             #     - export ENABLE_FEATURE_DEV=True
@@ -434,7 +434,7 @@ pipelines:
             - step:
                 name: Update ETL Bundle
                 caches:
-                    - oneview-dev-update-bundle-dependencies
+                    - environment-dev
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -474,7 +474,7 @@ pipelines:
             - step:
                 name: Update API Bundle
                 caches:
-                    - oneview-dev-update-bundle-dependencies
+                    - environment-dev
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -499,7 +499,7 @@ pipelines:
             # - step:
             #     name: Migrate Database
             #     caches:
-            #       - oneview-dev-create-database-dependencies
+            #       - environment-dev
             #     script:
             #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
             #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
@@ -524,7 +524,7 @@ pipelines:
         - step:
             name: Update ETL Bundle
             caches:
-                - organizations-dev-update-bundle-dependencies
+                - environment-dev
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -574,7 +574,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - scheduler-dev-update-bundle-dependencies
+                - environment-dev
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -623,7 +623,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - cpt-test-update-bundle-dependencies
+                - environment-test
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -670,7 +670,7 @@ pipelines:
             - step:
                 name: Update ETL Bundle
                 caches:
-                    - oneview-test-update-bundle-dependencies
+                    - environment-test
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -710,7 +710,7 @@ pipelines:
             - step:
                 name: Update API Bundle
                 caches:
-                    - oneview-test-update-bundle-dependencies
+                    - environment-test
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -750,7 +750,7 @@ pipelines:
         - step:
             name: Update ETL Bundle
             caches:
-                - organizations-test-update-bundle-dependencies
+                - environment-test
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -800,7 +800,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - scheduler-test-update-bundle-dependencies
+                - environment-test
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -849,7 +849,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - cpt-stage-update-bundle-dependencies
+                - environment-stage
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -895,7 +895,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - scheduler-stage-update-bundle-dependencies
+                - environment-stage
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -949,7 +949,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - cpt-prod-update-bundle-dependencies
+                - environment-prod
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -1002,7 +1002,7 @@ pipelines:
             - step:
                 name: Update ETL Bundle
                 caches:
-                    - oneview-prod-update-bundle-dependencies
+                    - environment-prod
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -1042,7 +1042,7 @@ pipelines:
             - step:
                 name: Update API Bundle
                 caches:
-                    - oneview-prod-update-bundle-dependencies
+                    - environment-prod
                 script:
                 # Setup virtual environment
                 - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -1088,7 +1088,7 @@ pipelines:
         - step:
             name: Update ETL Bundle
             caches:
-                - organizations-prod-update-bundle-dependencies
+                - environment-prod
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -1190,32 +1190,7 @@ definitions:
     test-dependencies: Environment
 
     environment-master: Environment
-    amc-master-update-bundle-dependencies: Environment
-    contactid-master-update-bundle-dependencies: Environment
-    cpt-master-create-database-dependencies: Environment
-    cpt-master-update-bundle-dependencies: Environment
-    oneview-master-create-database-dependencies: Environment
-    oneview-master-update-bundle-dependencies: Environment
-    organizations-master-update-bundle-dependencies: Environment
-    scheduler-master-update-bundle-dependencies: Environment
-
     environment-dev: Environment
-    cpt-dev-update-bundle-dependencies: Environment
-    oneview-dev-create-database-dependencies: Environment
-    oneview-dev-update-bundle-dependencies: Environment
-    organizations-dev-update-bundle-dependencies: Environment
-    scheduler-dev-update-bundle-dependencies: Environment
-
-    cpt-test-update-bundle-dependencies: Environment
-    oneview-test-create-database-dependencies: Environment
-    oneview-test-update-bundle-dependencies: Environment
-    organizations-test-update-bundle-dependencies: Environment
-    scheduler-test-update-bundle-dependencies: Environment
-
-    cpt-stage-update-bundle-dependencies: Environment
-    scheduler-stage-update-bundle-dependencies: Environment
-
-    cpt-prod-update-bundle-dependencies: Environment
-    oneview-prod-update-bundle-dependencies: Environment
-    organizations-prod-update-bundle-dependencies: Environment
-    scheduler-prod-update-bundle-dependencies: Environment
+    environment-test: Environment
+    environment-stage: Environment
+    environment-prod: Environment
