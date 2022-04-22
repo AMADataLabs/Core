@@ -62,7 +62,7 @@ install_dependencies() {
 
         echo "$PACKAGE" > requirements.txt
 
-        aws codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
+        aws --profile default codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
     fi
 
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r requirements.txt
