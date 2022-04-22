@@ -2,10 +2,14 @@
 
 set -ex
 
+CODE_ARTIFACT_HOST=datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com
+
 PROJECT=
 PACKAGE=
 EXTRA_FILES=
 NO_SOURCES=
+NO_VERIFY_SSL=
+TRUSTED_HOSTS=
 
 
 
@@ -40,6 +44,11 @@ process_arguments() {
             shift
             shift
             ;;
+        --no-verify-ssl)
+            NO_VERIFY_SSL=--no-verify-ssl
+            TRUSTED_HOSTS="--trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host $CODE_ARTIFACT_HOST"
+            shift
+            ;;
         *)
             echo "Unexpected argument $1"
             print_usage
@@ -62,10 +71,10 @@ install_dependencies() {
 
         echo "$PACKAGE" > requirements.txt
 
-        aws --profile default codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
+        aws ${NO_VERIFY_SSL} --profile default codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
     fi
 
-    pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --target Bundle/ -r requirements.txt
+    pip install $TRUSTED_HOSTS --target Bundle/ -r requirements.txt
 }
 
 
@@ -86,6 +95,7 @@ print_usage() {
     echo "  -f, --file <file>                     include <file> in the bundle"
     echo "  -p, --project <project>               project path relative to Build/"
     echo "  -P, --package <package==version>      use pre-packaged code instead of sources"
+    echo "  --no-verify-ssl                       disable verification of server SSL certificate"
 }
 
 
