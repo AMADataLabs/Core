@@ -26,6 +26,7 @@ modspec:
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.jdbc
   - package: datalabs.etl.s3
+  - package: datalabs.analysis
   - package: datalabs.analysis.amc
   - package: datalabs.messaging
     include:

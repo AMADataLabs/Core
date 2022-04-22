@@ -8,7 +8,7 @@ main() {
         [sbx]=dev
         [dev]=dev
         [tst]=1.0.0
-        [itg]=1.0.0
+        [itg]=
         [prd]=1.0.0
     )
 
@@ -16,9 +16,9 @@ main() {
         export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
     fi
 
-    export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-scheduler"
-    export RELEASE_DESCRIPTION="cloud-native DAG execution components"
+    export RELEASE_TYPE="Java"
+    export RELEASE_NAME="datalabs-hello-world-java-task"
+    export RELEASE_DESCRIPTION="Hello world Java task"
 }
 
 
