@@ -18,9 +18,11 @@ data:
     AIMS_DB_DRIVER: com.informix.jdbc.IfxDriver
     AIMS_DB_DRIVER_TYPE: informix-sqli
     AIMS_DB_JAR_PATH: ./jdbc-4.50.4.1.jar,./bson-4.2.0.jar
-    AIMS_DB_HOST: rdbt1511.ama-assn.org
-    AIMS_DB_PORT: '22035'
-    AIMS_DB_NAME: 'test_100_pct'
+    # 'jdbc:informix-sqli://rdbp1627.ama-assn.org:22093/aims_prod',  # :informixserver=prd1srvxnet
+    # 'jdbc:informix-sqli://rdbt1511.ama-assn.org:22035/test_100_pct',
+    AIMS_DB_HOST: rdbp1627.ama-assn.org
+    AIMS_DB_PORT: '22093'
+    AIMS_DB_NAME: 'aims_prod'
     AIMS_DB_USERNAME: dlabs
     AIMS_DB_PASSWORD: '{{aims_db_password}}'
 
@@ -50,7 +52,7 @@ data:
     # AMC Extractor
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_HOST: ${AIMS_DB_HOST}
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_PORT: ${AIMS_DB_PORT}
-    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_PARAMETERS: ${AIMS_DB_PARAMETERS}
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_NAME: ${AIMS_DB_NAME}
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_USERNAME: ${AIMS_DB_USERNAME}
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_PASSWORD: ${AIMS_DB_PASSWORD}
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__SQL: "

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-ENVIRONMENT=$1
+set -u
+
+ENVIRONMENT=${1:-""}
 
 
 main() {
