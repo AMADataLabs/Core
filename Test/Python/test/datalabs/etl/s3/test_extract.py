@@ -97,7 +97,7 @@ def test_cp1252_decoding(parameters):
 # pylint: disable=redefined-outer-name, protected-access
 def test_newline_separator_filenames(newline_parameters):
     with mock.patch('boto3.client'):
-        task = s3.S3FileListExtractorTask(newline_parameters)
+        task = s3.S3FileExtractorTask(newline_parameters)
 
         files = task._get_files()
 

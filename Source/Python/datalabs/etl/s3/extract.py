@@ -57,7 +57,7 @@ LOGGER.setLevel(logging.INFO)
 class S3FileExtractorParameters:
     bucket: str
     base_path: str
-    files: str
+    files: str = None
     endpoint_url: str = None
     access_key: str = None
     secret_key: str = None
@@ -86,7 +86,12 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
     def _get_files(self):
         base_path = self._get_latest_path()
-        files = self._parameters.files.split(',')
+        files = []
+
+        if self._parameters.files is not None:
+            files = self._parameters.files.split(',')
+        elif self._parameters.data is not None and len(self._parameters.data) > 0:
+            files = list(itertools.chain.from_iterable(self._parse_file_lists(self._parameters.data)))
 
         if base_path:
             files = ['/'.join((base_path, file.strip())) for file in files]
@@ -138,6 +143,11 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             path = '/'.join((self._parameters.base_path, release_folder))
 
         return path
+
+    @classmethod
+    def _parse_file_lists(cls, data):
+        for file_list in data:
+            yield [file.decode().strip() for file in file_list.split(b'\n')]
 
     @classmethod
     def _cache_data_to_disk(cls, body):
@@ -193,42 +203,6 @@ class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
     @classmethod
     def _decode_data(cls, data):
         return data.decode('cp1252', errors='backslashreplace').encode()
-
-
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class S3FileListExtractorParameters:
-    bucket: str
-    base_path: str
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
-    include_names: str = None
-    include_datestamp: str = None
-    execution_time: str = None
-    on_disk: str = False
-    assume_role: str = None
-    data: object = None
-
-
-class S3FileListExtractorTask(S3FileExtractorTask):
-    PARAMETER_CLASS = S3FileListExtractorParameters
-
-    def _get_files(self):
-        files = list(itertools.chain.from_iterable(self._parse_file_lists(self._parameters.data)))
-        base_path = self._get_latest_path()
-
-        if base_path:
-            files = ['/'.join((base_path, file.strip())) for file in files]
-
-        return files
-
-    @classmethod
-    def _parse_file_lists(cls, data):
-        for file_list in data:
-            yield [file.decode().strip() for file in file_list.split(b'\n')]
 
 
 @add_schema

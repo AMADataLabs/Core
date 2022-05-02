@@ -2,7 +2,6 @@
 from   dataclasses import dataclass
 import logging
 
-from   datalabs.access.aws import AWSClient
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
 
@@ -11,5 +10,12 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class SignedPDFTransformerTask(ExecutionTimeMixin):
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class SignedPDFTransformerParameters:
     pass
+
+
+class SignedPDFTransformerTask(ExecutionTimeMixin):
+    PARAMETER_CLASS = SignedPDFTransformerParameters

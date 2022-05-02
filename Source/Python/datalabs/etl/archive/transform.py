@@ -47,19 +47,18 @@ class UnzipTransformerTask(IncludeNamesMixin, FileExtractorTask):
 class ZipTransformerParameters:
     data: object
     execution_time: str = None
-    
 
 
 class ZipTransformerTask(TransformerTask):
     PARAMETER_CLASS = UnzipTransformerParameters
 
     def _transform(self) -> 'Transformed Data':
-        zip_data = BytesIO()
-
         return [self._zip_files(pickle.loads(pickled_dataset)) for pickled_dataset in self._parameters.data]
 
     @classmethod
     def _zip_files(cls, filename_data_tuples):
+        zip_data = BytesIO()
+
         with ZipFile(zip_data, 'w') as zip_file:
             for file, data in filename_data_tuples:
                 LOGGER.debug('Adding %s byte file %s to the archive...', len(data), file)
