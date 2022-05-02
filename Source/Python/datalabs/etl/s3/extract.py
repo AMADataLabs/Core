@@ -232,3 +232,56 @@ class S3FileListExtractorTask(S3FileExtractorTask):
     def _parse_file_lists(cls, data):
         for file_list in data:
             yield [file.decode().strip() for file in file_list.split(b'\n')]
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class S3DirectoryListingExtractorParameters:
+    bucket: str
+    base_path: str
+    directories: str
+    execution_time: str = None
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
+    assume_role: str = None
+
+
+# pylint: disable=too-many-ancestors
+class S3DirectoryListingExtractorTask(ExecutionTimeMixin, FileExtractorTask):
+    PARAMETER_CLASS = S3FileExtractorParameters
+
+    def _get_client(self):
+        return AWSClient(
+            's3',
+            endpoint_url=self._parameters.endpoint_url,
+            aws_access_key_id=self._parameters.access_key,
+            aws_secret_access_key=self._parameters.secret_key,
+            region_name=self._parameters.region_name,
+            assume_role=self._parameters.assume_role
+        )
+
+    def _get_files(self):
+        base_path = self._get_latest_path()
+        directories = self._parameters.directories.split(',')
+
+        if base_path:
+            directories = ['/'.join((base_path, directory.strip())) for directory in directories]
+
+        return list(itertools.chain.from_iterable(self._list_files_for_each(directories)))
+
+    def _list_files_for_each(self, paths):
+        for path in paths:
+            yield self._list_files(self._parameters.bucket, path)
+
+    def _list_files(self, path):
+        response = self._client.list_objects_v2(Bucket=self._parameters.bucket, Prefix=path)
+
+        objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
+
+        if  '' in objects:
+            objects.remove('')
+
+        return objects
