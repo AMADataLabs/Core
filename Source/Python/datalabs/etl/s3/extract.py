@@ -153,10 +153,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         if release_folder is None:
             release_folders = sorted(
-                self._listdir(
-                    self._parameters.bucket,
-                    self._parameters.base_path
-                )
+                self._list_files(self._parameters.base_path)
             )
             release_folder = release_folders[-1]
 
@@ -180,8 +177,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         return execution_date
 
-    def _listdir(self, bucket, base_path):
-        response = self._client.list_objects_v2(Bucket=bucket, Prefix=base_path)
+    def _list_files(self, path):
+        response = self._client.list_objects_v2(Bucket=self._parameters.bucket, Prefix=path)
 
         objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
 
@@ -264,7 +261,7 @@ class S3DirectoryListingExtractorTask(ExecutionTimeMixin, FileExtractorTask):
         )
 
     def _get_files(self):
-        base_path = self._get_latest_path()
+        base_path = self._parameters.base_path
         directories = self._parameters.directories.split(',')
 
         if base_path:
@@ -274,7 +271,7 @@ class S3DirectoryListingExtractorTask(ExecutionTimeMixin, FileExtractorTask):
 
     def _list_files_for_each(self, paths):
         for path in paths:
-            yield self._list_files(self._parameters.bucket, path)
+            yield self._list_files(path)
 
     def _list_files(self, path):
         response = self._client.list_objects_v2(Bucket=self._parameters.bucket, Prefix=path)

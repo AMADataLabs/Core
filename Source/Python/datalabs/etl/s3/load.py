@@ -108,3 +108,26 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
 class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
     def _encode_data(self, data):
         return data.decode().encode('cp1252', errors='backslashreplace')
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class S3FileReplicatorParameters(ExecutionTimeMixin):
+    bucket: str
+    base_path: str
+    data: object
+    files: str = None
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
+    includes_names: str = None
+    include_datestamp: str = None
+    execution_time: str = None
+    assume_role: str = None
+    on_disk: str = False
+
+
+class S3FileReplicatorTask:
+    pass
