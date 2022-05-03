@@ -3,14 +3,13 @@ import datalabs.etl.dag.dag as dag
 from   datalabs.etl.archive.transform import UnzipTransformerTask, ZipTransformerTask
 from   datalabs.etl.control import DAGNotificationFactoryTask
 from   datalabs.etl.s3.extract import S3FileExtractorTask
-from   datalabs.etl.s3.load import S3FileReplicatorTask
 from   datalabs.etl.pdf.transform import SignedPDFTransformerTask
 from   datalabs.etl.sns.load import SNSMessageLoaderTask
 
 
 class CoordinationDAG(dag.DAG):
     EXTRACT_USER_IDS: S3FileExtractorTask
-    SCHEDULE_USER_DAGS: DAGRepeaterTask
+    SCHEDULE_USER_DAGS: DAGNotificationFactoryTask
     NOTIFY_DAG_PROCESSOR: SNSMessageLoaderTask
 
 
