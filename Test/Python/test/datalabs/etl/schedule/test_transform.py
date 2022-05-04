@@ -1,16 +1,15 @@
-""" Source: datalabs.etl.dag.schedule.task """
+""" Source: datalabs.etl.schedule.task """
 from   datetime import datetime, timedelta
 from   io import BytesIO
 import json
 import logging
-import pickle
 import tempfile
 
 import mock
 import pandas
 import pytest
 
-from   datalabs.etl.dag.schedule.transform import DAGSchedulerTask
+from   datalabs.etl.schedule.transform import DAGSchedulerTask
 from   datalabs.etl.dag.state.base import Status
 from   datalabs.etl.dag.state.file import DAGState
 
@@ -136,20 +135,18 @@ def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, 
     scheduler = DAGSchedulerTask(parameters)
     data = None
 
-    with mock.patch('datalabs.etl.dag.schedule.transform.DAGSchedulerTask._get_target_execution_time') \
+    with mock.patch('datalabs.etl.schedule.transform.DAGSchedulerTask._get_target_execution_time') \
             as get_execution_time:
         get_execution_time.return_value = target_execution_time
         data = scheduler._transform()
 
     assert len(data) == 1
 
-    dags_to_run = pickle.loads(data[0])
+    dags_to_run = json.loads(data[0])
 
     assert len(dags_to_run) == 2
 
-    dag_data = [json.loads(dag) for dag in dags_to_run]
-
-    for row in dag_data:
+    for row in dags_to_run:
         assert all(column in row for column in ['dag', 'execution_time'])
 
 

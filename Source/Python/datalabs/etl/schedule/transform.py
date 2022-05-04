@@ -5,7 +5,6 @@ from   functools import partial
 from   io import BytesIO
 import json
 import logging
-import pickle
 
 from   dateutil.parser import isoparse
 from   croniter import croniter
@@ -77,9 +76,9 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
             regex=True,
             inplace=True
         )
-        messages = [row[1].to_json() for row in message_data.iterrows()]
+        messages = [json.loads(row[1].to_json()) for row in message_data.iterrows()]
 
-        return pickle.dumps(messages)
+        return json.dumps(messages)
 
     def _get_execution_times(self, schedule, base_time):
         return schedule.apply(partial(self._get_execution_time, base_time), axis = 1)
