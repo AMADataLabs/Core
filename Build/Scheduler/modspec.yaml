@@ -19,6 +19,9 @@ modspec:
   - package: datalabs.etl.dag.schedule
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.s3
+  - package: datalabs.etl.schedule
+    include:
+      - transform
   - package: datalabs.messaging
     include:
       - email_message

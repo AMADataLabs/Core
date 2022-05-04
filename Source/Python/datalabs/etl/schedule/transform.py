@@ -5,7 +5,6 @@ from   functools import partial
 from   io import BytesIO
 import json
 import logging
-import pickle
 
 from   dateutil.parser import isoparse
 from   croniter import croniter
@@ -47,7 +46,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         dags = self._determine_dags_to_run(schedule, self._get_target_execution_time())
         LOGGER.info("Dags to Run:\n%s", dags)
 
-        return [self._generate_notification_messages(dags)]
+        return [json.dumps(self._generate_notification_messages(dags)).encode()]
 
     # pylint: disable=no-self-use
     def _get_target_execution_time(self):
@@ -77,9 +76,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
             regex=True,
             inplace=True
         )
-        messages = [row[1].to_json() for row in message_data.iterrows()]
-
-        return pickle.dumps(messages)
+        return [json.loads(row[1].to_json()) for row in message_data.iterrows()]
 
     def _get_execution_times(self, schedule, base_time):
         return schedule.apply(partial(self._get_execution_time, base_time), axis = 1)
