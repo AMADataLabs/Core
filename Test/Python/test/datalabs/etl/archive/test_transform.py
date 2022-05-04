@@ -1,10 +1,9 @@
 """ source: datalabs.etl.archive.transform """
 from   io import BytesIO
-import mock
 import pickle
-import pytest
-# import tempfile
 from   zipfile import ZipFile
+
+import pytest
 
 import datalabs.etl.archive.transform as archive
 
@@ -17,7 +16,7 @@ def test_zip_transformer_zips_tuple_data(zip_data):
     zip_file = ZipFile(BytesIO(zip_data[0]))
     filenames = zip_file.namelist()
 
-    assert all([filename in filenames for filename in ['bogus.txt', 'bogus.bin']])
+    assert all(filename in filenames for filename in ['bogus.txt', 'bogus.bin'])
 
 
 # pylint: disable=redefined-outer-name, protected-access
@@ -32,7 +31,7 @@ def test_zip_transformer_zips_pickled_data(pickled_data):
         zip_file = ZipFile(BytesIO(zip_data[0]))
         filenames = zip_file.namelist()
 
-        assert all([filename in filenames for filename in ['bogus.txt', 'bogus.bin']])
+        assert all(filename in filenames for filename in ['bogus.txt', 'bogus.bin'])
 
 
 # pylint: disable=redefined-outer-name, protected-access

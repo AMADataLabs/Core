@@ -78,9 +78,9 @@ class ZipFiles:
         return list(self._file_zip_map.keys())
 
     def extract(self, file):
-        zip = self._zip_files[self._file_zip_map[file]]
+        zip_file = self._zip_files[self._file_zip_map[file]]
 
-        return zip.read(file)
+        return zip_file.read(file)
 
     def __enter__(self):
         self._zip_files = [ZipFile(BytesIO(zip_file)) for zip_file in self._zip_file_data]

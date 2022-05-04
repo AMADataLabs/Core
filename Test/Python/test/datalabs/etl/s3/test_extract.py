@@ -95,19 +95,21 @@ def test_cp1252_decoding(parameters):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_filenames_in_data(parameters):
+def test_missing_filenames(parameters):
     parameters.pop("FILES")
     task = s3.S3FileExtractorTask(parameters)
 
     with pytest.raises(ValueError):
-        files = task._get_files()
+        task._get_files()
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_missing_filenames(parameters_with_data):
+def test_filenames_in_data(parameters_with_data):
     task = s3.S3FileExtractorTask(parameters_with_data)
 
     files = task._get_files()
+
+    assert len(files) == 3
 
 
 @pytest.fixture
