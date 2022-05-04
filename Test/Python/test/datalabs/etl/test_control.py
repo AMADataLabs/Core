@@ -1,12 +1,14 @@
 """ source: datalabs.etl.control """
 import json
+import re
+
 import pandas
 import pytest
-import re
 
 from   datalabs.etl.control import DAGNotificationFactoryTask
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_parameters_parsed_correctly(data, parameters):
     factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "data": data})
 
@@ -15,6 +17,7 @@ def test_parameters_parsed_correctly(data, parameters):
     assert all(parameters == actual_parameters)
 
 
+# pylint: disable=redefined-outer-name, protected-access
 def test_correct_messages_are_generated(parameters):
     factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "data": []})
 
@@ -29,7 +32,8 @@ def test_correct_messages_are_generated(parameters):
         assert len(message["parameters"]) == 2
 
 
-def test_messages_are_serialized_as_json_string(data, parameters):
+# pylint: disable=redefined-outer-name, protected-access
+def test_messages_are_serialized_as_json_string(data):
     factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "data": data})
 
     output = factory._transform()
