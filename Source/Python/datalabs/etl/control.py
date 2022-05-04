@@ -30,7 +30,7 @@ class DAGNotificationFactoryTask(TransformerTask):
     def _transform(self):
         iteration_parameters = self._parse_iteration_parameters(self._parameters.data)
 
-        return [json.dumps(self._generate_notification_messages(self._parameters.dag, iteration_parameters))]
+        return [json.dumps(self._generate_notification_messages(self._parameters.dag, iteration_parameters)).encode()]
 
     @classmethod
     def _parse_iteration_parameters(cls, data):

@@ -36,7 +36,7 @@ def test_messages_are_serialized_as_json_string(data, parameters):
 
     assert len(output) == 1
 
-    messages = json.loads(output[0])
+    messages = json.loads(output[0].decode())
 
     assert len(messages) == 4
 

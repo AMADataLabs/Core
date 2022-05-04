@@ -142,7 +142,7 @@ def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, 
 
     assert len(data) == 1
 
-    dags_to_run = json.loads(data[0])
+    dags_to_run = json.loads(data[0].decode())
 
     assert len(dags_to_run) == 2
 

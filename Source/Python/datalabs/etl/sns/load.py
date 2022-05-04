@@ -1,7 +1,7 @@
 """ AWS S3 Loader """
 from   dataclasses import dataclass
+import json
 import logging
-import pickle
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.load import LoaderTask
