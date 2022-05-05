@@ -28,7 +28,7 @@ def main(args):
             statuses.pop(args["dag"])
 
         for task in sorted(statuses.keys()):
-            print(f'{task.split("__")[1]}: {statuses[task]}')
+            print(f'{task}: {statuses[task]}')
     else:
         print(f'No status was found for {args["dag"]} run {args["date"]} {args["time"]}.')
 

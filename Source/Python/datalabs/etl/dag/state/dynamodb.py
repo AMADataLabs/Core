@@ -211,7 +211,12 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
             status_data = response["Responses"][collections.deque(response["Responses"].keys())[0]]
 
-            statuses.update({status["name"]["S"]:status["status"]["S"] for status in status_data})
+            for status in status_data:
+                name = status["name"]["S"]
+                if "__" in name:
+                    name = name.split("__")[1]
+
+                    statuses[name] = status["status"]["S"]
 
         return statuses
 

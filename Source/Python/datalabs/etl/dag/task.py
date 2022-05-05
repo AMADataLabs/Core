@@ -106,6 +106,16 @@ class DAGTaskWrapper(TaskWrapper):
     def _get_dag_id(self):
         return self._runtime_parameters["dag"].upper()
 
+    def _get_dag_name(self):
+        base_name, _ = self._parse_dag_id(self._get_dag_id())
+
+        return base_name
+
+    def _get_dag_index(self):
+        _, index = self._parse_dag_id(self._get_dag_id())
+
+        return index
+
     def _get_task_id(self):
         return self._runtime_parameters["task"].upper()
 
@@ -146,6 +156,17 @@ class DAGTaskWrapper(TaskWrapper):
                 cache_parameters[match.group(2)] = value
 
         return cache_parameters
+
+    @classmethod
+    def _parse_dag_id(cls, dag):
+        base_name = dag
+        iteration = None
+        components = dag.split(':')
+
+        if len(components) == 2:
+            base_name, iteration = components
+
+        return base_name, iteration
 
     @classmethod
     def _get_parameters(cls, branch):
