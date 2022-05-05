@@ -115,7 +115,7 @@ class DAGTaskWrapper(
         if "task" not in runtime_parameters:
             runtime_parameters["task"] = "DAG"
 
-            state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(runtime_parameters)
+            state = import_plugin(runtime_parameters["DAG_STATE_CLASS"])(runtime_parameters)
             runtime_parameters["task_statuses"] = state.get_all_statuses(dag_id, runtime_parameters["execution_time"])
 
         return runtime_parameters
