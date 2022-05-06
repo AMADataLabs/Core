@@ -9,12 +9,12 @@ data:
     # Global Variables - {"DAG": {"S": "DBL"}, "Task": {"S": "GLOBAL"}}
     #######################################################################
 
-    ENVIRONMENT: dev
-    ACCOUNT: '191296302136'
+    ENVIRONMENT: tst
+    ACCOUNT: '194221139997'
     APPSTACK: 'OneView'
 
     EFT_HOST: eft.ama-assn.org
-    EFT_USERNAME: datalabs
+    EFT_USERNAME: datalabsprd
     EFT_PASSWORD: '{{eft_password}}'
 
     UDRIVE_HOST: eft.ama-assn.org
@@ -50,7 +50,7 @@ data:
     ##########################################################################
 
     # EXTRACT_DBL
-    DBL__EXTRACT_DBL__BASE_PATH: 'Data\ Analytics/Data-Science/Data/DBL/testing'
+    DBL__EXTRACT_DBL__BASE_PATH: ''
     DBL__EXTRACT_DBL__FILES: 'changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt'
     DBL__EXTRACT_DBL__HOST: ${EFT_HOST}
     DBL__EXTRACT_DBL__USERNAME: ${EFT_USERNAME}
@@ -63,7 +63,7 @@ data:
 
 
     # GET_LAST_REPORT
-    DBL__GET_LAST_REPORT__BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/testing"
+    DBL__GET_LAST_REPORT__BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/archive"
     DBL__GET_LAST_REPORT__FILES: "Weekly DBL Report - Latest.xlsx"
     DBL__GET_LAST_REPORT__HOST: ${UDRIVE_HOST}
     DBL__GET_LAST_REPORT__USERNAME: ${UDRIVE_USERNAME}
@@ -103,7 +103,7 @@ data:
     DBL__LOAD_DBL_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     DBL__LOAD_DBL_REPORT__CACHE_INPUT_FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - %Y-%m-%d.xlsx"
 
-    DBL__LOAD_DBL_REPORT__BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/testing/"
+    DBL__LOAD_DBL_REPORT__BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/archive/"
     DBL__LOAD_DBL_REPORT__FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - %Y-%m-%d.xlsx"
     DBL__LOAD_DBL_REPORT__HOST: ${UDRIVE_HOST}
     DBL__LOAD_DBL_REPORT__USERNAME: ${UDRIVE_USERNAME}

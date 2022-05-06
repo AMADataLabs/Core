@@ -455,7 +455,7 @@ pipelines:
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
-                DBL=DBL.zip
+                DBLReport=DBL.zip
 
         OneView-dev:
         - parallel:
