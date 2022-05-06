@@ -39,6 +39,7 @@ class LocalDAGExecutorTask(Task):
         dag = import_plugin(self._parameters.dag_class)()
 
         for _, task in dag.__task_classes__.items():
+            LOGGER.info('Initially unblocking task "%s"', task.id)
             task.unblock()
 
         tasks = paradag.dag_run(
@@ -84,6 +85,8 @@ class LocalDAGExecutorTask(Task):
             whether the given task is ready to run based on all its predecessor tasks' execution statuses. If any
             predecessor task has not finished, the given task is blocked from running.
         """
+        LOGGER.info('Result of predecessor to task "%s": %s', task.id, predecessor_result)
+
         if predecessor_result != Status.FINISHED:
             LOGGER.info('Blocking task "%s"', task.id)
             task.block()
@@ -109,5 +112,5 @@ class LocalDAGExecutorTask(Task):
 
     def _trigger_task(self, task):
         LOGGER.info('Triggering task "%s"', task.id)
-        LOGGER.info(self._triggered_tasks)
+        LOGGER.info('Triggered tasks: %s', self._triggered_tasks)
         self._triggered_tasks.append(task.id)

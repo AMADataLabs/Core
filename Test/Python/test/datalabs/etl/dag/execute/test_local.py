@@ -35,7 +35,6 @@ def test_dag_scheduler_task_integration(dag_parameters):
     LOGGER.info('-- Fourth run of the DAG Scheduler DAG --')
     _run_dag(dag_executor, 3, Status.FINISHED)
 
-
 def _run_dag(dag_executor, notification_count, expected_dag_status):
     dag_executor.run()
     assert len(dag_executor.triggered_tasks) == notification_count
