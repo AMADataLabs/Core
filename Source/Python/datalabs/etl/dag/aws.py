@@ -92,10 +92,14 @@ class DAGTaskWrapper(
         LOGGER.debug('Getting DAG Task Parameters for %s__%s...', dag, task)
         dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
 
-        if task != 'DAG':
+        if task == 'DAG':
+            state = import_plugin(runtime_parameters["DAG_STATE_CLASS"])(runtime_parameters)
+            dag_task_parameters["task_statuses"] = state.get_all_statuses(dag_id, runtime_parameters["execution_time"])
+        else:
             dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
 
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
+
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
         return dag_task_parameters
@@ -110,13 +114,11 @@ class DAGTaskWrapper(
         LOGGER.debug('DAG Parameters: %s', dag_parameters)
 
         runtime_parameters.update(dag_parameters)
-        LOGGER.debug('Runtime Parameters: %s', runtime_parameters)
 
         if "task" not in runtime_parameters:
             runtime_parameters["task"] = "DAG"
 
-            state = import_plugin(runtime_parameters["DAG_STATE_CLASS"])(runtime_parameters)
-            runtime_parameters["task_statuses"] = state.get_all_statuses(dag_id, runtime_parameters["execution_time"])
+        LOGGER.debug('Runtime Parameters: %s', runtime_parameters)
 
         return runtime_parameters
 
