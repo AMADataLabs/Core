@@ -2,6 +2,7 @@
 import argparse
 import logging
 
+from datalabs.etl.dag.state import Status
 from datalabs.etl.dag.state.dynamodb import DAGState
 
 logging.basicConfig()
@@ -23,12 +24,12 @@ def main(args):
         statuses = state.get_task_statuses(args["dag"], execution_time, args["task"])
 
     if statuses:
-        print(f'DAG: {statuses.get(args["dag"], "Unknown")}')
+        print(f'DAG: {statuses.get(args["dag"], Status.UNKNOWN).value}')
         if args["dag"] in statuses:
             statuses.pop(args["dag"])
 
         for task in sorted(statuses.keys()):
-            print(f'{task}: {statuses[task]}')
+            print(f'{task}: {statuses[task].value}')
     else:
         print(f'No status was found for {args["dag"]} run {args["date"]} {args["time"]}.')
 

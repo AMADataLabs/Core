@@ -216,7 +216,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
                 if "__" in name:
                     name = name.split("__")[1]
 
-                    statuses[name] = status["status"]["S"]
+                    statuses[name] = Status(status["status"]["S"])
 
         return statuses
 
