@@ -33,6 +33,9 @@ modspec:
   - package: datalabs.etl.s3
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.masterfile
+    include:
+      - dbl_counts_report
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.sftp
   - package: datalabs.etl.orm
