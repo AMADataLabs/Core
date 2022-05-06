@@ -57,7 +57,7 @@ class DAGTaskWrapper(
 
     def _pre_run(self):
         super()._pre_run()
-        dag = self._get_dag_id() + ":" + self._get_dag_index()
+        dag = self._get_dag_id()
         task = self._get_task_id()
         execution_time = self._get_execution_time()
 
@@ -87,15 +87,16 @@ class DAGTaskWrapper(
         return f'Failed: {str(exception)}'
 
     def _get_dag_task_parameters(self):
-        dag = self._get_dag_id()
+        dag_id = self._get_dag_id()
+        dag_name = self._get_dag_name()
         task = self._get_task_id()
         execution_time = self._get_execution_time()
-        LOGGER.debug('Getting DAG Task Parameters for %s__%s...', dag, task)
-        dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
+        LOGGER.debug('Getting DAG Task Parameters for %s__%s...', dag_name, task)
+        dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag_name, task)
 
         if task == 'DAG':
             state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
-            dag_task_parameters["task_statuses"] = state.get_all_statuses(dag, execution_time)
+            dag_task_parameters["task_statuses"] = state.get_all_statuses(dag_id, execution_time)
         else:
             dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
 
@@ -110,8 +111,8 @@ class DAGTaskWrapper(
 
     def _supplement_runtime_parameters(self, runtime_parameters):
         dag_id = runtime_parameters["dag"].upper()
-        dag_base_name, _ = self._parse_dag_id(dag_id)
-        dag_parameters = self._get_dag_parameters(dag_base_name)
+        dag_name, _ = self._parse_dag_id(dag_id)
+        dag_parameters = self._get_dag_parameters(dag_name)
         LOGGER.debug('DAG Parameters: %s', dag_parameters)
 
         runtime_parameters.update(dag_parameters)
