@@ -170,6 +170,28 @@ pipelines:
                     BulkAuthorizer=Endpoint.zip
                     BulkEndpoint=Endpoint.zip
 
+        DBL-master:
+        - step:
+            name: Update Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/deploy-python-package --project DBL --branch $BITBUCKET_BRANCH
+        - step:
+            name: Update ETL Bundle
+            caches:
+                - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project DBL
+                --bundle Masterfile/DBL.zip
+                --runtime Python
+                --use-package
+
         HelloWorldJava-master:
         - parallel:
             - step:
@@ -406,6 +428,34 @@ pipelines:
                 Authorizer=Endpoint.zip
                 BulkAuthorizer=Endpoint.zip
                 BulkEndpoint=Endpoint.zip
+
+        DBL-dev:
+        - step:
+            name: Update ETL Bundle
+            caches:
+            - environment-dev
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment dev
+                --project DBL
+                --bundle Masterfile/DBL.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_DEV=True
+            - export ENVIRONMENT=dev
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
+                DBL=DBL.zip
 
         OneView-dev:
         - parallel:
