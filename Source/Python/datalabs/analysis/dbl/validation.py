@@ -1,5 +1,5 @@
 """ New DBL Report Validation - Sanity Checks / Comparisons to Previous Report """
-# pylint: disable=too-many-locals,invalid-name
+# pylint: disable=too-many-locals,invalid-name,consider-using-dict-items
 from datetime import datetime
 import pandas as pd
 
@@ -23,16 +23,17 @@ class Validation:
         self.tab_validations = {}
         self.log = ""
 
-        self.validate_tab1()
-        self.validate_tab2()
-        self.validate_tab3()
-        self.validate_tab4()
-        self.validate_tab5()
-        self.validate_tab6()
-        self.validate_tab7()
-        self.validate_tab8()
-        self.validate_tab9()
-        self.validate_tab10()
+        if old_report is not None:
+            self.validate_tab1()
+            self.validate_tab2()
+            self.validate_tab3()
+            self.validate_tab4()
+            self.validate_tab5()
+            self.validate_tab6()
+            self.validate_tab7()
+            self.validate_tab8()
+            self.validate_tab9()
+            self.validate_tab10()
 
         self.make_result_log_string()
 
