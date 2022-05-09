@@ -28,7 +28,7 @@ def fix_zipcode(num):
         num = '00' + num
     elif len(num) == 2:
         num = '000' + num
-    return nums
+    return num
     
 def fix_me(me_number):
     num = str(me_number)
