@@ -25,6 +25,7 @@ class Physician(BASE):
         {"schema": SCHEMA}
     )
 
+    specialty = relationship("Specialty", backref=backref("physician", cascade="all, delete-orphan"))
     medical_education_number = sa.Column(sa.String, primary_key=True)
     address_type = sa.Column(sa.String)
     mailing_name = sa.Column(sa.String)
