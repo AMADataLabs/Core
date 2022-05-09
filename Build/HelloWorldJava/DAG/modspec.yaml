@@ -1,10 +1,10 @@
 modspec:
   - package: datalabs
     include:
+      - awslambda
       - parameter
       - plugin
       - task
-      - awslambda
   - package: datalabs.access
     include:
       - aws
