@@ -22,6 +22,7 @@ modspec:
       - system
       - etcd
       - dynamodb
+  - package: datalabs.analysis
   - package: datalabs.analysis.dbl
   - package: datalabs.etl
   - package: datalabs.etl.s3
