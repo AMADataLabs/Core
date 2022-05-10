@@ -50,7 +50,7 @@ def clean_file(gov):
         }
     gov = gov.rename(columns=col_rename)
     gov['addr_zip'] = [use.fix_zipcode(x) for x in gov.zip]
-    gov['addr_plus4'] = [x if len(str(x))==9 else '' for x in gov.zip]
+    gov['addr_plus4'] = [x[-4:] if len(str(x))==9 else '' for x in gov.zip]
     gov['load_type'] = 'A'
     gov['addr_type'] = 'OF'
     gov['source'] = 'NAT-DOWN'
@@ -87,8 +87,8 @@ def create_address_load():
     LOGGER.info('Saving locally...')
     with_ids.to_csv(f'{local_folder}/address_load_national_downloadable_with_id_{today}.csv', index=False)
     address_load.to_csv(f'{local_folder}/address_load_national_downloadable_{today}.csv', index=False)
-    # LOGGER.info('Saving to UDrive...')
-    # address_load.to_csv(f'{udrive}/address_load_national_downloadable_{today}.csv', index=False)
+    LOGGER.info('Saving to UDrive...')
+    address_load.to_csv(f'{udrive}/address_load_national_downloadable_{today}.csv', index=False)
 
 if __name__ == "__main__":
     create_address_load()

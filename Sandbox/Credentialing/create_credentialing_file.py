@@ -86,6 +86,7 @@ def generate_file():
     today = str(date.today())
     all_results = get_results()
     out = os.environ.get('OUTPUT_FOLDER')
+    udrive = os.environ.get('UDRIVE_FOLDER')
     previous_date = get_previous_date()
     all_results = all_results[(all_results.FULL_DT) > previous_date]
     all_results = all_results.drop_duplicates(['ME','CUSTOMER_KEY'])
@@ -124,7 +125,7 @@ def generate_file():
             ]
     all_results['me#'] = fix_me(all_results.ME)
     all_results['addr_zip'] = [use.fix_zipcode(x) for x in all_results.ZIPCODE]
-    all_results['addr_plus4'] = [x if len(str(x))==9 else '' for x in all_results.ZIPCODE]
+    all_results['addr_plus4'] = [x[-4:] if len(str(x))==9 else '' for x in all_results.ZIPCODE]
     all_results['load_type'] = 'A'
     all_results['addr_type'] = 'OF'
     all_results['source'] = 'CRED-ADDR'
@@ -138,6 +139,7 @@ def generate_file():
                                           index=False)
 
     all_results[cols].to_csv(f'{out}address_load_profile_orders_{today}.csv', index=False)
+    all_results[cols].to_csv(f'{udrive}address_load_profile_orders_{today}.csv', index=False)
     all_results.to_csv(f'{out}Credentialing_Addresses_latest.csv', index=False)
 
 def generate_triangulation_file():
