@@ -666,7 +666,7 @@ pipelines:
         - step:
             name: Update ETL Bundle
             caches:
-            - environment-tst
+            - environment-test
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
@@ -741,7 +741,7 @@ pipelines:
         - step:
             name: Update ETL Bundle
             caches:
-            - environment-tst
+            - environment-test
             script:
             - >-
                 bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
