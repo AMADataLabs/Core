@@ -1,7 +1,6 @@
-PyYAML==5.4
-XlsxWriter==1.3.7
 arnparse==0.0.2
 boto3==1.18.12
+cryptography==3.4.8  # pinned to avoid "version `GLIBC_2.18' not found" error
 jinja2==3.1.1
 json5==0.8.5
 marshmallow==3.10.0
@@ -12,6 +11,8 @@ paradag==1.2.0
 pysftp==0.2.9
 python-dateutil==2.8.1
 python-dotenv==0.12.0
+PyYAML==5.4
 requests==2.26.0
 urllib3==1.26.5
-xlrd==1.2.0
+xlrd==2.0.1  # pinned for compatibility
+XlsxWriter==1.3.7
