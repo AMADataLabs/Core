@@ -130,7 +130,7 @@ def last_ditch(unmatched, all_students, matched):
 
 def match_missing_ids(no_id, all_students):
     all_students = all_students.fillna('None')
-    o_id = no_id.fillna('None')
+    no_id = no_id.fillna('None')
     us_state_abbrev = get_states()
     no_id['first_middle'] = [x.split(', ')[1] for x in no_id.Name]
     no_id['last_nm'] = [x.split(', ')[0] for x in no_id.Name]
