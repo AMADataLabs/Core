@@ -313,7 +313,8 @@ class Validation:
             self.new,
             sheet_name='PrimSpecbyMPA',
             header=1,
-            index_col=0
+            index_col=0,
+            engine='openpyxl'
         ).T.reset_index()[
             ['index', 'US']
         ].rename(columns={'US': 'US-SEC'})
