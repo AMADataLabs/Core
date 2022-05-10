@@ -29,7 +29,7 @@ class DataMart(ODBCDatabase):
         data.CUSTOMER_KEY = data.CUSTOMER_KEY.astype(str)
         return data
 
-    def get_orders(self, years=(2019, 2020, 2021), product=None):
+    def get_orders(self, years=(2019, 2020, 2021, 2022), product=None):
         if not product:
             products = (ProductType.INITIAL.value, ProductType.REAPPOINTMENT.value)
         elif product == 'app':
