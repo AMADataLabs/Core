@@ -662,6 +662,35 @@ pipelines:
         # test branch targets
         ##############################################################
 
+        AMC-test:
+        - step:
+            name: Update ETL Bundle
+            caches:
+            - environment-tst
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment tst
+                --project AMC
+                --bundle Masterfile/AMC.zip
+                --runtime Python
+                --jdbc-driver Informix
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_TEST=True
+            - export ENVIRONMENT=tst
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
+                AMC=AMC.zip
+
         CPT-test:
         - step:
             name: Update Bundle
@@ -707,6 +736,34 @@ pipelines:
                 ETL=ETL.zip
                 BulkAuthorizer=ETL.zip
                 BulkEndpoint=ETL.zip
+
+        DBL-test:
+        - step:
+            name: Update ETL Bundle
+            caches:
+            - environment-tst
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment tst
+                --project DBL
+                --bundle Masterfile/DBL.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_TEST=True
+            - export ENVIRONMENT=tst
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
+                DBLReport=DBL.zip
 
         OneView-test:
         - parallel:
