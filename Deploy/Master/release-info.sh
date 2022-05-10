@@ -44,6 +44,7 @@ find_project() {
 
         if [[ "$RELEASE_NAME" == "$package" ]]; then
             target_project=$project
+            break
         fi
     done
 
