@@ -1,6 +1,6 @@
 arnparse==0.0.2
 boto3==1.18.12
-cryptography==3.4.8  # pinned to avoid "version `GLIBC_2.18' not found" error
+cryptography==3.4.8  # pinned to avoid GLIBC_2.18 error
 jinja2==3.1.1
 json5==0.8.5
 marshmallow==3.10.0

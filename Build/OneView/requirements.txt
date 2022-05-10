@@ -2,7 +2,7 @@ alembic==1.7.3
 alembic_utils==0.7.2
 arnparse==0.0.2
 boto3==1.18.12
-cryptography==3.4.8  # pinned to avoid "version `GLIBC_2.18' not found" error
+cryptography==3.4.8  # pinned to avoid GLIBC_2.18 error
 gremlinpython==3.4.8
 dask==2021.10.0
 guppy3==3.1.1
