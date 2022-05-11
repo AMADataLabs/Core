@@ -19,18 +19,32 @@ BUNDLE=
 RUNTIME=
 EXTRA_FILES=
 PACKAGE=
+METADATA=
+DEPLOYED_VERSION=
 
 
 main() {
     process_arguments "$@"
 
-    setup_virtual_environment
+    if [[ "$USE_PACKAGE" == "True" ]]; then
+        get_deployed_version
+    fi
 
-    install_jdbc_drivers
+    if [[ "$USE_PACKAGE" == "True" ]]; then
+        if [[ "$RUNTIME" == "Python" ]]; then
+            determine_python_package
+        fi
+    fi
 
-    create_code_bundle
+    if [[ "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
+        setup_virtual_environment
 
-    upload_code_bundle
+        install_jdbc_drivers
+
+        create_code_bundle
+
+        upload_code_bundle
+    fi
 }
 
 
@@ -86,6 +100,14 @@ process_arguments() {
 }
 
 
+get_deployed_version() {
+    DEPLOYED_VERSION=$(
+        aws s3api head-object --bucket ama-${ENVIRONMENT}-datalake-lambda-us-east-1 --key ${BUNDLE} \
+        | grep package_version | sed 's/"//g' | awk '{print $2}'
+    )
+}
+
+
 setup_virtual_environment() {
     ${PWD}/Script/setup-virtual-environment Master/BitBucketPipelines
     export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
@@ -134,11 +156,11 @@ create_code_bundle() {
 
 upload_code_bundle() {
     if [[ "$RUNTIME" == "Python" ]]; then
-        aws s3 cp Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
+        aws s3 cp --metadata ${METADATA} Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
     elif [[ "$RUNTIME" == "Java" ]]; then
         rm Bundle/target/original-*.jar
 
-        aws s3 cp Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${PROJECT}.jar
+        aws s3 cp --metadata ${METADATA} Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
     fi
 }
 
@@ -196,6 +218,7 @@ determine_python_package() {
     fi
 
     PACKAGE="--package ${RELEASE_NAME}==${version}"
+    METADATA='{"package_version":"'${version}'"}'
 }
 
 
