@@ -4,48 +4,56 @@ import os
 from datetime import date
 import pandas as pd
 import settings 
+# from   dataclasses import dataclass
+# from   datetime import datetime
+# from   io import BytesIO
+# import pickle
+
+# from datalabs.etl.load import LoaderTask
+# from datalabs.messaging.email_message import Attachment, send_email
+# from datalabs.parameter import add_schema
 
 def get_length_data(file_location):
-    dataframe = pd.read_csv(file_location)
+    dataframe = pd.read_excel(file_location)
     return len(dataframe)
-
 
 def get_parameters():
     '''Get email parameters'''
     today = str(date.today())
     out_directory = os.environ.get('OUT_DIR')
-    scraped_new_all = f'{out_directory}/SRS_Scrape_{today}.csv'
-    matched = f'{out_directory}/SRS_Matched_{today}.csv'
-    still_missing = f'{out_directory}/SRS_Missing_{today}.csv'
-    stu_affil = f'{out_directory}/SRS_Student_Affiliates_{today}.csv'
-    grad_year = f'{out_directory}/SRS_Graduation_Year_Discrepancy_{today}.csv'
-    status_update = f'{out_directory}/SRS_Status_Discrepancy_{today}.csv'
-    manual = f'{out_directory}/SRS_Manual_Updates_{today}.csv'
-    auto = f'{out_directory}/Automatic_Updates_{today}.csv'
-    scraped_new = f'{out_directory}/SRS_Scraped_New_{today}.csv'
-    unprocessed = f'{out_directory}/SRS_Unprocessed_{today}.csv'
-    matched_ = pd.read_csv(matched)
+    scraped_new_all = f'{out_directory}/SRS_Scrape_{today}.xlsx'
+    matched = f'{out_directory}/SRS_Matched_{today}.xlsx'
+    still_missing = f'{out_directory}/SRS_Missing_{today}.xlsx'
+    stu_affil = f'{out_directory}/SRS_Student_Affiliates_{today}.xlsx'
+    grad_year = f'{out_directory}/SRS_Graduation_Year_Discrepancy_{today}.xlsx'
+    status_update = f'{out_directory}/SRS_Status_Discrepancy_{today}.xlsx'
+    manual = f'{out_directory}/SRS_Manual_Updates_{today}.xlsx'
+    auto = f'{out_directory}/Automatic_Updates_{today}.xlsx'
+    scraped_new = f'{out_directory}/SRS_Scraped_New_{today}.xlsx'
+    unprocessed = f'{out_directory}/SRS_Unprocessed_{today}.xlsx'
+    matched_ = pd.read_excel(matched)
     me_matched = matched_[matched_.me!='None']
-    found_info = f'{out_directory}/SRS_AAMC_{today}.csv'
+    found_info = f'{out_directory}/SRS_AAMC_{today}.xlsx'
     found_students = get_length_data(found_info) - get_length_data(stu_affil)
 
-    full = ['victoria.grose@ama-assn.org']
+    full = ['chris.mathews@ama-assn.org']
+    # full = ['victoria.grose@ama-assn.org']
     meonly = ['victoria.grose@ama-assn.org']
     subject = f'Change of Status SRS Scrape –  {today}'
     body = f'''Hi,
 
-    This is an automated email from DataLabs. Please find all new content in attachments.
+    This is an automated email from DataLabs. Please find all new content in attachments. 
 
-    SRS_Matched includes all records that did not match back to an aamc_id but were matched back to our data on name, date of birth, etc. I included all of the matching fields and their ME number if it existed.
-    SRS_Missing includes all records that did not match back on aamc_id or via the matching process.
-    SRS_Graduation_Year_Discrepancy includes all record with graduation year discrepancies
-    SRS_Status_Discrepancy includes all records with status differences.
+    All files contain only records that have been modified since the previous scrape.
+
+    SRS_Scraped_New contains all records added or updated since the previous scrape.
+    SRS_Matched includes all records that did not match back to an aamc_id but were matched back to our data on name, date of birth, etc. 
+    SRS_Missing includes all records that did not match back on aamc_id or via the matching process. 
+    SRS_Graduation_Year_Discrepancy includes all record with graduation year discrepancies 
+    SRS_Status_Discrepancy includes all records with status differences. 
     SRS_Student_Affiliates includes all records that matched on aamc_id but had a STU-AFFIL category code (these are excluded from all other files)
-
-    SRS_Automatic_Updates includes records that would be theoretically automatically updated. We don’t have this process set up with IT at this time, so right now it’s for review only. 
-    SRS_Manual_Updates includes records that require manual review
-    SRS_New includes all new records (added or updated since the last scrape, in January). There is also a flag in every file attached indicating whether the record is new. In the future I would probably only send these records (the ones that are newer than the last scrape).
-
+    SRS_Automatic_Updates includes records that would be theoretically automatically updated. 
+    SRS_Manual_Updates includes records that require manual review 
 
     {"{:,}".format(get_length_data(scraped_new_all))} student records in AAMC-SRS scrape
     {"{:,}".format(get_length_data(scraped_new))} record updates since last scrape
@@ -71,7 +79,7 @@ def get_parameters():
     {"{:,}".format(get_length_data(auto))} status discrepancies automatically processed
     {"{:,}".format(get_length_data(unprocessed))} status discrepancies not processed
     
-    
+        
     Thank you!
     DataLabs
     '''
