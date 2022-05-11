@@ -188,7 +188,7 @@ pipelines:
                 bash Deploy/Master/deploy-lambda-function
                 --environment sbx
                 --project DBL
-                --bundle Masterfile/DBL.zip
+                --bundle Masterfile/DBLReport.zip
                 --runtime Python
                 --use-package
 
@@ -442,7 +442,7 @@ pipelines:
                 bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 --environment dev
                 --project DBL
-                --bundle Masterfile/DBL.zip
+                --bundle Masterfile/DBLReport.zip
                 --runtime Python
                 --use-package
         - step:
@@ -455,7 +455,7 @@ pipelines:
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
-                DBLReport=DBL.zip
+                DBLReport=DBLReport.zip
 
         OneView-dev:
         - parallel:
@@ -750,7 +750,7 @@ pipelines:
                 bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 --environment tst
                 --project DBL
-                --bundle Masterfile/DBL.zip
+                --bundle Masterfile/DBLReport.zip
                 --runtime Python
                 --use-package
         - step:
@@ -763,7 +763,7 @@ pipelines:
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
-                DBLReport=DBL.zip
+                DBLReport=DBLReport.zip
 
         OneView-test:
         - parallel:
