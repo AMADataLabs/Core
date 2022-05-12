@@ -13,6 +13,7 @@ logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
@@ -23,10 +24,40 @@ class UnzipTransformerParameters:
     include_datestamp: str = None
     execution_time: str = None
 
+
+class UnzipTransformerTask(IncludeNamesMixin, FileExtractorTask):
+    PARAMETER_CLASS = UnzipTransformerParameters
+
+    def _get_client(self) -> 'Context Manager':
+        return ZipFiles(self._parameters.data)
+
+    def _get_files(self) -> list:
+        return self._client.files
+
+    def _extract_file(self, file):
+        return self._client.extract(file)
+
+    def _resolve_wildcard(self, file):
+        return [file]
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class ZipTransformerParameters:
+    data: object
+    execution_time: str = None
+
+
 class ZipTransformerTask(TransformerTask):
+    PARAMETER_CLASS = UnzipTransformerParameters
+
     def _transform(self) -> 'Transformed Data':
+        return [self._zip_files(pickle.loads(pickled_dataset)) for pickled_dataset in self._parameters.data]
+
+    @classmethod
+    def _zip_files(cls, filename_data_tuples):
         zip_data = BytesIO()
-        filename_data_tuples = pickle.loads(self._parameters['data'][0])
 
         with ZipFile(zip_data, 'w') as zip_file:
             for file, data in filename_data_tuples:
@@ -36,17 +67,28 @@ class ZipTransformerTask(TransformerTask):
         return [bytes(zip_data.getbuffer())]
 
 
-class UnzipTransformerTask(IncludeNamesMixin, FileExtractorTask):
-    PARAMETER_CLASS = UnzipTransformerParameters
+class ZipFiles:
+    def __init__(self, zip_files):
+        self._zip_file_data = zip_files
+        self._zip_files = None
+        self._file_zip_map = None
 
-    def _get_client(self) -> 'Context Manager':
-        return ZipFile(BytesIO(self._parameters.data[0]))
+    @property
+    def files(self):
+        return list(self._file_zip_map.keys())
 
-    def _get_files(self) -> list:
-        return self._client.namelist()
+    def extract(self, file):
+        zip_file = self._zip_files[self._file_zip_map[file]]
 
-    def _extract_file(self, file):
-        return self._client.read(file)
+        return zip_file.read(file)
 
-    def _resolve_wildcard(self, file):
-        return [file]
+    def __enter__(self):
+        self._zip_files = [ZipFile(BytesIO(zip_file)) for zip_file in self._zip_file_data]
+
+        self._file_zip_map = {name:index for index, zip in enumerate(self._zip_files) for name in zip.namelist()}
+
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self._zip_files = None
+        self._file_zip_map = None

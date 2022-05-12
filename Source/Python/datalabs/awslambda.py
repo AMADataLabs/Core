@@ -1,8 +1,8 @@
 """ Base Lambda function Task wrapper class. """
 import logging
 
-# pylint: disable=wrong-import-position
-import datalabs.feature as feature
+from   datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
+from   datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
 import datalabs.task as task
 
 logging.basicConfig()
@@ -14,11 +14,9 @@ class TaskWrapper(task.TaskWrapper):
     def _setup_environment(self):
         super()._setup_environment()
 
-        if feature.enabled("PARAMETERS"):
-            self._resolve_parameter_store_environment_variables()
+        self._resolve_parameter_store_environment_variables()
 
-        if feature.enabled("SECRETS"):
-            self._resolve_secrets_manager_environment_variables()
+        self._resolve_secrets_manager_environment_variables()
 
     def _handle_success(self) -> (int, dict):
         return "Success"
@@ -30,14 +28,10 @@ class TaskWrapper(task.TaskWrapper):
 
     @classmethod
     def _resolve_parameter_store_environment_variables(cls):
-        # pylint: disable=import-outside-toplevel
-        from datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
         parameter_loader = ParameterStoreEnvironmentLoader.from_environ()
         parameter_loader.load()
 
     @classmethod
     def _resolve_secrets_manager_environment_variables(cls):
-        # pylint: disable=import-outside-toplevel
-        from datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
         secrets_loader = SecretsManagerEnvironmentLoader.from_environ()
         secrets_loader.load()

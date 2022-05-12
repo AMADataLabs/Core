@@ -42,8 +42,8 @@ class Validation:
         """ChangeFileAudit"""
         tab_name = 'ChangeFileAudit'
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).dropna().T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0).dropna().T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').dropna().T
+        prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').dropna().T
 
         self.current_dls_file_read = data['CURRENT DLS FILE READ'].values[0]
 
@@ -76,8 +76,8 @@ class Validation:
         tab_name = 'ReportByFieldFrom SAS'
         change_threshold = 10
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0).T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
+        prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
 
         errors = []
 
@@ -111,8 +111,8 @@ class Validation:
     def validate_tab3(self):
         """ChangeByFieldCount"""
         tab_name = 'ChangeByFieldCount'
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).T
-        # prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0).T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
+        # prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
 
         errors = []
 
@@ -132,8 +132,8 @@ class Validation:
         """RecordActionExtract"""
         tab_name = 'RecordActionExtract'
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).T
-        # prev = pd.read_excel(self.old, sheet_name=3, header=None, index_col=0).T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
+        # prev = pd.read_excel(self.old, sheet_name=3, header=None, index_col=0, engine='openpyxl').T
 
         errors = []
 
@@ -157,8 +157,8 @@ class Validation:
         """ChangeByRecordCount"""
         tab_name = 'ChangeByRecordCount'
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).T
-        # prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0).T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
+        # prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
 
         errors = []
 
@@ -179,8 +179,8 @@ class Validation:
         tab_name = 'PE Counts'
         change_threshold = 5
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
 
         errors = []
 
@@ -208,8 +208,8 @@ class Validation:
         tab_name = 'TOP Counts'
         change_threshold = 5
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
 
         errors = []
 
@@ -237,8 +237,8 @@ class Validation:
         tab_name = 'TOP by PE'
         change_threshold = 5
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
 
         errors = []
 
@@ -280,8 +280,8 @@ class Validation:
         tab_name = 'PrimSpecbyMPA'
         change_threshold = 5
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
 
         errors = []
 
@@ -313,7 +313,8 @@ class Validation:
             self.new,
             sheet_name='PrimSpecbyMPA',
             header=1,
-            index_col=0
+            index_col=0,
+            engine='openpyxl'
         ).T.reset_index()[
             ['index', 'US']
         ].rename(columns={'US': 'US-SEC'})
@@ -343,8 +344,8 @@ class Validation:
         tab_name = 'SecSpecbyMPA'
         change_threshold = 5
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
+        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
 
         errors = []
 

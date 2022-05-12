@@ -95,14 +95,21 @@ def test_cp1252_decoding(parameters):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_newline_separator_filenames(newline_parameters):
-    with mock.patch('boto3.client'):
-        task = s3.S3FileListExtractorTask(newline_parameters)
+def test_missing_filenames(parameters):
+    parameters.pop("FILES")
+    task = s3.S3FileExtractorTask(parameters)
 
-        files = task._get_files()
+    with pytest.raises(ValueError):
+        task._get_files()
 
-        assert len(files) == 3
-        assert files[2] == 'dir1/dir2/dir3/19000101/the_other_one.csv'
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_filenames_in_data(parameters_with_data):
+    task = s3.S3FileExtractorTask(parameters_with_data)
+
+    files = task._get_files()
+
+    assert len(files) == 3
 
 
 @pytest.fixture
@@ -132,7 +139,7 @@ ping,24680
 
 
 @pytest.fixture
-def newline_parameters():
+def parameters_with_data():
     return dict(
         ENDPOINT_URL='https://bogus.host.fqdn/path/file',
         ACCESS_KEY='nviowaj4902hfisafh9402fdni0ph8',

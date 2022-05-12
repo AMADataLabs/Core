@@ -3,7 +3,7 @@ alembic_utils==0.7.2
 arnparse==0.0.2
 boto3==1.18.12
 cryptography==3.4.8
-gremlinpython==3.4.8
+gremlinpython==3.5.2
 dask==2021.10.0
 guppy3==3.1.1
 JayDeBeApi==1.2.3

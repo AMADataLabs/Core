@@ -68,8 +68,9 @@ data:
     ONEVIEW__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     ONEVIEW__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
     ONEVIEW__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    ONEVIEW__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org'
+    ONEVIEW__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org,rudainah.najeeb@ama-assn.org,peter.lane@ama-assn.org'
     ONEVIEW__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
+
 
 
     ##########################################################################
@@ -1244,6 +1245,7 @@ data:
     ONEVIEW__LOAD_MEDICAL_SCHOOL_TABLE__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     # Physician View Refresher
+    ONEVIEW__REFRESH_PHYSICIAN_VIEW__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
     ONEVIEW__REFRESH_PHYSICIAN_VIEW__DATABASE_HOST: ${DATABASE_HOST}
     ONEVIEW__REFRESH_PHYSICIAN_VIEW__DATABASE_PORT: ${DATABASE_PORT}
     ONEVIEW__REFRESH_PHYSICIAN_VIEW__DATABASE_BACKEND: ${DATABASE_BACKEND}
@@ -1253,6 +1255,7 @@ data:
     ONEVIEW__REFRESH_PHYSICIAN_VIEW__VIEWS: 'oneview.mat_phy_view'
 
     # Physician View Reindexer
+    ONEVIEW__REINDEX_PHYSICIAN_VIEW__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
     ONEVIEW__REINDEX_PHYSICIAN_VIEW__DATABASE_HOST: ${DATABASE_HOST}
     ONEVIEW__REINDEX_PHYSICIAN_VIEW__DATABASE_PORT: ${DATABASE_PORT}
     ONEVIEW__REINDEX_PHYSICIAN_VIEW__DATABASE_BACKEND: ${DATABASE_BACKEND}
@@ -1262,6 +1265,7 @@ data:
     ONEVIEW__REINDEX_PHYSICIAN_VIEW__TABLES: 'oneview.mat_phy_view'
 
     # Provider View Refresher
+    ONEVIEW__REFRESH_PROVIDER_VIEW__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
     ONEVIEW__REFRESH_PROVIDER_VIEW__DATABASE_HOST: ${DATABASE_HOST}
     ONEVIEW__REFRESH_PROVIDER_VIEW__DATABASE_PORT: ${DATABASE_PORT}
     ONEVIEW__REFRESH_PROVIDER_VIEW__DATABASE_BACKEND: ${DATABASE_BACKEND}
@@ -1271,6 +1275,7 @@ data:
     ONEVIEW__REFRESH_PROVIDER_VIEW__VIEWS: 'oneview.mat_phy_pro_view'
 
     # Provider View Reindexer
+    ONEVIEW__REINDEX_PROVIDER_VIEW__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
     ONEVIEW__REINDEX_PROVIDER_VIEW__DATABASE_HOST: ${DATABASE_HOST}
     ONEVIEW__REINDEX_PROVIDER_VIEW__DATABASE_PORT: ${DATABASE_PORT}
     ONEVIEW__REINDEX_PROVIDER_VIEW__DATABASE_BACKEND: ${DATABASE_BACKEND}

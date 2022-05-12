@@ -663,19 +663,14 @@ components:
       properties:
         code:
           type: string
-          format: byte
-        short:
+        short_descriptor:
           type: string
-          format: byte
-        medium:
+        medium_descriptor:
           type: string
-          format: byte
-        long:
+        long_descriptor:
           type: string
-          format: byte
         language:
           type: string
-          format: byte
     ConsumerDescriptor:
       type: object
       required:
@@ -685,13 +680,10 @@ components:
       properties:
         code:
           type: string
-          format: byte
         descriptor:
           type: string
-          format: byte
         language:
           type: string
-          format: byte
     ClinicianDescriptor:
       type: object
       required:
@@ -705,37 +697,26 @@ components:
           format: int64
         code:
           type: string
-          format: byte
         descriptor:
           type: string
-          format: byte
         language:
           type: string
-          format: byte
     PLA:
       type: object
       required:
         - code
-        - status
         - test
         - manufacturer
         - lab
       properties:
         code:
           type: string
-          format: byte
-        status:
-          type: string
-          format: byte
         test:
           type: string
-          format: byte
         manufacturer:
           type: string
-          format: byte
         lab:
           type: string
-          format: byte
     Modifier:
       type: object
       required:
@@ -745,13 +726,14 @@ components:
       properties:
         code:
           type: string
-          format: byte
-        description:
+        descriptor:
           type: string
-          format: byte
         type:
           type: string
-          format: byte
+        general_use:
+          type: boolean
+        ambulatory_service_center:
+          type: boolean
     Release:
       type: object
       required:
@@ -765,13 +747,10 @@ components:
           format: int64
         type:
           type: string
-          format: byte
         effective_date:
           type: string
-          format: byte
         publish_date:
           type: string
-          format: byte
   securitySchemes:
     gateway_authorizer:
       type: apiKey

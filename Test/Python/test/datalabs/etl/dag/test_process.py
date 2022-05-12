@@ -1,4 +1,5 @@
 """ Source: datalabs.etl.dag.process """
+from   dataclasses import dataclass
 import json
 import os
 import tempfile
@@ -9,6 +10,7 @@ import pytest
 from   datalabs.etl.dag.dag import DAG
 from   datalabs.task import Task
 from   datalabs.access.aws import AWSClient
+from   datalabs.parameter import add_schema
 from   datalabs.etl.dag.process import DAGProcessorTask, TaskProcessorTask
 
 
@@ -79,6 +81,19 @@ class TestDAG(DAG):
 TestDAG.DO_THIS >> TestDAG.DO_THAT >> TestDAG.FINISH_UP
 
 
+@add_schema(unknowns=True)
+@dataclass
+class DummyExecutorParameters:
+    unknowns: dict=None
+
+
+class DummyExecutorTask(Task):
+    PARAMETER_CLASS = DummyExecutorParameters
+
+    def run(self):
+        pass
+
+
 @pytest.fixture
 def dag_parameters():
     with tempfile.TemporaryDirectory() as state_base_path:
@@ -86,7 +101,7 @@ def dag_parameters():
             DAG="TEST_DAG",
             DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
             DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
-            DAG_EXECUTOR_CLASS='datalabs.etl.dag.execute.local.LocalDAGExecutorTask',
+            DAG_EXECUTOR_CLASS='test.datalabs.etl.dag.test_process.DummyExecutorTask',
             EXECUTION_TIME="2021-01-21T12:24:38.000000",
             BASE_PATH=state_base_path,
             TASK_TOPIC_ARN="arn:aws:sns:us-east-1:012345678901:DataLake-Task-Processor-fake"
@@ -101,7 +116,7 @@ def task_parameters():
             TASK="DO_THIS",
             DAG_CLASS="test.datalabs.etl.dag.test_process.TestDAG",
             DAG_STATE_CLASS='datalabs.etl.dag.state.file.DAGState',
-            TASK_EXECUTOR_CLASS='datalabs.etl.dag.execute.local.LocalDAGExecutorTask',
+            TASK_EXECUTOR_CLASS='test.datalabs.etl.dag.test_process.DummyExecutorTask',
             BASE_PATH=state_base_path,
             EXECUTION_TIME="2021-01-21T12:24:38.000000",
             TASK_TOPIC_ARN="arn:aws:sns:us-east-1:012345678901:DataLake-Task-Processor-fake"
