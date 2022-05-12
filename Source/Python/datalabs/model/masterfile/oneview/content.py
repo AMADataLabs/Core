@@ -113,9 +113,11 @@ class Physician(BASE):
     has_email = sa.Column(sa.Boolean)
     no_release = sa.Column(sa.Boolean)
 
-    specialty = relationship("Specialty", backref=backref("physician",
-                                                          foreign_keys=[primary_specialty, secondary_specialty],
-                                                          cascade="all, delete-orphan"))
+    primary_specialties = relationship("Specialty", foreign_keys=[primary_specialty],
+                                       backref=backref("physicians_primary", cascade="all, delete-orphan"))
+
+    secondary_specialties = relationship("Specialty", foreign_keys=[secondary_specialty],
+                                         backref=backref("physicians_secondary", cascade="all, delete-orphan"))
 
 
 class ResidencyProgram(BASE):
