@@ -28,15 +28,13 @@ main() {
 
     if [[ "$USE_PACKAGE" == "True" ]]; then
         get_deployed_version
-    fi
 
-    if [[ "$USE_PACKAGE" == "True" ]]; then
         if [[ "$RUNTIME" == "Python" ]]; then
             determine_python_package
         fi
     fi
 
-    if [[ "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
+    if [[ "$USE_PACKAGE" == "False" || "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
         setup_virtual_environment
 
         install_jdbc_drivers
@@ -156,11 +154,11 @@ create_code_bundle() {
 
 upload_code_bundle() {
     if [[ "$RUNTIME" == "Python" ]]; then
-        aws s3 cp --metadata ${METADATA} Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
+        aws s3 cp ${METADATA} Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
     elif [[ "$RUNTIME" == "Java" ]]; then
         rm Bundle/target/original-*.jar
 
-        aws s3 cp --metadata ${METADATA} Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
+        aws s3 cp ${METADATA} Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
     fi
 }
 
@@ -218,7 +216,7 @@ determine_python_package() {
     fi
 
     PACKAGE="--package ${RELEASE_NAME}==${version}"
-    METADATA='{"package_version":"'${version}'"}'
+    METADATA='--metadata {"package_version":"'${version}'"}'
 }
 
 
