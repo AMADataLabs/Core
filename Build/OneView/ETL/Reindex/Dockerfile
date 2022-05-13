@@ -8,7 +8,6 @@ ENV CLASSPATH=/OneView
 ENV AWS_DEFAULT_REGION=us-east-1
 
 COPY ./Build/OneView/ETL/Reindex/requirements.txt .
-RUN chown -R root:root /var/lang/lib/python3.7
 RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
 
 COPY ./Script ./Script
