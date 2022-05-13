@@ -13,6 +13,7 @@ LAMBDA_DATA=(
     "checkOrganizationExists:5"
     "checkOrganizationExistsFL:5"
     "checkProductExists:5"
+    "checkProductExistsFL:5"
     "checkSubmittedQuote:5"
     "createAgreementDetail:28"
     "createAgreementDetailFL:28"
