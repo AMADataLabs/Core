@@ -151,7 +151,7 @@ class DAGTaskWrapper(
         execution_time = self._get_execution_time()
         state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
         current_status = state.get_dag_status(dag_id, execution_time)
-        LOGGER.debug('Current DAG "%s" status is %s and should be %s.', dag_id, current_status, state.status)
+        LOGGER.debug('Current DAG "%s" status is %s and should be %s.', dag_id, current_status, dag.status)
 
         if current_status != dag.status:
             success = state.set_dag_status(dag_id, execution_time, dag.status)
