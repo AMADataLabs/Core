@@ -151,13 +151,14 @@ class DAGTaskWrapper(
         execution_time = self._get_execution_time()
         state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
         current_status = state.get_dag_status(dag_id, execution_time)
+        LOGGER.debug('Current DAG "%s" status is %s and should be %s.', dag_id, current_status, state.status)
 
         if current_status != dag.status:
             success = state.set_dag_status(dag_id, execution_time, dag.status)
-            LOGGER.info( 'Setting status of dag "%s" (%s) to %s', dag_id, execution_time, dag.status)
+            LOGGER.info( 'Setting status of DAG "%s" (%s) to %s', dag_id, execution_time, dag.status)
 
             if not success:
-                LOGGER.error('Unable to set status of dag %s to Finished', dag_id)
+                LOGGER.error('Unable to set status of DAG %s to Finished', dag_id)
 
             if dag.status in [Status.FINISHED, Status.FAILED]:
                 self._send_dag_status_notification(dag.status)
