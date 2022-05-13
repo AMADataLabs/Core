@@ -485,6 +485,7 @@ pipelines:
                 - aws configure set profile.shared.region us-east-1
                 - aws configure set profile.shared.output json
                 - bash Script/ecr_assume_role.sh | grep source > assume_role.rc
+                - source assume_role.rc
 
                 # Build the image
                 - >-
@@ -493,8 +494,8 @@ pipelines:
 
                 # Push the image to ECR
                 - >-
-                    bash --rcfile assume_role.rc -i aws ecr get-login-password --region us-east-1
-                    | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com
+                    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin
+                    394406051370.dkr.ecr.us-east-1.amazonaws.com
                 - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
                 - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
                 - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
