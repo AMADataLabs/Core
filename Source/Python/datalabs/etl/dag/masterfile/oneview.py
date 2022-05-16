@@ -37,7 +37,7 @@ from   datalabs.etl.oneview.reference.transform import \
     ClassOfTradeTransformerTask, \
     MedicalSchoolTransformerTask
 from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
-from   datalabs.etl.orm.load import ORMLoaderTask, MaterializedViewRefresherTask, ReindexerTask
+from   datalabs.etl.orm.load import ORMLoaderTask
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPIBM437TextFileExtractorTask
