@@ -178,6 +178,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             locked = self._lock_state(dynamodb, lock_id)
 
             if locked:
+                LOGGER.debug('Locked state table for "%s"', primary_key)
                 succeeded = self._set_status_if_later(dynamodb, primary_key, execution_time, status)
 
             self._unlock_state(dynamodb, lock_id)
@@ -216,7 +217,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
                 if "__" in name:
                     name = name.split("__")[1]
 
-                    statuses[name] = Status(status["status"]["S"])
+                statuses[name] = Status(status["status"]["S"])
 
         return statuses
 

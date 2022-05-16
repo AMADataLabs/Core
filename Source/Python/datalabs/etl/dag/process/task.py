@@ -35,7 +35,11 @@ class DAGProcessorTask(PluginExecutorMixin, Task):
         LOGGER.info('DAG %s Status: %s', self._parameters.dag, status.value)
 
         if status == Status.UNKNOWN:
-            state.set_dag_status(self._parameters.dag, self._parameters.execution_time, Status.PENDING)
+            LOGGER.info('Setting DAG %s status to %s', self._parameters.dag, Status.PENDING)
+            success = state.set_dag_status(self._parameters.dag, self._parameters.execution_time, Status.PENDING)
+
+            if not success:
+                LOGGER.warning('Unable to set DAG %s status', self._parameters.dag)
 
         executor.run()
 

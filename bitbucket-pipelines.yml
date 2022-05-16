@@ -475,6 +475,33 @@ pipelines:
             #     - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_DEV
             #     - bash Deploy/Master/create-database OneView
             - step:
+                name: Update ETL Batch Job Image
+                caches:
+                    - environment-dev
+                script:
+                # Assume ECR role
+                - aws configure set profile.shared.aws_access_key_id $AWS_ACCESS_KEY_ID_ECR_ROLE
+                - aws configure set profile.shared.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ECR_ROLE
+                - aws configure set profile.shared.region us-east-1
+                - aws configure set profile.shared.output json
+                - bash Script/ecr_assume_role.sh | grep source > assume_role.rc
+                - source assume_role.rc
+
+                # Build the image
+                - >-
+                    docker build -t oneview-dev
+                    -f ./Build/OneView/ETL/Reindex/Dockerfile ./
+
+                # Push the image to ECR
+                - >-
+                    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin
+                    394406051370.dkr.ecr.us-east-1.amazonaws.com
+                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
+                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
+
+            - step:
                 name: Update ETL Bundle
                 caches:
                     - environment-dev
