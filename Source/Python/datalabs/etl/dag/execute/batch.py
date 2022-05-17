@@ -26,6 +26,9 @@ class BatchDAGExecutorTask(Task):
 
     def run(self):
         execution_time = self._parameters.execution_time.replace(" ", "T")
+        job_name = self._parameters.dag.replace(':', '')
+
+        LOGGER.info(f'Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
         with AWSClient("batch") as awslambda:
             container_overrides = dict(
@@ -38,7 +41,7 @@ class BatchDAGExecutorTask(Task):
             )
 
             awslambda.submit_job(
-                jobName=self._parameters.dag.replace(':', ''),
+                jobName=job_name,
                 jobQueue=self._parameters.job_queue,
                 jobDefinition=self._parameters.job_definition,
                 containerOverrides=container_overrides
@@ -61,6 +64,10 @@ class BatchPythonTaskExecutorTask(Task):
 
     def run(self):
         execution_time = self._parameters.execution_time.replace(" ", "T")
+        job_name = f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"
+                   f"__{execution_time.replace(':', '').replace('.', '')}"
+
+        LOGGER.info(f'Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
         with AWSClient("batch") as batch:
             container_overrides = dict(
@@ -72,8 +79,7 @@ class BatchPythonTaskExecutorTask(Task):
             )
 
             batch.submit_job(
-                jobName=f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"
-                        f"__{execution_time.replace(':', '').replace('.', '')}",
+                jobName=job_name,
                 jobQueue=self._parameters.job_queue,
                 jobDefinition=self._parameters.job_definition,
                 containerOverrides=container_overrides
@@ -96,6 +102,10 @@ class BatchJavaTaskExecutorTask(Task):
 
     def run(self):
         execution_time = self._parameters.execution_time.replace(" ", "T")
+        job_name = f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"
+                   f"__{execution_time.replace(':', '').replace('.', '')}"
+
+        LOGGER.info(f'Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
         with AWSClient("batch") as batch:
             container_overrides = dict(
@@ -110,7 +120,7 @@ class BatchJavaTaskExecutorTask(Task):
             )
 
             batch.submit_job(
-                jobName=f"{self._parameters.dag}__{self._parameters.task}",
+                jobName=job_name,
                 jobQueue=self._parameters.job_queue,
                 jobDefinition=self._parameters.job_definition,
                 containerOverrides=container_overrides
