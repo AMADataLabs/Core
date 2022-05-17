@@ -38,7 +38,7 @@ class BatchDAGExecutorTask(Task):
             )
 
             awslambda.submit_job(
-                jobName=self._parameters.dag,
+                jobName=self._parameters.dag.replace(':', ''),
                 jobQueue=self._parameters.job_queue,
                 jobDefinition=self._parameters.job_definition,
                 containerOverrides=container_overrides
@@ -72,7 +72,8 @@ class BatchPythonTaskExecutorTask(Task):
             )
 
             batch.submit_job(
-                jobName=f"{self._parameters.dag}__{self._parameters.task}",
+                jobName=f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"
+                        f"__{execution_time.replace(':', '').replace('.', '')}",
                 jobQueue=self._parameters.job_queue,
                 jobDefinition=self._parameters.job_definition,
                 containerOverrides=container_overrides
