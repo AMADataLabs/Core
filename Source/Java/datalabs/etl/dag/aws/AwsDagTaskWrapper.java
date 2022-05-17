@@ -124,11 +124,17 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     }
 
     protected Map<String, String> getDagTaskParametersFromDynamoDb(String dag, String task) {
+        String[] dagIdParts = dag.split(":");
+        String dagName = dag;
         HashMap<String, String> parameters = new HashMap<String, String>();
+
+        if (dagIdParts.length == 2) {
+            dagName = dagIdParts[1];
+        }
 
         DynamoDbEnvironmentLoader loader = new DynamoDbEnvironmentLoader(
             this.environment.get("DYNAMODB_CONFIG_TABLE"),
-            dag,
+            dagName,
             task
         );
 
