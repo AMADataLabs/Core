@@ -74,7 +74,7 @@ class ProcessorTaskWrapper(
                 f'or conform to the format "<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format.')
         else:
             LOGGER.info('Processing backfill file trigger...')
-            parameters = self._get_backfill_parameters(s3_object_key)
+            parameters = self._get_backfill_parameters(urllib.parse.unquote(s3_object_key))
 
         return parameters
 
@@ -96,8 +96,8 @@ class ProcessorTaskWrapper(
 
     @classmethod
     def _get_backfill_parameters(cls, s3_object_key):
-        dag_id, escaped_execution_time = s3_object_key.rsplit("__", 1)
-        execution_time = urllib.parse.unquote(escaped_execution_time).replace('T', ' ')
+        dag_id, execution_time = s3_object_key.rsplit("__", 1)
+        execution_time = execution_time.replace('T', ' ')
 
         try:
             isoparse(execution_time)  # Check if execution_time is ISO-8601
