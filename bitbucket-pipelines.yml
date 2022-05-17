@@ -1329,7 +1329,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - scheduler-prod-update-bundle-dependencies
+                - environment-prod
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines

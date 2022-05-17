@@ -128,13 +128,14 @@ class ProcessorTaskWrapper(
     def _get_dag_task_parameters(self):
         ''' Get parameters for either the DAG Processor or the Task Processor. '''
         dag = self._get_dag_id()
+        dag_name = self._get_dag_name()
         task = self._get_task_id()
         dag_parameters = dict(
             dag=dag,
             execution_time=self._get_execution_time(),
         )
-        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
-        task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
+        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag_name, "DAG"))
+        task_parameters = self._get_dag_task_parameters_from_dynamodb(dag_name, task)
 
         dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
 
