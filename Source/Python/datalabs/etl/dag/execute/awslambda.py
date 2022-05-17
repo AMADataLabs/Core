@@ -36,6 +36,8 @@ class LambdaDAGExecutorTask(Task):
             if self._parameters.parameters:
                 payload["parameters"] = json.loads(self._parameters.parameters)
 
+            LOGGER.info('Executing DAG via Lambda %s. Payload: %s', self._parameters.lambda_function, payload)
+
             awslambda.invoke(
                 FunctionName=self._parameters.lambda_function,
                 InvocationType='Event',
@@ -69,7 +71,7 @@ class LambdaTaskExecutorTask(Task):
             if self._parameters.parameters:
                 payload["parameters"] = json.loads(self._parameters.parameters)
 
-            LOGGER.debug('TaskProcessor event payload: %s', payload)
+            LOGGER.info('Executing Task via Lambda %s. Payload: %s', self._parameters.lambda_function, payload)
 
             awslambda.invoke(
                 FunctionName=self._parameters.lambda_function,
