@@ -28,7 +28,7 @@ class BatchDAGExecutorTask(Task):
         execution_time = self._parameters.execution_time.replace(" ", "T")
         job_name = self._parameters.dag.replace(':', '')
 
-        LOGGER.info(f'Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
+        LOGGER.info('Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
         with AWSClient("batch") as awslambda:
             container_overrides = dict(
@@ -64,10 +64,10 @@ class BatchPythonTaskExecutorTask(Task):
 
     def run(self):
         execution_time = self._parameters.execution_time.replace(" ", "T")
-        job_name = f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"
+        job_name = f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"\
                    f"__{execution_time.replace(':', '').replace('.', '')}"
 
-        LOGGER.info(f'Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
+        LOGGER.info('Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
         with AWSClient("batch") as batch:
             container_overrides = dict(
@@ -102,10 +102,10 @@ class BatchJavaTaskExecutorTask(Task):
 
     def run(self):
         execution_time = self._parameters.execution_time.replace(" ", "T")
-        job_name = f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"
+        job_name = f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"\
                    f"__{execution_time.replace(':', '').replace('.', '')}"
 
-        LOGGER.info(f'Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
+        LOGGER.info('Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
         with AWSClient("batch") as batch:
             container_overrides = dict(
