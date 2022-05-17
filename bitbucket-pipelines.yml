@@ -475,6 +475,33 @@ pipelines:
             #     - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_DEV
             #     - bash Deploy/Master/create-database OneView
             - step:
+                name: Update ETL Batch Job Image
+                caches:
+                    - environment-dev
+                script:
+                # Assume ECR role
+                - aws configure set profile.shared.aws_access_key_id $AWS_ACCESS_KEY_ID_ECR_ROLE
+                - aws configure set profile.shared.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ECR_ROLE
+                - aws configure set profile.shared.region us-east-1
+                - aws configure set profile.shared.output json
+                - bash Script/ecr_assume_role.sh | grep source > assume_role.rc
+                - source assume_role.rc
+
+                # Build the image
+                - >-
+                    docker build -t oneview-dev
+                    -f ./Build/OneView/ETL/Reindex/Dockerfile ./
+
+                # Push the image to ECR
+                - >-
+                    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin
+                    394406051370.dkr.ecr.us-east-1.amazonaws.com
+                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
+                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
+
+            - step:
                 name: Update ETL Bundle
                 caches:
                     - environment-dev
@@ -1039,6 +1066,36 @@ pipelines:
         ##############################################################
         # prod branch targets
         ##############################################################
+
+        AMC-prod:
+        - step:
+            name: Update ETL Bundle
+            caches:
+            - environment-prod
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment prd
+                --project AMC
+                --bundle Masterfile/AMC.zip
+                --runtime Python
+                --jdbc-driver Informix
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_PROD=True
+            - export ENVIRONMENT=prd
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
+                AMC=AMC.zip
+
         CPT-prod:
         - step:
             name: Send Deployment Request
@@ -1090,6 +1147,34 @@ pipelines:
                 ETL=ETL.zip
                 BulkAuthorizer=ETL.zip
                 BulkEndpoint=ETL.zip
+
+        DBL-prod:
+        - step:
+            name: Update ETL Bundle
+            caches:
+            - environment-prod
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment prd
+                --project DBL
+                --bundle Masterfile/DBLReport.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_PROD=True
+            - export ENVIRONMENT=prd
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
+                DBLReport=DBLReport.zip
 
         OneView-prod:
         - step:
@@ -1244,7 +1329,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - scheduler-prod-update-bundle-dependencies
+                - environment-prod
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines

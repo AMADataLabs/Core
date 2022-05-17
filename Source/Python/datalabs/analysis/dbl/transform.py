@@ -36,7 +36,10 @@ class DBLReportTransformer(TransformerTask):
         dataframes[8] = self._transform_tab9(dataframes[8])
         dataframes[9] = self._transform_tab10(dataframes[9])
 
-        previous_report = self._parameters['data'][10]
+        if len(self._parameters['data']) > 10:
+            previous_report = self._parameters['data'][10]
+        else:
+            previous_report = None
 
         output = self._make_excel_workbook(sheet_dataframes=dataframes)
 
@@ -276,7 +279,7 @@ class DBLReportTransformer(TransformerTask):
             colname = f'{col}:{col}'
             sheet_column_widths['PrimSpecbyMPA'][colname] = 8
             sheet_column_widths['SecSpecbyMPA'][colname] = 8
-
+        # pylint: disable=consider-using-dict-items
         for sheetname in sheet_column_widths:
             for column in sheet_column_widths[sheetname]:
                 width = sheet_column_widths[sheetname][column]
@@ -291,6 +294,7 @@ class DBLReportTransformer(TransformerTask):
 
         percentage_format = workbook.add_format({'num_format': '0.00%'})
 
+        # pylint: disable=consider-using-dict-items
         for sheet_name in sheet_percentage_columns:
             columns = sheet_percentage_columns[sheet_name]
             for column in columns:

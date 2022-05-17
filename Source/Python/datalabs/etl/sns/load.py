@@ -40,5 +40,5 @@ class SNSMessageLoaderTask(LoaderTask):
                 LOGGER.info('Publishing the following message to %s: %s', self._parameters.topic_arn, message)
                 sns.publish(
                     TargetArn=self._parameters.topic_arn,
-                    Message=message
+                    Message=json.dumps(message)
                 )

@@ -72,7 +72,7 @@ class BatchPythonTaskExecutorTask(Task):
             )
 
             batch.submit_job(
-                jobName=self._parameters.dag,
+                jobName=f"{self._parameters.dag}__{self._parameters.task}",
                 jobQueue=self._parameters.job_queue,
                 jobDefinition=self._parameters.job_definition,
                 containerOverrides=container_overrides
@@ -109,7 +109,7 @@ class BatchJavaTaskExecutorTask(Task):
             )
 
             batch.submit_job(
-                jobName=self._parameters.dag,
+                jobName=f"{self._parameters.dag}__{self._parameters.task}",
                 jobQueue=self._parameters.job_queue,
                 jobDefinition=self._parameters.job_definition,
                 containerOverrides=container_overrides
