@@ -36,7 +36,7 @@ public class LocalProcess {
             throw new IllegalArgumentException("TASK_WRAPPER_CLASS environment variable is not set.");
         }
         Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
-        Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
+        Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class, Map.class});
 
         TaskWrapper taskWrapper = (TaskWrapper) taskWrapperConstructor.newInstance(
             environmentLoader.load(),

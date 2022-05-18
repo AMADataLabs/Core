@@ -43,7 +43,7 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
                    ClassNotFoundException {
          ReferenceEnvironmentLoader environmentLoader = ReferenceEnvironmentLoader.fromSystem();
          Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
-         Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
+         Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class, Map.class});
 
          return (TaskWrapper) taskWrapperConstructor.newInstance(environmentLoader.load(), event);
      }
