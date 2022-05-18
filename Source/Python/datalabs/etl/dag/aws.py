@@ -1,5 +1,6 @@
 """ Task wrapper for DAGs and DAG tasks running in AWS. """
 from   dataclasses import dataclass
+import json
 import logging
 import os
 
@@ -50,7 +51,7 @@ class DAGTaskWrapper(
     PARAMETER_CLASS = DAGTaskWrapperParameters
 
     def _get_runtime_parameters(self, parameters):
-        command_line_parameters = self._parse_command_line_parameters(parameters)
+        command_line_parameters = json.loads(parameters[1])
         LOGGER.debug('Command-line Parameters: %s', command_line_parameters)
 
         return self._supplement_runtime_parameters(command_line_parameters)
@@ -101,6 +102,9 @@ class DAGTaskWrapper(
             dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
 
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
+
+            if "parameters" in self._runtime_parameters:
+                dag_task_parameters.update(self._runtime_parameters["parameters"])
 
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
@@ -229,12 +233,14 @@ class DAGTaskWrapper(
 
     def _notify_dag_processor(self):
         dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
+        dynamic_parameters = self._runtime_parameters.get("parameters")
         notifier = SNSDAGNotifier(dag_topic)
 
-        notifier.notify(self._get_dag_id(), self._get_execution_time())
+        notifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
 
     def _notify_task_processor(self, task):
         task_topic = self._runtime_parameters["TASK_TOPIC_ARN"]
+        dynamic_parameters = self._runtime_parameters.get("parameters")
         notifier = SNSTaskNotifier(task_topic)
 
-        notifier.notify(self._get_dag_id(), task, self._get_execution_time())
+        notifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)

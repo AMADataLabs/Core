@@ -18,7 +18,7 @@ class LambdaDAGExecutorParameters:
     dag: str
     lambda_function: str
     execution_time: str
-    parameters: str=None
+    parameters: dict=None
     unknowns: dict=None
 
 
@@ -34,7 +34,7 @@ class LambdaDAGExecutorTask(Task):
             )
 
             if self._parameters.parameters:
-                payload["parameters"] = json.loads(self._parameters.parameters)
+                payload["parameters"] = self._parameters.parameters
 
             LOGGER.info('Executing DAG via Lambda %s. Payload: %s', self._parameters.lambda_function, payload)
 
@@ -52,7 +52,7 @@ class LambdaTaskExecutorParameters:
     task: str
     lambda_function: str
     execution_time: str
-    parameters: str=None
+    parameters: dict=None
     unknowns: dict=None
 
 
@@ -69,7 +69,7 @@ class LambdaTaskExecutorTask(Task):
             )
 
             if self._parameters.parameters:
-                payload["parameters"] = json.loads(self._parameters.parameters)
+                payload["parameters"] = self._parameters.parameters
 
             LOGGER.info('Executing Task via Lambda %s. Payload: %s', self._parameters.lambda_function, payload)
 

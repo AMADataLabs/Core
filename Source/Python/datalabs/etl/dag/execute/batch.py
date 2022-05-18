@@ -1,5 +1,6 @@
 ''' Classes for executing DAGs via AWS Batch'''
 from   dataclasses import dataclass
+import json
 import logging
 
 from   datalabs.access.aws import AWSClient
@@ -18,6 +19,7 @@ class BatchDAGExecutorParameters:
     execution_time: str
     job_queue: str
     job_definition: str
+    parameters: dict=None
     unknowns: dict = None
 
 
@@ -26,7 +28,15 @@ class BatchDAGExecutorTask(Task):
 
     def run(self):
         execution_time = self._parameters.execution_time.replace(" ", "T")
-        job_name = self._parameters.dag.replace(':', '')
+        job_name = f"{self._parameters.dag.replace(':', '')}__{execution_time.replace(':', '').replace('.', '')}"
+        parameters = dict(
+            dag=self._parameters.dag,
+            type="DAG",
+            execution_time=execution_time
+        )
+
+        if self._parameters.parameters:
+            parameters["parameters"] = self._parameters.parameters
 
         LOGGER.info('Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
@@ -35,7 +45,7 @@ class BatchDAGExecutorTask(Task):
                 command=[
                     "python",
                     "task.py",
-                    f'{{"dag": "{self._parameters.dag}","type": "DAG", "execution_time": "{execution_time}"}}'
+                    json.dumps(parameters)
                 ]
 
             )
@@ -66,6 +76,15 @@ class BatchPythonTaskExecutorTask(Task):
         execution_time = self._parameters.execution_time.replace(" ", "T")
         job_name = f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"\
                    f"__{execution_time.replace(':', '').replace('.', '')}"
+        parameters = dict(
+            dag=self._parameters.dag,
+            type="Task",
+            task=self._parameters.task,
+            execution_time=execution_time
+        )
+
+        if self._parameters.parameters:
+            parameters["parameters"] = self._parameters.parameters
 
         LOGGER.info('Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
@@ -74,7 +93,7 @@ class BatchPythonTaskExecutorTask(Task):
                 command=[
                     "python",
                     "task.py",
-                    f"{self._parameters.dag}__{self._parameters.task}__{execution_time}"
+                    json.dumps(parameters)
                 ]
             )
 
