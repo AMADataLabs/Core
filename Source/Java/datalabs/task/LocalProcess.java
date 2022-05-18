@@ -9,6 +9,7 @@ import com.amazonaws.services.lambda.runtime.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import datalabs.access.parameter.ReferenceEnvironmentLoader;
 import datalabs.plugin.PluginImporter;
 import datalabs.task.TaskWrapper;
 
@@ -28,6 +29,7 @@ public class LocalProcess {
     public static void runTask(Map<String, String> runtimeParameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
                    ClassNotFoundException {
+        ReferenceEnvironmentLoader environmentLoader = ReferenceEnvironmentLoader.fromSystem();
         String taskWrapperClassName = System.getenv("TASK_WRAPPER_CLASS");
         LOGGER.debug("Task Wrapper Class: " + taskWrapperClassName);
         if (taskWrapperClassName == null) {
@@ -36,7 +38,10 @@ public class LocalProcess {
         Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
         Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
 
-        TaskWrapper taskWrapper = (TaskWrapper) taskWrapperConstructor.newInstance(runtimeParameters);
+        TaskWrapper taskWrapper = (TaskWrapper) taskWrapperConstructor.newInstance(
+            environmentLoader.load(),
+            runtimeParameters
+        );
 
         taskWrapper.run();
     }

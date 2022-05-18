@@ -22,10 +22,10 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     static final Logger LOGGER = LoggerFactory.getLogger(AwsDagTaskWrapper.class);
     Map<String, String> taskParameters;
 
-    public AwsDagTaskWrapper(Map<String, String> parameters) {
-        super(parameters);
+    public AwsDagTaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
+        super(environment, parameters);
 
-        if (System.getenv("DYNAMODB_CONFIG_TABLE") == null) {
+        if (this.environment.get("DYNAMODB_CONFIG_TABLE") == null) {
             throw new IllegalArgumentException("DYNAMODB_CONFIG_TABLE environment variable is not set.");
         }
     }

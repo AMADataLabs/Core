@@ -21,8 +21,8 @@ public class DagTaskWrapper extends TaskWrapper {
     static final Logger LOGGER = LoggerFactory.getLogger(DagTaskWrapper.class);
     protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
 
-    public DagTaskWrapper(Map<String, String> parameters) {
-        super(parameters);
+    public DagTaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
+        super(environment, parameters);
 
         this.cacheParameters = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
             put(TaskDataCache.Direction.INPUT, null);

@@ -12,8 +12,8 @@ import datalabs.task.Task;
 public class LambdaDagTaskWrapper extends AwsDagTaskWrapper {
     static final Logger LOGGER = LoggerFactory.getLogger(LambdaDagTaskWrapper.class);
 
-    public LambdaDagTaskWrapper(Map<String, String> parameters) {
-        super(parameters);
+    public LambdaDagTaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
+        super(environment, parameters);
     }
 
     protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
