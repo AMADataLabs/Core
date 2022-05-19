@@ -20,8 +20,8 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=too-many-instance-attributes
 class DAGNotificationFactoryParameters:
     dag: str
+    execution_time: str
     data: object
-    execution_time: str = None
 
 
 class DAGNotificationFactoryTask(TransformerTask):

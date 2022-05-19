@@ -28,7 +28,6 @@ data:
     CPT_FILES_DIST__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
 
-
     ##########################################################################
     # Task Variables - ({"DAG": {"S": "CPT_FILES_DIST"}, "Task": {"S": "<Task ID>"}})
     ##########################################################################

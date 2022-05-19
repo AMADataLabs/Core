@@ -5,6 +5,7 @@ import logging
 import os
 
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
+from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.etl.dag.notify.email import StatusEmailNotifier
@@ -103,8 +104,8 @@ class DAGTaskWrapper(
 
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
 
-            if "parameters" in self._runtime_parameters:
-                dag_task_parameters.update(self._runtime_parameters["parameters"])
+        dynamic_loader = ReferenceEnvironmentLoader(self._runtime_parameters.get("parameters", {}))
+        dynamic_loader.load(environment=dag_task_parameters)
 
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 

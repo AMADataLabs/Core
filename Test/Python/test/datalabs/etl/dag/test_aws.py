@@ -37,7 +37,10 @@ def test_task_parameters_override_runtime_parameters(args, environment, dag_para
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
-def test_dynamic_parameters_added_to_task_parameters(args_parameters, environment, dag_parameters, task_parameters):
+def test_dynamic_parameter_substitutions(args_parameters, environment, dag_parameters, task_parameters):
+    task_parameters["CORNBREAD_TEMPERATURE"] = "3${PARAMETER_SET_INDEX}"
+    task_parameters["BASE_METRIC"] = "${ALGORITHM_NAME}Standard"
+
     with mock.patch.object(DAGTaskWrapper, '_get_dag_task_parameters_from_dynamodb') \
             as _get_dag_task_parameters_from_dynamodb:
         _get_dag_task_parameters_from_dynamodb.return_value = dag_parameters
@@ -47,8 +50,8 @@ def test_dynamic_parameters_added_to_task_parameters(args_parameters, environmen
 
         task_parameters = task_wrapper._get_dag_task_parameters()
 
-        assert len(task_parameters) == 4
-        assert all(p in ["CORNBREAD_TEMPERATURE", "BASE_METRIC", "START_INDEX", "END_INDEX"] for p in task_parameters)
+        assert task_parameters["CORNBREAD_TEMPERATURE"] == '35'
+        assert task_parameters["BASE_METRIC"] == 'SuperAwesomeStandard'
 
 
 @pytest.fixture
@@ -61,7 +64,7 @@ def args_parameters():
     return [
         'task.py',
         '{"dag": "MY_DAG", "type": "Task", "task": "MY_TASK", "execution_time": "2022-03-26T00:00:00", '\
-        '"parameters": {"START_INDEX": 0, "END_INDEX": 50}}'
+        '"parameters": {"ALGORITHM_NAME": "SuperAwesome", "PARAMETER_SET_INDEX": 5}}'
     ]
 
 

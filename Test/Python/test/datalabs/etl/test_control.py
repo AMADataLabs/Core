@@ -10,7 +10,7 @@ from   datalabs.etl.control import DAGNotificationFactoryTask
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_parameters_parsed_correctly(data, parameters):
-    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "data": data})
+    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00", "data": data})
 
     actual_parameters = factory._parse_iteration_parameters(data)
 
@@ -19,9 +19,9 @@ def test_parameters_parsed_correctly(data, parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_correct_messages_are_generated(parameters):
-    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "data": []})
+    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00", "data": []})
 
-    messages = factory._generate_notification_messages("DUMMY_DAG", parameters)
+    messages = factory._generate_notification_messages("DUMMY_DAG", "2022-05-19 00:00:00", parameters)
 
     assert len(messages) == 4
     for message in messages:
@@ -34,7 +34,7 @@ def test_correct_messages_are_generated(parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_messages_are_serialized_as_json_string(data):
-    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "data": data})
+    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00", "data": data})
 
     output = factory._transform()
 
