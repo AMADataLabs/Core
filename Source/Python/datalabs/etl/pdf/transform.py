@@ -14,7 +14,12 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class SignedPDFTransformerParameters:
-    pass
+    base_path: str
+    credentials_file: str
+    credentials_password: str
+    recipient: str
+    data: object
+    execution_time: str=None
 
 
 class SignedPDFTransformerTask(ExecutionTimeMixin):
