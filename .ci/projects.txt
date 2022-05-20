@@ -1,5 +1,7 @@
 AMC
-CPT
+CPT/API/Endpoint
+CPT/API/ETL
+CPT/Files/Watermark
 CPT/Organizations
 DBL
 HelloWorldJava/Task

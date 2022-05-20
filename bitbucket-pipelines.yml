@@ -125,50 +125,96 @@ pipelines:
                 --project ContactID
                 --bundle CustomerIntelligence/ContactID.zip
                 --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - bash Deploy/Master/update-functions -e sbx -s DataLake -p CustomerIntelligence ContactID=ContactID.zip
 
-        CPT-master:
-        - parallel:
-            - step:
-                name: Update ETL Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project CPT/API/ETL
-                    --bundle CPT/API/ETL.zip
-                    --runtime Python
-            - step:
-                name: Update Endpoint Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project CPT/API/Endpoint
-                    --bundle CPT/API/Endpoint.zip
-                    --runtime Python
-        - parallel:
-            - step:
-                name: Update Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                - >-
-                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API
-                    ETL=ETL.zip
-                    Authorizer=Endpoint.zip
-                    Endpoint=Endpoint.zip
-                    BulkAuthorizer=Endpoint.zip
-                    BulkEndpoint=Endpoint.zip
+        CPT-API-ETL-master:
+        - step:
+            name: Update Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/deploy-python-package --project CPT/API/ETL --branch $BITBUCKET_BRANCH
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project CPT/API/ETL
+                --bundle CPT/API/ETL.zip
+                --runtime Python
+        - step:
+            name: Update Lambda Functions
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API ETL=ETL.zip
+
+        CPT-API-Endpoint-master:
+        - step:
+            name: Update Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/deploy-python-package --project CPT/API/Endpoint --branch $BITBUCKET_BRANCH
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project CPT/API/Endpoint
+                --bundle CPT/API/Endpoint.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - >-
+                bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
+
+        CPT-Files-Watermark-master:
+        - step:
+            name: Update Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/deploy-python-package --project CPT/Files/Watermark --branch $BITBUCKET_BRANCH
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project CPT/Files/Watermark
+                --bundle CPT/Files/Watermark.zip
+                --runtime Python
+        - step:
+            name: Update Lambda Functions
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API ETL=ETL.zip
 
         DBL-master:
         - step:
@@ -382,52 +428,89 @@ pipelines:
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
                 AMC=AMC.zip
 
-        CPT-dev:
-        - parallel:
-            - step:
-                name: Update ETL Bundle
-                caches:
+        CPT-API-ETL-dev:
+        - step:
+            name: Update Bundle
+            caches:
                 - environment-dev
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
-                    --project CPT/API/ETL
-                    --bundle CPT/API/ETL.zip
-                    --runtime Python
-            - step:
-                name: Update Endpoint Bundle
-                caches:
-                - environment-dev
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
-                    --project CPT/API/Endpoint
-                    --bundle CPT/API/Endpoint.zip
-                    --runtime Python
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment dev
+                --project CPT/API/ETL
+                --bundle CPT/API/ETL.zip
+                --runtime Python
         - step:
             name: Update Lambda Functions
             script:
-            # Update Lambda functions
-            - export ENABLE_FEATURE_DEV=True
-            - export ENVIRONMENT=dev
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API ETL=ETL.zip
+
+        CPT-API-Endpoint-dev:
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-dev
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment dev
+                --project CPT/API/Endpoint
+                --bundle CPT/API/Endpoint.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - >-
+                bash Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
             - >-
                 bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
-                ETL=Endpoint.zip
-                Endpoint=Endpoint.zip
                 Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
                 BulkAuthorizer=Endpoint.zip
                 BulkEndpoint=Endpoint.zip
+
+        CPT-Files-Watermark-dev:
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-dev
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment dev
+                --project CPT/Files/Watermark
+                --bundle CPT/Files/Watermark.zip
+                --runtime Python
+        - step:
+            name: Update Lambda Functions
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files/Watermark
+                ETL=ETL.zip
 
         DBL-dev:
         - step:
@@ -718,51 +801,89 @@ pipelines:
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
                 AMC=AMC.zip
 
-        CPT-test:
+        CPT-API-ETL-dev:
         - step:
             name: Update Bundle
             caches:
                 - environment-test
             script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            - export PATH="${VIRTUAL_ENV}/bin:$PATH"
-
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_TEST=True
-            - bash Deploy/Master/create-python-bundle --project CPT
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment tst
+                --project CPT/API/ETL
+                --bundle CPT/API/ETL.zip
+                --runtime Python
         - step:
             name: Update Lambda Functions
             script:
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
-
-            # Update Lambda functions
-            - export ENABLE_FEATURE_TEST=True
-            - export ENVIRONMENT=tst
             - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT
-                Authorizer=ETL.zip
-                Endpoint=ETL.zip
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API ETL=ETL.zip
+
+        CPT-API-Endpoint-dev:
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-test
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment tst
+                --project CPT/API/Endpoint
+                --bundle CPT/API/Endpoint.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - >-
+                bash Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
+
+        CPT-Files-Watermark-dev:
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-test
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment tst
+                --project CPT/Files/Watermark
+                --bundle CPT/Files/Watermark.zip
+                --runtime Python
+        - step:
+            name: Update Lambda Functions
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files/Watermark
                 ETL=ETL.zip
-                BulkAuthorizer=ETL.zip
-                BulkEndpoint=ETL.zip
 
         DBL-test:
         - step:
@@ -1096,57 +1217,89 @@ pipelines:
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
                 AMC=AMC.zip
 
-        CPT-prod:
-        - step:
-            name: Send Deployment Request
-            script:
-            - echo "A CPT deployment has been triggered via BitBucket Pipelines. Please run the CPT-production target if you approve."
-
-        CPT-production:
+        CPT-API-ETL-production:
         - step:
             name: Update Bundle
             caches:
                 - environment-prod
             script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            - export PATH="${VIRTUAL_ENV}/bin:$PATH"
-
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_PROD=True
-            - bash Deploy/Master/create-python-bundle --project CPT
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment prd
+                --project CPT/API/ETL
+                --bundle CPT/API/ETL.zip
+                --runtime Python
         - step:
             name: Update Lambda Functions
             script:
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
-
-            # Update Lambda functions
-            - export ENABLE_FEATURE_PROD=True
-            - export ENVIRONMENT=prd
             - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT
-                Authorizer=ETL.zip
-                Endpoint=ETL.zip
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API ETL=ETL.zip
+
+        CPT-API-Endpoint-production:
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-prod
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment prd
+                --project CPT/API/Endpoint
+                --bundle CPT/API/Endpoint.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - >-
+                bash Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
+
+        CPT-Files-Watermark-production:
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-prod
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment tst
+                --project CPT/Files/Watermark
+                --bundle CPT/Files/Watermark.zip
+                --runtime Python
+        - step:
+            name: Update Lambda Functions
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files/Watermark
                 ETL=ETL.zip
-                BulkAuthorizer=ETL.zip
-                BulkEndpoint=ETL.zip
 
         DBL-prod:
         - step:

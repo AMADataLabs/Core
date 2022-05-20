@@ -19,8 +19,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-cpt-files-watermark"
-    export RELEASE_DESCRIPTION="CPT Release Distribution Watermarking DAG"
+    export RELEASE_NAME="datalabs-cpt-api-endpoint"
+    export RELEASE_DESCRIPTION="CPT API endpoint implementations"
 }
 
 
