@@ -24,7 +24,7 @@ data:
     # DAG Variables - ({"DAG": {"S": "CPT_FILES_DIST_USER"}, "Task": {"S": "DAG"}})
     #######################################################################
 
-    CPT_FILES_DIST_USER__DAG__LAMBDA_FUNCTION: ''
+    CPT_FILES_DIST_USER__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-WatermarkDAG'
     CPT_FILES_DIST_USER__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.files.watermark.UserDAG'
     CPT_FILES_DIST_USER__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     CPT_FILES_DIST_USER__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
