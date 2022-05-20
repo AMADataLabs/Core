@@ -1,6 +1,5 @@
 """ DAG execution from a task. """
 from   dataclasses import dataclass
-from   datetime import datetime
 from   io import BytesIO
 import json
 import logging

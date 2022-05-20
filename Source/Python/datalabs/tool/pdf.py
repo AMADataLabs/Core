@@ -9,7 +9,14 @@ import endesive.pdf
 class PDFSigner:
     # pylint: disable=too-many-arguments
     @classmethod
-    def sign(cls, pdf: 'str or file-like', signed_pdf: 'str or file-like', credentials: 'str or file-like', password, recipient=None):
+    def sign(
+        cls,
+        pdf: 'str or file-like',
+        signed_pdf: 'str or file-like',
+        credentials: 'str or file-like',
+        password: str,
+        recipient: str=None
+    ):
         signature_details = cls._generate_signature_details(recipient)
 
         unsigned_pdf = cls._read_unsigned_pdf(pdf)

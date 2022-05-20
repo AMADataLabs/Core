@@ -16,7 +16,7 @@ class CoordinationDAG(dag.DAG):
 class UserDAG(dag.DAG):
     EXTRACT_SIGNING_CREDENTIALS: S3FileExtractorTask
     EXTRACT_RELEASE_FILES: UnzipTransformerTask
-    SIGN_PDFS: SignedPDFTransformerTask
+    SIGN_PDFS: PDFSigningTransformerTask
     CREATE_DISTRIBUTION: ZipTransformerTask
 
 

@@ -56,7 +56,7 @@ class PDFSigningTransformerTask(ExecutionTimeMixin, TransformerTask):
 
     @classmethod
     def _replace_files(cls, named_files, named_updated_files):
-        named_updated_file_map = {name:file for name, file in named_updated_files}
+        named_updated_file_map = dict(named_updated_files)
 
         for name, file in named_files:
             if name in named_updated_file_map:
