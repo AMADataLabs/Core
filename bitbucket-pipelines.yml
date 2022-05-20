@@ -470,13 +470,6 @@ pipelines:
         - step:
             name: Update Lambda Functions
             script:
-            - bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - >-
-                bash Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
-                Authorizer=Endpoint.zip
-                Endpoint=Endpoint.zip
-                BulkAuthorizer=Endpoint.zip
-                BulkEndpoint=Endpoint.zip
             - >-
                 bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
@@ -843,13 +836,6 @@ pipelines:
         - step:
             name: Update Lambda Functions
             script:
-            - bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - >-
-                bash Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
-                Authorizer=Endpoint.zip
-                Endpoint=Endpoint.zip
-                BulkAuthorizer=Endpoint.zip
-                BulkEndpoint=Endpoint.zip
             - >-
                 bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
@@ -1259,13 +1245,6 @@ pipelines:
         - step:
             name: Update Lambda Functions
             script:
-            - bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - >-
-                bash Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
-                Authorizer=Endpoint.zip
-                Endpoint=Endpoint.zip
-                BulkAuthorizer=Endpoint.zip
-                BulkEndpoint=Endpoint.zip
             - >-
                 bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
