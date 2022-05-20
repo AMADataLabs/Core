@@ -214,7 +214,7 @@ pipelines:
             name: Update Lambda Functions
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API ETL=ETL.zip
+            - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Files WatermarkDAG=Watermark.zip
 
         DBL-master:
         - step:
@@ -509,8 +509,8 @@ pipelines:
                 bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files/Watermark
-                ETL=ETL.zip
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files
+                WatermarkDAG=Watermark.zip
 
         DBL-dev:
         - step:
@@ -801,7 +801,7 @@ pipelines:
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
                 AMC=AMC.zip
 
-        CPT-API-ETL-dev:
+        CPT-API-ETL-test:
         - step:
             name: Update Bundle
             caches:
@@ -824,7 +824,7 @@ pipelines:
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API ETL=ETL.zip
 
-        CPT-API-Endpoint-dev:
+        CPT-API-Endpoint-test:
         - step:
             name: Update Bundle
             caches:
@@ -860,7 +860,7 @@ pipelines:
                 BulkAuthorizer=Endpoint.zip
                 BulkEndpoint=Endpoint.zip
 
-        CPT-Files-Watermark-dev:
+        CPT-Files-Watermark-test:
         - step:
             name: Update Bundle
             caches:
@@ -882,8 +882,8 @@ pipelines:
                 bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files/Watermark
-                ETL=ETL.zip
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files
+                WatermarkDAG=Watermark.zip
 
         DBL-test:
         - step:
@@ -1298,8 +1298,8 @@ pipelines:
                 bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
             - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files/Watermark
-                ETL=ETL.zip
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files
+                WatermarkDAG=Watermark.zip
 
         DBL-prod:
         - step:
