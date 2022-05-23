@@ -25,6 +25,7 @@ modspec:
     - watermark
   - package: datalabs.etl.pdf
   - package: datalabs.etl.s3
+  - package: datalabs.etl.sns
   - package: datalabs.messaging
     include:
     - email_message
