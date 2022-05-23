@@ -42,7 +42,7 @@ data:
     DBL__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
     DBL__DAG__ENVIRONMENT: ${ENVIRONMENT}
     DBL__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org'
-    DBL__DAG__STATUS_NOTIFICATION_FROM: 'Christina.Tennant@ama-assn.org,Garrett.Lappe@ama-assn.org,datalabs@ama-assn.org'
+    DBL__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
 
 
     ##########################################################################
@@ -91,10 +91,10 @@ data:
     DBL__EMAIL_DBL_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     DBL__EMAIL_DBL_REPORT__CACHE_INPUT_FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - Previous.xlsx,comparison.pk"
 
-    DBL__EMAIL_DBL_REPORT__TO: 'datalabs@ama-assn.org'
-    DBL__EMAIL_DBL_REPORT__CC: ''
-    DBL__EMAIL_DBL_REPORT__FAIL_TO: 'datalabs@ama-assn.org'
-    DBL__EMAIL_DBL_REPORT__FAIL_CC: ''
+    DBL__EMAIL_DBL_REPORT__TO: 'Christina.Tennant@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__CC: 'Garrett.Lappe@ama-assn.org,datalabs@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__FAIL_TO: 'Christina.Tennant@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__FAIL_CC: 'Garrett.Lappe@ama-assn.org,datalabs@ama-assn.org'
 
 
     # LOAD_DBL_REPORT
