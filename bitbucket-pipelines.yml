@@ -495,15 +495,15 @@ pipelines:
                 --project CPT/Files/Watermark
                 --bundle CPT/Files/Watermark.zip
                 --runtime Python
-        - step:
-            name: Update Lambda Functions
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files
-                WatermarkDAG=Watermark.zip
+        # - step:
+        #     name: Update Lambda Functions
+        #     script:
+        #     - >-
+        #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+        #         -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+        #     - >-
+        #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files
+        #         WatermarkDAG=Watermark.zip
 
         DBL-dev:
         - step:
