@@ -249,7 +249,7 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment tst
+                    --environment prd
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
                     --runtime Python
