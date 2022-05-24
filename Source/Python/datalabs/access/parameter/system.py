@@ -37,8 +37,10 @@ class ReferenceEnvironmentLoader:
 
     @classmethod
     def _get_reference_variables(cls, environment):
-        LOGGER.debug("Getting reference variables from the following environment: %s", environment)
-        return {key:value for key, value in environment.items() if re.match(r'.*\$\{[^${}]+\}', value, re.DOTALL)}
+        string_environment = {key:value for key, value in environment.items() if hasattr(value, 'encode')}
+        regex = r'.*\$\{[^${}]+\}'
+
+        return {key:value for key, value in string_environment.items() if re.match(regex, value, re.DOTALL)}
 
     def _resolve_references_variables(self, variables, parameters):
         for key, value in variables.items():

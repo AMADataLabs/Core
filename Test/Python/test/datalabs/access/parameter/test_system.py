@@ -75,6 +75,12 @@ def test_resolve_references_in_value_matches_json_reference(environment):
     assert resolved_value == '{\n"BLAH": "Woopideedoo"\n}'
 
 
+# pylint: disable=redefined-outer-name, protected-access
+def test_ignore_non_string_reference_variables(environment):
+    environment['NON_STRING_REFERENCE_VARIABLE'] = {"DANGER_LEVEL": 99}
+    reference_variables = ReferenceEnvironmentLoader._get_reference_variables(environment)
+
+
 @pytest.fixture
 def environment():
     current_environment = os.environ.copy()
@@ -88,7 +94,7 @@ def environment():
     os.environ['BAD_REFERENCE_VARIABLE'] = '${SOME_NONEXISTANT_VARIABLE}'
     os.environ['JSON_REFERENCE_VARIABLE']='{\n"BLAH": "${REFERENT_VARIABLE}"\n}'
 
-    yield os.environ
+    yield dict(os.environ)
 
     os.environ.clear()
     os.environ.update(current_environment)
