@@ -139,6 +139,9 @@ class ProcessorTaskWrapper(
 
         dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
 
+        if "parameters" in self._runtime_parameters:
+            dag_parameters["parameters"] = self._runtime_parameters["parameters"]
+
         if task != "DAG":
             dag_parameters["task"] = task
 
