@@ -384,7 +384,7 @@ pipelines:
             name: Update Lambda Functions
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - bash Deploy/Master/update-functions -e sbx -s DataLake -p Example HelloWorldVault=HelloWorldVault.zip
+            - bash Deploy/Master/update-functions -e sbx -s DataLake HelloWorldVault=HelloWorldVault.zip
 
         OneView-master:
         - parallel:
