@@ -1,0 +1,19 @@
+modspec:
+  - package: datalabs
+    include:
+      - awslambda
+      - feature
+      - parameter
+      - plugin
+      - task
+  - package: datalabs.access
+    include:
+      - aws
+      - credentials
+      - datastore
+      - environment
+  - package: datalabs.access.parameter
+    include:
+    - aws
+    - system
+    - dynamodb

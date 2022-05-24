@@ -359,6 +359,33 @@ pipelines:
                 HelloWorldJavaDAG=DAG.zip
                 HelloWorldJavaTask=Task.jar
 
+        HelloWorldVault-master:
+        - step:
+            name: Update Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/deploy-python-package --project HelloWorldVault --branch $BITBUCKET_BRANCH
+        - step:
+            name: Update ETL Bundle
+            caches:
+                - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project HelloWorldVault
+                --bundle HelloWorldVault.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/update-functions -e sbx -s DataLake -p Example HelloWorldVault=HelloWorldVault.zip
+
         OneView-master:
         - parallel:
             - step:
