@@ -78,7 +78,7 @@ def test_resolve_references_in_value_matches_json_reference(environment):
 # pylint: disable=redefined-outer-name, protected-access
 def test_ignore_non_string_reference_variables(environment):
     environment['NON_STRING_REFERENCE_VARIABLE'] = {"DANGER_LEVEL": 99}
-    reference_variables = ReferenceEnvironmentLoader._get_reference_variables(environment)
+    ReferenceEnvironmentLoader._get_reference_variables(environment)
 
 
 @pytest.fixture
