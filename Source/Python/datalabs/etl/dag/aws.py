@@ -105,6 +105,7 @@ class DAGTaskWrapper(
             dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
 
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
+        LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', dag_task_parameters)
 
         dynamic_loader = ReferenceEnvironmentLoader(dynamic_parameters)
         dynamic_loader.load(environment=dag_task_parameters)

@@ -198,23 +198,94 @@ pipelines:
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - bash Deploy/Master/deploy-python-package --project CPT/Files/Watermark --branch $BITBUCKET_BRANCH
-        - step:
-            name: Update Bundle
-            caches:
-                - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - >-
-                bash Deploy/Master/deploy-lambda-function
-                --environment sbx
-                --project CPT/Files/Watermark
-                --bundle CPT/Files/Watermark.zip
-                --runtime Python
-        - step:
-            name: Update Lambda Functions
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Files WatermarkDAG=Watermark.zip
+        - parallel:
+            - step:
+                name: Update sandbox Bundle
+                caches:
+                    - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT/Files/Watermark
+                    --bundle CPT/Files/Watermark.zip
+                    --runtime Python
+            - step:
+                name: Update development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project CPT/Files/Watermark
+                    --bundle CPT/Files/Watermark.zip
+                    --runtime Python
+            - step:
+                name: Update test Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project CPT/Files/Watermark
+                    --bundle CPT/Files/Watermark.zip
+                    --runtime Python
+            - step:
+                name: Update production Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project CPT/Files/Watermark
+                    --bundle CPT/Files/Watermark.zip
+                    --runtime Python
+        - parallel:
+            - step:
+                name: Update sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Files WatermarkDAG=Watermark.zip
+            # - step:
+            #     name: Update development Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            #         -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files
+            #         WatermarkDAG=Watermark.zip
+            # - step:
+            #     name: Update test Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            #         -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files
+            #         WatermarkDAG=Watermark.zip
+            # - step:
+            #     name: Update production Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            #         -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files
+            #         WatermarkDAG=Watermark.zip
 
         DBL-master:
         - step:
@@ -479,31 +550,6 @@ pipelines:
                 Endpoint=Endpoint.zip
                 BulkAuthorizer=Endpoint.zip
                 BulkEndpoint=Endpoint.zip
-
-        CPT-Files-Watermark-dev:
-        - step:
-            name: Update Bundle
-            caches:
-                - environment-dev
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                --environment dev
-                --project CPT/Files/Watermark
-                --bundle CPT/Files/Watermark.zip
-                --runtime Python
-        # - step:
-        #     name: Update Lambda Functions
-        #     script:
-        #     - >-
-        #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-        #         -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-        #     - >-
-        #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files
-        #         WatermarkDAG=Watermark.zip
 
         DBL-dev:
         - step:
@@ -845,31 +891,6 @@ pipelines:
                 Endpoint=Endpoint.zip
                 BulkAuthorizer=Endpoint.zip
                 BulkEndpoint=Endpoint.zip
-
-        CPT-Files-Watermark-test:
-        - step:
-            name: Update Bundle
-            caches:
-                - environment-test
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                --environment tst
-                --project CPT/Files/Watermark
-                --bundle CPT/Files/Watermark.zip
-                --runtime Python
-        - step:
-            name: Update Lambda Functions
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files
-                WatermarkDAG=Watermark.zip
 
         DBL-test:
         - step:
@@ -1254,31 +1275,6 @@ pipelines:
                 Endpoint=Endpoint.zip
                 BulkAuthorizer=Endpoint.zip
                 BulkEndpoint=Endpoint.zip
-
-        CPT-Files-Watermark-production:
-        - step:
-            name: Update Bundle
-            caches:
-                - environment-prod
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                --environment tst
-                --project CPT/Files/Watermark
-                --bundle CPT/Files/Watermark.zip
-                --runtime Python
-        - step:
-            name: Update Lambda Functions
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files
-                WatermarkDAG=Watermark.zip
 
         DBL-prod:
         - step:

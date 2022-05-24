@@ -5,7 +5,7 @@ import re
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class ReferenceEnvironmentLoader:
@@ -37,6 +37,7 @@ class ReferenceEnvironmentLoader:
 
     @classmethod
     def _get_reference_variables(cls, environment):
+        LOGGER.debug("Getting reference variables from the following environment: %s", environment)
         return {key:value for key, value in environment.items() if re.match(r'.*\$\{[^${}]+\}', value, re.DOTALL)}
 
     def _resolve_references_variables(self, variables, parameters):
