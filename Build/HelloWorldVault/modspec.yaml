@@ -12,6 +12,7 @@ modspec:
       - credentials
       - datastore
       - environment
+      - secret
   - package: datalabs.access.parameter
     include:
     - aws
