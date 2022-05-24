@@ -93,8 +93,10 @@ class DAGTaskWrapper(
         dag_name = self._get_dag_name()
         task = self._get_task_id()
         execution_time = self._get_execution_time()
-        LOGGER.debug('Getting DAG Task Parameters for %s__%s...', dag_name, task)
         dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag_name, task)
+        LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
+        dynamic_parameters = self._runtime_parameters.get("parameters", {})
+        LOGGER.debug('Dynamic DAG Task Parameters: %s', dynamic_parameters)
 
         if task == 'DAG':
             state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
@@ -104,7 +106,7 @@ class DAGTaskWrapper(
 
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
 
-        dynamic_loader = ReferenceEnvironmentLoader(self._runtime_parameters.get("parameters", {}))
+        dynamic_loader = ReferenceEnvironmentLoader(dynamic_parameters)
         dynamic_loader.load(environment=dag_task_parameters)
 
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
