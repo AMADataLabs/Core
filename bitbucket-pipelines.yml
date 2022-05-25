@@ -367,24 +367,49 @@ pipelines:
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - bash Deploy/Master/deploy-python-package --project HelloWorldVault --branch $BITBUCKET_BRANCH
-        - step:
-            name: Update ETL Bundle
-            caches:
-                - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - >-
-                bash Deploy/Master/deploy-lambda-function
-                --environment sbx
-                --project HelloWorldVault
-                --bundle HelloWorldVault.zip
-                --runtime Python
-                --use-package
-        - step:
-            name: Update Lambda Functions
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - bash Deploy/Master/update-functions -e sbx -s DataLake HelloWorldVault=HelloWorldVault.zip
+        - parallel:
+            - step:
+                name: Update Sandbox Bundle
+                caches:
+                    - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project HelloWorldVault
+                    --bundle HelloWorldVault.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project HelloWorldVault
+                    --bundle HelloWorldVault.zip
+                    --runtime Python
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Function
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/update-functions -e sbx -s DataLake HelloWorldVault=HelloWorldVault.zip
+            - step:
+                name: Update Development Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API
+                    HelloWorldVault=HelloWorldVault.zip
 
         OneView-master:
         - parallel:
