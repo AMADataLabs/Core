@@ -48,7 +48,7 @@ class CRUDTask(Task):
 
     @classmethod
     def _update(cls, database):
-        database.execute(f"UPDATE {cls.TABLE} SET honorific="Professor" WHERE name='Jennifer'")
+        database.execute(f"UPDATE {cls.TABLE} SET honorific='Professor' WHERE name='Jennifer'")
         database.commit()  # pylint: disable=no-member
 
     @classmethod
