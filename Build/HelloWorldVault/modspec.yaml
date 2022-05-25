@@ -12,6 +12,8 @@ modspec:
       - credentials
       - datastore
       - environment
+  - pacakge: datalabs.example
+  - pacakge: datalabs.example.vault
   - package: datalabs.access.parameter
     include:
     - aws
