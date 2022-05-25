@@ -10,8 +10,10 @@ modspec:
     include:
       - aws
       - credentials
+      - database
       - datastore
       - environment
+      - orm
   - package: datalabs.example
   - package: datalabs.example.vault
   - package: datalabs.access.parameter
