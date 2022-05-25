@@ -10,7 +10,7 @@ from   datalabs.access.orm import Database
 
 
 class CRUDTask(Task):
-    TABLE = "value.hello_world"
+    TABLE = "vault.hello_world"
 
     def run(self):
         with self._get_database() as database:
