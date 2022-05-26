@@ -1,6 +1,6 @@
 arnparse==0.0.2
 boto3==1.18.12
-cryptography==3.4.8  # pinned to avoid GLIBC_2.18 error
+cryptography==3.4.8
 endesive==2.0.7
 json5==0.8.5
 marshmallow==3.10.0
