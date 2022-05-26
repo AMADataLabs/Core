@@ -1,4 +1,5 @@
 """ Python source file bundle class to aid in packaging apps. """
+import itertools
 import logging
 import os
 import shutil
@@ -53,10 +54,34 @@ class SourceBundle:
     def _generate_module_paths(cls, modspec, base_path):
         package_file_lists = []
 
-        for package in modspec['modspec']:
+        packages = cls._add_missing_parent_packages(modspec['modspec'])
+
+        for package in packages:
             package_file_lists.append(cls._find_package_files(package, base_path))
 
         return [file for package_files in package_file_lists for file in package_files]
+
+    @classmethod
+    def _add_missing_parent_packages(cls, packages):
+        package_names = [package["package"] for package in packages]
+
+        for package_name in package_names:
+            components = package_name.split('.')
+
+            parent_package_names = list(itertools.accumulate(components, lambda x, y: '.'.join((x, y))))
+
+            packages = cls._add_missing_packages_by_name(packages, package_names, parent_package_names)
+
+        return sorted(packages, key=lambda x: x["package"])
+
+    @classmethod
+    def _add_missing_packages_by_name(cls, packages, package_names, parent_package_names):
+        for name in parent_package_names:
+            if name not in package_names:
+                packages.append(dict(package=name))
+
+        return packages
+
 
     @classmethod
     def _find_package_files(cls, package, base_path):
