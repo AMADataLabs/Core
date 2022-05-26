@@ -152,6 +152,7 @@ pipelines:
                 --project CPT/API/ETL
                 --bundle CPT/API/ETL.zip
                 --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
@@ -211,6 +212,7 @@ pipelines:
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
                     --runtime Python
+                    --use-package
             - step:
                 name: Update development Bundle
                 caches:
@@ -225,6 +227,7 @@ pipelines:
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
                     --runtime Python
+                    --use-package
             - step:
                 name: Update test Bundle
                 caches:
@@ -239,6 +242,7 @@ pipelines:
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
                     --runtime Python
+                    --use-package
             - step:
                 name: Update staging Bundle
                 caches:
@@ -253,6 +257,7 @@ pipelines:
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
                     --runtime Python
+                    --use-package
             - step:
                 name: Update production Bundle
                 caches:
@@ -267,6 +272,7 @@ pipelines:
                     --project CPT/Files/Watermark
                     --bundle CPT/Files/Watermark.zip
                     --runtime Python
+                    --use-package
         - parallel:
             - step:
                 name: Update sandbox Lambda Functions
