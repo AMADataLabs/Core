@@ -75,6 +75,8 @@ process_arguments() {
     elif  [[ "$AWS_SECRET_ACCESS_KEY" == "" ]]; then
         echo "Missing secret access key argument."
         exit 1
+    elif [[ "$ENVIRONMENT" == "itg" ]]; then
+        ENVIRONMENT=prd
     fi
 }
 
