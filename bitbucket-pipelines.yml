@@ -586,6 +586,7 @@ pipelines:
                 --project CPT/API/ETL
                 --bundle CPT/API/ETL.zip
                 --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
@@ -927,6 +928,7 @@ pipelines:
                 --project CPT/API/ETL
                 --bundle CPT/API/ETL.zip
                 --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
@@ -1187,6 +1189,7 @@ pipelines:
                 --project CPT/API/ETL
                 --bundle CPT/API/ETL.zip
                 --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
@@ -1317,6 +1320,7 @@ pipelines:
                 --project CPT/API/ETL
                 --bundle CPT/API/ETL.zip
                 --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
@@ -1340,6 +1344,7 @@ pipelines:
                 --project CPT/API/Endpoint
                 --bundle CPT/API/Endpoint.zip
                 --runtime Python
+                --use-package
                 --use-package
         - step:
             name: Update Lambda Functions
