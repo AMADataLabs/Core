@@ -11,44 +11,11 @@ pipelines:
     branches:
         master:
         - step:
-            name: Build and Auto-Merge to dev
+            name: Build
             caches:
                 - build-dependencies
             script:
             - bash Script/bitbucket-pipelines-build.sh
-            - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-            - git fetch
-            - git checkout dev
-            - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
-            - git push origin dev
-        dev:
-        - step:
-            name: Build dev
-            caches:
-                - build-dependencies
-            script:
-                - bash Script/bitbucket-pipelines-build.sh
-        test:
-        - step:
-            name: Build test
-            caches:
-                - build-dependencies
-            script:
-                - bash Script/bitbucket-pipelines-build.sh
-        stage:
-        - step:
-            name: Build stage
-            caches:
-                - build-dependencies
-            script:
-                - bash Script/bitbucket-pipelines-build.sh
-        prod:
-        - step:
-            name: Build prod
-            caches:
-                - build-dependencies
-            script:
-                - bash Script/bitbucket-pipelines-build.sh
     tags:
         'datalabs-*_*.*.*':
         - step:
@@ -80,7 +47,7 @@ pipelines:
         # master branch targets
         ##############################################################
 
-        AMC-master:
+        AMC:
         - step:
             name: Update Component Package
             caches:
@@ -112,7 +79,7 @@ pipelines:
         #     - export ENVIRONMENT=sbx
         #     - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AMC=AMC.zip
 
-        ContactID-master:
+        ContactID:
         - step:
             name: Update Bundle
             caches:
@@ -132,7 +99,7 @@ pipelines:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - bash Deploy/Master/update-functions -e sbx -s DataLake -p CustomerIntelligence ContactID=ContactID.zip
 
-        CPT-API-ETL-master:
+        CPT-API-ETL:
         - step:
             name: Update Component Package
             caches:
@@ -140,26 +107,115 @@ pipelines:
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
             - bash Deploy/Master/deploy-python-package --project CPT/API/ETL --branch $BITBUCKET_BRANCH
-        - step:
-            name: Update Bundle
-            caches:
-                - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - >-
-                bash Deploy/Master/deploy-lambda-function
-                --environment sbx
-                --project CPT/API/ETL
-                --bundle CPT/API/ETL.zip
-                --runtime Python
-                --use-package
-        - step:
-            name: Update Lambda Functions
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API ETL=ETL.zip
+        - parallel:
+            - step:
+                name: Update sandbox Bundle
+                caches:
+                    - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update test Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update staging Bundle
+                caches:
+                    - environment-stage
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment itg
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update production Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --use-package
+        - parallel:
+            - step:
+                name: Update sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API ETL=ETL.zip
+            - step:
+                name: Update development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
+                    ETL=ETL.zip
+            - step:
+                name: Update test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
+                    ETL=ETL.zip
+            - step:
+                name: Update production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
+                    ETL=ETL.zip
 
-        CPT-API-Endpoint-master:
+        CPT-API-Endpoint:
         - step:
             name: Update Component Package
             caches:
@@ -191,7 +247,7 @@ pipelines:
                 BulkAuthorizer=Endpoint.zip
                 BulkEndpoint=Endpoint.zip
 
-        CPT-Files-Watermark-master:
+        CPT-Files-Watermark:
         - step:
             name: Update Component Package
             caches:
@@ -307,7 +363,7 @@ pipelines:
             #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files
             #         WatermarkDAG=Watermark.zip
 
-        DBL-master:
+        DBL:
         - step:
             name: Update Component Package
             caches:
@@ -329,7 +385,7 @@ pipelines:
                 --runtime Python
                 --use-package
 
-        HelloWorldJava-master:
+        HelloWorldJava:
         - parallel:
             - step:
                 name: Update DAG Bundle
@@ -379,7 +435,7 @@ pipelines:
                 HelloWorldJavaDAG=DAG.zip
                 HelloWorldJavaTask=Task.jar
 
-        HelloWorldVault-master:
+        HelloWorldVault:
         - step:
             name: Update Component Package
             caches:
@@ -431,7 +487,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API
                     HelloWorldVault=HelloWorldVault.zip
 
-        OneView-master:
+        OneView:
         - parallel:
             - step:
                 name: Create Database
@@ -491,7 +547,7 @@ pipelines:
                 - export ENVIRONMENT=sbx
                 - bash Deploy/OneView/update-functions
 
-        Organizations-master:
+        Organizations:
         - step:
             name: Update ETL Bundle
             caches:
@@ -570,30 +626,6 @@ pipelines:
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
                 AMC=AMC.zip
-
-        CPT-API-ETL-dev:
-        - step:
-            name: Update Bundle
-            caches:
-                - environment-dev
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                --environment dev
-                --project CPT/API/ETL
-                --bundle CPT/API/ETL.zip
-                --runtime Python
-                --use-package
-        - step:
-            name: Update Lambda Functions
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API ETL=ETL.zip
 
         CPT-API-Endpoint-dev:
         - step:
@@ -913,30 +945,6 @@ pipelines:
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
                 AMC=AMC.zip
 
-        CPT-API-ETL-test:
-        - step:
-            name: Update Bundle
-            caches:
-                - environment-test
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                --environment tst
-                --project CPT/API/ETL
-                --bundle CPT/API/ETL.zip
-                --runtime Python
-                --use-package
-        - step:
-            name: Update Lambda Functions
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API ETL=ETL.zip
-
         CPT-API-Endpoint-test:
         - step:
             name: Update Bundle
@@ -1174,30 +1182,6 @@ pipelines:
         # stage branch targets
         ##############################################################
 
-        CPT-API-ETL-stage:
-        - step:
-            name: Update Bundle
-            caches:
-                - environment-stage
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                --environment itg
-                --project CPT/API/ETL
-                --bundle CPT/API/ETL.zip
-                --runtime Python
-                --use-package
-        - step:
-            name: Update Lambda Functions
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT/API ETL=ETL.zip
-
         CPT-API-Endpoint-stage:
         - step:
             name: Update Bundle
@@ -1304,30 +1288,6 @@ pipelines:
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
                 AMC=AMC.zip
-
-        CPT-API-ETL-production:
-        - step:
-            name: Update Bundle
-            caches:
-                - environment-prod
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                --environment prd
-                --project CPT/API/ETL
-                --bundle CPT/API/ETL.zip
-                --runtime Python
-                --use-package
-        - step:
-            name: Update Lambda Functions
-            script:
-            - >-
-                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-            - bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API ETL=ETL.zip
 
         CPT-API-Endpoint-production:
         - step:

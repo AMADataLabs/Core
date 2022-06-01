@@ -100,7 +100,7 @@ fi
 PROJECTS_TO_BUILD=$(echo -e "$CHANGED_DEPENDENCIES" | tsort | tac)
 for PROJECT_NAME in $(echo -e "$CHANGED_PROJECTS"); do
     if [[ ! $(echo -e "$PROJECTS_TO_BUILD" | grep "$PROJECT_NAME") ]]; then
-        PROJECTS_TO_BUILD="$PROJECT_NAME-${BITBUCKET_BRANCH} $PROJECTS_TO_BUILD"
+        PROJECTS_TO_BUILD="$PROJECT_NAME $PROJECTS_TO_BUILD"
     fi
 done
 
