@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 Script/setup-virtual-environment Master
 export VIRTUAL_ENV=${PWD}/Environment/Master
 export PATH="$VIRTUAL_ENV/bin:$PATH"
