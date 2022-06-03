@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+
+CLUSTER=
+TASK=
+TASK_ARN=
+
+
+main() {
+    process_arguments "$@"
+
+    get_task_arn
+
+    stop_task
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -c|--cluster)
+            CLUSTER=$2
+            shift
+            shift
+            ;;
+        -t|--task)
+            TASK=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected positional argument $1"
+            print_usage
+            exit 1
+            ;;
+      esac
+    done
+
+    if [[ "$CLUSTER" == "" ]]; then
+        echo "Error: The name of the cluster was not specified."
+        print_usage
+        exit 1
+    elif [[ "$TASK" == "" ]]; then
+        echo "Error: The name of the task was not specified."
+        print_usage
+        exit 1
+    fi
+}
+
+
+get_task_arn() {
+    TASK_ARN=$($SCRIPT_BASE_PATH/get-ecs-tasks --cluster $CLUSTER | jq ".\"$TASK\"" | sed 's/",*//g')
+}
+
+
+stop_task() {
+    set -x
+    aws ecs stop-task --cluster $CLUSTER --task $TASK_ARN
+}
+
+
+print_usage() {
+    echo "Usage: get-ecs-tasks [OPTION]..."
+    echo "Get tasks associated with an ECS cluster."
+    echo
+    echo "Options:"
+    echo "  -h|--help                  Print usage."
+    echo "  -c|--cluster <cluster>     Name of the task's cluster."
+    echo "  -t|--task <task>           Name of the task to stop."
+}
+
+
+main "$@"
