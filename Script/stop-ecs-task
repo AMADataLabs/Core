@@ -60,7 +60,6 @@ get_task_arn() {
 
 
 stop_task() {
-    set -x
     aws ecs stop-task --cluster $CLUSTER --task $TASK_ARN
 }
 
