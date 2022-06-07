@@ -54,6 +54,11 @@ fi
 echo "Running tests..."
 CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
 
+if [[ $? != 0 ]]; then
+    echo "Tests failed. Aborting build..."
+    exit 1
+fi
+
 # Collect all modified projects
 PROJECTS_TO_BUILD=$($DIR/list-projects-to-build.sh $COMMIT_RANGE)
 
