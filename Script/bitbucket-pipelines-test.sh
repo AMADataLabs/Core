@@ -56,8 +56,20 @@ echo -e "$PROJECTS_TO_LINT"
 
 # Get files for all modified projects
 FILES=
-for PROJECT in $PROJECTS_TO_LINT; do
-    FILES="$FILES $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT)"
+for TARGET in $PROJECTS_TO_LINT; do
+    TARGET_PROJECT=${TARGET}
+    TARGET_DIR=
+
+    for PROJECT_DIR in $(cat ${DIR}/../.ci/projects.txt); do
+        PROJECT=$(cat ${DIR}/../Build/${PROJECT_DIR}/.ci/project.txt)
+
+        if [[ "$PROJECT" == "$TARGET_PROJECT" ]]; then
+            TARGET_DIR=$PROJECT_DIR
+            break
+        fi
+    done
+
+    FILES="$FILES $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $TARGET_DIR)"
 done
 
 # Dedup files list
