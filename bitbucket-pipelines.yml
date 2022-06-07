@@ -487,25 +487,17 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API
                     HelloWorldVault=HelloWorldVault.zip
 
-        OneView:
+        OneView-ETL:
+        - step:
+            name: Create New Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/deploy-python-package --project OneView/ETL --branch $BITBUCKET_BRANCH
         - parallel:
             - step:
-                name: Create Database
-                caches:
-                  - environment-master
-                script:
-                - bash Script/setup-virtual-environment OneView
-                - export ENABLE_FEATURE_DEV=True
-                - export DATABASE_NAME=oneview_content
-                - export DATABASE_NAME_ADMIN=postgres
-                - export DATABASE_BACKEND=postgresql+psycopg2
-                - export DATABASE_HOST=$ONEVIEW_DATABASE_HOST_SANDBOX
-                - export DATABASE_PORT=5432
-                - export DATABASE_USERNAME=$ONEVIEW_DATABASE_USERNAME_SANDBOX
-                - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_SANDBOX
-                - bash Deploy/Master/create-database OneView
-            - step:
-                name: Update ETL Bundle
+                name: Update Sandbox Lambda Bundle
                 caches:
                     - environment-master
                 script:
@@ -518,8 +510,125 @@ pipelines:
                     --runtime Python
                     --jdbc-driver DB2
                     --jdbc-driver Informix
+                    --use-package
             - step:
-                name: Update API Bundle
+                name: Update Development Lambda Bundles
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project OneView/ETL
+                    --bundle OneView/ETL.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Test Lambda Bundles
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project OneView/ETL
+                    --bundle OneView/ETL.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Production Lambda Bundles
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project OneView/ETL
+                    --bundle OneView/ETL.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update development Batch Job Image
+                caches:
+                    - environment-dev
+                script:
+                # Assume ECR role
+                - aws configure set profile.shared.aws_access_key_id $AWS_ACCESS_KEY_ID_ECR_ROLE
+                - aws configure set profile.shared.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ECR_ROLE
+                - aws configure set profile.shared.region us-east-1
+                - aws configure set profile.shared.output json
+                - bash Script/ecr_assume_role.sh | grep source > assume_role.rc
+                - source assume_role.rc
+
+                # Build the image
+                - >-
+                    docker build -t oneview-dev
+                    -f ./Build/OneView/ETL/Reindex/Dockerfile ./
+
+                # Push the image to ECR
+                - >-
+                    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin
+                    394406051370.dkr.ecr.us-east-1.amazonaws.com
+                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
+                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Function
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - >-
+                    bash Deploy/Master/update-functions -e sbx -s OneView -p OneView/ETL
+                    ETL=OneView/ETL.zip
+            - step:
+                name: Update Development Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView/ETL
+                    ETL=OneView/ETL.zip
+            - step:
+                name: Update Test Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView/ETL
+                    ETL=OneView/ETL.zip
+            - step:
+                name: Update Production Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView/ETL
+                    ETL=OneView/ETL.zip
+
+        OneView-API:
+        - step:
+            name: Create New Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/deploy-python-package --project OneView/API --branch $BITBUCKET_BRANCH
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Bundle
                 caches:
                     - environment-master
                 script:
@@ -530,22 +639,87 @@ pipelines:
                     --project OneView/API
                     --bundle OneView/API.zip
                     --runtime Python
-        - parallel:
-            # - step:
-            #     name: Migrate Database
-            #     caches:
-            #       - environment-master
-            #     script:
-            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
-            #     - Script/run.py Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
+                    --use-package
             - step:
-                name: Update Lambda Functions
+                name: Update Development Lambda Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project OneView/API
+                    --bundle OneView/API.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Test Lambda Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project OneView/API
+                    --bundle OneView/API.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Production Lambda Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project OneView/API
+                    --bundle OneView/API.zip
+                    --runtime Python
+                    --use-package
+        - parallel:
+            - step:
+                name: Reload Sandbox Lambda Functions
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                - export ENVIRONMENT=sbx
-                - bash Deploy/OneView/update-functions
+                - >-
+                    bash Deploy/Master/update-functions -e sbx -s OneView -p OneView/ETL
+                    API=OneView/API.zip
+            - step:
+                name: Reload Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView/ETL
+                    API=OneView/API.zip
+            - step:
+                name: Reload Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView/ETL
+                    API=OneView/API.zip
+            - step:
+                name: Reload Production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView/ETL
+                    API=OneView/API.zip
 
         Organizations:
         - step:
