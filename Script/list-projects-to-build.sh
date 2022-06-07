@@ -85,8 +85,7 @@ else
             CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT_NAME"
             CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT_DIR)"
         else
-            # echo "$PROJECT Source Files:\n$(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT)"
-            for SOURCE_FILE in $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT_DIR); do
+            for SOURCE_FILE in $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT); do
                 if [[ $(echo -e "$CHANGED_PATHS" | grep -e "$SOURCE_FILE" -e "Build/$PROJECT_DIR")  ]]; then
                     CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT_NAME"
                     CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT_DIR)"

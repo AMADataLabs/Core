@@ -56,10 +56,9 @@ echo -e "$PROJECTS_TO_LINT"
 
 # Get files for all modified projects
 FILES=
-for TARGET in $PROJECTS_TO_LINT; do
-    PROJECT=${TARGET/-${BITBUCKET_BRANCH}/}
+for PROJECT in $PROJECTS_TO_LINT; do
     FILES="$FILES $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $PROJECT)"
-done;
+done
 
 # Dedup files list
 FILES_TO_LINT=
