@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
 Script/setup-virtual-environment Master
 export VIRTUAL_ENV=${PWD}/Environment/Master
@@ -51,13 +51,12 @@ if [[ $BITBUCKET_BRANCH == 'master' && -z "$PROJECTS_TO_LINT" ]]; then
     exit 0
 fi
 
-echo "Following projects need to be linted"
+echo "The following projects need to be linted"
 echo -e "$PROJECTS_TO_LINT"
 
 # Get files for all modified projects
 FILES=
-for TARGET in $PROJECTS_TO_LINT; do
-    TARGET_PROJECT=${TARGET}
+for TARGET_PROJECT in $PROJECTS_TO_LINT; do
     TARGET_DIR=
 
     for PROJECT_DIR in $(cat ${DIR}/../.ci/projects.txt); do
@@ -69,7 +68,9 @@ for TARGET in $PROJECTS_TO_LINT; do
         fi
     done
 
-    FILES="$FILES $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $TARGET_DIR)"
+    if [[ "$TARGET_DIR" != "" ]]; then
+        FILES="$FILES $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $TARGET_DIR)"
+    fi
 done
 
 # Dedup files list
@@ -81,9 +82,6 @@ for FILE in $FILES; do
     fi
 done
 
-# if [[ $BITBUCKET_BRANCH != 'master' && $BITBUCKET_BRANCH != 'dev' ]]; then
-if [[ $BITBUCKET_BRANCH != 'master' ]]; then
-    FILES_TO_LINT="$(find ${PWD}/Source/Python/datalabs -name "*.py"  | grep -v ${PWD}/Source/Python/datalabs/airflow | tr '\n' ' ') $(find ${PWD}/Test/Python/test/datalabs -name "*.py" | tr '\n' ' ')"
-fi
+FILES_TO_LINT="$(find ${PWD}/Source/Python/datalabs -name "*.py"  | grep -v ${PWD}/Source/Python/datalabs/airflow | tr '\n' ' ') $(find ${PWD}/Test/Python/test/datalabs -name "*.py" | tr '\n' ' ')"
 
 ${DIR}/run.py pylint --extension-pkg-whitelist=pyodbc,numpy $FILES_TO_LINT
