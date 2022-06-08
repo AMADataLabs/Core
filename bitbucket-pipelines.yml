@@ -505,8 +505,8 @@ pipelines:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
-                    --project OneView/ETL
-                    --bundle OneView/ETL.zip
+                    --project OneView
+                    --bundle ETL.zip
                     --runtime Python
                     --jdbc-driver DB2
                     --jdbc-driver Informix
@@ -522,8 +522,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
-                    --project OneView/ETL
-                    --bundle OneView/ETL.zip
+                    --project OneView
+                    --bundle ETL.zip
                     --runtime Python
                     --use-package
             - step:
@@ -537,8 +537,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
-                    --project OneView/ETL
-                    --bundle OneView/ETL.zip
+                    --project OneView
+                    --bundle ETL.zip
                     --runtime Python
                     --use-package
             - step:
@@ -552,8 +552,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
-                    --project OneView/ETL
-                    --bundle OneView/ETL.zip
+                    --project OneView
+                    --bundle ETL.zip
                     --runtime Python
                     --use-package
             - step:
@@ -636,8 +636,8 @@ pipelines:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
-                    --project OneView/API
-                    --bundle OneView/API.zip
+                    --project OneView
+                    --bundle API.zip
                     --runtime Python
                     --use-package
             - step:
@@ -651,8 +651,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
-                    --project OneView/API
-                    --bundle OneView/API.zip
+                    --project OneView
+                    --bundle API.zip
                     --runtime Python
                     --use-package
             - step:
@@ -666,8 +666,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
-                    --project OneView/API
-                    --bundle OneView/API.zip
+                    --project OneView
+                    --bundle API.zip
                     --runtime Python
                     --use-package
             - step:
@@ -681,8 +681,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
-                    --project OneView/API
-                    --bundle OneView/API.zip
+                    --project OneView
+                    --bundle API.zip
                     --runtime Python
                     --use-package
         - parallel:
@@ -691,7 +691,7 @@ pipelines:
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
-                    bash Deploy/Master/update-functions -e sbx -s OneView -p OneView/ETL
+                    bash Deploy/Master/update-functions -e sbx -s OneView -p OneView/API
                     API=OneView/API.zip
             - step:
                 name: Reload Development Lambda Functions
@@ -700,7 +700,7 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView/ETL
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView/API
                     API=OneView/API.zip
             - step:
                 name: Reload Test Lambda Functions
@@ -709,7 +709,7 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView/ETL
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView/API
                     API=OneView/API.zip
             - step:
                 name: Reload Production Lambda Functions
@@ -718,7 +718,7 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView/ETL
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView/API
                     API=OneView/API.zip
 
         Organizations:
