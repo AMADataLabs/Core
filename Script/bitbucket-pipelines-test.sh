@@ -21,7 +21,7 @@ main() {
     run_unit_tests
     return_code=$?
 
-    if [[ $? != 0 ]]; then
+    if [[ $? == 0 ]]; then
         run_lint_tests
 
         return_code=$?
