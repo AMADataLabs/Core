@@ -66,6 +66,7 @@ class BatchPythonTaskExecutorParameters:
     task: str
     job_queue: str
     job_definition: str
+    parameters: dict=None
     unknowns: dict = None
 
 

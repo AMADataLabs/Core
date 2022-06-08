@@ -512,7 +512,7 @@ pipelines:
                     --jdbc-driver Informix
                     --use-package
             - step:
-                name: Update Development Lambda Bundles
+                name: Update Development Lambda Bundle
                 caches:
                     - environment-dev
                 script:
@@ -527,7 +527,7 @@ pipelines:
                     --runtime Python
                     --use-package
             - step:
-                name: Update Test Lambda Bundles
+                name: Update Test Lambda Bundle
                 caches:
                     - environment-dev
                 script:
@@ -542,7 +542,7 @@ pipelines:
                     --runtime Python
                     --use-package
             - step:
-                name: Update Production Lambda Bundles
+                name: Update Production Lambda Bundle
                 caches:
                     - environment-dev
                 script:
@@ -557,7 +557,7 @@ pipelines:
                     --runtime Python
                     --use-package
             - step:
-                name: Update development Batch Job Image
+                name: Update Development Batch Job Image
                 caches:
                     - environment-dev
                 script:
