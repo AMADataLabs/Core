@@ -587,9 +587,7 @@ pipelines:
                 name: Update Sandbox Lambda Function
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                - >-
-                    bash Deploy/Master/update-functions -e sbx -s OneView -p OneView/ETL
-                    ETL=OneView/ETL.zip
+                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView ETL=ETL.zip
             - step:
                 name: Update Development Lambda Function
                 script:
@@ -597,8 +595,8 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView/ETL
-                    ETL=OneView/ETL.zip
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView
+                    ETL=ETL.zip
             - step:
                 name: Update Test Lambda Function
                 script:
@@ -606,8 +604,8 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView/ETL
-                    ETL=OneView/ETL.zip
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView
+                    ETL=ETL.zip
             - step:
                 name: Update Production Lambda Function
                 script:
@@ -615,8 +613,8 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView/ETL
-                    ETL=OneView/ETL.zip
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
+                    ETL=ETL.zip
 
         OneView-API:
         - step:
@@ -690,9 +688,7 @@ pipelines:
                 name: Reload Sandbox Lambda Functions
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                - >-
-                    bash Deploy/Master/update-functions -e sbx -s OneView -p OneView/API
-                    API=OneView/API.zip
+                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView API=API.zip
             - step:
                 name: Reload Development Lambda Functions
                 script:
@@ -700,8 +696,8 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView/API
-                    API=OneView/API.zip
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView
+                    API=API.zip
             - step:
                 name: Reload Test Lambda Functions
                 script:
@@ -709,8 +705,8 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView/API
-                    API=OneView/API.zip
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView
+                    API=API.zip
             - step:
                 name: Reload Production Lambda Functions
                 script:
@@ -718,8 +714,8 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView/API
-                    API=OneView/API.zip
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
+                    API=API.zip
 
         Organizations:
         - step:
