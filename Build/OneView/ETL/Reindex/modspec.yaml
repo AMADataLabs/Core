@@ -1,27 +1,16 @@
 ---
-# Example specification for which modules are included in a project.
-#
-# Rules:
-# 1) Package requirements are not recursive
-# 2) A package requirement without an include or exclude defaults to including all modules in that package
-# 3) A package MAY have EITHER an include or exclude module filter, but not both
-# 4) An include filter means that ONLY those modules listed will be included under the package
-# 5) An exclude filter means that ALL modules EXCEPT those listed will be included under the package
-
 modspec:
   - package: datalabs
     include:
-      - feature
       - awslambda
+      - feature
+      - parameter
       - plugin
-      - etl
       - sqlalchemy
       - task
-      - parameter
   - package: datalabs.access
     include:
       - aws
-      - sftp
       - credentials
       - database
       - datastore
@@ -32,18 +21,21 @@ modspec:
   - package: datalabs.access.secret
   - package: datalabs.etl
     include:
-      - csv
-      - task
-      - extract
       - awslambda
-      - transform
+      - csv
       - load
-  - package: datalabs.etl
-  - package: datalabs.etl.dag
-    include:
-      - aws
-      - plugin
-      - resolve
       - task
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.notify
+  - package: datalabs.etl.dag.state
   - package: datalabs.etl.orm
+  - package: datalabs.etl.orm.provider
+    include:
+      - base
+      - postgresql
+  - package: datalabs.etl.s3
+  - package: datalabs.messaging
+    include:
+      - email_message
   - package: datalabs.model.masterfile.oneview
