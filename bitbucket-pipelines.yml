@@ -575,13 +575,15 @@ pipelines:
                     -f ./Build/OneView/ETL/Reindex/Dockerfile ./
 
                 # Push the image to ECR
+                - export ECR_URL=394406051370.dkr.ecr.us-east-1.amazonaws.com
+                - export IMAGE_TAG=1.0.2
                 - >-
                     aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin
-                    394406051370.dkr.ecr.us-east-1.amazonaws.com
-                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
-                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
-                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
-                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
+                    ${ECR_URL}
+                - docker tag oneview-dev ${ECR_URL}/oneview-dev:${IMAGE_TAG}
+                - docker push ${ECR_URL}/oneview-dev:${IMAGE_TAG}
+                - docker tag oneview-dev ${ECR_URL}/oneview-dev:latest
+                - docker push ${ECR_URL}/oneview-dev:latest
         - parallel:
             - step:
                 name: Update Sandbox Lambda Function

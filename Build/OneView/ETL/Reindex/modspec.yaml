@@ -38,5 +38,12 @@ modspec:
       - awslambda
       - transform
       - load
+  - package: datalabs.etl
+  - package: datalabs.etl.dag
+    include:
+      - aws
+      - plugin
+      - resolve
+      - task
   - package: datalabs.etl.orm
   - package: datalabs.model.masterfile.oneview
