@@ -66,7 +66,10 @@ class DAGTaskWrapper(
         if task != "DAG":
             state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
 
-            state.set_task_status(dag, task, execution_time, Status.RUNNING)
+            succeeded = state.set_task_status(dag, task, execution_time, Status.RUNNING)
+
+            if not success:
+                LOGGER.error('Unable to set status of task %s of dag %s to Running', task, dag)
 
     def _handle_success(self) -> str:
         super()._handle_success()

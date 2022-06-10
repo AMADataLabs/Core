@@ -43,6 +43,7 @@ class LockingStateMixin():
 
                 locked = True
             except botocore.exceptions.ClientError as exception:
+                LOGGER.exception('Unable to put item in lock table.')
                 if exception.response['Error']['Code'] != 'ConditionalCheckFailedException':
                     raise
 
@@ -61,6 +62,7 @@ class LockingStateMixin():
 
             unlocked = True
         except botocore.exceptions.ClientError as exception:
+            LOGGER.exception('Unable to delete item from lock table.')
             if exception.response['Error']['Code'] != 'ConditionalCheckFailedException':
                 raise
 
