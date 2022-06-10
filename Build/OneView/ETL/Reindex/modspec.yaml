@@ -30,6 +30,9 @@ modspec:
   - package: datalabs.etl.dag.execute
     include:
       - local
+  - package: datalabs.etl.dag.masterfile
+    include:
+      - oneview
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.orm
