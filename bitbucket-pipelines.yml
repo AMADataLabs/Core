@@ -484,7 +484,7 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                     -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
                     HelloWorldVault=HelloWorldVault.zip
 
         OneView-ETL:
