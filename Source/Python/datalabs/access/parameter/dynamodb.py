@@ -10,7 +10,7 @@ from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
