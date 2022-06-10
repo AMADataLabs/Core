@@ -17,14 +17,17 @@ modspec:
       - environment
       - etcd
       - orm
+      - sftp
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
   - package: datalabs.etl
     include:
       - awslambda
       - csv
+      - extract
       - load
       - task
+      - transform
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.execute
@@ -35,12 +38,28 @@ modspec:
       - oneview
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+  - package: datalabs.etl.fs
+  - package: datalabs.etl.jdbc
+  - package: datalabs.etl.manipulate
+  - package: datalabs.etl.oneview
+  - package: datalabs.etl.oneview.credentialing
+  - package: datalabs.etl.oneview.email
+  - package: datalabs.etl.oneview.historical_resident
+  - package: datalabs.etl.oneview.iqvia
+  - package: datalabs.etl.oneview.link
+  - package: datalabs.etl.oneview.melissa
+  - package: datalabs.etl.oneview.ppd
+  - package: datalabs.etl.oneview.race_ethnicity
+  - package: datalabs.etl.oneview.residency
   - package: datalabs.etl.orm
   - package: datalabs.etl.orm.provider
     include:
       - base
       - postgresql
+  - package: datalabs.etl.oneview.reference
+  - package: datalabs.etl.http
   - package: datalabs.etl.s3
+  - package: datalabs.etl.sftp
   - package: datalabs.messaging
     include:
       - email_message
