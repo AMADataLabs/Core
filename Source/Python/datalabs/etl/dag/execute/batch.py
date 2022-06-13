@@ -32,7 +32,7 @@ class BatchDAGExecutorTask(Task):
         parameters = dict(
             dag=self._parameters.dag,
             type="DAG",
-            execution_time=execution_time
+            execution_time=self._parameters.execution_time
         )
 
         if self._parameters.parameters:
@@ -81,7 +81,7 @@ class BatchPythonTaskExecutorTask(Task):
             dag=self._parameters.dag,
             type="Task",
             task=self._parameters.task,
-            execution_time=execution_time
+            execution_time=self._parameters.execution_time
         )
 
         if self._parameters.parameters:
