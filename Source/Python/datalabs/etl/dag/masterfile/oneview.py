@@ -37,12 +37,11 @@ from   datalabs.etl.oneview.reference.transform import \
     ClassOfTradeTransformerTask, \
     MedicalSchoolTransformerTask
 from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
-from   datalabs.etl.orm.load import ORMLoaderTask  #, MaterializedViewRefresherTask, ReindexerTask
+from   datalabs.etl.orm.load import ORMLoaderTask, MaterializedViewRefresherTask, ReindexerTask
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPIBM437TextFileExtractorTask
 from   datalabs.etl.transform import PassThroughTransformerTask
-from   datalabs.etl.task import DummyTask
 
 
 class OneViewDAG(DAG):
@@ -164,14 +163,10 @@ class OneViewDAG(DAG):
     LOAD_MEDICAL_SCHOOL_TABLE: ORMLoaderTask
 
     # The refresh tasks will be run using AWS Batch instead of Lambda
-    # REFRESH_PHYSICIAN_VIEW: MaterializedViewRefresherTask
-    # REINDEX_PHYSICIAN_VIEW: ReindexerTask
-    # REFRESH_PROVIDER_VIEW: MaterializedViewRefresherTask
-    # REINDEX_PROVIDER_VIEW: ReindexerTask
-    REFRESH_PHYSICIAN_VIEW: DummyTask
-    REINDEX_PHYSICIAN_VIEW: DummyTask
-    REFRESH_PROVIDER_VIEW: DummyTask
-    REINDEX_PROVIDER_VIEW: DummyTask
+    REFRESH_PHYSICIAN_VIEW: MaterializedViewRefresherTask
+    REINDEX_PHYSICIAN_VIEW: ReindexerTask
+    REFRESH_PROVIDER_VIEW: MaterializedViewRefresherTask
+    REINDEX_PROVIDER_VIEW: ReindexerTask
 
 
 # pylint: disable=pointless-statement, expression-not-assigned
