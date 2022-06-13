@@ -27,8 +27,8 @@ class BatchDAGExecutorTask(Task):
     PARAMETER_CLASS = BatchDAGExecutorParameters
 
     def run(self):
-        job_name = f"{self._parameters.dag.replace(':', '')}__"\
-                   f"{self._parameters.execution_time.replace(" ", "T").replace(':', '').replace('.', '')}"
+        job_name = f"{self._parameters.dag.replace(':', '')}"\
+                   f"__{self._parameters.execution_time.replace(' ', 'T').replace(':', '').replace('.', '')}"
         parameters = dict(
             dag=self._parameters.dag,
             type="DAG",
@@ -76,7 +76,7 @@ class BatchPythonTaskExecutorTask(Task):
 
     def run(self):
         job_name = f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"\
-                   f"__{self._parameters.execution_time.replace(" ", "T").replace(':', '').replace('.', '')}"
+                   f"__{self._parameters.execution_time.replace(' ', 'T').replace(':', '').replace('.', '')}"
         parameters = dict(
             dag=self._parameters.dag,
             type="Task",
