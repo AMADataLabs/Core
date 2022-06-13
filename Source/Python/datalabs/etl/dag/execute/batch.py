@@ -9,7 +9,7 @@ from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @add_schema(unknowns=True)
@@ -27,8 +27,8 @@ class BatchDAGExecutorTask(Task):
     PARAMETER_CLASS = BatchDAGExecutorParameters
 
     def run(self):
-        execution_time = self._parameters.execution_time.replace(" ", "T")
-        job_name = f"{self._parameters.dag.replace(':', '')}__{execution_time.replace(':', '').replace('.', '')}"
+        job_name = f"{self._parameters.dag.replace(':', '')}__"\
+                   f"{self._parameters.execution_time.replace(" ", "T").replace(':', '').replace('.', '')}"
         parameters = dict(
             dag=self._parameters.dag,
             type="DAG",
@@ -37,6 +37,7 @@ class BatchDAGExecutorTask(Task):
 
         if self._parameters.parameters:
             parameters["parameters"] = self._parameters.parameters
+        LOGGER.debug('Final batch DAG parameters: %s', parameters)
 
         LOGGER.info('Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
@@ -74,9 +75,8 @@ class BatchPythonTaskExecutorTask(Task):
     PARAMETER_CLASS = BatchPythonTaskExecutorParameters
 
     def run(self):
-        execution_time = self._parameters.execution_time.replace(" ", "T")
         job_name = f"{self._parameters.dag.replace(':', '')}__{self._parameters.task}"\
-                   f"__{execution_time.replace(':', '').replace('.', '')}"
+                   f"__{self._parameters.execution_time.replace(" ", "T").replace(':', '').replace('.', '')}"
         parameters = dict(
             dag=self._parameters.dag,
             type="Task",
@@ -86,6 +86,7 @@ class BatchPythonTaskExecutorTask(Task):
 
         if self._parameters.parameters:
             parameters["parameters"] = self._parameters.parameters
+        LOGGER.debug('Final batch task parameters: %s', parameters)
 
         LOGGER.info('Submitting job %s to queue %s.', job_name, self._parameters.job_queue)
 
