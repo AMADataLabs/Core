@@ -104,6 +104,7 @@ class ETLComponentTask(task.Task):
 
 class DummyTask(ETLComponentTask):
     def run(self):
+        LOGGER.info("I'm a dummy!")
         return []
 
 
