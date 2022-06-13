@@ -525,6 +525,8 @@ pipelines:
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
                     --runtime Python
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
                     --use-package
             - step:
                 name: Update Test Lambda Bundle
@@ -540,6 +542,8 @@ pipelines:
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
                     --runtime Python
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
                     --use-package
             - step:
                 name: Update Production Lambda Bundle
@@ -555,6 +559,8 @@ pipelines:
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
                     --runtime Python
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
                     --use-package
             - step:
                 name: Update Development Batch Job Image
