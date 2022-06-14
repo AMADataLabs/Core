@@ -1,22 +1,21 @@
 # Build Example:
 #    docker build -t oneview-reindex -f ./Build/OneView/ETL/Reindex/Dockerfile ./
 FROM python:3.7
+ARG PACKAGE_NAME
+ARG PACKAGE_VERSION
 
 WORKDIR /OneView
 ENV PYTHONPATH=/OneView:/OneView/site-packages
 ENV CLASSPATH=/OneView
 ENV AWS_DEFAULT_REGION=us-east-1
 
-COPY ./Build/OneView/ETL/Reindex/requirements.txt .
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+COPY ./Deploy/Master ./Deploy/Master
 
-COPY ./Script ./Script
-COPY ./Build/Master ./Build/Master
-COPY ./Build/OneView/ETL/Reindex ./Build/OneView/ETL/Reindex
-COPY ./Source/Python ./Source/Python
-COPY ./Source/Bash ./Source/Bash
+# TODO: install AWS CLI v2
 
-RUN ./Script/bundle-project -i --directory ./ OneView/ETL/Reindex
+RUN aws --profile default codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
 
-RUN rm -rf ./Build/Master
-RUN rm -rf ./Source
+RUN echo "$PACKAGE" > requirements.txt
+RUN pip install --target Bundle/ -r requirements.txt
+
+RUN rm -rf ./Deploy
