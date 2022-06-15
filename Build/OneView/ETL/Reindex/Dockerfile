@@ -1,5 +1,5 @@
 # Build Example:
-#    docker build -t oneview-reindex -f ./Build/OneView/ETL/Reindex/Dockerfile ./
+#    docker build --build-arg PACKAGE_NAME=datalabs-oneview-etl --build-arg PACKAGE_VERSION=1.1.0 -t oneview-reindex -f ./Build/OneView/ETL/Reindex/Dockerfile ./
 FROM python:3.7
 ARG PACKAGE_NAME
 ARG PACKAGE_VERSION
@@ -11,7 +11,7 @@ ENV AWS_DEFAULT_REGION=us-east-1
 
 COPY ./Deploy/Master ./Deploy/Master
 
-# TODO: install AWS CLI v2
+RUN apt install -y awscli
 
 RUN aws --profile default codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
 
