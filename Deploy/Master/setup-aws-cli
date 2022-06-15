@@ -113,7 +113,7 @@ configure_default_profile() {
 
 configure_assume_role_profile() {
     profile=apigw
-    if [[ "$ROLE_NAME" == "ecr" or "$ROLE_NAME" == "ecs" ]]; then
+    if [[ "$ROLE_NAME" == "ecr" || "$ROLE_NAME" == "ecs" ]]; then
         profile=shared
     fi
 
