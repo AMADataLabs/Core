@@ -11,6 +11,7 @@ AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_ACCESS_KEY_ID_ROLE=
 AWS_SECRET_ACCESS_KEY_ROLE=
+ROLE_NAME=apigw
 
 
 main() {
@@ -45,6 +46,11 @@ process_arguments() {
             ;;
         -s|--access-secret)
             AWS_SECRET_ACCESS_KEY=$2
+            shift
+            shift
+            ;;
+        -N|--role-name)
+            ROLE_NAME=$2
             shift
             shift
             ;;
@@ -112,7 +118,7 @@ configure_assume_role_profile() {
 
 
 assume_role() {
-    ${PWD}/Script/apigw_assume_role.sh ${ENVIRONMENT} apigw | grep source > assume_role.rc
+    ${PWD}/Script/${ROLE_NAME}_assume_role.sh ${ENVIRONMENT} apigw | grep source > assume_role.rc
 }
 
 

@@ -14,6 +14,8 @@ PROJECT=
 RUNTIME=
 PACKAGE_NAME=
 PACKAGE_VERSION=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
 DEPLOYED_VERSION=
 
 
@@ -24,13 +26,16 @@ main() {
 
     if [[ "$RUNTIME" == "Python" ]]; then
         determine_python_package
+    else
+        echo "Unsupported runtime: $RUNTIME"
+        exit 1
     fi
 
     if [[ "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
         setup_virtual_environment
-   
+
         build_container_image
-   
+
         upload_container_image
     fi
 }
@@ -63,8 +68,13 @@ process_arguments() {
             shift
             shift
             ;;
-        -b|--bundle)
-            BUNDLE=$2
+        -i|--key-id)
+            AWS_ACCESS_KEY_ID=$2
+            shift
+            shift
+            ;;
+        -k|--secret-key)
+            AWS_SECRET_ACCESS_KEY=$2
             shift
             shift
             ;;
@@ -79,7 +89,8 @@ process_arguments() {
 
 
 get_deployed_version() {
-    aws ecr get-login-password --region us-east-1 2>/dev/null | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com &> /dev/null
+    aws ecr get-login-password --region us-east-1 2>/dev/null \
+        | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com &> /dev/null
 
     deployed_versions=(
         $(
@@ -104,18 +115,18 @@ build_container_image() {
         export ENABLE_FEATURE_PROD=True
     fi
 
-    docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION} -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
+    docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION} \
+         --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+         -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
 }
 
 
 upload_container_image() {
-    if [[ "$RUNTIME" == "Python" ]]; then
-        aws s3 cp ${METADATA} Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
-    elif [[ "$RUNTIME" == "Java" ]]; then
-        rm Bundle/target/original-*.jar
+    docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:${PACKAGE_VERSION}
+    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:${PACKAGE_VERSION}
 
-        aws s3 cp ${METADATA} Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
-    fi
+    docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:latest
+    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:latest
 }
 
 
