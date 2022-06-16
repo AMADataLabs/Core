@@ -1,0 +1,102 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/CPT/dev/developer_emails.yaml.jinja -f Deploy/CPT/dev/developer_emails.yaml \
+# -v "aims_db_password={{aims_db_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "DEVELOPER_EMAILS"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+    AIMS_DB_DRIVER: com.informix.jdbc.IfxDriver
+    AIMS_DB_DRIVER_TYPE: informix-sqli
+    AIMS_DB_JAR_PATH: ./jdbc-4.50.4.1.jar,./bson-4.2.0.jar
+    AIMS_DB_HOST: rdbp1627.ama-assn.org
+    AIMS_DB_PORT: '22093'
+    AIMS_DB_NAME: 'aims_prod'
+    AIMS_DB_USERNAME: usermgmt
+    AIMS_DB_PASSWORD: '{{aims_db_password}}'
+
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/CPT'
+
+
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "DEVELOPER_EMAILS"}, "Task": {"S": "DAG"}})
+    #######################################################################
+
+    DEVELOPER_EMAILS__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-ETL'
+    DEVELOPER_EMAILS__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.developer.email.EmailReportDAG'
+    DEVELOPER_EMAILS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    DEVELOPER_EMAILS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    DEVELOPER_EMAILS__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    DEVELOPER_EMAILS__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    DEVELOPER_EMAILS__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    DEVELOPER_EMAILS__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    DEVELOPER_EMAILS__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "DEVELOPER_EMAILS"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+    # Email Extractor
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__DATABASE_HOST: ${AIMS_DB_HOST}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__DATABASE_PORT: ${AIMS_DB_PORT}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__DATABASE_NAME: ${AIMS_DB_NAME}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__DATABASE_USERNAME: ${AIMS_DB_USERNAME}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__DATABASE_PASSWORD: ${AIMS_DB_PASSWORD}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__SQL: "
+    SELECT
+    	u.id as CUSTOMER_ID,
+        CONCAT(u.fname,' ',u.lname) as NAME,
+    	'' as BUSTITLE,
+    	'' as BUSNAME,
+        u.addr1 as ADDR1,
+        u.addr2 as ADDR2,
+        u.addr3 as ADDR3,
+        u.city as CITY,
+    	u.state as STATE,
+    	u.zip as ZIP,
+        '' as COUNTRY,
+        u.email as EMAIL,
+	'' as DAY_PHONE,
+	'' as EVENING_PHONE,
+	'' as INDUSTRY_DESC
+    FROM
+    	usermgmt.User u
+    WHERE u.id >96 and u.dev_program_user is NOT NULL;
+    "
+    DEVELOPER_EMAILS_REPORT__EXTRACT_DEVELOPER_EMAILS__CHUNK_SIZE: '100000'
+    DEVELOPER_EMAILS_REPORT__EXTRACT_DEVELOPER_EMAILS__DRIVER: ${AIMS_DB_DRIVER}
+    DEVELOPER_EMAILS_REPORT__EXTRACT_DEVELOPER_EMAILS__DRIVER_TYPE: ${AIMS_DB_DRIVER_TYPE}
+    DEVELOPER_EMAILS_REPORT__EXTRACT_DEVELOPER_EMAILS__JAR_PATH: ${AIMS_DB_JAR_PATH}
+    DEVELOPER_EMAILS_REPORT__EXTRACT_DEVELOPER_EMAILS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    DEVELOPER_EMAILS_REPORT__EXTRACT_DEVELOPER_EMAILS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    DEVELOPER_EMAILS_REPORT__EXTRACT_DEVELOPER_EMAILS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    DEVELOPER_EMAILS_REPORT__EXTRACT_DEVELOPER_EMAILS__CACHE_OUTPUT_FILES: developer_emails.csv
+
+
+    # Developer Emails Transformer
+
+    DEVELOPER_EMAILS_REPORT__CREATE_EMAILS__CACHE_CLASS: ${S3_CACHE_CLASS}
+    DEVELOPER_EMAILS_REPORT__CREATE_EMAILS__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    DEVELOPER_EMAILS_REPORT__CREATE_EMAILS__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    DEVELOPER_EMAILS_REPORT__CREATE_EMAILS__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    DEVELOPER_EMAILS_REPORT__CREATE_EMAILS__CACHE_INPUT_FILES: 'developer_emails.csv'
+    DEVELOPER_EMAILS_REPORT__CREATE_EMAILS__CACHE_OUTPUT_FILES: 'email_report_data.pk, email_report_body.pk'
+
+
+    # Email Notifier
+    DEVELOPER_EMAILS_REPORT__EMAIL_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    DEVELOPER_EMAILS_REPORT__EMAIL_REPORT__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    DEVELOPER_EMAILS_REPORT__EMAIL_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    DEVELOPER_EMAILS_REPORT__EMAIL_REPORT__CACHE_INPUT_FILES: 'email_report_data.pk, email_summary.pk'
+    DEVELOPER_EMAILS_REPORT__EMAIL_REPORT__TO: 'datalabs@ama-assn.org'
+
