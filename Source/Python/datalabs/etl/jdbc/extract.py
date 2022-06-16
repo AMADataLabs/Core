@@ -31,11 +31,11 @@ class JDBCExtractorParameters:
     sql: str
     data: object = None
     execution_time: str = None
-    chunk_size: str = None
-    count: str = None
-    start_index: str = '0'
-    max_parts: str = None
-    part_index: str = None
+    chunk_size: str = None      # Number of records to fetch per chunk
+    count: str = None           # Total number of records to fetch accross chunks
+    start_index: str = '0'      # Starting record index
+    max_parts: str = None       # Number of task copies working on this query
+    part_index: str = None      # This task's index
     stream: str = None
     database_name: str = None
     database_parameters: str = None
@@ -174,12 +174,12 @@ class JDBCParametricExtractorParameters:
     database_port: str
     jar_path: str
     sql: str
-    max_parts: str
-    part_index: str
+    max_parts: str              # Number of task copies working on this query
+    part_index: str             # This task's index
     data: object = None
     execution_time: str = None
-    chunk_size: str = None
-    count: str = None
+    chunk_size: str = None      # Number of records to fetch per chunk
+    count: str = None           # Total number of records to fetch accross chunks
     start_index: str = '0'
     stream: str = None
     database_parameters: str = None

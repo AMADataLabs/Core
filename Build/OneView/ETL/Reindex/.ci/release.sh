@@ -9,9 +9,8 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=dev
-        [itg]=1.0.1
-        [prd]=1.0.1
+        [tst]=1.1.0
+        [prd]=1.0.0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -19,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-amc"
-    export RELEASE_DESCRIPTION="AMC Address Flagging Report DAG"
+    export RELEASE_NAME="datalabs-oneview-reindex"
+    export RELEASE_DESCRIPTION="OneView ETL DAG batch jobs for reindexing/refreshing database views"
 }
 
 
