@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -x
+
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 RUN="${SCRIPT_BASE_PATH}/run.py python"
@@ -11,6 +13,7 @@ AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
 AWS_ACCESS_KEY_ID_ROLE=
 AWS_SECRET_ACCESS_KEY_ROLE=
+ROLE_NAME=apigw
 
 
 main() {
@@ -45,6 +48,11 @@ process_arguments() {
             ;;
         -s|--access-secret)
             AWS_SECRET_ACCESS_KEY=$2
+            shift
+            shift
+            ;;
+        -N|--role-name)
+            ROLE_NAME=$2
             shift
             shift
             ;;
@@ -104,15 +112,20 @@ configure_default_profile() {
 
 
 configure_assume_role_profile() {
-    aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-    aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-    aws configure set profile.apigw.region $AWS_DEFAULT_REGION
-    aws configure set profile.apigw.output json
+    profile=apigw
+    if [[ "$ROLE_NAME" == "ecr" || "$ROLE_NAME" == "ecs" ]]; then
+        profile=shared
+    fi
+
+    aws configure set profile.${profile}.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
+    aws configure set profile.${profile}.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+    aws configure set profile.${profile}.region $AWS_DEFAULT_REGION
+    aws configure set profile.${profile}.output json
 }
 
 
 assume_role() {
-    ${PWD}/Script/apigw_assume_role.sh ${ENVIRONMENT} apigw | grep source > assume_role.rc
+    ${PWD}/Script/${ROLE_NAME}_assume_role.sh ${ENVIRONMENT} | grep source > assume_role.rc
 }
 
 

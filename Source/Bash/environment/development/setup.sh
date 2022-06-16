@@ -148,12 +148,12 @@ remove_pipenv() {
 
 install_dev_libraries() {
     echo "### Installing development libraries ###"
-    apt install -y python3.7-dev unixodbc-dev
+    apt install -y python3.7-dev unixodbc-dev swig
 }
 
 
 remove_dev_libraries() {
-    apt remove -y python3.7-dev unixodbc-dev
+    apt remove -y python3.7-dev unixodbc-dev swig
 }
 
 
