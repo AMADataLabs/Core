@@ -530,11 +530,9 @@ pipelines:
                     --use-package
             - step:
                 name: Update Development Batch Job Image
-                caches:
-                    - environment-dev
                 script:
                 - >-
-                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     -N ecr -I $AWS_ACCESS_KEY_ID_SHARED -S $AWS_SECRET_ACCESS_KEY_SHARED
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
@@ -563,11 +561,9 @@ pipelines:
                     --use-package
             - step:
                 name: Update Test Batch Job Image
-                caches:
-                    - environment-dev
                 script:
                 - >-
-                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     -N ecr -I $AWS_ACCESS_KEY_ID_SHARED -S $AWS_SECRET_ACCESS_KEY_SHARED
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
@@ -580,7 +576,7 @@ pipelines:
             - step:
                 name: Update Production Lambda Bundle
                 caches:
-                    - environment-dev
+                    - environment-prod
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -596,8 +592,6 @@ pipelines:
                     --use-package
             - step:
                 name: Update Production Batch Job Image
-                caches:
-                    - environment-dev
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
