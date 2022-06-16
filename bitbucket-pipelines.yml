@@ -616,6 +616,7 @@ pipelines:
                     --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME
                     --format pypi --sort-by PUBLISHED_TIME
                     | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+                - source Build/OneView/ETL/Reindex/.ci/release.sh dev
                 - >-
                     docker build --build-arg PACKAGE_NAME=${RELEASE_NAME} --build-arg PACKAGE_VERSION=${RELEASE_VERSION}
                     --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
