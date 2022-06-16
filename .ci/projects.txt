@@ -7,5 +7,6 @@ DBL
 HelloWorldJava/Task
 HelloWorldVault
 OneView/ETL
+OneView/ETL/Reindex
 OneView/API
 Scheduler
