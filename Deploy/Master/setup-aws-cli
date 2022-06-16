@@ -125,7 +125,13 @@ configure_assume_role_profile() {
 
 
 assume_role() {
-    ${PWD}/Script/${ROLE_NAME}_assume_role.sh ${ENVIRONMENT} | grep source > assume_role.rc
+    environment_id=${ENVIRONMENT}
+
+    if [[ "$ROLE_NAME" == "ecr" ]]; then
+        environment_id=
+    fi
+
+    ${PWD}/Script/${ROLE_NAME}_assume_role.sh ${environment_id} | grep source > assume_role.rc
 }
 
 
