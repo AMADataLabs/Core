@@ -1,6 +1,7 @@
 """ AMC Flagged Addresses Report generation task """
 from   dataclasses import dataclass
 from   io import BytesIO
+import logging
 import pickle
 
 import pandas
@@ -9,6 +10,10 @@ import pandas
 from datalabs.analysis.amc.address import AMCAddressFlagger
 from datalabs.etl.transform import TransformerTask
 from datalabs.parameter import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.DEBUG)
 
 
 @add_schema
@@ -31,7 +36,7 @@ class AMCAddressFlaggingTransformerTask(TransformerTask):
         results = [flagger.flag(file) for file in data]
 
         # returns list of bytes tuples, (xlsx_data, report_summary)
-        LOGGER.debug(f'Returning {len(results)} results.')
+        LOGGER.debug('Returning %d results.', len(results))
         return [self._pickle(result) for result in results]
 
     @classmethod

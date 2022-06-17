@@ -69,7 +69,7 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
             Body=data,
             ContentMD5=b64_md5_hash.decode()
         )
-        LOGGER.debug(f'Loaded {len(data)} byte file "{file}" to bucket "{self._parameters.bucket}".')
+        LOGGER.debug('Loaded %d byte file "%s" to bucket "%s".', len(data), file, self._parameters.bucket)
 
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
             data.close()
