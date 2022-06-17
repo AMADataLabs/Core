@@ -1,12 +1,11 @@
 ''' DAG definition for the Email Report ETL. '''
 from   datalabs.etl.dag.dag import DAG
-
-from   datalabs.etl.jdbc.extract import JDBCExtractorTask
+from   datalabs.etl.orm.load import ORMLoaderTask
 from   datalabs.etl.cpt.developer.transform import EmailReportGeneratorTask
 from   datalabs.etl.cpt.developer.load import EmailReportSMTPLoaderTask
 
 class EmailReportDAG(DAG):
-    EXTRACT_EMAILS: JDBCExtractorTask
+    EXTRACT_EMAILS: ORMLoaderTask
     CREATE_EMAIL_REPORT: EmailReportGeneratorTask
     SEND_EMAIL_REPORT: EmailReportSMTPLoaderTask
 
