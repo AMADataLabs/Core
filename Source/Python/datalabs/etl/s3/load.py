@@ -12,10 +12,6 @@ from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin, CurrentPathM
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
 
-logging.basicConfig()
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
-
 
 @add_schema
 @dataclass
@@ -69,7 +65,6 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
             Body=data,
             ContentMD5=b64_md5_hash.decode()
         )
-        LOGGER.debug('Loaded %d byte file "%s" to bucket "%s".', len(data), file, self._parameters.bucket)
 
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
             data.close()
