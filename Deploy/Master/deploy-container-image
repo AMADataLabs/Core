@@ -87,6 +87,7 @@ process_arguments() {
 
 
 get_deployed_version() {
+    printenv | grep AWS
     deployed_versions=(
         $(
             aws ecr list-images --repository-name ${REPOSITORY} | jq '.imageIds[].imageTag' | grep -v null | sed 's/"//g'\
