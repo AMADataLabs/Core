@@ -32,8 +32,6 @@ main() {
     fi
 
     if [[ "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
-        setup_virtual_environment
-
         build_container_image
 
         upload_container_image
@@ -104,17 +102,25 @@ get_deployed_version() {
 }
 
 
-build_container_image() {
-    if [[ "$ENVIRONMENT" == "sbx" || "$ENVIRONMENT" == "dev" ]]; then
-        export ENABLE_FEATURE_DEV=True
-    elif [[ "$ENVIRONMENT" == "tst" ]]; then
-        export ENABLE_FEATURE_TEST=True
-    elif [[ "$ENVIRONMENT" == "itg" ]]; then
-        export ENABLE_FEATURE_STAGE=True
-    elif [[ "$ENVIRONMENT" == "prd" ]]; then
-        export ENABLE_FEATURE_PROD=True
+determine_python_package() {
+    source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
+    version="$RELEASE_VERSION"
+
+    if [[ "$RELEASE_VERSION" == "dev" ]]; then
+        version=$(
+            aws --profile default codeartifact list-package-versions \
+                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
+                --format pypi --sort-by PUBLISHED_TIME \
+                | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+        )
     fi
 
+    PACKAGE_NAME=${RELEASE_NAME}
+    PACKAGE_VERSION=${version}
+}
+
+
+build_container_image() {
     docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION} \
          --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
          -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
@@ -140,24 +146,6 @@ print_usage() {
     echo "  -p, --project <project>               project path relative to Build/"
     echo "  -P, --package                         use the latest pre-packaged component instead of sources"
     echo "  -b, --bundle <bundle>                 name of the uploaded bundle file in S3"
-}
-
-
-determine_python_package() {
-    source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
-    version="$RELEASE_VERSION"
-
-    if [[ "$RELEASE_VERSION" == "dev" ]]; then
-        version=$(
-            aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
-                --format pypi --sort-by PUBLISHED_TIME \
-                | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
-        )
-    fi
-
-    PACKAGE_NAME=${RELEASE_NAME}
-    PACKAGE_VERSION=${version}
 }
 
 
