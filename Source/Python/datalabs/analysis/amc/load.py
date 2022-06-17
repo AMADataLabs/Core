@@ -1,7 +1,6 @@
 """ AMC Flagged Addresses Report loader task """
 from   dataclasses import dataclass
 from   datetime import datetime
-from   io import BytesIO
 import pickle
 
 # pylint: disable=import-error, invalid-name
