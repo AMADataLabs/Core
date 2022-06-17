@@ -84,7 +84,9 @@ get_deployed_version() {
     )
 
     version_count=${#deployed_versions[@]}
-    DEPLOYED_VERSION=${deployed_versions[$(expr $version_count - 1)]}
+    if [[ $version_count > 0 ]]; then
+        DEPLOYED_VERSION=${deployed_versions[$(expr $version_count - 1)]}
+    fi
 }
 
 
