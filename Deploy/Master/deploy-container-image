@@ -14,8 +14,6 @@ PROJECT=
 RUNTIME=
 PACKAGE_NAME=
 PACKAGE_VERSION=
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
 DEPLOYED_VERSION=
 
 
@@ -66,16 +64,6 @@ process_arguments() {
             shift
             shift
             ;;
-        -i|--key-id)
-            AWS_ACCESS_KEY_ID=$2
-            shift
-            shift
-            ;;
-        -k|--secret-key)
-            AWS_SECRET_ACCESS_KEY=$2
-            shift
-            shift
-            ;;
         *)
             echo "Unexpected argument $1"
             print_usage
@@ -120,7 +108,8 @@ determine_python_package() {
 
 build_container_image() {
     docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION} \
-         --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+         --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID_SANDBOX} \
+         --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
          -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
 }
 

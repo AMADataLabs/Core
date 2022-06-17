@@ -642,8 +642,6 @@ pipelines:
                     --project OneView/ETL/Reindex
                     --runtime Python
                     --repo oneview-dev
-                    --key-id $AWS_ACCESS_KEY_ID_SANDBOX
-                    --secret-key $AWS_SECRET_ACCESS_KEY_SANDBOX
             # - step:
             #     name: Update Test Batch Job Image
             #     script:
