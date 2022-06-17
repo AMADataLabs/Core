@@ -31,6 +31,7 @@ class AMCAddressFlaggingTransformerTask(TransformerTask):
         results = [flagger.flag(file) for file in data]
 
         # returns list of bytes tuples, (xlsx_data, report_summary)
+        LOGGER.debug(f'Returning {len(results)} results.')
         return [self._pickle(result) for result in results]
 
     @classmethod
