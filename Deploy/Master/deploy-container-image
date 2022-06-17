@@ -128,6 +128,9 @@ build_container_image() {
 
 
 upload_container_image() {
+    aws --pofile shared ecr get-login-password --region us-east-1 \
+        | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com
+
     docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:${PACKAGE_VERSION}
     docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:${PACKAGE_VERSION}
 
