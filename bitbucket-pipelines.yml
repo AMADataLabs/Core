@@ -611,6 +611,8 @@ pipelines:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     -N ecr -I $AWS_ACCESS_KEY_ID_SHARED -S $AWS_SECRET_ACCESS_KEY_SHARED
+                - source Build/OneView/ETL/Reindex/.ci/release.sh dev
+                - export PACKAGE_NAME=${RELEASE_NAME}
                 - >-
                     export PACKAGE_VERSION=$(
                     aws --profile default codeartifact list-package-versions
@@ -618,8 +620,6 @@ pipelines:
                     --format pypi --sort-by PUBLISHED_TIME
                     | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
                     )
-                - source Build/OneView/ETL/Reindex/.ci/release.sh dev
-                - export PACKAGE_NAME=${RELEASE_NAME}
                 - export PROJECT=OneView/ETL/Reindex
                 - >-
                     docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION}
