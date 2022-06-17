@@ -612,20 +612,22 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     -N ecr -I $AWS_ACCESS_KEY_ID_SHARED -S $AWS_SECRET_ACCESS_KEY_SHARED
                 - >-
+                    export PACKAGE_VERSION=$(
                     aws --profile default codeartifact list-package-versions
                     --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME
                     --format pypi --sort-by PUBLISHED_TIME
                     | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+                    )
                 - source Build/OneView/ETL/Reindex/.ci/release.sh dev
                 - export PROJECT=OneView/ETL/Reindex
                 - >-
-                    docker build --build-arg PACKAGE_NAME=${RELEASE_NAME} --build-arg PACKAGE_VERSION=${RELEASE_VERSION}
+                    docker build --build-arg PACKAGE_NAME=${RELEASE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION}
                     --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
                     -t ${RELEASE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
-                - docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:${PACKAGE_VERSION}
-                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:${PACKAGE_VERSION}
-                - docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:latest
-                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:latest
+                - docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${RELEASE_NAME}:${PACKAGE_VERSION}
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${RELEASE_NAME}:${PACKAGE_VERSION}
+                - docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${RELEASE_NAME}:latest
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${RELEASE_NAME}:latest
 
                 # - >-
                 #     bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
