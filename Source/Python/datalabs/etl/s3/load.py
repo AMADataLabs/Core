@@ -3,7 +3,6 @@ import base64
 from   dataclasses import dataclass
 from   datetime import datetime
 import hashlib
-import logging
 
 from   dateutil.parser import isoparse
 
