@@ -611,39 +611,39 @@ pipelines:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     -N ecr -I $AWS_ACCESS_KEY_ID_SHARED -S $AWS_SECRET_ACCESS_KEY_SHARED
-                - source Build/OneView/ETL/Reindex/.ci/release.sh dev
-                - export PACKAGE_NAME=${RELEASE_NAME}
-                - >-
-                    export PACKAGE_VERSION=$(
-                    aws --profile default codeartifact list-package-versions
-                    --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME
-                    --format pypi --sort-by PUBLISHED_TIME
-                    | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
-                    )
-                - export PROJECT=OneView/ETL/Reindex
-                - export REPOSITORY=oneview-dev
-                - >-
-                    docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION}
-                    --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
-                    --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
-                - source assume_role.rc
-                - >-
-                    aws ecr get-login-password --region us-east-1
-                    | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com
-                - docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
-                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
-                - docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
-                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
-
+                # - source Build/OneView/ETL/Reindex/.ci/release.sh dev
+                # - export PACKAGE_NAME=${RELEASE_NAME}
                 # - >-
-                #     bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
-                #     --environment dev
-                #     --project OneView/ETL/Reindex
-                #     --runtime Python
-                #     --repo oneview-dev
-                #     --key-id $AWS_ACCESS_KEY_ID_SANDBOX
-                #     --secret-key $AWS_SECRET_ACCESS_KEY_SANDBOX
+                #     export PACKAGE_VERSION=$(
+                #     aws --profile default codeartifact list-package-versions
+                #     --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME
+                #     --format pypi --sort-by PUBLISHED_TIME
+                #     | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+                #     )
+                # - export PROJECT=OneView/ETL/Reindex
+                # - export REPOSITORY=oneview-dev
+                # - >-
+                #     docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION}
+                #     --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
+                #     --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
+                #     -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
+                # - source assume_role.rc
+                # - >-
+                #     aws ecr get-login-password --region us-east-1
+                #     | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com
+                # - docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
+                # - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
+                # - docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
+                # - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
+
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
+                    --environment dev
+                    --project OneView/ETL/Reindex
+                    --runtime Python
+                    --repo oneview-dev
+                    --key-id $AWS_ACCESS_KEY_ID_SANDBOX
+                    --secret-key $AWS_SECRET_ACCESS_KEY_SANDBOX
             # - step:
             #     name: Update Test Batch Job Image
             #     script:
