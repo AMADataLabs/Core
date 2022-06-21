@@ -36,6 +36,8 @@ def add_license_features(base_data, path_to_license_file, path_to_post_addr_file
     base_data = add_feature_active_license_states_newer_older_match(base_data, license_data, as_of_date)
     log_info('ADD FEATURE EXPIRED MATCH', path_to_post_addr_file)
     base_data = add_feature_expired_license_match(base_data, license_data, as_of_date)
+
+    log_info('BASE_DATA MEMORY:', base_data.memory_usage().sum() / 1024 ** 2)
     return base_data
 
 

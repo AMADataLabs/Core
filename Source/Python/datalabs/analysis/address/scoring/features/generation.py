@@ -47,11 +47,11 @@ if __name__ == '__main__':
             BASE_DATA = pk.load(f)
 
     log_info('BASE_DATA MEMORY:', BASE_DATA.memory_usage().sum() / 1024 ** 2)
+
     log_info('ADD ENTITY_COMM FEATURES')
     BASE_DATA = entity_comm.add_entity_comm_at_features(BASE_DATA, FILE_ENTITY_COMM_AT, FILE_POST_ADDR_AT, AS_OF_DATE)
-    log_info('BASE_DATA MEMORY:', BASE_DATA.memory_usage().sum() / 1024 ** 2)
+
     log_info('ADD LICENSE FEATURES')
     BASE_DATA = license.add_license_features(BASE_DATA, FILE_LICENSE_LT, FILE_POST_ADDR_AT, AS_OF_DATE)
-    log_info('BASE_DATA MEMORY:', BASE_DATA.memory_usage().sum() / 1024 ** 2)
 
     BASE_DATA.to_csv(f"{INPUT_PATH}/output_test.txt", sep='|', index=False)

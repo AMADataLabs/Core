@@ -40,6 +40,7 @@ def add_entity_comm_at_features(base_data, path_to_entity_comm_at_file, path_to_
     log_info('\tENTITY_COMM - Address Sources')
     base_data = add_feature_address_sources(base_data, entity_comm_data)
 
+    log_info('BASE_DATA MEMORY:', base_data.memory_usage().sum() / 1024 ** 2)
     return base_data
 
 
