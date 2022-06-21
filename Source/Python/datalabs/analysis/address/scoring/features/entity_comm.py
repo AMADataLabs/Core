@@ -129,8 +129,6 @@ def add_feature_physician_how_many_newer_addresses(base_data: pd.DataFrame, enti
 
     results = []
     for entity_id, group in tqdm(groups, total=data['ENTITY_ID'].nunique()):
-        #group = group.reset_index(drop=True)
-        #group['N_NEWER_ADDRESSES'] = group.index
         for i, row in group.iterrows():
             comm_id = row['COMM_ID']
             n_new = i
