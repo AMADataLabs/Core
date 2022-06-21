@@ -11,7 +11,7 @@ ENV PYTHONPATH=/OneView:/OneView/site-packages
 ENV CLASSPATH=/OneView
 ENV AWS_DEFAULT_REGION=us-east-1
 
-COPY ./Build/Master/Docker ./Build/Master/Docker
+COPY ./Build/Master ./Build/Master
 COPY ./Build/OneView/ETL/Reindex ./Build/OneView/ETL/Reindex
 COPY ./Deploy/Master ./Deploy/Master
 COPY ./Script ./Script
