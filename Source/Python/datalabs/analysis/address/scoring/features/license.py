@@ -24,7 +24,7 @@ warnings.filterwarnings('ignore', '.*SettingWithCopyWarning*')
 warnings.filterwarnings('ignore', '.*FutureWarning*')
 
 
-def add_license_features(base_data, path_to_license_file, path_to_post_addr_file, as_of_date):
+def add_license_features(base_data: pd.DataFrame, path_to_license_file, path_to_post_addr_file, as_of_date):
     log_info('LOADING LICENSE DATA', path_to_license_file)
     license_data = load_processed_data(path_to_license_file, as_of_date, 'LIC_ISSUE_DT', 'LIC_EXP_DT')
     log_info('LOADING POST_ADDR DATA', path_to_post_addr_file)
@@ -41,7 +41,7 @@ def add_license_features(base_data, path_to_license_file, path_to_post_addr_file
     return base_data
 
 
-def merge_license_address_data(license_lt_data, post_addr_at_data):
+def merge_license_address_data(license_lt_data: pd.DataFrame, post_addr_at_data: pd.DataFrame):
     add_column_prefixes(
         license_lt_data,
         prefix='LICENSE',
@@ -114,8 +114,7 @@ def add_feature_active_license_states_newer_older_match(
     return base_data
 
 
-def add_feature_expired_license_match(
-        base_data: pd.DataFrame, license_data: pd.DataFrame, as_of_date):
+def add_feature_expired_license_match(base_data: pd.DataFrame, license_data: pd.DataFrame, as_of_date):
     """ Get boolean flag indicating whether the physician has a previous
     license for a state that's DIFFERENT than this address's state """
     data = license_data[
