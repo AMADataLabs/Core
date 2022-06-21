@@ -18,7 +18,7 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-developer-email-etl"
+    export RELEASE_NAME="datalabs-developer-emails-etl"
     export RELEASE_DESCRIPTION="Developer Emails ETL DAG plugin"
 }
 
