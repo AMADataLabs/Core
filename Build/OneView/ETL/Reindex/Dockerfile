@@ -22,6 +22,6 @@ RUN aws configure set profile.default.aws_access_key_id $AWS_ACCESS_KEY_ID && \
     aws configure set profile.default.region us-east-1 && \
     aws configure set profile.default.output json
 
-Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE_NAME==$PACKAGE_VERSION $EXTRA_FILES
+RUN Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE_NAME==$PACKAGE_VERSION $EXTRA_FILES
 
 RUN rm -rf ./Deploy ./aws ./awscliv2.zip
