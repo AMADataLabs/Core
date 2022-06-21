@@ -9,6 +9,7 @@ from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.etl.dag.notify.email import StatusEmailNotifier
+from   datalabs.etl.dag.notify.webhook import StatusWebHookNotifier
 from   datalabs.etl.dag.state import Status
 from   datalabs.plugin import import_plugin
 import datalabs.etl.dag.task
@@ -255,13 +256,13 @@ class DAGTaskWrapper(
             notifier = StatusEmailNotifier(emails, environment, from_account)
 
             notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
-    
-    def _send_webhook_notification(self,status):
+
+    def _send_webhook_notification(self, status):
         raw_webhook_url_list = self._runtime_parameters.get("STATUS_NOTIFICATION_WEB_HOOK")
 
         if raw_webhook_url_list is not None:
             urls = raw_webhook_url_list.split(',')
             environment = self._runtime_parameters.get("ENVIRONMENT")
-            notifier = StatusEmailNotifier(urls, environment)
+            notifier = StatusWebHookNotifier(urls, environment)
 
             notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
