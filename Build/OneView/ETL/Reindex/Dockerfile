@@ -22,10 +22,6 @@ RUN aws configure set profile.default.aws_access_key_id $AWS_ACCESS_KEY_ID && \
     aws configure set profile.default.region us-east-1 && \
     aws configure set profile.default.output json
 
-RUN aws --profile default codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
-
-RUN echo "$PACKAGE_NAME==$PACKAGE_VERSION" > requirements.txt
-RUN pip install -r requirements.txt
+Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE_NAME==$PACKAGE_VERSION $EXTRA_FILES
 
 RUN rm -rf ./Deploy ./aws ./awscliv2.zip
-
