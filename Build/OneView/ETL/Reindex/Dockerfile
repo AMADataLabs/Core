@@ -14,6 +14,7 @@ ENV AWS_DEFAULT_REGION=us-east-1
 COPY ./Build/OneView/ETL/Reindex ./Build/OneView/ETL/Reindex
 COPY ./Deploy/Master ./Deploy/Master
 COPY ./Script ./Script
+COPY ./Source/Python/datalabs/build ./Source/Python/datalabs/build
 
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
     unzip awscliv2.zip && \
@@ -26,4 +27,4 @@ RUN aws configure set profile.default.aws_access_key_id $AWS_ACCESS_KEY_ID && \
 
 RUN Deploy/Master/create-python-bundle --project OneView/ETL/Reindex --package $PACKAGE_NAME==$PACKAGE_VERSION
 
-RUN rm -rf ./Build ./Deploy ./Script ./aws ./awscliv2.zip
+RUN rm -rf ./Build ./Deploy ./Script ./Source ./aws ./awscliv2.zip
