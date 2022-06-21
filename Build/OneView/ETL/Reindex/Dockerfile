@@ -20,6 +20,8 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     unzip awscliv2.zip && \
     ./aws/install
 
+RUN pip install -r Build/Master/Docker/requirements.txt
+
 RUN aws configure set profile.default.aws_access_key_id $AWS_ACCESS_KEY_ID && \
     aws configure set profile.default.aws_secret_access_key $AWS_SECRET_ACCESS_KEY && \
     aws configure set profile.default.region us-east-1 && \
