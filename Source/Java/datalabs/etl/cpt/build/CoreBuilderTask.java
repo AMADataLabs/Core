@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Vector;
 
 import org.ama.dtk.Delimiter;
 import org.ama.dtk.DtkAccess;
@@ -43,6 +44,8 @@ public class CoreBuilderTask extends Task {
             DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate);
 
             CoreBuilderTask.exportConcepts(core, parameters.outputDirectory);
+
+            ArrayList<String> fileNames = stageInputFiles(parameters);
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
@@ -98,5 +101,12 @@ public class CoreBuilderTask extends Task {
         DtkConcept.sort(concepts);
 
         return concepts;
+    }
+
+    private static ArrayList<String> stageInputFiles(Map<String, String> parameters, Vector<byte[]> data)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        this.data = data;
+
+        return data
     }
 }
