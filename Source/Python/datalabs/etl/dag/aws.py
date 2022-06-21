@@ -224,15 +224,8 @@ class DAGTaskWrapper(
         )
 
     def _send_dag_status_notification(self, status):
-        raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")
-
-        if raw_email_list is not None:
-            emails = raw_email_list.split(',')
-            environment = self._runtime_parameters.get("ENVIRONMENT")
-            from_account = self._runtime_parameters.get("STATUS_NOTIFICATION_FROM")
-            notifier = StatusEmailNotifier(emails, environment, from_account)
-
-            notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
+        self._send_email_notification(status)
+        self._send_dag_status_notification(status)
 
     def _invoke_triggered_tasks(self, dag):
         for task in dag.triggered_tasks:
@@ -251,3 +244,24 @@ class DAGTaskWrapper(
         notifier = SNSTaskNotifier(task_topic)
 
         notifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
+
+    def _send_email_notification(self, status):
+        raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")
+
+        if raw_email_list is not None:
+            emails = raw_email_list.split(',')
+            environment = self._runtime_parameters.get("ENVIRONMENT")
+            from_account = self._runtime_parameters.get("STATUS_NOTIFICATION_FROM")
+            notifier = StatusEmailNotifier(emails, environment, from_account)
+
+            notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
+    
+    def _send_webhook_notification(self,status):
+        raw_webhook_url_list = self._runtime_parameters.get("STATUS_NOTIFICATION_WEB_HOOK")
+
+        if raw_webhook_url_list is not None:
+            urls = raw_webhook_url_list.split(',')
+            environment = self._runtime_parameters.get("ENVIRONMENT")
+            notifier = StatusEmailNotifier(urls, environment)
+
+            notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
