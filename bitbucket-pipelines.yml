@@ -682,7 +682,7 @@ pipelines:
             - step:
                 name: Update Test Lambda Bundle
                 caches:
-                    - environment-dev
+                    - environment-test
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -697,7 +697,7 @@ pipelines:
             - step:
                 name: Update Production Lambda Bundle
                 caches:
-                    - environment-dev
+                    - environment-prod
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -758,7 +758,7 @@ pipelines:
                 --runtime Python
                 --jdbc-driver SQLServer
 
-        Scheduler-master:
+        Scheduler:
         - step:
             name: Create Development Component Package
             caches:
@@ -766,28 +766,134 @@ pipelines:
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-python-package --project Scheduler --environment sbx
-        - step:
-            name: Update Bundle
-            caches:
-            - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - >-
-                bash Deploy/Master/deploy-lambda-function
-                --environment sbx
-                --project Scheduler
-                --bundle Scheduler.zip
-                --runtime Python
-                --use-package
-        - step:
-            name: Update Lambda Functions
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - >-
-                bash Deploy/Master/update-functions -e sbx -s DataLake
-                Scheduler=Scheduler.zip
-                DAGProcessor=Scheduler.zip
-                TaskProcessor=Scheduler.zip
+        - parallel:
+            - step:
+                name: Update Sandbox Bundle
+                caches:
+                - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Development Bundle
+                caches:
+                - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Test Bundle
+                caches:
+                - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Staging Bundle
+                caches:
+                - environment-stage
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment itg
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Production Bundle
+                caches:
+                - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+        - parallel:
+            - step:
+                name: Reload Sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/update-functions -e sbx -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
+            - step:
+                name: Reload Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
+            - step:
+                name: Reload Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
+            - step:
+                name: Reload Staging Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
+            - step:
+                name: Reload Production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
 
 
         ##############################################################
