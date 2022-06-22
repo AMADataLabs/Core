@@ -3,8 +3,8 @@
 FROM python:3.7
 ARG PACKAGE_NAME
 ARG PACKAGE_VERSION
-ARG AWS_ACCESS_KEY_ID
-ARG AWS_SECRET_ACCESS_KEY
+ARG AWS_ACCESS_KEY_ID_SANDBOX
+ARG AWS_SECRET_ACCESS_KEY_SANDBOX
 
 WORKDIR /OneView
 ENV PYTHONPATH=/OneView:/OneView/site-packages
@@ -23,13 +23,12 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 
 RUN pip install -r Build/Master/Docker/requirements.txt
 
-RUN aws configure set profile.default.aws_access_key_id $AWS_ACCESS_KEY_ID && \
-    aws configure set profile.default.aws_secret_access_key $AWS_SECRET_ACCESS_KEY && \
-    aws configure set profile.default.region us-east-1 && \
-    aws configure set profile.default.output json
+RUN aws configure set profile.sandbox.aws_access_key_id $AWS_ACCESS_KEY_ID_SANDBOX && \
+    aws configure set profile.sandbox.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_SANDBOX && \
+    aws configure set profile.sandbox.region us-east-1 && \
+    aws configure set profile.sandbox.output json
 
-# RUN Deploy/Master/create-python-bundle --project OneView/ETL/Reindex --package $PACKAGE_NAME==$PACKAGE_VERSION
-RUN aws --profile default codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
+RUN aws --profile sandbox codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
 
 RUN pip install $PACKAGE_NAME==$PACKAGE_VERSION
 RUN cp ./Build/Master/settings.py ./settings.py
