@@ -226,7 +226,7 @@ class DAGTaskWrapper(
 
     def _send_dag_status_notification(self, status):
         self._send_email_notification(status)
-        self._send_dag_status_notification(status)
+        self._send_webhook_notification(status)
 
     def _invoke_triggered_tasks(self, dag):
         for task in dag.triggered_tasks:
