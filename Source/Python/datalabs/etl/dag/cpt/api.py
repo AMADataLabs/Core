@@ -1,7 +1,7 @@
 ''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag.dag import DAG
 from   datalabs.etl.archive.transform import ZipTransformerTask
-from   datalabs.etl.cpt.release.transform import ReleaseTypesTransformerTask  # , ReleaseTransformerTask
+from   datalabs.etl.cpt.release.transform import ReleaseTypesTransformerTask
 from   datalabs.etl.cpt.api.transform import \
     ReleasesTransformerTask, \
     CodesTransformerTask, \
@@ -21,9 +21,11 @@ from   datalabs.etl.cpt.api.transform import \
     LabCodeMappingTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
 from   datalabs.etl.parse.transform import ParseToCSVTransformerTask
+from   datalabs.etl.s3.extract import S3FileExtractorTask
 
 
 class CPTAPIDAG(DAG):
+    EXTRACT_DISTRIBUTION_RELEASES: S3FileExtractorTask
     CREATE_FILES_ZIP: ZipTransformerTask
     CREATE_PDFS_ZIP: ZipTransformerTask
     CREATE_RELEASE_TYPES: ReleaseTypesTransformerTask
@@ -58,6 +60,8 @@ class CPTAPIDAG(DAG):
 
 
 # pylint: disable=pointless-statement
+CPTAPIDAG.EXTRACT_DISTRIBUTION_RELEASES >> CPTAPIDAG.PARSE_TEXT_FILES
+
 CPTAPIDAG.PARSE_TEXT_FILES >> CPTAPIDAG.CREATE_RELEASE_TABLE
 CPTAPIDAG.PARSE_TEXT_FILES >> CPTAPIDAG.CREATE_CODE_TABLE
 CPTAPIDAG.PARSE_TEXT_FILES >> CPTAPIDAG.CREATE_RELEASE_CODE_MAPPING_TABLE
