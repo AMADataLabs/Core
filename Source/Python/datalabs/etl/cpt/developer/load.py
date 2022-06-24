@@ -1,8 +1,10 @@
 """ Email Report loader task """
 from   dataclasses import dataclass
-
+from   datetime import datetime
+import pickle
 # pylint: disable=import-error, invalid-name
 from   datalabs.etl.load import LoaderTask
+from   datalabs.messaging.email_message import Attachment, send_email
 from   datalabs.parameter import add_schema
 
 
@@ -19,4 +21,18 @@ class EmailReportSMTPLoaderTask(LoaderTask):
     PARAMETER_CLASS = EmailReportSMTPLoaderParameters
 
     def _load(self):
-        pass
+        date = str(datetime.now().date())  # 'YYYY-MM-DD'
+        name = f'Developer_emails_{date}.xlsx'
+
+        for data in self._parameters.data:
+            report_data, summary = pickle.loads(data)
+            file = Attachment(name=name, data=report_data)
+
+            send_email(
+                to=self._parameters.to,
+                cc=self._parameters.cc,
+                subject=f'CPT Developer Program Results - {date}',
+                body=summary,
+                attachments=[file],
+                from_account='datalabs@ama-assn.org'
+                )
