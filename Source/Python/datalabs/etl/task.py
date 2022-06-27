@@ -81,7 +81,7 @@ class ETLTask(task.Task):
         if not hasattr(TaskPlugin, "PARAMETER_CLASS") or \
            (hasattr(TaskPlugin, "PARAMETER_CLASS") and TaskPlugin.PARAMETER_CLASS is None) or \
            (hasattr(TaskPlugin, "PARAMETER_CLASS") and "data" in TaskPlugin.PARAMETER_CLASS.__annotations__):
-            parameters['data'] = data or {}
+            parameters['data'] = data or []
 
         return TaskPlugin(parameters)
 
