@@ -30,6 +30,7 @@ class Release(Base):
     publish_date = sa.Column(sa.Date, nullable=False)
     effective_date = sa.Column(sa.Date, nullable=False)
     type = sa.Column(sa.String(6), sa.ForeignKey("cpt.release_type.type"), nullable=False)
+    distribution_available = sa.Column(sa.Boolean, nullable=False, default=False)
 
 
 class Code(Base):

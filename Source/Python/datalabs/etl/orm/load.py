@@ -15,7 +15,7 @@ from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -57,7 +57,7 @@ class ORMLoaderTask(LoaderTask):
     }
 
     def _load(self):
-        LOGGER.info(self._parameters)
+        LOGGER.debug('Input data: \n%s', self._parameters.data)
         model_classes = self._get_model_classes()
         data = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
 
@@ -185,7 +185,7 @@ class ORMLoaderTask(LoaderTask):
             deleted_models = self._get_deleted_models_from_table(database, table_parameters, data)
 
             for model in deleted_models:
-                LOGGER.debug('Soft deleting row: %s', getattr(model, table_parameters.primary_key))
+                LOGGER.info('Soft deleting row: %s', getattr(model, table_parameters.primary_key))
                 setattr(model, self._parameters.soft_delete_column, True)
                 self._update_row_of_table(database, table_parameters, model)
 
@@ -195,7 +195,7 @@ class ORMLoaderTask(LoaderTask):
             deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
 
             for model in deleted_models:
-                LOGGER.debug('Deleting row: %s', getattr(model, table_parameters.primary_key))
+                LOGGER.info('Deleting row: %s', getattr(model, table_parameters.primary_key))
                 database.delete(model)  # pylint: disable=no-member
 
     @classmethod
@@ -240,8 +240,8 @@ class ORMLoaderTask(LoaderTask):
             )
         ].reset_index(drop=True)
         LOGGER.debug('Selected Data: %s', selected_data)
-        LOGGER.debug('Incoming Data Size: %d', len(table_parameters.data))
-        LOGGER.debug('Selected Data Size: %d', len(selected_data))
+        LOGGER.info('Incoming Data Size: %d', len(table_parameters.data))
+        LOGGER.info('Selected Data Size: %d', len(selected_data))
 
         return selected_data
 

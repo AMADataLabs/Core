@@ -71,7 +71,7 @@ data:
     ONEVIEW__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org,rudainah.najeeb@ama-assn.org,peter.lane@ama-assn.org'
     ONEVIEW__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
     ONEVIEW__DAG__JOB_QUEUE: 'OneView-${ENVIRONMENT}-ETL'
-    ONEVIEW__DAG__JOB_DEFINITION: 'OneView-${ENVIRONMENT}-ReindexingTask'
+    ONEVIEW__DAG__JOB_DEFINITION: 'OneView-${ENVIRONMENT}-ETL'
 
 
     ##########################################################################
@@ -215,6 +215,7 @@ data:
     ONEVIEW__LOAD_PHYSICIAN_TABLE__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
 
     # Prune Physicians
+    ONEVIEW__PRUNE_PHYSICIAN_TABLE__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.batch.BatchPythonTaskExecutorTask'
     ONEVIEW__PRUNE_PHYSICIAN_TABLE__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
     ONEVIEW__PRUNE_PHYSICIAN_TABLE__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
     ONEVIEW__PRUNE_PHYSICIAN_TABLE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
