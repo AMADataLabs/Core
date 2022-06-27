@@ -1,7 +1,6 @@
 """ Email Report loader task """
 from   dataclasses import dataclass
 from   datetime import datetime
-import pickle
 # pylint: disable=import-error, invalid-name
 from   datalabs.etl.load import LoaderTask
 from   datalabs.messaging.email_message import Attachment, send_email
@@ -25,7 +24,15 @@ class EmailReportSMTPLoaderTask(LoaderTask):
         name = f'Developer_emails_{date}.csv'
         report_csv_data = self._parameters.data[0]
         file = Attachment(name=name, data=report_csv_data)
-        summary = f'''Hi,This is an automated email from DataLabs. Please find all new content in attachments.'''
+        summary = '''Hi,
+
+        This is an automated email from DataLabs.
+
+         
+
+         Attached are the latest CPT Developer Program user emails.
+        '''
+
         send_email(
             to=self._parameters.to,
             cc=self._parameters.cc,
@@ -33,4 +40,4 @@ class EmailReportSMTPLoaderTask(LoaderTask):
             body=summary,
             attachments=[file],
             from_account='datalabs@ama-assn.org'
-            )
+        )
