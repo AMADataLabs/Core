@@ -23,16 +23,14 @@ class EmailReportSMTPLoaderTask(LoaderTask):
     def _load(self):
         date = str(datetime.now().date())  # 'YYYY-MM-DD'
         name = f'Developer_emails_{date}.csv'
-
-        for data in self._parameters.data:
-            report_csv_data = pickle.loads(data[0])
-            file = Attachment(name=name, data=report_csv_data)
-            summary = f'''Hi,This is an automated email from DataLabs. Please find all new content in attachments.'''
-            send_email(
-                to=self._parameters.to,
-                cc=self._parameters.cc,
-                subject=f'CPT Developer Program User Emails - {date}',
-                body=summary,
-                attachments=[file],
-                from_account='datalabs@ama-assn.org'
+        report_csv_data = self._parameters.data[0]
+        file = Attachment(name=name, data=report_csv_data)
+        summary = f'''Hi,This is an automated email from DataLabs. Please find all new content in attachments.'''
+        send_email(
+            to=self._parameters.to,
+            cc=self._parameters.cc,
+            subject=f'CPT Developer Program User Emails - {date}',
+            body=summary,
+            attachments=[file],
+            from_account='datalabs@ama-assn.org'
             )
