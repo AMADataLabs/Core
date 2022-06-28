@@ -1,12 +1,15 @@
 """ Task wrapper for DAGs and DAG tasks running in AWS. """
 from   dataclasses import dataclass
+import json
 import logging
 import os
 
 from   datalabs.access.parameter.dynamodb import DynamoDBEnvironmentLoader
+from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
 from   datalabs.etl.dag.notify.sns import SNSTaskNotifier
 from   datalabs.etl.dag.notify.email import StatusEmailNotifier
+from   datalabs.etl.dag.notify.webhook import StatusWebHookNotifier
 from   datalabs.etl.dag.state import Status
 from   datalabs.plugin import import_plugin
 import datalabs.etl.dag.task
@@ -50,7 +53,7 @@ class DAGTaskWrapper(
     PARAMETER_CLASS = DAGTaskWrapperParameters
 
     def _get_runtime_parameters(self, parameters):
-        command_line_parameters = self._parse_command_line_parameters(parameters)
+        command_line_parameters = json.loads(parameters[1])
         LOGGER.debug('Command-line Parameters: %s', command_line_parameters)
 
         return self._supplement_runtime_parameters(command_line_parameters)
@@ -64,7 +67,10 @@ class DAGTaskWrapper(
         if task != "DAG":
             state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
 
-            state.set_task_status(dag, task, execution_time, Status.RUNNING)
+            success = state.set_task_status(dag, task, execution_time, Status.RUNNING)
+
+            if not success:
+                LOGGER.error('Unable to set status of task %s of dag %s to Running', task, dag)
 
     def _handle_success(self) -> str:
         super()._handle_success()
@@ -91,8 +97,10 @@ class DAGTaskWrapper(
         dag_name = self._get_dag_name()
         task = self._get_task_id()
         execution_time = self._get_execution_time()
-        LOGGER.debug('Getting DAG Task Parameters for %s__%s...', dag_name, task)
         dag_task_parameters = self._get_dag_task_parameters_from_dynamodb(dag_name, task)
+        LOGGER.debug('Raw DAG Task Parameters: %s', dag_task_parameters)
+        dynamic_parameters = self._runtime_parameters.get("parameters", {})
+        LOGGER.debug('Dynamic DAG Task Parameters: %s', dynamic_parameters)
 
         if task == 'DAG':
             state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
@@ -101,6 +109,10 @@ class DAGTaskWrapper(
             dag_task_parameters = self._override_runtime_parameters(dag_task_parameters)
 
             dag_task_parameters = self._remove_bootstrap_parameters(dag_task_parameters)
+        LOGGER.debug('Pre-dynamic resolution DAG Task Parameters: %s', dag_task_parameters)
+
+        dynamic_loader = ReferenceEnvironmentLoader(dynamic_parameters)
+        dynamic_loader.load(environment=dag_task_parameters)
 
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
@@ -151,13 +163,14 @@ class DAGTaskWrapper(
         execution_time = self._get_execution_time()
         state = import_plugin(self._runtime_parameters["DAG_STATE_CLASS"])(self._runtime_parameters)
         current_status = state.get_dag_status(dag_id, execution_time)
+        LOGGER.debug('Current DAG "%s" status is %s and should be %s.', dag_id, current_status, dag.status)
 
         if current_status != dag.status:
             success = state.set_dag_status(dag_id, execution_time, dag.status)
-            LOGGER.info( 'Setting status of dag "%s" (%s) to %s', dag_id, execution_time, dag.status)
+            LOGGER.info( 'Setting status of DAG "%s" (%s) to %s', dag_id, execution_time, dag.status)
 
             if not success:
-                LOGGER.error('Unable to set status of dag %s to Finished', dag_id)
+                LOGGER.error('Unable to set status of DAG %s to Finished', dag_id)
 
             if dag.status in [Status.FINISHED, Status.FAILED]:
                 self._send_dag_status_notification(dag.status)
@@ -212,6 +225,28 @@ class DAGTaskWrapper(
         )
 
     def _send_dag_status_notification(self, status):
+        self._send_email_notification(status)
+        self._send_webhook_notification(status)
+
+    def _invoke_triggered_tasks(self, dag):
+        for task in dag.triggered_tasks:
+            self._notify_task_processor(task)
+
+    def _notify_dag_processor(self):
+        dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
+        dynamic_parameters = self._runtime_parameters.get("parameters")
+        notifier = SNSDAGNotifier(dag_topic)
+
+        notifier.notify(self._get_dag_id(), self._get_execution_time(), dynamic_parameters)
+
+    def _notify_task_processor(self, task):
+        task_topic = self._runtime_parameters["TASK_TOPIC_ARN"]
+        dynamic_parameters = self._runtime_parameters.get("parameters")
+        notifier = SNSTaskNotifier(task_topic)
+
+        notifier.notify(self._get_dag_id(), task, self._get_execution_time(), dynamic_parameters)
+
+    def _send_email_notification(self, status):
         raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")
 
         if raw_email_list is not None:
@@ -222,18 +257,12 @@ class DAGTaskWrapper(
 
             notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
 
-    def _invoke_triggered_tasks(self, dag):
-        for task in dag.triggered_tasks:
-            self._notify_task_processor(task)
+    def _send_webhook_notification(self, status):
+        raw_webhook_url_list = self._runtime_parameters.get("STATUS_NOTIFICATION_WEB_HOOK")
 
-    def _notify_dag_processor(self):
-        dag_topic = self._runtime_parameters["DAG_TOPIC_ARN"]
-        notifier = SNSDAGNotifier(dag_topic)
+        if raw_webhook_url_list is not None:
+            urls = raw_webhook_url_list.split(',')
+            environment = self._runtime_parameters.get("ENVIRONMENT")
+            notifier = StatusWebHookNotifier(urls, environment)
 
-        notifier.notify(self._get_dag_id(), self._get_execution_time())
-
-    def _notify_task_processor(self, task):
-        task_topic = self._runtime_parameters["TASK_TOPIC_ARN"]
-        notifier = SNSTaskNotifier(task_topic)
-
-        notifier.notify(self._get_dag_id(), task, self._get_execution_time())
+            notifier.notify(self._get_dag_id(), self._get_execution_time(), status)

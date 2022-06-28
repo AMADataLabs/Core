@@ -1,8 +1,8 @@
 openapi: 3.0.2
 info:
-  title: CPT Bulk Zip API
-  description: CPT Bulk Zip API Phase I
-  version: "1.0.0"
+  title: CPT Zip API
+  description: CPT Bulk Zip API
+  version: "1.1.0"
   termsOfService: 'http://swagger.io/terms/'
   contact:
     email: datalabs@ama-assn.org
@@ -22,8 +22,15 @@ paths:
       tags:
         - Files
       summary: Zip archive of the CPT standard distribution data files
-      description: Provides a zip archive of the standard CPT distribution files
+      description: Provides a temporary download URL to the zip archive of the standard CPT distribution files. By default a URL to the most recent release files is returned.
       operationId: getFiles
+      parameters:
+        - name: release
+          in: query
+          description: 'ID of a previous release (i.e. ANNUAL-2021 or PLA-Q2-2019)'
+          required: false
+          schema:
+            type: string
       x-amazon-apigateway-integration:
         uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
         responses:
@@ -128,4 +135,7 @@ externalDocs:
   description: Find out more about Swagger
   url: 'http://swagger.io'
 servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/PeterGwinLane/CPT-Zip/1.1.0
   - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.0.0'

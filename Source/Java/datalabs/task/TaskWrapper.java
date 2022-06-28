@@ -9,7 +9,6 @@ import java.util.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import datalabs.access.parameter.ReferenceEnvironmentLoader;
 import datalabs.task.TaskResolver;
 import datalabs.plugin.PluginImporter;
 
@@ -21,7 +20,8 @@ public class TaskWrapper {
     protected Map<String, String> runtimeParameters;
     protected Task task;
 
-    public TaskWrapper(Map<String, String> parameters) {
+    public TaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
+        this.environment = environment;
         this.parameters = parameters;
     }
 
@@ -29,8 +29,6 @@ public class TaskWrapper {
         String response;
 
         try {
-            this.setupEnvironment();
-
             this.runtimeParameters = this.getRuntimeParameters(this.parameters);
 
             Map<String, String> taskParameters = this.getTaskParameters();
@@ -55,11 +53,6 @@ public class TaskWrapper {
 
     public Task getTask() {
         return this.task;
-    }
-
-    protected void setupEnvironment() {
-        ReferenceEnvironmentLoader environmentLoader = ReferenceEnvironmentLoader.fromSystem();
-        this.environment = environmentLoader.load();
     }
 
     protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {

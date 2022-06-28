@@ -74,7 +74,7 @@ class ProcessorTaskWrapper(
                 f'or conform to the format "<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format.')
         else:
             LOGGER.info('Processing backfill file trigger...')
-            parameters = self._get_backfill_parameters(s3_object_key)
+            parameters = self._get_backfill_parameters(urllib.parse.unquote(s3_object_key))
 
         return parameters
 
@@ -96,8 +96,8 @@ class ProcessorTaskWrapper(
 
     @classmethod
     def _get_backfill_parameters(cls, s3_object_key):
-        dag_id, escaped_execution_time = s3_object_key.rsplit("__", 1)
-        execution_time = urllib.parse.unquote(escaped_execution_time).replace('T', ' ')
+        dag_id, execution_time = s3_object_key.rsplit("__", 1)
+        execution_time = execution_time.replace('T', ' ')
 
         try:
             isoparse(execution_time)  # Check if execution_time is ISO-8601
@@ -128,15 +128,19 @@ class ProcessorTaskWrapper(
     def _get_dag_task_parameters(self):
         ''' Get parameters for either the DAG Processor or the Task Processor. '''
         dag = self._get_dag_id()
+        dag_name = self._get_dag_name()
         task = self._get_task_id()
         dag_parameters = dict(
             dag=dag,
             execution_time=self._get_execution_time(),
         )
-        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
-        task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
+        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag_name, "DAG"))
+        task_parameters = self._get_dag_task_parameters_from_dynamodb(dag_name, task)
 
         dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
+
+        if "parameters" in self._runtime_parameters:
+            dag_parameters["parameters"] = self._runtime_parameters["parameters"]
 
         if task != "DAG":
             dag_parameters["task"] = task

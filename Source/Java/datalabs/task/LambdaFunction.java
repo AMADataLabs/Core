@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import datalabs.access.parameter.ReferenceEnvironmentLoader;
 import datalabs.plugin.PluginImporter;
 import datalabs.task.TaskWrapper;
 
@@ -40,9 +41,10 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
      TaskWrapper createTaskWrapper(String taskWrapperClassName, Map<String,String> event)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
                    ClassNotFoundException {
+         ReferenceEnvironmentLoader environmentLoader = ReferenceEnvironmentLoader.fromSystem();
          Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
-         Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
+         Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class, Map.class});
 
-         return (TaskWrapper) taskWrapperConstructor.newInstance(event);
+         return (TaskWrapper) taskWrapperConstructor.newInstance(environmentLoader.load(), event);
      }
- }
+}

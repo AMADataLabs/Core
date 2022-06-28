@@ -2,6 +2,7 @@ modspec:
   - package: datalabs
     include:
       - awslambda
+      - feature
       - parameter
       - plugin
       - task

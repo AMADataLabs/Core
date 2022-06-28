@@ -1,7 +1,12 @@
 AMC
-CPT
+CPT/API/Endpoint
+CPT/API/ETL
+CPT/Files/Watermark
 CPT/Organizations
 DBL
 HelloWorldJava/Task
-OneView
+HelloWorldVault
+OneView/ETL
+OneView/ETL/Reindex
+OneView/API
 Scheduler

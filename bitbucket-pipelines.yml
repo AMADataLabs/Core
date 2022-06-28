@@ -1,8 +1,8 @@
 image:
   name: 644454719059.dkr.ecr.us-east-1.amazonaws.com/datalabs-bitbucket-pipelines:1.3.0
   aws:
-    access-key: $AWS_ACCESS_KEY_ID
-    secret-key: $AWS_SECRET_ACCESS_KEY
+    access-key: $AWS_ACCESS_KEY_ID_SANDBOX
+    secret-key: $AWS_SECRET_ACCESS_KEY_SANDBOX
 
 options:
   docker: true
@@ -11,44 +11,11 @@ pipelines:
     branches:
         master:
         - step:
-            name: Build and Auto-Merge to dev
+            name: Build
             caches:
                 - build-dependencies
             script:
             - bash Script/bitbucket-pipelines-build.sh
-            - git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-            - git fetch
-            - git checkout dev
-            - git merge -m 'Automatic merge from master to dev.' $BITBUCKET_COMMIT
-            - git push origin dev
-        dev:
-        - step:
-            name: Build dev
-            caches:
-                - build-dependencies
-            script:
-                - bash Script/bitbucket-pipelines-build.sh
-        test:
-        - step:
-            name: Build test
-            caches:
-                - build-dependencies
-            script:
-                - bash Script/bitbucket-pipelines-build.sh
-        stage:
-        - step:
-            name: Build stage
-            caches:
-                - build-dependencies
-            script:
-                - bash Script/bitbucket-pipelines-build.sh
-        prod:
-        - step:
-            name: Build prod
-            caches:
-                - build-dependencies
-            script:
-                - bash Script/bitbucket-pipelines-build.sh
     tags:
         'datalabs-*_*.*.*':
         - step:
@@ -56,7 +23,7 @@ pipelines:
             caches:
             - environment-master
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - source Deploy/Master/release-info.sh $BITBUCKET_TAG
             - >-
                 bash Deploy/Master/deploy-package
@@ -80,20 +47,20 @@ pipelines:
         # master branch targets
         ##############################################################
 
-        AMC-master:
+        AMC:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-python-package --project AMC --branch $BITBUCKET_BRANCH
         - step:
             name: Update ETL Bundle
             caches:
                 - environment-master
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - >-
                 bash Deploy/Master/deploy-lambda-function
                 --environment sbx
@@ -106,100 +73,326 @@ pipelines:
         #     name: Update Lambda Functions
         #     script:
         #     - export ENABLE_FEATURE_DEV=True
-        #     - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-        #     - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+        #     - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
+        #     - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
         #     - export AWS_DEFAULT_REGION='us-east-1'
         #     - export ENVIRONMENT=sbx
         #     - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AMC=AMC.zip
 
-        ContactID-master:
+        ContactID:
         - step:
             name: Update Bundle
             caches:
             - environment-master
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - >-
                 bash Deploy/Master/deploy-lambda-function
                 --environment sbx
                 --project ContactID
                 --bundle CustomerIntelligence/ContactID.zip
                 --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/update-functions -e sbx -s DataLake -p CustomerIntelligence ContactID=ContactID.zip
 
-        CPT-master:
+        CPT-API-ETL:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-python-package --project CPT/API/ETL --branch $BITBUCKET_BRANCH
         - parallel:
             - step:
-                name: Update ETL Bundle
+                name: Update sandbox Bundle
                 caches:
                     - environment-master
                 script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
                     --project CPT/API/ETL
                     --bundle CPT/API/ETL.zip
                     --runtime Python
+                    --use-package
             - step:
-                name: Update Endpoint Bundle
+                name: Update development Bundle
                 caches:
-                    - environment-master
+                    - environment-dev
                 script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
                 - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project CPT/API/Endpoint
-                    --bundle CPT/API/Endpoint.zip
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
                     --runtime Python
+                    --use-package
+            - step:
+                name: Update test Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update staging Bundle
+                caches:
+                    - environment-stage
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment itg
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update production Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project CPT/API/ETL
+                    --bundle CPT/API/ETL.zip
+                    --runtime Python
+                    --use-package
         - parallel:
             - step:
-                name: Update Lambda Functions
+                name: Update sandbox Lambda Functions
                 script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API ETL=ETL.zip
+            - step:
+                name: Update development Lambda Functions
+                script:
                 - >-
-                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
                     ETL=ETL.zip
-                    Authorizer=Endpoint.zip
-                    Endpoint=Endpoint.zip
-                    BulkAuthorizer=Endpoint.zip
-                    BulkEndpoint=Endpoint.zip
+            - step:
+                name: Update test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
+                    ETL=ETL.zip
+            - step:
+                name: Update production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
+                    ETL=ETL.zip
 
-        DBL-master:
+        CPT-API-Endpoint:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-python-package --project CPT/API/Endpoint --branch $BITBUCKET_BRANCH
+        - step:
+            name: Update Bundle
+            caches:
+                - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project CPT/API/Endpoint
+                --bundle CPT/API/Endpoint.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - >-
+                bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
+
+        CPT-Files-Watermark:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-python-package --project CPT/Files/Watermark --branch $BITBUCKET_BRANCH
+        - parallel:
+            - step:
+                name: Update sandbox Bundle
+                caches:
+                    - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project CPT/Files/Watermark
+                    --bundle CPT/Files/Watermark.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project CPT/Files/Watermark
+                    --bundle CPT/Files/Watermark.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update test Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project CPT/Files/Watermark
+                    --bundle CPT/Files/Watermark.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update staging Bundle
+                caches:
+                    - environment-stage
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment itg
+                    --project CPT/Files/Watermark
+                    --bundle CPT/Files/Watermark.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update production Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project CPT/Files/Watermark
+                    --bundle CPT/Files/Watermark.zip
+                    --runtime Python
+                    --use-package
+        - parallel:
+            - step:
+                name: Update sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Files WatermarkDAG=Watermark.zip
+            - step:
+                name: Update development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files
+                    WatermarkDAG=Watermark.zip
+            # - step:
+            #     name: Update test Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files
+            #         WatermarkDAG=Watermark.zip
+            # - step:
+            #     name: Update production Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files
+            #         WatermarkDAG=Watermark.zip
+
+        DBL:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-python-package --project DBL --branch $BITBUCKET_BRANCH
         - step:
             name: Update ETL Bundle
             caches:
                 - environment-master
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - >-
                 bash Deploy/Master/deploy-lambda-function
                 --environment sbx
                 --project DBL
-                --bundle Masterfile/DBL.zip
+                --bundle Masterfile/DBLReport.zip
                 --runtime Python
                 --use-package
 
-        HelloWorldJava-master:
+        HelloWorldJava:
         - parallel:
             - step:
                 name: Update DAG Bundle
                 caches:
                 - environment-master
                 script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -211,7 +404,7 @@ pipelines:
                 caches:
                 - environment-master
                 script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -228,43 +421,87 @@ pipelines:
                 - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
                 - pipe: atlassian/aws-ecr-push-image:1.5.0
                   variables:
-                    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID
-                    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY
+                    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_SANDBOX
+                    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_SANDBOX
                     AWS_DEFAULT_REGION: 'us-east-1'
                     IMAGE_NAME: 'hello_world_java-sbx'
                     TAGS: '$VERSION latest'
         - step:
             name: Update Lambda Functions
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - >-
                 bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava
                 HelloWorldJavaDAG=DAG.zip
                 HelloWorldJavaTask=Task.jar
 
-        OneView-master:
+        HelloWorldVault:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-python-package --project HelloWorldVault --branch $BITBUCKET_BRANCH
         - parallel:
             - step:
-                name: Create Database
-                caches:
-                  - environment-master
-                script:
-                - bash Script/setup-virtual-environment OneView
-                - export ENABLE_FEATURE_DEV=True
-                - export DATABASE_NAME=oneview_content
-                - export DATABASE_NAME_ADMIN=postgres
-                - export DATABASE_BACKEND=postgresql+psycopg2
-                - export DATABASE_HOST=$ONEVIEW_DATABASE_HOST_SANDBOX
-                - export DATABASE_PORT=5432
-                - export DATABASE_USERNAME=$ONEVIEW_DATABASE_USERNAME_SANDBOX
-                - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_SANDBOX
-                - bash Deploy/Master/create-database OneView
-            - step:
-                name: Update ETL Bundle
+                name: Update Sandbox Bundle
                 caches:
                     - environment-master
                 script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project HelloWorldVault
+                    --bundle HelloWorldVault.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project HelloWorldVault
+                    --bundle HelloWorldVault.zip
+                    --runtime Python
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Function
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s DataLake HelloWorldVault=HelloWorldVault.zip
+            - step:
+                name: Update Development Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
+                    HelloWorldVault=HelloWorldVault.zip
+
+        OneView-ETL:
+        - step:
+            name: Create New Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-python-package --project OneView/ETL --branch $BITBUCKET_BRANCH
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Bundle
+                caches:
+                    - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
@@ -273,42 +510,246 @@ pipelines:
                     --runtime Python
                     --jdbc-driver DB2
                     --jdbc-driver Informix
+                    --use-package
             - step:
-                name: Update API Bundle
+                name: Update Development Lambda Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project OneView/ETL
+                    --bundle OneView/ETL.zip
+                    --runtime Python
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
+                    --use-package
+            - step:
+                name: Update Test Lambda Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project OneView/ETL
+                    --bundle OneView/ETL.zip
+                    --runtime Python
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
+                    --use-package
+            - step:
+                name: Update Production Lambda Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project OneView/ETL
+                    --bundle OneView/ETL.zip
+                    --runtime Python
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
+                    --use-package
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Function
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView ETL=ETL.zip
+            - step:
+                name: Update Development Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView
+                    ETL=ETL.zip
+            - step:
+                name: Update Test Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView
+                    ETL=ETL.zip
+            - step:
+                name: Update Production Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
+                    ETL=ETL.zip
+
+        OneView-Reindex:
+        - step:
+            name: Create New Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-python-package --project OneView/ETL/Reindex --branch $BITBUCKET_BRANCH
+        - parallel:
+            - step:
+                name: Update Development Batch Job Image
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -N ecr -I $AWS_ACCESS_KEY_ID_SHARED -S $AWS_SECRET_ACCESS_KEY_SHARED
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
+                    --environment dev
+                    --project OneView/ETL/Reindex
+                    --runtime Python
+                    --repo oneview-dev
+            - step:
+                name: Update Test Batch Job Image
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -N ecr -I $AWS_ACCESS_KEY_ID_SHARED -S $AWS_SECRET_ACCESS_KEY_SHARED
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
+                    --environment tst
+                    --project OneView/ETL/Reindex
+                    --runtime Python
+                    --repo oneview-tst
+            - step:
+                name: Update Production Batch Job Image
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -N ecr -I $AWS_ACCESS_KEY_ID_SHARED -S $AWS_SECRET_ACCESS_KEY_SHARED
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
+                    --environment prd
+                    --project OneView/ETL/Reindex
+                    --runtime Python
+                    --repo oneview-prd
+
+        OneView-API:
+        - step:
+            name: Create New Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-python-package --project OneView/API --branch $BITBUCKET_BRANCH
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Bundle
                 caches:
                     - environment-master
                 script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
                     --project OneView/API
                     --bundle OneView/API.zip
                     --runtime Python
-        - parallel:
-            # - step:
-            #     name: Migrate Database
-            #     caches:
-            #       - environment-master
-            #     script:
-            #     - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            #     - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            #     - export PATH="$VIRTUAL_ENV/bin:$PATH"
-            #     - Script/run.py Script/migrate-database --host $ONEVIEW_DATABASE_HOST_SANDBOX --name oneview --username $ONEVIEW_DATABASE_USERNAME_SANDBOX --password $ONEVIEW_DATABASE_PASSWORD_SANDBOX upgrade OneView
+                    --use-package
             - step:
-                name: Update Lambda Functions
+                name: Update Development Lambda Bundle
+                caches:
+                    - environment-dev
                 script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                - export ENVIRONMENT=sbx
-                - bash Deploy/OneView/update-functions
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project OneView/API
+                    --bundle OneView/API.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Test Lambda Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project OneView/API
+                    --bundle OneView/API.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Production Lambda Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project OneView/API
+                    --bundle OneView/API.zip
+                    --runtime Python
+                    --use-package
+        - parallel:
+            - step:
+                name: Reload Sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView API=API.zip
+            - step:
+                name: Reload Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView
+                    API=API.zip
+            - step:
+                name: Reload Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView
+                    API=API.zip
+            - step:
+                name: Reload Production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
+                    API=API.zip
 
-        Organizations-master:
+        Organizations:
         - step:
             name: Update ETL Bundle
             caches:
                 - environment-master
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - >-
                 bash Deploy/Master/deploy-lambda-function
                 --environment sbx
@@ -317,36 +758,142 @@ pipelines:
                 --runtime Python
                 --jdbc-driver SQLServer
 
-        Scheduler-master:
+        Scheduler:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-python-package --project Scheduler --environment sbx
-        - step:
-            name: Update Bundle
-            caches:
-            - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - >-
-                bash Deploy/Master/deploy-lambda-function
-                --environment sbx
-                --project Scheduler
-                --bundle Scheduler.zip
-                --runtime Python
-                --use-package
-        - step:
-            name: Update Lambda Functions
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-            - >-
-                bash Deploy/Master/update-functions -e sbx -s DataLake
-                Scheduler=Scheduler.zip
-                DAGProcessor=Scheduler.zip
-                TaskProcessor=Scheduler.zip
+        - parallel:
+            - step:
+                name: Update Sandbox Bundle
+                caches:
+                - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Development Bundle
+                caches:
+                - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Test Bundle
+                caches:
+                - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Staging Bundle
+                caches:
+                - environment-stage
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment itg
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+            - step:
+                name: Update Production Bundle
+                caches:
+                - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project Scheduler
+                    --bundle Scheduler.zip
+                    --runtime Python
+                    --use-package
+        - parallel:
+            - step:
+                name: Reload Sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/update-functions -e sbx -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
+            - step:
+                name: Reload Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
+            - step:
+                name: Reload Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
+            - step:
+                name: Reload Staging Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
+            - step:
+                name: Reload Production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake
+                    Scheduler=Scheduler.zip
+                    DAGProcessor=Scheduler.zip
+                    TaskProcessor=Scheduler.zip
 
 
         ##############################################################
@@ -360,8 +907,8 @@ pipelines:
             - environment-dev
             script:
             - >-
-                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 --environment dev
@@ -376,56 +923,38 @@ pipelines:
             - export ENABLE_FEATURE_DEV=True
             - export ENVIRONMENT=dev
             - >-
-                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
                 AMC=AMC.zip
 
-        CPT-dev:
-        - parallel:
-            - step:
-                name: Update ETL Bundle
-                caches:
+        CPT-API-Endpoint-dev:
+        - step:
+            name: Update Bundle
+            caches:
                 - environment-dev
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
-                    --project CPT/API/ETL
-                    --bundle CPT/API/ETL.zip
-                    --runtime Python
-            - step:
-                name: Update Endpoint Bundle
-                caches:
-                - environment-dev
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                    -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
-                    --project CPT/API/Endpoint
-                    --bundle CPT/API/Endpoint.zip
-                    --runtime Python
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment dev
+                --project CPT/API/Endpoint
+                --bundle CPT/API/Endpoint.zip
+                --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
-            # Update Lambda functions
-            - export ENABLE_FEATURE_DEV=True
-            - export ENVIRONMENT=dev
             - >-
-                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/API
-                ETL=Endpoint.zip
-                Endpoint=Endpoint.zip
                 Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
                 BulkAuthorizer=Endpoint.zip
                 BulkEndpoint=Endpoint.zip
 
@@ -436,13 +965,13 @@ pipelines:
             - environment-dev
             script:
             - >-
-                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 --environment dev
                 --project DBL
-                --bundle Masterfile/DBL.zip
+                --bundle Masterfile/DBLReport.zip
                 --runtime Python
                 --use-package
         - step:
@@ -451,11 +980,11 @@ pipelines:
             - export ENABLE_FEATURE_DEV=True
             - export ENVIRONMENT=dev
             - >-
-                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
-                DBLReport=DBL.zip
+                DBLReport=DBLReport.zip
 
         OneView-dev:
         - parallel:
@@ -475,6 +1004,33 @@ pipelines:
             #     - export DATABASE_PASSWORD=$ONEVIEW_DATABASE_PASSWORD_DEV
             #     - bash Deploy/Master/create-database OneView
             - step:
+                name: Update ETL Batch Job Image
+                caches:
+                    - environment-dev
+                script:
+                # Assume ECR role
+                - aws configure set profile.shared.aws_access_key_id $AWS_ACCESS_KEY_ID_SHARED
+                - aws configure set profile.shared.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_SHARED
+                - aws configure set profile.shared.region us-east-1
+                - aws configure set profile.shared.output json
+                - bash Script/ecr_assume_role.sh | grep source > assume_role.rc
+                - source assume_role.rc
+
+                # Build the image
+                - >-
+                    docker build -t oneview-dev
+                    -f ./Build/OneView/ETL/Reindex/Dockerfile ./
+
+                # Push the image to ECR
+                - >-
+                    aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin
+                    394406051370.dkr.ecr.us-east-1.amazonaws.com
+                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:1.0.1
+                - docker tag oneview-dev 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
+                - docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/oneview-dev:latest
+
+            - step:
                 name: Update ETL Bundle
                 caches:
                     - environment-dev
@@ -485,8 +1041,8 @@ pipelines:
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Setup AWS CLI
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
                 - export AWS_DEFAULT_REGION='us-east-1'
 
                 # Install the DB2 JDBC driver
@@ -499,8 +1055,8 @@ pipelines:
                 - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
                 - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
@@ -525,8 +1081,8 @@ pipelines:
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
                 - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
@@ -552,8 +1108,8 @@ pipelines:
                 name: Update Lambda Functions
                 script:
                 # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
                 - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
@@ -575,8 +1131,8 @@ pipelines:
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
             # Setup AWS CLI
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
             - export AWS_DEFAULT_REGION='us-east-1'
 
             # Install the SQL Server JDBC driver
@@ -589,8 +1145,8 @@ pipelines:
             - bash Deploy/Master/create-python-bundle --project CPT/Organizations -f mssql-jdbc-10.2.0.jre8.jar
 
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
@@ -602,8 +1158,8 @@ pipelines:
             name: Update Lambda Functions
             script:
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
@@ -625,8 +1181,8 @@ pipelines:
             - export PATH="${VIRTUAL_ENV}/bin:$PATH"
 
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
@@ -642,8 +1198,8 @@ pipelines:
             name: Update Lambda Functions
             script:
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh dev | grep source > assume_role.rc
@@ -669,8 +1225,8 @@ pipelines:
             - environment-test
             script:
             - >-
-                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 --environment tst
@@ -685,57 +1241,40 @@ pipelines:
             - export ENABLE_FEATURE_TEST=True
             - export ENVIRONMENT=tst
             - >-
-                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
                 AMC=AMC.zip
 
-        CPT-test:
+        CPT-API-Endpoint-test:
         - step:
             name: Update Bundle
             caches:
                 - environment-test
             script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            - export PATH="${VIRTUAL_ENV}/bin:$PATH"
-
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_TEST=True
-            - bash Deploy/Master/create-python-bundle --project CPT
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-tst-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
+            - >-
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment tst
+                --project CPT/API/Endpoint
+                --bundle CPT/API/Endpoint.zip
+                --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
-
-            # Update Lambda functions
-            - export ENABLE_FEATURE_TEST=True
-            - export ENVIRONMENT=tst
             - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT
-                Authorizer=ETL.zip
-                Endpoint=ETL.zip
-                ETL=ETL.zip
-                BulkAuthorizer=ETL.zip
-                BulkEndpoint=ETL.zip
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
 
         DBL-test:
         - step:
@@ -744,13 +1283,13 @@ pipelines:
             - environment-test
             script:
             - >-
-                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                 --environment tst
                 --project DBL
-                --bundle Masterfile/DBL.zip
+                --bundle Masterfile/DBLReport.zip
                 --runtime Python
                 --use-package
         - step:
@@ -759,11 +1298,11 @@ pipelines:
             - export ENABLE_FEATURE_TEST=True
             - export ENVIRONMENT=tst
             - >-
-                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID -s $AWS_SECRET_ACCESS_KEY
-                -I $AWS_ACCESS_KEY_ID_ROLE -S $AWS_SECRET_ACCESS_KEY_ROLE
+                bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             - >-
                 bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
-                DBLReport=DBL.zip
+                DBLReport=DBLReport.zip
 
         OneView-test:
         - parallel:
@@ -778,8 +1317,8 @@ pipelines:
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Setup AWS CLI
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
                 - export AWS_DEFAULT_REGION='us-east-1'
 
                 # Install the DB2 JDBC driver
@@ -792,8 +1331,8 @@ pipelines:
                 - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
                 - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
@@ -818,8 +1357,8 @@ pipelines:
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
                 - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
@@ -835,8 +1374,8 @@ pipelines:
             name: Update Lambda Functions
             script:
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
@@ -858,8 +1397,8 @@ pipelines:
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
             # Setup AWS CLI
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
             - export AWS_DEFAULT_REGION='us-east-1'
 
             # Install the SQL Server JDBC driver
@@ -872,8 +1411,8 @@ pipelines:
             - bash Deploy/Master/create-python-bundle --project CPT/Organizations -f mssql-jdbc-10.2.0.jre8.jar
 
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
@@ -885,8 +1424,8 @@ pipelines:
             name: Update Lambda Functions
             script:
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
@@ -908,8 +1447,8 @@ pipelines:
             - export PATH="${VIRTUAL_ENV}/bin:$PATH"
 
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
@@ -925,8 +1464,8 @@ pipelines:
             name: Update Lambda Functions
             script:
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh tst | grep source > assume_role.rc
@@ -945,51 +1484,34 @@ pipelines:
         # stage branch targets
         ##############################################################
 
-        CPT-stage:
+        CPT-API-Endpoint-stage:
         - step:
             name: Update Bundle
             caches:
                 - environment-stage
             script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            - export PATH="${VIRTUAL_ENV}/bin:$PATH"
-
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_STAGE=True
-            - bash Deploy/Master/create-python-bundle --project CPT
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-itg-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
+            - >-
+                bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment itg
+                --project CPT/API/Endpoint
+                --bundle CPT/API/Endpoint.zip
+                --runtime Python
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
-
-            # Update Lambda functions
-            - export ENABLE_FEATURE_STAGE=True
-            - export ENVIRONMENT=itg
             - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT
-                Authorizer=ETL.zip
-                Endpoint=ETL.zip
-                ETL=ETL.zip
-                BulkAuthorizer=ETL.zip
-                BulkEndpoint=ETL.zip
+                bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
 
         Scheduler-stage:
         - step:
@@ -1003,8 +1525,8 @@ pipelines:
             - export PATH="${VIRTUAL_ENV}/bin:$PATH"
 
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
@@ -1020,8 +1542,8 @@ pipelines:
             name: Update Lambda Functions
             script:
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
@@ -1039,57 +1561,93 @@ pipelines:
         ##############################################################
         # prod branch targets
         ##############################################################
-        CPT-prod:
-        - step:
-            name: Send Deployment Request
-            script:
-            - echo "A CPT deployment has been triggered via BitBucket Pipelines. Please run the CPT-production target if you approve."
 
-        CPT-production:
+        AMC-prod:
+        - step:
+            name: Update ETL Bundle
+            caches:
+            - environment-prod
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment prd
+                --project AMC
+                --bundle Masterfile/AMC.zip
+                --runtime Python
+                --jdbc-driver Informix
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - export ENABLE_FEATURE_PROD=True
+            - export ENVIRONMENT=prd
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
+                AMC=AMC.zip
+
+        CPT-API-Endpoint-production:
         - step:
             name: Update Bundle
             caches:
                 - environment-prod
             script:
-            # Setup virtual environment
-            - bash Script/setup-virtual-environment Master/BitBucketPipelines
-            - export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-            - export PATH="${VIRTUAL_ENV}/bin:$PATH"
-
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
-
-            # Create the code bundle
-            - export ENABLE_FEATURE_PROD=True
-            - bash Deploy/Master/create-python-bundle --project CPT
-
-            # Upload the code bundle
-            - export AWS_S3_BUCKET='ama-prd-datalake-lambda-us-east-1'
-            - bash --rcfile assume_role.rc -i Deploy/CPT/upload-bundle
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment prd
+                --project CPT/API/Endpoint
+                --bundle CPT/API/Endpoint.zip
+                --runtime Python
+                --use-package
+                --use-package
         - step:
             name: Update Lambda Functions
             script:
-            # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
-            - aws configure set profile.apigw.region us-east-1
-            - aws configure set profile.apigw.output json
-            - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
+                Authorizer=Endpoint.zip
+                Endpoint=Endpoint.zip
+                BulkAuthorizer=Endpoint.zip
+                BulkEndpoint=Endpoint.zip
 
-            # Update Lambda functions
+        DBL-prod:
+        - step:
+            name: Update ETL Bundle
+            caches:
+            - environment-prod
+            script:
+            - >-
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                --environment prd
+                --project DBL
+                --bundle Masterfile/DBLReport.zip
+                --runtime Python
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
             - export ENABLE_FEATURE_PROD=True
             - export ENVIRONMENT=prd
             - >-
-                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT
-                Authorizer=ETL.zip
-                Endpoint=ETL.zip
-                ETL=ETL.zip
-                BulkAuthorizer=ETL.zip
-                BulkEndpoint=ETL.zip
+                bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            - >-
+                bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
+                DBLReport=DBLReport.zip
 
         OneView-prod:
         - step:
@@ -1110,8 +1668,8 @@ pipelines:
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Setup AWS CLI
-                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+                - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
+                - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
                 - export AWS_DEFAULT_REGION='us-east-1'
 
                 # Install the DB2 JDBC driver
@@ -1124,8 +1682,8 @@ pipelines:
                 - echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
                 # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
                 - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
@@ -1150,8 +1708,8 @@ pipelines:
                 - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
                 # Assume maintenance role
-                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+                - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+                - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
                 - aws configure set profile.apigw.region us-east-1
                 - aws configure set profile.apigw.output json
                 - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
@@ -1167,8 +1725,8 @@ pipelines:
             name: Update Lambda Functions
             script:
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
@@ -1196,8 +1754,8 @@ pipelines:
             - export PATH="$VIRTUAL_ENV/bin:$PATH"
 
             # Setup AWS CLI
-            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+            - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
+            - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
             - export AWS_DEFAULT_REGION='us-east-1'
 
             # Install the SQL Server JDBC driver
@@ -1210,8 +1768,8 @@ pipelines:
             - bash Deploy/Master/create-python-bundle --project CPT/Organizations -f mssql-jdbc-10.2.0.jre8.jar
 
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
@@ -1223,8 +1781,8 @@ pipelines:
             name: Update Lambda Functions
             script:
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
@@ -1244,7 +1802,7 @@ pipelines:
         - step:
             name: Update Bundle
             caches:
-                - scheduler-prod-update-bundle-dependencies
+                - environment-prod
             script:
             # Setup virtual environment
             - bash Script/setup-virtual-environment Master/BitBucketPipelines
@@ -1252,8 +1810,8 @@ pipelines:
             - export PATH="${VIRTUAL_ENV}/bin:$PATH"
 
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc
@@ -1269,8 +1827,8 @@ pipelines:
             name: Update Lambda Functions
             script:
             # Assume maintenance role
-            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_ROLE
-            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_ROLE
+            - aws configure set profile.apigw.aws_access_key_id $AWS_ACCESS_KEY_ID_APIGW
+            - aws configure set profile.apigw.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_APIGW
             - aws configure set profile.apigw.region us-east-1
             - aws configure set profile.apigw.output json
             - bash Script/apigw_assume_role.sh prd | grep source > assume_role.rc

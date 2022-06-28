@@ -1,6 +1,5 @@
 """ DAG execution from a task. """
 from   dataclasses import dataclass
-from   datetime import datetime
 from   io import BytesIO
 import json
 import logging
@@ -20,8 +19,8 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=too-many-instance-attributes
 class DAGNotificationFactoryParameters:
     dag: str
+    execution_time: str
     data: object
-    execution_time: str = None
 
 
 class DAGNotificationFactoryTask(TransformerTask):
@@ -30,7 +29,13 @@ class DAGNotificationFactoryTask(TransformerTask):
     def _transform(self):
         iteration_parameters = self._parse_iteration_parameters(self._parameters.data)
 
-        return [json.dumps(self._generate_notification_messages(self._parameters.dag, iteration_parameters)).encode()]
+        return [
+            json.dumps(self._generate_notification_messages(
+                self._parameters.dag,
+                self._parameters.execution_time,
+                iteration_parameters
+            )).encode()
+        ]
 
     @classmethod
     def _parse_iteration_parameters(cls, data):
@@ -39,9 +44,9 @@ class DAGNotificationFactoryTask(TransformerTask):
         return pandas.concat(csv_data, ignore_index=True)
 
     @classmethod
-    def _generate_notification_messages(cls, dag, parameters):
+    def _generate_notification_messages(cls, dag, execution_time, parameters):
         parameters["dag"] = dag
-        parameters["execution_time"] = datetime.now().isoformat()
+        parameters["execution_time"] = execution_time
 
         parameters.dag = parameters.dag + ":" + parameters.index.astype(str)
 

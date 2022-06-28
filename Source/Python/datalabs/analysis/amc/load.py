@@ -1,7 +1,6 @@
 """ AMC Flagged Addresses Report loader task """
 from   dataclasses import dataclass
 from   datetime import datetime
-from   io import BytesIO
 import pickle
 
 # pylint: disable=import-error, invalid-name
@@ -28,7 +27,7 @@ class AMCReportSMTPLoaderTask(LoaderTask):
 
         for data in self._parameters.data:
             report_data, summary = pickle.loads(data)
-            file = Attachment(name=name, data=BytesIO(report_data))
+            file = Attachment(name=name, data=report_data)
 
             send_email(
                 to=self._parameters.to,

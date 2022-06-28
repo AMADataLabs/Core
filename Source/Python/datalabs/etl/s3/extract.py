@@ -144,6 +144,9 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
         if self._parameters.include_datestamp is None or self._parameters.include_datestamp.lower() == 'true':
             path = '/'.join((self._parameters.base_path, release_folder))
 
+        if path.startswith('/'):
+            path = path[1:]
+
         return path
 
     @classmethod

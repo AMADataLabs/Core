@@ -52,8 +52,11 @@ fi
 
 # Run tests
 echo "Running tests..."
-if [[ $BITBUCKET_BRANCH != 'master' ]]; then
-    CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
+CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
+
+if [[ $? != 0 ]]; then
+    echo "Tests failed. Aborting build..."
+    exit 1
 fi
 
 # Collect all modified projects

@@ -145,7 +145,7 @@ module "batch_job" {
   service_role          = module.batch_compute_environment.service_role.arn
   ecr_account           = local.ecr_account
   image                 = "hello_world_java-${local.environment}"
-  image_version         = "1.0.0"
+  image_version         = "latest"
   resource_requirements = <<EOF
 [
     {"type": "VCPU", "value": "1"},

@@ -71,6 +71,20 @@ def test_datetime_formatting_in_file_works(parameters):
 
 
 # pylint: disable=redefined-outer-name, protected-access
+def test_no_leading_slash_with_empty_base_path(parameters):
+    with mock.patch('boto3.client'):
+        parameters['BASE_PATH'] = ''
+        parameters['INCLUDE_DATESTAMP'] = 'true'
+        parameters['FILES'] = 'this_one.csv'
+        task = s3.S3FileExtractorTask(parameters)
+
+        files = task._get_files()
+
+        assert len(files) == 1
+        assert files[0] == '19000101/this_one.csv'
+
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_caching_data_to_disk(body, parameters):
     task = s3.S3FileExtractorTask(parameters)
 

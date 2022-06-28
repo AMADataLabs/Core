@@ -1,6 +1,6 @@
 # Render as follows:
 #
-# Script/render-template -t Deploy/DBL/dev/dag_config.yaml.jinja -f Deploy/DBL/dev/dag_config.yaml \
+# Script/render-template -t Deploy/DBL/prd/dag_config.yaml.jinja -f Deploy/DBL/prd/dag_config.yaml \
 #   -v eft_password={{eft_password}} \
 #   -v udrive_password={{udrive_password}}
 ---
@@ -91,10 +91,10 @@ data:
     DBL__EMAIL_DBL_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     DBL__EMAIL_DBL_REPORT__CACHE_INPUT_FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - Previous.xlsx,comparison.pk"
 
-    DBL__EMAIL_DBL_REPORT__TO: 'datalabs@ama-assn.org'
-    DBL__EMAIL_DBL_REPORT__CC: ''
-    DBL__EMAIL_DBL_REPORT__FAIL_TO: 'datalabs@ama-assn.org'
-    DBL__EMAIL_DBL_REPORT__FAIL_CC: ''
+    DBL__EMAIL_DBL_REPORT__TO: 'Christina.Tennant@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__CC: 'Garrett.Lappe@ama-assn.org,datalabs@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__FAIL_TO: 'Christina.Tennant@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__FAIL_CC: 'Garrett.Lappe@ama-assn.org,datalabs@ama-assn.org'
 
 
     # LOAD_DBL_REPORT

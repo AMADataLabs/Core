@@ -204,6 +204,7 @@
                 <version>2.22.2</version>
                 <configuration>
                     <testSourceDirectory>../../Test/Java</testSourceDirectory>
+                    <trimStackTrace>false</trimStackTrace>
                 </configuration>
             </plugin>
 

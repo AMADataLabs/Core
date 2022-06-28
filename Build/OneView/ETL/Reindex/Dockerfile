@@ -1,49 +1,37 @@
 # Build Example:
-#    docker build -t oneview-etl -f ./Build/OneView/ETL/Reindex/Dockerfile --build-arg template_vars='user=bob,password=foo' ./
-# Run Example:
-#    docker run -e DOTENV_PATH=physician.env --rm -p 9000:8080 oneview-etl
-#    curl -XPOST "http://192.168.99.105:9000/2015-03-31/functions/function/invocations" -d '{}'
-
-FROM public.ecr.aws/lambda/python:3.7
+#    docker build --build-arg PACKAGE_NAME=datalabs-oneview-etl --build-arg PACKAGE_VERSION=1.1.0 -t oneview-reindex -f ./Build/OneView/ETL/Reindex/Dockerfile ./
+FROM python:3.7
+ARG PACKAGE_NAME
+ARG PACKAGE_VERSION
+ARG AWS_ACCESS_KEY_ID_SANDBOX
+ARG AWS_SECRET_ACCESS_KEY_SANDBOX
 
 WORKDIR /OneView
 ENV PYTHONPATH=/OneView:/OneView/site-packages
 ENV CLASSPATH=/OneView
 ENV AWS_DEFAULT_REGION=us-east-1
 
-COPY ./Build/OneView/alembic/versions .
-
-COPY ./Build/OneView/requirements.txt .
-RUN chown -R root:root /var/lang/lib/python3.7
-RUN pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
-
-COPY ./Script ./Script
 COPY ./Build/Master ./Build/Master
-COPY ./Build/OneView ./Build/OneView
-COPY ./Source/Python ./Source/Python
-COPY ./Source/Bash ./Source/Bash
-COPY ./Deploy/OneView/upgrade-database .
+COPY ./Build/OneView/ETL/Reindex ./Build/OneView/ETL/Reindex
+COPY ./Deploy/Master ./Deploy/Master
+COPY ./Script ./Script
+COPY ./Source/Python/datalabs/build ./Source/Python/datalabs/build
 
-ARG template_vars
-RUN echo $template_vars
-COPY ./Build/OneView/*.env ./
-RUN find ./ -name "*.env" -exec \
-    ./Script/render-template \
-    --template {} \
-    --file {} \
-    --vars pythonpath=/OneView,$template_vars \;
-RUN ./Script/bundle-project -i --directory ./ OneView
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
+    unzip awscliv2.zip && \
+    ./aws/install
 
-RUN rm -rf ./Build/Master
-RUN rm -rf ./Source
+RUN pip install -r Build/Master/Docker/requirements.txt
 
-COPY ./Build/OneView/lambda-entrypoint.sh /
-RUN chmod a+x /lambda-entrypoint.sh
+RUN aws configure set profile.sandbox.aws_access_key_id $AWS_ACCESS_KEY_ID_SANDBOX && \
+    aws configure set profile.sandbox.aws_secret_access_key $AWS_SECRET_ACCESS_KEY_SANDBOX && \
+    aws configure set profile.sandbox.region us-east-1 && \
+    aws configure set profile.sandbox.output json
 
-ADD https://dbschema.com/jdbc-drivers/Db2JdbcDriver.zip .
-RUN unzip ./Db2JdbcDriver.zip && rm ./Db2JdbcDriver.zip
-RUN echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
-ADD https://dbschema.com/jdbc-drivers/InformixJdbcDriver.zip .
-RUN unzip ./InformixJdbcDriver.zip && rm ./InformixJdbcDriver.zip
+RUN aws --profile sandbox codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
 
-CMD ["awslambda.handler"]
+RUN pip install $PACKAGE_NAME==$PACKAGE_VERSION
+RUN cp ./Build/Master/settings.py ./settings.py
+RUN cp ./Build/Master/task.py ./task.py
+
+RUN rm -rf ./Build ./Deploy ./Script ./Source ./aws ./awscliv2.zip

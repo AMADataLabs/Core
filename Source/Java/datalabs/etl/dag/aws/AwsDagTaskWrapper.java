@@ -22,10 +22,10 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     static final Logger LOGGER = LoggerFactory.getLogger(AwsDagTaskWrapper.class);
     Map<String, String> taskParameters;
 
-    public AwsDagTaskWrapper(Map<String, String> parameters) {
-        super(parameters);
+    public AwsDagTaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
+        super(environment, parameters);
 
-        if (System.getenv("DYNAMODB_CONFIG_TABLE") == null) {
+        if (this.environment.get("DYNAMODB_CONFIG_TABLE") == null) {
             throw new IllegalArgumentException("DYNAMODB_CONFIG_TABLE environment variable is not set.");
         }
     }
@@ -124,11 +124,13 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     }
 
     protected Map<String, String> getDagTaskParametersFromDynamoDb(String dag, String task) {
+        String[] dagIdParts = dag.split(":");
+        String dagName = dagIdParts[0];
         HashMap<String, String> parameters = new HashMap<String, String>();
 
         DynamoDbEnvironmentLoader loader = new DynamoDbEnvironmentLoader(
             this.environment.get("DYNAMODB_CONFIG_TABLE"),
-            dag,
+            dagName,
             task
         );
 

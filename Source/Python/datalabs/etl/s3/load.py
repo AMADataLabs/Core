@@ -3,7 +3,6 @@ import base64
 from   dataclasses import dataclass
 from   datetime import datetime
 import hashlib
-import logging
 
 from   dateutil.parser import isoparse
 
@@ -11,10 +10,6 @@ from   datalabs.access.aws import AWSClient
 from   datalabs.etl.load import FileLoaderTask, IncludesNamesMixin, CurrentPathMixin
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.parameter import add_schema
-
-logging.basicConfig()
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
 
 
 @add_schema
@@ -81,6 +76,9 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
 
         if self._parameters.include_datestamp is None or self._parameters.include_datestamp.lower() == 'true':
             path = '/'.join((self._parameters.base_path, release_folder))
+
+        if path.startswith('/'):
+            path = path[1:]
 
         return path
 

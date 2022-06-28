@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+set -eux
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+AWS_DEFAULT_REGION=us-east-1
+
+REPOSITORY=
+ENVIRONMENT=
+PROJECT=
+RUNTIME=
+PACKAGE_NAME=
+PACKAGE_VERSION=
+DEPLOYED_VERSION=
+
+
+main() {
+    process_arguments "$@"
+
+    get_deployed_version
+
+    if [[ "$RUNTIME" == "Python" ]]; then
+        determine_python_package
+    else
+        echo "Unsupported runtime: $RUNTIME"
+        exit 1
+    fi
+
+    if [[ "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
+        build_container_image
+
+        upload_container_image
+    fi
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -e|--environment)
+            ENVIRONMENT=$2
+            shift
+            shift
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        -r|--runtime)
+            RUNTIME=$2
+            shift
+            shift
+            ;;
+        -R|--repo)
+            REPOSITORY=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+}
+
+
+get_deployed_version() {
+    printenv | grep AWS
+    deployed_versions=(
+        $(
+            aws ecr list-images --repository-name ${REPOSITORY} | jq '.imageIds[].imageTag' | grep -v null | sed 's/"//g'\
+            | grep -v latest | xargs -n1 | sort | xargs
+        )
+    )
+
+    version_count=${#deployed_versions[@]}
+    if [[ $version_count > 0 ]]; then
+        set +e
+        index=$(expr $version_count - 1)
+        set -e
+        DEPLOYED_VERSION=${deployed_versions[$index]}
+    fi
+}
+
+
+determine_python_package() {
+    source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
+    version="$RELEASE_VERSION"
+
+    if [[ "$RELEASE_VERSION" == "dev" ]]; then
+        version=$(
+            aws --profile default codeartifact list-package-versions \
+                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
+                --format pypi --sort-by PUBLISHED_TIME \
+                | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+        )
+    fi
+
+    PACKAGE_NAME=${RELEASE_NAME}
+    PACKAGE_VERSION=${version}
+}
+
+
+build_container_image() {
+    docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION} \
+         --build-arg AWS_ACCESS_KEY_ID_SANDBOX=${AWS_ACCESS_KEY_ID_SANDBOX} \
+         --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
+         -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
+}
+
+
+upload_container_image() {
+    aws ecr get-login-password --region us-east-1 \
+        | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com
+
+    docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
+    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
+
+    docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
+    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
+}
+
+
+print_usage() {
+    echo "Usage: deploy-lambda-function [OPTIONS]..."
+    echo "Bundle and upload a code bundle for a Lambda function."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment <environment>       deployment environment (dev, tst, itg, prd)"
+    echo "  -p, --project <project>               project path relative to Build/"
+    echo "  -P, --package                         use the latest pre-packaged component instead of sources"
+    echo "  -b, --bundle <bundle>                 name of the uploaded bundle file in S3"
+}
+
+
+main "$@"

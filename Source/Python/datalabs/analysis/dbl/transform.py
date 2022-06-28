@@ -11,7 +11,7 @@ import xlsxwriter
 
 # pylint: disable=import-error
 from datalabs.etl.transform import TransformerTask
-from datalabs.analysis.dbl.validation import Validation
+from datalabs.analysis.dbl.validation import Validater
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -36,12 +36,15 @@ class DBLReportTransformer(TransformerTask):
         dataframes[8] = self._transform_tab9(dataframes[8])
         dataframes[9] = self._transform_tab10(dataframes[9])
 
-        previous_report = self._parameters['data'][10]
+        if len(self._parameters['data']) > 10:
+            previous_report = self._parameters['data'][10]
+        else:
+            previous_report = None
 
         output = self._make_excel_workbook(sheet_dataframes=dataframes)
 
-        validation = Validation(output, previous_report)
-        passing, log, tab_validations = validation.passing, validation.log, validation.tab_validations
+        validater = Validater(output, previous_report)
+        passing, log, tab_validations = validater.passing, validater.log, validater.tab_validations
 
         comparison = {'Passing': passing, 'Log': log, 'Validations': tab_validations}
 
