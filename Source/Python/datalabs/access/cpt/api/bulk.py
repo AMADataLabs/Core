@@ -2,7 +2,6 @@
 from   dataclasses import dataclass
 from   datetime import datetime, timezone
 import logging
-import re
 
 import boto3
 from   botocore.exceptions import ClientError
@@ -17,6 +16,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=too-many-instance-attributes
 @add_schema(unknowns=True)
 @dataclass
 class FilesEndpointParameters:
@@ -65,7 +65,7 @@ class FilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_target_year_from_release(cls, release):
-        target_year = current_time = datetime.now(timezone.utc).year
+        target_year = datetime.now(timezone.utc).year
 
         if release is not None:
             release_parts = release.split('-')
@@ -77,9 +77,12 @@ class FilesEndpointTask(APIEndpointTask):
     @classmethod
     def _authorized(cls, authorizations, target_year):
         authorized_years = cls._get_authorized_years(authorizations)
+        authorized = False
 
         if target_year in authorized_years:
-            return True
+            authorized = True
+
+        return authorized
 
     def _generate_presigned_url(self, release, target_year, database):
         files_archive_path = None
@@ -109,12 +112,12 @@ class FilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _get_authorized_years(cls, authorizations):
+        '''Get year from authorizations which are of the form CPTAPIYY: YYYY-MM-DD-hh:mm'''
         cpt_api_authorizations = {key:value for key, value in authorizations.items() if key.startswith('CPTAPI')}
         current_time = datetime.now(timezone.utc)
         authorized_years = []
 
-        for name, end_datestamp in authorizations.items():
-            '''Authorizations are of the form CPTAPIYY: YYYY-MM-DD-hh:mm'''
+        for name, end_datestamp in cpt_api_authorizations.items():
             year = int('20' + name[len('CPTAPI'):])
             end_date = datetime.strptime(end_datestamp, '%Y-%m-%d-%M:%S').astimezone(timezone.utc)
 

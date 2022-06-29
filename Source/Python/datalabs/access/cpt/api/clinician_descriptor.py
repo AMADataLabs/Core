@@ -135,7 +135,7 @@ class AllClinicianDescriptorsEndpointTask(
                     ClinicianDescriptorCodeMapping.clinician_descriptor == ClinicianDescriptor.id,
                     ReleaseCodeMapping.code == Code.code,
                     ReleaseCodeMapping.release == Release.id,
-                    Release.effective_date >= date
+                    Release.date >= date
                 ))
 
         return query

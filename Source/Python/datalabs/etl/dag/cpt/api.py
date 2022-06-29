@@ -3,9 +3,7 @@ from   datalabs.etl.dag.dag import DAG
 from   datalabs.etl.archive.transform import ZipTransformerTask
 from   datalabs.etl.cpt.release.transform import ReleaseTypesTransformerTask
 from   datalabs.etl.cpt.api.transform import \
-    # ReleasesTransformerTask, \
     CodesTransformerTask, \
-    # ReleaseCodeMappingTransformerTask, \
     ShortDescriptorTransformerTask, \
     MediumDescriptorTransformerTask, \
     LongDescriptorTransformerTask, \
@@ -19,6 +17,8 @@ from   datalabs.etl.cpt.api.transform import \
     ManufacturerCodeMappingTransformerTask, \
     LabTransformerTask, \
     LabCodeMappingTransformerTask
+    # ReleaseCodeMappingTransformerTask,
+    # ReleasesTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
 from   datalabs.etl.parse.transform import ParseToCSVTransformerTask
 from   datalabs.etl.s3.extract import S3FileExtractorTask
