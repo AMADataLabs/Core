@@ -8,6 +8,8 @@ import boto3
 from   botocore.exceptions import ClientError
 
 from   datalabs.access.api.task import APIEndpointTask, InternalServerError
+from   datalabs.access.orm import Database
+from   datalabs.model.cpt.api import Release
 from   datalabs.parameter import add_schema
 
 logging.basicConfig()
@@ -21,6 +23,12 @@ class FilesEndpointParameters:
     path: dict
     query: dict
     authorization: dict
+    database_name: str
+    database_backend: str
+    database_host: str
+    database_port: str
+    database_username: str
+    database_password: str
     bucket_name: str
     bucket_base_path: str
     bucket_url_duration: str
@@ -36,14 +44,24 @@ class FilesEndpointTask(APIEndpointTask):
         self._s3 = boto3.client('s3')
 
     def run(self):
+        LOGGER.debug('Parameters: %s', self._parameters)
+
+        with Database.from_parameters(self._parameters) as database:
+            self._run(database)
+
+    def _run(self, database):
         release = self._parameters.query.get('release')
         target_year = self._get_target_year_from_release(release)
-        authorized = self._authorized(self._parameters.authorization, target_year)
+        authorized = self._authorized(self._parameters.authorization["authorizations"], target_year)
         self._status_code = 403
+        LOGGER.debug('Target Year: %s', target_year)
+        LOGGER.debug('Authorized: %s', authorized)
 
         if authorized:
             self._status_code = 303
-            self._headers['Location'] = self._generate_presigned_url(target_year)
+            self._headers['Location'] = self._generate_presigned_url(release, target_year, database)
+
+        LOGGER.debug('Status Code: %s', self._status_code)
 
     @classmethod
     def _get_target_year_from_release(cls, release):
@@ -58,29 +76,19 @@ class FilesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _authorized(cls, authorizations, target_year):
-        authorized_years = self._get_authorized_years(authorizations)
+        authorized_years = cls._get_authorized_years(authorizations)
 
         if target_year in authorized_years:
             return True
 
-    def _get_files_archive_path(self, target_year):
-        all_paths = sorted(self._list_directory(self._parameters.bucket_base_path, target_year))
-        release_directory = self._extract_latest_release_directory(all_paths[-1], target_year)
-
-        archive_path = '/'.join((
-            release_directory,
-            self._parameters.authorization["user_id"],
-            "files.zip"
-        ))
-
-        if archive_path not in all_paths:
-            archive_path = '/'.join((latest_release_directory, 'files.zip'))
-
-        return archive_path
-
-    def _generate_presigned_url(target_year):
-        files_archive_path = self._get_files_archive_path(target_year)
+    def _generate_presigned_url(self, release, target_year, database):
+        files_archive_path = None
         files_archive_url = None
+
+        if release:
+            files_archive_path = self._get_files_archive_path_from_release(release, database)
+        else:
+            files_archive_path = self._get_files_archive_path(target_year, database)
 
         LOGGER.info('Creating presigned URL for file s3://%s/%s', self._parameters.bucket_name, files_archive_path)
 
@@ -108,26 +116,58 @@ class FilesEndpointTask(APIEndpointTask):
         for name, end_datestamp in authorizations.items():
             '''Authorizations are of the form CPTAPIYY: YYYY-MM-DD-hh:mm'''
             year = int('20' + name[len('CPTAPI'):])
-            end_date = datetime.strptime('%Y-%m-%d-%M:%S')
+            end_date = datetime.strptime(end_datestamp, '%Y-%m-%d-%M:%S').astimezone(timezone.utc)
 
             if current_time < end_date:
                 authorized_years.append(year)
 
-    def _extract_latest_release_directory(self, example_path, target_year):
-        relative_path = re.sub(f'^{self._parameters.bucket_base_path}', '', example_path)
-        relative_release_directory = relative_path.split('/')[0]
-        release_directory = relative_release_directory
+        return authorized_years
 
-        if len(self._parameters.bucket_base_path) > 0:
-            release_directory = '/'.join((self._parameters.bucket_base_path, release_directory))
+    def _get_files_archive_path_from_release(self, release, database):
+        release_date = self._get_release_date(release, database)
+        release_directory = release_date.strftime("%Y%m%d")
 
-        return release_directory(self._parameters.bucket_base_path, release_directory))
+        return self._get_files_archive_path_for_user(release_directory, self._parameters.authorization["user_id"])
 
-    def _list_directory(self, base_path, target_year):
-        response = self._s3.list_objects_v2(Bucket=self._parameters.bucket_name, Prefix=f'{base_path}/{target_year}')
+    def _get_files_archive_path(self, target_year, database):
+        release_date = self._get_latest_release_for_year(target_year, database)
+        release_directory = release_date.strftime("%Y%m%d")
+
+        return self._get_files_archive_path_for_user(release_directory, self._parameters.authorization["user_id"])
+
+    @classmethod
+    def _get_release_date(cls, release, database):
+        release = database.query(Release).filter(Release.id == release).one()
+
+        return release.date
+
+    @classmethod
+    def _get_latest_release_for_year(cls, target_year, database):
+        query = database.query(Release).filter(Release.id.like(f"%{target_year}")).order_by(Release.date.desc())
+        latest_release = query.first()
+
+        return latest_release.date
+
+    def _get_files_archive_path_for_user(self, release_directory, user_id):
+        archive_path = '/'.join((release_directory, user_id, "files.zip"))
+
+        if not self._list_files(archive_path):
+            archive_path = '/'.join((release_directory, 'files.zip'))
+
+        if self._parameters.bucket_base_path:
+            archive_path = self._parameters.bucket_base_path + archive_path
+
+        return archive_path
+
+    def _list_files(self, prefix):
         files = []
 
+        if self._parameters.bucket_base_path:
+            prefix = self._parameters.bucket_base_path + prefix
+
+        response = self._s3.list_objects_v2(Bucket=self._parameters.bucket_name, Prefix=prefix)
+
         if "Contents" in response:
-            files = {x["Key"] for x in response["Contents"]}
+            files = [x["Key"] for x in response["Contents"]]
 
         return files
