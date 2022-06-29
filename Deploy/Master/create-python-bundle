@@ -65,13 +65,14 @@ process_arguments() {
 
 
 install_dependencies() {
-    cp Build/${PROJECT}/requirements.txt requirements.txt
     if [[ "$PACKAGE" != "" ]]; then
         NO_SOURCES=--no-sources
 
         echo "$PACKAGE" > requirements.txt
 
         aws ${NO_VERIFY_SSL} --profile default codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
+    else
+        cp Build/${PROJECT}/requirements.txt requirements.txt
     fi
 
     pip install $TRUSTED_HOSTS --target Bundle/ -r requirements.txt

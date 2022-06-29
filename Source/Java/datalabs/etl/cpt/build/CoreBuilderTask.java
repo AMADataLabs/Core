@@ -35,8 +35,8 @@ public class CoreBuilderTask extends Task {
     public void run() throws TaskException {
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
-            DtkAccess priorLink = CoreBuilderTask.loadLink(parameters.priorLinkVersion);
-            DtkAccess priorCore = CoreBuilderTask.loadLink(parameters.currentLinkVersion);
+            DtkAccess priorLink = CoreBuilderTask.loadLink("prior");
+            DtkAccess priorCore = CoreBuilderTask.loadLink("current");
 
             CoreBuilderTask.updateConcepts(priorLink, priorCore);
 

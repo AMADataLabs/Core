@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -eux
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
@@ -14,8 +14,6 @@ PROJECT=
 RUNTIME=
 PACKAGE_NAME=
 PACKAGE_VERSION=
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
 DEPLOYED_VERSION=
 
 
@@ -66,16 +64,6 @@ process_arguments() {
             shift
             shift
             ;;
-        -i|--key-id)
-            AWS_ACCESS_KEY_ID=$2
-            shift
-            shift
-            ;;
-        -k|--secret-key)
-            AWS_SECRET_ACCESS_KEY=$2
-            shift
-            shift
-            ;;
         *)
             echo "Unexpected argument $1"
             print_usage
@@ -87,9 +75,7 @@ process_arguments() {
 
 
 get_deployed_version() {
-    aws ecr get-login-password --region us-east-1 2>/dev/null \
-        | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com &> /dev/null
-
+    printenv | grep AWS
     deployed_versions=(
         $(
             aws ecr list-images --repository-name ${REPOSITORY} | jq '.imageIds[].imageTag' | grep -v null | sed 's/"//g'\
@@ -98,7 +84,12 @@ get_deployed_version() {
     )
 
     version_count=${#deployed_versions[@]}
-    DEPLOYED_VERSION=${deployed_versions[$(expr $version_count - 1)]}
+    if [[ $version_count > 0 ]]; then
+        set +e
+        index=$(expr $version_count - 1)
+        set -e
+        DEPLOYED_VERSION=${deployed_versions[$index]}
+    fi
 }
 
 
@@ -122,17 +113,21 @@ determine_python_package() {
 
 build_container_image() {
     docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION} \
-         --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID} --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY} \
+         --build-arg AWS_ACCESS_KEY_ID_SANDBOX=${AWS_ACCESS_KEY_ID_SANDBOX} \
+         --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
          -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
 }
 
 
 upload_container_image() {
-    docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:${PACKAGE_VERSION}
-    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:${PACKAGE_VERSION}
+    aws ecr get-login-password --region us-east-1 \
+        | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com
 
-    docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:latest
-    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${PACKAGE_NAME}:latest
+    docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
+    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
+
+    docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
+    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
 }
 
 

@@ -80,7 +80,7 @@ public class LinkBuilderTask extends Task {
 
         BuildDtkFiles files = new BuildDtk.BuildDtkFiles(
             directory.resolve(parameters.hcpcsDataFile).toString(),
-            null, null, null, null, null
+            headings, consumer_and_clinician_descriptors, coding_tips, front_matter, rvus
         );
 
         BuildDtk linkBuilder = new BuildDtk(

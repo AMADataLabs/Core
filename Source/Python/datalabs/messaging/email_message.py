@@ -7,7 +7,7 @@ import smtplib
 from   email.message import EmailMessage
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 logging.basicConfig()
 
 
@@ -66,6 +66,12 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
 
         if attachments is not None:
             for attachment in set(attachments):
+                LOGGER.debug(
+                    'Attachment "%s" data of type %s:\n%s',
+                    attachment.name,
+                    type(attachment.data),
+                    attachment.data
+                )
                 msg.add_attachment(
                     attachment.data,
                     filename=attachment.name,
