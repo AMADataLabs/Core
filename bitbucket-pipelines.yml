@@ -79,7 +79,7 @@ pipelines:
         #     - export ENVIRONMENT=sbx
         #     - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AMC=AMC.zip
 
-        HelloWorldVault:
+        HelloWorld:
         - step:
             name: Update Component Package
             caches:
