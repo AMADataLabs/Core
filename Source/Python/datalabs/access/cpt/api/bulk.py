@@ -50,7 +50,7 @@ class FilesEndpointTask(APIEndpointTask):
             self._run(database)
 
     def _run(self, database):
-        release = self._parameters.query.get('release')
+        release = self._get_release_parameter(self._parameters.query)
         target_year = self._get_target_year_from_release(release)
         authorized = self._authorized(self._parameters.authorization["authorizations"], target_year)
         self._status_code = 403
@@ -62,6 +62,15 @@ class FilesEndpointTask(APIEndpointTask):
             self._headers['Location'] = self._generate_presigned_url(release, target_year, database)
 
         LOGGER.debug('Status Code: %s', self._status_code)
+
+    @classmethod
+    def _get_release_parameter(cls, parameters):
+        release = parameters.get('release')
+
+        if release and len(release) > 0:
+            release = release[0]
+
+        return release
 
     @classmethod
     def _get_target_year_from_release(cls, release):
