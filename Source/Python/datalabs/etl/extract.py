@@ -101,6 +101,7 @@ class FileExtractorTask(ExtractorTask, ABC):
 
         return decoded_dataset
 
+    # pylint: disable=no-self-use
     def _get_target_files(self, files):
         '''Allow extractors to modify output file paths when including names.'''
         return files
