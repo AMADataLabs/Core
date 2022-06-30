@@ -99,7 +99,7 @@ pipelines:
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
                     --project HelloWorld
-                    --bundle HelloWorld.zip
+                    --bundle Masterfile/HelloWorld.zip
                     --runtime Python
                     --use-package
             - step:
@@ -114,7 +114,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
                     --project HelloWorld
-                    --bundle HelloWorld.zip
+                    --bundle Masterfile/HelloWorld.zip
                     --runtime Python
             - step:
                 name: Update Production Bundle
@@ -128,7 +128,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
                     --project HelloWorld
-                    --bundle HelloWorld.zip
+                    --bundle Masterfile/HelloWorld.zip
                     --runtime Python
             - step:
                 name: Update Staging Bundle
@@ -142,7 +142,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment itg
                     --project HelloWorld
-                    --bundle HelloWorld.zip
+                    --bundle Masterfile/HelloWorld.zip
                     --runtime Python
             - step:
                 name: Update Test Bundle
@@ -156,7 +156,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
                     --project HelloWorld
-                    --bundle HelloWorld.zip
+                    --bundle Masterfile/HelloWorld.zip
                     --runtime Python
 
         - parallel:
@@ -164,7 +164,7 @@ pipelines:
                 name: Update Sandbox Lambda Function
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s DataLake HelloWorld=HelloWorld.zip
+                - bash Deploy/Master/update-functions -e sbx -s Masterfile HelloWorld=HelloWorld.zip
             - step:
                 name: Update Development Lambda Function
                 script:
