@@ -259,10 +259,10 @@ class DAGTaskWrapper(
 
     def _send_webhook_notification(self, status):
         raw_webhook_url_list = self._runtime_parameters.get("STATUS_NOTIFICATION_WEB_HOOK")
-
+        LOGGER.info('WEB HOOK url %s', raw_webhook_url_list)
         if raw_webhook_url_list is not None:
             urls = raw_webhook_url_list.split(',')
+            LOGGER.info('In if loop %s', urls)
             environment = self._runtime_parameters.get("ENVIRONMENT")
             notifier = StatusWebHookNotifier(urls, environment)
-
             notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
