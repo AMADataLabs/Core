@@ -110,10 +110,10 @@ class AllModifiersEndpointTask(BaseModifierEndpointTask):
     @classmethod
     def _filter_for_release(cls, query, since):
         if since is not None:
-            query = query.add_column(Release.effective_date)
+            query = query.add_column(Release.date)
 
             for date in since:
-                query = query.filter(Release.effective_date >= date)
+                query = query.filter(Release.date >= date)
 
         else:
             query = query.filter(Modifier.deleted == False)  # pylint: disable=singleton-comparison

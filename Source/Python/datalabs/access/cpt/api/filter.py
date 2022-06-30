@@ -12,7 +12,7 @@ class ReleaseFilterMixin:
                 query = query.filter(and_(
                     ReleaseCodeMapping.code == model.code,
                     ReleaseCodeMapping.release == Release.id,
-                    Release.effective_date >= date
+                    Release.date >= date
                 ))
 
         return query
