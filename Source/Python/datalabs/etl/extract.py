@@ -64,7 +64,9 @@ class FileExtractorTask(ExtractorTask, ABC):
         decoded_data = self._decode_dataset(data, resolved_files)
 
         if self.include_names:
-            decoded_data = [pickle.dumps(list(zip(resolved_files, decoded_data)))]
+            target_files = self._get_target_files(resolved_files)
+
+            decoded_data = [pickle.dumps(list(zip(target_files, decoded_data)))]
 
         return decoded_data
 
@@ -98,6 +100,10 @@ class FileExtractorTask(ExtractorTask, ABC):
                 raise ETLException(f'Unable to decode {files[index]}') from exception
 
         return decoded_dataset
+
+    def _get_target_files(self, files):
+        '''Allow extractors to modify output file paths when including names.'''
+        return files
 
     def _resolve_wildcards(self, files):
         expanded_files = []
