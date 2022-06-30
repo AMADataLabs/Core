@@ -3,6 +3,7 @@ from   io import BytesIO
 from   dataclasses import dataclass
 import logging
 import pickle
+from   pathlib import Path
 from   zipfile import ZipFile
 
 from   datalabs.etl.transform import TransformerTask
@@ -20,6 +21,7 @@ LOGGER.setLevel(logging.INFO)
 class UnzipTransformerParameters:
     data: object
     files: str = None
+    ignore_path_depth: str = None
     execution_time: str = None
 
 
@@ -37,6 +39,16 @@ class UnzipTransformerTask(FileExtractorTask):
 
     def _extract_file(self, file):
         return self._client.extract(file)
+
+    def _get_target_files(self, files):
+        target_files = files
+
+        if self._parameters.ignore_path_depth:
+            ignore_path_depth = int(self._parameters.ignore_path_depth)
+
+            target_files = [str(Path(*Path(path).parts[ignore_path_depth:])) for path in files]
+
+        return target_files
 
     def _resolve_wildcard(self, file):
         return [file]
@@ -87,6 +99,12 @@ class ZipFiles:
         self._zip_files = [ZipFile(BytesIO(zip_file)) for zip_file in self._zip_file_data]
 
         self._file_zip_map = {name:index for index, zip in enumerate(self._zip_files) for name in zip.namelist()}
+
+        for file, index in list(self._file_zip_map.items()):
+            zip_file = self._zip_files[index]
+
+            if zip_file.getinfo(file).is_dir():
+                self._file_zip_map.pop(file)
 
         return self
 
