@@ -1,6 +1,6 @@
 ''' DAG definition for the DAG Scheduler. '''
 from   datalabs.etl.dag.dag import DAG
-from   datalabs.etl.archive.transform import UnzipTransformerTask
+from   datalabs.etl.archive.transform import UnzipTransformerTask, ZipTransformerTask
 from   datalabs.etl.cpt.release.transform import ReleaseTypesTransformerTask
 from   datalabs.etl.cpt.api.transform import \
     CodesTransformerTask, \
