@@ -248,7 +248,7 @@ class DAGTaskWrapper(
 
     def _send_email_notification(self, status):
         raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")
-
+        LOGGER.info('WEB HOOK url %s', raw_email_list)
         if raw_email_list is not None:
             emails = raw_email_list.split(',')
             environment = self._runtime_parameters.get("ENVIRONMENT")
