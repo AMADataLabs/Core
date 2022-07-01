@@ -97,7 +97,7 @@ class JDBCExtractorTask(ExtractorTask):
         return result
 
     def _read_chunked_query(self, query, connection):
-        LOGGER.info('Sending query: %s', query)
+        LOGGER.info('Sending chunked query: %s', query)
         chunks = self._iterate_over_chunks(query, connection)
         results = None
 
@@ -139,7 +139,7 @@ class JDBCExtractorTask(ExtractorTask):
             if stop_index and (index + chunk_size) > stop_index:
                 chunk_size = stop_index - index
 
-            resolved_query = self._resolve_query(query, index, chunk_size)
+            resolved_query = self._resolve_chunked_query(query, index, chunk_size)
 
             LOGGER.info('Reading chunk of size %d at index %d...', chunk_size, index)
             chunk = self._read_single_query(resolved_query, connection)
@@ -155,10 +155,13 @@ class JDBCExtractorTask(ExtractorTask):
             index += read_count
 
     # pylint: disable=no-self-use
-    def _resolve_query(self, query, record_index, record_count):
+    def _resolve_chunked_query(self, query, index, count):
         formatter = PartialFormatter()
 
-        return formatter.format(query, index=record_index, count=record_count)
+        if '{index}' not in query or '{count}' not in query:
+            raise ValueError("Chunked query SQL does not contain '{index}' and '{count}' template variables.")
+
+        return formatter.format(query, index=index, count=count)
 
 
 @add_schema
@@ -199,9 +202,12 @@ class JDBCParametricExtractorTask(CSVReaderMixin, JDBCExtractorTask):
         return super()._read_single_query(resolved_query, connection)
 
     def _resolve_query(self, query, record_index, record_count):
-        resolved_query = super()._resolve_query(query, record_index, record_count)
-
         formatter = PartialFormatter()
+        resolved_query = query
+
+        if '{index}' in query and '{count}' in query:
+            resolved_query = formatter.format(query, index=index, count=count)
+
         part_index = int(self._parameters.part_index)
         parameters = self._query_parameters.iloc[part_index].to_dict()
 
@@ -222,7 +228,7 @@ class JDBCParquetExtractorTask(JDBCExtractorTask):
         chunk = None
 
         while chunk is None or len(chunk) > 0:
-            resolved_query = query.format(index=index, count=chunk_size)
+            resolved_query = self._resolve_chunked_query(query, index, chunk_size)
 
             LOGGER.info('Reading chunk at index %d...', index)
             chunk = super()._read_single_query(resolved_query, connection)
@@ -247,6 +253,13 @@ class JDBCParquetExtractorTask(JDBCExtractorTask):
         results.to_parquet(path)
 
         return directory
+
+    @classmethod
+    def _resolve_chunked_query(cls, query, index, count):
+        if '{index}' not in query or '{count}' not in query:
+            raise ValueError("Chunked query SQL does not contain '{index}' and '{count}' template variables.")
+
+        return query.format(index=index, count=count)
 
 class PartialFormatter(string.Formatter):
     def __init__(self, default='{{{0}}}'):
