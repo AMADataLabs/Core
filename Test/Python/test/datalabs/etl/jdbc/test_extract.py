@@ -39,13 +39,12 @@ def test_chunked_query_not_performed_when_no_chunk_size(parameters, read):
 def test_chunked_query_without_template_variables_raises_error(parameters, chunked_read):
     parameters['CHUNK_SIZE'] = '5'
     extractor = JDBCExtractorTask(parameters)
-    result = None
 
     with mock.patch('pandas.read_sql') as read_sql:
         read_sql.side_effect = chunked_read
 
         with pytest.raises(ValueError):
-            result = extractor._read_query('SELECT * FROM BOGUS', None)
+            extractor._read_query('SELECT * FROM BOGUS', None)
 
 
 # pylint: disable=redefined-outer-name, protected-access

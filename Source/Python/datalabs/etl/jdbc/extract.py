@@ -206,7 +206,7 @@ class JDBCParametricExtractorTask(CSVReaderMixin, JDBCExtractorTask):
         resolved_query = query
 
         if '{index}' in query and '{count}' in query:
-            resolved_query = formatter.format(query, index=index, count=count)
+            resolved_query = formatter.format(query, index=record_index, count=record_count)
 
         part_index = int(self._parameters.part_index)
         parameters = self._query_parameters.iloc[part_index].to_dict()
