@@ -25,7 +25,5 @@ class StatusWebHookNotifier():
             # )
         }
         LOGGER.info('Message %s', message)
-        LOGGER.info('web_hook %s', self.web_hooks)
-        for web_hook_url in self.web_hooks:
-            requests.post(web_hook_url, data=json.dumps(message), headers={'Content-Type': 'application/json'})
+        requests.post(self.web_hooks, data=json.dumps(message), headers={'Content-Type': 'application/json'})
         LOGGER.info('WEB HOOK NOTIFICATION SENT TO %s', self.web_hooks)
