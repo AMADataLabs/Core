@@ -3,16 +3,16 @@
 # REQUIRED BASE INPUT COLUMNS
 #    - ENTITY_ID    (physician ID from AIMS)
 #    - COMM_ID      (address ID from AIMS)
-#    - AS_OF_DATE
 
 # pylint: disable=import-error, unused-import, singleton-comparison
 
 from datetime import datetime
 import logging
+import os
 import warnings
 import pandas as pd
 from tqdm import tqdm
-from datalabs.analysis.address.scoring.common import load_processed_data, add_address_key, log_info
+from datalabs.analysis.address.scoring.common import load_processed_data, log_info
 
 warnings.filterwarnings('ignore', '.*A value is trying to be set on a copy of a slice from a DataFrame.*')
 warnings.filterwarnings('ignore', '.*SettingWithCopyWarning*')
@@ -23,25 +23,29 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-def add_entity_comm_at_features(base_data, path_to_entity_comm_at_file, path_to_post_addr_at_file, as_of_date):
+def add_entity_comm_at_features(base_data, path_to_entity_comm_at_file, as_of_date, save_dir):
     entity_comm_data = load_processed_data(path_to_entity_comm_at_file, as_of_date, 'BEGIN_DT', 'END_DT')
-    post_addr_data = load_processed_data(path_to_post_addr_at_file)
-    entity_comm_data = add_address_key(entity_comm_data, post_addr_data)
-    del post_addr_data
+
+    entity_comm_data = entity_comm_data[
+        (entity_comm_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)) |
+        (entity_comm_data['COMM_ID'].isin(base_data['COMM_ID'].values))
+    ]
 
     log_info('\tENTITY_COMM - Address Age')
-    base_data = add_feature_address_age(base_data, entity_comm_data, as_of_date)
+    features = add_feature_address_age(base_data, entity_comm_data, as_of_date)
     log_info('\tENTITY_COMM - Physician Active Address Counts')
-    base_data = add_feature_physician_num_active_addresses(base_data, entity_comm_data)
+    features = add_feature_physician_num_active_addresses(features, entity_comm_data)
     log_info('\tENTITY_COMM - Address Active Frequency')
-    base_data = add_feature_active_address_total_frequency(base_data, entity_comm_data)
+    features = add_feature_active_address_total_frequency(features, entity_comm_data)
     log_info('\tENTITY_COMM - Newer Address Counts')
-    base_data = add_feature_physician_how_many_newer_addresses(base_data, entity_comm_data)
+    features = add_feature_physician_how_many_newer_addresses(features, entity_comm_data)
     log_info('\tENTITY_COMM - Address Sources')
-    base_data = add_feature_address_sources(base_data, entity_comm_data)
+    features = add_feature_address_sources(features, entity_comm_data)
 
-    log_info('BASE_DATA MEMORY:', base_data.memory_usage().sum() / 1024 ** 2)
-    return base_data
+    log_info('BASE_DATA MEMORY:', features.memory_usage().sum() / 1024 ** 2)
+    save_filename = os.path.join(save_dir, F'features__entity_comm__{as_of_date}.txt')
+    log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
+    features.to_csv(save_filename, sep='|', index=False)
 
 
 def add_feature_address_age(base_data: pd.DataFrame, entity_comm_at_data: pd.DataFrame, as_of_date: str):
@@ -79,7 +83,10 @@ def add_feature_physician_num_active_addresses(base_data: pd.DataFrame, entity_c
 def add_feature_address_sources(base_data: pd.DataFrame, entity_comm_at_data: pd.DataFrame):
     """ Creates boolean flags for physician-address pairs for each address source """
     data = entity_comm_at_data[['ENTITY_ID', 'COMM_ID', 'SRC_CAT_CODE']].drop_duplicates()
-    data = data[data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)]
+    data = data[
+        (data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)) &
+        (data['COMM_ID'].isin(base_data['COMM_ID'].values))
+    ]
 
     sources_found = data['SRC_CAT_CODE'].dropna().drop_duplicates()
 
@@ -91,13 +98,17 @@ def add_feature_address_sources(base_data: pd.DataFrame, entity_comm_at_data: pd
         data[source_feature_column] = data[source_feature_column].astype(int)
 
     log_info('\tAggregating source flags per physician-address pair...')
-    grouped = data.groupby(['ENTITY_ID', 'COMM_ID'])
-    for source in tqdm(sources_found):
-        source_feature_column = f"ENTITY_COMM_SRC_CAT_CODE_{source}"
-        # aggregate flags to a single row per ENTITY_ID + COMM_ID and add to base data
-        source_group = grouped[source_feature_column].sum().reset_index()
-        base_data = base_data.merge(source_group, how='left')
+    grouped = data.groupby(['ENTITY_ID', 'COMM_ID']).sum().reset_index()
 
+    ### # slower but less memory-intensive method, saved in case we run into memory usage errors
+    ### grouped = data.groupby(['ENTITY_ID', 'COMM_ID'])
+    ### for source in tqdm(sources_found):
+    ###     source_feature_column = f"ENTITY_COMM_SRC_CAT_CODE_{source}"
+    ###     # aggregate flags to a single row per ENTITY_ID + COMM_ID and add to base data
+    ###     source_group = grouped[source_feature_column].sum().reset_index()
+    ###     base_data = base_data.merge(source_group, how='left')
+
+    base_data = base_data.merge(grouped, how='left')
     return base_data
 
 

@@ -3,13 +3,13 @@
 # REQUIRED BASE INPUT COLUMNS
 #    - ENTITY_ID    (physician ID from AIMS)
 #    - COMM_ID      (address ID from AIMS)
-#    - ADDRESS_STATE (from POST_ADDR_AT in AIMS
-#    - AS_OF_DATE
 
 # pylint: disable=import-error, unused-import, singleton-comparison
 
 from datetime import datetime
+import gc
 import logging
+import os
 import warnings
 import pandas as pd
 from tqdm import tqdm
@@ -24,21 +24,28 @@ warnings.filterwarnings('ignore', '.*SettingWithCopyWarning*')
 warnings.filterwarnings('ignore', '.*FutureWarning*')
 
 
-def add_license_features(base_data: pd.DataFrame, path_to_license_file, path_to_post_addr_file, as_of_date):
+def add_license_features(base_data: pd.DataFrame, path_to_license_file, path_to_post_addr_file, as_of_date, save_dir):
     log_info('LOADING LICENSE DATA', path_to_license_file)
     license_data = load_processed_data(path_to_license_file, as_of_date, 'LIC_ISSUE_DT', 'LIC_EXP_DT')
+    license_data = license_data[license_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)]
+
     log_info('LOADING POST_ADDR DATA', path_to_post_addr_file)
     post_addr_data = load_processed_data(path_to_post_addr_file, as_of_date)
     log_info('ADDING ADDRESS DATA TO LICENSE DATA')
     license_data = merge_license_address_data(license_data, post_addr_data)
     del post_addr_data
-    log_info('ADD FEATURE ACTIVE LICENSES NEWER/OLDER/MATCH', path_to_post_addr_file)
-    base_data = add_feature_active_license_states_newer_older_match(base_data, license_data, as_of_date)
-    log_info('ADD FEATURE EXPIRED MATCH', path_to_post_addr_file)
-    base_data = add_feature_expired_license_match(base_data, license_data, as_of_date)
+    gc.collect()
 
-    log_info('BASE_DATA MEMORY:', base_data.memory_usage().sum() / 1024 ** 2)
-    return base_data
+    log_info('ADD FEATURE ACTIVE LICENSES NEWER/OLDER/MATCH', path_to_post_addr_file)
+    features = add_feature_active_license_states_newer_older_match(base_data, license_data, as_of_date)
+    log_info('ADD FEATURE EXPIRED MATCH', path_to_post_addr_file)
+    features = add_feature_expired_license_match(features, license_data, as_of_date)
+
+    log_info('BASE_DATA MEMORY:', features.memory_usage().sum() / 1024 ** 2)
+
+    save_filename = os.path.join(save_dir, f'features__license__{as_of_date}.txt')
+    log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
+    features.to_csv(save_filename, sep='|', index=False)
 
 
 def merge_license_address_data(license_lt_data: pd.DataFrame, post_addr_at_data: pd.DataFrame):

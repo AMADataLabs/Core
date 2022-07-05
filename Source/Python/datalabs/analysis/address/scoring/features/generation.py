@@ -1,10 +1,11 @@
 """ Main module for adding all relevant features to a base dataset """
 # pylint: disable=import-error, redefined-builtin
 import logging
+import os
 import sys
 import pickle as pk
 from datalabs.analysis.address.scoring.common import load_processed_data, get_active_polo_eligible_addresses, log_info
-from datalabs.analysis.address.scoring.features import license, entity_comm
+from datalabs.analysis.address.scoring.features import license, entity_comm, entity_comm_usg
 
 
 logging.basicConfig()
@@ -23,6 +24,9 @@ else:
     AS_OF_DATE = DATA_FOLDER
 
 INPUT_PATH = f"../data/{AS_OF_DATE}"
+SAVE_DIR = f"../data/{AS_OF_DATE}/features/"
+if not os.path.exists(SAVE_DIR):
+    os.mkdir(SAVE_DIR)
 
 FILE_BASE_DATA = f"{INPUT_PATH}/BASE_DATA.txt"
 FILE_POST_ADDR_AT = f"{INPUT_PATH}/POST_ADDR_AT_PROCESSED.txt"
@@ -48,10 +52,14 @@ if __name__ == '__main__':
 
     log_info('BASE_DATA MEMORY:', BASE_DATA.memory_usage().sum() / 1024 ** 2)
 
+    print(BASE_DATA.shape[0])
+    # print('sampling 50%')
+    # BASE_DATA = BASE_DATA.sample(round(BASE_DATA.shape[0] / 2))
+    # print(BASE_DATA.shape[0])
+
     log_info('ADD ENTITY_COMM FEATURES')
-    BASE_DATA = entity_comm.add_entity_comm_at_features(BASE_DATA, FILE_ENTITY_COMM_AT, FILE_POST_ADDR_AT, AS_OF_DATE)
-
+    entity_comm.add_entity_comm_at_features(BASE_DATA, FILE_ENTITY_COMM_AT, AS_OF_DATE, SAVE_DIR)
+    log_info('ADD ENTITY_COMM_USG FEATURES')
+    entity_comm_usg.add_entity_comm_usg_at_features(BASE_DATA, FILE_ENTITY_COMM_USG_AT, AS_OF_DATE, SAVE_DIR)
     log_info('ADD LICENSE FEATURES')
-    BASE_DATA = license.add_license_features(BASE_DATA, FILE_LICENSE_LT, FILE_POST_ADDR_AT, AS_OF_DATE)
-
-    BASE_DATA.to_csv(f"{INPUT_PATH}/output_test.txt", sep='|', index=False)
+    license.add_license_features(BASE_DATA, FILE_LICENSE_LT, FILE_POST_ADDR_AT, AS_OF_DATE, SAVE_DIR)

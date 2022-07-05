@@ -50,7 +50,7 @@ def resolve_data_date(data: pd.DataFrame, begin_date_column: str, end_date_colum
     return data
 
 
-def load_processed_data(path_to_file, as_of_date=None, begin_date_column=None, end_date_column=None):
+def load_processed_data(path_to_file, as_of_date=None, begin_date_column=None, end_date_column=None, active_only=False):
     data = pd.read_csv(path_to_file, sep='|', dtype=str)
     rename_columns_in_uppercase(data)
     if as_of_date is not None and begin_date_column is not None and end_date_column is not None:
@@ -66,6 +66,10 @@ def load_processed_data(path_to_file, as_of_date=None, begin_date_column=None, e
             'ACTIVE'
         ] = True
         data.loc[data['ACTIVE'] != True, 'ACTIVE'] = False
+        if active_only:
+            log_info(f"\tFILTERING TO ACTIVE ONLY START: {data.shape[0]}")
+            data = data[data['ACTIVE'] == True]
+            log_info(f"\tFILTERING TO ACTIVE ONLY END: {data.shape[0]}")
     log_info(f"\t{path_to_file.split('/')[-1]} ~~~ {get_memory_usage(data)} MB")
     return data
 

@@ -1,6 +1,7 @@
 """ Adds Humach-survey-based features a dataset utilizing the ENTITY_COMM_AT table from AIMS """
 # pylint: disable=import-error, singleton-comparison
 from datetime import datetime
+import os
 import warnings
 import pandas as pd
 from tqdm import tqdm
@@ -30,7 +31,7 @@ def prepare_latest_humach_data(humach_data: pd.DataFrame, as_of_date):
     return humach_data.drop_duplicates()
 
 
-def add_humach_features(base_data: pd.DataFrame, humach_data: pd.DataFrame, as_of_date: str):
+def add_humach_features(base_data: pd.DataFrame, humach_data: pd.DataFrame, as_of_date: str, save_dir):
     humach_data = prepare_latest_humach_data(humach_data, as_of_date)
 
     data = humach_data[humach_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)]
@@ -45,8 +46,10 @@ def add_humach_features(base_data: pd.DataFrame, humach_data: pd.DataFrame, as_o
     data = data[['ENTITY_ID', 'ADDRESS_KEY', 'HUMACH_YEARS_SINCE_SURVEY',
                  'HUMACH_NEVER_SURVEYED', 'HUMACH_ADDRESS_STATUS_UNKNOWN',
                  'HUMACH_ADDRESS_STATUS_CORRECT', 'HUMACH_ADDRESS_STATUS_INCORRECT']].drop_duplicates()
-    base_data = base_data.merge(data, on=['ENTITY_ID', 'ADDRESS_KEY'])
-    return base_data
+
+    save_filename = os.path.join(save_dir, F'features__humach__{as_of_date}.txt')
+    log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
+    data.to_csv(save_filename, sep='|', index=False)
 
 
 def add_survey_date_col_to_humach_data(humach_data: pd.DataFrame):
