@@ -16,13 +16,13 @@ class StatusWebHookNotifier():
         self.environment = environment
 
     def notify(self, dag, execution_time, status):
-        message = {
-            'Message': 'The {} DAG run at {} UTC in the {} environment has status {}.'.format(
-                dag,
-                execution_time,
-                self.environment,
-                status.value
-            )
+        message = {"text": "Sample alert text"
+            # 'Message': 'The {} DAG run at {} UTC in the {} environment has status {}.'.format(
+            #     dag,
+            #     execution_time,
+            #     self.environment,
+            #     status.value
+            # )
         }
         LOGGER.info('Message %s', message)
         LOGGER.info('web_hook %s', self.web_hooks)
