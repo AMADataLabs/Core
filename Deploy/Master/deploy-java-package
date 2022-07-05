@@ -24,7 +24,7 @@ VERSION=
 main() {
     process_arguments "$@"
 
-    setup_virtual_environment
+    create_server_config
 
     build_package
 
@@ -81,15 +81,10 @@ process_arguments() {
 }
 
 
-setup_virtual_environment() {
-    ${PWD}/Script/setup-virtual-environment Master/BitBucketPipelines
-    export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-    export PATH="${VIRTUAL_ENV}/bin:$PATH"
-}
-
-
 build_package() {
     source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
+
+    package=${RELEASE_NAME#datalabs-}
 
     if [[ "$VERSION" != "" ]]; then
         RELEASE_VERSION=$VERSION
@@ -102,20 +97,19 @@ build_package() {
     fi
     echo "Version: $VERSION"
 
-    Script/release-java-component --name $RELEASE_NAME --version $VERSION \
-        --description "$RELEASE_DESCRIPTION" ${PROJECT}
+    Script/bundle-java-project --in-place --directory Release/ --version $VERSION --package $package $PROJECT
 }
 
 
 upload_package() {
-    # aws --profile default codeartifact login --tool twine --domain datalabs --repository datalabs-sbx
+    cd Release
 
     mvn deploy
 }
 
 
 print_usage() {
-    echo "Usage: deploy-python-package [OPTIONS]..."
+    echo "Usage: deploy-java-package [OPTIONS]..."
     echo "Build and upload a Python package for a component."
     echo
     echo "OPTIONS"
@@ -128,8 +122,8 @@ print_usage() {
 generate_dev_version() {
     current_version=$(
         aws --profile default codeartifact list-package-versions \
-            --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
-            --format pypi --sort-by PUBLISHED_TIME \
+            --domain datalabs --repository cpt-link-sbx --namespace org.ama-assn.datalabs --package dtk-core \
+            --format maven --sort-by PUBLISHED_TIME \
             | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
     )
 
@@ -145,6 +139,32 @@ generate_dev_version() {
     else
         VERSION="${base_version}.dev$(expr $dev_version + 1)"
     fi
+}
+
+create_server_config() {
+    if [ -e ~/.m2/settings.xml ]; then
+        echo "The file ~/.m2/settings.xml already exists. Aborting..."
+
+        exit 1
+    fi
+    export CODEARTIFACT_AUTH_TOKEN=$(
+        aws --profile default codeartifact get-authorization-token --domain datalabs\
+        --query authorizationToken --output text
+    )
+
+    cat > ~/.m2/settings.xml <<EOF
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <servers>
+        <server>
+            <id>codeartifact</id>
+            <username>aws</username>
+            <password>\${env.CODEARTIFACT_AUTH_TOKEN}</password>
+        </server>
+    </servers>
+</settings>
+EOF
 }
 
 

@@ -24,18 +24,21 @@ class ProjectBundler(ABC):
         self._build_path = Path(os.path.join(self._repository_path, 'Build')).resolve()
 
 
-    def bundle(self, project, version, target_path, extra_files, **kwargs):
+    def bundle(self, project, package, version, target_path, extra_files, **kwargs):
         target_path = target_path or Path(os.path.join(self._build_path, project, project)).resolve()
 
-        self._build_bundle(project, version, Path(target_path), extra_files, **kwargs)
+        if package is None:
+            package = project
+
+        self._build_bundle(project, package, version, Path(target_path), extra_files, **kwargs)
 
     @abstractmethod
-    def _build_bundle(self, project, version, target_path, extra_files, **kwargs):
+    def _build_bundle(self, project, package, version, target_path, extra_files, **kwargs):
         pass
 
 
 class LocalProjectBundler(ProjectBundler):
-    def _build_bundle(self, project, version, target_path, extra_files, **kwargs):
+    def _build_bundle(self, project, package, version, target_path, extra_files, **kwargs):
         if os.path.exists(target_path) and not kwargs['in_place']:
             LOGGER.info('=== Removing Old Target Directory ===')
             shutil.rmtree(target_path)
@@ -47,7 +50,7 @@ class LocalProjectBundler(ProjectBundler):
         self._copy_build_files(project, target_path, kwargs['use_pom'])
 
         LOGGER.info('=== Generating Project Object Model ===')
-        self._render_project_object_model_file(project, version, target_path)
+        self._render_project_object_model_file(project, package, version, target_path)
 
         LOGGER.info('=== Copying Source Files ===')
         self._copy_source_files(project, target_path)
@@ -66,15 +69,25 @@ class LocalProjectBundler(ProjectBundler):
         else:
             shutil.copy(os.path.join(self._build_path, 'Master', 'pom.xml.jinja'), os.path.join(target_path, 'pom.xml.jinja'))
 
-    def _render_project_object_model_file(self, project, version, target_path):
+    def _render_project_object_model_file(self, project, package, version, target_path):
         template_path = os.path.join(target_path, 'pom.xml.jinja')
         result_path = os.path.join(target_path, 'pom.xml')
+        namespace = 'org.ama-assn.datalabs'
+
+        if ':' in package:
+            namespace, package = package.split(':')
 
         if not os.path.exists(result_path):
             LOGGER.info(f'Generating file {str(result_path)} from template {str(template_path)}')
             filenames = FileGeneratorFilenames(template=Path(template_path), output=Path(result_path))
 
-            file_generator = SimpleFileGenerator(filenames, project=project, version=version)
+            file_generator = SimpleFileGenerator(
+                filenames,
+                project=project,
+                namespace=namespace,
+                package=package,
+                version=version
+            )
             file_generator.generate()
 
     def _copy_source_files(self, project, target_path):
@@ -109,6 +122,7 @@ if __name__ == '__main__':
         help='Do not pre-clean the target directory.')
     ap.add_argument('-p', '--use-pom', action='store_true', default=False,
         help='Use the pom.xml in the Build/<PROJECT>/ directory instead of the default template.')
+    ap.add_argument('-P', '--package', required=False, help='Specify the package name.')
     ap.add_argument(
         '-v', '--version', default="1.0.0", help='Version of the bundle (default 1.0.0).'
     )
@@ -126,6 +140,7 @@ if __name__ == '__main__':
 
         return_code = project_bundler.bundle(
             args['project'],
+            args['package'],
             args['version'],
             target_path=args['directory'],
             extra_files=args['file'],
