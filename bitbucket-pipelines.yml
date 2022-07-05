@@ -1126,7 +1126,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project Scheduler --environment sbx
+            - bash Deploy/Master/deploy-python-package --project Scheduler --branch $BITBUCKET_BRANCH
         - parallel:
             - step:
                 name: Update sandbox Bundle
