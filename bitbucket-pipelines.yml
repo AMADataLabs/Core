@@ -26,9 +26,7 @@ pipelines:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - source Deploy/Master/release-info.sh $BITBUCKET_TAG
             - >-
-                bash Deploy/Master/deploy-package
-                --project ${PROJECT}
-                --version ${RELEASE_VERSION}
+                bash Deploy/Master/deploy-package --project ${PROJECT} --version ${RELEASE_VERSION}
     custom:
         ##############################################################
         # global targets
@@ -54,7 +52,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project AMC --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project AMC
         - step:
             name: Update ETL Bundle
             caches:
@@ -86,7 +84,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project HelloWorld --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project HelloWorld
 
         - parallel:
             - step:
@@ -228,7 +226,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/API/ETL --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project CPT/API/ETL
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -344,7 +342,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/API/Endpoint --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project CPT/API/Endpoint
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -490,7 +488,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/Files/Watermark --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project CPT/Files/Watermark
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -606,7 +604,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project DBL --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project DBL
         - step:
             name: Update ETL Bundle
             caches:
@@ -678,7 +676,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project HelloWorldVault --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project HelloWorldVault
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -730,7 +728,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/ETL --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project OneView/ETL
         - parallel:
             - step:
                 name: Update Sandbox Lambda Bundle
@@ -839,7 +837,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/ETL/Reindex --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project OneView/ETL/Reindex
         - parallel:
             - step:
                 name: Update Development Batch Job Image
@@ -885,7 +883,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/API --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project OneView/API
         - parallel:
             - step:
                 name: Update Sandbox Lambda Bundle
@@ -1001,7 +999,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project Scheduler --environment sbx
+            - bash Deploy/Master/deploy-python-package --project Scheduler
         - parallel:
             - step:
                 name: Update Sandbox Bundle
