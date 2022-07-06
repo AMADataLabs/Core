@@ -4,12 +4,15 @@ set -ex
 
 CODE_ARTIFACT_HOST=datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com
 
+ENVIRONMENT=
 PROJECT=
 PACKAGE=
+VERSION=
 EXTRA_FILES=
 NO_SOURCES=
 NO_VERIFY_SSL=
 TRUSTED_HOSTS=
+USE_PACKAGE=False
 
 
 
@@ -29,6 +32,11 @@ process_arguments() {
             print_usage
             exit 0
             ;;
+        -e|--environment)
+            ENVIRONMENT=$2
+            shift
+            shift
+            ;;
         -f|--file)
             EXTRA_FILES+="-f $2 "
             shift
@@ -41,6 +49,12 @@ process_arguments() {
             ;;
         -P|--package)
             PACKAGE=$2
+            USE_PACKAGE=True
+            shift
+            shift
+            ;;
+        -V|--version)
+            VERSION=$2
             shift
             shift
             ;;
@@ -60,15 +74,18 @@ process_arguments() {
     if [[ "$PROJECT" == "" ]]; then
         echo "Error: missing project argument"
         exit 1
+    elif [[ "$USE_PACKAGE" == "True" && "$VERSION" == "" ]]; then
+        echo "Error: missing package version"
+        exit 1
     fi
 }
 
 
 install_dependencies() {
-    if [[ "$PACKAGE" != "" ]]; then
+    if [[ "$USE_PACKAGE" == "True" ]]; then
         NO_SOURCES=--no-sources
 
-        echo "$PACKAGE" > requirements.txt
+        echo "$PACKAGE==$VERSION" > requirements.txt
 
         aws ${NO_VERIFY_SSL} --profile default codeartifact login --tool pip --domain datalabs --repository datalabs-sbx
     else
@@ -95,7 +112,8 @@ print_usage() {
     echo "  -h, --help                            print this usage text"
     echo "  -f, --file <file>                     include <file> in the bundle"
     echo "  -p, --project <project>               project path relative to Build/"
-    echo "  -P, --package <package==version>      use pre-packaged code instead of sources"
+    echo "  -P, --package <package>               CodeArtifact package name to use instead of sources"
+    echo "  -V, --version <version>               CodeArtifact package version"
     echo "  --no-verify-ssl                       disable verification of server SSL certificate"
 }
 

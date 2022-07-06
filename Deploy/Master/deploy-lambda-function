@@ -18,9 +18,10 @@ PROJECT=
 BUNDLE=
 RUNTIME=
 EXTRA_FILES=
-PACKAGE=
-METADATA=
 DEPLOYED_VERSION=
+METADATA=
+PACKAGE=
+VERSION=
 
 
 main() {
@@ -29,9 +30,7 @@ main() {
     if [[ "$USE_PACKAGE" == "True" ]]; then
         get_deployed_version
 
-        if [[ "$RUNTIME" == "Python" ]]; then
-            determine_python_package
-        fi
+        determine_package_info
     fi
 
     if [[ "$USE_PACKAGE" == "False" || "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
@@ -84,7 +83,7 @@ process_arguments() {
             shift
             shift
             ;;
-        -P|--use-package)
+        -u|--use-package)
             USE_PACKAGE=True
             shift
             ;;
@@ -136,15 +135,17 @@ create_code_bundle() {
     fi
 
     if [[ "$RUNTIME" == "Python" ]]; then
+        local use_package=
+
         if [[ "$USE_PACKAGE" == "True" ]]; then
-            determine_python_package
+            use_package="--use-package"
         fi
 
-        ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE $EXTRA_FILES
+        ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE $VERSION $EXTRA_FILES
     elif [[ "$RUNTIME" == "Java" ]]; then
         cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
 
-        ${PWD}/Deploy/Master/create-java-bundle --project $PROJECT $EXTRA_FILES -f ./log4j2.xml
+        ${PWD}/Deploy/Master/create-java-bundle --project $PROJECT $PACKAGE $VERSION $EXTRA_FILES -f ./log4j2.xml
     else
         echo "Error: invalid runtime "'"'"$RUNTIME"'"'""
         exit 1
@@ -171,8 +172,8 @@ print_usage() {
     echo "  -h, --help                            print this usage text"
     echo "  -e, --environment <environment>       deployment environment (dev, tst, itg, prd)"
     echo "  -p, --project <project>               project path relative to Build/"
-    echo "  -P, --package                         use the latest pre-packaged component instead of sources"
     echo "  -b, --bundle <bundle>                 name of the uploaded bundle file in S3"
+    echo "  -u, --use-package                     use the associated component package instead of sources"
 }
 
 
@@ -202,20 +203,54 @@ install_sqlserver_driver() {
 }
 
 
-determine_python_package() {
+determine_package_info() {
     source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
-    version="$RELEASE_VERSION"
 
-    if [[ "$RELEASE_VERSION" == "dev" ]]; then
-        version=$(
+    if [[ "$RELEASE_TYPE" == "Python" ]]; then
+        determine_python_package_info
+    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
+        determine_java_package_info
+    else
+        echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
+        exit 1
+    fi
+
+    RUNTIME=$RELEASE_TYPE
+}
+
+
+determine_python_package_info() {
+    local version=$RELEASE_VERSION
+
+    if [[ "$VERSION" == "dev" ]]; then
+        VERSION=$(
             aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
-                --format pypi --sort-by PUBLISHED_TIME \
-                | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+                --domain datalabs --repository datalabs-sbx --package $PACKAGE \
+                --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
         )
     fi
 
-    PACKAGE="--package ${RELEASE_NAME}==${version}"
+    PACKAGE="--package $RELEASE_NAME"
+    VERSION="--version $RELEASE_VERSION"
+    METADATA='--metadata {"package_version":"'${version}'"}'
+}
+
+
+determine_java_package_info() {
+    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
+    local package=${RELEASE_NAME#datalabs-}
+    local version=$RELEASE_VERSION
+
+    if [[ "$VERSION" == "dev" ]]; then
+        VERSION=$(
+            aws --profile default codeartifact list-package-versions \
+                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \
+                --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
+        )
+    fi
+
+    PACKAGE="--package $package"
+    VERSION="--version $version"
     METADATA='--metadata {"package_version":"'${version}'"}'
 }
 

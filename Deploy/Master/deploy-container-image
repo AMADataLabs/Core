@@ -11,9 +11,8 @@ AWS_DEFAULT_REGION=us-east-1
 REPOSITORY=
 ENVIRONMENT=
 PROJECT=
-RUNTIME=
-PACKAGE_NAME=
-PACKAGE_VERSION=
+PACKAGE=
+VERSION=
 DEPLOYED_VERSION=
 
 
@@ -22,12 +21,7 @@ main() {
 
     get_deployed_version
 
-    if [[ "$RUNTIME" == "Python" ]]; then
-        determine_python_package
-    else
-        echo "Unsupported runtime: $RUNTIME"
-        exit 1
-    fi
+    determine_package_info
 
     if [[ "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
         build_container_image
@@ -93,21 +87,17 @@ get_deployed_version() {
 }
 
 
-determine_python_package() {
+determine_package_info() {
     source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
-    version="$RELEASE_VERSION"
 
-    if [[ "$RELEASE_VERSION" == "dev" ]]; then
-        version=$(
-            aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
-                --format pypi --sort-by PUBLISHED_TIME \
-                | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
-        )
+    if [[ "$RELEASE_TYPE" == "Python" ]]; then
+        determine_python_package_info
+    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
+        determine_java_package_info
+    else
+        echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
+        exit 1
     fi
-
-    PACKAGE_NAME=${RELEASE_NAME}
-    PACKAGE_VERSION=${version}
 }
 
 
@@ -141,6 +131,40 @@ print_usage() {
     echo "  -p, --project <project>               project path relative to Build/"
     echo "  -P, --package                         use the latest pre-packaged component instead of sources"
     echo "  -b, --bundle <bundle>                 name of the uploaded bundle file in S3"
+}
+
+
+determine_python_package_info() {
+    local version=$RELEASE_VERSION
+
+    if [[ "$VERSION" == "dev" ]]; then
+        VERSION=$(
+            aws --profile default codeartifact list-package-versions \
+                --domain datalabs --repository datalabs-sbx --package $PACKAGE \
+                --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
+        )
+    fi
+
+    PACKAGE="--package $RELEASE_NAME"
+    VERSION="--version $RELEASE_VERSION"
+}
+
+
+determine_java_package_info() {
+    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
+    local package=${RELEASE_NAME#datalabs-}
+    local version=$RELEASE_VERSION
+
+    if [[ "$VERSION" == "dev" ]]; then
+        VERSION=$(
+            aws --profile default codeartifact list-package-versions \
+                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \
+                --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
+        )
+    fi
+
+    PACKAGE="--package $package"
+    VERSION="--version $version"
 }
 
 

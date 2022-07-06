@@ -45,6 +45,16 @@ process_arguments() {
             shift
             shift
             ;;
+        -P|--package)
+            PACKAGE=$2
+            shift
+            shift
+            ;;
+        -V|--version)
+            VERSION=$2
+            shift
+            shift
+            ;;
         *)
             echo "Unexpected argument $1"
             print_usage
@@ -103,23 +113,6 @@ create_server_config() {
     </servers>
 </settings>
 EOF
-}
-
-
-determine_package_info() {
-    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
-
-    PACKAGE=${RELEASE_NAME#datalabs-}
-    VERSION=$RELEASE_VERSION
-
-    if [[ "$VERSION" == "dev" ]]; then
-        VERSION=$(
-            aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \
-                --format maven --sort-by PUBLISHED_TIME \
-                | jq -r '.versions[0].version'
-        )
-    fi
 }
 
 
