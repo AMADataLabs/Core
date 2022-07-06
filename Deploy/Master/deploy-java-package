@@ -7,13 +7,6 @@ SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 AWS_DEFAULT_REGION=us-east-1
-declare -A ENVIRONMENTS=(
-    [master]=sbx
-    [dev]=dev
-    [test]=tst
-    [stage]=itg
-    [prod]=prd
-)
 
 BRANCH=
 ENVIRONMENT=
@@ -38,11 +31,6 @@ process_arguments() {
         -h|--help)
             print_usage
             exit 0
-            ;;
-        -b|--branch)
-            BRANCH=$2
-            shift
-            shift
             ;;
         -e|--environment)
             ENVIRONMENT=$2
@@ -69,8 +57,6 @@ process_arguments() {
 
     if [[ "$VERSION" != "" ]]; then
         ENVIRONMENT=sbx
-    elif [[ "$BRANCH" != "" ]]; then
-        ENVIRONMENT=${ENVIRONMENTS[$BRANCH]}
     elif [[ "$ENVIRONMENT" == "" ]]; then
         echo "Missing environment argument."
         exit 1
@@ -80,66 +66,6 @@ process_arguments() {
     fi
 }
 
-
-build_package() {
-    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
-
-    package=${RELEASE_NAME#datalabs-}
-
-    if [[ "$VERSION" != "" ]]; then
-        RELEASE_VERSION=$VERSION
-    else
-        VERSION=$RELEASE_VERSION
-    fi
-
-    if [[ "$RELEASE_VERSION" == "dev" ]]; then
-        generate_dev_version
-    fi
-    echo "Version: $VERSION"
-
-    Script/bundle-java-project --in-place --directory Release/ --version $VERSION --package $package $PROJECT
-}
-
-
-upload_package() {
-    cd Release
-
-    mvn deploy
-}
-
-
-print_usage() {
-    echo "Usage: deploy-java-package [OPTIONS]..."
-    echo "Build and upload a Python package for a component."
-    echo
-    echo "OPTIONS"
-    echo "  -h, --help                            print this usage text"
-    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
-    echo "  -p, --project                         project path relative to Build/"
-}
-
-
-generate_dev_version() {
-    current_version=$(
-        aws --profile default codeartifact list-package-versions \
-            --domain datalabs --repository cpt-link-sbx --namespace org.ama-assn.datalabs --package dtk-core \
-            --format maven --sort-by PUBLISHED_TIME \
-            | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
-    )
-
-    if [[ "$current_version" == "" ]]; then
-        current_version="0.1.0"
-    fi
-
-    base_version=$(echo $current_version | sed 's/\.dev.*//')
-    dev_version=$(echo $current_version | sed 's/..*dev//')
-
-    if [[ "$dev_version" == "$current_version" ]]; then
-        VERSION="${current_version}.dev0"
-    else
-        VERSION="${base_version}.dev$(expr $dev_version + 1)"
-    fi
-}
 
 create_server_config() {
     if [ -e ~/.m2/settings.xml ]; then
@@ -165,6 +91,70 @@ create_server_config() {
     </servers>
 </settings>
 EOF
+}
+
+
+build_package() {
+    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
+
+    local package=${RELEASE_NAME#datalabs-}
+
+    if [[ "$VERSION" != "" ]]; then
+        RELEASE_VERSION=$VERSION
+    else
+        VERSION=$RELEASE_VERSION
+    fi
+
+    if [[ "$RELEASE_VERSION" == "dev" ]]; then
+        generate_dev_version $package
+    fi
+    echo "Version: $VERSION"
+
+    Script/bundle-java-project --in-place --directory Release/ --version $VERSION --package $package $PROJECT
+}
+
+
+upload_package() {
+    cd Release
+
+    mvn deploy
+}
+
+
+print_usage() {
+    echo "Usage: deploy-java-package [OPTIONS]..."
+    echo "Build and upload a Python package for a component."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
+    echo "  -p, --project                         project path relative to Build/"
+    echo "  -v, --version                         override the version of the package to build"
+}
+
+
+generate_dev_version() {
+    local package=$1
+
+    current_version=$(
+        aws --profile default codeartifact list-package-versions \
+            --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $package \
+            --format maven --sort-by PUBLISHED_TIME \
+            | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+    )
+
+    if [[ "$current_version" == "" ]]; then
+        current_version="0.1.0"
+    fi
+
+    base_version=$(echo $current_version | sed 's/\.dev.*//')
+    dev_version=$(echo $current_version | sed 's/..*dev//')
+
+    if [[ "$dev_version" == "$current_version" ]]; then
+        VERSION="${current_version}.dev0"
+    else
+        VERSION="${base_version}.dev$(expr $dev_version + 1)"
+    fi
 }
 
 
