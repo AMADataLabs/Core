@@ -2,7 +2,6 @@
 
 set -ex
 
-ENVIRONMENT=
 PROJECT=
 EXTRA_FILES=
 PACKAGE=
@@ -29,11 +28,6 @@ process_arguments() {
         -h|--help)
             print_usage
             exit 0
-            ;;
-        -e|--environment)
-            ENVIRONMENT=$2
-            shift
-            shift
             ;;
         -f|--file)
             EXTRA_FILES+="$2 "
@@ -63,10 +57,7 @@ process_arguments() {
       esac
     done
 
-    if [[ "$ENVIRONMENT" == "" ]]; then
-        echo "Missing environment argument."
-        exit 1
-    elif  [[ "$PROJECT" == "" ]]; then
+    if  [[ "$PROJECT" == "" ]]; then
         echo "Missing project argument."
         exit 1
     fi

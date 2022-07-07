@@ -4,7 +4,6 @@ set -ex
 
 CODE_ARTIFACT_HOST=datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com
 
-ENVIRONMENT=
 PROJECT=
 PACKAGE=
 VERSION=
@@ -31,11 +30,6 @@ process_arguments() {
         -h|--help)
             print_usage
             exit 0
-            ;;
-        -e|--environment)
-            ENVIRONMENT=$2
-            shift
-            shift
             ;;
         -f|--file)
             EXTRA_FILES+="-f $2 "

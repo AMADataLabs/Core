@@ -16,7 +16,6 @@ USE_PACKAGE=False
 ENVIRONMENT=
 PROJECT=
 BUNDLE=
-RUNTIME=
 EXTRA_FILES=
 DEPLOYED_VERSION=
 METADATA=
@@ -209,8 +208,6 @@ determine_package_info() {
         echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
         exit 1
     fi
-
-    RUNTIME=$RELEASE_TYPE
 }
 
 
