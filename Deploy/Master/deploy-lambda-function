@@ -220,7 +220,7 @@ determine_package_info() {
 
 
 determine_python_package_info() {
-    local version=$RELEASE_VERSION
+    VERSION=$RELEASE_VERSION
 
     if [[ "$VERSION" == "dev" ]]; then
         VERSION=$(
@@ -231,8 +231,8 @@ determine_python_package_info() {
     fi
 
     PACKAGE="--package $RELEASE_NAME"
-    VERSION="--version $RELEASE_VERSION"
-    METADATA='--metadata {"package_version":"'${version}'"}'
+    VERSION="--version $VERSION"
+    METADATA='--metadata {"package_version":"'${VERSION}'"}'
 }
 
 
