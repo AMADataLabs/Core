@@ -232,14 +232,13 @@ determine_python_package_info() {
 
 
 determine_java_package_info() {
-    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
     local package=${RELEASE_NAME#datalabs-}
     local version=$RELEASE_VERSION
 
     if [[ "$version" == "dev" ]]; then
         version=$(
             aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \
+                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $package \
                 --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
         )
     fi
