@@ -49,12 +49,12 @@ pipelines:
 
         AMC:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project AMC --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project AMC --environment sbx
         - step:
             name: Update ETL Bundle
             caches:
@@ -160,12 +160,12 @@ pipelines:
 
         ContactID:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project ContactID --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project ContactID --environment sbx
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -273,12 +273,12 @@ pipelines:
 
         CPT-API-ETL:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/API/ETL --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project CPT/API/ETL --environment sbx
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -389,12 +389,12 @@ pipelines:
 
         CPT-API-Endpoint:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/API/Endpoint --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project CPT/API/Endpoint --environment sbx
         - step:
             name: Update Bundle
             caches:
@@ -537,12 +537,12 @@ pipelines:
 
         DBL:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project DBL --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project DBL --environment sbx
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -700,12 +700,12 @@ pipelines:
 
         HelloWorldVault:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project HelloWorldVault --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project HelloWorldVault --environment sbx
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -752,12 +752,12 @@ pipelines:
 
         OneView-ETL:
         - step:
-            name: Create New Development Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/ETL --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project OneView/ETL --environment sbx
         - parallel:
             - step:
                 name: Update Sandbox Lambda Bundle
@@ -861,12 +861,12 @@ pipelines:
 
         OneView-Reindex:
         - step:
-            name: Create New Development Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/ETL/Reindex --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project OneView/ETL/Reindex --environment sbx
         - parallel:
             - step:
                 name: Update Development Batch Job Image
@@ -907,12 +907,12 @@ pipelines:
 
         OneView-API:
         - step:
-            name: Create New Development Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/API --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project OneView/API --environment sbx
         - parallel:
             - step:
                 name: Update Sandbox Lambda Bundle
@@ -1008,12 +1008,12 @@ pipelines:
 
         Organizations:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/Organizations --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project CPT/Organizations --environment sbx
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -1121,12 +1121,12 @@ pipelines:
 
         Scheduler:
         - step:
-            name: Update Component Package
+            name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project Scheduler --branch $BITBUCKET_BRANCH
+            - bash Deploy/Master/deploy-python-package --project Scheduler --environment sbx
         - parallel:
             - step:
                 name: Update sandbox Bundle
