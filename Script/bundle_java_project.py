@@ -106,7 +106,7 @@ class LocalProjectBundler(ProjectBundler):
             shutil.copy(file, os.path.join(destination_directory, file))
 
     def _jar_source_directory(self, project, target_path):
-        os.system(f'mvn -f {os.path.join(target_path, "pom.xml")} package')
+        os.system('mvn -f %s package'.format(os.path.join(target_path, "pom.xml")))
 
 
 if __name__ == '__main__':
