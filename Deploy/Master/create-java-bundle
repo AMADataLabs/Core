@@ -108,6 +108,7 @@ EOF
 
 
 download_package_jar() {
+    mvn --version
     mvn dependency:get -Dartifact=org.ama-assn.datalabs:$PACKAGE:$VERSION
 
     cp ~/.m2/repository/org/ama-assn/datalabs/${PACKAGE}/${VERSION}/${PACKAGE}-${VERSION}.jar ./${PACKAGE}-${VERSION}.jar
