@@ -148,7 +148,7 @@ if __name__ == '__main__':
             use_pom=args.get('use_pom', False)
         )
     except Exception as e:
-        LOGGER.exception(f"Failed to create project bundle.")
+        LOGGER.exception("Failed to create project bundle.")
         return_code = 1
 
     exit(return_code)
