@@ -154,7 +154,7 @@ class ServerlessProjectBundler(ProjectBundler):
             path=self._repository_path,
             tag='datalabs-serverless-bundler',
             dockerfile=dockerfile_path,
-            buildargs=dict(PROJECT=f'{project}'),
+            buildargs=dict(PROJECT=project),
             quiet=False
         )
 
@@ -239,7 +239,7 @@ if __name__ == '__main__':
             no_sources=args['no_sources']
         )
     except Exception as e:
-        LOGGER.exception(f"Failed to create project bundle.")
+        LOGGER.exception("Failed to create project bundle.")
         return_code = 1
 
     exit(return_code)

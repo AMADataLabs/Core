@@ -24,4 +24,5 @@ class StatusEmailNotifier():
         subject = '[DAG STATUS] {} {} {}'.format(self.environment, dag, status.value)
 
         send_email(self.emails, subject, body=message, from_account=self.from_account)
+        LOGGER.info('WEB HOOK url2')
         LOGGER.info('EMAIL SENT TO %s', self.emails)
