@@ -67,11 +67,6 @@ process_arguments() {
             shift
             shift
             ;;
-        -r|--runtime)
-            RUNTIME=$2
-            shift
-            shift
-            ;;
         -j|--jdbc-driver)
             if [[ "$2" == "DB2" ]]; then
                 INSTALL_DB2_DRIVER=True
@@ -134,7 +129,7 @@ create_code_bundle() {
         export ENABLE_FEATURE_PROD=True
     fi
 
-    if [[ "$RUNTIME" == "Python" ]]; then
+    if [[ "$RELEASE_TYPE" == "Python" ]]; then
         local use_package=
 
         if [[ "$USE_PACKAGE" == "True" ]]; then
@@ -142,21 +137,21 @@ create_code_bundle() {
         fi
 
         ${PWD}/Deploy/Master/create-python-bundle --project $PROJECT $PACKAGE $VERSION $EXTRA_FILES
-    elif [[ "$RUNTIME" == "Java" ]]; then
+    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
         cp Build/${PROJECT}/log4j2.xml ./log4j2.xml
 
         ${PWD}/Deploy/Master/create-java-bundle --project $PROJECT $PACKAGE $VERSION $EXTRA_FILES -f ./log4j2.xml
     else
-        echo "Error: invalid runtime "'"'"$RUNTIME"'"'""
+        echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
         exit 1
     fi
 }
 
 
 upload_code_bundle() {
-    if [[ "$RUNTIME" == "Python" ]]; then
+    if [[ "$RELEASE_TYPE" == "Python" ]]; then
         aws s3 cp ${METADATA} Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
-    elif [[ "$RUNTIME" == "Java" ]]; then
+    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
         rm Bundle/target/original-*.jar
 
         aws s3 cp ${METADATA} Bundle/target/*.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
