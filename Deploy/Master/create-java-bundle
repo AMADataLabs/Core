@@ -14,8 +14,6 @@ main() {
 
     create_server_config
 
-    determine_package_info
-
     download_package_jar
 
     supplement_jar
