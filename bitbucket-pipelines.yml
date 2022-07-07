@@ -227,6 +227,7 @@ pipelines:
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-python-package --project CPT/API/ETL
+
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -296,6 +297,7 @@ pipelines:
                     --project CPT/API/ETL
                     --bundle CPT/API/ETL.zip
                     --use-package
+
         - parallel:
             - step:
                 name: Update Sandbox Lambda Functions
@@ -604,13 +606,21 @@ pipelines:
                 --use-package
 
         HelloWorldJava:
-        - step:
-            name: Create Development Component Package
-            caches:
-            - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project HelloWorldJava/Task
+        - parallel:
+            - step:
+                name: Create DAG Development Component Package
+                caches:
+                - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/deploy-python-package --project HelloWorldJava/DAG
+            - step:
+                name: Create Task Development Component Package
+                caches:
+                - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/deploy-java-package --project HelloWorldJava/Task
         - parallel:
             - step:
                 name: Update DAG Bundle
