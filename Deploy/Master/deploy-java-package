@@ -19,6 +19,8 @@ main() {
 
     create_server_config
 
+    setup_virtual_environment
+
     determine_package_info
 
     build_package
@@ -85,6 +87,13 @@ create_server_config() {
     </servers>
 </settings>
 EOF
+}
+
+
+setup_virtual_environment() {
+    ${PWD}/Script/setup-virtual-environment Master/BitBucketPipelines
+    export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+    export PATH="${VIRTUAL_ENV}/bin:$PATH"
 }
 
 
