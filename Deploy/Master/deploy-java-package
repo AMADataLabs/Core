@@ -133,7 +133,7 @@ generate_dev_version() {
     local current_version=$(
         aws --profile default codeartifact list-package-versions \
             --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \
-            --format maven --sort-by PUBLISHED_TIME | echo $package_data | jq -r '.versions[0].version'
+            --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
     )
 
     if [[ "$current_version" == "" ]]; then
