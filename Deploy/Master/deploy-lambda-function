@@ -220,10 +220,10 @@ determine_package_info() {
 
 
 determine_python_package_info() {
-    VERSION=$RELEASE_VERSION
+    local version=$RELEASE_VERSION
 
-    if [[ "$VERSION" == "dev" ]]; then
-        VERSION=$(
+    if [[ "$version" == "dev" ]]; then
+        version=$(
             aws --profile default codeartifact list-package-versions \
                 --domain datalabs --repository datalabs-sbx --package $PACKAGE \
                 --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
@@ -231,8 +231,8 @@ determine_python_package_info() {
     fi
 
     PACKAGE="--package $RELEASE_NAME"
-    VERSION="--version $VERSION"
-    METADATA='--metadata {"package_version":"'${VERSION}'"}'
+    VERSION="--version $version"
+    METADATA='--metadata {"package_version":"'${version}'"}'
 }
 
 
@@ -241,8 +241,8 @@ determine_java_package_info() {
     local package=${RELEASE_NAME#datalabs-}
     local version=$RELEASE_VERSION
 
-    if [[ "$VERSION" == "dev" ]]; then
-        VERSION=$(
+    if [[ "$version" == "dev" ]]; then
+        version=$(
             aws --profile default codeartifact list-package-versions \
                 --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \
                 --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
