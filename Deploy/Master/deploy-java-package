@@ -90,6 +90,7 @@ EOF
 
 determine_package_info() {
     source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
+    PACKAGE=${RELEASE_NAME#datalabs-}
 
     unset RELEASE_VERSION
 
@@ -101,9 +102,7 @@ determine_package_info() {
 
 
 build_package() {
-    local package=${RELEASE_NAME#datalabs-}
-
-    Script/bundle-java-project --in-place --directory Release/ --version $VERSION --package $package $PROJECT
+    Script/bundle-java-project --in-place --directory Release/ --version $VERSION --package $PACKAGE $PROJECT
 }
 
 
@@ -127,11 +126,9 @@ print_usage() {
 
 
 generate_dev_version() {
-    local package=$1
-
     current_version=$(
         aws --profile default codeartifact list-package-versions \
-            --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $package \
+            --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \
             --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
     )
 
