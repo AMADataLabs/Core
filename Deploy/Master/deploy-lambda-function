@@ -220,7 +220,7 @@ determine_python_package_info() {
     if [[ "$version" == "dev" ]]; then
         version=$(
             aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --package $PACKAGE \
+                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
                 --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
         )
     fi
