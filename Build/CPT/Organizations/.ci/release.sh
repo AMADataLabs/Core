@@ -19,7 +19,7 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-cpt-organization"
+    export RELEASE_NAME="datalabs-cpt-organizations"
     export RELEASE_DESCRIPTION="CPT Organization ETL Process"
 }
 
