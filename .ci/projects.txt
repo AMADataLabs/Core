@@ -7,6 +7,7 @@ CPT/Organizations
 DBL
 HelloWorldJava/Task
 HelloWorldVault
+IntelligentPlatform/Developer/Users
 OneView/ETL
 OneView/ETL/Reindex
 OneView/API
