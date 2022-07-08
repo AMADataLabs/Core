@@ -1,6 +1,6 @@
 ''' DAG definition for the Frictionless Licensing ETL. '''
-from   datalabs.etl.dag.dag import DAG, Repeat
-from   datalabs.etl.jdbc.extract import JDBCExtractorTask, JDBCParametricExtractorTask
+from   datalabs.etl.dag.dag import DAG
+from   datalabs.etl.jdbc.extract import JDBCExtractorTask
 from   datalabs.etl.orm.load import ORMLoaderTask
 
 

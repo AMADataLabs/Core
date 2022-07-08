@@ -2,7 +2,7 @@
 from   datalabs.etl.dag.dag import DAG
 
 from   datalabs.etl.jdbc.extract import JDBCExtractorTask
-from   datalabs.etl.cpt.organization.transform import LicensedOrganizationsTransformerTask
+from   datalabs.etl.frictionless_licensing.transform import LicensedOrganizationsTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask
 
 
