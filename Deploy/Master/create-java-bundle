@@ -116,7 +116,7 @@ download_package_jar() {
 
 
 supplement_jar() {
-    jar uf ./${PACKAGE}-${VERSION}.jar $EXTRA_FILES
+    jar uf ./Bundle.jar $EXTRA_FILES
 }
 
 
