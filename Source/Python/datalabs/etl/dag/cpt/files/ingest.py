@@ -13,7 +13,8 @@ class CPTFilesIngesterDAG(DAG):
     TRIGGER_API_DAG: SNSMessageLoaderTask
 
 # pylint: disable=pointless-statement
-CPTFilesIngesterDAG.EXTRACT_LINK_ARCHIVE >> CPTFilesIngesterDAG.LOAD_LINK_ARCHIVE >> \
+CPTFilesIngesterDAG.EXTRACT_LINK_ARCHIVE >> CPTFilesIngesterDAG.LOAD_LINK_ARCHIVE
+CPTFilesIngesterDAG.LOAD_LINK_ARCHIVE >> \
         CPTFilesIngesterDAG.SCHEDULE_WATERMARK_DAG >> CPTFilesIngesterDAG.TRIGGER_WATERMARK_DAG
-CPTFilesIngesterDAG.EXTRACT_LINK_ARCHIVE >> CPTFilesIngesterDAG.LOAD_LINK_ARCHIVE >> \
-                CPTFilesIngesterDAG.SCHEDULE_API_DAG >> CPTFilesIngesterDAG.TRIGGER_API_DAG
+CPTFilesIngesterDAG.LOAD_LINK_ARCHIVE >> \
+        CPTFilesIngesterDAG.SCHEDULE_API_DAG >> CPTFilesIngesterDAG.TRIGGER_API_DAG
