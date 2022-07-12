@@ -127,10 +127,10 @@ class FilesEndpointTask(APIEndpointTask):
         authorized_years = []
 
         for name, end_datestamp in cpt_api_authorizations.items():
-            year = int('20' + name[len('CPTAPI'):])
+            year = cls._parse_authorization_year(name, current_time)
             end_date = datetime.strptime(end_datestamp, '%Y-%m-%d-%M:%S').astimezone(timezone.utc)
 
-            if current_time < end_date:
+            if current_time <= end_date:
                 authorized_years.append(year)
 
         return authorized_years
@@ -170,6 +170,15 @@ class FilesEndpointTask(APIEndpointTask):
             archive_path = self._parameters.bucket_base_path + archive_path
 
         return archive_path
+
+    @classmethod
+    def _parse_authorization_year(cls, name, current_time):
+        year = current_time.year
+
+        if len(name) > len("CPTAPI"):
+            year = int('20' + name[len('CPTAPI'):])
+
+        return year
 
     def _list_files(self, prefix):
         files = []
