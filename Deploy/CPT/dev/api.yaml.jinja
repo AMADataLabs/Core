@@ -1,7 +1,6 @@
 # Render as follows:
 #
-# Script/render-template -t Deploy/CPT-API/dev/ingest.yaml.jinja -f Deploy/CPT-API/dev/ingest.yaml \
-# -v "datalabs_password={{datalabs_password}}" -v "eft_password={{eft_password}}" \
+# Script/render-template -t Deploy/CPT/dev/api.yaml.jinja -f Deploy/CPT/dev/api.yaml \
 # -v "database_password={{database_password}}"
 ---
 data:
@@ -14,6 +13,7 @@ data:
 
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+    S3_DOWNLOADS_BUCKET: ama-${ENVIRONMENT}-cpt-downloads-us-east-1
 
     DATABASE_HOST: cpt-api-dev-db.cwp4vd8mllvz.us-east-1.rds.amazonaws.com
     DATABASE_PORT: '5432'
@@ -70,6 +70,16 @@ data:
     CPTAPI__EXTRACT_DISTRIBUTION_RELEASES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
     CPTAPI__EXTRACT_DISTRIBUTION_RELEASES__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
     CPTAPI__EXTRACT_DISTRIBUTION_RELEASES__CACHE_OUTPUT_FILES: 'release.csv'
+
+
+    # # Files Zip Transformer
+    # CPTAPI__CREATE_FILES_ZIP__CACHE_CLASS:  ${S3_CACHE_CLASS}
+    # CPTAPI__CREATE_FILES_ZIP__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    # CPTAPI__CREATE_FILES_ZIP__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    # CPTAPI__CREATE_FILES_ZIP__CACHE_INPUT_FILES: '*'
+    # CPTAPI__CREATE_FILES_ZIP__CACHE_INPUT_INCLUDE_NAMES: 'True'
+    # CPTAPI__CREATE_FILES_ZIP__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    # CPTAPI__CREATE_FILES_ZIP__CACHE_OUTPUT_FILES: 'files.zip'
 
 
     # PDF Zip Transformer
@@ -251,7 +261,6 @@ data:
     CPTAPI__LOAD_RELEASE_TABLE__DATABASE_NAME: ${DATABASE_NAME}
     CPTAPI__LOAD_RELEASE_TABLE__DATABASE_USERNAME: ${DATABASE_USERNAME}
     CPTAPI__LOAD_RELEASE_TABLE__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-    # CPTAPI__LOAD_RELEASE_TABLE__APPEND: 'True'
 
 
     # Codes Loader

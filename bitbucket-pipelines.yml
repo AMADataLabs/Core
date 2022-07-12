@@ -270,7 +270,7 @@ pipelines:
                     --bundle CPT/API/ETL.zip
                     --use-package
             - step:
-                name: Update Ttaging Bundle
+                name: Update Staging Bundle
                 caches:
                     - environment-stage
                 script:
