@@ -323,6 +323,15 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/API
                     ETL=ETL.zip
             - step:
+                name: Update Staging Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s CPT-API -p CPT/API
+                    ETL=ETL.zip
+            - step:
                 name: Update Production Lambda Functions
                 script:
                 - >-
@@ -493,20 +502,20 @@ pipelines:
                     --project CPT/API/Endpoint
                     --bundle CPT/API/Endpoint.zip
                     --use-package
-            # - step:
-            #     name: Update Production Bundle
-            #     caches:
-            #         - environment-prod
-            #     script:
-            #     - >-
-            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-            #     - >-
-            #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-            #         --environment prd
-            #         --project CPT/API/Endpoint
-            #         --bundle CPT/API/Endpoint.zip
-            #         --use-package
+            - step:
+                name: Update Production Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project CPT/API/Endpoint
+                    --bundle CPT/API/Endpoint.zip
+                    --use-package
         - parallel:
             - step:
                 name: Update Sandbox Lambda Functions
