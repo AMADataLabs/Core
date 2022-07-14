@@ -230,6 +230,8 @@ determine_java_package_info() {
 
 get_package_version() {
     local package=$1
+    local version
+    local return_code=0
 
     if [[ "$version" == "dev" ]]; then
         version=$(
@@ -239,12 +241,13 @@ get_package_version() {
         )
 
         if [[ ${PIPESTATUS[0]} != 0 ]]; then
-            echo "Warning: Package does not exist. Assuming version 0.1.0..."
-            version="0.1.0"
+            echo "Error: Package does not exist."
+            return_code=${PIPESTATUS[0]}
         fi
     fi
 
     echo $version
+    return $return_code
 }
 
 
