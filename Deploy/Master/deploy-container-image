@@ -131,8 +131,8 @@ print_usage() {
 determine_python_package_info() {
     local version=$RELEASE_VERSION
 
-    if [[ "$VERSION" == "dev" ]]; then
-        VERSION=$(
+    if [[ "$version" == "dev" ]]; then
+        version=$(
             aws --profile default codeartifact list-package-versions \
                 --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
                 --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
@@ -140,7 +140,7 @@ determine_python_package_info() {
     fi
 
     PACKAGE=$RELEASE_NAME
-    VERSION=$RELEASE_VERSION
+    VERSION=$version
 }
 
 
