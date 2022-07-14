@@ -6,7 +6,6 @@ modspec:
       - feature
       - parameter
       - plugin
-      - sqlalchemy
       - task
   - package: datalabs.access
     include:
@@ -24,18 +23,15 @@ modspec:
       - awslambda
       - csv
       - load
-  - package: datalabs.etl.archive
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.cpt
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
-  - package: datalabs.etl.jdbc
   - package: datalabs.etl.dag.cpt.files
     include:
     - ingest            
-    - watermark            
   - package: datalabs.etl.s3
   - package: datalabs.etl.sns    
   - package: datalabs.messaging
