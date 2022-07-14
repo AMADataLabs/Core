@@ -18,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-ingester-DAG"
-    export RELEASE_DESCRIPTION="Ingester DAG plugin"
+    export RELEASE_NAME="datalabs-cpt-files-ingestion-etl"
+    export RELEASE_DESCRIPTION="CPT Files Ingestion DAG plugin"
 }
 
 
