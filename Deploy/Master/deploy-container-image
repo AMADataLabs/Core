@@ -48,11 +48,6 @@ process_arguments() {
             shift
             shift
             ;;
-        -r|--runtime)
-            RUNTIME=$2
-            shift
-            shift
-            ;;
         -R|--repo)
             REPOSITORY=$2
             shift
@@ -102,10 +97,10 @@ determine_package_info() {
 
 
 build_container_image() {
-    docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION} \
+    docker build --build-arg PACKAGE_NAME=${PACKAGE} --build-arg PACKAGE_VERSION=${VERSION} \
          --build-arg AWS_ACCESS_KEY_ID_SANDBOX=${AWS_ACCESS_KEY_ID_SANDBOX} \
          --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
-         -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
+         -t ${PACKAGE} -f ./Build/${PROJECT}/Dockerfile ./
 }
 
 
@@ -113,10 +108,10 @@ upload_container_image() {
     aws ecr get-login-password --region us-east-1 \
         | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com
 
-    docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
-    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
+    docker tag  ${PACKAGE} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${VERSION}
+    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${VERSION}
 
-    docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
+    docker tag ${PACKAGE} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
     docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
 }
 
@@ -129,7 +124,6 @@ print_usage() {
     echo "  -h, --help                            print this usage text"
     echo "  -e, --environment <environment>       deployment environment (dev, tst, itg, prd)"
     echo "  -p, --project <project>               project path relative to Build/"
-    echo "  -P, --package                         use the latest pre-packaged component instead of sources"
     echo "  -b, --bundle <bundle>                 name of the uploaded bundle file in S3"
 }
 
@@ -140,13 +134,13 @@ determine_python_package_info() {
     if [[ "$VERSION" == "dev" ]]; then
         VERSION=$(
             aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --package $PACKAGE \
+                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
                 --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
         )
     fi
 
-    PACKAGE="--package $RELEASE_NAME"
-    VERSION="--version $RELEASE_VERSION"
+    PACKAGE=$RELEASE_NAME
+    VERSION=$RELEASE_VERSION
 }
 
 
@@ -158,13 +152,13 @@ determine_java_package_info() {
     if [[ "$VERSION" == "dev" ]]; then
         VERSION=$(
             aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \
+                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $package \
                 --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
         )
     fi
 
-    PACKAGE="--package $package"
-    VERSION="--version $version"
+    PACKAGE=$package
+    VERSION=$version
 }
 
 

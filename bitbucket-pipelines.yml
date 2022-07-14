@@ -962,7 +962,6 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
                     --environment tst
                     --project OneView/ETL/Reindex
-                    --runtime Python
                     --repo oneview-tst
             - step:
                 name: Update Production Batch Job Image
@@ -974,7 +973,6 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
                     --environment prd
                     --project OneView/ETL/Reindex
-                    --runtime Python
                     --repo oneview-prd
 
         OneView-API:
