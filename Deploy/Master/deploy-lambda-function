@@ -210,15 +210,7 @@ determine_package_info() {
 
 
 determine_python_package_info() {
-    local version=$RELEASE_VERSION
-
-    if [[ "$version" == "dev" ]]; then
-        version=$(
-            aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
-                --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
-        )
-    fi
+    local version=$(get_package_version $RELEASE_NAME)
 
     PACKAGE="--package $RELEASE_NAME"
     VERSION="--version $version"
@@ -228,7 +220,16 @@ determine_python_package_info() {
 
 determine_java_package_info() {
     local package=${RELEASE_NAME#datalabs-}
-    local version=$RELEASE_VERSION
+    local version=$(get_package_version $package)
+
+    PACKAGE="--package $package"
+    VERSION="--version $version"
+    METADATA='--metadata {"package_version":"'${version}'"}'
+}
+
+
+get_package_version() {
+    local package=$1
 
     if [[ "$version" == "dev" ]]; then
         version=$(
@@ -236,11 +237,14 @@ determine_java_package_info() {
                 --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $package \
                 --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
         )
+
+        if [[ ${PIPESTATUS[0]} != 0 ]]; then
+            echo "Warning: Package does not exist. Assuming version 0.1.0..."
+            version="0.1.0"
+        fi
     fi
 
-    PACKAGE="--package $package"
-    VERSION="--version $version"
-    METADATA='--metadata {"package_version":"'${version}'"}'
+    echo $version
 }
 
 
