@@ -210,10 +210,10 @@ determine_package_info() {
 
 
 determine_python_package_info() {
-    local version=
+    local version=$RELEASE_VERSION
     local return_code=0
 
-    if [[ "$RELEASE_VERSION" == "dev" ]]; then
+    if [[ "$version" == "dev" ]]; then
         version=$(
             aws --profile default codeartifact list-package-versions \
                 --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
@@ -236,10 +236,10 @@ determine_python_package_info() {
 
 determine_java_package_info() {
     local package=${RELEASE_NAME#datalabs-}
-    local version=$(get_package_version $package $RELEASE_VERSION)
+    local version=$RELEASE_VERSION
     local return_code=0
 
-    if [[ "$release_version" == "dev" ]]; then
+    if [[ "$version" == "dev" ]]; then
         version=$(
             aws --profile default codeartifact list-package-versions \
                 --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $package \
