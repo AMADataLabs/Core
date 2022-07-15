@@ -615,34 +615,34 @@ pipelines:
                     --project CPT/Files/Ingest
                     --bundle CPT/Files/Ingest.zip
                     --use-package
-            - step:
-                name: Update test Bundle
-                caches:
-                    - environment-test
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment tst
-                    --project CPT/Files/Ingest
-                    --bundle CPT/Files/Ingest.zip
-                    --use-package
-            - step:
-                name: Update production Bundle
-                caches:
-                    - environment-prod
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment prd
-                    --project CPT/Files/Ingest
-                    --bundle CPT/Files/Ingest.zip
-                    --use-package
+            # - step:
+            #     name: Update test Bundle
+            #     caches:
+            #         - environment-test
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+            #         --environment tst
+            #         --project CPT/Files/Ingest
+            #         --bundle CPT/Files/Ingest.zip
+            #         --use-package
+            # - step:
+            #     name: Update production Bundle
+            #     caches:
+            #         - environment-prod
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+            #         --environment prd
+            #         --project CPT/Files/Ingest
+            #         --bundle CPT/Files/Ingest.zip
+            #         --use-package
         - parallel:
             - step:
                 name: Update sandbox Lambda Functions
@@ -658,24 +658,24 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT-API -p CPT/Files
                     IngesterDAG=Ingest.zip
-            - step:
-                name: Update Test Lambda Functions
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files
-                    IngesterDAG=Ingest.zip
-            - step:
-                name: Update Production Lambda Functions
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files
-                    IngesterDAG=Ingest.zip
+            # - step:
+            #     name: Update Test Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT-API -p CPT/Files
+            #         IngesterDAG=Ingest.zip
+            # - step:
+            #     name: Update Production Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files
+            #         IngesterDAG=Ingest.zip
 
 
         CPT-Files-Watermark:
