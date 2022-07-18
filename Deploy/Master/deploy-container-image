@@ -11,9 +11,8 @@ AWS_DEFAULT_REGION=us-east-1
 REPOSITORY=
 ENVIRONMENT=
 PROJECT=
-RUNTIME=
-PACKAGE_NAME=
-PACKAGE_VERSION=
+PACKAGE=
+VERSION=
 DEPLOYED_VERSION=
 
 
@@ -22,12 +21,7 @@ main() {
 
     get_deployed_version
 
-    if [[ "$RUNTIME" == "Python" ]]; then
-        determine_python_package
-    else
-        echo "Unsupported runtime: $RUNTIME"
-        exit 1
-    fi
+    determine_package_info
 
     if [[ "$DEPLOYED_VERSION" != "$RELEASE_VERSION" ]]; then
         build_container_image
@@ -51,11 +45,6 @@ process_arguments() {
             ;;
         -p|--project)
             PROJECT=$2
-            shift
-            shift
-            ;;
-        -r|--runtime)
-            RUNTIME=$2
             shift
             shift
             ;;
@@ -85,34 +74,33 @@ get_deployed_version() {
 
     version_count=${#deployed_versions[@]}
     if [[ $version_count > 0 ]]; then
-        DEPLOYED_VERSION=${deployed_versions[$(expr $version_count - 1)]}
+        set +e
+        index=$(expr $version_count - 1)
+        set -e
+        DEPLOYED_VERSION=${deployed_versions[$index]}
     fi
 }
 
 
-determine_python_package() {
+determine_package_info() {
     source Build/${PROJECT}/.ci/release.sh $ENVIRONMENT
-    version="$RELEASE_VERSION"
 
-    if [[ "$RELEASE_VERSION" == "dev" ]]; then
-        version=$(
-            aws --profile default codeartifact list-package-versions \
-                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
-                --format pypi --sort-by PUBLISHED_TIME \
-                | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
-        )
+    if [[ "$RELEASE_TYPE" == "Python" ]]; then
+        determine_python_package_info
+    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
+        determine_java_package_info
+    else
+        echo "Error: invalid runtime "'"'"$RELEASE_TYPE"'"'""
+        exit 1
     fi
-
-    PACKAGE_NAME=${RELEASE_NAME}
-    PACKAGE_VERSION=${version}
 }
 
 
 build_container_image() {
-    docker build --build-arg PACKAGE_NAME=${PACKAGE_NAME} --build-arg PACKAGE_VERSION=${PACKAGE_VERSION} \
-         --build-arg AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID_SANDBOX} \
-         --build-arg AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
-         -t ${PACKAGE_NAME} -f ./Build/${PROJECT}/Dockerfile ./
+    docker build --build-arg PACKAGE_NAME=${PACKAGE} --build-arg PACKAGE_VERSION=${VERSION} \
+         --build-arg AWS_ACCESS_KEY_ID_SANDBOX=${AWS_ACCESS_KEY_ID_SANDBOX} \
+         --build-arg AWS_SECRET_ACCESS_KEY_SANDBOX=${AWS_SECRET_ACCESS_KEY_SANDBOX} \
+         -t ${PACKAGE} -f ./Build/${PROJECT}/Dockerfile ./
 }
 
 
@@ -120,10 +108,10 @@ upload_container_image() {
     aws ecr get-login-password --region us-east-1 \
         | docker login --username AWS --password-stdin 394406051370.dkr.ecr.us-east-1.amazonaws.com
 
-    docker tag  ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
-    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${PACKAGE_VERSION}
+    docker tag  ${PACKAGE} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${VERSION}
+    docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:${VERSION}
 
-    docker tag ${PACKAGE_NAME} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
+    docker tag ${PACKAGE} 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
     docker push 394406051370.dkr.ecr.us-east-1.amazonaws.com/${REPOSITORY}:latest
 }
 
@@ -136,8 +124,41 @@ print_usage() {
     echo "  -h, --help                            print this usage text"
     echo "  -e, --environment <environment>       deployment environment (dev, tst, itg, prd)"
     echo "  -p, --project <project>               project path relative to Build/"
-    echo "  -P, --package                         use the latest pre-packaged component instead of sources"
     echo "  -b, --bundle <bundle>                 name of the uploaded bundle file in S3"
+}
+
+
+determine_python_package_info() {
+    local version=$RELEASE_VERSION
+
+    if [[ "$version" == "dev" ]]; then
+        version=$(
+            aws --profile default codeartifact list-package-versions \
+                --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
+                --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
+        )
+    fi
+
+    PACKAGE=$RELEASE_NAME
+    VERSION=$version
+}
+
+
+determine_java_package_info() {
+    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
+    local package=${RELEASE_NAME#datalabs-}
+    local version=$RELEASE_VERSION
+
+    if [[ "$VERSION" == "dev" ]]; then
+        VERSION=$(
+            aws --profile default codeartifact list-package-versions \
+                --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $package \
+                --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
+        )
+    fi
+
+    PACKAGE=$package
+    VERSION=$version
 }
 
 

@@ -6,7 +6,7 @@
 
 FROM openjdk:11
 WORKDIR /HelloWorldJava
-ENV CLASSPATH=/HelloWorldJava/hello_world_java.jar
+ENV CLASSPATH=/HelloWorldJava/Bundle.jar
 ENV AWS_DEFAULT_REGION=us-east-1
 
-COPY ./hello_world_java.jar .
+COPY ./Bundle.jar .

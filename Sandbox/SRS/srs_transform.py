@@ -25,7 +25,7 @@ def get_old_scrape():
     srs_folder = os.environ.get('OUT_DIR')
     srs_old_file = use.get_newest(srs_folder, 'SRS_Scrape_Backup')
     LOGGER.info(f"Retrieving {srs_old_file}...")
-    srs_old = pd.read_csv(srs_old_file)
+    srs_old = pd.read_csv(srs_old_file, low_memory=False)
     return srs_old
 
 def remove_dental(scraped):
@@ -306,11 +306,12 @@ def fix_me(me_number):
     return num
 
 def create_it_file(grad_year):
-    columns = ['STUD_ID', 'SCHOOL_ID','RECENT_AMA_EDU_STS','CURRENT_AAMC_STATUS_CD','CURRENT_AAMC_STATUS',
+    columns = ['AAMC_ID','STUD_ID', 'SCHOOL_ID','RECENT_AMA_EDU_STS','CURRENT_AAMC_STATUS_CD','CURRENT_AAMC_STATUS',
     'AAMC_CURRENT_STATUS_DATE','AAMC_CURRENT_EXP_GRAD_DATE','AMA_GRAD_YEAR','AAMC_CURRENT_GRAD_YEAR',
     'AAMC_CURRENT_CLASS_LEVEL']
 
-    col_rename = {'stud_id':'STUD_ID',
+    col_rename = {'aamc_id':'AAMC_ID',
+              'stud_id':'STUD_ID',
               'school_id':'SCHOOL_ID',
               'edu_sts' : 'RECENT_AMA_EDU_STS',
               'Curr Status':'CURRENT_AAMC_STATUS',
@@ -324,6 +325,10 @@ def create_it_file(grad_year):
     grad_test = grad_year.rename(columns = col_rename)[columns]
     grad_test['CURRENT_AAMC_STATUS_CD'] = [str(x).split('.')[0] for x in grad_test['CURRENT_AAMC_STATUS_CD']]
     grad_test.AAMC_CURRENT_EXP_GRAD_DATE = pd.to_datetime(grad_test.AAMC_CURRENT_EXP_GRAD_DATE, errors='coerce')
+    grad_test = grad_test.fillna('')
+    grad_test = grad_test.replace('None','')
+    grad_test = grad_test.replace('nan','')
+    grad_test.AAMC_CURRENT_EXP_GRAD_DATE = [x.date() if x != '' else x for x in grad_test.AAMC_CURRENT_EXP_GRAD_DATE]
     return grad_test
 
 

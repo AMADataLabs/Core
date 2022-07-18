@@ -33,7 +33,9 @@ data:
     DAG_SCHEDULER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     DAG_SCHEDULER__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
     DAG_SCHEDULER__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    # DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_FROM: 'DataLabs@ama-assn.org'
+    DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_FROM: 'DataLabs@ama-assn.org'
+    # DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_EMAILS: 'mukhilshankar.umashankar@ama-assn.org'
+    # DAG_SCHEDULER__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/20bc03debefe45c59725f2f559ead89d/4acb2ab4-ca42-478d-ad37-0c62524fc83d'
 
 
     ##########################################################################
