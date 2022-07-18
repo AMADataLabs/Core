@@ -4,11 +4,11 @@ CPT/API/Endpoint
 CPT/API/ETL
 CPT/Files/Ingest
 CPT/Files/Watermark
-CPT/Organizations
 DBL
 HelloWorldJava/Task
 HelloWorldVault
 IntelligentPlatform/Developer/Users
+IntelligentPlatform/Licensing
 OneView/ETL
 OneView/ETL/Reindex
 OneView/API
