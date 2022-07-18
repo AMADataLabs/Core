@@ -1,5 +1,5 @@
-""" Transformer to convert raw CPT licensed organizations list to a curated organization list for
-frictionless licensing front-end validation"""
+""" Transformer to convert raw Intelligent Platform licensed organizations list to a curated organization list for
+intelligent platform front-end validation"""
 from   dataclasses import dataclass
 import hashlib
 import logging

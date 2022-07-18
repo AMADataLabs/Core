@@ -7,7 +7,7 @@ from   datalabs.sqlalchemy import metadata
 Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
 
-# === Frinctionless Licensing Tables ===
+# === Platform Licensing Tables ===
 class Organization(Base):
     __tablename__ = 'organizations'
 

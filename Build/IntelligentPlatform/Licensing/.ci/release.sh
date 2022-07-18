@@ -19,8 +19,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-cpt-organizations"
-    export RELEASE_DESCRIPTION="CPT Organization ETL Process"
+    export RELEASE_NAME="datalabs-intelligentplatform-licensing"
+    export RELEASE_DESCRIPTION="Platform Licensing ETL Process"
 }
 
 
