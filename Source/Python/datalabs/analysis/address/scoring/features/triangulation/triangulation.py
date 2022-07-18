@@ -5,7 +5,7 @@ from datalabs.etl.transform import TransformerTask
 pd.set_option('max_columns', None)
 
 # ADDRESS_KEY takes the following format: f"{street_address}_{zip}"
-REQUIRED_COLUMNS = ['ME', 'ADDRESS_KEY', 'SOURCE', 'AS_OF_DATE']
+REQUIRED_COLUMNS = ['ME', 'ADDRESS_KEY', 'AS_OF_DATE']
 
 
 class TriangulationDataSource:
@@ -13,6 +13,9 @@ class TriangulationDataSource:
         self.file_or_buffer = file_or_buffer
         self.source_name = source_name
         self.data = pd.read_csv(self.file_or_buffer, sep='|', dtype=str)
+        for col in REQUIRED_COLUMNS:
+            if col not in self.data.columns.values:
+                raise ValueError(f'Missing required column in triangulation data source: {col}')
 
 
 def add_triangulation_features(base_data: pd.DataFrame, triangulation_data: TriangulationDataSource, as_of_date: str):
