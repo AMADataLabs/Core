@@ -39,18 +39,28 @@ class DAGNotificationFactoryTask(TransformerTask):
 
     @classmethod
     def _parse_iteration_parameters(cls, data):
+
+        if data is None:
+            return pandas.DataFrame()
+
         csv_data = (pandas.read_csv(BytesIO(file), dtype=object) for file in data)
 
         return pandas.concat(csv_data, ignore_index=True)
 
     @classmethod
     def _generate_notification_messages(cls, dag, execution_time, parameters):
+
+        return  cls._generate_notification_message(parameters) if parameters.empty else cls._generate_notification_messages_from_parameters(dag, execution_time, parameters)
+
+    @classmethod
+    def _generate_notification_messages_from_parameters(cls, dag, execution_time, parameters):
         parameters["dag"] = dag
         parameters["execution_time"] = execution_time
 
         parameters.dag = parameters.dag + ":" + parameters.index.astype(str)
 
         return list(parameters.apply(cls._generate_notification_message, axis="columns"))
+
 
     @classmethod
     def _generate_notification_message(cls, parameters):
@@ -61,4 +71,6 @@ class DAGNotificationFactoryTask(TransformerTask):
             dag=dag,
             execution_time=execution_time,
             parameters=json.loads(parameters.drop(["dag", "execution_time"]).to_json())
-        )
+        ) if len(parameters)>2 else dict(
+            dag=dag,
+            execution_time=execution_time)
