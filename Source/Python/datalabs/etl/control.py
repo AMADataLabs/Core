@@ -39,18 +39,20 @@ class DAGNotificationFactoryTask(TransformerTask):
 
     @classmethod
     def _parse_iteration_parameters(cls, data):
+        parameters = pandas.DataFrame()
 
-        if data is None:
-            return pandas.DataFrame()
+        if data is not None:
+            csv_data = (pandas.read_csv(BytesIO(file), dtype=object) for file in data)
+            parameters = pandas.concat(csv_data, ignore_index=True)
 
-        csv_data = (pandas.read_csv(BytesIO(file), dtype=object) for file in data)
-
-        return pandas.concat(csv_data, ignore_index=True)
+        return parameters
 
     @classmethod
     def _generate_notification_messages(cls, dag, execution_time, parameters):
+        if parameters.empty:
+            return cls._generate_notification_message(parameters)
 
-        return  cls._generate_notification_message(parameters) if parameters.empty else cls._generate_notification_messages_from_parameters(dag, execution_time, parameters)
+        return cls._generate_notification_messages_from_parameters(dag, execution_time, parameters)
 
     @classmethod
     def _generate_notification_messages_from_parameters(cls, dag, execution_time, parameters):
@@ -61,16 +63,17 @@ class DAGNotificationFactoryTask(TransformerTask):
 
         return list(parameters.apply(cls._generate_notification_message, axis="columns"))
 
-
     @classmethod
     def _generate_notification_message(cls, parameters):
         dag = parameters.dag
         execution_time = parameters.execution_time
 
-        return dict(
+        message = dict(
             dag=dag,
-            execution_time=execution_time,
-            parameters=json.loads(parameters.drop(["dag", "execution_time"]).to_json())
-        ) if len(parameters)>2 else dict(
-            dag=dag,
-            execution_time=execution_time)
+            execution_time=execution_time
+        )
+
+        if len(parameters) > 2:
+            message["parameters"] = json.loads(parameters.drop(["dag", "execution_time"]).to_json())
+
+        return message
