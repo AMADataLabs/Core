@@ -1,8 +1,6 @@
 """ Task wrapper for DAG and DAG task Lambda functions. """
 import json
 import logging
-import urllib.parse
-from   dateutil.parser import isoparse
 
 from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.dag.aws as aws
@@ -27,7 +25,7 @@ class ProcessorTaskWrapper(
         LOGGER.debug('SNS Event Parameters: %s', event_parameters)
 
         if sns_topic.startswith('DataLake-Scheduler-'):
-            event_parameters = self._get_scheduler_event_parameters(event_parameters)
+            event_parameters = self._get_scheduler_event_parameters()
 
         if "task" not in event_parameters:
             event_parameters["task"] = "DAG"
@@ -51,7 +49,7 @@ class ProcessorTaskWrapper(
 
         return json.loads(record["Sns"]["Message"])
 
-    def _get_scheduler_event_parameters(self, event_parameters):
+    def _get_scheduler_event_parameters(self):
         ''' Return appropriate parameters for the DAG Processor assuming the DAG Scheduler as the DAG to execute.'''
         return dict(
             dag="DAG_SCHEDULER",
