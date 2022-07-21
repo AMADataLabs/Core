@@ -4,6 +4,7 @@ alembic_utils==0.7.2
 arnparse==0.0.2
 boto3==1.18.12
 bs4==0.0.1
+celery==5.2.7
 coverage==5.1
 croniter==0.3.37
 cryptography==3.4.8  # pinned to avoid GLIBC_2.18 error
