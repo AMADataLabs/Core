@@ -7,7 +7,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Vector;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.ama.dtk.Delimiter;
 import org.ama.dtk.DtkAccess;
@@ -36,24 +37,22 @@ public class CoreBuilderTask extends Task {
     public void run() throws TaskException {
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
-            DtkAccess priorLink = CoreBuilderTask.loadLink(parameters.priorLinkVersion);
-            DtkAccess priorCore = CoreBuilderTask.loadLink(parameters.currentLinkVersion);
+            stageInputFiles();
+            DtkAccess priorLink = CoreBuilderTask.loadLink("./prior_link_data/");
+            DtkAccess priorCore = CoreBuilderTask.loadLink("./current_link_data/");
 
             CoreBuilderTask.updateConcepts(priorLink, priorCore);
 
             DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate);
 
             CoreBuilderTask.exportConcepts(core, parameters.outputDirectory);
-
-            ArrayList<String> fileNames = stageInputFiles(parameters);
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
     }
 
-	private static DtkAccess loadLink(String linkVersion) throws Exception {
-        String directory = "dtk-versions/" + linkVersion + "/";
-		DtkAccess link = new DtkAccess();
+    private static DtkAccess loadLink(String directory) throws Exception {
+        DtkAccess link = new DtkAccess();
 
         link.load(
             directory + ExporterFiles.PropertyInternal.getFileNameExt(),
@@ -103,10 +102,37 @@ public class CoreBuilderTask extends Task {
         return concepts;
     }
 
-    private static ArrayList<String> stageInputFiles(Map<String, String> parameters, Vector<byte[]> data)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        this.data = data;
-
-        return data
+    private static void stageInputFiles(){
+        this.extract_zip_files(this.data.get(0), "./prior_link_data");
+        this.extract_zip_files(this.data.get(1), "./current_link_data");
     }
+
+    private void extract_zip_files(byte[] zip, String directory) {
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(zip);
+        ZipInputStream zipStream = new ZipInputStream(byteStream);
+
+        while(zipStream.available()) {
+            file = zipStream.getNextEntry();
+
+            this.write_zip_entry_to_file(file, directory)
+        }
+    }
+
+    private void write_zip_entry_to_file(ZipEntry file, String directory) {
+        int length = file.getSize();
+        byte[] data = new byte[length];
+
+        file.read(data, 0, length);
+        String fileName = file.getName();
+        File newFile = new File(directory + File.separator + fileName);
+        new File(newFile.getParent()).mkdirs();
+        FileOutputStream fileOutputStream = new FileOutputStream(newFile);
+
+        while (length > 0) {
+            fos.write(data, 0, data);
+        }
+
+        fileOutputStream.close();
+    }
+
 }
