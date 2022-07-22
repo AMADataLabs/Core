@@ -9,6 +9,9 @@ from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
 
+from   datalabs.etl.intelligent_platform.licensing.column import ARTICLES_COLUMNS
+
+
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -44,3 +47,8 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
         suffix = ''.join(str(ord(x) - 48) for x in name_hash)[-6:]
 
         return int(prefix + suffix)
+
+
+class LicensedArticlesTransformerTask(TransformerTask):
+    def _get_columns(self):
+        return [ARTICLES_COLUMNS]
