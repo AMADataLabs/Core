@@ -36,6 +36,18 @@ def test_chunked_query_not_performed_when_no_chunk_size(parameters, read):
 
 
 # pylint: disable=redefined-outer-name, protected-access
+def test_chunked_query_without_template_variables_raises_error(parameters, chunked_read):
+    parameters['CHUNK_SIZE'] = '5'
+    extractor = JDBCExtractorTask(parameters)
+
+    with mock.patch('pandas.read_sql') as read_sql:
+        read_sql.side_effect = chunked_read
+
+        with pytest.raises(ValueError):
+            extractor._read_query('SELECT * FROM BOGUS', None)
+
+
+# pylint: disable=redefined-outer-name, protected-access
 def test_chunked_query_is_chunked_correctly(parameters, chunked_read):
     parameters['CHUNK_SIZE'] = '5'
     extractor = JDBCExtractorTask(parameters)
@@ -44,7 +56,7 @@ def test_chunked_query_is_chunked_correctly(parameters, chunked_read):
     with mock.patch('pandas.read_sql') as read_sql:
         read_sql.side_effect = chunked_read
 
-        result = extractor._read_query('SELECT * FROM BOGUS', None)
+        result = extractor._read_query('SELECT * FROM BOGUS LIMIT {index}, {count}', None)
 
     assert len(result) == 15
 
@@ -78,7 +90,7 @@ def test_chunked_query_results_saved_as_parquet(parameters, chunked_read):
     with mock.patch('pandas.read_sql') as read_sql:
         read_sql.side_effect = chunked_read
 
-        result = extractor._read_query('SELECT * FROM BOGUS', None)
+        result = extractor._read_query('SELECT * FROM BOGUS LIMIT {index}, {count}', None)
 
     assert hasattr(result, 'name')
     assert hasattr(result, 'cleanup')

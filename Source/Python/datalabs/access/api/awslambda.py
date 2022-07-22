@@ -8,7 +8,7 @@ from   datalabs.awslambda import TaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class APIEndpointTaskWrapper(TaskWrapper):

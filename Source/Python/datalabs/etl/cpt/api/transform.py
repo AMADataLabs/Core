@@ -41,11 +41,14 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     PARAMETER_CLASS = ReleasesTransformerParameters
 
     def _transform(self):
-        code_history, release_schedules = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+        code_history, release_schedules, distribution_releases \
+            = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
 
         release_schedules = self._convert_months_to_integers(release_schedules)
 
         releases = self._generate_release_table(code_history, release_schedules)
+
+        releases.distribution_available[releases.id.isin(distribution_releases.id)] = True
 
         return [self._dataframe_to_csv(releases)]
 
@@ -97,7 +100,8 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
                 type=release_types,
                 publish_date=publish_dates,
                 effective_date=effective_dates,
-                id=ids
+                id=ids,
+                distribution_available=False
             )
         )
 

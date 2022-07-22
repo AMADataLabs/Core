@@ -4,13 +4,19 @@ set -ex
 
 PROJECT=
 EXTRA_FILES=
+PACKAGE=
+VERSION=
 
 
 
 main() {
     process_arguments "$@"
 
-    create_bundle
+    create_server_config
+
+    download_package_jar
+
+    supplement_jar
 }
 
 
@@ -22,12 +28,22 @@ process_arguments() {
             exit 0
             ;;
         -f|--file)
-            EXTRA_FILES+="-f $2 "
+            EXTRA_FILES+="$2 "
             shift
             shift
             ;;
         -p|--project)
             PROJECT=$2
+            shift
+            shift
+            ;;
+        -P|--package)
+            PACKAGE=$2
+            shift
+            shift
+            ;;
+        -V|--version)
+            VERSION=$2
             shift
             shift
             ;;
@@ -38,22 +54,79 @@ process_arguments() {
             ;;
       esac
     done
+
+    if  [[ "$PROJECT" == "" ]]; then
+        echo "Missing project argument."
+        exit 1
+    fi
 }
 
 
-create_bundle() {
-    export PYTHONPATH=${PWD}/Source/Python
+create_server_config() {
+    if [ -e ~/.m2/settings.xml ]; then
+        echo "The file ~/.m2/settings.xml already exists. Aborting..."
 
-    python Script/bundle_java_project.py --use-pom --directory Bundle/ ${EXTRA_FILES} ${PROJECT}
+        exit 1
+    fi
+    export CODEARTIFACT_AUTH_TOKEN=$(
+        aws --profile default codeartifact get-authorization-token --domain datalabs\
+        --query authorizationToken --output text
+    )
+
+    mkdir -p ~/.m2
+
+    cat > ~/.m2/settings.xml <<EOF
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <profiles>
+        <profile>
+            <id>default</id>
+            <repositories>
+                <repository>
+                    <id>codeartifact</id>
+                    <url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/datalabs-sbx/</url>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>default</activeProfile>
+    </activeProfiles>
+
+    <servers>
+        <server>
+            <id>codeartifact</id>
+            <username>aws</username>
+            <password>\${env.CODEARTIFACT_AUTH_TOKEN}</password>
+        </server>
+    </servers>
+</settings>
+EOF
+}
+
+
+download_package_jar() {
+    mvn --version
+    mvn dependency:get -Dartifact=org.ama-assn.datalabs:$PACKAGE:$VERSION
+
+    cp ~/.m2/repository/org/ama-assn/datalabs/${PACKAGE}/${VERSION}/${PACKAGE}-${VERSION}.jar ./Bundle.jar
+}
+
+
+supplement_jar() {
+    jar uf ./Bundle.jar $EXTRA_FILES
 }
 
 
 print_usage() {
-    echo "Usage: deploy-lambda-function [OPTIONS]..."
-    echo "Bundle and upload a code bundle for a Lambda function."
+    echo "Usage: deploy-java-package [OPTIONS]..."
+    echo "Bundle and upload a code bundle for a Java runtime Lambda function."
     echo
     echo "OPTIONS"
     echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
     echo "  -f, --file <file>                     include <file> in the bundle"
     echo "  -p, --project <project>               project path relative to Build/"
 }
