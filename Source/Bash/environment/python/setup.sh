@@ -12,9 +12,9 @@ setup_python_virtual_environment() {
 create_python_virtual_environment() {
     environment_path=$1
 
-    if [[ ! -f "$environment_path/bin/python3.7" ]]; then
+    if [[ ! -f "$environment_path/bin/python3.9" ]]; then
         echo "Creating virtual environment..."
-        python3.7 -m venv $environment_path
+        python3.9 -m venv $environment_path
         echo "Done creating virtual environment"
     else
         echo "Virtual environment already exists."
@@ -26,6 +26,8 @@ install_python_virtual_environment_dependencies() {
     environment_path=$1
 
     . $environment_path/bin/activate
+
+    pip config set global.index-url https://pypi.org/simple
 
     echo "--- Upgrading pip ---"
     pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip

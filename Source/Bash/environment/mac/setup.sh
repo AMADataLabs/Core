@@ -27,16 +27,21 @@ remove_core_dependencies() {
 
 
 install_python_tools() {
-    install_python3_7
+    install_python
 
     install_dev_libraries
+}
+
+
+remove_python3_7_tools() {
+    remove_python3_7
 }
 
 
 remove_python_tools() {
     remove_dev_libraries
 
-    remove_python3_7
+    remove_python
 }
 
 
@@ -78,13 +83,21 @@ remove_node() {
 }
 
 
-install_python3_7() {
-    brew install python@3.7
+install_python() {
+    echo "### Installing Python ###"
+    brew install python@3.9
 }
 
 
 remove_python3_7() {
+    echo "### Removing Python 3.7 ###"
     brew uninstall python@3.7
+}
+
+
+remove_python() {
+    echo "### Removing Python ###"
+    brew uninstall python@3.9
 }
 
 
