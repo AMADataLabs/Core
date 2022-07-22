@@ -10,7 +10,7 @@ main() {
         [sbx]=dev
         [dev]=dev
         [tst]=1.0.1
-        [itg]=1.0.1
+        [itg]=
         [prd]=1.0.1
     )
 
