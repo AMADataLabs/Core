@@ -116,24 +116,23 @@ public class CoreBuilderTask extends Task {
         while(zipStream.available()) {
             file = zipStream.getNextEntry();
 
-            this.write_zip_entry_to_file(file, directory)
+            this.write_zip_entry_to_file(file, directory);
         }
     }
 
-    private void write_zip_entry_to_file(ZipEntry file, String directory) {
-        int length = file.getSize();
+    private void write_zip_entry_to_file(ZipEntry zipEntry, String directory) {
+        int length = zipEntry.getSize();
         byte[] data = new byte[length];
 
-        file.read(data, 0, length);
-        String fileName = file.getName();
-        File newFile = new File(directory + File.separator + fileName);
-        new File(newFile.getParent()).mkdirs();
-        FileOutputStream fileOutputStream = new FileOutputStream(newFile);
+        zipEntry.read(data, 0, length);
+        String fileName = zipEntry.getName();
+        File file = new File(directory + File.separator + fileName);
+        new File(file.getParent()).mkdirs();
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
 
         while (length > 0) {
-            fos.write(data, 0, data);
+            fileOutputStream.write(data, 0, data.length);
         }
-
         fileOutputStream.close();
     }
 
