@@ -1,5 +1,8 @@
 package datalabs.etl.cpt.build;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
@@ -104,33 +107,31 @@ public class CoreBuilderTask extends Task {
         return concepts;
     }
 
-    private static void stageInputFiles(){
+    private void stageInputFiles() throws IOException{
         this.extract_zip_files(this.data.get(0), "./prior_link_data");
         this.extract_zip_files(this.data.get(1), "./current_link_data");
     }
 
-    private void extract_zip_files(byte[] zip, String directory) {
+    private void extract_zip_files(byte[] zip, String directory) throws IOException{
         ByteArrayInputStream byteStream = new ByteArrayInputStream(zip);
         ZipInputStream zipStream = new ZipInputStream(byteStream);
+        ZipEntry file = null;
 
-        while(zipStream.available()) {
-            file = zipStream.getNextEntry();
-
-            this.write_zip_entry_to_file(file, directory);
+        while((file = zipStream.getNextEntry())!=null) {
+            this.write_zip_entry_to_file(file, directory, zipStream);
         }
     }
 
-    private void write_zip_entry_to_file(ZipEntry zipEntry, String directory) {
-        int length = zipEntry.getSize();
-        byte[] data = new byte[length];
-
-        zipEntry.read(data, 0, length);
+    private void write_zip_entry_to_file(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
+        byte[] data = new byte[(int) zipEntry.getSize()];
         String fileName = zipEntry.getName();
         File file = new File(directory + File.separator + fileName);
-        new File(file.getParent()).mkdirs();
         FileOutputStream fileOutputStream = new FileOutputStream(file);
 
-        while (length > 0) {
+        new File(file.getParent()).mkdirs();
+
+
+        while (stream.read(data, 0, data.length) > 0) {
             fileOutputStream.write(data, 0, data.length);
         }
         fileOutputStream.close();
