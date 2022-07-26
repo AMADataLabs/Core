@@ -14,7 +14,6 @@ modspec:
       - database
       - datastore
       - environment
-      - etcd
       - orm
   - package: datalabs.access.parameter
   - package: datalabs.access.secret
@@ -31,9 +30,9 @@ modspec:
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.dag.cpt.files
     include:
-    - ingest            
+    - ingest
   - package: datalabs.etl.s3
-  - package: datalabs.etl.sns    
+  - package: datalabs.etl.sns
   - package: datalabs.messaging
     include:
       - email_message

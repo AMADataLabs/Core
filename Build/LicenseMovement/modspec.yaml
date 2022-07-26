@@ -29,7 +29,6 @@ modspec:
       - database
       - datastore
       - environment
-      - etcd
       - aws
       - sftp
       - aims
@@ -37,7 +36,6 @@ modspec:
   - package: datalabs.access.parameter
     include:
       - system
-      - etcd
   - package: datalabs.analysis.ppma.license_movement
     include:
       - finder

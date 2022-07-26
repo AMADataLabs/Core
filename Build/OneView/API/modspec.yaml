@@ -25,7 +25,6 @@ modspec:
       - datastore
       - environment
       - orm
-      - etcd
   - package: datalabs.access.api
   - package: datalabs.access.oneview.api
   - package: datalabs.access.parameter

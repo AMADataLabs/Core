@@ -12,7 +12,6 @@ modspec:
       - credentials
       - datastore
       - environment
-      - etcd
   - package: datalabs.messaging
     include:
     - email_message
@@ -20,7 +19,6 @@ modspec:
     include:
     - aws
     - system
-    - etcd
     - dynamodb
   - package: datalabs.etl
   - package: datalabs.etl.dag
