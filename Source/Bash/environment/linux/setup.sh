@@ -148,7 +148,6 @@ install_venv() {
 
 
 remove_venv() {
-    apt remove -y python3.6-venv
     apt remove -y python3.9-venv
 }
 
