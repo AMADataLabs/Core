@@ -49,19 +49,16 @@ class DAGNotificationFactoryTask(TransformerTask):
 
     @classmethod
     def _generate_notification_messages(cls, dag, execution_time, parameters):
+        messages = None
+
         if parameters.empty:
-            return cls._generate_notification_message(parameters)
+            parameters = pandas.DataFrame(dict(dag=[dag], execution_time=[execution_time]))
 
-        return cls._generate_notification_messages_from_parameters(dag, execution_time, parameters)
+            messages = [cls._generate_notification_message(parameters)]
+        else:
+            messages = cls._generate_notification_messages_from_parameters(dag, execution_time, parameters)
 
-    @classmethod
-    def _generate_notification_messages_from_parameters(cls, dag, execution_time, parameters):
-        parameters["dag"] = dag
-        parameters["execution_time"] = execution_time
-
-        parameters.dag = parameters.dag + ":" + parameters.index.astype(str)
-
-        return list(parameters.apply(cls._generate_notification_message, axis="columns"))
+        return messages
 
     @classmethod
     def _generate_notification_message(cls, parameters):
@@ -73,7 +70,16 @@ class DAGNotificationFactoryTask(TransformerTask):
             execution_time=execution_time
         )
 
-        if len(parameters) > 2:
+        if parameters is not None:
             message["parameters"] = json.loads(parameters.drop(["dag", "execution_time"]).to_json())
 
         return message
+
+    @classmethod
+    def _generate_notification_messages_from_parameters(cls, dag, execution_time, parameters):
+        parameters["dag"] = dag
+        parameters["execution_time"] = execution_time
+
+        parameters.dag = parameters.dag + ":" + parameters.index.astype(str)
+
+        return list(parameters.apply(cls._generate_notification_message, axis="columns"))
