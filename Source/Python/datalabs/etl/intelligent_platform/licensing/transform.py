@@ -50,5 +50,6 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
 
 
 class LicensedArticlesTransformerTask(TransformerTask):
+    # pylint: disable=no-self-use
     def _get_columns(self):
         return [ARTICLES_COLUMNS]

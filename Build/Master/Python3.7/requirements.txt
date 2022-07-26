@@ -7,7 +7,6 @@ bs4==0.0.1
 coverage==5.1
 croniter==0.3.37
 cryptography==3.4.8  # pinned to avoid GLIBC_2.18 error
-dask==2021.10.0
 docker==4.2.1
 doit==0.31.1
 endesive==2.0.7
