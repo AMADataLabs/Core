@@ -1,0 +1,162 @@
+#!/usr/bin/env bash
+
+# set -eux
+# set -x
+
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+PROJECTS=()
+MASTER_REQUIREMENTS=()
+DRY_RUN=False
+
+
+main() {
+    process_arguments "$@"
+
+    if [[ ${#PROJECTS[@]} -eq 0 ]]; then
+        extract_projects_from_ci_config
+    fi
+
+    sync_projects
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -d|--dry-run)
+            DRY_RUN=True
+            shift
+            ;;
+        *)
+            PROJECTS+=($1)
+            shift
+            ;;
+      esac
+    done
+
+    BUILD_BASE_PATH=`realpath ${SCRIPT_BASE_PATH}/../Build`
+}
+
+
+print_usage() {
+    echo "Usage: sync-python-requirements [OPTIONS]... [PROJECT]"
+    echo "Sync Python project requirements.txt and Dockerfile base images with Master requirements.txt"
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage message"
+}
+
+
+extract_projects_from_ci_config() {
+    local projects=${SCRIPT_BASE_PATH}/../.ci/projects.txt
+
+    readarray -t PROJECTS < $projects
+}
+
+
+sync_projects() {
+    for project in ${PROJECTS[@]}; do
+        sync_project $project
+    done
+}
+
+
+sync_project() {
+    local project=$1
+    local requirements="$BUILD_BASE_PATH/$project/requirements.txt"
+    local dockerfile="$BUILD_BASE_PATH/$project/Dockerfile"
+    echo "Syncing project $project..."
+
+    if [[ -e "$requirements" ]]; then
+        # echo "Updating $requirements..."
+        sync_requirements $requirements
+    fi
+
+    if [[ -e "$dockerfile" ]]; then
+        sync_dockerfile $dockerfile
+    fi
+
+    echo
+}
+
+
+sync_requirements() {
+    local requirements=$1
+    local updated=False
+
+    extract_master_requirements
+
+    cp $requirements $requirements.old
+
+    cp $requirements $requirements.new
+
+    for requirement in ${MASTER_REQUIREMENTS[@]}; do
+        update_requirement $requirements $requirement
+    done
+
+    diff $requirements $requirements.new > /dev/null
+
+    if [[ $? -ne 0 ]]; then
+        echo "Updated $requirements"
+
+        updated=True
+    fi
+
+    if [[ $DRY_RUN == 'False' && $updated == 'True' ]]; then
+        mv $requirements.new $requirements
+    fi
+}
+
+
+sync_dockerfile() {
+    local dockerfile=$1
+    local updated=False
+
+    cp $dockerfile $dockerfile.old
+
+    cat $dockerfile | sed 's/FROM python:3\.[0-9][0-9]*/FROM python:3.9/' > $dockerfile.new
+
+    diff $dockerfile $dockerfile.new > /dev/null
+
+    if [[ $? -ne 0 ]]; then
+        echo "Updated $dockerfile"
+
+        updated=True
+    fi
+
+    if [[ $DRY_RUN == 'False' && $updated == 'True' ]]; then
+        mv $dockerfile.new $dockerfile
+    fi
+}
+
+
+extract_master_requirements() {
+    local requirements="$BUILD_BASE_PATH/Master/requirements.txt"
+
+    cat $requirements | sed 's/ ..*//' > $requirements.clean
+
+    readarray -t MASTER_REQUIREMENTS < "$requirements.clean"
+
+    rm $requirements.clean
+}
+
+
+update_requirement() {
+    local requirements=$1
+    local requirement=(${2//==/ })
+
+    cat $requirements.new | sed "s/${requirement[0]}==..*/${requirement[0]}==${requirement[1]}/" > $requirements.sub
+
+    mv $requirements.sub $requirements.new
+}
+
+
+main "$@"
