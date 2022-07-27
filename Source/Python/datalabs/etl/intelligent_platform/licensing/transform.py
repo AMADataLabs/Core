@@ -23,6 +23,7 @@ class LicensedOrganizationsTransformerParameters:
     execution_time: str = None
     data: object = None
 
+
 class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     PARAMETER_CLASS = LicensedOrganizationsTransformerParameters
 
