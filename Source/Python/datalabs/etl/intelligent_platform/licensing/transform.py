@@ -35,8 +35,10 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
 
         frictionless_licensing_organizations = frictionless_licensing_organizations.drop_duplicates()
 
-        frictionless_licensing_organizations["id"] = frictionless_licensing_organizations.apply(self._generate_id,
-                                                                                                axis=1)
+        frictionless_licensing_organizations["id"] = frictionless_licensing_organizations.apply(
+            self._generate_id,
+            axis=1
+        )
 
         return [self._dataframe_to_csv(frictionless_licensing_organizations)]
 
