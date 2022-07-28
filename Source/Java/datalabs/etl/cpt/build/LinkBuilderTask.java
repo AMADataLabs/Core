@@ -1,5 +1,8 @@
 package datalabs.etl.cpt.build;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
@@ -9,6 +12,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.ama.dtk.Builder;
 import org.ama.dtk.Delimiter;
@@ -42,8 +48,11 @@ public class LinkBuilderTask extends Task {
     public void run() throws TaskException {
         try {
             LinkBuilderParameters parameters = (LinkBuilderParameters) this.parameters;
-            DtkAccess priorLink = LinkBuilderTask.loadLink("dtk-versions/" + parameters.priorDtkVersion + "/");
-            DtkAccess core = LinkBuilderTask.loadLink(parameters.coreDirectory + "/");
+
+            stageInputFiles();
+
+            DtkAccess priorLink = LinkBuilderTask.loadLink("./prior_link_data");
+            DtkAccess core = LinkBuilderTask.loadLink("./current_link_data");
 
             LinkBuilderTask.buildLink(priorLink, core, parameters);
 
@@ -80,7 +89,9 @@ public class LinkBuilderTask extends Task {
 
         BuildDtkFiles files = new BuildDtk.BuildDtkFiles(
             directory.resolve(parameters.hcpcsDataFile).toString(),
-            headings, consumer_and_clinician_descriptors, coding_tips, front_matter, rvus
+                // where is the headings and front matter input coming in?
+                parameters.headings, parameters.consumer_and_clinician_descriptors, parameters.coding_tips,
+                parameters.front_matter, parameters.rvus
         );
 
         BuildDtk linkBuilder = new BuildDtk(
@@ -116,6 +127,7 @@ public class LinkBuilderTask extends Task {
         Files.createDirectories(outputDirectory);
 
         workBook.createHeadings(core.getConcept(DtkConceptIds.CPT_ROOT_ID).getDescendants(),
+            // where is the heqading data file input coming from?
             outputDirectory.resolve(parameters.headingDataFile).toString()
         );
     }
@@ -158,6 +170,8 @@ public class LinkBuilderTask extends Task {
         final String incrementalVersion = parameters.incrementalVersion;
         final String annualVersion = parameters.annualVersion;
         DtkAccess link = LinkBuilderTask.loadLink(parameters.exportDirectory);
+
+        // do we need another input directory for these two? we have priorLink which is different than this
         DtkAccess linkIncremental = LinkBuilderTask.loadLink(versionsDirectory + incrementalVersion + "/");
         DtkAccess linkAnnual = LinkBuilderTask.loadLink(versionsDirectory + annualVersion + "/");
 
@@ -169,9 +183,12 @@ public class LinkBuilderTask extends Task {
             linkAnnual,
             parameters.linkAnnualDate,
             Collections.singletonList(parameters.revisionDate),
+            // where is the input for priorHistory directory?
             Paths.get(parameters.priorHistoryDirectory),
             Paths.get(parameters.indexFile),
+            // where is the guidelinesqa file input?
             Paths.get(parameters.guidelinesQAFile),
+            // where is the guidelinesqa file input?
             Paths.get(parameters.editsFile),
             Paths.get(parameters.outputDirectory)
         );
@@ -227,4 +244,44 @@ public class LinkBuilderTask extends Task {
 
         return concepts;
     }
+
+    private void stageInputFiles() throws IOException{
+        this.extract_zip_files(this.data.get(0), "./prior_link_data");
+        this.extract_zip_files(this.data.get(1), "./current_link_data");
+        parameters.hcpcsDataFile = this.data.get(2); // ./HCPC.xlsx
+        parameters.headings = this.data.get(3);
+        parameters.consumer_and_clinician_descriptors = this.data.get(4); // ./cpt_professional.docx
+        parameter.coding_tips = this.data.get(5); //./coding_tips_attach.xlsx
+        parameters.front_matter = this.data.get(6);
+        parameters.rvus = this.get(7); // ./cpt_rvu.txt
+        parameters.indexFile = this.data.get(8) // ./cpt_index.docx
+
+    }
+
+    private void extract_zip_files(byte[] zip, String directory) throws IOException{
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(zip);
+        ZipInputStream zipStream = new ZipInputStream(byteStream);
+        ZipEntry file = null;
+
+        while((file = zipStream.getNextEntry())!=null) {
+            this.write_zip_entry_to_file(file, directory, zipStream);
+        }
+    }
+
+    private void write_zip_entry_to_file(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
+        byte[] data = new byte[(int) zipEntry.getSize()]
+        String fileName = zipEntry.getName();
+        File file = new File(directory + File.separator + fileName);
+        FileOutputStream fileOutputStream = new FileOutputStream(file);
+
+        new File(file.getParent()).mkdirs();
+
+        while (stream.read(data, 0, data.length) > 0) {
+            fileOutputStream.write(data, 0, data.length);
+        }
+
+        fileOutputStream.close();
+
+    }
+
 }
