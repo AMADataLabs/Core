@@ -127,7 +127,7 @@ public class LinkBuilderTask extends Task {
         Files.createDirectories(outputDirectory);
 
         workBook.createHeadings(core.getConcept(DtkConceptIds.CPT_ROOT_ID).getDescendants(),
-            // where is the heqading data file input coming from?
+            // where is the heading data file input coming from?
             outputDirectory.resolve(parameters.headingDataFile).toString()
         );
     }
@@ -171,7 +171,7 @@ public class LinkBuilderTask extends Task {
         final String annualVersion = parameters.annualVersion;
         DtkAccess link = LinkBuilderTask.loadLink(parameters.exportDirectory);
 
-        // do we need another input directory for these two? we have priorLink which is different than this
+        // do we need another input directory for these two? we have priorLink and core which is different than this
         DtkAccess linkIncremental = LinkBuilderTask.loadLink(versionsDirectory + incrementalVersion + "/");
         DtkAccess linkAnnual = LinkBuilderTask.loadLink(versionsDirectory + annualVersion + "/");
 
@@ -188,7 +188,7 @@ public class LinkBuilderTask extends Task {
             Paths.get(parameters.indexFile),
             // where is the guidelinesqa file input?
             Paths.get(parameters.guidelinesQAFile),
-            // where is the guidelinesqa file input?
+            // where is the edits file input?
             Paths.get(parameters.editsFile),
             Paths.get(parameters.outputDirectory)
         );
@@ -249,10 +249,10 @@ public class LinkBuilderTask extends Task {
         this.extract_zip_files(this.data.get(0), "./prior_link_data");
         this.extract_zip_files(this.data.get(1), "./current_link_data");
         parameters.hcpcsDataFile = this.data.get(2); // ./HCPC.xlsx
-        parameters.headings = this.data.get(3);
+        parameters.headings = this.data.get(3); // do we need an input for this
         parameters.consumer_and_clinician_descriptors = this.data.get(4); // ./cpt_professional.docx
         parameter.coding_tips = this.data.get(5); //./coding_tips_attach.xlsx
-        parameters.front_matter = this.data.get(6);
+        parameters.front_matter = this.data.get(6); // input for this?
         parameters.rvus = this.get(7); // ./cpt_rvu.txt
         parameters.indexFile = this.data.get(8) // ./cpt_index.docx
 
