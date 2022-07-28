@@ -1,9 +1,10 @@
 '''Celery task creation'''
-
 import os
 import logging
-from   celery import Celery
-import datalabs.etl.dag.aws as aws
+
+from   celery import Celery  # pylint: disable=import-error
+
+from   datalabs.etl.dag import aws
 from   datalabs.etl.task import ExecutionTimeMixin
 import datalabs.etl.dag.task
 

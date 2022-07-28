@@ -15,7 +15,6 @@ modspec:
       - database
       - datastore
       - environment
-      - etcd
       - orm
   - package: datalabs.access.parameter
   - package: datalabs.access.secret

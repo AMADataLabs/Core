@@ -22,9 +22,9 @@ setup_linux_environment() {
 
     check_linux_version
 
-    # install_drivers
+    remove_python3_7_tools
 
-    install_tools
+    install_python_tools
 
     clean_up_linux
 }
@@ -35,9 +35,9 @@ setup_mac_environment() {
 
     check_mac_version
 
-    # install_drivers
+    remove_python3_7_tools
 
-    install_tools
+    install_python_tools
 }
 
 

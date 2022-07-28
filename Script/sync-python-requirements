@@ -76,7 +76,6 @@ sync_project() {
     echo "Syncing project $project..."
 
     if [[ -e "$requirements" ]]; then
-        # echo "Updating $requirements..."
         sync_requirements $requirements
     fi
 

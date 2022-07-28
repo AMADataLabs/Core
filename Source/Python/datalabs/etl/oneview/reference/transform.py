@@ -47,7 +47,7 @@ class PresentEmploymentTransformerTask(TransformerTask):
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
     @classmethod
-    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
+    def _csv_to_dataframe(cls, data, **kwargs):
         cbsa = pandas.read_excel(BytesIO(data))
 
         codes = cbsa.iloc[2:-4, 0]
@@ -82,7 +82,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     # pylint: disable=unused-argument
     @classmethod
-    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
+    def _csv_to_dataframe(cls, data, **kwargs):
         page_tables = pandas.read_html(data, converters={'FIPS': str}, **kwargs)
 
         return page_tables[1]
@@ -105,7 +105,6 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 
 class StaticReferenceTablesTransformerTask(TransformerTask):
     def _transform(self):
-        on_disk = bool(self._parameters.get("on_disk") and self._parameters["on_disk"].upper() == 'TRUE')
         table_data = [pandas.DataFrame.from_dict(table) for table in static.tables]
 
         preprocessed_data = self._preprocess_data(table_data)
@@ -113,7 +112,7 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
         renamed_data = self._rename_columns(selected_data)
         postprocessed_data = self._postprocess_data(renamed_data)
 
-        return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     def _get_columns(self):
         return [col.PROVIDER_AFFILIATION_GROUP, col.PROVIDER_AFFILIATION_TYPE, col.PROFIT_STATUS, col.OWNER_STATUS]
