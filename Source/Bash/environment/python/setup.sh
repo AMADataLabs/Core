@@ -1,6 +1,3 @@
-PYTHON_VERSION=3.7
-
-
 setup_python_virtual_environment() {
     environment_path=`realpath $1`
 
@@ -14,16 +11,11 @@ setup_python_virtual_environment() {
 
 create_python_virtual_environment() {
     environment_path=$1
+    python_version=$(python3 --version | awk '{print $2}' | sed 's/3\.\([0-9][0-9]*\)..*/3.\1/')
 
-    which python3.9
-
-    if [[ $? -eq 0 ]]; then
-        PYTHON_VERSION=3.9
-    fi
-
-    if [[ ! -f "$environment_path/bin/python${PYTHON_VERSION}" ]]; then
+    if [[ ! -f "$environment_path/bin/python${python_version}" ]]; then
         echo "Creating virtual environment..."
-        python${PYTHON_VERSION} -m venv $environment_path
+        python${python_version} -m venv $environment_path
         echo "Done creating virtual environment"
     else
         echo "Virtual environment already exists."
