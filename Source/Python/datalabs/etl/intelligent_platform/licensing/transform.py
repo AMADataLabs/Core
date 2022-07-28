@@ -9,6 +9,9 @@ from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
 
+from   datalabs.etl.intelligent_platform.licensing.column import ARTICLES_COLUMNS
+
+
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -19,6 +22,7 @@ LOGGER.setLevel(logging.DEBUG)
 class LicensedOrganizationsTransformerParameters:
     execution_time: str = None
     data: object = None
+
 
 class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     PARAMETER_CLASS = LicensedOrganizationsTransformerParameters
@@ -32,8 +36,10 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
 
         frictionless_licensing_organizations = frictionless_licensing_organizations.drop_duplicates()
 
-        frictionless_licensing_organizations["id"] = frictionless_licensing_organizations.apply(self._generate_id,
-                                                                                                axis=1)
+        frictionless_licensing_organizations["id"] = frictionless_licensing_organizations.apply(
+            self._generate_id,
+            axis=1
+        )
 
         return [self._dataframe_to_csv(frictionless_licensing_organizations)]
 
@@ -44,3 +50,9 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
         suffix = ''.join(str(ord(x) - 48) for x in name_hash)[-6:]
 
         return int(prefix + suffix)
+
+
+class LicensedArticlesTransformerTask(TransformerTask):
+    # pylint: disable=no-self-use
+    def _get_columns(self):
+        return [ARTICLES_COLUMNS]

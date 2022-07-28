@@ -11,8 +11,6 @@ modspec:
       - datastore
       - environment
   - package: datalabs.access.parameter
-    exclude:
-    - etcd
   - package: datalabs.etl
   - package: datalabs.etl.archive
   - package: datalabs.etl.dag

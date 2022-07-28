@@ -36,7 +36,7 @@ remove_core_dependencies() {
 
 
 install_python_tools() {
-    install_python3_7
+    install_python
 
     install_pip
 
@@ -45,6 +45,13 @@ install_python_tools() {
     # install_pipenv
 
     install_dev_libraries
+}
+
+
+remove_python3_7_tools() {
+    remove_python3_7_dev_library
+
+    remove_python3_7
 }
 
 
@@ -98,7 +105,7 @@ remove_aws_tools() {
 install_pip() {
     apt install -y python3-pip
 
-    python3.7 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
+    python3.9 -m pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org --upgrade pip
 }
 
 
@@ -107,11 +114,11 @@ remove_pip() {
 }
 
 
-install_python3_7() {
+install_python() {
     echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
     apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
 
-    apt install -y python3.7 python3.7-dev
+    apt install -y python3.9 python3.9-dev
 }
 
 
@@ -125,19 +132,28 @@ remove_python3_7() {
 }
 
 
+remove_python() {
+    apt remove -y python3.9 python3.9-dev
+    apt -y autoremove
+
+    add-apt-repository -r -y ppa:deadsnakes/ppa
+
+    apt remove -y software-properties-common
+}
+
+
 install_venv() {
-    apt install -y python3.7-venv
+    apt install -y python3.9-venv
 }
 
 
 remove_venv() {
-    apt remove -y python3.6-venv
-    apt remove -y python3.7-venv
+    apt remove -y python3.9-venv
 }
 
 
 install_pipenv() {
-    python3.7 -m pip install pipenv
+    python3.9 -m pip install pipenv
 }
 
 
@@ -148,12 +164,17 @@ remove_pipenv() {
 
 install_dev_libraries() {
     echo "### Installing development libraries ###"
-    apt install -y python3.7-dev unixodbc-dev swig
+    apt install -y python3.9-dev unixodbc-dev swig
+}
+
+
+remove_python3_7_dev_library() {
+    apt remove -y python3.7-dev
 }
 
 
 remove_dev_libraries() {
-    apt remove -y python3.7-dev unixodbc-dev swig
+    apt remove -y python3.9-dev unixodbc-dev swig
 }
 
 
@@ -191,15 +212,13 @@ remove_aws_cli() {
 
 install_terraform() {
     echo "### Installing Terraform ###"
-    curl https://tjend.github.io/repo_terraform/repo_terraform.key | apt-key add -
-    echo 'deb [arch=amd64] https://tjend.github.io/repo_terraform stable main' > /etc/apt/sources.list.d/terraform.list
-    apt update
+    curl -L https://raw.githubusercontent.com/warrensbox/terraform-switcher/release/install.sh | bash
 
-    apt install -y terraform=0.12.29
+    tfswitch 0.13.7
 }
 
 
 remove_terraform() {
     echo "### Removing Terraform ###"
-    apt remove -y terraform=0.12.29
+    curl -L https://raw.githubusercontent.com/warrensbox/terraform-switcher/release/uninstall.sh | bash
 }

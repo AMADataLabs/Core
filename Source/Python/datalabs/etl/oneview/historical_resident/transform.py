@@ -11,8 +11,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 class HistoricalResidentTransformerTask(TransformerTask):
     @classmethod
-    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
-        return super()._csv_to_dataframe(data, on_disk, sep='|')
+    def _csv_to_dataframe(cls, data, **kwargs):
+        return super()._csv_to_dataframe(data, sep='|')
 
     @classmethod
     def _postprocess_data(cls, data):
