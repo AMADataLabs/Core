@@ -2,7 +2,7 @@
 def execute_sql_from_file(connection, filename):
     sql_file = None
 
-    with open(filename, 'r') as file:
+    with open(filename, 'r', encoding='utf-8') as file:
         sql_file = file.read()
 
     commands = sql_file.split(';')

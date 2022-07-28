@@ -4,7 +4,7 @@ import re
 
 from   datalabs.access.oneview.api.default import DefaultEndpointTask
 from   datalabs.access.oneview.api.physician import PhysiciansEndpointTask
-import datalabs.task as task
+from   datalabs import task
 
 
 TaskClassMapping = namedtuple('TaskClassMapping', 'path task_class')

@@ -12,7 +12,7 @@ import pandas
 
 from   datalabs.etl.dag.state import Status
 from   datalabs.etl.task import ExecutionTimeMixin
-import datalabs.etl.transform as transform
+from   datalabs.etl import transform
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
 

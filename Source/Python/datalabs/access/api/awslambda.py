@@ -59,7 +59,7 @@ class APIEndpointTaskWrapper(TaskWrapper):
 
         return {
             "statusCode": status_code,
-            "headers": dict(),
+            "headers": {},
             "body": message,
             "isBase64Encoded": False,
         }

@@ -338,17 +338,20 @@ class Validater:
             '\n\n'
         ]
 
-        for tab in self._tab_validations:
+        for tab, valdiation in self._tab_validations.items():
             report_lines.append(tab.ljust(22))
-            report_lines.append(str(self._tab_validations[tab]) + '\n')
+            report_lines.append(str(valdiation) + '\n')
 
         self._log = '\n'.join(report_lines)
 
     def _is_passing(self):
-        for tab in self._tab_validations:
-            if self._tab_validations[tab]['status'] == 'FAILING':
-                return False
-        return True
+        passing = True
+
+        for tab, validation in self._tab_validations.items():
+            if validation['status'] == 'FAILING':
+                passing = False
+
+        return passing
 
     @classmethod
     def _generate_grand_total_percent_change_errors(cls, previous_data, current_data, change_threshold):
@@ -367,10 +370,9 @@ class Validater:
                 current_values[index] = row['Grand Total']
 
         # compare
-        for name in current_values:
+        for name, current_value in current_values.items():
             if name in previous_values:
                 previous_value = previous_values[name]
-                current_value = current_values[name]
                 change = cls._percent_change(previous_value, current_value)
 
                 if change >= change_threshold:

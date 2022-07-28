@@ -1,11 +1,15 @@
 """ Review for deletion """
 # pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace,function-redefined,use-a-generator,f-string-without-interpolation,invalid-name,bare-except,unnecessary-comprehension,unused-variable
-
+import logging
 import numpy as np
 import pandas as pd
 from sklearn import metrics
 
 from class_model_creation import score_fit_model
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 def class_results(wslive_pred_df):
@@ -14,23 +18,23 @@ def class_results(wslive_pred_df):
     perc_0 = num_0/(num_0 + num_1)
     perc_1 = num_1/(num_0 + num_1)
 
-    print('Actual (Phone Survey) Result Information')
-    print('----------------------------------------')
-    print('Number of total results: {}\n'.format(wslive_pred_df.shape[0]))
+    LOGGER.info('Actual (Phone Survey) Result Information')
+    LOGGER.info('----------------------------------------')
+    LOGGER.info('Number of total results: %s\n', wslive_pred_df.shape[0])
 
-    print('1 Label = Phone survey result was Confirmed')
-    print('0 Label = Phone survey results was Not Confirmed\n')
+    LOGGER.info('1 Label = Phone survey result was Confirmed')
+    LOGGER.info('0 Label = Phone survey results was Not Confirmed\n')
 
-    print('Number of 0 actual results: {}'.format(num_0))
-    print('Number of 1 actual results: {}'.format(num_1))
-    print('Percent of actual results with value 0: {}'.format(perc_0))
-    print('Percent of actual results with value 1: {}\n'.format(perc_1))
+    LOGGER.info('Number of 0 actual results: %s', num_0)
+    LOGGER.info('Number of 1 actual results: %s', num_1)
+    LOGGER.info('Percent of actual results with value 0: %s', perc_0)
+    LOGGER.info('Percent of actual results with value 1: %s\n', perc_1)
 
     conf_mat = metrics.confusion_matrix(wslive_pred_df['ACTUAL_CLASS'], wslive_pred_df['PRED_CLASS'])
-    print('Actual/Predicted Confusion Matrix')
-    print('--------------------------------------')
-    print(conf_mat)
-    print('\n')
+    LOGGER.info('Actual/Predicted Confusion Matrix')
+    LOGGER.info('--------------------------------------')
+    LOGGER.info(conf_mat)
+    LOGGER.info('\n')
 
     class_mat = metrics.classification_report(
         wslive_pred_df['ACTUAL_CLASS'], wslive_pred_df['PRED_CLASS'], output_dict=True
@@ -45,10 +49,10 @@ def class_results(wslive_pred_df):
     pd.set_option('max_rows', num_rows)
     pd.set_option('max_columns', num_cols)
 
-    print('Actual/Predicted Classification Report')
-    print('--------------------------------------')
-    print(class_mat_df)
-    print('\n')
+    LOGGER.info('Actual/Predicted Classification Report')
+    LOGGER.info('--------------------------------------')
+    LOGGER.info(class_mat_df)
+    LOGGER.info('\n')
 
     metric_fcns = ['accuracy_score', 'roc_auc_score', 'precision_score', 'recall_score', 'f1_score']
     actual_scores = score_fit_model(wslive_pred_df['PRED_CLASS'], wslive_pred_df['ACTUAL_CLASS'], metric_fcns)
@@ -67,10 +71,10 @@ def class_results(wslive_pred_df):
     pd.set_option('max_rows', num_rows)
     pd.set_option('max_columns', num_cols)
 
-    print('Actual/Predicted Classification Scores')
-    print('--------------------------------------')
-    print(score_df)
-    print('\n')
+    LOGGER.info('Actual/Predicted Classification Scores')
+    LOGGER.info('--------------------------------------')
+    LOGGER.info(score_df)
+    LOGGER.info('\n')
 
     return conf_mat, class_mat_df, score_df
 

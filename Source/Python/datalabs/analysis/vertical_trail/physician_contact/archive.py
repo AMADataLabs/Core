@@ -121,13 +121,12 @@ class VTPhysicianContactArchive:
         self.connection.commit()
 
     def insert_row(self, table, vals):
-        cols = self.table_columns.dict[table]
+        columns = self.table_columns.dict[table]
+        columns_text = ','.join(cols)
+        values_text = ','.join(['"' + str(v) + '"' for v in vals])
 
-        sql = "INSERT INTO {}({}) VALUES({});".format(
-            table,
-            ','.join(cols),
-            ','.join(['"' + str(v) + '"' for v in vals])
-        )
+        sql = f"INSERT INTO {table}({columns_text}) VALUES({values_text});"
+
         try:
             self.connection.execute(sql)
         except:
@@ -168,7 +167,7 @@ class VTPhysicianContactArchive:
         # load results for sample ID
         sql = \
             f"""
-            SELECT 
+            SELECT
                 s.sample_id,
                 s.row_id,
                 s.me,

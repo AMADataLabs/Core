@@ -1,7 +1,7 @@
 """ Helper functions for deploy the CPT database. """
 import os
 
-import datalabs.deploy.database as database
+from   datalabs.deploy import database
 
 
 def create_unless_exists():

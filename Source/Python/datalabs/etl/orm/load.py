@@ -364,7 +364,7 @@ class MaterializedViewRefresherTask(LoaderTask):
                 views = [view.strip() for view in self._parameters.views.split(',')]
 
             for view in views:
-                database.execute('REFRESH MATERIALIZED VIEW {view}'.format(view=view))
+                database.execute(f'REFRESH MATERIALIZED VIEW {view}')
 
             database.commit()  # pylint: disable=no-member
 
@@ -412,10 +412,10 @@ class ReindexerTask(LoaderTask):
                 tables = [index.strip() for index in self._parameters.tables.split(',')]
 
             for index in indexes:
-                database.execute('REINDEX INDEX {index}'.format(index=index))
+                database.execute(f'REINDEX INDEX {index}')
 
             for table in tables:
-                database.execute('REINDEX TABLE {table}'.format(table=table))
+                database.execute(f'REINDEX TABLE {table}')
 
             database.commit()  # pylint: disable=no-member
 
