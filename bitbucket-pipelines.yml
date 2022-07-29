@@ -1,5 +1,5 @@
 image:
-  name: 644454719059.dkr.ecr.us-east-1.amazonaws.com/datalabs-bitbucket-pipelines:1.5.0
+  name: 644454719059.dkr.ecr.us-east-1.amazonaws.com/datalabs-bitbucket-pipelines:1.5.1
   aws:
     access-key: $AWS_ACCESS_KEY_ID_SANDBOX
     secret-key: $AWS_SECRET_ACCESS_KEY_SANDBOX
