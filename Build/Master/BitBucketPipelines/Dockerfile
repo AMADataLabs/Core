@@ -9,7 +9,7 @@ ENV PATH=${MAVEN_HOME}/bin:${PATH}
 
 RUN yum update -y
 RUN amazon-linux-extras enable docker
-RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel make gcc-c++ \
+RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel freetype-devel make gcc-c++ \
                    wget tar gzip git xvfb jq docker unzip which \
                    java-1.8.0-openjdk-devel
 
