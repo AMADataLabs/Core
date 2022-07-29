@@ -107,7 +107,7 @@ run_lint_tests() {
         done
 
         if [[ "$TARGET_DIR" != "" ]]; then
-            FILES="$FILES $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $TARGET_DIR)"
+            FILES="$FILES $(${DIR}/run.py python3 ${DIR}/list_source_dependencies.py $TARGET_DIR)"
         fi
     done
 

@@ -10,7 +10,7 @@
 # Adapted from https://github.com/zladovan/monorepo/blob/master/tools/ci/core/build.sh
 ##
 
-echo $(python3.7 --version)
+echo $(python3 --version)
 
 Script/setup-virtual-environment Master/BitBucketPipelines
 export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
