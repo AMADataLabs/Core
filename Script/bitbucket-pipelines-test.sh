@@ -73,7 +73,7 @@ get_changes_from_last_build() {
 
 
 run_unit_tests() {
-    python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+    python Script/run.py python3 -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
 
     return $?
 }
