@@ -38,7 +38,7 @@ def test_task_wrapper_handle_success(event):
             response = wrapper._handle_success()
 
     assert response['statusCode'] == 200
-    assert response['body'] == json.dumps(dict())
+    assert response['body'] == json.dumps({})
 
 
 class MockTask(api.APIEndpointTask):

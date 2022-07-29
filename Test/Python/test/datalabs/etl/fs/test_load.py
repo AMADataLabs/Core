@@ -18,7 +18,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 # pylint: disable=redefined-outer-name
 def test_data_setup_correctly(extractor_file):
-    with open(extractor_file) as file:
+    with open(extractor_file, encoding="utf-8") as file:
         data = file.read()
 
     LOGGER.debug('Input Data: %s', data)

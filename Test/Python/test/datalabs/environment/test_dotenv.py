@@ -76,7 +76,7 @@ def environment():
 def dotenv_file(temp_directory):
     filename = pathlib.Path(temp_directory, '.env')
 
-    with open(filename, 'w') as file:
+    with open(filename, 'w', encoding="utf-8") as file:
         file.write(
             "DATALABS_TEST_VARIABLE_OMICRON_OMEGA='Howdy, Partner!'\n"
             "DATALABS_TEST_VARIABLE_BOOLEAN_BOLERO=True\n"

@@ -112,7 +112,12 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     def _get_columns(self):
-        return [column.PROVIDER_AFFILIATION_GROUP, column.PROVIDER_AFFILIATION_TYPE, column.PROFIT_STATUS, column.OWNER_STATUS]
+        return [
+            column.PROVIDER_AFFILIATION_GROUP,
+            column.PROVIDER_AFFILIATION_TYPE,
+            column.PROFIT_STATUS,
+            column.OWNER_STATUS
+        ]
 
 
 class ClassOfTradeTransformerTask(TransformerTask):
