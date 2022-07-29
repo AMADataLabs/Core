@@ -621,18 +621,6 @@ pipelines:
             - bash Deploy/Master/deploy-python-package --project IntelligentPlatform/Developer/Users
         - parallel:
             - step:
-                name: Update Sandbox Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
-                    --use-package
-            - step:
                 name: Update Development Bundle
                 caches:
                     - environment-dev
@@ -676,12 +664,7 @@ pipelines:
             #         --use-package
         - parallel:
             - step:
-                name: Update Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s AIP -p IntelligentPlatform DeveloperUsersETL=DeveloperUsersETL.zip
-            - step:
-                name: Update Development Lambda Functions
+                name: Update Test Lambda Functions
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
