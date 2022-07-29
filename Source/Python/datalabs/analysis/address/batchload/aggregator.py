@@ -158,7 +158,7 @@ class AddressBatchLoadAggregator:
         invalid_data.to_csv(invalid_data_target_path, index=False)
 
         invalid_component_file_target_path = error_directory + '/invalid_component_file_list.txt'
-        with open(invalid_component_file_target_path, 'w', , encoding="utf-8") as file:
+        with open(invalid_component_file_target_path, 'w', encoding="utf-8") as file:
             file.writelines(component_files)
 
     def _save_valid_data(self, data):

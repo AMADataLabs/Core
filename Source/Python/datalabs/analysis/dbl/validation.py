@@ -347,7 +347,7 @@ class Validater:
     def _is_passing(self):
         passing = True
 
-        for tab, validation in self._tab_validations.items():
+        for validation in self._tab_validations.values():
             if validation['status'] == 'FAILING':
                 passing = False
 

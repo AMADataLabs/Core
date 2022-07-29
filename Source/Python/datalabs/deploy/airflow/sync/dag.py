@@ -43,7 +43,7 @@ class Synchronizer():
         )
 
     def _clone_repository(self):
-        command = f'git clone --single-branch -b {self._config.branch} {self._config.clone_url}')
+        command = f'git clone --single-branch -b {self._config.branch} {self._config.clone_url}'
 
         subprocess.call(command.split(' '))
 

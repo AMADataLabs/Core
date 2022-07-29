@@ -21,7 +21,7 @@ class SourceBundle:
         LOGGER.debug('Modspec path: %s', modspec_path)
         modspec_yaml = None
 
-        with open(modspec_path, 'r') as file:
+        with open(modspec_path, 'r', encoding="utf-8") as file:
             modspec_yaml = file.read()
 
         return cls(modspec_yaml)

@@ -166,7 +166,7 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
     def _merge_filtered_dataframe(cls, row, duplicate_matches):
         new_df = duplicate_matches[duplicate_matches.person_id == row.person_id]
 
-        if row.degree_1 != 'None' and row.degree_1 != 'MPH':
+        if row.degree_1 not in ('None', 'MPH'):
             new_df = new_df[new_df.degree_1_physician == row.degree_1]
 
         if len(new_df) > 1 and row.middle_name != 'None':

@@ -7,7 +7,7 @@ import pandas
 
 from   datalabs.etl.oneview.transform import TransformerTask
 
-import datalabs.etl.oneview.credentialing.column as column
+from   datalabs.etl.oneview.credentialing import column
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

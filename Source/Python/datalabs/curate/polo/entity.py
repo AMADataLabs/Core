@@ -231,6 +231,6 @@ class EntityTableCleaner():
         parsable_timestamp = timestamp
 
         if match:
-            parsable_timestamp = f'{match.group('date')} {match.group('time')}'
+            parsable_timestamp = f"{match.group('date')} {match.group('time')}"
 
         return parsable_timestamp

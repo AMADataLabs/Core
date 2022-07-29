@@ -3,7 +3,7 @@ import json
 import logging
 
 from   datalabs.etl.task import ExecutionTimeMixin
-import datalabs.etl.dag.aws as aws
+from   datalabs.etl.dag import aws
 import datalabs.etl.dag.task
 
 logging.basicConfig()

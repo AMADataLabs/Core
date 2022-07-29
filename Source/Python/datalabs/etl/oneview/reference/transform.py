@@ -5,11 +5,8 @@ import logging
 
 import pandas
 
-import datalabs.etl.oneview.reference.column as col
-
+from   datalabs.etl.oneview.reference import static, column
 from   datalabs.etl.oneview.transform import TransformerTask
-
-import datalabs.etl.oneview.reference.static as static
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -18,7 +15,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 class MajorProfessionalActivityTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [col.MPA_COLUMNS]
+        return [column.MPA_COLUMNS]
 
 
 class TypeOfPracticeTransformerTask(TransformerTask):
@@ -37,12 +34,12 @@ class TypeOfPracticeTransformerTask(TransformerTask):
         return [type_of_practice]
 
     def _get_columns(self):
-        return [col.TOP_COLUMNS]
+        return [column.TOP_COLUMNS]
 
 
 class PresentEmploymentTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [col.PE_COLUMNS]
+        return [column.PE_COLUMNS]
 
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
@@ -59,7 +56,7 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
         return table
 
     def _get_columns(self):
-        return [col.CBSA_COLUMNS]
+        return [column.CBSA_COLUMNS]
 
 
 class SpecialtyMergeTransformerTask(TransformerTask):
@@ -76,7 +73,7 @@ class SpecialtyMergeTransformerTask(TransformerTask):
         return [filtered_specialty_data]
 
     def _get_columns(self):
-        return [col.SPECIALTY_MERGED_COLUMNS]
+        return [column.SPECIALTY_MERGED_COLUMNS]
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
@@ -100,7 +97,7 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
         return [fips]
 
     def _get_columns(self):
-        return [col.FIPSC_COLUMNS]
+        return [column.FIPSC_COLUMNS]
 
 
 class StaticReferenceTablesTransformerTask(TransformerTask):
@@ -115,7 +112,7 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     def _get_columns(self):
-        return [col.PROVIDER_AFFILIATION_GROUP, col.PROVIDER_AFFILIATION_TYPE, col.PROFIT_STATUS, col.OWNER_STATUS]
+        return [column.PROVIDER_AFFILIATION_GROUP, column.PROVIDER_AFFILIATION_TYPE, column.PROFIT_STATUS, column.OWNER_STATUS]
 
 
 class ClassOfTradeTransformerTask(TransformerTask):
@@ -133,7 +130,7 @@ class ClassOfTradeTransformerTask(TransformerTask):
         return [dataframe.drop_duplicates() for dataframe in data]
 
     def _get_columns(self):
-        return [col.COT_SPECIALTY, col.COT_FACILITY, col.COT_CLASSIFICATION]
+        return [column.COT_SPECIALTY, column.COT_FACILITY, column.COT_CLASSIFICATION]
 
     @classmethod
     def _add_classification_defaults(cls, classification_data):
@@ -177,7 +174,7 @@ class ClassOfTradeTransformerTask(TransformerTask):
 
 class StateTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [col.STATE]
+        return [column.STATE]
 
 
 class MedicalSchoolTransformerTask(TransformerTask):
@@ -195,4 +192,4 @@ class MedicalSchoolTransformerTask(TransformerTask):
         return [cleaned_medical_schools]
 
     def _get_columns(self):
-        return [col.MEDICAL_SCHOOL]
+        return [column.MEDICAL_SCHOOL]
