@@ -6,8 +6,7 @@ import logging
 from   dateutil.parser import isoparse
 
 from   datalabs.access.environment import VariableTree
-import datalabs.task as task
-import datalabs.plugin as plugin
+from   datalabs import task, plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

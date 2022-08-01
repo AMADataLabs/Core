@@ -31,6 +31,7 @@ class CPTRelationalTableLoaderTask(LoaderTask):
         self._database = None
 
     def _load(self):
+        # pylint: disable=not-context-manager
         with self._get_database() as database:
             self._database = database
 

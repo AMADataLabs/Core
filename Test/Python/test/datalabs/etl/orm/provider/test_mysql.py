@@ -6,7 +6,7 @@ import pytest
 
 from   datalabs.etl.orm.provider.mysql import ORMLoaderProvider
 
-import test.datalabs.etl.orm.provider.common as common  # pylint: disable=wrong-import-order
+from   test.datalabs.etl.orm.provider import common  # pylint: disable=wrong-import-order
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

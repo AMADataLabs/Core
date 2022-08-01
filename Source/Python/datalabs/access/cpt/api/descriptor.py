@@ -72,7 +72,7 @@ class BaseDescriptorEndpointTask(APIEndpointTask):
 
     @classmethod
     def _lengths_are_valid(cls, lengths):
-        return all(length in cls.LENGTH_MODEL_NAMES.keys() for length in lengths)
+        return all(length in cls.LENGTH_MODEL_NAMES for length in lengths)
 
     @classmethod
     def _language_is_valid(cls, language):
@@ -158,6 +158,6 @@ class AllDescriptorsEndpointTask(BaseDescriptorEndpointTask, ReleaseFilterMixin,
         filter_conditions = []
 
         for length in lengths:
-            filter_conditions += [(length_dict.get(length).descriptor.ilike('%{}%'.format(word))) for word in keywords]
+            filter_conditions += [(length_dict.get(length).descriptor.ilike(f'%{word}%')) for word in keywords]
 
         return query.filter(or_(*filter_conditions))

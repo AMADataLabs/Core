@@ -23,7 +23,7 @@ class VariableTree:
     @classmethod
     def generate(cls, variables, separator=None):
         separator = separator or '__'
-        root = dict()
+        root = {}
 
         for key, value in (cls._decode_kv_pair(k, v) for k, v in variables.items()):
             cls._create_branch(root, key, value, separator)
@@ -75,7 +75,7 @@ class VariableTree:
 
             if prefix not in trunk:
                 trunk[prefix] = dict(
-                    branches=dict(),
+                    branches={},
                     value=None,
                 )
 
@@ -84,7 +84,7 @@ class VariableTree:
         else:
             if name not in trunk:
                 trunk[name] = dict(
-                    branches=dict(),
+                    branches={},
                     value=None,
                 )
 

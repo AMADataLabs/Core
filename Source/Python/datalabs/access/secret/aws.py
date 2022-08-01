@@ -42,7 +42,7 @@ class SecretsManagerEnvironmentLoader:
 
     @classmethod
     def _get_secrets_manager_arn_variables(cls, arn_variables):
-        secret_variables = dict()
+        secret_variables = {}
 
         for key, value in arn_variables.items():
             try:

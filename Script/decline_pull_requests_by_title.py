@@ -32,6 +32,9 @@ def _pull_request_ids(authorization_token, title):
     while url is not None:
         response = requests.request("GET", url, headers=headers)
 
+        if response.status_code != 200:
+            response.raise_for_status()
+
         pull_requests = _get_pull_requests(response)
 
         for pull_request in pull_requests:
@@ -44,13 +47,19 @@ def _pull_request_ids(authorization_token, title):
 
 def _decline_pull_request(authorization_token, id):
     url = f"https://api.bitbucket.org/2.0/repositories/amaappdev/hs-datalabs/pullrequests/{id}/decline"
+    response = None
 
     headers = {
        "Accept": "application/json",
        "Authorization": f"Basic {authorization_token}"
     }
 
-    return requests.request("POST", url, headers=headers)
+    response = requests.request("POST", url, headers=headers)
+
+    if response.status_code != 200:
+        response.raise_for_status()
+
+    return response
 
 
 def _get_pull_requests(response):

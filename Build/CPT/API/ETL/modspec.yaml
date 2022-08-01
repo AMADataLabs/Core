@@ -15,7 +15,6 @@ modspec:
       - database
       - datastore
       - environment
-      - etcd
       - orm
   - package: datalabs.curate
     include:

@@ -66,6 +66,6 @@ class WSLiveAccessor:
         missing_column_logical_indices = ~column_logical_indices
 
         if any(missing_column_logical_indices):
-            raise AttributeError('The following columns were not found in the WSLive data: {}'.format(
-                pd.Series(columns)[missing_column_logical_indices].to_list()
-            ))
+            missing_columns = pd.Series(columns)[missing_column_logical_indices].to_list()
+
+            raise AttributeError(f'The following columns were not found in the WSLive data: {missing_columns}')

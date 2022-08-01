@@ -10,7 +10,7 @@ main() {
         [sbx]=dev
         [dev]=dev
         [tst]=1.1.0
-        [prd]=1.0.0
+        [prd]=1.1.0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -18,7 +18,7 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-developer-emails-etl"
+    export RELEASE_NAME="datalabs-intelligentplatform-developer-users"
     export RELEASE_DESCRIPTION="Developer Emails ETL DAG plugin"
 }
 
