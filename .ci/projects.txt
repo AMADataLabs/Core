@@ -2,6 +2,7 @@ AMC
 ContactID
 CPT/API/Endpoint
 CPT/API/ETL
+CPT/Cerner
 CPT/Files/Ingest
 CPT/Files/Watermark
 DBL
@@ -14,4 +15,3 @@ OneView/ETL/Reindex
 OneView/API
 Scheduler
 HelloWorld
-CPT/Cerner
