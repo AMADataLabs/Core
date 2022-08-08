@@ -277,7 +277,7 @@ pipelines:
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
                     --project CPT/Cerner
-                    --bundle CPT/Cerner.zip
+                    --bundle CustomerIntelligence/Cerner.zip
                     --use-package
             - step:
                 name: Update Development Bundle
@@ -291,7 +291,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
                     --project CPT/Cerner
-                    --bundle CPT/Cerner.zip
+                    --bundle CustomerIntelligence/Cerner.zip
                     --use-package
             # - step:
             #     name: Update Test Bundle
@@ -305,7 +305,7 @@ pipelines:
             #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
             #         --environment tst
             #         --project CPT/Cerner
-            #         --bundle CPT/Cerner.zip
+            #         --bundle CustomerIntelligence/Cerner.zip
             #         --use-package
             # - step:
             #     name: Update Staging Bundle
@@ -319,7 +319,7 @@ pipelines:
             #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
             #         --environment itg
             #         --project CPT/Cerner
-            #         --bundle CPT/Cerner.zip
+            #         --bundle CustomerIntelligence/Cerner.zip
             #         --use-package
             # - step:
             #     name: Update Production Bundle
@@ -333,7 +333,7 @@ pipelines:
             #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
             #         --environment prd
             #         --project CPT/Cerner
-            #         --bundle CPT/Cerner.zip
+            #         --bundle CustomerIntelligence/Cerner.zip
             #         --use-package
 
         - parallel:
@@ -349,7 +349,8 @@ pipelines:
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake -p CPT Cerner=Cerner.zip
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
+                    -p CustomerIntelligence Cerner=Cerner.zip
         #     - step:
         #         name: Update Test Lambda Function
         #         script:
@@ -358,16 +359,7 @@ pipelines:
         #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
         #         - >-
         #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
-        #             CernerReportDAG=CPT/Cerner.zip
-        #     - step:
-        #         name: Update Production Lambda Function
-        #         script:
-        #         - >-
-        #             bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-        #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-        #         - >-
-        #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake
-        #             CernerReportDAG=CPT/Cerner.zip
+        #             -p CustomerIntelligence Cerner=Cerner.zip
         #     - step:
         #         name: Update Staging Lambda Function
         #         script:
@@ -376,7 +368,16 @@ pipelines:
         #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
         #         - >-
         #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake
-        #             CernerReportDAG=CPT/Cerner.zip
+        #             -p CustomerIntelligence Cerner=Cerner.zip
+        #     - step:
+        #         name: Update Production Lambda Function
+        #         script:
+        #         - >-
+        #             bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+        #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+        #         - >-
+        #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake
+        #             -p CustomerIntelligence Cerner=Cerner.zip
 
         ContactID:
         - step:
