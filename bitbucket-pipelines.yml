@@ -257,7 +257,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake
                     HelloWorld=HelloWorld.zip
 
-        CPT-Cerner:
+        Cerner:
         - step:
             name: Update Development Component Package
             caches:
