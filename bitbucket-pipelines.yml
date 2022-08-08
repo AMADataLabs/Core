@@ -341,7 +341,7 @@ pipelines:
                 name: Update Sandbox Lambda Function
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s DataLake -p CPT Cerner=Cerner.zip
+                - bash Deploy/Master/update-functions -e sbx -s DataLake -p CustomerIntelligence Cerner=Cerner.zip
             - step:
                 name: Update Development Lambda Function
                 script:
