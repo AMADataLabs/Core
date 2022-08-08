@@ -264,7 +264,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/Cerner
+            - bash Deploy/Master/deploy-python-package --project Cerner
 
         - parallel:
             - step:
@@ -276,7 +276,7 @@ pipelines:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
-                    --project CPT/Cerner
+                    --project Cerner
                     --bundle CustomerIntelligence/Cerner.zip
                     --use-package
             - step:
@@ -290,7 +290,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
-                    --project CPT/Cerner
+                    --project Cerner
                     --bundle CustomerIntelligence/Cerner.zip
                     --use-package
             # - step:
@@ -304,7 +304,7 @@ pipelines:
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
             #         --environment tst
-            #         --project CPT/Cerner
+            #         --project Cerner
             #         --bundle CustomerIntelligence/Cerner.zip
             #         --use-package
             # - step:
@@ -318,7 +318,7 @@ pipelines:
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
             #         --environment itg
-            #         --project CPT/Cerner
+            #         --project Cerner
             #         --bundle CustomerIntelligence/Cerner.zip
             #         --use-package
             # - step:
@@ -332,7 +332,7 @@ pipelines:
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
             #         --environment prd
-            #         --project CPT/Cerner
+            #         --project Cerner
             #         --bundle CustomerIntelligence/Cerner.zip
             #         --use-package
 
