@@ -11,7 +11,7 @@ main() {
         [dev]=dev
         [tst]=0.1.0
         [itg]=
-        [prd]=0.1.0
+        [prd]=
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -20,7 +20,7 @@ main() {
 
     export RELEASE_TYPE="Python"
     export RELEASE_NAME="datalabs-cerner-report"
-    export RELEASE_DESCRIPTION="CPT cerner report task"
+    export RELEASE_DESCRIPTION="Cerner report DAG"
 }
 
 
