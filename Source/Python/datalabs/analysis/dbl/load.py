@@ -38,7 +38,6 @@ class DBLReportEmailLoaderTask(LoaderTask):
             to = self._parameters.to
             cc = self._parameters.cc
             body = 'Attached is the auto-generated DBL report file.'
-            attachments = [attachment]
 
         else:  # failing validation
             to = self._parameters.fail_to
@@ -51,13 +50,11 @@ class DBLReportEmailLoaderTask(LoaderTask):
                    f"Please determine the cause of the error by comparing the attached DBL reports\n"\
                    f"and forward info to Garrett Lappe for any required changes to the validation process.\n"
 
-            attachments = [attachment, previous_report]
-
         send_email(
             to=to,
             cc=cc,
             subject=subject,
             body=body,
             from_account='datalabs@ama-assn.org',
-            attachments=attachments
+            attachments=[attachment, previous_report]
         )
