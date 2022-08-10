@@ -18,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-oneview-reindex"
-    export RELEASE_DESCRIPTION="OneView ETL DAG batch jobs for reindexing/refreshing database views"
+    export RELEASE_NAME="datalabs-oneview-etl-batch"
+    export RELEASE_DESCRIPTION="OneView ETL DAG batch job tasks"
 }
 
 

@@ -85,7 +85,7 @@ class LocalProjectBundler(ProjectBundler):
             shutil.copy(file, os.path.join(target_path, file))
 
     def _install_jdk(self, target_path):
-        jdk.install('11', path=os.path.join(target_path, 'jdk'))
+        jdk.install('11', jre=True, path=os.path.join(target_path, 'jdk'))
 
     def _copy_lambda_function_handler(self, target_path):
         shutil.copy(os.path.join(self._build_path, 'Master', 'awslambda.py'), os.path.join(target_path, 'awslambda.py'))

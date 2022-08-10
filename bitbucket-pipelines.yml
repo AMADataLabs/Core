@@ -1324,14 +1324,14 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
                     ETL=ETL.zip
 
-        OneView-Reindex:
+        OneView-ETL-Batch:
         - step:
             name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/ETL/Reindex
+            - bash Deploy/Master/deploy-python-package --project OneView/ETL/Batch
         - parallel:
             - step:
                 name: Update Development Batch Job Image
@@ -1342,7 +1342,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
                     --environment dev
-                    --project OneView/ETL/Reindex
+                    --project OneView/ETL/Batch
                     --repo oneview-dev
             - step:
                 name: Update Test Batch Job Image
@@ -1353,7 +1353,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
                     --environment tst
-                    --project OneView/ETL/Reindex
+                    --project OneView/ETL/Batch
                     --repo oneview-tst
             - step:
                 name: Update Production Batch Job Image
@@ -1364,7 +1364,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-container-image
                     --environment prd
-                    --project OneView/ETL/Reindex
+                    --project OneView/ETL/Batch
                     --repo oneview-prd
 
         OneView-API:

@@ -1,5 +1,5 @@
 # Build Example:
-#    docker build --build-arg PACKAGE_NAME=datalabs-oneview-etl --build-arg PACKAGE_VERSION=1.1.0 -t oneview-reindex -f ./Build/OneView/ETL/Reindex/Dockerfile ./
+#    docker build --build-arg PACKAGE_NAME=datalabs-oneview-etl-batch --build-arg PACKAGE_VERSION=1.1.0 -t oneview-reindex -f ./Build/OneView/ETL/Batch/Dockerfile ./
 FROM python:3.9
 ARG PACKAGE_NAME
 ARG PACKAGE_VERSION
@@ -12,7 +12,7 @@ ENV CLASSPATH=/OneView
 ENV AWS_DEFAULT_REGION=us-east-1
 
 COPY ./Build/Master ./Build/Master
-COPY ./Build/OneView/ETL/Reindex ./Build/OneView/ETL/Reindex
+COPY ./Build/OneView/ETL/Batch ./Build/OneView/ETL/Batch
 COPY ./Deploy/Master ./Deploy/Master
 COPY ./Script ./Script
 COPY ./Source/Python/datalabs/build ./Source/Python/datalabs/build
