@@ -8,6 +8,7 @@ RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 AWS_DEFAULT_REGION=us-east-1
 DRIVER_BUCKET=ama-sbx-datalake-lambda-us-east-1
+JVM_SHARED_LIBRARY_FILE=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.332.b09-1.amzn2.0.2.x86_64/jre/lib/amd64/server/libjvm.so
 INSTALL_DB2_DRIVER=False
 INSTALL_INFORMIX_DRIVER=False
 INSTALL_SQLSERVER_DRIVER=False
@@ -174,7 +175,7 @@ install_db2_driver() {
     unzip ./Db2JdbcDriver.zip
     echo "db2.jcc.charsetDecoderEncoder=3" >> ./DB2JccConfiguration.properties
 
-    EXTRA_FILES+="-f db2jcc4.jar -f DB2JccConfiguration.properties"
+    EXTRA_FILES+="-f $JVM_SHARED_LIBRARY_FILE -f db2jcc4.jar -f DB2JccConfiguration.properties"
 }
 
 
@@ -182,7 +183,7 @@ install_informix_driver() {
     aws --profile default s3 cp s3://${DRIVER_BUCKET}/JDBC/InformixJdbcDriver.zip InformixJdbcDriver.zip
     unzip ./InformixJdbcDriver.zip
 
-    EXTRA_FILES+="-f jdbc-4.50.4.1.jar -f bson-4.2.0.jar"
+    EXTRA_FILES+="-f $JVM_SHARED_LIBRARY_FILE -f jdbc-4.50.4.1.jar -f bson-4.2.0.jar"
 }
 
 
@@ -191,7 +192,7 @@ install_sqlserver_driver() {
     unzip ./SqlServerJdbcDriver.zip
     mv sqljdbc_10.2\\enu/mssql-jdbc-10.2.0.jre8.jar mssql-jdbc-10.2.0.jre8.jar
 
-    EXTRA_FILES+="-f mssql-jdbc-10.2.0.jre8.jar"
+    EXTRA_FILES+="-f $JVM_SHARED_LIBRARY_FILE -f mssql-jdbc-10.2.0.jre8.jar"
 }
 
 
