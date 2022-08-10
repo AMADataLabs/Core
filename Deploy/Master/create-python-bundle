@@ -91,9 +91,14 @@ install_dependencies() {
 
 
 create_bundle() {
+    local install_jdk=
     export PYTHONPATH=${PWD}/Source/Python
 
-    python Script/bundle_python_project.py --in-place --directory Bundle/ ${EXTRA_FILES} ${NO_SOURCES} ${PROJECT}
+    if [[ $install_jdk == *.jar* ]]; then
+        install_jdk=--install-jdk
+    fi
+
+    python Script/bundle_python_project.py --in-place --directory Bundle/ ${install_jdk} ${EXTRA_FILES} ${NO_SOURCES} ${PROJECT}
 
 }
 

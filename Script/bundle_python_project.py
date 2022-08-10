@@ -9,6 +9,8 @@ import shutil
 import sys
 from   zipfile import ZipFile
 
+import jdk
+
 from   datalabs.build.bundle.python import PythonSourceBundle
 
 logging.basicConfig()
@@ -23,18 +25,18 @@ class ProjectBundler(ABC):
         self._build_path = Path(os.path.join(self._repository_path, 'Build')).resolve()
 
 
-    def bundle(self, project, target_path, extra_files, **kwargs):
+    def bundle(self, project, target_path, extra_files, install_jdk, **kwargs):
         target_path = target_path or Path(os.path.join(self._build_path, project, project)).resolve()
 
-        self._build_bundle(project, Path(target_path), extra_files, **kwargs)
+        self._build_bundle(project, Path(target_path), extra_files, install_jdk, **kwargs)
 
     @abstractmethod
-    def _build_bundle(self, project, target_path, extra_files, **kwargs):
+    def _build_bundle(self, project, target_path, extra_files, install_jdk, **kwargs):
         pass
 
 
 class LocalProjectBundler(ProjectBundler):
-    def _build_bundle(self, project, target_path, extra_files, **kwargs):
+    def _build_bundle(self, project, target_path, extra_files, install_jdk, **kwargs):
         if os.path.exists(target_path) and not kwargs['in_place']:
             LOGGER.info('=== Removing Old Target Directory ===')
             shutil.rmtree(target_path)
@@ -51,6 +53,10 @@ class LocalProjectBundler(ProjectBundler):
 
             LOGGER.info('=== Copying Extra Files ===')
             self._copy_extra_files(extra_files, target_path)
+
+            if install_jdk:
+                LOGGER.info('=== Installing JDK ===')
+                self._install_jdk(target_path)
 
             LOGGER.info('=== Copying Lambda Function Handler ===')
             self._copy_lambda_function_handler(target_path)
@@ -77,6 +83,9 @@ class LocalProjectBundler(ProjectBundler):
 
         for file in files:
             shutil.copy(file, os.path.join(target_path, file))
+
+    def _install_jdk(self, target_path):
+        jdk.install('11', os.path.join(target_path, 'jdk'))
 
     def _copy_lambda_function_handler(self, target_path):
         shutil.copy(os.path.join(self._build_path, 'Master', 'awslambda.py'), os.path.join(target_path, 'awslambda.py'))
@@ -136,7 +145,7 @@ class LocalProjectBundler(ProjectBundler):
 
 
 class ServerlessProjectBundler(ProjectBundler):
-    def _build_bundle(self, project, target_path, extra_files, **kwargs):
+    def _build_bundle(self, project, target_path, extra_files, install_jdk, **kwargs):
         from   docker import from_env
 
         docker = from_env()
@@ -206,6 +215,8 @@ if __name__ == '__main__':
         help='Specify the target directory into which files will be bundled (default Build/<PROJECT>/<PROJECT>)')
     ap.add_argument('-i', '--in-place', action='store_true', default=False,
         help='Do not pre-clean the target directory. Ignored when using --serverless.')
+    ap.add_argument('-j', '--install-jdk', action='store_true', default=False,
+        help='Install a JDK in the bundle.')
     ap.add_argument('-n', '--no-dependencies', action='store_true', default=False,
         help='Only copy source files. Ignored when using --serverless.')
     ap.add_argument('-N', '--no-sources', action='store_true', default=False,
@@ -234,6 +245,7 @@ if __name__ == '__main__':
             args['project'],
             target_path=args['directory'],
             extra_files=args['file'],
+            install_jdk=args['install_jdk'],
             in_place=args['in_place'],
             no_dependencies=args['no_dependencies'],
             no_sources=args['no_sources']
