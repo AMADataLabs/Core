@@ -1,11 +1,10 @@
-""" JDBC Extractor """
+""" SQL Extractor """
 from   dataclasses import dataclass
 import logging
 from   pathlib import Path
 import string
 import tempfile
-
-import jaydebeapi
+from   abc import abstractmethod
 import pandas
 
 from   datalabs.etl.extract import ExtractorTask
@@ -20,7 +19,7 @@ LOGGER.setLevel(logging.INFO)
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class JDBCExtractorParameters:
+class SQLExtractorParameters:
     driver: str
     driver_type: str
     database_host: str
@@ -41,32 +40,17 @@ class JDBCExtractorParameters:
     database_parameters: str = None
 
 
-class JDBCExtractorTask(ExtractorTask):
-    PARAMETER_CLASS = JDBCExtractorParameters
+class SQLExtractorTask(ExtractorTask):
+    PARAMETER_CLASS = SQLExtractorParameters
 
     def _extract(self):
         connection = self._connect()
 
         return self._read_queries(connection)
 
+    @abstractmethod
     def _connect(self):
-        url = f"jdbc:{self._parameters.driver_type}://{self._parameters.database_host}:" \
-              f"{self._parameters.database_port}"
-
-        if self._parameters.database_name is not None:
-            url += f"/{self._parameters.database_name}"
-
-        if self._parameters.database_parameters is not None:
-            url += f";{self._parameters.database_parameters}"
-
-        connection = jaydebeapi.connect(
-            self._parameters.driver,
-            url,
-            [self._parameters.database_username, self._parameters.database_password],
-            self._parameters.jar_path.split(',')
-        )
-
-        return connection
+        pass
 
     def _read_queries(self, connection):
         queries = self._split_queries(self._parameters.sql)
@@ -167,7 +151,7 @@ class JDBCExtractorTask(ExtractorTask):
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class JDBCParametricExtractorParameters:
+class SQLParametricExtractorParameters:
     driver: str
     driver_type: str
     database_host: str
@@ -188,8 +172,8 @@ class JDBCParametricExtractorParameters:
     database_parameters: str = None
 
 
-class JDBCParametricExtractorTask(CSVReaderMixin, JDBCExtractorTask):
-    PARAMETER_CLASS = JDBCParametricExtractorParameters
+class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
+    PARAMETER_CLASS = SQLParametricExtractorParameters
 
     def __init__(self, parameters):
         super().__init__(parameters)
@@ -214,15 +198,15 @@ class JDBCParametricExtractorTask(CSVReaderMixin, JDBCExtractorTask):
         return formatter.format(resolved_query, **parameters)
 
 
-class JDBCParquetExtractorTask(JDBCExtractorTask):
-    PARAMETER_CLASS = JDBCExtractorParameters
+class SQLParquetExtractorTask(SQLExtractorTask):
+    PARAMETER_CLASS = SQLExtractorParameters
 
     @classmethod
     def _encode(cls, data):
         return data
 
     def _read_chunked_query(self, query, connection):
-        directory = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+        directory = tempfile.TemporaryDirectory()
         chunk_size = int(self._parameters.chunk_size)
         index = 0
         chunk = None
@@ -246,7 +230,7 @@ class JDBCParquetExtractorTask(JDBCExtractorTask):
 
     @classmethod
     def _read_single_query(cls, query, connection):
-        directory = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+        directory = tempfile.TemporaryDirectory()
         results = pandas.read_sql(query, connection)
         path = Path(directory.name, 'parquet_0')
 
