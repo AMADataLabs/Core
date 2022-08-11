@@ -1239,8 +1239,6 @@ pipelines:
                     --environment sbx
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
-                    --jdbc-driver DB2
-                    --jdbc-driver Informix
                     --use-package
             - step:
                 name: Update Development Lambda Bundle
@@ -1255,8 +1253,6 @@ pipelines:
                     --environment dev
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
-                    --jdbc-driver DB2
-                    --jdbc-driver Informix
                     --use-package
             - step:
                 name: Update Test Lambda Bundle

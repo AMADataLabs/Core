@@ -1,6 +1,6 @@
 cryptography==3.4.8
 boto3==1.18.12
-JayDeBeApi==1.1.1
+JayDeBeApi==1.2.3
 jpype1==1.4.0
 json5==0.8.5
 marshmallow==3.10.0
