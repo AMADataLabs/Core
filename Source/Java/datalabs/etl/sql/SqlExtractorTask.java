@@ -48,7 +48,31 @@ public class SqlExtractorTask extends Task {
     }
 /*
     public Connection connect() throws SQLException {
-        url = f"jdbc:{self._parameters.driver_type}://{self._parameters.database_host}:" \
+     Connection conn = null;
+      Properties connectionProps = new Properties();
+      connectionProps.put("user", this.userName);
+      connectionProps.put("password", this.password);
+
+      // Using a driver manager:
+
+      if (this.dbms.equals("mysql")) {
+//        DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+        conn =
+            DriverManager.getConnection("jdbc:" + dbms + "://" + serverName +
+                                        ":" + portNumber + "/" + dbName,
+                                        connectionProps);
+        conn.setCatalog(this.dbName);
+      } else if (this.dbms.equals("derby")) {
+//        DriverManager.registerDriver(new org.apache.derby.jdbc.EmbeddedDriver());
+        conn =
+            DriverManager.getConnection("jdbc:" + dbms + ":" + dbName, connectionProps);
+      }
+      System.out.println("Connected to database");
+      return conn;
+    }
+
+
+            url = f"jdbc:{self._parameters.driver_type}://{self._parameters.database_host}:" \
               f"{self._parameters.database_port}"
 
         if self._parameters.database_name is not None:

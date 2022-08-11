@@ -15,7 +15,7 @@ public class SqlExtractorParameters extends Parameters {
     public String databasePassword;
     public Map<String, String> unknowns;
 
-    public SqlExtractorParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
+    public SqlExtractorParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
         super(parameters);
     }
 }

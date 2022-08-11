@@ -29,7 +29,7 @@ modspec:
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
-  - package: datalabs.etl.jdbc
+  - package: datalabs.etl.sql.jdbc
   - package: datalabs.etl.cpt.developer
   - package: datalabs.etl.s3
   - package: datalabs.messaging

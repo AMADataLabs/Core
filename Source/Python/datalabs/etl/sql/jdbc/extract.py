@@ -1,15 +1,8 @@
 """ JDBC Extractor """
-from   dataclasses import dataclass
-import logging
-from   pathlib import Path
-import string
-import tempfile
-
 import jaydebeapi
 from   datalabs.etl.sql.extract import SQLExtractorTask, SQLParametricExtractorTask, SQLParquetExtractorTask
 
-class JDBCConnectorMixin(SQLExtractorTask):
-
+class JDBCConnectorMixin:
     def _connect(self):
         url = f"jdbc:{self._parameters.driver_type}://{self._parameters.database_host}:" \
               f"{self._parameters.database_port}"
@@ -26,14 +19,14 @@ class JDBCConnectorMixin(SQLExtractorTask):
             [self._parameters.database_username, self._parameters.database_password],
             self._parameters.jar_path.split(',')
         )
-        
+
         return connection
 
-class JDBCExtractorTask(JDBCConnectorMixin):
+class JDBCExtractorTask(JDBCConnectorMixin, SQLExtractorTask):
     pass
 
-class JDBCParametricExtractorTask(SQLParametricExtractorTask):
+class JDBCParametricExtractorTask(JDBCConnectorMixin, SQLParametricExtractorTask):
     pass
 
-class JDBCParquetExtractorTask(SQLParquetExtractorTask):
+class JDBCParquetExtractorTask(JDBCConnectorMixin, SQLParquetExtractorTask):
     pass

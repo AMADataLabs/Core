@@ -44,7 +44,7 @@ public class LinkBuilderParameters extends Parameters {
 
     public Map<String, String> unknowns;
 
-    public LinkBuilderParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
+    public LinkBuilderParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
         super(parameters);
     }
 }
