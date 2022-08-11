@@ -16,12 +16,17 @@ import datalabs.task.Task;
 
 
 class ExampleTaskParameters extends Parameters {
-    public ExampleTaskParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
-        super(parameters);
-    }
+    protected static final Logger LOGGER = LoggerFactory.getLogger(ExampleTaskParameters.class);
+
     public String fee;
     public String fye;
+
+    @Default("fum")
     public String fo;
+
+    public ExampleTaskParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
+        super(parameters);
+    }
 }
 
 
@@ -79,5 +84,31 @@ class ParametersTests {
         Assertions.assertEquals("tick", parameters.fee);
         Assertions.assertEquals("tack", parameters.fye);
         Assertions.assertEquals("toe", parameters.fo);
+    }
+
+    @Test
+    void taskParametersArePopulatedFromDefaults() {
+        ExampleTaskParameters parameters = null;
+
+        String fo = ParametersTests.PARAMETERS.remove("FO");
+
+        Assertions.assertNotNull(fo);
+
+        try {
+            ExampleTask task = new ExampleTask(ParametersTests.PARAMETERS);
+
+            parameters = task.getParameters();
+        } catch (
+            IllegalAccessException | IllegalArgumentException | InstantiationException |
+            InvocationTargetException | NoSuchMethodException exception
+        ) {
+            exception.printStackTrace();
+            Assertions.assertTrue(false);
+        }
+
+        Assertions.assertNotNull(parameters);
+        Assertions.assertEquals("tick", parameters.fee);
+        Assertions.assertEquals("tack", parameters.fye);
+        Assertions.assertEquals("fum", parameters.fo);
     }
 }
