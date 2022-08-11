@@ -7,7 +7,7 @@ import mock
 import pandas
 import pytest
 
-from   datalabs.etl.jdbc.extract import JDBCExtractorTask, JDBCParametricExtractorTask, JDBCParquetExtractorTask
+from   datalabs.etl.sql.jdbc.extract import JDBCExtractorTask, JDBCParametricExtractorTask, JDBCParquetExtractorTask
 
 
 # pylint: disable=redefined-outer-name, protected-access
