@@ -1,9 +1,5 @@
 package datalabs.parameter;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -16,13 +12,6 @@ import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-@interface Default {
-    String value();
-}
 
 
 public abstract class Parameters {
@@ -105,11 +94,11 @@ public abstract class Parameters {
         for (Field field : fields) {
             Field declaredField = this.getClass().getField(field.getName());
             LOGGER.debug("Getting annotation for field \"" + declaredField.getName() + "\"...");
-            Default defaultAnnotation = declaredField.getAnnotation(Default.class);
+            Optional optionalAnnotation = declaredField.getAnnotation(Optional.class);
 
-            if (defaultAnnotation != null) {
-                LOGGER.debug("Annotation type: " + defaultAnnotation.getClass().getName());
-                fieldDefaults.put(Parameters.standardizeName(declaredField.getName()), defaultAnnotation.value());
+            if (optionalAnnotation != null) {
+                LOGGER.debug("Annotation type: " + optionalAnnotation.getClass().getName());
+                fieldDefaults.put(Parameters.standardizeName(declaredField.getName()), optionalAnnotation.value());
             } else {
                 LOGGER.debug("Annotation is null.");
             }
