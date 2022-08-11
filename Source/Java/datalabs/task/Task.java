@@ -14,7 +14,8 @@ import datalabs.parameter.Parameters;
 public abstract class Task extends ParameterizedClassMixin {
     protected static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
-    protected Vector<byte[]> data = null;
+    protected Vector<byte[]> inputData = null;
+    protected Vector<byte[]> outputData = null;
 
     public Task(Map<String, String> parameters, Vector<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
@@ -25,7 +26,7 @@ public abstract class Task extends ParameterizedClassMixin {
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         this(parameters, parameterClass);
 
-        this.data = data;
+        this.inputData = data;
     }
 
     public Task(Map<String, String> parameters)
@@ -38,9 +39,5 @@ public abstract class Task extends ParameterizedClassMixin {
         super(parameters, parameterClass);
     }
 
-    public abstract void run() throws TaskException;
-
-    public Vector<byte[]> getData() {
-        return this.data;
-    }
+    public abstract Vector<byte[]> run() throws TaskException;
 }

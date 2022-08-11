@@ -25,10 +25,11 @@ public abstract class Parameters {
             LOGGER.debug("Field: " + field.getName());
         }
         LOGGER.debug("Field Names: " + fieldNames);
+        Map<String, String> fieldDefaults = getFieldDefaults(fields);
 
         parameters = Parameters.standardizeParameters(parameters);
 
-        validate(parameters, fields, fieldNames);
+        validate(parameters, fields, fieldNames, fieldDefaults);
 
         populate(parameters, fieldNames);
     }
@@ -43,10 +44,10 @@ public abstract class Parameters {
         return standardizedParameters;
     }
 
-    void validate(Map<String, String> parameters, Field[] fields, Map<String, String> fieldNames)
+    void validate(Map<String, String> parameters, Field[] fields, Map<String, String> fieldNames, Map<String, String> fieldDefaults)
             throws IllegalArgumentException {
         String[] unexpectedFields = Parameters.getUnexpectedFields(parameters, fieldNames);
-        String[] missingFields = Parameters.getMissingFields(parameters, fieldNames);
+        String[] missingFields = Parameters.getMissingFields(parameters, fieldNames, fieldDefaults);
         LOGGER.debug("Parameters: " + parameters);
         LOGGER.debug("Unexpected Fields: " + Arrays.toString(unexpectedFields));
         LOGGER.debug("Missing Fields: " + Arrays.toString(missingFields));
@@ -80,6 +81,20 @@ public abstract class Parameters {
         return fieldNames;
     }
 
+    Map<String, String> getFieldDefaults(Field[] fields) throws IllegalAccessException {
+        HashMap<String, String> fieldDefaults = new HashMap<String, String>();
+
+        for (Field field : fields) {
+            String value = (String) field.get(this);
+
+            if (value != null) {
+                fieldDefaults.put(Parameters.standardizeName(field.getName()), value);
+            }
+        }
+
+        return fieldDefaults;
+    }
+
     static String[] getUnexpectedFields(Map<String, String> parameters, Map<String, String> fieldNames) {
         Vector<String> unexpectedFields = new Vector<String>();
 
@@ -93,11 +108,15 @@ public abstract class Parameters {
         return Arrays.stream(unexpectedFields.toArray()).toArray(String[]::new);
     }
 
-    static String[] getMissingFields(Map<String, String> parameters, Map<String, String> fieldNames) {
+    static String[] getMissingFields(Map<String, String> parameters, Map<String, String> fieldNames, Map<String, String> fieldDefaults) {
         Vector<String> missingFields = new Vector<String>();
 
         for (String fieldName : fieldNames.keySet()) {
-            if (!fieldName.equals("UNKNOWNS") && !parameters.keySet().stream().anyMatch(n -> n.equals(fieldName))) {
+            boolean isUnknowns = fieldName.equals("UNKNOWNS");
+            boolean isField = parameters.keySet().stream().anyMatch(n -> n.equals(fieldName));
+            boolean hasDefault = fieldDefaults.get(fieldName) != null;
+
+            if (!isUnknowns && !isField) {
                 missingFields.add(fieldName);
             }
         }

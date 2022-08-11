@@ -100,7 +100,7 @@ public class DagTaskWrapper extends TaskWrapper {
             TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
 
             if (cachePlugin != null) {
-                cachePlugin.loadData(this.task.getData());
+                cachePlugin.loadData(this.output);
             }
         } catch (Exception exception) {
             LOGGER.error("Unable to load data into the task output cache.");

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.ama.dtk.Builder;
 import org.ama.dtk.Delimiter;
@@ -39,7 +40,7 @@ public class LinkBuilderTask extends Task {
         super(parameters, LinkBuilderParameters.class);
     }
 
-    public void run() throws TaskException {
+    public Vector<byte[]> run() throws TaskException {
         try {
             LinkBuilderParameters parameters = (LinkBuilderParameters) this.parameters;
             DtkAccess priorLink = LinkBuilderTask.loadLink("dtk-versions/" + parameters.priorDtkVersion + "/");
@@ -59,6 +60,8 @@ public class LinkBuilderTask extends Task {
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception.getMessage());
         }
+
+        return null;
     }
 
 	private static DtkAccess loadLink(String directory) throws Exception {
@@ -80,7 +83,8 @@ public class LinkBuilderTask extends Task {
 
         BuildDtkFiles files = new BuildDtk.BuildDtkFiles(
             directory.resolve(parameters.hcpcsDataFile).toString(),
-            headings, consumer_and_clinician_descriptors, coding_tips, front_matter, rvus
+            // headings, consumer_and_clinician_descriptors, coding_tips, front_matter, rvus
+            null, null, null, null, null
         );
 
         BuildDtk linkBuilder = new BuildDtk(

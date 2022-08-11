@@ -19,6 +19,7 @@ public class TaskWrapper {
     protected Map<String, String> parameters;
     protected Map<String, String> runtimeParameters;
     protected Task task;
+    protected Vector<byte[]> output;
 
     public TaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
         this.environment = environment;
@@ -41,7 +42,7 @@ public class TaskWrapper {
 
             this.preRun();
 
-            this.task.run();
+            this.output = this.task.run();
 
             response = this.handleSuccess();
         } catch (Exception e) {

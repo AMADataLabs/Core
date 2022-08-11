@@ -37,8 +37,10 @@ class ExampleTask extends Task {
         return (ExampleTaskParameters) this.parameters;
     }
 
-    public void run() {
+    public Vector<byte[]> run() {
         LOGGER.info("This is an example task class with parameters.");
+
+        return null;
     }
 }
 

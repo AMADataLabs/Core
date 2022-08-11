@@ -11,7 +11,6 @@ import datalabs.task.Task;
 
 
 public class HelloWorldTask extends Task {
-    private static Class PARAMETER_CLASS = null;
     static final Logger LOGGER = LoggerFactory.getLogger(HelloWorldTask.class);
 
     public HelloWorldTask(Map<String, String> parameters)
@@ -24,7 +23,9 @@ public class HelloWorldTask extends Task {
         super(parameters, data);
     }
 
-    public void run() {
+    public Vector<byte[]> run() {
         LOGGER.info("Hello, World!");
+
+        return null;
     }
 }
