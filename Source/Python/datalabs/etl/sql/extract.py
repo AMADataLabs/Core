@@ -4,8 +4,7 @@ import logging
 from   pathlib import Path
 import string
 import tempfile
-from   abc import ABC, abstractmethod
-import jaydebeapi
+from   abc import abstractmethod
 import pandas
 
 from   datalabs.etl.extract import ExtractorTask
@@ -207,7 +206,7 @@ class SQLParquetExtractorTask(SQLExtractorTask):
         return data
 
     def _read_chunked_query(self, query, connection):
-        directory = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+        directory = tempfile.TemporaryDirectory()
         chunk_size = int(self._parameters.chunk_size)
         index = 0
         chunk = None
@@ -231,7 +230,7 @@ class SQLParquetExtractorTask(SQLExtractorTask):
 
     @classmethod
     def _read_single_query(cls, query, connection):
-        directory = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
+        directory = tempfile.TemporaryDirectory()
         results = pandas.read_sql(query, connection)
         path = Path(directory.name, 'parquet_0')
 
