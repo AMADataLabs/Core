@@ -18,21 +18,21 @@ public class SqlExtractorParameters extends Parameters {
     public Map<String, String> unknowns;
 
     @Optional
-    public String execution_time;
+    public String executionTime;
     @Optional
-    public String database_name;
+    public String databaseName;
     @Optional
-    public String database_parameters;
+    public String databaseParameters;
     @Optional
-    public String chunk_size;    // Number of records to fetch per chunk
+    public String chunkSize;    // Number of records to fetch per chunk
     @Optional
     public String count;         // Total number of records to fetch accross chunks
     @Optional("0")
-    public String start_index;   // Starting record index
+    public String startIndex;   // Starting record index
     @Optional
-    public String max_parts;     // Number of task copies working on this query
+    public String maxParts;     // Number of task copies working on this query
     @Optional
-    public String part_index;    // This task's index
+    public String partIndex;    // This task's index
     @Optional
     public String stream;
 
