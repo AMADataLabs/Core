@@ -248,14 +248,3 @@ public class SqlExtractorTask extends Task {
             }}
         );
     }
-/*
-    # pylint: disable=no-self-use
-    def _resolve_chunked_query(self, query, index, count):
-        formatter = PartialFormatter()
-
-        if '{index}' not in query or '{count}' not in query:
-            raise ValueError("Chunked query SQL does not contain '{index}' and '{count}' template variables.")
-
-        return formatter.format(query, index=index, count=count)
-*/
-}
