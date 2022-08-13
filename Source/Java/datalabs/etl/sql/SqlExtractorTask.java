@@ -77,13 +77,25 @@ public class SqlExtractorTask extends Task {
 
     static String generateConnectionString(SqlExtractorParameters parameters) {
         String connectionString =
-            "jdbc:" + parameters.driverType + "://" + parameters.databaseHost + ":" + parameters.databasePort;
+            "jdbc:" + parameters.driverType;
 
-        if (parameters.databaseName != "") {
-            connectionString += "/" + parameters.databaseName;
+        if (!parameters.databaseHost.equals("")) {
+            connectionString += "://" + parameters.databaseHost + ":" + parameters.databasePort;
+
+            if (!parameters.databaseName.equals("")) {
+                connectionString += "/";
+            }
+        } else {
+            if (!parameters.databaseName.equals("")) {
+                connectionString += ":";
+            }
         }
 
-        if (parameters.databaseParameters != "") {
+        if (!parameters.databaseName.equals("")) {
+            connectionString += parameters.databaseName;
+        }
+
+        if (!parameters.databaseParameters.equals("")) {
             connectionString += ";" + parameters.databaseParameters;
         }
 
@@ -109,19 +121,19 @@ public class SqlExtractorTask extends Task {
             splitQueries[index] = splitQueries[index].trim();
         }
 
-        if (splitQueries[splitQueries.length-1] == "") {
+        if (splitQueries[splitQueries.length-1].equals("")) {
             splitQueries = ArrayUtils.remove(splitQueries, splitQueries.length-1);
         }
 
         return splitQueries;
     }
 
-    byte[] readQuery(String query, Connection connection, SqlExtractorParameters parameters)
+    static byte[] readQuery(String query, Connection connection, SqlExtractorParameters parameters)
             throws IOException, SQLException {
         byte[] results = null;
 
         try (Statement statement = connection.createStatement()) {
-            if (parameters.chunkSize == "") {
+            if (parameters.chunkSize.equals("")) {
                 results = readSingleQuery(query, statement);
             } else {
                 results = readChunkedQuery(query, statement, parameters);
@@ -135,7 +147,7 @@ public class SqlExtractorTask extends Task {
         return resultSetToCsvBytes(statement.executeQuery(query));
     }
 
-    byte[] readChunkedQuery(String query, Statement statement, SqlExtractorParameters parameters)
+    static byte[] readChunkedQuery(String query, Statement statement, SqlExtractorParameters parameters)
             throws IOException, SQLException {
         Vector<byte[]> csvChunks = readChunks(query, statement, parameters);
 
@@ -164,16 +176,16 @@ public class SqlExtractorTask extends Task {
         int stopIndex = -1;
         boolean iterating = true;
 
-        if (parameters.count == "") {
+        if (parameters.count.equals("")) {
             count = Integer.parseInt(parameters.count);
 
-            if (parameters.startIndex == "") {
+            if (parameters.startIndex.equals("")) {
                 index = Integer.parseInt(parameters.startIndex) * count;
                 stopIndex = index + count;
             }
         }
 
-        if (parameters.maxParts != "" && parameters.partIndex != "") {
+        if (!parameters.maxParts.equals("") && !parameters.partIndex.equals("")) {
             int maxParts = Integer.parseInt(parameters.maxParts);
             int partIndex = Integer.parseInt(parameters.partIndex);
 
@@ -217,7 +229,7 @@ public class SqlExtractorTask extends Task {
         return csvChunks;
     }
 
-    byte[] concatenateCsvChunks(Vector<byte[]> chunks) {
+    static byte[] concatenateCsvChunks(Vector<byte[]> chunks) {
         int totalResultsLength = 0;
         int index = 0;
         byte[] results;
@@ -248,3 +260,4 @@ public class SqlExtractorTask extends Task {
             }}
         );
     }
+}

@@ -8,7 +8,6 @@ import datalabs.parameter.Optional;
 
 
 public class SqlExtractorParameters extends Parameters {
-    public String driver;
     public String driverType;
     public String databaseHost;
     public String databasePort;
