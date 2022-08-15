@@ -632,7 +632,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
                     --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
+                    --bundle IntelligentPlatform/DeveloperUsersDAG.zip
                     --use-package
             - step:
                 name: Update Test Bundle
@@ -646,7 +646,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
                     --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
+                    --bundle IntelligentPlatform/DeveloperUsersDAG.zip
                     --use-package
             - step:
                 name: Update Production Bundle
@@ -660,7 +660,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
                     --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
+                    --bundle IntelligentPlatform/DeveloperUsersDAG.zip
                     --use-package
         - parallel:
             - step:
@@ -1479,7 +1479,7 @@ pipelines:
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
                     --project IntelligentPlatform/Licensing
-                    --bundle IntelligentPlatform/Licensing.zip
+                    --bundle IntelligentPlatform/LicensingDAG.zip
                     --use-package
             - step:
                 name: Update Development Bundle
@@ -1493,7 +1493,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
                     --project IntelligentPlatform/Licensing
-                    --bundle IntelligentPlatform/Licensing.zip
+                    --bundle IntelligentPlatform/LicensingDAG.zip
                     --use-package
             - step:
                 name: Update Test Bundle
@@ -1507,7 +1507,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
                     --project IntelligentPlatform/Licensing
-                    --bundle IntelligentPlatform/Licensing.zip
+                    --bundle IntelligentPlatform/LicensingDAG.zip
                     --use-package
 #        - parallel:
 #              - step:
