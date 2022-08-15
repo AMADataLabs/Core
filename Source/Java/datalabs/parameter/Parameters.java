@@ -17,6 +17,9 @@ import org.slf4j.LoggerFactory;
 public abstract class Parameters {
     protected static final Logger LOGGER = LoggerFactory.getLogger(Parameters.class);
 
+    protected Parameters() {
+    }
+
     public Parameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
         Field[] fields = getClass().getFields();
         LOGGER.debug("Class: " + getClass());
