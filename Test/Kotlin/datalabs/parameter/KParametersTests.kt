@@ -20,7 +20,7 @@ open class TestParameters(parameters: Map<String, String>) : KParameters(paramet
 
 open class KParametersTests {
     @Test
-    fun instantiationParametersSucceeds() {
+    fun instantiationSucceeds() {
         val parameters = TestParameters(mapOf("PING" to "pong"))
 
         assertEquals("pong", parameters.ping)
