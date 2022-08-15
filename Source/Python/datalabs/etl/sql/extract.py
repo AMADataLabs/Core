@@ -206,7 +206,7 @@ class SQLParquetExtractorTask(SQLExtractorTask):
         return data
 
     def _read_chunked_query(self, query, connection):
-        directory = tempfile.TemporaryDirectory()
+        directory = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
         chunk_size = int(self._parameters.chunk_size)
         index = 0
         chunk = None
@@ -230,7 +230,7 @@ class SQLParquetExtractorTask(SQLExtractorTask):
 
     @classmethod
     def _read_single_query(cls, query, connection):
-        directory = tempfile.TemporaryDirectory()
+        directory = tempfile.TemporaryDirectory()  # pylint: disable=consider-using-with
         results = pandas.read_sql(query, connection)
         path = Path(directory.name, 'parquet_0')
 

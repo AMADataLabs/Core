@@ -1,5 +1,8 @@
 package datalabs.etl.sql;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -7,10 +10,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
-import java.sql.BatchUpdateException;
-import java.sql.DatabaseMetaData;
-import java.sql.RowIdLifetime;
-import java.sql.SQLWarning;
+import java.sql.ResultSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 import javax.xml.transform.Transformer;
@@ -20,11 +21,15 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.opencsv.CSVWriter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
+import datalabs.string.PartialFormatter;
 import datalabs.task.Task;
+import datalabs.task.TaskException;
 
 
 public class SqlExtractorTask extends Task {
@@ -40,149 +45,219 @@ public class SqlExtractorTask extends Task {
         super(parameters, data, SqlExtractorParameters.class);
     }
 
-    public Vector<byte[]> run() {
-        // Connection connection = this.connect();
-        //
-        // return this.read_queries(connection);
-        return null;
+    public Vector<byte[]> run() throws TaskException {
+        Vector<byte[]> output;
+
+        try {
+            Connection connection = connect();
+
+            output = readQueries(connection);
+        } catch (Exception exception) {
+            throw new TaskException(exception);
+        }
+
+        return output;
     }
-/*
+
     public Connection connect() throws SQLException {
-     Connection conn = null;
-      Properties connectionProps = new Properties();
-      connectionProps.put("user", this.userName);
-      connectionProps.put("password", this.password);
+        Properties credentials = generateCredentialProperties((SqlExtractorParameters) this.parameters);
+        String connectionString = generateConnectionString((SqlExtractorParameters) this.parameters);
 
-      // Using a driver manager:
+        return DriverManager.getConnection(connectionString, credentials);
+    }
 
-      if (this.dbms.equals("mysql")) {
-//        DriverManager.registerDriver(new com.mysql.jdbc.Driver());
-        conn =
-            DriverManager.getConnection("jdbc:" + dbms + "://" + serverName +
-                                        ":" + portNumber + "/" + dbName,
-                                        connectionProps);
-        conn.setCatalog(this.dbName);
-      } else if (this.dbms.equals("derby")) {
-//        DriverManager.registerDriver(new org.apache.derby.jdbc.EmbeddedDriver());
-        conn =
-            DriverManager.getConnection("jdbc:" + dbms + ":" + dbName, connectionProps);
-      }
-      System.out.println("Connected to database");
-      return conn;
+    static Properties generateCredentialProperties(SqlExtractorParameters parameters) {
+        Properties credentials = new Properties();
+
+        credentials.put("user", parameters.databaseUsername);
+        credentials.put("password", parameters.databasePassword);
+
+        return credentials;
+    }
+
+    static String generateConnectionString(SqlExtractorParameters parameters) {
+        String connectionString =
+            "jdbc:" + parameters.driverType;
+
+        if (!parameters.databaseHost.equals("")) {
+            connectionString += "://" + parameters.databaseHost + ":" + parameters.databasePort;
+
+            if (!parameters.databaseName.equals("")) {
+                connectionString += "/";
+            }
+        } else {
+            if (!parameters.databaseName.equals("")) {
+                connectionString += ":";
+            }
+        }
+
+        if (!parameters.databaseName.equals("")) {
+            connectionString += parameters.databaseName;
+        }
+
+        if (!parameters.databaseParameters.equals("")) {
+            connectionString += ";" + parameters.databaseParameters;
+        }
+
+        return connectionString;
+    }
+
+    Vector<byte[]> readQueries(Connection connection) throws IOException, SQLException {
+        String[] queries = splitQueries(((SqlExtractorParameters) this.parameters).sql);
+        Vector<byte[]> data = new Vector<byte[]>();
+
+        for (String query : queries) {
+            data.add(readQuery(query, connection, (SqlExtractorParameters) this.parameters));
+        }
+
+        return data;
     }
 
 
-            url = f"jdbc:{self._parameters.driver_type}://{self._parameters.database_host}:" \
-              f"{self._parameters.database_port}"
+    static String[] splitQueries(String queries) {
+        String[] splitQueries = queries.split(";");
 
-        if self._parameters.database_name is not None:
-            url += f"/{self._parameters.database_name}"
+        for (int index=0; index < splitQueries.length; ++index) {
+            splitQueries[index] = splitQueries[index].trim();
+        }
 
-        if self._parameters.database_parameters is not None:
-            url += f";{self._parameters.database_parameters}"
+        if (splitQueries[splitQueries.length-1].equals("")) {
+            splitQueries = ArrayUtils.remove(splitQueries, splitQueries.length-1);
+        }
 
-        connection = jaydebeapi.connect(
-            self._parameters.driver,
-            url,
-            [self._parameters.database_username, self._parameters.database_password],
-            self._parameters.jar_path.split(',')
-        )
+        return splitQueries;
+    }
 
-        return connection
+    static byte[] readQuery(String query, Connection connection, SqlExtractorParameters parameters)
+            throws IOException, SQLException {
+        byte[] results = null;
 
-    def _read_queries(self, connection):
-        queries = self._split_queries(self._parameters.sql)
+        try (Statement statement = connection.createStatement()) {
+            if (parameters.chunkSize.equals("")) {
+                results = readSingleQuery(query, statement);
+            } else {
+                results = readChunkedQuery(query, statement, parameters);
+            }
+        }
 
-        return [self._encode(self._read_query(query, connection)) for query in queries]
+        return results;
+    }
 
-    @classmethod
-    def _split_queries(cls, queries):
-        queries_split = queries.split(';')
+    static byte[] readSingleQuery(String query, Statement statement) throws IOException, SQLException {
+        return resultSetToCsvBytes(statement.executeQuery(query));
+    }
 
-        if queries_split[-1].strip() == '':
-            queries_split.pop()
+    static byte[] readChunkedQuery(String query, Statement statement, SqlExtractorParameters parameters)
+            throws IOException, SQLException {
+        Vector<byte[]> csvChunks = readChunks(query, statement, parameters);
 
-        return [q.strip() for q in queries_split]
+        return concatenateCsvChunks(csvChunks);
+    }
 
-    @classmethod
-    def _encode(cls, data):
-        return data.to_csv().encode('utf-8')
+    static byte[] resultSetToCsvBytes(ResultSet results, boolean includeHeaders) throws IOException, SQLException {
+        ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+        CSVWriter writer = new CSVWriter(new OutputStreamWriter(byteStream));
 
-    def _read_query(self, query, connection):
-        result = None
+        writer.writeAll(results, includeHeaders);
 
-        if self._parameters.chunk_size is not None:
-            result = self._read_chunked_query(query, connection)
-        else:
-            result = self._read_single_query(query, connection)
+        return byteStream.toByteArray();
+    }
 
-        return result
+    static byte[] resultSetToCsvBytes(ResultSet results) throws IOException, SQLException {
+        return resultSetToCsvBytes(results, true);
+    }
 
-    def _read_chunked_query(self, query, connection):
-        LOGGER.info('Sending chunked query: %s', query)
-        chunks = self._iterate_over_chunks(query, connection)
-        results = None
+    static Vector<byte[]> readChunks(String query, Statement statement, SqlExtractorParameters parameters)
+            throws IOException, SQLException {
+        Vector<byte[]> chunks = new Vector<byte[]>();
+        int chunkSize = Integer.parseInt(parameters.chunkSize);
+        int count;
+        int index = 0;
+        int stopIndex = -1;
+        boolean iterating = true;
 
-        if self._parameters.stream and self._parameters.stream.upper() == 'TRUE':
-            results = chunks
-        else:
-            results = pandas.concat(list(chunks), ignore_index=True)
-            LOGGER.info('Concatenated chunks memory usage:\n%s', results.memory_usage(deep=True))
+        if (parameters.count.equals("")) {
+            count = Integer.parseInt(parameters.count);
 
-        return results
+            if (parameters.startIndex.equals("")) {
+                index = Integer.parseInt(parameters.startIndex) * count;
+                stopIndex = index + count;
+            }
+        }
 
-    # pylint: disable=no-self-use
-    def _read_single_query(self, query, connection):
-        LOGGER.info('Sending query: %s', query)
-        return pandas.read_sql(query, connection)
+        if (!parameters.maxParts.equals("") && !parameters.partIndex.equals("")) {
+            int maxParts = Integer.parseInt(parameters.maxParts);
+            int partIndex = Integer.parseInt(parameters.partIndex);
 
-    def _iterate_over_chunks(self, query, connection):
-        chunk_size = int(self._parameters.chunk_size)
-        count = None
-        index = 0
-        stop_index = None
-        iterating = True
+            if (partIndex >= (maxParts -1)) {
+                stopIndex = -1;
+            }
+        }
 
-        if self._parameters.count:
-            count = int(self._parameters.count)
+        while (iterating) {
+            if (stopIndex >= 0 && (index + chunkSize) > stopIndex) {
+                chunkSize = stopIndex - index;
+            }
 
-            if self._parameters.start_index:
-                index = int(self._parameters.start_index) * count
-                stop_index = index + count
+            String resolvedQuery = resolveChunkedQuery(query, index, chunkSize);
 
-        if self._parameters.max_parts is not None and self._parameters.part_index is not None:
-            max_parts = int(self._parameters.max_parts)
-            part_index = int(self._parameters.part_index)
+            byte[] chunk = readSingleQuery(resolvedQuery, statement);
 
-            if part_index >= (max_parts - 1):
-                stop_index = None
+            if (stopIndex >= 0 && (index > stopIndex || chunk.length == 0)) {
+                iterating = false;
+            } else {
+                chunks.add(chunk);
+            }
 
-        while iterating:
-            if stop_index and (index + chunk_size) > stop_index:
-                chunk_size = stop_index - index
+            index += chunk.length;
+        }
 
-            resolved_query = self._resolve_chunked_query(query, index, chunk_size)
+        return chunks;
+    }
 
-            LOGGER.info('Reading chunk of size %d at index %d...', chunk_size, index)
-            chunk = self._read_single_query(resolved_query, connection)
-            read_count = len(chunk)
-            LOGGER.info('Read %d records.', read_count)
-            LOGGER.info('Chunk memory usage:\n%s', chunk.memory_usage(deep=True))
+    static Vector<byte[]> chunksToCsvBytes(Vector<ResultSet> resultSetChunks) throws IOException, SQLException {
+        Vector<byte[]> csvChunks = new Vector<byte[]>();
 
-            if stop_index and index > stop_index or read_count == 0:
-                iterating = False
-            else:
-                yield chunk
+        for (ResultSet chunk : resultSetChunks) {
+            if (csvChunks.size() == 0) {
+                csvChunks.add(resultSetToCsvBytes(chunk));
+            } else {
+                csvChunks.add(resultSetToCsvBytes(chunk, false));
+            }
+        }
 
-            index += read_count
+        return csvChunks;
+    }
 
-    # pylint: disable=no-self-use
-    def _resolve_chunked_query(self, query, index, count):
-        formatter = PartialFormatter()
+    static byte[] concatenateCsvChunks(Vector<byte[]> chunks) {
+        int totalResultsLength = 0;
+        int index = 0;
+        byte[] results;
 
-        if '{index}' not in query or '{count}' not in query:
-            raise ValueError("Chunked query SQL does not contain '{index}' and '{count}' template variables.")
+        for (byte[] chunk : chunks) {
+            totalResultsLength += chunk.length;
+        }
 
-        return formatter.format(query, index=index, count=count)
-*/
+        results = new byte[totalResultsLength];
+
+        for (byte[] chunk : chunks) {
+            System.arraycopy(results, index, chunk, 0, index + chunk.length + 1);
+
+            index += chunk.length;
+        }
+
+        return results;
+    }
+
+    static String resolveChunkedQuery(String query, int index, int count) {
+        PartialFormatter formatter = new PartialFormatter();
+
+        return formatter.format(
+            query,
+            new HashMap<String, Object>() {{
+                put("index", index);
+                put("count", count);
+            }}
+        );
+    }
 }

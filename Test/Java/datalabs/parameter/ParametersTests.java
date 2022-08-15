@@ -21,7 +21,7 @@ class ExampleTaskParameters extends Parameters {
     public String fee;
     public String fye;
 
-    @Default("fum")
+    @Optional("fum")
     public String fo;
 
     public ExampleTaskParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
