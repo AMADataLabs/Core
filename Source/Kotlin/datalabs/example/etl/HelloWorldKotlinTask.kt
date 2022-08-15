@@ -23,9 +23,10 @@ open class HelloWorldKotlinTask(
     parameters: Map<String, String>,
     data: Vector<ByteArray>
 ) : Task(parameters, data, HelloWorldKotlinParameters::class.java) {
-    internal Logger logger = LoggerFactory.getLogger(HelloWorldKotlinTask::class.java);
+    internal val logger = LoggerFactory.getLogger(HelloWorldKotlinTask::class.java)
 
     override fun run() : Vector<ByteArray>? {
+        logger.info("Hello, World!")
         return null
     }
 }
