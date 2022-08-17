@@ -1,28 +1,82 @@
 package datalabs.etl.sql;
 
-/*
-class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
-    PARAMETER_CLASS = SQLParametricExtractorParameters
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-        self._query_parameters = self._csv_to_dataframe(self._parameters.data[0])
+import datalabs.string.PartialFormatter;
+import datalabs.task.TaskException;
 
-    def _read_single_query(self, query, connection):
-        resolved_query = self._resolve_query(query, 0, 0)
 
-        return super()._read_single_query(resolved_query, connection)
+public class SqlParametricExtractorTask extends SqlExtractorTask {
+    static final Logger LOGGER = LoggerFactory.getLogger(SqlParametricExtractorTask.class);
 
-    def _resolve_query(self, query, record_index, record_count):
-        formatter = PartialFormatter()
-        resolved_query = query
+    Map<String, Object> sqlParameters = null;
 
-        if '{index}' in query and '{count}' in query:
-            resolved_query = formatter.format(query, index=record_index, count=record_count)
+    public SqlParametricExtractorTask(Map<String, String> parameters, Vector<byte[]> data)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        super(parameters, data);
+    }
 
-        part_index = int(self._parameters.part_index)
-        parameters = self._query_parameters.iloc[part_index].to_dict()
 
-        return formatter.format(resolved_query, **parameters)
-*/
+    public Vector<byte[]> run() throws TaskException {
+        try {
+            int partIndex = Integer.parseInt(((SqlExtractorParameters) this.parameters).partIndex);
+
+            sqlParameters = extractSqlParameters(this.inputData.get(0), partIndex);
+        } catch (Exception exception) {
+            throw new TaskException(exception);
+        }
+
+        return super.run();
+    }
+
+
+    Map<String, Object> extractSqlParameters(byte[] data, int partIndex) throws CsvValidationException, IOException {
+        HashMap<String, Object> parameters = new HashMap<String, Object>();
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
+        String[] columns = null;
+        String[] row = null;
+
+        try (byteStream; InputStreamReader streamWriter = new InputStreamReader(byteStream)) {
+            CSVReader reader = new CSVReader(streamWriter);
+
+            columns = reader.readNext();
+
+            reader.skip(partIndex);
+
+            row = reader.readNext();
+        }
+
+        for (int index=0; index < columns.length; ++index) {
+            parameters.put(columns[index], row[index]);
+        }
+
+        return parameters;
+    }
+
+    @Override
+    byte[] readQuery(String query, Connection connection)
+            throws IOException, SQLException {
+        String resolvedQuery = resolveQuery(query, this.sqlParameters);
+
+        return super.readQuery(resolvedQuery, connection);
+    }
+
+    String resolveQuery(String query, Map<String, Object> parameters) {
+        PartialFormatter formatter = new PartialFormatter();
+
+        return formatter.format(query, parameters);
+    }
+}

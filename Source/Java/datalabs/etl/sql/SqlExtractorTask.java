@@ -108,7 +108,7 @@ public class SqlExtractorTask extends Task {
         Vector<byte[]> data = new Vector<byte[]>();
 
         for (String query : queries) {
-            data.add(readQuery(query, connection, (SqlExtractorParameters) this.parameters));
+            data.add(readQuery(query, connection));
         }
 
         return data;
@@ -129,15 +129,14 @@ public class SqlExtractorTask extends Task {
         return splitQueries;
     }
 
-    static byte[] readQuery(String query, Connection connection, SqlExtractorParameters parameters)
-            throws IOException, SQLException {
+    byte[] readQuery(String query, Connection connection) throws IOException, SQLException {
         byte[] results = null;
 
         try (Statement statement = connection.createStatement()) {
-            if (parameters.chunkSize.equals("")) {
+            if (((SqlExtractorParameters) this.parameters).chunkSize.equals("")) {
                 results = readSingleQuery(query, statement);
             } else {
-                results = readChunkedQuery(query, statement, parameters);
+                results = readChunkedQuery(query, statement, (SqlExtractorParameters) this.parameters);
             }
         }
 

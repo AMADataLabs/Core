@@ -133,25 +133,10 @@ class SqlExtractorTaskTests {
     }
 
     @Test
-    public void readSingleQuery()  {
-        byte[] outputDatum = null;
+    public void readSingleQueryReturnsCorrectData()  {
+        setupSingleQueryMockReturnValues();
 
-        try {
-            when(statement.executeQuery("SELECT * FROM ping")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
-        } catch(java.sql.SQLException exception) {
-            exception.printStackTrace();
-        }
-
-        try {
-            outputDatum = SqlExtractorTask.readQuery(
-                "SELECT * FROM ping",
-                connection,
-                SqlExtractorTaskTests.SINGLE_QUERY_PARAMETERS
-            );
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            assertTrue(false);
-        }
+        byte[] outputDatum = readSingleQuery();
 
         assertNotNull(outputDatum);
 
@@ -164,27 +149,10 @@ class SqlExtractorTaskTests {
     }
 
     @Test
-    public void readChunkedQuery()  {
-        byte[] outputDatum = null;
+    public void readChunkedQueryReturnsCorrectData()  {
+        setupChunkedQueryMockReturnValues();
 
-        try {
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 0, 69")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 69, 69")).thenReturn(SqlExtractorTaskTests.CHUNKED_QUERY_RESULTS);
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 129, 69")).thenReturn(new EmptyResultSet());
-        } catch(java.sql.SQLException exception) {
-            exception.printStackTrace();
-        }
-
-        try {
-            outputDatum = SqlExtractorTask.readQuery(
-                "SELECT * FROM ping LIMIT {index}, {count}",
-                connection,
-                SqlExtractorTaskTests.CHUNKED_QUERY_PARAMETERS
-            );
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            assertTrue(false);
-        }
+        byte[] outputDatum = readChunkedQuery();
 
         assertNotNull(outputDatum);
 
@@ -198,11 +166,62 @@ class SqlExtractorTaskTests {
         );
         LOGGER.debug("Actual: |" + outputCsv + "|");
 
-
         assertTrue(outputCsv.equals(
             "\"id\",\"name\"\n" +
             SqlExtractorTaskTests.SINGLE_QUERY_OUTPUT_CSV +
             SqlExtractorTaskTests.CHUNKED_QUERY_OUTPUT_CSV
         ));
+    }
+
+    void setupSingleQueryMockReturnValues() {
+        try {
+            when(statement.executeQuery("SELECT * FROM ping")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
+        } catch(java.sql.SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    byte[] readSingleQuery() {
+        byte[] outputDatum = null;
+
+        try {
+            outputDatum = SqlExtractorTask.readQuery(
+                "SELECT * FROM ping",
+                connection,
+                SqlExtractorTaskTests.SINGLE_QUERY_PARAMETERS
+            );
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            assertTrue(false);
+        }
+
+        return outputDatum;
+    }
+
+    void setupChunkedQueryMockReturnValues() {
+        try {
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 0, 69")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 69, 69")).thenReturn(SqlExtractorTaskTests.CHUNKED_QUERY_RESULTS);
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 129, 69")).thenReturn(new EmptyResultSet());
+        } catch(java.sql.SQLException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    byte[] readChunkedQuery() {
+        byte[] outputDatum = null;
+
+        try {
+            outputDatum = SqlExtractorTask.readQuery(
+                "SELECT * FROM ping LIMIT {index}, {count}",
+                connection,
+                SqlExtractorTaskTests.CHUNKED_QUERY_PARAMETERS
+            );
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            assertTrue(false);
+        }
+
+        return outputDatum;
     }
 }
