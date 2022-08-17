@@ -1,15 +1,15 @@
 package datalabs.etl.dag.cache;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 
 public class S3TaskDataCache extends TaskDataCache {
-    public Vector<byte[]> extractData() {
+    public ArrayList<byte[]> extractData() {
         // TODO: implement
         return null;
     }
 
-    public void loadData(Vector<byte[]> outputData) {
+    public void loadData(ArrayList<byte[]> outputData) {
         // TODO: implement
     }
 }

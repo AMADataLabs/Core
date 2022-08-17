@@ -14,7 +14,7 @@ import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -41,13 +41,13 @@ public class SqlExtractorTask extends Task {
         super(parameters, SqlExtractorParameters.class);
     }
 
-    public SqlExtractorTask(Map<String, String> parameters, Vector<byte[]> data)
+    public SqlExtractorTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         super(parameters, data, SqlExtractorParameters.class);
     }
 
-    public Vector<byte[]> run() throws TaskException {
-        Vector<byte[]> output;
+    public ArrayList<byte[]> run() throws TaskException {
+        ArrayList<byte[]> output;
 
         try {
             Connection connection = connect();
@@ -103,9 +103,9 @@ public class SqlExtractorTask extends Task {
         return connectionString;
     }
 
-    Vector<byte[]> readQueries(Connection connection) throws IOException, SQLException {
+    ArrayList<byte[]> readQueries(Connection connection) throws IOException, SQLException {
         String[] queries = splitQueries(((SqlExtractorParameters) this.parameters).sql);
-        Vector<byte[]> data = new Vector<byte[]>();
+        ArrayList<byte[]> data = new ArrayList<byte[]>();
 
         for (String query : queries) {
             data.add(readQuery(query, connection));
@@ -153,7 +153,7 @@ public class SqlExtractorTask extends Task {
 
     static byte[] readChunkedQuery(String query, Statement statement, SqlExtractorParameters parameters)
             throws IOException, SQLException {
-        Vector<byte[]> csvChunks = readChunks(query, statement, parameters);
+        ArrayList<byte[]> csvChunks = readChunks(query, statement, parameters);
 
         return concatenateCsvChunks(csvChunks);
     }
@@ -180,9 +180,9 @@ public class SqlExtractorTask extends Task {
         return resultSetToCsvBytes(results, true);
     }
 
-    static Vector<byte[]> readChunks(String query, Statement statement, SqlExtractorParameters parameters)
+    static ArrayList<byte[]> readChunks(String query, Statement statement, SqlExtractorParameters parameters)
             throws IOException, SQLException {
-        Vector<byte[]> chunks = new Vector<byte[]>();
+        ArrayList<byte[]> chunks = new ArrayList<byte[]>();
         int chunkSize = Integer.parseInt(parameters.chunkSize);
         int count;
         int index = 0;
@@ -234,7 +234,7 @@ public class SqlExtractorTask extends Task {
         return chunks;
     }
 
-    static byte[] concatenateCsvChunks(Vector<byte[]> chunks) {
+    static byte[] concatenateCsvChunks(ArrayList<byte[]> chunks) {
         int totalResultsLength = 0;
         int index = 0;
         byte[] results;

@@ -6,9 +6,10 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
@@ -22,19 +23,16 @@ import datalabs.task.TaskException;
 public class SqlParametricExtractorTask extends SqlExtractorTask {
     static final Logger LOGGER = LoggerFactory.getLogger(SqlParametricExtractorTask.class);
 
-    Map<String, Object> sqlParameters = null;
+    HashMap<String, Object> sqlParameters = new HashMap<String, Object>();
 
-    public SqlParametricExtractorTask(Map<String, String> parameters, Vector<byte[]> data)
+    public SqlParametricExtractorTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         super(parameters, data);
     }
 
-
-    public Vector<byte[]> run() throws TaskException {
+    public ArrayList<byte[]> run() throws TaskException {
         try {
-            int partIndex = Integer.parseInt(((SqlExtractorParameters) this.parameters).partIndex);
-
-            sqlParameters = extractSqlParameters(this.inputData.get(0), partIndex);
+            extractSqlParameters();
         } catch (Exception exception) {
             throw new TaskException(exception);
         }
@@ -42,10 +40,9 @@ public class SqlParametricExtractorTask extends SqlExtractorTask {
         return super.run();
     }
 
-
-    Map<String, Object> extractSqlParameters(byte[] data, int partIndex) throws CsvValidationException, IOException {
-        HashMap<String, Object> parameters = new HashMap<String, Object>();
-        ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
+    void extractSqlParameters() throws CsvValidationException, IOException {
+        int partIndex = Integer.parseInt(((SqlExtractorParameters) this.parameters).partIndex);
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(this.inputData.get(0));
         String[] columns = null;
         String[] row = null;
 
@@ -60,21 +57,18 @@ public class SqlParametricExtractorTask extends SqlExtractorTask {
         }
 
         for (int index=0; index < columns.length; ++index) {
-            parameters.put(columns[index], row[index]);
+            this.sqlParameters.put(columns[index], row[index]);
         }
-
-        return parameters;
     }
 
     @Override
-    byte[] readQuery(String query, Connection connection)
-            throws IOException, SQLException {
-        String resolvedQuery = resolveQuery(query, this.sqlParameters);
+    byte[] readQuery(String query, Connection connection) throws IOException, SQLException {
+        String resolvedQuery = SqlParametricExtractorTask.resolveQuery(query, this.sqlParameters);
 
         return super.readQuery(resolvedQuery, connection);
     }
 
-    String resolveQuery(String query, Map<String, Object> parameters) {
+    static String resolveQuery(String query, Map<String, Object> parameters) {
         PartialFormatter formatter = new PartialFormatter();
 
         return formatter.format(query, parameters);

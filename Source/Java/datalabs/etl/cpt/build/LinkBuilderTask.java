@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.ama.dtk.Builder;
 import org.ama.dtk.Delimiter;
@@ -40,7 +40,7 @@ public class LinkBuilderTask extends Task {
         super(parameters, LinkBuilderParameters.class);
     }
 
-    public Vector<byte[]> run() throws TaskException {
+    public ArrayList<byte[]> run() throws TaskException {
         try {
             LinkBuilderParameters parameters = (LinkBuilderParameters) this.parameters;
             DtkAccess priorLink = LinkBuilderTask.loadLink("dtk-versions/" + parameters.priorDtkVersion + "/");

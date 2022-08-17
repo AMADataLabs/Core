@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.ama.dtk.Delimiter;
 import org.ama.dtk.DtkAccess;
@@ -33,7 +33,7 @@ public class CoreBuilderTask extends Task {
         super(parameters);
     }
 
-    public Vector<byte[]> run() throws TaskException {
+    public ArrayList<byte[]> run() throws TaskException {
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
             DtkAccess priorLink = CoreBuilderTask.loadLink("prior");

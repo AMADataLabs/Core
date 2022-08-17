@@ -3,7 +3,7 @@ package datalabs.parameter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ class ExampleTask extends Task {
         return (ExampleTaskParameters) this.parameters;
     }
 
-    public Vector<byte[]> run() {
+    public ArrayList<byte[]> run() {
         LOGGER.info("This is an example task class with parameters.");
 
         return null;

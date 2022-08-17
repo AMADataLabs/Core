@@ -1,6 +1,6 @@
 package datalabs.example.etl
 
-import java.util.Vector
+import java.util.ArrayList
 import kotlin.test.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -12,7 +12,7 @@ open class HelloWorldKotlinTaskTests {
 
     @Test
     fun instantiationWithRequiredParametersSucceeds() {
-        val task = HelloWorldKotlinTask(parameters, Vector<ByteArray>())
+        val task = HelloWorldKotlinTask(parameters, ArrayList<ByteArray>())
 
         val outputData = task.run()
 

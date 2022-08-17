@@ -1,6 +1,6 @@
 package datalabs.example.etl
 
-import java.util.Vector
+import java.util.ArrayList
 import kotlin.collections.Map
 
 import org.slf4j.Logger;
@@ -21,11 +21,11 @@ open class HelloWorldKotlinParameters(parameters: Map<String, String>) : KParame
 
 open class HelloWorldKotlinTask(
     parameters: Map<String, String>,
-    data: Vector<ByteArray>
+    data: ArrayList<ByteArray>
 ) : Task(parameters, data, HelloWorldKotlinParameters::class.java) {
     internal val logger = LoggerFactory.getLogger(HelloWorldKotlinTask::class.java)
 
-    override fun run() : Vector<ByteArray>? {
+    override fun run() : ArrayList<ByteArray>? {
         logger.info("Hello, World!")
         return null
     }
