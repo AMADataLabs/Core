@@ -26,7 +26,10 @@ open class HelloWorldKotlinTask(
     internal val logger = LoggerFactory.getLogger(HelloWorldKotlinTask::class.java)
 
     override fun run() : ArrayList<ByteArray>? {
-        logger.info("Hello, World!")
+        val parameters = this.parameters as HelloWorldKotlinParameters
+
+        logger.info("Hello, " + parameters.firstName + " " + parameters.lastName)
+
         return null
     }
 }

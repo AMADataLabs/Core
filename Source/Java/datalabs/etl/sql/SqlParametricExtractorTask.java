@@ -42,7 +42,7 @@ public class SqlParametricExtractorTask extends SqlExtractorTask {
 
     void extractSqlParameters() throws CsvValidationException, IOException {
         int partIndex = Integer.parseInt(((SqlExtractorParameters) this.parameters).partIndex);
-        ByteArrayInputStream byteStream = new ByteArrayInputStream(this.inputData.get(0));
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(this.data.get(0));
         String[] columns = null;
         String[] row = null;
 
