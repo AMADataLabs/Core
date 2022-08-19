@@ -2,7 +2,7 @@ package datalabs.task;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,19 +14,18 @@ import datalabs.parameter.Parameters;
 public abstract class Task extends ParameterizedClassMixin {
     protected static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
-    protected Vector<byte[]> inputData = null;
-    protected Vector<byte[]> outputData = null;
+    protected ArrayList<byte[]> data = null;
 
-    public Task(Map<String, String> parameters, Vector<byte[]> data)
+    public Task(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         this(parameters, data, null);
     }
 
-    public Task(Map<String, String> parameters, Vector<byte[]> data, Class parameterClass)
+    public Task(Map<String, String> parameters, ArrayList<byte[]> data, Class parameterClass)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         this(parameters, parameterClass);
 
-        this.inputData = data;
+        this.data = data;
     }
 
     public Task(Map<String, String> parameters)
@@ -39,5 +38,5 @@ public abstract class Task extends ParameterizedClassMixin {
         super(parameters, parameterClass);
     }
 
-    public abstract Vector<byte[]> run() throws TaskException;
+    public abstract ArrayList<byte[]> run() throws TaskException;
 }

@@ -11,9 +11,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
 import java.sql.ResultSet;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -40,13 +41,13 @@ public class SqlExtractorTask extends Task {
         super(parameters, SqlExtractorParameters.class);
     }
 
-    public SqlExtractorTask(Map<String, String> parameters, Vector<byte[]> data)
+    public SqlExtractorTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         super(parameters, data, SqlExtractorParameters.class);
     }
 
-    public Vector<byte[]> run() throws TaskException {
-        Vector<byte[]> output;
+    public ArrayList<byte[]> run() throws TaskException {
+        ArrayList<byte[]> output;
 
         try {
             Connection connection = connect();
@@ -102,12 +103,12 @@ public class SqlExtractorTask extends Task {
         return connectionString;
     }
 
-    Vector<byte[]> readQueries(Connection connection) throws IOException, SQLException {
+    ArrayList<byte[]> readQueries(Connection connection) throws IOException, SQLException {
         String[] queries = splitQueries(((SqlExtractorParameters) this.parameters).sql);
-        Vector<byte[]> data = new Vector<byte[]>();
+        ArrayList<byte[]> data = new ArrayList<byte[]>();
 
         for (String query : queries) {
-            data.add(readQuery(query, connection, (SqlExtractorParameters) this.parameters));
+            data.add(readQuery(query, connection));
         }
 
         return data;
@@ -128,53 +129,66 @@ public class SqlExtractorTask extends Task {
         return splitQueries;
     }
 
-    static byte[] readQuery(String query, Connection connection, SqlExtractorParameters parameters)
-            throws IOException, SQLException {
+    byte[] readQuery(String query, Connection connection) throws IOException, SQLException {
         byte[] results = null;
 
         try (Statement statement = connection.createStatement()) {
-            if (parameters.chunkSize.equals("")) {
+            if (((SqlExtractorParameters) this.parameters).chunkSize.equals("")) {
                 results = readSingleQuery(query, statement);
             } else {
-                results = readChunkedQuery(query, statement, parameters);
+                results = readChunkedQuery(query, statement, (SqlExtractorParameters) this.parameters);
             }
         }
 
         return results;
     }
 
+    static byte[] readSingleQuery(String query, Statement statement, boolean includeHeaders) throws IOException, SQLException {
+        return resultSetToCsvBytes(statement.executeQuery(query), includeHeaders);
+    }
+
     static byte[] readSingleQuery(String query, Statement statement) throws IOException, SQLException {
-        return resultSetToCsvBytes(statement.executeQuery(query));
+        return readSingleQuery(query, statement, true);
     }
 
     static byte[] readChunkedQuery(String query, Statement statement, SqlExtractorParameters parameters)
             throws IOException, SQLException {
-        Vector<byte[]> csvChunks = readChunks(query, statement, parameters);
+        ArrayList<byte[]> csvChunks = readChunks(query, statement, parameters);
 
         return concatenateCsvChunks(csvChunks);
     }
 
     static byte[] resultSetToCsvBytes(ResultSet results, boolean includeHeaders) throws IOException, SQLException {
         ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
-        CSVWriter writer = new CSVWriter(new OutputStreamWriter(byteStream));
+        int rows = 0;
+        byte[] csvBytes = new byte[0];
 
-        writer.writeAll(results, includeHeaders);
+        try (byteStream; OutputStreamWriter streamWriter = new OutputStreamWriter(byteStream)) {
+            CSVWriter writer = new CSVWriter(streamWriter);
 
-        return byteStream.toByteArray();
+            rows = writer.writeAll(results, includeHeaders);
+        }
+
+        if ((includeHeaders && rows > 1) || (!includeHeaders && rows > 0)) {
+            csvBytes = byteStream.toByteArray();
+        }
+
+        return csvBytes;
     }
 
     static byte[] resultSetToCsvBytes(ResultSet results) throws IOException, SQLException {
         return resultSetToCsvBytes(results, true);
     }
 
-    static Vector<byte[]> readChunks(String query, Statement statement, SqlExtractorParameters parameters)
+    static ArrayList<byte[]> readChunks(String query, Statement statement, SqlExtractorParameters parameters)
             throws IOException, SQLException {
-        Vector<byte[]> chunks = new Vector<byte[]>();
+        ArrayList<byte[]> chunks = new ArrayList<byte[]>();
         int chunkSize = Integer.parseInt(parameters.chunkSize);
         int count;
         int index = 0;
         int stopIndex = -1;
         boolean iterating = true;
+        boolean includeHeaders = true;
 
         if (parameters.count.equals("")) {
             count = Integer.parseInt(parameters.count);
@@ -200,36 +214,27 @@ public class SqlExtractorTask extends Task {
             }
 
             String resolvedQuery = resolveChunkedQuery(query, index, chunkSize);
+            LOGGER.debug("Unresolved Query: " + query);
+            LOGGER.debug("Index: " + index);
+            LOGGER.debug("Chunk Size: " + chunkSize);
+            LOGGER.debug("Resolved Query: " + resolvedQuery);
 
-            byte[] chunk = readSingleQuery(resolvedQuery, statement);
+            byte[] chunk = readSingleQuery(resolvedQuery, statement, includeHeaders);
 
-            if (stopIndex >= 0 && (index > stopIndex || chunk.length == 0)) {
+            if (stopIndex >= 0 && index > stopIndex || chunk.length == 0) {
                 iterating = false;
             } else {
                 chunks.add(chunk);
             }
 
+            includeHeaders = false;
             index += chunk.length;
         }
 
         return chunks;
     }
 
-    static Vector<byte[]> chunksToCsvBytes(Vector<ResultSet> resultSetChunks) throws IOException, SQLException {
-        Vector<byte[]> csvChunks = new Vector<byte[]>();
-
-        for (ResultSet chunk : resultSetChunks) {
-            if (csvChunks.size() == 0) {
-                csvChunks.add(resultSetToCsvBytes(chunk));
-            } else {
-                csvChunks.add(resultSetToCsvBytes(chunk, false));
-            }
-        }
-
-        return csvChunks;
-    }
-
-    static byte[] concatenateCsvChunks(Vector<byte[]> chunks) {
+    static byte[] concatenateCsvChunks(ArrayList<byte[]> chunks) {
         int totalResultsLength = 0;
         int index = 0;
         byte[] results;
@@ -241,7 +246,7 @@ public class SqlExtractorTask extends Task {
         results = new byte[totalResultsLength];
 
         for (byte[] chunk : chunks) {
-            System.arraycopy(results, index, chunk, 0, index + chunk.length + 1);
+            System.arraycopy(chunk, 0, results, index, chunk.length);
 
             index += chunk.length;
         }

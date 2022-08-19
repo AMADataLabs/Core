@@ -1,6 +1,6 @@
 package datalabs.parameter
 
-import java.util.Vector
+import java.util.ArrayList
 import kotlin.collections.Map
 import kotlin.reflect.KProperty1
 import kotlin.reflect.KMutableProperty1

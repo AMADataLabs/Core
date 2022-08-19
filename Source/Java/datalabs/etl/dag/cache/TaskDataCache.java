@@ -1,6 +1,6 @@
 package datalabs.etl.dag.cache;
 
-import java.util.Vector;
+import java.util.ArrayList;
 
 
 public abstract class TaskDataCache {
@@ -8,7 +8,7 @@ public abstract class TaskDataCache {
         INPUT, OUTPUT
     }
 
-    public abstract Vector<byte[]> extractData();
+    public abstract ArrayList<byte[]> extractData();
 
-    public abstract void loadData(Vector<byte[]> outputData);
+    public abstract void loadData(ArrayList<byte[]> outputData);
 }

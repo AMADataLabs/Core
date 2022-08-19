@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,11 +30,15 @@ public abstract class Parameters {
         LOGGER.debug("Field Names: " + fieldNames);
         Map<String, String> fieldDefaults = getFieldDefaults(fields);
 
-        parameters = Parameters.standardizeParameters(parameters);
+        LOGGER.debug("Raw Parameters: " + parameters);
 
-        validate(parameters, fields, fieldNames, fieldDefaults);
+        Map<String, String> standardizedParameters = Parameters.standardizeParameters(parameters);
 
-        populate(parameters, fieldNames, fieldDefaults);
+        LOGGER.debug("Standardized Parameters: " + standardizedParameters);
+
+        validate(standardizedParameters, fields, fieldNames, fieldDefaults);
+
+        populate(standardizedParameters, fieldNames, fieldDefaults);
     }
 
     static Map<String, String> standardizeParameters(Map<String, String> parameters) throws NoSuchFieldException {
@@ -51,7 +55,6 @@ public abstract class Parameters {
             throws IllegalArgumentException {
         String[] unexpectedFields = Parameters.getUnexpectedFields(parameters, fieldNames);
         String[] missingFields = Parameters.getMissingFields(parameters, fieldNames, fieldDefaults);
-        LOGGER.debug("Parameters: " + parameters);
         LOGGER.debug("Unexpected Fields: " + Arrays.toString(unexpectedFields));
         LOGGER.debug("Missing Fields: " + Arrays.toString(missingFields));
         LOGGER.debug("Default Fields: " + Arrays.toString(fieldDefaults.keySet().toArray()));
@@ -111,7 +114,7 @@ public abstract class Parameters {
     }
 
     static String[] getUnexpectedFields(Map<String, String> parameters, Map<String, String> fieldNames) {
-        Vector<String> unexpectedFields = new Vector<String>();
+        ArrayList<String> unexpectedFields = new ArrayList<String>();
 
         for (String fieldName : parameters.keySet()) {
             LOGGER.debug("Validating field \"" + fieldName + "\"...");
@@ -124,7 +127,7 @@ public abstract class Parameters {
     }
 
     static String[] getMissingFields(Map<String, String> parameters, Map<String, String> fieldNames, Map<String, String> fieldDefaults) {
-        Vector<String> missingFields = new Vector<String>();
+        ArrayList<String> missingFields = new ArrayList<String>();
 
         for (String fieldName : fieldNames.keySet()) {
             boolean isUnknowns = fieldName.equals("UNKNOWNS");
