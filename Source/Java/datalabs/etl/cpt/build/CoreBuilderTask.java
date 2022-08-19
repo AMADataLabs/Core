@@ -28,9 +28,9 @@ import datalabs.task.TaskException;
 public class CoreBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoreBuilderTask.class);
 
-    public CoreBuilderTask(Map<String, String> parameters)
+    public CoreBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters);
+        super(parameters, null, CoreBuilderParameters.class);
     }
 
     public ArrayList<byte[]> run() throws TaskException {

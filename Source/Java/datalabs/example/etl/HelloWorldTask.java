@@ -13,18 +13,20 @@ import datalabs.task.Task;
 public class HelloWorldTask extends Task {
     static final Logger LOGGER = LoggerFactory.getLogger(HelloWorldTask.class);
 
-    public HelloWorldTask(Map<String, String> parameters)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters);
-    }
-
     public HelloWorldTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, data);
+        super(parameters, null, HelloWorldParameters.class);
     }
 
     public ArrayList<byte[]> run() {
-        LOGGER.info("Hello, World!");
+        HelloWorldParameters parameters = (HelloWorldParameters) this.parameters;
+        String name = parameters.firstName;
+
+        if (parameters.lastName != "") {
+            name = name + " " + parameters.lastName;
+        }
+
+        LOGGER.info("Hello there, " + name + "!");
 
         return null;
     }

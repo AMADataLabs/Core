@@ -41,6 +41,16 @@ public abstract class Parameters {
         populate(standardizedParameters, fieldNames, fieldDefaults);
     }
 
+    public static Parameters fromMap(Map<String, String> parameters, Class parameterClass)
+            throws IllegalAccessException, IllegalArgumentException, InstantiationException,
+            InvocationTargetException, NoSuchMethodException {
+        if (parameters == null) {
+            throw new IllegalArgumentException("Null parameters map.");
+        }
+
+        return (Parameters) parameterClass.getConstructor(new Class[] {Map.class}).newInstance(parameters);
+    }
+
     static Map<String, String> standardizeParameters(Map<String, String> parameters) throws NoSuchFieldException {
         HashMap<String, String> standardizedParameters = new HashMap<String, String>();
 
