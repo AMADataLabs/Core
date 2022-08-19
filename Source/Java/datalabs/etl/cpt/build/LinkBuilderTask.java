@@ -35,9 +35,9 @@ import datalabs.task.TaskException;
 public class LinkBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkBuilderTask.class);
 
-    public LinkBuilderTask(Map<String, String> parameters)
+    public LinkBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, LinkBuilderParameters.class);
+        super(parameters, null, LinkBuilderParameters.class);
     }
 
     public ArrayList<byte[]> run() throws TaskException {

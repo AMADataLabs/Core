@@ -36,11 +36,6 @@ import datalabs.task.TaskException;
 public class SqlExtractorTask extends Task {
     static final Logger LOGGER = LoggerFactory.getLogger(SqlExtractorTask.class);
 
-    public SqlExtractorTask(Map<String, String> parameters)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, SqlExtractorParameters.class);
-    }
-
     public SqlExtractorTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
         super(parameters, data, SqlExtractorParameters.class);

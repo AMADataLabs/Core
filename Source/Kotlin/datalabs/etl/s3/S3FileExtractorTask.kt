@@ -28,10 +28,8 @@ open class S3FileExtractorParameters(parameters: Map<String, String>) : KParamet
 }
 
 
-open class S3FileExtractorTask(
-    parameters: Map<String, String>,
-    data: ArrayList<ByteArray>
-) : Task(parameters, data, S3FileExtractorParameters::class.java) {
+open class S3FileExtractorTask(parameters: Map<String, String>):
+        Task(parameters, null, S3FileExtractorParameters::class.java) {
     internal val logger = LoggerFactory.getLogger(S3FileExtractorTask::class.java)
 
     override fun run() : ArrayList<ByteArray>? {
