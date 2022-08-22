@@ -1,12 +1,8 @@
-# Render as follows:
-#
-# Script/render-template -t Deploy/IntelligentPlatform/dev/developer_emails.yaml.jinja -f Deploy/IntelligentPlatform/dev/developer_emails.yaml \
-# -V "platform_db_password={{platform_db_password}}"
----
 data:
     #######################################################################
     # Global Variables - {"DAG": {"S": "DEVELOPER_EMAILS"}, "Task": {"S": "GLOBAL"}}
     #######################################################################
+
 
     ENVIRONMENT: dev
     ACCOUNT: '191296302136'
@@ -14,11 +10,15 @@ data:
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
+    PLATFORM_DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    PLATFORM_DB_DRIVER_TYPE: sqlserver
+    PLATFORM_DB_JAR_PATH: ./mssql-jdbc-10.2.0.jre11.jar
+
     PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
     PLATFORM_DB_PORT: '3306'
     PLATFORM_DB_BACKEND: 'mysql+pymysql'
     PLATFORM_DB_NAME: 'usermgmt'
-    PLATFORM_DB_USERNAME:  platform
+    PLATFORM_DB_USERNAME:  oneview_user_management
     PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
 
     S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
@@ -71,6 +71,13 @@ data:
     	usermgmt.User u
     WHERE u.id >96 and u.dev_program_user is NOT NULL;
     "
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__CHUNK_SIZE: '100000'
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__DRIVER: ${PLATFORM_DB_DRIVER}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__DRIVER_TYPE: ${PLATFORM_DB_DRIVER_TYPE}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__JAR_PATH: ${PLATFORM_DB_JAR_PATH}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
     DEVELOPER_EMAILS__EXTRACT_DEVELOPER_EMAILS__CACHE_OUTPUT_FILES: developer_emails.csv
 
     # Email Loader
