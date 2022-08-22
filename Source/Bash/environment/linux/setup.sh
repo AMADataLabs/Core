@@ -115,8 +115,7 @@ remove_pip() {
 
 
 install_python() {
-    echo "deb http://ppa.launchpad.net/deadsnakes/ppa/ubuntu bionic main" > /etc/apt/sources.list.d/deadsnakes-ubuntu-ppa-bionic.list
-    apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-keys BA6932366A755776
+    add-apt-repository -y ppa:deadsnakes/ppa
 
     apt install -y python3.9 python3.9-dev
 }

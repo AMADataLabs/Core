@@ -11,7 +11,7 @@ setup_python_virtual_environment() {
 
 create_python_virtual_environment() {
     environment_path=$1
-    python_version=$(python3 --version | awk '{print $2}' | sed 's/3\.\([0-9][0-9]*\)..*/3.\1/')
+    python_version=$(python3.9 --version | awk '{print $2}' | sed 's/3\.\([0-9][0-9]*\)..*/3.\1/')
 
     if [[ ! -f "$environment_path/bin/python${python_version}" ]]; then
         echo "Creating virtual environment..."
