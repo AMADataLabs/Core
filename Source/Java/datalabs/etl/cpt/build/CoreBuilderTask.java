@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -115,7 +116,7 @@ public class CoreBuilderTask extends Task {
     private  void loadSettings(){
         settings = new Properties(){{
             put("output.directory;", "");
-        }}
+        }};
     }
 
     private void stageInputFiles() throws IOException{
