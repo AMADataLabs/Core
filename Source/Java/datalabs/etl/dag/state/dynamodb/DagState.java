@@ -17,11 +17,10 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 
 import datalabs.etl.dag.state.Status;
-import datalabs.parameter.ParameterizedClassMixin;
 import datalabs.parameter.Parameters;
 
 
-public class DagState extends ParameterizedClassMixin implements datalabs.etl.dag.state.DagState {
+public class DagState extends datalabs.etl.dag.state.DagState {
     protected static final Logger LOGGER = LoggerFactory.getLogger(DagState.class);
 
     static final int TIMEOUT_MILLISECONDS = 30000;
