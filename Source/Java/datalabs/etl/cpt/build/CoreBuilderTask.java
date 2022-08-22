@@ -32,6 +32,7 @@ import datalabs.task.TaskException;
 
 public class CoreBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoreBuilderTask.class);
+    Properties settings = null;
 
     public CoreBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
@@ -42,6 +43,7 @@ public class CoreBuilderTask extends Task {
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
 
+            loadSettings();
             stageInputFiles();
 
             DtkAccess priorLink = CoreBuilderTask.loadLink("./prior_link_data/");
@@ -51,7 +53,7 @@ public class CoreBuilderTask extends Task {
 
             DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate);
 
-            CoreBuilderTask.exportConcepts(core, parameters.outputDirectory);
+            CoreBuilderTask.exportConcepts(core, this.settings.getProperty("output.directory"));
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
@@ -110,22 +112,28 @@ public class CoreBuilderTask extends Task {
         return concepts;
     }
 
-    private void stageInputFiles() throws IOException{
-        this.extract_zip_files(this.data.get(0), "./prior_link_data");
-        this.extract_zip_files(this.data.get(1), "./current_link_data");
+    private  void loadSettings(){
+        settings = new Properties(){{
+            put("output.directory;", "");
+        }}
     }
 
-    private void extract_zip_files(byte[] zip, String directory) throws IOException{
+    private void stageInputFiles() throws IOException{
+        this.extractZipFiles(this.data.get(0), "./prior_link_data");
+        this.extractZipFiles(this.data.get(1), "./current_link_data");
+    }
+
+    private void extractZipFiles(byte[] zip, String directory) throws IOException{
         ByteArrayInputStream byteStream = new ByteArrayInputStream(zip);
         ZipInputStream zipStream = new ZipInputStream(byteStream);
         ZipEntry file = null;
 
         while((file = zipStream.getNextEntry())!=null) {
-            this.write_zip_entry_to_file(file, directory, zipStream);
+            this.writeZipEntryToFile(file, directory, zipStream);
         }
     }
 
-    private void write_zip_entry_to_file(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
+    private void writeZipEntryToFile(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
         byte[] data = new byte[(int) zipEntry.getSize()];
         String fileName = zipEntry.getName();
         File file = new File(directory + File.separator + fileName);
