@@ -1,4 +1,5 @@
 AMC
+Cerner
 ContactID
 CPT/API/Endpoint
 CPT/API/ETL
@@ -10,7 +11,7 @@ HelloWorldVault
 IntelligentPlatform/Developer/Users
 IntelligentPlatform/Licensing
 OneView/ETL
-OneView/ETL/Reindex
+OneView/ETL/Batch
 OneView/API
 Scheduler
 HelloWorld

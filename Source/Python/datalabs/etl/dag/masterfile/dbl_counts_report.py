@@ -1,7 +1,7 @@
 ''' DBL counts report DAG definition. '''
 from   datalabs.analysis.dbl.load import DBLReportEmailLoaderTask
 from   datalabs.analysis.dbl.transform import DBLReportTransformer
-import datalabs.etl.dag.dag as dag
+from   datalabs.etl.dag import dag
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 from   datalabs.etl.sftp.load import SFTPFileLoaderTask
 

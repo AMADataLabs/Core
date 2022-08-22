@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 import org.ama.dtk.Builder;
 import org.ama.dtk.Delimiter;
@@ -34,12 +35,12 @@ import datalabs.task.TaskException;
 public class LinkBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkBuilderTask.class);
 
-    public LinkBuilderTask(Map<String, String> parameters)
+    public LinkBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, LinkBuilderParameters.class);
+        super(parameters, null, LinkBuilderParameters.class);
     }
 
-    public void run() throws TaskException {
+    public ArrayList<byte[]> run() throws TaskException {
         try {
             LinkBuilderParameters parameters = (LinkBuilderParameters) this.parameters;
             DtkAccess priorLink = LinkBuilderTask.loadLink("dtk-versions/" + parameters.priorDtkVersion + "/");
@@ -59,6 +60,8 @@ public class LinkBuilderTask extends Task {
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception.getMessage());
         }
+
+        return null;
     }
 
 	private static DtkAccess loadLink(String directory) throws Exception {

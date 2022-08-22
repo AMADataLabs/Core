@@ -4,7 +4,7 @@ import bisect
 from   dataclasses import dataclass
 import logging
 
-import datalabs.common.setup as setup
+from   datalabs.common import setup
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class EnvironmentGenerator(setup.TemplatedFileGenerator):
         dependencies = {}
         whitelist = self._read_whitelist()
 
-        with open(self._filenames.package_list) as file:
+        with open(self._filenames.package_list, encoding="utf-8") as file:
             for line in file:
                 variable, value = self._parse_dependency(line)
 
@@ -58,7 +58,7 @@ class EnvironmentGenerator(setup.TemplatedFileGenerator):
 
         if self._filenames.whitelist:
             LOGGER.debug('Whitelist Filename: %s', self._filenames.whitelist)
-            with open(self._filenames.whitelist) as file:
+            with open(self._filenames.whitelist, encoding="utf-8") as file:
                 whitelist_line = file.readline().strip()
 
             whitelist = whitelist_line.split(',')

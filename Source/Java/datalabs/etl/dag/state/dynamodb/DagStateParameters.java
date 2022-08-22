@@ -11,7 +11,7 @@ public class DagStateParameters extends Parameters {
     public String dagStateTable;
     public Map<String, String> unknowns;
 
-    public DagStateParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
+    public DagStateParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
         super(parameters);
     }
 }

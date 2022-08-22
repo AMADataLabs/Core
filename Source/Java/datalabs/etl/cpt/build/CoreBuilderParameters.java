@@ -13,7 +13,7 @@ public class CoreBuilderParameters extends Parameters {
     public String releaseDate;
     public Map<String, String> unknowns;
 
-    public CoreBuilderParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
+    public CoreBuilderParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
         super(parameters);
     }
 }

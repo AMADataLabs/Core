@@ -1,11 +1,9 @@
 """ Task wrapper for DAG and DAG task Lambda functions. """
 import json
 import logging
-import urllib.parse
-from   dateutil.parser import isoparse
 
 from   datalabs.etl.task import ExecutionTimeMixin
-import datalabs.etl.dag.aws as aws
+from   datalabs.etl.dag import aws
 import datalabs.etl.dag.task
 
 logging.basicConfig()
@@ -20,25 +18,23 @@ class ProcessorTaskWrapper(
 ):
     def _get_runtime_parameters(self, parameters):
         LOGGER.debug('Event: %s', parameters)
-        event_parameters = None
-
-        if not hasattr(parameters, "items"):
-            raise ValueError(f'Invalid Lambda event: {parameters}')
+        sns_topic = self._get_sns_event_topic(parameters)
+        LOGGER.debug('SNS Event Topic: %s', sns_topic)
 
         event_parameters = self._get_sns_event_parameters(parameters)
         LOGGER.debug('SNS Event Parameters: %s', event_parameters)
 
-        if len(event_parameters) == 1 and 'Records' in event_parameters:
-            LOGGER.info('Processing S3 Event Trigger...')
-            event_parameters = self._get_s3_event_parameters(event_parameters)
-        elif "source" in event_parameters:
-            LOGGER.info('Processing CloudWatch Event Trigger...')
-            event_parameters = self._get_cloudwatch_event_parameters(event_parameters)
+        if sns_topic.startswith('DataLake-') and sns_topic.endswith('-Scheduler'):
+            event_parameters = self._get_scheduler_event_parameters()
 
         if "task" not in event_parameters:
             event_parameters["task"] = "DAG"
 
         return event_parameters
+
+    @classmethod
+    def _get_sns_event_topic(cls, parameters):
+        return parameters["Records"][0]["Sns"]["TopicArn"].rsplit(':', 1)[1]
 
     @classmethod
     def _get_sns_event_parameters(cls, event):
@@ -53,64 +49,11 @@ class ProcessorTaskWrapper(
 
         return json.loads(record["Sns"]["Message"])
 
-    def _get_s3_event_parameters(self, event):
-        ''' An S3 notification implies that the DAG Scheduler should be run.'''
-        record = event.get("Records", [{}])[0]
-        event_source = record.get("EventSource", record.get("eventSource"))
-        parameters = None
-
-        if event_source != 'aws:s3':
-            raise ValueError(f'Invalid S3 notification event: {event}')
-
-        s3_object_key = record["s3"]["object"]["key"]
-        LOGGER.debug('S3 Event Object: %s', s3_object_key)
-
-        if s3_object_key == "schedule.csv":
-            LOGGER.info('Processing schedule file update trigger...')
-            parameters = self._get_scheduler_event_parameters()
-        elif not '__' in s3_object_key:
-            raise ValueError(
-                f'Invalid S3 object name: {s3_object_key}. The name must either be equal to "schedule.csv" '
-                f'or conform to the format "<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format.')
-        else:
-            LOGGER.info('Processing backfill file trigger...')
-            parameters = self._get_backfill_parameters(urllib.parse.unquote(s3_object_key))
-
-        return parameters
-
-    def _get_cloudwatch_event_parameters(self, event):
-        ''' A CloudWatch Event notification implies that the DAG Scheduler should be run.'''
-        event_source = event["source"]
-
-        if event_source != 'aws.events':
-            raise ValueError(f'Invalid CloudWatch event: {event}')
-
-        return self._get_scheduler_event_parameters()
-
     def _get_scheduler_event_parameters(self):
         ''' Return appropriate parameters for the DAG Processor assuming the DAG Scheduler as the DAG to execute.'''
         return dict(
             dag="DAG_SCHEDULER",
             execution_time=self.execution_time.isoformat()
-        )
-
-    @classmethod
-    def _get_backfill_parameters(cls, s3_object_key):
-        dag_id, execution_time = s3_object_key.rsplit("__", 1)
-        execution_time = execution_time.replace('T', ' ')
-
-        try:
-            isoparse(execution_time)  # Check if execution_time is ISO-8601
-        except ValueError as error:
-            raise ValueError(
-                f'Backfill execution time is not a valid ISO-8601 timestamp: {execution_time}. ' \
-                f'The backfill S3 object name must conform to the format "<DAG_ID>__<ISO-8601_EXECUTION_TIME>".'
-            ) from error
-
-
-        return dict(
-            dag=dag_id,
-            execution_time=execution_time
         )
 
     def _handle_success(self) -> (int, dict):

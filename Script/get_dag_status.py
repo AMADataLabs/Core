@@ -13,7 +13,7 @@ LOGGER.setLevel(logging.INFO)
 def main(args):
     parameters = dict(
         STATE_LOCK_TABLE='N/A',
-        DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}',
+        DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}'
     )
     state = DAGState(parameters)
     execution_time = f'{args["date"]} {args["time"]}'
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     ap.add_argument('-t', '--task', action='append', required=False, help='task ID')
     ap.add_argument('-D', '--date', required=True, help='YY-MM-DD')
     ap.add_argument('-T', '--time', required=True, help='hh:mm:ss')
-    ap.add_argument('-e', '--environment', required=True, help='sbx, dev, tst, itg, or prd')
+    ap.add_argument('-e', '--environment', required=True, help='sbx, dev, tst, itg, prd, or local')
     args = vars(ap.parse_args())
 
     try:

@@ -13,8 +13,8 @@ import datalabs.etl.archive.transform as archive
 def test_zip_transformer_zips_tuple_data(zip_data):
     assert len(zip_data) > 1
 
-    zip_file = ZipFile(BytesIO(zip_data))
-    filenames = zip_file.namelist()
+    with ZipFile(BytesIO(zip_data)) as zip_file:
+        filenames = zip_file.namelist()
 
     assert all(filename in filenames for filename in ['bogus.txt', 'bogus.bin'])
 
@@ -28,8 +28,8 @@ def test_zip_transformer_zips_pickled_data(pickled_data):
     assert len(zip_datasets) == 2
 
     for zip_data in zip_datasets:
-        zip_file = ZipFile(BytesIO(zip_data))
-        filenames = zip_file.namelist()
+        with ZipFile(BytesIO(zip_data)) as zip_file:
+            filenames = zip_file.namelist()
 
         assert all(filename in filenames for filename in ['bogus.txt', 'bogus.bin'])
 

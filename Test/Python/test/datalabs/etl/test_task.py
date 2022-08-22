@@ -5,7 +5,7 @@ import os
 import mock
 import pytest
 
-import datalabs.etl.task as task
+from   datalabs.etl import task
 from   datalabs.parameter import add_schema
 
 

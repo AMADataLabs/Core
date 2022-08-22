@@ -49,7 +49,7 @@ class DAGState(State):
         status = Status.UNKNOWN
 
         try:
-            with open(state_path) as file:
+            with open(state_path, encoding='utf-8') as file:
                 status = Status(file.read())
         except FileNotFoundError:
             pass
@@ -62,7 +62,7 @@ class DAGState(State):
         if not state_path.parent.exists():
             os.makedirs(state_path.parent)
 
-        with open(state_path, 'w') as file:
+        with open(state_path, 'w', encoding='utf-8') as file:
             file.write(status.value)
 
     def _generate_state_path(self, dag: str, task: str, execution_time: str):

@@ -2,7 +2,7 @@
 import logging
 import pytest
 
-import datalabs.curate.ppd.expanded.parse as parse
+from   datalabs.curate.ppd.expanded import parse
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

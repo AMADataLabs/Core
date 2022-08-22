@@ -3,7 +3,7 @@ package datalabs.access.environment;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

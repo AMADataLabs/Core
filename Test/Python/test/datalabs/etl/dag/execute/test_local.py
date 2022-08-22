@@ -46,5 +46,5 @@ def _run_dag(dag_executor, notification_count, expected_dag_status):
 def dag_parameters():
     yield dict(
         DAG_CLASS="datalabs.etl.dag.schedule.dag.DAGSchedulerDAG",
-        TASK_STATUSES=dict()
+        TASK_STATUSES={}
     )

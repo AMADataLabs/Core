@@ -47,7 +47,7 @@ def parse_kwargs(kwarg_strings, b64encode=False):
 
 
 def render_template(template_path, result_path, **kwargs):
-    LOGGER.info(f'Generating file {str(result_path)} from template {str(template_path)}')
+    LOGGER.info(f'Generating file {result_path} from template {template_path}')
     filenames = FileGeneratorFilenames(template=Path(template_path), output=Path(result_path))
 
     file_generator = SimpleFileGenerator(filenames, **kwargs)
