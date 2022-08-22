@@ -5,8 +5,8 @@ import pytest
 @pytest.fixture
 def event():
     return dict(
-        path=dict(),
-        query=dict(),
+        path={},
+        query={},
         authorization={},
         database_host='',
         database_port='',

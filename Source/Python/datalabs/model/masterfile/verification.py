@@ -9,7 +9,7 @@ Base = declarative_base(metadata=metadata())  # pylint: disable=invalid-name
 
 class HumachSample(Base):
     __tablename__ = 'humach_sample'
-    __table_args = (
+    __table_args__ = (
         sa.PrimaryKeyConstraint('sample_id', 'row_id', name='pk_sample_rows')
     )
     sample_id = sa.Column(sa.Integer, nullable=False)
@@ -40,7 +40,7 @@ class HumachSample(Base):
 
 class HumachResult(Base):
     __tablename__ = 'humach_result'
-    __table_args = (
+    __table_args__ = (
         sa.PrimaryKeyConstraint('sample_id', 'row_id', name='pk_sample_rows')
     )
     sample_id = sa.Column(sa.Integer, nullable=False)

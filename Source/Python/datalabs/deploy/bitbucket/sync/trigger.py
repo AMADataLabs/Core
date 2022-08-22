@@ -6,9 +6,9 @@ import hashlib
 import hmac
 
 import flask
-import werkzeug.exceptions as exceptions
+from   werkzeug import exceptions
 
-import datalabs.deploy.bitbucket.sync.sync as sync
+from   datalabs.deploy.bitbucket.sync import sync
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

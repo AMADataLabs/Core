@@ -25,7 +25,7 @@ class APISpecDifferentiator:
         LOGGER.debug('API spec path: %s', spec_path)
         spec_yaml = None
 
-        with open(spec_path, 'r') as file:
+        with open(spec_path, 'r', encoding='utf-8') as file:
             spec_yaml = file.read()
 
         return spec_yaml

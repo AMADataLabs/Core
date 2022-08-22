@@ -19,7 +19,7 @@ class PDFSigner:
     ):
         signature_details = cls._generate_signature_details(recipient)
 
-        unsigned_pdf = cls._read_unsigned_pdf(pdf)
+        unsigned_pdf = cls._read_pdf(pdf)
 
         signature = cls._generate_signature(unsigned_pdf, credentials, password, signature_details)
 
@@ -44,17 +44,13 @@ class PDFSigner:
         }
 
     @classmethod
-    def _read_unsigned_pdf(cls, pdf):
-        pdf_file = pdf
+    def _read_pdf(cls, pdf):
         unsigned_pdf = None
 
-        if not hasattr(pdf, 'readable'):
-            pdf_file = open(pdf, 'br')
-
-        unsigned_pdf = pdf_file.read()
-
-        if not hasattr(pdf, 'readable'):
-            pdf_file.close()
+        if hasattr(pdf, 'readable'):
+            unsigned_pdf = pdf.read()
+        else:
+            unsigned_pdf = cls._open_and_read(pdf)
 
         return unsigned_pdf
 
@@ -62,13 +58,10 @@ class PDFSigner:
     def _generate_signature(cls, unsigned_pdf, pkcs12_credentials, password, signature_details):
         pkcs12_file = pkcs12_credentials
 
-        if not hasattr(pkcs12_credentials, 'readable'):
-            pkcs12_file = open(pkcs12_credentials, 'br')
-
-        credentials = pkcs12_file.read()
-
-        if not hasattr(pkcs12_credentials, 'readable'):
-            pkcs12_file.close()
+        if  hasattr(pkcs12_credentials, 'readable'):
+            credentials = pkcs12_file.read()
+        else:
+            credentials = cls._open_and_read(pkcs12_credentials)
 
         key, cert, trust_chain_certs = pkcs12.load_key_and_certificates(credentials, password.encode())
 
@@ -76,13 +69,23 @@ class PDFSigner:
 
     @classmethod
     def _write_signed_pdf(cls, unsigned_pdf, signature, signed_pdf):
-        signed_pdf_file = signed_pdf
+        if hasattr(signed_pdf, 'readable'):
+            signed_pdf.write(unsigned_pdf)
+            signed_pdf.write(signature)
+        else:
+            cls._open_and_write(signed_pdf, [unsigned_pdf, signature])
 
-        if not hasattr(signed_pdf, 'readable'):
-            signed_pdf_file = open(signed_pdf, 'bw')
+    @classmethod
+    def _open_and_read(cls, filename):
+        contents = None
 
-        signed_pdf_file.write(unsigned_pdf)
-        signed_pdf_file.write(signature)
+        with open(filename, 'br') as file:
+            contents = file.read()
 
-        if not hasattr(signed_pdf, 'readable'):
-            signed_pdf_file.close()
+        return contents
+
+    @classmethod
+    def _open_and_write(cls, filename, contents):
+        with open(filename, 'bw') as file:
+            for item in contents:
+                file.write(item)

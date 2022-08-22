@@ -286,6 +286,22 @@ class ProviderAffiliation(BASE):
     group_description = sa.Column(sa.String)
 
 
+class MedicalLicense(BASE):
+    __tablename__ = 'medical_license'
+    __table_args__ = {"schema": SCHEMA}
+
+    number = sa.Column(sa.String, primary_key=True, nullable=False)
+    medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
+                                         primary_key=True)
+    state = sa.Column(sa.String)
+    issue_date = sa.Column(sa.String)
+    expiry_date = sa.Column(sa.String)
+    renew_date = sa.Column(sa.String)
+    degree_type = sa.Column(sa.String)
+    status = sa.Column(sa.String)
+    type = sa.Column(sa.String)
+
+
 ################################################################
 # Credentialing Tables
 ################################################################

@@ -93,11 +93,11 @@ def sns_event():
         {
           'EventSource': 'aws:sns',
           'EventVersion': '1.0',
-          'EventSubscriptionArn': 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx:a7d72f53-e07f-44bd-aeae-db4787ab5c69',
+          'EventSubscriptionArn': 'arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGProcessor:a7d72f53-e07f-44bd-aeae-db4787ab5c69',
           'Sns': {
             'Type': 'Notification',
             'MessageId': '807e8cdb-71aa-5bd5-a96c-d5835a102fb4',
-            'TopicArn': 'arn:aws:sns:us-east-1:644454719059:DataLake-DAG-Processor-sbx',
+            'TopicArn': 'arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGProcessor',
             'Subject': None,
             'Message': '{"dag": "DAG_SCHEDULER", "task": "EXTRACT_SCHEDULE", "execution_time": "2021-07-13T16:18:54.663464"}',
             'Timestamp': '2021-07-01T20:45:46.090Z',
@@ -120,11 +120,11 @@ def s3_event():
         {
           "EventSource": "aws:sns",
           "EventVersion": "1.0",
-          "EventSubscriptionArn": "arn:aws:sns:us-east-1:644454719059:DataLake-Scheduler-sbx:aad2653c-2522-4e67-90e1-c6a02105074a",
+          "EventSubscriptionArn": "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-Scheduler:aad2653c-2522-4e67-90e1-c6a02105074a",
           "Sns": {
             "Type": "Notification",
             "MessageId": "0db70b4b-684c-5fea-a414-52290253b2f5",
-            "TopicArn": "arn:aws:sns:us-east-1:644454719059:DataLake-Scheduler-sbx",
+            "TopicArn": "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-Scheduler",
             "Subject": "Amazon S3 Notification",
             "Message": "{\"Records\":[{\"eventVersion\":\"2.1\",\"eventSource\":\"aws:s3\",\"awsRegion\":\"us-east-1\",\"eventTime\":\"2021-07-09T15:14:33.766Z\",\"eventName\":\"ObjectCreated:Put\",\"userIdentity\":{\"principalId\":\"AWS:AIDAZMDD6TZJ2T36WAMPX\"},\"requestParameters\":{\"sourceIPAddress\":\"76.244.141.27\"},\"responseElements\":{\"x-amz-request-id\":\"2YXSNHNRV6YJDR75\",\"x-amz-id-2\":\"2JwM0DFanD52zysJyG4ZuI818i6G5r/2Mcy5nqowHbLomYoir1jQMtt3tUIiApYgcRsRIG7MMvSh0tNOVWKb1XPqFBxgi/bamWAyj8dK18g=\"},\"s3\":{\"s3SchemaVersion\":\"1.0\",\"configurationId\":\"tf-s3-topic-20210702210724580200000003\",\"bucket\":{\"name\":\"ama-sbx-datalake-scheduler-data-us-east-1\",\"ownerIdentity\":{\"principalId\":\"A2VX7N7I5UQ0D9\"},\"arn\":\"arn:aws:s3:::ama-sbx-datalake-scheduler-data-us-east-1\"},\"object\":{\"key\":\"schedule.csv\",\"size\":6556,\"eTag\":\"5c36a1b6d2fbcafb7de5ad6bbee7bcce\",\"versionId\":\"rLNvR267iZsX8c89P842bDjS19har6J2\",\"sequencer\":\"0060E867DE929A4400\"}}}]}",
             "Timestamp": "2021-07-09T15:14:39.600Z",
@@ -147,11 +147,11 @@ def cloudwatch_event():
         {
           "EventSource": "aws:sns",
           "EventVersion": "1.0",
-          "EventSubscriptionArn": "arn:aws:sns:us-east-1:644454719059:DataLake-Scheduler-sbx:aad2653c-2522-4e67-90e1-c6a02105074a",
+          "EventSubscriptionArn": "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-Scheduler:aad2653c-2522-4e67-90e1-c6a02105074a",
           "Sns": {
             "Type": "Notification",
             "MessageId": "0db70b4b-684c-5fea-a414-52290253b2f5",
-            "TopicArn": "arn:aws:sns:us-east-1:644454719059:DataLake-Scheduler-sbx",
+            "TopicArn": "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-Scheduler",
             "Subject": "Amazon S3 Notification",
             "Message": "{\"version\":\"0\",\"id\":\"24daf8cf-91d3-9d5f-dd03-8c4a40912597\",\"detail-type\":\"Scheduled Event\",\"source\":\"aws.events\",\"account\":\"644454719059\",\"time\":\"2021-09-17T20:45:00Z\",\"region\":\"us-east-1\",\"resources\":[\"arn:aws:events:us-east-1:644454719059:rule/DataLake-sbx-invoke-scheduler\"],\"detail\":{}}",
             "Timestamp": "2021-07-09T15:14:39.600Z",

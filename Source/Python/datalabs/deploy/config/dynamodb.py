@@ -29,10 +29,10 @@ class ConfigMapLoader():
 
     @classmethod
     def _extract_variables_from_config(cls, filenames):
-        config = dict()
+        config = {}
 
         for filename in filenames:
-            with open(filename) as file:
+            with open(filename, encoding='utf-8') as file:
                 config.update(yaml.safe_load(file.read())['data'])
 
         for key, value in config.items():
@@ -42,7 +42,7 @@ class ConfigMapLoader():
         return config
 
     def _parse_variables(self, variables):
-        parameters = dict()
+        parameters = {}
         var_tree = VariableTree.generate(variables)
         dag = self._get_dag_id(var_tree)
         parameters["GLOBAL"] = self._get_global_variables(dag, var_tree)

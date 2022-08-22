@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,12 +41,12 @@ public class LinkBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(LinkBuilderTask.class);
     Properties settings = new Properties();
 
-    public LinkBuilderTask(Map<String, String> parameters)
+    public LinkBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, LinkBuilderParameters.class);
+        super(parameters, null, LinkBuilderParameters.class);
     }
 
-    public void run() throws TaskException {
+    public ArrayList<byte[]> run() throws TaskException {
         try {
             LinkBuilderParameters parameters = (LinkBuilderParameters) this.parameters;
 
@@ -71,6 +70,8 @@ public class LinkBuilderTask extends Task {
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception.getMessage());
         }
+
+        return null;
     }
 
 	private static DtkAccess loadLink(String directory) throws Exception {

@@ -2,7 +2,7 @@
 import logging
 import pytest
 
-import datalabs.deploy.bitbucket.sync.sync as sync
+from   datalabs.deploy.bitbucket.sync import sync
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

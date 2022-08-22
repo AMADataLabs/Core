@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.ArrayList;
 
 import org.ama.dtk.Delimiter;
 import org.ama.dtk.DtkAccess;
@@ -27,12 +28,12 @@ import datalabs.task.TaskException;
 public class CoreBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoreBuilderTask.class);
 
-    public CoreBuilderTask(Map<String, String> parameters)
+    public CoreBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters);
+        super(parameters, null, CoreBuilderParameters.class);
     }
 
-    public void run() throws TaskException {
+    public ArrayList<byte[]> run() throws TaskException {
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
             DtkAccess priorLink = CoreBuilderTask.loadLink("prior");
@@ -46,6 +47,8 @@ public class CoreBuilderTask extends Task {
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
+
+        return null;
     }
 
 	private static DtkAccess loadLink(String linkVersion) throws Exception {

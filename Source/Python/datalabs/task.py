@@ -4,12 +4,8 @@ import logging
 import os
 
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
-import datalabs.feature as feature
 from   datalabs.parameter import ParameterValidatorMixin
 from   datalabs.plugin import import_plugin
-
-if feature.enabled("ETCD"):
-    from datalabs.access.parameter.etcd import EtcdEnvironmentLoader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -85,17 +81,13 @@ class TaskWrapper(ABC):
 
             response = self._handle_success()
         except Exception as exception:  # pylint: disable=broad-except
+            LOGGER.exception('Unable to run task.')
             response = self._handle_exception(exception)
 
         return response
 
     # pylint: disable=no-self-use
     def _setup_environment(self):
-        if feature.enabled("ETCD"):
-            etcd_loader = EtcdEnvironmentLoader.from_environ()
-            if etcd_loader is not None:
-                etcd_loader.load()
-
         secrets_loader = ReferenceEnvironmentLoader.from_environ()
         secrets_loader.load()
 

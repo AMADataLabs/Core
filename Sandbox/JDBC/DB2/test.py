@@ -10,7 +10,7 @@ database = jaydebeapi.connect(
     # 'jdbc:db2://rdbd1156.ama-assn.org:50000/devdw',
     # 'jdbc:db2://rdbp1190.ama-assn.org:54000/prddw',
     [os.getenv('JDBC_USERNAME'), os.getenv('JDBC_PASSWORD')],
-    './db2jcc4.jar'
+    './DB2JdbcDriver/db2jcc4.jar'
 )
 
 curs = database.cursor()

@@ -3,7 +3,7 @@ import os
 
 import pytest
 
-import datalabs.feature as feature
+from   datalabs import feature
 
 
 # pylint: disable=redefined-outer-name

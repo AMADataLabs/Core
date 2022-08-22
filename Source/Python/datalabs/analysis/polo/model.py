@@ -136,9 +136,7 @@ class POLOFitnessModel():
     def _archive_model_input_data(self, model_input_data):
         LOGGER.info('-- Archiving Model Input Data --')
 
-        model_input_filename = '{}_PPD_{}_Polo_Addr_Rank_Input_Data.csv'.format(
-            self.start_datestamp, self.ppd_datestamp
-        )
+        model_input_filename = f'{self.start_datestamp}_PPD_{self.ppd_datestamp}_Polo_Addr_Rank_Input_Data.csv'
         model_input_path = Path(self._archive_dir, model_input_filename)
 
         LOGGER.info('Archiving pruned model input data to %s', model_input_path)
@@ -155,9 +153,7 @@ class POLOFitnessModel():
         return scored_data
 
     def _archive_merged_input_data(self, merged_input_data):
-        ppd_entity_filename = '{}_PPD_{}_Polo_Addr_Rank_PPD_Entity_Data.csv'.format(
-            self.start_datestamp, self.ppd_datestamp
-        )
+        ppd_entity_filename = f'{self.start_datestamp}_PPD_{self.ppd_datestamp}_Polo_Addr_Rank_PPD_Entity_Data.csv'
         ppd_entity_path = Path(self._archive_dir, ppd_entity_filename)
 
         LOGGER.info('Archiving scoring data to %s', ppd_entity_path)
@@ -228,5 +224,3 @@ class POLOFitnessModel():
         scored_data['pred_probability'] = predictions.probability
 
         return scored_data
-
-

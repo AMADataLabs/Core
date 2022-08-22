@@ -3,7 +3,7 @@ import json
 import logging
 
 from   datalabs.etl.task import ExecutionTimeMixin
-import datalabs.etl.dag.aws as aws
+from   datalabs.etl.dag import aws
 import datalabs.etl.dag.task
 
 logging.basicConfig()
@@ -24,7 +24,7 @@ class ProcessorTaskWrapper(
         event_parameters = self._get_sns_event_parameters(parameters)
         LOGGER.debug('SNS Event Parameters: %s', event_parameters)
 
-        if sns_topic.startswith('DataLake-Scheduler-'):
+        if sns_topic.startswith('DataLake-') and sns_topic.endswith('-Scheduler'):
             event_parameters = self._get_scheduler_event_parameters()
 
         if "task" not in event_parameters:

@@ -24,7 +24,7 @@ class KeywordFilterMixin:
         filter_conditions = []
 
         for field in fields:
-            filter_conditions.extend(field.ilike('%{}%'.format(word)) for word in keywords)
+            filter_conditions.extend(field.ilike(f'%{word}%') for word in keywords)
 
         return query.filter(or_(*filter_conditions))
 

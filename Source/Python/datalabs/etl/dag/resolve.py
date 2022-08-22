@@ -4,7 +4,7 @@ from   dataclasses import dataclass
 from   datalabs.etl.dag.execute.local import LocalDAGExecutorTask
 from   datalabs.parameter import add_schema, ParameterValidatorMixin
 from   datalabs.plugin import import_plugin
-import datalabs.task as task
+from   datalabs import task
 
 
 @add_schema(unknowns=True)

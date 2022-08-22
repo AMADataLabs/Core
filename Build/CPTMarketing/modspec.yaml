@@ -21,12 +21,10 @@ modspec:
       - database
       - datastore
       - environment
-      - etcd
       - sftp
   - package: datalabs.access.parameter
     include:
     - system
-    - etcd
   - package: datalabs.etl
   - package: datalabs.etl.sftp
   - package: datalabs.etl.s3
