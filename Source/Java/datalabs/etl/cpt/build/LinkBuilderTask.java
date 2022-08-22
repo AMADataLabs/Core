@@ -268,31 +268,31 @@ public class LinkBuilderTask extends Task {
     }
 
     private void stageInputFiles() throws IOException{
-        this.extract_zip_files(this.data.get(0), "./prior_link_data");
-        this.extract_zip_files(this.data.get(1), "./current_link_data");
-        this.extract_zip_files(this.data.get(2), "./changes");
+        this.extractZipFiles(this.data.get(0), "./prior_link_data");
+        this.extractZipFiles(this.data.get(1), "./current_link_data");
+        this.extractZipFiles(this.data.get(2), "./changes");
 
-        this.extract_bytes(this.settings.getProperty("hcpcs.data.file"), this.data.get(3));
-        this.extract_bytes(this.settings.getProperty("consumer.and.clinician.descriptors"), this.data.get(4));
-        this.extract_bytes(this.settings.getProperty("coding.tips"),this.data.get(5));
-        this.extract_bytes(this.settings.getProperty("front.matter"), this.data.get(6));
-        this.extract_bytes(this.settings.getProperty("rvus"), this.data.get(7));
-        this.extract_bytes(this.settings.getProperty("index.file"), this.data.get(8));
-        this.extract_bytes(this.settings.getProperty("edits.file"),this.data.get(9));
+        this.extractBytes(this.settings.getProperty("hcpcs.data.file"), this.data.get(3));
+        this.extractBytes(this.settings.getProperty("consumer.and.clinician.descriptors"), this.data.get(4));
+        this.extractBytes(this.settings.getProperty("coding.tips"),this.data.get(5));
+        this.extractBytes(this.settings.getProperty("front.matter"), this.data.get(6));
+        this.extractBytes(this.settings.getProperty("rvus"), this.data.get(7));
+        this.extractBytes(this.settings.getProperty("index.file"), this.data.get(8));
+        this.extractBytes(this.settings.getProperty("edits.file"),this.data.get(9));
 
     }
 
-    private void extract_zip_files(byte[] zip, String directory) throws IOException{
+    private void extractZipFiles(byte[] zip, String directory) throws IOException{
         ByteArrayInputStream byteStream = new ByteArrayInputStream(zip);
         ZipInputStream zipStream = new ZipInputStream(byteStream);
         ZipEntry file = null;
 
         while((file = zipStream.getNextEntry())!=null) {
-            this.write_zip_entry_to_file(file, directory, zipStream);
+            this.writeZipEntryToFile(file, directory, zipStream);
         }
     }
 
-    private void write_zip_entry_to_file(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
+    private void writeZipEntryToFile(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
         byte[] data = new byte[(int) zipEntry.getSize()];
         String fileName = zipEntry.getName();
         File file = new File(directory + File.separator + fileName);
@@ -308,7 +308,7 @@ public class LinkBuilderTask extends Task {
 
     }
 
-    private void extract_bytes(String path, byte[] data) throws IOException{
+    private void extractBytes(String path, byte[] data) throws IOException{
         FileOutputStream fileOutputStream = new FileOutputStream(path);
         fileOutputStream.write(data);
         fileOutputStream.close();
