@@ -35,7 +35,7 @@ class ExampleTask extends Task {
 
     public ExampleTask(Map<String, String> parameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, ExampleTaskParameters.class);
+        super(parameters, null, ExampleTaskParameters.class);
     }
 
     public ExampleTaskParameters getParameters() {

@@ -25,7 +25,7 @@ open class KParameters(parameters: Map<String, String>)  : Parameters() {
             } else if (field.isAnnotationPresent(Optional::class.java)) {
                 println("Setting value of property \"${field.name}\" to the default: \"${annotation.value}\"")
                 property.setter.call(this, annotation.value)
-            } else {
+            } else if (key != "UNKNOWNS") {
                 throw IllegalArgumentException("Property \"${field.name}\" is required.")
             }
         }

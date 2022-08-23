@@ -1,17 +1,19 @@
 package datalabs.etl.s3;
 
 
-import java.text.SimpleDateFormat
-import java.time.OffsetDateTime
+import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.ArrayList
 import kotlin.collections.Map
 
+/* import com.amazonaws.auth.DefaultAwsCredentialsProviderChain; */
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
+import software.amazon.awssdk.utils.AttributeMap;
 
 import datalabs.parameter.Optional
 import datalabs.parameter.KParameters
@@ -25,10 +27,11 @@ open class S3FileExtractorParameters(parameters: Map<String, String>) : KParamet
 
     @Optional
     public lateinit var executionTime: String
+    public lateinit var unknowns: Map<String, String>
 }
 
 
-open class S3FileExtractorTask(parameters: Map<String, String>):
+open class S3FileExtractorTask(parameters: Map<String, String>, data: ArrayList<ByteArray>):
         Task(parameters, null, S3FileExtractorParameters::class.java) {
     internal val logger = LoggerFactory.getLogger(S3FileExtractorTask::class.java)
 
@@ -49,8 +52,8 @@ open class S3FileExtractorTask(parameters: Map<String, String>):
         val files = mutableListOf<String>()
 
         if (!basePath.equals("")) {
-            for (index in 0..files.size) {
-                files.add(basePath + "/" + rawFiles[index].trim())
+            for (file in rawFiles) {
+                files.add(basePath + "/" + file.trim())
             }
         }
 
@@ -58,6 +61,10 @@ open class S3FileExtractorTask(parameters: Map<String, String>):
     }
 
     fun getClient(): S3Client {
+        /* return S3Client.builder().credentialsProvider(DefaultAwsCredentialsProviderChain()).build(); */
+        /* ClientOverrideConfiguration.Builder.putAdvancedOption(SdkAdvancedClientOption, Object)
+        SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES = true; */
+
         return S3Client.builder().build();
     }
 
@@ -65,7 +72,11 @@ open class S3FileExtractorTask(parameters: Map<String, String>):
         val outputData = ArrayList<ByteArray>()
 
         for (file in files) {
+            logger.info("Extracting file ${file}")
+
             outputData.add(extractFile(client, file))
+
+            logger.debug("Extracted data: " + String(outputData.get(outputData.size-1), Charsets.UTF_8))
         }
 
         return outputData
@@ -80,7 +91,8 @@ open class S3FileExtractorTask(parameters: Map<String, String>):
 
     fun getLatestPath(): String {
         val parameters = this.parameters as S3FileExtractorParameters
-        var path = parameters.basePath + "/" + SimpleDateFormat("yyyyMMdd").format(getExecutionTime())
+        val datestamp = DateTimeFormatter.ofPattern("yyyyMMdd").format(getExecutionTime())
+        var path = parameters.basePath + "/" + datestamp
 
         if (path.startsWith("/")) {
             path = path.substring(1)
@@ -89,12 +101,12 @@ open class S3FileExtractorTask(parameters: Map<String, String>):
         return path
     }
 
-    fun getExecutionTime(): OffsetDateTime {
+    fun getExecutionTime(): LocalDateTime {
         val parameters = this.parameters as S3FileExtractorParameters
 
         return when {
-            parameters.executionTime == "" -> OffsetDateTime.now(ZoneOffset.UTC)
-            else -> OffsetDateTime.parse(parameters.executionTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            parameters.executionTime == "" -> LocalDateTime.now(ZoneOffset.UTC)
+            else -> LocalDateTime.from(DateTimeFormatter.ISO_LOCAL_DATE_TIME.parse(parameters.executionTime))
         }
     }
 }
