@@ -40,6 +40,11 @@ public class LinkBuilderParameters extends Parameters {
     public String editsFile;
     public String outputDirectory;
     public String indexFormat;
+    public String headings;
+    public String consumer_and_clinician_descriptors;
+    public String coding_tips;
+    public String front_matter;
+    public String rvus;
 
 
     public Map<String, String> unknowns;
