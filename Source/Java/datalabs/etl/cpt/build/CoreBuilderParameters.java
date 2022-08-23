@@ -7,9 +7,7 @@ import datalabs.parameter.Parameters;
 
 
 public class CoreBuilderParameters extends Parameters {
-    public String outputDirectory;
-    public String priorLinkVersion;
-    public String currentLinkVersion;
+
     public String releaseDate;
     public Map<String, String> unknowns;
 

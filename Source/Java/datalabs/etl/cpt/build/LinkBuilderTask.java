@@ -94,7 +94,7 @@ public class LinkBuilderTask extends Task {
         ConceptIdFactory.init(core);
 
         BuildDtkFiles files = new BuildDtk.BuildDtkFiles(
-            directory.resolve(settings.getProperty("hcpcs.data.file")).toString(),
+                directory.resolve(settings.getProperty("hcpcs.data.file")).toString(),
                 settings.getProperty("headings"), settings.getProperty("comsumer.and.clinician.descriptors"),
                 settings.getProperty("coding.tips"), settings.getProperty("front.matter"), settings.getProperty("rvus")
         );
