@@ -47,10 +47,14 @@ public class CoreBuilderTask extends Task {
             loadSettings();
             stageInputFiles();
 
-            Path priorLinkPath = Paths.get(settings.getProperty("input.directory"),
-                    settings.getProperty("prior.link.directory"));
-            Path currentLinkPath = Paths.get(settings.getProperty("input.directory"),
-                    settings.getProperty("current.link.directory"));
+            Path priorLinkPath = Paths.get(
+                    settings.getProperty("input.directory"),
+                    settings.getProperty("prior.link.directory")
+            );
+            Path currentLinkPath = Paths.get(
+                    settings.getProperty("input.directory"),
+                    settings.getProperty("current.link.directory")
+            );
 
             DtkAccess priorLink = CoreBuilderTask.loadLink(priorLinkPath.toString());
             DtkAccess priorCore = CoreBuilderTask.loadLink(currentLinkPath.toString());
@@ -128,10 +132,14 @@ public class CoreBuilderTask extends Task {
     }
 
     private void stageInputFiles() throws IOException{
-        Path priorLinkPath = Paths.get(settings.getProperty("input.directory"),
-                settings.getProperty("prior.link.directory"));
-        Path currentLinkPath = Paths.get(settings.getProperty("input.directory"),
-                settings.getProperty("current.link.directory"));
+        Path priorLinkPath = Paths.get(
+                settings.getProperty("input.directory"),
+                settings.getProperty("prior.link.directory")
+        );
+        Path currentLinkPath = Paths.get(
+                settings.getProperty("input.directory"),
+                settings.getProperty("current.link.directory")
+        );
 
         this.extractZipFiles(this.data.get(0), priorLinkPath.toString());
         this.extractZipFiles(this.data.get(1), currentLinkPath.toString());
