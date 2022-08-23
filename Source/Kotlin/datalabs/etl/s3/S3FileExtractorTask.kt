@@ -7,13 +7,14 @@ import java.time.format.DateTimeFormatter
 import java.util.ArrayList
 import kotlin.collections.Map
 
-/* import com.amazonaws.auth.DefaultAwsCredentialsProviderChain; */
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import software.amazon.awssdk.core.internal.http.loader.DefaultSdkHttpClientBuilder
+import software.amazon.awssdk.http.SdkHttpClient
+import software.amazon.awssdk.http.SdkHttpConfigurationOption
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
-import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.AttributeMap
 
 import datalabs.parameter.Optional
 import datalabs.parameter.KParameters
@@ -25,8 +26,11 @@ open class S3FileExtractorParameters(parameters: Map<String, String>) : KParamet
     public lateinit var basePath: String
     public lateinit var files: String
 
+    @Optional("True")
+    public lateinit var includeDatestamp: String
     @Optional
     public lateinit var executionTime: String
+
     public lateinit var unknowns: Map<String, String>
 }
 
@@ -51,21 +55,27 @@ open class S3FileExtractorTask(parameters: Map<String, String>, data: ArrayList<
         val rawFiles = parameters.files.split(",")
         val files = mutableListOf<String>()
 
-        if (!basePath.equals("")) {
-            for (file in rawFiles) {
-                files.add(basePath + "/" + file.trim())
-            }
+        for (file in rawFiles) {
+            files.add(when (basePath) {
+                "" -> file.trim()
+                else -> basePath + "/" + file.trim()
+            })
         }
 
         return files
     }
 
     fun getClient(): S3Client {
-        /* return S3Client.builder().credentialsProvider(DefaultAwsCredentialsProviderChain()).build(); */
-        /* ClientOverrideConfiguration.Builder.putAdvancedOption(SdkAdvancedClientOption, Object)
-        SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES = true; */
+        val attributeMap = AttributeMap.builder()
+                .put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true)
+                .build();
 
-        return S3Client.builder().build();
+        var httpClient: SdkHttpClient = when(System.getenv("AWS_NO_VERIFY_SSL")) {
+            "True" -> DefaultSdkHttpClientBuilder().buildWithDefaults(attributeMap)
+            else -> DefaultSdkHttpClientBuilder().build()
+        }
+
+        return S3Client.builder().httpClient(httpClient).build();
     }
 
     fun extractFiles(client: S3Client, files: List<String>): ArrayList<ByteArray> {
@@ -92,7 +102,11 @@ open class S3FileExtractorTask(parameters: Map<String, String>, data: ArrayList<
     fun getLatestPath(): String {
         val parameters = this.parameters as S3FileExtractorParameters
         val datestamp = DateTimeFormatter.ofPattern("yyyyMMdd").format(getExecutionTime())
-        var path = parameters.basePath + "/" + datestamp
+        var path = parameters.basePath
+
+        if (parameters.includeDatestamp.uppercase() == "TRUE") {
+            path += "/" + datestamp
+        }
 
         if (path.startsWith("/")) {
             path = path.substring(1)
