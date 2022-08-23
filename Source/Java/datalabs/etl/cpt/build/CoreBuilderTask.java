@@ -126,8 +126,8 @@ public class CoreBuilderTask extends Task {
         settings = new Properties(){{
             put("output.directory", "./output/");
             put("input.directory", "./input");
-            put("prior.link.directory", "./prior_link_data");
-            put("current.link.directory", "./current_link_data");
+            put("prior.link.directory", "./prior_link");
+            put("current.link.directory", "./current_link");
         }};
     }
 
