@@ -70,7 +70,8 @@ class DAGNotificationFactoryTask(TransformerTask):
             execution_time=execution_time
         )
 
-        if parameters is not None:
+        if (parameters is not None) and (len(parameters) > 2):
+
             message["parameters"] = json.loads(parameters.drop(["dag", "execution_time"]).to_json())
 
         return message
