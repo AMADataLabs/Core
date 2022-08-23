@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
 open class HelloWorldKotlinTaskTests {
-    private val parameters = mapOf("FIRST_NAME" to "Peter")
+    private val PARAMETERS = mapOf("FIRST_NAME" to "Peter")
 
     @Test
     fun instantiationWithRequiredParametersSucceeds() {
-        val task = HelloWorldKotlinTask(parameters, ArrayList<ByteArray>())
+        val task = HelloWorldKotlinTask(PARAMETERS, ArrayList<ByteArray>())
 
         val outputData = task.run()
 

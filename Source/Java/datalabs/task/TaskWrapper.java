@@ -61,11 +61,11 @@ public class TaskWrapper {
     }
 
     protected Map<String, String> getTaskParameters() {
-        return this.parameters;
+        return this.environment;
     }
 
     protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) {
-        return null;
+        return new ArrayList<byte[]>();
     }
 
     Class getTaskClass()

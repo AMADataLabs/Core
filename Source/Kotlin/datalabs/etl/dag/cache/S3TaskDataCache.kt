@@ -10,7 +10,7 @@ import datalabs.task.TaskException;
 
 open class S3TaskDataCache(parameters: Map<String, String>): TaskDataCache(parameters) {
     override fun extractData(): ArrayList<ByteArray> {
-        val extractor = S3FileExtractorTask(this.parameters)
+        val extractor = S3FileExtractorTask(this.parameters, ArrayList<ByteArray>())
 
         val inputData = extractor.run()
 
