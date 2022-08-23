@@ -115,7 +115,7 @@ public class CoreBuilderTask extends Task {
 
     private  void loadSettings(){
         settings = new Properties(){{
-            put("output.directory;", "");
+            put("output.directory;", "./");
         }};
     }
 
