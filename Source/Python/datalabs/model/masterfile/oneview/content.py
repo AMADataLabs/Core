@@ -294,9 +294,9 @@ class MedicalLicense(BASE):
     medical_education_number = sa.Column(sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
                                          primary_key=True)
     state = sa.Column(sa.String)
-    issue_date = sa.Column(sa.String)
-    expiry_date = sa.Column(sa.String)
-    renew_date = sa.Column(sa.String)
+    issue_date = sa.Column(sa.Date)
+    expiry_date = sa.Column(sa.Date)
+    renew_date = sa.Column(sa.Date)
     degree_type = sa.Column(sa.String)
     status = sa.Column(sa.String)
     type = sa.Column(sa.String)
