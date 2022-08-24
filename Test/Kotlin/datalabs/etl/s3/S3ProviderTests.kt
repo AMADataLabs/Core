@@ -8,18 +8,18 @@ import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
 open class S3FileExtractorTaskTests {
-    private val PARAMETERS = mutableMapOf(
-        "BUCKET" to "ama-none-datalake-unit-tests-us-east-1",
-        "BASE_PATH" to "dir1/dir2",
-        "FILES" to "something.txt, doodad.csv, ratatat.bmp ",
-        "EXECUTION_TIME" to "2022-02-20T20:22:02.000",
+    private val PARAMETERS = S3Parameters(
+        mutableMapOf(
+            "BUCKET" to "ama-none-datalake-unit-tests-us-east-1",
+            "BASE_PATH" to "dir1/dir2",
+            "FILES" to "something.txt, doodad.csv, ratatat.bmp ",
+            "EXECUTION_TIME" to "2022-02-20T20:22:02.000",
+        )
     )
 
     @Test
     fun filePathsAreBuiltFromParameters() {
-        val task = S3FileExtractorTask(PARAMETERS, ArrayList<ByteArray>())
-
-        val files = task.getFiles()
+        val files = S3Provider().getFiles(PARAMETERS)
 
         assertEquals(3, files.size)
         assertEquals("dir1/dir2/20220220/something.txt", files[0])
@@ -29,10 +29,9 @@ open class S3FileExtractorTaskTests {
 
     @Test
     fun datestampIsOmittedWhenIncludeDatestampIsFalse() {
-        PARAMETERS.put("INCLUDE_DATESTAMP", "False")
-        val task = S3FileExtractorTask(PARAMETERS, ArrayList<ByteArray>())
+        PARAMETERS.includeDatestamp = "False"
 
-        val files = task.getFiles()
+        val files = S3Provider().getFiles(PARAMETERS)
 
         assertEquals(3, files.size)
         assertEquals("dir1/dir2/something.txt", files[0])
