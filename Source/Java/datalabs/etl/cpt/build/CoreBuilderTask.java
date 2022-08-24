@@ -75,8 +75,8 @@ public class CoreBuilderTask extends Task {
         DtkAccess link = new DtkAccess();
 
         link.load(
-            directory + ExporterFiles.PropertyInternal.getFileNameExt(),
-            directory + ExporterFiles.RelationshipGroup.getFileNameExt()
+            directory + "/" + ExporterFiles.PropertyInternal.getFileNameExt(),
+            directory + "/" + ExporterFiles.RelationshipGroup.getFileNameExt()
         );
 
         return link;
@@ -126,8 +126,8 @@ public class CoreBuilderTask extends Task {
         settings = new Properties(){{
             put("output.directory", "./output/");
             put("input.directory", "./input");
-            put("prior.link.directory", "./prior_link");
-            put("current.link.directory", "./current_link");
+            put("prior.link.directory", "/prior_link");
+            put("current.link.directory", "/current_link");
         }};
     }
 
