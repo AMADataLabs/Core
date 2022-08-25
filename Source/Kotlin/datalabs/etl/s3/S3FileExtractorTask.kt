@@ -41,7 +41,7 @@ open class S3FileExtractorTask(parameters: Map<String, String>, data: ArrayList<
     }
 
     fun extractFile(client: S3Client, file: String): ByteArray {
-        val parameters = this.parameters as S3FileExtractorParameters
+        val parameters = this.parameters as S3Parameters
         val request = GetObjectRequest.builder().bucket(parameters.bucket).key(file).build()
 
         return client.getObjectAsBytes(request).asByteArray()

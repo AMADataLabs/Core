@@ -7,7 +7,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 
-open class S3FileExtractorTaskTests {
+open class S3ProviderTests {
     private val PARAMETERS = S3Parameters(
         mutableMapOf(
             "BUCKET" to "ama-none-datalake-unit-tests-us-east-1",
