@@ -121,7 +121,7 @@ supplement_jar() {
 
 
 print_usage() {
-    echo "Usage: deploy-java-package [OPTIONS]..."
+    echo "Usage: create-java-package [OPTIONS]..."
     echo "Bundle and upload a code bundle for a Java runtime Lambda function."
     echo
     echo "OPTIONS"

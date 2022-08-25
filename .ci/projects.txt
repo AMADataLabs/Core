@@ -12,6 +12,7 @@ IntelligentPlatform/Developer/Users
 IntelligentPlatform/Licensing
 OneView/ETL
 OneView/ETL/Batch
+OneView/ETL/Extract
 OneView/API
 Scheduler
 HelloWorld

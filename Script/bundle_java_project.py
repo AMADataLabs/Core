@@ -14,13 +14,16 @@ from   datalabs.common.setup import FileGeneratorFilenames, SimpleFileGenerator
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class ProjectBundler(ABC):
     def __init__(self, repository_path):
         self._repository_path = repository_path
-        self._shared_source_path = Path(os.path.join(self._repository_path, 'Source', 'Java')).resolve()
+        self._shared_source_paths = [
+            Path(os.path.join(self._repository_path, 'Source', 'Java')).resolve(),
+            Path(os.path.join(self._repository_path, 'Source', 'Kotlin')).resolve()
+        ]
         self._build_path = Path(os.path.join(self._repository_path, 'Build')).resolve()
 
 
@@ -67,6 +70,7 @@ class LocalProjectBundler(ProjectBundler):
             LOGGER.debug('Copying file %s to %s', os.path.join(self._build_path, project, 'pom.xml'), os.path.join(target_path, 'pom.xml'))
             shutil.copy(os.path.join(self._build_path, project, 'pom.xml'), os.path.join(target_path, 'pom.xml'))
         else:
+            LOGGER.debug('Copying file %s to %s', os.path.join(self._build_path, 'Master', 'pom.xml.jinja'), os.path.join(target_path, 'pom.xml.jinja'))
             shutil.copy(os.path.join(self._build_path, 'Master', 'pom.xml.jinja'), os.path.join(target_path, 'pom.xml.jinja'))
 
     def _render_project_object_model_file(self, project, package, version, target_path):
@@ -94,7 +98,7 @@ class LocalProjectBundler(ProjectBundler):
         modspec_path = os.path.join(self._build_path, project, 'modspec.yaml')
         bundle = JavaSourceBundle.from_file(modspec_path)
 
-        return bundle.copy(self._shared_source_path, os.path.join(target_path, 'src', 'main', 'java'))
+        return bundle.copy_multiple(self._shared_source_paths, os.path.join(target_path, 'src', 'main', 'java'))
 
     def _copy_extra_files(self, files, target_path):
         files = files or []
@@ -106,7 +110,15 @@ class LocalProjectBundler(ProjectBundler):
             shutil.copy(file, os.path.join(destination_directory, file))
 
     def _jar_source_directory(self, project, target_path):
-        os.system('mvn -f %s package'.format(os.path.join(target_path, "pom.xml")))
+        cwd = os.getcwd()
+
+        os.chdir(target_path)
+
+        os.system('mvn package')
+
+        os.chdir(cwd)
+        # os.system('mvn -f {} package'.format(os.path.join(target_path, "pom.xml")))
+
 
 
 if __name__ == '__main__':
