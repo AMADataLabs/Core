@@ -21,11 +21,11 @@ class SQLAlchemyConnectorMixin:
                 )
         )
 
-class JDBCExtractorTask(SQLAlchemyConnectorMixin, SQLExtractorTask):
+class SQLAlchemyExtractorTask(SQLAlchemyConnectorMixin, SQLExtractorTask):
     pass
 
-class JDBCParametricExtractorTask(SQLAlchemyConnectorMixin, SQLParametricExtractorTask):
+class SQLAlchemyParametricExtractorTask(SQLAlchemyConnectorMixin, SQLParametricExtractorTask):
     pass
 
-class JDBCParquetExtractorTask(SQLAlchemyConnectorMixin, SQLParquetExtractorTask):
+class SQLAlchemyParquetExtractorTask(SQLAlchemyConnectorMixin, SQLParquetExtractorTask):
     pass
