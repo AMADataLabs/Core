@@ -308,7 +308,6 @@ public class LinkBuilderTask extends Task {
     }
 
     private void loadSettings() {
-
         settings = new Properties(){{
             put("hcpcs.data.file", "HCPC.xlsx");
             put("em.input.directory", "/em_input");
@@ -328,9 +327,7 @@ public class LinkBuilderTask extends Task {
             put("rvus", "cpt_rvu.txt");
             put("prior.link.directory", "./prior_link");
             put("current.link.directory", "./current_link");
-
         }};
-
     }
 
     private void stageInputFiles() throws IOException{
