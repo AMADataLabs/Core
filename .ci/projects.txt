@@ -6,6 +6,7 @@ CPT/API/ETL
 CPT/Files/Ingest
 CPT/Files/Watermark
 DBL
+HelloWorldJava/DAG
 HelloWorldJava/Task
 HelloWorldVault
 IntelligentPlatform/Developer/Users

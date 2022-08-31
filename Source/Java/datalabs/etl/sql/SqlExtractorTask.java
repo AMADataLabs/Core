@@ -55,9 +55,15 @@ public class SqlExtractorTask extends Task {
         return output;
     }
 
-    public Connection connect() throws SQLException {
-        Properties credentials = generateCredentialProperties((SqlExtractorParameters) this.parameters);
-        String connectionString = generateConnectionString((SqlExtractorParameters) this.parameters);
+    public Connection connect() throws SQLException, ClassNotFoundException {
+        SqlExtractorParameters parameters = (SqlExtractorParameters) this.parameters;
+        Properties credentials = generateCredentialProperties(parameters);
+        String connectionString = generateConnectionString(parameters);
+
+        if (parameters.driverType == "db2") {
+            Class.forName("com.ibm.db2.jcc.licenses.DB2J");
+            Class.forName("com.ibm.db2.jcc.licenses.DB2UW");
+        }
 
         return DriverManager.getConnection(connectionString, credentials);
     }
