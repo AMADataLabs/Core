@@ -127,18 +127,13 @@ class LocalProjectBundler(ProjectBundler):
         process = subprocess.run(["mvn", "dependency:list"], stdout=subprocess.PIPE)
         process = subprocess.run(["grep", ":compile"], input=process.stdout, stdout=subprocess.PIPE)
         process = subprocess.run(["sed", "s/^[^ ][^ ]*  *//"], input=process.stdout, stdout=subprocess.PIPE)
-
-        pom = cls._generate_dependency_pom(process.stdout.decode("utf-8").split("\n"))
-
-    def _generate_dependency_pom(cls, dependencies):
-        for dependency in dependencies:
-            
+        process = subprocess.run(["sed", "s/:jar:/:/"], input=process.stdout, stdout=subprocess.PIPE)
+        process = subprocess.run(["sed", "s/:compile$//"], input=process.stdout, stdout=subprocess.PIPE)
 
         os.makedirs("resources", exist_ok=True)
 
-        with open("resources/dependencies.txt", "w") as pom:
+        with open("resources/dependencies.txt", "wb") as pom:
             pom.write(process.stdout)
-
 
 if __name__ == '__main__':
     return_code = 0

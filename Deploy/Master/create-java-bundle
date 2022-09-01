@@ -3,7 +3,7 @@
 set -ex
 
 PROJECT=
-EXTRA_FILES=
+EXTRA_FILES=()
 PACKAGE=
 VERSION=
 
@@ -16,7 +16,11 @@ main() {
 
     download_package_jar
 
-    supplement_jar
+    download_dependency_jars
+
+    copy_extra_files
+
+    create_zip
 }
 
 
@@ -28,7 +32,7 @@ process_arguments() {
             exit 0
             ;;
         -f|--file)
-            EXTRA_FILES+="$2 "
+            EXTRA_FILES+=($2)
             shift
             shift
             ;;
@@ -111,12 +115,40 @@ download_package_jar() {
     mvn --version
     mvn dependency:get -Dartifact=org.ama-assn.datalabs:$PACKAGE:$VERSION
 
-    cp ~/.m2/repository/org/ama-assn/datalabs/${PACKAGE}/${VERSION}/${PACKAGE}-${VERSION}.jar ./Bundle.jar
+    mkdir -p Bundle
+
+    cd Bundle
+
+    jar xf ~/.m2/repository/org/ama-assn/datalabs/${PACKAGE}/${VERSION}/${PACKAGE}-${VERSION}.jar
+
+    cd ..
 }
 
 
-supplement_jar() {
-    jar uf ./Bundle.jar $EXTRA_FILES
+download_dependency_jars() {
+    mkdir -p Bundle/lib
+
+    while IFS="" read -r dependency || [ -n "$dependency" ]
+    do
+        download_and_copy_jar $dependency
+    done < dependencies.txt
+}
+
+
+copy_extra_files() {
+    for extra_file in "${EXTRA_FILES[@]}"
+    do
+        cp $extra_file Bundle/
+    done
+}
+
+
+create_zip() {
+    cd Bundle
+
+    zip -r ../Bundle.zip ./
+
+    cd ..
 }
 
 
@@ -129,6 +161,21 @@ print_usage() {
     echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
     echo "  -f, --file <file>                     include <file> in the bundle"
     echo "  -p, --project <project>               project path relative to Build/"
+}
+
+
+download_and_copy_jar() {
+    local dependency=$1
+    local dependency_parts
+
+    IFS=':' read -r -a dependency_parts <<< "$dependency"
+    local group_id=${dependency_parts[0]}
+    local artifact_id=${dependency_parts[1]}
+    local version=${dependency_parts[2]}
+
+    mvn dependency:get -D$dependency
+
+    cp ~/.m2/repository/${group_id//./\/}/$artifact_id/$version/${artifact_id}-${version}.jar Bundle/lib/
 }
 
 
