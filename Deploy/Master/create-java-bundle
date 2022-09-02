@@ -131,7 +131,7 @@ download_dependency_jars() {
     while IFS="" read -r dependency || [ -n "$dependency" ]
     do
         download_and_copy_jar $dependency
-    done < dependencies.txt
+    done < Bundle/dependencies.txt
 }
 
 
