@@ -173,7 +173,7 @@ download_and_copy_jar() {
     local artifact_id=${dependency_parts[1]}
     local version=${dependency_parts[2]}
 
-    mvn dependency:get -D$dependency
+    mvn dependency:get -Dartifact=$dependency
 
     cp ~/.m2/repository/${group_id//./\/}/$artifact_id/$version/${artifact_id}-${version}.jar Bundle/lib/
 }
