@@ -146,7 +146,7 @@ copy_extra_files() {
 create_zip() {
     cd Bundle
 
-    zip -r ../Bundle.zip ./
+    gzip -r ../Bundle.zip ./
 
     cd ..
 }
