@@ -9,17 +9,17 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.1.0
-        [prd]=1.1.0
+        [tst]=0.1.0
+        [prd]=0.1.0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
         export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
     fi
 
-    export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-intelligentplatform-licensing"
-    export RELEASE_DESCRIPTION="Platform Licensing ETL Process"
+    export RELEASE_TYPE="Java"
+    export RELEASE_NAME="datalabs-oneview-etl-extract"
+    export RELEASE_DESCRIPTION="OneView ETL JDBC extractor DAG plugin"
 }
 
 

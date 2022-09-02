@@ -27,21 +27,46 @@ class SourceBundle:
         return cls(modspec_yaml)
 
     def copy(self, base_path, app_path):
-        shared_source_path = os.path.join(base_path)
-        relative_file_paths = self.files(shared_source_path)
-        shared_source_paths = [os.path.join(shared_source_path, p) for p in relative_file_paths]
-        app_source_paths = [os.path.join(app_path, p) for p in relative_file_paths]
+        relative_file_paths, shared_source_paths, app_source_paths = self._generate_copy_paths(base_path, app_path)
 
-        for source_file, destination_file in zip(shared_source_paths, app_source_paths):
-            os.makedirs(os.path.dirname(destination_file), exist_ok=True)
-            shutil.copyfile(source_file, destination_file)
+        self._copy_files(shared_source_paths, app_source_paths)
 
         return relative_file_paths
+
+    def copy_multiple(self, base_paths: list, app_path):
+        all_relative_file_paths = []
+        all_shared_source_paths = []
+        all_app_source_paths = []
+
+        for base_path in base_paths:
+            relative_file_paths, shared_source_paths, app_source_paths = self._generate_copy_paths(base_path, app_path)
+
+            all_relative_file_paths += relative_file_paths
+            all_shared_source_paths += shared_source_paths
+            all_app_source_paths += app_source_paths
+
+        self._copy_files(all_shared_source_paths, all_app_source_paths)
+
+        return all_relative_file_paths
 
     def files(self, base_path):
         modspec = self._parse_module_spec(self._modspec_yaml)
 
         return self._generate_module_paths(modspec, base_path)
+
+    def _generate_copy_paths(self, base_path, app_path):
+        shared_source_path = os.path.join(base_path)
+        relative_file_paths = self.files(shared_source_path)
+        shared_source_paths = [os.path.join(shared_source_path, p) for p in relative_file_paths]
+        app_source_paths = [os.path.join(app_path, p) for p in relative_file_paths]
+
+        return relative_file_paths, shared_source_paths, app_source_paths
+
+    @classmethod
+    def _copy_files(cls, source_paths, target_paths):
+        for source_path, target_path in zip(source_paths, target_paths):
+            os.makedirs(os.path.dirname(target_path), exist_ok=True)
+            shutil.copyfile(source_path, target_path)
 
     @classmethod
     def _parse_module_spec(cls, modspec_yaml) -> dict:

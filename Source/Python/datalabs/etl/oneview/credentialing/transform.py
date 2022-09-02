@@ -1,4 +1,4 @@
-"""Oneview Credentialing Table Columns"""
+"""Oneview Credentialing Transformer"""
 from   io import BytesIO
 
 import csv

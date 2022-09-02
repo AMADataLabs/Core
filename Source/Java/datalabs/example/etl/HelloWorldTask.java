@@ -1,6 +1,7 @@
 package datalabs.example.etl;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.ArrayList;
 
@@ -26,8 +27,11 @@ public class HelloWorldTask extends Task {
             name = name + " " + parameters.lastName;
         }
 
-        LOGGER.info("Hello there, " + name + "!");
+        String message = "Hello there, " + name + "!";
+        LOGGER.info(message);
 
-        return null;
+        return new ArrayList<byte[]>() {{
+            add(message.getBytes(StandardCharsets.UTF_8));
+        }};
     }
 }

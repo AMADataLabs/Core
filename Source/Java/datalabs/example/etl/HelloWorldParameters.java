@@ -12,6 +12,10 @@ public class HelloWorldParameters extends Parameters {
 
     @Optional
     public String lastName;
+    @Optional
+    public String executionTime;
+
+    public Map<String, String> unknowns;
 
     public HelloWorldParameters(Map<String, String> parameters)
             throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {

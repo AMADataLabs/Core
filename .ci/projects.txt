@@ -6,12 +6,14 @@ CPT/API/ETL
 CPT/Files/Ingest
 CPT/Files/Watermark
 DBL
+HelloWorldJava/DAG
 HelloWorldJava/Task
 HelloWorldVault
 IntelligentPlatform/Developer/Users
 IntelligentPlatform/Licensing
 OneView/ETL
 OneView/ETL/Batch
+OneView/ETL/Extract
 OneView/API
 Scheduler
 HelloWorld
