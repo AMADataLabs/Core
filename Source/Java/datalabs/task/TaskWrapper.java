@@ -4,7 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +19,7 @@ public class TaskWrapper {
     protected Map<String, String> parameters;
     protected Map<String, String> runtimeParameters;
     protected Task task;
+    protected ArrayList<byte[]> output;
 
     public TaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
         this.environment = environment;
@@ -33,7 +34,7 @@ public class TaskWrapper {
 
             Map<String, String> taskParameters = this.getTaskParameters();
 
-            Vector<byte[]> taskData = this.getTaskInputData(taskParameters);
+            ArrayList<byte[]> taskData = this.getTaskInputData(taskParameters);
 
             Class taskClass = this.getTaskClass();
 
@@ -41,7 +42,7 @@ public class TaskWrapper {
 
             this.preRun();
 
-            this.task.run();
+            this.output = this.task.run();
 
             response = this.handleSuccess();
         } catch (Exception e) {
@@ -60,11 +61,11 @@ public class TaskWrapper {
     }
 
     protected Map<String, String> getTaskParameters() {
-        return this.parameters;
+        return this.environment;
     }
 
-    protected Vector<byte[]> getTaskInputData(Map<String, String> parameters) {
-        return null;
+    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) {
+        return new ArrayList<byte[]>();
     }
 
     Class getTaskClass()
@@ -78,9 +79,9 @@ public class TaskWrapper {
         return (Class) getTaskClass.invoke(null, this.environment, this.runtimeParameters);
     }
 
-    static Task createTask(Class taskClass, Map<String, String> parameters, Vector<byte[]> data)
+    static Task createTask(Class taskClass, Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        return (Task) taskClass.getConstructor(new Class[] {Map.class, Vector.class}).newInstance(parameters, data);
+        return (Task) taskClass.getConstructor(new Class[] {Map.class, ArrayList.class}).newInstance(parameters, data);
     }
 
     protected void preRun() {

@@ -4,7 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -70,8 +70,8 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     @Override
-    protected Vector<byte[]> getTaskInputData(Map<String, String> parameters) {
-        Vector<byte[]> inputData = new Vector<byte[]>();
+    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) {
+        ArrayList<byte[]> inputData = new ArrayList<byte[]>();
 
         try {
             TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.INPUT);
@@ -100,7 +100,7 @@ public class DagTaskWrapper extends TaskWrapper {
             TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
 
             if (cachePlugin != null) {
-                cachePlugin.loadData(this.task.getData());
+                cachePlugin.loadData(this.output);
             }
         } catch (Exception exception) {
             LOGGER.error("Unable to load data into the task output cache.");

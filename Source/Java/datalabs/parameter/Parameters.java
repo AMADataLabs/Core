@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +17,10 @@ import org.slf4j.LoggerFactory;
 public abstract class Parameters {
     protected static final Logger LOGGER = LoggerFactory.getLogger(Parameters.class);
 
-    public Parameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
+    protected Parameters() {
+    }
+
+    public Parameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
         Field[] fields = getClass().getFields();
         LOGGER.debug("Class: " + getClass());
         Map<String, String> fieldNames = Parameters.getFieldNames(fields);
@@ -25,15 +28,30 @@ public abstract class Parameters {
             LOGGER.debug("Field: " + field.getName());
         }
         LOGGER.debug("Field Names: " + fieldNames);
+        Map<String, String> fieldDefaults = getFieldDefaults(fields);
 
-        parameters = Parameters.standardizeParameters(parameters);
+        LOGGER.debug("Raw Parameters: " + parameters);
 
-        validate(parameters, fields, fieldNames);
+        Map<String, String> standardizedParameters = Parameters.standardizeParameters(parameters);
 
-        populate(parameters, fieldNames);
+        LOGGER.debug("Standardized Parameters: " + standardizedParameters);
+
+        validate(standardizedParameters, fields, fieldNames, fieldDefaults);
+
+        populate(standardizedParameters, fieldNames, fieldDefaults);
     }
 
-    static Map<String, String> standardizeParameters(Map<String, String> parameters) {
+    public static Parameters fromMap(Map<String, String> parameters, Class parameterClass)
+            throws IllegalAccessException, IllegalArgumentException, InstantiationException,
+            InvocationTargetException, NoSuchMethodException {
+        if (parameters == null) {
+            throw new IllegalArgumentException("Null parameters map.");
+        }
+
+        return (Parameters) parameterClass.getConstructor(new Class[] {Map.class}).newInstance(parameters);
+    }
+
+    static Map<String, String> standardizeParameters(Map<String, String> parameters) throws NoSuchFieldException {
         HashMap<String, String> standardizedParameters = new HashMap<String, String>();
 
         for (String key : parameters.keySet()) {
@@ -43,13 +61,13 @@ public abstract class Parameters {
         return standardizedParameters;
     }
 
-    void validate(Map<String, String> parameters, Field[] fields, Map<String, String> fieldNames)
+    void validate(Map<String, String> parameters, Field[] fields, Map<String, String> fieldNames, Map<String, String> fieldDefaults)
             throws IllegalArgumentException {
         String[] unexpectedFields = Parameters.getUnexpectedFields(parameters, fieldNames);
-        String[] missingFields = Parameters.getMissingFields(parameters, fieldNames);
-        LOGGER.debug("Parameters: " + parameters);
+        String[] missingFields = Parameters.getMissingFields(parameters, fieldNames, fieldDefaults);
         LOGGER.debug("Unexpected Fields: " + Arrays.toString(unexpectedFields));
         LOGGER.debug("Missing Fields: " + Arrays.toString(missingFields));
+        LOGGER.debug("Default Fields: " + Arrays.toString(fieldDefaults.keySet().toArray()));
 
         if (unexpectedFields.length > 0) {
             moveUnknowns(parameters, fieldNames, unexpectedFields);
@@ -62,9 +80,15 @@ public abstract class Parameters {
         }
     }
 
-    void populate(Map<String, String> parameters, Map<String, String> fieldNames) {
+    void populate(Map<String, String> parameters, Map<String, String> fieldNames, Map<String, String> fieldDefaults) {
         LOGGER.debug("Parameters: " + parameters);
         LOGGER.debug("Field Names: " + fieldNames);
+        LOGGER.debug("Field Defaults: " + fieldDefaults);
+
+        fieldDefaults.forEach(
+            (key, value) -> setField(fieldNames.get(key), value)
+        );
+
         parameters.forEach(
             (key, value) -> setField(fieldNames.get(key), value)
         );
@@ -80,8 +104,27 @@ public abstract class Parameters {
         return fieldNames;
     }
 
+    Map<String, String> getFieldDefaults(Field[] fields) throws IllegalAccessException, NoSuchFieldException {
+        HashMap<String, String> fieldDefaults = new HashMap<String, String>();
+
+        for (Field field : fields) {
+            Field declaredField = this.getClass().getField(field.getName());
+            LOGGER.debug("Getting annotation for field \"" + declaredField.getName() + "\"...");
+            Optional optionalAnnotation = declaredField.getAnnotation(Optional.class);
+
+            if (optionalAnnotation != null) {
+                LOGGER.debug("Annotation type: " + optionalAnnotation.getClass().getName());
+                fieldDefaults.put(Parameters.standardizeName(declaredField.getName()), optionalAnnotation.value());
+            } else {
+                LOGGER.debug("Annotation is null.");
+            }
+        }
+
+        return fieldDefaults;
+    }
+
     static String[] getUnexpectedFields(Map<String, String> parameters, Map<String, String> fieldNames) {
-        Vector<String> unexpectedFields = new Vector<String>();
+        ArrayList<String> unexpectedFields = new ArrayList<String>();
 
         for (String fieldName : parameters.keySet()) {
             LOGGER.debug("Validating field \"" + fieldName + "\"...");
@@ -93,11 +136,15 @@ public abstract class Parameters {
         return Arrays.stream(unexpectedFields.toArray()).toArray(String[]::new);
     }
 
-    static String[] getMissingFields(Map<String, String> parameters, Map<String, String> fieldNames) {
-        Vector<String> missingFields = new Vector<String>();
+    static String[] getMissingFields(Map<String, String> parameters, Map<String, String> fieldNames, Map<String, String> fieldDefaults) {
+        ArrayList<String> missingFields = new ArrayList<String>();
 
         for (String fieldName : fieldNames.keySet()) {
-            if (!fieldName.equals("UNKNOWNS") && !parameters.keySet().stream().anyMatch(n -> n.equals(fieldName))) {
+            boolean isUnknowns = fieldName.equals("UNKNOWNS");
+            boolean inParameters = parameters.keySet().stream().anyMatch(n -> n.equals(fieldName));
+            boolean hasDefault = fieldDefaults.get(fieldName) != null;
+
+            if (!isUnknowns && !inParameters & !hasDefault) {
                 missingFields.add(fieldName);
             }
         }
@@ -147,6 +194,7 @@ public abstract class Parameters {
 
     void setField(String field, Object value) {
         LOGGER.debug("Setting value of field " + field + " to " + value);
+
         try {
             getClass().getField(field).set(this, value);
         } catch (IllegalAccessException | NoSuchFieldException | NullPointerException exception) {

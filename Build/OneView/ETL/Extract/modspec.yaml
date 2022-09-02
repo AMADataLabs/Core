@@ -1,0 +1,19 @@
+---
+modspec:
+  - package: datalabs.access.environment
+  - package: datalabs.access.parameter
+  - package: datalabs.etl.dag
+  - package: datalabs.etl.dag.aws
+  - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.notify.sns
+  - package: datalabs.etl.dag.state
+  - package: datalabs.etl.dag.state.dynamodb
+  - package: datalabs.etl.s3
+  - package: datalabs.etl.sql
+  - package: datalabs.parameter
+  - package: datalabs.plugin
+  - package: datalabs.string
+  - package: datalabs.task
+  - package: datalabs.tool
+    include:
+      - TaskRunner

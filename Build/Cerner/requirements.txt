@@ -1,7 +1,7 @@
 arnparse==0.0.2
 boto3==1.18.12
 json5==0.8.5
-JayDeBeApi==1.1.1
+JayDeBeApi==1.2.3
 JPype1==0.6.3
 marshmallow==3.10.0
 numpy==1.23.1

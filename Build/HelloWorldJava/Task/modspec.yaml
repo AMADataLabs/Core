@@ -11,6 +11,7 @@ modspec:
   - package: datalabs.example.etl
     include:
       - HelloWorldTask
+      - HelloWorldParameters
   - package: datalabs.parameter
   - package: datalabs.plugin
   - package: datalabs.task

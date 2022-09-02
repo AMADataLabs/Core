@@ -44,6 +44,34 @@ def test_messages_are_serialized_as_json_string(data):
 
     assert len(messages) == 4
 
+# pylint: disable=redefined-outer-name, protected-access
+def test_empty_parameters():
+    df_new = pandas.DataFrame( {"dag": pandas.Series(dtype='str'),  "execution_time":pandas.Series(dtype='str'),
+                "data": pandas.Series(dtype='str')})
+
+    factory = DAGNotificationFactoryTask(df_new)
+
+    parameters_empty = pandas.DataFrame( data={"dag": pandas.Series(dtype='str'),
+                    "execution_time":pandas.Series(dtype='str'),
+                    "data": pandas.Series(dtype='str')})
+
+    messages_none = factory._generate_notification_messages(None, None,parameters_empty)
+
+    messages_nonetime = factory._generate_notification_messages(dag = "DUMMY_DAG",
+                     execution_time = None, parameters = parameters_empty)
+
+    messages_nonedag = factory._generate_notification_messages(dag = None,
+                     execution_time = "2022-08-23 00:00:00",
+                     parameters = parameters_empty)
+
+    messages = factory._generate_notification_messages(dag = "DUMMY_DAG",
+                     execution_time = "2022-08-23 00:00:00",
+                     parameters = parameters_empty)
+
+    assert len(messages) == 1
+    assert len(messages_nonetime) == 1
+    assert len(messages_nonedag) == 1
+    assert len(messages_none) == 1
 
 @pytest.fixture
 def data():
