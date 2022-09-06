@@ -1218,7 +1218,7 @@ pipelines:
             - >-
                 bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava
                 HelloWorldJavaDAG=DAG.zip
-                HelloWorldJavaTask=Task.jar
+                HelloWorldJavaTask=Task.zip
 
         OneView-ETL:
         - step:
@@ -1383,7 +1383,7 @@ pipelines:
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
                     --project OneView/ETL/Extract
-                    --bundle OneView/Extract.jar
+                    --bundle OneView/Extract.zip
                     --jdbc-driver DB2
                     --jdbc-driver Informix
                     --use-package
@@ -1399,7 +1399,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
                     --project OneView/ETL/Extract
-                    --bundle OneView/Extract.jar
+                    --bundle OneView/Extract.zip
                     --jdbc-driver DB2
                     --jdbc-driver Informix
                     --use-package
@@ -1415,7 +1415,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
                     --project OneView/ETL/Extract
-                    --bundle OneView/Extract.jar
+                    --bundle OneView/Extract.zip
                     --jdbc-driver DB2
                     --jdbc-driver Informix
                     --use-package
@@ -1431,7 +1431,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
                     --project OneView/ETL/Extract
-                    --bundle OneView/Extract.jar
+                    --bundle OneView/Extract.zip
                     --jdbc-driver DB2
                     --jdbc-driver Informix
                     --use-package
@@ -1439,7 +1439,7 @@ pipelines:
         #     name: Update Lambda Functions
         #     script:
         #     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-        #     - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView Extract=Extract.jar
+        #     - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView Extract=Extract.zip
 
         OneView-API:
         - step:
