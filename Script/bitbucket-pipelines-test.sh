@@ -24,12 +24,12 @@ main() {
     return_code=$?
 
     if [[ $? == 0 ]]; then
-        run_lint_tests
+        run_java_unit_tests
         return_code=$?
     fi
 
     if [[ $? == 0 ]]; then
-        run_java_unit_tests
+        run_lint_tests
         return_code=$?
     fi
 
