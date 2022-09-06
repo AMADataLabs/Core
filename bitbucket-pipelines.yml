@@ -33,12 +33,18 @@ pipelines:
         ##############################################################
 
         Test:
-        - step:
-            name: Unit and Lint Tests
-            caches:
-                - test-dependencies
-            script:
-                - bash Script/bitbucket-pipelines-test.sh
+        - parallel:
+            - step:
+                name: Python Unit and Lint Tests
+                caches:
+                    - test-dependencies
+                script:
+                    - bash Script/bitbucket-pipelines-test.sh
+            - step:
+                name: Java Unit Tests
+                script:
+                    - mvn test
+
 
 
         ##############################################################
