@@ -12,7 +12,7 @@ public class CoreBuilderParameters extends Parameters {
     public String host;
     public String username;
     public String password;
-    public int port;
+    public String port;
     public Map<String, String> unknowns;
 
     public CoreBuilderParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
