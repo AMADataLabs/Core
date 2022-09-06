@@ -20,17 +20,9 @@
     <repositories>
         <repository>
             <id>datalabs-sbx</id>
-            <name>datalabs-sbx</name>
+            <name>DataLabs Component Repository</name>
             <url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/datalabs-sbx/</url>
         </repository>
-
-        <!--
-        <repository>
-            <id>datalabs-cpt-link-sbx</id>
-            <name>datalabs-cpt-link-sbx</name>
-            <url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/cpt-link-sbx/</url>
-        </repository>
-        -->
     </repositories>
     <!--
     aws codeartifact get-authorization-token \
