@@ -38,7 +38,8 @@ modspec:
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.fs
-  - package: datalabs.etl.jdbc
+  - package: datalabs.etl.sql
+  - package: datalabs.etl.sql.jdbc
   - package: datalabs.etl.manipulate
   - package: datalabs.etl.oneview
   - package: datalabs.etl.oneview.credentialing

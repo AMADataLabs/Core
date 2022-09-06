@@ -148,11 +148,7 @@ create_code_bundle() {
 
 
 upload_code_bundle() {
-    if [[ "$RELEASE_TYPE" == "Python" ]]; then
-        aws s3 cp ${METADATA} Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
-    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
-        aws s3 cp ${METADATA} Bundle.jar s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
-    fi
+    aws s3 cp ${METADATA} Bundle.zip s3://ama-${ENVIRONMENT}-datalake-lambda-us-east-1/${BUNDLE}
 }
 
 

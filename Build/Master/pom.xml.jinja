@@ -204,11 +204,11 @@
 
         <!-- Private Maven Repository Dependencies -->
 
-        <dependency>
+        <!-- <dependency>
             <groupId>org.ama-assn.dtk</groupId>
             <artifactId>dtk-core</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
+            <version>1.0.0</version>
+        </dependency> -->
 
         <!-- Kotlin Dependencies -->
 
@@ -239,6 +239,12 @@
 
     <build>
         <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+
+        <resources>
+            <resource>
+                <directory>${project.basedir}/resources</directory>
+            </resource>
+        </resources>
 
         <plugins>
             <plugin>
@@ -289,9 +295,11 @@
                     <filters>
                         <filter> <!-- Prevent "ERROR StatusLogger Unrecognized..." console output. -->
                             <artifact>*:*</artifact>
-                            <excludes>
-                                <exclude>**/Log4j2Plugins.dat</exclude>
-                            </excludes>
+                            <includes>
+                                <include>datalabs/**</include>
+                                <include>log4j2.xml</include>
+                                <include>*.txt</include>
+                            </includes>
                         </filter>
                     </filters>
                 </configuration>
