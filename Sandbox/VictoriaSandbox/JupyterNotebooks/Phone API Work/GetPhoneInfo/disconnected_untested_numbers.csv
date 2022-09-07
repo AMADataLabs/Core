@@ -1,0 +1,244 @@
+,OFFICE_TELEPHONE,COMMENTS,DISCONNECTED,status,rpv_dc
+141,2524513100,COMPLETE,False,disconnected,True
+142,4704194380,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+143,4349242465,COMPLETE,False,disconnected-70,False
+144,2547519490,2ND ATTEMPT,False,disconnected,True
+145,8106959920,WRONG NUMBER,False,disconnected-70,False
+146,7032077100,FAIL,False,disconnected-70,False
+147,5136364251,COMPLETE,False,disconnected-70,False
+148,5178874305,COMPLETE,False,disconnected,True
+149,2509334884,2ND ATTEMPT,False,disconnected,True
+150,4105732530,COMPLETE,False,disconnected-70,False
+151,6166857450,COMPLETE,False,disconnected,True
+152,7346713883,"MOVED, NO FORWARDING INFO",False,disconnected,True
+153,3307588223,2ND ATTEMPT,False,disconnected,True
+154,2079922601,WRONG NUMBER,False,disconnected,True
+155,2188287100,FAIL,False,disconnected,True
+156,3125672167,FAIL,False,disconnected-70,False
+157,5624368117,COMPLETE,False,disconnected-70,False
+158,3126950990,COMPLETE,False,disconnected-70,False
+159,3605765060,COMPLETE,False,disconnected,True
+160,3033572540,"MOVED, NO FORWARDING INFO",False,disconnected,True
+161,5095887613,COMPLETE,False,disconnected-70,False
+162,2077774300,2ND ATTEMPT,False,disconnected,True
+163,8174815863,COMPLETE,False,disconnected-70,False
+164,8138778665,COMPLETE,False,disconnected-70,False
+165,8142544207,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+166,9518491543,COMPLETE,False,disconnected-70,False
+167,7014787747,COMPLETE,False,disconnected,True
+168,2156636608,2ND ATTEMPT,False,disconnected,True
+169,7814883030,2ND ATTEMPT,False,disconnected-70,False
+170,4356281641,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+171,5594326212,COMPLETE,False,disconnected,True
+172,8592633030,COMPLETE,False,disconnected,True
+173,8188905300,COMPLETE,False,disconnected-70,False
+174,9377482855,COMPLETE,False,disconnected,True
+175,3126955620,COMPLETE,False,disconnected-70,False
+176,5133210833,COMPLETE,False,disconnected-70,False
+177,9543707554,FAX MODEM,False,disconnected,True
+178,6783850377,COMPLETE,False,disconnected,True
+179,6053393378,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+180,3522735670,COMPLETE,False,disconnected-70,False
+181,8567356209,2ND ATTEMPT,False,disconnected,True
+182,7277996255,COMPLETE,False,disconnected-70,False
+183,4083588434,COMPLETE,False,disconnected-70,False
+184,3014934440,2ND ATTEMPT,False,disconnected,True
+185,5614951337,COMPLETE,False,disconnected-70,False
+186,9146811158,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+187,5016869300,"MOVED, NO FORWARDING INFO",False,disconnected,True
+188,8144532777,COMPLETE,False,disconnected,True
+189,7814498161,COMPLETE,False,disconnected,True
+190,7865966991,COMPLETE,False,disconnected-70,False
+191,6059776842,COMPLETE,False,disconnected-70,False
+192,9036145570,COMPLETE,False,disconnected-70,False
+193,6077342574,RETIRED,False,disconnected,True
+194,6269156683,FAX MODEM,False,disconnected-70,False
+195,7877582525,2ND ATTEMPT,False,disconnected,True
+196,5094743260,2ND ATTEMPT,False,disconnected-70,False
+197,7346478535,FAX MODEM,False,disconnected,True
+198,4143261514,COMPLETE,False,disconnected-70,False
+199,8084332620,COMPLETE,False,disconnected-70,False
+200,9417921717,COMPLETE,False,disconnected-70,False
+201,6126265031,2ND ATTEMPT,False,disconnected-70,False
+202,2156622638,2ND ATTEMPT,False,disconnected,True
+203,4403265250,COMPLETE,False,disconnected,True
+204,9146811260,RETIRED,False,disconnected-70,False
+205,2067443462,2ND ATTEMPT,False,disconnected,True
+206,3126953738,2ND ATTEMPT,False,disconnected-70,False
+207,3522737001,2ND ATTEMPT,False,disconnected-70,False
+208,7324555800,COMPLETE,False,disconnected-70,False
+209,6233123020,COMPLETE,False,disconnected,True
+210,4707323585,COMPLETE,False,disconnected,True
+211,9099373440,2ND ATTEMPT,False,disconnected-70,False
+212,6785815252,COMPLETE,False,disconnected,True
+213,5136364785,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+214,3179443889,COMPLETE,False,disconnected,True
+215,3034674000,COMPLETE,False,disconnected-70,False
+216,7136510870,WRONG NUMBER,False,disconnected,True
+217,7177615530,2ND ATTEMPT,False,disconnected,True
+218,5126008149,FAX MODEM,False,disconnected,True
+219,9209828300,RETIRED,False,disconnected-70,False
+220,6268516536,2ND ATTEMPT,False,disconnected-70,False
+221,5032208262,2ND ATTEMPT,False,disconnected-70,False
+222,3237555500,COMPLETE,False,disconnected-70,False
+223,2137409355,2ND ATTEMPT,False,disconnected-70,False
+224,8453586266,COMPLETE,False,disconnected-70,False
+225,7187805040,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+226,4047783350,COMPLETE,False,disconnected,True
+227,3126951800,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+228,8478825900,COMPLETE,False,disconnected,True
+229,6368960600,COMPLETE,False,disconnected-70,False
+230,8435567942,RETIRED,False,disconnected-70,False
+231,5094882636,2ND ATTEMPT,False,disconnected,True
+232,8325052300,2ND ATTEMPT,False,disconnected-70,False
+233,5628686256,WRONG NUMBER,False,disconnected-70,False
+234,5163775400,COMPLETE,False,disconnected-70,False
+235,8306728502,COMPLETE,False,disconnected,True
+236,7074237372,"MOVED, NO FORWARDING INFO",False,disconnected,True
+237,2082392571,COMPLETE,False,disconnected-70,False
+238,9738424272,COMPLETE,False,disconnected-70,False
+239,3034445110,COMPLETE,False,disconnected,True
+240,7062726000,COMPLETE,False,disconnected,True
+241,5184827964,COMPLETE,False,disconnected-70,False
+242,6126264260,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+243,7878201763,COMPLETE,False,disconnected,True
+244,7877043434,2ND ATTEMPT,False,disconnected,True
+245,7029522140,COMPLETE,False,disconnected,True
+246,5015268100,COMPLETE,False,disconnected,True
+247,2062327546,"MOVED, NO FORWARDING INFO",False,disconnected,True
+248,8032542394,WRONG NUMBER,False,disconnected,True
+249,7082028387,FAIL,False,disconnected-70,False
+250,8133463500,COMPLETE,False,disconnected-70,False
+251,3048311670,"MOVED, NO FORWARDING INFO",False,disconnected,True
+252,6017039632,"MOVED, NO FORWARDING INFO",False,disconnected,True
+253,9167811811,COMPLETE,False,disconnected,True
+254,9187493399,WRONG NUMBER,False,disconnected,True
+255,4697305210,2ND ATTEMPT,False,disconnected,True
+256,9403233450,COMPLETE,False,disconnected-70,False
+257,7183342483,COMPLETE,False,disconnected-70,False
+258,6182349200,2ND ATTEMPT,False,disconnected-70,False
+259,2057578212,2ND ATTEMPT,False,disconnected,True
+260,7878168472,FAX MODEM,False,disconnected,True
+261,4109557095,COMPLETE,False,disconnected,True
+262,2534596060,2ND ATTEMPT,False,disconnected,True
+263,8054340876,COMPLETE,False,disconnected,True
+264,6034334012,REFUSAL,False,disconnected,True
+265,2488498483,2ND ATTEMPT,False,disconnected-70,False
+266,7879840992,WRONG NUMBER,False,disconnected,True
+267,2073734700,COMPLETE,False,disconnected,True
+268,8563255601,COMPLETE,False,disconnected,True
+269,3527428830,COMPLETE,False,disconnected-70,False
+270,5702875721,FAX MODEM,False,disconnected,True
+271,3232616173,COMPLETE,False,disconnected-70,False
+272,7878314503,LANGUAGE/HEARING,False,disconnected,True
+273,3522738737,2ND ATTEMPT,False,disconnected-70,False
+274,6038801590,COMPLETE,False,disconnected,True
+275,8286593481,2ND ATTEMPT,False,disconnected-70,False
+276,5596382600,COMPLETE,False,disconnected-70,False
+277,2156628676,COMPLETE,False,disconnected,True
+278,7816655656,REFUSAL,False,disconnected-70,False
+279,3133433978,COMPLETE,False,disconnected-70,False
+280,7878833739,COMPLETE,False,disconnected,True
+281,7182455121,REFUSAL,False,disconnected-70,False
+282,5629079178,COMPLETE,False,disconnected-70,False
+283,9124356633,2ND ATTEMPT,False,disconnected,True
+284,3237792871,WRONG NUMBER,False,disconnected,True
+285,2076201430,"MOVED, NO FORWARDING INFO",False,disconnected,True
+286,8162767650,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+287,2053132650,COMPLETE,False,disconnected,True
+288,4047125287,COMPLETE,False,disconnected,True
+289,8059289600,2ND ATTEMPT,False,disconnected-70,False
+290,4794633000,"MOVED, NO FORWARDING INFO",False,disconnected,True
+291,5628620804,COMPLETE,False,disconnected-70,False
+292,2818762500,COMPLETE,False,disconnected,True
+293,2037397433,WRONG NUMBER,False,disconnected,True
+294,6152365000,COMPLETE,False,disconnected,True
+295,2155355522,2ND ATTEMPT,False,disconnected,True
+296,4109556353,2ND ATTEMPT,False,disconnected,True
+297,4342434570,2ND ATTEMPT,False,disconnected-70,False
+298,5305818864,COMPLETE,False,disconnected,True
+299,7878435420,WRONG NUMBER,False,disconnected,True
+300,7737740042,COMPLETE,False,disconnected,True
+301,9199664431,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+302,6263385563,RETIRED,False,disconnected-70,False
+303,8573644153,WRONG NUMBER,False,disconnected-70,False
+304,2488493000,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+305,3154641850,2ND ATTEMPT,False,disconnected-70,False
+306,2015140916,2ND ATTEMPT,False,disconnected-70,False
+307,9042233321,2ND ATTEMPT,False,disconnected-70,False
+308,7872576965,WRONG NUMBER,False,disconnected,True
+309,6104370739,2ND ATTEMPT,False,disconnected,True
+310,4143894900,COMPLETE,False,disconnected-70,False
+311,3102097595,2ND ATTEMPT,False,disconnected,True
+312,3109371996,FAX MODEM,False,disconnected,True
+313,2106145113,COMPLETE,False,disconnected,True
+314,4047782020,COMPLETE,False,disconnected,True
+315,7878787726,WRONG NUMBER,False,disconnected,True
+316,9135883610,"MOVED, NO FORWARDING INFO",False,disconnected,True
+317,5596554942,WRONG NUMBER,False,disconnected-70,False
+318,2158296079,2ND ATTEMPT,False,disconnected,True
+319,9495594480,COMPLETE,False,disconnected-70,False
+320,3129268200,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+321,7075840672,"MOVED, NO FORWARDING INFO",False,disconnected-70,False
+322,3037893000,COMPLETE,False,disconnected-70,False
+323,8188882855,WRONG NUMBER,False,disconnected,True
+324,4349824470,REFUSAL,False,disconnected-70,False
+325,6177533113,2ND ATTEMPT,False,disconnected-70,False
+326,8174882865,2ND ATTEMPT,False,disconnected-70,False
+73,7147920022,NOT IN SERVICE,True,disconnected,True
+74,9192862287,NOT IN SERVICE,True,disconnected-70,False
+75,9544419700,NOT IN SERVICE,True,disconnected,True
+76,2105956790,NOT IN SERVICE,True,disconnected,True
+77,4155469642,NOT IN SERVICE,True,disconnected,True
+78,7347691452,NOT IN SERVICE,True,disconnected,True
+79,3014962128,NOT IN SERVICE,True,disconnected,True
+80,8189921166,NOT IN SERVICE,True,disconnected,True
+81,8066652120,NOT IN SERVICE,True,disconnected,True
+82,7158338549,NOT IN SERVICE,True,disconnected,True
+83,6509951283,NOT IN SERVICE,True,disconnected,True
+84,6617258693,NOT IN SERVICE,True,disconnected,True
+85,9105798363,NOT IN SERVICE,True,disconnected,True
+86,4238545880,NOT IN SERVICE,True,disconnected,True
+87,5704532555,NOT IN SERVICE,True,disconnected,True
+88,3105435878,NOT IN SERVICE,True,disconnected-70,False
+89,8063581671,NOT IN SERVICE,True,disconnected,True
+90,5708267758,NOT IN SERVICE,True,disconnected,True
+91,3135820363,NOT IN SERVICE,True,disconnected,True
+92,4109645226,NOT IN SERVICE,True,disconnected,True
+93,6177829210,NOT IN SERVICE,True,disconnected-70,False
+94,9738271961,NOT IN SERVICE,True,disconnected,True
+95,9852620475,NOT IN SERVICE,True,disconnected-70,False
+96,6104977700,NOT IN SERVICE,True,disconnected,True
+97,5164664565,NOT IN SERVICE,True,disconnected-70,False
+98,3863302310,NOT IN SERVICE,True,disconnected,True
+99,9317293573,NOT IN SERVICE,True,disconnected,True
+100,4134422402,NOT IN SERVICE,True,disconnected-70,False
+101,8183643001,NOT IN SERVICE,True,disconnected,True
+102,5136863263,NOT IN SERVICE,True,disconnected-70,False
+103,7043411122,NOT IN SERVICE,True,disconnected,True
+104,9104885714,NOT IN SERVICE,True,disconnected,True
+105,8477464538,NOT IN SERVICE,True,disconnected,True
+106,8607631568,NOT IN SERVICE,True,disconnected,True
+107,2149212153,NOT IN SERVICE,True,disconnected-70,False
+108,6095810283,NOT IN SERVICE,True,disconnected,True
+109,4408453940,NOT IN SERVICE,True,disconnected,True
+110,9544265553,NOT IN SERVICE,True,disconnected,True
+111,7325441048,NOT IN SERVICE,True,disconnected-70,False
+112,5086550636,NOT IN SERVICE,True,disconnected-70,False
+113,5033704950,NOT IN SERVICE,True,disconnected,True
+114,7574523479,NOT IN SERVICE,True,disconnected,True
+115,9723840273,NOT IN SERVICE,True,disconnected-70,False
+116,5018346273,NOT IN SERVICE,True,disconnected,True
+117,3057050345,NOT IN SERVICE,True,disconnected,True
+118,5032221615,NOT IN SERVICE,True,disconnected,True
+119,7403733731,NOT IN SERVICE,True,disconnected,True
+120,4056319315,NOT IN SERVICE,True,disconnected-70,False
+121,9286807707,NOT IN SERVICE,True,disconnected-70,False
+122,7658275260,NOT IN SERVICE,True,disconnected-70,False
+123,3256282654,NOT IN SERVICE,True,disconnected,True
+124,8043643528,NOT IN SERVICE,True,disconnected,True
+125,5097838500,NOT IN SERVICE,True,disconnected-70,False
+126,2032352505,NOT IN SERVICE,True,disconnected,True
+127,7573213200,NOT IN SERVICE,True,disconnected,True
+128,9122871297,NOT IN SERVICE,True,disconnected,True
+129,2538414375,NOT IN SERVICE,True,disconnected,True

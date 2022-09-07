@@ -1,0 +1,51 @@
+,Address,AlternatePhone,Carrier,City,Commercial,Date,Error,Industry,LineType,Name,OFFICE_TELEPHONE,PhoneType,State,Valid,Zipcode
+0,,,Time Warner Communications,Rochester,,,,,FixedVOIP,,5857773511,,NY,TRUE,None
+1,4741 Janet Ln,,Rcn Telecom Services,Bethlehem,FALSE,9/1/2016,,,FixedVOIP,Lisete R Fink,6104199092,Person,PA,TRUE,18017
+2,,,Frontier Communications,Saint Petersburg,FALSE,,,,Landline,Sonja H Frazier,7273020000,Person,FL,TRUE,None
+3,3401 W Sunflower Ave Ste 250,,Pacific Bell,Santa Ana,FALSE,1/1/2010,,,Landline,Christine Mary Kelley,8585739902,Person,CA,TRUE,92704
+4,1401 Caminito Capistrano Unit 2,,T-Mobile USA,Chula Vista,FALSE,7/1/2018,,,Mobile,Justin A Roberts,6194027300,Person,CA,TRUE,91913
+5,17907 Clear Lake Dr,,Frontier Communications,Lutz,TRUE,11/15/2016,,Ambulatory Health Care Services,Landline,Jose Luis Lezama MD,8139727629,Business,FL,TRUE,33548
+6,250 Fulton Ave Ste 510,15165654720,Cablevision Lightpath,Hempstead,TRUE,11/19/2016,,Ambulatory Health Care Services,FixedVOIP,"Young, Allan MD",5164839020,Business,NY,TRUE,11550
+7,619 19th St S,12059345631,BellSouth,Birmingham,TRUE,11/20/2016,,Ambulatory Health Care Services,Landline,Uab Hospital,2059393361,Business,AL,TRUE,35233
+8,3955 Eagle Creek Pkwy Apt C,,Ameritech,Indianapolis,TRUE,11/17/2016,,Ambulatory Health Care Services,Landline,Stephen J Massicotte Pc,3172808410,Business,IN,TRUE,46254
+9,200 Main St Ste 350,,Verizon,Pawtucket,TRUE,5/6/2017,,Ambulatory Health Care Services,Landline,Mervyn H Woolf MD,4017267300,Business,RI,TRUE,2860
+10,,,Teleport Communications America,Indianapolis,TRUE,,,,Landline,Iupui,3172740273,Business,IN,TRUE,None
+11,,,Windstream Communications,Glasgow,,,,,Landline,,2706519393,,KY,TRUE,None
+12,,,Cablevision Lightpath,Westwood,TRUE,,,,FixedVOIP,Life Key Ventur,2013586776,Business,NJ,TRUE,None
+13,341 N Calvert St Ste Ll,,Verizon,Baltimore,TRUE,8/13/2017,,Ambulatory Health Care Services,Landline,Brigid C Baroody MD,4106590689,Business,MD,TRUE,21202
+14,,,Teleport Communications America,Hackensack,TRUE,,,,Landline,Hackensack Univ,2019962403,Business,NJ,TRUE,None
+15,125 Red Creek Dr Ste 205,15854869061,Frontier Communications,Rochester,TRUE,11/19/2016,,Ambulatory Health Care Services,Landline,Michael J Klotz MD,5853210340,Business,NY,TRUE,14623
+16,300 Hillmont Ave,,Pacific Bell,Ventura,TRUE,8/28/2018,,Ambulatory Health Care Services,Landline,"Maamar-Tayeb, Ali Omar MD",8056526556,Business,CA,TRUE,93003
+17,35 Executive Ave Ste 10,,Pacific Bell,Rohnert Park,TRUE,11/20/2016,,Specialty Trade Contractors,Landline,Croft Roofing,7075848000,Business,CA,TRUE,94928
+18,1200 6th Ave N,13202512700,Buckeye TeleSystem,Saint Cloud,TRUE,8/9/2017,,Ambulatory Health Care Services,NonFixedVOIP,Centra Care Clinic,4193834244,Business,MN,TRUE,56303
+19,302 Prospect St Unit 4,,Pacific Bell,La Jolla,TRUE,8/13/2017,,Ambulatory Health Care Services,Landline,Sunah Feng MD,8583506036,Business,CA,TRUE,92037
+20,28105 Three Notch Rd,12402496199,Verizon,Mechanicsville,TRUE,11/20/2016,,Ambulatory Health Care Services,Landline,St Mary's Neurology & Spine,3012743706,Business,MD,TRUE,20659
+21,1315 St Joseph Pkwy Ste 302,,AT&T,Houston,TRUE,5/6/2017,,Ambulatory Health Care Services,Landline,Viswanathan C Aiyer MD,7136593284,Business,TX,TRUE,77002
+22,800 N Bell Trace Cir,18123398394,Ameritech,Bloomington,FALSE,3/1/2017,,,Landline,Mrs. Delinda C Bowling,8123337326,Person,IN,TRUE,47408
+23,1400 E Palomar St,,Level 3 Communications,Chula Vista,TRUE,11/17/2016,,Ambulatory Health Care Services,NonFixedVOIP,"Cervantes, Frank MD",8584992261,Business,CA,TRUE,91913
+24,4 Savannah St,,Comcast,Winder,TRUE,11/17/2016,,Ambulatory Health Care Services,FixedVOIP,Brown Family Health Center,7705860017,Business,GA,TRUE,30680
+25,,,Mts Inc.,Bloodvein,,,,,Landline,,2043957827,,MB,TRUE,None
+26,8360 Sierra Meadows Blvd,18003589295,CenturyLink,Naples,TRUE,11/20/2016,,Ambulatory Health Care Services,Landline,Nch Healthcare Group,2394036350,Business,FL,TRUE,34113
+27,,,Verizon,Lebanon,,,,,Landline,,2768898380,,VA,TRUE,None
+28,939 Office Park Rd,,CenturyLink,West Des Moines,TRUE,11/18/2016,,Ambulatory Health Care Services,Landline,"Narayan, T K MD",5152801252,Business,IA,TRUE,50265
+29,56 Schoolhouse Rd Ste B,17323490001,Comcast,Whiting,TRUE,11/17/2016,,Ambulatory Health Care Services,FixedVOIP,"Zia, Ziaulhaq MD",7323507900,Business,NJ,TRUE,8759
+30,2345 Dougherty Ferry Rd,,MCImetro Access Transmission Services,Saint Louis,TRUE,11/18/2016,,Ambulatory Health Care Services,Landline,"Day, Deborah",3148215850,Business,MO,TRUE,63122
+31,11100 Euclid Ave,,Ameritech,Cleveland,TRUE,2/28/2019,,Ambulatory Health Care Services,Landline,"Pei, Theodore T MD",2168441000,Business,OH,TRUE,44106
+32,,,Twilio,Salt Lake City,,,,,NonFixedVOIP,,3852132546,,UT,TRUE,None
+33,,,Twilio,Tucson,,,,,NonFixedVOIP,,5202145354,,AZ,TRUE,None
+34,12551 Indian Rocks Rd Apt 7,,Knology d/b/a WOW! Internet Cable and Phone,Largo,TRUE,2/28/2019,,Ambulatory Health Care Services,FixedVOIP,Virtual Radiology,7275860545,Business,FL,TRUE,33774
+35,116 Northport Ave Apt 214,12073389290,Lincolnville Communications,Belfast,TRUE,11/18/2016,,Ambulatory Health Care Services,Landline,County General Hospital,2079302639,Business,ME,TRUE,4915
+36,210 Professional Park Dr SE Ste 12,,Verizon,Blacksburg,TRUE,11/15/2016,,Ambulatory Health Care Services,Landline,Steven Douglas Nack DO,5409610410,Business,VA,TRUE,24060
+37,1200 N State St Ste CT-A7d,,Pacific Bell,Los Angeles,TRUE,2/28/2019,,Ambulatory Health Care Services,Landline,"Chen, Erica Cua MD",3232267556,Business,CA,TRUE,90033
+38,228 W Alexander St,18137545480,Teleport Communications America,Plant City,TRUE,11/17/2016,,Ambulatory Health Care Services,Landline,"Molodecki, Anthony M PA",8137542251,Business,FL,TRUE,33563
+39,1825 Maple Rd Apt 100,,Bandwidth.com CLEC,Buffalo,TRUE,5/6/2017,,Ambulatory Health Care Services,NonFixedVOIP,Adam Jason Norman MD,7162044532,Business,NY,TRUE,14221
+40,1 Medical Center Dr,,Consolidated Communications,Lebanon,TRUE,8/28/2018,,Ambulatory Health Care Services,Landline,"Loka, Alfred M MD",6036506247,Business,NH,TRUE,3756
+41,28105 Three Notch Rd,12402496199,Verizon,Mechanicsville,TRUE,11/20/2016,,Ambulatory Health Care Services,Landline,St Mary's Neurology & Spine,3012743706,Business,MD,TRUE,20659
+42,,,Level 3 Communications,Clovis,TRUE,,,,NonFixedVOIP,Presbyterian,5757697669,Business,NM,TRUE,None
+43,210 Professional Park Dr SE Ste 12,,Verizon,Blacksburg,TRUE,11/15/2016,,Ambulatory Health Care Services,Landline,Steven Douglas Nack DO,5409610410,Business,VA,TRUE,24060
+44,,,Paetec Communications,Vestavia Hls,FALSE,,,,NonFixedVOIP,C Glaucoma,2058242227,Person,AL,TRUE,None
+45,,,Verizon,Lebanon,,,,,Landline,,2768898380,,VA,TRUE,None
+46,17907 Clear Lake Dr,,Frontier Communications,Lutz,TRUE,11/15/2016,,Ambulatory Health Care Services,Landline,Jose Luis Lezama MD,8139727629,Business,FL,TRUE,33548
+47,41140 Fox Run,,Ameritech,Novi,TRUE,11/20/2016,,Real Estate,Landline,Erickson Retirement Communities,2489605104,Business,MI,TRUE,48377
+48,3401 W Sunflower Ave Ste 250,,Pacific Bell,Santa Ana,FALSE,1/1/2010,,,Landline,Christine Mary Kelley,8585739902,Person,CA,TRUE,92704
+49,661 Graceland Ave,,Teleport Communications America,Des Plaines,TRUE,11/15/2016,,Ambulatory Health Care Services,Landline,Hong Zhang Frankel MD,8478273455,Business,IL,TRUE,60016
