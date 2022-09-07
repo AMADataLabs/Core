@@ -2,6 +2,8 @@ import pandas as pd
 import settings
 import os
 from datetime import date
+import win32com.client as win32
+import errno
 import logging
 
 logging.basicConfig()
@@ -15,6 +17,19 @@ def get_raw_filename():
     raw_filename = f'{folder}{this_month}/License/North Carolina/MD Active.xlsx'
     return raw_filename
 
+def send_email(attachment, auto_send=True):
+    outlook = win32.Dispatch('outlook.application')
+    msg = outlook.CreateItem(0)
+    msg.To = 'victoria.grose@gmail.com'
+    msg.Cc = 'victoria.grose@ama-assn.org'
+    msg.Subject = 'NC Licenses'
+    msg.Body = 'Here you go'
+    msg.Attachments.Add(attachment)
+    if auto_send:
+        msg.Send()
+    else:
+        msg.Display(True)
+
 def get_license_numbers():
     today = str(date.today())
     raw_filename = get_raw_filename()
@@ -26,6 +41,7 @@ def get_license_numbers():
     LOGGER.info(f' Saving locally...')
     raw_data[['License_Number']].to_csv(lic_filename, index=False)
     raw_data.to_csv(lic_filename_2, index=False)
+    send_email(lic_filename)
     return lic_filename
 
 if __name__ == "__main__":

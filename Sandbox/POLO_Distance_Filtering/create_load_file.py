@@ -3,7 +3,6 @@ import pandas as pd
 import settings
 import os
 import json
-from   enum import Enum
 from datalabs.access.edw import EDW, PartyKeyType
 from fuzzywuzzy import fuzz
 import logging

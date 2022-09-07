@@ -5,31 +5,31 @@ from datetime import date
 import os
 import pandas as pd
 import settings
+from pathlib import Path
 from datalabs.access.edw import EDW
 
 #Set today
 TODAY = str(date.today())[0:7]
 
-#Set file locations
-AK_AZ_FILE = os.getenv('PHYSICIANS_AK_AZ')
-CA_DE_FILE = os.getenv('PHYSICIANS_CA_DE')
-FL_KY_FILE = os.getenv('PHYSICIANS_FL_KY')
-LA_NH_FILE = os.getenv('PHYSICIANS_LA_NH')
-NJ_OR_FILE = os.getenv('PHYSICIANS_NJ_OR')
-PA_TX_FILE = os.getenv('PHYSICIANS_PA_TX')
-UT_WY_FILE = os.getenv('PHYSICIANS_UT_WY')
-DHC_OUT_DIR = os.getenv('DHC_OUT_FOLDER')
-
 #Make dataframes
 print('Reading Files...')
-AK_AZ = pd.read_csv(AK_AZ_FILE)
-CA_DE = pd.read_csv(CA_DE_FILE)
-FL_KY = pd.read_csv(FL_KY_FILE)
-LA_NH = pd.read_csv(LA_NH_FILE)
-NJ_OR = pd.read_csv(NJ_OR_FILE)
-PA_TX = pd.read_csv(PA_TX_FILE)
-UT_WY = pd.read_csv(UT_WY_FILE)
 
+DOWNLOADS = os.getenv('DOWNLOADS') 
+file_list = []
+ALL_DHC = pd.DataFrame()
+for file in os.listdir(DOWNLOADS):
+    if file.startswith('ContactInfo0422'):
+        file_name = f'{DOWNLOADS}/{file}'
+        print(file_name)
+        new_file = pd.read_csv(file_name, error_bad_lines=False)
+        ALL_DHC = pd.concat([ALL_DHC, new_file])
+
+
+#Set file locations
+DHC_OUT_DIR = os.getenv('DHC_OUT_FOLDER')
+LOCAL_DHC_OUT_DIR = os.getenv('LOCAL_DHC_OUT_FOLDER')
+
+print('Reading EDW...')
 #Write queries
 ME_QUERY = \
     """
@@ -64,9 +64,10 @@ with EDW() as edw:
 #Make id conversion table
 NPI_TO_ME = pd.merge(NPI, ME, on='PARTY_ID')[['NPI', 'ME']]
 
-#Concat all dhc
 print('Cleaning...')
-ALL_DHC = pd.concat([AK_AZ, CA_DE, FL_KY, LA_NH, NJ_OR, PA_TX, UT_WY])
+# print(len(ALL_DHC))
+# ALL_DHC = ALL_DHC.drop_duplicates()
+# print(len(ALL_DHC))
 
 #Add ME
 ALL_DHC['NPI'] = ALL_DHC['NPI'].astype(str)
@@ -79,4 +80,6 @@ ALL_DHC['Phone_Number'] = ALL_DHC['Phone_Number'].apply(lambda x: x.replace('.',
 
 #Save
 print('Saving...')
+DHC.to_csv(f'{LOCAL_DHC_OUT_DIR}/DHC_{TODAY}.csv', index=False)
 DHC.to_csv(f'{DHC_OUT_DIR}/DHC_{TODAY}.csv', index=False)
+
