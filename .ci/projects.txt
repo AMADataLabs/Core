@@ -11,9 +11,9 @@ HelloWorldJava/Task
 HelloWorldVault
 IntelligentPlatform/Developer/Users
 IntelligentPlatform/Licensing
-OneView/ETL
 OneView/ETL/Batch
 OneView/ETL/Extract
+OneView/ETL
 OneView/API
 Scheduler
 HelloWorld
