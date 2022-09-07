@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import datalabs.access.environment.VariableTree;
 import datalabs.etl.dag.cache.TaskDataCache;
 import datalabs.plugin.PluginImporter;
+import datalabs.task.TaskException;
 import datalabs.task.TaskWrapper;
 
 
@@ -31,46 +32,60 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     @Override
-    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws IllegalArgumentException {
-        if (!parameters.containsKey("args")) {
-            throw new IllegalArgumentException("Missing \"args\" runtime parameter.");
-        }
-        String[] commandLineArguments = parameters.get("args").split(" ", 2);
+    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws TaskException {
+        HashMap<String, String> runtimeParameters = null;
 
-        if (commandLineArguments.length != 2) {
-            throw new IllegalArgumentException(
-                "Expecting two command-line arguments (<executable name>, <DAG run ID>)."
-            );
-        }
-        String[] runtimeParameterValues = commandLineArguments[1].split("__", 3);
+        try {
+            if (!parameters.containsKey("args")) {
+                throw new IllegalArgumentException("Missing \"args\" runtime parameter.");
+            }
+            String[] commandLineArguments = parameters.get("args").split(" ", 2);
 
-        return new HashMap<String, String>() {{
-            put("dag", runtimeParameterValues[0]);
-            put("task", runtimeParameterValues[1]);
-            put("execution_time", runtimeParameterValues[2].replace("T", " "));
-        }};
+            if (commandLineArguments.length != 2) {
+                throw new IllegalArgumentException(
+                    "Expecting two command-line arguments (<executable name>, <DAG run ID>)."
+                );
+            }
+            String[] runtimeParameterValues = commandLineArguments[1].split("__", 3);
+
+            runtimeParameters = new HashMap<String, String>() {{
+                put("dag", runtimeParameterValues[0]);
+                put("task", runtimeParameterValues[1]);
+                put("execution_time", runtimeParameterValues[2].replace("T", " "));
+            }};
+        } catch (Exception exception) {
+            throw new TaskException("Unable to get runtime parameters.", exception);
+        }
+
+        return runtimeParameters;
     }
 
     @Override
-    protected Map<String, String> getTaskParameters() {
-        Map<String, String> defaultParameters = this.getDefaultParameters();
-        Map<String, String> dagTaskParameters = this.getDagTaskParameters();
-        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
+    protected Map<String, String> getTaskParameters() throws TaskException {
+        Map<String, String> taskParameters = null;
 
-        taskParameters = this.extractCacheParameters(taskParameters);
-        LOGGER.debug("Task Parameters: " + dagTaskParameters);
+        try {
+            Map<String, String> defaultParameters = this.getDefaultParameters();
+            Map<String, String> dagTaskParameters = this.getDagTaskParameters();
+            taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
 
-        LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
-        taskParameters.forEach(
-            (key, value) -> overrideParameter(this.runtimeParameters, key, value)
-        );
-        LOGGER.debug("Runtime parameters AFTER task parameter overrides: " + this.runtimeParameters);
+            taskParameters = this.extractCacheParameters(taskParameters);
+            LOGGER.debug("Task Parameters: " + dagTaskParameters);
+
+            LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
+            taskParameters.forEach(
+                (key, value) -> overrideParameter(this.runtimeParameters, key, value)
+            );
+            LOGGER.debug("Runtime parameters AFTER task parameter overrides: " + this.runtimeParameters);
+        } catch (Exception exception) {
+            throw new TaskException("Unable to get task parameters.", exception);
+        }
 
         return taskParameters;
     }
 
     @Override
-    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) {
+    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) throws TaskException {
         ArrayList<byte[]> inputData = new ArrayList<byte[]>();
 
         try {
@@ -80,31 +95,33 @@ public class DagTaskWrapper extends TaskWrapper {
                 inputData = cachePlugin.extractData();
             }
         } catch (Exception exception) {
-            LOGGER.error("Unable to extract data from the task input cache.", exception);
+            throw new TaskException("Unable to get task input data from cache.", exception);
         }
 
         return inputData;
     }
 
     @Override
-    protected String handleException(Exception exception) {
-        LOGGER.error("Handling DAG task exception: " + exception.getMessage());
-        exception.printStackTrace();
+    protected String handleSuccess() throws TaskException {
+        TaskDataCache cachePlugin = null;
 
-        return null;
-    }
-
-    @Override
-    protected String handleSuccess() {
         try {
-            TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
+            cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
 
             if (cachePlugin != null) {
                 cachePlugin.loadData(this.output);
             }
         } catch (Exception exception) {
-            LOGGER.error("Unable to load data into the task output cache.", exception);
+            throw new TaskException("Unable to load task output data to cache.", exception);
         }
+
+        return null;
+    }
+
+    @Override
+    protected String handleException(Exception exception) {
+        LOGGER.error("Handling DAG task exception: " + exception.getMessage());
+        exception.printStackTrace();
 
         return null;
     }
