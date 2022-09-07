@@ -21,6 +21,10 @@ public class LambdaDagTaskWrapper extends AwsDagTaskWrapper {
             throw new UnsupportedOperationException("DAG processing is not supported in Java.");
         }
 
+        LOGGER.info("DAG: " + parameters.get("dag"));
+        LOGGER.info("Task: " + parameters.get("task"));
+        LOGGER.info("Execution Time: " + parameters.get("execution_time"));
+
         HashMap<String, String> runtimeParameters = new HashMap<String, String>() {{
             putAll(getDagParameters(parameters.get("dag")));
             putAll(parameters);

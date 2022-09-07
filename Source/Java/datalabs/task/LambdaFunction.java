@@ -23,7 +23,7 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
         TaskWrapper taskWrapper;
         String response;
 
-        LOGGER.info("Executing TaskWrapper " + taskWrapperClassName);
+        LOGGER.info("TaskWrapper: " + taskWrapperClassName);
 
         try {
             taskWrapper = this.createTaskWrapper(taskWrapperClassName, event);
