@@ -18,7 +18,7 @@ DOWNLOADS = os.getenv('DOWNLOADS')
 file_list = []
 ALL_DHC = pd.DataFrame()
 for file in os.listdir(DOWNLOADS):
-    if file.startswith('ContactInfo0422'):
+    if file.startswith('Person'):
         file_name = f'{DOWNLOADS}/{file}'
         print(file_name)
         new_file = pd.read_csv(file_name, error_bad_lines=False)
@@ -76,10 +76,7 @@ DHC = pd.merge(NPI_TO_ME, ALL_DHC, on='NPI', how='right')
 #Fix phones
 ALL_DHC.columns = [c.replace(' ','_') for c in ALL_DHC.columns.values]
 ALL_DHC = ALL_DHC.fillna('None')
-ALL_DHC['Phone_Number'] = ALL_DHC['Phone_Number'].apply(lambda x: x.replace('.',''))
 
 #Save
 print('Saving...')
-DHC.to_csv(f'{LOCAL_DHC_OUT_DIR}/DHC_{TODAY}.csv', index=False)
-DHC.to_csv(f'{DHC_OUT_DIR}/DHC_{TODAY}.csv', index=False)
-
+DHC.to_csv(f'{LOCAL_DHC_OUT_DIR}/DHC_PERSON{TODAY}.csv', index=False)

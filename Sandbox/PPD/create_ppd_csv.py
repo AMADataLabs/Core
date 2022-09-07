@@ -29,34 +29,34 @@ ppd_out_dir = ppd_out_dir.replace("/", "\\")
 ppd_out_dir += "\\"
 
 
-ppd_type_str = input('Enter type of PPD: [1] = Latest, 2 = User Selected: ')
-if ppd_type_str.find('2') < 0:
-    ppd_type_str = '1'
+# ppd_type_str = input('Enter type of PPD: [1] = Latest, 2 = User Selected: ')
+# # if ppd_type_str.find('2') < 0:
+# #     ppd_type_str = '1'
     
-if ppd_type_str == '1':
-    print('Grabbing latest PPD...')
-    ppd_df, ppd_date_str = get_latest_ppd_data()
-    print('Done. Latest PPD date found: {}'.format(ppd_date_str))
-else:
-    init_ppd_dir = 'U:\\Source Files\\Data Analytics\\Baseline\\data\\'
-    ppd_file = filedialog.askopenfilename(initialdir=init_ppd_dir,
+# if ppd_type_str == '1':
+#     print('Grabbing latest PPD...')
+#     ppd_df, ppd_date_str = get_latest_ppd_data()
+#     print('Done. Latest PPD date found: {}'.format(ppd_date_str))
+# if ppd_type_str == '2':
+init_ppd_dir = 'U:\\Source Files\\Data Analytics\\Baseline\\data\\'
+ppd_file = filedialog.askopenfilename(initialdir=init_ppd_dir,
                                           title="Choose the PPD file desired...")
     
-    start_ndx = ppd_file.find('PhysicianProfessionalDataFile_') + len('PhysicianProfessionalDataFile_')
-    end_name = ppd_file[start_ndx:]
+start_ndx = ppd_file.find('PhysicianProfessionalDataFile_') + len('PhysicianProfessionalDataFile_')
+end_name = ppd_file[start_ndx:]
     
-    dot_ndx = end_name.find('.')
-    if dot_ndx >= 0:
-        end_name = end_name[:dot_ndx]
+dot_ndx = end_name.find('.')
+if dot_ndx >= 0:
+    end_name = end_name[:dot_ndx]
     
-    under_ndx = end_name.find('_')
-    if under_ndx >= 0:
-        ppd_date_str = end_name[:under_ndx]
+under_ndx = end_name.find('_')
+if under_ndx >= 0:
+    ppd_date_str = end_name[:under_ndx]
 
-    slash_ndx = [i for i in range(len(ppd_file)) if ppd_file.startswith('/', i)]
-    ppd_file_name = ppd_file[slash_ndx[-1]:]
+slash_ndx = [i for i in range(len(ppd_file)) if ppd_file.startswith('/', i)]
+ppd_file_name = ppd_file[slash_ndx[-1]:]
 
-    ppd_df = get_ppd(ppd_file_name)  
+ppd_df = get_ppd(ppd_file_name)  
     
 print('Writing to CSV.')
 ppd_out_file = ppd_out_dir + 'ppd_data_' + ppd_date_str + '.csv'
