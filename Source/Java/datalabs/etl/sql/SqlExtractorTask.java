@@ -191,7 +191,7 @@ public class SqlExtractorTask extends Task {
         boolean iterating = true;
         boolean includeHeaders = true;
 
-        if (parameters.count.equals("")) {
+        if (!parameters.count.equals("")) {
             count = Integer.parseInt(parameters.count);
 
             if (parameters.startIndex.equals("")) {
