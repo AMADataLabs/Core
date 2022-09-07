@@ -70,7 +70,7 @@ public class CoreBuilderTask extends Task {
 
             CoreBuilderTask.updateConcepts(priorLink, priorCore);
 
-            DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate, DbParameters dbParameters);
+            DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate, dbParameters);
 
             CoreBuilderTask.exportConcepts(core, this.settings.getProperty("output.directory"));
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it

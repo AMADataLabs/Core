@@ -80,7 +80,7 @@ public class DagTaskWrapper extends TaskWrapper {
                 inputData = cachePlugin.extractData();
             }
         } catch (Exception exception) {
-            LOGGER.error("Unable to extract data from the task input cache.");
+            LOGGER.error("Unable to extract data from the task input cache.", exception);
         }
 
         return inputData;
@@ -103,7 +103,7 @@ public class DagTaskWrapper extends TaskWrapper {
                 cachePlugin.loadData(this.output);
             }
         } catch (Exception exception) {
-            LOGGER.error("Unable to load data into the task output cache.");
+            LOGGER.error("Unable to load data into the task output cache.", exception);
         }
 
         return null;
