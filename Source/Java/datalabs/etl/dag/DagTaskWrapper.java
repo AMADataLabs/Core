@@ -70,7 +70,7 @@ public class DagTaskWrapper extends TaskWrapper {
             taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
             LOGGER.debug("Raw Task Parameters: " + dagTaskParameters);
 
-            taskParameters = this.extractCacheParameters(taskParameters);
+            DagTaskWrapper.extractCacheParameters(taskParameters, this.cacheParameters);
             LOGGER.debug("Cache Parameters: " + this.cacheParameters);
 
             LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
@@ -151,20 +151,25 @@ public class DagTaskWrapper extends TaskWrapper {
         return mergedParameters;
     }
 
-    Map<String, String> extractCacheParameters(Map<String, String> taskParameters) {
+    static void extractCacheParameters(
+        Map<String, String> taskParameters,
+        Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
+    ) {
+        LOGGER.debug("Task parameters before extraction: " + taskParameters);
         final TaskDataCache.Direction INPUT = TaskDataCache.Direction.INPUT;
         final TaskDataCache.Direction OUTPUT = TaskDataCache.Direction.OUTPUT;
 
-        this.cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
-        this.cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
+        cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
+        cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
+        LOGGER.debug("Cache Parameters: " + cacheParameters);
 
         for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
             if (key.startsWith("CACHE_")) {
+                LOGGER.debug("Removing cache parameter " + key + " from task parameters...");
                 taskParameters.remove(key);
             }
         }
-
-        return taskParameters;
+        LOGGER.debug("Task parameters after extraction: " + taskParameters);
     }
 
     void overrideParameter(Map<String, String> parameters, String key, String value) {
@@ -237,11 +242,6 @@ public class DagTaskWrapper extends TaskWrapper {
         TaskDataCache.Direction direction
     ) {
         HashMap<String, String> cacheParameters = new HashMap<String, String>();
-        TaskDataCache.Direction otherDirection = TaskDataCache.Direction.INPUT;
-
-        if (direction == TaskDataCache.Direction.INPUT) {
-            otherDirection = TaskDataCache.Direction.OUTPUT;
-        }
 
         taskParameters.forEach(
             (key, value) -> DagTaskWrapper.putIfCacheVariable(key, value, direction, cacheParameters)
@@ -270,10 +270,21 @@ public class DagTaskWrapper extends TaskWrapper {
         TaskDataCache.Direction direction,
         Map<String, String> cacheParameters
     ) {
-        Matcher matcher = Pattern.compile("CACHE_" + direction.name() + "_(?<name>..*)").matcher(name);
+        TaskDataCache.Direction otherDirection = TaskDataCache.Direction.INPUT;
 
-        if (matcher.find()) {
-            cacheParameters.put(matcher.group("name"), value);
+        if (direction == TaskDataCache.Direction.INPUT) {
+            otherDirection = TaskDataCache.Direction.OUTPUT;
+        }
+
+        if (name.startsWith("CACHE_")) {
+            Matcher matcher = Pattern.compile("CACHE_" + direction.name() + "_(?<name>..*)").matcher(name);
+            Matcher otherMatcher = Pattern.compile("CACHE_" + otherDirection.name() + "_(?<name>..*)").matcher(name);
+
+            if (matcher.find()) {
+                cacheParameters.put(matcher.group("name"), value);
+            } else if (!otherMatcher.find()) {
+                cacheParameters.put(name.substring("CACHE_".length()), value);
+            }
         }
     }
 }
