@@ -3,8 +3,10 @@ from abc import ABC, abstractmethod
 import logging
 import os
 
+from   marshmallow.exceptions import ValidationError
+
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
-from   datalabs.parameter import ParameterValidatorMixin
+from   datalabs.parameter import ParameterValidatorMixin, ValidationException
 from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
