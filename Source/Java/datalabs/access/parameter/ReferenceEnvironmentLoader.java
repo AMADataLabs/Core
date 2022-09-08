@@ -33,7 +33,8 @@ public class ReferenceEnvironmentLoader {
     public Map<String, String> load(Map<String, String> environment) {
         Map<String, String> referenceVariables = getReferenceVariables(environment);
 
-        Map<String, String> resolvedReferenceVariables = resolveReferenceVariables(referenceVariables, this.parameters);
+        Map<String, String> resolvedReferenceVariables
+            = resolveReferenceVariables(referenceVariables, this.parameters, this.matchLimit);
 
         environment.putAll(resolvedReferenceVariables);
 
@@ -60,9 +61,13 @@ public class ReferenceEnvironmentLoader {
         return referenceVariables;
     }
 
-    static Map<String, String> resolveReferenceVariables(Map<String, String> variables, Map<String, String> parameters) {
+    static Map<String, String> resolveReferenceVariables(
+        Map<String, String> variables,
+        Map<String, String> parameters,
+        int matchLimit
+    ) {
         variables.forEach(
-            (key, value) -> variables.put(key, resolveReferencesInValue(value, parameters))
+            (key, value) -> variables.put(key, resolveReferencesInValue(value, parameters, matchLimit))
         );
 
         return variables;
@@ -90,21 +95,33 @@ public class ReferenceEnvironmentLoader {
         }
     }
 
-    static String resolveReferencesInValue(String value, Map<String, String> parameters) {
-        Matcher matcher = Pattern.compile("\\$\\{(?<name>[^${}]+)\\}").matcher(value);
-        String resolvedValue = "";
+    static String resolveReferencesInValue(String value, Map<String, String> parameters, int matchLimit) {
+        Pattern pattern = Pattern.compile("\\$\\{(?<name>[^${}]+)\\}");
+        Matcher matcher = pattern.matcher(value);
+        int matchCount = 0;
         int index = 0;
 
-        while (matcher.find()) {
-            resolvedValue += value.substring(index, matcher.start());
+        while (matcher.find(index) && matchCount < matchLimit) {
+            LOGGER.debug("Value: " + value);
+            LOGGER.debug("Match Start Index: " + index);
+            String referenceName = matcher.group("name");
+            String reference = "${" + referenceName + "}";
+            String resolvedReference = parameters.getOrDefault(referenceName, reference);
 
-            resolvedValue += parameters.getOrDefault(matcher.group("name"), "${" + matcher.group("name") + "}");
+            if (resolvedReference.equals(reference)) {
+                index = matcher.end();
+            } else {
+                matchCount += 1;
 
-            index = matcher.end();
+                value = value.substring(0, matcher.start()) + resolvedReference + value.substring(matcher.end());
+            }
+            LOGGER.debug("Match Count: " + matchCount);
+
+            matcher = pattern.matcher(value);
         }
 
-        resolvedValue += value.substring(index);
 
-        return resolvedValue;
+        LOGGER.debug("Final Value: " + value);
+        return value;
     }
 }
