@@ -140,6 +140,7 @@ public class SqlExtractorTask extends Task {
                 results = readChunkedQuery(query, statement, (SqlExtractorParameters) this.parameters);
             }
         }
+        LOGGER.debug("Read " + results.length + " bytes from SQL query response.");
 
         return results;
     }
@@ -168,6 +169,7 @@ public class SqlExtractorTask extends Task {
             CSVWriter writer = new CSVWriter(streamWriter);
 
             rows = writer.writeAll(results, includeHeaders);
+            LOGGER.debug("Wrote " + rows + " rows to CSV bytes.");
         }
 
         if ((includeHeaders && rows > 1) || (!includeHeaders && rows > 0)) {
