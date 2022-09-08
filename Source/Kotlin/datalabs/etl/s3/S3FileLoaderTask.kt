@@ -51,6 +51,7 @@ open class S3FileLoaderTask(
         val parameters = this.parameters as S3Parameters
         val request = PutObjectRequest.builder().bucket(parameters.bucket).key(file).build()
 
-        client.putObject(request, RequestBody.fromBytes(data))
+        val response = client.putObject(request, RequestBody.fromBytes(data))
+        logger.debug("Put " + data.size + " bytes into s3://" + parameters.bucket + "/" + file + ":\n" + response)
     }
 }
