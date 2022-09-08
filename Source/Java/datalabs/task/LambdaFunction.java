@@ -21,7 +21,7 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
      public String handleRequest(Map<String,String> event, Context context) {
         String taskWrapperClassName = System.getenv("TASK_WRAPPER_CLASS");
         TaskWrapper taskWrapper;
-        String response;
+        String response = null;
 
         LOGGER.info("TaskWrapper: " + taskWrapperClassName);
 
@@ -30,7 +30,7 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
 
             response = taskWrapper.run();
         } catch (Exception exception) {
-            response = exception.getMessage();
+            LOGGER.error("Task failed.", exception);
         }
 
         LOGGER.info("TaskWrapper Response: " + response);
