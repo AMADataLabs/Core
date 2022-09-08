@@ -18,7 +18,7 @@ public abstract class Task {
 
     public Task(Map<String, String> parameters, ArrayList<byte[]> data, Class parameterClass)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        parameters.forEach((key, value) -> LOGGER.info("Task Parameters: " + key + ":" + value));
+        LOGGER.info("Task Parameters: " + parameters);
 
         this.parameters = Parameters.fromMap(parameters, parameterClass);
 

@@ -68,9 +68,10 @@ public class DagTaskWrapper extends TaskWrapper {
             Map<String, String> defaultParameters = this.getDefaultParameters();
             Map<String, String> dagTaskParameters = this.getDagTaskParameters();
             taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
+            LOGGER.debug("Raw Task Parameters: " + dagTaskParameters);
 
             taskParameters = this.extractCacheParameters(taskParameters);
-            LOGGER.debug("Task Parameters: " + dagTaskParameters);
+            LOGGER.debug("Cache Parameters: " + this.cacheParameters);
 
             LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
             taskParameters.forEach(
