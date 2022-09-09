@@ -1197,10 +1197,10 @@ pipelines:
                     --project HelloWorldJava/Task
                     --bundle HelloWorldJava/Task.zip
                     --use-package
-                - ls
 
                 # Create the Docker image
                 - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
+                - cat .dockerignore | grep -v .zip > .dockerignore
                 - docker build -t hello_world_java-sbx -f Build/HelloWorldJava/Task/Dockerfile ./
 
                 # Push the Docker image to ECR

@@ -9,5 +9,6 @@ WORKDIR /HelloWorldJava
 ENV CLASSPATH=/HelloWorldJava:/HelloWorldJava/lib
 ENV AWS_DEFAULT_REGION=us-east-1
 
+RUN ls
 COPY ./Bundle.zip .
 RUN unzip Bundle.zip
