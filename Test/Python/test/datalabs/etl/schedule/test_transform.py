@@ -28,14 +28,14 @@ def test_getting_state_plugin(scheduler):
 # pylint: disable=redefined-outer-name, protected-access
 def test_dag_flagged_not_started_if_no_state(scheduler):
     state = scheduler._get_state_plugin()
-    dag = dict(name='BUGUS_DAG', execution_time=pandas.Timestamp(datetime.utcnow()))
+    dag = dict(dag='BUGUS_DAG', execution_time=pandas.Timestamp(datetime.utcnow()))
 
     assert not scheduler._is_started(state, dag)
 
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_execution_time_returns_next_execution_time(scheduler, target_execution_time):
-    dag = dict(name='BUGUS_DAG', schedule="*/15 * * * *")
+    dag = dict(dag='BUGUS_DAG', schedule="*/15 * * * *")
     expected_execution_time = target_execution_time.replace(minute=30, second=0, microsecond=0)
 
     execution_time = scheduler._get_execution_time(target_execution_time, dag)
@@ -111,7 +111,7 @@ def test_dags_to_run_are_correctly_identified(parameters, schedule, target_execu
     dags_to_run = scheduler._determine_dags_to_run(schedule, target_execution_time)
 
     assert len(dags_to_run) == 2
-    assert dags_to_run.name[0] == 'archive_cat_photos'
+    assert dags_to_run.dag[0] == 'archive_cat_photos'
 
     state.set_dag_status('archive_cat_photos', execution_times[0].to_pydatetime().isoformat(), Status.PENDING)
 
@@ -187,7 +187,7 @@ def base_time(target_execution_time):
 
 @pytest.fixture
 def schedule_csv():
-    return """name,schedule
+    return """dag,schedule
 archive_cat_photos,15 * */1 * 1
 translate_meows,10 */5 * * 1-5
 scrape_ama_fan_pages,"5 * */1 * 3,4"

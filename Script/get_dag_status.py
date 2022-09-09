@@ -16,7 +16,7 @@ def main(args):
         DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}'
     )
     state = DAGState(parameters)
-    execution_time = f'{args["date"]} {args["time"]}'
+    execution_time = f'{args["date"]}T{args["time"]}'
 
     if not args["task"]:
         statuses = state.get_all_statuses(args["dag"], execution_time)

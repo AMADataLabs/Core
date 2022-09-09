@@ -53,7 +53,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
         return isoparse(self._parameters.execution_time)
 
     def _determine_dags_to_run(self, schedule, target_execution_time):
-        scheduled_dags = pandas.DataFrame(columns=["name", "execution_time"])
+        scheduled_dags = pandas.DataFrame(columns=["dag", "execution_time"])
 
         if len(schedule) > 0:
             base_time = target_execution_time - timedelta(minutes=int(self._parameters.interval_minutes))
@@ -63,19 +63,14 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
             schedule["started"] = self._get_started_dags(schedule)
             LOGGER.debug('Schedule: %s', schedule)
 
-            scheduled_dags = schedule[schedule.scheduled & ~schedule.started][["name", "execution_time"]]
+            scheduled_dags = schedule[schedule.scheduled & ~schedule.started][["dag", "execution_time"]]
 
         return scheduled_dags
 
     @classmethod
     def _generate_notification_messages(cls, dags):
-        message_data = dags[["name", "execution_time"]].rename(columns=dict(name="dag")).astype(str)
-        message_data.execution_time.replace(
-            to_replace='([0-9]{4}-[0-9]{2}-[0-9]{2})$',
-            value=r'\1 00:00:00',
-            regex=True,
-            inplace=True
-        )
+        message_data = dags[["dag", "execution_time"]]
+        message_data.execution_time = message_data.execution_time.apply(lambda d: d.isoformat())
         return [json.loads(row[1].to_json()) for row in message_data.iterrows()]
 
     def _get_execution_times(self, schedule, base_time):
@@ -105,7 +100,7 @@ class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
     def _is_started(cls, state, dag):
         status = None
 
-        status = state.get_dag_status(dag["name"], dag["execution_time"].to_pydatetime().isoformat())
+        status = state.get_dag_status(dag["dag"], dag["execution_time"].to_pydatetime().isoformat())
 
         return status != Status.UNKNOWN
 

@@ -1200,6 +1200,7 @@ pipelines:
 
                 # Create the Docker image
                 - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
+                - mv Bundle.zip Bundle.ZIP  # circumvent .dockerignore
                 - docker build -t hello_world_java-sbx -f Build/HelloWorldJava/Task/Dockerfile ./
 
                 # Push the Docker image to ECR
