@@ -612,86 +612,6 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/API
                     ETL=ETL.zip
 
-        Developer-Users:
-        - step:
-            name: Create Development Component Package
-            caches:
-            - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project IntelligentPlatform/Developer/Users
-        - parallel:
-            - step:
-                name: Update Development Bundle
-                caches:
-                    - environment-dev
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
-                    --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
-                    --use-package
-            - step:
-                name: Update Test Bundle
-                caches:
-                    - environment-test
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment tst
-                    --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
-                    --use-package
-            - step:
-                name: Update Production Bundle
-                caches:
-                    - environment-prod
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment prd
-                    --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
-                    --use-package
-        - parallel:
-            - step:
-                name: Update Development Lambda Functions
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
-                    DeveloperUsersETL=DeveloperUsersETL.zip
-            # - step:
-            #     name: Update Test Lambda Functions
-            #     script:
-            #     - >-
-            #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-            #     - >-
-            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP -p IntelligentPlatform
-            #         DeveloperUsersETL=DeveloperUsersETL.zip
-            # - step:
-            #     name: Update Production Lambda Functions
-            #     script:
-            #     - >-
-            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-            #     - >-
-            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP -p IntelligentPlatform
-            #         DeveloperUsersETL=DeveloperUsersETL.zip
-
         CPT-API-Endpoint:
         - step:
             name: Create Development Component Package
@@ -1155,6 +1075,86 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile DBLReport=DBLReport.zip
+
+        Developer-Users:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-python-package --project IntelligentPlatform/Developer/Users
+        - parallel:
+            - step:
+                name: Update Development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project IntelligentPlatform/Developer/Users
+                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
+                    --use-package
+            - step:
+                name: Update Test Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project IntelligentPlatform/Developer/Users
+                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
+                    --use-package
+            - step:
+                name: Update Production Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project IntelligentPlatform/Developer/Users
+                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
+                    --use-package
+        - parallel:
+            - step:
+                name: Update Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
+                    DeveloperUsersETL=DeveloperUsersETL.zip
+            # - step:
+            #     name: Update Test Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP -p IntelligentPlatform
+            #         DeveloperUsersETL=DeveloperUsersETL.zip
+            # - step:
+            #     name: Update Production Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP -p IntelligentPlatform
+            #         DeveloperUsersETL=DeveloperUsersETL.zip
 
         HelloWorldJava:
         - parallel:
