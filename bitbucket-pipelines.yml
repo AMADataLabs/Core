@@ -1197,6 +1197,7 @@ pipelines:
                     --project HelloWorldJava/Task
                     --bundle HelloWorldJava/Task.zip
                     --use-package
+                - ls
 
                 # Create the Docker image
                 - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
