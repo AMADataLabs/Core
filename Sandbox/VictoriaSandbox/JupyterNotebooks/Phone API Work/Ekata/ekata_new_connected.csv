@@ -1,0 +1,11 @@
+,Address,AlternatePhone,Carrier,City,Commercial,Date,Error,Industry,LineType,Name,OFFICE_TELEPHONE,PhoneType,State,Valid
+0,2601 E Roosevelt St Apt 1,16023445188,Zipwhip US,Phoenix,TRUE,2/28/2019,,Nonstore Retailers,NonFixedVOIP,Maricopa Medical Center,6023441015,Business,AZ,TRUE
+1,222 N 7th St # 6,17013235588,CenturyLink,Bismarck,TRUE,2/28/2019,,Ambulatory Health Care Services,Landline,Sanford Cancer,7013238030,Business,ND,TRUE
+2,,N/A,Ameritech,Livonia,TRUE,,,N/A,Landline,St Mary Mercy,7347434430,Business,MI,TRUE
+3,1436 Chattanooga Ave,17062793277,Board of Water Light and Sinking Fund Commissioners,Dalton,TRUE,11/20/2016,,Ambulatory Health Care Services,Landline,Dalton Ear Nose & Throat Associates,7062262142,Business,GA,TRUE
+4,2727 Plaza Dr,17158473000,Teleport Communications America,Wausau,TRUE,11/20/2016,,Ambulatory Health Care Services,Landline,Verica S Neskovic MD,7158473339,Business,WI,TRUE
+5,3100 W Christoffersen Pkwy,N/A,Pacific Bell,Turlock,TRUE,8/28/2018,,Hospitals,Landline,Sutter Urgent Care-Turlock,2096323909,Business,CA,TRUE
+6,1315 St Joseph Pkwy Ste 1708,17137391391,Logix Communications,Houston,TRUE,11/18/2016,,Ambulatory Health Care Services,NonFixedVOIP,E Leon Etter II PA,7137721200,Business,TX,TRUE
+7,39700 Bob Hope Dr Ste 108,18553622262,Twilio,Rancho Mirage,TRUE,12/8/2016,,Ambulatory Health Care Services,NonFixedVOIP,Eisenhower Infectious Diseases,7608343545,Business,CA,TRUE
+8,745 N Main St,16035272781,Consolidated Communications,Laconia,TRUE,11/18/2016,,Ambulatory Health Care Services,Landline,Laconia Clinic PT,6035245151,Business,NH,TRUE
+9,5803 Neal Ave N,N/A,Level 3 Communications,Stillwater,TRUE,11/18/2016,,Ambulatory Health Care Services,NonFixedVOIP,Twin Cities Orthopedics,6514398807,Business,MN,TRUE

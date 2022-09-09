@@ -128,6 +128,8 @@ class IQVIAUpdateTransformerTask(TransformerTask):
         iqvia_update = data[0].iloc[0]['BATCH_BUSINESS_DATE']
         iqvia_update = pandas.DataFrame.from_dict({'BATCH_BUSINESS_DATE': [iqvia_update]})
 
+        iqvia_update.BATCH_BUSINESS_DATE = pandas.to_datetime(iqvia_update.BATCH_BUSINESS_DATE).astype(str)
+
         return [iqvia_update]
 
     def _get_columns(self):

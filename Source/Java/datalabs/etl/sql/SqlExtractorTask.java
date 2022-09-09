@@ -55,9 +55,15 @@ public class SqlExtractorTask extends Task {
         return output;
     }
 
-    public Connection connect() throws SQLException {
-        Properties credentials = generateCredentialProperties((SqlExtractorParameters) this.parameters);
-        String connectionString = generateConnectionString((SqlExtractorParameters) this.parameters);
+    public Connection connect() throws SQLException, ClassNotFoundException {
+        SqlExtractorParameters parameters = (SqlExtractorParameters) this.parameters;
+        Properties credentials = generateCredentialProperties(parameters);
+        String connectionString = generateConnectionString(parameters);
+
+        if (parameters.driverType == "db2") {
+            Class.forName("com.ibm.db2.jcc.licenses.DB2J");
+            Class.forName("com.ibm.db2.jcc.licenses.DB2UW");
+        }
 
         return DriverManager.getConnection(connectionString, credentials);
     }
@@ -134,6 +140,7 @@ public class SqlExtractorTask extends Task {
                 results = readChunkedQuery(query, statement, (SqlExtractorParameters) this.parameters);
             }
         }
+        LOGGER.debug("Read " + results.length + " bytes from SQL query response.");
 
         return results;
     }
@@ -162,6 +169,7 @@ public class SqlExtractorTask extends Task {
             CSVWriter writer = new CSVWriter(streamWriter);
 
             rows = writer.writeAll(results, includeHeaders);
+            LOGGER.debug("Wrote " + rows + " rows to CSV bytes.");
         }
 
         if ((includeHeaders && rows > 1) || (!includeHeaders && rows > 0)) {
@@ -185,7 +193,7 @@ public class SqlExtractorTask extends Task {
         boolean iterating = true;
         boolean includeHeaders = true;
 
-        if (parameters.count.equals("")) {
+        if (!parameters.count.equals("")) {
             count = Integer.parseInt(parameters.count);
 
             if (parameters.startIndex.equals("")) {

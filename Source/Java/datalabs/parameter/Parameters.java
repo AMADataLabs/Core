@@ -22,19 +22,11 @@ public abstract class Parameters {
 
     public Parameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
         Field[] fields = getClass().getFields();
-        LOGGER.debug("Class: " + getClass());
+        LOGGER.info("Parameter Class: " + getClass());
         Map<String, String> fieldNames = Parameters.getFieldNames(fields);
-        for (Field field : fields) {
-            LOGGER.debug("Field: " + field.getName());
-        }
-        LOGGER.debug("Field Names: " + fieldNames);
         Map<String, String> fieldDefaults = getFieldDefaults(fields);
 
-        LOGGER.debug("Raw Parameters: " + parameters);
-
         Map<String, String> standardizedParameters = Parameters.standardizeParameters(parameters);
-
-        LOGGER.debug("Standardized Parameters: " + standardizedParameters);
 
         validate(standardizedParameters, fields, fieldNames, fieldDefaults);
 
@@ -65,9 +57,9 @@ public abstract class Parameters {
             throws IllegalArgumentException {
         String[] unexpectedFields = Parameters.getUnexpectedFields(parameters, fieldNames);
         String[] missingFields = Parameters.getMissingFields(parameters, fieldNames, fieldDefaults);
-        LOGGER.debug("Unexpected Fields: " + Arrays.toString(unexpectedFields));
-        LOGGER.debug("Missing Fields: " + Arrays.toString(missingFields));
-        LOGGER.debug("Default Fields: " + Arrays.toString(fieldDefaults.keySet().toArray()));
+        LOGGER.info("Unexpected Fields: " + Arrays.toString(unexpectedFields));
+        LOGGER.info("Missing Fields: " + Arrays.toString(missingFields));
+        LOGGER.info("Default Fields: " + Arrays.toString(fieldDefaults.keySet().toArray()));
 
         if (unexpectedFields.length > 0) {
             moveUnknowns(parameters, fieldNames, unexpectedFields);
@@ -81,10 +73,6 @@ public abstract class Parameters {
     }
 
     void populate(Map<String, String> parameters, Map<String, String> fieldNames, Map<String, String> fieldDefaults) {
-        LOGGER.debug("Parameters: " + parameters);
-        LOGGER.debug("Field Names: " + fieldNames);
-        LOGGER.debug("Field Defaults: " + fieldDefaults);
-
         fieldDefaults.forEach(
             (key, value) -> setField(fieldNames.get(key), value)
         );
@@ -109,14 +97,10 @@ public abstract class Parameters {
 
         for (Field field : fields) {
             Field declaredField = this.getClass().getField(field.getName());
-            LOGGER.debug("Getting annotation for field \"" + declaredField.getName() + "\"...");
             Optional optionalAnnotation = declaredField.getAnnotation(Optional.class);
 
             if (optionalAnnotation != null) {
-                LOGGER.debug("Annotation type: " + optionalAnnotation.getClass().getName());
                 fieldDefaults.put(Parameters.standardizeName(declaredField.getName()), optionalAnnotation.value());
-            } else {
-                LOGGER.debug("Annotation is null.");
             }
         }
 
@@ -127,7 +111,6 @@ public abstract class Parameters {
         ArrayList<String> unexpectedFields = new ArrayList<String>();
 
         for (String fieldName : parameters.keySet()) {
-            LOGGER.debug("Validating field \"" + fieldName + "\"...");
             if (!fieldNames.keySet().stream().anyMatch(n -> n.equals(fieldName))) {
                 unexpectedFields.add(fieldName);
             }
@@ -153,21 +136,17 @@ public abstract class Parameters {
     }
 
     static String standardizeName(String name) {
-        LOGGER.debug("Name: " + name);
         Matcher matcher = Pattern.compile("(?<before>[a-z])(?<after>[A-Z])").matcher(name);
         String standardizedName = "";
         int index = 0;
 
         while (matcher.find()) {
             standardizedName += name.substring(index, matcher.start());
-            LOGGER.debug("Standardized Name: " + standardizedName);
 
             standardizedName += matcher.group("before") + "_" + matcher.group("after");
-            LOGGER.debug("Standardized Name: " + standardizedName);
 
             index = matcher.end();
         }
-        LOGGER.debug("Final Index: " + index);
 
         standardizedName += name.substring(index);
 
@@ -187,14 +166,11 @@ public abstract class Parameters {
         for (String field : unexpectedFields) {
             unknowns.put(field, parameters.remove(field));
         }
-        LOGGER.debug("Unknowns: " + unknowns);
 
         setField("unknowns", unknowns);
     }
 
     void setField(String field, Object value) {
-        LOGGER.debug("Setting value of field " + field + " to " + value);
-
         try {
             getClass().getField(field).set(this, value);
         } catch (IllegalAccessException | NoSuchFieldException | NullPointerException exception) {
@@ -209,13 +185,10 @@ public abstract class Parameters {
         boolean hasUnknowns = false;
 
         for (String field : fieldNames) {
-            LOGGER.debug("Field Name: |" + field + "|");
             if (field.equals("UNKNOWNS")) {
-                LOGGER.debug("Flagging Has Unknowns...");
                 hasUnknowns = true;
             }
         }
-        LOGGER.debug("Has Unknowns: " + hasUnknowns);
 
         return hasUnknowns;
     }

@@ -1,11 +1,8 @@
 import pandas as pd
 import psycopg2
-import pyodbc
-import datetime
 import logging
 import os
 import settings
-from datalabs.access.edw import EDW
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -26,3 +23,5 @@ def get_oneview_me():
     ov_me_sql = os.environ.get('ONEVIEW_ME')
     ov_me = pd.read_sql_query(ov_me_sql, conn)
     return ov_me
+
+def get_party_ids()

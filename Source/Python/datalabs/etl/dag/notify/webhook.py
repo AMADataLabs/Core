@@ -17,7 +17,7 @@ class StatusWebHookNotifier():
 
     def notify(self, dag, execution_time, status):
         message = {
-            'text': f'The {dag} DAG run at {execution_time} UTC in the {self.environment} '
+            'text': f'The {dag} DAG run at {execution_time.replace("T", " ")} UTC in the {self.environment} '
                     f'environment has status {status.value}.'
         }
         LOGGER.info('Message %s', message)

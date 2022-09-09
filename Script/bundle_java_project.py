@@ -6,6 +6,7 @@ import os
 from   pathlib import Path
 import re
 import shutil
+import subprocess
 import sys
 from   zipfile import ZipFile
 
@@ -114,12 +115,25 @@ class LocalProjectBundler(ProjectBundler):
 
         os.chdir(target_path)
 
-        os.system('mvn package')
+        subprocess.run(["mvn", "compile"])
+
+        self._supplement_build_with_dependencies()
+
+        subprocess.run(["mvn", "package"])
 
         os.chdir(cwd)
-        # os.system('mvn -f {} package'.format(os.path.join(target_path, "pom.xml")))
 
+    def _supplement_build_with_dependencies(cls):
+        process = subprocess.run(["mvn", "dependency:list"], stdout=subprocess.PIPE)
+        process = subprocess.run(["grep", ":compile"], input=process.stdout, stdout=subprocess.PIPE)
+        process = subprocess.run(["sed", "s/^[^ ][^ ]*  *//"], input=process.stdout, stdout=subprocess.PIPE)
+        process = subprocess.run(["sed", "s/:jar:/:/"], input=process.stdout, stdout=subprocess.PIPE)
+        process = subprocess.run(["sed", "s/:compile$//"], input=process.stdout, stdout=subprocess.PIPE)
 
+        os.makedirs("resources", exist_ok=True)
+
+        with open("resources/dependencies.txt", "wb") as pom:
+            pom.write(process.stdout)
 
 if __name__ == '__main__':
     return_code = 0

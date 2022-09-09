@@ -1,0 +1,51 @@
+,Address,AlternatePhone,Carrier,City,Commercial,Date,Error,Industry,LineType,Name,OFFICE_TELEPHONE,PhoneType,State,Valid,Zipcode
+0,385 Prospect Ave Ste 20            ,None                    ,Onvoy/3,Hackensack        ,True,2/28/2019,None,Ambulatory Health Care Services   ,NonFixedVOIP                       ,"Fink, Andrew MD",2014883131,Business,NJ,True,07601
+1,23077 Greenfield Rd Ste 195,None,Comcast,Southfield,True,11/15/2016,None,Ambulatory Health Care Services,FixedVOIP,Stanley Keemer Saunders MD,2484230700,Business,MI,True,48075
+2,475 Irving Ave Ste 210   ,18003681019,Northland Networks Ltd,Syracuse        ,True,2/28/2019,None,Ambulatory Health Care Services   ,Landline  ,Madison Irving Pediatrics Pc           ,3154712646,Business,NY,True,13210
+3,613 E Bloomington St # 100,None,CenturyLink,Iowa City,True,11/18/2016,None,Ambulatory Health Care Services,Landline,Cancer Care Of Iowa City,3193393917,Business,IA,True,52245
+4,1037 Main St,None,Blackfoot Communications,Corvallis,True,5/6/2017,None,Ambulatory Health Care Services,Landline,April Lynn Weinberger MD,4069614661,Business,MT,True,59828
+5,121 Cahill Rd Ste 204,18002454362,CenturyLink,Branson,True,11/18/2016,None,Ambulatory Health Care Services,Landline,Branson Neurology & Pain Center,4173357222,Business,MO,True,65616
+6,6780 Mayfield Rd,14403124500,Ameritech,Cleveland,True,2/28/2019,None,Ambulatory Health Care Services,Landline,Hillcrest Hospital,4403124569,Business,OH,True,44124
+7,None,None,MCI Metro ATS,Phoenix,True,None,None,None,Landline,Cigna Corp,4803455200,Business,AZ,True,None
+8,3999 Dutchmans Ln Ste 6f,15023945600,BellSouth,Louisville,True,5/6/2017,None,Ambulatory Health Care Services,Landline,Jennifer M Brey MD,5023945678,Business,KY,True,40207
+9,275 Sandwich St,None,CTC Communications,Plymouth,True,2/28/2019,None,Ambulatory Health Care Services,Landline,"Byse, Barbara H MD",5087462000,Business,MA,True,02360
+10,35 S Mountain Blvd,18002756401,CTSI,Mountain Top,True,11/19/2016,None,Nursing and Residential Care Facilities,NonFixedVOIP,Geisinger Medical Group,5704745072,Business,PA,True,18707
+11,2219 Dillon Rd,None,Level 3 Communications,Clovis,True,11/19/2016,None,Ambulatory Health Care Services,NonFixedVOIP,Manuel Macapinlac Jr MD,5757697365,Business,NM,True,88101
+12,421 S 28th Ave Ste 200,None,Teleport Communications America,Hattiesburg,True,5/6/2017,None,Ambulatory Health Care Services,Landline,Louis W Benton MD,6012685640,Business,MS,True,39401
+13,1203 B Ave # 200,16014772236,Teleport Communications America,Ellisville,True,11/17/2016,None,Ambulatory Health Care Services,Landline,Ellisville Pediatric Clinic,6014773550,Business,MS,True,39437
+14,333 Borthwick Ave,16034315818,Level 3 Communications,Portsmouth,True,8/28/2018,None,Ambulatory Health Care Services,NonFixedVOIP,"Mooradian, Mark PA",6034315858,Business,NH,True,03801
+15,61 W Jimmie Leeds Rd,16096527000,Comcast,Pomona,True,11/18/2016,None,Hospitals,FixedVOIP,Bacharach Institute-Rehab,6097485380,Business,NJ,True,08240
+16,320 Abington Dr Ste 4,None,Comcast,Reading,True,11/19/2016,None,Ambulatory Health Care Services,FixedVOIP,Timothy C Stringer DPM,6106702277,Business,PA,True,19610
+17,6601 Lyndale Ave S Ste 220,17635440696,Comcast,Minneapolis,True,11/17/2016,None,Ambulatory Health Care Services,FixedVOIP,"Esten, Andrew MD",6128238001,Business,MN,True,55423
+18,3901 Central Pike Ste 351,16156013014,Comcast,Hermitage,True,11/20/2016,None,Ambulatory Health Care Services,FixedVOIP,Gowda Ear Nose & Throat Clinic,6158898802,Business,TN,True,37076
+19,657 N Town Center Dr,17022337048,Comcast,Las Vegas,True,11/20/2016,None,Hospitals,FixedVOIP,Summerlin Hospital Medical Center,7024876510,Business,NV,True,89144
+20,10721 Main St Ste 1300,None,Level 3 Communications,Fairfax,True,11/17/2016,None,Ambulatory Health Care Services,NonFixedVOIP,Allen & Forrest,7033856870,Business,VA,True,22030
+21,59 Bay 29th St,17182653700,Verizon,Brooklyn,True,11/19/2016,None,Ambulatory Health Care Services,Landline,Lev Kovarsky MD,7182654454,Business,NY,True,11214
+22,10707 66th St N Ste A,None,Bright House Networks Information Services (Florida),Pinellas Park,True,11/15/2016,None,Ambulatory Health Care Services,FixedVOIP,Sarah Anne Digby DO,7275448300,Business,FL,True,33782
+23,55 Cole Rd,None,Comcast,Monroe,True,11/15/2016,None,Ambulatory Health Care Services,FixedVOIP,Azadeh Khaghany MD,7342422022,Business,MI,True,48162
+24,2854 Bell St,None,Time Warner Communications,Zanesville,True,2/28/2019,None,Ambulatory Health Care Services,FixedVOIP,"Toth, Randall S",7404543273,Business,OH,True,43701
+25,1100 Reid Pkwy,17659833000,Frontier Communications,Richmond,True,11/20/2016,None,Ambulatory Health Care Services,Landline,E Paul Howanitz MD,7659833427,Business,IN,True,47374
+26,41 Mall Rd ,17817445263,Verizon   ,Burlington        ,True,8/28/2018,None,Ambulatory Health Care Services   ,Landline               ,"Bilic, Masha MD         ",7817448046,Business,MA  ,True,01805
+27,8 Commons St,None,Comcast,Rutland,True,6/12/2016,None,Ambulatory Health Care Services,FixedVOIP,"Jones, Suzanne S PA",8027701805,Business,VT,True,05701
+28,7041 Lee Park Rd,18047233303,Paetec Communications,Mechanicsville,True,12/8/2016,None,Ambulatory Health Care Services,NonFixedVOIP,Lee-Davis Medical Center,8047463505,Business,VA,True,23111
+29,2230 Lynn Rd Ste 106,18059878705,Peerless Network,Thousand Oaks,True,12/8/2016,None,Ambulatory Health Care Services,NonFixedVOIP,Lynn Eye Surgery Center,8053703137,Business,CA,True,91360
+30,1215 S Coulter St Ste 403,18066772001,Pathwayz Communications,Amarillo,True,11/17/2016,None,Ambulatory Health Care Services,Landline,Amarillo Medical Spec Llp,8066772002,Business,TX,True,79106
+31,1501 Houston St            ,None         ,Bandwidth.com CLEC   ,Castroville,True,11/18/2016,None,Ambulatory Health Care Services   ,NonFixedVOIP                 ,"Fritz, Rebecca PA       ",8305383550,Business,TX,True,78009
+32,809 82nd Pkwy,17702197396,Frontier Communications,Myrtle Beach,True,11/20/2016,None,Ambulatory Health Care Services,Landline,Grand Strand Regional Medical Center,8436921765,Business,SC,True,29572
+33,2755 S Highway 14 Ste 2200   ,18648499556,Windstream Communications   ,Greer,True,2/28/2019,None,Ambulatory Health Care Services   ,Landline          ,"Cash, Allyson L N.P.            ",8648499555,Business,SC   ,True,29650
+34,1111 Windover Rd,18709106040,Ritter Communications,Jonesboro,True,8/9/2017,None,Ambulatory Health Care Services,Landline,Nea Baptist Clinic,8709368000,Business,AR,True,72401
+35,2931 Richmond Rd,None,Level 3 Communications,Texarkana,True,5/6/2017,None,Ambulatory Health Care Services,NonFixedVOIP,Paul D Sarna MD,9036143200,Business,TX,True,75503
+36,645 Marble Ave,None,Cablevision Lightpath,Thornwood,True,11/19/2016,None,Ambulatory Health Care Services,FixedVOIP,Margaret M Andersen MD,9147691600,Business,NY,True,10594
+37,3301 Alta Arden Expy Ste 3,None,Bandwidth SMSEnabled,Sacramento,True,11/15/2016,None,Ambulatory Health Care Services,NonFixedVOIP,William Kenneth Mora MD,9164894400,Business,CA,True,95825
+38,1401 Avocado Ave Ste 602,None,Coxcom,Newport Beach,True,11/19/2016,None,Ambulatory Health Care Services,FixedVOIP,Robert J Bae Amed Corp,9496448722,Business,CA,True,92660
+39,150 Bergen St,None,MCImetro Access Transmission Services,Newark,True,2/28/2019,None,Ambulatory Health Care Services,Landline,"Chetankumar Chauhan, M.d., M.p.h.",9739725672,Business,NJ,True,07103
+40,2601 E Roosevelt St Apt 1,16023445188,Zipwhip US,Phoenix,True,2/28/2019,None,Nonstore Retailers,NonFixedVOIP,Maricopa Medical Center,6023441015,Business,AZ,True,85008
+41,222 N 7th St # 6,17013235588,CenturyLink,Bismarck,True,2/28/2019,None,Ambulatory Health Care Services,Landline,Sanford Cancer,7013238030,Business,ND,True,58501
+42,,,Ameritech,Livonia,True,None,None,,Landline,St Mary Mercy,7347434430,Business,MI,True,None
+43,1436 Chattanooga Ave,17062793277,Board of Water Light and Sinking Fund Commissioners,Dalton,True,11/20/2016,None,Ambulatory Health Care Services,Landline,Dalton Ear Nose & Throat Associates,7062262142,Business,GA,True,30720
+44,2727 Plaza Dr,17158473000,Teleport Communications America,Wausau,True,11/20/2016,None,Ambulatory Health Care Services,Landline,Verica S Neskovic MD,7158473339,Business,WI,True,54401
+45,3100 W Christoffersen Pkwy,,Pacific Bell,Turlock,True,8/28/2018,None,Hospitals,Landline,Sutter Urgent Care-Turlock,2096323909,Business,CA,True,95382
+46,1315 St Joseph Pkwy Ste 1708,17137391391,Logix Communications,Houston,True,11/18/2016,None,Ambulatory Health Care Services,NonFixedVOIP,E Leon Etter II PA,7137721200,Business,TX,True,77002
+47,39700 Bob Hope Dr Ste 108,18553622262,Twilio,Rancho Mirage,True,12/8/2016,None,Ambulatory Health Care Services,NonFixedVOIP,Eisenhower Infectious Diseases,7608343545,Business,CA,True,92270
+48,745 N Main St,16035272781,Consolidated Communications,Laconia,True,11/18/2016,None,Ambulatory Health Care Services,Landline,Laconia Clinic PT,6035245151,Business,NH,True,03246
+49,5803 Neal Ave N,,Level 3 Communications,Stillwater,True,11/18/2016,None,Ambulatory Health Care Services,NonFixedVOIP,Twin Cities Orthopedics,6514398807,Business,MN,True,55082

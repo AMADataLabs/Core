@@ -24,6 +24,7 @@ modspec:
       - address_flagging_report
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+  - package: datalabs.etl.sql
   - package: datalabs.etl.sql.jdbc
   - package: datalabs.etl.s3
   - package: datalabs.analysis

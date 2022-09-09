@@ -14,10 +14,11 @@ public class SqlExtractorParameters extends Parameters {
     public String databaseUsername;
     public String databasePassword;
     public String sql;
-    public Map<String, String> unknowns;
 
     @Optional
     public String executionTime;
+    @Optional
+    public String driver;
     @Optional
     public String databaseName;
     @Optional
@@ -34,6 +35,8 @@ public class SqlExtractorParameters extends Parameters {
     public String partIndex;    // This task's index
     @Optional
     public String stream;
+
+    public Map<String, String> unknowns;
 
     public SqlExtractorParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
         super(parameters);

@@ -6,7 +6,14 @@ from datetime import datetime, date
 import pandas as pd
 import numpy as np
 from dateutil.relativedelta import relativedelta
+import settings
+from datalabs.access.edw import EDW
+import logging
+from get_scorecard_ppd import create_ppd_csv
 
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 def newest(path, text):
     '''Grabs newest filename'''
@@ -21,38 +28,56 @@ def get_email_data(email_file):
     email_correctness = em_tbl.iloc[3, 1]
     return(email_count, email_correctness)
 
-def get_do_counts(do_file):
+def get_do_counts(ppd):
     '''Get do counts'''
-    with open(do_file, 'r') as file_:
-        read_file = file_.read()
-        phys_count = int(read_file.split('\n')[0].replace('Physicians: ', '').replace(',', ''))
-        stu_count = int(read_file.split('\n')[1].replace('Students: ', '').replace(',', ''))
+    LOGGER.info('Getting DO physician count...')
+    phys_count = len(ppd[ppd.MD_DO_CODE==2])
+    LOGGER.info(f'{phys_count} DO physicians on ppd')
+    student_query = os.environ.get('STUDENT_QUERY')
+    with EDW() as edw:
+        LOGGER.info('Getting DO student count...')
+        stu = edw.read(student_query)
+        stu_count = len(stu)
+    LOGGER.info(f'{stu_count} DO students in EDW')
     return phys_count, stu_count
 
 def read_ppd(ppd_file_location):
     '''Read ppd'''
     ppd = pd.read_csv(ppd_file_location, low_memory=False)
 
-    #Nones
-    ppd['ADDRESS_UNDELIVERABLE_FLAG_2'] = ppd['ADDRESS_UNDELIVERABLE_FLAG'].fillna('None')
-    ppd['PRESUMED_DEAD_FLAG_2'] = ppd['PRESUMED_DEAD_FLAG'].fillna('None')
+    death_defying = ppd
 
     #Everybody gotta be alive
-    ppd = ppd[ppd['PRESUMED_DEAD_FLAG_2'] == 'None']
+    ppd = ppd[ppd.PRESUMED_DEAD_FLAG != 'D']
 
-    #Define subset of DOs
+    #Define subset of DPCs
     sub_ppd = ppd[ppd.TOP_CD == 20]
 
-    return(ppd, sub_ppd)
+    return(death_defying, ppd, sub_ppd)
+
+def find_do_not_contact_phones(ppd):
+    mes = tuple(ppd[ppd.NO_CONTACT_IND=='N'].ME)
+    party_id_query = os.environ.get('PARTY_ID_QUERY')
+    phone_query = os.environ.get('PHONE_QUERY')
+    with EDW() as edw:
+        LOGGER.info('Getting party ids...')
+        me_to_party_id = edw.read(f"{party_id_query}{mes}")
+        party_ids = tuple(me_to_party_id.PARTY_ID)
+        LOGGER.info('Finding Do Not Contact phones...')
+        phones = edw.read(f"{phone_query}{party_ids}")
+    has_phones = me_to_party_id[me_to_party_id.PARTY_ID.isin(phones.PARTY_ID)]
+    return has_phones
 
 #Total
-def get_total_table(ppd_df):
+def get_total_table(ppd_df, phones):
     '''Get complete counts'''
-    all_deliverable = ppd_df[ppd_df['ADDRESS_UNDELIVERABLE_FLAG_2'] == 'None']
+    all_deliverable = ppd_df[ppd_df.ADDRESS_UNDELIVERABLE_FLAG != 'U']
     counts = ppd_df.count()
     fax_count = counts['FAX_NUMBER']
-    polo_count = counts['POLO_MAILING_LINE_2']
-    telephone_count = counts['TELEPHONE_NUMBER']
+    polo_count = counts['POLO_STATE']
+    no_contact_phone_count = len(ppd_df[ppd_df.ME.isin(phones.ME)])
+    LOGGER.info(f'{no_contact_phone_count} DNC have phone numbers on masterfile')
+    telephone_count = counts['TELEPHONE_NUMBER'] + no_contact_phone_count
     # no_delivery_count = counts['ADDRESS_UNDELIVERABLE_FLAG']
     all_mailing = counts['MAILING_LINE_2']
     deliverable_counts = all_deliverable.count()
@@ -77,7 +102,7 @@ def get_total_table(ppd_df):
         'deliverable_home': deliverable_home,
         'deliverable_office': deliverable_office
     }
-    print(value_dict)
+    LOGGER.info(value_dict)
     transposed = pd.DataFrame(value_dict, ['Count']).transpose()
 
     return transposed
@@ -86,19 +111,17 @@ def get_wslive_results(wslive_file_location):
     '''Read WSLive Results'''
     wslive_table = pd.read_excel(wslive_file_location, sheet_name='Summary Percentage', header=3)
     values = list(wslive_table[wslive_table['POLO Address Status'] == 'Confirmed'].iloc[:, -3])
-    print(values)
-    cleaned_values = [x for x in values if (np.isnan(x) == False)]
-    # cleaned_values.pop(5)
-    # cleaned_values.pop(4)
-    # cleaned_values.pop(1)
-    print(cleaned_values)
+    LOGGER.info(values)
+    # cleaned_values = [x for x in values if (np.isnan(x) == False)]
+    cleaned_values = list(values[i] for i in [0, 2, 3])
+    LOGGER.info(cleaned_values)
 
     col_list = ['polo_correct',
                 'telephone_correct',
                 'telephone_2_correct']
 
     wslive_df = pd.DataFrame({'1':col_list, '2':cleaned_values})
-    print(wslive_df)
+    LOGGER.info(wslive_df)
 
     return wslive_df
 
@@ -163,8 +186,6 @@ def get_notes(total, sub, correct, email, physicians, students):
     do_physician = physicians
     do_student_total = int(30367)
     do_physician_total = int(121006)
-    do_student_complete = do_student/do_student_total
-    do_physician_complete = do_physician/do_physician_total
     
     all_ = f'All Physicians: {"{:,}".format(totalrecords)} Records'
     all_dpc = f'Direct Patient Care (DPC): {"{:,}".format(totalrecords_dpc)} Records'
@@ -172,11 +193,10 @@ def get_notes(total, sub, correct, email, physicians, students):
     today_date = datetime.today()
     last_year = (today_date - relativedelta(months=1, years=1)).strftime("%B" " " "%Y")
     two_year = (today_date - relativedelta(months=1, years=2)).strftime("%B" " " "%Y")
-    last_month = (today_date - relativedelta(months=1)).strftime("%B" " " "%Y")
+    last_month = (today_date - relativedelta(months=2)).strftime("%B" " " "%Y")
     month = f'Cumulative Change from {last_year}'
     month_2 = f'Cumulative Change from {two_year}'
     month_3 = f'Change from {last_month}'
-    do_not_contact = 30030
 
     notes_list_ = [totalrecords,
                    mailingaddress,
@@ -211,7 +231,6 @@ def get_notes(total, sub, correct, email, physicians, students):
                    all_mailing,
                    deliverable_home,
                    deliverable_office,
-                   do_not_contact
                    ]
     notes_2_list_ = [mailing_completeness,
                      polo_completeness,
@@ -233,8 +252,8 @@ def get_notes(total, sub, correct, email, physicians, students):
                      phone_combo,
                      phone_2_combo,
                      email_combo,
-                     do_student_complete,
-                     do_physician_complete,
+                     do_student,
+                     do_physician,
                      totalrecords,
                      totalrecords_dpc]
 
@@ -260,39 +279,40 @@ def get_new_notes(notes_list, notes_2_list, notes, notes_2, notes_3):
 
     notes_2 = notes_2.drop(columns=last_year_one)
     notes_2[scorecard_month] = notes_2_list
-    print(len(notes_2))
+    LOGGER.info(len(notes_2))
     standard_devs = []
     for num in list(range(0, 24)):
         standard_devs.append(np.std(notes_2.iloc[[num], 2:15].values, dtype=np.float64))
-    print(len(standard_devs))
+    LOGGER.info(len(standard_devs))
     notes_2.Standard_Deviation = standard_devs
     return(notes, notes_2, notes_3)
 
 def main():  
-    local_directory = 'C:/Users/vigrose/Data/Scorecard'
-    print('Grabbing file names...')
-    ppd_file = newest(local_directory, 'ppd_data')
+    local_directory = os.environ.get('LOCAL')
+    LOGGER.info('Grabbing file names...')
+    ppd_file = create_ppd_csv()
     wslive_file = newest(local_directory, 'WSLive')
     old_scorecard = newest(local_directory, 'Masterfile-Scorecard')
-    print(old_scorecard)
+    LOGGER.info(old_scorecard)
     email_file = newest(local_directory, 'Email')
-    do_file = newest(local_directory, 'do_count')
-    print('Reading ppd...')
-    ppd, sub_ppd = read_ppd(ppd_file)
-    print('Getting ppd data...')
-    total = get_total_table(ppd)
-    sub = get_total_table(sub_ppd)
-    print('Getting wslive data...')
+    LOGGER.info('Reading ppd...')
+    death_defying, ppd, sub_ppd = read_ppd(ppd_file)
+    LOGGER.info('Accounting for Do Not Contact population...')
+    phones = find_do_not_contact_phones(ppd)
+    LOGGER.info('Getting ppd data...')
+    total = get_total_table(ppd, phones)
+    sub = get_total_table(sub_ppd, phones)
+    LOGGER.info('Getting wslive data...')
     correct = get_wslive_results(wslive_file)
-    print('Reading old scorecard...')
+    LOGGER.info('Reading old scorecard...')
     notes, notes_2, notes_3 = read_old_scorecard(old_scorecard)
-    print('Getting DO counts...')
-    physicians, students = get_do_counts(do_file)
-    print('Getting new notes...')
+    LOGGER.info('Getting DO counts...')
+    physicians, students = get_do_counts(death_defying)
+    LOGGER.info('Getting new notes...')
     note_list, note_list_2 = get_notes(total, sub, correct, email_file, physicians, students)
-    print('Editing notes...')
+    LOGGER.info('Editing notes...')
     new_notes, new_notes_2, new_notes_3 = get_new_notes(note_list, note_list_2, notes, notes_2, notes_3)
-    print('Writing to file...')
+    LOGGER.info('Writing to file...')
     with pd.ExcelWriter(f'{local_directory}/output_2.xlsx') as writer:  
         new_notes.to_excel(writer, sheet_name='Notes', index=False)
         new_notes_2.to_excel(writer, sheet_name='Notes_2', index=False)
