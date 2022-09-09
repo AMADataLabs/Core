@@ -135,10 +135,6 @@ print_usage() {
 
 
 generate_dev_version() {
-    aws --profile default codeartifact list-package-versions \
-        --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \
-        --format maven --sort-by PUBLISHED_TIME
-
     local current_version=$(
         aws --profile default codeartifact list-package-versions \
             --domain datalabs --repository datalabs-sbx --namespace org.ama-assn.datalabs --package $PACKAGE \

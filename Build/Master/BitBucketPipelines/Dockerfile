@@ -10,8 +10,8 @@ ENV PATH=${MAVEN_HOME}/bin:${PATH}
 RUN yum update -y
 RUN amazon-linux-extras enable docker
 RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel freetype-devel make gcc-c++ \
-                   wget tar gzip git xvfb jq docker unzip which \
-                   java-1.8.0-openjdk-devel
+                   wget tar gzip git xvfb jq docker zip unzip which \
+                   java-17-amazon-corretto-devel
 
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
     tar xzf Python-${PYTHON_VERSION}.tgz && \

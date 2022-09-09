@@ -23,6 +23,7 @@ modspec:
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.dag.cpt.files
+  - package: datalabs.etl.sql
   - package: datalabs.etl.sql.jdbc
   - package: datalabs.etl.sftp
   - package: datalabs.etl.s3

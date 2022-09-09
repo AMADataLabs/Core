@@ -12,24 +12,17 @@
         <java.version>1.11</java.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <kotlin.version>1.7.10</kotlin.version>
-        <!-- <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target> -->
+        <db2.version>11.5.7.0</db2.version>
+        <mssql.version>11.2.0.jre11</mssql.version>
+        <informix.version>4.50.8</informix.version>
     </properties>
 
     <repositories>
         <repository>
             <id>datalabs-sbx</id>
-            <name>datalabs-sbx</name>
+            <name>DataLabs Component Repository</name>
             <url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/datalabs-sbx/</url>
         </repository>
-
-        <!--
-        <repository>
-            <id>datalabs-cpt-link-sbx</id>
-            <name>datalabs-cpt-link-sbx</name>
-            <url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/cpt-link-sbx/</url>
-        </repository>
-        -->
     </repositories>
     <!--
     aws codeartifact get-authorization-token \
@@ -203,10 +196,40 @@
             <version>2.17.129</version>
         </dependency>
 
+        <!-- JDBC Drivers -->
+
+        <!-- <dependency>
+            <groupId>com.ibm.db2</groupId>
+            <artifactId>jcc</artifactId>
+            <version>${db2.version}</version>
+        </dependency> -->
+
+        <!-- <dependency>
+            <groupId>com.ibm.db2</groupId>
+            <artifactId>jcc</artifactId>
+            <version>11.5.7.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/Sandbox/JDBC/DB2/DB2JdbcDriver/db2jcc4.jar</systemPath>
+        </dependency> -->
+
+        <!-- <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>${mssql.version}</version>
+        </dependency> -->
+
+        <dependency>
+            <groupId>com.ibm.informix</groupId>
+            <artifactId>jdbc</artifactId>
+            <version>${informix.version}</version>
+        </dependency>
+
+        <!-- Private Maven Repository Dependencies -->
+
         <dependency>
             <groupId>org.ama-assn.dtk</groupId>
             <artifactId>dtk-core</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
 
         <!-- Kotlin Dependencies -->
@@ -315,13 +338,17 @@
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>3.2.4</version>
                 <configuration>
-                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <createDependencyReducedPom>true</createDependencyReducedPom>
                     <filters>
                         <filter> <!-- Prevent "ERROR StatusLogger Unrecognized..." console output. -->
                             <artifact>*:*</artifact>
-                            <excludes>
+                            <includes>
+                                <include>datalabs/**</include>
+                                <include>log4j2.xml</include>
+                            </includes>
+                            <!-- <excludes>
                                 <exclude>**/Log4j2Plugins.dat</exclude>
-                            </excludes>
+                            </excludes> -->
                         </filter>
                     </filters>
                 </configuration>

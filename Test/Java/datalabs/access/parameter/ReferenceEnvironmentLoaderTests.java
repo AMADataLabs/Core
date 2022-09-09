@@ -100,7 +100,8 @@ class ReferenceEnvironmentLoaderTests {
 
         String resolvedValue = loader.resolveReferencesInValue(
             referenceValue,
-            ReferenceEnvironmentLoaderTests.ENVIRONMENT
+            ReferenceEnvironmentLoaderTests.ENVIRONMENT,
+            2
         );
 
         Assertions.assertEquals(referentValue, resolvedValue);
@@ -119,7 +120,8 @@ class ReferenceEnvironmentLoaderTests {
 
         String resolvedValue = loader.resolveReferencesInValue(
             referenceValue,
-            ReferenceEnvironmentLoaderTests.ENVIRONMENT
+            ReferenceEnvironmentLoaderTests.ENVIRONMENT,
+            2
         );
 
         Assertions.assertEquals(referentValue, resolvedValue);
@@ -138,7 +140,28 @@ class ReferenceEnvironmentLoaderTests {
 
         String resolvedValue = loader.resolveReferencesInValue(
             referenceValue,
+            ReferenceEnvironmentLoaderTests.ENVIRONMENT,
+            2
+        );
+
+        Assertions.assertEquals(referentValue, resolvedValue);
+    }
+
+    @Test
+    @DisplayName("resolveReferencesInValue() Matches Nested References")
+    void resolveReferencesInValueMatchesNestedReferences() {
+        HashMap<String, String> parameters = ReferenceEnvironmentLoaderTests.ENVIRONMENT;
+        ReferenceEnvironmentLoader loader = new ReferenceEnvironmentLoader(parameters);
+        Map<String, String> referentVariables = ReferenceEnvironmentLoader.getReferentVariables(
             ReferenceEnvironmentLoaderTests.ENVIRONMENT
+        );
+        String referenceValue = "I can too, ${SIMPLE_REFERENCE_VARIABLE}.";
+        String referentValue = "I can too, Woopideedoo.";
+
+        String resolvedValue = loader.resolveReferencesInValue(
+            referenceValue,
+            ReferenceEnvironmentLoaderTests.ENVIRONMENT,
+            2
         );
 
         Assertions.assertEquals(referentValue, resolvedValue);
@@ -153,11 +176,11 @@ class ReferenceEnvironmentLoaderTests {
         loader.load(ReferenceEnvironmentLoaderTests.ENVIRONMENT);
 
         Assertions.assertEquals(6, ReferenceEnvironmentLoaderTests.ENVIRONMENT.size());
-        Assertions.assertEquals(getenv("REFERENT_VARIABLE"), "Woopideedoo");
-        Assertions.assertEquals(getenv("PHRASE_VARIABLE"), "I love you!");
-        Assertions.assertEquals(getenv("SIMPLE_REFERENCE_VARIABLE"), "Woopideedoo");
-        Assertions.assertEquals(getenv("COMPLEX_REFERENCE_VARIABLE"), "I said, \"Woopideedoo!\"");
-        Assertions.assertEquals(getenv("MULTI_REFERENCE_VARIABLE"), "He said, \"Woopideedoo, I love you!\"");
-        Assertions.assertEquals(getenv("BAD_REFERENCE_VARIABLE"), "${SOME_NONEXISTANT_VARIABLE}");
+        Assertions.assertEquals("Woopideedoo", getenv("REFERENT_VARIABLE"));
+        Assertions.assertEquals("I love you!", getenv("PHRASE_VARIABLE"));
+        Assertions.assertEquals("Woopideedoo", getenv("SIMPLE_REFERENCE_VARIABLE"));
+        Assertions.assertEquals("I said, \"Woopideedoo!\"", getenv("COMPLEX_REFERENCE_VARIABLE"));
+        Assertions.assertEquals("He said, \"Woopideedoo, I love you!\"", getenv("MULTI_REFERENCE_VARIABLE"));
+        Assertions.assertEquals("${SOME_NONEXISTANT_VARIABLE}", getenv("BAD_REFERENCE_VARIABLE"));
     }
 }

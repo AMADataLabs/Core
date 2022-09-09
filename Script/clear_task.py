@@ -28,7 +28,7 @@ def main(args):
     )
     state = DAGState(parameters)
     dag_class = import_plugin(DAGClasses.__members__[args["dag"]].value)
-    execution_time = f'{args["date"]} {args["time"]}'
+    execution_time = f'{args["date"]}T{args["time"]}'
 
     validate_arguments(args)
 

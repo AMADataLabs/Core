@@ -1,5 +1,5 @@
 image:
-  name: 644454719059.dkr.ecr.us-east-1.amazonaws.com/datalabs-bitbucket-pipelines:1.5.1
+  name: 644454719059.dkr.ecr.us-east-1.amazonaws.com/datalabs-bitbucket-pipelines:1.5.3
   aws:
     access-key: $AWS_ACCESS_KEY_ID_SANDBOX
     secret-key: $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -38,6 +38,7 @@ pipelines:
             caches:
                 - test-dependencies
             script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - bash Script/bitbucket-pipelines-test.sh
 
 
@@ -1217,7 +1218,7 @@ pipelines:
             - >-
                 bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava
                 HelloWorldJavaDAG=DAG.zip
-                HelloWorldJavaTask=Task.jar
+                HelloWorldJavaTask=Task.zip
 
         OneView-ETL:
         - step:
@@ -1363,6 +1364,111 @@ pipelines:
                     --project OneView/ETL/Batch
                     --repo oneview-prd
 
+        OneView-ETL-Extract:
+        - step:
+            name: Create Task Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-java-package --project OneView/ETL/Extract
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Bundle
+                caches:
+                - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project OneView/ETL/Extract
+                    --bundle OneView/Extract.zip
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
+                    --use-package
+            - step:
+                name: Update Development Lambda Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project OneView/ETL/Extract
+                    --bundle OneView/Extract.zip
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
+                    --use-package
+            - step:
+                name: Update Test Lambda Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project OneView/ETL/Extract
+                    --bundle OneView/Extract.zip
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
+                    --use-package
+            - step:
+                name: Update Production Lambda Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project OneView/ETL/Extract
+                    --bundle OneView/Extract.zip
+                    --jdbc-driver DB2
+                    --jdbc-driver Informix
+                    --use-package
+        - parallel:
+            - step:
+                name: Reload Sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView Extract=Extract.zip
+            - step:
+                name: Reload Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p OneView
+                    Extract=Extract.zip
+            - step:
+                name: Reload Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView
+                    Extract=Extract.zip
+            # - step:
+            #     name: Reload Production Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
+            #         Extract=Extract.zip
+
         OneView-API:
         - step:
             name: Create Development Component Package
@@ -1506,6 +1612,20 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
+                    --project IntelligentPlatform/Licensing
+                    --bundle IntelligentPlatform/LicensingETL.zip
+                    --use-package
+            - step:
+                name: Update Production Bundle
+                caches:
+                - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
                     --project IntelligentPlatform/Licensing
                     --bundle IntelligentPlatform/LicensingETL.zip
                     --use-package

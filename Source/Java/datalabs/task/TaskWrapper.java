@@ -56,38 +56,55 @@ public class TaskWrapper {
         return this.task;
     }
 
-    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
+    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws TaskException {
         return new HashMap<String, String>();
     }
 
-    protected Map<String, String> getTaskParameters() {
+    protected Map<String, String> getTaskParameters() throws TaskException {
         return this.environment;
     }
 
-    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) {
+    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) throws TaskException {
         return new ArrayList<byte[]>();
     }
 
-    Class getTaskClass()
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
-                   ClassNotFoundException {
-        Class taskResolverClass = this.getTaskResolverClass();
-        Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class, Map.class});
-        LOGGER.debug("Runtime Parameters: " + this.runtimeParameters);
-        LOGGER.debug("Task Resolver Class: " + taskResolverClass);
+    Class getTaskClass() throws TaskException {
+        Class taskClass = null;
 
-        return (Class) getTaskClass.invoke(null, this.environment, this.runtimeParameters);
+        try {
+            Class taskResolverClass = this.getTaskResolverClass();
+            Method getTaskClass = taskResolverClass.getMethod("getTaskClass", new Class[] {Map.class, Map.class});
+            LOGGER.debug("Runtime Parameters: " + this.runtimeParameters);
+            LOGGER.debug("Task Resolver Class: " + taskResolverClass);
+
+            taskClass = (Class) getTaskClass.invoke(null, this.environment, this.runtimeParameters);
+        } catch (Exception exception) {
+            throw new TaskException("Unable to resolve task class.", exception);
+        }
+
+        return taskClass;
     }
 
     static Task createTask(Class taskClass, Map<String, String> parameters, ArrayList<byte[]> data)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        return (Task) taskClass.getConstructor(new Class[] {Map.class, ArrayList.class}).newInstance(parameters, data);
+             throws TaskException {
+        Task task = null;
+
+        try {
+            task = (Task) taskClass.getConstructor(new Class[] {Map.class, ArrayList.class}).newInstance(
+                parameters,
+                data
+            );
+        } catch (Exception exception) {
+            throw new TaskException("Unable to create task instance.", exception);
+        }
+
+        return task;
     }
 
-    protected void preRun() {
+    protected void preRun() throws TaskException {
     }
 
-    protected String handleSuccess() {
+    protected String handleSuccess() throws TaskException {
         return "Success";
     }
 

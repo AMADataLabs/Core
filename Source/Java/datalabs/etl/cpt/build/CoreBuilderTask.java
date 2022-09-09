@@ -20,6 +20,9 @@ import org.ama.dtk.DtkAccess;
 import org.ama.dtk.Exporter;
 import org.ama.dtk.ExporterFiles;
 import org.ama.dtk.core.BuildCore;
+import org.ama.dtk.core.CoreDb;
+import org.ama.dtk.core.CoreResourceDb;
+import org.ama.dtk.core.DbParameters;
 import org.ama.dtk.core.ConceptIdFactory;
 import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.PropertyType;
@@ -43,6 +46,12 @@ public class CoreBuilderTask extends Task {
     public ArrayList<byte[]> run() throws TaskException {
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
+            DbParameters dbParameters = new DbParameters(
+                    parameters.host,
+                    parameters.username,
+                    parameters.password,
+                    parameters.port
+            );
 
             loadSettings();
             stageInputFiles();
@@ -61,7 +70,7 @@ public class CoreBuilderTask extends Task {
 
             CoreBuilderTask.updateConcepts(priorLink, priorCore);
 
-            DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate);
+            DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate, dbParameters);
 
             CoreBuilderTask.exportConcepts(core, this.settings.getProperty("output.directory"));
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
@@ -96,10 +105,11 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-    private static DtkAccess buildCore(DtkAccess priorLink, String releaseDate) throws Exception {
+    private static DtkAccess buildCore(DtkAccess priorLink, String releaseDate, DbParameters dbParameters)
+            throws Exception {
         ConceptIdFactory.init(priorLink);
 
-        return new BuildCore(priorLink, releaseDate).walk();
+        return new BuildCore(priorLink, releaseDate).walk(dbParameters, dbParameters);
     }
 
     private static void exportConcepts(DtkAccess core, String outputDirectory) throws Exception {
