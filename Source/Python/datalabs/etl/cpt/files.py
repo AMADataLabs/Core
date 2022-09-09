@@ -6,10 +6,10 @@ from   dataclasses import dataclass
 
 from   dateutil.parser import isoparse
 
-from   datalabs.parameter import add_schema
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.extract import FileExtractorTask
+from   datalabs.etl.extract import ExtractorTask
 from   datalabs.etl.task import ETLException
+from   datalabs.parameter import add_schema
 
 
 @add_schema
@@ -23,20 +23,35 @@ class ReleaseFilesListExtractorParameters:
 
 
 # pylint: disable=too-many-ancestors
-class ReleaseFilesListExtractorTask(FileExtractorTask):
+class ReleaseFilesListExtractorTask(ExtractorTask):
     PARAMETER_CLASS = ReleaseFilesListExtractorParameters
 
+    def __init__(self, parameters):
+        super().__init__(parameters)
+
+        self._client = None
+
+    def _extract(self):
+        data = None
+
+        with self._get_client() as client:
+            self._client = client
+            files = self._get_files()
+            data = self._extract_files(files)
+
+        return data
+
+    # pylint: disable=R0201
     def _get_client(self):
         return AWSClient(
             's3'
         )
 
     def _get_files(self):
-        current_base_path = self._get_two_latest_path()[0]
-        prior_base_path = self._get_two_latest_path()[1]
+        current_base_path, prior_base_path = self._get_two_previous_release_paths()
         files, current_files, prior_files = [], [], []
 
-        if self._parameters.link_files_zip is not None and (current_base_path):
+        if self._parameters.link_files_zip is not None:
             files = self._parameters.link_files_zip.split(',')
         else:
             raise ValueError('"files" parameter must contain the list of files to extract.')
@@ -50,14 +65,8 @@ class ReleaseFilesListExtractorTask(FileExtractorTask):
 
         return files
 
-
-    def _extract(self):
-        data = None
-
-        with self._get_client() as client:
-            self._client = client
-            files = self._get_files()
-            data = self._extract_files(files)
+    def _extract_files(self, files):
+        data = [self._extract_file(file) for file in files ]
 
         return data
 
@@ -77,13 +86,8 @@ class ReleaseFilesListExtractorTask(FileExtractorTask):
 
         return data
 
-    def _extract_files(self, files):
-        data = [self._extract_file(file) for file in files ]
-
-        return data
-
-    def _get_two_latest_path(self):
-        release_folder = self._get_release_folder()
+    def _get_two_previous_release_paths(self):
+        release_folder = self._get_two_previous_release_folders()
         path = self._parameters.base_path
         result_path = [None, None]
 
@@ -100,7 +104,7 @@ class ReleaseFilesListExtractorTask(FileExtractorTask):
 
         return result_path
 
-    def _get_release_folder(self):
+    def _get_two_previous_release_folders(self):
         release_folder = self._get_execution_date()
         result = []
         list_files = sorted(self._list_files(self._parameters.base_path))
@@ -130,6 +134,3 @@ class ReleaseFilesListExtractorTask(FileExtractorTask):
             objects.remove('')
 
         return objects
-
-    def _resolve_wildcard(self, file):
-        pass

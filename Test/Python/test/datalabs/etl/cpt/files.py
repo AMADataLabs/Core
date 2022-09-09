@@ -1,8 +1,9 @@
 """ source: datalabs.etl.s3.extract """
 import datetime
+from   dateutil.tz import tzutc
+
 import mock
 import pytest
-from   dateutil.tz import tzutc
 
 from   datalabs.etl.cpt.files import ReleaseFilesListExtractorTask
 
@@ -11,60 +12,76 @@ from   datalabs.etl.cpt.files import ReleaseFilesListExtractorTask
 def test_mocked_list_dir_files(parameters, object_listing):
     task = ReleaseFilesListExtractorTask(parameters)
     files = None
+
     with mock.patch("boto3.client") as client:
         client.return_value.list_objects_v2.return_value = object_listing
 
-        with task._get_client() as s3:
-            task._client = s3
-            files = list(task._list_files("AMA/CPT/"))
+        def _list_release_folders(task, files):
+            with task._get_client() as s3:
+                task._client = s3
+                files = list(task._list_files("AMA/CPT/"))
 
-        # list all files in directory AMA/CPT/
-        assert len(files) == 3
-        assert "20220825" in files
-        assert "20220825" in files
-        assert "20211112" in files
+            return files
+
+        files = _list_release_folders(task, files)
+
+    assert len(files) == 3
+    assert "20220825" in files
+    assert "20220825" in files
+    assert "20211112" in files
 
 
 # pylint: disable=redefined-outer-name, protected-access, invalid-name
 def test_mocked_get_files(parameters, object_listing):
     task = ReleaseFilesListExtractorTask(parameters)
     files = [None, None]
+
     with mock.patch("boto3.client") as client:
         client.return_value.list_objects_v2.return_value = object_listing
-        with task._get_client() as s3:
-            task._client = s3
-            files = task._get_files()
 
-        # list current&prior release zip files in directory AMA/CPT/
-        assert len(files) == 2
-        assert "AMA/CPT/20220825/foo.txt" in files[0]
-        assert "AMA/CPT/20220824/foo.txt" in files[1]
+        def _get_two_previous_release_files(task, files):
+            with task._get_client() as s3:
+                task._client = s3
+                files = task._get_files()
+
+            return files
+
+        files = _get_two_previous_release_files(task, files)
+
+    assert len(files) == 2
+    assert "AMA/CPT/20220825/foo.txt" in files[0]
+    assert "AMA/CPT/20220824/foo.txt" in files[1]
 
 
 # pylint: disable=redefined-outer-name, protected-access, invalid-name
-def test_mocked_list_extract_files(parameters, object_listing):
+def test_mocked_extract_files(parameters, object_listing):
     task = ReleaseFilesListExtractorTask(parameters)
     data = [None,None]
+
     with mock.patch("boto3.client") as client:
         client.return_value.list_objects_v2.return_value = object_listing
-        with task._get_client() as s3:
-            task._client = s3
-            data = task._extract()
 
-        # 2 files to be extracted
-        assert len(data) == 2
+        def _extract_two_previous_release_files(task, data):
+            with task._get_client() as s3:
+                task._client = s3
+                data = task._extract()
+
+            return data
+
+        data =  _extract_two_previous_release_files(task, data)
+
+    assert len(data) == 2
 
 
 # pylint: disable=redefined-outer-name, protected-access, invalid-name
 @pytest.fixture
-
 def parameters():
     return dict(
         BUCKET='jumanji',
         BASE_PATH='AMA/CPT',
         LINK_FILES_ZIP='foo.txt',
         EXECUTION_TIME='20220901'
-            )
+    )
 
 
 # pylint: disable=line-too-long
