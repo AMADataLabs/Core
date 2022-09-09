@@ -37,6 +37,7 @@ from   datalabs.etl.oneview.reference.transform import \
     ClassOfTradeTransformerTask, \
     MedicalSchoolTransformerTask
 from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
+from   datalabs.etl.oneview.medical_licenses.transform import MedicalLicensesTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask, MaterializedViewRefresherTask, ReindexerTask
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
@@ -161,6 +162,10 @@ class OneViewDAG(DAG):
     EXTRACT_MEDICAL_SCHOOL: JDBCExtractorTask
     CREATE_MEDICAL_SCHOOL_TABLE: MedicalSchoolTransformerTask
     LOAD_MEDICAL_SCHOOL_TABLE: ORMLoaderTask
+
+    EXTRACT_MEDICAL_LICENSES: JDBCExtractorTask
+    CREATE_MEDICAL_LICENSES_TABLE: MedicalLicensesTransformerTask
+    LOAD_MEDICAL_LICENSES_TABLE: ORMLoaderTask
 
     # The refresh tasks will be run using AWS Batch instead of Lambda
     REFRESH_PHYSICIAN_VIEW: MaterializedViewRefresherTask
@@ -325,6 +330,11 @@ OneViewDAG.EXTRACT_CLASS_OF_TRADE >> OneViewDAG.CREATE_CLASS_OF_TRADE_TABLE \
 
 OneViewDAG.EXTRACT_MEDICAL_SCHOOL >> OneViewDAG.CREATE_MEDICAL_SCHOOL_TABLE \
     >> OneViewDAG.LOAD_MEDICAL_SCHOOL_TABLE
+
+OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.CREATE_MEDICAL_LICENSES_TABLE
+OneViewDAG.EXTRACT_MEDICAL_LICENSES >> OneViewDAG.CREATE_MEDICAL_LICENSES_TABLE \
+    >> OneViewDAG.LOAD_MEDICAL_LICENSES_TABLE
+OneViewDAG.last('LOAD_PHYSICIAN_TABLE') >> OneViewDAG.LOAD_MEDICAL_LICENSES_TABLE
 
 ### Save for AWS Batch implementation of refresh tasks ###
 OneViewDAG.last('LOAD_PHYSICIAN_TABLE') >> OneViewDAG.REFRESH_PHYSICIAN_VIEW
