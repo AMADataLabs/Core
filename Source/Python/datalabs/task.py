@@ -168,14 +168,22 @@ class TaskWrapper(ABC):
 class TaskResolver(ABC):
     @classmethod
     @abstractmethod
-    def get_task_class(cls, parameters):
+    def get_task_class(cls, runtime_parameters):
         pass
 
 
 class EnvironmentTaskResolver(TaskResolver):
     # pylint: disable=unused-argument
     @classmethod
-    def get_task_class(cls, parameters):
-        task_class_name = os.environ['TASK_CLASS']
+    def get_task_class(cls, runtime_parameters):
+        task_class_name = os.environ["TASK_CLASS"]
+
+        return import_plugin(task_class_name)
+
+
+class RuntimeTaskResolver(TaskResolver):
+    @classmethod
+    def get_task_class(cls, runtime_parameters):
+        task_class_name = runtime_parameters["TASK_CLASS"]
 
         return import_plugin(task_class_name)

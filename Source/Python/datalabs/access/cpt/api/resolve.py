@@ -47,8 +47,8 @@ class TaskResolver(task.TaskResolver):
     ]
 
     @classmethod
-    def get_task_class(cls, parameters):
-        path = parameters['path']
+    def get_task_class(cls, runtime_parameters):
+        path = runtime_parameters['path']
         task_class = None
 
         for mapping in cls.TASK_CLASSES:
