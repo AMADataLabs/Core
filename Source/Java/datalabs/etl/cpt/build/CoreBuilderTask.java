@@ -46,11 +46,12 @@ public class CoreBuilderTask extends Task {
     public ArrayList<byte[]> run() throws TaskException {
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
+
             DbParameters dbParameters = new DbParameters(
                     parameters.host,
                     parameters.username,
                     parameters.password,
-                    parameters.port
+                    Integer.parseInt(parameters.port)
             );
 
             loadSettings();
@@ -84,8 +85,8 @@ public class CoreBuilderTask extends Task {
         DtkAccess link = new DtkAccess();
 
         link.load(
-            directory + ExporterFiles.PropertyInternal.getFileNameExt(),
-            directory + ExporterFiles.RelationshipGroup.getFileNameExt()
+            directory + "/" + ExporterFiles.PropertyInternal.getFileNameExt(),
+            directory + "/" + ExporterFiles.RelationshipGroup.getFileNameExt()
         );
 
         return link;
@@ -136,8 +137,8 @@ public class CoreBuilderTask extends Task {
         settings = new Properties(){{
             put("output.directory", "./output/");
             put("input.directory", "./input");
-            put("prior.link.directory", "./prior_link_data");
-            put("current.link.directory", "./current_link_data");
+            put("prior.link.directory", "/prior_link");
+            put("current.link.directory", "/current_link");
         }};
     }
 
