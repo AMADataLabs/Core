@@ -60,11 +60,6 @@ public class SqlExtractorTask extends Task {
         Properties credentials = generateCredentialProperties(parameters);
         String connectionString = generateConnectionString(parameters);
 
-        if (parameters.driverType == "db2") {
-            Class.forName("com.ibm.db2.jcc.licenses.DB2J");
-            Class.forName("com.ibm.db2.jcc.licenses.DB2UW");
-        }
-
         return DriverManager.getConnection(connectionString, credentials);
     }
 
