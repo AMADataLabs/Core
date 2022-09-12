@@ -1,6 +1,0 @@
-,Address,AlternatePhone,Carrier,City,Commercial,Date,Error,Industry,LineType,Name,OFFICE_TELEPHONE,PhoneType,State,Valid
-0,93 Pond St,N/A,Verizon,Sharon,True,2016-11-19,,Ambulatory Health Care Services,Landline,Heather Dawn Boxerman MD,7817849212,Business,MA,True
-1,300 Longwood Ave,N/A,Verizon,Boston,True,2019-02-28,,Ambulatory Health Care Services,Landline,"Gramza, Claire E",6173557737,Business,MA,True
-2,1 Choctaw Way,+19185677046,Bandwidth.com CLEC,Talihina,True,2017-08-09,,Hospitals,NonFixedVOIP,Choctaw Nation,9185677000,Business,OK,True
-3,,N/A,Teleport Communications America,Cleveland,False,,,N/A,Landline,Cleveland C The,2164446968,Person,OH,True
-4,4910 Ritter Rd,N/A,Bandwidth.com CLEC,Mechanicsburg,True,2016-11-17,,Ambulatory Health Care Services,NonFixedVOIP,Concentra Medical Center,7177951819,Business,PA,True
