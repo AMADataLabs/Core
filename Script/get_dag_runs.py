@@ -22,7 +22,11 @@ def main(args):
 
     run_info = state.get_dag_runs(args["dag"], limit=limit)
 
-    for execution_time, status in run_info.items():
+    for iso_execution_time, status in run_info.items():
+        execution_time = iso_execution_time.replace("T", " ")
+        if execution_time == iso_execution_time:
+          execution_time = "*" + execution_time
+
         print(f'{execution_time} {status}')
 
 if __name__ == '__main__':
