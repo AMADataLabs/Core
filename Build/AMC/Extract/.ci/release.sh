@@ -9,9 +9,9 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.0.1
-        [itg]=1.0.1
-        [prd]=1.0.1
+        [tst]=1.0.0
+        [itg]=1.0.0
+        [prd]=1.0.0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -19,8 +19,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-amc"
-    export RELEASE_DESCRIPTION="AMC Address Flagging Report DAG plugin"
+    export RELEASE_NAME="datalabs-amc-extract"
+    export RELEASE_DESCRIPTION="AMC Address Flagging Report Extraction DAG plugin"
 }
 
 
