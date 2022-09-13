@@ -26,12 +26,12 @@ install_core_dependencies() {
 
     echo '* libraries/restart-without-asking boolean true' | debconf-set-selections
 
-    apt install -y software-properties-common build-essential curl
+    apt install -y software-properties-common build-essential curl python3.9-distutils
 }
 
 
 remove_core_dependencies() {
-    apt remove -y software-properties-common build-essential curl
+    apt remove -y software-properties-common build-essential curl python3.9-distutils
 }
 
 
