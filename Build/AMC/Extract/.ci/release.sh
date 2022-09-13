@@ -18,7 +18,7 @@ main() {
         export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
     fi
 
-    export RELEASE_TYPE="Python"
+    export RELEASE_TYPE="Java"
     export RELEASE_NAME="datalabs-amc-extract"
     export RELEASE_DESCRIPTION="AMC Address Flagging Report Extraction DAG plugin"
 }
