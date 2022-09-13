@@ -24,7 +24,7 @@ setup_linux_environment() {
 
     remove_python3_7_tools
 
-    install_python_tools
+    install_linux_tools
 
     clean_up_linux
 }
@@ -45,7 +45,7 @@ check_user() {
     user=$(whoami)
 
     if [[ $user != 'root' ]]; then
-        echo This script must be run as the root user
+        echo "### This script must be run as the root user ###"
         exit 1
     fi
 }
@@ -53,13 +53,13 @@ check_user() {
 
 check_linux_version() {
     . /etc/os-release
-    echo Running $PRETTY_NAME
+    echo "### Running $PRETTY_NAME ###"
 
     if [[ $NAME != 'Ubuntu' ]]; then
-        echo Unsupported OS $NAME
+        echo "### Unsupported OS $NAME ###"
         exit 2
     elif [[ $VERSION_ID != '18.04' ]]; then
-        echo Unsupported Ubuntu version $VERSION_ID
+        echo "### Unsupported Ubuntu version $VERSION_ID"
         exit 2
     fi
 }
@@ -70,7 +70,7 @@ install_drivers() {
 }
 
 
-install_tools() {
+install_linux_tools() {
     echo "### Installing core dependencies ###"
     install_core_dependencies
 
