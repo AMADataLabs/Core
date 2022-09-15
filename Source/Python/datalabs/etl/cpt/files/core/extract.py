@@ -4,10 +4,9 @@ from   dataclasses import dataclass
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
+from   datalabs.etl.cpt.files.core.input import INCREMENTAL_SOURCE_FILES, ANNUAL_SOURCE_FILES
 from   datalabs.etl.extract import ExtractorTask
 from   datalabs.parameter import add_schema
-
-
 
 
 @add_schema
@@ -97,22 +96,22 @@ class InputFilesListExtractorTask(ExtractorTask):
 
     @classmethod
     def _get_incremental_link_path(cls, execution_date, all_link_run_paths):
-        earlier_link_run_paths = [d for d in all_link_run_paths if d < execution_date]
+        earlier_link_run_paths = [path for path in all_link_run_paths if path < execution_date]
 
         return earlier_link_run_paths[-1]
 
     @classmethod
     def _generate_incremental_files(cls, link_path):
-        pass
+        return ["/".join((link_path, INCREMENTAL_SOURCE_FILES))]
 
     @classmethod
     def _get_annual_link_path(cls, execution_date, all_link_run_paths):
         year = str(int(execution_date[:4]) - 1)
 
-        last_year_link_run_paths = [d for d in all_link_run_paths if d.startswith(year)]
+        last_year_link_run_paths = [path for path in all_link_run_paths if path.startswith(year)]
 
         return last_year_link_run_paths[0]
 
     @classmethod
     def _generate_annual_files(cls, link_path):
-        pass
+        return ["/".join((link_path, ANNUAL_SOURCE_FILES))]
