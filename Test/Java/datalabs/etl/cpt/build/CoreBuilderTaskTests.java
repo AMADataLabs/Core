@@ -35,6 +35,7 @@ class CoreBuilderTaskTests {
         try {
             link.load("bogus/path", "fake/path");
         } catch (java.lang.Exception exception) {
+            CoreBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
             success = true;
         }
 
