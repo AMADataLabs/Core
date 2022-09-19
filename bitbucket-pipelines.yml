@@ -54,22 +54,9 @@ pipelines:
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-python-package --project AMC
-        - step:
-            name: Update ETL Bundle
-            caches:
-                - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - >-
-                bash Deploy/Master/deploy-lambda-function
-                --environment sbx
-                --project AMC
-                --bundle Masterfile/AMC.zip
-                --jdbc-driver Informix
-                --use-package
         - parallel:
             - step:
-                name: Update sandbox Bundle
+                name: Update Sandbox Bundle
                 caches:
                     - environment-master
                 script:
@@ -82,7 +69,7 @@ pipelines:
                     --jdbc-driver Informix
                     --use-package
             - step:
-                name: Update development Bundle
+                name: Update Development Bundle
                 caches:
                     - environment-dev
                 script:
@@ -97,7 +84,7 @@ pipelines:
                     --jdbc-driver Informix
                     --use-package
             - step:
-                name: Update test Bundle
+                name: Update Test Bundle
                 caches:
                     - environment-test
                 script:
@@ -112,7 +99,7 @@ pipelines:
                     --jdbc-driver Informix
                     --use-package
             - step:
-                name: Update production Bundle
+                name: Update Production Bundle
                 caches:
                     - environment-prod
                 script:
@@ -126,15 +113,39 @@ pipelines:
                     --bundle Masterfile/AMC.zip
                     --jdbc-driver Informix
                     --use-package
-        # - step:
-        #     name: Update Lambda Functions
-        #     script:
-        #     - export ENABLE_FEATURE_DEV=True
-        #     - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
-        #     - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
-        #     - export AWS_DEFAULT_REGION='us-east-1'
-        #     - export ENVIRONMENT=sbx
-        #     - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AMC=AMC.zip
+        - parallel:
+            - step:
+                name: Reload Sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AMC=AMC.zip
+            - step:
+                name: Reload Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
+                    AMC=AMC.zip
+            - step:
+                name: Reload Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
+                    AMC=AMC.zip
+            - step:
+                name: Reload Production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
+                    AMC=AMC.zip
 
         AMC-Extract:
         - step:
@@ -176,7 +187,7 @@ pipelines:
             # - step:
             #     name: Update Test Lambda Bundle
             #     caches:
-            #         - environment-dev
+            #         - environment-test
             #     script:
             #     - >-
             #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -203,21 +214,21 @@ pipelines:
             #         --bundle Masterfile/AMC-Extract.zip
             #         --jdbc-driver Informix
             #         --use-package
-        # - parallel:
-            # - step:
-            #     name: Reload Sandbox Lambda Functions
-            #     script:
-            #     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #     - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AMC-Extract=AMC-Extract.zip
-            # - step:
-            #     name: Reload Development Lambda Functions
-            #     script:
-            #     - >-
-            #         bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-            #     - >-
-            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
-            #         AMC-Extract=AMC-Extract.zip
+        - parallel:
+            - step:
+                name: Reload Sandbox Lambda Functions
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AMC-Extract=AMC-Extract.zip
+            - step:
+                name: Reload Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s OneView -p Masterfile
+                    AMC-Extract=AMC-Extract.zip
             # - step:
             #     name: Reload Test Lambda Functions
             #     script:
