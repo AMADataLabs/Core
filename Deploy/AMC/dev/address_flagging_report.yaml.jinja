@@ -44,6 +44,7 @@ data:
     ADDRESS_FLAGGING_REPORT__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
     ADDRESS_FLAGGING_REPORT__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     ADDRESS_FLAGGING_REPORT__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    ADDRESS_FLAGGING_REPORT__DAG__TASK_CLASS: ''  # Required to allow overrides
 
 
     ##########################################################################
@@ -51,6 +52,10 @@ data:
     ##########################################################################
 
     # AMC Extractor
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-AMC-Extract'
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
+    ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
+
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_HOST: ${AIMS_DB_HOST}
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_PORT: ${AIMS_DB_PORT}
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DATABASE_NAME: ${AIMS_DB_NAME}

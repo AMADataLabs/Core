@@ -180,36 +180,36 @@ pipelines:
                     --bundle Masterfile/AMC-Extract.zip
                     --jdbc-driver Informix
                     --use-package
-            # - step:
-            #     name: Update Test Lambda Bundle
-            #     caches:
-            #         - environment-test
-            #     script:
-            #     - >-
-            #         bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-            #     - >-
-            #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-            #         --environment tst
-            #         --project AMC/Extract
-            #         --bundle Masterfile/AMC-Extract.zip
-            #         --jdbc-driver Informix
-            #         --use-package
-            # - step:
-            #     name: Update Production Lambda Bundle
-            #     caches:
-            #         - environment-prod
-            #     script:
-            #     - >-
-            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-            #     - >-
-            #         bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-            #         --environment prd
-            #         --project AMC/Extract
-            #         --bundle Masterfile/AMC-Extract.zip
-            #         --jdbc-driver Informix
-            #         --use-package
+            - step:
+                name: Update Test Lambda Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project AMC/Extract
+                    --bundle Masterfile/AMC-Extract.zip
+                    --jdbc-driver Informix
+                    --use-package
+            - step:
+                name: Update Production Lambda Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project AMC/Extract
+                    --bundle Masterfile/AMC-Extract.zip
+                    --jdbc-driver Informix
+                    --use-package
         - parallel:
             - step:
                 name: Reload Sandbox Lambda Functions
