@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+NO_VERIFY_SSL=
+
+
+main() {
+    local project=$1
+    local version=
+
+    if [[ $AWS_NO_VERIFY_SSL == "True" ]]; then
+        NO_VERIFY_SSL=--no-verify-ssl
+    fi
+
+    load_release_info $1
+
+    if [[ $RELEASE_TYPE == "Python" ]]; then
+        version=$(get_latest_python_version)
+    elif [[ $RELEASE_TYPE == "Java" ]]; then
+        version=$(get_latest_java_version)
+    fi
+
+    echo $RELEASE_NAME $version
+}
+
+
+load_release_info() {
+    local project=$1
+
+    source Build/${project}/.ci/release.sh sbx
+}
+
+
+get_latest_python_version() {
+    aws $NO_VERIFY_SSL --profile default codeartifact list-package-versions \
+    --domain datalabs --repository datalabs-sbx \
+    --package $RELEASE_NAME \
+    --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
+}
+
+
+get_latest_java_version() {
+    aws $NO_VERIFY_SSL --profile default codeartifact list-package-versions \
+    --domain datalabs --repository datalabs-sbx \
+    --namespace org.ama-assn.datalabs --package ${RELEASE_NAME#datalabs-} \
+    --format maven --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
+}
+
+
+main "$@"
