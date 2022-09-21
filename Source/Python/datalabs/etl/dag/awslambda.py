@@ -94,6 +94,7 @@ class ProcessorTaskWrapper(
     def _override_dag_parameters(cls, dag_parameters, task_parameters):
         for key, _ in task_parameters.items():
             if key in dag_parameters:
+                LOGGER.info("Overriding DAG parameter %s: %s -> %s", key, dag_parameters[key], task_parameters[key])
                 dag_parameters[key] = task_parameters[key]
 
         return dag_parameters
