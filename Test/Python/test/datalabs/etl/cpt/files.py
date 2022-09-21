@@ -5,7 +5,7 @@ from   dateutil.tz import tzutc
 import mock
 import pytest
 
-from   datalabs.etl.cpt.files import ReleaseFilesListExtractorTask
+from   datalabs.etl.cpt.extract import ReleaseFilesListExtractorTask
 
 
 # pylint: disable=redefined-outer-name, protected-access, invalid-name
