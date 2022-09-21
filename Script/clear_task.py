@@ -19,6 +19,7 @@ class DAGClasses(Enum):
     CPTAPI = "datalabs.etl.dag.cpt.api.CPTAPIDAG"
     HELLO_WORLD_JAVA = "datalabs.example.etl.dag.hello_world_java.HelloWorldJavaDAG"
     LICENSED_ORGANIZATIONS = "datalabs.etl.dag.cpt.organization.LicensedOrganizationDAG"
+    ADDRESS_FLAGGING_REPORT = "datalabs.etl.dag.masterfile.address_flagging_report.DAG"
 
 
 def main(args):
