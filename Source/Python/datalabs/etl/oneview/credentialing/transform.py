@@ -1,7 +1,4 @@
 """Oneview Credentialing Transformer"""
-from   io import BytesIO
-
-import csv
 import logging
 import pandas
 
@@ -15,8 +12,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class CredentialingTransformerTask(TransformerTask):
-    def _postprocess_data(self, data):
-        products, orders = data
+    def _postprocess(self, dataset):
+        products, orders = dataset
 
         products = products.dropna(subset=['description'])
 
@@ -27,42 +24,27 @@ class CredentialingTransformerTask(TransformerTask):
 
 
 class CredentialingFinalTransformerTask(TransformerTask):
-    def _transform(self):
-        LOGGER.debug(self._parameters['data'])
-
-        table_data = self._csv_to_dataframe(self._parameters['data'])
-
-        preprocessed_data = self._preprocess_data(table_data)
-
-        selected_data = self._select_columns(preprocessed_data)
-        renamed_data = self._rename_columns(selected_data)
-
-        postprocessed_data = self._postprocess_data(renamed_data)
-
-        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
-
-    # pylint: disable=arguments-differ
-    @classmethod
-    def _csv_to_dataframe(cls, data):
-        addresses = pandas.read_excel(data[0], engine='openpyxl')
-        customers = pandas.read_csv(BytesIO(data[1]), encoding="ISO-8859-1", engine='python')
+    def _parse(self, dataset):
+        addresses = pandas.read_excel(dataset[0], engine='openpyxl')
+        customers = self._csv_to_dataframe(dataset[1], encoding="ISO-8859-1", engine='python')
 
         return [addresses, customers]
 
     # pylint: disable=no-self-use
-    def _preprocess_data(self, data):
-        credentialing_main = data[1].rename(columns={'CUSTOMER_NBR': 'number'})
-        new_df = credentialing_main.merge(data[0], how='left', on='number')
-        return [new_df]
+    def _preprocess(self, dataset):
+        addresses, customers = dataset[0]
+
+        addresses.rename(columns={'number': 'CUSTOMER_NBR'}, inplace=True)
+
+        return [customers.merge(addresses, how='left', on='number')]
 
     def _get_columns(self):
-        return [column.CUSTOMER_ADDRESSES_COLUMNS]
+        return [column.CUSTOMER_COLUMNS]
 
 
 class CredentialingOrderPruningTransformerTask(TransformerTask):
-    @classmethod
-    def _preprocess_data(cls, data):
-        orders, physicians, customers = data
+    def _preprocess(self, dataset):
+        orders, physicians, customers = dataset
 
         orders = orders[(orders.customer.isin(customers.id))]
         orders = orders[(orders.medical_education_number.isin(physicians.medical_education_number))]

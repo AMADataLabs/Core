@@ -14,8 +14,7 @@ class HistoricalResidentTransformerTask(TransformerTask):
     def _csv_to_dataframe(cls, data, **kwargs):
         return super()._csv_to_dataframe(data, sep='|')
 
-    @classmethod
-    def _postprocess_data(cls, data):
+    def _postprocess(self, dataset):
         historical_resident = data[0]
 
         historical_resident['id'] = \
@@ -31,9 +30,9 @@ class HistoricalResidentTransformerTask(TransformerTask):
 
 
 class HistoricalResidentPruningTransformerTask(TransformerTask):
-    @classmethod
-    def _preprocess_data(cls, data):
-        historical_residents, physicians = data
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        historical_residents, physicians = dataset
 
         historical_residents = historical_residents[
             historical_residents.medical_education_number.isin(physicians.medical_education_number)

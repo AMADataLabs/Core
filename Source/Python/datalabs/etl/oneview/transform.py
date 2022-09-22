@@ -24,12 +24,12 @@ class TransformerTask(CSVReaderMixin, CSVWriterMixin, etl.TransformerTask, ABC):
         if feature.enabled("PROFILE"):
             LOGGER.info('Pre csv to dataframes memory (%s)', hpy().heap())
 
-        table_data = [self._csv_to_dataframe(data) for data in self._parameters['data']]
+        table_data = self._parse(self._parameters['data'])
 
         if feature.enabled("PROFILE"):
             LOGGER.info('Post csv to dataframes memory (%s)', hpy().heap())
 
-        preprocessed_data = self._preprocess_data(table_data)
+        preprocessed_data = self._preprocess(table_data)
 
         if feature.enabled("PROFILE"):
             LOGGER.info('Post processed dataframes memory (%s)', hpy().heap())
@@ -37,13 +37,19 @@ class TransformerTask(CSVReaderMixin, CSVWriterMixin, etl.TransformerTask, ABC):
         selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)
 
-        postprocessed_data = self._postprocess_data(renamed_data)
+        postprocessed_data = self._postprocess(renamed_data)
 
-        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+        return self._pack(postprocessed_data)
 
-    @classmethod
-    def _preprocess_data(cls, data):
-        return data
+    def _parse(self, dataset):
+        return [self._csv_to_dataframe(data) for data in dataset]
+
+    def _pack(self, dataset):
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in dataset]
+
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        return dataset
 
     def _select_columns(self, dataset):
         names = [list(column_map.keys()) for column_map in self._get_columns()]
@@ -59,6 +65,5 @@ class TransformerTask(CSVReaderMixin, CSVWriterMixin, etl.TransformerTask, ABC):
     def _get_columns(self):
         return []
 
-    @classmethod
-    def _postprocess_data(cls, data):
-        return data
+    def _postprocess(self, dataset):
+        return dataset

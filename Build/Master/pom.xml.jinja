@@ -17,6 +17,14 @@
         <informix.version>4.50.8</informix.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>codeartifact</id>
+            <name>codeartifact</name>
+            <url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/datalabs-sbx/</url>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -330,12 +338,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
-    <distributionManagement>
-        <repository>
-            <id>codeartifact</id>
-            <name>codeartifact</name>
-            <url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/datalabs-sbx/</url>
-        </repository>
-    </distributionManagement>
 </project>

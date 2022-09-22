@@ -12,36 +12,39 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class CredentialingCustomerBusinessTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        credentialing_customer_business_data = self._link_data(data[0], data[1])
+    def _preprocess(self, dataset):
+        customers, businesses = dataset
 
-        credentialing_customer_business_data = self._generate_primary_keys(credentialing_customer_business_data)
+        customer_businesses = self._link_customers_to_businesses(customers, businesses)
 
-        return [credentialing_customer_business_data]
+        customer_businesses = self._generate_primary_keys(customer_businesses)
+
+        return [customer_businesses]
 
     @classmethod
-    def _link_data(cls, credentialing_customer_data, business_data):
-        credentialing_customer_data = cls._prepare_customer_data_for_merging(credentialing_customer_data)
+    def _link_customers_to_businesses(cls, customers, businesses):
+        customers = cls._prepare_customer_data_for_merging(customers)
 
-        matches = pandas.merge(
-            credentialing_customer_data,
-            business_data,
+        customer_businesses = pandas.merge(
+            customers,
+            businesses,
             left_on=['address_1', 'city', 'state'],
             right_on=['physical_address_1', 'physical_city', 'physical_state'],
             suffixes=['_credentialing', '_business']
         )
-        matches = matches[['number', 'id_business']].rename(columns={'id_business': 'id'})
+        customer_businesses = matches[['number', 'id_business']].rename(columns={'id_business': 'id'})
 
-        return matches.drop_duplicates()
+        return customer_businesses.drop_duplicates()
 
     @classmethod
-    def _prepare_customer_data_for_merging(cls, credentialing_customer_data):
-        credentialing_customer_data = credentialing_customer_data.fillna('None')
-        credentialing_customer_data['address_1'] = [x.upper() for x in credentialing_customer_data['address_1']]
-        credentialing_customer_data['city'] = [x.upper() for x in credentialing_customer_data['city']]
-        credentialing_customer_data['state'] = [x.upper() for x in credentialing_customer_data['state']]
+    def _prepare_customer_data_for_merging(cls, customers):
+        customers = customers.fillna('None')
 
-        return credentialing_customer_data
+        customers['address_1'] = [x.upper() for x in customers['address_1']]
+        customers['city'] = [x.upper() for x in customers['city']]
+        customers['state'] = [x.upper() for x in customers['state']]
+
+        return customers
 
     @classmethod
     def _generate_primary_keys(cls, data):
@@ -54,26 +57,35 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
 
 
 class CredentialingCustomerInstitutionTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        credentialing_customer_residency_data = self._link_data(data[0], data[1])
+    def _preprocess(self, dataset):
+        customers, residency_programs = dataset
 
-        credentialing_customer_residency_data = self._generate_primary_keys(credentialing_customer_residency_data)
+        customer_residency_programs = self._link_customers_to_residency_programs(customers, residency_programs)
 
-        return [credentialing_customer_residency_data]
+        customer_residency_programs = self._generate_primary_keys(customer_residency_programs)
+
+        return [customer_residency_programs]
 
     @classmethod
-    def _link_data(cls, credentialing_customer_data, residency_program_data):
-        credentialing_customer_data = credentialing_customer_data.dropna(subset=['address_1', 'city', 'state'],
-                                                                         how='all').reset_index()
-        residency_program_data = residency_program_data.dropna(subset=['address_1', 'city', 'state'],
-                                                               how='all').reset_index()
+    def _link_customers_to_residency_programs(cls, customers, residency_programs):
+        customers = customers.dropna(
+            subset=['address_1', 'city', 'state'],
+            how='all'
+        ).reset_index()
 
-        matches = pandas.merge(credentialing_customer_data, residency_program_data,
-                               left_on=['address_1', 'city'],
-                               right_on=['address_3', 'city']
-                               )
+        residency_programs = residency_programs.dropna(
+            subset=['address_1', 'city', 'state'],
+            how='all'
+        ).reset_index()
 
-        return matches[['number', 'institution']]
+        customer_residency_programs = pandas.merge(
+            customers,
+            residency_programs,
+            left_on=['address_1', 'city'],
+            right_on=['address_3', 'city']
+        )
+
+        return customer_residency_programs[['number', 'institution']]
 
     @classmethod
     def _generate_primary_keys(cls, data):
@@ -86,35 +98,41 @@ class CredentialingCustomerInstitutionTransformerTask(TransformerTask):
 
 
 class ResidencyProgramPhysicianTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        linked_residency_physician_data = self._linking_data(data)
+    def _preprocess(self, dataset):
+        directors, physicians = dataset
 
-        linked_residency_physician_data = self._generate_primary_keys(linked_residency_physician_data)
+        directors = self._clean_directors(directors)
 
-        return [linked_residency_physician_data]
+        physicians = self._clean_physicians(physicians)
+
+        director_physicians = self._link_directors_with_physicians(directors, physicians)
+
+        director_physicians = self._generate_primary_keys(director_physicians)
+
+        return [director_physicians]
 
     @classmethod
-    def _linking_data(cls, data):
-        directors = cls._get_directors(data[0])
-        physicians = cls._get_physicians(data[1])
-
+    def _link_directors_with_physicians(cls, directors, physicians):
         directors, unique_directors = cls._find_unique(directors)
+
         all_match, pure_match = cls._get_matches(physicians, unique_directors)
+
         duplicate_matches, duplicates = cls._create_duplicate_matches(all_match, pure_match, directors)
+
         new_match = cls._filter_out_duplicates(duplicates, duplicate_matches)
 
         return cls._get_all_links(pure_match, new_match, directors)
 
     @classmethod
-    def _get_directors(cls, data):
-        directors = data.fillna('None')
+    def _clean_directors(cls, directors):
+        directors = directors.fillna('None')
         directors['first_name'] = [x.upper().strip() for x in directors.first_name]
         directors['last_name'] = [x.upper().strip() for x in directors.last_name]
 
         return directors
 
     @classmethod
-    def _get_physicians(cls, physicians):
+    def _clean_physicians(cls, physicians):
         physicians['degree_1'] = ['MD' if x == 1 else 'DO' for x in physicians.degree_type]
         physicians['first_name'] = [str(x).upper().strip() for x in physicians.first_name]
         physicians['last_name'] = [str(x).upper().strip() for x in physicians.last_name]
@@ -182,8 +200,10 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
     def _get_all_links(cls, pure_match, new_match, directors):
         linking_data = pandas.concat([pure_match[['medical_education_number', 'person_id']], new_match])
 
-        return pandas.merge(linking_data, directors, on='person_id')[['medical_education_number',
-                                                                      'program']].drop_duplicates(ignore_index=True)
+        return pandas.merge(linking_data, directors, on='person_id')[[
+            'medical_education_number',
+            'program'
+        ]].drop_duplicates(ignore_index=True)
 
     @classmethod
     def _generate_primary_keys(cls, data):
@@ -198,16 +218,18 @@ class ResidencyProgramPhysicianTransformerTask(TransformerTask):
 
 
 class CorporateParentBusinessTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        corporate_parent_business = self._link_data(data[0])
+    def _preprocess(self, dataset):
+        businesses = dataset[0]
 
-        return [corporate_parent_business]
+        corporate_parent_businesses = self._link_corporate_parents_to_businesses(businesses)
+
+        return [corporate_parent_businesses]
 
     @classmethod
-    def _link_data(cls, business_data):
-        has_parent = business_data[business_data['CORP_PARENT_IMS_ORG_ID'].notna()]
+    def _link_corporate_parents_to_businesses(cls, businesses):
+        corporate_parent_businesses = businesses[businesses['CORP_PARENT_IMS_ORG_ID'].notna()]
 
-        return has_parent[['IMS_ORG_ID', 'CORP_PARENT_IMS_ORG_ID']]
+        return corporate_parent_businesses[['IMS_ORG_ID', 'CORP_PARENT_IMS_ORG_ID']]
 
     def _get_columns(self):
         return [columns.CORPORATE_PARENT_BUSINESS]
