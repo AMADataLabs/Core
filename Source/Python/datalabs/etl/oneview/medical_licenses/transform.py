@@ -12,16 +12,17 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class MedicalLicensesTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        medical_licenses, party_keys, physicians = data
+    def _preprocess(self, dataset):
+        medical_licenses, party_keys, physicians = dataset
 
-        appended_medical_licenses = self.generate_medical_education_number(medical_licenses, party_keys)
-        pruned_medical_licences = self.prune_medical_licenses(appended_medical_licenses, physicians)
+        supplemented_medical_licenses = self._supplement_with_medical_education_numbers(medical_licenses, party_keys)
+
+        pruned_medical_licences = self._prune_medical_licenses(supplemented_medical_licenses, physicians)
 
         return [pruned_medical_licences]
 
     @classmethod
-    def generate_medical_education_number(cls, medical_licenses, party_keys):
+    def _supplement_with_medical_education_numbers(cls, medical_licenses, party_keys):
         party_keys = party_keys[['PARTY_ID', 'meNumber']]
         medical_licenses_me = medical_licenses.merge(party_keys, on='PARTY_ID', how="left").drop_duplicates()
         medical_licenses_me = medical_licenses_me.drop('PARTY_ID', axis=1)
@@ -29,8 +30,9 @@ class MedicalLicensesTransformerTask(TransformerTask):
         return medical_licenses_me
 
     @classmethod
-    def prune_medical_licenses(cls, licenses, physicians):
+    def _prune_medical_licenses(cls, licenses, physicians):
         licenses = licenses[(licenses.meNumber.isin(physicians.medical_education_number))]
+
         return licenses.drop_duplicates()
 
     def _get_columns(self):
