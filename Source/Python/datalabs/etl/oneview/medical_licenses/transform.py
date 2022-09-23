@@ -21,6 +21,13 @@ class MedicalLicensesTransformerTask(TransformerTask):
 
         return [pruned_medical_licences]
 
+    def _postprocess(self, dataset):
+        medical_licenses = dataset[0]
+
+        medical_licenses['id'] = self._generate_primary_keys(medical_licenses)
+
+        return medical_licenses
+
     @classmethod
     def _supplement_with_medical_education_numbers(cls, medical_licenses, party_keys):
         party_keys = party_keys[['PARTY_ID', 'meNumber']]
@@ -34,6 +41,10 @@ class MedicalLicensesTransformerTask(TransformerTask):
         licenses = licenses[(licenses.meNumber.isin(physicians.medical_education_number))]
 
         return licenses.drop_duplicates()
+
+    @classmethod
+    def _generate_primary_keys(cls, medical_licenses):
+        return medical_licenses.number + medical_licenses.state + medical_licenses.degree_type
 
     def _get_columns(self):
         return [MEDICAL_LICENSES_COLUMNS]
