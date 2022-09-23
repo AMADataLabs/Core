@@ -17,6 +17,8 @@ class CredentialingTransformerTask(TransformerTask):
 
         products = products.dropna(subset=['description'])
 
+        orders.date = pandas.to_datetime(orders.date).astype(str)
+
         return [products, orders]
 
     def _get_columns(self):
