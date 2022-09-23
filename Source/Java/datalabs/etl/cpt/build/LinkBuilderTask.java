@@ -68,7 +68,7 @@ public class LinkBuilderTask extends Task {
                     settings.getProperty("extract.directory")
             );
 
-            stageInputFiles();
+            //stageInputFiles();
 
             DtkAccess priorLink = LinkBuilderTask.loadLink(priorLinkPath.toString());
             DtkAccess core = LinkBuilderTask.loadLink(currentLinkPath.toString());
@@ -86,7 +86,7 @@ public class LinkBuilderTask extends Task {
             LinkBuilderTask.createDistribution(parameters, this.settings);
 
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
-            throw new TaskException(exception.getMessage());
+            throw new TaskException(exception);
         }
 
         return null;
@@ -94,10 +94,10 @@ public class LinkBuilderTask extends Task {
 
 	private static DtkAccess loadLink(String directory) throws Exception {
 		DtkAccess link = new DtkAccess();
-
+        LOGGER.info(directory);
 		link.load(
-            directory + ExporterFiles.PropertyInternal.getFileNameExt(),
-			directory + ExporterFiles.RelationshipGroup.getFileNameExt()
+                directory + '/' + ExporterFiles.PropertyInternal.getFileNameExt(),
+                directory + '/' + ExporterFiles.RelationshipGroup.getFileNameExt()
         );
 
 		return link;
@@ -111,7 +111,6 @@ public class LinkBuilderTask extends Task {
                 settings.getProperty("hcpcs.input.directory")
         );
         Path hcpcsPath = Paths.get(
-                settings.getProperty("input.directory"),
                 settings.getProperty("hcpcs.data.file")
         );
         Path consumerAndClinicianDescriptorsPath = Paths.get(
@@ -136,7 +135,7 @@ public class LinkBuilderTask extends Task {
 
         BuildDtkFiles files = new BuildDtk.BuildDtkFiles(
                 directory.resolve(hcpcsPath.toString()).toString(),
-                settings.getProperty("headings"), consumerAndClinicianDescriptorsPath.toString(),
+                null, consumerAndClinicianDescriptorsPath.toString(),
                 codingTipsPath.toString(), frontMatterPath.toString(), rvusPath.toString()
         );
 
@@ -161,17 +160,17 @@ public class LinkBuilderTask extends Task {
                 settings.getProperty("input.directory"),
                 settings.getProperty("em.output.directory")
         );
-        Path emPath = Paths.get(
-                settings.getProperty("input.directory"),
-                settings.getProperty("em.data.file")
-        );
+//        Path emPath = Paths.get(
+//                settings.getProperty("input.directory"),
+//                settings.getProperty("em.data.file")
+//        );
 
 
         Files.createDirectories(outputDirectory);
 
         IntroEmTables introEmTables = new IntroEmTables(priorLink, core);
 
-        introEmTables.buildTableFiles(inputDirectory, emPath.toString(), outputDirectory);
+        introEmTables.buildTableFiles(inputDirectory, null, outputDirectory);
 
         introEmTables.updateEmTables(outputDirectory);
     }
@@ -250,7 +249,8 @@ public class LinkBuilderTask extends Task {
             Collections.singletonList(parameters.revisionDate),
             Paths.get(settings.getProperty("input.directory"), settings.getProperty("prior.history.directory")),
             Paths.get(settings.getProperty("input.directory"), settings.getProperty("index.file")),
-            Paths.get(settings.getProperty("input.directory"), settings.getProperty("guidelines.qa.file")),
+            null,
+            // Paths.get(settings.getProperty("input.directory"), settings.getProperty("guidelines.qa.file")),
             Paths.get(settings.getProperty("input.directory"), settings.getProperty("edits.file")),
             Paths.get(settings.getProperty("output.directory"))
         );
@@ -309,24 +309,26 @@ public class LinkBuilderTask extends Task {
 
     private void loadSettings() {
         settings = new Properties(){{
-            put("hcpcs.data.file", "HCPC.xlsx");
+            put("hcpcs.data.file", "HCPCS.xlsx");
+            put("hcpcs.input.directory", "/hcpcs_input_directory");
             put("em.input.directory", "/em_input");
             put("em.output.directory", "/em_output");
-            put("em.data.file", null);
+            //put("em.data.file", null);
             put("export.directory", "/export");
             put("extract.directory", "/export");
             put("prior.history.directory", "/changes/");
             put("index.file", "cpt_index.docx/");
-            put("guidelines.qa.file", null);
+            //put("guidelines.qa.file", null);
             put("edits.file", "reviewed_used_input.xlsx");
             put("output.directory", "./output");
-            put("headings", null);
-            put("comsumer.and.clinician.descriptors", "cdcterms.xlsx");
-            put("conding.tips", "coding_tips_attach.xlsx");
+            put("input.directory", "./input");
+            //put("headings", null);
+            put("consumer.and.clinician.descriptors", "cdcterms.xlsx");
+            put("coding.tips", "coding_tips_attach.xlsx");
             put("front.matter", "front_matter.docx");
             put("rvus", "cpt_rvu.txt");
-            put("prior.link.directory", "./prior_link");
-            put("current.link.directory", "./current_link");
+            put("prior.link.directory", "/prior_link");
+            put("current.link.directory", "/current_link");
         }};
     }
 
@@ -365,8 +367,8 @@ public class LinkBuilderTask extends Task {
                 settings.getProperty("rvus")
         );
         Path frontMatterPath = Paths.get(
-                settings.getProperty("front.matter"),
-                settings.getProperty("prior.history.directory")
+                settings.getProperty("input.directory"),
+                settings.getProperty("front.matter")
         );
         Path indexPath = Paths.get(
                 settings.getProperty("input.directory"),
