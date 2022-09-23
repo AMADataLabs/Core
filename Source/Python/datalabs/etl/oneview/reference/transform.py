@@ -110,10 +110,10 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
     def _transform(self):
         table_data = [pandas.DataFrame.from_dict(table) for table in static.tables]
 
-        preprocessed_data = self._preprocess_data(table_data)
+        preprocessed_data = self._preprocess(table_data)
         selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)
-        postprocessed_data = self._postprocess_data(renamed_data)
+        postprocessed_data = self._postprocess(renamed_data)
 
         return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
@@ -128,7 +128,7 @@ class StaticReferenceTablesTransformerTask(TransformerTask):
 
 class ClassOfTradeTransformerTask(TransformerTask):
     def _preprocess(self, dataset):
-        class_of_trade = data[0]
+        class_of_trade = dataset[0]
 
         specialties = self._add_specialty_defaults(class_of_trade[['SPECIALTY_ID', 'SPECIALTY']])
 
@@ -139,7 +139,7 @@ class ClassOfTradeTransformerTask(TransformerTask):
         return [specialties, facilities, classifications]
 
     def _postprocess(self, dataset):
-        return [dataframe.drop_duplicates() for dataframe in data]
+        return [dataframe.drop_duplicates() for dataframe in dataset]
 
     def _get_columns(self):
         return [column.COT_SPECIALTY, column.COT_FACILITY, column.COT_CLASSIFICATION]

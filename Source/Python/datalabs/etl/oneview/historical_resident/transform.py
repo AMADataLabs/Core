@@ -15,7 +15,7 @@ class HistoricalResidentTransformerTask(TransformerTask):
         return super()._csv_to_dataframe(data, sep='|')
 
     def _postprocess(self, dataset):
-        historical_resident = data[0]
+        historical_resident = dataset[0]
 
         historical_resident['id'] = \
             historical_resident.medical_education_number.astype(str) +'-' \
@@ -23,7 +23,7 @@ class HistoricalResidentTransformerTask(TransformerTask):
             + historical_resident.institution_code.astype(str) + '-' \
             + historical_resident.start_year.astype(str)
 
-        return data
+        return [historical_resident]
 
     def _get_columns(self):
         return [column.HISTORICAL_RESIDENCY]

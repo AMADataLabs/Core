@@ -32,7 +32,7 @@ class CredentialingCustomerBusinessTransformerTask(TransformerTask):
             right_on=['physical_address_1', 'physical_city', 'physical_state'],
             suffixes=['_credentialing', '_business']
         )
-        customer_businesses = matches[['number', 'id_business']].rename(columns={'id_business': 'id'})
+        customer_businesses = customer_businesses[['number', 'id_business']].rename(columns={'id_business': 'id'})
 
         return customer_businesses.drop_duplicates()
 
