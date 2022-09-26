@@ -47,7 +47,7 @@ if __name__ == '__main__':
     try:
         return_code = main(args)
     except Exception as e:
-        LOGGER.exception(f'Failed to clear dag task statuses.')
+        LOGGER.exception(f'Failed to get dag task statuses.')
         return_code = 1
 
     exit(return_code)
