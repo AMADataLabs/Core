@@ -26,7 +26,7 @@ class MedicalLicensesTransformerTask(TransformerTask):
 
         medical_licenses['id'] = self._generate_primary_keys(medical_licenses)
 
-        return medical_licenses
+        return [medical_licenses]
 
     @classmethod
     def _supplement_with_medical_education_numbers(cls, medical_licenses, party_keys):
