@@ -1721,7 +1721,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/Build
+            - bash Deploy/Master/deploy-python-package --project CPT/Files/Build
         - parallel:
             - step:
                 name: Update Sandbox Lambda Bundle
@@ -1732,8 +1732,8 @@ pipelines:
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
-                    --project CPT/Build
-                    --bundle CPT/Build.zip
+                    --project CPT/Files/Build
+                    --bundle CPT/Files/Build.zip
                     --use-package
             - step:
                 name: Update Development Lambda Bundle
@@ -1746,8 +1746,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
-                    --project CPT/Build
-                    --bundle CPT/Build.zip
+                    --project CPT/Files/Build
+                    --bundle CPT/Files/Build.zip
                     --use-package
 #            - step:
 #                name: Update Test Lambda Bundle
@@ -1760,8 +1760,8 @@ pipelines:
 #                - >-
 #                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
 #                    --environment tst
-#                    --project CPT/Build
-#                    --bundle CPT/Build.zip
+#                    --project CPT/Files/Build
+#                    --bundle CPT/Files/Build.zip
 #                    --jdbc-driver DB2
 #                    --jdbc-driver Informix
 #                    --use-package
@@ -1776,8 +1776,8 @@ pipelines:
 #                - >-
 #                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
 #                    --environment prd
-#                    --project CPT/Build
-#                    --bundle CPT/Build.zip
+#                    --project CPT/Files/Build
+#                    --bundle CPT/Files/Build.zip
 #                    --jdbc-driver DB2
 #                    --jdbc-driver Informix
 #                    --use-package
@@ -1794,8 +1794,8 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT -p CPT
-#                    Build=Build.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT -p CPT/Files
+#                    BuildDAG=Build.zip
 #            - step:
 #                name: Update Test Lambda Function
 #                script:
@@ -1803,8 +1803,8 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT -p CPT
-#                    Build=Build.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT -p CPT/Files
+#                    BuildDAG=Build.zip
 #            - step:
 #                name: Update Production Lambda Function
 #                script:
@@ -1812,8 +1812,8 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT -p CPT
-#                    Build=Build.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT -p CPT/Files
+#                    BuildDAG=Build.zip
 
         Scheduler:
         - step:
