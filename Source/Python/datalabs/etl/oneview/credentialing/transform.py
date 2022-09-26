@@ -34,7 +34,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
     # pylint: disable=no-self-use
     def _preprocess(self, dataset):
-        addresses, customers = dataset[0]
+        addresses, customers = dataset
 
         addresses.rename(columns={'number': 'CUSTOMER_NBR'}, inplace=True)
 
