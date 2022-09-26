@@ -2,20 +2,13 @@ modspec:
   - package: datalabs.access
   - package: datalabs.access.environment
   - package: datalabs.access.parameter
-  - package: datalabs.etl.cpt
-    include:
-      - build
+  - package: datalabs.etl.cpt.build
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
-    include:
-    - dynamodb
-
+  - package: datalabs.etl.dag.state.dynamodb
   - package: datalabs.parameter
   - package: datalabs.plugin
-  - package: data;abs.plugin
   - package: datalabs.task
   - package: datalabs.tool
-    include:
-      - TaskRunner
