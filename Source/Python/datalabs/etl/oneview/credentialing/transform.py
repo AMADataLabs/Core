@@ -27,7 +27,7 @@ class CredentialingTransformerTask(TransformerTask):
 
 class CredentialingFinalTransformerTask(TransformerTask):
     def _parse(self, dataset):
-        addresses = pandas.read_excel(dataset[0], engine='openpyxl')
+        addresses = pandas.read_excel(dataset[0], engine='openpyxl', dtype='object')
         customers = self._csv_to_dataframe(dataset[1], encoding="ISO-8859-1", engine='python')
 
         return [addresses, customers]
