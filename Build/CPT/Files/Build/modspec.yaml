@@ -10,5 +10,6 @@ modspec:
   - package: datalabs.etl.dag.state.dynamodb
   - package: datalabs.parameter
   - package: datalabs.plugin
+  - package: datalabs.etl.s3
   - package: datalabs.task
   - package: datalabs.tool
