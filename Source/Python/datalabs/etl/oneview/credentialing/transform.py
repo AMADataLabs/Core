@@ -38,7 +38,7 @@ class CredentialingFinalTransformerTask(TransformerTask):
 
         addresses.rename(columns={'number': 'CUSTOMER_NBR'}, inplace=True)
 
-        return [customers.merge(addresses, how='left', on='number')]
+        return [customers.merge(addresses, how='left', on='CUSTOMER_NBR')]
 
     def _get_columns(self):
         return [column.CUSTOMER_COLUMNS]
