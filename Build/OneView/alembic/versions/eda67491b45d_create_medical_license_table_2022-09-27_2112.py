@@ -1,4 +1,4 @@
-"""remove pk constraint on ME
+"""create medical license table
 
 Revision ID: eda67491b45d
 Revises: fd3b6e49a7fa
@@ -25,10 +25,10 @@ def upgrade():
     sa.Column('number', sa.String(), nullable=False),
     sa.Column('medical_education_number', sa.String(), nullable=False),
     sa.Column('state', sa.String(), nullable=False),
-    sa.Column('issue_date', sa.Date(), nullable=False),
+    sa.Column('issue_date', sa.Date(), nullable=True),
     sa.Column('expiry_date', sa.Date(), nullable=True),
     sa.Column('renew_date', sa.Date(), nullable=True),
-    sa.Column('degree_type', sa.String(), nullable=False),
+    sa.Column('degree_type', sa.String(), nullable=True),
     sa.Column('status', sa.String(), nullable=False),
     sa.Column('type', sa.String(), nullable=False),
     sa.ForeignKeyConstraint(['medical_education_number'], ['oneview.physician.medical_education_number'], name=op.f('fk_medical_license_medical_education_number_physician')),
