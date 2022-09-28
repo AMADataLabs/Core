@@ -114,7 +114,7 @@ render_alembic_env() {
 
     echo "Model Module: $MODEL_MODULE"
 
-    ${RENDER} -t ${TEMPLATE_PATH} -f ${RENDERING_PATH} -v schema=${SCHEMA},model_module=${MODEL_MODULE}
+    ${RENDER} -t ${TEMPLATE_PATH} -f ${RENDERING_PATH} -v schema=${SCHEMA} -v model_module=${MODEL_MODULE}
 }
 
 main "$@"
