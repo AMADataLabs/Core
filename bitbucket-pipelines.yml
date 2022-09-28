@@ -1320,8 +1320,6 @@ pipelines:
                     --environment tst
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
-                    --jdbc-driver DB2
-                    --jdbc-driver Informix
                     --use-package
             - step:
                 name: Update Production Lambda Bundle
