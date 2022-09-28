@@ -4,6 +4,7 @@ import argparse
 import logging
 import re
 
+from datalabs.etl.dag.dag import DAG
 from datalabs.etl.dag.state.dynamodb import DAGState
 from datalabs.plugin import import_plugin
 
@@ -12,23 +13,13 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class DAGClasses(Enum):
-    DAG_SCHEDULER = "datalabs.etl.dag.schedule.dag.DAGSchedulerDAG"
-    ECS_SCHEDULER = "datalabs.etl.dag.schedule.dag.DAGSchedulerDAG"
-    ONEVIEW = "datalabs.etl.dag.masterfile.oneview.OneViewDAG"
-    CPTAPI = "datalabs.etl.dag.cpt.api.CPTAPIDAG"
-    HELLO_WORLD_JAVA = "datalabs.example.etl.dag.hello_world_java.HelloWorldJavaDAG"
-    LICENSED_ORGANIZATIONS = "datalabs.etl.dag.cpt.organization.LicensedOrganizationDAG"
-    ADDRESS_FLAGGING_REPORT = "datalabs.etl.dag.masterfile.address_flagging_report.DAG"
-
-
 def main(args):
     parameters = dict(
         STATE_LOCK_TABLE='N/A',
         DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}',
     )
     state = DAGState(parameters)
-    dag_class = import_plugin(DAGClasses.__members__[args["dag"]].value)
+    dag_class = import_plugin(DAG.CLASSES[args["dag"]].__members__[args["dag"]].value)
     execution_time = f'{args["date"]}T{args["time"]}'
 
     validate_arguments(args)
@@ -73,6 +64,7 @@ if __name__ == '__main__':
 
     ap = argparse.ArgumentParser()
     ap.add_argument('-d', '--dag', required=True, help='DAG ID')
+    ap.add_argument('-l', '--failed', action='store_true', default=False, help='clear all failed tasks')
     ap.add_argument('-t', '--task', action='append', required=False, help='task ID')
     ap.add_argument('-D', '--date', required=True, help='YY-MM-DD')
     ap.add_argument('-T', '--time', required=True, help='hh:mm:ss')

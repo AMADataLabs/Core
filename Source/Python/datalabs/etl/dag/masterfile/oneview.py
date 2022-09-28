@@ -1,5 +1,5 @@
 ''' DAG definition for the OneView ETL. '''
-from   datalabs.etl.dag.dag import DAG, Repeat
+from   datalabs.etl.dag.dag import DAG, register, Repeat
 from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransformer
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.sql.jdbc.extract import JDBCExtractorTask, JDBCParametricExtractorTask
@@ -45,6 +45,7 @@ from   datalabs.etl.sftp.extract import SFTPIBM437TextFileExtractorTask
 from   datalabs.etl.transform import PassThroughTransformerTask
 
 
+@register(name="ONEVIEW")
 class OneViewDAG(DAG):
     EXTRACT_PPD: SFTPIBM437TextFileExtractorTask
     EXTRACT_PHYSICIAN_RACE_ETHNICITY: SFTPFileExtractorTask

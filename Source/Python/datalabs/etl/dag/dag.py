@@ -94,6 +94,8 @@ class DAGMeta(type):
 
 
 class DAG(paradag.DAG, metaclass=DAGMeta):
+    CLASSES = {}
+
     def __init__(self):
         super().__init__()
 
@@ -231,6 +233,27 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
         subtasks = sorted(key for key in cls.__task_classes__.keys() if regex.match(key))
 
         return [getattr(cls, key) for key in subtasks]
+
+
+""" Support for validating dict parameters via a parameter class with an attached schema. """
+import copy
+
+import marshmallow
+from   marshmallow.exceptions import ValidationError
+
+def register(*args, **kwargs):
+    def register_class(dag_class):
+        if "name" in kwargs:
+            dag_class.CLASSES[kwargs["name"]] = dag_class
+
+        return dag_class
+
+    return_value = register_class
+
+    if len(args) == 1:
+        return_value = register_class(args[0])
+
+    return return_value
 
 
 @dataclass

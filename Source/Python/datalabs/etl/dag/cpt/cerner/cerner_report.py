@@ -4,6 +4,7 @@ from   datalabs.etl.sql.jdbc.extract import JDBCExtractorTask
 from   datalabs.etl.dag.cpt.cerner.transform import CernerReportTransformerTask
 
 
+@dag.register(name="CERNER_REPORT")
 class CernerReportDAG(dag.DAG):
     EXTRACT_CERNER_DATA: JDBCExtractorTask
     LOAD_CERNER_REPORT: CernerReportTransformerTask

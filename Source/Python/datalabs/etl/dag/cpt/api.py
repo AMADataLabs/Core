@@ -1,5 +1,5 @@
 ''' DAG definition for the DAG Scheduler. '''
-from   datalabs.etl.dag.dag import DAG
+from   datalabs.etl.dag.dag import DAG, register
 from   datalabs.etl.archive.transform import UnzipTransformerTask, ZipTransformerTask
 from   datalabs.etl.cpt.release.transform import ReleaseTypesTransformerTask
 from   datalabs.etl.cpt.api.transform import \
@@ -23,6 +23,7 @@ from   datalabs.etl.parse.transform import ParseToCSVTransformerTask
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 
 
+@register(name="CPTAPI")
 class CPTAPIDAG(DAG):
     UNZIP_DISTRIBUTION: UnzipTransformerTask
     EXTRACT_DISTRIBUTION_RELEASES: S3FileExtractorTask

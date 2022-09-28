@@ -6,6 +6,7 @@ from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
 from   datalabs.etl.sftp.load import SFTPFileLoaderTask
 
 
+@dag.register(name="DBL")
 class DAG(dag.DAG):
     EXTRACT_DBL: SFTPFileExtractorTask
     GET_LAST_REPORT: SFTPFileExtractorTask

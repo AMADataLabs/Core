@@ -1,5 +1,5 @@
 ''' DAG definition for the Intelligent Platform Licensing ETL. '''
-from   datalabs.etl.dag.dag import DAG
+from   datalabs.etl.dag.dag import DAG, register
 
 from   datalabs.etl.sql.jdbc.extract import JDBCExtractorTask
 from   datalabs.etl.intelligent_platform.licensing.transform import LicensedOrganizationsTransformerTask
@@ -7,6 +7,7 @@ from   datalabs.etl.intelligent_platform.licensing.transform import LicensedArti
 from   datalabs.etl.orm.load import ORMLoaderTask
 
 
+@register(name="LICENSING")
 class LicensingDAG(DAG):
     EXTRACT_LICENSED_ORGANIZATIONS: JDBCExtractorTask
     CREATE_FRICTIONLESS_LICENSING_ORGANIZATIONS: LicensedOrganizationsTransformerTask
