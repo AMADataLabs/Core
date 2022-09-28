@@ -235,12 +235,6 @@ class DAG(paradag.DAG, metaclass=DAGMeta):
         return [getattr(cls, key) for key in subtasks]
 
 
-""" Support for validating dict parameters via a parameter class with an attached schema. """
-import copy
-
-import marshmallow
-from   marshmallow.exceptions import ValidationError
-
 def register(*args, **kwargs):
     def register_class(dag_class):
         if "name" in kwargs:

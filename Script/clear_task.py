@@ -4,9 +4,22 @@ import argparse
 import logging
 import re
 
-from datalabs.etl.dag.dag import DAG
-from datalabs.etl.dag.state.dynamodb import DAGState
-from datalabs.plugin import import_plugin
+from   datalabs.etl.dag.dag import DAG
+import datalabs.etl.dag.cpt.cerner.cerner_report
+import datalabs.etl.dag.cpt.developer.email
+import datalabs.etl.dag.cpt.files.core
+import datalabs.etl.dag.cpt.files.hcpcs
+import datalabs.etl.dag.cpt.files.ingest
+import datalabs.etl.dag.cpt.files.link
+import datalabs.etl.dag.cpt.files.watermark
+import datalabs.etl.dag.intelligent_platform.licensing
+import datalabs.etl.dag.masterfile.address_flagging_report
+import datalabs.etl.dag.masterfile.dbl_counts_report
+import datalabs.etl.dag.masterfile.oneview
+import datalabs.etl.dag.schedule.dag
+import datalabs.example.etl.dag.hello_world_java
+from   datalabs.etl.dag.state.dynamodb import DAGState
+from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -19,25 +32,28 @@ def main(args):
         DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}',
     )
     state = DAGState(parameters)
-    dag_class = import_plugin(DAG.CLASSES[args["dag"]].__members__[args["dag"]].value)
+    dag_class = DAG.CLASSES[args["dag"]]
     execution_time = f'{args["date"]}T{args["time"]}'
 
     validate_arguments(args)
 
-    if args.get("file") is not None:
-        args["task"] = get_tasks_from_file(args["file"])
+    if args["failed"] and args.get("task") is None and args.get("file") is None:
+        state.clear_failed_tasks(args["dag"], execution_time)
+    else:
+        if args.get("file") is not None:
+            args["task"] = get_tasks_from_file(args["file"])
 
-    for task in args["task"]:
-        if args["upstream"]:
-            state.clear_upstream_tasks(dag_class, args["dag"], execution_time, task)
-        elif args["downstream"]:
-            state.clear_downstream_tasks(dag_class, args["dag"], execution_time, task)
-        else:
-            state.clear_task(args["dag"], execution_time, task)
+        for task in args["task"]:
+            if args["upstream"]:
+                state.clear_upstream_tasks(dag_class, args["dag"], execution_time, task)
+            elif args["downstream"]:
+                state.clear_downstream_tasks(dag_class, args["dag"], execution_time, task)
+            else:
+                state.clear_task(args["dag"], execution_time, task)
 
 
 def validate_arguments(args):
-    if args.get("task") is None and args.get("file") is None:
+    if args.get("task") is None and args.get("file") is None and not args["failed"]:
         raise ValueError('One or more task IDs must be specified with either the --task or --file argument.')
     elif args.get("task") is not None and args.get("file") is not None:
         raise ValueError('Only one of the arguments --task or --file is allowed.')

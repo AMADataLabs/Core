@@ -162,6 +162,20 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
             self._clear_items(dynamodb, execution_time, tasks)
 
+    def clear_failed_tasks(self, dag: str, execution_time: str, tasks: list=None):
+        failed_tasks = []
+
+        if tasks is None:
+            statuses = self.get_all_statuses(dag, execution_time)
+        else:
+            statuses = self.get_task_statuses(dag, execution_time, tasks)
+
+        failed_tasks = [f"{dag}__{task}" for task, status in statuses.items() if status == Status.FAILED]
+        import pdb; pdb.set_trace()
+
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            self._clear_items(dynamodb, execution_time, [dag] + failed_tasks)
+
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
         status = None
