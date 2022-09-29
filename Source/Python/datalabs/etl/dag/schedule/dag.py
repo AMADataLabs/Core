@@ -7,7 +7,6 @@ from   datalabs.etl.sns.load import SNSMessageLoaderTask
 
 @register(name="DAG_SCHEDULER")
 class DAGSchedulerDAG(DAG):
-    __name__
     EXTRACT_SCHEDULE: S3FileExtractorTask
     SCHEDULE_DAGS: DAGSchedulerTask
     NOTIFY_DAG_PROCESSOR: SNSMessageLoaderTask
