@@ -226,6 +226,7 @@ class DAGTaskWrapper(
 
     def _send_dag_status_notification(self, status):
         self._send_email_notification(status)
+
         self._send_webhook_notification(status)
 
     def _invoke_triggered_tasks(self, dag):
@@ -248,11 +249,12 @@ class DAGTaskWrapper(
 
     def _send_email_notification(self, status):
         raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")
-        LOGGER.info('EMAIL LIST %s', raw_email_list)
-        if raw_email_list is not None:
+        environment = self._runtime_parameters.get("ENVIRONMENT")
+        from_account = self._runtime_parameters.get("STATUS_NOTIFICATION_FROM", "DataLabs@ama-assn.org")
+        LOGGER.info('Sending status notification emails to %s', raw_email_list)
+
+        if raw_email_list and environment:
             emails = raw_email_list.split(',')
-            environment = self._runtime_parameters.get("ENVIRONMENT")
-            from_account = self._runtime_parameters.get("STATUS_NOTIFICATION_FROM")
             notifier = StatusEmailNotifier(emails, environment, from_account)
 
             notifier.notify(self._get_dag_id(), self._get_execution_time(), status)

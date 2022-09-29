@@ -1,4 +1,4 @@
-name,schedule
+dag,schedule
 ONEVIEW,0 0 * * 1-5
 LICENSED_ORGANIZATIONS,"0 10 * * 2,5"
 DBL,14 0 * * *

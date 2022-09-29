@@ -2,6 +2,8 @@
 
 import logging
 
+import pandas
+
 from   datalabs.etl.oneview.medical_licenses.column import MEDICAL_LICENSES_COLUMNS
 from   datalabs.etl.oneview.transform import TransformerTask
 
@@ -23,6 +25,10 @@ class MedicalLicensesTransformerTask(TransformerTask):
 
     def _postprocess(self, dataset):
         medical_licenses = dataset[0]
+
+        medical_licenses.issue_date = pandas.to_datetime(medical_licenses.issue_date).astype(str)
+        medical_licenses.expiry_date = pandas.to_datetime(medical_licenses.expiry_date).astype(str)
+        medical_licenses.renew_date = pandas.to_datetime(medical_licenses.renew_date).astype(str)
 
         medical_licenses['id'] = self._generate_primary_keys(medical_licenses)
 
