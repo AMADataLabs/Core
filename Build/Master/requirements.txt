@@ -61,6 +61,8 @@ seaborn==0.10.0
 selenium==3.141.0
 setuptools==47.1.0
 sqlalchemy==1.4.31
+snowflake-connector-python==2.7.12
+snowflake-sqlalchemy==1.4.1
 tensorflow==2.1.0; platform_system=="Windows"
 twine==4.0.0
 urllib3==1.26.5
