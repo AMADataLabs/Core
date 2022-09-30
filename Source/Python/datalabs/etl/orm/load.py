@@ -191,7 +191,7 @@ class ORMLoaderTask(LoaderTask):
                 self._update_row_of_table(database, table_parameters, model)
 
                 count += 1
-                if count % 10000:
+                if count % 10000 == 0:
                     database.commit()  # pylint: disable=no-member
 
     @classmethod
@@ -205,7 +205,7 @@ class ORMLoaderTask(LoaderTask):
                 database.delete(model)  # pylint: disable=no-member
 
                 count += 1
-                if count % 10000:
+                if count % 10000 == 0:
                     database.commit()  # pylint: disable=no-member
 
     @classmethod
@@ -242,7 +242,7 @@ class ORMLoaderTask(LoaderTask):
                 cls._update_row_of_table(database, table_parameters, model)
 
                 count += 1
-                if count % 10000:
+                if count % 10000 == 0:
                     database.commit()  # pylint: disable=no-member
 
     @classmethod
@@ -270,7 +270,7 @@ class ORMLoaderTask(LoaderTask):
                 database.add(model)  # pylint: disable=no-member
 
                 count += 1
-                if count % 10000:
+                if count % 10000 == 0:
                     database.commit()  # pylint: disable=no-member
 
     @classmethod
