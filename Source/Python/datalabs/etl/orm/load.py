@@ -183,20 +183,30 @@ class ORMLoaderTask(LoaderTask):
     def _soft_delete_data_from_table(self, database, table_parameters, data):
         if not data.empty:
             deleted_models = self._get_deleted_models_from_table(database, table_parameters, data)
+            count = 0
 
             for model in deleted_models:
                 LOGGER.info('Soft deleting row: %s', getattr(model, table_parameters.primary_key))
                 setattr(model, self._parameters.soft_delete_column, True)
                 self._update_row_of_table(database, table_parameters, model)
 
+                count += 1
+                if count % 10000:
+                    database.commit()  # pylint: disable=no-member
+
     @classmethod
     def _delete_data_from_table(cls, database, table_parameters, data):
         if not data.empty:
             deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
+            count = 0
 
             for model in deleted_models:
                 LOGGER.info('Deleting row: %s', getattr(model, table_parameters.primary_key))
                 database.delete(model)  # pylint: disable=no-member
+
+                count += 1
+                if count % 10000:
+                    database.commit()  # pylint: disable=no-member
 
     @classmethod
     def _select_updated_data(cls, table_parameters):
@@ -226,9 +236,14 @@ class ORMLoaderTask(LoaderTask):
     def _update_data_in_table(cls, database, table_parameters, data):
         if not data.empty:
             models = cls._create_models(table_parameters.model_class, data)
+            count = 0
 
             for model in models:
                 cls._update_row_of_table(database, table_parameters, model)
+
+                count += 1
+                if count % 10000:
+                    database.commit()  # pylint: disable=no-member
 
     @classmethod
     def _select_new_data(cls, table_parameters):
@@ -249,9 +264,14 @@ class ORMLoaderTask(LoaderTask):
     def _add_data_to_table(cls, database, table_parameters, data):
         if not data.empty:
             models = cls._create_models(table_parameters.model_class, data)
+            count = 0
 
             for model in models:
                 database.add(model)  # pylint: disable=no-member
+
+                count += 1
+                if count % 10000:
+                    database.commit()  # pylint: disable=no-member
 
     @classmethod
     def _create_models(cls, model_class, data):
@@ -259,7 +279,8 @@ class ORMLoaderTask(LoaderTask):
 
         cls._set_column_types(data, model_class, columns)
 
-        return [cls._create_model(model_class, row, columns) for row in data.itertuples(index=False)]
+        for row in data.itertuples(index=False):
+            yield cls._create_model(model_class, row, columns)
 
     @classmethod
     def _get_deleted_models_from_table(cls, database, table_parameters, data):
