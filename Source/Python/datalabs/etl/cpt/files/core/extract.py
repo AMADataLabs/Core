@@ -28,9 +28,7 @@ class InputFilesListExtractorTask(ExtractorTask):
         with AWSClient('s3') as client:
             files = self._get_files(client)
 
-            data = self._extract_files(client, files)
-
-        return data
+        return files
 
     def _get_files(self, client):
         execution_date = self._get_datestamp_from_execution_time(self._parameters.execution_time)
@@ -42,11 +40,6 @@ class InputFilesListExtractorTask(ExtractorTask):
         annual_files = self._get_annual_files(execution_date, base_path, all_core_run_paths)
 
         return incremental_files + annual_files
-
-    def _extract_files(self, client, files):
-        data = [self._extract_file(client, self._parameters.bucket, file) for file in files ]
-
-        return data
 
     @classmethod
     def _get_datestamp_from_execution_time(cls, execution_time):
@@ -84,16 +77,6 @@ class InputFilesListExtractorTask(ExtractorTask):
         return files
 
     @classmethod
-    def _extract_file(cls, client, bucket, file):
-        data = None
-
-        response = client.get_object(Bucket=bucket, Key=file)
-
-        data = response['Body'].read()
-
-        return data
-
-    @classmethod
     def _get_incremental_core_path(cls, execution_date, all_core_run_paths):
         earlier_link_run_paths = [path for path in all_core_run_paths if path < execution_date]
 
@@ -101,7 +84,7 @@ class InputFilesListExtractorTask(ExtractorTask):
 
     @classmethod
     def _generate_incremental_files(cls, core_path):
-        return ["/".join((core_path, SOURCE_FILES))]
+        return ["/".join((core_path, file)) for file in SOURCE_FILES]
 
     @classmethod
     def _get_annual_core_path(cls, execution_date, all_core_run_paths):
@@ -113,4 +96,4 @@ class InputFilesListExtractorTask(ExtractorTask):
 
     @classmethod
     def _generate_annual_files(cls, core_path):
-        return ["/".join((core_path, SOURCE_FILES))]
+        return ["/".join((core_path, file)) for file in SOURCE_FILES]
