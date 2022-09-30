@@ -10,16 +10,14 @@ from   datalabs.etl.cpt.files.core.extract import InputFilesListExtractorTask
 
 
 # pylint: disable=redefined-outer-name, protected-access, invalid-name
-def test_mocked_list_dir_files(parameters, object_listing):
-    task = InputFilesListExtractorTask(parameters)
+def test_mocked_list_dir_files(object_listing):
     files = None
 
     with mock.patch("boto3.client") as client:
         client.return_value.list_objects_v2.return_value = object_listing
 
         with AWSClient('s3') as s3:
-            task._client = s3
-            files = list(task._list_files("AMA/CPT/"))
+            files = list(InputFilesListExtractorTask._list_files(s3, "ama-abc-datalake-ingest-us-east-1", "AMA/CPT/"))
 
         return files
 
@@ -51,7 +49,7 @@ def test_extract_yields_correct_input_files(parameters, object_listing):
 @pytest.fixture
 def parameters():
     return dict(
-        BUCKET='jumanji',
+        BUCKET='ama-abc-datalake-ingest-us-east-1',
         BASE_PATH='AMA/CPT',
         EXECUTION_TIME='20220701'
     )

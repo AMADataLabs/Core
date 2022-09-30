@@ -33,11 +33,11 @@ class InputFilesListExtractorTask(ExtractorTask):
     def _get_files(self, client):
         execution_date = self._get_datestamp_from_execution_time(self._parameters.execution_time)
         base_path = self._parameters.base_path
-        all_core_run_paths = sorted(self._list_files(client, self._parameters.bucket, base_path))
+        all_run_paths = sorted(self._list_files(client, self._parameters.bucket, base_path))
 
-        incremental_files = self._get_incremental_files(execution_date, base_path, all_core_run_paths)
+        incremental_files = self._get_incremental_files(execution_date, base_path, all_run_paths)
 
-        annual_files = self._get_annual_files(execution_date, base_path, all_core_run_paths)
+        annual_files = self._get_annual_files(execution_date, base_path, all_run_paths)
 
         return incremental_files + annual_files
 
@@ -61,38 +61,40 @@ class InputFilesListExtractorTask(ExtractorTask):
         return objects
 
     @classmethod
-    def _get_incremental_files(cls, execution_date, base_path, all_core_run_paths):
-        core_path = cls._get_incremental_core_path(execution_date, all_core_run_paths)
+    def _get_incremental_files(cls, execution_date, base_path, all_run_paths):
+        core_path = cls._get_incremental_core_path(execution_date, all_run_paths)
 
         files = cls._generate_incremental_files("/".join((base_path,  core_path)))
 
         return files
 
     @classmethod
-    def _get_annual_files(cls, execution_date, base_path, all_core_run_paths):
-        core_path = cls._get_annual_core_path(execution_date, all_core_run_paths)
+    def _get_annual_files(cls, execution_date, base_path, all_run_paths):
+        core_path = cls._get_annual_core_path(execution_date, all_run_paths)
 
         files = cls._generate_annual_files("/".join((base_path,  core_path)))
 
         return files
 
     @classmethod
-    def _get_incremental_core_path(cls, execution_date, all_core_run_paths):
-        earlier_link_run_paths = [path for path in all_core_run_paths if path < execution_date]
+    def _get_incremental_core_path(cls, execution_date, all_run_paths):
+        run_paths = [path for path in all_run_paths if path < execution_date]
 
-        return earlier_link_run_paths[-1]
+        return run_paths[-1]
 
     @classmethod
     def _generate_incremental_files(cls, core_path):
         return ["/".join((core_path, file)) for file in SOURCE_FILES]
 
     @classmethod
-    def _get_annual_core_path(cls, execution_date, all_core_run_paths):
+    def _get_annual_core_path(cls, execution_date, all_run_paths):
         year = str(int(execution_date[:4]) - 1)
+        min_date = f"{year}0815"
+        max_date = f"{year}0915"
 
-        last_year_link_run_paths = [path for path in all_core_run_paths if path.startswith(year)]
+        run_paths = [path for path in all_run_paths if path.startswith(year) and path > min_date and path < max_date]
 
-        return last_year_link_run_paths[-1]
+        return run_paths[-1]
 
     @classmethod
     def _generate_annual_files(cls, core_path):
