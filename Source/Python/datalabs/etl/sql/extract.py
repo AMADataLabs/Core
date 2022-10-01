@@ -28,7 +28,6 @@ class SQLExtractorParameters:
     database_port: str
     jar_path: str
     sql: str
-    data: object = None
     execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
     count: str = None           # Total number of records to fetch accross chunks
@@ -163,7 +162,6 @@ class SQLParametricExtractorParameters:
     sql: str
     max_parts: str              # Number of task copies working on this query
     part_index: str             # This task's index
-    data: object = None
     execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
     count: str = None           # Total number of records to fetch accross chunks
@@ -175,10 +173,10 @@ class SQLParametricExtractorParameters:
 class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
     PARAMETER_CLASS = SQLParametricExtractorParameters
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, parameters, data):
+        super().__init__(parameters, data)
 
-        self._query_parameters = self._csv_to_dataframe(self._parameters.data[0])
+        self._query_parameters = self._csv_to_dataframe(self._data[0])
 
     def _read_single_query(self, query, connection):
         resolved_query = self._resolve_query(query, 0, 0)

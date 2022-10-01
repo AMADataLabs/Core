@@ -17,7 +17,6 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 class SNSMessageLoaderParameters:
     topic_arn: str
-    data: object
     execution_time: str = None
     endpoint_url: str = None
     access_key: str = None
@@ -36,7 +35,7 @@ class SNSMessageLoaderTask(LoaderTask):
             aws_secret_access_key=self._parameters.secret_key,
             region_name=self._parameters.region_name
         ) as sns:
-            for message in json.loads(self._parameters.data[0].decode()):
+            for message in json.loads(self._data[0].decode()):
                 LOGGER.info('Publishing the following message to %s: %s', self._parameters.topic_arn, message)
                 sns.publish(
                     TargetArn=self._parameters.topic_arn,

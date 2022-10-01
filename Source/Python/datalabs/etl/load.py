@@ -12,6 +12,8 @@ class LoaderTask(ETLComponentTask, ABC):
     def run(self):
         self._load()
 
+        return []
+
     @abstractmethod
     def _load(self):
         pass
@@ -26,10 +28,10 @@ class ConsoleLoaderTask(LoaderTask):
 
     def _load(self):
         try:
-            for index,datum in enumerate(self._parameters['data']):
+            for index,datum in enumerate(self._data):
                 self._logger.info('Datum #%d: %s', index+1, datum)
         except Exception:  # pylint: disable=broad-except
-            self._logger.info(self._parameters['data'])
+            self._logger.info(self._data)
 
 
 class IncludesNamesMixin:
@@ -84,12 +86,12 @@ class FileLoaderTask(LoaderTask, ABC):
     def _load(self):
         # pylint: disable=not-context-manager
         with self._get_client() as client:
-            data = self._parameters.data
+            data = self._data
 
             self._client = client
 
             if self.includes_names:
-                files, data = self._unpack_files_and_data(self._parameters.data[0])
+                files, data = self._unpack_files_and_data(self._data[0])
             else:
                 files = self._get_files()
 

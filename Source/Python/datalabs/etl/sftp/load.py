@@ -18,7 +18,6 @@ class SFTPFileLoaderParameters:
     host: str
     username: str
     password: str
-    data: list
     execution_time: str = None
     include_names: str = None
 

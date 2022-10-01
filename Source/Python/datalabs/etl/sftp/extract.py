@@ -28,7 +28,6 @@ class SFTPFileExtractorParameters:
     password: str
     execution_time: str = None
     include_names: str = None
-    data: object = None
 
 
 # pylint: disable=too-many-ancestors

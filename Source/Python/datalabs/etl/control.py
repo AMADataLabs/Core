@@ -27,7 +27,7 @@ class DAGNotificationFactoryTask(TransformerTask):
     PARAMETER_CLASS = DAGNotificationFactoryParameters
 
     def _transform(self):
-        iteration_parameters = self._parse_iteration_parameters(self._parameters.data)
+        iteration_parameters = self._parse_iteration_parameters(self._data)
 
         return [
             json.dumps(self._generate_notification_messages(

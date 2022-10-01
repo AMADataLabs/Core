@@ -8,10 +8,10 @@ from   datalabs.etl.task import ETLComponentTask, ETLException
 
 class ExtractorTask(ETLComponentTask, ABC):
     def run(self):
-        self._data = self._extract()
+        return self._extract()
 
     @abstractmethod
-    def _extract(self) -> "Extracted Data":
+    def _extract(self) -> "list<bytes>":
         pass
 
 
