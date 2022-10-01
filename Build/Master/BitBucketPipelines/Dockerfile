@@ -1,5 +1,5 @@
 # Build from repository root
-FROM amazonlinux:2.0.20220426.0 as amazon-python
+FROM amazonlinux:2.0.20220719.0 as amazon-python
 WORKDIR /Build
 ARG PYTHON_VERSION=3.9.13
 ARG MAVEN_VERSION=3.8.5
