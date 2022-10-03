@@ -23,8 +23,6 @@ class InputFilesListExtractorTask(ExtractorTask):
     PARAMETER_CLASS = InputFilesListExtractorParameters
 
     def _extract(self):
-        data = None
-
         with AWSClient('s3') as client:
             files = self._get_files(client)
 
@@ -92,7 +90,7 @@ class InputFilesListExtractorTask(ExtractorTask):
         min_date = f"{year}0815"
         max_date = f"{year}0915"
 
-        run_paths = [path for path in all_run_paths if path.startswith(year) and path > min_date and path < max_date]
+        run_paths = [path for path in all_run_paths if path.startswith(year) and min_date < path < max_date]
 
         return run_paths[-1]
 

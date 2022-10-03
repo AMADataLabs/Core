@@ -31,7 +31,6 @@ def test_mocked_list_dir_files(object_listing):
 # pylint: disable=redefined-outer-name, protected-access, invalid-name
 def test_extract_yields_correct_input_files(parameters, object_listing):
     task = InputFilesListExtractorTask(parameters)
-    data = [None,None]
 
     with mock.patch("boto3.client") as client:
         client.return_value.list_objects_v2.return_value = object_listing
