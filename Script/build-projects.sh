@@ -35,7 +35,7 @@ fi
 # Trigger build for all given projects
 PROJECTS=()
 for PROJECT in $@; do
-    TARGET=$(cat ${DIR}/../Build/${PROJECT_DIR}/.ci/target.txt)
+    TARGET=$(cat ${DIR}/../Build/${PROJECT}/.ci/target.txt)
     echo "Triggering build target '$TARGET' for project '$PROJECT'"
     BUILD_NUM=$(${CI_PLUGIN} build $TARGET)
     if [[ -z ${BUILD_NUM} ]] || [[ ${BUILD_NUM} -eq "null" ]]; then
