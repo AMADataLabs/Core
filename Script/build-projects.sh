@@ -35,13 +35,13 @@ fi
 # Trigger build for all given projects
 PROJECTS=()
 for PROJECT in $@; do
-    echo "Triggering build for project '$PROJECT'"
-    PROJECT_NAME=$(basename $PROJECT)
-    BUILD_NUM=$(${CI_PLUGIN} build $PROJECT_NAME)
+    TARGET=$(cat ${DIR}/../Build/${PROJECT_DIR}/.ci/target.txt)
+    echo "Triggering build target '$TARGET' for project '$PROJECT'"
+    BUILD_NUM=$(${CI_PLUGIN} build $TARGET)
     if [[ -z ${BUILD_NUM} ]] || [[ ${BUILD_NUM} -eq "null" ]]; then
-        echo "WARN: No build triggered for project '$PROJECT'. Please check if pipeline is defined in your build tool."
+        echo "WARN: No build triggered for target '$TARGET'. Please check if the target is defined in bitbucket-pipelines.yml."
     else
-        echo "Build triggered for project '$PROJECT' with number '$BUILD_NUM'"
+        echo "Build target '$TARGET' triggered for project '$PROJECT' with number '$BUILD_NUM'"
         PROJECTS=(${PROJECTS[@]} "$PROJECT,$BUILD_NUM,null")
     fi
 done;
