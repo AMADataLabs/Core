@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
 NO_VERIFY_SSL=
 
 
@@ -26,7 +30,7 @@ main() {
 load_release_info() {
     local project=$1
 
-    source Build/${project}/.ci/release.sh sbx
+    source ${SCRIPT_BASE_PATH}/../Build/${project}/.ci/release.sh sbx
 }
 
 
