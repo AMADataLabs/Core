@@ -1336,8 +1336,6 @@ pipelines:
                     --environment prd
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
-                    --jdbc-driver DB2
-                    --jdbc-driver Informix
                     --use-package
         - parallel:
             - step:
