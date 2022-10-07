@@ -95,7 +95,7 @@ class MedicalLicensesTransformerTask(TransformerTask):
 
     @classmethod
     def _generate_primary_keys(cls, medical_licenses):
-        return medical_licenses.number + medical_licenses.state + medical_licenses.degree_types
+        return medical_licenses.number + medical_licenses.state + medical_licenses.degree_type
 
     def _get_columns(self):
         return [MEDICAL_LICENSES_COLUMNS]
