@@ -1284,18 +1284,6 @@ pipelines:
             - bash Deploy/Master/deploy-python-package --project OneView/ETL
         - parallel:
             - step:
-                name: Update Sandbox Lambda Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project OneView/ETL
-                    --bundle OneView/ETL.zip
-                    --use-package
-            - step:
                 name: Update Development Lambda Bundle
                 caches:
                     - environment-dev
@@ -1338,11 +1326,6 @@ pipelines:
                     --bundle OneView/ETL.zip
                     --use-package
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Function
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView ETL=ETL.zip
             - step:
                 name: Update Development Lambda Function
                 script:
@@ -1424,20 +1407,6 @@ pipelines:
             - bash Deploy/Master/deploy-java-package --project OneView/ETL/Extract
         - parallel:
             - step:
-                name: Update Sandbox Lambda Bundle
-                caches:
-                - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project OneView/ETL/Extract
-                    --bundle OneView/Extract.zip
-                    --jdbc-driver DB2
-                    --jdbc-driver Informix
-                    --use-package
-            - step:
                 name: Update Development Lambda Bundle
                 caches:
                     - environment-dev
@@ -1487,11 +1456,6 @@ pipelines:
                     --use-package
         - parallel:
             - step:
-                name: Reload Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView Extract=Extract.zip
-            - step:
                 name: Reload Development Lambda Functions
                 script:
                 - >-
@@ -1528,18 +1492,6 @@ pipelines:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-python-package --project OneView/API
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project OneView/API
-                    --bundle OneView/API.zip
-                    --use-package
             - step:
                 name: Update Development Lambda Bundle
                 caches:
@@ -1584,11 +1536,6 @@ pipelines:
                     --use-package
         - parallel:
             - step:
-                name: Reload Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView API=API.zip
-            - step:
                 name: Reload Development Lambda Functions
                 script:
                 - >-
@@ -1625,18 +1572,6 @@ pipelines:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-python-package --project IntelligentPlatform/Licensing
         - parallel:
-            - step:
-                name: Update Sandbox Bundle
-                caches:
-                - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project IntelligentPlatform/Licensing
-                    --bundle IntelligentPlatform/LicensingETL.zip
-                    --use-package
             - step:
                 name: Update Development Bundle
                 caches:
@@ -1680,11 +1615,6 @@ pipelines:
                     --bundle IntelligentPlatform/LicensingETL.zip
                     --use-package
 #        - parallel:
-#              - step:
-#                    name: Update Sandbox Lambda Function
-#                    script:
-#                        - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                        - bash Deploy/Master/update-functions -e sbx -s PlatformExperience -p IntelligentPlatform/Licensing ETL=LicensingETL.zip
 #              - step:
 #                    name: Update Development Lambda Function
 #                    script:
