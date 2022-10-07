@@ -104,7 +104,12 @@ public class SqlExtractorTask extends Task {
         ArrayList<byte[]> data = new ArrayList<byte[]>();
 
         for (String query : queries) {
-            data.add(readQuery(query, connection));
+            if (query.toUpperCase().contains("INTO TEMP")) {
+                LOGGER.debug("Temp table query: " + query);
+                connection.createStatement().execute(query);
+            } else {
+                data.add(readQuery(query, connection));
+            }
         }
 
         return data;
@@ -126,10 +131,11 @@ public class SqlExtractorTask extends Task {
     }
 
     byte[] readQuery(String query, Connection connection) throws IOException, SQLException {
+        SqlExtractorParameters parameters = (SqlExtractorParameters) this.parameters;
         byte[] results = null;
 
         try (Statement statement = connection.createStatement()) {
-            if (((SqlExtractorParameters) this.parameters).chunkSize.equals("")) {
+            if (parameters.chunkSize.equals("")) {
                 results = readSingleQuery(query, statement);
             } else {
                 results = readChunkedQuery(query, statement, (SqlExtractorParameters) this.parameters);

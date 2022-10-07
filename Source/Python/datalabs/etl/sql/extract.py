@@ -55,6 +55,12 @@ class SQLExtractorTask(ExtractorTask):
     def _read_queries(self, connection):
         queries = self._split_queries(self._parameters.sql)
 
+        if "INTO TEMP" in queries[0]:
+            LOGGER.info("Executing temporary table query...")
+            connection.cursor().execute(queries[0])
+
+            queries.pop(0)
+
         return [self._encode(self._read_query(query, connection)) for query in queries]
 
     @classmethod
@@ -73,10 +79,10 @@ class SQLExtractorTask(ExtractorTask):
     def _read_query(self, query, connection):
         result = None
 
-        if self._parameters.chunk_size is not None:
-            result = self._read_chunked_query(query, connection)
-        else:
+        if self._parameters.chunk_size is None:
             result = self._read_single_query(query, connection)
+        else:
+            result = self._read_chunked_query(query, connection)
 
         return result
 

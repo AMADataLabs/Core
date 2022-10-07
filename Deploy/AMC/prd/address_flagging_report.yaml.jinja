@@ -20,7 +20,7 @@ data:
     AIMS_DB_JAR_PATH: ./jdbc-4.50.4.1.jar,./bson-4.2.0.jar
     # 'jdbc:informix-sqli://rdbp1627.ama-assn.org:22093/aims_prod',  # :informixserver=prd1srvxnet
     # 'jdbc:informix-sqli://rdbt1511.ama-assn.org:22035/test_100_pct',
-    AIMS_DB_HOST: rdbt1627.ama-assn.org
+    AIMS_DB_HOST: rdbp1627.ama-assn.org
     AIMS_DB_PORT: '22093'
     AIMS_DB_NAME: 'aims_prod:prd1srvxnet'
     AIMS_DB_USERNAME: dlabs
@@ -96,7 +96,8 @@ WHERE
     ecu.src_cat_code = 'AMC' AND
     ecu.end_dt is null       AND
     eke.key_type ='ME'
-ORDER BY ME SKIP {index} LIMIT {count}
+INTO TEMP address_flagging_report;
+SELECT * FROM address_flagging_report ORDER BY ME SKIP {index} LIMIT {count}"
 "
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__CHUNK_SIZE: '100000'
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DRIVER: ${AIMS_DB_DRIVER}
@@ -127,5 +128,6 @@ ORDER BY ME SKIP {index} LIMIT {count}
     ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__CACHE_INPUT_FILES: 'report.pk'
 
     ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__TO: 'datalabs@ama-assn.org'
+    ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__CC: 'Garrett.Lappe@ama-assn.org'
     # ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__TO: 'Debbie.Kidd@ama-assn.org,Christina.Lopez@ama-assn.org,Pat.Scheibel@ama-assn.org'
     # ADDRESS_FLAGGING_REPORT__EMAIL_ADDRESS_REPORT__CC: 'datalabs@ama-assn.org,Garrett.Lappe@ama-assn.org,Nicole.Neal@ama-assn.org,Derek.Smart@ama-assn.org'
