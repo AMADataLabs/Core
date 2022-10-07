@@ -97,7 +97,7 @@ WHERE
     ecu.end_dt is null       AND
     eke.key_type ='ME'
 INTO TEMP address_flagging_report;
-SELECT * FROM address_flagging_report ORDER BY ME SKIP {index} LIMIT {count}"
+SELECT * FROM address_flagging_report ORDER BY ME SKIP {index} LIMIT {count}
 "
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__CHUNK_SIZE: '100000'
     ADDRESS_FLAGGING_REPORT__EXTRACT_AMC__DRIVER: ${AIMS_DB_DRIVER}
