@@ -2,6 +2,7 @@
 # pylint: disable=singleton-comparison
 from datetime import datetime
 import logging
+from string import ascii_letters, digits
 import numpy as np
 import pandas as pd
 
@@ -71,12 +72,34 @@ def load_processed_data(path_to_file, as_of_date=None, begin_date_column=None, e
             data = data[data['ACTIVE'] == True]
             log_info(f"\tFILTERING TO ACTIVE ONLY END: {data.shape[0]}")
     log_info(f"\t{path_to_file.split('/')[-1]} ~~~ {get_memory_usage(data)} MB")
+    log_info(f'Processed {path_to_file} -- {data.shape}')
     return data
 
 
 def add_address_key(data: pd.DataFrame, post_addr_at_data: pd.DataFrame):
     data = data.merge(post_addr_at_data, on='COMM_ID', how='left')
     return data
+
+
+def keep_alphanumeric(text):
+    res = []
+    if not isinstance(text, str):
+        return ''
+    for c in text:
+        if c in digits or c in ascii_letters or c in ' _-':
+            res.append(c)
+    return ''.join(res)
+
+
+def clean_zip(address_key):
+    tokens = address_key.split('_')
+    z = tokens[-1]
+    a = ' '.join(tokens[:-1])
+    if len(z) >= 5:
+        result = f"{a}_{z[:5]}"
+    else:
+        result = address_key
+    return result
 
 
 def get_memory_usage(data: pd.DataFrame):
