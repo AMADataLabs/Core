@@ -5,15 +5,16 @@
 #    - COMM_ID      (address ID from AIMS)
 
 # pylint: disable=import-error, unused-import, singleton-comparison
-
 from datetime import datetime
 import gc
+from io import StringIO, BytesIO
 import logging
 import os
 import warnings
 import pandas as pd
 from tqdm import tqdm
 from datalabs.analysis.address.scoring.common import load_processed_data, log_info
+from datalabs.etl.transform import TransformerTask
 
 warnings.filterwarnings('ignore', '.*A value is trying to be set on a copy of a slice from a DataFrame.*')
 warnings.filterwarnings('ignore', '.*SettingWithCopyWarning*')
@@ -24,21 +25,25 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-def add_entity_comm_usg_at_features(
-        base_data,
-        path_to_entity_comm_usg_at_file,
+def add_entity_comm_usg_at_features(base_data, data_or_path_to_entity_comm_usg_at_file, as_of_date, save_dir=None):
+    base_data.columns = [col.upper() for col in base_data.columns]
+    entity_comm_usg_data = load_processed_data(
+        data_or_path_to_entity_comm_usg_at_file,
         as_of_date,
-        save_dir):
-    entity_comm_usg_data = load_processed_data(path_to_entity_comm_usg_at_file, as_of_date, 'USG_BEGIN_DT', 'END_DT')
+        'USG_BEGIN_DT',
+        'END_DT'
+    )
 
     log_info('\tENTITY_COMM_USG - comm_id comm_usg counts')
     features = add_feature_comm_id_usage_counts(base_data, entity_comm_usg_data)
 
     log_info('BASE_DATA MEMORY:', features.memory_usage().sum() / 1024 ** 2)
 
-    save_filename = os.path.join(save_dir, f'features__entity_comm_usg__{as_of_date}.txt')
-    log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
-    features.to_csv(save_filename, sep='|', index=False)
+    if save_dir is not None:
+        save_filename = os.path.join(save_dir, f'features__entity_comm_usg__{as_of_date}.txt')
+        log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
+        features.to_csv(save_filename, sep='|', index=False)
+    return features
 
 
 def flatten_usage_counts(entity_comm_usg_data: pd.DataFrame, active: bool):
@@ -93,3 +98,17 @@ def add_feature_comm_id_usage_counts(base_data: pd.DataFrame, entity_comm_usg_da
     flattened_historical = flatten_usage_counts(entity_comm_usg_data, active=False).fillna(0)
     features = flattened_active.merge(flattened_historical, on='COMM_ID', how='left').fillna(0)
     return features
+
+
+class EntityCommUsgFeatureGenerationTransformerTask(TransformerTask):
+    def _transform(self) -> 'Transformed Data':
+        base_data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep='|', dtype=str)
+        entity_comm_usg = pd.read_csv(StringIO(self._parameters['data'][1].decode()), sep='|', dtype=str)
+        as_of_date = self._parameters['as_of_date']
+
+        features = add_entity_comm_usg_at_features(base_data, entity_comm_usg, as_of_date)
+        result = BytesIO()
+        features.to_csv(result, sep='|', index=False)
+        result.seek(0)
+        print(features.shape)
+        return [result.getvalue()]
