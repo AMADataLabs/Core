@@ -60,10 +60,10 @@ def add_triangulation_features(base_data: pd.DataFrame, triangulation_data: Tria
     ]
     feature_data[f'TRIANGULATION_{triangulation_data.source_name}_AGREEMENT'] = feature_data['KEY'].apply(
         lambda x: triangulation_agreement[x]
-    )
+    ).fillna(0).astype(int)
     feature_data[f'TRIANGULATION_{triangulation_data.source_name}_OTHER'] = feature_data['KEY'].apply(
         lambda x: triangulation_other[x]
-    )
+    ).fillna(0).astype(int)
     return feature_data
 
 
