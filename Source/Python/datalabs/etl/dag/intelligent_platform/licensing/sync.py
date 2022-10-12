@@ -1,5 +1,5 @@
 ''' DAG definition for the Intelligent Platform Licensing ETL. '''
-from   datalabs.etl.dag.dag import DAG, register
+import datalabs.etl.dag.dag as dag
 
 from   datalabs.etl.sql.jdbc.extract import JDBCExtractorTask
 from   datalabs.etl.intelligent_platform.licensing.transform import LicensedOrganizationsTransformerTask
@@ -7,8 +7,8 @@ from   datalabs.etl.intelligent_platform.licensing.transform import LicensedArti
 from   datalabs.etl.orm.load import ORMLoaderTask
 
 
-@register(name="LICENSING")
-class LicensingDAG(DAG):
+@dag.register(name="LICENSING")
+class DAG(dag.DAG):
     EXTRACT_LICENSED_ORGANIZATIONS: JDBCExtractorTask
     CREATE_FRICTIONLESS_LICENSING_ORGANIZATIONS: LicensedOrganizationsTransformerTask
     LOAD_FRICTIONLESS_LICENSING_ORGANIZATIONS: ORMLoaderTask
@@ -18,8 +18,8 @@ class LicensingDAG(DAG):
 
 
 # pylint: disable=pointless-statement
-LicensingDAG.EXTRACT_LICENSED_ORGANIZATIONS \
-    >> LicensingDAG.CREATE_FRICTIONLESS_LICENSING_ORGANIZATIONS \
-    >> LicensingDAG.LOAD_FRICTIONLESS_LICENSING_ORGANIZATIONS
+DAG.EXTRACT_LICENSED_ORGANIZATIONS \
+    >> DAG.CREATE_FRICTIONLESS_LICENSING_ORGANIZATIONS \
+    >> DAG.LOAD_FRICTIONLESS_LICENSING_ORGANIZATIONS
 
-LicensingDAG.EXTRACT_ACTIVE_ARTICLES >> LicensingDAG.CREATE_ACTIVE_ARTICLES >> LicensingDAG.LOAD_ACTIVE_ARTICLES
+DAG.EXTRACT_ACTIVE_ARTICLES >> DAG.CREATE_ACTIVE_ARTICLES >> DAG.LOAD_ACTIVE_ARTICLES

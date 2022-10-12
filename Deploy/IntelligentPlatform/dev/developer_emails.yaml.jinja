@@ -30,8 +30,8 @@ data:
     #######################################################################
 
     DEVELOPER_EMAILS__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    DEVELOPER_EMAILS__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-DeveloperUsersETL'
-    DEVELOPER_EMAILS__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.developer.email.EmailReportDAG'
+    DEVELOPER_EMAILS__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-DeveloperDAG'
+    DEVELOPER_EMAILS__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.developer.email.DAG'
     DEVELOPER_EMAILS__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     DEVELOPER_EMAILS__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
     DEVELOPER_EMAILS__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'

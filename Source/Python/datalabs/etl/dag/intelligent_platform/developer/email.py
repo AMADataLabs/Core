@@ -1,14 +1,13 @@
 ''' DAG definition for the Email Report ETL. '''
-from   datalabs.etl.dag.dag import DAG, register
+import datalabs.etl.dag.dag as dag
 from   datalabs.etl.cpt.developer.load import EmailReportSMTPLoaderTask
 
 
-@register(name="DEVELOPER_EMAILS")
-class EmailReportDAG(DAG):
+@dag.register(name="DEVELOPER_EMAILS")
+class DAG(dag.DAG):
     EXTRACT_EMAILS: "SQLExtractorTask"
     SEND_EMAIL_REPORT: EmailReportSMTPLoaderTask
 
 
 # pylint: disable=pointless-statement
-EmailReportDAG.EXTRACT_EMAILS \
-    >> EmailReportDAG.SEND_EMAIL_REPORT
+DAG.EXTRACT_EMAILS >> DAG.SEND_EMAIL_REPORT
