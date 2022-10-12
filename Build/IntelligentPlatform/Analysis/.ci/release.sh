@@ -9,8 +9,8 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.1.0
-        [prd]=1.0.1
+        [tst]=
+        [prd]=
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -18,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-dbl"
-    export RELEASE_DESCRIPTION="DBL Counts Report DAG"
+    export RELEASE_NAME="datalabs-intelligentplatform-analysis"
+    export RELEASE_DESCRIPTION="Platform Analysis DAGs"
 }
 
 
