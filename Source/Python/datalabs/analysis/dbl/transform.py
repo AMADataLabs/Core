@@ -192,9 +192,10 @@ class DBLReportTransformer(TransformerTask):
 
     @classmethod
     def _make_excel_workbook(cls, sheet_dataframes):
+        dummy_file = BytesIO()
         output = BytesIO()
         # pylint: disable=abstract-class-instantiated
-        writer = pd.ExcelWriter('temp.xlsx', engine='xlsxwriter')
+        writer = pd.ExcelWriter(dummy_file, engine='xlsxwriter')
         writer.book = xlsxwriter.Workbook(output, {'in_memory': True})
 
         sheet_dataframes[0].to_excel(writer, sheet_name='ChangeFileAudit', header=False, index=False)
