@@ -1,4 +1,4 @@
-""" Email Report loader task """
+""" Developer emails report loader task """
 from   dataclasses import dataclass
 from   datetime import datetime
 # pylint: disable=import-error, invalid-name
@@ -16,6 +16,7 @@ class EmailReportSMTPLoaderParameters:
     cc: str = None
     execution_time: str = None
 
+
 class EmailReportSMTPLoaderTask(LoaderTask):
     PARAMETER_CLASS = EmailReportSMTPLoaderParameters
 
@@ -28,7 +29,7 @@ class EmailReportSMTPLoaderTask(LoaderTask):
 
         This is an automated email from DataLabs.
 
-         
+
 
          Attached are the latest CPT Developer Program user emails.
         '''
