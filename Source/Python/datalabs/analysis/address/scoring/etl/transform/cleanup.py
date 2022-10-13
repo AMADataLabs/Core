@@ -20,7 +20,7 @@ class DataFrameCleanupTransformerTaskParameters:
     rename_columns: str = None
 
 
-class DataFrameCleanupTransformerTask(TransformerTask):
+class DatabaseTableCleanupTransformerTask(TransformerTask):
     PARAMETER_CLASS = DataFrameCleanupTransformerTaskParameters
 
     def _transform(self) -> 'Transformed Data':
