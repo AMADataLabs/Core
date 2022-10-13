@@ -101,6 +101,7 @@ def add_feature_active_license_states_newer_older_match(
         group.reset_index(drop=True, inplace=True)
         for i, row in group.iterrows():
             state = row['LICENSE_STATE_CD']
+            age = datetime.strptime(as_of_date, '%Y-%m-%d') - row['LIC_ISSUE_DT']
             has_newer = i > 0  # if i > 0, it's not the most recent license (newer exists)
             has_older = i < group.shape[0] - 1  # if we're not at the end of the group, there exist older licenses
             result = {
@@ -109,7 +110,7 @@ def add_feature_active_license_states_newer_older_match(
                 'HAS_NEWER_ACTIVE_LICENSE_ELSEWHERE': has_newer,
                 'HAS_OLDER_ACTIVE_LICENSE_ELSEWHERE': has_older,
                 'HAS_ACTIVE_LICENSE_IN_THIS_STATE': True,
-                'YEARS_LICENSED_IN_THIS_STATE': as_of_date
+                'YEARS_LICENSED_IN_THIS_STATE': age
             }
             results.append(result)
     results = pd.DataFrame(results)
