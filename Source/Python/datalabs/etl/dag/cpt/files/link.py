@@ -8,10 +8,12 @@ from   datalabs.etl.s3.extract import S3FileExtractorTask
 class CPTLinkDAG(DAG):
     FIND_INPUT_FILES: InputFilesListExtractorTask
     EXTRACT_INPUT_FILES: S3FileExtractorTask
+    EXTRACT_EDITS: S3FileExtractorTask
     BUILD_LINK: 'datalabs.etl.cpt.build.LinkBuilderTask'
 
 
 # pylint: disable=pointless-statement
 CPTLinkDAG.FIND_INPUT_FILES \
     >> CPTLinkDAG.EXTRACT_INPUT_FILES \
+    >> CPTLinkDAG.EXTRACT_EDITS \
     >> CPTLinkDAG.BUILD_LINK
