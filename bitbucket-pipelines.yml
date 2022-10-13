@@ -1325,7 +1325,7 @@ pipelines:
                     --project IntelligentPlatform/Licensing
                     --bundle IntelligentPlatform/LicensingDAG.zip
                     --use-package
-       - parallel:
+        - parallel:
              - step:
                    name: Update Development Lambda Function
                    script:
