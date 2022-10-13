@@ -14,11 +14,11 @@ from   datalabs.parameter import add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class SQLAlchemyExtractorParameters:
-    backend: str
     database_host: str
+    database_port: str
+    database_backend: str
     database_username: str
     database_password: str
-    database_port: str
     sql: str
     data: object = None
     execution_time: str = None
