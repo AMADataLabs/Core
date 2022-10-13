@@ -12,9 +12,9 @@ setup_python_virtual_environment() {
 create_python_virtual_environment() {
     environment_path=$1
 
-    if [[ ! -f "$environment_path/bin/python3.7" ]]; then
+    if [[ ! -f "$environment_path/bin/python3.9" ]]; then
         echo "Creating virtual environment..."
-        python3.7 -m venv $environment_path
+        python3.9 -m venv $environment_path
         echo "Done creating virtual environment"
     else
         echo "Virtual environment already exists."
