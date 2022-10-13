@@ -11,8 +11,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class PhysicianEmailStatusTransformer(TransformerTask):
-    def _preprocess_data(self, data):
-        email_status = data[0]
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        email_status = dataset[0]
 
         email_status.sort_values('EMAIL_STATUS')
         email_status.drop_duplicates('PARTY_ID', keep='last', inplace=True)

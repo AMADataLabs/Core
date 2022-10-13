@@ -13,10 +13,10 @@ LOGGER.setLevel(logging.INFO)
 def main(args):
     parameters = dict(
         STATE_LOCK_TABLE='N/A',
-        DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}',
+        DAG_STATE_TABLE=f'DataLake-dag-state-{args["environment"]}'
     )
     state = DAGState(parameters)
-    execution_time = f'{args["date"]} {args["time"]}'
+    execution_time = f'{args["date"]}T{args["time"]}'
 
     if not args["task"]:
         statuses = state.get_all_statuses(args["dag"], execution_time)
@@ -41,13 +41,13 @@ if __name__ == '__main__':
     ap.add_argument('-t', '--task', action='append', required=False, help='task ID')
     ap.add_argument('-D', '--date', required=True, help='YY-MM-DD')
     ap.add_argument('-T', '--time', required=True, help='hh:mm:ss')
-    ap.add_argument('-e', '--environment', required=True, help='sbx, dev, tst, itg, or prd')
+    ap.add_argument('-e', '--environment', required=True, help='sbx, dev, tst, itg, prd, or local')
     args = vars(ap.parse_args())
 
     try:
         return_code = main(args)
     except Exception as e:
-        LOGGER.exception(f'Failed to clear dag task statuses.')
+        LOGGER.exception(f'Failed to get dag task statuses.')
         return_code = 1
 
     exit(return_code)

@@ -3,7 +3,7 @@ package datalabs.parameter;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +16,17 @@ import datalabs.task.Task;
 
 
 class ExampleTaskParameters extends Parameters {
-    public ExampleTaskParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
-        super(parameters);
-    }
+    protected static final Logger LOGGER = LoggerFactory.getLogger(ExampleTaskParameters.class);
+
     public String fee;
     public String fye;
+
+    @Optional("fum")
     public String fo;
+
+    public ExampleTaskParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
+        super(parameters);
+    }
 }
 
 
@@ -30,15 +35,17 @@ class ExampleTask extends Task {
 
     public ExampleTask(Map<String, String> parameters)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, ExampleTaskParameters.class);
+        super(parameters, null, ExampleTaskParameters.class);
     }
 
     public ExampleTaskParameters getParameters() {
         return (ExampleTaskParameters) this.parameters;
     }
 
-    public void run() {
+    public ArrayList<byte[]> run() {
         LOGGER.info("This is an example task class with parameters.");
+
+        return null;
     }
 }
 
@@ -77,5 +84,31 @@ class ParametersTests {
         Assertions.assertEquals("tick", parameters.fee);
         Assertions.assertEquals("tack", parameters.fye);
         Assertions.assertEquals("toe", parameters.fo);
+    }
+
+    @Test
+    void taskParametersArePopulatedFromDefaults() {
+        ExampleTaskParameters parameters = null;
+
+        String fo = ParametersTests.PARAMETERS.remove("FO");
+
+        Assertions.assertNotNull(fo);
+
+        try {
+            ExampleTask task = new ExampleTask(ParametersTests.PARAMETERS);
+
+            parameters = task.getParameters();
+        } catch (
+            IllegalAccessException | IllegalArgumentException | InstantiationException |
+            InvocationTargetException | NoSuchMethodException exception
+        ) {
+            exception.printStackTrace();
+            Assertions.assertTrue(false);
+        }
+
+        Assertions.assertNotNull(parameters);
+        Assertions.assertEquals("tick", parameters.fee);
+        Assertions.assertEquals("tack", parameters.fye);
+        Assertions.assertEquals("fum", parameters.fo);
     }
 }

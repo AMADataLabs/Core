@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 from   urllib.parse import urlparse
 
-import werkzeug.exceptions as exceptions
+from   werkzeug import exceptions
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -70,9 +70,9 @@ class BitBucketSynchronizer():
         return ValidatedData(actor=actor, project=project, repository=repository, branch=branch, action=action)
 
     def _clone_on_premises_branch(self, branch, action):
-        command = 'git clone --single-branch -b {} {}'.format(
-            "master" if action == "DELETE" else branch, self._config.url_on_prem
-        )
+        branch = "master" if action == "DELETE" else branch
+
+        command = f'git clone --single-branch -b {branch} {self._config.url_on_prem}'
 
         subprocess.call(command.split(' '))
 

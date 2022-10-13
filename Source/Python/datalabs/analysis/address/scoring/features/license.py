@@ -5,8 +5,8 @@
 #    - COMM_ID      (address ID from AIMS)
 
 # pylint: disable=import-error, unused-import, singleton-comparison
-
 from datetime import datetime
+from io import StringIO, BytesIO
 import gc
 import logging
 import os
@@ -14,6 +14,8 @@ import warnings
 import pandas as pd
 from tqdm import tqdm
 from datalabs.analysis.address.scoring.common import add_column_prefixes, load_processed_data, log_info
+from datalabs.etl.transform import TransformerTask
+
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -24,28 +26,37 @@ warnings.filterwarnings('ignore', '.*SettingWithCopyWarning*')
 warnings.filterwarnings('ignore', '.*FutureWarning*')
 
 
-def add_license_features(base_data: pd.DataFrame, path_to_license_file, path_to_post_addr_file, as_of_date, save_dir):
-    log_info('LOADING LICENSE DATA', path_to_license_file)
-    license_data = load_processed_data(path_to_license_file, as_of_date, 'LIC_ISSUE_DT', 'LIC_EXP_DT')
+def add_license_features(
+        base_data: pd.DataFrame,
+        data_or_path_to_license_file,
+        data_or_path_to_post_addr_file,
+        as_of_date,
+        save_dir=None
+):
+    base_data.columns = [col.upper() for col in base_data.columns]
+    log_info('LOADING LICENSE DATA', data_or_path_to_license_file)
+    license_data = load_processed_data(data_or_path_to_license_file, as_of_date, 'LIC_ISSUE_DT', 'LIC_EXP_DT')
     license_data = license_data[license_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)]
 
-    log_info('LOADING POST_ADDR DATA', path_to_post_addr_file)
-    post_addr_data = load_processed_data(path_to_post_addr_file, as_of_date)
+    log_info('LOADING POST_ADDR DATA', data_or_path_to_post_addr_file)
+    post_addr_data = load_processed_data(data_or_path_to_post_addr_file, as_of_date)
     log_info('ADDING ADDRESS DATA TO LICENSE DATA')
     license_data = merge_license_address_data(license_data, post_addr_data)
     del post_addr_data
     gc.collect()
 
-    log_info('ADD FEATURE ACTIVE LICENSES NEWER/OLDER/MATCH', path_to_post_addr_file)
+    log_info('ADD FEATURE ACTIVE LICENSES NEWER/OLDER/MATCH', data_or_path_to_post_addr_file)
     features = add_feature_active_license_states_newer_older_match(base_data, license_data, as_of_date)
-    log_info('ADD FEATURE EXPIRED MATCH', path_to_post_addr_file)
+    log_info('ADD FEATURE EXPIRED MATCH', data_or_path_to_post_addr_file)
     features = add_feature_expired_license_match(features, license_data, as_of_date)
 
     log_info('BASE_DATA MEMORY:', features.memory_usage().sum() / 1024 ** 2)
 
-    save_filename = os.path.join(save_dir, f'features__license__{as_of_date}.txt')
-    log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
-    features.to_csv(save_filename, sep='|', index=False)
+    if save_dir is not None:
+        save_filename = os.path.join(save_dir, f'features__license__{as_of_date}.txt')
+        log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
+        features.to_csv(save_filename, sep='|', index=False)
+    return features
 
 
 def merge_license_address_data(license_lt_data: pd.DataFrame, post_addr_at_data: pd.DataFrame):
@@ -90,6 +101,7 @@ def add_feature_active_license_states_newer_older_match(
         group.reset_index(drop=True, inplace=True)
         for i, row in group.iterrows():
             state = row['LICENSE_STATE_CD']
+            age = datetime.strptime(as_of_date, '%Y-%m-%d') - row['LIC_ISSUE_DT']
             has_newer = i > 0  # if i > 0, it's not the most recent license (newer exists)
             has_older = i < group.shape[0] - 1  # if we're not at the end of the group, there exist older licenses
             result = {
@@ -98,7 +110,7 @@ def add_feature_active_license_states_newer_older_match(
                 'HAS_NEWER_ACTIVE_LICENSE_ELSEWHERE': has_newer,
                 'HAS_OLDER_ACTIVE_LICENSE_ELSEWHERE': has_older,
                 'HAS_ACTIVE_LICENSE_IN_THIS_STATE': True,
-                'YEARS_LICENSED_IN_THIS_STATE': as_of_date
+                'YEARS_LICENSED_IN_THIS_STATE': age
             }
             results.append(result)
     results = pd.DataFrame(results)
@@ -150,3 +162,18 @@ def add_feature_expired_license_match(base_data: pd.DataFrame, license_data: pd.
     )
     base_data['LICENSE_THIS_STATE_YEARS_SINCE_EXPIRATION'].fillna(0.0)
     return base_data
+
+
+class LicenseFeatureGenerationTransformerTask(TransformerTask):
+    def _transform(self) -> 'Transformed Data':
+        base_data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep='|', dtype=str)
+        license_data = pd.read_csv(StringIO(self._parameters['data'][1].decode()), sep='|', dtype=str)
+        post_addr = pd.read_csv(StringIO(self._parameters['data'][2].decode()), sep='|', dtype=str)
+        as_of_date = self._parameters['as_of_date']
+
+        features = add_license_features(base_data, license_data, post_addr, as_of_date)
+        result = BytesIO()
+        features.to_csv(result, sep='|', index=False)
+        result.seek(0)
+
+        return [result.getvalue()]

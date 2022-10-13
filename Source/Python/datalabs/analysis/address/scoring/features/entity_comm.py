@@ -5,14 +5,17 @@
 #    - COMM_ID      (address ID from AIMS)
 
 # pylint: disable=import-error, unused-import, singleton-comparison
-
 from datetime import datetime
+from io import StringIO, BytesIO
+import pickle as pk
 import logging
 import os
 import warnings
 import pandas as pd
 from tqdm import tqdm
 from datalabs.analysis.address.scoring.common import load_processed_data, log_info
+from datalabs.etl.transform import TransformerTask
+
 
 warnings.filterwarnings('ignore', '.*A value is trying to be set on a copy of a slice from a DataFrame.*')
 warnings.filterwarnings('ignore', '.*SettingWithCopyWarning*')
@@ -23,8 +26,9 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-def add_entity_comm_at_features(base_data, path_to_entity_comm_at_file, as_of_date, save_dir):
-    entity_comm_data = load_processed_data(path_to_entity_comm_at_file, as_of_date, 'BEGIN_DT', 'END_DT')
+def add_entity_comm_at_features(base_data, data_or_path_to_entity_comm_at_file, as_of_date, save_dir=None):
+    base_data.columns = [col.upper() for col in base_data.columns]
+    entity_comm_data = load_processed_data(data_or_path_to_entity_comm_at_file, as_of_date, 'BEGIN_DT', 'END_DT')
 
     entity_comm_data = entity_comm_data[
         (entity_comm_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)) |
@@ -43,9 +47,11 @@ def add_entity_comm_at_features(base_data, path_to_entity_comm_at_file, as_of_da
     features = add_feature_address_sources(features, entity_comm_data)
 
     log_info('BASE_DATA MEMORY:', features.memory_usage().sum() / 1024 ** 2)
-    save_filename = os.path.join(save_dir, F'features__entity_comm__{as_of_date}.txt')
-    log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
-    features.to_csv(save_filename, sep='|', index=False)
+    if save_dir is not None:
+        save_filename = os.path.join(save_dir, F'features__entity_comm__{as_of_date}.txt')
+        log_info(f'SAVING ENTITY_COMM FEATURES: {save_filename}')
+        features.to_csv(save_filename, sep='|', index=False)
+    return features
 
 
 def add_feature_address_age(base_data: pd.DataFrame, entity_comm_at_data: pd.DataFrame, as_of_date: str):
@@ -149,3 +155,17 @@ def add_feature_physician_how_many_newer_addresses(base_data: pd.DataFrame, enti
     results = pd.DataFrame(results)
     base_data = base_data.merge(results, on=['ENTITY_ID', 'COMM_ID'], how='left')
     return base_data
+
+
+class EntityCommFeatureGenerationTransformerTask(TransformerTask):
+    def _transform(self) -> 'Transformed Data':
+        base_data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep='|', dtype=str)
+        entity_comm = pd.read_csv(StringIO(self._parameters['data'][1].decode()), sep='|', dtype=str)
+        as_of_date = self._parameters['as_of_date']
+
+        features = add_entity_comm_at_features(base_data, entity_comm, as_of_date)
+        result = BytesIO()
+        features.to_csv(result, sep='|', index=False)
+        result.seek(0)
+
+        return [result.getvalue()]

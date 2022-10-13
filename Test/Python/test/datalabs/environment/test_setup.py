@@ -4,7 +4,7 @@ import tempfile
 
 import pytest
 
-import datalabs.environment.setup as setup
+from   datalabs.environment import setup
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ def test_environment_correctly_converted_to_pipenv(
     generator.generate()
 
     rendered_template = None
-    with open(pipenv_filenames.output) as file:
+    with open(pipenv_filenames.output, encoding="utf-8") as file:
         rendered_template = file.read()
     LOGGER.debug('Expected Pipfile: %s', expected_rendered_pipfile_template)
     LOGGER.debug('Rendered Pipfile: %s', rendered_template)
@@ -103,7 +103,7 @@ def test_environment_correctly_converted_to_pip(
     generator.generate()
 
     rendered_template = None
-    with open(pip_filenames.output) as file:
+    with open(pip_filenames.output, encoding="utf-8") as file:
         rendered_template = file.read()
     LOGGER.debug('Rendered Requirements: %s', rendered_template)
 
@@ -119,7 +119,7 @@ def test_environment_correctly_converted_to_conda(
     generator.generate()
 
     rendered_template = None
-    with open(conda_filenames.output) as file:
+    with open(conda_filenames.output, encoding="utf-8") as file:
         rendered_template = file.read()
     LOGGER.debug('Expected Conda Requirements: %s', expected_rendered_conda_requirements_template)
     LOGGER.debug('Rendered Conda Requirements: %s', rendered_template)
@@ -129,15 +129,13 @@ def test_environment_correctly_converted_to_conda(
 
 @pytest.fixture
 def pipenv_filenames():
-    output_file = tempfile.NamedTemporaryFile()
-    output_file.close()
-
-    return setup.EnvironmentFilenames(
-        package_list='Test/Python/test/datalabs/environment/requirements.txt',
-        template='Test/Python/test/datalabs/environment/Pipfile_template.txt',
-        output=output_file.name,
-        whitelist=None
-    )
+    with tempfile.NamedTemporaryFile() as output_file:
+        yield setup.EnvironmentFilenames(
+            package_list='Test/Python/test/datalabs/environment/requirements.txt',
+            template='Test/Python/test/datalabs/environment/Pipfile_template.txt',
+            output=output_file.name,
+            whitelist=None
+        )
 
 
 @pytest.fixture
@@ -152,28 +150,24 @@ def whitelisting_pipenv_filenames(pipenv_filenames):
 
 @pytest.fixture
 def pip_filenames():
-    output_file = tempfile.NamedTemporaryFile()
-    output_file.close()
-
-    return setup.EnvironmentFilenames(
-        package_list='Test/Python/test/datalabs/environment/requirements.txt',
-        template='Test/Python/test/datalabs/environment/requirements_template.txt',
-        output=output_file.name,
-        whitelist=None
-    )
+    with tempfile.NamedTemporaryFile() as output_file:
+        yield setup.EnvironmentFilenames(
+            package_list='Test/Python/test/datalabs/environment/requirements.txt',
+            template='Test/Python/test/datalabs/environment/requirements_template.txt',
+            output=output_file.name,
+            whitelist=None
+        )
 
 
 @pytest.fixture
 def conda_filenames():
-    output_file = tempfile.NamedTemporaryFile()
-    output_file.close()
-
-    return setup.EnvironmentFilenames(
-        package_list='Test/Python/test/datalabs/environment/requirements.txt',
-        template='Test/Python/test/datalabs/environment/conda_requirements_template.txt',
-        output=output_file.name,
-        whitelist=None
-    )
+    with tempfile.NamedTemporaryFile() as output_file:
+        yield setup.EnvironmentFilenames(
+            package_list='Test/Python/test/datalabs/environment/requirements.txt',
+            template='Test/Python/test/datalabs/environment/conda_requirements_template.txt',
+            output=output_file.name,
+            whitelist=None
+        )
 
 
 @pytest.fixture

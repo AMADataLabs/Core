@@ -3,13 +3,11 @@ from abc import ABC, abstractmethod
 import logging
 import os
 
-from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
-import datalabs.feature as feature
-from   datalabs.parameter import ParameterValidatorMixin
-from   datalabs.plugin import import_plugin
+from   marshmallow.exceptions import ValidationError
 
-if feature.enabled("ETCD"):
-    from datalabs.access.parameter.etcd import EtcdEnvironmentLoader
+from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
+from   datalabs.parameter import ParameterValidatorMixin, ValidationException
+from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -49,6 +47,35 @@ class Task(ParameterValidatorMixin, ABC):
             LOGGER.info('%s parameters: %s', cls.__name__, parameters)
 
 
+class TaskFactory:
+    @classmethod
+    def create_task(cls, task_class: str, parameters: dict, data: bytes=None):
+        task_class = import_plugin(task_class)
+
+        if hasattr(task_class, "PARAMETER_CLASS"):
+            parameters = cls._get_validated_parameters(task_class.PARAMETER_CLASS, parameters)
+
+        if data is not None:
+            parameters.data = data
+
+        return task_class(parameters)
+
+    @classmethod
+    def _get_validated_parameters(cls, parameter_class, parameter_map: dict):
+        parameter_map = {key.lower():value for key, value in parameter_map.items()}
+        schema = parameter_class.SCHEMA  # pylint: disable=no-member
+        parameters = None
+
+        try:
+            parameters = schema.load(parameter_map)
+        except (ValidationException, ValidationError) as error:
+            raise ValidationException(
+                f'Parameter validation failed for {parameter_class.__name__} instance'
+            ) from error
+
+        return parameters
+
+
 class TaskException(Exception):
     @property
     def message(self):
@@ -85,17 +112,13 @@ class TaskWrapper(ABC):
 
             response = self._handle_success()
         except Exception as exception:  # pylint: disable=broad-except
+            LOGGER.exception('Unable to run task.')
             response = self._handle_exception(exception)
 
         return response
 
     # pylint: disable=no-self-use
     def _setup_environment(self):
-        if feature.enabled("ETCD"):
-            etcd_loader = EtcdEnvironmentLoader.from_environ()
-            if etcd_loader is not None:
-                etcd_loader.load()
-
         secrets_loader = ReferenceEnvironmentLoader.from_environ()
         secrets_loader.load()
 
@@ -145,14 +168,22 @@ class TaskWrapper(ABC):
 class TaskResolver(ABC):
     @classmethod
     @abstractmethod
-    def get_task_class(cls, parameters):
+    def get_task_class(cls, runtime_parameters):
         pass
 
 
 class EnvironmentTaskResolver(TaskResolver):
     # pylint: disable=unused-argument
     @classmethod
-    def get_task_class(cls, parameters):
-        task_class_name = os.environ['TASK_CLASS']
+    def get_task_class(cls, runtime_parameters):
+        task_class_name = os.environ["TASK_CLASS"]
+
+        return import_plugin(task_class_name)
+
+
+class RuntimeTaskResolver(TaskResolver):
+    @classmethod
+    def get_task_class(cls, runtime_parameters):
+        task_class_name = runtime_parameters["TASK_CLASS"]
 
         return import_plugin(task_class_name)

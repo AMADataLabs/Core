@@ -1,15 +1,13 @@
 """ Applies a pre-trained model to score processed address feature data """
-
+from io import BytesIO
 import pandas as pd
 pd.set_option('max_columns', None)
 import numpy as np
 import os
 import pickle as pk
 from datetime import datetime
-from matplotlib import pyplot as plt
 
 from sklearn.preprocessing import MinMaxScaler
-from matplotlib import pyplot as plt
 
 from xgboost import XGBClassifier
 from datalabs.etl.transform import TransformerTask
@@ -93,9 +91,9 @@ REQUIRED_FEATURES = [
     'license_this_state_years_since_expiration',
     'humach_years_since_survey',
     'humach_never_surveyed',
-    'humach_address_result_unknown',
-    'humach_address_result_correct',
-    'humach_address_result_incorrect',
+    'humach_address_status_unknown',
+    'humach_address_status_correct',
+    'humach_address_status_incorrect',
     'triangulation_iqvia_agreement',
     'triangulation_iqvia_other',
     'triangulation_symphony_agreement',
@@ -124,13 +122,20 @@ class AddressScoringTransformerTask(TransformerTask):
         aggregate_features = self._scale_columns(aggregate_features)
         aggregate_features = self._resolve_null_values(aggregate_features)
 
-        predictions = model.predict_proba(aggregate_features)
+        for col in aggregate_features.columns:
+            if 'triangulation' in col:
+                aggregate_features[col] = aggregate_features[col].apply(eval).astype(int)
+
+        for col in REQUIRED_FEATURES:
+            if col not in aggregate_features.columns:
+                aggregate_features[col] = 0
+        predictions = model.predict_proba(aggregate_features[REQUIRED_FEATURES])
         info_data['score'] = predictions
         return [pk.dumps(info_data)]
 
     def _scale_columns(self, data: pd.DataFrame):
         to_scale = []
-        for col in tdf.columns.values:
+        for col in data.columns.values:
             if 'count' in col or 'frequency' in col or '_age' in col or 'years' in col:
                 scaler = MinMaxScaler()
                 scaled = scaler.fit_transform(data[[col]]).reshape(1, -1)[0]
@@ -148,13 +153,16 @@ class AddressScoringTransformerTask(TransformerTask):
             data[col].fillna(1, inplace=True)
         
         for col in data.columns.values:
-            aggregate_features[col] = aggregate_features[col].astype(float)
+            try:
+                data[col] = data[col].astype(float)
+            except:
+                pass
             
         for col in fillmax:
-            mx = pop_features[col].dropna().max()
-            pop_features[col].fillna(mx, inplace=True)
+            mx = data[col].dropna().max()
+            data[col].fillna(mx, inplace=True)
         
-        return data
+        return data.fillna(0)
 
     def _resolve_feature_structure(self, data: pd.DataFrame):
         # removes any extra features generated (likely source-related columns) and sorts column order

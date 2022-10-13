@@ -17,7 +17,7 @@ class AuthorizerParameters:
 class AuthorizerTask(Task, ABC):
     def __init__(self, parameters: AuthorizerParameters):
         super().__init__(parameters)
-        self._authorization = dict()
+        self._authorization = {}
         self._session = requests.Session()
 
     @property
@@ -34,7 +34,7 @@ class AuthorizerTask(Task, ABC):
             headers={'Authorization': 'Bearer ' + self._parameters.token}
         )
 
-        if response.status_code == 200 or response.status_code == 401:
+        if response.status_code in (200, 401):
             entitlements = json.loads(response.text)
             self._authorization = self._authorize(entitlements)
         else:

@@ -1,5 +1,5 @@
 """ source: datalabs.plugin """
-import datalabs.plugin as plugin
+from   datalabs import plugin
 
 
 def test_plugin_loads():

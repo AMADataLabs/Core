@@ -11,12 +11,11 @@ LOGGER.setLevel(logging.DEBUG)
 
 class HistoricalResidentTransformerTask(TransformerTask):
     @classmethod
-    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
-        return super()._csv_to_dataframe(data, on_disk, sep='|')
+    def _csv_to_dataframe(cls, data, **kwargs):
+        return super()._csv_to_dataframe(data, sep='|')
 
-    @classmethod
-    def _postprocess_data(cls, data):
-        historical_resident = data[0]
+    def _postprocess(self, dataset):
+        historical_resident = dataset[0]
 
         historical_resident['id'] = \
             historical_resident.medical_education_number.astype(str) +'-' \
@@ -24,16 +23,16 @@ class HistoricalResidentTransformerTask(TransformerTask):
             + historical_resident.institution_code.astype(str) + '-' \
             + historical_resident.start_year.astype(str)
 
-        return data
+        return [historical_resident]
 
     def _get_columns(self):
         return [column.HISTORICAL_RESIDENCY]
 
 
 class HistoricalResidentPruningTransformerTask(TransformerTask):
-    @classmethod
-    def _preprocess_data(cls, data):
-        historical_residents, physicians = data
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        historical_residents, physicians = dataset
 
         historical_residents = historical_residents[
             historical_residents.medical_education_number.isin(physicians.medical_education_number)

@@ -4,14 +4,14 @@ import io
 import pandas
 
 from   datalabs.curate.parse import Parser
-import datalabs.curate.ppd.expanded.column as column
+from   datalabs.curate.ppd.expanded import column
 
 
 class ExpandedPPDParser(Parser):
     # pylint: disable=arguments-differ
-    def parse(self, data: bytes) -> pandas.DataFrame:
+    def parse(self, text: bytes) -> pandas.DataFrame:
         return pandas.read_csv(
-            io.BytesIO(data),
+            io.BytesIO(text),
             sep='|',
             dtype=str,
             names=column.NAMES,

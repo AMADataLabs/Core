@@ -14,16 +14,22 @@ main() {
 
     setup_virtual_environment
 
+    create_maven_repo_config
+
     determine_commit_range
 
     get_changes_from_last_build
 
-    run_unit_tests
+    run_python_unit_tests
     return_code=$?
 
     if [[ $? == 0 ]]; then
-        run_lint_tests
+        run_java_unit_tests
+        return_code=$?
+    fi
 
+    if [[ $? == 0 ]]; then
+        run_lint_tests
         return_code=$?
     fi
 
@@ -36,6 +42,34 @@ setup_virtual_environment() {
 
     export VIRTUAL_ENV=${PWD}/Environment/Master
     export PATH="$VIRTUAL_ENV/bin:$PATH"
+}
+
+
+create_maven_repo_config() {
+    if [ -e ~/.m2/settings.xml ]; then
+        echo "The file ~/.m2/settings.xml already exists. Skipping its creation..."
+    else
+        export CODEARTIFACT_AUTH_TOKEN=$(
+            aws --profile default codeartifact get-authorization-token --domain datalabs\
+            --query authorizationToken --output text
+        )
+
+        mkdir -p ~/.m2
+
+        cat > ~/.m2/settings.xml <<EOF
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <servers>
+        <server>
+            <id>datalabs-sbx</id>
+            <username>aws</username>
+            <password>\${env.CODEARTIFACT_AUTH_TOKEN}</password>
+        </server>
+    </servers>
+</settings>
+EOF
+    fi
 }
 
 
@@ -72,8 +106,15 @@ get_changes_from_last_build() {
 }
 
 
-run_unit_tests() {
-    python Script/run.py python -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+run_python_unit_tests() {
+    python Script/run.py python3 -m pytest Test/Python/ Test/Python/test/datalabs/build/ -W ignore::DeprecationWarning
+
+    return $?
+}
+
+
+run_java_unit_tests() {
+    mvn test
 
     return $?
 }
@@ -107,7 +148,7 @@ run_lint_tests() {
         done
 
         if [[ "$TARGET_DIR" != "" ]]; then
-            FILES="$FILES $(${DIR}/run.py python3.7 ${DIR}/list_source_dependencies.py $TARGET_DIR)"
+            FILES="$FILES $(${DIR}/run.py python3 ${DIR}/list_source_dependencies.py $TARGET_DIR)"
         fi
     done
 

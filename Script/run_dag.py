@@ -4,6 +4,7 @@ import json
 import logging
 
 from   datalabs.access.aws import AWSClient
+from   datalabs.etl.dag.celery.task import run_dag_processor
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -21,10 +22,21 @@ ACCOUNTS = dict(
 
 
 def main(args):
+    if args["environment"] == 'local':
+        run_local_dag(args)
+    else:
+        run_remote_dag(args)
+
+
+def run_local_dag(args):
+    run_dag_processor(args["dag"], args["time"], args["parameters"])
+
+def run_remote_dag(args):
+
     topic_arn = f'arn:aws:sns:us-east-1:{ACCOUNTS[args["environment"]]}:DataLake-{args["environment"]}-DAGProcessor'
     message = dict(
         dag=args["dag"],
-        execution_time=f'{args["date"]} {args["time"]}'
+        execution_time=f'{args["date"]}T{args["time"]}'
     )
 
     if args["parameters"]:
@@ -36,13 +48,12 @@ def main(args):
             Message=json.dumps(message)
         )
 
-
 if __name__ == '__main__':
     return_code = 0
 
     ap = argparse.ArgumentParser()
     ap.add_argument('-d', '--dag', required=True, help='DAG name')
-    ap.add_argument('-e', '--environment', required=True, help='sbx, dev, tst, itg, or prd')
+    ap.add_argument('-e', '--environment', required=True, help='sbx, dev, tst, itg, prd, or local')
     ap.add_argument('-D', '--date', required=True, help='Execution date of the form YYYY-MM-DD')
     ap.add_argument('-T', '--time', required=True, help='Execution time of the form HH:MM:SS')
     ap.add_argument('-p', '--parameters', action='append', required=False, help='Dynamic global DAG plugin variables')

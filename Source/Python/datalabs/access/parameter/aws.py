@@ -50,7 +50,7 @@ class ParameterStoreEnvironmentLoader:
 
     @classmethod
     def _get_parameter_store_arn_variables(cls, arn_variables):
-        parameter_variables = dict()
+        parameter_variables = {}
 
         for key, value in arn_variables.items():
             try:

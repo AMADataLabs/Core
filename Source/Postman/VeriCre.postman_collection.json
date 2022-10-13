@@ -1,0 +1,91 @@
+{
+	"info": {
+		"_postman_id": "c7bcc7a9-391e-425a-8907-ca1239122681",
+		"name": "VeriCre",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "7392489"
+	},
+	"item": [
+		{
+			"name": "Physician Profile",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"host": true
+				}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Host",
+						"value": "api-sbx.vericre.local",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{VERICRE_API_URL}}/amaProfile",
+					"host": [
+						"{{VERICRE_API_URL}}"
+					],
+					"path": [
+						"amaProfile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CAQH Profile",
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Host",
+						"value": "api-sbx.vericre.local",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{VERICRE_API_URL}}/caqhProfile",
+					"host": [
+						"{{VERICRE_API_URL}}"
+					],
+					"path": [
+						"caqhProfile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Containerized API",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Host",
+						"value": "api-sbx.vericre.local",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{VERICRE_API_URL}}/common/getReference/AMA",
+					"host": [
+						"{{VERICRE_API_URL}}"
+					],
+					"path": [
+						"common",
+						"getReference",
+						"AMA"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

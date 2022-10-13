@@ -12,7 +12,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, no-member
 @pytest.mark.skip(reason="Need to fix")
 def test_linking_corporate_parent_business(components):
     transformer = CorporateParentBusinessTransformerTask(components)

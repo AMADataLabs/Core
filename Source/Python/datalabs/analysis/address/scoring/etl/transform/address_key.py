@@ -2,42 +2,31 @@
 
 # pylint: disable=import-error
 from dataclasses import dataclass
-from io import BytesIO
+from io import BytesIO, StringIO
 import pandas as pd
 from datalabs.etl.transform import TransformerTask
-from datalabs.parameter import add_schema
 from datalabs.analysis.address.scoring.etl.transform.cleanup import get_list_parameter
-
-
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class AddressKeyTransformerParameters:
-    data: object
-    keep_columns: str = None  # comma-separated string of columns EXCLUDING ADDRESS FIELDS to keep. entity_id, comm_id
-    street_address_column: str = None  # street address (123 Main St)
-    zip_column: str = None  # ZIP code (12345)
 
 
 class AddressKeyTransformerTask(TransformerTask):
     PARAMETER_CLASS = AddressKeyTransformerParameters
 
     def _transform(self) -> 'Transformed Data':
-        data = pd.read_csv(self._parameters.data[0], sep='|', dtype=str)
+        data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep='|', dtype=str)
         found_columns = data.columns.values
 
         result_data = pd.DataFrame()
 
-        if str(self._parameters.keep_columns).upper() in ['NONE', '']:
+        if 'keep_columns' not in self._parameters or str(self._parameters['keep_columns']).upper() in ['NONE', '']:
             keep_columns = found_columns
         else:
-            keep_columns = get_list_parameter(self._parameters.keep_columns)
+            keep_columns = get_list_parameter(self._parameters['keep_columns'])
 
         for col in keep_columns:
             result_data[col] = data[col]
 
-        col_street = self._parameters.street_address_column
-        col_zip = self._parameters.zip_column
+        col_street = self._parameters['street_address_column']
+        col_zip = self._parameters['zip_column']
 
         if col_street not in found_columns:
             raise KeyError(
@@ -54,11 +43,12 @@ class AddressKeyTransformerTask(TransformerTask):
         ].fillna('').astype(str).apply(str.strip) + '_' + data[
             col_zip
         ].fillna('').astype(str).apply(str.strip)
+        result_data['address_key'] = result_data['address_key'].apply(str.upper)
 
         results = BytesIO()
         result_data.to_csv(results, sep='|', index=False)
         results.seek(0)
-        return [results.read()]
+        return [results.getvalue()]
 
 
 def add_address_key(data: pd.DataFrame, street_column, zip_column):
@@ -67,4 +57,5 @@ def add_address_key(data: pd.DataFrame, street_column, zip_column):
     ].fillna('').astype(str).apply(str.strip) + '_' + data[
         zip_column
     ].fillna('').astype(str).apply(str.strip)
+    data['address_key'] = data['address_key'].apply(str.upper)
     return data

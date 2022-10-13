@@ -60,7 +60,7 @@ def is_updated(current_release_date):
     return updated
     
 def read_and_clean(new_download):
-    new_file = pd.read_csv(new_download, encoding='latin')
+    new_file = pd.read_csv(new_download, encoding='latin', sep=',', error_bad_lines=False)
     new_file.columns = [c.strip() for c in new_file.columns.values]
     new_file = append_me(new_file)
     return new_file

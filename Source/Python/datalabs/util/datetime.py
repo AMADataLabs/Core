@@ -11,7 +11,7 @@ def date_range(start_date_str, end_date_str):
     if end_date > current_date:
         end_date = datetime(current_date.year, current_date.month, current_date.day)
 
-    date_range_str = '{}_to_{}'.format(start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d'))
+    date_range_str = f"{start_date.strftime('%Y-%m-%d')}_to_{end_date.strftime('%Y-%m-%d')}"
 
     return start_date, end_date, date_range_str
 

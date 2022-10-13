@@ -70,7 +70,7 @@ def get_logger(key: str, configuration: Configuration = None, credentials: Crede
     key = key.upper()
 
     if key not in LOGGERS:
-        raise LineageException("No Lineage Logger registered for key '%s'." % key)
+        raise LineageException(f"No Lineage Logger registered for key '{key}'.")
 
     return LOGGERS[key](configuration=configuration, credentials=credentials, key=key)
 

@@ -3,7 +3,7 @@ import logging
 
 from   datalabs.access.parameter.aws import ParameterStoreEnvironmentLoader
 from   datalabs.access.secret.aws import SecretsManagerEnvironmentLoader
-import datalabs.task as task
+from   datalabs import task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

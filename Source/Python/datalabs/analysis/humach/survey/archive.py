@@ -76,13 +76,12 @@ class HumachResultsArchive:
         self._batch_load_save_dir = None
 
     def insert_row(self, table, vals):
-        cols = self.table_columns.dict[table]
+        columns = self.table_columns.dict[table]
+        columns_text = ','.join(cols)
+        values_text = ','.join(['"' + str(v).replace(',', '').replace('"', '') + '"' for v in vals])
 
-        sql = "INSERT INTO {}({}) VALUES({});".format(
-                table,
-                ','.join(cols),
-                ','.join(['"' + str(v).replace(',', '').replace('"', '') + '"' for v in vals])
-        )
+        sql = f"INSERT INTO {table}({columns_text}) VALUES({values_text});"
+
         self.connection.execute(sql)
 
 
@@ -196,9 +195,9 @@ class HumachResultsArchive:
     def get_latest_survey_results_sample_id(self, survey_type):
         sql = \
             """
-            SELECT MAX(r.sample_id) 
-            FROM samples s 
-            INNER JOIN results_{} r 
+            SELECT MAX(r.sample_id)
+            FROM samples s
+            INNER JOIN results_{} r
             ON (s.sample_id = r.sample_id AND s.row_id = r.row_id)
             WHERE s.survey_type = 'STANDARD';
             """.strip().format(survey_type)
@@ -215,7 +214,7 @@ class HumachResultsArchive:
         sql = \
             f"""
             SELECT DISTINCT(r.sample_id) FROM humach_result r
-            INNER JOIN humach_sample s ON (r.sample_id = s.sample_id AND r.row_id = s.row_id) 
+            INNER JOIN humach_sample s ON (r.sample_id = s.sample_id AND r.row_id = s.row_id)
             WHERE s.survey_month = {month} AND s.survey_year = {year}
             """
         sample_ids = [sample_id[0] for sample_id in self.connection.execute(sql).fetchall()]
@@ -285,7 +284,7 @@ class HumachResultsArchive:
         sql = sql.format(
             table,
             table,
-            ','.join(['"{}"'.format(str(sample_id)) for sample_id in sample_ids])
+            ','.join([f'"{sample_id}"' for sample_id in sample_ids])
         )
         data = pd.read_sql(sql=sql, con=self.connection)
         return data

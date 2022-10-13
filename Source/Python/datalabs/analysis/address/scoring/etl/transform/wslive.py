@@ -45,7 +45,7 @@ class WSLiveResultTransformerTask(TransformerTask):
 
         processed_data = pd.DataFrame()
         processed_data['me'] = data['PHYSICIAN_ME_NUMBER']
-        processed_data['address_key'] = data['OFFICE_ADDRESS_LINE_2'].apply(str.lower) + '_' + data['OFFICE_ADDRESS_ZIP']
+        processed_data['address_key'] = data['OFFICE_ADDRESS_LINE_2'].apply(str.upper) + '_' + data['OFFICE_ADDRESS_ZIP']
         processed_data['survey_data'] = data['SOURCE_FILE_DT'].apply(get_sample_date)
         processed_data['comments'] = data['COMMENTS']
         processed_data['office_address_verified_update'] = data['OFFICE_ADDRESS_VERIFIED_UPDATED']

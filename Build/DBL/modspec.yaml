@@ -14,13 +14,11 @@ modspec:
       - database
       - datastore
       - environment
-      - etcd
       - aws
   - package: datalabs.access.secret
   - package: datalabs.access.parameter
     include:
       - system
-      - etcd
       - dynamodb
   - package: datalabs.analysis
   - package: datalabs.analysis.dbl

@@ -7,7 +7,7 @@ import os
 from   pandas import Series
 from   paramiko.sftp import SFTPError
 
-import datalabs.access.sftp as sftp
+from   datalabs.access import sftp
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.parameter import add_schema

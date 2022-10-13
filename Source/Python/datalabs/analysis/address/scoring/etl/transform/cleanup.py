@@ -4,54 +4,38 @@ from dataclasses import dataclass
 from io import BytesIO
 import pandas as pd
 from datalabs.etl.transform import TransformerTask
-from datalabs.parameter import add_schema
 
 
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class DataFrameCleanupTransformerTaskParameters:
-    data: object
-    keep_columns: str = None
-    clean_whitespace = True
-    date_columns: str = None
-    repair_datetime: str = True
-    convert_to_int_columns: str = None
-    rename_columns: str = None
-
-
-class DataFrameCleanupTransformerTask(TransformerTask):
-    PARAMETER_CLASS = DataFrameCleanupTransformerTaskParameters
-
+class DatabaseTableCleanupTransformerTask(TransformerTask):
     def _transform(self) -> 'Transformed Data':
-        data = pd.read_csv(BytesIO(self._parameters.data[0]), sep='|')
+        data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|')
 
         results = pd.DataFrame()
-        if self._parameters.keep_columns not in [None, '', 'NONE']:
-            keep_columns = self._parameters.keep_columns.split(',')
+        if self._parameters['keep_columns'] not in [None, '', 'NONE']:
+            keep_columns = self._parameters['keep_columns'].split(',')
             for col in keep_columns:
                 results[col] = data[col].copy()
         else:
             results = data.copy()
 
-        if str(self._parameters.clean_whitespace).upper() == 'TRUE':
+        if str(self._parameters['clean_whitespace']).upper() == 'TRUE':
             results = clean_whitespace(results)
 
-        if self._parameters.date_columns not in [None, '', 'NONE']:
-            cols = get_list_parameter(self._parameters.date_columns)
+        if self._parameters['date_columns'] not in [None, '', 'NONE']:
+            cols = get_list_parameter(self._parameters['date_columns'])
             for col in cols:
-                if str(self._parameters.repair_datetime).upper() == 'TRUE':
+                if str(self._parameters['repair_datetime']).upper() == 'TRUE':
                     results[col] = results[col].apply(repair_datetime)
                 else:
                     results[col] = pd.to_datetime(results[col])
 
-        if self._parameters.convert_to_int_columns not in [None, '', 'NONE']:
-            cols = get_list_parameter(self._parameters.convert_to_int_columns)
+        if self._parameters['convert_to_int_columns'] not in [None, '', 'NONE']:
+            cols = get_list_parameter(self._parameters['convert_to_int_columns'])
             for col in cols:
                 results[col] = results[col].apply(convert_to_int)
 
-        if self._parameters.rename_columns not in [None, '', 'NONE']:
-            cols = get_list_parameter(self._parameters.rename_columns)
+        if self._parameters['rename_columns'] not in [None, '', 'NONE']:
+            cols = get_list_parameter(self._parameters['rename_columns'])
             results.columns = cols
 
         final_results = BytesIO()
