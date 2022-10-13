@@ -11,17 +11,18 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
         data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|')
 
         results = pd.DataFrame()
-        if self._parameters['keep_columns'] not in [None, '', 'NONE']:
+        if 'keep_columns' in self._parameters and self._parameters['keep_columns'] not in [None, '', 'NONE']:
             keep_columns = self._parameters['keep_columns'].split(',')
             for col in keep_columns:
                 results[col] = data[col].copy()
         else:
             results = data.copy()
 
-        if str(self._parameters['clean_whitespace']).upper() == 'TRUE':
+        if 'clean_whitespace' not in self._parameters or str(self._parameters['clean_whitespace']).upper() == 'TRUE':
             results = clean_whitespace(results)
 
-        if self._parameters['date_columns'] not in [None, '', 'NONE']:
+        if 'date_columns' in self._parameters and \
+                self._parameters['date_columns'] not in [None, '', 'NONE']:
             cols = get_list_parameter(self._parameters['date_columns'])
             for col in cols:
                 if str(self._parameters['repair_datetime']).upper() == 'TRUE':
@@ -29,12 +30,13 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
                 else:
                     results[col] = pd.to_datetime(results[col])
 
-        if self._parameters['convert_to_int_columns'] not in [None, '', 'NONE']:
+        if 'convert_to_int_columns' in self._parameters and \
+                self._parameters['convert_to_int_columns'] not in [None, '', 'NONE']:
             cols = get_list_parameter(self._parameters['convert_to_int_columns'])
             for col in cols:
                 results[col] = results[col].apply(convert_to_int)
 
-        if self._parameters['rename_columns'] not in [None, '', 'NONE']:
+        if 'rename_columns' in self._parameters and self._parameters['rename_columns'] not in [None, '', 'NONE']:
             cols = get_list_parameter(self._parameters['rename_columns'])
             results.columns = cols
 
