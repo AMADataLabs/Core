@@ -13,38 +13,40 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
             data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep=',', dtype=str)
 
         results = pd.DataFrame()
-        if 'keep_columns' in self._parameters and self._parameters['keep_columns'] not in [None, '', 'NONE']:
-            keep_columns = self._parameters['keep_columns'].split(',')
-            for col in keep_columns:
+        if 'KEEP_COLUMNS' in self._parameters and self._parameters['KEEP_COLUMNS'] not in [None, '', 'NONE']:
+            KEEP_COLUMNS = self._parameters['KEEP_COLUMNS'].split(',')
+            for col in KEEP_COLUMNS:
                 results[col] = data[col].copy()
-            print('keep_columns')
+            print('KEEP_COLUMNS')
         else:
             results = data.copy()
 
-        if 'clean_whitespace' not in self._parameters or str(self._parameters['clean_whitespace']).upper() == 'TRUE':
-            results = clean_whitespace(results)
+        if 'CLEAN_WHITESPACE' not in self._parameters or str(self._parameters['CLEAN_WHITESPACE']).upper() == 'TRUE':
+            results = CLEAN_WHITESPACE(results)
 
-        if 'date_columns' in self._parameters and \
-                self._parameters['date_columns'] not in [None, '', 'NONE']:
-            cols = get_list_parameter(self._parameters['date_columns'])
+        if 'DATE_COLUMNS' in self._parameters and \
+                self._parameters['DATE_COLUMNS'] not in [None, '', 'NONE']:
+            cols = get_list_parameter(self._parameters['DATE_COLUMNS'])
             for col in cols:
                 if str(self._parameters['repair_datetime']).upper() == 'TRUE':
                     results[col] = results[col].apply(repair_datetime)
                 else:
                     results[col] = pd.to_datetime(results[col])
-            print('date_columns')
+            print('DATE_COLUMNS')
 
-        if 'convert_to_int_columns' in self._parameters and \
-                self._parameters['convert_to_int_columns'] not in [None, '', 'NONE']:
-            cols = get_list_parameter(self._parameters['convert_to_int_columns'])
+        if 'CONVERT_TO_INT_COLUMNS' in self._parameters and \
+                self._parameters['CONVERT_TO_INT_COLUMNS'] not in [None, '', 'NONE']:
+            cols = get_list_parameter(self._parameters['CONVERT_TO_INT_COLUMNS'])
             for col in cols:
                 results[col] = results[col].apply(convert_to_int)
-            print('convert_to_int_columns')
+            print('CONVERT_TO_INT_COLUMNS')
 
-        if 'rename_columns' in self._parameters and self._parameters['rename_columns'] not in [None, '', 'NONE']:
-            cols = get_list_parameter(self._parameters['rename_columns'])
+        if 'RENAME_COLUMNS' in self._parameters and self._parameters['RENAME_COLUMNS'] not in [None, '', 'NONE']:
+            cols = get_list_parameter(self._parameters['RENAME_COLUMNS'])
             results.columns = cols
-            print('rename_columns')
+            print('RENAME_COLUMNS')
+
+        print(self._parameters)
 
         final_results = BytesIO()
         results.to_csv(final_results, sep='|', index=False)
@@ -53,7 +55,7 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
         return [final_results.read()]
 
 
-def clean_whitespace(data: pd.DataFrame, reduce=True):
+def CLEAN_WHITESPACE(data: pd.DataFrame, reduce=True):
     for col in data.columns.values:
         if reduce:
             data[col] = data[col].apply(lambda x: ' '.join(x.strip().split()) if isinstance(x, str) else x)
