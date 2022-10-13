@@ -20,33 +20,28 @@ LOGGER.setLevel(logging.INFO)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class SQLExtractorParameters:
-    driver: str
-    driver_type: str
-    database_host: str
-    database_username: str
-    database_password: str
-    database_port: str
-    jar_path: str
     sql: str
     data: object = None
-    execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
     count: str = None           # Total number of records to fetch accross chunks
     start_index: str = '0'      # Starting record index
     max_parts: str = None       # Number of task copies working on this query
     part_index: str = None      # This task's index
     stream: str = None
-    database_name: str = None
-    database_parameters: str = None
 
 
 class SQLExtractorTask(ExtractorTask):
     PARAMETER_CLASS = SQLExtractorParameters
 
     def _extract(self):
+        results = None
         connection = self._connect()
 
-        return self._read_queries(connection)
+        results = self._read_queries(connection)
+
+        connection.close()
+
+        return results
 
     @abstractmethod
     def _connect(self):
@@ -154,33 +149,7 @@ class SQLExtractorTask(ExtractorTask):
         return formatter.format(query, index=index, count=count)
 
 
-@add_schema
-@dataclass
-# pylint: disable=too-many-instance-attributes
-class SQLParametricExtractorParameters:
-    driver: str
-    driver_type: str
-    database_host: str
-    database_name: str
-    database_username: str
-    database_password: str
-    database_port: str
-    jar_path: str
-    sql: str
-    max_parts: str              # Number of task copies working on this query
-    part_index: str             # This task's index
-    data: object = None
-    execution_time: str = None
-    chunk_size: str = None      # Number of records to fetch per chunk
-    count: str = None           # Total number of records to fetch accross chunks
-    start_index: str = '0'
-    stream: str = None
-    database_parameters: str = None
-
-
 class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
-    PARAMETER_CLASS = SQLParametricExtractorParameters
-
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -205,8 +174,6 @@ class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
 
 
 class SQLParquetExtractorTask(SQLExtractorTask):
-    PARAMETER_CLASS = SQLExtractorParameters
-
     @classmethod
     def _encode(cls, data):
         return data
