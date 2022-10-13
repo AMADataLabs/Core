@@ -16,6 +16,8 @@ Environment/*
 .ecrtoken_*
 .s3token_*
 Bundle/*
+target/*
+Scratch/*
 
 
 .idea

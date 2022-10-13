@@ -9,7 +9,7 @@ from alembic import context
 from datalabs.access.credentials import Credentials
 from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
-from {{ model_module }} import Base
+from {{ model_module }} import BASE
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -32,8 +32,8 @@ fileConfig(config.config_file_name)
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = [Base.metadata,]
+# target_metadata = mymodel.BASE.metadata
+target_metadata = [BASE.metadata,]
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

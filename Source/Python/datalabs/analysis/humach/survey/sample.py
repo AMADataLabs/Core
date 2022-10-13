@@ -80,9 +80,9 @@ class HumachSampleGenerator:
         self._load_environment_variables()
         LOGGER.info('GETTING LATEST VERTICAL TRAIL RESULTS')
         latest_result_sample_id = self._vt_archive.get_latest_results_sample_id()
-        LOGGER.info('LATEST SAMPLE ID - {}'.format(latest_result_sample_id))
+        LOGGER.info('LATEST SAMPLE ID - %s', latest_result_sample_id)
         latest_result_data = self._vt_archive.get_results_for_sample_id(latest_result_sample_id)
-        LOGGER.info('LATEST SAMPLE RESULTS SIZE - {}'.format(len(latest_result_data)))
+        LOGGER.info('LATEST SAMPLE RESULTS SIZE - %d', len(latest_result_data))
         LOGGER.info('CREATING POPULATION DATA')
         population_data = self._get_vertical_trail_verification_population_data(result_data=latest_result_data)
         LOGGER.info('CREATING SAMPLE')
@@ -317,7 +317,7 @@ class HumachSampleGenerator:
         sample_save_path = self._save_dir + sample_name
         writer = pd.ExcelWriter(sample_save_path, engine='xlsxwriter')
 
-        LOGGER.info('SAVING SAMPLE TO {}'.format(sample_save_path))
+        LOGGER.info('SAVING SAMPLE TO %s', sample_save_path)
         deliverable.to_excel(excel_writer=writer, index=None)
         writer.save()
 

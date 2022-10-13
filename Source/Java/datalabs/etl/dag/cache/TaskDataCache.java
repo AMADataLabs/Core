@@ -1,6 +1,10 @@
 package datalabs.etl.dag.cache;
 
-import java.util.Vector;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Map;
+
+import datalabs.parameter.Parameters;
 
 
 public abstract class TaskDataCache {
@@ -8,7 +12,14 @@ public abstract class TaskDataCache {
         INPUT, OUTPUT
     }
 
-    public abstract Vector<byte[]> extractData();
+    protected Map<String, String> parameters = null;
 
-    public abstract void loadData(Vector<byte[]> outputData);
+    public TaskDataCache(Map<String, String> parameters)
+            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+        this.parameters = parameters;
+    }
+
+    public abstract ArrayList<byte[]> extractData();
+
+    public abstract void loadData(ArrayList<byte[]> outputData);
 }

@@ -34,7 +34,7 @@ class TemplatedFileGenerator(ABC):
     def _read_template(self) -> jinja2.Template:
         environment = jinja2.Environment(undefined=jinja2.make_logging_undefined(logger=LOGGER, base=jinja2.Undefined))
 
-        with open(self._filenames.template) as file:
+        with open(self._filenames.template, encoding="utf-8") as file:
             template = environment.from_string(file.read())
 
         return template
@@ -48,7 +48,7 @@ class TemplatedFileGenerator(ABC):
         return template.render(**template_paratameters)
 
     def _write_output(self, output):
-        with open(self._filenames.output, 'w') as file:
+        with open(self._filenames.output, 'w', encoding="utf-8") as file:
             file.write(output)
             file.flush()
 

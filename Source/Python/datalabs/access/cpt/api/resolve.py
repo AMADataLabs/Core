@@ -4,15 +4,15 @@ import logging
 import re
 
 from   datalabs.access.cpt.api.bulk import FilesEndpointTask
-import datalabs.access.cpt.api.clinician_descriptor as clinician_descriptor
-import datalabs.access.cpt.api.consumer_descriptor as consumer_descriptor
+from   datalabs.access.cpt.api import clinician_descriptor
+from    datalabs.access.cpt.api import consumer_descriptor
 from   datalabs.access.cpt.api.default import DefaultEndpointTask
 from   datalabs.access.cpt.api.descriptor import DescriptorEndpointTask, AllDescriptorsEndpointTask
 from   datalabs.access.cpt.api.modifier import ModifierEndpointTask, AllModifiersEndpointTask
 from   datalabs.access.cpt.api.pdf import LatestPDFsEndpointTask
 from   datalabs.access.cpt.api.pla import PLADetailsEndpointTask, AllPLADetailsEndpointTask
 from   datalabs.access.cpt.api.release import ReleasesEndpointTask
-import datalabs.task as task
+from   datalabs import task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -47,8 +47,8 @@ class TaskResolver(task.TaskResolver):
     ]
 
     @classmethod
-    def get_task_class(cls, parameters):
-        path = parameters['path']
+    def get_task_class(cls, runtime_parameters):
+        path = runtime_parameters['path']
         task_class = None
 
         for mapping in cls.TASK_CLASSES:

@@ -257,7 +257,7 @@ class AMCAddressFlagger:
             return True
 
         tokens = address_string.split()
-        tokens = list()
+        tokens = []
         if 'stop' in tokens or 'mailstop' in tokens:
             index = tokens.index('stop')
 

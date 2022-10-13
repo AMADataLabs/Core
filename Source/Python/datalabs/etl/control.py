@@ -39,26 +39,48 @@ class DAGNotificationFactoryTask(TransformerTask):
 
     @classmethod
     def _parse_iteration_parameters(cls, data):
-        csv_data = (pandas.read_csv(BytesIO(file), dtype=object) for file in data)
+        parameters = pandas.DataFrame()
 
-        return pandas.concat(csv_data, ignore_index=True)
+        if data is not None:
+            csv_data = (pandas.read_csv(BytesIO(file), dtype=object) for file in data)
+            parameters = pandas.concat(csv_data, ignore_index=True)
+
+        return parameters
 
     @classmethod
     def _generate_notification_messages(cls, dag, execution_time, parameters):
-        parameters["dag"] = dag
-        parameters["execution_time"] = execution_time
+        messages = None
 
-        parameters.dag = parameters.dag + ":" + parameters.index.astype(str)
+        if parameters.empty:
+            parameters = pandas.DataFrame(dict(dag=[dag], execution_time=[execution_time]))
 
-        return list(parameters.apply(cls._generate_notification_message, axis="columns"))
+            messages = [cls._generate_notification_message(parameters)]
+        else:
+            messages = cls._generate_notification_messages_from_parameters(dag, execution_time, parameters)
+
+        return messages
 
     @classmethod
     def _generate_notification_message(cls, parameters):
         dag = parameters.dag
         execution_time = parameters.execution_time
 
-        return dict(
+        message = dict(
             dag=dag,
-            execution_time=execution_time,
-            parameters=json.loads(parameters.drop(["dag", "execution_time"]).to_json())
+            execution_time=execution_time
         )
+
+        if (parameters is not None) and (len(parameters) > 2):
+
+            message["parameters"] = json.loads(parameters.drop(["dag", "execution_time"]).to_json())
+
+        return message
+
+    @classmethod
+    def _generate_notification_messages_from_parameters(cls, dag, execution_time, parameters):
+        parameters["dag"] = dag
+        parameters["execution_time"] = execution_time
+
+        parameters.dag = parameters.dag + ":" + parameters.index.astype(str)
+
+        return list(parameters.apply(cls._generate_notification_message, axis="columns"))

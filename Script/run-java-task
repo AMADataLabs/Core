@@ -4,7 +4,8 @@
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 RUN="${SCRIPT_BASE_PATH}/run.py python"
-export CLASSPATH=${SCRIPT_BASE_PATH}/../target/DataLabs-dev.jar
+DEPDENCIES_CLASSPATH=$(mvn -f ${SCRIPT_BASE_PATH}/../pom.xml dependency:build-classpath | grep -v "[INFO]")
+export CLASSPATH=${SCRIPT_BASE_PATH}/../target/DataLabs-dev.jar:${DEPDENCIES_CLASSPATH}
 
 
 main() {

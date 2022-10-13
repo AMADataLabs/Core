@@ -3,9 +3,9 @@
 import logging
 
 
-from flask import Flask
+from   flask import Flask
 
-import datalabs.deploy.bitbucket.sync.trigger as trigger
+from   datalabs.deploy.bitbucket.sync import trigger
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

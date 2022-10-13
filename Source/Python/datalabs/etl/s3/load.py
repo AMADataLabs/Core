@@ -50,23 +50,17 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
         return ['/'.join((current_path, file.strip())) for file in self._parameters.files.split(',')]
 
     def _load_file(self, data, file):
+        response = None
+
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
             md5_hash = self._md5_file(data)
-            data = open(data, 'rb')  # data is a filename bytes string
+
+            with open(data, 'rb') as body:  # data is a filename bytes string
+                response = self._put_object(file, body, md5_hash)
         else:
             md5_hash = hashlib.md5(data).digest()
 
-        b64_md5_hash = base64.b64encode(md5_hash)
-
-        response = self._client.put_object(
-            Bucket=self._parameters.bucket,
-            Key=file,
-            Body=data,
-            ContentMD5=b64_md5_hash.decode()
-        )
-
-        if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
-            data.close()
+            response = self._put_object(file, data, md5_hash)
 
         return response
 
@@ -91,6 +85,18 @@ class S3FileLoaderTask(ExecutionTimeMixin, CurrentPathMixin, IncludesNamesMixin,
                 hash_md5.update(chunk)
 
         return hash_md5.digest()
+
+    def _put_object(self, file, data, md5_hash):
+        b64_md5_hash = base64.b64encode(md5_hash)
+
+        response = self._client.put_object(
+            Bucket=self._parameters.bucket,
+            Key=file,
+            Body=data,
+            ContentMD5=b64_md5_hash.decode()
+        )
+
+        return response
 
     def _get_execution_date(self):
         execution_time = self._parameters.execution_time

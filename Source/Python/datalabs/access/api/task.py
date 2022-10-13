@@ -1,7 +1,7 @@
 """ API endpoint task classes. """
 import logging
 
-import datalabs.task as task
+from   datalabs import task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -37,8 +37,8 @@ class APIEndpointTask(task.Task):
     def __init__(self, parameters: dict):
         super().__init__(parameters)
         self._status_code = 200
-        self._response_body = dict()
-        self._headers = dict()
+        self._response_body = {}
+        self._headers = {}
 
     @property
     def status_code(self):
@@ -63,7 +63,7 @@ class APIEndpointTaskWrapper(task.TaskWrapper):
         status_code = exception.status_code
         body = dict(message=exception.message)
 
-        return status_code, dict(), body
+        return status_code, {}, body
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):

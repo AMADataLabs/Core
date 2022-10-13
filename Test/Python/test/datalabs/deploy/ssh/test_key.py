@@ -13,7 +13,7 @@ from   datalabs.deploy.ssh.key import load_key_from_variable
 def test_load_key_from_variable_has_correct_content(variable, path):
     load_key_from_variable(variable.name, path)
 
-    with open(path) as file:
+    with open(path, encoding="utf-8") as file:
         key = file.read()
 
     assert key == variable.value

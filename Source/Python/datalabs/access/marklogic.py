@@ -50,7 +50,7 @@ class MarkLogic(Datastore):
         self.write_file(data, file_name=uri, save_dir=save_dir)
 
     def get_file(self, uri, database='PhysicianSanctions'):
-        url = '{}/documents?uri={}&database={}'.format(self.url, uri, database)
+        url = f'{self.url}/documents?uri={uri}&database={database}'
 
         response = self._connection.get(url=url, auth=self.auth)
         response.raise_for_status()

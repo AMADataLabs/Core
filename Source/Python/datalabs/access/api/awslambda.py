@@ -8,7 +8,7 @@ from   datalabs.awslambda import TaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class APIEndpointTaskWrapper(TaskWrapper):
@@ -59,7 +59,7 @@ class APIEndpointTaskWrapper(TaskWrapper):
 
         return {
             "statusCode": status_code,
-            "headers": dict(),
+            "headers": {},
             "body": message,
             "isBase64Encoded": False,
         }

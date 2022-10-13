@@ -1,6 +1,7 @@
 ''' Definition for the HelloWorldJava DAG. '''
-from   datalabs.etl.dag.dag import DAG
+from   datalabs.etl.dag.dag import DAG, register
 
 
+@register(name="HELLO_WORLD_JAVA")
 class HelloWorldJavaDAG(DAG):
     LOG_MESSAGE: "HelloWorldTask"

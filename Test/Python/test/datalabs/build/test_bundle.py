@@ -65,7 +65,7 @@ modspec:
   - package: datalabs.access.cpt.api
 '''
     with tempfile.NamedTemporaryFile() as temp_file:
-        with open(temp_file.name, 'w') as modspec_out:
+        with open(temp_file.name, 'w', encoding="utf-8") as modspec_out:
             modspec_out.write(modspec)
 
         yield temp_file.name
@@ -112,7 +112,8 @@ def populate_directory(directory, files):
     os.makedirs(directory)
 
     for file in files:
-        open(os.path.join(directory, file), 'w').close()
+        with open(os.path.join(directory, file), 'w', encoding="utf-8"):
+            pass
 
 def get_files_in_directory(path):
     _, _, all_files = next(os.walk(path))

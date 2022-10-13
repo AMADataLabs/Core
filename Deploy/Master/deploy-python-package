@@ -7,16 +7,8 @@ SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 AWS_DEFAULT_REGION=us-east-1
-declare -A ENVIRONMENTS=(
-    [master]=sbx
-    [dev]=dev
-    [test]=tst
-    [stage]=itg
-    [prod]=prd
-)
+ENVIRONMENT=sbx
 
-BRANCH=
-ENVIRONMENT=
 PROJECT=
 VERSION=
 
@@ -25,6 +17,8 @@ main() {
     process_arguments "$@"
 
     setup_virtual_environment
+
+    determine_package_info
 
     build_package
 
@@ -38,16 +32,6 @@ process_arguments() {
         -h|--help)
             print_usage
             exit 0
-            ;;
-        -b|--branch)
-            BRANCH=$2
-            shift
-            shift
-            ;;
-        -e|--environment)
-            ENVIRONMENT=$2
-            shift
-            shift
             ;;
         -p|--project)
             PROJECT=$2
@@ -67,14 +51,7 @@ process_arguments() {
       esac
     done
 
-    if [[ "$VERSION" != "" ]]; then
-        ENVIRONMENT=sbx
-    elif [[ "$BRANCH" != "" ]]; then
-        ENVIRONMENT=${ENVIRONMENTS[$BRANCH]}
-    elif [[ "$ENVIRONMENT" == "" ]]; then
-        echo "Missing environment argument."
-        exit 1
-    elif  [[ "$PROJECT" == "" ]]; then
+    if  [[ "$PROJECT" == "" ]]; then
         echo "Missing project argument."
         exit 1
     fi
@@ -88,20 +65,19 @@ setup_virtual_environment() {
 }
 
 
-build_package() {
+determine_package_info() {
     source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
 
-    if [[ "$VERSION" != "" ]]; then
-        RELEASE_VERSION=$VERSION
-    else
-        VERSION=$RELEASE_VERSION
-    fi
+    unset RELEASE_VERSION
 
-    if [[ "$RELEASE_VERSION" == "dev" ]]; then
+    if [[ "$VERSION" == "" ]]; then
         generate_dev_version
     fi
     echo "Version: $VERSION"
+}
 
+
+build_package() {
     Script/release-python-component --name $RELEASE_NAME --version $VERSION \
         --description "$RELEASE_DESCRIPTION" ${PROJECT}
 }
@@ -129,8 +105,7 @@ generate_dev_version() {
     current_version=$(
         aws --profile default codeartifact list-package-versions \
             --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
-            --format pypi --sort-by PUBLISHED_TIME \
-            | grep -m 1 -e '"version": ' | sed 's/..*: "//' | sed 's/",//'
+            --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
     )
 
     if [[ "$current_version" == "" ]]; then

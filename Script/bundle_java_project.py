@@ -6,6 +6,7 @@ import os
 from   pathlib import Path
 import re
 import shutil
+import subprocess
 import sys
 from   zipfile import ZipFile
 
@@ -14,28 +15,34 @@ from   datalabs.common.setup import FileGeneratorFilenames, SimpleFileGenerator
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class ProjectBundler(ABC):
     def __init__(self, repository_path):
         self._repository_path = repository_path
-        self._shared_source_path = Path(os.path.join(self._repository_path, 'Source', 'Java')).resolve()
+        self._shared_source_paths = [
+            Path(os.path.join(self._repository_path, 'Source', 'Java')).resolve(),
+            Path(os.path.join(self._repository_path, 'Source', 'Kotlin')).resolve()
+        ]
         self._build_path = Path(os.path.join(self._repository_path, 'Build')).resolve()
 
 
-    def bundle(self, project, version, target_path, extra_files, **kwargs):
+    def bundle(self, project, package, version, target_path, extra_files, **kwargs):
         target_path = target_path or Path(os.path.join(self._build_path, project, project)).resolve()
 
-        self._build_bundle(project, version, Path(target_path), extra_files, **kwargs)
+        if package is None:
+            package = project
+
+        self._build_bundle(project, package, version, Path(target_path), extra_files, **kwargs)
 
     @abstractmethod
-    def _build_bundle(self, project, version, target_path, extra_files, **kwargs):
+    def _build_bundle(self, project, package, version, target_path, extra_files, **kwargs):
         pass
 
 
 class LocalProjectBundler(ProjectBundler):
-    def _build_bundle(self, project, version, target_path, extra_files, **kwargs):
+    def _build_bundle(self, project, package, version, target_path, extra_files, **kwargs):
         if os.path.exists(target_path) and not kwargs['in_place']:
             LOGGER.info('=== Removing Old Target Directory ===')
             shutil.rmtree(target_path)
@@ -47,7 +54,7 @@ class LocalProjectBundler(ProjectBundler):
         self._copy_build_files(project, target_path, kwargs['use_pom'])
 
         LOGGER.info('=== Generating Project Object Model ===')
-        self._render_project_object_model_file(project, version, target_path)
+        self._render_project_object_model_file(project, package, version, target_path)
 
         LOGGER.info('=== Copying Source Files ===')
         self._copy_source_files(project, target_path)
@@ -64,24 +71,35 @@ class LocalProjectBundler(ProjectBundler):
             LOGGER.debug('Copying file %s to %s', os.path.join(self._build_path, project, 'pom.xml'), os.path.join(target_path, 'pom.xml'))
             shutil.copy(os.path.join(self._build_path, project, 'pom.xml'), os.path.join(target_path, 'pom.xml'))
         else:
+            LOGGER.debug('Copying file %s to %s', os.path.join(self._build_path, 'Master', 'pom.xml.jinja'), os.path.join(target_path, 'pom.xml.jinja'))
             shutil.copy(os.path.join(self._build_path, 'Master', 'pom.xml.jinja'), os.path.join(target_path, 'pom.xml.jinja'))
 
-    def _render_project_object_model_file(self, project, version, target_path):
+    def _render_project_object_model_file(self, project, package, version, target_path):
         template_path = os.path.join(target_path, 'pom.xml.jinja')
         result_path = os.path.join(target_path, 'pom.xml')
+        namespace = 'org.ama-assn.datalabs'
+
+        if ':' in package:
+            namespace, package = package.split(':')
 
         if not os.path.exists(result_path):
-            LOGGER.info(f'Generating file {str(result_path)} from template {str(template_path)}')
+            LOGGER.info('Generating file %s from template %s', result_path, template_path)
             filenames = FileGeneratorFilenames(template=Path(template_path), output=Path(result_path))
 
-            file_generator = SimpleFileGenerator(filenames, project=project, version=version)
+            file_generator = SimpleFileGenerator(
+                filenames,
+                project=project,
+                namespace=namespace,
+                package=package,
+                version=version
+            )
             file_generator.generate()
 
     def _copy_source_files(self, project, target_path):
         modspec_path = os.path.join(self._build_path, project, 'modspec.yaml')
         bundle = JavaSourceBundle.from_file(modspec_path)
 
-        return bundle.copy(self._shared_source_path, os.path.join(target_path, 'src', 'main', 'java'))
+        return bundle.copy_multiple(self._shared_source_paths, os.path.join(target_path, 'src', 'main', 'java'))
 
     def _copy_extra_files(self, files, target_path):
         files = files or []
@@ -93,8 +111,29 @@ class LocalProjectBundler(ProjectBundler):
             shutil.copy(file, os.path.join(destination_directory, file))
 
     def _jar_source_directory(self, project, target_path):
-        os.system(f'mvn -f {os.path.join(target_path, "pom.xml")} package')
+        cwd = os.getcwd()
 
+        os.chdir(target_path)
+
+        subprocess.run(["mvn", "compile"])
+
+        self._supplement_build_with_dependencies()
+
+        subprocess.run(["mvn", "package"])
+
+        os.chdir(cwd)
+
+    def _supplement_build_with_dependencies(cls):
+        process = subprocess.run(["mvn", "dependency:list"], stdout=subprocess.PIPE)
+        process = subprocess.run(["grep", ":compile"], input=process.stdout, stdout=subprocess.PIPE)
+        process = subprocess.run(["sed", "s/^[^ ][^ ]*  *//"], input=process.stdout, stdout=subprocess.PIPE)
+        process = subprocess.run(["sed", "s/:jar:/:/"], input=process.stdout, stdout=subprocess.PIPE)
+        process = subprocess.run(["sed", "s/:compile$//"], input=process.stdout, stdout=subprocess.PIPE)
+
+        os.makedirs("resources", exist_ok=True)
+
+        with open("resources/dependencies.txt", "wb") as pom:
+            pom.write(process.stdout)
 
 if __name__ == '__main__':
     return_code = 0
@@ -109,6 +148,7 @@ if __name__ == '__main__':
         help='Do not pre-clean the target directory.')
     ap.add_argument('-p', '--use-pom', action='store_true', default=False,
         help='Use the pom.xml in the Build/<PROJECT>/ directory instead of the default template.')
+    ap.add_argument('-P', '--package', required=False, help='Specify the package name.')
     ap.add_argument(
         '-v', '--version', default="1.0.0", help='Version of the bundle (default 1.0.0).'
     )
@@ -126,6 +166,7 @@ if __name__ == '__main__':
 
         return_code = project_bundler.bundle(
             args['project'],
+            args['package'],
             args['version'],
             target_path=args['directory'],
             extra_files=args['file'],
@@ -133,7 +174,7 @@ if __name__ == '__main__':
             use_pom=args.get('use_pom', False)
         )
     except Exception as e:
-        LOGGER.exception(f"Failed to create project bundle.")
+        LOGGER.exception("Failed to create project bundle.")
         return_code = 1
 
     exit(return_code)

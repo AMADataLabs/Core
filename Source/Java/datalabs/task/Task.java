@@ -2,45 +2,28 @@ package datalabs.task;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import datalabs.parameter.ParameterizedClassMixin;
 import datalabs.parameter.Parameters;
 
 
-public abstract class Task extends ParameterizedClassMixin {
+public abstract class Task {
     protected static final Logger LOGGER = LoggerFactory.getLogger(Task.class);
 
-    protected Vector<byte[]> data = null;
+    protected Parameters parameters = null;
+    protected ArrayList<byte[]> data = null;
 
-    public Task(Map<String, String> parameters, Vector<byte[]> data)
+    public Task(Map<String, String> parameters, ArrayList<byte[]> data, Class parameterClass)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        this(parameters, data, null);
-    }
+        LOGGER.info("Task Parameters: " + parameters);
 
-    public Task(Map<String, String> parameters, Vector<byte[]> data, Class parameterClass)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        this(parameters, parameterClass);
+        this.parameters = Parameters.fromMap(parameters, parameterClass);
 
         this.data = data;
     }
 
-    public Task(Map<String, String> parameters)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        this(parameters, (Class) null);
-    }
-
-    public Task(Map<String, String> parameters, Class parameterClass)
-            throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, parameterClass);
-    }
-
-    public abstract void run() throws TaskException;
-
-    public Vector<byte[]> getData() {
-        return this.data;
-    }
+    public abstract ArrayList<byte[]> run() throws TaskException;
 }

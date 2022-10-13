@@ -9,7 +9,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# pylint: disable=protected-access, redefined-outer-name
+# pylint: disable=protected-access, redefined-outer-name, unsubscriptable-object
 def test_deleted_history(deleted_test_data):
     parser = link.DeletionHistoryParser()
     deleted_data_text = parser.parse(deleted_test_data)
@@ -20,7 +20,7 @@ def test_deleted_history(deleted_test_data):
     assert deleted_data_text['concept_id'][0] == '1031079'
 
 
-# pylint: disable=protected-access, redefined-outer-name
+# pylint: disable=protected-access, redefined-outer-name, unsubscriptable-object
 def test_code_history(code_history_test_data):
     parser = link.CodeHistoryParser()
     code_history_text = parser.parse(code_history_test_data)
@@ -31,7 +31,7 @@ def test_code_history(code_history_test_data):
     assert code_history_text['concept_id'][0] == '1031078'
 
 
-# pylint: disable=protected-access, redefined-outer-name
+# pylint: disable=protected-access, redefined-outer-name, unsubscriptable-object
 def test_modifier_history(modifier_history_test_data):
     parser = link.ModifierHistoryParser()
     modifier_history_text = parser.parse(modifier_history_test_data)

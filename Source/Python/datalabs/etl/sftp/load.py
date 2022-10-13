@@ -3,7 +3,7 @@ from   dataclasses import dataclass
 import io
 import os
 
-import datalabs.access.sftp as sftp
+from   datalabs.access import sftp
 from   datalabs.etl.load import FileLoaderTask
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.parameter import add_schema

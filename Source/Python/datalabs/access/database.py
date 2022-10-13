@@ -66,13 +66,7 @@ class Database(Datastore):
             name = f'/{self._configuration.name}'
 
 
-        url = "{}://{}{}{}{}".format(
-            self._configuration.backend,
-            credentials,
-            self._configuration.host or '',
-            port,
-            name,
-        )
+        url = f"{self._configuration.backend}://{credentials}{self._configuration.host or ''}{port}{name}"
 
         return url
 

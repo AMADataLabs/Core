@@ -12,33 +12,31 @@ LOGGER.setLevel(logging.DEBUG)
 
 class ResidencyTransformerTask(TransformerTask):
     @classmethod
-    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
-        return super()._csv_to_dataframe(data, on_disk, sep='|', error_bad_lines=False, encoding='latin',
-                                         low_memory=False)
+    def _csv_to_dataframe(cls, data, **kwargs):
+        return super()._csv_to_dataframe(data, sep='|', error_bad_lines=False, encoding='latin', low_memory=False)
 
-    # pylint: disable=too-many-arguments
-    def _preprocess_data(self, data):
-        programs, addresses, program_personnel, program_institution, institution_info = data
+    def _preprocess(self, dataset):
+        programs, addresses, program_personnel, program_institutions, institution_info = dataset
 
-        addresses, program_personnel, program_institution = self._convert_ids_to_strings(
+        addresses, program_personnel, program_institutions = self._convert_ids_to_strings(
             addresses,
             program_personnel,
-            program_institution
+            program_institutions
         )
 
-        programs, addresses, program_personnel, program_institution, institution_info = self._select_values(
+        programs, addresses, program_personnel, program_institutions, institution_info = self._select_values(
             programs,
             addresses,
             program_personnel,
-            program_institution,
+            program_institutions,
             institution_info
         )
 
-        programs, program_personnel, institution_info = self._merge_dataframes(
+        programs, program_personnel, institution_info = self._merge(
             programs,
             addresses,
             program_personnel,
-            program_institution,
+            program_institutions,
             institution_info
         )
 
@@ -49,6 +47,7 @@ class ResidencyTransformerTask(TransformerTask):
         )
 
         programs = self._convert_integers_to_booleans(programs)
+
         programs, program_personnel = self._filter_out_values(programs, institution_info, program_personnel)
 
         program_personnel = self._generate_primary_keys(program_personnel)
@@ -56,44 +55,46 @@ class ResidencyTransformerTask(TransformerTask):
         return [programs, program_personnel, institution_info]
 
     @classmethod
-    def _convert_ids_to_strings(cls, addresses, program_personnel, program_institution):
+    def _convert_ids_to_strings(cls, addresses, program_personnel, program_institutions):
         addresses.pgm_id = addresses.pgm_id.astype(str)
 
         program_personnel.pgm_id = program_personnel.pgm_id.astype(str)
 
-        program_institution = program_institution.astype({'pgm_id': str, 'ins_id': str})
+        program_institutions = program_institutions.astype({'pgm_id': str, 'ins_id': str})
 
-        return addresses, program_personnel, program_institution
+        return addresses, program_personnel, program_institutions
 
+    # pylint: disable=too-many-arguments
     @classmethod
-    def _select_values(cls, programs, addresses, program_personnel, program_institution, institution_info):
+    def _select_values(cls, programs, addresses, program_personnel, program_institutions, institution_info):
         programs = programs.loc[(programs['pgm_activity_code'] == '0')].reset_index(drop=True)
 
         addresses = addresses.loc[(addresses['addr_type'] == 'D')].reset_index(drop=True)
 
         program_personnel_member = program_personnel.loc[(program_personnel['pers_type'] == 'D')]
 
-        program_institution = program_institution.loc[
-            (program_institution['affiliation_type'] == 'S')
+        program_institutions = program_institutions.loc[
+            (program_institutions['affiliation_type'] == 'S')
         ].reset_index(drop=True)
 
         institution_info = institution_info.loc[
             (institution_info['ins_affiliation_type'] == 'S')
         ].reset_index(drop=True)
 
-        return programs, addresses, program_personnel_member, program_institution, institution_info
+        return programs, addresses, program_personnel_member, program_institutions, institution_info
 
+    # pylint: disable=too-many-arguments
     @classmethod
-    def _merge_dataframes(cls, programs, addresses, program_personnel, program_institution, institution_info):
+    def _merge(cls, programs, addresses, program_personnel, program_institutions, institution_info):
         programs = programs.merge(addresses, on='pgm_id', how='left')
         programs = programs.merge(
-            program_institution[['pgm_id', 'ins_id', 'pri_clinical_loc_ind']],
+            program_institutions[['pgm_id', 'ins_id', 'pri_clinical_loc_ind']],
             on='pgm_id',
             how='left'
         )
 
         institution_info = institution_info.merge(
-            program_institution[['ins_id']],
+            program_institutions[['ins_id']],
             on='ins_id',
             how='left'
         ).drop_duplicates()
@@ -152,10 +153,12 @@ class ResidencyTransformerTask(TransformerTask):
 
         return program_personnel
 
-    def _postprocess_data(self, data):
-        program = data[0]
-        program = program[program['institution'].notna()]
-        return [program, data[1], data[2]]
+    def _postprocess(self, dataset):
+        programs, program_personnel, institution_info = dataset
+
+        programs = programs[programs['institution'].notna()]
+
+        return [programs, program_personnel, institution_info]
 
     def _get_columns(self):
         return [col.PROGRAM_COLUMNS, col.MEMBER_COLUMNS, col.INSTITUTION_COLUMNS]

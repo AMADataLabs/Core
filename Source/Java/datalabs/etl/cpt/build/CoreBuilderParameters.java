@@ -7,13 +7,15 @@ import datalabs.parameter.Parameters;
 
 
 public class CoreBuilderParameters extends Parameters {
-    public String outputDirectory;
-    public String priorLinkVersion;
-    public String currentLinkVersion;
+
     public String releaseDate;
+    public String host;
+    public String username;
+    public String password;
+    public String port;
     public Map<String, String> unknowns;
 
-    public CoreBuilderParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException {
+    public CoreBuilderParameters(Map<String, String> parameters) throws IllegalAccessException, IllegalArgumentException, NoSuchFieldException {
         super(parameters);
     }
 }

@@ -9,8 +9,8 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=dev
-        [itg]=1.0.1
+        [tst]=1.1.0
+        [itg]=1.1.0
         [prd]=1.0.1
     )
 
@@ -20,7 +20,7 @@ main() {
 
     export RELEASE_TYPE="Python"
     export RELEASE_NAME="datalabs-amc"
-    export RELEASE_DESCRIPTION="AMC Address Flagging Report DAG"
+    export RELEASE_DESCRIPTION="AMC Address Flagging Report DAG plugin"
 }
 
 
