@@ -17,6 +17,7 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
             keep_columns = self._parameters['keep_columns'].split(',')
             for col in keep_columns:
                 results[col] = data[col].copy()
+            print('keep_columns')
         else:
             results = data.copy()
 
@@ -31,16 +32,19 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
                     results[col] = results[col].apply(repair_datetime)
                 else:
                     results[col] = pd.to_datetime(results[col])
+            print('date_columns')
 
         if 'convert_to_int_columns' in self._parameters and \
                 self._parameters['convert_to_int_columns'] not in [None, '', 'NONE']:
             cols = get_list_parameter(self._parameters['convert_to_int_columns'])
             for col in cols:
                 results[col] = results[col].apply(convert_to_int)
+            print('convert_to_int_columns')
 
         if 'rename_columns' in self._parameters and self._parameters['rename_columns'] not in [None, '', 'NONE']:
             cols = get_list_parameter(self._parameters['rename_columns'])
             results.columns = cols
+            print('rename_columns')
 
         final_results = BytesIO()
         results.to_csv(final_results, sep='|', index=False)
