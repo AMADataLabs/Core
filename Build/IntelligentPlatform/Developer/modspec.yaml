@@ -22,16 +22,25 @@ modspec:
     include:
       - awslambda
       - csv
+      - extract
       - load
+      - task
+      - transform
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
-  - package: datalabs.etl.dag.cpt
+  - package: datalabs.etl.dag.intelligent_platform.developer
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.sql
-  - package: datalabs.etl.sql.jdbc
-  - package: datalabs.etl.cpt.developer
+  - package: datalabs.etl.sql.sqlalchemy
+  - package: datalabs.etl.intelligent_platform.developer.email
+  - package: datalabs.etl.intelligent_platform.developer.token
+  - package: datalabs.etl.orm
+  - package: datalabs.etl.orm.provider
+    include:
+      - base
+      - mysql
   - package: datalabs.etl.s3
   - package: datalabs.messaging
     include:

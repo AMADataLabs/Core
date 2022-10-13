@@ -18,7 +18,9 @@ class EmailTransformerParameters:
     execution_time: str = None
     data: object = None
 
+
 class EmailReportGeneratorTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
     PARAMETER_CLASS = EmailTransformerParameters
+
     def _transform(self):
         pass

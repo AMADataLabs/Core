@@ -44,6 +44,7 @@ psycopg2-binary==2.9.3
 pydeps==1.10.18
 pygments==2.8.1
 pylint==2.12.2
+pymssql==2.2.5
 pymysql==1.0.2
 pyodbc==4.0.28; platform_system=="Windows"
 PyPDF2==1.27.5

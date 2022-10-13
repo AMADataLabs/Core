@@ -1,4 +1,4 @@
-""" Email Report loader task """
+""" Developer emails report loader task """
 from   dataclasses import dataclass
 from   datetime import datetime
 # pylint: disable=import-error, invalid-name
@@ -16,22 +16,22 @@ class EmailReportSMTPLoaderParameters:
     cc: str = None
     execution_time: str = None
 
+
 class EmailReportSMTPLoaderTask(LoaderTask):
     PARAMETER_CLASS = EmailReportSMTPLoaderParameters
 
     def _load(self):
         date = str(datetime.now().date())  # 'YYYY-MM-DD'
-        name = f'Developer_emails_{date}.csv'
+        name = f'developer_emails_{date}.csv'
         report_csv_data = self._parameters.data[0]
         file = Attachment(name=name, data=report_csv_data)
-        summary = '''Hi,
+        summary = '''
+Hi,
 
-        This is an automated email from DataLabs.
+This is an automated email from DataLabs.
 
-         
-
-         Attached are the latest CPT Developer Program user emails.
-        '''
+Attached are the latest CPT Developer Program user emails.
+'''
 
         send_email(
             to=self._parameters.to,

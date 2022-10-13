@@ -9,8 +9,8 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=
-        [prd]=
+        [tst]=1.0.0
+        [prd]=0.1.0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -18,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-intelligentplatform-analysis"
-    export RELEASE_DESCRIPTION="Platform Analysis DAGs"
+    export RELEASE_NAME="datalabs-intelligentplatform-developer"
+    export RELEASE_DESCRIPTION="Intelligent Platform Developer DAG plugin"
 }
 
 
