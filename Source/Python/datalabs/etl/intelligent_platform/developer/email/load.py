@@ -22,7 +22,7 @@ class EmailReportSMTPLoaderTask(LoaderTask):
 
     def _load(self):
         date = str(datetime.now().date())  # 'YYYY-MM-DD'
-        name = f'Developer_emails_{date}.csv'
+        name = f'developer_emails_{date}.csv'
         report_csv_data = self._parameters.data[0]
         file = Attachment(name=name, data=report_csv_data)
         summary = '''
