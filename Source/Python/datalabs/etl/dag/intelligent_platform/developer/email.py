@@ -1,6 +1,6 @@
 ''' DAG definition for the Email Report ETL. '''
-import datalabs.etl.dag.dag as dag
-from   datalabs.etl.cpt.developer.load import EmailReportSMTPLoaderTask
+from   datalabs.etl.dag import dag
+from   datalabs.etl.intelligent_platform.developer.email.load import EmailReportSMTPLoaderTask
 
 
 @dag.register(name="DEVELOPER_EMAILS")

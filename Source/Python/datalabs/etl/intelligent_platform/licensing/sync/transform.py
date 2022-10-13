@@ -9,7 +9,7 @@ from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
 
-from   datalabs.etl.intelligent_platform.licensing.column import ARTICLES_COLUMNS
+from   datalabs.etl.intelligent_platform.licensing.sync.column import ARTICLES_COLUMNS
 
 
 logging.basicConfig()

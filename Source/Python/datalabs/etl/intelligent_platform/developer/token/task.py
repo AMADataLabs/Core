@@ -2,6 +2,7 @@
 from   dataclasses import dataclass
 import logging
 
+from   datalabs.access.orm import Database
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
@@ -10,6 +11,7 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+# pylint: disable=too-many-instance-attributes
 @add_schema
 @dataclass
 class ExpiredTokenPurgeParameters:
