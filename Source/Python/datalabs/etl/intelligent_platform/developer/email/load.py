@@ -25,14 +25,13 @@ class EmailReportSMTPLoaderTask(LoaderTask):
         name = f'Developer_emails_{date}.csv'
         report_csv_data = self._parameters.data[0]
         file = Attachment(name=name, data=report_csv_data)
-        summary = '''Hi,
+        summary = '''
+Hi,
 
-        This is an automated email from DataLabs.
+This is an automated email from DataLabs.
 
-
-
-         Attached are the latest CPT Developer Program user emails.
-        '''
+Attached are the latest CPT Developer Program user emails.
+'''
 
         send_email(
             to=self._parameters.to,

@@ -1,4 +1,5 @@
 dag,schedule
 ONEVIEW,0 0 * * 1-5
 LICENSED_ORGANIZATIONS,"0 10 * * 2,5"
+DEVELOPER_EMAILS,0 0 * * 4
 DBL,13 0 * * *
