@@ -1334,7 +1334,7 @@ pipelines:
                            -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                        - >-
                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP
-                           -p IntelligentPlatform/Licensing LicensingDAG=LicensingDAG.zip
+                           -p IntelligentPlatform LicensingDAG=LicensingDAG.zip
 #              - step:
 #                    name: Update Test Lambda Function
 #                    script:
@@ -1343,7 +1343,7 @@ pipelines:
 #                            -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                        - >-
 #                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP
-#                            -p IntelligentPlatform/Licensing LicensingDAG=LicensingDAG.zip
+#                            -p IntelligentPlatform LicensingDAG=LicensingDAG.zip
 #              - step:
 #                    name: Update Production Lambda Function
 #                    script:
@@ -1352,7 +1352,7 @@ pipelines:
 #                            -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                        - >-
 #                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP
-#                            -p IntelligentPlatform/Licensing LicensingDAG=LicensingDAG.zip
+#                            -p IntelligentPlatform LicensingDAG=LicensingDAG.zip
 
         OneView-ETL:
         - step:
