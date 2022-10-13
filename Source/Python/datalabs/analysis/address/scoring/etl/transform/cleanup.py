@@ -14,21 +14,21 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
 
         results = pd.DataFrame()
         if 'KEEP_COLUMNS' in self._parameters and self._parameters['KEEP_COLUMNS'] not in [None, '', 'NONE']:
-            KEEP_COLUMNS = self._parameters['KEEP_COLUMNS'].split(',')
-            for col in KEEP_COLUMNS:
+            keep_columns = self._parameters['KEEP_COLUMNS'].split(',')
+            for col in keep_columns:
                 results[col] = data[col].copy()
             print('KEEP_COLUMNS')
         else:
             results = data.copy()
 
         if 'CLEAN_WHITESPACE' not in self._parameters or str(self._parameters['CLEAN_WHITESPACE']).upper() == 'TRUE':
-            results = CLEAN_WHITESPACE(results)
+            results = clean_whitespace(results)
 
         if 'DATE_COLUMNS' in self._parameters and \
                 self._parameters['DATE_COLUMNS'] not in [None, '', 'NONE']:
             cols = get_list_parameter(self._parameters['DATE_COLUMNS'])
             for col in cols:
-                if str(self._parameters['repair_datetime']).upper() == 'TRUE':
+                if str(self._parameters['REPAIR_DATETIME']).upper() == 'TRUE':
                     results[col] = results[col].apply(repair_datetime)
                 else:
                     results[col] = pd.to_datetime(results[col])
@@ -55,7 +55,7 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
         return [final_results.read()]
 
 
-def CLEAN_WHITESPACE(data: pd.DataFrame, reduce=True):
+def clean_whitespace(data: pd.DataFrame, reduce=True):
     for col in data.columns.values:
         if reduce:
             data[col] = data[col].apply(lambda x: ' '.join(x.strip().split()) if isinstance(x, str) else x)
