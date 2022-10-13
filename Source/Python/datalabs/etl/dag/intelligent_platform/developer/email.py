@@ -1,7 +1,7 @@
 ''' DAG definition for the Email Report ETL. '''
 from   datalabs.etl.dag import dag
 from   datalabs.etl.intelligent_platform.developer.email.load import EmailReportSMTPLoaderTask
-from   datalabs.etl.sql.sqlalchemy import SQLAlchemyExtractorTask
+from   datalabs.etl.sql.sqlalchemy.extract import SQLAlchemyExtractorTask
 
 
 @dag.register(name="DEVELOPER_EMAILS")
