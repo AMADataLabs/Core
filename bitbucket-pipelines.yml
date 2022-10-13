@@ -1254,7 +1254,7 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
-                    DeveloperUsersETL=DeveloperDAG.zip
+                    DeveloperDAG=DeveloperDAG.zip
             # - step:
             #     name: Update Test Lambda Functions
             #     script:
@@ -1263,7 +1263,7 @@ pipelines:
             #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP -p IntelligentPlatform
-            #         DeveloperUsersETL=DeveloperDAG.zip
+            #         DeveloperDAG=DeveloperDAG.zip
             # - step:
             #     name: Update Production Lambda Functions
             #     script:
@@ -1272,7 +1272,7 @@ pipelines:
             #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP -p IntelligentPlatform
-            #         DeveloperUsersETL=DeveloperDAG.zip
+            #         DeveloperDAG=DeveloperDAG.zip
 
         IntelligentPlatform-Licensing:
         - step:
@@ -1333,8 +1333,8 @@ pipelines:
                            bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                            -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                        - >-
-                           bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s PlatformExperience
-                           -p IntelligentPlatform/Licensing ETL=LicensingDAG.zip
+                           bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP
+                           -p IntelligentPlatform/Licensing LicensingDAG=LicensingDAG.zip
 #              - step:
 #                    name: Update Test Lambda Function
 #                    script:
@@ -1342,8 +1342,8 @@ pipelines:
 #                            bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                            -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                        - >-
-#                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s PlatformExperience
-#                            -p IntelligentPlatform/Licensing ETL=LicensingDAG.zip
+#                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP
+#                            -p IntelligentPlatform/Licensing LicensingDAG=LicensingDAG.zip
 #              - step:
 #                    name: Update Production Lambda Function
 #                    script:
@@ -1351,8 +1351,8 @@ pipelines:
 #                            bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                            -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                        - >-
-#                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s PlatformExperience
-#                            -p IntelligentPlatform/Licensing ETL=LicensingDAG.zip
+#                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP
+#                            -p IntelligentPlatform/Licensing LicensingDAG=LicensingDAG.zip
 
         OneView-ETL:
         - step:
