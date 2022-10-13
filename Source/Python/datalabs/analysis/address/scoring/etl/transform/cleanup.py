@@ -8,7 +8,9 @@ from datalabs.etl.transform import TransformerTask
 
 class DatabaseTableCleanupTransformerTask(TransformerTask):
     def _transform(self) -> 'Transformed Data':
-        data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|')
+        data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|', dtype=str)
+        if len(data.columns.values) == 1 and ',' in data.columns.values[0]:
+            data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep=',', dtype=str)
 
         results = pd.DataFrame()
         if 'keep_columns' in self._parameters and self._parameters['keep_columns'] not in [None, '', 'NONE']:
