@@ -13,6 +13,7 @@ HelloWorldJava/Task
 HelloWorldVault
 IntelligentPlatform/Developer
 IntelligentPlatform/Licensing
+IntelligentPlatform
 OneView/ETL
 OneView/ETL/Batch
 OneView/ETL/Extract

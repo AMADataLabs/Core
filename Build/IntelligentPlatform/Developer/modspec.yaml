@@ -35,7 +35,6 @@ modspec:
   - package: datalabs.etl.sql
   - package: datalabs.etl.sql.sqlalchemy
   - package: datalabs.etl.intelligent_platform.developer.email
-  - package: datalabs.etl.intelligent_platform.developer.token
   - package: datalabs.etl.orm
   - package: datalabs.etl.orm.provider
     include:

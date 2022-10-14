@@ -15,12 +15,12 @@ LOGGER.setLevel(logging.DEBUG)
 @add_schema
 @dataclass
 class ExpiredTokenPurgeParameters:
-    database_host: str
-    database_port: str
-    database_name: str
-    database_backend: str
-    database_username: str
-    database_password: str
+    backend: str
+    host: str
+    port: str
+    username: str
+    password: str
+    database: str
     table: str = None
     data: object = None
     execution_time: str = None
@@ -38,11 +38,11 @@ class ExpiredTokenPurgeTask(Task):
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
+                host=self._parameters.host,
+                port=self._parameters.port,
+                backend=self._parameters.backend,
+                name=self._parameters.database,
+                username=self._parameters.username,
+                password=self._parameters.password
             )
         )
