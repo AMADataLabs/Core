@@ -64,18 +64,23 @@ public class LinkBuilderTask extends Task {
                     settings.getProperty("export.directory")
             );
             Path extractPath = Paths.get(
-                    settings.getProperty("output.directory"),
+                    settings.getProperty("input.directory"),
                     settings.getProperty("extract.directory")
+            );
+            Path currentCorePath = Paths.get(
+                    settings.getProperty("input.directory"),
+                    settings.getProperty("current.core.directory")
             );
 
             //stageInputFiles();
 
             DtkAccess priorLink = LinkBuilderTask.loadLink(priorLinkPath.toString());
-            DtkAccess core = LinkBuilderTask.loadLink(currentLinkPath.toString());
+            DtkAccess core = LinkBuilderTask.loadLink(currentCorePath.toString()); //buildCore previous run
+            DtkAccess currentLink = LinkBuilderTask.loadLink(currentLinkPath.toString());
+            // buildCore output
+            LinkBuilderTask.buildLink(currentLink, core, parameters, this.settings);
 
-            LinkBuilderTask.buildLink(priorLink, core, parameters, this.settings);
-
-            LinkBuilderTask.updateEmTables(priorLink, core, this.settings);
+//            LinkBuilderTask.updateEmTables(priorLink, core, this.settings);
 
 //          LinkBuilderTask.createHeadings(priorLink, core);
 
@@ -103,7 +108,7 @@ public class LinkBuilderTask extends Task {
 		return link;
 	}
 
-    private static void buildLink(DtkAccess priorLink, DtkAccess core, LinkBuilderParameters parameters,
+    private static void buildLink(DtkAccess currentLink, DtkAccess core, LinkBuilderParameters parameters,
                                   Properties settings)
             throws Exception {
         Path directory = Paths.get(
@@ -140,7 +145,7 @@ public class LinkBuilderTask extends Task {
         );
 
         BuildDtk linkBuilder = new BuildDtk(
-            priorLink,
+            currentLink,
             core,
             parameters.revisionDate,
             parameters.hcpsTerminationDate,
@@ -247,7 +252,7 @@ public class LinkBuilderTask extends Task {
             linkAnnual,
             parameters.linkAnnualDate,
             Collections.singletonList(parameters.revisionDate),
-            Paths.get(settings.getProperty("input.directory"), settings.getProperty("prior.history.directory")),
+            Paths.get(settings.getProperty("input.directory"), settings.getProperty("prior.history.directory")), //changes in current
             Paths.get(settings.getProperty("input.directory"), settings.getProperty("index.file")),
             null,
             // Paths.get(settings.getProperty("input.directory"), settings.getProperty("guidelines.qa.file")),
@@ -316,7 +321,7 @@ public class LinkBuilderTask extends Task {
             //put("em.data.file", null);
             put("export.directory", "/export");
             put("extract.directory", "/export");
-            put("prior.history.directory", "/changes/");
+            put("prior.history.directory", "/current_link/changes/");
             put("index.file", "cpt_index.docx/");
             //put("guidelines.qa.file", null);
             put("edits.file", "reviewed_used_input.xlsx");
@@ -329,6 +334,7 @@ public class LinkBuilderTask extends Task {
             put("rvus", "cpt_rvu.txt");
             put("prior.link.directory", "/prior_link");
             put("current.link.directory", "/current_link");
+            put("current.core.directory", "/current_core");
         }};
     }
 
@@ -341,14 +347,14 @@ public class LinkBuilderTask extends Task {
                 settings.getProperty("input.directory"),
                 settings.getProperty("current.link.directory")
         );
-        Path priorHistoryPath = Paths.get(
+        Path currentCorePath = Paths.get(
                 settings.getProperty("input.directory"),
-                settings.getProperty("prior.history.directory")
+                settings.getProperty("current.core.directory")
         );
 
         this.extractZipFiles(this.data.get(0), priorLinkPath.toString());
         this.extractZipFiles(this.data.get(1), currentLinkPath.toString());
-        this.extractZipFiles(this.data.get(2), priorHistoryPath.toString());
+        this.extractZipFiles(this.data.get(2), currentCorePath.toString());
 
         Path hcpcsPath = Paths.get(
                 settings.getProperty("input.directory"),
