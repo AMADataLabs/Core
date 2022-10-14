@@ -1245,7 +1245,7 @@ pipelines:
                     --project IntelligentPlatform
                     --bundle IntelligentPlatform/DAG.zip
                     --use-package
-        - parallel:
+        # - parallel:
             # - step:
             #     name: Update Development Lambda Functions
             #     script:
