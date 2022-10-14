@@ -69,7 +69,7 @@ class SQLExtractorTask(ExtractorTask):
 
     @classmethod
     def _encode(cls, data):
-        return data.to_csv().encode('utf-8')
+        return data.to_csv(index=False).encode('utf-8')
 
     def _read_query(self, query, connection):
         result = None
