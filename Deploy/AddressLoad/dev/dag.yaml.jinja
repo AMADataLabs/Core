@@ -1,0 +1,95 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/OneView/dev/ingest.yaml.jinja -f Deploy/OneView/dev/ingest.yaml \
+# -V "datalabs_password={{datalabs_password}},eft_password={{eft_password}},database_password={{database_password}},udrive_password={{udrive_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "ADDRESSLOADCOMPILERDAG"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+
+    SFTP_HOST: '{{sftp_host}}'  # dev: eft.ama-assn.org
+    SFTP_USERNAME: '{{sftp_username}}'  # dev: datalabs
+    SFTP_PASSWORD: '{{sftp_password}}'
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/AddressLoad'
+
+    ADDRESS_LOAD_BASE_PATH: Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad
+
+
+  #######################################################################
+  #  # DAG Variables - ({"DAG": {"S": "ADDRESSLOADCOMPILERDAG"}, "Task": {"S": "DAG"}})
+  #######################################################################
+
+    ADDRESS_LOAD_COMPILER__DAG__LAMBDA_FUNCTION: 'AddressLoad-${ENVIRONMENT}-AddressLoadCompilerDAG'
+    ADDRESS_LOAD_COMPILER__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.address_load_compiler.DAG'
+    ADDRESS_LOAD_COMPILER__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    ADDRESS_LOAD_COMPILER__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    ADDRESS_LOAD_COMPILER__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    ADDRESS_LOAD_COMPILER__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    ADDRESS_LOAD_COMPILER__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    ADDRESS_LOAD_COMPILER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    ADDRESS_LOAD_COMPILER__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    ADDRESS_LOAD_COMPILER__DAG__ENVIRONMENT: ${ENVIRONMENT}
+    ADDRESS_LOAD_COMPILER__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org,peter.lane@ama-assn.org'
+    ADDRESS_LOAD_COMPILER__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
+    ADDRESS_LOAD_COMPILER__DAG__JOB_QUEUE: 'AddressLoad-${ENVIRONMENT}-AddressLoadCompilerDAG'
+    ADDRESS_LOAD_COMPILER__DAG__JOB_DEFINITION: 'AddressLoad-${ENVIRONMENT}-AddressLoadCompilerDAG'
+    ADDRESS_LOAD_COMPILER__DAG__TASK_CLASS: ''  # Used by Java DAG tasks
+
+
+  ##########################################################################
+  #  # Task Variables - ({"DAG": {"S": "ADDRESSLOADCOMPILERDAG"}, "Task": {"S": "<Task ID>"}})
+  ##########################################################################
+
+
+    # Extract Component Files
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/input' 
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__FILES: '*.csv'
+
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__HOST: ${SFTP_HOST}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__USERNAME: ${SFTP_USERNAME}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__PASSWORD: ${SFTP_PASSWORD}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__INCLUDE_NAMES: 'True'
+  
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio-api.apps.openshifttest.ama-assn.org'
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_ACCESS_KEY: ${ADDRESS_LOAD_AGGREGATION_S3_ACCESS_KEY}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_SECRET_KEY: ${ADDRESS_LOAD_AGGREGATION_S3_SECRET_KEY}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_FILES: 'extract_output.pckl'
+
+    # Compile Batch Load File
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_CLASS: ${S3_CACHE_CLASS}
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_ENDPOINT_URL: 'https://hsg-data-labs-minio-api.apps.openshifttest.ama-assn.org'
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_ACCESS_KEY: ${ADDRESS_LOAD_AGGREGATION_S3_ACCESS_KEY} 
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_SECRET_KEY: ${ADDRESS_LOAD_AGGREGATION_S3_SECRET_KEY}
+
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'extract_output.pckl'
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_OUTPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+
+    # Load Batch Load File
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/output'
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__HOST: ${SFTP_HOST}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__USERNAME: ${SFTP_USERNAME}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__PASSWORD: ${SFTP_PASSWORD}
+
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_ENDPOINT_URL: 'https://hsg-data-labs-minio-api.apps.openshifttest.ama-assn.org'
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_ACCESS_KEY: ${ADDRESS_LOAD_AGGREGATION_S3_ACCESS_KEY}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_SECRET_KEY: ${ADDRESS_LOAD_AGGREGATION_S3_SECRET_KEY}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
