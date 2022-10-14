@@ -7,11 +7,11 @@ from   datalabs.etl.sftp.load import SFTPFileLoaderTask
 
 @dag.register(name="ADDRESS_LOAD_COMPILER")
 class DAG(dag.DAG):
-    EXTRACT_ADDRESS_LOAD_COMPILER: SFTPFileExtractorTask
-    TRANSFROM_ADDRESS_LOAD_COMPILER: AddressLoadFileAggregationTransformerTask
-    LOAD_ADDRESS_LOAD_COMPILER: SFTPFileLoaderTask
+    EXTRACT_COMPONENT_FILES: SFTPFileExtractorTask
+    COMPILE_BATCH_LOAD_FILE: AddressLoadFileAggregationTransformerTask
+    LOAD_BATCH_LOAD_FILE: SFTPFileLoaderTask
 
 
 # pylint: disable=pointless-statement
-DAG.EXTRACT_ADDRESS_LOAD_COMPILER >> DAG.TRANSFROM_ADDRESS_LOAD_COMPILER \
-        >> DAG.LOAD_ADDRESS_LOAD_COMPILER
+DAG.EXTRACT_COMPONENT_FILES >> DAG.COMPILE_BATCH_LOAD_FILE \
+        >> DAG.LOAD_BATCH_LOAD_FILE
