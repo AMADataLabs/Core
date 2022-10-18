@@ -188,19 +188,25 @@ public class CoreBuilderTask extends Task {
         fileOutputStream.close();
     }
 
-    private ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws IOException{
+    private ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
         ArrayList<byte[]> outputFiles = new ArrayList<>();
 
-        for (File file: outputDirectory.listFiles()){
-            if (file.isDirectory()) {
-                loadOutputFiles(file);
-            } else {
-                Path path = Paths.get(file.getPath());
-                byte[] data = Files.readAllBytes(path);
-                outputFiles.add(data);
-            }
+        try {
+            for (File file: outputDirectory.listFiles()){
+                if (file.isDirectory()) {
+                    loadOutputFiles(file);
+                } else {
+                    Path path = Paths.get(file.getPath());
+                    byte[] data = Files.readAllBytes(path);
+                    outputFiles.add(data);
+                }
 
+            }
         }
+        catch (Exception exception){
+            throw new Exception(exception);
+        }
+
 
         return outputFiles;
     }
