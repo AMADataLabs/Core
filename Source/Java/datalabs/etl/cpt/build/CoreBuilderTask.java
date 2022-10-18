@@ -44,6 +44,8 @@ public class CoreBuilderTask extends Task {
     }
 
     public ArrayList<byte[]> run() throws TaskException {
+        ArrayList<byte[]> outputFiles;
+
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
 
@@ -74,11 +76,15 @@ public class CoreBuilderTask extends Task {
             DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate, dbParameters);
 
             CoreBuilderTask.exportConcepts(core, this.settings.getProperty("output.directory"));
+
+            File outputFilesDirectory = new File(settings.getProperty("output.directory"));
+            outputFiles = loadOutputFiles(outputFilesDirectory);
+
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
 
-        return null;
+        return outputFiles;
     }
 
     private static DtkAccess loadLink(String directory) throws Exception {
@@ -180,6 +186,23 @@ public class CoreBuilderTask extends Task {
             fileOutputStream.write(data, 0, data.length);
         }
         fileOutputStream.close();
+    }
+
+    private ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws IOException{
+        ArrayList<byte[]> outputFiles = new ArrayList<>();
+
+        for (File file: outputDirectory.listFiles()){
+            if (file.isDirectory()) {
+                loadOutputFiles(file);
+            } else {
+                Path path = Paths.get(file.getPath());
+                byte[] data = Files.readAllBytes(path);
+                outputFiles.add(data);
+            }
+
+        }
+
+        return outputFiles;
     }
 
 }
