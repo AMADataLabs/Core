@@ -284,6 +284,7 @@ class ProviderAffiliation(BASE):
     rank = sa.Column(sa.String)
     group = sa.Column(sa.String, sa.ForeignKey("oneview.provider_affiliation_group.id"))
     group_description = sa.Column(sa.String)
+    best = sa.Column(sa.Boolean)
 
 
 class MedicalLicense(BASE):
