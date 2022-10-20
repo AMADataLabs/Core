@@ -59,9 +59,9 @@ class IQVIAProviderTransformerTask(TransformerTask):
             on='PROFESSIONAL_ID', how='left'
         ).drop_duplicates()
 
-        affiliations = self._match_best_affiliation(affiliations, best_affiliations)
         affiliations = self._set_default_values(affiliations)
         affiliations = self._clean(affiliations)
+        affiliations = self._match_best_affiliation(affiliations, best_affiliations)
 
         return [providers, affiliations]
 
@@ -104,7 +104,7 @@ class IQVIAProviderTransformerTask(TransformerTask):
                                                     'BATCH_BUSINESS_DATE_x': 'BATCH_BUSINESS_DATE'
                                                     }
                                            )
-        affiliations['BEST'].fillna(value=False)
+        affiliations['BEST'].fillna(value=False, inplace=True)
 
         return affiliations
 
