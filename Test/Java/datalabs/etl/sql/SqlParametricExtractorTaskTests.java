@@ -82,8 +82,8 @@ class SqlParametricExtractorTaskTests {
             put("DATABASE_NAME", "pootitang");
             put("DATABASE_PARAMETERS", "create=true");
             put("SQL", "SELECT * FROM ping LIMIT {index}, {count};SELECT * FROM pong LIMIT {index}, {count}");
-            put("CHUNK_SIZE", "69");
-            put("COUNT", "138");
+            put("CHUNK_SIZE", "3");
+            put("COUNT", "6");
             put("START_INDEX", "0");
             put("MAX_PARTS", "5");
             put("PART_INDEX", "3");
@@ -224,9 +224,9 @@ class SqlParametricExtractorTaskTests {
         String resolvedBaseQuery = "SELECT * FROM ping WHERE year='1995' AND name='Jimmy Falon' LIMIT ";
 
         try {
-            when(statement.executeQuery(resolvedBaseQuery + "0, 69")).thenReturn(SqlParametricExtractorTaskTests.SINGLE_QUERY_RESULTS);
-            when(statement.executeQuery(resolvedBaseQuery + "69, 69")).thenReturn(SqlParametricExtractorTaskTests.CHUNKED_QUERY_RESULTS);
-            when(statement.executeQuery(resolvedBaseQuery + "129, 69")).thenReturn(new EmptyResultSet());
+            when(statement.executeQuery(resolvedBaseQuery + "0, 3")).thenReturn(SqlParametricExtractorTaskTests.SINGLE_QUERY_RESULTS);
+            when(statement.executeQuery(resolvedBaseQuery + "3, 3")).thenReturn(SqlParametricExtractorTaskTests.CHUNKED_QUERY_RESULTS);
+            when(statement.executeQuery(resolvedBaseQuery + "6, 0")).thenReturn(new EmptyResultSet());
         } catch(java.sql.SQLException exception) {
             exception.printStackTrace();
         }

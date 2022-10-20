@@ -78,8 +78,8 @@ class SqlExtractorTaskTests {
             put("DATABASE_NAME", "pootitang");
             put("DATABASE_PARAMETERS", "create=true");
             put("SQL", "SELECT * FROM ping LIMIT {index}, {count};SELECT * FROM pong LIMIT {index}, {count}");
-            put("CHUNK_SIZE", "69");
-            put("COUNT", "138");
+            put("CHUNK_SIZE", "3");
+            put("COUNT", "6");
             put("START_INDEX", "0");
             // put("MAX_PARTS", "1");
             // put("PART_INDEX", "0");
@@ -198,9 +198,9 @@ class SqlExtractorTaskTests {
 
     void setupChunkedQueryMockReturnValues() {
         try {
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 0, 69")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 69, 69")).thenReturn(SqlExtractorTaskTests.CHUNKED_QUERY_RESULTS);
-            when(statement.executeQuery("SELECT * FROM ping LIMIT 129, 69")).thenReturn(new EmptyResultSet());
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 0, 3")).thenReturn(SqlExtractorTaskTests.SINGLE_QUERY_RESULTS);
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 3, 3")).thenReturn(SqlExtractorTaskTests.CHUNKED_QUERY_RESULTS);
+            when(statement.executeQuery("SELECT * FROM ping LIMIT 6, 0")).thenReturn(new EmptyResultSet());
         } catch(java.sql.SQLException exception) {
             exception.printStackTrace();
         }

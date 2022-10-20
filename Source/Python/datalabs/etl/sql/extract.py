@@ -108,10 +108,12 @@ class SQLExtractorTask(ExtractorTask):
 
         if self._parameters.count:
             count = int(self._parameters.count)
+            index = 0
 
             if self._parameters.start_index:
                 index = int(self._parameters.start_index) * count
-                stop_index = index + count
+
+            stop_index = index + count
 
         if self._parameters.max_parts is not None and self._parameters.part_index is not None:
             max_parts = int(self._parameters.max_parts)
