@@ -104,7 +104,8 @@ class IQVIAProviderTransformerTask(TransformerTask):
                                                     'BATCH_BUSINESS_DATE_x': 'BATCH_BUSINESS_DATE'
                                                     }
                                            )
-        affiliations['BEST'] = affiliations['BEST'].fillna(False, inplace=True)
+
+        affiliations['BEST'] = affiliations['BEST'].fillna(False)
 
         return affiliations
 
