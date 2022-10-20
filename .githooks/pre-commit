@@ -25,3 +25,5 @@ exec >&2
 
 
 while IFS= read -r file; do assert_max_file_size "$file"; done <<< "$STAGED_FILES"
+
+echo "*** Pre-commit checks passed. ***"
