@@ -52,7 +52,7 @@ class IQVIABusinessTransformerTask(TransformerTask):
 
 class IQVIAProviderTransformerTask(TransformerTask):
     def _preprocess(self, dataset):
-        providers, affiliations = dataset
+        providers, affiliations, best_affiliations = dataset
 
         affiliations = affiliations.merge(
             providers,
@@ -61,6 +61,7 @@ class IQVIAProviderTransformerTask(TransformerTask):
 
         affiliations = self._set_default_values(affiliations)
         affiliations = self._clean(affiliations)
+        affiliations = self._match_best_affiliation(affiliations, best_affiliations)
 
         return [providers, affiliations]
 
@@ -83,6 +84,27 @@ class IQVIAProviderTransformerTask(TransformerTask):
             row_data.append(row.rstrip())
 
         affiliations['AFFIL_GROUP_CODE'] = row_data
+
+        return affiliations
+
+    @classmethod
+    def _match_best_affiliation(cls, affiliations, best_affiliations):
+        best_affiliations['BEST'] = True
+
+        affiliations = pandas.merge(affiliations, best_affiliations, on=["IMS_ORG_ID", "PROFESSIONAL_ID"], how="left")
+        affiliations = affiliations.drop(columns=['AFFIL_TYPE_ID_y', 'AFFIL_TYPE_DESC_y', 'AFFIL_IND_y', 'AFFIL_RANK_y',
+                                                  'AFFIL_GROUP_CODE_y', 'AFFIL_GROUP_DESC_y', 'BATCH_BUSINESS_DATE_y']
+                                         )
+        affiliations = affiliations.rename(columns={'AFFIL_TYPE_ID_x': 'AFFIL_TYPE_ID',
+                                                    'AFFIL_TYPE_DESC_x': 'AFFIL_TYPE_DESC',
+                                                    'AFFIL_IND_x': 'AFFIL_IND',
+                                                    'AFFIL_RANK_x': 'AFFIL_RANK',
+                                                    'AFFIL_GROUP_CODE_x': 'AFFIL_GROUP_CODE',
+                                                    'AFFIL_GROUP_DESC_x': 'AFFIL_GROUP_DESC',
+                                                    'BATCH_BUSINESS_DATE_x': 'BATCH_BUSINESS_DATE'
+                                                    }
+                                           )
+        affiliations["BEST"].fillna(False, inplace=True)
 
         return affiliations
 

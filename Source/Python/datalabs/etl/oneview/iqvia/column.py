@@ -77,6 +77,7 @@ PROVIDER_AFFILIATION_COLUMNS = {
     'AFFIL_RANK': 'rank',
     'AFFIL_GROUP_CODE': 'group',
     'AFFIL_GROUP_DESC': 'group_description',
+    'BEST': 'best'
 }
 
 CORPORATE_PARENT_BUSINESS = {
