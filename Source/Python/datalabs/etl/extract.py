@@ -3,16 +3,8 @@ from   abc import ABC, abstractmethod
 from   datetime import datetime
 import pickle
 
-from   datalabs.etl.task import ETLComponentTask, ETLException
-
-
-class ExtractorTask(ETLComponentTask, ABC):
-    def run(self):
-        return self._extract()
-
-    @abstractmethod
-    def _extract(self) -> "list<bytes>":
-        pass
+from   datalabs.etl.task import ETLException
+from   datalabs.task import Task
 
 
 class IncludeNamesMixin:
@@ -28,12 +20,12 @@ class IncludeNamesMixin:
         return include_names
 
 
-class NothingExtractorTask(ExtractorTask):
-    def _extract(self) -> "Extracted Data":
+class NothingExtractorTask(Task):
+    def run(self) -> "Extracted Data":
         return []
 
 
-class FileExtractorTask(ExtractorTask, ABC):
+class FileExtractorTask(Task, ABC):
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -48,7 +40,7 @@ class FileExtractorTask(ExtractorTask, ABC):
     def execution_time(self):
         return datetime.utcnow()
 
-    def _extract(self):
+    def run(self):
         # pylint: disable=not-context-manager
         with self._get_client() as client:
             self._client = client

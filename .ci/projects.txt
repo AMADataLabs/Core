@@ -11,8 +11,9 @@ DBL
 HelloWorldJava/DAG
 HelloWorldJava/Task
 HelloWorldVault
-IntelligentPlatform/Developer/Users
+IntelligentPlatform/Developer
 IntelligentPlatform/Licensing
+IntelligentPlatform
 OneView/ETL
 OneView/ETL/Batch
 OneView/ETL/Extract

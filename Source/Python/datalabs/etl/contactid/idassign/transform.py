@@ -3,11 +3,9 @@ import csv
 from   io import BytesIO
 import pandas
 
-import datalabs.etl.transform as etl
 
-
-class ContactIDAssignTransformerTask(etl.TransformerTask):
-    def _transform(self):
+class ContactIDAssignTransformerTask(Task):
+    def run(self):
         sfmc_contacts, sfmc_contacts_old, users, users_old = self._to_dataframe()
 
         users = self._remove_index(users)
@@ -31,7 +29,7 @@ class ContactIDAssignTransformerTask(etl.TransformerTask):
         encodings_list = ['ISO 8859-1','utf-8','utf-8','utf-8' ]
         return [
             pandas.read_csv(BytesIO(data), sep=seperator, encoding = encodings, dtype = 'str', low_memory=False)
-            for data, seperator, encodings in zip(self._parameters['data'], seperators, encodings_list)
+            for data, seperator, encodings in zip(self._data, seperators, encodings_list)
         ]
 
     def _assign_id_to_new_sfmc_data(self, sfmc_contacts, sfmc_contacts_old):

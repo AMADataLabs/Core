@@ -139,9 +139,7 @@ run_lint_tests() {
         TARGET_DIR=
 
         for PROJECT_DIR in $(cat ${DIR}/../.ci/projects.txt); do
-            PROJECT=$(cat ${DIR}/../Build/${PROJECT_DIR}/.ci/project.txt)
-
-            if [[ "$PROJECT" == "$TARGET_PROJECT" ]]; then
+            if [[ "$PROJECT_DIR" == "$TARGET_PROJECT" ]]; then
                 TARGET_DIR=$PROJECT_DIR
                 break
             fi

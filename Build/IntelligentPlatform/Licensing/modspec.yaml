@@ -28,15 +28,14 @@ modspec:
       - transform
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
-  - package: datalabs.etl.dag.intelligent_platform
+  - package: datalabs.etl.dag.intelligent_platform.licensing
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.sql
-  - package: datalabs.etl.sql
-  - package: datalabs.etl.sql.jdbc
   - package: datalabs.etl.sql.sqlalchemy
-  - package: datalabs.etl.intelligent_platform.licensing
+  - package: datalabs.etl.intelligent_platform.licensing.sync
+  - package: datalabs.etl.intelligent_platform.licensing.traffic
   - package: datalabs.etl.orm
   - package: datalabs.etl.orm.provider
     include:
@@ -46,6 +45,3 @@ modspec:
   - package: datalabs.messaging
     include:
       - email_message
-  - package: datalabs.model.intelligent_platform
-    include:
-        - licensing

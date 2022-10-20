@@ -4,8 +4,8 @@ import json
 import logging
 
 from   datalabs.access.aws import AWSClient
-from   datalabs.etl.load import LoaderTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -24,10 +24,10 @@ class SNSMessageLoaderParameters:
     region_name: str = None
 
 
-class SNSMessageLoaderTask(LoaderTask):
+class SNSMessageLoaderTask(Task):
     PARAMETER_CLASS = SNSMessageLoaderParameters
 
-    def _load(self):
+    def run(self):
         with AWSClient(
             'sns',
             endpoint_url=self._parameters.endpoint_url,

@@ -5,8 +5,8 @@ import logging
 import pickle
 
 from   datalabs.etl.task import ExecutionTimeMixin
-from   datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 from   datalabs.tool.pdf import PDFSigner
 
 logging.basicConfig()
@@ -24,11 +24,11 @@ class PDFSigningTransformerParameters:
     execution_time: str=None
 
 
-class PDFSigningTransformerTask(ExecutionTimeMixin, TransformerTask):
+class PDFSigningTransformerTask(ExecutionTimeMixin, Task):
     PARAMETER_CLASS = PDFSigningTransformerParameters
 
-    def _transform(self):
-        credentials, packed_data = self._parameters.data
+    def run(self):
+        credentials, packed_data = self._data
         named_files = pickle.loads(packed_data)
 
         named_pdfs = self._extract_pdfs(named_files)

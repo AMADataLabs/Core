@@ -1,12 +1,7 @@
 """ source: datalabs.etl.load """
 import pytest
 
-from datalabs.etl.load import LoaderTask, FileLoaderTask
-
-
-# pylint: disable=redefined-outer-name
-def test_loader_task(loader):
-    loader.run()
+from datalabs.etl.load import FileLoaderTask
 
 
 # pylint: disable=redefined-outer-name, protected-access

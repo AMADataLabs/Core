@@ -1,9 +1,7 @@
 """ Automating cerner report task """
 import logging
 
-
-# pylint: disable=import-error, invalid-name
-from datalabs.etl.transform import TransformerTask
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -12,6 +10,6 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=no-self-use
-class CernerReportTransformerTask(TransformerTask):
-    def _transform(self):
+class CernerReportTransformerTask(Task):
+    def run(self):
         LOGGER.info("Moving data")

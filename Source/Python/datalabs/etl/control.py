@@ -6,8 +6,8 @@ import logging
 
 import pandas
 
-from datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -23,10 +23,10 @@ class DAGNotificationFactoryParameters:
     data: object
 
 
-class DAGNotificationFactoryTask(TransformerTask):
+class DAGNotificationFactoryTask(Task):
     PARAMETER_CLASS = DAGNotificationFactoryParameters
 
-    def _transform(self):
+    def run(self):
         iteration_parameters = self._parse_iteration_parameters(self._data)
 
         return [

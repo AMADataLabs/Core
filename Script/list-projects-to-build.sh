@@ -14,7 +14,7 @@ Usage:
                             format is HASH1..HASH2
 EOM
 
-set -ex
+set -e
 
 # Capture input parameter and validate it
 COMMIT_RANGE=$1
@@ -80,14 +80,13 @@ else
     # For all known projects check if there was a change and look for all dependant projects
     # echo "Changed Paths:\n$CHANGED_PATHS"
     for PROJECT_DIR in $(cat ${DIR}/../.ci/projects.txt); do
-        PROJECT_NAME=$(cat ${DIR}/../Build/${PROJECT_DIR}/.ci/project.txt)
         if [[ $(echo -e "$CHANGED_PATHS" | grep "$PROJECT_DIR") ]]; then
-            CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT_NAME"
+            CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT_DIR"
             CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT_DIR)"
         else
             for SOURCE_FILE in $(${DIR}/run.py python3 ${DIR}/list_source_dependencies.py $PROJECT_DIR); do
                 if [[ $(echo -e "$CHANGED_PATHS" | grep -e "$SOURCE_FILE" -e "Build/$PROJECT_DIR")  ]]; then
-                    CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT_NAME"
+                    CHANGED_PROJECTS="$CHANGED_PROJECTS\n$PROJECT_DIR"
                     CHANGED_DEPENDENCIES="$CHANGED_DEPENDENCIES\n$(process_dependants $PROJECT_DIR)"
                 fi
             done

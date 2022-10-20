@@ -11,6 +11,7 @@ data:
 
   S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
   S3_BASE_PATH: 'AMA/CPT/Link'
+  S3_STATIC_PATH: 'AMA/CPT/Static'
 
 
   #######################################################################
@@ -33,6 +34,43 @@ data:
   ##########################################################################
 
 
+  # Find Input Files
+  CPT_LINK__FIND_INPUT_FILES__BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+  CPT_LINK__FIND_INPUT_FILES__BASE_PATH: ${S3_BASE_PATH}
+
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_FILES: changes/History.txt,changes/HistoryModifers.txt, changes/HistoryReference.txt, changes/RenumberedCodesCitationsCrosswalk.txt, changes/RenumberedCodesCitationsCrosswalkDescriptors.txt, RelationshipGroup.txt, internal_Property.txt, internal_Type.txt
+
+
+  # Extract Input Files
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_CLASS: ${S3_CACHE_CLASS}
+
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_INPUT_FILES: changes/History.txt,changes/HistoryModifers.txt, changes/HistoryReference.txt, changes/RenumberedCodesCitationsCrosswalk.txt, changes/RenumberedCodesCitationsCrosswalkDescriptors.txt, RelationshipGroup.txt, internal_Property.txt, internal_Type.txt
+
+  CPT_LINK__EXTRACT_INPUT_FILES__BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_INPUT_FILES__BASE_PATH: ${S3_BASE_PATH}
+
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_INPUT_FILES__CAHCE_OUTPUT_FILES: 'prior_link_files.zip, incremental_core.zip, annual_core.zip, core.zip'
+
+
+  # Extract Edits
+  CPT_LINK__EXTRACT_EDITS__BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_EDITS__BASE_PATH: ${S3_STATIC_PATH}
+  CPT_LINK__EXTRACT_EDITS__FILES: edits_2022.txt
+
+  CPT_LINK__EXTRACT_EDITS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__EXTRACT_EDITS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_EDITS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_EDITS__CAHCE_OUTPUT_FILES: edits.txt
+
+
+  # Build Link
   CPT_LINK__BUILD_LINK__CORE_DIRECTORY:  'target/buildcore_export2022_from2021u05'
   CPT_LINK__BUILD_LINK__SNOMED_DERBY_HOME: 'target/ddb/snomed20210301'
   CPT_LINK__BUILD_LINK__PRIOR_LINK_VERSION: '2021u05'

@@ -6,12 +6,12 @@ import re
 
 from   datalabs.etl.dag.dag import DAG
 import datalabs.etl.dag.cpt.cerner.cerner_report
-import datalabs.etl.dag.cpt.developer.email
 import datalabs.etl.dag.cpt.files.core
 import datalabs.etl.dag.cpt.files.hcpcs
 import datalabs.etl.dag.cpt.files.ingest
 import datalabs.etl.dag.cpt.files.link
 import datalabs.etl.dag.cpt.files.watermark
+import datalabs.etl.dag.intelligent_platform.developer.email
 import datalabs.etl.dag.intelligent_platform.licensing
 import datalabs.etl.dag.masterfile.address_flagging_report
 import datalabs.etl.dag.masterfile.dbl_counts_report

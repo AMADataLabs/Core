@@ -198,19 +198,11 @@
 
         <!-- JDBC Drivers -->
 
-        <!-- <dependency>
+        <dependency>
             <groupId>com.ibm.db2</groupId>
             <artifactId>jcc</artifactId>
             <version>${db2.version}</version>
-        </dependency> -->
-
-        <!-- <dependency>
-            <groupId>com.ibm.db2</groupId>
-            <artifactId>jcc</artifactId>
-            <version>11.5.7.0</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/Sandbox/JDBC/DB2/DB2JdbcDriver/db2jcc4.jar</systemPath>
-        </dependency> -->
+        </dependency>
 
         <!-- <dependency>
             <groupId>com.microsoft.sqlserver</groupId>

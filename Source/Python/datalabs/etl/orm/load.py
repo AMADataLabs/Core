@@ -8,10 +8,10 @@ import pandas
 import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
-from   datalabs.etl.load import LoaderTask
 from   datalabs.etl.orm.provider import get_provider
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class ORMLoaderParameters:
     soft_delete_column: str = None
 
 
-class ORMLoaderTask(LoaderTask):
+class ORMLoaderTask(Task):
     PARAMETER_CLASS = ORMLoaderParameters
 
     COLUMN_TYPE_CONVERTERS = {
@@ -56,10 +56,10 @@ class ORMLoaderTask(LoaderTask):
         'INTEGER': lambda x: x.astype(int, copy=False)
     }
 
-    def _load(self):
-        LOGGER.debug('Input data: \n%s', self._parameters.data)
+    def run(self):
+        LOGGER.debug('Input data: \n%s', self._data)
         model_classes = self._get_model_classes()
-        data = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+        data = [self._csv_to_dataframe(datum) for datum in self._data]
 
         with self._get_database() as database:
             for model_class, data in zip(model_classes, data):
@@ -72,12 +72,12 @@ class ORMLoaderTask(LoaderTask):
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
+                host=self._database_host,
+                port=self._database_port,
+                backend=self._database_backend,
+                name=self._database_name,
+                username=self._database_username,
+                password=self._database_password
             )
         )
 
@@ -96,9 +96,9 @@ class ORMLoaderTask(LoaderTask):
         provider = None
 
         try:
-            provider = get_provider(self._parameters.database_backend)
+            provider = get_provider(self._database_backend)
         except ModuleNotFoundError as exception:
-            dialect = self._parameters.database_backend.split('+')[0]
+            dialect = self._database_backend.split('+')[0]
             raise ValueError(f"SQLAlchemy backend dialect '{dialect}' is not supported.") from exception
 
         primary_key = provider.get_primary_key(database, schema, table)
@@ -333,8 +333,8 @@ class ORMLoaderTask(LoaderTask):
 
         return replacement_value
 
-class ORMPreLoaderTask(LoaderTask):
-    def _load(self):
+class ORMPreLoaderTask(Task):
+    def run(self):
         with self._get_database() as database:
             for model_class in self._get_model_classes():
                 # pylint: disable=no-member
@@ -346,12 +346,12 @@ class ORMPreLoaderTask(LoaderTask):
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
+                host=self._database_host,
+                port=self._database_port,
+                backend=self._database_backend,
+                name=self._database_name,
+                username=self._database_username,
+                password=self._database_password
             )
         )
 
@@ -374,10 +374,10 @@ class MaterializedViewRefresherParameters:
     execution_time: str = None
 
 
-class MaterializedViewRefresherTask(LoaderTask):
+class MaterializedViewRefresherTask(Task):
     PARAMETER_CLASS = MaterializedViewRefresherParameters
 
-    def _load(self):
+    def run(self):
         with self._get_database() as database:
             views = []
 
@@ -392,12 +392,12 @@ class MaterializedViewRefresherTask(LoaderTask):
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
+                host=self._database_host,
+                port=self._database_port,
+                backend=self._database_backend,
+                name=self._database_name,
+                username=self._database_username,
+                password=self._database_password
             )
         )
 
@@ -418,10 +418,10 @@ class ReindexerParameters:
     execution_time: str = None
 
 
-class ReindexerTask(LoaderTask):
+class ReindexerTask(Task):
     PARAMETER_CLASS = ReindexerParameters
 
-    def _load(self):
+    def run(self):
         with self._get_database() as database:
             indexes = []
             tables = []
@@ -443,11 +443,11 @@ class ReindexerTask(LoaderTask):
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
+                host=self._database_host,
+                port=self._database_port,
+                backend=self._database_backend,
+                name=self._database_name,
+                username=self._database_username,
+                password=self._database_password
             )
         )

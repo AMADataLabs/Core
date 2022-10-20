@@ -16,7 +16,7 @@ class S3TaskDataCache(TaskDataCache):
         return cache_extractor.data
 
     def load_data(self, output_data):
-        self._parameters['data'] = output_data
+        self._data = output_data
         cache_parameters = self._parameters
 
         cache_loader = S3FileLoaderTask(cache_parameters)

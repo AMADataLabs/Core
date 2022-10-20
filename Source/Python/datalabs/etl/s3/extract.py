@@ -90,8 +90,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         if self._parameters.files is not None:
             files = self._parameters.files.split(',')
-        elif self._parameters.data is not None and len(self._parameters.data) > 0:
-            files = list(itertools.chain.from_iterable(self._parse_file_lists(self._parameters.data)))
+        elif self._data is not None and len(self._data) > 0:
+            files = list(itertools.chain.from_iterable(self._parse_file_lists(self._data)))
         else:
             raise ValueError('Either the "files" or "data" parameter must contain the list of files to extract.')
 

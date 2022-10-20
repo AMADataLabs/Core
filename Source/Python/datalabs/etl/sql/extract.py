@@ -7,9 +7,9 @@ import tempfile
 from   abc import abstractmethod
 import pandas
 
-from   datalabs.etl.extract import ExtractorTask
 from   datalabs.etl.csv import CSVReaderMixin
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -20,13 +20,6 @@ LOGGER.setLevel(logging.INFO)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class SQLExtractorParameters:
-    driver: str
-    driver_type: str
-    database_host: str
-    database_username: str
-    database_password: str
-    database_port: str
-    jar_path: str
     sql: str
     execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
@@ -35,17 +28,20 @@ class SQLExtractorParameters:
     max_parts: str = None       # Number of task copies working on this query
     part_index: str = None      # This task's index
     stream: str = None
-    database_name: str = None
-    database_parameters: str = None
 
 
 class SQLExtractorTask(ExtractorTask):
     PARAMETER_CLASS = SQLExtractorParameters
 
-    def _extract(self):
+    def run(self):
+        results = None
         connection = self._connect()
 
-        return self._read_queries(connection)
+        results = self._read_queries(connection)
+
+        connection.close()
+
+        return results
 
     @abstractmethod
     def _connect(self):
@@ -53,6 +49,12 @@ class SQLExtractorTask(ExtractorTask):
 
     def _read_queries(self, connection):
         queries = self._split_queries(self._parameters.sql)
+
+        if "INTO TEMP" in queries[0]:
+            LOGGER.info("Executing temporary table query...")
+            connection.cursor().execute(queries[0])
+
+            queries.pop(0)
 
         return [self._encode(self._read_query(query, connection)) for query in queries]
 
@@ -67,15 +69,15 @@ class SQLExtractorTask(ExtractorTask):
 
     @classmethod
     def _encode(cls, data):
-        return data.to_csv().encode('utf-8')
+        return data.to_csv(index=False).encode('utf-8')
 
     def _read_query(self, query, connection):
         result = None
 
-        if self._parameters.chunk_size is not None:
-            result = self._read_chunked_query(query, connection)
-        else:
+        if self._parameters.chunk_size is None:
             result = self._read_single_query(query, connection)
+        else:
+            result = self._read_chunked_query(query, connection)
 
         return result
 
@@ -106,10 +108,12 @@ class SQLExtractorTask(ExtractorTask):
 
         if self._parameters.count:
             count = int(self._parameters.count)
+            index = 0
 
             if self._parameters.start_index:
                 index = int(self._parameters.start_index) * count
-                stop_index = index + count
+
+            stop_index = index + count
 
         if self._parameters.max_parts is not None and self._parameters.part_index is not None:
             max_parts = int(self._parameters.max_parts)
@@ -147,6 +151,7 @@ class SQLExtractorTask(ExtractorTask):
         return formatter.format(query, index=index, count=count)
 
 
+<<<<<<< HEAD
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
@@ -175,6 +180,11 @@ class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
 
     def __init__(self, parameters, data):
         super().__init__(parameters, data)
+=======
+class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
+    def __init__(self, parameters):
+        super().__init__(parameters)
+>>>>>>> master
 
         self._query_parameters = self._csv_to_dataframe(self._data[0])
 
@@ -197,8 +207,6 @@ class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
 
 
 class SQLParquetExtractorTask(SQLExtractorTask):
-    PARAMETER_CLASS = SQLExtractorParameters
-
     @classmethod
     def _encode(cls, data):
         return data

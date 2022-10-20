@@ -84,13 +84,7 @@ class ETLException(task.TaskException):
     pass
 
 
-# pylint: disable=abstract-method
-class ETLComponentTask(task.Task):
-    def __init__(self, parameters, data):
-        super().__init__(parameters, data)
-
-
-class DummyTask(ETLComponentTask):
+class DummyTask(task.Task):
     def run(self):
         LOGGER.info("I'm a dummy!")
         return []

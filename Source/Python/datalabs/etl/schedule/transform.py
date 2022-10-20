@@ -12,9 +12,9 @@ import pandas
 
 from   datalabs.etl.dag.state import Status
 from   datalabs.etl.task import ExecutionTimeMixin
-from   datalabs.etl import transform
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -30,10 +30,10 @@ class DAGSchedulerParameters:
     execution_time: str
 
 
-class DAGSchedulerTask(ExecutionTimeMixin, transform.TransformerTask):
+class DAGSchedulerTask(ExecutionTimeMixin, Task):
     PARAMETER_CLASS = DAGSchedulerParameters
 
-    def _transform(self):
+    def run(self):
         schedule = None
 
         try:

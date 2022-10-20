@@ -5,6 +5,11 @@ __pycache__
 .idea/
 .ipynb_checkpoints
 .terraform
+dependency-reduced-pom.xml
+derby.log
+Scratch.ipynb
+Sandbox/JDBC/Informix/bson-4.2.0.jar
+Sandbox/JDBC/Informix/jdbc-4.50.4.1.jar
 *.backup
 *.tfstate
 Source/Terraform/**/tfplan

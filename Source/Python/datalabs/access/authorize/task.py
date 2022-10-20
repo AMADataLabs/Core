@@ -15,8 +15,9 @@ class AuthorizerParameters:
 
 
 class AuthorizerTask(Task, ABC):
-    def __init__(self, parameters: AuthorizerParameters):
-        super().__init__(parameters)
+    def __init__(self, parameters: AuthorizerParameters, data: "list<bytes>"):
+        super().__init__(parameters, data)
+
         self._authorization = {}
         self._session = requests.Session()
 

@@ -5,8 +5,8 @@ from   bs4 import BeautifulSoup
 
 import requests
 
-from   datalabs.etl.extract import ExtractorTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 
 @add_schema
@@ -24,10 +24,10 @@ class HCPCSParserParameters:
 
 
 # pylint: disable=too-many-ancestors
-class HCPCSQuarterlyUpdateReportURLExtractorTask(ExtractorTask):
+class HCPCSQuarterlyUpdateReportURLExtractorTask(Task):
     PARAMETER_CLASS = HCPCSParserParameters
 
-    def _extract(self):
+    def run(self):
         url_list = self._get_quarterly_update_report_urls(self._parameters.url)
 
         latest_url = self._select_latest_quarterly_update_report_url(url_list)

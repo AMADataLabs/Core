@@ -1,14 +1,7 @@
 """ source: datalabs.etl.transform """
 import pytest
 
-from datalabs.etl.transform import TransformerTask, PassThroughTransformerTask
-
-
-# pylint: disable=redefined-outer-name
-def test_transformer_task(transformer):
-    transformer.run()
-
-    assert transformer.data == 'True'
+from datalabs.etl.transform import PassThroughTransformerTask
 
 
 def test_pass_through_transformer():

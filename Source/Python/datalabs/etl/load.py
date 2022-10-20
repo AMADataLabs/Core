@@ -8,17 +8,6 @@ import os
 from datalabs.etl.task import ETLException, ETLComponentTask
 
 
-class LoaderTask(ETLComponentTask, ABC):
-    def run(self):
-        self._load()
-
-        return []
-
-    @abstractmethod
-    def _load(self):
-        pass
-
-
 class ConsoleLoaderTask(LoaderTask):
     def __init__(self, parameters):
         super().__init__(parameters)
@@ -26,7 +15,7 @@ class ConsoleLoaderTask(LoaderTask):
         self._logger = logging.getLogger(ConsoleLoaderTask.__name__)
         self._logger.setLevel(logging.INFO)
 
-    def _load(self):
+    def run(self):
         try:
             for index,datum in enumerate(self._data):
                 self._logger.info('Datum #%d: %s', index+1, datum)
@@ -83,7 +72,7 @@ class FileLoaderTask(LoaderTask, ABC):
     def execution_time(self):
         return datetime.utcnow()
 
-    def _load(self):
+    def run(self):
         # pylint: disable=not-context-manager
         with self._get_client() as client:
             data = self._data

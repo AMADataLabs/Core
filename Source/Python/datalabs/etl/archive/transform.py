@@ -6,9 +6,9 @@ import pickle
 from   pathlib import Path
 from   zipfile import ZipFile
 
-from   datalabs.etl.transform import TransformerTask
 from   datalabs.etl.extract import FileExtractorTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class UnzipTransformerTask(FileExtractorTask):
         return True
 
     def _get_client(self) -> 'Context Manager':
-        return ZipFiles(self._parameters.data)
+        return ZipFiles(self._data)
 
     def _get_files(self) -> list:
         return self._client.files
@@ -62,11 +62,11 @@ class ZipTransformerParameters:
     execution_time: str = None
 
 
-class ZipTransformerTask(TransformerTask):
+class ZipTransformerTask(Task):
     PARAMETER_CLASS = UnzipTransformerParameters
 
-    def _transform(self) -> 'Transformed Data':
-        return [self._zip_files(pickle.loads(pickled_dataset)) for pickled_dataset in self._parameters.data]
+    def run(self) -> 'Transformed Data':
+        return [self._zip_files(pickle.loads(pickled_dataset)) for pickled_dataset in self._data]
 
     @classmethod
     def _zip_files(cls, filename_data_tuples):

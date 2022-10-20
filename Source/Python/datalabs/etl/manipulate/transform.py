@@ -7,8 +7,8 @@ import logging
 import numpy
 import pandas
 
-from   datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -34,12 +34,12 @@ class SplitTransformerParameters:
     data: object = None
 
 
-class SplitTransformerTask(DataFrameTransformerMixin, TransformerTask):
+class SplitTransformerTask(DataFrameTransformerMixin, Task):
     PARAMETER_CLASS = SplitTransformerParameters
 
-    def _transform(self):
+    def run(self):
         count = int(self._parameters.count)
-        datasets = [self._csv_to_dataframe(data) for data in self._parameters.data]
+        datasets = [self._csv_to_dataframe(data) for data in self._data]
         split_datasets = []
 
         for dataset in datasets:
@@ -56,11 +56,11 @@ class ConcatenateTransformerParameters:
     data: object = None
 
 
-class ConcatenateTransformerTask(TransformerTask):
+class ConcatenateTransformerTask(Task):
     PARAMETER_CLASS = ConcatenateTransformerParameters
 
-    def _transform(self):
-        line_sets = [data.strip().split(b'\n') for data in self._parameters.data]
+    def run(self):
+        line_sets = [data.strip().split(b'\n') for data in self._data]
         lines = list(itertools.chain.from_iterable(line_set[1:] for line_set in line_sets))
 
         if line_sets[0][0].startswith(b','):
