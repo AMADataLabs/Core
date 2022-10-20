@@ -7,10 +7,8 @@ ENVIRONMENT=${1:-""}
 
 main() {
     declare -A VERSIONS=(
-    	[sbx]=dev
-	[dev]=dev
-        [tst]=1.1.1
-        [prd]=1.1.1
+        [sbx]=dev
+        [dev]=dev
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
