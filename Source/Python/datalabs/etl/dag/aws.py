@@ -36,22 +36,7 @@ class DynamoDBTaskParameterGetterMixin:
         return parameters
 
 
-@add_schema(unknowns=True)
-@dataclass
-class DAGTaskWrapperParameters:
-    dag: str
-    task: str
-    execution_time: str
-    unknowns: dict=None
-
-
-class DAGTaskWrapper(
-    DynamoDBTaskParameterGetterMixin,
-    ParameterValidatorMixin,
-    datalabs.etl.dag.task.DAGTaskWrapper
-):
-    PARAMETER_CLASS = DAGTaskWrapperParameters
-
+class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAGTaskWrapper):
     def _get_runtime_parameters(self, parameters):
         command_line_parameters = json.loads(parameters[1])
         LOGGER.debug('Command-line Parameters: %s', command_line_parameters)
@@ -117,9 +102,6 @@ class DAGTaskWrapper(
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
         return dag_task_parameters
-
-    def _get_task_wrapper_parameters(self):
-        return self._get_validated_parameters(self._runtime_parameters)
 
     def _supplement_runtime_parameters(self, runtime_parameters):
         dag_id = runtime_parameters["dag"].upper()

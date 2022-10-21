@@ -33,22 +33,22 @@ data:
     PLATFORM_DB_USERNAME:  platform
     PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
     S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/Licensing'
+    S3_BASE_PATH: 'AMA/IntelligentPlatform/Licensing/Traffic'
 
 
     #######################################################################
     # DAG Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "DAG"}})
     #######################################################################
 
-    LICENSING_TRAFFIC__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-LicensingETL'
+    LICENSING_TRAFFIC__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-LicensingDAG'
     LICENSING_TRAFFIC__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.licensing.LicensingDAG'
     LICENSING_TRAFFIC__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     LICENSING_TRAFFIC__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    LICENSING_TRAFFIC__DAG__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    LICENSING_TRAFFIC__DAG__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    LICENSING_TRAFFIC__DAG__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    LICENSING_TRAFFIC__DAG__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    LICENSING_TRAFFIC__DAG__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    LICENSING_TRAFFIC__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    LICENSING_TRAFFIC__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    LICENSING_TRAFFIC__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    LICENSING_TRAFFIC__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    LICENSING_TRAFFIC__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
 
 
     ##########################################################################
