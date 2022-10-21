@@ -113,10 +113,10 @@ def test_parametric_extra_resolves_query_variables(parameters, parametric_data):
     parameters['SQL'] = "SELECT * FROM some_table WHERE year = '{year}'"
     parameters['PART_INDEX'] = '1'
     parameters['MAX_PARTS'] = '3'
-    parameters['data'] = [parametric_data.to_csv(index=False).encode()]
+    data = [parametric_data.to_csv(index=False).encode()]
     expected_query = parameters['SQL'].format(year='2014')
 
-    extractor = JDBCParametricExtractorTask(parameters)
+    extractor = JDBCParametricExtractorTask(parameters, data)
 
     resolved_query = extractor._resolve_query(parameters['SQL'], 0, 0)
     assert expected_query == resolved_query

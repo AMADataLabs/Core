@@ -16,7 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 @pytest.mark.skip(reason="Need to fix")
 def test_linking_corporate_parent_business(components):
     transformer = CorporateParentBusinessTransformerTask(components)
-    csv_list = transformer.run(()
+    csv_list = transformer.run()
     dataframe = pd.read_csv(io.StringIO(csv_list[0].decode()))
 
     assert len(csv_list) == 1

@@ -49,11 +49,6 @@ def test_task_wrapper_handle_success():
     assert response == "Success"
 
 
-class MockTask(etl.ETLTask):
-    defrun( self, session):
-        pass
-
-
 @pytest.fixture
 def expected_parameters():
     return etl.ETLParameters(
@@ -86,7 +81,7 @@ def expected_parameters():
 def event():
     current_env = os.environ.copy()
 
-    os.environ['TASK_CLASS'] = 'test.datalabs.etl.test_awslambda.MockTask'
+    os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
     os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
     os.environ['EXTRACTOR__thing'] = 'True'
     os.environ['EXTRACTOR__DATABASE_HOST'] = 'r2d2.droid.com'

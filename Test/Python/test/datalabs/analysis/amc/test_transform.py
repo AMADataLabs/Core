@@ -15,10 +15,10 @@ LOGGER.setLevel(logging.DEBUG)
 def test_good_data(good_data):
     transformer = AMCAddressFlaggingTransformerTask({}, good_data)
 
-    transformer.run()
+    transformed_data = transformer.run()
 
     # pylint: disable=not-an-iterable
-    for result in transformer._data:
+    for result in transformed_data:
         report_data, summary = pickle.loads(result)
         LOGGER.debug('Report Data: %s', report_data)
         LOGGER.debug('Report: %s', summary)
@@ -31,10 +31,10 @@ def test_good_data(good_data):
 def test_bad_data(bad_data):
     transformer = AMCAddressFlaggingTransformerTask({}, bad_data)
 
-    transformer.run()
+    transformed_data = transformer.run()
 
     # pylint: disable=not-an-iterable
-    for result in transformer._data:
+    for result in transformed_data:
         report_data, summary = pickle.loads(result)
         LOGGER.debug('Report Data: %s', report_data)
         LOGGER.debug('Report: %s', summary)

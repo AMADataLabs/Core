@@ -27,12 +27,10 @@ def test_extractor_data_is_reasonable(etl):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    extractor = etl.task._extractor
+    LOGGER.debug('Extracted Data: %s', etl.task._output.extractor)
+    assert len(etl.task._output.extractor) == 1
 
-    LOGGER.debug('Extracted Data: %s', extractor.data)
-    assert len(extractor.data) == 1
-
-    named_files_data = pickle.loads(extractor.data[0])
+    named_files_data = pickle.loads(etl.task._output.extractor[0])
     assert len(named_files_data) == 1
     _, data = zip(*named_files_data)
     assert len(data) == 1

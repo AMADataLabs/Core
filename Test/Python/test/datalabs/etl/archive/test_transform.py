@@ -23,7 +23,7 @@ def test_zip_transformer_zips_tuple_data(zip_data):
 @pytest.mark.order(1)
 def test_zip_transformer_zips_pickled_data(pickled_data):
     transformer = archive.ZipTransformerTask({"data": [pickled_data, pickled_data]})
-    zip_datasets = transformer.run(()
+    zip_datasets = transformer.run()
 
     assert len(zip_datasets) == 2
 

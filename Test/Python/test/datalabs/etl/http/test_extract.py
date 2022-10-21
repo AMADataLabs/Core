@@ -18,9 +18,8 @@ def test_urls_parameter_is_parsed_correctly(parameters, expected_urls):
 # pylint: disable=redefined-outer-name, protected-access
 def test_url_list_data_is_parsed_correctly(parameters, data, expected_urls):
     parameters.pop('URLS')
-    parameters['data'] = data
 
-    extractor = HTTPFileListExtractorTask(parameters)
+    extractor = HTTPFileListExtractorTask(parameters, data)
     urls = extractor._get_files()
 
     assert len(urls) == 3

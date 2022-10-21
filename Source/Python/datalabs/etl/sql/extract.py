@@ -177,7 +177,7 @@ class SQLParametricExtractorParameters:
 class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
     PARAMETER_CLASS = SQLParametricExtractorParameters
 
-    def __init__(self, parameters, data):
+    def __init__(self, parameters: dict, data: "list<bytes>"):
         super().__init__(parameters, data)
 
         self._query_parameters = self._csv_to_dataframe(self._data[0])

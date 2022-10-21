@@ -15,9 +15,9 @@ def test_etl_task(parameters):
 
     etl.run()
 
-    assert etl._extractor.data
-    assert etl.run(er.data == 'True'
-    assert etl._loader.data is None
+    assert etl._output.extractor
+    assert etl._output.transformer == 'True'
+    assert etl._output.loader is None
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -27,9 +27,9 @@ def test_etl_task_wrapper(environment_variables):
 
         wrapper.run()
 
-    assert wrapper.task._extractor.data == 'True'
-    assert wrapper.task.run(er.data == 'True'
-    assert wrapper.task._loader.data is None
+    assert wrapper.task._output.extractor == 'True'
+    assert wrapper.task._output.transformer == 'True'
+    assert wrapper.task._output.loader is None
 
 
 def test_get_validated_parameters_returns_proper_object(parameters):
@@ -62,7 +62,6 @@ class TaskParameters:
     cooley: str
     high: str
     harmony: str
-    data: object = None
 
 
 class DummyTask(task.Task):
@@ -76,16 +75,23 @@ class DummyTask(task.Task):
 def parameters():
     return task.ETLParameters(
         extractor=dict(
-            TASK_CLASS='test.datalabs.etl.test_extract.Extractor',
-            thing=True
-        ),
-        transformer=dict(
-            TASK_CLASS='test.datalabs.etl.test_transform.Transformer',
+            TASK_CLASS='test.datalabs.etl.test_task.DummyTask',
             COOLEY='Boyz',
             HIGH='II',
             HARMONY='Men'
         ),
-        loader=dict(TASK_CLASS='test.datalabs.etl.test_load.Loader')
+        transformer=dict(
+            TASK_CLASS='test.datalabs.etl.test_task.DummyTask',
+            COOLEY='Boyz',
+            HIGH='II',
+            HARMONY='Men'
+        ),
+        loader=dict(
+            TASK_CLASS='test.datalabs.etl.test_task.DummyTask',
+            COOLEY='Boyz',
+            HIGH='II',
+            HARMONY='Men'
+        )
     )
 
 

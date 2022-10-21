@@ -23,7 +23,7 @@ class ETLTaskWrapper(etl.ETLTaskWrapper):
     # pylint: disable=protected-access
     def _handle_success(self):
         self._data = dict(
-            extractor=self.task._extractor.data,
-            transformer=self.task.run(er.data,
-            loader=self.task._loader.data
+            extractor=self.task._output.extractor,
+            transformer=self.task._output.transformer,
+            loader=self.task._output.loader
         )

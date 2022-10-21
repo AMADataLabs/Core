@@ -13,7 +13,7 @@ LOGGER.setLevel(logging.DEBUG)
 @pytest.mark.skip(reason="Integration test. Input Credentials")
 def test_jdbc_connection(components):
     transformer = PPDTransformerTask(components)
-    csv_list = transformer.run(()
+    csv_list = transformer.run()
 
     assert len(csv_list) == 1
     assert csv_list[0].split(',')[0] == 'medical_education_number'

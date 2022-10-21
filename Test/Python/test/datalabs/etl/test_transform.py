@@ -1,12 +1,9 @@
 """ source: datalabs.etl.transform """
-import pytest
-
 from   datalabs.etl.transform import PassThroughTransformerTask
-from   datalabs.task.Task
 
 
 def test_pass_through_transformer():
-    transformer = PassThroughTransformerTask({}, [b'True']))
+    transformer = PassThroughTransformerTask({}, [b'True'])
 
     data = transformer.run()
 

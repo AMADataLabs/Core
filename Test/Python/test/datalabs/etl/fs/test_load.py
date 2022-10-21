@@ -30,7 +30,7 @@ def test_loader_loads_two_files(etl, loader_directory):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    data = etl.task._loader._parameters.data
+    data = etl.task._subtasks.loader._parameters.data
 
     LOGGER.debug('Loaded Data: %s', data)
     assert len(data) == 2
@@ -67,7 +67,7 @@ def test_named_files_loading(etl, extractor_file):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    data = etl.task._loader._parameters.data
+    data = etl.task._subtasks.loader._parameters.data
 
     LOGGER.debug('Loaded Data: %s', data)
     assert len(data) == 1
