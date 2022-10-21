@@ -72,12 +72,12 @@ class ORMLoaderTask(Task):
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                host=self._database_host,
-                port=self._database_port,
-                backend=self._database_backend,
-                name=self._database_name,
-                username=self._database_username,
-                password=self._database_password
+                host=self._parameters.database_host,
+                port=self._parameters.database_port,
+                backend=self._parameters.database_backend,
+                name=self._parameters.database_name,
+                username=self._parameters.database_username,
+                password=self._parameters.database_password
             )
         )
 
@@ -96,9 +96,9 @@ class ORMLoaderTask(Task):
         provider = None
 
         try:
-            provider = get_provider(self._database_backend)
+            provider = get_provider(self._parameters.database_backend)
         except ModuleNotFoundError as exception:
-            dialect = self._database_backend.split('+')[0]
+            dialect = self._parameters.database_backend.split('+')[0]
             raise ValueError(f"SQLAlchemy backend dialect '{dialect}' is not supported.") from exception
 
         primary_key = provider.get_primary_key(database, schema, table)
@@ -346,12 +346,12 @@ class ORMPreLoaderTask(Task):
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                host=self._database_host,
-                port=self._database_port,
-                backend=self._database_backend,
-                name=self._database_name,
-                username=self._database_username,
-                password=self._database_password
+                host=self._parameters.database_host,
+                port=self._parameters.database_port,
+                backend=self._parameters.database_backend,
+                name=self._parameters.database_name,
+                username=self._parameters.database_username,
+                password=self._parameters.database_password
             )
         )
 
@@ -392,12 +392,12 @@ class MaterializedViewRefresherTask(Task):
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                host=self._database_host,
-                port=self._database_port,
-                backend=self._database_backend,
-                name=self._database_name,
-                username=self._database_username,
-                password=self._database_password
+                host=self._parameters.database_host,
+                port=self._parameters.database_port,
+                backend=self._parameters.database_backend,
+                name=self._parameters.database_name,
+                username=self._parameters.database_username,
+                password=self._parameters.database_password
             )
         )
 
@@ -443,11 +443,11 @@ class ReindexerTask(Task):
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                host=self._database_host,
-                port=self._database_port,
-                backend=self._database_backend,
-                name=self._database_name,
-                username=self._database_username,
-                password=self._database_password
+                host=self._parameters.database_host,
+                port=self._parameters.database_port,
+                backend=self._parameters.database_backend,
+                name=self._parameters.database_name,
+                username=self._parameters.database_username,
+                password=self._parameters.database_password
             )
         )

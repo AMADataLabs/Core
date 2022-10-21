@@ -12,8 +12,8 @@ from   datalabs.task import Task
 # pylint: disable=too-many-instance-attributes
 class TrafficReportSMTPLoaderParameters:
     to: str  # pylint: disable=invalid-name
-    cc: str = None
-    execution_time: str = None
+    cc: str=None  # pylint: disable=invalid-name
+    execution_time: str=None
 
 
 class TrafficReportSMTPLoaderTask(Task):

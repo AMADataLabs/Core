@@ -5,10 +5,11 @@ import logging
 import pickle
 import os
 
-from datalabs.etl.task import ETLException, ETLComponentTask
+from   datalabs.etl.task import ETLException
+from   datalabs.task import Task
 
 
-class ConsoleLoaderTask(LoaderTask):
+class ConsoleLoaderTask(Task):
     def __init__(self, parameters):
         super().__init__(parameters)
 
@@ -58,9 +59,9 @@ class CurrentPathMixin:
         return files, data
 
 
-class FileLoaderTask(LoaderTask, ABC):
-    def __init__(self, parameters):
-        super().__init__(parameters)
+class FileLoaderTask(Task, ABC):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
 
         self._client = None
 

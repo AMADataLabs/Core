@@ -17,7 +17,7 @@ LOGGER.setLevel(logging.INFO)
 class Task(ParameterValidatorMixin, ABC):
     PARAMETER_CLASS = None
 
-    def __init__(self, parameters: dict, data: "list<bytes>"):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
         self._parameters = parameters
         self._data = data
         self._log_parameters(parameters)

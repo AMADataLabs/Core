@@ -151,7 +151,6 @@ class SQLExtractorTask(ExtractorTask):
         return formatter.format(query, index=index, count=count)
 
 
-<<<<<<< HEAD
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
@@ -180,11 +179,6 @@ class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
 
     def __init__(self, parameters, data):
         super().__init__(parameters, data)
-=======
-class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
-    def __init__(self, parameters):
-        super().__init__(parameters)
->>>>>>> master
 
         self._query_parameters = self._csv_to_dataframe(self._data[0])
 

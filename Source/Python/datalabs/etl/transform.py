@@ -1,16 +1,14 @@
 """ Transformer base class and NO-OP implementation. """
-from   abc import ABC, abstractmethod
-
 import logging
 
-from   datalabs.etl.task import ETLComponentTask
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class PassThroughTransformerTask(TransformerTask):
+class PassThroughTransformerTask(Task):
     def run(self):
         log_data = self._parameters.get('LOG_DATA')
 

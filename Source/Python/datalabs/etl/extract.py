@@ -26,8 +26,8 @@ class NothingExtractorTask(Task):
 
 
 class FileExtractorTask(Task, ABC):
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, parameters, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
 
         self._client = None
         self._execution_time = self.execution_time

@@ -4,8 +4,8 @@ from   dataclasses import dataclass
 import logging
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

@@ -3,6 +3,8 @@ import csv
 from   io import BytesIO
 import pandas
 
+from   datalabs.task import Task
+
 
 class ContactIDAssignTransformerTask(Task):
     def run(self):

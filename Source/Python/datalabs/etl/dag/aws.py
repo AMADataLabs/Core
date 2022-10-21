@@ -36,10 +36,7 @@ class DynamoDBTaskParameterGetterMixin:
         return parameters
 
 
-class DAGTaskWrapper(
-    DynamoDBTaskParameterGetterMixin,
-    datalabs.etl.dag.task.DAGTaskWrapper
-
+class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAGTaskWrapper):
     def _get_runtime_parameters(self, parameters):
         command_line_parameters = json.loads(parameters[1])
         LOGGER.debug('Command-line Parameters: %s', command_line_parameters)

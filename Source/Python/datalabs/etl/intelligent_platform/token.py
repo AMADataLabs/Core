@@ -41,7 +41,7 @@ class ExpiredTokenPurgeTask(Task):
                 host=self._parameters.host,
                 port=self._parameters.port,
                 backend=self._parameters.backend,
-                name=self._database,
+                name=self._parameters.database,
                 username=self._parameters.username,
                 password=self._parameters.password
             )

@@ -7,7 +7,6 @@ import pandas
 
 from   datalabs.etl.oneview.reference import static, column
 from   datalabs.etl.oneview.transform import TransformerTask
-from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -107,7 +106,7 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
         return [column.FIPSC_COLUMNS]
 
 
-class StaticReferenceTablesTransformerTask(Task):
+class StaticReferenceTablesTransformerTask(TransformerTask):
     def run(self):
         table_data = [pandas.DataFrame.from_dict(table) for table in static.tables]
 
