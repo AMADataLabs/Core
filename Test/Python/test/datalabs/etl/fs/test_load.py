@@ -30,7 +30,7 @@ def test_loader_loads_two_files(etl, loader_directory):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    data = etl.task._subtasks.loader._parameters.data
+    data = etl.task._subtasks.loader._data
 
     LOGGER.debug('Loaded Data: %s', data)
     assert len(data) == 2
@@ -51,8 +51,8 @@ def test_loader_properly_adds_datestamp(etl, loader_directory):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_whitespace_removed_from_filenames(parameters):
-    task = fs.LocalFileLoaderTask(parameters)
+def test_whitespace_removed_from_filenames(parameters, data):
+    task = fs.LocalFileLoaderTask(parameters, data)
 
     files = task._get_files()
 
@@ -67,7 +67,7 @@ def test_named_files_loading(etl, extractor_file):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    data = etl.task._subtasks.loader._parameters.data
+    data = etl.task._subtasks.loader._data
 
     LOGGER.debug('Loaded Data: %s', data)
     assert len(data) == 1
@@ -77,8 +77,8 @@ def test_named_files_loading(etl, extractor_file):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_cp1252_encoding(parameters):
-    task = fs.LocalWindowsTextFileLoaderTask(parameters)
+def test_cp1252_encoding(parameters, data):
+    task = fs.LocalWindowsTextFileLoaderTask(parameters, data)
     unicode_encoded_text = '¥'.encode('utf-8')
     cp1252_encoded_text = task._encode_data(unicode_encoded_text)
 
@@ -132,6 +132,10 @@ def parameters():
     return dict(
         BASE_PATH='dir1/dir2/dir3',
         FILES='this_one.csv,that_one.csv,\n       the_other_one.csv     ',
-        EXECUTION_TIME='19000101',
-        DATA=[b'', b'']
+        EXECUTION_TIME='19000101'
     )
+
+
+@pytest.fixture
+def data():
+    return [b'', b'']

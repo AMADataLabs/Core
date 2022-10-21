@@ -9,7 +9,7 @@ from datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 
 # pylint: disable=redefined-outer-name
 def test_concatenation_works_on_indexed_csv(split_indexed_data):
-    task = ConcatenateTransformerTask(dict(execution_time='2021-01-01 00:00:00', data=split_indexed_data))
+    task = ConcatenateTransformerTask(dict(execution_time='2021-01-01 00:00:00'), data=split_indexed_data)
     data = task.run()
 
     assert len(data) == 1
@@ -21,7 +21,7 @@ def test_concatenation_works_on_indexed_csv(split_indexed_data):
 
 # pylint: disable=redefined-outer-name
 def test_concatenation_works_on_unindexed_csv(split_unindexed_data):
-    task = ConcatenateTransformerTask(dict(execution_time='2021-01-01 00:00:00', data=split_unindexed_data))
+    task = ConcatenateTransformerTask(dict(execution_time='2021-01-01 00:00:00'), data=split_unindexed_data)
     data = task.run()
 
     assert len(data) == 1

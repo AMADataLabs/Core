@@ -52,7 +52,7 @@ class DAGNotificationFactoryTask(Task):
         messages = None
 
         if parameters.empty:
-            parameters = pandas.DataFrame(dict(dag=[dag], execution_time=[execution_time]))
+            parameters = pandas.Series(dict(dag=dag, execution_time=execution_time))
 
             messages = [cls._generate_notification_message(parameters)]
         else:
@@ -71,7 +71,6 @@ class DAGNotificationFactoryTask(Task):
         )
 
         if (parameters is not None) and (len(parameters) > 2):
-
             message["parameters"] = json.loads(parameters.drop(["dag", "execution_time"]).to_json())
 
         return message
