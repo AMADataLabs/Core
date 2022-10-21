@@ -90,20 +90,13 @@ class IQVIAProviderTransformerTask(TransformerTask):
     @classmethod
     def _match_best_affiliation(cls, affiliations, best_affiliations):
         best_affiliations['BEST'] = True
-
+        import pdb
+        pdb.set_trace()
         affiliations = pandas.merge(affiliations, best_affiliations, on=["IMS_ORG_ID", "PROFESSIONAL_ID"], how="left")
-        affiliations = affiliations.drop(columns=['AFFIL_TYPE_ID_y', 'AFFIL_TYPE_DESC_y', 'AFFIL_IND_y', 'AFFIL_RANK_y',
-                                                  'AFFIL_GROUP_CODE_y', 'AFFIL_GROUP_DESC_y', 'BATCH_BUSINESS_DATE_y']
-                                         )
-        affiliations = affiliations.rename(columns={'AFFIL_TYPE_ID_x': 'AFFIL_TYPE_ID',
-                                                    'AFFIL_TYPE_DESC_x': 'AFFIL_TYPE_DESC',
-                                                    'AFFIL_IND_x': 'AFFIL_IND',
-                                                    'AFFIL_RANK_x': 'AFFIL_RANK',
-                                                    'AFFIL_GROUP_CODE_x': 'AFFIL_GROUP_CODE',
-                                                    'AFFIL_GROUP_DESC_x': 'AFFIL_GROUP_DESC',
-                                                    'BATCH_BUSINESS_DATE_x': 'BATCH_BUSINESS_DATE'
-                                                    }
-                                           )
+
+        affiliations = affiliations.drop(columns=column.PROVIDER_BEST_AFFILIATION_DROPPED_COLUMNS)
+
+        affiliations = affiliations.rename(columns=column.PROVIDER_BEST_AFFILIATION_COLUMNS)
 
         affiliations['BEST'] = affiliations['BEST'].fillna(False)
 
