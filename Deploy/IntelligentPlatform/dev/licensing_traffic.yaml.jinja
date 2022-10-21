@@ -26,13 +26,12 @@ data:
     PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
     PLATFORM_DB_PORT: '3306'
     PLATFORM_DB_BACKEND: 'mysql+pymysql'
-    PLATFORM_FLL_DB_NAME: 'frictionlesslicensing'
+    LICENSING_DATABASE: 'frictionlesslicensing'
     PLATFORM_DB_PARAMETERS: 'encrypt=true;trustServerCertificate=true'
 
-    PLATFORM_USER_MGMT_DB_NAME: 'usermgmt'
+    USER_MANAGEMENT_DATABASE: 'usermgmt'
     PLATFORM_DB_USERNAME:  platform
     PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
-    PLATFORM_PO_TEAM: 'Denis.Casaubon@ama-assn.org; Kyle.Dahl@ama-assn.org'
     S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
     S3_BASE_PATH: 'AMA/Licensing'
 
@@ -62,8 +61,7 @@ data:
     LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_PARAMETERS: ${PLATFORM_DB_PARAMETERS}
     LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
     LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__FLL_DB_NAME: ${PLATFORM_FLL_DB_NAME}
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__USERMGMT_DB_NAME: ${PLATFORM_USER_MGMT_DB_NAME}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_NAME: ${LICENSING_DATABASE}
     LICENSING_TRAFFIC__EXTRACT_TRAFFIC__SQL: "
 
     SELECT
@@ -84,35 +82,35 @@ data:
         GROUP_CONCAT(f.name) Flag_name,
         adf.field_name Agreement_Detail_Flag
     FROM
-        ${PLATFORM_FLL_DB_NAME}.quotes q
+        ${LICENSING_DATABASE}.quotes q
             INNER JOIN
-        ${PLATFORM_FLL_DB_NAME}quote_question_answers qqa ON qqa.quote_id = q.id
+        ${LICENSING_DATABASE}quote_question_answers qqa ON qqa.quote_id = q.id
             INNER JOIN
-        ${PLATFORM_FLL_DB_NAME}question_answers qa ON qa.id = qqa.question_answer_id
+        ${LICENSING_DATABASE}question_answers qa ON qa.id = qqa.question_answer_id
             INNER JOIN
-        ${PLATFORM_FLL_DB_NAME}questions que ON que.id = qa.question_id
+        ${LICENSING_DATABASE}questions que ON que.id = qa.question_id
             INNER JOIN
-        ${PLATFORM_FLL_DB_NAME}.quote_status qs ON qs.id = q.quote_status_id
+        ${LICENSING_DATABASE}.quote_status qs ON qs.id = q.quote_status_id
             INNER JOIN
-        ${PLATFORM_FLL_DB_NAME}.license_categories lc ON lc.id = q.license_category_id
+        ${LICENSING_DATABASE}.license_categories lc ON lc.id = q.license_category_id
             INNER JOIN
-        ${PLATFORM_USER_MGMT_DB_NAME}.User usr ON usr.user_name = q.created_by
+        ${USER_MANAGEMENT_DATABASE}.User usr ON usr.user_name = q.created_by
             INNER JOIN
-        ${PLATFORM_USER_MGMT_DB_NAME}.Organization org ON org.id = usr.organization_id
+        ${USER_MANAGEMENT_DATABASE}.Organization org ON org.id = usr.organization_id
             LEFT JOIN
-        ${PLATFORM_FLL_DB_NAME}.campaign_quotes cq ON cq.quote_id = q.id
+        ${LICENSING_DATABASE}.campaign_quotes cq ON cq.quote_id = q.id
             LEFT JOIN
-        ${PLATFORM_FLL_DB_NAME}.campaigns c ON c.id = cq.campaign_id
+        ${LICENSING_DATABASE}.campaigns c ON c.id = cq.campaign_id
             LEFT JOIN
-        ${PLATFORM_FLL_DB_NAME}.answers a ON a.id = qa.answer_id
+        ${LICENSING_DATABASE}.answers a ON a.id = qa.answer_id
             LEFT JOIN
-        ${PLATFORM_FLL_DB_NAME}.quote_flags qf ON qf.quote_id = q.id
+        ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
             LEFT JOIN
-        ${PLATFORM_FLL_DB_NAME}.flag_groups fg ON fg.id = qf.flag_group_id
+        ${LICENSING_DATABASE}.flag_groups fg ON fg.id = qf.flag_group_id
             LEFT JOIN
-        ${PLATFORM_FLL_DB_NAME}.flags f ON f.id = fg.flag_id
+        ${LICENSING_DATABASE}.flags f ON f.id = fg.flag_id
             LEFT JOIN
-        ${PLATFORM_FLL_DB_NAME}.agreement_detail_flags adf ON adf.quote_id = q.id
+        ${LICENSING_DATABASE}.agreement_detail_flags adf ON adf.quote_id = q.id
     WHERE
         lc.category = 'Provisional'
             AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
@@ -146,10 +144,9 @@ data:
     ##########################################################################
 
     # Email Traffic Report
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__TO: ${PLATFORM_PO_TEAM}
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__DATA: ${PLATFORM_DB_HOST}
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_FILES: 'Intelligent_Platform_Traffic_Report.csv'
+    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_FILES: 'licensing_traffic.csv'
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__TO: 'datalabs@ama-assn.org'
