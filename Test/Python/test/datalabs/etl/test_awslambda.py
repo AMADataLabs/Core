@@ -50,7 +50,7 @@ def test_task_wrapper_handle_success():
 
 
 class MockTask(etl.ETLTask):
-    def _run(self, session):
+    defrun( self, session):
         pass
 
 

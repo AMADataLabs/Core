@@ -6,7 +6,8 @@ import logging
 from   dateutil.parser import isoparse
 
 from   datalabs.access.environment import VariableTree
-from   datalabs import task, plugin
+from   datalabs.task import Task, TaskException, TaskWrapper
+from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class ETLParameters:
     loader: dict
 
 
-class ETLTask(task.Task):
+class ETLTask(Task):
     def __init__(self, parameters, data):
         super().__init__(parameters, data)
 
@@ -75,22 +76,22 @@ class ETLTask(task.Task):
         if task_class is None:
             raise ETLException(f'...__TASK_CLASS parameter not specified in {parameters}')
 
-        TaskPlugin = plugin.import_plugin(task_class)  # pylint: disable=invalid-name
+        TaskPlugin = import_plugin(task_class)  # pylint: disable=invalid-name
 
         return TaskPlugin(parameters, data)
 
 
-class ETLException(task.TaskException):
+class ETLException(TaskException):
     pass
 
 
-class DummyTask(task.Task):
+class DummyTask(Task):
     def run(self):
         LOGGER.info("I'm a dummy!")
         return []
 
 
-class ETLTaskParametersGetterMixin(task.TaskWrapper):
+class ETLTaskParametersGetterMixin(TaskWrapper):
     def _get_task_parameters(self):
         var_tree = VariableTree.from_environment()
 
@@ -109,7 +110,7 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
         return component_parameters
 
 
-class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
+class ETLTaskWrapper(ETLTaskParametersGetterMixin, TaskWrapper):
     def _get_task_parameters(self):
         task_parameters = super()._get_task_parameters()
 

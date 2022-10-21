@@ -16,7 +16,7 @@ LOGGER.setLevel(logging.DEBUG)
 def test_orm_loader(loader_parameters):
     with mock.patch('datalabs.etl.orm.load.Database'):
         loader = ORMLoaderTask(loader_parameters)
-        loader._load()
+        loader.run()
 
 
 # pylint: disable=protected-access

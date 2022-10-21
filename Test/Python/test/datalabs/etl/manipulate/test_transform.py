@@ -10,11 +10,11 @@ from datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 # pylint: disable=redefined-outer-name
 def test_concatenation_works_on_indexed_csv(split_indexed_data):
     task = ConcatenateTransformerTask(dict(execution_time='2021-01-01 00:00:00', data=split_indexed_data))
-    task.run()
+    data = task.run()
 
-    assert len(task.data) == 1
+    assert len(data) == 1
 
-    concatenated_data = pandas.read_csv(BytesIO(task.data[0]), dtype=object)  # pylint: disable=unsubscriptable-object
+    concatenated_data = pandas.read_csv(BytesIO(data[0]), dtype=object)  # pylint: disable=unsubscriptable-object
 
     assert len(concatenated_data) == 4
 
@@ -22,11 +22,11 @@ def test_concatenation_works_on_indexed_csv(split_indexed_data):
 # pylint: disable=redefined-outer-name
 def test_concatenation_works_on_unindexed_csv(split_unindexed_data):
     task = ConcatenateTransformerTask(dict(execution_time='2021-01-01 00:00:00', data=split_unindexed_data))
-    task.run()
+    data = task.run()
 
-    assert len(task.data) == 1
+    assert len(data) == 1
 
-    concatenated_data = pandas.read_csv(BytesIO(task.data[0]), dtype=object)  # pylint: disable=unsubscriptable-object
+    concatenated_data = pandas.read_csv(BytesIO(data[0]), dtype=object)  # pylint: disable=unsubscriptable-object
 
     assert len(concatenated_data) == 4
 

@@ -21,7 +21,6 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 class LicensedOrganizationsTransformerParameters:
     execution_time: str = None
-    data: object = None
 
 
 class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
@@ -52,6 +51,18 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
         return int(prefix + suffix)
 
 
-class LicensedArticlesTransformerTask(Task):
+@add_schema
+@dataclass
+class ArticlesTransformerParameters:
+    execution_time: str = None
+
+
+class ArticlesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = ArticlesTransformerParameters
+
     def run(self):
-        return self._data
+        articles = self._csv_to_dataframe(self._data[0])
+
+        articles = articles[["licensee"]].rename(columns=ARTICLES_COLUMNS)
+
+        return [self._dataframe_to_csv(articles)]

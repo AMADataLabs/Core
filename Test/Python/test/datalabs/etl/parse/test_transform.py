@@ -18,7 +18,7 @@ def test_transforming_cpt_files_to_csv():
 
     transformer = ParseToCSVTransformerTask(parameters)
 
-    data = transformer._transform()
+    data = transformer.run(()
 
     LOGGER.debug('Transformed Data: %s', data)
 

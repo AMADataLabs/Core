@@ -24,6 +24,6 @@ class ETLTaskWrapper(etl.ETLTaskWrapper):
     def _handle_success(self):
         self._data = dict(
             extractor=self.task._extractor.data,
-            transformer=self.task._transformer.data,
+            transformer=self.task.run(er.data,
             loader=self.task._loader.data
         )

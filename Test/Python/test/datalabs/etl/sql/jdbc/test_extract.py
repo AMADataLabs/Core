@@ -129,7 +129,7 @@ def test_jdbc_connection(parameters):
     parameters['DATABASE_PASSWORD'] = os.getenv('EXTRACTOR__DATABASE_PASSWORD')
 
     extractor = JDBCExtractorTask(parameters)
-    dataframes_list = extractor._extract()
+    dataframes_list = extractor.run( )
 
     assert dataframes_list[0].columns[0] == 'ME_NUMBER'
 

@@ -10,7 +10,7 @@ from datalabs.etl.oneview.reference.transform import StaticReferenceTablesTransf
 def test_static_reference_tables_are_created_properly():
     transformer = StaticReferenceTablesTransformerTask({})
 
-    csv_data = transformer._transform()
+    csv_data = transformer.run(()
 
     for csv_datum in csv_data:
         table = pandas.read_csv(BytesIO(csv_datum))

@@ -25,7 +25,7 @@ def test_data_setup_correctly(extractor_file):
 def test_transformer_produces_two_datasets(etl):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
-    transformer = etl.task._transformer
+    transformer = etl.task.run(er
 
     LOGGER.debug('Transformed Data: %s', transformer.data)
     assert len(transformer.data) == 2
@@ -36,7 +36,7 @@ def test_transformer_data_has_three_data_rows(etl):
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         etl.run()
 
-    transformer = etl.task._transformer
+    transformer = etl.task.run(er
     rows = transformer.data[0].decode().split('\n')
     LOGGER.debug('Row Data: %s', rows)
 

@@ -1,5 +1,4 @@
 """ Task wrapper for DAGs and DAG tasks running in AWS. """
-from   dataclasses import dataclass
 import json
 import logging
 import os
@@ -13,7 +12,6 @@ from   datalabs.etl.dag.notify.webhook import StatusWebHookNotifier
 from   datalabs.etl.dag.state import Status
 from   datalabs.plugin import import_plugin
 import datalabs.etl.dag.task
-from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

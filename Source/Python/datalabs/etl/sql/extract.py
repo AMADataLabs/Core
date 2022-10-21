@@ -30,7 +30,7 @@ class SQLExtractorParameters:
     stream: str = None
 
 
-class SQLExtractorTask(ExtractorTask):
+class SQLExtractorTask(Task):
     PARAMETER_CLASS = SQLExtractorParameters
 
     def run(self):

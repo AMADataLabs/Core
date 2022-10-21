@@ -36,7 +36,7 @@ def test_correct_messages_are_generated(parameters):
 def test_messages_are_serialized_as_json_string(data):
     factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00", "data": data})
 
-    output = factory._transform()
+    output = factory.run(()
 
     assert len(output) == 1
 

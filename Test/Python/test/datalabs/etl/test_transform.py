@@ -1,23 +1,16 @@
 """ source: datalabs.etl.transform """
 import pytest
 
-from datalabs.etl.transform import PassThroughTransformerTask
+from   datalabs.etl.transform import PassThroughTransformerTask
+from   datalabs.task.Task
 
 
 def test_pass_through_transformer():
-    transformer = PassThroughTransformerTask(dict(data='True'))
+    transformer = PassThroughTransformerTask({}, [b'True']))
 
-    transformer.run()
-
-
-    assert transformer.data
+    data = transformer.run()
 
 
-@pytest.fixture
-def transformer():
-    return Transformer(dict(data='True'))
-
-
-class Transformer(TransformerTask):
-    def _transform(self):
-        return str(self._parameters['data'])
+    assert data
+    assert len(data) == 1
+    assert data[0] == b'True'

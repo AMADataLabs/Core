@@ -16,7 +16,7 @@ def test_etl_task(parameters):
     etl.run()
 
     assert etl._extractor.data
-    assert etl._transformer.data == 'True'
+    assert etl.run(er.data == 'True'
     assert etl._loader.data is None
 
 
@@ -28,7 +28,7 @@ def test_etl_task_wrapper(environment_variables):
         wrapper.run()
 
     assert wrapper.task._extractor.data == 'True'
-    assert wrapper.task._transformer.data == 'True'
+    assert wrapper.task.run(er.data == 'True'
     assert wrapper.task._loader.data is None
 
 
@@ -65,11 +65,11 @@ class TaskParameters:
     data: object = None
 
 
-class DummyTask(task.ETLComponentTask):
+class DummyTask(task.Task):
     PARAMETER_CLASS = TaskParameters
 
     def run(self):
-        self._data = self._parameters['data']
+        return self._data
 
 
 @pytest.fixture
