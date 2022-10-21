@@ -90,8 +90,7 @@ class IQVIAProviderTransformerTask(TransformerTask):
     @classmethod
     def _match_best_affiliation(cls, affiliations, best_affiliations):
         best_affiliations['BEST'] = True
-        import pdb
-        pdb.set_trace()
+
         affiliations = pandas.merge(affiliations, best_affiliations, on=["IMS_ORG_ID", "PROFESSIONAL_ID"], how="left")
 
         affiliations = affiliations.drop(columns=column.PROVIDER_BEST_AFFILIATION_DROPPED_COLUMNS)
