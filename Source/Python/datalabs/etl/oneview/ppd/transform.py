@@ -62,8 +62,10 @@ class NPITransformerTask(TransformerTask):
 
 
 class PPDTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, data: bytes, **kwargs) -> pandas.DataFrame:
-        return super()._csv_to_dataframe(data, sep='|', **kwargs)
+    def _parse(self, dataset):
+        encoding = ["utf8", "utf8", "cp1252"]
+
+        return [self._csv_to_dataframe(data, sep='|', encoding=encoding) for data, encoding in zip(dataset, encoding)]
 
     def _preprocess(self, dataset):
         ppd, race_ethnicity, medical_student = dataset
