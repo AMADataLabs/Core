@@ -18,7 +18,6 @@ from   datalabs.parameter import add_schema
 class S3FileLoaderParameters:
     bucket: str
     base_path: str
-    data: object
     files: str = None
     endpoint_url: str = None
     access_key: str = None
@@ -120,7 +119,6 @@ class S3WindowsTextFileLoaderTask(S3FileLoaderTask):
 class S3FileReplicatorParameters(ExecutionTimeMixin):
     bucket: str
     base_path: str
-    data: object
     files: str = None
     endpoint_url: str = None
     access_key: str = None

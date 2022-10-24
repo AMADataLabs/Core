@@ -10,7 +10,7 @@ from   datalabs.etl.control import DAGNotificationFactoryTask
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_parameters_parsed_correctly(data, parameters):
-    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00", "data": data})
+    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00"}, data)
 
     actual_parameters = factory._parse_iteration_parameters(data)
 
@@ -19,7 +19,7 @@ def test_parameters_parsed_correctly(data, parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_correct_messages_are_generated(parameters):
-    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00", "data": []})
+    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00"}, [])
 
     messages = factory._generate_notification_messages("DUMMY_DAG", "2022-05-19 00:00:00", parameters)
 

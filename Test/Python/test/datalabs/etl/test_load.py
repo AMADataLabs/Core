@@ -15,7 +15,7 @@ def test_files_data_length_mismatch_raises_error(file_loader):
 
 @pytest.fixture
 def file_loader():
-    return FileLoader(dict(data=True))
+    return FileLoader({}, [b'True'])
 
 
 class FileLoader(FileLoaderTask):

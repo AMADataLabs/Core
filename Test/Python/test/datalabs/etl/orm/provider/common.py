@@ -22,8 +22,8 @@ def test_generated_row_hashes_match_dbms_hashes(provider, hash_data, hash_query_
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_select_new_data(provider, loader_parameters, table_parameters, expected_data):
-    loader = ORMLoaderTask(loader_parameters)
+def test_select_new_data(provider, loader_parameters, data, table_parameters, expected_data):
+    loader = ORMLoaderTask(loader_parameters, data)
 
     row_hashes = provider.generate_row_hashes(
         table_parameters.data,
@@ -38,8 +38,8 @@ def test_select_new_data(provider, loader_parameters, table_parameters, expected
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_select_deleted_data(provider, loader_parameters, table_parameters, expected_data):
-    loader = ORMLoaderTask(loader_parameters)
+def test_select_deleted_data(provider, loader_parameters, data, table_parameters, expected_data):
+    loader = ORMLoaderTask(loader_parameters, data)
 
     row_hashes = provider.generate_row_hashes(
         table_parameters.data,
@@ -54,8 +54,8 @@ def test_select_deleted_data(provider, loader_parameters, table_parameters, expe
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_select_updated_data(provider, loader_parameters, table_parameters, expected_data):
-    loader = ORMLoaderTask(loader_parameters)
+def test_select_updated_data(provider, loader_parameters, data, table_parameters, expected_data):
+    loader = ORMLoaderTask(loader_parameters, data)
 
     row_hashes = provider.generate_row_hashes(
         table_parameters.data,
@@ -121,7 +121,7 @@ def database(database_parameters):
 
 # pylint: disable=redefined-outer-name, unused-argument
 @pytest.fixture
-def loader_parameters(database, file, data):
+def loader_parameters(database, file):
     return dict(
         # TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
         MODEL_CLASSES='test.datalabs.access.model.Foo,'
@@ -132,8 +132,7 @@ def loader_parameters(database, file, data):
         DATABASE_BACKEND='sqlite',
         DATABASE_NAME=file,
         DATABASE_USERNAME='',
-        DATABASE_PASSWORD='',
-        data=data
+        DATABASE_PASSWORD=''
     )
 
 

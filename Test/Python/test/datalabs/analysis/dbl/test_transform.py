@@ -12,7 +12,7 @@ from datalabs.analysis.dbl.transform import DBLReportTransformer
 # pylint: disable=protected-access, redefined-outer-name
 def test_transformer_works_with_sandbox_data(input_data):
     # pylint: disable=undefined-variable
-    transformer = DBLReportTransformer(parameters=dict(data=input_data))
+    transformer = DBLReportTransformer({}, input_data)
     output_data = transformer.run()
 
     assert len(output_data) == 1

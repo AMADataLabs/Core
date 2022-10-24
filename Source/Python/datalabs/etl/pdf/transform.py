@@ -20,7 +20,6 @@ LOGGER.setLevel(logging.DEBUG)
 class PDFSigningTransformerParameters:
     credentials_password: str
     recipient: str
-    data: object
     execution_time: str=None
 
 

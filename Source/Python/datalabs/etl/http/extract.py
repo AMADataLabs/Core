@@ -13,7 +13,6 @@ from   datalabs.parameter import add_schema
 class HTTPFileExtractorParameters:
     urls: str
     execution_time: str = None
-    data: object = None
 
 
 class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
@@ -43,7 +42,6 @@ class HTTPFileExtractorTask(IncludeNamesMixin, FileExtractorTask):
 # pylint: disable=too-many-instance-attributes
 class HTTPFileListExtractorParameters:
     execution_time: str = None
-    data: object = None
 
 
 class HTTPFileListExtractorTask(HTTPFileExtractorTask):

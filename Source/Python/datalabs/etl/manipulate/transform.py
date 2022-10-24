@@ -31,7 +31,6 @@ class DataFrameTransformerMixin:
 class SplitTransformerParameters:
     count: str
     execution_time: str = None
-    data: object = None
 
 
 class SplitTransformerTask(DataFrameTransformerMixin, Task):
@@ -53,7 +52,6 @@ class SplitTransformerTask(DataFrameTransformerMixin, Task):
 # pylint: disable=too-many-instance-attributes
 class ConcatenateTransformerParameters:
     execution_time: str = None
-    data: object = None
 
 
 class ConcatenateTransformerTask(Task):

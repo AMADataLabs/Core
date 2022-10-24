@@ -11,8 +11,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 # pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.skip(reason="Integration test. Input Credentials")
-def test_jdbc_connection(components):
-    transformer = PPDTransformerTask(components)
+def test_jdbc_connection(components, data):
+    transformer = PPDTransformerTask(components, data)
     csv_list = transformer.run()
 
     assert len(csv_list) == 1
@@ -21,11 +21,10 @@ def test_jdbc_connection(components):
 
 # pylint: disable=redefined-outer-name
 @pytest.fixture
-def components(data):
+def components():
     return dict(
         CLASS='datalabs.etl.oneview.ppd.transform.PPDTransformerTask',
-        thing=True,
-        data=data
+        thing=True
     )
 
 

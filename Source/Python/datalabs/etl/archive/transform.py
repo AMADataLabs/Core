@@ -19,7 +19,6 @@ LOGGER.setLevel(logging.INFO)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class UnzipTransformerParameters:
-    data: object
     files: str = None
     ignore_path_depth: str = None
     execution_time: str = None
@@ -58,7 +57,6 @@ class UnzipTransformerTask(FileExtractorTask):
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ZipTransformerParameters:
-    data: object
     execution_time: str = None
 
 

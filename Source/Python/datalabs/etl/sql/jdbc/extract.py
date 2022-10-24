@@ -19,7 +19,6 @@ class JDBCExtractorParameters:
     database_port: str
     jar_path: str
     sql: str
-    data: object = None
     execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
     count: str = None           # Total number of records to fetch accross chunks

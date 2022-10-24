@@ -67,7 +67,6 @@ class S3FileExtractorParameters:
     execution_time: str = None
     on_disk: str = False
     assume_role: str = None
-    data: object = None
 
 
 # pylint: disable=too-many-ancestors

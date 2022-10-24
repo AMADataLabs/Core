@@ -16,7 +16,6 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 class EmailTransformerParameters:
     execution_time: str = None
-    data: object = None
 
 
 class EmailReportGeneratorTask(CSVReaderMixin, CSVWriterMixin, Task):

@@ -40,7 +40,6 @@ class ORMLoaderParameters:
     database_backend: str
     database_username: str
     database_password: str
-    data: object
     execution_time: str = None
     append: str = None
     delete: str = None
@@ -370,7 +369,6 @@ class MaterializedViewRefresherParameters:
     database_username: str
     database_password: str
     views: str
-    data: object = None
     execution_time: str = None
 
 
@@ -414,7 +412,6 @@ class ReindexerParameters:
     database_password: str
     indexes: str = None
     tables: str = None
-    data: object = None
     execution_time: str = None
 
 

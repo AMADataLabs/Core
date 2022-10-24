@@ -19,7 +19,6 @@ class HCPCSParserParameters:
     on_disk: str = False
     filter_future: str = False
     assume_role: str = None
-    data: object = None
     url: str = None
 
 

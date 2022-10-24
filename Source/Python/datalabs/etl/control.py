@@ -20,7 +20,6 @@ LOGGER.setLevel(logging.INFO)
 class DAGNotificationFactoryParameters:
     dag: str
     execution_time: str
-    data: object
 
 
 class DAGNotificationFactoryTask(Task):
