@@ -9,8 +9,8 @@ main() {
     declare -A VERSIONS=(
         [sbx]=dev
         [dev]=dev
-        [tst]=1.4.0
-        [prd]=1.4.0
+        [tst]=
+        [prd]=
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then
@@ -18,8 +18,8 @@ main() {
     fi
 
     export RELEASE_TYPE="Python"
-    export RELEASE_NAME="datalabs-oneview-etl"
-    export RELEASE_DESCRIPTION="OneView ETL DAG plugin"
+    export RELEASE_NAME="datalabs-address-load-compiler"
+    export RELEASE_DESCRIPTION="Address Load Compiler DAG"
 }
 
 
