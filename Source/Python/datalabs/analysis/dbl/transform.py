@@ -10,8 +10,8 @@ import pandas as pd
 import xlsxwriter
 
 # pylint: disable=import-error
-from datalabs.etl.transform import TransformerTask
 from datalabs.analysis.dbl.validation import Validater
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -22,9 +22,9 @@ def get_letters_between(start, end):
     return ascii_uppercase[ascii_uppercase.index(start): ascii_uppercase.index(end)+1]
 
 
-class DBLReportTransformer(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        dataframes = self._get_dataframes(self._parameters['data'][:10])  # index 10 contains previous report (.xlsx)
+class DBLReportTransformer(Task):
+    def run(self) -> 'Transformed Data':
+        dataframes = self._get_dataframes(self._data[:10])  # index 10 contains previous report (.xlsx)
         dataframes[0] = self._transform_tab1(dataframes[0])
         dataframes[1] = self._transform_tab2(dataframes[1])
         dataframes[2] = self._transform_tab3(dataframes[2])
@@ -36,8 +36,8 @@ class DBLReportTransformer(TransformerTask):
         dataframes[8] = self._transform_tab9(dataframes[8])
         dataframes[9] = self._transform_tab10(dataframes[9])
 
-        if len(self._parameters['data']) > 10:
-            previous_report = self._parameters['data'][10]
+        if len(self._data) > 10:
+            previous_report = self._data[10]
         else:
             previous_report = None
 

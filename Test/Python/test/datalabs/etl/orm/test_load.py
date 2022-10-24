@@ -13,10 +13,10 @@ LOGGER.setLevel(logging.DEBUG)
 
 @pytest.mark.skip(reason="Need data from database")
 # pylint: disable=redefined-outer-name, protected-access
-def test_orm_loader(loader_parameters):
+def test_orm_loader(loader_parameters, data):
     with mock.patch('datalabs.etl.orm.load.Database'):
-        loader = ORMLoaderTask(loader_parameters)
-        loader._load()
+        loader = ORMLoaderTask(loader_parameters, data)
+        loader.run()
 
 
 # pylint: disable=protected-access
@@ -41,7 +41,7 @@ def test_get_schema_from_tuple_table_args():
 
 # pylint: disable=redefined-outer-name, unused-argument
 @pytest.fixture
-def loader_parameters(database, file, data):
+def loader_parameters(database, file):
     return dict(
         # TASK_CLASS='datalabs.etl.orm.loader.ORMLoaderTask',
         MODEL_CLASSES='test.datalabs.access.model.Foo,'
@@ -52,6 +52,5 @@ def loader_parameters(database, file, data):
         DATABASE_BACKEND='sqlite',
         DATABASE_NAME=file,
         DATABASE_USERNAME='',
-        DATABASE_PASSWORD='',
-        data=data
+        DATABASE_PASSWORD=''
     )

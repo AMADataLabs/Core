@@ -8,15 +8,17 @@ STAGED_FILES=$(git diff --name-only --cached)
 
 
 assert_max_file_size() {
-    size=$(stat -f %z "$REPO_ROOT/$1")
+    if [ -e $1 ]; then
+        size=$(stat -f %z "$REPO_ROOT/$1")
 
-    if [ "$size" -gt 10000000 ]; then
-        cat <<EOF
+        if [ "$size" -gt 10000000 ]; then
+            cat <<EOF
 Error: Attempting to commit a file larger than 10MB: $1
 
 Commiting large files slows builds, clones, and other operations.
 EOF
-        exit 1
+            exit 1
+        fi
     fi
 }
 

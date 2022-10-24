@@ -17,15 +17,16 @@ LOGGER.setLevel(logging.INFO)
 class Task(ParameterValidatorMixin, ABC):
     PARAMETER_CLASS = None
 
-    def __init__(self, parameters: dict):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
         self._parameters = parameters
+        self._data = data
         self._log_parameters(parameters)
 
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters(parameters)
 
     @abstractmethod
-    def run(self):
+    def run(self) -> "list<bytes>":
         pass
 
     @classmethod
@@ -89,6 +90,7 @@ class TaskWrapper(ABC):
         self._parameters = parameters or {}
         self._runtime_parameters = None
         self._task_parameters = None
+        self._output = None
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
@@ -108,7 +110,7 @@ class TaskWrapper(ABC):
 
             self._pre_run()
 
-            self.task.run()
+            self._output = self.task.run()
 
             response = self._handle_success()
         except Exception as exception:  # pylint: disable=broad-except

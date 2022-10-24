@@ -22,7 +22,6 @@ class ExpiredTokenPurgeParameters:
     password: str
     database: str
     table: str = None
-    data: object = None
     execution_time: str = None
 
 

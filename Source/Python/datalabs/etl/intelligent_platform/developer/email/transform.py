@@ -4,8 +4,8 @@ from   dataclasses import dataclass
 import logging
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -16,11 +16,10 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 class EmailTransformerParameters:
     execution_time: str = None
-    data: object = None
 
 
-class EmailReportGeneratorTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class EmailReportGeneratorTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = EmailTransformerParameters
 
-    def _transform(self):
+    def run(self):
         pass

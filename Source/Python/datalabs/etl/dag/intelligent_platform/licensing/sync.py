@@ -3,14 +3,14 @@ from   datalabs.etl.dag import dag
 from   datalabs.etl.sql.sqlalchemy.extract import SQLAlchemyExtractorTask
 from   datalabs.etl.intelligent_platform.licensing.sync.transform import \
     LicensedOrganizationsTransformerTask, \
-    LicensedArticlesTransformerTask
+    ArticlesTransformerTask
     # ContractStatusTransformerTask, \
 from   datalabs.etl.orm.load import ORMLoaderTask
 
 
 @dag.register(name="LICENSING")
 class DAG(dag.DAG):
-    CREATE_ACTIVE_ARTICLES: LicensedArticlesTransformerTask
+    CREATE_ACTIVE_ARTICLES: ArticlesTransformerTask
     # CREATE_CONTRACT_STATUS_TABLE: ContractStatusTransformerTask
     CREATE_FRICTIONLESS_LICENSING_ORGANIZATIONS: LicensedOrganizationsTransformerTask
     EXTRACT_ACTIVE_ARTICLES: SQLAlchemyExtractorTask

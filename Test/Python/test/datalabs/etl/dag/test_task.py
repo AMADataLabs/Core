@@ -7,7 +7,7 @@ import pytest
 
 from   datalabs.etl.dag.task import DAGTaskWrapper
 from   datalabs.etl.dag.cache import TaskDataCache, CacheDirection
-from   datalabs.etl.task import ETLComponentTask
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -133,7 +133,7 @@ def test_cache_parameters_omitted_from_task_parameters(args, environment):
     for parameter in task_wrapper._task_parameters:
         assert not parameter.startswith('CACHE_')
 
-class DummyTask(ETLComponentTask):
+class DummyTask(Task):
     def run(self):
         pass
 

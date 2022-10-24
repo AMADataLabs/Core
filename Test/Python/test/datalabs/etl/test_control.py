@@ -10,7 +10,7 @@ from   datalabs.etl.control import DAGNotificationFactoryTask
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_parameters_parsed_correctly(data, parameters):
-    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00", "data": data})
+    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00"}, data)
 
     actual_parameters = factory._parse_iteration_parameters(data)
 
@@ -19,7 +19,7 @@ def test_parameters_parsed_correctly(data, parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_correct_messages_are_generated(parameters):
-    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00", "data": []})
+    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00"}, [])
 
     messages = factory._generate_notification_messages("DUMMY_DAG", "2022-05-19 00:00:00", parameters)
 
@@ -34,9 +34,9 @@ def test_correct_messages_are_generated(parameters):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_messages_are_serialized_as_json_string(data):
-    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00", "data": data})
+    factory = DAGNotificationFactoryTask({"dag": "DUMMY_DAG", "execution_time": "2022-05-19 00:00:00"}, data)
 
-    output = factory._transform()
+    output = factory.run()
 
     assert len(output) == 1
 
@@ -46,32 +46,20 @@ def test_messages_are_serialized_as_json_string(data):
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_empty_parameters():
-    df_new = pandas.DataFrame( {"dag": pandas.Series(dtype='str'),  "execution_time":pandas.Series(dtype='str'),
-                "data": pandas.Series(dtype='str')})
+    iteration_parameters = pandas.DataFrame()
 
-    factory = DAGNotificationFactoryTask(df_new)
-
-    parameters_empty = pandas.DataFrame( data={"dag": pandas.Series(dtype='str'),
-                    "execution_time":pandas.Series(dtype='str'),
-                    "data": pandas.Series(dtype='str')})
-
-    messages_none = factory._generate_notification_messages(None, None,parameters_empty)
-
-    messages_nonetime = factory._generate_notification_messages(dag = "DUMMY_DAG",
-                     execution_time = None, parameters = parameters_empty)
-
-    messages_nonedag = factory._generate_notification_messages(dag = None,
-                     execution_time = "2022-08-23 00:00:00",
-                     parameters = parameters_empty)
-
-    messages = factory._generate_notification_messages(dag = "DUMMY_DAG",
-                     execution_time = "2022-08-23 00:00:00",
-                     parameters = parameters_empty)
+    messages = DAGNotificationFactoryTask._generate_notification_messages(
+        "DUMMY_DAG",
+        "2022-05-19 00:00:00",
+        iteration_parameters
+    )
 
     assert len(messages) == 1
-    assert len(messages_nonetime) == 1
-    assert len(messages_nonedag) == 1
-    assert len(messages_none) == 1
+    assert len(messages[0]) == 2
+    assert "dag" in messages[0]
+    assert messages[0]["dag"] == "DUMMY_DAG"
+    assert "execution_time" in messages[0]
+    assert messages[0]["execution_time"] == "2022-05-19 00:00:00"
 
 @pytest.fixture
 def data():

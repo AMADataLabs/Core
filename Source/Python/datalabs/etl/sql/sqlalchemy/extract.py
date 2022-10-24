@@ -20,7 +20,6 @@ class SQLAlchemyExtractorParameters:
     database_username: str
     database_password: str
     sql: str
-    data: object = None
     execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
     count: str = None           # Total number of records to fetch accross chunks
@@ -46,11 +45,11 @@ class SQLAlchemyConnectorMixin:
     def _get_database(self):
         return Database.from_parameters(
             dict(
-                username=self._parameters.database_username,
-                password=quote(self._parameters.database_password),
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                name=self._parameters.database_name,
+                username=self._database_username,
+                password=quote(self._database_password),
+                host=self._database_host,
+                port=self._database_port,
+                name=self._database_name,
                 backend=self._parameters.backend
             )
         )

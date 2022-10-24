@@ -5,8 +5,8 @@ from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.cpt.files.core.input import SOURCE_FILES
-from   datalabs.etl.extract import ExtractorTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 
 @add_schema
@@ -19,10 +19,10 @@ class InputFilesListExtractorParameters:
 
 
 # pylint: disable=too-many-ancestors
-class InputFilesListExtractorTask(ExtractorTask):
+class InputFilesListExtractorTask(Task):
     PARAMETER_CLASS = InputFilesListExtractorParameters
 
-    def _extract(self):
+    def run(self):
         with AWSClient('s3') as client:
             files = self._get_files(client)
 

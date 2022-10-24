@@ -19,7 +19,6 @@ class JDBCExtractorParameters:
     database_port: str
     jar_path: str
     sql: str
-    data: object = None
     execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
     count: str = None           # Total number of records to fetch accross chunks
@@ -36,19 +35,19 @@ class JDBCConnectorMixin:
     PARAMETER_CLASS = JDBCExtractorParameters
 
     def _connect(self):
-        url = f"jdbc:{self._parameters.driver_type}://{self._parameters.database_host}:" \
-              f"{self._parameters.database_port}"
+        url = f"jdbc:{self._parameters.driver_type}://{self._database_host}:" \
+              f"{self._database_port}"
 
-        if self._parameters.database_name is not None:
-            url += f"/{self._parameters.database_name}"
+        if self._database_name is not None:
+            url += f"/{self._database_name}"
 
-        if self._parameters.database_parameters is not None:
-            url += f";{self._parameters.database_parameters}"
+        if self._database_parameters is not None:
+            url += f";{self._database_parameters}"
 
         connection = jaydebeapi.connect(
             self._parameters.driver,
             url,
-            [self._parameters.database_username, self._parameters.database_password],
+            [self._database_username, self._database_password],
             self._parameters.jar_path.split(',')
         )
 
