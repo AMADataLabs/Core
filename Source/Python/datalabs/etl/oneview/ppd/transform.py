@@ -1,8 +1,6 @@
 """ Oneview PPD Transformer"""
 import logging
 
-import pandas
-
 from   datalabs.etl.oneview.ppd.column import NPI_COLUMNS, PPD_COLUMNS, MEDICAL_STUDENT_COLUMNS, PHYSICIAN_COLUMNS
 
 from   datalabs.etl.oneview.transform import TransformerTask
