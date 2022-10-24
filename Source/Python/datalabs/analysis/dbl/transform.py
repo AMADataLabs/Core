@@ -44,9 +44,14 @@ class DBLReportTransformer(TransformerTask):
         output = self._make_excel_workbook(sheet_dataframes=dataframes)
 
         validater = Validater(output, previous_report)
-        passing, log, tab_validations = validater.passing, validater.log, validater.tab_validations
 
-        comparison = {'Passing': passing, 'Log': log, 'Validations': tab_validations}
+        validater.validate()
+
+        comparison = {
+            'Passing': validater.passing,
+            'Log': validater.log,
+            'Validations': validater.tab_validations
+        }
 
         # output is returned twice because it's saved to two files, one datestamped, other as "latest" file
         return [output, output, previous_report, pk.dumps(comparison)]
