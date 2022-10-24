@@ -106,29 +106,3 @@ class FeatureAggregatorTransformerTask(TransformerTask):
     @classmethod
     def _pipe_delim_txt_to_dataframe(cls, file, dtype=str):
         return pd.read_csv(BytesIO(file), sep='|', dtype=dtype)
-
-
-# pylint: disable=pointless-string-statement
-"""
-# USAGE EXAMPLE
-# assumption: feature engineering pipeline has been run and each file has been saved inside '../data/2022-08-16/features/'
-dates = ['2022-08-16']  # dates
-for dt in dates:
-    # dt = '2022-06-01'
-    e_params = {
-        'base_path': '../data/2022-08-16/features/', # '../data/2020-06-24/features/',  # f'../training/202208/features/'
-        'files': f'BASE_DATA.txt, features__entity_comm__{dt}.txt,features__entity_comm_usg__{dt}.txt,features__license__{dt}.txt,features__humach__{dt}.txt,features__triangulation__IQVIA__{dt}.txt,features__triangulation__SYMPHONY__{dt}.txt'
-    }
-    ext = LocalFileExtractorTask(parameters=e_params)
-    ext.run()
-
-    params = {
-        'data': ext.data
-    }
-
-    tf = FeatureAggregatorTransformerTask(parameters=params)
-    tf.run()
-
-    with open(f'aggregate_out__{dt}.txt', 'wb') as f:
-        f.write(tf.data[0])
-"""
