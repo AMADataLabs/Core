@@ -31,21 +31,10 @@ class Task(ParameterValidatorMixin, ABC):
 
     @classmethod
     def _log_parameters(cls, parameters):
-        if hasattr(parameters, "copy"):
-            partial_parameters = parameters.copy()
-            data = None
+        if hasattr(parameters, "__dataclass_fields__"):
+            parameters = {key:getattr(parameters, key) for key in parameters.__dataclass_fields__.keys()}
 
-            if "data" in partial_parameters:
-                data = partial_parameters.pop("data")
-            LOGGER.info('%s parameters (no data): %s', cls.__name__, partial_parameters)
-            LOGGER.debug('%s data parameter: %s', cls.__name__, data)
-        elif hasattr(parameters, "__dataclass_fields__") and hasattr(parameters, "data"):
-            fields = [field for field in parameters.__dataclass_fields__.keys() if field != "data"]
-            partial_parameters = {key:getattr(parameters, key) for key in fields}
-            LOGGER.info('%s parameters (no data): %s', cls.__name__, partial_parameters)
-            LOGGER.debug('%s data parameter: %s', cls.__name__, getattr(parameters, "data"))
-        else:
-            LOGGER.info('%s parameters: %s', cls.__name__, parameters)
+        LOGGER.info('%s parameters: %s', cls.__name__, parameters)
 
 
 class TaskFactory:
