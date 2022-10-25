@@ -85,11 +85,11 @@ data:
     FROM
         ${LICENSING_DATABASE}.quotes q
             INNER JOIN
-        ${LICENSING_DATABASE}quote_question_answers qqa ON qqa.quote_id = q.id
+        ${LICENSING_DATABASE}.quote_question_answers qqa ON qqa.quote_id = q.id
             INNER JOIN
-        ${LICENSING_DATABASE}question_answers qa ON qa.id = qqa.question_answer_id
+        ${LICENSING_DATABASE}.question_answers qa ON qa.id = qqa.question_answer_id
             INNER JOIN
-        ${LICENSING_DATABASE}questions que ON que.id = qa.question_id
+        ${LICENSING_DATABASE}.questions que ON que.id = qa.question_id
             INNER JOIN
         ${LICENSING_DATABASE}.quote_status qs ON qs.id = q.quote_status_id
             INNER JOIN

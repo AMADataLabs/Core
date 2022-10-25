@@ -67,10 +67,11 @@ def test_task_input_data_is_loaded(args, environment):
     task_wrapper = DAGTaskWrapper(parameters=args)
     task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
     parameters = task_wrapper._get_task_parameters()
+    data = task_wrapper._get_task_data()
 
-    assert parameters['data'] is not None
-    assert len(parameters['data']) == 3
-    assert parameters['data'] == ['light', 'and', 'smoothie']
+    assert data is not None
+    assert len(data) == 3
+    assert data == ['light', 'and', 'smoothie']
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument

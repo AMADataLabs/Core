@@ -93,9 +93,11 @@ class TaskWrapper(ABC):
 
             self._task_parameters = self._get_task_parameters()
 
+            self._task_data = self._get_task_data()
+
             self.task_class = self._get_task_class()
 
-            self.task = self.task_class(self._task_parameters)
+            self.task = self.task_class(self._task_parameters, self._task_data)
 
             self._pre_run()
 
@@ -132,6 +134,9 @@ class TaskWrapper(ABC):
 
     def _get_task_parameters(self):
         return self._parameters
+
+    def _get_task_data(self):
+        return []
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):
