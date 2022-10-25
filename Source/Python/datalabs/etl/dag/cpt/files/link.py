@@ -9,6 +9,7 @@ class CPTLinkDAG(DAG):
     FIND_INPUT_FILES: InputFilesListExtractorTask
     EXTRACT_INPUT_FILES: S3FileExtractorTask
     EXTRACT_EDITS: S3FileExtractorTask
+    EXTRACT_RVUS: S3FileExtractorTask
     BUILD_LINK: 'datalabs.etl.cpt.build.LinkBuilderTask'
 
 
@@ -16,4 +17,5 @@ class CPTLinkDAG(DAG):
 CPTLinkDAG.FIND_INPUT_FILES \
     >> CPTLinkDAG.EXTRACT_INPUT_FILES \
     >> CPTLinkDAG.EXTRACT_EDITS \
+    >> CPTLinkDAG.EXTRACT_RVUS \
     >> CPTLinkDAG.BUILD_LINK
