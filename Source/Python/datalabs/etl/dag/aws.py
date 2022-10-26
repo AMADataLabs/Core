@@ -241,7 +241,7 @@ class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAG
 
     def _send_webhook_notification(self, status):
         raw_webhook_url_list = self._runtime_parameters.get("STATUS_NOTIFICATION_WEB_HOOK")
-        LOGGER.info('WEB HOOK LIST %s', raw_webhook_url_list)
+        LOGGER.info('Web hooks: %s', raw_webhook_url_list)
         if raw_webhook_url_list is not None:
             urls = raw_webhook_url_list.split(',')
             environment = self._runtime_parameters.get("ENVIRONMENT")
