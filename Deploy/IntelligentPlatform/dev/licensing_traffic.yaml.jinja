@@ -14,15 +14,6 @@ data:
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    VISTEX_DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    VISTEX_DB_DRIVER_TYPE: sqlserver
-    VISTEX_DB_JAR_PATH: ./mssql-jdbc-10.2.0.jre8.jar
-    VISTEX_DB_HOST: rdbp5323.ad.ama-assn.org
-    VISTEX_DB_PORT: '1433'
-    VISTEX_DB_PARAMETERS: 'databaseName=LicenseMaestro_CPT;encrypt=true;trustServerCertificate=true'
-    VISTEX_DB_USERNAME: dlabs_read
-    VISTEX_DB_PASSWORD: '{{vistex_db_password}}'
-
     PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
     PLATFORM_DB_PORT: '3306'
     PLATFORM_DB_BACKEND: 'mysql+pymysql'
@@ -49,6 +40,8 @@ data:
     LICENSING_TRAFFIC__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
     LICENSING_TRAFFIC__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     LICENSING_TRAFFIC__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    LICENSING_TRAFFIC__DAG__ENVIRONMENT: ${ENVIRONMENT}
+    LICENSING_TRAFFIC__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
 
 
     ##########################################################################
@@ -56,7 +49,7 @@ data:
     ##########################################################################
 
     # Extract Traffic
-    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__BACKEND: mysql+pymysql
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__BACKEND: ${PLATFORM_DB_BACKEND}
     LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_HOST: ${PLATFORM_DB_HOST}
     LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_PORT: ${PLATFORM_DB_PORT}
     LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_PARAMETERS: ${PLATFORM_DB_PARAMETERS}
@@ -134,7 +127,7 @@ data:
             AND que.description IN ('What is the name of the organization licensing CPT content?' , 'What is your organization type?')
     GROUP BY q.name
     ORDER BY created_on DESC;
-      "
+    "
 
     LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
     LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
@@ -146,9 +139,9 @@ data:
     ##########################################################################
 
     # Email Traffic Report
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__DATA: ${PLATFORM_DB_HOST}
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_FILES: 'licensing_traffic.csv'
+
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__TO: 'datalabs@ama-assn.org'
