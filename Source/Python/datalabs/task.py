@@ -79,7 +79,8 @@ class TaskWrapper(ABC):
         self._parameters = parameters or {}
         self._runtime_parameters = None
         self._task_parameters = None
-        self._output = None
+        self._inputs = None
+        self._outputs = None
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
@@ -93,15 +94,15 @@ class TaskWrapper(ABC):
 
             self._task_parameters = self._get_task_parameters()
 
-            self._task_data = self._get_task_data()
+            self._inputs = self._get_task_data()
 
             self.task_class = self._get_task_class()
 
-            self.task = self.task_class(self._task_parameters, self._task_data)
+            self.task = self.task_class(self._task_parameters, self._inputs)
 
             self._pre_run()
 
-            self._output = self.task.run()
+            self._outputs = self.task.run()
 
             response = self._handle_success()
         except Exception as exception:  # pylint: disable=broad-except

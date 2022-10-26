@@ -66,7 +66,9 @@ def test_cache_parameters_are_overridden(args, environment):
 def test_task_input_data_is_loaded(args, environment):
     task_wrapper = DAGTaskWrapper(parameters=args)
     task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
-    parameters = task_wrapper._get_task_parameters()
+
+    task_wrapper._get_task_parameters()  # required to extract cache parameters
+
     data = task_wrapper._get_task_data()
 
     assert data is not None

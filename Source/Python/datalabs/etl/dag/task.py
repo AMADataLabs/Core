@@ -46,7 +46,7 @@ class DAGTaskWrapper(TaskWrapper):
     def _handle_success(self):
         cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
         if cache:
-            cache.load_data(self.task._data)
+            cache.load_data(self._outputs)
 
         LOGGER.info('DAG task has finished')
 
