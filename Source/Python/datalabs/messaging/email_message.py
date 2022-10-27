@@ -36,6 +36,7 @@ class Attachment:
         if self.name is None:
             raise ValueError("Name is None")
 
+
 # pylint: disable=too-many-arguments, invalid-name
 def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None, from_account=None, html_content=None):
     """
@@ -48,21 +49,29 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
     :param html_content: html data to insert
     :return: None
     """
+
+    message = create_message(to, cc, subject, body, attachements, from_account, html_content)
+
     with smtplib.SMTP('amamx.ama-assn.org') as smtp:
         LOGGER.info('SMTP CONNECTION SUCCESSFUL')
 
-        msg = EmailMessage()
-        msg['To'] = to
+        smtp.send_message(message)
+
+
+# pylint: disable=too-many-arguments, invalid-name, line-too-long
+def create_message(to, subject, cc=None, body=None, attachments: [Attachment] = None, from_account=None, html_content=None) -> EmailMessage:
+        message = EmailMessage()
+        message['To'] = to
 
         if cc not in [None, '']:
-            msg['Cc'] = cc
-        msg['Subject'] = subject
+            message['Cc'] = cc
+        message['Subject'] = subject
 
         if body is not None:
-            msg.set_content(body)
+            message.set_content(body)
 
         if html_content is not None:
-            msg.add_alternative(f"{html_content}", subtype='html')
+            message.add_alternative(f"{html_content}", subtype='html')
 
         if attachments is not None:
             for attachment in set(attachments):
@@ -72,7 +81,7 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
                     type(attachment.data),
                     attachment.data
                 )
-                msg.add_attachment(
+                message.add_attachment(
                     attachment.data,
                     filename=attachment.name,
                     maintype='application',
@@ -84,6 +93,6 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
             if from_account is None:
                 raise EnvironmentError('from_account parameter not specified and environment variable '
                                        'not set - cannot determine email address to send email message from.')
-        msg['From'] = from_account
+        message['From'] = from_account
 
-        smtp.send_message(msg)
+        return message
