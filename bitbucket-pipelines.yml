@@ -53,7 +53,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project AMC
+            - bash Deploy/Master/deploy-package --project AMC
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -122,7 +122,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-java-package --project AMC/Extract
+            - bash Deploy/Master/deploy-package --project AMC/Extract
         - parallel:
             - step:
                 name: Update Sandbox Lambda Bundle
@@ -194,7 +194,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project HelloWorld
+            - bash Deploy/Master/deploy-package --project HelloWorld
 
         - parallel:
             - step:
@@ -316,7 +316,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project Cerner
+            - bash Deploy/Master/deploy-package --project Cerner
 
         - parallel:
             - step:
@@ -438,7 +438,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project ContactID
+            - bash Deploy/Master/deploy-package --project ContactID
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -549,7 +549,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/API/ETL
+            - bash Deploy/Master/deploy-package --project CPT/API/ETL
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -670,7 +670,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/API/Endpoint
+            - bash Deploy/Master/deploy-package --project CPT/API/Endpoint
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -809,7 +809,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/Files/Ingest
+            - bash Deploy/Master/deploy-package --project CPT/Files/Ingest
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -929,7 +929,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project AddressLoad
+            - bash Deploy/Master/deploy-package --project AddressLoad
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -1029,7 +1029,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/Files/Watermark
+            - bash Deploy/Master/deploy-package --project CPT/Files/Watermark
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -1140,7 +1140,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project DBL
+            - bash Deploy/Master/deploy-package --project DBL
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -1234,7 +1234,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project HelloWorldJava/DAG
+            - bash Deploy/Master/deploy-package --project HelloWorldJava/DAG
         - step:
             name: Update Lambda Bundle
             caches:
@@ -1260,7 +1260,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-java-package --project HelloWorldJava/Task
+            - bash Deploy/Master/deploy-package --project HelloWorldJava/Task
         - step:
             name: Update ECR Bundle
             caches:
@@ -1301,7 +1301,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project IntelligentPlatform
+            - bash Deploy/Master/deploy-package --project IntelligentPlatform
         - parallel:
             - step:
                 name: Update Development Bundle
@@ -1381,7 +1381,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project IntelligentPlatform/Developer
+            - bash Deploy/Master/deploy-package --project IntelligentPlatform/Developer
         - parallel:
             - step:
                 name: Update Development Bundle
@@ -1461,7 +1461,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project IntelligentPlatform/Licensing
+            - bash Deploy/Master/deploy-package --project IntelligentPlatform/Licensing
         - parallel:
             - step:
                 name: Update Development Bundle
@@ -1541,7 +1541,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/ETL
+            - bash Deploy/Master/deploy-package --project OneView/ETL
         - parallel:
             - step:
                 name: Update Development Lambda Bundle
@@ -1621,7 +1621,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/ETL/Batch
+            - bash Deploy/Master/deploy-package --project OneView/ETL/Batch
         - parallel:
             - step:
                 name: Update Development Batch Job Image
@@ -1664,7 +1664,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-java-package --project OneView/ETL/Extract
+            - bash Deploy/Master/deploy-package --project OneView/ETL/Extract
         - parallel:
             - step:
                 name: Update Development Lambda Bundle
@@ -1750,7 +1750,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/API
+            - bash Deploy/Master/deploy-package --project OneView/API
         - parallel:
             - step:
                 name: Update Development Lambda Bundle
@@ -1830,7 +1830,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-java-package --project CPT/Files/Build
+            - bash Deploy/Master/deploy-package --project CPT/Files/Build
         - parallel:
             - step:
                 name: Update Sandbox Lambda Bundle
@@ -1931,7 +1931,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project Scheduler
+            - bash Deploy/Master/deploy-package --project Scheduler
         - parallel:
             - step:
                 name: Update Sandbox Bundle

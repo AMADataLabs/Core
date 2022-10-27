@@ -50,9 +50,6 @@ process_arguments() {
     if  [[ "$PROJECT" == "" ]]; then
         echo "Missing project argument."
         exit 1
-    elif [[ "$VERSION" == "" ]]; then
-        echo "Missing version argument."
-        exit 1
     fi
 }
 
