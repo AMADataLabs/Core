@@ -50,7 +50,7 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
     :return: None
     """
 
-    message = create_message(to, cc, subject, body, attachements, from_account, html_content)
+    message = create_message(to, subject, cc, body, attachments, from_account, html_content)
 
     with smtplib.SMTP('amamx.ama-assn.org') as smtp:
         LOGGER.info('SMTP CONNECTION SUCCESSFUL')
@@ -60,39 +60,39 @@ def send_email(to, subject, cc=None, body=None, attachments: [Attachment] = None
 
 # pylint: disable=too-many-arguments, invalid-name, line-too-long
 def create_message(to, subject, cc=None, body=None, attachments: [Attachment] = None, from_account=None, html_content=None) -> EmailMessage:
-        message = EmailMessage()
-        message['To'] = to
+    message = EmailMessage()
+    message['To'] = to
 
-        if cc not in [None, '']:
-            message['Cc'] = cc
-        message['Subject'] = subject
+    if cc not in [None, '']:
+        message['Cc'] = cc
+    message['Subject'] = subject
 
-        if body is not None:
-            message.set_content(body)
+    if body is not None:
+        message.set_content(body)
 
-        if html_content is not None:
-            message.add_alternative(f"{html_content}", subtype='html')
+    if html_content is not None:
+        message.add_alternative(f"{html_content}", subtype='html')
 
-        if attachments is not None:
-            for attachment in set(attachments):
-                LOGGER.debug(
-                    'Attachment "%s" data of type %s:\n%s',
-                    attachment.name,
-                    type(attachment.data),
-                    attachment.data
-                )
-                message.add_attachment(
-                    attachment.data,
-                    filename=attachment.name,
-                    maintype='application',
-                    subtype='octet-stream'
-                )
+    if attachments is not None:
+        for attachment in set(attachments):
+            LOGGER.debug(
+                'Attachment "%s" data of type %s:\n%s',
+                attachment.name,
+                type(attachment.data),
+                attachment.data
+            )
+            message.add_attachment(
+                attachment.data,
+                filename=attachment.name,
+                maintype='application',
+                subtype='octet-stream'
+            )
 
+    if from_account is None:
+        from_account = os.environ.get('AMA_EMAIL_ADDRESS')
         if from_account is None:
-            from_account = os.environ.get('AMA_EMAIL_ADDRESS')
-            if from_account is None:
-                raise EnvironmentError('from_account parameter not specified and environment variable '
-                                       'not set - cannot determine email address to send email message from.')
-        message['From'] = from_account
+            raise EnvironmentError('from_account parameter not specified and environment variable '
+                                   'not set - cannot determine email address to send email message from.')
+    message['From'] = from_account
 
-        return message
+    return message

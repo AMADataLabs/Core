@@ -1,17 +1,17 @@
 """ Cerner report SMTP loader task """
 from   dataclasses import dataclass
-from   datetime import datetime
+
+import smtplib
 
 from   datalabs.etl.load import FileLoaderTask
 from   datalabs.messaging.email_message import create_message, Attachment
 from   datalabs.parameter import add_schema
-from   datalabs.task import Task
 
 
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class SMTPFileLoaderParameters(FileLoaderTask):
+class SMTPFileLoaderParameters:
     to_addresses: str  # pylint: disable=invalid-name
     subject: str
     message: str
@@ -20,8 +20,8 @@ class SMTPFileLoaderParameters(FileLoaderTask):
     execution_time: str = None
 
 
-class SMTPLoaderTask(Task):
-    PARAMETER_CLASS = SMTPLoaderParameters
+class SMTPFileLoaderTask(FileLoaderTask):
+    PARAMETER_CLASS = SMTPFileLoaderParameters
     SMTP_SERVER = "amamx.ama-assn.org"
     FROM_ADDRESS = "datalabs@ama-assn.org"
 
