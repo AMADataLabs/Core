@@ -1,5 +1,7 @@
 """ SQLAlchemy Extractor """
 from   dataclasses import dataclass
+import logging
+import socket
 from   urllib.parse import quote
 
 import sqlalchemy
@@ -8,6 +10,10 @@ from   sqlalchemy.orm import sessionmaker
 from   datalabs.access.orm import Database
 from   datalabs.etl.sql.extract import SQLExtractorTask, SQLParametricExtractorTask, SQLParquetExtractorTask
 from   datalabs.parameter import add_schema
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @add_schema
@@ -43,6 +49,7 @@ class SQLAlchemyConnectorMixin:
         return session.connection().connection
 
     def _get_database(self):
+        LOGGER.info("Hostname: %s", socket.gethostname())
         return Database.from_parameters(
             dict(
                 username=self._parameters.database_username,
