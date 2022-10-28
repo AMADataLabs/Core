@@ -1,11 +1,6 @@
 ---
 modspec:
   - package: datalabs
-    include:
-      - feature
-      - parameter
-      - plugin
-      - task
   - package: datalabs.access
     include:
       - aws
@@ -13,6 +8,7 @@ modspec:
       - database
       - datastore
       - environment
+      - orm
   - package: datalabs.access.parameter
   - package: datalabs.etl
   - package: datalabs.etl.dag
