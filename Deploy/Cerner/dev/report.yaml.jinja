@@ -30,7 +30,7 @@ data:
     # DAG Variables - ({"DAG": {"S": "CERNER_REPORT"}, "Task": {"S": "DAG"}})
     #######################################################################
 
-    CERNER_REPORT__DAG__LAMBDA_FUNCTION: '${APP_STACK}-${ENVIRONMENT}-CernerReport'
+    CERNER_REPORT__DAG__LAMBDA_FUNCTION: '${APP_STACK}-${ENVIRONMENT}-Cerner'
     CERNER_REPORT__DAG__DAG_CLASS: 'datalabs.etl.dag.customer_intelligence.cerner.DAG'
     CERNER_REPORT__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     CERNER_REPORT__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
