@@ -35,11 +35,9 @@ class SQLExtractorTask(Task):
 
     def run(self):
         results = None
-        connection = self._connect()
 
-        results = self._read_queries(connection)
-
-        connection.close()
+        with self._get_database() as database:
+            results = self._read_queries(database.connection)
 
         return results
 

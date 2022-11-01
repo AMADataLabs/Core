@@ -23,6 +23,7 @@ Environment/*
 Bundle/*
 target/*
 Scratch/*
+.apigw_token*
 
 
 .idea

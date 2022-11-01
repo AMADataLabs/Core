@@ -1,14 +1,20 @@
 """ Generic database object intended to be subclassed by specific databases. """
+import logging
+
+import pandas
 import sqlalchemy
 from   sqlalchemy.orm import sessionmaker
 
-import pandas
-
 import datalabs.access.database as db
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 class Database(db.Database):
     def connect(self):
+        LOGGER.info("Database connection URL: %s", self.url)
         engine = sqlalchemy.create_engine(self.url, echo=True)
         Session = sessionmaker(bind=engine)  # pylint: disable=invalid-name
 
