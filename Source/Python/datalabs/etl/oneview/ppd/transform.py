@@ -1,8 +1,6 @@
 """ Oneview PPD Transformer"""
 import logging
 
-import pandas
-
 from   datalabs.etl.oneview.ppd.column import NPI_COLUMNS, PPD_COLUMNS, MEDICAL_STUDENT_COLUMNS, PHYSICIAN_COLUMNS
 
 from   datalabs.etl.oneview.transform import TransformerTask
@@ -13,53 +11,62 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class NPITransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        npi = data[0]
+    def _preprocess(self, dataset):
+        party_keys = dataset[0]
 
-        medical_education_number_table = self._create_medical_education_number_table(npi)
-        npi_table = self._create_npi_table(npi)
-        entity_table = self._create_entity_table(npi)
+        medical_education_numbers = self._extract_medical_education_numbers(party_keys)
 
-        merged_data = self._merge_data(medical_education_number_table, npi_table, entity_table)
+        national_provider_identifiers = self._extract_national_provider_identifiers(party_keys)
 
-        return [merged_data]
+        entities = self._extract_entities(party_keys)
 
-    @classmethod
-    def _create_medical_education_number_table(cls, npi_data):
-        medical_education_number_table = npi_data.loc[npi_data['KEY_TYPE_ID'] == '18']
+        me_npi_entity_map = self._merge(medical_education_numbers, national_provider_identifiers, entities)
 
-        return medical_education_number_table[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'meNumber'})
+        return [me_npi_entity_map]
 
     @classmethod
-    def _create_npi_table(cls, npi_data):
-        npi = npi_data.loc[npi_data['KEY_TYPE_ID'] == '38']
+    def _extract_medical_education_numbers(cls, party_keys):
+        medical_education_numbers = party_keys.loc[party_keys['KEY_TYPE_ID'] == '18']
+
+        return medical_education_numbers[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'meNumber'})
+
+    @classmethod
+    def _extract_national_provider_identifiers(cls, party_keys):
+        npi = party_keys.loc[party_keys['KEY_TYPE_ID'] == '38']
 
         return npi[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'npi'})
 
     @classmethod
-    def _create_entity_table(cls, npi_data):
-        entity_data = npi_data.loc[npi_data['KEY_TYPE_ID'] == '9']
+    def _extract_entities(cls, party_keys):
+        entities = party_keys.loc[party_keys['KEY_TYPE_ID'] == '9']
 
-        return entity_data[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'entity_id'})
+        return entities[['PARTY_ID', 'KEY_VAL']].rename(columns={'KEY_VAL': 'entity_id'})
 
     # pylint: disable=too-many-arguments
     @classmethod
-    def _merge_data(cls, medical_education_number_table, npi_table, entity_table):
-        merged_npi_me = medical_education_number_table.merge(npi_table, on='PARTY_ID', how="left").drop_duplicates()
-        merged_npi_entity_me = merged_npi_me.merge(entity_table, on='PARTY_ID', how="left", sort=True).drop_duplicates()
+    def _merge(cls, medical_education_numbers, national_provider_identifiers, entities):
+        me_npi = medical_education_numbers.merge(
+            national_provider_identifiers,
+            on='PARTY_ID',
+            how="left"
+        ).drop_duplicates()
 
-        return merged_npi_entity_me
+        mp_npi_entity = me_npi.merge(entities, on='PARTY_ID', how="left", sort=True).drop_duplicates()
+
+        return mp_npi_entity
 
     def _get_columns(self):
         return [NPI_COLUMNS]
 
 
 class PPDTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, data: bytes, **kwargs) -> pandas.DataFrame:
-        return super()._csv_to_dataframe(data, sep='|', **kwargs)
+    def _parse(self, dataset):
+        encoding = ["utf8", "utf8", "cp1252"]
 
-    def _preprocess_data(self, data):
-        ppd, race_ethnicity, medical_student = data
+        return [self._csv_to_dataframe(data, sep='|', encoding=encoding) for data, encoding in zip(dataset, encoding)]
+
+    def _preprocess(self, dataset):
+        ppd, race_ethnicity, medical_student = dataset
         LOGGER.debug('PPD Table: %s', ppd)
         LOGGER.debug('Race/Ethnicity Table: %s', race_ethnicity)
         LOGGER.debug('Medical Student Table: %s', medical_student)
@@ -67,13 +74,15 @@ class PPDTransformerTask(TransformerTask):
         ppd.meNumber = ppd.meNumber.astype(str)
         race_ethnicity.medical_education_number = race_ethnicity.medical_education_number.astype(str)
 
-        race_ethnicity_table = self.create_race_ethnicity_table(race_ethnicity)
-        medical_student_table = self.create_medical_student_table(medical_student)
+        race_ethnicities = self._clean_race_ethnicities(race_ethnicity)
 
-        transformed_ppd = self._merge_data(ppd, race_ethnicity_table, medical_student_table, )
-        transformed_ppd = self._set_boolean(transformed_ppd)
+        medical_students = self._clean_medical_students(medical_student)
 
-        ########## REMOVE AFTER DATA SOURCE FIXED###########
+        transformed_ppd = self._supplement_ppd(ppd, medical_students, race_ethnicities)
+
+        transformed_ppd = self._convert_no_release_indicator_to_boolean(transformed_ppd)
+
+        ########## REMOVE AFTER DATA SOURCE FIXED ##########
         transformed_ppd['PDRP_flag'] = 'filler'
         ####################################################
 
@@ -82,12 +91,13 @@ class PPDTransformerTask(TransformerTask):
         return [final_ppd]
 
     @classmethod
-    def create_race_ethnicity_table(cls, race_ethnicity_data):
+    def _clean_race_ethnicities(cls, race_ethnicity_data):
         return race_ethnicity_data[['medical_education_number', 'race_ethnicity']].rename(
-            columns={'medical_education_number': 'meNumber'})
+            columns={'medical_education_number': 'meNumber'}
+        )
 
     @classmethod
-    def create_medical_student_table(cls, medical_student_data):
+    def _clean_medical_students(cls, medical_student_data):
         medical_student_data = medical_student_data.rename(columns=MEDICAL_STUDENT_COLUMNS)
         medical_student_data['topCode'] = '000'
 
@@ -95,26 +105,26 @@ class PPDTransformerTask(TransformerTask):
 
     # pylint: disable=too-many-arguments
     @classmethod
-    def _merge_data(cls, ppd, race_ethnicity, medical_student):
-        LOGGER.debug('Race/Ethnicity Table: %s', race_ethnicity)
-        LOGGER.debug('Medical Student Table: %s', medical_student)
-        merged_ppd_student_data = ppd.append(medical_student, ignore_index=True)
-        LOGGER.debug('PPD Table w/ Students: %s', merged_ppd_student_data)
+    def _supplement_ppd(cls, ppd, medical_students, race_ethnicities):
+        ppd_student = ppd.append(medical_students, ignore_index=True)
+        LOGGER.debug('Race/Ethnicity Table: %s', race_ethnicities)
+        LOGGER.debug('Medical Student Table: %s', medical_students)
+        LOGGER.debug('PPD Table w/ Students: %s', ppd_student)
 
-        merged_ppd_race_ethnicity = merged_ppd_student_data.merge(
-            race_ethnicity, on='meNumber', how="left", sort=True).drop_duplicates()
+        ppd_student_race = ppd_student.merge(race_ethnicities, on='meNumber', how="left", sort=True)
+        ppd_student_race = ppd_student_race.drop_duplicates()
 
-        LOGGER.debug('PPD Table w/ Race/Ethnicity: %s', merged_ppd_race_ethnicity)
+        LOGGER.debug('PPD Table w/ Race/Ethnicity: %s', ppd_student_race)
 
-        merged_ppd_race_ethnicity_with_type = cls._add_person_type(merged_ppd_race_ethnicity)
+        ppd_student_race_type = cls._add_person_type(ppd_student_race)
 
-        return merged_ppd_race_ethnicity_with_type
+        return ppd_student_race_type
 
     @classmethod
-    def _add_person_type(cls, data):
+    def _add_person_type(cls, supplemented_ppd):
         person_type = []
 
-        for row in data.topCode.to_list():
+        for row in supplemented_ppd.topCode.to_list():
             if row == '012':
                 person_type.append('Resident')
             elif row == '000':
@@ -122,46 +132,46 @@ class PPDTransformerTask(TransformerTask):
             else:
                 person_type.append('Physician')
 
-        data['person_type'] = person_type
+        supplemented_ppd['person_type'] = person_type
 
-        return data
+        return supplemented_ppd
 
     @classmethod
-    def _set_boolean(cls, data):
-        data['no_release_ind'] = data.no_release_ind == 'Y'
+    def _convert_no_release_indicator_to_boolean(cls, ppd):
+        ppd['no_release_ind'] = ppd.no_release_ind == 'Y'
 
-        return data
+        return ppd
 
     def _get_columns(self):
         return [PPD_COLUMNS]
 
 
 class PhysicianTransformerTask(TransformerTask):
-    @classmethod
-    def _preprocess_data(cls, data):
-        ppd, npi, membership, email_status = data
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        ppd, npi, membership, email_status = dataset
 
-        physician = cls._merge_data(ppd, npi, membership, email_status)
-        physician = cls._drop_no_release_physicians(physician)
+        physician = self._merge(ppd, npi, membership, email_status)
+
+        physician = self._drop_no_release_physicians(physician)
 
         return [physician]
 
     def _get_columns(self):
         return [PHYSICIAN_COLUMNS]
 
-    @classmethod
-    def _postprocess_data(cls, data):
-        physician = data[0]
+    def _postprocess(self, dataset):
+        physician = dataset[0]
 
-        filled_physician = cls._fill_defaults(physician)
+        filled_physician = self._fill_defaults(physician)
 
-        cleaned_physician = cls._clean_physician(filled_physician)
+        cleaned_physician = self._clean_physician(filled_physician)
 
         return [cleaned_physician]
 
     # pylint: disable=too-many-arguments
     @classmethod
-    def _merge_data(cls, ppd, npi, membership, email_status):
+    def _merge(cls, ppd, npi, membership, email_status):
         ppd_npi = cls._merge_npi(ppd, npi)
 
         ppd_membership = cls._merge_membership(ppd_npi, membership)

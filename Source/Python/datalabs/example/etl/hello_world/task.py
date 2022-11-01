@@ -1,13 +1,13 @@
 ''' Hello world printing task implementation. '''
 import logging
-from datalabs.etl.transform import TransformerTask
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class HelloWorldTask(TransformerTask):
+class HelloWorldTask(Task):
     ''' Hello world printing task class. '''
-    def _transform(self):
+    def run(self):
         LOGGER.info("Hello world!")

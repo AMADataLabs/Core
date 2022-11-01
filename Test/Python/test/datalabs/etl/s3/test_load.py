@@ -11,7 +11,7 @@ import datalabs.etl.s3.load as s3
 # pylint: disable=redefined-outer-name, protected-access
 def test_parameters_are_deserialized(parameters):
     with mock.patch('boto3.client'):
-        task = s3.S3FileLoaderTask(parameters)
+        task = s3.S3FileLoaderTask(parameters, [{}, {}])
 
         assert isinstance(task._parameters, s3.S3FileLoaderParameters)
 
@@ -19,7 +19,7 @@ def test_parameters_are_deserialized(parameters):
 # pylint: disable=redefined-outer-name, protected-access
 def test_whitespace_removed_from_filenames(parameters):
     with mock.patch('boto3.client'):
-        task = s3.S3FileLoaderTask(parameters)
+        task = s3.S3FileLoaderTask(parameters, [{}, {}])
 
         files = task._get_files()
 
@@ -31,7 +31,7 @@ def test_whitespace_removed_from_filenames(parameters):
 def test_disabling_datestamp_works(parameters):
     with mock.patch('boto3.client'):
         parameters['INCLUDE_DATESTAMP'] = 'false'
-        task = s3.S3FileLoaderTask(parameters)
+        task = s3.S3FileLoaderTask(parameters, [{}, {}])
 
         files = task._get_files()
 
@@ -44,7 +44,7 @@ def test_datetime_formatting_in_base_path_works(parameters):
     with mock.patch('boto3.client'):
         parameters['INCLUDE_DATESTAMP'] = 'false'
         parameters['BASE_PATH'] = 'dir1/%Y%m%d/dir2/dir3'
-        task = s3.S3FileLoaderTask(parameters)
+        task = s3.S3FileLoaderTask(parameters, [{}, {}])
 
         files = task._get_files()
         resolved_files = task._resolve_files(files)
@@ -59,7 +59,7 @@ def test_no_leading_slash_with_empty_base_path(parameters):
         parameters['BASE_PATH'] = ''
         parameters['INCLUDE_DATESTAMP'] = 'true'
         parameters['FILES'] = 'this_one.csv'
-        task = s3.S3FileLoaderTask(parameters)
+        task = s3.S3FileLoaderTask(parameters, [{}, {}])
 
         files = task._get_files()
 
@@ -72,7 +72,7 @@ def test_datetime_formatting_in_file_works(parameters):
     with mock.patch('boto3.client'):
         parameters['INCLUDE_DATESTAMP'] = 'false'
         parameters['FILES'] = 'this_one.csv,that_one.csv,\n     the_%Y%m%d_other_one.csv    '
-        task = s3.S3FileLoaderTask(parameters)
+        task = s3.S3FileLoaderTask(parameters, [{}, {}])
 
         files = task._get_files()
         resolved_files = task._resolve_files(files)
@@ -83,7 +83,7 @@ def test_datetime_formatting_in_file_works(parameters):
 # pylint: disable=redefined-outer-name, protected-access
 def test_loading_data_from_a_file(data_file, parameters):
     parameters["ON_DISK"] = 'True'
-    task = s3.S3FileLoaderTask(parameters)
+    task = s3.S3FileLoaderTask(parameters, [{}, {}])
     task._client = mock.Mock()
 
     task._load_file(data_file.encode(), 'ACME/Stuff/something.csv')
@@ -112,8 +112,7 @@ def parameters():
         BUCKET='jumanji',
         BASE_PATH='dir1/dir2/dir3',
         FILES='this_one.csv,that_one.csv,\n     the_other_one.csv    ',
-        EXECUTION_TIME='19000101',
-        data=[{}, {}]
+        EXECUTION_TIME='19000101'
     )
 
 @pytest.fixture

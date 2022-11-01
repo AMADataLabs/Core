@@ -1,0 +1,118 @@
+data:
+  #######################################################################
+  # Global Variables - {"DAG": {"S": "CPTLINK"}, "Task": {"S": "GLOBAL"}}
+  #######################################################################
+
+  ENVIRONMENT: sbx
+  ACCOUNT: '644454719059'
+
+  S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+  S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+
+  S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+  S3_BASE_PATH: 'AMA/CPT/Link'
+  S3_STATIC_PATH: 'AMA/CPT/Static'
+  S3_YEARLY_PATH: 'AMA/CPT/Yearly/%Y'
+
+
+  #######################################################################
+  # DAG Variables - ({"DAG": {"S": "CPTLINK"}, "Task": {"S": "DAG"}})
+  #######################################################################
+
+  CPT_LINK__DAG__LAMBDA_FUNCTION: 'CPT-API-${ENVIRONMENT}-LinkDAG'
+  CPT_LINK__DAG__DAG_CLASS: 'datalabs.etl.dag.cpt.files.link.CPTLinkDAG'
+  CPT_LINK__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+  CPT_LINK__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+  CPT_LINK__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+  CPT_LINK__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+  CPT_LINK__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+  CPT_LINK__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+  CPT_LINK__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+
+
+  ##########################################################################
+  # Task Variables - ({"DAG": {"S": "CPTLINK"}, "Task": {"S": "<Task ID>"}})
+  ##########################################################################
+
+
+  # Find Input Files
+  CPT_LINK__FIND_INPUT_FILES__BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+  CPT_LINK__FIND_INPUT_FILES__BASE_PATH: ${S3_BASE_PATH}
+
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__FIND_INPUT_FILES__CACHE_OUTPUT_FILES: changes/History.txt,changes/HistoryModifers.txt, changes/HistoryReference.txt, changes/RenumberedCodesCitationsCrosswalk.txt, changes/RenumberedCodesCitationsCrosswalkDescriptors.txt, RelationshipGroup.txt, internal_Property.txt, internal_Type.txt
+
+
+  # Extract Input Files
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_CLASS: ${S3_CACHE_CLASS}
+
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_INPUT_FILES: changes/History.txt,changes/HistoryModifers.txt, changes/HistoryReference.txt, changes/RenumberedCodesCitationsCrosswalk.txt, changes/RenumberedCodesCitationsCrosswalkDescriptors.txt, RelationshipGroup.txt, internal_Property.txt, internal_Type.txt
+
+  CPT_LINK__EXTRACT_INPUT_FILES__BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_INPUT_FILES__BASE_PATH: ${S3_BASE_PATH}
+
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_INPUT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_INPUT_FILES__CAHCE_OUTPUT_FILES: 'prior_link_files.zip, incremental_core.zip, annual_core.zip, core.zip'
+
+
+  # Extract Edits
+  CPT_LINK__EXTRACT_EDITS__BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_EDITS__BASE_PATH: ${S3_STATIC_PATH}
+  CPT_LINK__EXTRACT_EDITS__FILES: edits_2022.txt
+
+  CPT_LINK__EXTRACT_EDITS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__EXTRACT_EDITS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_EDITS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_EDITS__CAHCE_OUTPUT_FILES: edits.txt
+
+
+  # Extract RVUS
+  CPT_LINK__EXTRACT_RVUS__BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_RVUS__BASE_PATH: ${S3_YEARLY_PATH}
+  CPT_LINK__EXTRACT_RVUS__FILES: rvus.txt
+
+  CPT_LINK__EXTRACT_RVUS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+  CPT_LINK__EXTRACT_RVUS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+  CPT_LINK__EXTRACT_RVUS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+  CPT_LINK__EXTRACT_RVUS__CAHCE_OUTPUT_FILES: rvus.txt
+
+
+  # Build Link
+  CPT_LINK__BUILD_LINK__CORE_DIRECTORY:  'target/buildcore_export2022_from2021u05'
+  CPT_LINK__BUILD_LINK__SNOMED_DERBY_HOME: 'target/ddb/snomed20210301'
+  CPT_LINK__BUILD_LINK__PRIOR_LINK_VERSION: '2021u05'
+  CPT_LINK__BUILD_LINK__PRIOR_RELEASE_YEAR: '2022'
+  CPT_LINK__BUILD_LINK__PRIOR_RELEASE_DATE: '20220101'
+  CPT_LINK__BUILD_LINK__PRIOR_YEARLY_RELEASE_DATE: '20220101'
+  CPT_LINK__BUILD_LINK__HCPCS_INPUT_DIRECTORY: 'dtk-versions/2022/00inputs'
+  CPT_LINK__BUILD_LINK__HCPCS_DATA_FILE: 'HCPC2021_JULY_ANWEB_v2.xlsx'
+  CPT_LINK__BUILD_LINK__HCPCS_TERMINATION_DATE: '20220101'
+  CPT_LINK__BUILD_LINK__EM_INPUT_DIRECTORY: 'dtk-versions/2021/00inputs/intro-em-tables'
+  CPT_LINK__BUILD_LINK__EM_OUTPUT_DIRECTORY: 'target/buildddtk_introemtables/2022'
+  CPT_LINK__BUILD_LINK__EM_DATA_FILE: '44398_CPT Prof 2021_00_FM xx-xxvii.docx'
+  CPT_LINK__BUILD_LINK__SNOMED_INPUT_DIRECTORY: 'dtk-versions/2022/00inputs'
+  CPT_LINK__BUILD_LINK__SNOMED_OUTPUT_DIRECTORY: 'target/builddtk_snomedinactives2022'
+  CPT_LINK__BUILD_LINK__SNOMED_DATA_FILE: 'snomed-inactives.xlsx'
+  CPT_LINK__BUILD_LINK__HEADINGS_OUTPUT_DIRECTORY: 'target/buildddtk_headings/2022'
+  CPT_LINK__BUILD_LINK__HEADINGS_DATA_FILE: 'headings.xlsx'
+  CPT_LINK__BUILD_LINK__ROLES_WORKBOOK_OUTPUT_DIRECTORY: 'target/builddtk_roles/2022'
+  CPT_LINK__BUILD_LINK__EXPORT_DIRECTORY: 'target/builddtk_export2022'
+  CPT_LINK__BUILD_LINK__EXTRACT_DIRECTORY: 'target/builddtk_extracts2022'
+  CPT_LINK__BUILD_LINK__VERSION: '2022'
+  CPT_LINK__BUILD_LINK__INCREMENTAL_VERSION: '2021u05'
+  CPT_LINK__BUILD_LINK__ANNUAL_VERSION: '2021'
+  CPT_LINK__BUILD_LINK__LINK_DATE: '20210901'
+  CPT_LINK__BUILD_LINK__LINK_INCREMENTAL_DATE: '20210501'
+  CPT_LINK__BUILD_LINK__LINK_ANNUAL_DATE: '20200901'
+  CPT_LINK__BUILD_LINK__REVISION_DATE: '20210101'
+  CPT_LINK__BUILD_LINK__PRIOR_HISTORY_DIRECTORY: 'dtk-versions/2021u05/changes'
+  CPT_LINK__BUILD_LINK__INDEX_FILE: ''
+  CPT_LINK__BUILD_LINK__GUILDLINES_QA_FILE: 'dtk-versions/2022/00inputs/no-op.txt'
+  CPT_LINK__BUILD_LINK__EDITS_FILE: 'dtk-versions/2022/00inputs/reviewed\ used\ input.xlsx'
+  CPT_LINK__BUILD_LINK__OUTPUT_DIRECTORY: 'target/build/2022'
+  CPT_LINK__BUILD_LINK__INDEX_FORMAT_2021: 'true'

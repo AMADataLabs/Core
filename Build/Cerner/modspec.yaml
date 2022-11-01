@@ -1,11 +1,6 @@
 ---
 modspec:
   - package: datalabs
-    include:
-      - feature
-      - parameter
-      - plugin
-      - task
   - package: datalabs.access
     include:
       - aws
@@ -13,15 +8,19 @@ modspec:
       - database
       - datastore
       - environment
+      - orm
   - package: datalabs.access.parameter
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.execute
-  - package: datalabs.etl.dag.cpt.cerner
-
+  - package: datalabs.etl.dag.customer_intelligence
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+  - package: datalabs.etl.smtp
   - package: datalabs.etl.sql
-  - package: datalabs.etl.sql.jdbc
+  - package: datalabs.etl.sql.sqlalchemy
   - package: datalabs.etl.s3
+  - package: datalabs.messaging
+    include:
+      - email_message

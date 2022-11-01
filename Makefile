@@ -40,3 +40,6 @@ coverage-report:
 
 pythonpath:
 	${RUN} printenv PYTHONPATH
+
+hooks:
+	git config core.hooksPath .githooks

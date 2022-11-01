@@ -6,8 +6,8 @@ import logging
 
 import pandas
 
-from datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -20,14 +20,13 @@ LOGGER.setLevel(logging.INFO)
 class DAGNotificationFactoryParameters:
     dag: str
     execution_time: str
-    data: object
 
 
-class DAGNotificationFactoryTask(TransformerTask):
+class DAGNotificationFactoryTask(Task):
     PARAMETER_CLASS = DAGNotificationFactoryParameters
 
-    def _transform(self):
-        iteration_parameters = self._parse_iteration_parameters(self._parameters.data)
+    def run(self):
+        iteration_parameters = self._parse_iteration_parameters(self._data)
 
         return [
             json.dumps(self._generate_notification_messages(
@@ -52,7 +51,7 @@ class DAGNotificationFactoryTask(TransformerTask):
         messages = None
 
         if parameters.empty:
-            parameters = pandas.DataFrame(dict(dag=[dag], execution_time=[execution_time]))
+            parameters = pandas.Series(dict(dag=dag, execution_time=execution_time))
 
             messages = [cls._generate_notification_message(parameters)]
         else:
@@ -71,7 +70,6 @@ class DAGNotificationFactoryTask(TransformerTask):
         )
 
         if (parameters is not None) and (len(parameters) > 2):
-
             message["parameters"] = json.loads(parameters.drop(["dag", "execution_time"]).to_json())
 
         return message

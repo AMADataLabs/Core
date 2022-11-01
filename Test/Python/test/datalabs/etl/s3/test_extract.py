@@ -121,8 +121,10 @@ def test_missing_filenames(parameters):
 
 
 # pylint: disable=redefined-outer-name, protected-access
-def test_filenames_in_data(parameters_with_data):
-    task = S3FileExtractorTask(parameters_with_data)
+def test_filenames_in_data(parameters, data):
+    parameters.pop("FILES")
+
+    task = S3FileExtractorTask(parameters, data)
 
     files = task._get_files()
 
@@ -140,8 +142,10 @@ def test_print_example_object_listing():
 
 
 # pylint: disable=redefined-outer-name, protected-access, invalid-name
-def test_mocked_list_objects_v2_output_is_returned_by_list_files(parameters_with_data, object_listing):
-    task = S3FileExtractorTask(parameters_with_data)
+def test_mocked_list_objects_v2_output_is_returned_by_list_files(parameters, data, object_listing):
+    parameters.pop("FILES")
+
+    task = S3FileExtractorTask(parameters, data)
     files = None
 
     with mock.patch("boto3.client") as client:
@@ -185,21 +189,12 @@ ping,24680
 
 
 @pytest.fixture
-def parameters_with_data():
-    return dict(
-        ENDPOINT_URL='https://bogus.host.fqdn/path/file',
-        ACCESS_KEY='nviowaj4902hfisafh9402fdni0ph8',
-        SECRET_KEY='wr9e0afe90afohf90aw',
-        REGION_NAME='us-east-42',
-        BUCKET='jumanji',
-        BASE_PATH='dir1/dir2/dir3',
-        DATA=[
-            """this_one.csv
-            that_one.csv   """.encode(),
-            'the_other_one.csv'.encode()
-        ],
-        EXECUTION_TIME='19000101'
-    )
+def data():
+    return [
+        """this_one.csv
+        that_one.csv   """.encode(),
+        'the_other_one.csv'.encode()
+    ]
 
 # pylint: disable=line-too-long
 @pytest.fixture

@@ -11,8 +11,8 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 class IQVIABusinessTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        business, class_of_trade = data
+    def _preprocess(self, dataset):
+        business, class_of_trade = dataset
         business = self._set_default_values(business)
 
         business = self._replace_unknown_values(business, class_of_trade)
@@ -51,8 +51,8 @@ class IQVIABusinessTransformerTask(TransformerTask):
 
 
 class IQVIAProviderTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        providers, affiliations = data
+    def _preprocess(self, dataset):
+        providers, affiliations, best_affiliations = dataset
 
         affiliations = affiliations.merge(
             providers,
@@ -60,7 +60,8 @@ class IQVIAProviderTransformerTask(TransformerTask):
         ).drop_duplicates()
 
         affiliations = self._set_default_values(affiliations)
-        affiliations = self._clean_data(affiliations)
+        affiliations = self._clean(affiliations)
+        affiliations = self._match_best_affiliation(affiliations, best_affiliations)
 
         return [providers, affiliations]
 
@@ -77,7 +78,7 @@ class IQVIAProviderTransformerTask(TransformerTask):
         return affiliations
 
     @classmethod
-    def _clean_data(cls, affiliations):
+    def _clean(cls, affiliations):
         row_data = []
         for row in affiliations.AFFIL_GROUP_CODE.to_list():
             row_data.append(row.rstrip())
@@ -86,14 +87,29 @@ class IQVIAProviderTransformerTask(TransformerTask):
 
         return affiliations
 
+    @classmethod
+    def _match_best_affiliation(cls, affiliations, best_affiliations):
+        best_affiliations['BEST'] = True
+
+        affiliations = pandas.merge(affiliations, best_affiliations, on=["IMS_ORG_ID", "PROFESSIONAL_ID"], how="left")
+
+        affiliations = affiliations.drop(columns=column.PROVIDER_BEST_AFFILIATION_DROPPED_COLUMNS)
+
+        affiliations = affiliations.rename(columns=column.PROVIDER_BEST_AFFILIATION_COLUMNS)
+
+        affiliations['BEST'] = affiliations['BEST'].fillna(False)
+
+        return affiliations
+
     def _get_columns(self):
         return [column.PROVIDER_COLUMNS, column.PROVIDER_AFFILIATION_COLUMNS]
 
 
 class IQVIAProviderPruningTransformerTask(TransformerTask):
-    @classmethod
-    def _preprocess_data(cls, data):
-        providers, affiliations, physicians = data
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        providers, affiliations, physicians = dataset
+
         physicians['truncated_me'] = physicians.medical_education_number.apply(lambda me: me[:-1])
         providers.rename(columns=dict(medical_education_number='truncated_me'), inplace=True)
         affiliations.rename(columns=dict(medical_education_number='truncated_me'), inplace=True)
@@ -124,8 +140,9 @@ class IQVIAProviderPruningTransformerTask(TransformerTask):
 
 
 class IQVIAUpdateTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        iqvia_update = data[0].iloc[0]['BATCH_BUSINESS_DATE']
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        iqvia_update = dataset[0].iloc[0]['BATCH_BUSINESS_DATE']
         iqvia_update = pandas.DataFrame.from_dict({'BATCH_BUSINESS_DATE': [iqvia_update]})
 
         iqvia_update.BATCH_BUSINESS_DATE = pandas.to_datetime(iqvia_update.BATCH_BUSINESS_DATE).astype(str)

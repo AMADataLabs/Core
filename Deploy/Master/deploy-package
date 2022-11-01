@@ -12,9 +12,9 @@ main() {
     get_release_info
 
     if [[ "$RELEASE_TYPE" == "Python" ]]; then
-        Deploy/Master/deploy-python-package --project ${PROJECT} --version ${VERSION}
+        Deploy/Master/deploy-python-package --project ${PROJECT} ${VERSION}
     elif [[ "$RELEASE_TYPE" == "Java" ]]; then
-        Deploy/Master/deploy-java-package --project ${PROJECT} --version ${VERSION}
+        Deploy/Master/deploy-java-package --project ${PROJECT} ${VERSION}
     else
         echo "Error: Unknown release type \"$RELEASE_TYPE\""
         exit 2
@@ -35,7 +35,7 @@ process_arguments() {
             shift
             ;;
         -v|--version)
-            VERSION=$2
+            VERSION="--version $2"
             shift
             shift
             ;;
@@ -49,9 +49,6 @@ process_arguments() {
 
     if  [[ "$PROJECT" == "" ]]; then
         echo "Missing project argument."
-        exit 1
-    elif [[ "$VERSION" == "" ]]; then
-        echo "Missing version argument."
         exit 1
     fi
 }

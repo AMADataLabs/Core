@@ -17,6 +17,14 @@
         <informix.version>4.50.8</informix.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>codeartifact</id>
+            <name>codeartifact</name>
+            <url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/datalabs-sbx/</url>
+        </repository>
+    </repositories>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -204,11 +212,11 @@
 
         <!-- Private Maven Repository Dependencies -->
 
-        <!-- <dependency>
+        <dependency>
             <groupId>org.ama-assn.dtk</groupId>
             <artifactId>dtk-core</artifactId>
-            <version>1.0.0</version>
-        </dependency> -->
+            <version>1.0.3</version>
+        </dependency>
 
         <!-- Kotlin Dependencies -->
 

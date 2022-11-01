@@ -1,5 +1,5 @@
 ''' DAG definition for the OneView ETL. '''
-from   datalabs.etl.dag.dag import DAG, Repeat
+from   datalabs.etl.dag.dag import DAG, register, Repeat
 from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransformer
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
 from   datalabs.etl.sql.jdbc.extract import JDBCExtractorTask, JDBCParametricExtractorTask
@@ -37,7 +37,7 @@ from   datalabs.etl.oneview.reference.transform import \
     ClassOfTradeTransformerTask, \
     MedicalSchoolTransformerTask
 from   datalabs.etl.oneview.residency.transform import ResidencyTransformerTask
-from   datalabs.etl.oneview.medical_licenses.transform import MedicalLicensesTransformerTask
+from   datalabs.etl.oneview.medical_licenses.transform import MedicalLicensesCleanerTask, MedicalLicensesTransformerTask
 from   datalabs.etl.orm.load import ORMLoaderTask, MaterializedViewRefresherTask, ReindexerTask
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 from   datalabs.etl.sftp.extract import SFTPFileExtractorTask
@@ -45,6 +45,7 @@ from   datalabs.etl.sftp.extract import SFTPIBM437TextFileExtractorTask
 from   datalabs.etl.transform import PassThroughTransformerTask
 
 
+@register(name="ONEVIEW")
 class OneViewDAG(DAG):
     EXTRACT_PPD: SFTPIBM437TextFileExtractorTask
     EXTRACT_PHYSICIAN_RACE_ETHNICITY: SFTPFileExtractorTask
@@ -121,6 +122,7 @@ class OneViewDAG(DAG):
     LOAD_BUSINESS_TABLE: Repeat(ORMLoaderTask, 6)
     EXTRACT_IQVIA_PROVIDER: JDBCExtractorTask
     EXTRACT_IQVIA_PROVIDER_AFFILIATION: JDBCExtractorTask
+    EXTRACT_IQVIA_BEST_PROVIDER_AFFILIATION: JDBCExtractorTask
     CREATE_PROVIDER_TABLE: IQVIAProviderTransformerTask
     REMOVE_UNKNOWN_PROVIDERS: IQVIAProviderPruningTransformerTask
     SPLIT_IQVIA_PROVIDER_TABLE: SplitTransformerTask
@@ -164,6 +166,7 @@ class OneViewDAG(DAG):
     LOAD_MEDICAL_SCHOOL_TABLE: ORMLoaderTask
 
     EXTRACT_MEDICAL_LICENSES: JDBCExtractorTask
+    CLEAN_MEDICAL_LICENSES: MedicalLicensesCleanerTask
     CREATE_MEDICAL_LICENSES_TABLE: MedicalLicensesTransformerTask
     LOAD_MEDICAL_LICENSES_TABLE: ORMLoaderTask
 
@@ -271,6 +274,7 @@ OneViewDAG.sequence('LOAD_BUSINESS_TABLE')
 
 OneViewDAG.EXTRACT_IQVIA_PROVIDER >> OneViewDAG.CREATE_PROVIDER_TABLE
 OneViewDAG.EXTRACT_IQVIA_PROVIDER_AFFILIATION >> OneViewDAG.CREATE_PROVIDER_TABLE
+OneViewDAG.EXTRACT_IQVIA_BEST_PROVIDER_AFFILIATION >> OneViewDAG.CREATE_PROVIDER_TABLE
 
 OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.REMOVE_UNKNOWN_PROVIDERS
 OneViewDAG.CONCATENATE_BUSINESS_TABLE >> OneViewDAG.REMOVE_UNKNOWN_PROVIDERS
@@ -304,6 +308,8 @@ OneViewDAG.CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES \
 OneViewDAG.MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> OneViewDAG.LOAD_CREDENTIALING_CUSTOMER_TABLE \
     >> OneViewDAG.LOAD_CREDENTIALING_PRODUCT_TABLE
 
+OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.REMOVE_UNKNOWN_ORDERS
+OneViewDAG.MERGE_CREDENTIALING_ADDRESSES_INTO_CUSTOMER_TABLE >> OneViewDAG.REMOVE_UNKNOWN_ORDERS
 OneViewDAG.CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES >> OneViewDAG.REMOVE_UNKNOWN_ORDERS
 OneViewDAG.LOAD_PHYSICIAN_TABLE >> OneViewDAG.REMOVE_UNKNOWN_ORDERS
 OneViewDAG.REMOVE_UNKNOWN_ORDERS \
@@ -330,9 +336,9 @@ OneViewDAG.EXTRACT_CLASS_OF_TRADE >> OneViewDAG.CREATE_CLASS_OF_TRADE_TABLE \
 OneViewDAG.EXTRACT_MEDICAL_SCHOOL >> OneViewDAG.CREATE_MEDICAL_SCHOOL_TABLE \
     >> OneViewDAG.LOAD_MEDICAL_SCHOOL_TABLE
 
-OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.CREATE_MEDICAL_LICENSES_TABLE
-OneViewDAG.EXTRACT_MEDICAL_LICENSES >> OneViewDAG.CREATE_MEDICAL_LICENSES_TABLE \
+OneViewDAG.EXTRACT_MEDICAL_LICENSES >> OneViewDAG.CLEAN_MEDICAL_LICENSES >> OneViewDAG.CREATE_MEDICAL_LICENSES_TABLE \
     >> OneViewDAG.LOAD_MEDICAL_LICENSES_TABLE
+OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.CREATE_MEDICAL_LICENSES_TABLE
 OneViewDAG.LOAD_PHYSICIAN_TABLE >> OneViewDAG.LOAD_MEDICAL_LICENSES_TABLE
 
 ### Save for AWS Batch implementation of refresh tasks ###

@@ -1,5 +1,4 @@
 """Authorize Task"""
-from   abc import ABC
 from   dataclasses import dataclass
 import json
 import requests
@@ -14,9 +13,10 @@ class AuthorizerParameters:
     endpoint: str
 
 
-class AuthorizerTask(Task, ABC):
-    def __init__(self, parameters: AuthorizerParameters):
-        super().__init__(parameters)
+class AuthorizerTask(Task):
+    def __init__(self, parameters: AuthorizerParameters, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
+
         self._authorization = {}
         self._session = requests.Session()
 

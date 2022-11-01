@@ -8,10 +8,10 @@ import pandas
 import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
-from   datalabs.etl.load import LoaderTask
 from   datalabs.etl.orm.provider import get_provider
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -40,7 +40,6 @@ class ORMLoaderParameters:
     database_backend: str
     database_username: str
     database_password: str
-    data: object
     execution_time: str = None
     append: str = None
     delete: str = None
@@ -48,7 +47,7 @@ class ORMLoaderParameters:
     soft_delete_column: str = None
 
 
-class ORMLoaderTask(LoaderTask):
+class ORMLoaderTask(Task):
     PARAMETER_CLASS = ORMLoaderParameters
 
     COLUMN_TYPE_CONVERTERS = {
@@ -56,10 +55,10 @@ class ORMLoaderTask(LoaderTask):
         'INTEGER': lambda x: x.astype(int, copy=False)
     }
 
-    def _load(self):
-        LOGGER.debug('Input data: \n%s', self._parameters.data)
+    def run(self):
+        LOGGER.debug('Input data: \n%s', self._data)
         model_classes = self._get_model_classes()
-        data = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+        data = [self._csv_to_dataframe(datum) for datum in self._data]
 
         with self._get_database() as database:
             for model_class, data in zip(model_classes, data):
@@ -183,20 +182,30 @@ class ORMLoaderTask(LoaderTask):
     def _soft_delete_data_from_table(self, database, table_parameters, data):
         if not data.empty:
             deleted_models = self._get_deleted_models_from_table(database, table_parameters, data)
+            count = 0
 
             for model in deleted_models:
                 LOGGER.info('Soft deleting row: %s', getattr(model, table_parameters.primary_key))
                 setattr(model, self._parameters.soft_delete_column, True)
                 self._update_row_of_table(database, table_parameters, model)
 
+                count += 1
+                if count % 10000 == 0:
+                    database.commit()  # pylint: disable=no-member
+
     @classmethod
     def _delete_data_from_table(cls, database, table_parameters, data):
         if not data.empty:
             deleted_models = cls._get_deleted_models_from_table(database, table_parameters, data)
+            count = 0
 
             for model in deleted_models:
                 LOGGER.info('Deleting row: %s', getattr(model, table_parameters.primary_key))
                 database.delete(model)  # pylint: disable=no-member
+
+                count += 1
+                if count % 10000 == 0:
+                    database.commit()  # pylint: disable=no-member
 
     @classmethod
     def _select_updated_data(cls, table_parameters):
@@ -226,9 +235,14 @@ class ORMLoaderTask(LoaderTask):
     def _update_data_in_table(cls, database, table_parameters, data):
         if not data.empty:
             models = cls._create_models(table_parameters.model_class, data)
+            count = 0
 
             for model in models:
                 cls._update_row_of_table(database, table_parameters, model)
+
+                count += 1
+                if count % 10000 == 0:
+                    database.commit()  # pylint: disable=no-member
 
     @classmethod
     def _select_new_data(cls, table_parameters):
@@ -249,9 +263,14 @@ class ORMLoaderTask(LoaderTask):
     def _add_data_to_table(cls, database, table_parameters, data):
         if not data.empty:
             models = cls._create_models(table_parameters.model_class, data)
+            count = 0
 
             for model in models:
                 database.add(model)  # pylint: disable=no-member
+
+                count += 1
+                if count % 10000 == 0:
+                    database.commit()  # pylint: disable=no-member
 
     @classmethod
     def _create_models(cls, model_class, data):
@@ -259,7 +278,8 @@ class ORMLoaderTask(LoaderTask):
 
         cls._set_column_types(data, model_class, columns)
 
-        return [cls._create_model(model_class, row, columns) for row in data.itertuples(index=False)]
+        for row in data.itertuples(index=False):
+            yield cls._create_model(model_class, row, columns)
 
     @classmethod
     def _get_deleted_models_from_table(cls, database, table_parameters, data):
@@ -312,8 +332,8 @@ class ORMLoaderTask(LoaderTask):
 
         return replacement_value
 
-class ORMPreLoaderTask(LoaderTask):
-    def _load(self):
+class ORMPreLoaderTask(Task):
+    def run(self):
         with self._get_database() as database:
             for model_class in self._get_model_classes():
                 # pylint: disable=no-member
@@ -349,14 +369,13 @@ class MaterializedViewRefresherParameters:
     database_username: str
     database_password: str
     views: str
-    data: object = None
     execution_time: str = None
 
 
-class MaterializedViewRefresherTask(LoaderTask):
+class MaterializedViewRefresherTask(Task):
     PARAMETER_CLASS = MaterializedViewRefresherParameters
 
-    def _load(self):
+    def run(self):
         with self._get_database() as database:
             views = []
 
@@ -393,14 +412,13 @@ class ReindexerParameters:
     database_password: str
     indexes: str = None
     tables: str = None
-    data: object = None
     execution_time: str = None
 
 
-class ReindexerTask(LoaderTask):
+class ReindexerTask(Task):
     PARAMETER_CLASS = ReindexerParameters
 
-    def _load(self):
+    def run(self):
         with self._get_database() as database:
             indexes = []
             tables = []

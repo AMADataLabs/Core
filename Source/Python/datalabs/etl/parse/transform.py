@@ -3,9 +3,9 @@ from   dataclasses import dataclass
 import logging
 
 from   datalabs.etl.csv import CSVWriterMixin
-from   datalabs.etl.transform import TransformerTask
 from   datalabs.plugin import import_plugin
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -17,17 +17,16 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=too-many-instance-attributes
 class ParseToCSVTransformerParameters:
     parsers: str
-    data: list
     execution_time: str = None
 
 
-class ParseToCSVTransformerTask(CSVWriterMixin, TransformerTask):
+class ParseToCSVTransformerTask(CSVWriterMixin, Task):
     PARAMETER_CLASS = ParseToCSVTransformerParameters
 
-    def _transform(self):
+    def run(self):
         parsers = [self._instantiate_parser(parser) for parser in self._parameters.parsers.split(',')]
 
-        parsed_data = [parser.parse(text) for parser, text in zip(parsers, self._parameters.data)]
+        parsed_data = [parser.parse(text) for parser, text in zip(parsers, self._data)]
 
         return [self._dataframe_to_csv(data) for data in parsed_data]
 

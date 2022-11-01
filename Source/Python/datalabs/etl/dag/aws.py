@@ -1,5 +1,4 @@
 """ Task wrapper for DAGs and DAG tasks running in AWS. """
-from   dataclasses import dataclass
 import json
 import logging
 import os
@@ -13,7 +12,6 @@ from   datalabs.etl.dag.notify.webhook import StatusWebHookNotifier
 from   datalabs.etl.dag.state import Status
 from   datalabs.plugin import import_plugin
 import datalabs.etl.dag.task
-from   datalabs.parameter import add_schema, ParameterValidatorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -36,22 +34,7 @@ class DynamoDBTaskParameterGetterMixin:
         return parameters
 
 
-@add_schema(unknowns=True)
-@dataclass
-class DAGTaskWrapperParameters:
-    dag: str
-    task: str
-    execution_time: str
-    unknowns: dict=None
-
-
-class DAGTaskWrapper(
-    DynamoDBTaskParameterGetterMixin,
-    ParameterValidatorMixin,
-    datalabs.etl.dag.task.DAGTaskWrapper
-):
-    PARAMETER_CLASS = DAGTaskWrapperParameters
-
+class DAGTaskWrapper(DynamoDBTaskParameterGetterMixin, datalabs.etl.dag.task.DAGTaskWrapper):
     def _get_runtime_parameters(self, parameters):
         command_line_parameters = json.loads(parameters[1])
         LOGGER.debug('Command-line Parameters: %s', command_line_parameters)
@@ -117,9 +100,6 @@ class DAGTaskWrapper(
         LOGGER.debug('Final DAG Task Parameters: %s', dag_task_parameters)
 
         return dag_task_parameters
-
-    def _get_task_wrapper_parameters(self):
-        return self._get_validated_parameters(self._runtime_parameters)
 
     def _supplement_runtime_parameters(self, runtime_parameters):
         dag_id = runtime_parameters["dag"].upper()
@@ -226,6 +206,7 @@ class DAGTaskWrapper(
 
     def _send_dag_status_notification(self, status):
         self._send_email_notification(status)
+
         self._send_webhook_notification(status)
 
     def _invoke_triggered_tasks(self, dag):
@@ -248,18 +229,19 @@ class DAGTaskWrapper(
 
     def _send_email_notification(self, status):
         raw_email_list = self._runtime_parameters.get("STATUS_NOTIFICATION_EMAILS")
-        LOGGER.info('EMAIL LIST %s', raw_email_list)
-        if raw_email_list is not None:
+        environment = self._runtime_parameters.get("ENVIRONMENT")
+        from_account = self._runtime_parameters.get("STATUS_NOTIFICATION_FROM", "DataLabs@ama-assn.org")
+        LOGGER.info('Sending status notification emails to %s', raw_email_list)
+
+        if raw_email_list and environment:
             emails = raw_email_list.split(',')
-            environment = self._runtime_parameters.get("ENVIRONMENT")
-            from_account = self._runtime_parameters.get("STATUS_NOTIFICATION_FROM")
             notifier = StatusEmailNotifier(emails, environment, from_account)
 
             notifier.notify(self._get_dag_id(), self._get_execution_time(), status)
 
     def _send_webhook_notification(self, status):
         raw_webhook_url_list = self._runtime_parameters.get("STATUS_NOTIFICATION_WEB_HOOK")
-        LOGGER.info('WEB HOOK LIST %s', raw_webhook_url_list)
+        LOGGER.info('Web hooks: %s', raw_webhook_url_list)
         if raw_webhook_url_list is not None:
             urls = raw_webhook_url_list.split(',')
             environment = self._runtime_parameters.get("ENVIRONMENT")

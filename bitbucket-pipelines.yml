@@ -53,23 +53,10 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project AMC
-        - step:
-            name: Update ETL Bundle
-            caches:
-                - environment-master
-            script:
-            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - >-
-                bash Deploy/Master/deploy-lambda-function
-                --environment sbx
-                --project AMC
-                --bundle Masterfile/AMC.zip
-                --jdbc-driver Informix
-                --use-package
+            - bash Deploy/Master/deploy-package --project AMC
         - parallel:
             - step:
-                name: Update sandbox Bundle
+                name: Update Sandbox Bundle
                 caches:
                     - environment-master
                 script:
@@ -79,25 +66,9 @@ pipelines:
                     --environment sbx
                     --project AMC
                     --bundle Masterfile/AMC.zip
-                    --jdbc-driver Informix
                     --use-package
             - step:
-                name: Update development Bundle
-                caches:
-                    - environment-dev
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment dev
-                    --project AMC
-                    --bundle Masterfile/AMC.zip
-                    --jdbc-driver Informix
-                    --use-package
-            - step:
-                name: Update test Bundle
+                name: Update Test Bundle
                 caches:
                     - environment-test
                 script:
@@ -109,10 +80,9 @@ pipelines:
                     --environment tst
                     --project AMC
                     --bundle Masterfile/AMC.zip
-                    --jdbc-driver Informix
                     --use-package
             - step:
-                name: Update production Bundle
+                name: Update Production Bundle
                 caches:
                     - environment-prod
                 script:
@@ -124,17 +94,98 @@ pipelines:
                     --environment prd
                     --project AMC
                     --bundle Masterfile/AMC.zip
+                    --use-package
+        - parallel:
+            - step:
+                name: Reload Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
+                    AMC=AMC.zip
+            - step:
+                name: Reload Production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
+                    AMC=AMC.zip
+
+        AMC-Extract:
+        - step:
+            name: Create Task Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-package --project AMC/Extract
+        - parallel:
+            - step:
+                name: Update Sandbox Lambda Bundle
+                caches:
+                - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project AMC/Extract
+                    --bundle Masterfile/AMC-Extract.zip
                     --jdbc-driver Informix
                     --use-package
-        # - step:
-        #     name: Update Lambda Functions
-        #     script:
-        #     - export ENABLE_FEATURE_DEV=True
-        #     - export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID_SANDBOX
-        #     - export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY_SANDBOX
-        #     - export AWS_DEFAULT_REGION='us-east-1'
-        #     - export ENVIRONMENT=sbx
-        #     - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AMC=AMC.zip
+            - step:
+                name: Update Test Lambda Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project AMC/Extract
+                    --bundle Masterfile/AMC-Extract.zip
+                    --jdbc-driver Informix
+                    --use-package
+            - step:
+                name: Update Production Lambda Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project AMC/Extract
+                    --bundle Masterfile/AMC-Extract.zip
+                    --jdbc-driver Informix
+                    --use-package
+        - parallel:
+            - step:
+                name: Reload Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p Masterfile
+                    AMC-Extract=AMC-Extract.zip
+            - step:
+                name: Reload Production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile
+                    AMC-Extract=AMC-Extract.zip
 
         HelloWorld:
         - step:
@@ -143,7 +194,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project HelloWorld
+            - bash Deploy/Master/deploy-package --project HelloWorld
 
         - parallel:
             - step:
@@ -265,7 +316,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project Cerner
+            - bash Deploy/Master/deploy-package --project Cerner
 
         - parallel:
             - step:
@@ -352,33 +403,33 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s DataLake
                     -p CustomerIntelligence Cerner=Cerner.zip
-        #     - step:
-        #         name: Update Test Lambda Function
-        #         script:
-        #         - >-
-        #             bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-        #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-        #         - >-
-        #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
-        #             -p CustomerIntelligence Cerner=Cerner.zip
-        #     - step:
-        #         name: Update Staging Lambda Function
-        #         script:
-        #         - >-
-        #             bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-        #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-        #         - >-
-        #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake
-        #             -p CustomerIntelligence Cerner=Cerner.zip
-        #     - step:
-        #         name: Update Production Lambda Function
-        #         script:
-        #         - >-
-        #             bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-        #             -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-        #         - >-
-        #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake
-        #             -p CustomerIntelligence Cerner=Cerner.zip
+            - step:
+                name: Update Test Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s DataLake
+                    -p CustomerIntelligence Cerner=Cerner.zip
+            - step:
+                name: Update Staging Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e itg -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e itg -s DataLake
+                    -p CustomerIntelligence Cerner=Cerner.zip
+            - step:
+                name: Update Production Lambda Function
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s DataLake
+                    -p CustomerIntelligence Cerner=Cerner.zip
 
         ContactID:
         - step:
@@ -387,7 +438,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project ContactID
+            - bash Deploy/Master/deploy-package --project ContactID
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -498,7 +549,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/API/ETL
+            - bash Deploy/Master/deploy-package --project CPT/API/ETL
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -619,7 +670,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/API/Endpoint
+            - bash Deploy/Master/deploy-package --project CPT/API/Endpoint
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -758,7 +809,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/Files/Ingest
+            - bash Deploy/Master/deploy-package --project CPT/Files/Ingest
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -871,6 +922,106 @@ pipelines:
         #             bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT-API -p CPT/Files
         #             IngestionDAG=Ingest.zip
 
+        AddressLoadCompiler:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-package --project AddressLoad
+        - parallel:
+            - step:
+                name: Update Sandbox Bundle
+                caches:
+                    - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project AddressLoad
+                    --bundle Masterfile/AddressLoadCompilerDAG.zip
+                    --use-package
+            - step:
+                name: Update Development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project AddressLoad
+                    --bundle Masterfile/AddressLoadCompilerDAG.zip
+                    --use-package
+#            - step:
+#                name: Update Test Bundle
+#                caches:
+#                    - environment-test
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+#                    --environment tst
+#                    --project AddressLoad
+#                    --bundle Masterfile/AddressLoadCompilerDAG.zip
+#                    --use-package
+#            - step:
+#                name: Update Production Bundle
+#                caches:
+#                    - environment-prod
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+#                    --environment prd
+#                    --project AddressLoad
+#                    --bundle Masterfile/AddressLoadCompilerDAG.zip
+#                    --use-package
+
+
+#        - parallel:
+#            - step:
+#                name: Update Sandbox Lambda Functions
+#                script:
+#                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                - bash Deploy/Master/update-functions -e sbx -s AddressLoad -p Masterfile AddressLoadCompilerDAG=AddressLoadCompilerDAG.zip
+#            - step:
+#                name: Update Development Lambda Functions
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AddressLoad -p Masterfile
+#                    AddressLoadCompilerDAG=AddressLoadCompilerDAG.zip
+#            - step:
+#                name: Update Test Lambda Functions
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AddressLoad -p Masterfile
+#                    AddressLoadCompilerDAG=AddressLoadCompilerDAG.zip
+#            - step:
+#                name: Update Production Lambda Functions
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AddressLoad -p Masterfile
+#                    AddressLoadCompilerDAG=AddressLoadCompilerDAG.zip
+
+
         CPT-Files-Watermark:
         - step:
             name: Create Development Component Package
@@ -878,7 +1029,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project CPT/Files/Watermark
+            - bash Deploy/Master/deploy-package --project CPT/Files/Watermark
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -989,7 +1140,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project DBL
+            - bash Deploy/Master/deploy-package --project DBL
         - parallel:
             - step:
                 name: Update sandbox Bundle
@@ -1076,14 +1227,81 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p Masterfile DBLReport=DBLReport.zip
 
-        Developer-Users:
+        HelloWorldJava-DAG:
         - step:
             name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project IntelligentPlatform/Developer/Users
+            - bash Deploy/Master/deploy-package --project HelloWorldJava/DAG
+        - step:
+            name: Update Lambda Bundle
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project HelloWorldJava/DAG
+                --bundle HelloWorldJava/DAG.zip
+                --use-package
+        - step:
+            name: Update Lambda Functions
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava HelloWorldJavaDAG=DAG.zip
+
+        HelloWorldJava-Task:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-package --project HelloWorldJava/Task
+        - step:
+            name: Update ECR Bundle
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - >-
+                bash Deploy/Master/deploy-lambda-function
+                --environment sbx
+                --project HelloWorldJava/Task
+                --bundle HelloWorldJava/Task.zip
+                --use-package
+
+            # Create the Docker image
+            - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
+            - mv Bundle.zip Bundle.ZIP  # circumvent .dockerignore
+            - docker build -t hello_world_java-sbx -f Build/HelloWorldJava/Task/Dockerfile ./
+
+            # Push the Docker image to ECR
+            - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
+            - pipe: atlassian/aws-ecr-push-image:1.5.0
+              variables:
+                AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_SANDBOX
+                AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_SANDBOX
+                AWS_DEFAULT_REGION: 'us-east-1'
+                IMAGE_NAME: 'hello_world_java-sbx'
+                TAGS: '$VERSION latest'
+        - step:
+            name: Update Lambda Function
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava HelloWorldJavaTask=Task.zip
+
+        IntelligentPlatform:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-package --project IntelligentPlatform
         - parallel:
             - step:
                 name: Update Development Bundle
@@ -1096,8 +1314,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
-                    --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
+                    --project IntelligentPlatform
+                    --bundle IntelligentPlatform/DAG.zip
                     --use-package
             - step:
                 name: Update Test Bundle
@@ -1110,8 +1328,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
-                    --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
+                    --project IntelligentPlatform
+                    --bundle IntelligentPlatform/DAG.zip
                     --use-package
             - step:
                 name: Update Production Bundle
@@ -1124,8 +1342,8 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
-                    --project IntelligentPlatform/Developer/Users
-                    --bundle IntelligentPlatform/DeveloperUsersETL.zip
+                    --project IntelligentPlatform
+                    --bundle IntelligentPlatform/DAG.zip
                     --use-package
         - parallel:
             - step:
@@ -1136,7 +1354,7 @@ pipelines:
                     -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
-                    DeveloperUsersETL=DeveloperUsersETL.zip
+                    DAG=DAG.zip
             # - step:
             #     name: Update Test Lambda Functions
             #     script:
@@ -1145,7 +1363,7 @@ pipelines:
             #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP -p IntelligentPlatform
-            #         DeveloperUsersETL=DeveloperUsersETL.zip
+            #         DAG=DAG.zip
             # - step:
             #     name: Update Production Lambda Functions
             #     script:
@@ -1154,72 +1372,167 @@ pipelines:
             #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
             #     - >-
             #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP -p IntelligentPlatform
-            #         DeveloperUsersETL=DeveloperUsersETL.zip
+            #         DAG=DAG.zip
 
-        HelloWorldJava:
-        - parallel:
-            - step:
-                name: Create DAG Development Component Package
-                caches:
-                - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/deploy-python-package --project HelloWorldJava/DAG
-            - step:
-                name: Create Task Development Component Package
-                caches:
-                - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/deploy-java-package --project HelloWorldJava/Task
-        - parallel:
-            - step:
-                name: Update DAG Bundle
-                caches:
-                - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project HelloWorldJava/DAG
-                    --bundle HelloWorldJava/DAG.zip
-                    --use-package
-            - step:
-                name: Update Task Bundle
-                caches:
-                - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project HelloWorldJava/Task
-                    --bundle HelloWorldJava/Task.zip
-                    --use-package
-
-                # Create the Docker image
-                - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
-                - mv Bundle.zip Bundle.ZIP  # circumvent .dockerignore
-                - docker build -t hello_world_java-sbx -f Build/HelloWorldJava/Task/Dockerfile ./
-
-                # Push the Docker image to ECR
-                - export VERSION=`cat Build/HelloWorldJava/Task/VERSION`
-                - pipe: atlassian/aws-ecr-push-image:1.5.0
-                  variables:
-                    AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID_SANDBOX
-                    AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    AWS_DEFAULT_REGION: 'us-east-1'
-                    IMAGE_NAME: 'hello_world_java-sbx'
-                    TAGS: '$VERSION latest'
+        IntelligentPlatform-Developer:
         - step:
-            name: Update Lambda Functions
+            name: Create Development Component Package
+            caches:
+            - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - >-
-                bash Deploy/Master/update-functions -e sbx -s DataLake -p HelloWorldJava
-                HelloWorldJavaDAG=DAG.zip
-                HelloWorldJavaTask=Task.zip
+            - bash Deploy/Master/deploy-package --project IntelligentPlatform/Developer
+        - parallel:
+            - step:
+                name: Update Development Bundle
+                caches:
+                    - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project IntelligentPlatform/Developer
+                    --bundle IntelligentPlatform/DeveloperDAG.zip
+                    --use-package
+            - step:
+                name: Update Test Bundle
+                caches:
+                    - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project IntelligentPlatform/Developer
+                    --bundle IntelligentPlatform/DeveloperDAG.zip
+                    --use-package
+            - step:
+                name: Update Production Bundle
+                caches:
+                    - environment-prod
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project IntelligentPlatform/Developer
+                    --bundle IntelligentPlatform/DeveloperDAG.zip
+                    --use-package
+        - parallel:
+            - step:
+                name: Update Development Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP -p IntelligentPlatform
+                    DeveloperDAG=DeveloperDAG.zip
+            - step:
+                name: Update Test Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP -p IntelligentPlatform
+                    DeveloperDAG=DeveloperDAG.zip
+            # - step:
+            #     name: Update Production Lambda Functions
+            #     script:
+            #     - >-
+            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+            #     - >-
+            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP -p IntelligentPlatform
+            #         DeveloperDAG=DeveloperDAG.zip
+
+        IntelligentPlatform-Licensing:
+        - step:
+            name: Create Development Component Package
+            caches:
+            - environment-master
+            script:
+            - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            - bash Deploy/Master/deploy-package --project IntelligentPlatform/Licensing
+        - parallel:
+            - step:
+                name: Update Development Bundle
+                caches:
+                - environment-dev
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment dev
+                    --project IntelligentPlatform/Licensing
+                    --bundle IntelligentPlatform/LicensingDAG.zip
+                    --use-package
+            - step:
+                name: Update Test Bundle
+                caches:
+                - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment tst
+                    --project IntelligentPlatform/Licensing
+                    --bundle IntelligentPlatform/LicensingDAG.zip
+                    --use-package
+            - step:
+                name: Update Production Bundle
+                caches:
+                - environment-test
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+                    --environment prd
+                    --project IntelligentPlatform/Licensing
+                    --bundle IntelligentPlatform/LicensingDAG.zip
+                    --use-package
+        - parallel:
+             - step:
+                   name: Update Development Lambda Function
+                   script:
+                       - >-
+                           bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                           -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                       - >-
+                           bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s AIP
+                           -p IntelligentPlatform LicensingDAG=LicensingDAG.zip
+             - step:
+                   name: Update Test Lambda Function
+                   script:
+                       - >-
+                           bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                           -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                       - >-
+                           bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s AIP
+                           -p IntelligentPlatform LicensingDAG=LicensingDAG.zip
+             # - step:
+             #       name: Update Production Lambda Function
+             #       script:
+             #           - >-
+             #               bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+             #               -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+             #           - >-
+             #               bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s AIP
+             #               -p IntelligentPlatform LicensingDAG=LicensingDAG.zip
 
         OneView-ETL:
         - step:
@@ -1228,20 +1541,8 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/ETL
+            - bash Deploy/Master/deploy-package --project OneView/ETL
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project OneView/ETL
-                    --bundle OneView/ETL.zip
-                    --use-package
             - step:
                 name: Update Development Lambda Bundle
                 caches:
@@ -1269,8 +1570,6 @@ pipelines:
                     --environment tst
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
-                    --jdbc-driver DB2
-                    --jdbc-driver Informix
                     --use-package
             - step:
                 name: Update Production Lambda Bundle
@@ -1285,15 +1584,8 @@ pipelines:
                     --environment prd
                     --project OneView/ETL
                     --bundle OneView/ETL.zip
-                    --jdbc-driver DB2
-                    --jdbc-driver Informix
                     --use-package
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Function
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView ETL=ETL.zip
             - step:
                 name: Update Development Lambda Function
                 script:
@@ -1329,7 +1621,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/ETL/Batch
+            - bash Deploy/Master/deploy-package --project OneView/ETL/Batch
         - parallel:
             - step:
                 name: Update Development Batch Job Image
@@ -1372,22 +1664,8 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-java-package --project OneView/ETL/Extract
+            - bash Deploy/Master/deploy-package --project OneView/ETL/Extract
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Bundle
-                caches:
-                - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project OneView/ETL/Extract
-                    --bundle OneView/Extract.zip
-                    --jdbc-driver DB2
-                    --jdbc-driver Informix
-                    --use-package
             - step:
                 name: Update Development Lambda Bundle
                 caches:
@@ -1438,11 +1716,6 @@ pipelines:
                     --use-package
         - parallel:
             - step:
-                name: Reload Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView Extract=Extract.zip
-            - step:
                 name: Reload Development Lambda Functions
                 script:
                 - >-
@@ -1460,15 +1733,15 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s OneView -p OneView
                     Extract=Extract.zip
-            # - step:
-            #     name: Reload Production Lambda Functions
-            #     script:
-            #     - >-
-            #         bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            #         -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-            #     - >-
-            #         bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
-            #         Extract=Extract.zip
+            - step:
+                name: Reload Production Lambda Functions
+                script:
+                - >-
+                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+                - >-
+                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
+                    Extract=Extract.zip
 
         OneView-API:
         - step:
@@ -1477,20 +1750,8 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project OneView/API
+            - bash Deploy/Master/deploy-package --project OneView/API
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project OneView/API
-                    --bundle OneView/API.zip
-                    --use-package
             - step:
                 name: Update Development Lambda Bundle
                 caches:
@@ -1535,11 +1796,6 @@ pipelines:
                     --use-package
         - parallel:
             - step:
-                name: Reload Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s OneView -p OneView API=API.zip
-            - step:
                 name: Reload Development Lambda Functions
                 script:
                 - >-
@@ -1567,31 +1823,31 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s OneView -p OneView
                     API=API.zip
 
-        Licensing:
+        CPT-Files-Build:
         - step:
             name: Create Development Component Package
             caches:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project IntelligentPlatform/Licensing
+            - bash Deploy/Master/deploy-package --project CPT/Files/Build
         - parallel:
             - step:
-                name: Update Sandbox Bundle
+                name: Update Sandbox Lambda Bundle
                 caches:
-                - environment-master
+                    - environment-master
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
                 - >-
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
-                    --project IntelligentPlatform/Licensing
-                    --bundle IntelligentPlatform/LicensingETL.zip
+                    --project CPT/Files/Build
+                    --bundle CPT/Files/Build.zip
                     --use-package
             - step:
-                name: Update Development Bundle
+                name: Update Development Lambda Bundle
                 caches:
-                - environment-dev
+                    - environment-dev
                 script:
                 - >-
                     bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
@@ -1599,70 +1855,74 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
-                    --project IntelligentPlatform/Licensing
-                    --bundle IntelligentPlatform/LicensingETL.zip
+                    --project CPT/Files/Build
+                    --bundle CPT/Files/Build.zip
                     --use-package
-            - step:
-                name: Update Test Bundle
-                caches:
-                - environment-test
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment tst
-                    --project IntelligentPlatform/Licensing
-                    --bundle IntelligentPlatform/LicensingETL.zip
-                    --use-package
-            - step:
-                name: Update Production Bundle
-                caches:
-                - environment-test
-                script:
-                - >-
-                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-                - >-
-                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
-                    --environment prd
-                    --project IntelligentPlatform/Licensing
-                    --bundle IntelligentPlatform/LicensingETL.zip
-                    --use-package
+#            - step:
+#                name: Update Test Lambda Bundle
+#                caches:
+#                    - environment-test
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+#                    --environment tst
+#                    --project CPT/Files/Build
+#                    --bundle CPT/Files/Build.zip
+#                    --jdbc-driver DB2
+#                    --jdbc-driver Informix
+#                    --use-package
+#            - step:
+#                name: Update Production Lambda Bundle
+#                caches:
+#                    - environment-prod
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
+#                    --environment prd
+#                    --project CPT/Files/Build
+#                    --bundle CPT/Files/Build.zip
+#                    --jdbc-driver DB2
+#                    --jdbc-driver Informix
+#                    --use-package
 #        - parallel:
-#              - step:
-#                    name: Update Sandbox Lambda Function
-#                    script:
-#                        - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                        - bash Deploy/Master/update-functions -e sbx -s PlatformExperience -p IntelligentPlatform/Licensing ETL=LicensingETL.zip
-#              - step:
-#                    name: Update Development Lambda Function
-#                    script:
-#                        - >-
-#                            bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                            -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                        - >-
-#                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s PlatformExperience
-#                            -p IntelligentPlatform/Licensing ETL=LicensingETL.zip
-#              - step:
-#                    name: Update Test Lambda Function
-#                    script:
-#                        - >-
-#                            bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                            -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                        - >-
-#                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s PlatformExperience
-#                            -p IntelligentPlatform/Licensing ETL=LicensingETL.zip
-#              - step:
-#                    name: Update Production Lambda Function
-#                    script:
-#                        - >-
-#                            bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-#                            -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
-#                        - >-
-#                            bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s PlatformExperience
-#                            -p IntelligentPlatform/Licensing ETL=LicensingETL.zip
+#            - step:
+#                name: Update Sandbox Lambda Function
+#                script:
+#                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                - bash Deploy/Master/update-functions -e sbx s CPT -p CPT/Files BuildDAG=Build.zip
+#            - step:
+#                name: Update Development Lambda Function
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s CPT -p CPT/Files
+#                    BuildDAG=Build.zip
+#            - step:
+#                name: Update Test Lambda Function
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s CPT -p CPT/Files
+#                    BuildDAG=Build.zip
+#            - step:
+#                name: Update Production Lambda Function
+#                script:
+#                - >-
+#                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+#                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
+#                - >-
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s CPT -p CPT/Files
+#                    BuildDAG=Build.zip
 
         Scheduler:
         - step:
@@ -1671,7 +1931,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-python-package --project Scheduler
+            - bash Deploy/Master/deploy-package --project Scheduler
         - parallel:
             - step:
                 name: Update Sandbox Bundle

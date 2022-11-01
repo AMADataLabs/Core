@@ -16,9 +16,9 @@ ORDER_COLUMNS = {
     'FULL_DT': 'date',
 }
 
-CUSTOMER_ADDRESSES_COLUMNS = {
+CUSTOMER_COLUMNS = {
     'CUSTOMER_KEY': 'id',
-    'number': 'number',
+    'CUSTOMER_NBR': 'number',
     'CUSTOMER_NAME': 'name',
     'CUSTOMER_TYPE': 'type',
     'CUSTOMER_TYPE_DESC': 'type_description',

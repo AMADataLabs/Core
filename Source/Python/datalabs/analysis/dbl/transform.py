@@ -10,8 +10,8 @@ import pandas as pd
 import xlsxwriter
 
 # pylint: disable=import-error
-from datalabs.etl.transform import TransformerTask
 from datalabs.analysis.dbl.validation import Validater
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -22,9 +22,9 @@ def get_letters_between(start, end):
     return ascii_uppercase[ascii_uppercase.index(start): ascii_uppercase.index(end)+1]
 
 
-class DBLReportTransformer(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        dataframes = self._get_dataframes(self._parameters['data'][:10])  # index 10 contains previous report (.xlsx)
+class DBLReportTransformer(Task):
+    def run(self) -> 'Transformed Data':
+        dataframes = self._get_dataframes(self._data[:10])  # index 10 contains previous report (.xlsx)
         dataframes[0] = self._transform_tab1(dataframes[0])
         dataframes[1] = self._transform_tab2(dataframes[1])
         dataframes[2] = self._transform_tab3(dataframes[2])
@@ -36,17 +36,22 @@ class DBLReportTransformer(TransformerTask):
         dataframes[8] = self._transform_tab9(dataframes[8])
         dataframes[9] = self._transform_tab10(dataframes[9])
 
-        if len(self._parameters['data']) > 10:
-            previous_report = self._parameters['data'][10]
+        if len(self._data) > 10:
+            previous_report = self._data[10]
         else:
             previous_report = None
 
         output = self._make_excel_workbook(sheet_dataframes=dataframes)
 
         validater = Validater(output, previous_report)
-        passing, log, tab_validations = validater.passing, validater.log, validater.tab_validations
 
-        comparison = {'Passing': passing, 'Log': log, 'Validations': tab_validations}
+        validater.validate()
+
+        comparison = {
+            'Passing': validater.passing,
+            'Log': validater.log,
+            'Validations': validater.tab_validations
+        }
 
         # output is returned twice because it's saved to two files, one datestamped, other as "latest" file
         return [output, output, previous_report, pk.dumps(comparison)]
@@ -192,9 +197,10 @@ class DBLReportTransformer(TransformerTask):
 
     @classmethod
     def _make_excel_workbook(cls, sheet_dataframes):
+        dummy_file = BytesIO()
         output = BytesIO()
         # pylint: disable=abstract-class-instantiated
-        writer = pd.ExcelWriter('temp.xlsx', engine='xlsxwriter')
+        writer = pd.ExcelWriter(dummy_file, engine='xlsxwriter')
         writer.book = xlsxwriter.Workbook(output, {'in_memory': True})
 
         sheet_dataframes[0].to_excel(writer, sheet_name='ChangeFileAudit', header=False, index=False)
