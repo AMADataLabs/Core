@@ -72,7 +72,7 @@ public class LinkBuilderTask extends Task {
                     settings.getProperty("current.core.directory")
             );
 
-            //stageInputFiles();
+            stageInputFiles();
 
             DtkAccess priorLink = LinkBuilderTask.loadLink(priorLinkPath.toString());
             DtkAccess core = LinkBuilderTask.loadLink(currentCorePath.toString()); //buildCore previous run

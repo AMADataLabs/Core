@@ -230,7 +230,7 @@
         <dependency>
             <groupId>org.ama-assn.dtk</groupId>
             <artifactId>dtk-core</artifactId>
-            <version>1.0.3</version>
+            <version>1.0.4</version>
         </dependency>
 
         <!-- Kotlin Dependencies -->
@@ -304,6 +304,11 @@
                     <artifactId>stax-api</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr</artifactId>
+            <version>3.5.2</version>
         </dependency>
 
     </dependencies>
