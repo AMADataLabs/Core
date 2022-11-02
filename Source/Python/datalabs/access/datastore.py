@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 import logging
 
-from   datalabs.parameter import ParameterValidatorMixin, ValidationException
+from   datalabs.parameter import ParameterValidatorMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

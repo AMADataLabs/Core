@@ -13,6 +13,8 @@ from  datalabs.analysis.sanctions.me.sql import SQL_TEMPLATE
 
 class SanctionsMEScan:
     def __init__(self):
+        self._marklogic = None
+        self._aims = None
         self._aims_source_name = None
         self._aims_username = None
         self._aims_password = None
@@ -73,8 +75,8 @@ class SanctionsMEScan:
     def _setup_odbc_aims_connection(self):
         database_parameters = dict(
             name="aims_prod",
-            username="",
-            password=""
+            username=self._aims_username,
+            password=self._aims_password
         )
 
         with odbc.Database(database_parameters) as aims:

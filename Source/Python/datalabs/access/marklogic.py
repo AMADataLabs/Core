@@ -25,12 +25,6 @@ class MarkLogicParameters:
 class MarkLogic(Database):
     PARAMETER_CLASS = MarkLogicParameters
 
-    def _generate_connection_string(self):
-        protocol = self._parameters.protocol or "http"
-        version = self._parameters.version or "LATEST"
-
-        return f"{protocol}://{self._parameters.host}:{self._parameters.port}/{self._parameters.version}"
-
     def connect(self):
         self._connection = requests.Session()
         self._connection.auth = HTTPDigestAuth(self._parameters.username, self._parameters.password)
@@ -65,9 +59,9 @@ class MarkLogic(Database):
         self.write_file(data, file_name=uri, save_dir=save_dir)
 
     def get_file(self, uri, database='PhysicianSanctions'):
-        url = f'{self.url}/documents?uri={uri}&database={database}'
+        url = f'{self.connection_string}/documents?uri={uri}&database={database}'
 
-        response = self._connection.get(url=url, auth=self.auth)
+        response = self._connection.get(url=url)
         response.raise_for_status()
         return response.content
 
@@ -83,11 +77,17 @@ class MarkLogic(Database):
         with open(file_path, 'wb+') as file:
             file.write(data)
 
+    def _generate_connection_string(self):
+        protocol = self._parameters.protocol or "http"
+        version = self._parameters.version or "LATEST"
+
+        return f"{protocol}://{self._parameters.host}:{self._parameters.port}/{version}"
+
     # pylint: disable=too-many-arguments
     def _get_page_search_result(self, query, collection, start, page_length, database):
-        url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \
+        url = f'{self.connection_string}/search?q={query}&collection={collection}&start={start}&' \
               f'pageLength={page_length}&database={database}'
-        search = self._connection.get(url, auth=self.auth)
+        search = self._connection.get(url)
         search.raise_for_status()
         return search
 

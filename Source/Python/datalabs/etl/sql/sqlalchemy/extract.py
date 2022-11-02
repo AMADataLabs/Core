@@ -1,7 +1,6 @@
 """ SQLAlchemy Extractor """
 from   dataclasses import dataclass
 import logging
-import socket
 from   urllib.parse import quote
 
 from   datalabs.access.sqlalchemy import Database

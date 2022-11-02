@@ -2,7 +2,6 @@
 # pylint: disable=import-error
 from   dataclasses import dataclass
 import json
-import os
 
 from datalabs.access import marklogic as ml
 from   datalabs.parameter import add_schema
@@ -41,6 +40,6 @@ class MarkLogic(ml.MarkLogic):
         self._set_file(uri=uri, data=json.dumps(json_file))
 
     def _set_file(self, uri, data, database='PhysicianSanctions'):
-        url = f'{self.url}/documents?uri={uri}&database={database}'
-        response = self._connection.put(url=url, auth=self.auth, data=data)
+        url = f'{self.connection_string}/documents?uri={uri}&database={database}'
+        response = self._connection.put(url=url, data=data)
         response.raise_for_status()

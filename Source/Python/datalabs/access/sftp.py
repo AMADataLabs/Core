@@ -5,53 +5,34 @@ import os
 import pandas
 import pysftp
 
-from datalabs.access.credentials import Credentials
-from datalabs.access.datastore import Datastore
+from   datalabs.access.datastore import Datastore
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@add_schema
 @dataclass
-class Configuration:
-    host: str = 'eft.ama-assn.org'
-
-    @classmethod
-    def load(cls, key: str):
-        """ Load configuration from environment variables.
-            Variables are of the form <KEY>_<PARAMETER>='<value>'.
-        """
-        configuration = Configuration()
-        configuration.host = cls._load_varaible(key, 'HOST') or configuration.host
-
-        return configuration
-
-    @classmethod
-    def _load_varaible(cls, key, credential_type):
-        name = f'{key.upper()}_{credential_type.upper()}'
-
-        return os.environ.get(name)
-
-
-class ConfigurationException(Exception):
-    pass
+# pylint: disable=too-many-instance-attributes
+class SFTPParameters:
+    username: str
+    password: str
+    host: str='eft.ama-assn.org'
 
 
 class SFTP(Datastore):
-    def __init__(self, configuration: Configuration = None, credentials: Credentials = None, key: str = None):
-        super().__init__(credentials, key)
-
-        self._configuration = self._load_or_verify_configuration(configuration, self._key)
+    PARAMETER_CLASS = SFTPParameters
 
     def connect(self):
         cnopts = pysftp.CnOpts()
         cnopts.hostkeys = None
 
         self._connection = pysftp.Connection(
-            self._configuration.host,
-            username=self._credentials.username,
-            password=self._credentials.password,
+            self._parameters.host,
+            username=self._parameters.username,
+            password=self._parameters.password,
             cnopts=cnopts
         )
 
@@ -141,30 +122,6 @@ class SFTP(Datastore):
     def read(self, sql: str, **kwargs):
         return pandas.read_sql(sql, self._connection, **kwargs)
 
-    @classmethod
-    def _load_or_verify_configuration(cls, configuration: Configuration, key: str):
-        if configuration is None:
-            configuration = Configuration.load(key)
-        elif not hasattr(configuration, 'host'):
-            raise ValueError('Invalid configuration object.')
-
-        return configuration
-
 
 class SFTPException(Exception):
     pass
-
-
-# pylint: disable=abstract-method
-class SFTPTaskMixin:
-    @classmethod
-    def _get_sftp(cls, parameters):
-        config = Configuration(
-            host=parameters['HOST']
-        )
-        credentials = Credentials(
-            username=parameters['USERNAME'],
-            password=parameters['PASSWORD']
-        )
-
-        return SFTP(config, credentials)
