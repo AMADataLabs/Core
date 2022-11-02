@@ -75,14 +75,10 @@ public class LinkBuilderTask extends Task {
             stageInputFiles();
 
             DtkAccess priorLink = LinkBuilderTask.loadLink(priorLinkPath.toString());
-            DtkAccess core = LinkBuilderTask.loadLink(currentCorePath.toString()); //buildCore previous run
+            DtkAccess core = LinkBuilderTask.loadLink(currentCorePath.toString());
             DtkAccess currentLink = LinkBuilderTask.loadLink(currentLinkPath.toString());
-            // buildCore output
+
             LinkBuilderTask.buildLink(currentLink, core, parameters, this.settings);
-
-//            LinkBuilderTask.updateEmTables(priorLink, core, this.settings);
-
-//          LinkBuilderTask.createHeadings(priorLink, core);
 
             LinkBuilderTask.exportConcepts(core, exportPath.toString());
 
@@ -165,11 +161,6 @@ public class LinkBuilderTask extends Task {
                 settings.getProperty("input.directory"),
                 settings.getProperty("em.output.directory")
         );
-//        Path emPath = Paths.get(
-//                settings.getProperty("input.directory"),
-//                settings.getProperty("em.data.file")
-//        );
-
 
         Files.createDirectories(outputDirectory);
 
@@ -179,18 +170,6 @@ public class LinkBuilderTask extends Task {
 
         introEmTables.updateEmTables(outputDirectory);
     }
-
-//    private static void createHeadings(DtkAccess priorLink, DtkAccess core, LinkBuilderParameters parameters)
-//            throws Exception {
-//        Path outputDirectory = Paths.get(parameters.headingsOutputDirectory);
-//        HeadingsWorkbookBuilder workBook = new HeadingsWorkbookBuilder(priorLink, core);
-//
-//        Files.createDirectories(outputDirectory);
-//
-//        workBook.createHeadings(core.getConcept(DtkConceptIds.CPT_ROOT_ID).getDescendants(),
-//            outputDirectory.resolve(parameters.headingDataFile).toString()
-//        );
-//    }
 
     private static ArrayList<DtkConcept> getConcepts(DtkAccess link) {
         ArrayList<DtkConcept> concepts = link.getConcepts();
@@ -255,7 +234,6 @@ public class LinkBuilderTask extends Task {
             Paths.get(settings.getProperty("input.directory"), settings.getProperty("prior.history.directory")), //changes in current
             Paths.get(settings.getProperty("input.directory"), settings.getProperty("index.file")),
             null,
-            // Paths.get(settings.getProperty("input.directory"), settings.getProperty("guidelines.qa.file")),
             Paths.get(settings.getProperty("input.directory"), settings.getProperty("edits.file")),
             Paths.get(settings.getProperty("output.directory"))
         );
@@ -318,16 +296,13 @@ public class LinkBuilderTask extends Task {
             put("hcpcs.input.directory", "/hcpcs_input_directory");
             put("em.input.directory", "/em_input");
             put("em.output.directory", "/em_output");
-            //put("em.data.file", null);
             put("export.directory", "/export");
             put("extract.directory", "/export");
             put("prior.history.directory", "/current_link/changes/");
             put("index.file", "cpt_index.docx/");
-            //put("guidelines.qa.file", null);
             put("edits.file", "reviewed_used_input.xlsx");
             put("output.directory", "./output");
             put("input.directory", "./input");
-            //put("headings", null);
             put("consumer.and.clinician.descriptors", "cdcterms.xlsx");
             put("coding.tips", "coding_tips_attach.xlsx");
             put("front.matter", "front_matter.docx");
