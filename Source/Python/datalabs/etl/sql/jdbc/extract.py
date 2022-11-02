@@ -36,14 +36,14 @@ class JDBCDatabaseMixin:
     def _get_database(self):
         return Database(
             dict(
-                DRIVER=self._parameters.driver
-                DRIVER_TYPE=self._parameters.drivertype
-                HOST=self._parameters.database_host
-                USERNAME=self._parameters.database_username
-                PASSWORD=self._parameters.database_password
-                PORT=self._parameters.database_port
-                JAR_PATH=self._parameters.jar_path
-                NAME=self._parameters.database_name
+                DRIVER=self._parameters.driver,
+                DRIVER_TYPE=self._parameters.drivertype,
+                HOST=self._parameters.database_host,
+                USERNAME=self._parameters.database_username,
+                PASSWORD=self._parameters.database_password,
+                PORT=self._parameters.database_port,
+                JAR_PATH=self._parameters.jar_path,
+                NAME=self._parameters.database_name,
                 PARAMETERS=self._parameters.parameters
             )
         )

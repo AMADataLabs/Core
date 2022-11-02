@@ -64,7 +64,7 @@ class AMCAddressFlagger:
         address_data = None
 
         if feature.enabled("WINDOWS"):
-            with AIMS() as aims:
+            with AIMS.from_environment("AIMS") as aims:
                 data = aims.read(sql=AMC_QUERY, coerce_float=False)
 
             address_data = self._clean_str_data(data)

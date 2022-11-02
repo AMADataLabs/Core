@@ -1,20 +1,26 @@
 """ MarkLogic connection operations """
 # pylint: disable=import-error
+from   dataclasses import dataclass
 import json
 import os
-from requests.auth import HTTPDigestAuth
+
 from datalabs.access import marklogic as ml
+from   datalabs.parameter import add_schema
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class MarkLogicParameters:
+    host: str
+    username: str
+    password: str
+    protocol: str="http"
+    port: str="8000"
+    version: str="LATEST"
 
 
 class MarkLogic(ml.MarkLogic):
-    def __init__(self, key=None, host=None):
-        if host is None:
-            host = os.environ[f'DATABASE_{key.upper()}_HOST']
-
-        self.url = f'http://{host}:8000/LATEST'
-        super().__init__(credentials=None, key=key)
-        self.auth = HTTPDigestAuth(self._credentials.username, self._credentials.password)
-
     def set_license_number(self, uri, license_number, json_file=None, database='PhysicianSanctions'):
         if json_file is None:
             json_file = self.get_file(uri=uri, database=database)

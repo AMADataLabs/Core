@@ -1,13 +1,14 @@
 """ Old code for PoC project to identify metadata files without ME number filled """
 # pylint: disable=no-name-in-module,import-error,wildcard-import,undefined-variable,protected-access,unused-import,too-many-instance-attributes,logging-fstring-interpolation,unnecessary-lambda,abstract-class-instantiated,logging-format-interpolation,no-member,trailing-newlines,trailing-whitespace,function-redefined,use-a-generator
-
 import json
 import os
+
 import pandas as pd
-import jaydebeapi
-from datalabs.access.sanctions.marklogic import MarkLogic
-from datalabs.analysis.sanctions.me.sql import SQL_TEMPLATE
-import settings
+
+from   datalabs.access import jdbc
+from   datalabs.access import odbc
+from   datalabs.access.sanctions.marklogic import MarkLogic
+from  datalabs.analysis.sanctions.me.sql import SQL_TEMPLATE
 
 
 class SanctionsMEScan:
@@ -16,44 +17,30 @@ class SanctionsMEScan:
         self._aims_username = None
         self._aims_password = None
 
-        self._marklogic_con: MarkLogic() = None
-        self._aims_con = None
-
     def run(self):
         self._load_environment_variables()
-        self._set_database_connections()
-        uris = self._marklogic_con.get_file_uris()
-        self._scan_uris(uris=uris)
+
+        self._marklogic, self._aims = self._setup_database_connections()
+
+        uris = self._marklogic.get_file_uris()
+
+        self._scan_uris(uris)
 
     def _load_environment_variables(self):
         self._aims_source_name = os.environ.get('DATABASE_NAME_AIMS')
         self._aims_username = os.environ.get('CREDENTIALS_AIMS_USERNAME')
         self._aims_password = os.environ.get('CREDENTIALS_AIMS_PASSWORD')
 
-    def _set_database_connections(self):
-        self._marklogic_con = MarkLogic(key='MARKLOGIC_PROD')
-        self._marklogic_con.connect()
+    def _setup_database_connections(self, use_jdbc=True):
+        with MarkLogic.from_environment('MARKLOGIC_PROD') as marklogic:
+            aims = None
 
-        # # if using pyodbc
-        # self._aims_con = pyodbc.connect("DSN=aims_prod; UID={}; PWD={}".format(
-        #     self._aims_username,
-        #     self._aims_password)
-        # )
+            if use_jdbc:
+                aims = self._setup_jdbc_aims_connection()
+            else:
+                aims = self._setup_odbc_aims_connection()
 
-        # if using jaydebeapi
-        self._aims_con = jaydebeapi.connect(
-            'com/informix/jdbc/IfxConnection',
-            'jdbc:informix-sqli://rdbp1627.ama-assn.org:22093/aims_prod:informixserver=prd1srvxnet',
-            [self._aims_username, self._aims_password],
-            './jdbc-4.50.2.fix-1.jar')
-
-        self._aims_con.cursor().execute('SET ISOLATION TO DIRTY READ;')
-
-    @classmethod
-    def _get_state(cls, uri: str):
-        # example - '/json/2019.10.30_OH_NA_SL/schwartz_2172.json'
-        _sl_index = uri.index('_SL/')
-        return uri[_sl_index - 5:_sl_index - 3]
+            yield marklogic, aims
 
     def _scan_uris(self, uris: list):
         """
@@ -66,9 +53,42 @@ class SanctionsMEScan:
         for uri in uris:
             self._scan_uri(uri)
 
+    def _setup_jdbc_aims_connection(self):
+        database_parameters = dict(
+            driver='com/informix/jdbc/IfxConnection',
+            driver_type='informix-sqli',
+            host='rdbp1627.ama-assn.org',
+            username=self._aims_username,
+            password=self._aims_password,
+            port='22093',
+            jar_path='./jdbc-4.50.2.fix-1.jar',
+            name='aims_prod:informixserver=prd1srvxnet'
+        )
+
+        with jdbc.Database(database_parameters) as aims:
+            aims.connection.cursor().execute('SET ISOLATION TO DIRTY READ;')
+
+            yield aims
+
+    def _setup_odbc_aims_connection(self):
+        database_parameters = dict(
+            name="aims_prod",
+            username="",
+            password=""
+        )
+
+        with odbc.Database(database_parameters) as aims:
+            yield aims
+
+    @classmethod
+    def _get_state(cls, uri: str):
+        # example - '/json/2019.10.30_OH_NA_SL/schwartz_2172.json'
+        _sl_index = uri.index('_SL/')
+        return uri[_sl_index - 5:_sl_index - 3]
+
     def _scan_uri(self, uri: str):
         # get the json file for this URI
-        json_data = json.loads(self._marklogic_con.get_file(uri=uri))
+        json_data = json.loads(self._marklogic.get_file(uri=uri))
 
         if self._needs_me(json_data) and self._is_searchable(json_data):
             first = json_data['sanction']['physician']['name_first']
@@ -77,7 +97,7 @@ class SanctionsMEScan:
 
             me_number = self._get_me_number(first=first, last=last, state=state)
             if me_number is not None:
-                self._marklogic_con.set_me_number(uri=uri, json_file=json_data, me_number=me_number)
+                self._marklogic.set_me_number(uri=uri, json_file=json_data, me_number=me_number)
 
     @classmethod
     def _is_null(cls, value):
@@ -107,7 +127,7 @@ class SanctionsMEScan:
         sql = SQL_TEMPLATE.format(first.upper(), last.upper())
         sql_reversed = SQL_TEMPLATE.format(last.upper(), first.upper())
 
-        data = pd.read_sql(con=self._aims_con, sql=sql)
+        data = self._aims.read(sql)
 
         data = data[data['state_cd'] == state].drop_duplicates()
 
@@ -116,7 +136,7 @@ class SanctionsMEScan:
             me_number = data['key_type_val'].apply(str.strip).values[0]
 
         else:  # try with swapped first/last name
-            data = pd.read_sql(con=self._aims_con, sql=sql_reversed)
+            data = self._aims.read(sql_reversed)
             data = data[data['state_cd'] == state].drop_duplicates()
             if len(data) == 1:  # no dupes
                 me_number = data['key_type_val'].apply(str.strip).values[0]

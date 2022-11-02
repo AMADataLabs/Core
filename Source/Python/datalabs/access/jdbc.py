@@ -26,8 +26,7 @@ class DatabaseParameters:
 class Database(Datastore):
     @property
     def url(self):
-        url = f"jdbc:{self._parameters.driver_type}://{self._parameters.host}:" \
-              f"{self._parameters.port}"
+        url = f"jdbc:{self._parameters.driver_type}://{self._parameters.host}:{self._parameters.port}"
 
         if self._parameters.name is not None:
             url += f"/{self._dparameters.name}"

@@ -7,6 +7,7 @@ import tempfile
 from   abc import abstractmethod
 import pandas
 
+from   datalabs.access.database import Database
 from   datalabs.etl.csv import CSVReaderMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
@@ -42,7 +43,7 @@ class SQLExtractorTask(Task):
         return results
 
     @abstractmethod
-    def _connect(self):
+    def _get_database(self) -> Database:
         pass
 
     def _read_queries(self, connection):
