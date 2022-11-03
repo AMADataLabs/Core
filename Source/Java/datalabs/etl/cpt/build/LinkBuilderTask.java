@@ -85,7 +85,6 @@ public class LinkBuilderTask extends Task {
             LinkBuilderTask.createExtracts(core, extractPath.toString());
 
             LinkBuilderTask.createDistribution(parameters, this.settings);
-
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
@@ -95,7 +94,7 @@ public class LinkBuilderTask extends Task {
 
 	private static DtkAccess loadLink(String directory) throws Exception {
 		DtkAccess link = new DtkAccess();
-        LOGGER.info(directory);
+
 		link.load(
                 directory + '/' + ExporterFiles.PropertyInternal.getFileNameExt(),
                 directory + '/' + ExporterFiles.RelationshipGroup.getFileNameExt()
