@@ -298,7 +298,7 @@ class MedicalLicense(BASE):
         nullable=False
     )
     state = sa.Column(sa.String, nullable=False)
-    issue_date = sa.Column(sa.Date, nullable=False)
+    issue_date = sa.Column(sa.Date, nullable=True)
     expiry_date = sa.Column(sa.Date)
     renew_date = sa.Column(sa.Date)
     degree_type = sa.Column(sa.String, nullable=True)
