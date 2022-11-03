@@ -15,6 +15,7 @@ HelloWorldVault
 IntelligentPlatform/Developer
 IntelligentPlatform/Licensing
 IntelligentPlatform
+LicenseMovement
 OneView/ETL
 OneView/ETL/Batch
 OneView/ETL/Extract
