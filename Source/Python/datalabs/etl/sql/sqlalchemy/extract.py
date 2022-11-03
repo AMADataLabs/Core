@@ -1,13 +1,9 @@
 """ SQLAlchemy Extractor """
 from   dataclasses import dataclass
 import logging
-import socket
 from   urllib.parse import quote
 
-import sqlalchemy
-from   sqlalchemy.orm import sessionmaker
-
-from   datalabs.access.orm import Database
+from   datalabs.access.sqlalchemy import Database
 from   datalabs.etl.sql.extract import SQLExtractorTask, SQLParametricExtractorTask, SQLParquetExtractorTask
 from   datalabs.parameter import add_schema
 
@@ -38,34 +34,26 @@ class SQLAlchemyExtractorParameters:
 
 
 # pylint: disable=redefined-outer-name, protected-access
-class SQLAlchemyConnectorMixin:
+class SQLAlchemyDatabaseMixin:
     PARAMETER_CLASS = SQLAlchemyExtractorParameters
 
-    def _connect(self):
-        database = self._get_database()
-        engine = sqlalchemy.create_engine(database.url, echo=True)
-        session = sessionmaker(bind=engine)()
-
-        return session.connection().connection
-
     def _get_database(self):
-        LOGGER.info("Hostname: %s", socket.gethostname())
-        return Database.from_parameters(
+        return Database(
             dict(
-                username=self._parameters.database_username,
-                password=quote(self._parameters.database_password),
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                name=self._parameters.database_name,
-                backend=self._parameters.backend
+                USERNAME=self._parameters.database_username,
+                PASSWORD=quote(self._parameters.database_password),
+                HOST=self._parameters.database_host,
+                PORT=self._parameters.database_port,
+                NAME=self._parameters.database_name,
+                BACKEND=self._parameters.backend
             )
         )
 
-class SQLAlchemyExtractorTask(SQLAlchemyConnectorMixin, SQLExtractorTask):
+class SQLAlchemyExtractorTask(SQLAlchemyDatabaseMixin, SQLExtractorTask):
     pass
 
-class SQLAlchemyParametricExtractorTask(SQLAlchemyConnectorMixin, SQLParametricExtractorTask):
+class SQLAlchemyParametricExtractorTask(SQLAlchemyDatabaseMixin, SQLParametricExtractorTask):
     pass
 
-class SQLAlchemyParquetExtractorTask(SQLAlchemyConnectorMixin, SQLParquetExtractorTask):
+class SQLAlchemyParquetExtractorTask(SQLAlchemyDatabaseMixin, SQLParquetExtractorTask):
     pass
