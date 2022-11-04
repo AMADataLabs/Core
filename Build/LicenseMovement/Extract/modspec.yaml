@@ -12,4 +12,8 @@ modspec:
   - package: datalabs
     include:
       - plugin
+      - feature
+      - task
+      - parameter
+      - string
   - package: datalabs.etl.sql
