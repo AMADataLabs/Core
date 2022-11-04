@@ -18,6 +18,7 @@ class SQLAlchemyURLMixin:
         credentials = ''
         port = ''
         name = ''
+        parameters = ''
 
         if self._parameters.username and self._parameters.password:
             credentials = f'{self._parameters.username}:{self._parameters.password}@'
@@ -28,7 +29,10 @@ class SQLAlchemyURLMixin:
         if self._parameters.name:
             name = f'/{self._parameters.name}'
 
-        return f"{self._parameters.backend}://{credentials}{self._parameters.host or ''}{port}{name}"
+        if self._parameters.parameters is not None:
+            parameters = f";{self._parameters.parameters}"
+
+        return f"{self._parameters.backend}://{credentials}{self._parameters.host or ''}{port}{name}{parameters}"
 
 
 @add_schema
@@ -41,6 +45,7 @@ class DatabaseParameters:
     username: str
     password: str
     name: str = None
+    parameters: str = None
 
 
 class Database(SQLAlchemyURLMixin, db.Database):

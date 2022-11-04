@@ -34,8 +34,7 @@ class JDBCDatabaseMixin:
     PARAMETER_CLASS = JDBCExtractorParameters
 
     def _get_database(self):
-        return Database(
-            dict(
+        parameters = dict(
                 DRIVER=self._parameters.driver,
                 DRIVER_TYPE=self._parameters.drivertype,
                 HOST=self._parameters.database_host,
@@ -47,6 +46,11 @@ class JDBCDatabaseMixin:
                 PARAMETERS=self._parameters.parameters
             )
         )
+
+        if self._parameters.database_parameters:
+            parameters["PARAMETERS"] = self._parameters.database_parameters
+
+        return Database(parameters)
 
 class JDBCExtractorTask(JDBCDatabaseMixin, SQLExtractorTask):
     pass

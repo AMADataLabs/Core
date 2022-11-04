@@ -38,8 +38,7 @@ class SQLAlchemyDatabaseMixin:
     PARAMETER_CLASS = SQLAlchemyExtractorParameters
 
     def _get_database(self):
-        return Database(
-            dict(
+        parameters = dict(
                 USERNAME=self._parameters.database_username,
                 PASSWORD=quote(self._parameters.database_password),
                 HOST=self._parameters.database_host,
@@ -47,7 +46,11 @@ class SQLAlchemyDatabaseMixin:
                 NAME=self._parameters.database_name,
                 BACKEND=self._parameters.backend
             )
-        )
+
+        if self._parameters.database_parameters:
+            parameters["PARAMETERS"] = self._parameters.database_parameters
+
+        return Database(parameters)
 
 class SQLAlchemyExtractorTask(SQLAlchemyDatabaseMixin, SQLExtractorTask):
     pass
