@@ -44,7 +44,6 @@ class JDBCDatabaseMixin:
                 JAR_PATH=self._parameters.jar_path,
                 NAME=self._parameters.database_name,
                 PARAMETERS=self._parameters.parameters
-            )
         )
 
         if self._parameters.database_parameters:
