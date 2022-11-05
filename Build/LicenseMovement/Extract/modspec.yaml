@@ -9,6 +9,9 @@
 # 5) An exclude filter means that ALL modules EXCEPT those listed will be included under the package
 
 modspec:
+  - package: datalabs.access.parameter        
   - package: datalabs.etl.sql
+  - package: datalabs.parameter
+  - package: datalabs.plugin
   - package: datalabs.string
   - package: datalabs.task
