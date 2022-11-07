@@ -104,11 +104,11 @@ class BOLOAddressLoadFileGenerator:
 
     def run(self):
         LOGGER.info("LOADING FILTERED ADDRESS DATA")
-        data = self._get_filtered_data()
+        filtered_bolo_vs_polo_data = self._get_filtered_data()
         LOGGER.info('FORMATTING ADDRESS LOAD FILE DATA')
-        data = format_address_load_data(data)
+        address_load_data = format_address_load_data(filtered_bolo_vs_polo_data)
 
-        data.rename(
+        address_load_data.rename(
             columns={
                 'me': 'me#',
                 'addr_line0': 'addr_line_1',
@@ -123,7 +123,7 @@ class BOLOAddressLoadFileGenerator:
 
         ### if not is_valid_component_file_structure(data):
         ###     raise ValueError('ADDRESS LOAD FILE DOES NOT CONFORM TO REQUIRED FORMAT. SEE LOGGING ABOVE.')
-        self._save(data)
+        self._save(address_load_data)
         LOGGER.info("COMPLETE")
 
     def _get_latest_address_scoring_output(self):
