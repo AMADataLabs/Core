@@ -162,7 +162,7 @@ class HumachSampleGenerator:
     @classmethod
     def _load_aims_data(cls):
         aims_data = AIMSData()
-        with AIMS() as aims:
+        with AIMS.from_environment("AIMS") as aims:
             aims_data.no_contacts = aims.get_no_contacts()
             aims_data.pe_descriptions = aims.get_pe_descriptions()
         return aims_data

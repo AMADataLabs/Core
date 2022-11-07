@@ -1,5 +1,6 @@
 """ Cerner report SMTP loader task """
 from   dataclasses import dataclass
+from   datetime import datetime
 
 import smtplib
 
@@ -36,12 +37,12 @@ class SMTPFileLoaderTask(FileLoaderTask):
 
         message = create_message(
             self._parameters.to_addresses,
-            self._parameters.cc_addresses,
-            self._parameters.subject,
-            self._parameters.message,
-            attachements,
-            self.FROM_ADDRESS,
-            None
+            datetime.strftime(self.execution_time, self._parameters.subject),
+            cc=self._parameters.cc_addresses,
+            body=self._parameters.message,
+            attachments=attachements,
+            from_account=self.FROM_ADDRESS,
+            html_content=None
         )
 
         self._client.send_message(message)

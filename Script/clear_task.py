@@ -5,7 +5,7 @@ import logging
 import re
 
 from   datalabs.etl.dag.dag import DAG
-import datalabs.etl.dag.cpt.cerner.cerner_report
+import datalabs.etl.dag.customer_intelligence.cerner
 import datalabs.etl.dag.cpt.files.core
 import datalabs.etl.dag.cpt.files.hcpcs
 import datalabs.etl.dag.cpt.files.ingest

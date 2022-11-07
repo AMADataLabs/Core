@@ -35,7 +35,7 @@ process_arguments() {
             shift
             ;;
         -v|--version)
-            VERSION=--version $2
+            VERSION="--version $2"
             shift
             shift
             ;;

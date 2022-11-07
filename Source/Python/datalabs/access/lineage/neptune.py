@@ -1,36 +1,36 @@
 """Neptune lineage class"""
+from   dataclasses import dataclass
 import logging
 import os
 
 from   neptune_python_utils.gremlin_utils import GremlinUtils
 
-from   datalabs.access.credentials import Credentials
-from   datalabs.access.lineage.base import Configuration, LineageLogger
+from   datalabs.access.lineage.base import LineageLogger
+from   datalabs.parameter import add_schema
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class NeptuneParameters:
+    host: str
+    port: str="8182"
+
+
 # pylint: disable=abstract-method
 class NeptuneLineageLogger(LineageLogger):
-    def __init__(self, configuration: Configuration = None, credentials: Credentials = None, key: str = None):
-        super().__init__(credentials, key)
-
-        self._configuration = self._load_or_verify_configuration(configuration, self._key)
+    PARAMETER_CLASS = NeptuneParameters
 
     def connect(self):
-        os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = self._configuration.host
-        os.environ['NEPTUNE_CLUSTER_PORT'] = str(self._configuration.port)
+        os.environ['NEPTUNE_CLUSTER_ENDPOINT'] = self._parameters.host
+        os.environ['NEPTUNE_CLUSTER_PORT'] = str(self._parameters.port)
+
         GremlinUtils.init_statics(globals())
+
         gremlin_utils = GremlinUtils()
+
         self._connection = gremlin_utils.remote_connection()
-
-    @classmethod
-    def _load_or_verify_configuration(cls, configuration: Configuration, key: str):
-        if configuration is None:
-            configuration = Configuration.load(key)
-        elif not hasattr(configuration, 'host'):
-            raise ValueError('Invalid configuration object.')
-
-        return configuration

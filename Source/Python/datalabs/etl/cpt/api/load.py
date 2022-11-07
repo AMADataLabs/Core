@@ -85,7 +85,7 @@ class CPTRelationalTableLoaderTask(Task):
         self._database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        Database.from_parameters(self._parameters, prefix='DATABASE_')
+        Database.from_parameters(self._parameters)
 
 
 class TableUpdater:

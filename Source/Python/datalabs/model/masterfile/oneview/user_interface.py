@@ -130,7 +130,8 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     msa.name AS phy_metropolitan_statistical_area_description,
     msa.code AS phy_msa_code,
     msa.type AS phy_msa_type,
-    msa.consolidated_metropolitan_statistical_area
+    msa.consolidated_metropolitan_statistical_area,
+    pa.best as aff_affiliation_best_status
 FROM {SCHEMA}.physician phy
     LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
     LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text
@@ -281,7 +282,8 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     msa.name AS phy_metropolitan_statistical_area_description,
     msa.code AS phy_msa_code,
     msa.type AS phy_msa_type,
-    msa.consolidated_metropolitan_statistical_area
+    msa.consolidated_metropolitan_statistical_area,
+    pa.best as aff_affiliation_best_status
 FROM {SCHEMA}.physician phy
     LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
     LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text

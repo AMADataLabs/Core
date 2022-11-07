@@ -6,8 +6,6 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from datalabs.access.credentials import Credentials
-from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
 from datalabs.model.masterfile.collection import Base
 
@@ -15,14 +13,11 @@ from datalabs.model.masterfile.collection import Base
 # access to the values within the .ini file in use.
 config = context.config
 
-database = Database(
-    configuration=Configuration.load('ORM'),
-    credentials=Credentials.load('ORM')
-)
+database = Database.from_environment("ORM")
 
 config.set_main_option(
     "sqlalchemy.url",
-    database.url
+    database.connection_string
 )
 
 # add your model's MetaData object here

@@ -1,15 +1,24 @@
 """ Generic database object intended to be subclassed by specific databases. """
+import logging
+
+import pandas
 import sqlalchemy
 from   sqlalchemy.orm import sessionmaker
 
-import pandas
-
 import datalabs.access.database as db
+from   datalabs.access.sqlalchemy import SQLAlchemyURLMixin, DatabaseParameters
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
-class Database(db.Database):
+class Database(SQLAlchemyURLMixin, db.Database):
+    PARAMETER_CLASS = DatabaseParameters
+
     def connect(self):
-        engine = sqlalchemy.create_engine(self.url, echo=True)
+        LOGGER.info("Database connection URL: %s", self.connection_string)
+        engine = sqlalchemy.create_engine(self.connection_string, echo=True)
         Session = sessionmaker(bind=engine)  # pylint: disable=invalid-name
 
         self._connection = Session()
@@ -31,6 +40,3 @@ class Database(db.Database):
 
     def query(self, *models, **kwargs):
         return self._connection.query(*models, **kwargs)
-
-    def execute(self, sql, **kwargs):
-        return self._connection.execute(sql, **kwargs)
