@@ -1,0 +1,191 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/LicenseMovement/dev/dag.yaml.jinja -f Deploy/LicenseMovement/dev/dag.yaml \
+# -v "eft_password={{eft_password}}" -v "database_password={{database_password}}"
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "LICENSE_MOVEMENT"}, "Task": {"S": "GLOBAL"}}
+    ########################################################################
+
+    ENVIRONMENT: dev
+    ACCOUNT: '191296302136'
+
+    EFT_HOST: 'eft.ama-assn.org'  # dev: eft.ama-assn.org
+    EFT_USERNAME: 'datalabs'  # dev: datalabs
+    EFT_PASSWORD: '{{eft_password}}'
+
+    DATABASE_HOST: 'rdbt1511.ama-assn.org'
+    DATABASE_USERNAME: 'dlabs'
+    DATABASE_PASSWORD: '{{database_password}}'  # AIMS_PASSWORD
+    DATABASE_NAME: 'test_100_pct:t100srvxnet'
+    DATABASE_PORT: '22035'
+    DRIVER: 'com.informix.jdbc.IfxDriver'
+    DRIVER_TYPE: 'informix-sqli'
+    JAR_PATH: './jdbc-4.50.4.1.jar,./bson-4.2.0.jar'
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+
+    PPD_BASE_PATH: 'Data Analytics/Data-Science/Data/PPD/Expanded'
+    CREDENTIALING_DATA_BASE_PATH: 'Data Analytics/Data-Science/Data/Credentialing'
+    PPMA_BASE_PATH: 'AMA/operations/address/ppma/license_movement'
+    BATCH_LOAD_PATH: 'Data Analytics/Data-Science/Data/LicenseMovement/batchload'
+
+
+  #######################################################################
+  #  # DAG Variables - ({"DAG": {"S": "LICENSE_MOVEMENT"}, "Task": {"S": "DAG"}})
+  #######################################################################
+
+    LICENSE_MOVEMENT__DAG__LAMBDA_FUNCTION: 'LicenseMovement-${ENVIRONMENT}-LicenseMovementDAG'
+    LICENSE_MOVEMENT__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.license_movement.DAG'
+    LICENSE_MOVEMENT__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    LICENSE_MOVEMENT__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    LICENSE_MOVEMENT__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    LICENSE_MOVEMENT__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    LICENSE_MOVEMENT__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    LICENSE_MOVEMENT__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    LICENSE_MOVEMENT__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    LICENSE_MOVEMENT__DAG__ENVIRONMENT: ${ENVIRONMENT}
+    LICENSE_MOVEMENT__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
+    LICENSE_MOVEMENT__DAG__TASK_CLASS: ''  # Used by Java DAG tasks
+
+
+  ##########################################################################
+  #  # Task Variables - ({"DAG": {"S": "LICENSE_MOVEMENT"}, "Task": {"S": "<Task ID>"}})
+  ##########################################################################
+
+
+    # Extract PPD
+    LICENSE_MOVEMENT__EXTRACT_PPD__BASE_PATH: ${PPD_BASE_PATH}
+    LICENSE_MOVEMENT__EXTRACT_PPD__FILES: 'ppd_analysis_file.csv'
+    LICENSE_MOVEMENT__EXTRACT_PPD__HOST: ${EFT_HOST}
+    LICENSE_MOVEMENT__EXTRACT_PPD__USERNAME: ${EFT_USERNAME}
+    LICENSE_MOVEMENT__EXTRACT_PPD__PASSWORD: ${EFT_PASSWORD}
+  
+    LICENSE_MOVEMENT__EXTRACT_PPD__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSE_MOVEMENT__EXTRACT_PPD__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSE_MOVEMENT__EXTRACT_PPD__CACHE_OUTPUT_BASE_PATH: ${PPMA_BASE_PATH}
+    LICENSE_MOVEMENT__EXTRACT_PPD__CACHE_OUTPUT_FILES: 'ppd.csv'
+
+    # Extract Credentialing Address
+    LICENSE_MOVEMENT__EXTRACT_CREDENTIALING_ADDRESSES__BASE_PATH: ${CREDENTIALING_DATA_BASE_PATH}
+    LICENSE_MOVEMENT__EXTRACT_CREDENTIALING_ADDRESSES__FILES: 'Credentialing_Addresses_latest.csv'
+    LICENSE_MOVEMENT__EXTRACT_CREDENTIALING_ADDRESSES__HOST: ${EFT_HOST}
+    LICENSE_MOVEMENT__EXTRACT_CREDENTIALING_ADDRESSES__USERNAME: ${EFT_USERNAME}
+    LICENSE_MOVEMENT__EXTRACT_CREDENTIALING_ADDRESSES__PASSWORD: ${EFT_PASSWORD}
+
+    LICENSE_MOVEMENT__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSE_MOVEMENT__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSE_MOVEMENT__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_OUTPUT_BASE_PATH: ${PPMA_BASE_PATH}
+    LICENSE_MOVEMENT__EXTRACT_CREDENTIALING_ADDRESSES__CACHE_OUTPUT_FILES: 'credentialing.csv'
+
+    # Extract Old PPMA
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-LicenseMovement-Extract'
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__DATABASE_HOST: ${DATABASE_HOST}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__DATABASE_NAME: ${DATABASE_NAME}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__DATABASE_PORT: ${DATABASE_PORT}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__DRIVER: ${DRIVER}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__DRIVER_TYPE: ${DRIVER_TYPE}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__JAR_PATH: ${JAR_PATH}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__SQL: "SELECT
+        usg.entity_id,
+        usg.comm_id AS previous_ppma_comm_id
+    FROM
+        entity_comm_usg_at usg
+        INNER JOIN post_addr_at addr
+        ON addr.comm_id = usg.comm_id
+    WHERE
+        usg.comm_usage = 'PP' AND
+        usg.end_dt IS NOT NULL"
+
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__CACHE_OUTPUT_BASE_PATH: ${PPMA_BASE_PATH}
+    LICENSE_MOVEMENT__EXTRACT_OLD_PPMA__CACHE_OUTPUT_FILES: 'old_ppma.csv'
+
+    # Extract Mismatches
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-LicenseMovement-Extract'
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__TASK_CLASS: datalabs.etl.sql.SqlExtractorTask
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DagState'
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DATABASE_HOST: ${DATABASE_HOST}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DATABASE_USERNAME: ${DATABASE_USERNAME}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DATABASE_NAME: ${DATABASE_NAME}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DATABASE_PORT: ${DATABASE_PORT}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DRIVER: ${DRIVER}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__DRIVER_TYPE: ${DRIVER_TYPE}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__JAR_PATH: ${JAR_PATH}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__SQL: "SELECT
+        l.entity_id,
+        l.state_cd AS license_state,
+        l.lic_issue_dt,
+        l.lic_exp_dt,
+        l.lic_sts,
+        ppma.comm_id AS ppma_comm_id,
+        ppma.state_cd as ppma_state,
+        ppma.zip as ppma_zip,
+        ppma.usg_begin_dt AS ppma_begin_dt,
+        addr.comm_id AS license_addr_comm_id,
+        addr.addr_line0,
+        addr.addr_line1,
+        addr.addr_line2,
+        addr.city_cd,
+        addr.state_cd AS license_addr_state,
+        addr.zip
+    FROM
+        license_lt l
+        INNER JOIN
+        (
+            SELECT usg.entity_id, usg.comm_id, usg.usg_begin_dt, usg.comm_usage, addr.state_cd, addr.zip
+            FROM
+                entity_comm_usg_at usg
+                INNER JOIN post_addr_at addr
+                ON addr.comm_id = usg.comm_id
+            WHERE
+                usg.comm_usage = 'PP' AND
+                usg.end_dt IS NULL
+        ) as ppma
+        ON ppma.entity_id = l.entity_id
+        INNER JOIN
+        post_addr_at addr
+        ON addr.comm_id = l.comm_id
+    WHERE
+        l.lic_sts = 'A' AND
+        l.lic_issue_dt > ppma.usg_begin_dt AND
+        l.state_cd <> ppma.state_cd AND
+        ppma.state_cd <> addr.state_cd"
+
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_BASE_PATH: ${PPMA_BASE_PATH}
+    LICENSE_MOVEMENT__EXTRACT_MISMATCHES__CACHE_OUTPUT_FILES: 'mismatch.csv'
+
+    # Create Batch Load File
+    LICENSE_MOVEMENT__CREATE_BATCH_LOAD_FILE__CACHE_CLASS: ${S3_CACHE_CLASS}
+
+    LICENSE_MOVEMENT__CREATE_BATCH_LOAD_FILE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSE_MOVEMENT__CREATE_BATCH_LOAD_FILE__CACHE_INPUT_BASE_PATH: ${PPMA_BASE_PATH}
+    LICENSE_MOVEMENT__CREATE_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'mismatch.csv,old_ppma.csv,credentialing.csv,ppd.csv'
+
+    LICENSE_MOVEMENT__CREATE_BATCH_LOAD_FILE__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSE_MOVEMENT__CREATE_BATCH_LOAD_FILE__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSE_MOVEMENT__CREATE_BATCH_LOAD_FILE__CACHE_OUTPUT_BASE_PATH: ${PPMA_BASE_PATH}
+    LICENSE_MOVEMENT__CREATE_BATCH_LOAD_FILE__CACHE_OUTPUT_FILES: 'results.csv'
+
+    # Load Batch Load File
+    LICENSE_MOVEMENT__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSE_MOVEMENT__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSE_MOVEMENT__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_BASE_PATH: ${PPMA_BASE_PATH}
+    LICENSE_MOVEMENT__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'results.csv'
+
+    LICENSE_MOVEMENT__LOAD_BATCH_LOAD_FILE__BASE_PATH: ${BATCH_LOAD_PATH}
+    LICENSE_MOVEMENT__LOAD_BATCH_LOAD_FILE__FILES: 'LICENSE_MOVEMENT_PPMA_ADDRESS_LOAD_%Y-%m-%d.txt'
+    LICENSE_MOVEMENT__LOAD_BATCH_LOAD_FILE__HOST: ${EFT_HOST}
+    LICENSE_MOVEMENT__LOAD_BATCH_LOAD_FILE__USERNAME: ${EFT_USERNAME}
+    LICENSE_MOVEMENT__LOAD_BATCH_LOAD_FILE__PASSWORD: ${EFT_PASSWORD}
