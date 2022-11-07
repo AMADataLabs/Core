@@ -42,13 +42,9 @@
 # pylint: disable=import-error, redefined-builtin, unused-import, wrong-import-position
 import logging
 import os
-from string import ascii_letters, digits
 import sys
-import pickle as pk
-from datalabs.analysis.address.scoring.common import load_processed_data, get_active_polo_eligible_addresses, log_info, keep_alphanumeric, clean_zip
-from datalabs.analysis.address.scoring.features import license, entity_comm, entity_comm_usg, humach
-from datalabs.analysis.address.scoring.features.triangulation import triangulation
-
+from datalabs.analysis.address.scoring.common import load_processed_data, log_info, keep_alphanumeric, clean_zip
+from datalabs.analysis.address.scoring.features import license, entity_comm, entity_comm_usg, humach, triangulation
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
