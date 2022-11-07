@@ -6,8 +6,6 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from datalabs.access.credentials import Credentials
-from datalabs.access.database import Configuration
 from datalabs.access.orm import Database
 import datalabs.model.cpt.api as api
 
@@ -15,12 +13,9 @@ import datalabs.model.cpt.api as api
 # access to the values within the .ini file in use.
 config = context.config
 
-database = Database(
-    configuration=Configuration.load('ORM'),
-    credentials=Credentials.load('ORM')
-)
+database = Database.from_environment("ORM")
 
-db_url_escaped = database.url.replace('%', '%%')
+db_url_escaped = database.connection_string.replace('%', '%%')
 config.set_main_option(
     "sqlalchemy.url",
     db_url_escaped
