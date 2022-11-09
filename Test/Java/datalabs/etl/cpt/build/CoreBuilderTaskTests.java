@@ -1,7 +1,14 @@
 package datalabs.etl.cpt.build;
 
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+import org.zeroturnaround.zip.ZipUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +45,41 @@ class CoreBuilderTaskTests {
             CoreBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
             success = true;
         }
+
+        Assertions.assertTrue(success);
+    }
+
+    @Test
+    @DisplayName("Test loadOutputFiles return")
+    void stageInputFilesTest() throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        String[] inputFiles = {"input/prior_link", "input/current_link"};
+        boolean success = false;
+        ArrayList<byte[]> data = new ArrayList<byte[]>();
+
+        for (String fileToZip : inputFiles) {
+            File zipFile = new File(fileToZip + ".zip");
+            ZipUtil.pack(new File(fileToZip), zipFile);
+            byte[] byteInput = Files.readAllBytes(zipFile.toPath());
+            data.add(byteInput);
+        }
+
+        Map<String, String> parameters = new HashMap();
+        parameters.put("releaseDate", "20230101");
+        parameters.put("host", "host");
+        parameters.put("username", "username");
+        parameters.put("password", "password");
+        parameters.put("port", "port");
+
+        CoreBuilderTask coreBuilderTask = new CoreBuilderTask(parameters, data);
+        coreBuilderTask.loadSettings();
+
+        try {
+            coreBuilderTask.stageInputFiles();
+            success = true;
+        } catch (java.lang.Exception exception) {
+            CoreBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
+        }
+
 
         Assertions.assertTrue(success);
     }
