@@ -6,6 +6,7 @@ modspec:
       - feature
       - parameter
       - plugin
+      - sqlalchemy
       - task
   - package: datalabs.access
     include:
