@@ -69,16 +69,7 @@ class ORMLoaderTask(Task):
                 database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
@@ -343,16 +334,7 @@ class ORMPreLoaderTask(Task):
             database.commit()
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
@@ -388,16 +370,7 @@ class MaterializedViewRefresherTask(Task):
             database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)
 
 
 @add_schema
@@ -438,13 +411,4 @@ class ReindexerTask(Task):
             database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)

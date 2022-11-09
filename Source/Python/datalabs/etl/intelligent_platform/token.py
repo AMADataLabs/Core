@@ -34,7 +34,7 @@ class ExpiredTokenPurgeTask(Task):
             database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
+        return Database(
             dict(
                 host=self._parameters.host,
                 port=self._parameters.port,
