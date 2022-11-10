@@ -38,14 +38,13 @@ class FilesEndpointParameters:
 class FilesEndpointTask(APIEndpointTask):
     PARAMETER_CLASS = FilesEndpointParameters
 
-    def __init__(self, parameters: dict):
-        super().__init__(parameters)
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
 
         self._s3 = boto3.client('s3')
 
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
-
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
 

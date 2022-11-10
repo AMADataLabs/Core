@@ -1,8 +1,6 @@
 """ Oneview PPD Transformer"""
 import logging
 
-import pandas
-
 from   datalabs.etl.oneview.ppd.column import NPI_COLUMNS, PPD_COLUMNS, MEDICAL_STUDENT_COLUMNS, PHYSICIAN_COLUMNS
 
 from   datalabs.etl.oneview.transform import TransformerTask
@@ -62,8 +60,10 @@ class NPITransformerTask(TransformerTask):
 
 
 class PPDTransformerTask(TransformerTask):
-    def _csv_to_dataframe(self, data: bytes, **kwargs) -> pandas.DataFrame:
-        return super()._csv_to_dataframe(data, sep='|', **kwargs)
+    def _parse(self, dataset):
+        encoding = ["utf8", "utf8", "cp1252"]
+
+        return [self._csv_to_dataframe(data, sep='|', encoding=encoding) for data, encoding in zip(dataset, encoding)]
 
     def _preprocess(self, dataset):
         ppd, race_ethnicity, medical_student = dataset

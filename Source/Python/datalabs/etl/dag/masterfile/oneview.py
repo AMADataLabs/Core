@@ -2,7 +2,6 @@
 from   datalabs.etl.dag.dag import DAG, register, Repeat
 from   datalabs.etl.oneview.email.transform import PhysicianEmailStatusTransformer
 from   datalabs.etl.http.extract import HTTPFileExtractorTask
-from   datalabs.etl.sql.jdbc.extract import JDBCExtractorTask, JDBCParametricExtractorTask
 from   datalabs.etl.manipulate.transform import SplitTransformerTask
 from   datalabs.etl.manipulate.transform import ConcatenateTransformerTask
 from   datalabs.etl.oneview.credentialing.transform import \
@@ -53,12 +52,12 @@ class OneViewDAG(DAG):
     SUPPLEMENT_PPD_TABLE: PPDTransformerTask
     SPLIT_PPD_TABLE: SplitTransformerTask
 
-    EXTRACT_PARTY_KEYS: Repeat(JDBCExtractorTask, 3)
+    EXTRACT_PARTY_KEYS: Repeat("SqlExtractorTask", 3)
     CONCATENATE_PARTY_KEYS: ConcatenateTransformerTask
     CREATE_PHYSICIAN_NPI_TABLE: NPITransformerTask
 
-    EXTRACT_MEMBERSHIP_DATA: JDBCExtractorTask
-    EXTRACT_PHYSICIAN_EMAIL_STATUS: JDBCExtractorTask
+    EXTRACT_MEMBERSHIP_DATA: "SqlExtractorTask"
+    EXTRACT_PHYSICIAN_EMAIL_STATUS: "SqlExtractorTask"
     CREATE_PHYSICIAN_EMAIL_STATUS_TABLE: PhysicianEmailStatusTransformer
     CREATE_PHYSICIAN_TABLE: Repeat(PhysicianTransformerTask, 10)
     CONCATENATE_PHYSICIAN_TABLE: ConcatenateTransformerTask
@@ -69,16 +68,16 @@ class OneViewDAG(DAG):
     SUPPLEMENT_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE: ConcatenateTransformerTask
     LOAD_FEDERAL_INFORMATION_PROCESSING_STANDARD_COUNTY_TABLE: ORMLoaderTask
 
-    EXTRACT_STATE: JDBCExtractorTask
+    EXTRACT_STATE: "SqlExtractorTask"
     CREATE_STATE_TABLE: StateTransformerTask
     LOAD_STATE_TABLE: ORMLoaderTask
 
-    EXTRACT_SPECIALTY: JDBCExtractorTask
+    EXTRACT_SPECIALTY: "SqlExtractorTask"
     CREATE_SPECIALTY_TABLE: PassThroughTransformerTask
     LOAD_SPECIALTY_TABLE: ORMLoaderTask
     REMOVE_UNUSED_SPECIALTIES: SpecialtyMergeTransformerTask
 
-    EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY: JDBCExtractorTask
+    EXTRACT_MAJOR_PROFESSIONAL_ACTIVITY: "SqlExtractorTask"
     CREATE_MAJOR_PROFESSIONAL_ACTIVITY_TABLE: MajorProfessionalActivityTransformerTask
     LOAD_MAJOR_PROFESSIONAL_ACTIVITY_TABLE: ORMLoaderTask
 
@@ -86,11 +85,11 @@ class OneViewDAG(DAG):
     CREATE_CORE_BASED_STATISTICAL_AREA_TABLE: CoreBasedStatisticalAreaTransformerTask
     LOAD_CORE_BASED_STATISTICAL_AREA_TABLE: ORMLoaderTask
 
-    EXTRACT_PRESENT_EMPLOYMENT: JDBCExtractorTask
+    EXTRACT_PRESENT_EMPLOYMENT: "SqlExtractorTask"
     CREATE_PRESENT_EMPLOYMENT_TABLE: PresentEmploymentTransformerTask
     LOAD_PRESENT_EMPLOYMENT_TABLE: ORMLoaderTask
 
-    EXTRACT_TYPE_OF_PRACTICE: JDBCExtractorTask
+    EXTRACT_TYPE_OF_PRACTICE: "SqlExtractorTask"
     CREATE_TYPE_OF_PRACTICE_TABLE: TypeOfPracticeTransformerTask
     LOAD_TYPE_OF_PRACTICE_TABLE: ORMLoaderTask
 
@@ -105,7 +104,7 @@ class OneViewDAG(DAG):
 
     CREATE_RESIDENCY_PROGRAM_PHYSICIAN_TABLE: ResidencyProgramPhysicianTransformerTask
 
-    EXTRACT_MELISSA: JDBCExtractorTask
+    EXTRACT_MELISSA: "SqlExtractorTask"
     CREATE_MELISSA_TABLES: MelissaTransformerTask
     LOAD_METROPOLITAN_STATISTICAL_AREA_TABLE: ORMLoaderTask
     LOAD_COUNTY_TABLE: ORMLoaderTask
@@ -115,13 +114,14 @@ class OneViewDAG(DAG):
     LOAD_CENSUS_TABLE: ORMLoaderTask
     LOAD_ZIP_CODE_CORE_BASED_STATISTICAL_AREA_TABLE: ORMLoaderTask
 
-    EXTRACT_IQVIA_BUSINESS: Repeat(JDBCExtractorTask, 6)
+    EXTRACT_IQVIA_BUSINESS: Repeat("SqlExtractorTask", 6)
     CREATE_BUSINESS_TABLE: Repeat(IQVIABusinessTransformerTask, 6)
     CREATE_IQVIA_UPDATE_TABLE: IQVIAUpdateTransformerTask
     CONCATENATE_BUSINESS_TABLE: ConcatenateTransformerTask
     LOAD_BUSINESS_TABLE: Repeat(ORMLoaderTask, 6)
-    EXTRACT_IQVIA_PROVIDER: JDBCExtractorTask
-    EXTRACT_IQVIA_PROVIDER_AFFILIATION: JDBCExtractorTask
+    EXTRACT_IQVIA_PROVIDER: "SqlExtractorTask"
+    EXTRACT_IQVIA_PROVIDER_AFFILIATION: "SqlExtractorTask"
+    EXTRACT_IQVIA_BEST_PROVIDER_AFFILIATION: "SqlExtractorTask"
     CREATE_PROVIDER_TABLE: IQVIAProviderTransformerTask
     REMOVE_UNKNOWN_PROVIDERS: IQVIAProviderPruningTransformerTask
     SPLIT_IQVIA_PROVIDER_TABLE: SplitTransformerTask
@@ -130,10 +130,10 @@ class OneViewDAG(DAG):
     LOAD_IQVIA_PROVIDER_AFFILIATION_TABLE: Repeat(ORMLoaderTask, 6)
     LOAD_IQVIA_UPDATE_TABLE: ORMLoaderTask
 
-    EXTRACT_CREDENTIALING_CUSTOMER: JDBCExtractorTask
-    EXTRACT_CREDENTIALING_PRODUCT: JDBCExtractorTask
-    EXTRACT_CREDENTIALING_ORDER_YEARS: JDBCExtractorTask
-    EXTRACT_CREDENTIALING_ORDER: Repeat(JDBCParametricExtractorTask, 9)
+    EXTRACT_CREDENTIALING_CUSTOMER: "SqlExtractorTask"
+    EXTRACT_CREDENTIALING_PRODUCT: "SqlExtractorTask"
+    EXTRACT_CREDENTIALING_ORDER_YEARS: "SqlExtractorTask"
+    EXTRACT_CREDENTIALING_ORDER: Repeat("SqlParametricExtractorTask", 9)
     EXTRACT_CREDENTIALING_ADDRESSES: SFTPFileExtractorTask
     CONCATENATE_CREDENTIALING_ORDER: ConcatenateTransformerTask
     CREATE_CREDENTIALING_CUSTOMER_PRODUCT_AND_ORDER_TABLES: CredentialingTransformerTask
@@ -155,16 +155,16 @@ class OneViewDAG(DAG):
     SPLIT_HISTORICAL_RESIDENT_TABLE: SplitTransformerTask
     LOAD_HISTORICAL_RESIDENT_TABLE: Repeat(ORMLoaderTask, 6)
 
-    EXTRACT_CLASS_OF_TRADE: JDBCExtractorTask
+    EXTRACT_CLASS_OF_TRADE: "SqlExtractorTask"
     CREATE_STATIC_REFERENCE_TABLE: StaticReferenceTablesTransformerTask
     CREATE_CLASS_OF_TRADE_TABLE: ClassOfTradeTransformerTask
     LOAD_CLASS_OF_TRADE_TABLE: ORMLoaderTask
     LOAD_STATIC_REFERENCE_TABLE: ORMLoaderTask
-    EXTRACT_MEDICAL_SCHOOL: JDBCExtractorTask
+    EXTRACT_MEDICAL_SCHOOL: "SqlExtractorTask"
     CREATE_MEDICAL_SCHOOL_TABLE: MedicalSchoolTransformerTask
     LOAD_MEDICAL_SCHOOL_TABLE: ORMLoaderTask
 
-    EXTRACT_MEDICAL_LICENSES: JDBCExtractorTask
+    EXTRACT_MEDICAL_LICENSES: "SqlExtractorTask"
     CLEAN_MEDICAL_LICENSES: MedicalLicensesCleanerTask
     CREATE_MEDICAL_LICENSES_TABLE: MedicalLicensesTransformerTask
     LOAD_MEDICAL_LICENSES_TABLE: ORMLoaderTask
@@ -273,6 +273,7 @@ OneViewDAG.sequence('LOAD_BUSINESS_TABLE')
 
 OneViewDAG.EXTRACT_IQVIA_PROVIDER >> OneViewDAG.CREATE_PROVIDER_TABLE
 OneViewDAG.EXTRACT_IQVIA_PROVIDER_AFFILIATION >> OneViewDAG.CREATE_PROVIDER_TABLE
+OneViewDAG.EXTRACT_IQVIA_BEST_PROVIDER_AFFILIATION >> OneViewDAG.CREATE_PROVIDER_TABLE
 
 OneViewDAG.CONCATENATE_PHYSICIAN_TABLE >> OneViewDAG.REMOVE_UNKNOWN_PROVIDERS
 OneViewDAG.CONCATENATE_BUSINESS_TABLE >> OneViewDAG.REMOVE_UNKNOWN_PROVIDERS

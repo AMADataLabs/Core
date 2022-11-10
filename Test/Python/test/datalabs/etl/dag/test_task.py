@@ -7,7 +7,7 @@ import pytest
 
 from   datalabs.etl.dag.task import DAGTaskWrapper
 from   datalabs.etl.dag.cache import TaskDataCache, CacheDirection
-from   datalabs.etl.task import ETLComponentTask
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -66,11 +66,14 @@ def test_cache_parameters_are_overridden(args, environment):
 def test_task_input_data_is_loaded(args, environment):
     task_wrapper = DAGTaskWrapper(parameters=args)
     task_wrapper._runtime_parameters = task_wrapper._get_runtime_parameters(task_wrapper._parameters)
-    parameters = task_wrapper._get_task_parameters()
 
-    assert parameters['data'] is not None
-    assert len(parameters['data']) == 3
-    assert parameters['data'] == ['light', 'and', 'smoothie']
+    task_wrapper._get_task_parameters()  # required to extract cache parameters
+
+    data = task_wrapper._get_task_data()
+
+    assert data is not None
+    assert len(data) == 3
+    assert data == ['light', 'and', 'smoothie']
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -133,7 +136,7 @@ def test_cache_parameters_omitted_from_task_parameters(args, environment):
     for parameter in task_wrapper._task_parameters:
         assert not parameter.startswith('CACHE_')
 
-class DummyTask(ETLComponentTask):
+class DummyTask(Task):
     def run(self):
         pass
 

@@ -8,10 +8,10 @@ import pandas
 import sqlalchemy as sa
 
 from   datalabs.access.orm import Database
-from   datalabs.etl.load import LoaderTask
 from   datalabs.etl.orm.provider import get_provider
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -40,7 +40,6 @@ class ORMLoaderParameters:
     database_backend: str
     database_username: str
     database_password: str
-    data: object
     execution_time: str = None
     append: str = None
     delete: str = None
@@ -48,7 +47,7 @@ class ORMLoaderParameters:
     soft_delete_column: str = None
 
 
-class ORMLoaderTask(LoaderTask):
+class ORMLoaderTask(Task):
     PARAMETER_CLASS = ORMLoaderParameters
 
     COLUMN_TYPE_CONVERTERS = {
@@ -56,10 +55,10 @@ class ORMLoaderTask(LoaderTask):
         'INTEGER': lambda x: x.astype(int, copy=False)
     }
 
-    def _load(self):
-        LOGGER.debug('Input data: \n%s', self._parameters.data)
+    def run(self):
+        LOGGER.debug('Input data: \n%s', self._data)
         model_classes = self._get_model_classes()
-        data = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+        data = [self._csv_to_dataframe(datum) for datum in self._data]
 
         with self._get_database() as database:
             for model_class, data in zip(model_classes, data):
@@ -70,16 +69,7 @@ class ORMLoaderTask(LoaderTask):
                 database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
@@ -333,8 +323,8 @@ class ORMLoaderTask(LoaderTask):
 
         return replacement_value
 
-class ORMPreLoaderTask(LoaderTask):
-    def _load(self):
+class ORMPreLoaderTask(Task):
+    def run(self):
         with self._get_database() as database:
             for model_class in self._get_model_classes():
                 # pylint: disable=no-member
@@ -344,16 +334,7 @@ class ORMPreLoaderTask(LoaderTask):
             database.commit()
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
@@ -370,14 +351,13 @@ class MaterializedViewRefresherParameters:
     database_username: str
     database_password: str
     views: str
-    data: object = None
     execution_time: str = None
 
 
-class MaterializedViewRefresherTask(LoaderTask):
+class MaterializedViewRefresherTask(Task):
     PARAMETER_CLASS = MaterializedViewRefresherParameters
 
-    def _load(self):
+    def run(self):
         with self._get_database() as database:
             views = []
 
@@ -390,16 +370,7 @@ class MaterializedViewRefresherTask(LoaderTask):
             database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)
 
 
 @add_schema
@@ -414,14 +385,13 @@ class ReindexerParameters:
     database_password: str
     indexes: str = None
     tables: str = None
-    data: object = None
     execution_time: str = None
 
 
-class ReindexerTask(LoaderTask):
+class ReindexerTask(Task):
     PARAMETER_CLASS = ReindexerParameters
 
-    def _load(self):
+    def run(self):
         with self._get_database() as database:
             indexes = []
             tables = []
@@ -441,13 +411,4 @@ class ReindexerTask(LoaderTask):
             database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)

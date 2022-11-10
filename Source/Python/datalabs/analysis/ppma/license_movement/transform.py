@@ -1,25 +1,25 @@
 """ License Movement PPMA update pipeline - Transformer """
-from dataclasses import dataclass
-from io import BytesIO
+from   dataclasses import dataclass
+from   io import BytesIO
 import pandas as pd
 
 # pylint: disable=import-error,unused-import,unused-variable
-from datalabs.analysis.ppma.license_movement.finder import LicenseMovementFinder
-from datalabs.etl.transform import TransformerTask
-from datalabs.parameter import add_schema
+from   datalabs.analysis.ppma.license_movement.finder import LicenseMovementFinder
+from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 
 @add_schema
 @dataclass
 class LicenseMovementTransformerParameter:
-    data: list
+    pass
 
 
-class LicenseMovementTransformerTask(TransformerTask):
+class LicenseMovementTransformerTask(Task):
     PARAMETER_CLASS = LicenseMovementTransformerParameter
 
-    def _transform(self):
-        dataframes = [pd.read_csv(BytesIO(file)) for file in self._parameters.data]
+    def run(self):
+        dataframes = [pd.read_csv(BytesIO(file)) for file in self._data]
         mismatch_data = dataframes[0]
         old_ppma_data = dataframes[1]
         credentialing_data = dataframes[2]

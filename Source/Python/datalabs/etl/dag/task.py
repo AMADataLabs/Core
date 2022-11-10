@@ -29,13 +29,16 @@ class DAGTaskWrapper(TaskWrapper):
         task_parameters, self._cache_parameters = TaskDataCacheParameters.extract(task_parameters)
         LOGGER.debug('Task Parameters: %s', task_parameters)
 
-        cache = TaskDataCacheFactory.create_cache(CacheDirection.INPUT, self._cache_parameters)
-        if cache:
-            input_data = cache.extract_data()
-
-            task_parameters['data'] = input_data
-
         return task_parameters
+
+    def _get_task_data(self):
+        data = []
+        cache = TaskDataCacheFactory.create_cache(CacheDirection.INPUT, self._cache_parameters)
+
+        if cache:
+            data = cache.extract_data()
+
+        return data
 
     def _handle_exception(self, exception):
         LOGGER.exception('Handling DAG task exception: %s', exception)
@@ -43,7 +46,7 @@ class DAGTaskWrapper(TaskWrapper):
     def _handle_success(self):
         cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
         if cache:
-            cache.load_data(self.task.data)
+            cache.load_data(self._outputs)
 
         LOGGER.info('DAG task has finished')
 

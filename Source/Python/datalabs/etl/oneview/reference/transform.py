@@ -107,7 +107,7 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
 
 
 class StaticReferenceTablesTransformerTask(TransformerTask):
-    def _transform(self):
+    def run(self):
         table_data = [pandas.DataFrame.from_dict(table) for table in static.tables]
 
         preprocessed_data = self._preprocess(table_data)

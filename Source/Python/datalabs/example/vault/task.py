@@ -24,7 +24,7 @@ class CRUDTask(Task):
 
     @classmethod
     def _get_database(cls):
-        return Database.from_parameters(
+        return Database(
             dict(
                 host=os.environ.get("DATABASE_HOST"),
                 port=os.environ.get("DATABASE_PORT"),

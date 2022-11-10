@@ -17,34 +17,24 @@ LOGGER.setLevel(logging.INFO)
 class Task(ParameterValidatorMixin, ABC):
     PARAMETER_CLASS = None
 
-    def __init__(self, parameters: dict):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
         self._parameters = parameters
+        self._data = data
         self._log_parameters(parameters)
 
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters(parameters)
 
     @abstractmethod
-    def run(self):
+    def run(self) -> "list<bytes>":
         pass
 
     @classmethod
     def _log_parameters(cls, parameters):
-        if hasattr(parameters, "copy"):
-            partial_parameters = parameters.copy()
-            data = None
+        if hasattr(parameters, "__dataclass_fields__"):
+            parameters = {key:getattr(parameters, key) for key in parameters.__dataclass_fields__.keys()}
 
-            if "data" in partial_parameters:
-                data = partial_parameters.pop("data")
-            LOGGER.info('%s parameters (no data): %s', cls.__name__, partial_parameters)
-            LOGGER.debug('%s data parameter: %s', cls.__name__, data)
-        elif hasattr(parameters, "__dataclass_fields__") and hasattr(parameters, "data"):
-            fields = [field for field in parameters.__dataclass_fields__.keys() if field != "data"]
-            partial_parameters = {key:getattr(parameters, key) for key in fields}
-            LOGGER.info('%s parameters (no data): %s', cls.__name__, partial_parameters)
-            LOGGER.debug('%s data parameter: %s', cls.__name__, getattr(parameters, "data"))
-        else:
-            LOGGER.info('%s parameters: %s', cls.__name__, parameters)
+        LOGGER.info('%s parameters: %s', cls.__name__, parameters)
 
 
 class TaskFactory:
@@ -89,6 +79,8 @@ class TaskWrapper(ABC):
         self._parameters = parameters or {}
         self._runtime_parameters = None
         self._task_parameters = None
+        self._inputs = None
+        self._outputs = None
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
@@ -102,13 +94,15 @@ class TaskWrapper(ABC):
 
             self._task_parameters = self._get_task_parameters()
 
+            self._inputs = self._get_task_data()
+
             self.task_class = self._get_task_class()
 
-            self.task = self.task_class(self._task_parameters)
+            self.task = self.task_class(self._task_parameters, self._inputs)
 
             self._pre_run()
 
-            self.task.run()
+            self._outputs = self.task.run()
 
             response = self._handle_success()
         except Exception as exception:  # pylint: disable=broad-except
@@ -141,6 +135,9 @@ class TaskWrapper(ABC):
 
     def _get_task_parameters(self):
         return self._parameters
+
+    def _get_task_data(self):
+        return []
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):

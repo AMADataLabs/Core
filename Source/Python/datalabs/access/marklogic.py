@@ -1,27 +1,36 @@
 """Class for accessing marklogic"""
+from   dataclasses import dataclass
 import os
 from   xml.dom import minidom
 
 import requests
 from   requests.auth import HTTPDigestAuth
 
-from   datalabs.access.datastore import Datastore
-from   datalabs.access.credentials import Credentials
+from   datalabs.access.database import Database
+from   datalabs.parameter import add_schema
 
 
-class MarkLogic(Datastore):
-    def __init__(self, credentials: Credentials = None, url=None, key='MARKLOGIC_TEST'):
-        super().__init__(credentials, key=key)
-        self.url = url  # url takes the following form: "http://address:port/version"
-        self.auth = HTTPDigestAuth(self._credentials.username, self._credentials.password)
-        self._connection = None
-        self.connect()
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class MarkLogicParameters:
+    host: str
+    port: str
+    username: str
+    password: str
+    protocol: str="http"
+    version: str="LATEST"
+
+
+class MarkLogic(Database):
+    PARAMETER_CLASS = MarkLogicParameters
 
     def connect(self):
         self._connection = requests.Session()
-        self._connection.auth = self.auth
+        self._connection.auth = HTTPDigestAuth(self._parameters.username, self._parameters.password)
+
         # test connection
-        response = self._connection.get(self.url.replace('/LATEST', ''))
+        response = self._connection.get(self.connection_string.replace('/LATEST', ''))
         response.raise_for_status()
 
     def get_file_uris(self, database='PhysicianSanctions', collection='json_data', query=''):
@@ -50,9 +59,9 @@ class MarkLogic(Datastore):
         self.write_file(data, file_name=uri, save_dir=save_dir)
 
     def get_file(self, uri, database='PhysicianSanctions'):
-        url = f'{self.url}/documents?uri={uri}&database={database}'
+        url = f'{self.connection_string}/documents?uri={uri}&database={database}'
 
-        response = self._connection.get(url=url, auth=self.auth)
+        response = self._connection.get(url=url)
         response.raise_for_status()
         return response.content
 
@@ -68,11 +77,17 @@ class MarkLogic(Datastore):
         with open(file_path, 'wb+') as file:
             file.write(data)
 
+    def _generate_connection_string(self):
+        protocol = self._parameters.protocol or "http"
+        version = self._parameters.version or "LATEST"
+
+        return f"{protocol}://{self._parameters.host}:{self._parameters.port}/{version}"
+
     # pylint: disable=too-many-arguments
     def _get_page_search_result(self, query, collection, start, page_length, database):
-        url = f'{self.url}/search?q={query}&collection={collection}&start={start}&' \
+        url = f'{self.connection_string}/search?q={query}&collection={collection}&start={start}&' \
               f'pageLength={page_length}&database={database}'
-        search = self._connection.get(url, auth=self.auth)
+        search = self._connection.get(url)
         search.raise_for_status()
         return search
 

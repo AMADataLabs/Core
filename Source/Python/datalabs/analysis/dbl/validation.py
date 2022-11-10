@@ -247,8 +247,8 @@ class Validater:
         change_threshold = 5
         errors = []
 
-        previous_data = pd.read_excel(self._old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
-        current_data = pd.read_excel(self._new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        previous_data = pd.read_excel(self._old, sheet_name=tab_name, header=0, index_col=0, engine='openpyxl').T
+        current_data = pd.read_excel(self._new, sheet_name=tab_name, header=0, index_col=0, engine='openpyxl').T
 
         errors = self._generate_grand_total_percent_change_errors(previous_data, current_data, change_threshold)
 
@@ -376,10 +376,9 @@ class Validater:
                 change = cls._percent_change(previous_value, current_value)
 
                 if change >= change_threshold:
-                    errors.append(
-                        f'Spec - "{name}" - CHANGED BY {change}% - {previous_value} TO {current_value} '
-                        '- EXCEEDS THRESHOLD'
-                    )
+                    info = f'Spec - "{name}" - CHANGED BY {round(change, 2)}% - {previous_value} TO {current_value} ' \
+                            f'- EXCEEDS THRESHOLD of {change_threshold}%'
+                    errors.append(info)
 
         return errors
 

@@ -3,31 +3,31 @@ from   datalabs.etl.dag import dag
 from   datalabs.etl.sql.sqlalchemy.extract import SQLAlchemyExtractorTask
 from   datalabs.etl.intelligent_platform.licensing.sync.transform import \
     LicensedOrganizationsTransformerTask, \
-    LicensedArticlesTransformerTask
+    ArticlesTransformerTask
     # ContractStatusTransformerTask, \
 from   datalabs.etl.orm.load import ORMLoaderTask
 
 
 @dag.register(name="LICENSING")
 class DAG(dag.DAG):
-    CREATE_ACTIVE_ARTICLES: LicensedArticlesTransformerTask
+    CREATE_ACTIVE_ARTICLES_TABLE: ArticlesTransformerTask
     # CREATE_CONTRACT_STATUS_TABLE: ContractStatusTransformerTask
-    CREATE_FRICTIONLESS_LICENSING_ORGANIZATIONS: LicensedOrganizationsTransformerTask
+    CREATE_ORGANIZATIONS_TABLE: LicensedOrganizationsTransformerTask
     EXTRACT_ACTIVE_ARTICLES: SQLAlchemyExtractorTask
     # EXTRACT_API_CONTRACTS: SQLAlchemyExtractorTask
     # EXTRACT_CONTRACT_APPROVED_CONTENT: SQLAlchemyExtractorTask
     # EXTRACT_CONTRACT_DENIED_CONTENT: SQLAlchemyExtractorTask
     EXTRACT_LICENSED_ORGANIZATIONS: SQLAlchemyExtractorTask
-    LOAD_ACTIVE_ARTICLES: ORMLoaderTask
-    LOAD_FRICTIONLESS_LICENSING_ORGANIZATIONS: ORMLoaderTask
+    LOAD_ACTIVE_ARTICLES_TABLE: ORMLoaderTask
+    LOAD_ORGANIZATIONS_TABLE: ORMLoaderTask
 
 
 # pylint: disable=pointless-statement
 DAG.EXTRACT_LICENSED_ORGANIZATIONS \
-    >> DAG.CREATE_FRICTIONLESS_LICENSING_ORGANIZATIONS \
-    >> DAG.LOAD_FRICTIONLESS_LICENSING_ORGANIZATIONS
+    >> DAG.CREATE_ORGANIZATIONS_TABLE \
+    >> DAG.LOAD_ORGANIZATIONS_TABLE
 
-DAG.EXTRACT_ACTIVE_ARTICLES >> DAG.CREATE_ACTIVE_ARTICLES >> DAG.LOAD_ACTIVE_ARTICLES
+DAG.EXTRACT_ACTIVE_ARTICLES >> DAG.CREATE_ACTIVE_ARTICLES_TABLE >> DAG.LOAD_ACTIVE_ARTICLES_TABLE
 
 
 # DAG.EXTRACT_API_CONTRACTS >> DAG.CREATE_CONTRACT_STATUS_TABLE

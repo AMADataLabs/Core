@@ -1,4 +1,7 @@
 dag,schedule
+ADDRESS_FLAGGING_REPORT,"0 12 * * wed"
+CERNER_REPORT,"30 0 * * mon"
+DBL,0 20 * * sun
+DEVELOPER_EMAILS,0 15 * * thu
+LICENSING_TRAFFIC,0 0 * * mon
 ONEVIEW,0 10 * * *
-DBL,0 20 * * 0
-ADDRESS_FLAGGING_REPORT,"0 13 * * 4"

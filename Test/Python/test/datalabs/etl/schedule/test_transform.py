@@ -131,14 +131,14 @@ def test_dags_to_run_handles_empty_schedule_nicely(parameters, empty_schedule, t
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_dags_to_run_are_transformed_to_list_of_bytes(parameters, schedule_csv, target_execution_time):
-    parameters["data"] = [schedule_csv.encode('utf-8', errors='backslashreplace')]
-    scheduler = DAGSchedulerTask(parameters)
+    data = [schedule_csv.encode('utf-8', errors='backslashreplace')]
+    scheduler = DAGSchedulerTask(parameters, data)
     data = None
 
     with mock.patch('datalabs.etl.schedule.transform.DAGSchedulerTask._get_target_execution_time') \
             as get_execution_time:
         get_execution_time.return_value = target_execution_time
-        data = scheduler._transform()
+        data = scheduler.run()
 
     assert len(data) == 1
 

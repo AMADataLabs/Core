@@ -30,7 +30,7 @@ def test_query_for_descriptors(event, query_results):
     event["path"] = dict(code='00100')
     event["query"] = dict(length=['short', 'long'])
 
-    with mock.patch('datalabs.access.cpt.api.descriptor.Database.from_parameters'):
+    with mock.patch('datalabs.access.cpt.api.descriptor.Database'):
         session = mock.MagicMock()
         session.query.return_value.join.return_value.filter.return_value = query_results
         task = DescriptorEndpointTask(event)
@@ -42,7 +42,7 @@ def test_query_for_descriptors(event, query_results):
 # pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.usefixtures("event")
 def test_generate_response_body(event, query_results):
-    with mock.patch('datalabs.access.cpt.api.descriptor.Database.from_parameters'):
+    with mock.patch('datalabs.access.cpt.api.descriptor.Database'):
         session = mock.MagicMock()
         session.query.return_value.join.return_value.all.return_value = query_results
         task = DescriptorEndpointTask(event)

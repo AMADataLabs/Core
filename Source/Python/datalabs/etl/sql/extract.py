@@ -7,9 +7,10 @@ import tempfile
 from   abc import abstractmethod
 import pandas
 
-from   datalabs.etl.extract import ExtractorTask
+from   datalabs.access.database import Database
 from   datalabs.etl.csv import CSVReaderMixin
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -21,7 +22,7 @@ LOGGER.setLevel(logging.INFO)
 # pylint: disable=too-many-instance-attributes
 class SQLExtractorParameters:
     sql: str
-    data: object = None
+    execution_time: str = None
     chunk_size: str = None      # Number of records to fetch per chunk
     count: str = None           # Total number of records to fetch accross chunks
     start_index: str = '0'      # Starting record index
@@ -30,21 +31,19 @@ class SQLExtractorParameters:
     stream: str = None
 
 
-class SQLExtractorTask(ExtractorTask):
+class SQLExtractorTask(Task):
     PARAMETER_CLASS = SQLExtractorParameters
 
-    def _extract(self):
+    def run(self):
         results = None
-        connection = self._connect()
 
-        results = self._read_queries(connection)
-
-        connection.close()
+        with self._get_database() as database:
+            results = self._read_queries(database.connection)
 
         return results
 
     @abstractmethod
-    def _connect(self):
+    def _get_database(self) -> Database:
         pass
 
     def _read_queries(self, connection):
@@ -108,10 +107,12 @@ class SQLExtractorTask(ExtractorTask):
 
         if self._parameters.count:
             count = int(self._parameters.count)
+            index = 0
 
             if self._parameters.start_index:
                 index = int(self._parameters.start_index) * count
-                stop_index = index + count
+
+            stop_index = index + count
 
         if self._parameters.max_parts is not None and self._parameters.part_index is not None:
             max_parts = int(self._parameters.max_parts)
@@ -149,11 +150,36 @@ class SQLExtractorTask(ExtractorTask):
         return formatter.format(query, index=index, count=count)
 
 
-class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
-    def __init__(self, parameters):
-        super().__init__(parameters)
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class SQLParametricExtractorParameters:
+    driver: str
+    driver_type: str
+    database_host: str
+    database_name: str
+    database_username: str
+    database_password: str
+    database_port: str
+    jar_path: str
+    sql: str
+    max_parts: str              # Number of task copies working on this query
+    part_index: str             # This task's index
+    execution_time: str = None
+    chunk_size: str = None      # Number of records to fetch per chunk
+    count: str = None           # Total number of records to fetch accross chunks
+    start_index: str = '0'
+    stream: str = None
+    database_parameters: str = None
 
-        self._query_parameters = self._csv_to_dataframe(self._parameters.data[0])
+
+class SQLParametricExtractorTask(CSVReaderMixin, SQLExtractorTask):
+    PARAMETER_CLASS = SQLParametricExtractorParameters
+
+    def __init__(self, parameters: dict, data: "list<bytes>"):
+        super().__init__(parameters, data)
+
+        self._query_parameters = self._csv_to_dataframe(self._data[0])
 
     def _read_single_query(self, query, connection):
         resolved_query = self._resolve_query(query, 0, 0)

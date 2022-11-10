@@ -28,7 +28,6 @@ class SFTPFileExtractorParameters:
     password: str
     execution_time: str = None
     include_names: str = None
-    data: object = None
 
 
 # pylint: disable=too-many-ancestors
@@ -36,15 +35,13 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
     PARAMETER_CLASS = SFTPFileExtractorParameters
 
     def _get_client(self):
-        config = sftp.Configuration(
-            host=self._parameters.host
-        )
-        credentials = sftp.Credentials(
+        sftp_parameters = dict(
+            host=self._parameters.host,
             username=self._parameters.username,
             password=self._parameters.password
         )
 
-        return sftp.SFTP(config, credentials)
+        return sftp.SFTP(sftp_parameters)
 
     def _get_files(self):
         base_path = self._parameters.base_path

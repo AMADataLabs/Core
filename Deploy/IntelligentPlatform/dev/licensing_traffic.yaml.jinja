@@ -1,7 +1,7 @@
 # Render as follows:
 #
 # Script/render-template -t Deploy/IntelligentPlatform/dev/licensing.yaml.jinja -f Deploy/CPT/dev/licensing.yaml \
-# -V "vistex_db_password={{vistex_db_password}},platform_db_password={{platform_db_password}}"
+# -v platform_db_password={{platform_db_password}}"
 ---
 data:
     #######################################################################
@@ -14,41 +14,132 @@ data:
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
 
-    VISTEX_DB_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
-    VISTEX_DB_DRIVER_TYPE: sqlserver
-    VISTEX_DB_JAR_PATH: ./mssql-jdbc-10.2.0.jre8.jar
-    VISTEX_DB_HOST: rdbp5323.ad.ama-assn.org
-    VISTEX_DB_PORT: '1433'
-    VISTEX_DB_PARAMETERS: 'databaseName=LicenseMaestro_CPT;encrypt=true;trustServerCertificate=true'
-    VISTEX_DB_USERNAME: dlabs_read
-    VISTEX_DB_PASSWORD: '{{vistex_db_password}}'
-
     PLATFORM_DB_HOST: pe-dev-aurora-cluster.cluster-cwp4vd8mllvz.us-east-1.rds.amazonaws.com
     PLATFORM_DB_PORT: '3306'
     PLATFORM_DB_BACKEND: 'mysql+pymysql'
-    PLATFORM_DB_NAME: 'frictionlesslicensing'
+    LICENSING_DATABASE: 'frictionlesslicensing'
+
+    USER_MANAGEMENT_DATABASE: 'usermgmt'
     PLATFORM_DB_USERNAME:  platform
     PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
-
     S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/Licensing'
+    S3_BASE_PATH: 'AMA/IntelligentPlatform/Licensing/Traffic'
 
 
     #######################################################################
     # DAG Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "DAG"}})
     #######################################################################
 
-    LICENSING_TRAFFIC__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-LicensingETL'
-    LICENSING_TRAFFIC__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.licensing.LicensingDAG'
+    LICENSING_TRAFFIC__DAG__LAMBDA_FUNCTION: 'AIP-${ENVIRONMENT}-LicensingDAG'
+    LICENSING_TRAFFIC__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.licensing.traffic.DAG'
     LICENSING_TRAFFIC__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     LICENSING_TRAFFIC__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    LICENSING_TRAFFIC__DAG__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    LICENSING_TRAFFIC__DAG__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    LICENSING_TRAFFIC__DAG__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    LICENSING_TRAFFIC__DAG__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    LICENSING_TRAFFIC__DAG__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    LICENSING_TRAFFIC__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    LICENSING_TRAFFIC__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    LICENSING_TRAFFIC__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    LICENSING_TRAFFIC__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    LICENSING_TRAFFIC__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    LICENSING_TRAFFIC__DAG__ENVIRONMENT: ${ENVIRONMENT}
+    LICENSING_TRAFFIC__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
 
 
     ##########################################################################
     # Task Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "<Task ID>"}})
     ##########################################################################
+
+    # Extract Traffic
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__BACKEND: ${PLATFORM_DB_BACKEND}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_HOST: ${PLATFORM_DB_HOST}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_PORT: ${PLATFORM_DB_PORT}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__DATABASE_NAME: ${LICENSING_DATABASE}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__SQL: "
+
+    SELECT
+        q.name QuoteName,
+        q.created_by Created_By,
+        usr.fname FirstName,
+        usr.lname LastName,
+        usr.email EmailId,
+        q.created_on Created_On,
+        qs.status Status,
+        q.completed_page Page_Completed,
+        GROUP_CONCAT(qqa.answer) Organization_name,
+        GROUP_CONCAT(a.description) Organization_Type,
+        c.name Campaign_name,
+        c.id Campaign_id,
+        cq.org_name_key campaign_Org_id,
+        GROUP_CONCAT(fg.name) Flag_details,
+        GROUP_CONCAT(f.name) Flag_name,
+        adf.field_name Agreement_Detail_Flag
+    FROM
+        ${LICENSING_DATABASE}.quotes q
+            INNER JOIN
+        ${LICENSING_DATABASE}.quote_question_answers qqa ON qqa.quote_id = q.id
+            INNER JOIN
+        ${LICENSING_DATABASE}.question_answers qa ON qa.id = qqa.question_answer_id
+            INNER JOIN
+        ${LICENSING_DATABASE}.questions que ON que.id = qa.question_id
+            INNER JOIN
+        ${LICENSING_DATABASE}.quote_status qs ON qs.id = q.quote_status_id
+            INNER JOIN
+        ${LICENSING_DATABASE}.license_categories lc ON lc.id = q.license_category_id
+            INNER JOIN
+        ${USER_MANAGEMENT_DATABASE}.User usr ON usr.user_name = q.created_by
+            INNER JOIN
+        ${USER_MANAGEMENT_DATABASE}.Organization org ON org.id = usr.organization_id
+            LEFT JOIN
+        ${LICENSING_DATABASE}.campaign_quotes cq ON cq.quote_id = q.id
+            LEFT JOIN
+        ${LICENSING_DATABASE}.campaigns c ON c.id = cq.campaign_id
+            LEFT JOIN
+        ${LICENSING_DATABASE}.answers a ON a.id = qa.answer_id
+            LEFT JOIN
+        ${LICENSING_DATABASE}.quote_flags qf ON qf.quote_id = q.id
+            LEFT JOIN
+        ${LICENSING_DATABASE}.flag_groups fg ON fg.id = qf.flag_group_id
+            LEFT JOIN
+        ${LICENSING_DATABASE}.flags f ON f.id = fg.flag_id
+            LEFT JOIN
+        ${LICENSING_DATABASE}.agreement_detail_flags adf ON adf.quote_id = q.id
+    WHERE
+        lc.category = 'Provisional'
+            AND q.created_by NOT IN ('EktaAMA' , 'kdahl',
+            'datalabs',
+            'acmegbtaxed',
+            'acmegbnontax',
+            'rptestuser2',
+            'yogeshama',
+            'sdhamale',
+            'shahrukh-ama',
+            'amitivl',
+            'kyleddahl',
+            'dcasaubo',
+            'amitinfovision',
+            'kcallagh',
+            'kcardina',
+            'vprieto',
+            'TommyT')
+            AND q.created_on >= '2022-09-14'
+            AND que.description IN ('What is the name of the organization licensing CPT content?' , 'What is your organization type?')
+    GROUP BY q.name
+    ORDER BY created_on DESC;
+    "
+
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_TRAFFIC__EXTRACT_TRAFFIC__CACHE_OUTPUT_FILES: licensing_traffic.csv
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "LICENSING"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+    # Email Traffic Report
+    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_FILES: 'licensing_traffic.csv'
+
+    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__TO: 'datalabs@ama-assn.org'

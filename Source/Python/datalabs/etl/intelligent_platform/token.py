@@ -22,7 +22,6 @@ class ExpiredTokenPurgeParameters:
     password: str
     database: str
     table: str = None
-    data: object = None
     execution_time: str = None
 
 
@@ -31,12 +30,11 @@ class ExpiredTokenPurgeTask(Task):
 
     def _run(self):
         with self._get_database() as database:
-            # database.execute(f'DELETE FROM {self._parameters.table} WHERE ...')
-
+            database.execute(f'DELETE FROM {self._parameters.table} WHERE expiry_time < now()')
             database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
+        return Database(
             dict(
                 host=self._parameters.host,
                 port=self._parameters.port,

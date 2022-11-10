@@ -6,8 +6,8 @@ import logging
 import re
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 from   datalabs.etl.intelligent_platform.licensing.sync.column import ARTICLES_COLUMNS
 
@@ -21,14 +21,13 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 class LicensedOrganizationsTransformerParameters:
     execution_time: str = None
-    data: object = None
 
 
-class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = LicensedOrganizationsTransformerParameters
 
-    def _transform(self):
-        licensed_organizations = self._csv_to_dataframe(self._parameters.data[0])
+    def run(self):
+        licensed_organizations = self._csv_to_dataframe(self._data[0])
 
         frictionless_licensing_organizations = licensed_organizations[["licensee"]].rename(
             columns=dict(licensee='name')
@@ -52,7 +51,18 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Trans
         return int(prefix + suffix)
 
 
-class LicensedArticlesTransformerTask(TransformerTask):
-    # pylint: disable=no-self-use
-    def _get_columns(self):
-        return [ARTICLES_COLUMNS]
+@add_schema
+@dataclass
+class ArticlesTransformerParameters:
+    execution_time: str = None
+
+
+class ArticlesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = ArticlesTransformerParameters
+
+    def run(self):
+        articles = self._csv_to_dataframe(self._data[0])
+
+        articles = articles[["licensee"]].rename(columns=ARTICLES_COLUMNS)
+
+        return [self._dataframe_to_csv(articles)]

@@ -35,7 +35,7 @@ def test_extract_yields_correct_input_files(parameters, object_listing):
     with mock.patch("boto3.client") as client:
         client.return_value.list_objects_v2.return_value = object_listing
 
-        files = task._extract()
+        files = task.run( )
 
     assert len(files) == 4
     assert "AMA/CPT/20210831/output/internal_Property.txt" in files

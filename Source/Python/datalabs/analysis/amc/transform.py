@@ -7,9 +7,9 @@ import pickle
 import pandas
 
 # pylint: disable=import-error, invalid-name
-from datalabs.analysis.amc.address import AMCAddressFlagger
-from datalabs.etl.transform import TransformerTask
-from datalabs.parameter import add_schema
+from   datalabs.analysis.amc.address import AMCAddressFlagger
+from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -20,18 +20,17 @@ LOGGER.setLevel(logging.DEBUG)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class AMCAddressFlaggingTransformerParameters:
-    data: list
     execution_time: str = None
 
 
 # pylint: disable=no-self-use
-class AMCAddressFlaggingTransformerTask(TransformerTask):
+class AMCAddressFlaggingTransformerTask(Task):
     PARAMETER_CLASS = AMCAddressFlaggingTransformerParameters
 
-    def _transform(self):
+    def run(self):
         flagger = AMCAddressFlagger()
 
-        data = [self._csv_to_dataframe(file) for file in self._parameters.data]
+        data = [self._csv_to_dataframe(file) for file in self._data]
 
         results = [flagger.flag(file) for file in data]
 

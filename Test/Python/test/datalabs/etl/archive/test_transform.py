@@ -22,8 +22,8 @@ def test_zip_transformer_zips_tuple_data(zip_data):
 # pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.order(1)
 def test_zip_transformer_zips_pickled_data(pickled_data):
-    transformer = archive.ZipTransformerTask({"data": [pickled_data, pickled_data]})
-    zip_datasets = transformer._transform()
+    transformer = archive.ZipTransformerTask({}, [pickled_data, pickled_data])
+    zip_datasets = transformer.run()
 
     assert len(zip_datasets) == 2
 
@@ -37,8 +37,8 @@ def test_zip_transformer_zips_pickled_data(pickled_data):
 # pylint: disable=redefined-outer-name, protected-access
 @pytest.mark.order(1)
 def test_unzip_transformer_extracts_all_files(zip_data, more_zip_data, file_data, more_file_data):
-    transformer = archive.UnzipTransformerTask({"data": [zip_data, more_zip_data]})
-    files = transformer._extract()
+    transformer = archive.UnzipTransformerTask({}, [zip_data, more_zip_data])
+    files = transformer.run( )
 
     assert len(files) == 1
 
@@ -72,13 +72,13 @@ def pickled_data(file_data):
 
 @pytest.fixture
 def zip_data(file_data):
-    transformer = archive.ZipTransformerTask({"data": []})
+    transformer = archive.ZipTransformerTask({}, [])
 
     return transformer._zip_files(file_data)
 
 
 @pytest.fixture
 def more_zip_data(more_file_data):
-    transformer = archive.ZipTransformerTask({"data": []})
+    transformer = archive.ZipTransformerTask({}, [])
 
     return transformer._zip_files(more_file_data)
