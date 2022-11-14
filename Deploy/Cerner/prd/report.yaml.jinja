@@ -131,8 +131,8 @@ FROM cm_model_incl T1
         ON COMPANY.COMPANY_ID = T4.licensee_company_key
         JOIN cm_section_term T6
         ON T3.term_key = T6.section_term_key
-WHERE YEAR(T6.date_end) = 2021
-AND YEAR(T6.DATE_START) = 2021
+WHERE YEAR(T6.date_end) = 2023
+AND YEAR(T6.DATE_START) = 2023
 AND YEAR(T5.accrual_date) > 2019
 AND CAST(T4.mod_date AS DATE) >= '2020-09-01'
 AND T3.due_date IS NOT NULL
@@ -151,7 +151,7 @@ ORDER BY CAST(T3.due_date AS DATE) DESC
     CERNER_REPORT__SEND_CERNER_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     CERNER_REPORT__SEND_CERNER_REPORT__CACHE_INPUT_FILES: cerner_customers_paid.csv
 
-    CERNER_REPORT__SEND_CERNER_REPORT__TO_ADDRESSES: datalabs@ama-assn.org
+    CERNER_REPORT__SEND_CERNER_REPORT__TO_ADDRESSES: 'datalabs@ama-assn.org,daniel.casey@ama-assn.org'
     CERNER_REPORT__SEND_CERNER_REPORT__SUBJECT: "Cerner Report - %Y-%m-%d"
     CERNER_REPORT__SEND_CERNER_REPORT__MESSAGE: "
 This is an automated email from DataLabs.
