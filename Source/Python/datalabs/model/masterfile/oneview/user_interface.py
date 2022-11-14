@@ -131,7 +131,8 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     msa.code AS phy_msa_code,
     msa.type AS phy_msa_type,
     msa.consolidated_metropolitan_statistical_area,
-    pa.best as aff_affiliation_best_status
+    pa.best as aff_affiliation_best_status,
+    ml.state as phy_license_state
 FROM {SCHEMA}.physician phy
     LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
     LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text
@@ -144,6 +145,7 @@ FROM {SCHEMA}.physician phy
     LEFT JOIN {SCHEMA}.zip_code zc ON phy.zipcode::text = zc.zip_code::text
     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON msa.code::text = zc.metropolitan_statistical_area::text
     LEFT JOIN {SCHEMA}.medical_school ms ON substr(ms.id::text, 1, 3) = phy.medical_school_state::text AND substr(ms.id::text, 4, 5) = phy.medical_school::text
+    LEFT JOIN {SCHEMA}.medical_license ml ON phy.medical_education_number::text = ml.medical_education_number::text
 ORDER BY phy.medical_education_number;
 '''
 )
@@ -283,7 +285,8 @@ SELECT phy.medical_education_number AS phy_medical_education_number,
     msa.code AS phy_msa_code,
     msa.type AS phy_msa_type,
     msa.consolidated_metropolitan_statistical_area,
-    pa.best as aff_affiliation_best_status
+    pa.best as aff_affiliation_best_status,
+    ml.state as phy_license_state
 FROM {SCHEMA}.physician phy
     LEFT JOIN {SCHEMA}.type_of_practice top ON phy.type_of_practice::text = top.id::text
     LEFT JOIN {SCHEMA}.present_employment pe ON phy.present_employment::text = pe.id::text
@@ -297,6 +300,7 @@ FROM {SCHEMA}.physician phy
     LEFT JOIN {SCHEMA}.zip_code zc ON phy.zipcode::text = zc.zip_code::text
     LEFT JOIN {SCHEMA}.metropolitan_statistical_area msa ON msa.code::text = zc.metropolitan_statistical_area::text
     LEFT JOIN {SCHEMA}.medical_school ms ON substr(ms.id::text, 1, 3) = phy.medical_school_state::text AND substr(ms.id::text, 4, 5) = phy.medical_school::text
+    LEFT JOIN {SCHEMA}.medical_license ml ON phy.medical_education_number::text = ml.medical_education_number::text    
 ORDER BY phy.medical_education_number;
 '''
 )
