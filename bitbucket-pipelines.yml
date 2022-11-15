@@ -933,18 +933,6 @@ pipelines:
 
         - parallel:
             - step:
-                name: Update Sandbox Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project AddressLoad
-                    --bundle Masterfile/AddressLoadCompilerDAG.zip
-                    --use-package
-            - step:
                 name: Update Development Bundle
                 caches:
                     - environment-dev
@@ -989,11 +977,6 @@ pipelines:
 
         - parallel:
             - step:
-                name: Update Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile AddressLoadCompilerDAG=AddressLoadCompilerDAG.zip
-            - step:
                 name: Update Development Lambda Functions
                 script:
                 - >-
@@ -1031,18 +1014,6 @@ pipelines:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-package --project LicenseMovement
         - parallel:
-            - step:
-                name: Update Sandbox Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project LicenseMovement
-                    --bundle Masterfile/LicenseMovementDAG.zip
-                    --use-package
             - step:
                 name: Update Development Bundle
                 caches:
@@ -1086,11 +1057,6 @@ pipelines:
                     --bundle Masterfile/LicenseMovementDAG.zip
                     --use-package
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s LicenseMovement -p Masterfile LicenseMovementDAG=LicenseMovementDAG.zip
             - step:
                 name: Update Development Lambda Functions
                 script:

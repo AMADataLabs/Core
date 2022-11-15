@@ -13,6 +13,9 @@ modspec:
       - sftp
       - aws
   - package: datalabs.access.parameter
+  - package: datalabs.analysis.address.batchload
+    include:
+      - transform
   - package: datalabs.etl
   - package: datalabs.etl.s3
   - package: datalabs.etl.dag
@@ -24,6 +27,6 @@ modspec:
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.sftp
-  - package: datalabs.analysis.address.batchload
+  - package: datalabs.messaging
     include:
-      - transform
+      - email_message
