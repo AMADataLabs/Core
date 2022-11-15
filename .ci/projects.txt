@@ -16,7 +16,7 @@ IntelligentPlatform/Developer
 IntelligentPlatform/Licensing
 IntelligentPlatform
 LicenseMovement
-LicenseMovement-Extract
+LicenseMovement/Extract
 OneView/ETL
 OneView/ETL/Batch
 OneView/ETL/Extract
