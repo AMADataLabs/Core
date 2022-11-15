@@ -930,6 +930,7 @@ pipelines:
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-package --project AddressLoad
+
         - parallel:
             - step:
                 name: Update Sandbox Bundle
@@ -986,8 +987,7 @@ pipelines:
 #                    --bundle Masterfile/AddressLoadCompilerDAG.zip
 #                    --use-package
 
-
-       - parallel:
+        - parallel:
            - step:
                name: Update Sandbox Lambda Functions
                script:
