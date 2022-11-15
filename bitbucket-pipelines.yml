@@ -972,7 +972,7 @@ pipelines:
                     --project AddressLoad
                     --bundle Masterfile/AddressLoadCompilerDAG.zip
                     --use-package
-             - step:
+            - step:
                 name: Update Production Bundle
                 caches:
                     - environment-prod
