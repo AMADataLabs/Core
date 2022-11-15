@@ -1,0 +1,3 @@
+#!/bin/bash
+
+aws lambda list-functions | jq '.Functions[].FunctionName' | sed 's/"//g'
