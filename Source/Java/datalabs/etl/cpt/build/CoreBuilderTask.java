@@ -140,9 +140,11 @@ public class CoreBuilderTask extends Task {
     }
 
     void loadSettings(){
+        String dataDirectory = System.getProperty("data.directory", "/tmp");
+
         settings = new Properties(){{
-            put("output.directory", "./output/");
-            put("input.directory", "./input");
+            put("output.directory", dataDirectory + File.separator + "output");
+            put("input.directory", dataDirectory + File.separator + "input");
             put("prior.link.directory", "/prior_link");
             put("current.link.directory", "/current_link");
         }};
@@ -196,7 +198,12 @@ public class CoreBuilderTask extends Task {
 
         for (File file: outputDirectory.listFiles()){
             if (file.isDirectory()) {
-                loadOutputFiles(file);
+                ArrayList<byte[]> output = loadOutputFiles(file);
+
+                for (byte[] outputFile: output){
+                    outputFiles.add(outputFile);
+                }
+
             } else {
                 Path path = Paths.get(file.getPath());
                 byte[] data = Files.readAllBytes(path);

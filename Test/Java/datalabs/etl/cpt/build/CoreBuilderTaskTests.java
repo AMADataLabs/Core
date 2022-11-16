@@ -3,17 +3,17 @@ package datalabs.etl.cpt.build;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.core.util.ArrayUtils;
-import org.junit.Assert;
+import org.apache.logging.log4j.core.util.Assert;
+
 import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.io.TempDir;
 import org.zeroturnaround.zip.ZipUtil;
 
 import org.slf4j.Logger;
@@ -30,6 +30,8 @@ import software.amazon.awssdk.services.dynamodb.model.DynamoDbException;
 
 import org.ama.dtk.DtkAccess;
 import datalabs.etl.dag.notify.sns.DagNotifier;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 class CoreBuilderTaskTests {
@@ -52,18 +54,21 @@ class CoreBuilderTaskTests {
             success = true;
         }
 
-        Assertions.assertTrue(success);
+        assertTrue(success);
     }
 
     @Test
     @DisplayName("Test loadOutputFiles return")
-    void stageInputFilesTest() throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
-        String[] inputFiles = {"input/prior_link", "input/current_link"};
-        boolean success = false;
+    void stageInputFilesTest(@TempDir Path DataDir, @TempDir Path WorkingDir) throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        String[] inputFiles = {"prior_link", "current_link"};
+        System.getProperties().setProperty("data.directory", String.valueOf(DataDir));
+        File inputDirectory = new File(WorkingDir+ File.separator + "input");
         ArrayList<byte[]> data = new ArrayList<byte[]>();
 
+        inputDirectory.mkdirs();
+
         for (String fileToZip : inputFiles) {
-            File zipFile = new File(fileToZip + ".zip");
+            File zipFile = new File(inputDirectory + File.separator + fileToZip + ".zip");
             ZipUtil.pack(new File(fileToZip), zipFile);
             byte[] byteInput = Files.readAllBytes(zipFile.toPath());
             data.add(byteInput);
@@ -81,25 +86,25 @@ class CoreBuilderTaskTests {
 
         try {
             coreBuilderTask.stageInputFiles();
-            success = true;
         } catch (java.lang.Exception exception) {
             CoreBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
         }
 
+        assertTrue(Files.exists(Paths.get(DataDir + File.separator + "input" + File.separator + "current_link")));
+        assertTrue(Files.exists(Paths.get(DataDir + File.separator + "input" + File.separator + "prior_link")));
 
-        Assertions.assertTrue(success);
     }
 
     @Test
     @DisplayName("Test loadOutputFiles return")
-    void loadOutputFilesTest() throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+    void loadOutputFilesTest(@TempDir Path OutputDirectory) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
         ArrayList<byte[]> data = new ArrayList<byte[]>();
         int index = 0;
-        List<String> outputFileNames = new ArrayList<String>() {{
-            add("internal_Property.txt");
-            add("internal_Type.txt");
-            add("RelationshipGroup.txt");
-        } };
+        List<String> outputFileNames = Arrays.asList(
+                "internal_Property.txt",
+                "internal_Type.txt",
+                "RelationshipGroup.txt"
+        );
 
         Map<String, String> parameters = new HashMap();
         parameters.put("releaseDate", "20230101");
@@ -108,28 +113,32 @@ class CoreBuilderTaskTests {
         parameters.put("password", "password");
         parameters.put("port", "port");
         ArrayList<byte[]>byteData = new ArrayList<byte[]>();
-        File output = new File("output");
 
         CoreBuilderTask coreBuilderTask = new CoreBuilderTask(parameters, data);
         coreBuilderTask.loadSettings();
 
         try {
-            byteData = coreBuilderTask.loadOutputFiles(output);
+            byteData = coreBuilderTask.loadOutputFiles(new File("output"));
             for (byte[] file: byteData){
-                Files.write(Paths.get(outputFileNames.get(index)) , file);
+                Files.write(
+                        Paths.get(OutputDirectory + File.separator + "output" + File.separator + outputFileNames.get(index)),
+                        file);
                 index++;
             }
 
-            Assert.assertEquals(FileUtils.readLines(new File("output/RelationshipGroup.txt")),
-                    FileUtils.readLines(new File("RelationshipGroup.txt"))
-            );
-            Assert.assertEquals(FileUtils.readLines(new File("output/internal_Property.txt")),
-                    FileUtils.readLines(new File("internal_Property.txt"))
-            );
-            Assert.assertEquals(FileUtils.readLines(new File("output/internal_Type.txt")),
-                    FileUtils.readLines(new File("internal_Type.txt"))
-            );
-        } catch (java.lang.Exception exception) {
+            for (String name: outputFileNames){
+                assertTrue(byteData.size() > 0);
+                assertTrue(Files.exists(
+                        Paths.get(OutputDirectory + File.separator + "output" + File.separator + name)
+                ));
+                assertTrue(FileUtils.contentEquals(
+                        new File(OutputDirectory + File.separator + "output" + File.separator + name),
+                        new File("output" + File.separator + name))
+                );
+                assertTrue(new File(OutputDirectory + File.separator + "output" + File.separator + name).length() > 0);
+            }
+
+        } catch (Exception exception) {
             CoreBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
         }
     }
