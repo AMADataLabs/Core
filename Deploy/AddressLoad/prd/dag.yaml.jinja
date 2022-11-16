@@ -22,9 +22,9 @@ data:
     S3_BASE_PATH: 'AMA/AddressLoad'
 
 
-  #######################################################################
-  #  # DAG Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "DAG"}})
-  #######################################################################
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "DAG"}})
+    #######################################################################
 
     ADDRESS_LOAD_COMPILER__DAG__LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-AddressLoadCompilerDAG'
     ADDRESS_LOAD_COMPILER__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.address_load_compiler.DAG'
@@ -39,13 +39,12 @@ data:
     ADDRESS_LOAD_COMPILER__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
 
 
-  ##########################################################################
-  #  # Task Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "<Task ID>"}})
-  ##########################################################################
-
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
 
     # Extract Component Files
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/input'
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/${ENVIRONMENT}/input'
     ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__FILES: '*.csv'
     ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__HOST: ${SFTP_HOST}
     ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__USERNAME: ${SFTP_USERNAME}
@@ -59,11 +58,10 @@ data:
 
     # Compile Batch Load File
     ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_CLASS: ${S3_CACHE_CLASS}
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_BASE_PATH: ${S3_BASE_PATH}
 
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'extract_output.pckl'
     ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__BASE_PATH: ${S3_BASE_PATH}
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'extract_output.pckl'
 
     ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
     ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_OUTPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
@@ -74,7 +72,7 @@ data:
     ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
 
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/output'
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/${ENVIRONMENT}/output'
     ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
     ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__HOST: ${SFTP_HOST}
     ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__USERNAME: ${SFTP_USERNAME}
