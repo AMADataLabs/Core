@@ -40,11 +40,13 @@ data:
     LICENSING_SYNC__DAG__DAG_CLASS: 'datalabs.etl.dag.intelligent_platform.licensing.sync.DAG'
     LICENSING_SYNC__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     LICENSING_SYNC__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
-    LICENSING_SYNC__DAG__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
-    LICENSING_SYNC__DAG__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
-    LICENSING_SYNC__DAG__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
-    LICENSING_SYNC__DAG__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
-    LICENSING_SYNC__DAG__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    LICENSING_SYNC__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    LICENSING_SYNC__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    LICENSING_SYNC__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    LICENSING_SYNC__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    LICENSING_SYNC__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    LICENSING_SYNC__DAG__ENVIRONMENT: ${ENVIRONMENT}
+    LICENSING_SYNC__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
 
 
     ##########################################################################
@@ -81,9 +83,6 @@ data:
 	CONVERT(DATE, T1.start_date)        AS Start_Date ,
     CONVERT(DATE, T1.expiration_date)   AS Expiration_DATE,
     CONVERT(DATE, T1.sell_off_end_date) AS SELL_OFF_DATE,
-#   CASE WHEN t2.renewal_notes IS NOT NULL THEN (
-#			LEFT(t2.renewal_notes,
-#			charindex(' ',t2.renewal_notes,1)-1)) ELSE 0 END     AS Renewal_# ,
 	T1.properties ,
 	T1.articles ,
 	T1.territories ,
@@ -109,7 +108,6 @@ data:
 
     WHERE
         T1.description NOT Like '%AFFINITY%' and
- #	    T1.description like '%internal%' and
         T1.licensee <> '%ACME%' and
         T1.account_exec Not In ('David Young', 'Brian Eaggleston') and
         T1.properties like '%CPT%'

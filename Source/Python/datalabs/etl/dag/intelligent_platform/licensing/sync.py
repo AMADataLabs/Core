@@ -8,7 +8,7 @@ from   datalabs.etl.intelligent_platform.licensing.sync.transform import \
 from   datalabs.etl.orm.load import ORMLoaderTask
 
 
-@dag.register(name="LICENSING")
+@dag.register(name="LICENSING_SYNC")
 class DAG(dag.DAG):
     CREATE_ACTIVE_ARTICLES_TABLE: ArticlesTransformerTask
     # CREATE_CONTRACT_STATUS_TABLE: ContractStatusTransformerTask

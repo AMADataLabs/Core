@@ -8,6 +8,7 @@ modspec:
       - database
       - datastore
       - environment
+      - orm
       - sqlalchemy
   - package: datalabs.access.parameter
   - package: datalabs.etl
