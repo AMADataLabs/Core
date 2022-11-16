@@ -9,7 +9,7 @@ from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
-from   datalabs.etl.intelligent_platform.licensing.sync.column import ARTICLES_COLUMNS
+from   datalabs.etl.intelligent_platform.licensing.sync.column import ARTICLES_COLUMNS, ORGANIZATIONS_COLUMNS
 
 
 logging.basicConfig()
@@ -29,8 +29,8 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
     def run(self):
         licensed_organizations = self._csv_to_dataframe(self._data[0])
 
-        frictionless_licensing_organizations = licensed_organizations[["licensee"]].rename(
-            columns=dict(licensee='name')
+        frictionless_licensing_organizations = licensed_organizations[list(ORGANIZATIONS_COLUMNS.keys())].rename(
+            columns=ORGANIZATIONS_COLUMNS
         )
 
         frictionless_licensing_organizations = frictionless_licensing_organizations.drop_duplicates()
@@ -63,6 +63,6 @@ class ArticlesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     def run(self):
         articles = self._csv_to_dataframe(self._data[0])
 
-        articles = articles[["licensee"]].rename(columns=ARTICLES_COLUMNS)
+        articles = articles.rename(columns=ARTICLES_COLUMNS)
 
         return [self._dataframe_to_csv(articles)]
