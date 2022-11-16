@@ -1,5 +1,6 @@
 dag,schedule
 ADDRESS_FLAGGING_REPORT,"0 13 * * tue,thu"
+ADDRESS_LOAD_COMPILER,0 13 * * mon-fri
 CERNER_REPORT,"0 13 * * tue,thu"
 DBL,"14 0 * * mon,wed,fri"
 DEVELOPER_EMAILS,"0 0 * * mon,wed,fri"

@@ -58,9 +58,6 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
             matched_files = self._client.list(base_path, filter=unresolved_file)
             resolved_files = [os.path.join(base_path, file) for file in matched_files]
 
-            if len(resolved_files) == 0:
-                raise FileNotFoundError(f"Unable to find file '{file}'")
-
         return resolved_files
 
     # pylint: disable=arguments-differ

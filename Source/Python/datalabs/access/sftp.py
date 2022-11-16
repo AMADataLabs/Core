@@ -37,7 +37,7 @@ class SFTP(Datastore):
         )
 
     # pylint: disable=redefined-builtin
-    def list(self, path: str, filter: str = None):
+    def list(self, path: str, filter: str = None, recurse: bool = False):
         files = []
 
         def file_callback(file):
@@ -57,12 +57,12 @@ class SFTP(Datastore):
                 file_callback,
                 directory_callback,
                 unknown_callback,
-                recurse=(not filter is None)
+                recurse=recurse
             )
 
         return self._filter_files(files, filter)
 
-    def list_directory(self, path: str, filter: str = None):
+    def list_directory(self, path: str, filter: str = None, recurse: bool = False):
         files = []
 
         # pylint: disable=unused-argument
@@ -82,7 +82,7 @@ class SFTP(Datastore):
                 file_callback,
                 directory_callback,
                 unknown_callback,
-                recurse=(not filter is None)
+                recurse=recurse
             )
 
         return self._filter_files(files, filter)
@@ -90,6 +90,7 @@ class SFTP(Datastore):
     def get(self, path: str, file):
         base_path = os.path.dirname(path)
         filename = os.path.basename(path)
+        LOGGER.debug('Getting file %s', '/'.join((base_path, filename)))
 
         with self._connection.cd(base_path):
             self._connection.getfo(filename, file, callback=self._status_callback)
@@ -97,6 +98,7 @@ class SFTP(Datastore):
     def put(self, file, path: str):
         base_path = os.path.dirname(path)
         filename = os.path.basename(path)
+        LOGGER.debug('Putting file %s', '/'.join((base_path, filename)))
 
         with self._connection.cd(base_path):
             self._connection.putfo(file, filename, callback=self._status_callback)
@@ -107,9 +109,9 @@ class SFTP(Datastore):
 
         if filter and '*' in filter:
             filter_parts = filter.split('*')
-            prefix = filter_parts[0]
+            prefix = './' + filter_parts[0]
             suffix = filter_parts[-1]
-            filtered_files = [file for file in files if file.startswith('./'+prefix) and file.endswith(suffix)]
+            filtered_files = [file for file in files if file.startswith(prefix) and file.endswith(suffix)]
 
         return filtered_files
 

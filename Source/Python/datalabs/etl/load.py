@@ -101,8 +101,14 @@ class FileLoaderTask(Task, ABC):
 
     @classmethod
     def _unpack_files_and_data(cls, packed_data):
+        files = []
+        data = []
         named_files_data = pickle.loads(packed_data)
-        files, data = zip(*named_files_data)
+
+        try:
+            files, data = zip(*named_files_data)
+        except ValueError:
+            pass
 
         return files, data
 
