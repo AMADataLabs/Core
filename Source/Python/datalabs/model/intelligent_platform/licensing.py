@@ -15,7 +15,7 @@ class Organization(Base):
     name = sa.Column(sa.String, nullable=False)
 
 
-class Articles(Base):
+class Article(Base):
     __tablename__ = 'articles'
 
     id = sa.Column(sa.Integer, primary_key=True)

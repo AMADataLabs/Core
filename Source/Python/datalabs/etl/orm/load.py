@@ -15,7 +15,7 @@ from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -66,8 +66,6 @@ class ORMLoaderTask(Task):
                 table_parameters = self._generate_table_parameters(database, model_class, data)
 
                 self._update(database, table_parameters)
-
-                database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
         return Database.from_parameters(self._parameters)
@@ -161,17 +159,23 @@ class ORMLoaderTask(Task):
         else:
             self._delete_data_from_table(database, table_parameters, deleted_data)
 
+        database.commit()  # pylint: disable=no-member
+
     @classmethod
     def _update_data(cls, database, table_parameters):
         updated_data = cls._select_updated_data(table_parameters)
 
         cls._update_data_in_table(database, table_parameters, updated_data)
 
+        database.commit()  # pylint: disable=no-member
+
     @classmethod
     def _add_data(cls, database, table_parameters):
         added_data = cls._select_new_data(table_parameters)
 
         cls._add_data_to_table(database, table_parameters, added_data)
+
+        database.commit()  # pylint: disable=no-member
 
     @classmethod
     def _select_deleted_data(cls, table_parameters):

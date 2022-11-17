@@ -7,7 +7,7 @@ from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
-from   datalabs.etl.intelligent_platform.licensing.sync.column import ARTICLES_COLUMNS, ORGANIZATIONS_COLUMNS
+from   datalabs.etl.intelligent_platform.licensing.sync.column import ARTICLE_COLUMNS, ORGANIZATION_COLUMNS
 
 
 logging.basicConfig()
@@ -27,7 +27,7 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
     def run(self):
         organizations = self._csv_to_dataframe(self._data[0])
 
-        organizations = organizations[list(ORGANIZATIONS_COLUMNS.keys())].rename(columns=ORGANIZATIONS_COLUMNS)
+        organizations = organizations[list(ORGANIZATION_COLUMNS.keys())].rename(columns=ORGANIZATION_COLUMNS)
 
         organizations = organizations.drop_duplicates()
 
@@ -46,6 +46,10 @@ class ArticlesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     def run(self):
         articles = self._csv_to_dataframe(self._data[0])
 
-        articles = articles.rename(columns=ARTICLES_COLUMNS).drop_duplicates()
+        articles = articles[list(ARTICLE_COLUMNS.keys())].rename(columns=ARTICLE_COLUMNS)
+        articles["lower_name"] = articles.article_name.str.lower()
+
+        articles.drop_duplicates(subset=["lower_name"], inplace=True, keep="first")
+        articles.drop(columns="lower_name", inplace=True)
 
         return [self._dataframe_to_csv(articles)]

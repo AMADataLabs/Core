@@ -1,9 +1,9 @@
 """Licensing Table Columns"""
 
-ARTICLES_COLUMNS = {
+ARTICLE_COLUMNS = {
     'description': 'article_name'
 }
 
-ORGANIZATIONS_COLUMNS = {
+ORGANIZATION_COLUMNS = {
     'licensee': 'name'
 }
