@@ -1,4 +1,5 @@
 """ Tool for loading Kubernetes ConfigMap data into DynamoDB. """
+from   dataclasses import dataclass
 import json
 import logging
 
@@ -12,9 +13,9 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class ConfigMapLoader():
-    def __init__(self, parameters):
-        self._parameters = parameters
+class ConfigMapLoader:
+    def __init__(self, table: str):
+        self._table = table
 
     def load(self, filenames):
         variables = self._extract_variables_from_config(filenames)
@@ -102,7 +103,7 @@ class ConfigMapLoader():
         response = None
         item = self._generate_item(dag, task, variables)
 
-        response = dynamodb.put_item(TableName=self._parameters["table"], Item=item)
+        response = dynamodb.put_item(TableName=self._table, Item=item)
 
         return response
 
@@ -135,3 +136,18 @@ class ConfigMapLoader():
         )
 
         return item
+
+
+class Configuration:
+    def __init__(self, table: str):
+        self._table = table
+
+    def get_dags(self) -> list:
+        with AWSClient("dynamodb") as dynamodb:
+            dags = set()
+            response = dynamodb.scan(TableName=self._table)
+
+            for item in response["Items"]:
+                dags.add(item["DAG"]["S"])
+
+            return dags

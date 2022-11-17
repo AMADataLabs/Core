@@ -11,9 +11,7 @@ LOGGER.setLevel(logging.DEBUG)
 
 
 def main(args):
-    loader = ConfigMapLoader(dict(
-        table=args['table']
-   ))
+    loader = ConfigMapLoader(table=args['table'])
 
     loader.load(args['file'])
 
