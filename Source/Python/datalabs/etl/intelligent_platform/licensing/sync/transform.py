@@ -1,9 +1,7 @@
 """ Transformer to convert raw Intelligent Platform licensed organizations list to a curated organization list for
 intelligent platform front-end validation"""
 from   dataclasses import dataclass
-import hashlib
 import logging
-import re
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
@@ -33,7 +31,7 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
 
         organizations = organizations.drop_duplicates()
 
-        return [self._dataframe_to_csv(frictionless_licensing_organizations)]
+        return [self._dataframe_to_csv(organizations)]
 
 
 @add_schema
