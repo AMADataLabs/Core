@@ -1,5 +1,4 @@
 """ Tool for loading Kubernetes ConfigMap data into DynamoDB. """
-from   dataclasses import dataclass
 import json
 import logging
 
