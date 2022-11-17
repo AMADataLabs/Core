@@ -19,4 +19,4 @@ class Articles(Base):
     __tablename__ = 'articles'
 
     id = sa.Column(sa.Integer, primary_key=True)
-    name = sa.Column(sa.String, nullable=False)
+    article_name = sa.Column(sa.String, nullable=False)

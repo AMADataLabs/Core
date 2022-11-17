@@ -2,7 +2,7 @@
 
 ARTICLES_COLUMNS = {
     'article_key': 'id',
-    'description': 'name'
+    'description': 'article_name'
 }
 
 ORGANIZATIONS_COLUMNS = {
