@@ -27,28 +27,13 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
     PARAMETER_CLASS = LicensedOrganizationsTransformerParameters
 
     def run(self):
-        licensed_organizations = self._csv_to_dataframe(self._data[0])
+        organizations = self._csv_to_dataframe(self._data[0])
 
-        frictionless_licensing_organizations = licensed_organizations[list(ORGANIZATIONS_COLUMNS.keys())].rename(
-            columns=ORGANIZATIONS_COLUMNS
-        )
+        organizations = organizations[list(ORGANIZATIONS_COLUMNS.keys())].rename(columns=ORGANIZATIONS_COLUMNS)
 
-        frictionless_licensing_organizations = frictionless_licensing_organizations.drop_duplicates()
-
-        frictionless_licensing_organizations["id"] = frictionless_licensing_organizations.apply(
-            self._generate_id,
-            axis=1
-        )
+        organizations = organizations.drop_duplicates()
 
         return [self._dataframe_to_csv(frictionless_licensing_organizations)]
-
-    @classmethod
-    def _generate_id(cls, licence_organization):
-        name_hash = hashlib.md5(licence_organization['name'].encode('utf-8')).hexdigest()
-        prefix = ''.join(str(ord(x) - 65) for x in re.sub('[^a-zA-Z0-9]', '', licence_organization['name']))[-3:]
-        suffix = ''.join(str(ord(x) - 48) for x in name_hash)[-6:]
-
-        return int(prefix + suffix)
 
 
 @add_schema
@@ -63,6 +48,6 @@ class ArticlesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     def run(self):
         articles = self._csv_to_dataframe(self._data[0])
 
-        articles = articles.rename(columns=ARTICLES_COLUMNS)
+        articles = articles.rename(columns=ARTICLES_COLUMNS).drop_duplicates()
 
         return [self._dataframe_to_csv(articles)]
