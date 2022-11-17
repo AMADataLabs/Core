@@ -283,12 +283,11 @@ data:
         T1.licensee <> '%ACME%' and
         T1.account_exec Not In ('David Young', 'Brian Eaggleston') and
         T1.properties like '%CPT%'
-
-    Order by T1.licensee asc
-    OFFSET {index} ROWS
-    FETCH NEXT {count} ROWS ONLY;
     "
-    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACTS__CHUNK_SIZE: '100000'
+#     ORDER BY T1.licensee ASC
+#     OFFSET {index} ROWS
+#     FETCH NEXT {count} ROWS ONLY;
+#     LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACTS__CHUNK_SIZE: '100000'
 
     LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACTS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
     LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACTS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
