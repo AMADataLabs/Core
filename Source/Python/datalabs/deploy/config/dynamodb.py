@@ -142,11 +142,47 @@ class Configuration:
         self._table = table
 
     def get_dags(self) -> list:
+        dags = set()
         with AWSClient("dynamodb") as dynamodb:
-            dags = set()
             response = dynamodb.scan(TableName=self._table)
 
-            for item in response["Items"]:
-                dags.add(item["DAG"]["S"])
+        for item in response["Items"]:
+            dags.add(item["DAG"]["S"])
 
-            return dags
+        return dags
+
+    def get_tasks(self, dag: str):
+        tasks = []
+
+        parameters = dict(
+            TableName=self._table,
+            FilterExpression="DAG = :dag",
+            ExpressionAttributeValues={":dag": {"S": dag}}
+        )
+
+        with AWSClient("dynamodb") as dynamodb:
+            response = dynamodb.scan(**parameters)
+
+        for item in response["Items"]:
+            task = item["Task"]["S"]
+
+            if task not in ["DAG", "GLOBAL", "LOCAL"]:
+                tasks.append(task)
+
+        return tasks
+
+    def clear_dag(self, dag: str):
+        parameters = dict(
+            TableName=self._table,
+            FilterExpression="DAG = :dag",
+            ExpressionAttributeValues={":dag": {"S": dag}}
+        )
+
+        with AWSClient("dynamodb") as dynamodb:
+            response = dynamodb.scan(**parameters)
+
+            for item in response["Items"]:
+                dynamodb.delete_item(
+                    TableName=self._table,
+                    Key={'DAG': {'S': dag}, 'Task': {'S': item["Task"]["S"]}},
+                )

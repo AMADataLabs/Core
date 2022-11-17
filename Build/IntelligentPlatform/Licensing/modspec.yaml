@@ -18,6 +18,9 @@ modspec:
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+  - package: datalabs.model.intelligent_platform
+    include:
+      - licensing
   - package: datalabs.etl.orm
   - package: datalabs.etl.orm.provider
     include:

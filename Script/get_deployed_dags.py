@@ -12,7 +12,7 @@ LOGGER.setLevel(logging.DEBUG)
 def main(args):
     configuration = Configuration(f'DataLake-configuration-{args["environment"]}')
 
-    for dag in configuration.get_dags():
+    for dag in sorted(configuration.get_dags()):
         print(dag)
 
 if __name__ == '__main__':
