@@ -85,13 +85,7 @@ class ORMLoaderTask(Task):
         schema = self._get_schema(model_class)
         table = model_class.__tablename__
         ignore_columns = self._get_ignore_columns()
-        provider = None
-
-        try:
-            provider = get_provider(self._parameters.database_backend)
-        except ModuleNotFoundError as exception:
-            dialect = self._parameters.database_backend.split('+')[0]
-            raise ValueError(f"SQLAlchemy backend dialect '{dialect}' is not supported.") from exception
+        provider = self._get_provider()
 
         primary_key = provider.get_primary_key(database, schema, table)
         autoincrement = primary_key in ignore_columns
@@ -128,6 +122,15 @@ class ORMLoaderTask(Task):
 
         return ignore_columns
 
+    def _get_provider(self):
+        try:
+            provider = get_provider(self._parameters.database_backend)
+        except ModuleNotFoundError as exception:
+            dialect = self._parameters.database_backend.split('+')[0]
+            raise ValueError(f"SQLAlchemy backend dialect '{dialect}' is not supported.") from exception
+
+        return provider
+
     def _update(self, database, table_parameters):
         append = self._parameters.append
         delete = self._parameters.delete
@@ -140,7 +143,8 @@ class ORMLoaderTask(Task):
 
             self._add_data(database, table_parameters)
 
-    def _get_hash_columns(self, columns, ignore_columns):
+    @classmethod
+    def _get_hash_columns(cls, columns, ignore_columns):
         hash_columns = columns
 
         for ignore_column in ignore_columns:

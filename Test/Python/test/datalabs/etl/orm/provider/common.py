@@ -169,6 +169,6 @@ def table_parameters(incoming_data, hash_query_results):
     current_hashes = hash_query_results
     incoming_hashes = None
 
-    table_parameters = TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes)
+    table_parameters = TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes, False)
 
     return table_parameters
