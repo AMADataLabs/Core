@@ -10,7 +10,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.core.util.ArrayUtils;
-import org.apache.logging.log4j.core.util.Assert;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.io.TempDir;
@@ -18,7 +17,7 @@ import org.zeroturnaround.zip.ZipUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.junit.jupiter.api.Assertions;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -121,7 +120,7 @@ class CoreBuilderTaskTests {
             throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException,
             IOException {
         ArrayList<byte[]> data = new ArrayList<>();
-        int index = 0;
+        ArrayList<byte[]>expectedData = new ArrayList<byte[]>();
         List<String> testFiles = Arrays.asList("testFile1.txt", "testFile2.txt", "testFile3.txt");
         File dataOutputDirectory = new File(dataDir + File.separator + "output");
 
@@ -134,6 +133,8 @@ class CoreBuilderTaskTests {
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             bufferedWriter.write("content for " + testFile);
             bufferedWriter.close();
+            byte[] bytes = Files.readAllBytes(new File(dataOutputDirectory + File.separator + testFile).toPath());
+            expectedData.add(bytes);
         }
 
         Map<String, String> parameters = new HashMap();
@@ -142,30 +143,16 @@ class CoreBuilderTaskTests {
         parameters.put("username", "username");
         parameters.put("password", "password");
         parameters.put("port", "port");
-        ArrayList<byte[]>byteData = new ArrayList<byte[]>();
+        ArrayList<byte[]>returnedData = new ArrayList<byte[]>();
 
         try {
             CoreBuilderTask coreBuilderTask = new CoreBuilderTask(parameters, data);
             coreBuilderTask.loadSettings();
-            byteData = coreBuilderTask.loadOutputFiles(dataOutputDirectory);
-            File workingOutputDirectory = new File(workingDir + File.separator + "output");
+            returnedData = coreBuilderTask.loadOutputFiles(dataOutputDirectory);
 
-            for (byte[] file: byteData){
-                Files.write(
-                        Paths.get(workingOutputDirectory + File.separator + testFiles.get(index)),
-                        file);
-                index++;
-            }
-
-            for (String name: testFiles){
-                assertTrue(Files.exists(
-                        Paths.get(workingOutputDirectory + File.separator + name)
-                ));
-
-                assertEquals(
-                        Files.readString(new File(workingOutputDirectory + File.separator + name).toPath()).trim(),
-                        Files.readString(new File(dataOutputDirectory + File.separator + name).toPath()).trim()
-                );
+            for (int i = 0; i < returnedData.size();){
+                assertTrue(Arrays.equals(returnedData.get(i), expectedData.get(i)));
+                i++;
             }
 
         } catch (Exception exception) {
