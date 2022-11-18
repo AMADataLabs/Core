@@ -50,9 +50,10 @@ class FilesEndpointTask(APIEndpointTask):
 
     def _run(self, database):
         release = self._get_release_parameter(self._parameters.query)
-        authorized = self._authorized(self._parameters.authorization["authorizations"], Release.code_set)
+        code_set = self._get_target_year_from_release(release)
+        authorized = self._authorized(self._parameters.authorization["authorizations"], code_set)
         self._status_code = 403
-        LOGGER.debug('Code set: %s', code_set)
+        LOGGER.debug('Target Year: %s', code_set)
         LOGGER.debug('Authorized: %s', authorized)
 
         if authorized:
@@ -69,6 +70,12 @@ class FilesEndpointTask(APIEndpointTask):
             release = release[0]
 
         return release
+
+    @classmethod
+    def _get_target_year_from_release(cls, release):
+        code_set = release.code_set
+
+        return code_set
 
     @classmethod
     def _authorized(cls, authorizations, target_year):
