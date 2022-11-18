@@ -25,16 +25,9 @@ def get_letters_between(start, end):
 class DBLReportTransformer(Task):
     def run(self) -> 'Transformed Data':
         dataframes = self._get_dataframes(self._data[:10])  # index 10 contains previous report (.xlsx)
-        dataframes[0] = self._transform_tab1(dataframes[0])
-        dataframes[1] = self._transform_tab2(dataframes[1])
-        dataframes[2] = self._transform_tab3(dataframes[2])
-        dataframes[3] = self._transform_tab4(dataframes[3])
-        dataframes[4] = self._transform_tab5(dataframes[4])
-        dataframes[5] = self._transform_tab6(dataframes[5])
-        dataframes[6] = self._transform_tab7(dataframes[6])
-        dataframes[7] = self._transform_tab8(dataframes[7])
-        dataframes[8] = self._transform_tab9(dataframes[8])
-        dataframes[9] = self._transform_tab10(dataframes[9])
+
+        for tab in range(10):
+            dataframes[tab] = getattr(self, f"_transform_tab{tab+1}")(dataframes[tab])
 
         if len(self._data) > 10:
             previous_report = self._data[10]
@@ -84,19 +77,19 @@ class DBLReportTransformer(Task):
     @classmethod
     def _transform_tab1(cls, data):
         """ ChangeFileAudit """
-        return data.fillna('')
+        return data.drop_duplicates().fillna('')
 
     @classmethod
     def _transform_tab2(cls, data):
         """ ReportByFieldFrom SAS """
         # no transformation required
-        return data.fillna('')
+        return data.drop_duplicates().fillna('')
 
     @classmethod
     def _transform_tab3(cls, data):
         """ ChangeByFieldCount """
         # no transformation required
-        return data.fillna('')
+        return data.drop_duplicates().fillna('')
 
     @classmethod
     def _transform_tab4(cls, data):
@@ -108,11 +101,12 @@ class DBLReportTransformer(Task):
     def _transform_tab5(cls, data):
         """ ChangeByRecordCount """
         # no transformation required
-        return data.fillna('')
+        return data.drop_duplicates().fillna('')
 
     @classmethod
     def _transform_tab6(cls, data):
         """ PE Counts """
+        data.drop_duplicates(inplace=True)
 
         data.columns = ['Total', 'PE Code', 'Description']
         data['PE Code'] = data['PE Code'].apply(lambda x: ('000' + str(x))[-3:])
@@ -131,6 +125,7 @@ class DBLReportTransformer(Task):
     @classmethod
     def _transform_tab7(cls, data):
         """ TOP Counts """
+        data.drop_duplicates(inplace=True)
 
         data.columns = ['Total', 'TOP Code', 'Description']
         data['TOP Code'] = data['TOP Code'].apply(lambda x: ('000' + str(x))[-3:])
@@ -149,6 +144,7 @@ class DBLReportTransformer(Task):
     @classmethod
     def _transform_tab8(cls, data):
         """ TOP by PE """
+        data.drop_duplicates(inplace=True)
 
         data.columns = ['TOP Code', 'Description', 'PE Code', 'Count']
         data['TOP Code'] = data['TOP Code'].apply(lambda x: ('000' + str(x))[-3:])
@@ -169,6 +165,7 @@ class DBLReportTransformer(Task):
     @classmethod
     def _transform_tab9(cls, data):
         """ PrimSpecbyMPA """
+        data.drop_duplicates(inplace=True)
 
         data.columns = ['SPEC Code', 'Description', 'MPA', 'Count']
         table = cls._make_spec_pivot_table(data)
@@ -177,6 +174,7 @@ class DBLReportTransformer(Task):
     @classmethod
     def _transform_tab10(cls, data):
         """ SecSpecbyMPA """
+        data.drop_duplicates(inplace=True)
 
         data.columns = ['SPEC Code', 'Description', 'MPA', 'Count']
         table = cls._make_spec_pivot_table(data)

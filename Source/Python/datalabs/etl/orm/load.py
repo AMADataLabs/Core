@@ -15,7 +15,7 @@ from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 # pylint: disable=too-many-instance-attributes
@@ -27,6 +27,7 @@ class TableParameters:
     columns: list
     current_hashes: pandas.DataFrame
     incoming_hashes: pandas.DataFrame
+    autoincrement: bool
 
 
 @add_schema
@@ -66,19 +67,8 @@ class ORMLoaderTask(Task):
 
                 self._update(database, table_parameters)
 
-                database.commit()  # pylint: disable=no-member
-
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters.model_classes.split(',')]
@@ -92,24 +82,23 @@ class ORMLoaderTask(Task):
     def _generate_table_parameters(self, database, model_class, data):
         schema = self._get_schema(model_class)
         table = model_class.__tablename__
-        provider = None
-
-        try:
-            provider = get_provider(self._parameters.database_backend)
-        except ModuleNotFoundError as exception:
-            dialect = self._parameters.database_backend.split('+')[0]
-            raise ValueError(f"SQLAlchemy backend dialect '{dialect}' is not supported.") from exception
+        ignore_columns = self._get_ignore_columns()
+        provider = self._get_provider()
 
         primary_key = provider.get_primary_key(database, schema, table)
+        autoincrement = primary_key in ignore_columns
         columns = provider.get_database_columns(database, schema, table)
-        hash_columns = self._get_hash_columns(columns)
+        hash_columns = self._get_hash_columns(columns, ignore_columns)
 
-        data[primary_key] = [str(key) for key in data[primary_key]]
+        if autoincrement:
+            data[primary_key] = range(len(data))
+        else:
+            data[primary_key] = [str(key) for key in data[primary_key]]
 
         current_hashes = provider.get_current_row_hashes(database, schema, table, primary_key, hash_columns)
         incoming_hashes = provider.generate_row_hashes(data, primary_key, hash_columns)
 
-        return TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes)
+        return TableParameters(data, model_class, primary_key, columns, current_hashes, incoming_hashes, autoincrement)
 
     @classmethod
     def _get_schema(cls, model_class):
@@ -125,6 +114,21 @@ class ORMLoaderTask(Task):
 
         return schema
 
+    def _get_ignore_columns(self):
+        ignore_columns = self._parameters.ignore_columns or ''
+        ignore_columns = ignore_columns.split(',')
+
+        return ignore_columns
+
+    def _get_provider(self):
+        try:
+            provider = get_provider(self._parameters.database_backend)
+        except ModuleNotFoundError as exception:
+            dialect = self._parameters.database_backend.split('+')[0]
+            raise ValueError(f"SQLAlchemy backend dialect '{dialect}' is not supported.") from exception
+
+        return provider
+
     def _update(self, database, table_parameters):
         append = self._parameters.append
         delete = self._parameters.delete
@@ -137,9 +141,8 @@ class ORMLoaderTask(Task):
 
             self._add_data(database, table_parameters)
 
-    def _get_hash_columns(self, columns):
-        ignore_columns = self._parameters.ignore_columns or ''
-        ignore_columns = ignore_columns.split(',')
+    @classmethod
+    def _get_hash_columns(cls, columns, ignore_columns):
         hash_columns = columns
 
         for ignore_column in ignore_columns:
@@ -156,11 +159,15 @@ class ORMLoaderTask(Task):
         else:
             self._delete_data_from_table(database, table_parameters, deleted_data)
 
+        database.commit()  # pylint: disable=no-member
+
     @classmethod
     def _update_data(cls, database, table_parameters):
         updated_data = cls._select_updated_data(table_parameters)
 
         cls._update_data_in_table(database, table_parameters, updated_data)
+
+        database.commit()  # pylint: disable=no-member
 
     @classmethod
     def _add_data(cls, database, table_parameters):
@@ -168,13 +175,20 @@ class ORMLoaderTask(Task):
 
         cls._add_data_to_table(database, table_parameters, added_data)
 
+        database.commit()  # pylint: disable=no-member
+
     @classmethod
     def _select_deleted_data(cls, table_parameters):
-        deleted_data = table_parameters.current_hashes[
-            ~table_parameters.current_hashes[table_parameters.primary_key].isin(
-                table_parameters.data[table_parameters.primary_key]
-            )
-        ].reset_index(drop=True)
+        if table_parameters.autoincrement:
+            deleted_data = table_parameters.current_hashes[
+                ~table_parameters.current_hashes.md5.isin(table_parameters.incoming_hashes.md5)
+            ].reset_index(drop=True)
+        else:
+            deleted_data = table_parameters.current_hashes[
+                ~table_parameters.current_hashes[table_parameters.primary_key].isin(
+                    table_parameters.data[table_parameters.primary_key]
+                )
+            ].reset_index(drop=True)
         LOGGER.debug('Deleted Data: %s', deleted_data)
 
         return deleted_data
@@ -209,24 +223,27 @@ class ORMLoaderTask(Task):
 
     @classmethod
     def _select_updated_data(cls, table_parameters):
-        old_current_hashes = table_parameters.current_hashes[
-            table_parameters.current_hashes[table_parameters.primary_key].isin(
-                table_parameters.incoming_hashes[table_parameters.primary_key]
-            )
-        ]
+        updated_data = pandas.DataFrame(columns=table_parameters.data.columns)
 
-        old_new_hashes = table_parameters.incoming_hashes[
-            table_parameters.incoming_hashes[table_parameters.primary_key].isin(
-                old_current_hashes[table_parameters.primary_key]
-            )
-        ]
+        if not table_parameters.autoincrement:
+            old_current_hashes = table_parameters.current_hashes[
+                table_parameters.current_hashes[table_parameters.primary_key].isin(
+                    table_parameters.incoming_hashes[table_parameters.primary_key]
+                )
+            ]
 
-        updated_hashes = old_new_hashes[~old_new_hashes['md5'].isin(old_current_hashes['md5'])]
-        updated_data = table_parameters.data[
-            table_parameters.data[table_parameters.primary_key].isin(
-                updated_hashes[table_parameters.primary_key]
-            )
-        ].reset_index(drop=True)
+            old_new_hashes = table_parameters.incoming_hashes[
+                table_parameters.incoming_hashes[table_parameters.primary_key].isin(
+                    old_current_hashes[table_parameters.primary_key]
+                )
+            ]
+
+            updated_hashes = old_new_hashes[~old_new_hashes['md5'].isin(old_current_hashes['md5'])]
+            updated_data = table_parameters.data[
+                table_parameters.data[table_parameters.primary_key].isin(
+                    updated_hashes[table_parameters.primary_key]
+                )
+            ].reset_index(drop=True)
         LOGGER.debug('Updated Data: %s', updated_data)
 
         return updated_data
@@ -248,14 +265,20 @@ class ORMLoaderTask(Task):
     def _select_new_data(cls, table_parameters):
         LOGGER.debug('DB data PK type: %s', table_parameters.current_hashes[table_parameters.primary_key].dtype)
         LOGGER.debug('Incoming data PK type: %s', table_parameters.data[table_parameters.primary_key].dtype)
-        selected_data = table_parameters.data[
-            ~table_parameters.data[table_parameters.primary_key].isin(
-                table_parameters.current_hashes[table_parameters.primary_key]
-            )
-        ].reset_index(drop=True)
-        LOGGER.debug('Selected Data: %s', selected_data)
+
+        if table_parameters.autoincrement:
+            selected_data = table_parameters.data[
+                ~table_parameters.incoming_hashes.md5.isin(table_parameters.current_hashes.md5)
+            ].reset_index(drop=True)
+        else:
+            selected_data = table_parameters.data[
+                ~table_parameters.data[table_parameters.primary_key].isin(
+                    table_parameters.current_hashes[table_parameters.primary_key]
+                )
+            ].reset_index(drop=True)
+        LOGGER.debug('New Data: %s', selected_data)
         LOGGER.info('Incoming Data Size: %d', len(table_parameters.data))
-        LOGGER.info('Selected Data Size: %d', len(selected_data))
+        LOGGER.info('New Data Size: %d', len(selected_data))
 
         return selected_data
 
@@ -266,6 +289,9 @@ class ORMLoaderTask(Task):
             count = 0
 
             for model in models:
+                if table_parameters.autoincrement:
+                    setattr(model, table_parameters.primary_key, None)
+
                 database.add(model)  # pylint: disable=no-member
 
                 count += 1
@@ -343,16 +369,7 @@ class ORMPreLoaderTask(Task):
             database.commit()
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)
 
     def _get_model_classes(self):
         return [import_plugin(table) for table in self._parameters['MODEL_CLASSES'].split(',')]
@@ -388,16 +405,7 @@ class MaterializedViewRefresherTask(Task):
             database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)
 
 
 @add_schema
@@ -438,13 +446,4 @@ class ReindexerTask(Task):
             database.commit()  # pylint: disable=no-member
 
     def _get_database(self):
-        return Database.from_parameters(
-            dict(
-                host=self._parameters.database_host,
-                port=self._parameters.database_port,
-                backend=self._parameters.database_backend,
-                name=self._parameters.database_name,
-                username=self._parameters.database_username,
-                password=self._parameters.database_password
-            )
-        )
+        return Database.from_parameters(self._parameters)

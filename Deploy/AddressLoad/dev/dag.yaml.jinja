@@ -1,7 +1,7 @@
 # Render as follows:
 #
 # Script/render-template -t Deploy/AddressLoad/dev/dag.yaml.jinja -f Deploy/AddressLoad/dev/dag.yaml \
-# -V "sftp_host={{sftp_host}}" -V "sftp_password={{sftp_password}}", -V "sftp_username={{sftp_username}}"
+# -v "sftp_password={{sftp_password}}""
 ---
 data:
     #######################################################################
@@ -11,9 +11,10 @@ data:
     ENVIRONMENT: dev
     ACCOUNT: '191296302136'
 
-    SFTP_HOST: '{{sftp_host}}'  # dev: eft.ama-assn.org
-    SFTP_USERNAME: '{{sftp_username}}'  # dev: datalabs
-    SFTP_PASSWORD: '{{sftp_password}}'
+    EFT_HOST: eft.ama-assn.org
+    EFT_USERNAME: datalabs
+    EFT_PASSWORD: '{{eft_password}}'
+    EFT_BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/${ENVIRONMENT}'
 
     S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
     S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
@@ -22,11 +23,11 @@ data:
     S3_BASE_PATH: 'AMA/AddressLoad'
 
 
-  #######################################################################
-  #  # DAG Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "DAG"}})
-  #######################################################################
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "DAG"}})
+    #######################################################################
 
-    ADDRESS_LOAD_COMPILER__DAG__LAMBDA_FUNCTION: 'AddressLoad-${ENVIRONMENT}-AddressLoadCompilerDAG'
+    ADDRESS_LOAD_COMPILER__DAG__LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-AddressLoadCompilerDAG'
     ADDRESS_LOAD_COMPILER__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.address_load_compiler.DAG'
     ADDRESS_LOAD_COMPILER__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     ADDRESS_LOAD_COMPILER__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
@@ -36,24 +37,21 @@ data:
     ADDRESS_LOAD_COMPILER__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
     ADDRESS_LOAD_COMPILER__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
     ADDRESS_LOAD_COMPILER__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    ADDRESS_LOAD_COMPILER__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org,peter.lane@ama-assn.org'
-    ADDRESS_LOAD_COMPILER__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
-    ADDRESS_LOAD_COMPILER__DAG__TASK_CLASS: ''  # Used by Java DAG tasks
+    ADDRESS_LOAD_COMPILER__DAG__STATUS_NOTIFICATION_WEB_HOOK: 'https://amatoday.webhook.office.com/webhookb2/5cf63a5c-89ba-4724-b44f-8643269bae92@11fe67f6-fd54-4981-925f-94c36ed7b086/IncomingWebhook/1d0f20d047d042d68d01a8d855787009/b9b792dd-3637-4256-8a95-72d5d956f908'
 
 
-  ##########################################################################
-  #  # Task Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "<Task ID>"}})
-  ##########################################################################
-
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "ADDRESS_LOAD_COMPILER"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
 
     # Extract Component Files
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/input' 
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__BASE_PATH: '${EFT_BASE_PATH}/input'
     ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__FILES: '*.csv'
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__HOST: ${SFTP_HOST}
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__USERNAME: ${SFTP_USERNAME}
-    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__PASSWORD: ${SFTP_PASSWORD}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__HOST: ${EFT_HOST}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__USERNAME: ${EFT_USERNAME}
+    ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__PASSWORD: ${EFT_PASSWORD}
     ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__INCLUDE_NAMES: 'True'
-  
+
     ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
     ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     ADDRESS_LOAD_COMPILER__EXTRACT_COMPONENT_FILES__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
@@ -61,11 +59,10 @@ data:
 
     # Compile Batch Load File
     ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_CLASS: ${S3_CACHE_CLASS}
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_BASE_PATH: ${S3_BASE_PATH}
 
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'extract_output.pckl'
     ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
-
-    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__BASE_PATH: ${S3_BASE_PATH}
+    ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'extract_output.pckl'
 
     ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
     ADDRESS_LOAD_COMPILER__COMPILE_BATCH_LOAD_FILE__CACHE_OUTPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
@@ -76,8 +73,8 @@ data:
     ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__CACHE_INPUT_FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
 
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__BASE_PATH: 'Data Analytics/Data-Science/Data/IT_Batchloads/AddressLoad/output'
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__BASE_PATH: '${EFT_BASE_PATH}/output'
     ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__FILES: 'HSG_PHYS_ADDRESS_LOAD_AGGREGATE_%Y-%m-%d.csv,ADDRESS_LOAD_AGGREGATE_ERRORS_%Y-%m-%d.csv'
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__HOST: ${SFTP_HOST}
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__USERNAME: ${SFTP_USERNAME}
-    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__PASSWORD: ${SFTP_PASSWORD}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__HOST: ${EFT_HOST}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__USERNAME: ${EFT_USERNAME}
+    ADDRESS_LOAD_COMPILER__LOAD_BATCH_LOAD_FILE__PASSWORD: ${EFT_PASSWORD}

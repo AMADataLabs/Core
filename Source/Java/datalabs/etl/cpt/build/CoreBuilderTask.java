@@ -67,11 +67,11 @@ public class CoreBuilderTask extends Task {
             );
 
             DtkAccess priorLink = CoreBuilderTask.loadLink(priorLinkPath.toString());
-            DtkAccess priorCore = CoreBuilderTask.loadLink(currentLinkPath.toString());
+            DtkAccess currentLink = CoreBuilderTask.loadLink(currentLinkPath.toString());
 
-            CoreBuilderTask.updateConcepts(priorLink, priorCore);
+            CoreBuilderTask.updateConcepts(priorLink, currentLink);
 
-            DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate, dbParameters);
+            DtkAccess core = CoreBuilderTask.buildCore(currentLink, parameters.releaseDate, dbParameters);
 
             CoreBuilderTask.exportConcepts(core, this.settings.getProperty("output.directory"));
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
@@ -92,8 +92,8 @@ public class CoreBuilderTask extends Task {
         return link;
 	}
 
-    private static void updateConcepts(DtkAccess priorLink, DtkAccess priorCore) throws IOException {
-        for (DtkConcept concept : priorCore.getConcepts()) {
+    private static void updateConcepts(DtkAccess priorLink, DtkAccess currentLink) throws IOException {
+        for (DtkConcept concept : currentLink.getConcepts()) {
             if (concept.getProperty(PropertyType.CORE_ID) != null) {
                 DtkConcept priorConcept = priorLink.getConcept(concept.getConceptId());
 
@@ -106,11 +106,11 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-    private static DtkAccess buildCore(DtkAccess priorLink, String releaseDate, DbParameters dbParameters)
+    private static DtkAccess buildCore(DtkAccess currentLink, String releaseDate, DbParameters dbParameters)
             throws Exception {
-        ConceptIdFactory.init(priorLink);
+        ConceptIdFactory.init(currentLink);
 
-        return new BuildCore(priorLink, releaseDate).walk(dbParameters, dbParameters);
+        return new BuildCore(currentLink, releaseDate).walk(dbParameters, dbParameters);
     }
 
     private static void exportConcepts(DtkAccess core, String outputDirectory) throws Exception {

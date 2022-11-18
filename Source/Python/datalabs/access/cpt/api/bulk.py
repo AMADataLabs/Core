@@ -45,7 +45,6 @@ class FilesEndpointTask(APIEndpointTask):
 
     def run(self):
         LOGGER.debug('Parameters: %s', self._parameters)
-
         with Database.from_parameters(self._parameters) as database:
             self._run(database)
 

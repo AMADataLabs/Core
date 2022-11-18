@@ -8,13 +8,15 @@ modspec:
       - database
       - datastore
       - environment
-      - orm
+      - sqlalchemy
   - package: datalabs.access.parameter
   - package: datalabs.etl
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.customer_intelligence
+    include:
+      - cerner
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.smtp

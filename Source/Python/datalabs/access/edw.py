@@ -5,7 +5,7 @@ import logging
 
 import pandas
 
-from   datalabs.access.odbc import ODBCDatabase
+from   datalabs.access.odbc import Database
 import datalabs.curate.dataframe  # pylint: disable=unused-import
 
 logging.basicConfig()
@@ -19,7 +19,7 @@ class PartyKeyType(Enum):
     NPI = 38
     ENTITY = 9
 
-class EDW(ODBCDatabase):
+class EDW(Database):
     def get_me_numbers(self, chunk_size=None):
         return self.get_party_keys_by_type(PartyKeyType.ME, chunk_size)
 
