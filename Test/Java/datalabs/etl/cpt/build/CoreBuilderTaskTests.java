@@ -58,21 +58,31 @@ class CoreBuilderTaskTests {
     }
 
     @Test
-    @DisplayName("Test loadOutputFiles return")
-    void stageInputFilesTest(@TempDir Path DataDir, @TempDir Path WorkingDir) throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
-        String[] inputFiles = {"prior_link", "current_link"};
-        System.getProperties().setProperty("data.directory", String.valueOf(DataDir));
-        File inputDirectory = new File(WorkingDir+ File.separator + "input");
-        ArrayList<byte[]> data = new ArrayList<byte[]>();
+    @DisplayName("Test stageOutputFiles return")
+    void stageInputFilesTest(@TempDir Path dataDir, @TempDir Path workingDir) throws IOException, InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
+        String[] testFiles = {"testFile1.txt", "testFile2.txt", "testFile3.txt"};
+        String[] testDirectories = {"prior_link", "current_link"};
+        ArrayList<byte[]> data = new ArrayList<>();
 
-        inputDirectory.mkdirs();
+        for (String directory: testDirectories) {
+            File linkDirectory = new File(workingDir + File.separator + "input" + File.separator + directory);
+            linkDirectory.mkdirs();
 
-        for (String fileToZip : inputFiles) {
-            File zipFile = new File(inputDirectory + File.separator + fileToZip + ".zip");
-            ZipUtil.pack(new File(fileToZip), zipFile);
+            for (String testFile: testFiles) {
+                FileWriter FileWriter = new FileWriter(linkDirectory + File.separator + testFile);
+                BufferedWriter bufferedWriter = new BufferedWriter(FileWriter);
+                bufferedWriter.write("content for " + testFile);
+                bufferedWriter.close();
+            }
+
+            File zipFile = new File(linkDirectory + ".zip");
+            System.out.println(zipFile);
+            ZipUtil.pack(linkDirectory, zipFile);
             byte[] byteInput = Files.readAllBytes(zipFile.toPath());
             data.add(byteInput);
         }
+
+        System.getProperties().setProperty("data.directory", String.valueOf(dataDir));
 
         Map<String, String> parameters = new HashMap();
         parameters.put("releaseDate", "20230101");
@@ -90,21 +100,41 @@ class CoreBuilderTaskTests {
             CoreBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
         }
 
-        assertTrue(Files.exists(Paths.get(DataDir + File.separator + "input" + File.separator + "current_link")));
-        assertTrue(Files.exists(Paths.get(DataDir + File.separator + "input" + File.separator + "prior_link")));
+        for (String directory: testDirectories){
+            assertTrue(Files.exists(
+                    Paths.get(dataDir + File.separator + "input" + File.separator + directory)
+            ));
+
+            for (String testFile: testFiles){
+                assertEquals(
+                        Files.readString(new File(workingDir + File.separator + "input" + File.separator + directory + File.separator + testFile).toPath()).trim(),
+                        Files.readString(new File(dataDir + File.separator + "input" + File.separator + directory + File.separator + testFile).toPath()).trim()
+                );
+            }
+        }
 
     }
 
     @Test
     @DisplayName("Test loadOutputFiles return")
-    void loadOutputFilesTest(@TempDir Path OutputDirectory) throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException {
-        ArrayList<byte[]> data = new ArrayList<byte[]>();
+    void loadOutputFilesTest(@TempDir Path dataDir, @TempDir Path workingDir)
+            throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException,
+            IOException {
+        ArrayList<byte[]> data = new ArrayList<>();
         int index = 0;
-        List<String> outputFileNames = Arrays.asList(
-                "internal_Property.txt",
-                "internal_Type.txt",
-                "RelationshipGroup.txt"
-        );
+        List<String> testFiles = Arrays.asList("testFile1.txt", "testFile2.txt", "testFile3.txt");
+        File dataOutputDirectory = new File(dataDir + File.separator + "output");
+
+        dataOutputDirectory.mkdirs();
+
+        System.getProperties().setProperty("data.directory", String.valueOf(dataDir));
+
+        for (String testFile: testFiles) {
+            FileWriter fileWriter = new FileWriter(dataOutputDirectory + File.separator + testFile);
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write("content for " + testFile);
+            bufferedWriter.close();
+        }
 
         Map<String, String> parameters = new HashMap();
         parameters.put("releaseDate", "20230101");
@@ -114,28 +144,28 @@ class CoreBuilderTaskTests {
         parameters.put("port", "port");
         ArrayList<byte[]>byteData = new ArrayList<byte[]>();
 
-        CoreBuilderTask coreBuilderTask = new CoreBuilderTask(parameters, data);
-        coreBuilderTask.loadSettings();
-
         try {
-            byteData = coreBuilderTask.loadOutputFiles(new File("output"));
+            CoreBuilderTask coreBuilderTask = new CoreBuilderTask(parameters, data);
+            coreBuilderTask.loadSettings();
+            byteData = coreBuilderTask.loadOutputFiles(dataOutputDirectory);
+            File workingOutputDirectory = new File(workingDir + File.separator + "output");
+
             for (byte[] file: byteData){
                 Files.write(
-                        Paths.get(OutputDirectory + File.separator + "output" + File.separator + outputFileNames.get(index)),
+                        Paths.get(workingOutputDirectory + File.separator + testFiles.get(index)),
                         file);
                 index++;
             }
 
-            for (String name: outputFileNames){
-                assertTrue(byteData.size() > 0);
+            for (String name: testFiles){
                 assertTrue(Files.exists(
-                        Paths.get(OutputDirectory + File.separator + "output" + File.separator + name)
+                        Paths.get(workingOutputDirectory + File.separator + name)
                 ));
-                assertTrue(FileUtils.contentEquals(
-                        new File(OutputDirectory + File.separator + "output" + File.separator + name),
-                        new File("output" + File.separator + name))
+
+                assertEquals(
+                        Files.readString(new File(workingOutputDirectory + File.separator + name).toPath()).trim(),
+                        Files.readString(new File(dataOutputDirectory + File.separator + name).toPath()).trim()
                 );
-                assertTrue(new File(OutputDirectory + File.separator + "output" + File.separator + name).length() > 0);
             }
 
         } catch (Exception exception) {
