@@ -116,7 +116,7 @@ class CoreBuilderTaskTests {
 
     @Test
     @DisplayName("Test loadOutputFiles return")
-    void loadOutputFilesTest(@TempDir Path dataDir, @TempDir Path workingDir)
+    void loadOutputFilesTest(@TempDir Path dataDir)
             throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException,
             IOException {
         ArrayList<byte[]> data = new ArrayList<>();
@@ -150,9 +150,8 @@ class CoreBuilderTaskTests {
             coreBuilderTask.loadSettings();
             returnedData = coreBuilderTask.loadOutputFiles(dataOutputDirectory);
 
-            for (int i = 0; i < returnedData.size();){
+            for (int i = 0; i < returnedData.size(); i++){
                 assertTrue(Arrays.equals(returnedData.get(i), expectedData.get(i)));
-                i++;
             }
 
         } catch (Exception exception) {
