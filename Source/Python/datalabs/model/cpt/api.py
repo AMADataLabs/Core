@@ -25,7 +25,7 @@ class Release(Base):
 
     id = sa.Column(sa.String, primary_key=True)
     date = sa.Column(sa.Date, nullable=False, unique=True)
-    code_set = sa.Column(sa.Integer, nullable=True)
+    code_set = sa.Column(sa.Integer, nullable=False)
 
 
 class Code(Base):
