@@ -50,15 +50,15 @@ class FilesEndpointTask(APIEndpointTask):
 
     def _run(self, database):
         release = self._get_release_parameter(self._parameters.query)
-        target_year = self._get_target_year_from_release(release)
-        authorized = self._authorized(self._parameters.authorization["authorizations"], target_year)
+        code_set = release.code_set
+        authorized = self._authorized(self._parameters.authorization["authorizations"], code_set)
         self._status_code = 403
-        LOGGER.debug('Target Year: %s', target_year)
+        LOGGER.debug('Code set: %s', code_set)
         LOGGER.debug('Authorized: %s', authorized)
 
         if authorized:
             self._status_code = 303
-            self._headers['Location'] = self._generate_presigned_url(release, target_year, database)
+            self._headers['Location'] = self._generate_presigned_url(release, code_set, database)
 
         LOGGER.debug('Status Code: %s', self._status_code)
 
@@ -72,22 +72,11 @@ class FilesEndpointTask(APIEndpointTask):
         return release
 
     @classmethod
-    def _get_target_year_from_release(cls, release):
-        target_year = datetime.now(timezone.utc).year
-
-        if release is not None:
-            release_parts = release.split('-')
-
-            target_year = int(release_parts[-1])
-
-        return target_year
-
-    @classmethod
-    def _authorized(cls, authorizations, target_year):
+    def _authorized(cls, authorizations, code_set):
         authorized_years = cls._get_authorized_years(authorizations)
         authorized = False
 
-        if target_year in authorized_years:
+        if code_set in authorized_years:
             authorized = True
 
         return authorized
