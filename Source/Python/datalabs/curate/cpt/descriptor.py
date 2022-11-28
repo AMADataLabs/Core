@@ -96,3 +96,78 @@ class ClinicianDescriptorParser(DescriptorParser):
 class ConsumerDescriptorParser(DescriptorParser):
     def __init__(self):
         super().__init__(['concept_id', 'cpt_code', 'consumer_descriptor'])
+
+
+# pylint: disable=invalid-name
+class TabDelimitedToFixedWidthDescriptorParser:
+    def __init__(self, separator=None):
+        self._separator = separator
+
+        if self._separator is None:
+            self._separator = '\t'
+
+    def parse(self, text, left_width, right_width):
+        headerless_text = self._remove_header(text)[0]
+        LOGGER.debug('Headerless Text: %s', headerless_text)
+
+        listStr = headerless_text.split('\r\n')
+        txt = ''
+        for s in listStr:
+            splitStr = s.split('\\t')
+            left = left_width.format(splitStr[0])
+            right = right_width.format(splitStr[1])
+            txt = txt + left + ' ' + right + '\r\n'
+
+        header = self._remove_header(text)[1]
+        headered_text = header + '\r\n' + txt
+
+        return self._parse(headered_text.encode())
+
+    def _parse(self, text: str) -> pandas.DataFrame:
+        return pandas.read_csv(
+            io.BytesIO(text),
+            sep=self._separator,
+            header=None,
+            dtype=str,
+            skip_blank_lines=False,
+            index_col=False
+        )
+
+    @classmethod
+    def _remove_header(cls, text):
+        decoded_text = None
+        try:
+
+            decoded_text = text.decode()
+        except UnicodeDecodeError:
+            decoded_text = text.decode('cp1252', errors='backslashreplace')
+
+        lines = decoded_text.splitlines()
+        reversed_lines = lines[::-1]
+        headerless_txt = '\r\n'.join(reversed_lines[:reversed_lines.index('')][::-1])
+        descriptor = '\r\n'.join(reversed_lines[reversed_lines.index(''):][::-1])
+        return [headerless_txt,descriptor]
+
+
+class LongFixedWidthDescriptorParser(TabDelimitedToFixedWidthDescriptorParser):
+    def parse(self, text, left_width='', right_width=''):
+        left_width = "{:<8}"
+        right_width = "{:<71}"
+
+        return super().parse(text, left_width, right_width)
+
+
+class MediumFixedWidthDescriptorParser(TabDelimitedToFixedWidthDescriptorParser):
+    def parse(self, text, left_width='', right_width=''):
+        left_width = "{:<5}"
+        right_width = "{:<48}"
+
+        return super().parse(text, left_width, right_width)
+
+
+class ShortFixedWidthDescriptorParser(TabDelimitedToFixedWidthDescriptorParser):
+    def parse(self, text, left_width='', right_width=''):
+        left_width = "{:<5}"
+        right_width = "{:<28}"
+
+        return super().parse(text, left_width, right_width)
