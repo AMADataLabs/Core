@@ -26,9 +26,9 @@ class TabDelimitedToFixedWidthDescriptorTransformerTask(CSVWriterMixin, Task):
     def run(self):
 
         parsers = [self._instantiate_parser(parser) for parser in self._parameters.parsers.split(',')]
-        parsed_data = [parser.parse(text) for parser, text in zip(parsers, self._data)]
+        parsed_data = [parser.format(text) for parser, text in zip(parsers, self._data)]
 
-        return [self._dataframe_to_txt(data) for data in parsed_data]
+        return [self._dataframe_to_text(data) for data in parsed_data]
 
 
     @classmethod

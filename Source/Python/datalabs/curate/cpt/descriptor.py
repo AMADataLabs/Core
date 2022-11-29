@@ -99,34 +99,50 @@ class ConsumerDescriptorParser(DescriptorParser):
 
 
 # pylint: disable=invalid-name
-class TabDelimitedToFixedWidthDescriptorParser:
-    def __init__(self, separator=None):
-        self._separator = separator
+class TabDelimitedToFixedWidthDescriptorFormatter:
+    def __init__(self, code_width: int, descriptor_width: int):
+        self._code_format = f"{{:<{code_width}}}"
+        self._descriptor_format = f"{{:<{descriptor_width}}}"
 
-        if self._separator is None:
-            self._separator = '\t'
+    def format(self, text):
+        header, descriptors = self._parse(text)
+        reformatted_descriptors = self._reformat_columns(descriptors)
 
-    def parse(self, text, left_width, right_width):
-        headerless_text = self._remove_header(text)[0]
-        LOGGER.debug('Headerless Text: %s', headerless_text)
+        return self._reassemble_text(header, reformatted_descriptors)
 
-        listStr = headerless_text.split('\r\n')
-        txt = ''
-        for s in listStr:
-            splitStr = s.split('\\t')
-            left = left_width.format(splitStr[0])
-            right = right_width.format(splitStr[1])
-            txt = txt + left + ' ' + right + '\r\n'
+    def _parse(self, text):
+        decoded_text = self._decode(text)
+        header, headerless_text = self._remove_header(decoded_text)
 
-        header = self._remove_header(text)[1]
-        headered_text = header + '\r\n' + txt
+        descriptors = pandas.read_csv(
+            io.BytesIO(headerless_text.encode()),
+            sep=r"\\t",
+            names=["code", "descriptor"],
+            header=None,
+            dtype=str,
+            index_col=False
+        )
 
-        return self._parse(headered_text.encode())
+        return header, descriptors
 
-    def _parse(self, text: str) -> pandas.DataFrame:
+    def _reformat_columns(self, descriptors):
+        descriptors.code = descriptors.code.apply(self._code_format.format)
+        descriptors.descriptor = descriptors.descriptor.apply(self._descriptor_format.format)
+
+        return descriptors
+
+    @classmethod
+    def _reassemble_text(cls, header, descriptors):
+        descriptors = descriptors.to_string(header = False, index = False)
+
+        if len(header) != 0:
+            headered_text = header + '\r\n' + descriptors
+        else:
+            headered_text = descriptors
+
         return pandas.read_csv(
-            io.BytesIO(text),
-            sep=self._separator,
+            io.BytesIO(headered_text.encode()),
+            sep="\t",
             header=None,
             dtype=str,
             skip_blank_lines=False,
@@ -134,40 +150,40 @@ class TabDelimitedToFixedWidthDescriptorParser:
         )
 
     @classmethod
-    def _remove_header(cls, text):
-        decoded_text = None
-        try:
+    def _remove_header(cls, decoded_text):
+        lines = decoded_text.splitlines()
+        reversed_lines = lines[::-1]
 
+        try:
+            headerless_text = '\r\n'.join(reversed_lines[:reversed_lines.index('')][::-1])
+            header = '\r\n'.join(reversed_lines[reversed_lines.index(''):][::-1])
+        except ValueError:
+            header = ''
+            headerless_text = '\r\n'.join(lines)
+
+        return [header, headerless_text]
+
+    @classmethod
+    def _decode(cls, text):
+        decoded_text = None
+
+        try:
             decoded_text = text.decode()
         except UnicodeDecodeError:
             decoded_text = text.decode('cp1252', errors='backslashreplace')
 
-        lines = decoded_text.splitlines()
-        reversed_lines = lines[::-1]
-        headerless_txt = '\r\n'.join(reversed_lines[:reversed_lines.index('')][::-1])
-        descriptor = '\r\n'.join(reversed_lines[reversed_lines.index(''):][::-1])
-        return [headerless_txt,descriptor]
+        return decoded_text
+
+class LongFixedWidthDescriptorFormatter(TabDelimitedToFixedWidthDescriptorFormatter):
+    def __init__(self):
+        super().__init__(8, 71)
 
 
-class LongFixedWidthDescriptorParser(TabDelimitedToFixedWidthDescriptorParser):
-    def parse(self, text, left_width='', right_width=''):
-        left_width = "{:<8}"
-        right_width = "{:<71}"
-
-        return super().parse(text, left_width, right_width)
+class MediumFixedWidthDescriptorFormatter(TabDelimitedToFixedWidthDescriptorFormatter):
+    def __init__(self):
+        super().__init__(5, 48)
 
 
-class MediumFixedWidthDescriptorParser(TabDelimitedToFixedWidthDescriptorParser):
-    def parse(self, text, left_width='', right_width=''):
-        left_width = "{:<5}"
-        right_width = "{:<48}"
-
-        return super().parse(text, left_width, right_width)
-
-
-class ShortFixedWidthDescriptorParser(TabDelimitedToFixedWidthDescriptorParser):
-    def parse(self, text, left_width='', right_width=''):
-        left_width = "{:<5}"
-        right_width = "{:<28}"
-
-        return super().parse(text, left_width, right_width)
+class ShortFixedWidthDescriptorFormatter(TabDelimitedToFixedWidthDescriptorFormatter):
+    def __init__(self):
+        super().__init__(5, 28)
