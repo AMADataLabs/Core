@@ -120,6 +120,7 @@ class TabDelimitedToFixedWidthDescriptorFormatter:
             names=["code", "descriptor"],
             header=None,
             dtype=str,
+            engine='python',
             index_col=False
         )
 
@@ -134,20 +135,12 @@ class TabDelimitedToFixedWidthDescriptorFormatter:
     @classmethod
     def _reassemble_text(cls, header, descriptors):
         descriptors = descriptors.to_string(header = False, index = False)
+        headered_text = descriptors
 
-        if len(header) != 0:
+        if len(header) > 0:
             headered_text = header + '\r\n' + descriptors
-        else:
-            headered_text = descriptors
 
-        return pandas.read_csv(
-            io.BytesIO(headered_text.encode()),
-            sep="\t",
-            header=None,
-            dtype=str,
-            skip_blank_lines=False,
-            index_col=False
-        )
+        return headered_text
 
     @classmethod
     def _remove_header(cls, decoded_text):
