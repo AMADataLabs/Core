@@ -47,6 +47,8 @@ public class LinkBuilderTask extends Task {
     }
 
     public ArrayList<byte[]> run() throws TaskException {
+        ArrayList<byte[]> outputFiles;
+
         try {
             LinkBuilderParameters parameters = (LinkBuilderParameters) this.parameters;
             loadSettings();
@@ -74,7 +76,6 @@ public class LinkBuilderTask extends Task {
 
             stageInputFiles();
 
-            DtkAccess priorLink = LinkBuilderTask.loadLink(priorLinkPath.toString());
             DtkAccess core = LinkBuilderTask.loadLink(currentCorePath.toString());
             DtkAccess currentLink = LinkBuilderTask.loadLink(currentLinkPath.toString());
 
@@ -85,11 +86,14 @@ public class LinkBuilderTask extends Task {
             LinkBuilderTask.createExtracts(core, extractPath.toString());
 
             LinkBuilderTask.createDistribution(parameters, this.settings);
+
+            File outputFilesDirectory = new File(settings.getProperty("output.directory"));
+            outputFiles = loadOutputFiles(outputFilesDirectory);
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
-            throw new TaskException(exception);
+            throw new TaskException(exception);d
         }
 
-        return null;
+        return outputFiles;
     }
 
 	private static DtkAccess loadLink(String directory) throws Exception {
@@ -380,18 +384,20 @@ public class LinkBuilderTask extends Task {
     }
 
     private void writeZipEntryToFile(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
-        byte[] data = new byte[(int) zipEntry.getSize()];
         String fileName = zipEntry.getName();
         File file = new File(directory + File.separator + fileName);
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
 
         new File(file.getParent()).mkdirs();
 
-        while (stream.read(data, 0, data.length) > 0) {
-            fileOutputStream.write(data, 0, data.length);
-        }
+        if (!zipEntry.isDirectory()){
+            byte[] data = new byte[1024];
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
 
-        fileOutputStream.close();
+            while (stream.read(data, 0, data.length) > 0) {
+                fileOutputStream.write(data, 0, data.length);
+            }
+            fileOutputStream.close();
+        }
 
     }
 
@@ -399,5 +405,27 @@ public class LinkBuilderTask extends Task {
         FileOutputStream fileOutputStream = new FileOutputStream(path);
         fileOutputStream.write(data);
         fileOutputStream.close();
+    }
+
+    ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
+        ArrayList<byte[]> outputFiles = new ArrayList<>();
+
+        for (File file: outputDirectory.listFiles()){
+            if (file.isDirectory()) {
+                ArrayList<byte[]> output = loadOutputFiles(file);
+
+                for (byte[] outputFile: output){
+                    outputFiles.add(outputFile);
+                }
+
+            } else {
+                Path path = Paths.get(file.getPath());
+                byte[] data = Files.readAllBytes(path);
+                outputFiles.add(data);
+            }
+
+        }
+
+        return outputFiles;
     }
 }
