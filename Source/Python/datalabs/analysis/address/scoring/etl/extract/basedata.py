@@ -99,4 +99,4 @@ class PoloEligibleDataTransformerTask(TransformerTask):
         result = StringIO()
         base_data.to_csv('base_data_test.txt', sep='|', index=False)
         base_data.to_csv(result, sep='|', index=False)
-        return [result.getvalue()]
+        return [result.getvalue().encode()]
