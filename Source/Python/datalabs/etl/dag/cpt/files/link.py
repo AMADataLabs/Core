@@ -1,5 +1,6 @@
 ''' DAG definition for CPT Link Files Process '''
 from   datalabs.etl.cpt.files.link.extract import InputFilesListExtractorTask
+from   datalabs.etl.cpt.files.link.transform import TabDelimitedToFixedWidthDescriptorTransformerTask
 from   datalabs.etl.dag.dag import DAG, register
 from   datalabs.etl.s3.extract import S3FileExtractorTask
 
@@ -11,6 +12,7 @@ class CPTLinkDAG(DAG):
     EXTRACT_EDITS: S3FileExtractorTask
     EXTRACT_RVUS: S3FileExtractorTask
     BUILD_LINK: 'datalabs.etl.cpt.build.LinkBuilderTask'
+    GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES: TabDelimitedToFixedWidthDescriptorTransformerTask
 
 
 # pylint: disable=pointless-statement
@@ -19,3 +21,4 @@ CPTLinkDAG.FIND_INPUT_FILES >> CPTLinkDAG.EXTRACT_INPUT_FILES
 CPTLinkDAG.EXTRACT_INPUT_FILES >> CPTLinkDAG.BUILD_LINK
 CPTLinkDAG.EXTRACT_EDITS >> CPTLinkDAG.BUILD_LINK
 CPTLinkDAG.EXTRACT_RVUS >> CPTLinkDAG.BUILD_LINK
+CPTLinkDAG.BUILD_LINK >> CPTLinkDAG.GENERATE_FIXED_WIDTH_DESCRIPTOR_FILES
