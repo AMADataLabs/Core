@@ -27,11 +27,21 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
     def run(self):
         organizations = self._csv_to_dataframe(self._data[0])
 
+        organizations = self._fill_in_empty_licensees(organizations)
+
         organizations = organizations[list(ORGANIZATION_COLUMNS.keys())].rename(columns=ORGANIZATION_COLUMNS)
 
         organizations = organizations.drop_duplicates()
 
         return [self._dataframe_to_csv(organizations)]
+
+    @classmethod
+    def _fill_in_empty_licensees(cls, organizations):
+        null_licensee_indicies = organizations.licensee.isnull()
+
+        organizations.licensee[null_licensee_indicies] = organizations.OrganizationName[null_licensee_indicies]
+
+        return organizations
 
 
 @add_schema
