@@ -124,7 +124,7 @@ class AddressScoringTransformerTask(TransformerTask):
 
         for col in aggregate_features.columns:
             if 'triangulation' in col:
-                aggregate_features[col] = aggregate_features[col].apply(eval).astype(int)
+                aggregate_features[col] = aggregate_features[col].fillna(0).astype(int)
 
         for col in REQUIRED_FEATURES:
             if col not in aggregate_features.columns:
@@ -134,11 +134,10 @@ class AddressScoringTransformerTask(TransformerTask):
         return [pk.dumps(info_data)]
 
     def _scale_columns(self, data: pd.DataFrame):
-        to_scale = []
         for col in data.columns.values:
             if 'count' in col or 'frequency' in col or '_age' in col or 'years' in col:
                 scaler = MinMaxScaler()
-                scaled = scaler.fit_transform(data[[col]]).reshape(1, -1)[0]
+                scaled = scaler.fit_transform(data[[col]].fillna(0)).reshape(1, -1)[0]
                 data[col] = scaled
         return data
     
