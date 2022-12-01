@@ -130,8 +130,13 @@ class AddressScoringTransformerTask(TransformerTask):
             if col not in aggregate_features.columns:
                 aggregate_features[col] = 0
         predictions = model.predict_proba(aggregate_features[REQUIRED_FEATURES])
+        predictions = [p[1] for p in predictions]
         info_data['score'] = predictions
-        return [pk.dumps(info_data)]
+
+        output = BytesIO()
+        info_data.to_csv(output, sep='|', index=False)
+        output.seek(0)
+        return [output.getvalue()]
 
     def _scale_columns(self, data: pd.DataFrame):
         for col in data.columns.values:
