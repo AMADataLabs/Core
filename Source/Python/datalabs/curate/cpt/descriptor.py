@@ -96,3 +96,87 @@ class ClinicianDescriptorParser(DescriptorParser):
 class ConsumerDescriptorParser(DescriptorParser):
     def __init__(self):
         super().__init__(['concept_id', 'cpt_code', 'consumer_descriptor'])
+
+
+# pylint: disable=invalid-name
+class TabDelimitedToFixedWidthDescriptorFormatter:
+    def __init__(self, code_width: int, descriptor_width: int):
+        self._code_format = f"{{:<{code_width}}}"
+        self._descriptor_format = f"{{:<{descriptor_width}}}"
+
+    def format(self, text):
+        header, descriptors = self._parse(text)
+        reformatted_descriptors = self._reformat_columns(descriptors)
+
+        return self._reassemble_text(header, reformatted_descriptors)
+
+    def _parse(self, text):
+        decoded_text = self._decode(text)
+        header, headerless_text = self._remove_header(decoded_text)
+
+        descriptors = pandas.read_csv(
+            io.BytesIO(headerless_text.encode()),
+            sep=r"\\t",
+            names=["code", "descriptor"],
+            header=None,
+            dtype=str,
+            engine='python',
+            index_col=False
+        )
+
+        return header, descriptors
+
+    def _reformat_columns(self, descriptors):
+        descriptors.code = descriptors.code.apply(self._code_format.format)
+        descriptors.descriptor = descriptors.descriptor.apply(self._descriptor_format.format)
+
+        return descriptors
+
+    @classmethod
+    def _reassemble_text(cls, header, descriptors):
+        descriptors = descriptors.to_string(header = False, index = False)
+        headered_text = descriptors
+
+        if len(header) > 0:
+            headered_text = header + '\r\n' + descriptors
+
+        return headered_text
+
+    @classmethod
+    def _remove_header(cls, decoded_text):
+        lines = decoded_text.splitlines()
+        reversed_lines = lines[::-1]
+
+        try:
+            headerless_text = '\r\n'.join(reversed_lines[:reversed_lines.index('')][::-1])
+            header = '\r\n'.join(reversed_lines[reversed_lines.index(''):][::-1])
+        except ValueError:
+            header = ''
+            headerless_text = '\r\n'.join(lines)
+
+        return [header, headerless_text]
+
+    @classmethod
+    def _decode(cls, text):
+        decoded_text = None
+
+        try:
+            decoded_text = text.decode()
+        except UnicodeDecodeError:
+            decoded_text = text.decode('cp1252', errors='backslashreplace')
+
+        return decoded_text
+
+class LongFixedWidthDescriptorFormatter(TabDelimitedToFixedWidthDescriptorFormatter):
+    def __init__(self):
+        super().__init__(8, 71)
+
+
+class MediumFixedWidthDescriptorFormatter(TabDelimitedToFixedWidthDescriptorFormatter):
+    def __init__(self):
+        super().__init__(5, 48)
+
+
+class ShortFixedWidthDescriptorFormatter(TabDelimitedToFixedWidthDescriptorFormatter):
+    def __init__(self):
+        super().__init__(5, 28)

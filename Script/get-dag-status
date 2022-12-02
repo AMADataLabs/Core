@@ -7,7 +7,7 @@ RUN="${SCRIPT_BASE_PATH}/run.py python"
 
 
 main() {
-    $RUN ${SCRIPT_BASE_PATH}/get_dag_status.py "$@" 2>&1
+    $RUN ${SCRIPT_BASE_PATH}/get_dag_status.py "$@" 2>&1 | grep -v warn
 }
 
 

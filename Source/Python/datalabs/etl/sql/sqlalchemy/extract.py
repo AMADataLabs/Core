@@ -16,7 +16,7 @@ LOGGER.setLevel(logging.INFO)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class SQLAlchemyExtractorParameters:
-    backend: str
+    database_backend: str
     database_host: str
     database_port: str
     database_username: str

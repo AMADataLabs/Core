@@ -26,6 +26,7 @@ modspec:
     include:
       - base
       - mysql
+  - package: datalabs.etl.smtp
   - package: datalabs.etl.sql
   - package: datalabs.etl.sql.sqlalchemy
   - package: datalabs.etl.intelligent_platform.licensing.sync
