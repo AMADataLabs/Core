@@ -43,7 +43,7 @@ public class LinkBuilderTask extends Task {
 
     public LinkBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters, null, LinkBuilderParameters.class);
+        super(parameters, data, LinkBuilderParameters.class);
     }
 
     public ArrayList<byte[]> run() throws TaskException {
@@ -90,7 +90,7 @@ public class LinkBuilderTask extends Task {
             File outputFilesDirectory = new File(settings.getProperty("output.directory"));
             outputFiles = loadOutputFiles(outputFilesDirectory);
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
-            throw new TaskException(exception);d
+            throw new TaskException(exception);
         }
 
         return outputFiles;
@@ -293,7 +293,9 @@ public class LinkBuilderTask extends Task {
         return concepts;
     }
 
-    private void loadSettings() {
+    void loadSettings() {
+        String dataDirectory = System.getProperty("data.directory", "/tmp");
+
         settings = new Properties(){{
             put("hcpcs.data.file", "HCPCS.xlsx");
             put("hcpcs.input.directory", "/hcpcs_input_directory");
@@ -302,10 +304,10 @@ public class LinkBuilderTask extends Task {
             put("export.directory", "/export");
             put("extract.directory", "/export");
             put("prior.history.directory", "/current_link/changes/");
-            put("index.file", "cpt_index.docx/");
+            put("index.file", "cpt_index.docx");
             put("edits.file", "reviewed_used_input.xlsx");
-            put("output.directory", "./output");
-            put("input.directory", "./input");
+            put("output.directory", dataDirectory + File.separator + "output");
+            put("input.directory",  dataDirectory + File.separator + "input");
             put("consumer.and.clinician.descriptors", "cdcterms.xlsx");
             put("coding.tips", "coding_tips_attach.xlsx");
             put("front.matter", "front_matter.docx");
@@ -316,7 +318,7 @@ public class LinkBuilderTask extends Task {
         }};
     }
 
-    private void stageInputFiles() throws IOException{
+    void stageInputFiles() throws IOException{
         Path priorLinkPath = Paths.get(
                 settings.getProperty("input.directory"),
                 settings.getProperty("prior.link.directory")
