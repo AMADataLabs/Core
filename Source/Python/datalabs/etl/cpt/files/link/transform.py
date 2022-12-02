@@ -34,3 +34,18 @@ class TabDelimitedToFixedWidthDescriptorTransformerTask(Task):
         Formatter = import_plugin(class_name)  # pylint: disable=invalid-name
 
         return Formatter()
+
+
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class UpperCaseDescriptorTransformerTaskParameters:
+    execution_time: str = None
+
+
+# pylint: disable=too-many-instance-attributes
+class UpperCaseDescriptorTransformerTask(Task):
+    PARAMETER_CLASS = UpperCaseDescriptorTransformerTaskParameters
+
+    def run(self):
+        return [ data.decode("unicode_escape").upper().replace('\t', r'\t').encode('cp1252') for data in self._data ]
