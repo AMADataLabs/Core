@@ -50,13 +50,7 @@ class LinkBuilderTaskTests {
                 "cpt_rvu.txt", "cpt_index.docx", "reviewed_used_input.xlsx"};
         ArrayList<byte[]> data = new ArrayList<>();
 
-        for (String directory : testDirectories) {
-            File testDirectory = new File(workingDir + File.separator + "input" + File.separator + directory);
-            testDirectory.mkdirs();
-
-            generateInputDirectories(testFiles, testDirectory);
-            generateInputZipFile(testDirectory, data);
-        }
+        generateInputZipFiles(testDirectories, data, workingDir, testFiles);
         generateOtherInputFiles(testInputFiles, data, workingDir);
 
         stageInputFiles(dataDir, data);
@@ -65,20 +59,24 @@ class LinkBuilderTaskTests {
         assertOtherInputsMatch(testInputFiles, workingDir, dataDir);
     }
 
-    void generateInputDirectories(String[] testFiles, File testDirectory) throws IOException {
-        for (String testFile : testFiles) {
-            FileWriter FileWriter = new FileWriter(testDirectory + File.separator + testFile);
-            BufferedWriter bufferedWriter = new BufferedWriter(FileWriter);
-            bufferedWriter.write("content for " + testFile);
-            bufferedWriter.close();
-        }
-    }
+    void generateInputZipFiles(String[] testDirectories, ArrayList<byte[]> data, Path workingDir, String[] testFiles)
+            throws IOException {
+        for (String directory : testDirectories) {
+            File testDirectory = new File(workingDir + File.separator + "input" + File.separator + directory);
+            testDirectory.mkdirs();
 
-    void generateInputZipFile(File testDirectory, ArrayList<byte[]> data) throws IOException {
-        File zipFile = new File(testDirectory + ".zip");
-        ZipUtil.pack(testDirectory, zipFile);
-        byte[] byteInput = Files.readAllBytes(zipFile.toPath());
-        data.add(byteInput);
+            for (String testFile : testFiles) {
+                FileWriter FileWriter = new FileWriter(testDirectory + File.separator + testFile);
+                BufferedWriter bufferedWriter = new BufferedWriter(FileWriter);
+                bufferedWriter.write("content for " + testFile);
+                bufferedWriter.close();
+            }
+
+            File zipFile = new File(testDirectory + ".zip");
+            ZipUtil.pack(testDirectory, zipFile);
+            byte[] byteInput = Files.readAllBytes(zipFile.toPath());
+            data.add(byteInput);
+        }
     }
 
     void generateOtherInputFiles(String[] testInputFiles, ArrayList<byte[]> data, Path workingDir) throws IOException {
