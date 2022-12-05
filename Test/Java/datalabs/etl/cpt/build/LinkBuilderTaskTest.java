@@ -151,13 +151,13 @@ class LinkBuilderTaskTests {
         List<String> testFiles = Arrays.asList("testFile1.txt", "testFile2.txt", "testFile3.txt");
         File dataOutputDirectory = new File(dataDir + File.separator + "output");
 
-        generateInputFiles(dataOutputDirectory, testSubDirectories, testFiles, dataDir, expectedData);
+        generateOutputFiles(dataOutputDirectory, testSubDirectories, testFiles, dataDir, expectedData);
         ArrayList<byte[]> returnedData = loadOutputFiles(dataDir, data, dataOutputDirectory);
 
-        assertOutputSMatches(returnedData, expectedData);
+        assertOutputFilesMatch(returnedData, expectedData);
     }
 
-    void generateInputFiles(File dataOutputDirectory, List<String> testSubDirectories, List<String> testFiles, Path dataDir, ArrayList<byte[]> expectedData)
+    void generateOutputFiles(File dataOutputDirectory, List<String> testSubDirectories, List<String> testFiles, Path dataDir, ArrayList<byte[]> expectedData)
             throws IOException {
         dataOutputDirectory.mkdirs();
 
@@ -198,7 +198,7 @@ class LinkBuilderTaskTests {
         return returnedData;
     }
 
-    void assertOutputSMatches(ArrayList<byte[]> returnedData, ArrayList<byte[]> expectedData){
+    void assertOutputFilesMatch(ArrayList<byte[]> returnedData, ArrayList<byte[]> expectedData){
         for (int i = 0; i < returnedData.size(); i++){
             assertArrayEquals(returnedData.get(i), expectedData.get(i));
         }
