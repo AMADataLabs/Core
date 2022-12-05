@@ -44,7 +44,7 @@ class SQLAlchemyDatabaseMixin:
                 HOST=self._parameters.database_host,
                 PORT=self._parameters.database_port,
                 NAME=self._parameters.database_name,
-                BACKEND=self._parameters.backend
+                BACKEND=self._parameters.database_backend
             )
 
         if self._parameters.database_parameters:

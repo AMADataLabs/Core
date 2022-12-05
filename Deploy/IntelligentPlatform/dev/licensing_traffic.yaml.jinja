@@ -155,7 +155,7 @@ Attached is the latest Self-Service Licensing traffic data.
     LICENSING_TRAFFIC__EXTRACT_COUNTS__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
     LICENSING_TRAFFIC__EXTRACT_COUNTS__DATABASE_NAME: ${LICENSING_DATABASE}
     LICENSING_TRAFFIC__EXTRACT_COUNTS__SQL: "
-SELECT A, sum(count1), sum(count2), sum(count3), sum(count4), sum(count5), sum(count6), sum(count7), sum(count8), sum(count9), sum(count10), sum(count11), current_timestamp() from (
+SELECT A, CAST(sum(count1) as NCHAR) as applicants_signed_in, CAST(sum(count2) as NCHAR) as applications_started, CAST(sum(count3) as NCHAR) as applications_saved, CAST(sum(count4) as NCHAR) as applications_completed_sent_to_portal, CAST(sum(count5) as NCHAR) as applications_completed_exempt, CAST(sum(count6) as NCHAR) as applicants_international, CAST(sum(count7) as NCHAR) as applicants_distribution, CAST(sum(count8) as NCHAR) as lab_applications_pre_tax_flagged, CAST(sum(count9) as NCHAR) as lab_applications_post_tax_flagged, CAST(sum(count10) as NCHAR) as individual_users_under_26_flagged, CAST(sum(count11) as NCHAR) as other_flagged_applications, current_timestamp() as data_collection_date from (
     SELECT
         'A' as A, COALESCE(COUNT(*), 0) AS count1, 0 as count2, 0 as count3, 0 as count4, 0 as count5, 0 as count6, 0 as count7, 0 as count8, 0 as count9, 0 as count10, 0 as count11
     FROM
@@ -531,7 +531,7 @@ SELECT A, sum(count1), sum(count2), sum(count3), sum(count4), sum(count5), sum(c
     LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__DATABASE_USERNAME: ${PLATFORM_DB_USERNAME}
     LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__DATABASE_PASSWORD: ${PLATFORM_DB_PASSWORD}
     LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__MODEL_CLASSES: 'datalabs.model.intelligent_platform.licensing.TrafficCounts'
-    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__IGNORE_COLUMNS: id
+    LICENSING_TRAFFIC__LOAD_COUNTS_TABLE__IGNORE_COLUMNS: id, A
 
 
     # Email Traffic Report
