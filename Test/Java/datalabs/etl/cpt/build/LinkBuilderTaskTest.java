@@ -117,4 +117,54 @@ class LinkBuilderTaskTests {
             );
         }
     }
+
+    @Test
+    @DisplayName("Test loadOutputFiles return")
+    void loadOutputFilesTest(@TempDir Path dataDir)
+            throws InvocationTargetException, IllegalAccessException, InstantiationException, NoSuchMethodException,
+            IOException {
+        ArrayList<byte[]> data = new ArrayList<>();
+        ArrayList<byte[]> expectedData = new ArrayList<byte[]>();
+        List<String> testSubDirectories = Arrays.asList("testDirectory1", "testDirectory2", "testDirectory3");
+        List<String> testFiles = Arrays.asList("testFile1.txt", "testFile2.txt", "testFile3.txt");
+        File dataOutputDirectory = new File(dataDir + File.separator + "output");
+
+        dataOutputDirectory.mkdirs();
+
+        System.getProperties().setProperty("data.directory", String.valueOf(dataDir));
+
+        for (String testDirectory: testSubDirectories){
+            File directory = new File(dataDir + File.separator + "output" + File.separator + testDirectory);
+            directory.mkdirs();
+            for (String testFile: testFiles) {
+                FileWriter fileWriter = new FileWriter(directory + File.separator + testFile);
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+                bufferedWriter.write("content for " + testFile);
+                bufferedWriter.close();
+                byte[] bytes = Files.readAllBytes(new File(directory + File.separator + testFile).toPath());
+                expectedData.add(bytes);
+            }
+        }
+
+        Map<String, String> parameters = new HashMap();
+        parameters.put("releaseDate", "20230101");
+        parameters.put("host", "host");
+        parameters.put("username", "username");
+        parameters.put("password", "password");
+        parameters.put("port", "port");
+        ArrayList<byte[]>returnedData = new ArrayList<byte[]>();
+
+        try {
+            CoreBuilderTask coreBuilderTask = new CoreBuilderTask(parameters, data);
+            coreBuilderTask.loadSettings();
+            returnedData = coreBuilderTask.loadOutputFiles(dataOutputDirectory);
+
+            for (int i = 0; i < returnedData.size(); i++){
+                assertTrue(Arrays.equals(returnedData.get(i), expectedData.get(i)));
+            }
+
+        } catch (Exception exception) {
+            CoreBuilderTaskTests.LOGGER.info("Expected exception: " + exception.toString());
+        }
+    }
 }
