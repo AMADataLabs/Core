@@ -1,5 +1,6 @@
 """ SQL Extractor """
 from   dataclasses import dataclass
+from   datetime import datetime
 import logging
 from   pathlib import Path
 import string
@@ -48,14 +49,25 @@ class SQLExtractorTask(Task):
 
     def _read_queries(self, connection):
         queries = self._split_queries(self._parameters.sql)
+        resolved_queries = self._resolve_time_format_codes(queries)
 
         if "INTO TEMP" in queries[0]:
             LOGGER.info("Executing temporary table query...")
-            connection.cursor().execute(queries[0])
+            connection.cursor().execute(resolved_queries[0])
 
-            queries.pop(0)
+            resolved_queries.pop(0)
 
-        return [self._encode(self._read_query(query, connection)) for query in queries]
+        return [self._encode(self._read_query(query, connection)) for query in resolved_queries]
+
+    def _resolve_time_format_codes(self, queries):
+        resolved_queries = queries
+
+        if self._parameters.execution_time:
+            execution_time = datetime.strptime(self._parameters.execution_time, "%Y-%m-%d %H:%M:%S")
+
+            resolved_queries = [execution_time.strftime(query) for query in queries]
+
+        return resolved_queries
 
     @classmethod
     def _split_queries(cls, queries):
