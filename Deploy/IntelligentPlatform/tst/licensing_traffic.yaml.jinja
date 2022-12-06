@@ -138,14 +138,14 @@ data:
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__CACHE_INPUT_FILES: 'licensing_traffic.csv'
 
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__TO_ADDRESSES: datalabs@ama-assn.org
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__SUBJECT: 'Self-Service Licensing Traffic Report - {date}'
+    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__TO_ADDRESSES: 'datalabs@ama-assn.org,yogesh.vaze@ama-assn.org'
+    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__SUBJECT: 'Self-Service Licensing Traffic Report - %Y-%m-%d'
     LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__MESSAGE: '
 Hello,
 This is an automated email from DataLabs.
 Attached is the latest Self-Service Licensing traffic data.
 '
-    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__FILES: 'Intelligent_Platform_Traffic_Report_{date}.csv'
+    LICENSING_TRAFFIC__SEND_TRAFFIC_REPORT__FILES: 'Intelligent_Platform_Traffic_Report_%Y-%m-%d.csv'
 
 
     # Extract Traffic
@@ -541,8 +541,8 @@ SELECT A, CAST(sum(count1) as NCHAR) as applicants_signed_in, CAST(sum(count2) a
     LICENSING_TRAFFIC__SEND_APPLICANT_DATA__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
     LICENSING_TRAFFIC__SEND_APPLICANT_DATA__CACHE_INPUT_FILES: 'licensing_applicant_data.csv'
 
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__TO_ADDRESSES: 'datalabs@ama-assn.org'
-    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__SUBJECT: 'Self-Service Licensing Traffic Report - %Y-%m-%d'
+    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__TO_ADDRESSES: 'datalabs@ama-assn.org,yogesh.vaze@ama-assn.org'
+    LICENSING_TRAFFIC__SEND_APPLICANT_DATA__SUBJECT: 'Self-Service Licensing Applicant Data - %Y-%m-%d'
     LICENSING_TRAFFIC__SEND_APPLICANT_DATA__MESSAGE: '
 Hello,
 This is an automated email from DataLabs.
