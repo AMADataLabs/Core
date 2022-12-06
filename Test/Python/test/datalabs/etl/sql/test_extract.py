@@ -6,7 +6,7 @@ from   datalabs.etl.sql.jdbc.extract import SQLExtractorTask
 def test_time_format_codes_in_queries_are_resolved():
     parameters = dict(
         SQL="SELECT * FROM foo WHERE created_at BETWEEN '%Y-%m-%d %H:%M:%S' AND '%Y-%m-%d %H:%M:%S' - interval '1 day'",
-        EXECUTION_TIME="1200-12-12 12:12:12"
+        EXECUTION_TIME="1200-12-12T12:12:12"
     )
     expected_query = "SELECT * FROM foo WHERE created_at BETWEEN '1200-12-12 12:12:12' AND '1200-12-12 12:12:12' - interval '1 day'"  # pylint: disable=line-too-long
 

@@ -63,7 +63,7 @@ class SQLExtractorTask(Task):
         resolved_queries = queries
 
         if self._parameters.execution_time:
-            execution_time = datetime.strptime(self._parameters.execution_time, "%Y-%m-%d %H:%M:%S")
+            execution_time = datetime.strptime(self._parameters.execution_time, "%Y-%m-%dT%H:%M:%S")
 
             resolved_queries = [execution_time.strftime(query) for query in queries]
 
