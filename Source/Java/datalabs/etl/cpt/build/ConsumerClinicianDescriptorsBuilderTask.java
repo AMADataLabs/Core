@@ -16,6 +16,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import datalabs.task.TaskException;
+
 import org.ama.dtk.DtkAccess;
 import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.PropertyType;
@@ -30,11 +31,10 @@ import com.mays.util.poi.PoiUtil;
 
 import datalabs.task.Task;
 
+
 public class ConsumerClinicianDescriptorsBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsumerClinicianDescriptorsBuilderTask.class);
     Properties settings = null;
-    private DtkAccess linkOld;
-    private DtkAccess linkNew;
 
     public ConsumerClinicianDescriptorsBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException
@@ -42,73 +42,138 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         super(parameters, data, ConsumerClinicianDescriptorsParameters.class);
     }
 
-    public ArrayList<byte[]> run(){
-        ArrayList<byte[]> outputFiles = null;
-        List<DtkConcept> concepts = new DtkConcept();
+    public ArrayList<byte[]> run() throws TaskException{
+        ArrayList<byte[]> outputFiles;
 
         try {
+            ConsumerClinicianDescriptorsParameters parameters = (ConsumerClinicianDescriptorsParameters) this.parameters;
+
             stageInputFiles();
             loadSettings();
 
-            createConsumerClinician(concepts, settings.getProperty("output.directory"));
+            DtkAccess current_link = DtkAccessTest.load(parameters.versionOld);
+            DtkAccess core = DtkAccessTest.load(parameters.versionNew);
+
+            create(parameters, core, current_link);
+
             File outputFilesDirectory = new File(settings.getProperty("output.directory"));
             outputFiles = loadOutputFiles(outputFilesDirectory);
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
+            throw new TaskException(exception);
         }
 
         return outputFiles;
     }
 
-    public void createConsumerClinician(List<DtkConcept> concepts, String outFile) throws Exception {
+    public void create(ConsumerClinicianDescriptorsParameters parameters, DtkAccess core, DtkAccess current_link) throws Exception {
+        String outputDirectory =  settings.getProperty("output.directory") + File.separator + parameters.versionNew + File.separator;
+        List<DtkConcept> concepts = new Legacy(core).getConceptsSorted(false, false);
+
+        Files.createDirectories(Paths.get(outputDirectory));
+
+        ConsumerClinicianDescriptorsBuilderTask.createDescriptors(
+                concepts,
+                outputDirectory + "cdfcdterms.xlsx", current_link
+        );
+    }
+
+    public static void createDescriptors(List<DtkConcept> concepts, String outputFile, DtkAccess current_link) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet clinicianSheet = workbook.createSheet("Clinician");
         XSSFSheet consumerSheet = workbook.createSheet("Consumer");
+        createHeaders(consumerSheet, clinicianSheet);
+        checkTerms(consumerSheet, clinicianSheet, concepts, current_link);
+
+        PoiUtil.write(workbook, outputFile);
+    }
+
+    public static void createHeaders(XSSFSheet consumerSheet, XSSFSheet clinicianSheet){
         PoiUtil.createHeader(clinicianSheet, "Concept Id", "CPT Code", "Descriptor", "Prior Descriptor", "Clinician Term");
         PoiUtil.createHeader(consumerSheet, "Concept Id", "CPT Code", "Descriptor", "Prior Descriptor", "Consumer Term");
-        for (DtkConcept con : concepts) {
-            checkConsumerTerm(consumerSheet, con);
-            checkClinicianTerm(clinicianSheet, con);
-        }
-
-        PoiUtil.write(workbook, outFile);
     }
 
-    public void checkConsumerTerm(XSSFSheet consumerSheet, DtkConcept con) throws Exception{
-        if (!con.shouldHaveConsumerTerm() && !con.shouldHaveClinicianTerm())
-            continue;
-        String code = con.getProperty(PropertyType.CPT_Code);
-        DtkConcept conceptOld = linkOld.getConcept(con.getConceptId());
-        boolean changedDescriptor = conceptOld != null && !conceptOld.getDescriptor().equals(con.getDescriptor());
-        if (con.shouldHaveConsumerTerm()) {
-            if (con.getProperty(PropertyType.Consumer_Friendly_Descriptor) == null) {
-                PoiUtil.createRow(consumerSheet, consumerSheet.getLastRowNum() + 1, "" + con.getConceptId(), code,
-                        con.getDescriptor());
-            } else if (changedDescriptor) {
-                PoiUtil.createRow(consumerSheet, consumerSheet.getLastRowNum() + 1, "" + con.getConceptId(), code,
-                        con.getDescriptor(), conceptOld.getDescriptor(),
-                        con.getProperty(PropertyType.Consumer_Friendly_Descriptor));
-            }
+    public static void checkTerms(XSSFSheet consumerSheet, XSSFSheet clinicianSheet, List<DtkConcept> concepts,
+                                  DtkAccess current_link) throws Exception {
+        for (DtkConcept concept : concepts) {
+            if (!concept.shouldHaveConsumerTerm() && !concept.shouldHaveClinicianTerm())
+                continue;
+
+            String code = concept.getProperty(PropertyType.CPT_Code);
+            DtkConcept conceptOld = current_link.getConcept(concept.getConceptId());
+            boolean changedDescriptor = conceptOld != null && !conceptOld.getDescriptor().equals(concept.getDescriptor());
+
+            createConsumerRowIfRequired(consumerSheet, concept, changedDescriptor, conceptOld, code);
+            createClinicianRowIfRequired(clinicianSheet, concept, code, changedDescriptor, conceptOld);
         }
     }
 
-    public void checkClinicianTerm(XSSFSheet clinicianSheet, DtkConcept con){
-        if (con.shouldHaveClinicianTerm()) {
-            if (con.getProperty(PropertyType.Clinician_Descriptor) == null) {
-                PoiUtil.createRow(clinicianSheet, clinicianSheet.getLastRowNum() + 1, "" + con.getConceptId(), code,
-                        con.getDescriptor());
-                PoiUtil.createRow(clinicianSheet, clinicianSheet.getLastRowNum() + 1);
-            } else if (changedDescriptor) {
-                Row clinicianRow = PoiUtil.createRow(clinicianSheet, clinicianSheet.getLastRowNum() + 1, "" + con.getConceptId(), code,
-                        con.getDescriptor(), con_old.getDescriptor());
-                boolean first_row = true;
-                for (String cd : con.getProperties(PropertyType.Clinician_Descriptor)) {
-                    if (!first_row)
-                        clinicianRow = PoiUtil.createRow(clinicianSheet, clinicianSheet.getLastRowNum() + 1);
-                    PoiUtil.setCellValue(clinicianRow, 4, cd);
-                    first_row = false;
-                }
+    public static void createConsumerRowIfRequired(XSSFSheet consumerSheet, DtkConcept concept, Boolean changedDescriptor,
+                                         DtkConcept conceptOld, String code) throws Exception{
+        if (concept.shouldHaveConsumerTerm()) {
+            createConsumerRow(consumerSheet, concept, changedDescriptor, conceptOld, code);
+        }
+    }
+
+    public static void createConsumerRow(XSSFSheet consumerSheet, DtkConcept concept, Boolean changedDescriptor,
+                                         DtkConcept conceptOld, String code){
+        if (concept.getProperty(PropertyType.Consumer_Friendly_Descriptor) == null) {
+            PoiUtil.createRow(
+                    consumerSheet,
+                    consumerSheet.getLastRowNum() + 1,
+                    "" + concept.getConceptId(),
+                    code,
+                    concept.getDescriptor()
+            );
+        } else if (changedDescriptor) {
+            PoiUtil.createRow(
+                    consumerSheet,
+                    consumerSheet.getLastRowNum() + 1,
+                    "" + concept.getConceptId(),
+                    code,
+                    concept.getDescriptor(),
+                    conceptOld.getDescriptor(),
+                    concept.getProperty(PropertyType.Consumer_Friendly_Descriptor)
+            );
+        }
+    }
+
+    public static void createClinicianRowIfRequired(XSSFSheet clinicianSheet, DtkConcept concept, String code,
+                                          Boolean changedDescriptor, DtkConcept conceptOld){
+        if (concept.shouldHaveClinicianTerm()) {
+            createClinicianRow(clinicianSheet, concept, code, changedDescriptor, conceptOld);
+        }
+    }
+
+    public static void createClinicianRow(XSSFSheet clinicianSheet, DtkConcept concept, String code,
+                                          Boolean changedDescriptor, DtkConcept conceptOld){
+        if (concept.getProperty(PropertyType.Clinician_Descriptor) == null) {
+            PoiUtil.createRow(
+                    clinicianSheet,
+                    clinicianSheet.getLastRowNum() + 1,
+                    "" + concept.getConceptId(),
+                    code,
+                    concept.getDescriptor()
+            );
+            PoiUtil.createRow(clinicianSheet, clinicianSheet.getLastRowNum() + 1);
+
+        } else if (changedDescriptor) {
+            Row rowClinician = PoiUtil.createRow(
+                    clinicianSheet,
+                    clinicianSheet.getLastRowNum() + 1,
+                    "" + concept.getConceptId(),
+                    code,
+                    concept.getDescriptor(),
+                    conceptOld.getDescriptor()
+            );
+            boolean firstProperty = true;
+
+            for (String descriptor : concept.getProperties(PropertyType.Clinician_Descriptor)) {
+                if (!firstProperty)
+                    rowClinician = PoiUtil.createRow(clinicianSheet, clinicianSheet.getLastRowNum() + 1);
+
+                PoiUtil.setCellValue(rowClinician, 4, descriptor);
+                firstProperty = false;
             }
         }
     }
