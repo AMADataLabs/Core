@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 CLUSTER_NAMES=
+NO_VERIFY_SSL=
 
 
 main() {
@@ -26,11 +27,15 @@ process_arguments() {
             ;;
       esac
     done
+
+    if [[ $AWS_NO_VERIFY_SSL == "True" ]]; then
+        NO_VERIFY_SSL=--no-verify-ssl
+    fi
 }
 
 
 get_cluster_arns() {
-    readarray -t CLUSTER_NAMES <<<$(aws ecs list-clusters | jq '.clusterArns[]' | sed 's/..*\///' | sed 's/",*//')
+    readarray -t CLUSTER_NAMES <<<$(aws $NO_VERIFY_SSL ecs list-clusters | jq '.clusterArns[]' | sed 's/..*\///' | sed 's/",*//')
 }
 
 

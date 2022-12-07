@@ -1,6 +1,7 @@
 """ source: datalabs.etl.s3.extract """
 import datetime
 from   io import BytesIO
+import itertools
 import os
 import os.path
 import mock
@@ -32,6 +33,25 @@ def test_whitespace_removed_from_filenames(parameters):
         assert len(files) == 3
         assert files[2] == 'dir1/dir2/dir3/19000101/the_other_one.csv'
 
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_files_parsed_from_data():
+    data = [b"foo.txt\nbar.txt"]
+    files = list(itertools.chain.from_iterable(S3FileExtractorTask._parse_file_lists(data, False)))
+
+    assert len(files) == 2
+    for name, expected_name in zip(files, ["foo.txt", "bar.txt"]):
+        assert name == expected_name
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_header_parsed_from_data_is_ignored():
+    data = [b"filename\nfoo.txt\nbar.txt"]
+    files = list(itertools.chain.from_iterable(S3FileExtractorTask._parse_file_lists(data, True)))
+
+    assert len(files) == 2
+    for name, expected_name in zip(files, ["foo.txt", "bar.txt"]):
+        assert name == expected_name
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_disabling_datestamp_works(parameters):

@@ -3,6 +3,7 @@
 CLUSTER=
 TASK_IDS=
 TASK_ARN_MAP=
+NO_VERIFY_SSL=
 
 
 main() {
@@ -39,11 +40,15 @@ process_arguments() {
         print_usage
         exit 1
     fi
+
+    if [[ $AWS_NO_VERIFY_SSL == "True" ]]; then
+        NO_VERIFY_SSL=--no-verify-ssl
+    fi
 }
 
 
 get_task_ids() {
-    task_ids=$(aws ecs list-tasks --cluster $CLUSTER | jq '.taskArns[]' | sed 's/..*\///' | sed 's/"//')
+    task_ids=$(aws $NO_VERIFY_SSL ecs list-tasks --cluster $CLUSTER | jq '.taskArns[]' | sed 's/..*\///' | sed 's/"//')
 
     readarray -t TASK_IDS <<<"$task_ids"
 }
@@ -57,7 +62,7 @@ print_task_arns() {
     	task_ids="$task_ids $task_id"
     done
 
-    tasks_json=$(aws ecs describe-tasks --cluster $CLUSTER --tasks $task_ids)
+    tasks_json=$(aws $NO_VERIFY_SSL ecs describe-tasks --cluster $CLUSTER --tasks $task_ids)
 
     echo "$tasks_json" | jq '.tasks | map({(.containers[0].name): .taskArn}) | add'
 }

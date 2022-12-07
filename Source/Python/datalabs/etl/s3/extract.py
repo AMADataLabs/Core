@@ -58,14 +58,15 @@ class S3FileExtractorParameters:
     bucket: str
     base_path: str
     files: str = None
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
+    ignore_files_header: str = None
     include_names: str = None
     include_datestamp: str = None
     execution_time: str = None
     on_disk: str = False
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
     assume_role: str = None
 
 
@@ -85,12 +86,16 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
     def _get_files(self):
         base_path = self._get_latest_path()
+        ignore_header = False
         files = []
+
+        if self._parameters.ignore_files_header and self._parameters.ignore_files_header.upper() == "TRUE":
+            ignore_header = True
 
         if self._parameters.files is not None:
             files = self._parameters.files.split(',')
         elif self._data is not None and len(self._data) > 0:
-            files = list(itertools.chain.from_iterable(self._parse_file_lists(self._data)))
+            files = list(itertools.chain.from_iterable(self._parse_file_lists(self._data, ignore_header)))
         else:
             raise ValueError('Either the "files" or "data" parameter must contain the list of files to extract.')
 
@@ -149,9 +154,14 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
         return path
 
     @classmethod
-    def _parse_file_lists(cls, data):
-        for file_list in data:
-            yield [file.decode().strip() for file in file_list.split(b'\n')]
+    def _parse_file_lists(cls, data, ignore_header=False):
+        for raw_file_list in data:
+            file_list = [file.decode().strip() for file in raw_file_list.split(b'\n')]
+
+            if ignore_header:
+                file_list = file_list[1:]
+
+            yield file_list
 
     @classmethod
     def _cache_data_to_disk(cls, body):
