@@ -17,8 +17,9 @@ import java.util.zip.ZipInputStream;
 
 import datalabs.task.TaskException;
 
+import org.ama.dtk.Exporter;
+import org.ama.dtk.ExporterFiles;
 import org.ama.dtk.DtkAccess;
-import org.ama.dtk.DtkAccessTest;
 import org.ama.dtk.legacy.Legacy;
 import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.PropertyType;
@@ -53,15 +54,18 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
             stageInputFiles();
             loadSettings();
 
-            DtkAccess current_link = DtkAccessTest.load(parameters.versionOld);
-            DtkAccess core = DtkAccessTest.load(parameters.versionNew);
-
             String outputDirectory =  settings.getProperty("output.directory") + File.separator + parameters.versionNew + File.separator;
-            List<DtkConcept> concepts = new Legacy(core).getConceptsSorted(false, false);
-
             Files.createDirectories(Paths.get(outputDirectory));
 
-            ConsumerClinicianDescriptorsBuilderTask descriptorsBuilder = new ConsumerClinicianDescriptorsBuilderTask((Map<String, String>) parameters, this.data);
+            ConsumerClinicianDescriptorsBuilderTask descriptorsBuilder = new ConsumerClinicianDescriptorsBuilderTask(
+                    (Map<String, String>) parameters,
+                    this.data
+            );
+
+            DtkAccess current_link = ConsumerClinicianDescriptorsBuilderTask.loadLink(parameters.versionOld);
+            DtkAccess core = ConsumerClinicianDescriptorsBuilderTask.loadLink(parameters.versionNew);
+            List<DtkConcept> concepts = new Legacy(core).getConceptsSorted(false, false);
+
             descriptorsBuilder.createDescriptors(concepts, outputDirectory, current_link);
 
             File outputFilesDirectory = new File(settings.getProperty("output.directory"));
@@ -71,6 +75,17 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         }
 
         return outputFiles;
+    }
+
+    private static DtkAccess loadLink(String directory) throws Exception {
+        DtkAccess link = new DtkAccess();
+
+        link.load(
+                directory + '/' + ExporterFiles.PropertyInternal.getFileNameExt(),
+                directory + '/' + ExporterFiles.RelationshipGroup.getFileNameExt()
+        );
+
+        return link;
     }
 
     public void createDescriptors(List<DtkConcept> concepts, String outputFile, DtkAccess current_link) throws Exception {
@@ -83,7 +98,7 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         PoiUtil.write(workbook, outputFile);
     }
 
-    public static void createHeaders(XSSFSheet consumerSheet, XSSFSheet clinicianSheet){
+    public static void createHeaders(XSSFSheet consumerSheet, XSSFSheet clinicianSheet) throws  Exception{
         PoiUtil.createHeader(clinicianSheet, "Concept Id", "CPT Code", "Descriptor", "Prior Descriptor", "Clinician Term");
         PoiUtil.createHeader(consumerSheet, "Concept Id", "CPT Code", "Descriptor", "Prior Descriptor", "Consumer Term");
     }
@@ -111,7 +126,7 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
     }
 
     public static void createConsumerRow(XSSFSheet consumerSheet, DtkConcept concept, Boolean changedDescriptor,
-                                         DtkConcept conceptOld, String code){
+                                         DtkConcept conceptOld, String code) throws Exception{
         if (concept.getProperty(PropertyType.Consumer_Friendly_Descriptor) == null) {
             PoiUtil.createRow(
                     consumerSheet,
@@ -134,14 +149,14 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
     }
 
     public static void createClinicianRowIfRequired(XSSFSheet clinicianSheet, DtkConcept concept, String code,
-                                          Boolean changedDescriptor, DtkConcept conceptOld){
+                                          Boolean changedDescriptor, DtkConcept conceptOld) throws Exception {
         if (concept.shouldHaveClinicianTerm()) {
             createClinicianRow(clinicianSheet, concept, code, changedDescriptor, conceptOld);
         }
     }
 
     public static void createClinicianRow(XSSFSheet clinicianSheet, DtkConcept concept, String code,
-                                          Boolean changedDescriptor, DtkConcept conceptOld){
+                                          Boolean changedDescriptor, DtkConcept conceptOld) throws Exception{
         if (concept.getProperty(PropertyType.Clinician_Descriptor) == null) {
             PoiUtil.createRow(
                     clinicianSheet,
