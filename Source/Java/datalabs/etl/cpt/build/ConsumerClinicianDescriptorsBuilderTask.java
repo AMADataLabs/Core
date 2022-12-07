@@ -18,6 +18,8 @@ import java.util.zip.ZipInputStream;
 import datalabs.task.TaskException;
 
 import org.ama.dtk.DtkAccess;
+import org.ama.dtk.DtkAccessTest;
+import org.ama.dtk.legacy.Legacy;
 import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.PropertyType;
 import org.apache.poi.ss.usermodel.Row;
@@ -54,7 +56,13 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
             DtkAccess current_link = DtkAccessTest.load(parameters.versionOld);
             DtkAccess core = DtkAccessTest.load(parameters.versionNew);
 
-            create(parameters, core, current_link);
+            String outputDirectory =  settings.getProperty("output.directory") + File.separator + parameters.versionNew + File.separator;
+            List<DtkConcept> concepts = new Legacy(core).getConceptsSorted(false, false);
+
+            Files.createDirectories(Paths.get(outputDirectory));
+
+            ConsumerClinicianDescriptorsBuilderTask descriptorsBuilder = new ConsumerClinicianDescriptorsBuilderTask((Map<String, String>) parameters, this.data);
+            descriptorsBuilder.createDescriptors(concepts, outputDirectory, current_link);
 
             File outputFilesDirectory = new File(settings.getProperty("output.directory"));
             outputFiles = loadOutputFiles(outputFilesDirectory);
@@ -65,19 +73,7 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         return outputFiles;
     }
 
-    public void create(ConsumerClinicianDescriptorsParameters parameters, DtkAccess core, DtkAccess current_link) throws Exception {
-        String outputDirectory =  settings.getProperty("output.directory") + File.separator + parameters.versionNew + File.separator;
-        List<DtkConcept> concepts = new Legacy(core).getConceptsSorted(false, false);
-
-        Files.createDirectories(Paths.get(outputDirectory));
-
-        ConsumerClinicianDescriptorsBuilderTask.createDescriptors(
-                concepts,
-                outputDirectory + "cdfcdterms.xlsx", current_link
-        );
-    }
-
-    public static void createDescriptors(List<DtkConcept> concepts, String outputFile, DtkAccess current_link) throws Exception {
+    public void createDescriptors(List<DtkConcept> concepts, String outputFile, DtkAccess current_link) throws Exception {
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet clinicianSheet = workbook.createSheet("Clinician");
         XSSFSheet consumerSheet = workbook.createSheet("Consumer");
