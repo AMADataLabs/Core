@@ -15,6 +15,7 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import datalabs.parameter.Parameters;
 import datalabs.task.TaskException;
 
 import org.ama.dtk.Exporter;
@@ -23,6 +24,7 @@ import org.ama.dtk.DtkAccess;
 import org.ama.dtk.legacy.Legacy;
 import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.PropertyType;
+import org.ama.dtk.terms.ConsumerClinicianWorkbookBuilder;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -37,12 +39,12 @@ import datalabs.task.Task;
 
 public class ConsumerClinicianDescriptorsBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsumerClinicianDescriptorsBuilderTask.class);
-    Properties settings = null;
+    Properties settings = new Properties();
 
     public ConsumerClinicianDescriptorsBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException
     {
-        super(parameters, data, ConsumerClinicianDescriptorsParameters.class);
+        super(parameters, null, ConsumerClinicianDescriptorsParameters.class);
     }
 
     public ArrayList<byte[]> run() throws TaskException{
@@ -51,22 +53,27 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         try {
             ConsumerClinicianDescriptorsParameters parameters = (ConsumerClinicianDescriptorsParameters) this.parameters;
 
-            stageInputFiles();
+            //stageInputFiles();
             loadSettings();
+
+            Path corePath = Paths.get(
+                    settings.getProperty("input.directory"),
+                    settings.getProperty("core.directory")
+            );
+            Path currentLinkPath = Paths.get(
+                    settings.getProperty("input.directory"),
+                    settings.getProperty("current.link.directory")
+            );
 
             String outputDirectory =  settings.getProperty("output.directory") + File.separator + parameters.versionNew + File.separator;
             Files.createDirectories(Paths.get(outputDirectory));
 
-            ConsumerClinicianDescriptorsBuilderTask descriptorsBuilder = new ConsumerClinicianDescriptorsBuilderTask(
-                    (Map<String, String>) parameters,
-                    this.data
-            );
-
-            DtkAccess current_link = ConsumerClinicianDescriptorsBuilderTask.loadLink(parameters.versionOld);
-            DtkAccess core = ConsumerClinicianDescriptorsBuilderTask.loadLink(parameters.versionNew);
+            DtkAccess current_link = ConsumerClinicianDescriptorsBuilderTask.loadLink(currentLinkPath.toString());
+            DtkAccess core = ConsumerClinicianDescriptorsBuilderTask.loadLink(corePath.toString());
             List<DtkConcept> concepts = new Legacy(core).getConceptsSorted(false, false);
 
-            descriptorsBuilder.createDescriptors(concepts, outputDirectory, current_link);
+            ConsumerClinicianWorkbookBuilder descriptorBuilder = new ConsumerClinicianWorkbookBuilder(current_link, core);
+            descriptorBuilder.createConsumerClinican(concepts, outputDirectory + "cdfcdterms.xlsx");
 
             File outputFilesDirectory = new File(settings.getProperty("output.directory"));
             outputFiles = loadOutputFiles(outputFilesDirectory);
@@ -88,123 +95,29 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         return link;
     }
 
-    public void createDescriptors(List<DtkConcept> concepts, String outputFile, DtkAccess current_link) throws Exception {
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        XSSFSheet clinicianSheet = workbook.createSheet("Clinician");
-        XSSFSheet consumerSheet = workbook.createSheet("Consumer");
-        createHeaders(consumerSheet, clinicianSheet);
-        checkTerms(consumerSheet, clinicianSheet, concepts, current_link);
-
-        PoiUtil.write(workbook, outputFile);
-    }
-
-    public static void createHeaders(XSSFSheet consumerSheet, XSSFSheet clinicianSheet) throws  Exception{
-        PoiUtil.createHeader(clinicianSheet, "Concept Id", "CPT Code", "Descriptor", "Prior Descriptor", "Clinician Term");
-        PoiUtil.createHeader(consumerSheet, "Concept Id", "CPT Code", "Descriptor", "Prior Descriptor", "Consumer Term");
-    }
-
-    public static void checkTerms(XSSFSheet consumerSheet, XSSFSheet clinicianSheet, List<DtkConcept> concepts,
-                                  DtkAccess current_link) throws Exception {
-        for (DtkConcept concept : concepts) {
-            if (!concept.shouldHaveConsumerTerm() && !concept.shouldHaveClinicianTerm())
-                continue;
-
-            String code = concept.getProperty(PropertyType.CPT_Code);
-            DtkConcept conceptOld = current_link.getConcept(concept.getConceptId());
-            boolean changedDescriptor = conceptOld != null && !conceptOld.getDescriptor().equals(concept.getDescriptor());
-
-            createConsumerRowIfRequired(consumerSheet, concept, changedDescriptor, conceptOld, code);
-            createClinicianRowIfRequired(clinicianSheet, concept, code, changedDescriptor, conceptOld);
-        }
-    }
-
-    public static void createConsumerRowIfRequired(XSSFSheet consumerSheet, DtkConcept concept, Boolean changedDescriptor,
-                                         DtkConcept conceptOld, String code) throws Exception{
-        if (concept.shouldHaveConsumerTerm()) {
-            createConsumerRow(consumerSheet, concept, changedDescriptor, conceptOld, code);
-        }
-    }
-
-    public static void createConsumerRow(XSSFSheet consumerSheet, DtkConcept concept, Boolean changedDescriptor,
-                                         DtkConcept conceptOld, String code) throws Exception{
-        if (concept.getProperty(PropertyType.Consumer_Friendly_Descriptor) == null) {
-            PoiUtil.createRow(
-                    consumerSheet,
-                    consumerSheet.getLastRowNum() + 1,
-                    "" + concept.getConceptId(),
-                    code,
-                    concept.getDescriptor()
-            );
-        } else if (changedDescriptor) {
-            PoiUtil.createRow(
-                    consumerSheet,
-                    consumerSheet.getLastRowNum() + 1,
-                    "" + concept.getConceptId(),
-                    code,
-                    concept.getDescriptor(),
-                    conceptOld.getDescriptor(),
-                    concept.getProperty(PropertyType.Consumer_Friendly_Descriptor)
-            );
-        }
-    }
-
-    public static void createClinicianRowIfRequired(XSSFSheet clinicianSheet, DtkConcept concept, String code,
-                                          Boolean changedDescriptor, DtkConcept conceptOld) throws Exception {
-        if (concept.shouldHaveClinicianTerm()) {
-            createClinicianRow(clinicianSheet, concept, code, changedDescriptor, conceptOld);
-        }
-    }
-
-    public static void createClinicianRow(XSSFSheet clinicianSheet, DtkConcept concept, String code,
-                                          Boolean changedDescriptor, DtkConcept conceptOld) throws Exception{
-        if (concept.getProperty(PropertyType.Clinician_Descriptor) == null) {
-            PoiUtil.createRow(
-                    clinicianSheet,
-                    clinicianSheet.getLastRowNum() + 1,
-                    "" + concept.getConceptId(),
-                    code,
-                    concept.getDescriptor()
-            );
-            PoiUtil.createRow(clinicianSheet, clinicianSheet.getLastRowNum() + 1);
-
-        } else if (changedDescriptor) {
-            Row rowClinician = PoiUtil.createRow(
-                    clinicianSheet,
-                    clinicianSheet.getLastRowNum() + 1,
-                    "" + concept.getConceptId(),
-                    code,
-                    concept.getDescriptor(),
-                    conceptOld.getDescriptor()
-            );
-            boolean firstProperty = true;
-
-            for (String descriptor : concept.getProperties(PropertyType.Clinician_Descriptor)) {
-                if (!firstProperty)
-                    rowClinician = PoiUtil.createRow(clinicianSheet, clinicianSheet.getLastRowNum() + 1);
-
-                PoiUtil.setCellValue(rowClinician, 4, descriptor);
-                firstProperty = false;
-            }
-        }
-    }
-
     void loadSettings(){
-        String dataDirectory = System.getProperty("data.directory", "/tmp");
+        String dataDirectory = System.getProperty("data.directory", "tmp");
 
         settings = new Properties(){{
             put("output.directory", dataDirectory + File.separator + "output");
             put("input.directory", dataDirectory + File.separator + "input");
-            put("current.core.directory", "/current_core");
+            put("core.directory", "core");
+            put("current.link.directory", "current_link");
         }};
     }
 
     void stageInputFiles() throws IOException {
-        Path currentCorePath = Paths.get(
+        Path corePath = Paths.get(
                 settings.getProperty("input.directory"),
                 settings.getProperty("current.core.directory")
         );
+        Path currentLinkPath = Paths.get(
+                settings.getProperty("input.directory"),
+                settings.getProperty("current.link.directory")
+        );
         
-        this.extractZipFiles(this.data.get(1), currentCorePath.toString());
+        this.extractZipFiles(this.data.get(0), corePath.toString());
+        this.extractZipFiles(this.data.get(1), currentLinkPath.toString());
 
     }
 

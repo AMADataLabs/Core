@@ -7,7 +7,6 @@ import datalabs.parameter.Parameters;
 
 
 public class ConsumerClinicianDescriptorsParameters extends Parameters {
-    public String versionOld;
     public String versionNew;
     public Map<String, String> unknowns;
 
