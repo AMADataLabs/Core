@@ -58,7 +58,6 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
 
             File outputFilesDirectory = new File(settings.getProperty("output.directory"));
             outputFiles = loadOutputFiles(outputFilesDirectory);
-
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
