@@ -22,6 +22,16 @@ def prepare_latest_humach_data(humach_data: pd.DataFrame, as_of_date):
     humach_data['SURVEY_DATE'] = pd.to_datetime(humach_data['SURVEY_DATE'])
     humach_data = humach_data[humach_data['SURVEY_DATE'] <= datetime.strptime(as_of_date, '%Y-%m-%d')]
 
+    # required if humach_data is from wslive_results.sas7bdat
+    humach_data.rename(
+        columns={
+            'PHYSICIAN_ME_NUMBER': 'ME',
+            'OFFICE_ADDRESS_LINE_1': 'ADDRESS_LINE_1',
+            'OFFICE_ADDRESS_ZIP': 'ZIP'
+        },
+        inplace=True
+    )
+
     if 'ADDRESS_KEY' not in humach_data.columns:
         humach_data['ADDRESS_KEY'] = humach_data['ADDRESS_LINE_1'].fillna('').apply(
             str.strip
@@ -30,10 +40,10 @@ def prepare_latest_humach_data(humach_data: pd.DataFrame, as_of_date):
         ).apply(str.upper)
 
     humach_data = humach_data[
-        ['ENTITY_ID', 'ADDRESS_KEY', 'SURVEY_DATE', 'COMMENTS', 'OFFICE_ADDRESS_VERIFIED_UPDATED']
+        ['ME', 'ADDRESS_KEY', 'SURVEY_DATE', 'COMMENTS', 'OFFICE_ADDRESS_VERIFIED_UPDATED']
     ].sort_values(
         by='SURVEY_DATE'
-    ).groupby(['ENTITY_ID', 'ADDRESS_KEY']).last().reset_index()
+    ).groupby(['ME', 'ADDRESS_KEY']).last().reset_index()
     humach_data = add_address_status_info(humach_data)
     return humach_data.drop_duplicates()
 
@@ -42,7 +52,7 @@ def add_humach_features(base_data: pd.DataFrame, humach_data: pd.DataFrame, as_o
     base_data.columns = [col.upper() for col in base_data.columns]
     humach_data = prepare_latest_humach_data(humach_data, as_of_date)
 
-    data = humach_data[humach_data['ENTITY_ID'].isin(base_data['ENTITY_ID'].values)]
+    data = humach_data[humach_data['ME'].isin(base_data['ME'].values)]
 
     data['HUMACH_YEARS_SINCE_SURVEY'] = datetime.strptime(as_of_date, '%Y-%m-%d') - data['SURVEY_DATE']
     data['HUMACH_YEARS_SINCE_SURVEY'] = data['HUMACH_YEARS_SINCE_SURVEY'].apply(lambda x: x.days / 365)
@@ -51,7 +61,7 @@ def add_humach_features(base_data: pd.DataFrame, humach_data: pd.DataFrame, as_o
     data['HUMACH_NEVER_SURVEYED'] = (data['HUMACH_YEARS_SINCE_SURVEY'].isna()).astype(int)
     data['HUMACH_YEARS_SINCE_SURVEY'].fillna(max_time)
 
-    data = data[['ENTITY_ID', 'ADDRESS_KEY', 'HUMACH_YEARS_SINCE_SURVEY',
+    data = data[['ME', 'ADDRESS_KEY', 'HUMACH_YEARS_SINCE_SURVEY',
                  'HUMACH_NEVER_SURVEYED', 'HUMACH_ADDRESS_STATUS_UNKNOWN',
                  'HUMACH_ADDRESS_STATUS_CORRECT', 'HUMACH_ADDRESS_STATUS_INCORRECT']].drop_duplicates()
 
@@ -64,13 +74,16 @@ def add_humach_features(base_data: pd.DataFrame, humach_data: pd.DataFrame, as_o
 
 def add_survey_date_col_to_humach_data(humach_data: pd.DataFrame):
     if 'SURVEY_DATE' not in humach_data.columns:
-        year_month_data = humach_data[['SURVEY_YEAR', 'SURVEY_MONTH']].drop_duplicates()
-        year_month_data_dates = []
-        for _, row in year_month_data.iterrows():
-            date = datetime(year=row['SURVEY_YEAR'], month=row['SURVEY_MONTH'], day=1)
-            year_month_data_dates.append(date)
-        year_month_data['SURVEY_DATE'] = year_month_data_dates
-        humach_data = humach_data.merge(year_month_data, on=['SURVEY_YEAR', 'SURVEY_MONTH'])
+        if 'SURVEY_YEAR' in humach_data.columns:  # humach_data is sample data merged manually to result data
+            year_month_data = humach_data[['SURVEY_YEAR', 'SURVEY_MONTH']].drop_duplicates()
+            year_month_data_dates = []
+            for _, row in year_month_data.iterrows():
+                date = datetime(year=row['SURVEY_YEAR'], month=row['SURVEY_MONTH'], day=1)
+                year_month_data_dates.append(date)
+            year_month_data['SURVEY_DATE'] = year_month_data_dates
+            humach_data = humach_data.merge(year_month_data, on=['SURVEY_YEAR', 'SURVEY_MONTH'])
+        else:  # humach_data is directly from wslive_results.sas7bdat
+            humach_data['SURVEY_DATE'] = humach_data['SOURCE_DATE']
     return humach_data
 
 
@@ -116,7 +129,10 @@ def get_address_status(comment, verified_updated):
 class HumachFeatureGenerationTransformerTask(TransformerTask):
     def _transform(self) -> 'Transformed Data':
         base_data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep='|', dtype=str)
-        humach_data = pd.read_csv(StringIO(self._parameters['data'][1].decode()), sep='|', dtype=str)
+        # if using data manually prepared, sample data merged with result data from txt file
+        # humach_data = pd.read_csv(StringIO(self._parameters['data'][1].decode()), sep='|', dtype=str)
+        # if using data directly from Derek's wslive_results.sas7bdat
+        humach_data = pd.read_sas(BytesIO(self._parameters['data'][1]), encoding='latin', format='sas7bdat')
         as_of_date = self._parameters['as_of_date']
 
         features = add_humach_features(base_data, humach_data, as_of_date)
