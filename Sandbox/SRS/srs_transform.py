@@ -324,6 +324,7 @@ def create_it_file(grad_year):
     }
     grad_test = grad_year.rename(columns = col_rename)[columns]
     grad_test['CURRENT_AAMC_STATUS_CD'] = [str(x).split('.')[0] for x in grad_test['CURRENT_AAMC_STATUS_CD']]
+    grad_test['AAMC_ID'] = [str(x).split('.')[0] for x in grad_test['AAMC_ID']]
     grad_test.AAMC_CURRENT_EXP_GRAD_DATE = pd.to_datetime(grad_test.AAMC_CURRENT_EXP_GRAD_DATE, errors='coerce')
     grad_test = grad_test.fillna('')
     grad_test = grad_test.replace('None','')
@@ -395,7 +396,7 @@ def whole_shebang():
     auto.to_excel(f'{out}/Automatic_Updates_{today}.xlsx', index=False)
     manual.to_excel(f'{out}/SRS_Manual_Updates_{today}.xlsx', index=False)
     unprocessed.to_excel(f'{out}/SRS_Unprocessed_{today}.xlsx', index=False)
-    it_file.to_csv(f'{out}/Graduation_Year_Discrepancy_Update_{today}.txt', sep='|', index=False)
+    it_file.to_csv(f'{out}/SRS_Graduation_Year_Discrepancy_Update_{today}.txt', sep='|', index=False)
 
 if __name__ == "__main__":
     whole_shebang()
