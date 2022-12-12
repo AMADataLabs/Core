@@ -3,8 +3,6 @@ intelligent platform front-end validation"""
 from   dataclasses import dataclass
 import logging
 
-import pandas
-
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.etl.intelligent_platform.licensing.sync.column import ARTICLE_COLUMNS, ORGANIZATION_COLUMNS
 from   datalabs.parameter import add_schema
@@ -30,8 +28,8 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
         licensed_organizations, active_contract_organizations, contract_rights_organizations \
             = [self._csv_to_dataframe(data) for data in self._data]
 
-        organizations = licensed_organizations.merge(active_contract_organizations, how="outer" on="Organization")
-        organizations = organizations.merge(contract_rights_organizations, how="outer" on="Organization")
+        organizations = licensed_organizations.merge(active_contract_organizations, how="outer", on="Organization")
+        organizations = organizations.merge(contract_rights_organizations, how="outer", on="Organization")
 
         organizations = organizations[list(ORGANIZATION_COLUMNS.keys())].rename(columns=ORGANIZATION_COLUMNS)
 

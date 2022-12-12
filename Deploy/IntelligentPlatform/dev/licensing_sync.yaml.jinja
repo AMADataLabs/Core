@@ -85,18 +85,22 @@ data:
     LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__DATABASE_USERNAME: ${VISTEX_DB_USERNAME}
     LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__DATABASE_PASSWORD: ${VISTEX_DB_PASSWORD}
     LICENSING_SYNC__EXTRACT_LICENSED_ORGANIZATIONS__SQL: "
-        SELECT
-            T2.licensee,
-            T3.OrganizationName,
+        SELECT DISTINCT
+            IIF (
+                T2.licensee IS NULL,
+                T3.OrganizationName,
+                T2.licensee
+            ) AS Organization
         FROM
             AMA_LicensePortal.dbo.UploadReport T1
                 JOIN LicenseMaestro_CPT.dbo.v_cm_contracts T2
                 ON T1.ReportedContractID = T2.id
                     JOIN AMA_LicensePortal.dbo.UploadReportDetail T3
                     ON T1.UploadReportID = T3.UploadReportID
-        WHERE T3.OrganizationName like '%%' and YEAR(T1.ReportedPeriodEndDate)= 2020
+        WHERE T3.OrganizationName like '%%' and YEAR(T1.ReportedPeriodEndDate) = 2020
+
+        ORDER BY Organization ASC
     "
-#     ORDER BY T3.OrganizationName ASC
 #     OFFSET {index} ROWS
 #     FETCH NEXT {count} ROWS ONLY;
 
@@ -141,7 +145,7 @@ data:
     LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
     LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CACHE_OUTPUT_FILES: active_contracts.csv
+    LICENSING_SYNC__EXTRACT_ACTIVE_CONTRACT_ORGANIZATIONS__CACHE_OUTPUT_FILES: active_contract_organizations.csv
 
 
     # Contract Rights Extractor
@@ -244,7 +248,7 @@ data:
     LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
     LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
     LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CACHE_OUTPUT_FILES: contract_rights.csv
+    LICENSING_SYNC__EXTRACT_CONTRACT_RIGHTS_ORGANIZATIONS__CACHE_OUTPUT_FILES: contract_rights_organizations.csv
 
 
     # Self-Service Licensing Organizations Transformer
