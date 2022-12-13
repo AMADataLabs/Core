@@ -1,5 +1,5 @@
 """ Abstract task base class for use with AWS Lambda and other task-based systems. """
-from abc import ABC, abstractmethod
+from abc import ABCMeta, ABC, abstractmethod
 import logging
 import os
 
@@ -14,7 +14,13 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class Task(ParameterValidatorMixin, ABC):
+class TaskMeta(ABCMeta):
+    @property
+    def name(cls):
+        return f"{cls.__module__}.{cls.__name__}"
+
+
+class Task(ParameterValidatorMixin, ABC, metaclass=TaskMeta):
     PARAMETER_CLASS = None
 
     def __init__(self, parameters: dict, data: "list<bytes>"=None):
@@ -28,6 +34,11 @@ class Task(ParameterValidatorMixin, ABC):
     @abstractmethod
     def run(self) -> "list<bytes>":
         pass
+
+    # @classmethod
+    # def name(cls):
+    #     return f"{cls.__module__}.{cls.__name__}"
+
 
     @classmethod
     def _log_parameters(cls, parameters):
