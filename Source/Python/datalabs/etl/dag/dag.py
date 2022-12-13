@@ -95,6 +95,7 @@ class DAGMeta(type):
         if isinstance(task_annotation, TaskAnnotation):
             cls.__task_classes__[task] = DAGTask(task, task_annotation.task_class)
         elif type(task_annotation).__name__ == "Repeat":
+            # pylint: disable=no-value-for-parameter
             cls._generate_subtasks(task, task_annotation)
         else:
             cls.__task_classes__[task] = DAGTask(task, task_annotation)
