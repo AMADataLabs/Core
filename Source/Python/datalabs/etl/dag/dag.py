@@ -87,6 +87,10 @@ class DAGMeta(type):
 
         return cls.__task_classes__.get(name)
 
+    @property
+    def tasks(cls):
+        return cls.__task_classes__.keys()
+
     def _generate_task(cls, task, task_annotation):
         if isinstance(task_annotation, TaskAnnotation):
             cls.__task_classes__[task] = DAGTask(task, task_annotation.task_class)

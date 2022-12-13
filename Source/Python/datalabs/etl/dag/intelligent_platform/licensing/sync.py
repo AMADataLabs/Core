@@ -1,5 +1,5 @@
 ''' DAG definition for the Intelligent Platform Licensing ETL. '''
-from   datalabs.etl.dag import dag
+from   datalabs.etl.dag import dag, PythonTask
 from   datalabs.etl.sql.sqlalchemy.extract import SQLAlchemyExtractorTask
 from   datalabs.etl.intelligent_platform.licensing.sync.transform import \
     LicensedOrganizationsTransformerTask, \

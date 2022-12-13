@@ -15,6 +15,28 @@ def test_dag_task_attributes_are_created(dag_class):
     assert hasattr(dag_class.POUR_CHAMPAIGN_INTO_GLASS, 'task_class')
     assert dag_class.POUR_CHAMPAIGN_INTO_GLASS.task_class == TestTask2
 
+
+def test_dag_tasks_property_returns_task_names(dag_class):
+    assert len(dag_class.tasks) == 10
+
+    tasks = [
+        "CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY",
+        "POUR_CHAMPAIGN_INTO_GLASS",
+        "WAX_ON_WITH_KARATE_0",
+        "WAX_ON_WITH_KARATE_1",
+        "WAX_ON_WITH_KARATE_2",
+        "WAX_OFF_WITH_KARATE_0",
+        "WAX_OFF_WITH_KARATE_1",
+        "WAX_OFF_WITH_KARATE_2",
+        "CELEBRATE_GOOD_TIMES",
+        "COME_ON",
+    ]
+
+    for task in tasks:
+        assert task in dag_class.tasks
+
+
+
 # pylint: disable=redefined-outer-name
 def test_dag_vertices_are_created(dag_class):
     dag = dag_class()

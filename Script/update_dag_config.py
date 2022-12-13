@@ -22,10 +22,10 @@ def main(args):
     if args['var']:
         kwargs.update(parse_kwargs(args['var']))
 
-    with tempfile.NamedTemporaryFile(suffix='.yaml', delete=not args['no_delete']) as file:
+    with tempfile.NamedTemporaryFile(suffix='.yaml', delete=True) as file:
         render_template(template, file.name, **kwargs)
 
-        load_dynamodb(args['environment'], file.name)
+        load_dynamodb(args['environment'], file.name, args["dry_run"])
 
 
 def parse_kwargs(kwarg_strings):
@@ -43,10 +43,10 @@ def parse_kwargs(kwarg_strings):
 
     return kwargs
 
-def load_dynamodb(environment, file):
+def load_dynamodb(environment, file, dry_run):
     loader = ConfigMapLoader(table=f"DataLake-configuration-{environment}")
 
-    loader.load([file])
+    loader.load([file], dry_run=dry_run)
 
 
 if __name__ == '__main__':
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     ap.add_argument('-v', '--var', action='append',
                     help='<KEY>=<VALUE> pair used to resolve the template variables.')
     ap.add_argument(
-        '-n', '--no-delete', required=False, action='store_true', help='Do not delete the rendered DAG config file.'
+        '-D', '--dry-run', required=False, action='store_true', help='Render DAG config template and quit.'
     )
     args = vars(ap.parse_args())
 
