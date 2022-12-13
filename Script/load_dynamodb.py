@@ -1,8 +1,6 @@
 import argparse
 import logging
 
-import jinja2
-
 from   datalabs.deploy.config.dynamodb import ConfigMapLoader
 
 logging.basicConfig()

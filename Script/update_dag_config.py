@@ -4,8 +4,10 @@ import logging
 import os
 from   pathlib import Path
 import re
+import tempfile
 
 from   render_template import render_template
+from   datalabs.deploy.config.dynamodb import ConfigMapLoader
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -14,14 +16,16 @@ LOGGER.setLevel(logging.DEBUG)
 
 def main(args):
     script_path = os.path.realpath(os.path.dirname(__file__))
-    file = f"{script_path}/../Deploy/{args['project']}/{args['environment']}/{args['template']}.yaml"
-    template = f"{file}.jinja"
+    template = f"{script_path}/../Deploy/{args['project']}/{args['environment']}/{args['template']}.yaml.jinja"
     kwargs = {}
 
     if args['var']:
         kwargs.update(parse_kwargs(args['var']))
 
-    render_template(template, file, **kwargs)
+    with tempfile.NamedTemporaryFile(suffix='.yaml', delete=not args['no_delete']) as file:
+        render_template(template, file.name, **kwargs)
+
+        load_dynamodb(args['environment'], file.name)
 
 
 def parse_kwargs(kwarg_strings):
@@ -39,6 +43,11 @@ def parse_kwargs(kwarg_strings):
 
     return kwargs
 
+def load_dynamodb(environment, file):
+    loader = ConfigMapLoader(table=f"DataLake-configuration-{environment}")
+
+    loader.load([file])
+
 
 if __name__ == '__main__':
     return_code = 0
@@ -49,6 +58,9 @@ if __name__ == '__main__':
     ap.add_argument('-t', '--template', required=True, help='DAG config template name.')
     ap.add_argument('-v', '--var', action='append',
                     help='<KEY>=<VALUE> pair used to resolve the template variables.')
+    ap.add_argument(
+        '-n', '--no-delete', required=False, action='store_true', help='Do not delete the rendered DAG config file.'
+    )
     args = vars(ap.parse_args())
 
     try:
