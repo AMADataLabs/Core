@@ -8,9 +8,17 @@ from datalabs.etl.transform import TransformerTask
 
 class DatabaseTableCleanupTransformerTask(TransformerTask):
     def _transform(self) -> 'Transformed Data':
-        data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|', dtype=str)
-        if len(data.columns.values) == 1 and ',' in data.columns.values[0]:
-            data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep=',', dtype=str)
+        data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep=',', dtype=str, encoding='latin')
+        if len(data.columns.values) == 1 and '|' in data.columns.values[0]:
+            data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|', dtype=str, encoding='latin')
+
+        col0 = data.columns[0]
+        try:
+            if all(data[col0].astype(int) == data.index):
+                print('data contained index column. removing.')
+                del data[col0]
+        except:
+            pass
 
         results = pd.DataFrame()
         if 'KEEP_COLUMNS' in self._parameters and self._parameters['KEEP_COLUMNS'] not in [None, '', 'NONE']:
@@ -30,8 +38,7 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
             for col in cols:
                 if str(self._parameters['REPAIR_DATETIME']).upper() == 'TRUE':
                     results[col] = results[col].apply(repair_datetime)
-                else:
-                    results[col] = pd.to_datetime(results[col])
+                results[col] = pd.to_datetime(results[col])
             print('DATE_COLUMNS')
 
         if 'CONVERT_TO_INT_COLUMNS' in self._parameters and \
@@ -45,8 +52,6 @@ class DatabaseTableCleanupTransformerTask(TransformerTask):
             cols = get_list_parameter(self._parameters['RENAME_COLUMNS'])
             results.columns = cols
             print('RENAME_COLUMNS')
-
-        print(self._parameters)
 
         final_results = BytesIO()
         results.to_csv(final_results, sep='|', index=False)
