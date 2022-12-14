@@ -20,7 +20,15 @@ MINIMUM_SCORE_DIFFERENCE = 0.2
 VERIFICATION_OVERWRITE_BLACKLIST_WINDOW_DAYS = 5*365  # will not overwrite addresses verified within this amount of time
 
 
-def format_address_load_data(data: pd.DataFrame):
+def format_address_load_data(data: pd.DataFrame, post_addr_at_data: pd.DataFrame):
+    post_addr_at_data.columns = [f'post_{col}' for col in post_addr_at_data.columns.values]
+
+    post_addr_at_data['post_comm_id'] = post_addr_at_data['post_comm_id'].astype(str).apply(str.strip)
+    data['comm_id'] = data['comm_id'].astype(str).apply(str.strip)
+
+    data = data.merge(post_addr_at_data, left_on='comm_id', right_on='post_comm_id', how='left').fillna('')
+    assert data.shape[0] > 100
+
     df = pd.DataFrame()
 
     df['entity_id'] = data['entity_id']
@@ -29,12 +37,12 @@ def format_address_load_data(data: pd.DataFrame):
     df['usage'] = 'PO'
     df['load_type_ind'] = 'R'
     df['addr_type'] = 'OF'
-    df['addr_line0'] = data['addr_line0'].fillna('')
-    df['addr_line1'] = data['addr_line1'].fillna('')
-    df['addr_line2'] = data['addr_line2'].fillna('')
-    df['city_cd'] = data['city_cd'].fillna('')
-    df['state_cd'] = data['state_cd'].fillna('')
-    df['zip'] = data['zip'].fillna('')
+    df['addr_line0'] = data['post_addr_line0'].fillna('')
+    df['addr_line1'] = data['post_addr_line1'].fillna('')
+    df['addr_line2'] = data['post_addr_line2'].fillna('')
+    df['city_cd'] = data['post_city_cd'].fillna('')
+    df['state_cd'] = data['post_state_cd'].fillna('')
+    df['zip'] = data['post_zip'].fillna('')
     df['addr_plus4'] = ''
     df['addr_country'] = ''
     df['source'] = 'ASM'  # Address Scoring Model
@@ -45,10 +53,11 @@ def format_address_load_data(data: pd.DataFrame):
 
 class BOLOPOLOPhoneAppendFileGenerator(TransformerTask):
     def _transform(self) -> 'Transformed Data':
-        print(len(self._parameters['data']))
-        scores = pd.read_csv(BytesIO(self._parameters['data'][0]), sep=',', dtype=str, error_bad_lines=False).fillna('')
-        ppd = pd.read_csv(BytesIO(self._parameters['data'][1]), sep=',', dtype=str).fillna('')
-        wslive_data = pd.read_sas(BytesIO(self._parameters['data'][2]), format='sas7bdat').fillna('')
+        scores      = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|', dtype=str, error_bad_lines=False).fillna('')
+        ppd         = pd.read_csv(BytesIO(self._parameters['data'][1]), sep=',', dtype=str).fillna('')
+        wslive_data = pd.read_sas(BytesIO(self._parameters['data'][2]), format='sas7bdat', encoding='latin').fillna('')
+        post_addr   = pd.read_csv(BytesIO(self._parameters['data'][3]), sep='|', dtype=str)
+
         # wslive_path = "U:/Source Files/Data Analytics/Derek/SAS_DATA/SURVEY/wslive_results.sas7bdat"
 
         recent_verified_me_address_keys = filtering.get_recent_verified_me_address_keys(data=wslive_data)
@@ -68,12 +77,17 @@ class BOLOPOLOPhoneAppendFileGenerator(TransformerTask):
             within_days=VERIFICATION_OVERWRITE_BLACKLIST_WINDOW_DAYS,
             verified_addresses=recent_verified_me_address_keys
         )
+        address_batchload = format_address_load_data(df, post_addr)
 
-        address_batchload = format_address_load_data(df)
+        address_batchload_results = BytesIO()
+        address_batchload.to_csv(address_batchload_results, sep=',', index=False)
+        address_batchload_results.seek(0)
 
-        df.to_csv('bolo_polo_test.txt', sep='|', index=False)
-        address_batchload.to_csv('address_batchload_test.txt', sep='|', index=False)
-        return [pk.dumps(data) for data in [df, address_batchload]]
+        bolo_vs_polo_results = BytesIO()
+        df.to_csv(bolo_vs_polo_results, sep='|', index=False)
+        bolo_vs_polo_results.seek(0)
+
+        return [bolo_vs_polo_results.getvalue(), address_batchload_results.getvalue()]
 
 
 
@@ -141,7 +155,7 @@ class BOLOAddressLoadFileGenerator:
         polo_data = filtering.get_polo_address_scores(self.data)
         df = filtering.get_bolo_vs_polo_data(bolo_data=bolo_data, polo_data=polo_data)
         LOGGER.info('SAVING BOLO_POLO_DATA')
-        df.to_csv(f'ADRESS_SCORING_BOLO_POLO_{self.date}.csv', index=False)
+        # df.to_csv(f'ADRESS_SCORING_BOLO_POLO_{self.date}.csv', index=False)
         df = filtering.filter_on_score_difference(
             bolo_polo_data=df,
             difference_threshold=MINIMUM_SCORE_DIFFERENCE
@@ -162,8 +176,8 @@ if __name__ == '__main__':
     #gen = BOLOAddressLoadFileGenerator()
     #gen.run()
     ep = {
-        'base_path': r'C:\Users\Garrett\PycharmProjects\AMA\hs-datalabs\Source\Python\datalabs\analysis\address\scoring',
-        'files': r'output\ADDRESS_SCORING_2022-08-16.csv,data\2022-08-16\ppd_analysis_file.csv,data\2022-08-16\wslive_results.sas7bdat'
+        'base_path': rf'C:\Users\Garrett\PycharmProjects\AMA\hs-datalabs\Source\Python\datalabs\analysis\address\scoring\data\{AS_OF_DATE}',
+        'files': rf'output\scores_{AS_OF_DATE}.txt,ppd_analysis_file.csv,wslive_results.sas7bdat'
     }
     e = LocalFileExtractorTask(parameters=ep)
     e.run()
@@ -174,5 +188,6 @@ if __name__ == '__main__':
     t = BOLOPOLOPhoneAppendFileGenerator(parameters=tp)
 
     t.run()
+
 
     print(len(t.data))
