@@ -67,7 +67,7 @@ def get_recent_verified_me_address_keys(within_days=365, from_date=datetime.now(
 
     data['verified'] = [
         is_verified_address(c, v) for c, v in zip(
-            data['COMMENTS'], data['OFFICE_ADDRESS_VERIFIED_UPDATED'].fillna('').astype(str)
+            data['COMMENTS'].apply(str.strip), data['OFFICE_ADDRESS_VERIFIED_UPDATED'].fillna('').astype(str).apply(str.strip)
         )
     ]
     data = data[data['verified'] == True]
@@ -190,12 +190,16 @@ def filter_recent_verified_addresses(
     if verified_addresses is None:
         verified_addresses = get_recent_verified_me_address_keys(within_days=within_days, from_date=from_date)
 
-    # make key
-    bolo_polo_data['me_polo_address_key'] = \
-        bolo_polo_data['me'] + '_' + \
-        bolo_polo_data['addr_line2'].apply(remove_ste) + '_' + \
-        bolo_polo_data['zip']
+    # make key from me + address_key or me + addr_line2 + zip if necessary
+    if 'address_key' in bolo_polo_data.columns.values:
+        bolo_polo_data['me_polo_address_key'] = bolo_polo_data['me'].astype(str) + '_' + bolo_polo_data['address_key'].fillna('')
+    else:
+        bolo_polo_data['me_polo_address_key'] = \
+            bolo_polo_data['me'] + '_' + \
+            bolo_polo_data['addr_line2'].apply(remove_ste) + '_' + \
+            bolo_polo_data['zip']
 
+    bolo_polo_data['me_polo_address_key'] = bolo_polo_data['me_polo_address_key'].apply(str.upper)
     #print(bolo_polo_data['me_polo_address_key'].values[:10])
     #print(verified_addresses[:10])
 
