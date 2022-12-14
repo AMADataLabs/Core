@@ -32,17 +32,17 @@ def format_address_load_data(data: pd.DataFrame, post_addr_at_data: pd.DataFrame
     df = pd.DataFrame()
 
     df['entity_id'] = data['entity_id']
-    df['me'] = data['me'].fillna('')
+    df['me#'] = data['me'].fillna('')
     df['comm_id'] = data['comm_id'].fillna('')
     df['usage'] = 'PO'
     df['load_type_ind'] = 'R'
     df['addr_type'] = 'OF'
-    df['addr_line0'] = data['post_addr_line0'].fillna('')
-    df['addr_line1'] = data['post_addr_line1'].fillna('')
-    df['addr_line2'] = data['post_addr_line2'].fillna('')
-    df['city_cd'] = data['post_city_cd'].fillna('')
-    df['state_cd'] = data['post_state_cd'].fillna('')
-    df['zip'] = data['post_zip'].fillna('')
+    df['addr_line_0'] = data['post_addr_line0'].fillna('')
+    df['addr_line_1'] = data['post_addr_line1'].fillna('')
+    df['addr_line_2'] = data['post_addr_line2'].fillna('')
+    df['addr_city'] = data['post_city_cd'].fillna('')
+    df['addr_state'] = data['post_state_cd'].fillna('')
+    df['addr_zip'] = data['post_zip'].fillna('')
     df['addr_plus4'] = ''
     df['addr_country'] = ''
     df['source'] = 'ASM'  # Address Scoring Model
