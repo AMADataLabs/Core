@@ -9,10 +9,13 @@ from datalabs.analysis.address.scoring.etl.transform.cleanup import get_list_par
 
 
 class AddressKeyTransformerTask(TransformerTask):
-    PARAMETER_CLASS = AddressKeyTransformerParameters
+    # PARAMETER_CLASS = AddressKeyTransformerParameters
 
     def _transform(self) -> 'Transformed Data':
         data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep='|', dtype=str)
+        if data.columns == 1:  # wrong delim, try comma
+            data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep=',', dtype=str)
+        data.columns = [col.lower().strip() for col in data.columns.values]
         found_columns = data.columns.values
 
         result_data = pd.DataFrame()
@@ -42,8 +45,16 @@ class AddressKeyTransformerTask(TransformerTask):
             col_street
         ].fillna('').astype(str).apply(str.strip) + '_' + data[
             col_zip
-        ].fillna('').astype(str).apply(str.strip)
+        ].fillna('').astype(str).apply(str.strip).apply(lambda x: x[:5])
         result_data['address_key'] = result_data['address_key'].apply(str.upper)
+
+        # keep only ['me', 'address_key'] if data is from IQVIA or Symphony
+        if col_street.startswith('ims_'):
+            result_data['me'] = result_data['ims_me']
+            result_data = result_data[['me', 'address_key']].drop_duplicates()
+        elif  col_street.startswith('sym_'):
+            result_data['me'] = result_data['sym_me']
+            result_data = result_data[['me', 'address_key']].drop_duplicates()
 
         results = BytesIO()
         result_data.to_csv(results, sep='|', index=False)
