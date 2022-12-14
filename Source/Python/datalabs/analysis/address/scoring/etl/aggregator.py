@@ -5,8 +5,8 @@
 #   - entity_comm       - [entity_id, comm_id, address_key]
 #   - entity_comm_usg   - [comm_id]
 #   - license           - [entity_id, comm_id]
-#   - humach            - [entity_id, address_key]
-#   - triangulation     - [key]
+#   - humach            - [me, address_key]
+#   - triangulation     - [me, address_key]
 # pylint: disable=import-error,line-too-long,unused-import
 from io import BytesIO
 import pickle as pk
@@ -23,8 +23,8 @@ KEEP_COLS__LICENSE = [
     'entity_id', 'comm_id', 'has_newer_active_license_elsewhere', 'has_older_active_license_elsewhere',
     'has_active_license_in_this_state', 'years_licensed_in_this_state', 'license_this_state_years_since_expiration'
 ]
-KEEP_COLS__HUMACH = ['entity_id', 'address_key', 'humach_*']
-KEEP_COLS__TRIANGULATION = ['key', 'triangulation_*']
+KEEP_COLS__HUMACH = ['me', 'address_key', 'humach_*']
+KEEP_COLS__TRIANGULATION = ['me', 'address_key', 'triangulation_*']
 
 
 def reduce_to_keep_columns(data: pd.DataFrame, keep_columns: list):
@@ -61,9 +61,12 @@ class FeatureAggregatorTransformerTask(TransformerTask):
         features_triangulation1 = self._pipe_delim_txt_to_dataframe(self._parameters['data'][5])
         features_triangulation2 = self._pipe_delim_txt_to_dataframe(self._parameters['data'][6])
 
+        if 'address_key' not in base_data.columns:
+            base_data['address_key'] = base_data['addr_line2'].fillna('').astype(str) + '_' + \
+                                       base_data['zip'].fillna('').astype(str)
+            base_data['address_key'] = base_data['address_key'].apply(str.upper)
         base_data = reduce_to_keep_columns(base_data, KEEP_COLS__BASE_DATA)
         # base_data = base_data.sample(50)
-        base_data['key'] = base_data['me'].fillna('').astype(str) + '_' + base_data['address_key'].fillna('').astype(str)
         print('base_data', base_data.shape, base_data.memory_usage().sum() / 1024**2)
         features_entity_comm = reduce_to_keep_columns(features_entity_comm, KEEP_COLS__ENTITY_COMM)
         print('features_entity_comm', features_entity_comm.shape, features_entity_comm.memory_usage().sum() / 1024**2)
@@ -78,22 +81,28 @@ class FeatureAggregatorTransformerTask(TransformerTask):
         features_triangulation1 = reduce_to_keep_columns(features_triangulation1, KEEP_COLS__TRIANGULATION)
         features_triangulation2 = reduce_to_keep_columns(features_triangulation2, KEEP_COLS__TRIANGULATION)
 
-        data = base_data.merge(features_entity_comm, on=['entity_id', 'comm_id'], how='left')
-        print('m1', data.memory_usage().sum() / 1024 ** 2)
+        data = base_data
+        data = data.merge(features_entity_comm, on=['entity_id', 'comm_id'], how='left')
+        print('m1', data.memory_usage().sum() / 1024 ** 2, data.shape)
         data = data.merge(features_entity_comm_usg, on='comm_id', how='left')
-        print('m2', data.memory_usage().sum() / 1024 ** 2)
+        print('m2', data.memory_usage().sum() / 1024 ** 2, data.shape)
         data = data.merge(features_license, on=['entity_id', 'comm_id'], how='left')
-        print('m3', data.memory_usage().sum() / 1024 ** 2)
-        data = data.merge(features_humach, on=['entity_id', 'address_key'], how='left')
+        print('m3', data.memory_usage().sum() / 1024 ** 2, data.shape)
+        data = data.merge(features_humach, on=['me', 'address_key'], how='left')
+        print('m4', data.memory_usage().sum() / 1024 ** 2, data.shape)
         # ############### data = base_data.copy()
         base_data.head().to_csv('base_data_head.csv', index=False)
         features_triangulation1.head().to_csv('tri_iqvia_head.csv', index=False)
         features_triangulation2.head().to_csv('tri_symph_head.csv', index=False)
-        print('data cols pre')
+        print('data cols pre', data.shape)
         print(data.columns.values)
-        data = data.merge(features_triangulation1, on=['key'])#, how='left')
-        data = data.merge(features_triangulation2, on=['key'])#, how='left')
-        print('data cols post')
+
+        data.head().to_csv('head_features.csv', index=False)
+        features_triangulation1.to_csv('head_triangulation1.csv', index=False)
+        features_triangulation2.to_csv('head_triangulation2.csv', index=False)
+        data = data.merge(features_triangulation1, on=['me', 'address_key'])#, how='left')
+        data = data.merge(features_triangulation2, on=['me', 'address_key'])#, how='left')
+        print('data cols post', data.shape)
         print(data.columns.values)
 
         result = BytesIO()
