@@ -104,6 +104,8 @@ class AddressScoringTransformerTask(TransformerTask):
     def _transform(self) -> 'Transformed Data':
         model = pk.loads(self._parameters['data'][0])  # must have "predict_proba" method
         aggregate_features = pd.read_csv(BytesIO(self._parameters['data'][1]), sep='|', dtype=str)
+        if 'me10' in aggregate_features.columns.values:  # lingering from triangulation
+            del aggregate_features['me10']
         info_cols = [
             'me',
             'entity_id',
