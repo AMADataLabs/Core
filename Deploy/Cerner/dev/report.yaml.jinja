@@ -1,6 +1,6 @@
 # Render as follows:
 
-# Script/render-template -t Deploy/Cerner/dev/report.yaml.jinja -f Deploy/Cerner/dev/report.yaml \
+# Script/update-dag-config -e dev -p Cerner -t report \
 # -v "VISTEX_DB_password=yV80tNwNN64q4644"
 ---
 data:
@@ -58,7 +58,7 @@ data:
     ##########################################################################
 
     # Cerner Data Extractor
-    CERNER_REPORT__EXTRACT_CERNER_DATA__BACKEND: ${VISTEX_DB_BACKEND}
+    CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_BACKEND: ${VISTEX_DB_BACKEND}
     CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_HOST: ${VISTEX_DB_HOST}
     CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_PORT: ${VISTEX_DB_PORT}
     CERNER_REPORT__EXTRACT_CERNER_DATA__DATABASE_USERNAME: ${VISTEX_DB_USERNAME}

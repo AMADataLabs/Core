@@ -1,7 +1,7 @@
-# Render as follows:
+# Update DynamoDB as follows:
 #
-# Script/render-template -t Deploy/AddressLoad/dev/dag.yaml.jinja -f Deploy/AddressLoad/dev/dag.yaml \
-# -v "sftp_password={{sftp_password}}""
+# Script/update-dag-config -e dev -p AddressLoad -t dag \
+# -v "eft_password={{eft_password}}""
 ---
 data:
     #######################################################################

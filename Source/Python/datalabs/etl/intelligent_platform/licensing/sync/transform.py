@@ -4,10 +4,10 @@ from   dataclasses import dataclass
 import logging
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.etl.intelligent_platform.licensing.sync.column import ARTICLE_COLUMNS, ORGANIZATION_COLUMNS
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
-from   datalabs.etl.intelligent_platform.licensing.sync.column import ARTICLE_COLUMNS, ORGANIZATION_COLUMNS
 
 
 logging.basicConfig()
@@ -25,23 +25,17 @@ class LicensedOrganizationsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task)
     PARAMETER_CLASS = LicensedOrganizationsTransformerParameters
 
     def run(self):
-        organizations = self._csv_to_dataframe(self._data[0])
+        licensed_organizations, active_contract_organizations, contract_rights_organizations \
+            = [self._csv_to_dataframe(data) for data in self._data]
 
-        organizations = self._fill_in_empty_licensees(organizations)
+        organizations = licensed_organizations.merge(active_contract_organizations, how="outer", on="Organization")
+        organizations = organizations.merge(contract_rights_organizations, how="outer", on="Organization")
 
         organizations = organizations[list(ORGANIZATION_COLUMNS.keys())].rename(columns=ORGANIZATION_COLUMNS)
 
         organizations = organizations.drop_duplicates()
 
         return [self._dataframe_to_csv(organizations)]
-
-    @classmethod
-    def _fill_in_empty_licensees(cls, organizations):
-        null_licensee_indicies = organizations.licensee.isnull()
-
-        organizations.licensee[null_licensee_indicies] = organizations.OrganizationName[null_licensee_indicies]
-
-        return organizations
 
 
 @add_schema
