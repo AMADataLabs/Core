@@ -34,9 +34,9 @@ from   dataclasses import dataclass
 import itertools
 import logging
 import tempfile
+from   urllib.parse import quote
 
 from   dateutil.parser import isoparse
-from   urllib.parse import quote
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
