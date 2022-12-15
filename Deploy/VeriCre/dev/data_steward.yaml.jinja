@@ -76,14 +76,14 @@ data:
 	JOIN 'user' ON a.user = 'user'.id
     ) AS d
     WHERE updated_datetime
-    BETWEEN timestamp '2022-08-13 00:00:00' - interval '1 day'
-    AND timestamp '2022-08-13 00:00:00'
+    BETWEEN timestamp '%Y-%m-%d %H:%M:%S' - interval '1 day'
+    AND timestamp '%Y-%m-%d %H:%M:%S'
     ORDER BY d.user;
     "
     VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
     VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__CACHE_OUTPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
     VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
-    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__CACHE_OUTPUT_FILES: new_application_paths.csv, user_ID_ME_number_name_map.csv
+    VERICRE_DATA_STEWARD__EXTRACT_NEW_APPLICATION_PATHS_TODAY__CACHE_OUTPUT_FILES: new_application_paths.csv, user_id_me_number_name_map.csv
 
     # Extract User Uploads
     VERICRE_DATA_STEWARD__EXTRACT_USER_UPLOADS__CACHE_CLASS: ${S3_CACHE_CLASS}
@@ -114,5 +114,13 @@ data:
     VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
     VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__CACHE_INPUT_BUCKET: ${S3_VERICRE_DATA_BUCKET}
     VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__CACHE_INPUT_FILES: 'new_application_data.zip,user_ID_ME_number_name_map.csv'
-    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__TO: 'datalabs@ama-assn.org'
+    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__CACHE_INPUT_FILES: 'new_application_data.zip,user_id_me_number_name_map.csv'
+
+    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__TO_ADDRESSES: 'datalabs@ama-assn.org'
+    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__SUBJECT: 'Self-Service Licensing New User Uploads - %Y-%m-%d'
+    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__MESSAGE: "
+    This is an automated email from DataLabs.
+
+    Attached are the user uploads for new or resubmitted Serf-Service Licensing applications for the past 24 hours.
+"
+    VERICRE_DATA_STEWARD__SEND_USER_UPLOADS__FILES: 'new_application_data.zip,user_id_me_number_name_map.csv'
