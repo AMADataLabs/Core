@@ -36,6 +36,7 @@ import logging
 import tempfile
 
 from   dateutil.parser import isoparse
+from   urllib.parse import quote
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
@@ -99,6 +100,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
         else:
             raise ValueError('Either the "files" or "data" parameter must contain the list of files to extract.')
 
+        files = [file.replace('"', '') for file in files]
+
         if base_path:
             files = ['/'.join((base_path, file.strip())) for file in files]
 
@@ -119,13 +122,14 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
         LOGGER.debug(f'Extracting file {file} from bucket {self._parameters.bucket}...')
+        quoted_file = quote(file).replace('%2B', '+').replace('%22', '')
         data = None
 
         if feature.enabled("PROFILE"):
             LOGGER.info(f'Pre extraction memory {(hpy().heap())}')
 
         try:
-            response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
+            response = self._client.get_object(Bucket=self._parameters.bucket, Key=quoted_file)
         except Exception as exception:
             raise ETLException(
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
@@ -157,6 +161,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     def _parse_file_lists(cls, data, ignore_header=False):
         for raw_file_list in data:
             file_list = [file.decode().strip() for file in raw_file_list.split(b'\n')]
+
+            file_list.remove('')
 
             if ignore_header:
                 file_list = file_list[1:]
@@ -206,7 +212,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
 
-        if  '' in objects:
+        if '' in objects:
             objects.remove('')
 
         return objects
