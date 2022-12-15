@@ -15,11 +15,11 @@ data:
     PLATFORM_DB_PORT: '5432'
     PLATFORM_DB_BACKEND: 'postgresql+psycopg2'
     PLATFORM_DB_NAME: 'vericre'
-    PLATFORM_DB_USERNAME:  '{{platform_db_username}}'
+    PLATFORM_DB_USERNAME:  'vericreadmin'
     PLATFORM_DB_PASSWORD:  '{{platform_db_password}}'
 
     S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-    S3_BASE_PATH: 'AMA/Vericre/DataSteward'
+    S3_BASE_PATH: 'AMA/VeriCre/DataSteward'
 
 
     #######################################################################
@@ -27,7 +27,7 @@ data:
     #######################################################################
 
     VERICRE_DATA_STEWARD__DAG__ENVIRONMENT: ${ENVIRONMENT}
-    VERICRE_DATA_STEWARD__DAG__LAMBDA_FUNCTION: 'VERICRE-${ENVIRONMENT}-DataStewardDAG'
+    VERICRE_DATA_STEWARD__DAG__LAMBDA_FUNCTION: 'VeriCre-${ENVIRONMENT}-DataStewardDAG'
     VERICRE_DATA_STEWARD__DAG__DAG_CLASS: 'datalabs.etl.dag.vericre.data_steward.DAG'
     VERICRE_DATA_STEWARD__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     VERICRE_DATA_STEWARD__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
