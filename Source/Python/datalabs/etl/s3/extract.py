@@ -162,7 +162,8 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
         for raw_file_list in data:
             file_list = [file.decode().strip() for file in raw_file_list.split(b'\n')]
 
-            file_list.remove('')
+            if '' in file_list:
+                file_list.remove('')
 
             if ignore_header:
                 file_list = file_list[1:]
