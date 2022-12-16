@@ -2226,7 +2226,7 @@ pipelines:
             - environment-master
             script:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-            - bash Deploy/Master/deploy-package --project VeriCre
+            - bash Deploy/Master/deploy-package --project VeriCre/DataSteward
         - parallel:
             - step:
                 name: Update Development Bundle
@@ -2239,7 +2239,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
-                    --project VeriCre
+                    --project VeriCre/DataSteward
                     --bundle VeriCre/DataSteward.zip
                     --use-package
             - step:
@@ -2253,7 +2253,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
-                    --project VeriCre
+                    --project VeriCre/DataSteward
                     --bundle VeriCre/DataSteward.zip
                     --use-package
             - step:
@@ -2267,7 +2267,7 @@ pipelines:
                 - >-
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
-                    --project VeriCre
+                    --project VeriCre/DataSteward
                     --bundle VeriCre/DataSteward.zip
                     --use-package
 #        - parallel:
@@ -2278,7 +2278,7 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/DataSteward
 #                    DataStewardDAG=DataSteward.zip
 #            - step:
 #                name: Update test Lambda Functions
@@ -2287,7 +2287,7 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre DataStewardDAG=DataSteward.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre/DataSteward DataStewardDAG=DataSteward.zip
 #            - step:
 #                name: Update production Lambda Functions
 #                script:
@@ -2295,7 +2295,7 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s VeriCre -p VeriCre DataStewardDAG=DataSteward.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s VeriCre -p VeriCre/DataSteward DataStewardDAG=DataSteward.zip
 
 definitions:
   caches:
