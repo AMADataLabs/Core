@@ -2,7 +2,6 @@
 modspec:
   - package: datalabs
     include:
-      - awslambda
       - feature
       - parameter
       - plugin
@@ -21,7 +20,6 @@ modspec:
   - package: datalabs.access.secret
   - package: datalabs.etl
     include:  
-      - awslambda
       - csv
       - extract
       - load
