@@ -9,14 +9,15 @@ ENV PATH=${MAVEN_HOME}/bin:${PATH}
 
 RUN yum update -y
 RUN amazon-linux-extras enable docker
-RUN yum -y install gcc openssl-devel bzip2-devel libffi-devel xz-devel freetype-devel make gcc-c++ \
-                   wget tar gzip git xvfb jq docker zip unzip which \
-                   java-17-amazon-corretto-devel
+RUN yum -y install openssl-devel bzip2-devel libffi-devel xz-devel freetype-devel sqlite-devel \
+    make gcc gcc-c++ sqlite-devel \
+    wget tar gzip git xvfb jq docker zip unzip which \
+    java-17-amazon-corretto-devel
 
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
     tar xzf Python-${PYTHON_VERSION}.tgz && \
     cd Python-${PYTHON_VERSION} && \
-    ./configure --enable-optimizations && \
+    ./configure --enable-optimizations --enable-loadable-sqlite-extensions && \
     make altinstall && \
     ln -s /usr/local/bin/python3.9 /usr/local/bin/python3 && \
     ln -s /usr/local/bin/pip3.9 /usr/local/bin/pip3
