@@ -205,7 +205,7 @@ install_aws_cli() {
 
     unzip /tmp/awscliv2.zip -d /tmp
 
-    /tmp/aws/install --bin-dir /usr/bin --install-dir /usr/local/aws-cli
+    /tmp/aws/install --bin-dir /usr/bin --install-dir /usr/local/aws-cli --update
 
     rm -rf /tmp/aws /tmp/awscliv2.zip
 }
