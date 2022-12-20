@@ -203,23 +203,17 @@ install_aws_cli() {
 
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
 
-    pushd /tmp
+    unzip /tmp/awscliv2.zip -d /tmp
 
-    unzip awscliv2.zip
+    /tmp/aws/install --bin-dir /usr/bin --install-dir /usr/local/aws-cli
 
-    ./aws/install
-
-    rm -rf ./aws ./awscliv2.zip
-
-    popd
-
-    ln -s /usr/local/bin/aws /usr/bin/aws
+    rm -rf /tmp/aws /tmp/awscliv2.zip
 }
 
 
 remove_aws_cli() {
     echo "### Removing AWS CLI ###"
-    rm /usr/bin/aws
+    rm -rf /usr/bin/aws /usr/local/aws-cli
 
     apt install -y awscli
 }
