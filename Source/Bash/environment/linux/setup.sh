@@ -199,7 +199,7 @@ create_base_virtual_environment() {
 
 install_aws_cli() {
     echo "### Installing AWS CLI ###"
-    apt remove awscli
+    apt remove -y awscli
 
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
 
