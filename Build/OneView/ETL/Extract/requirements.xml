@@ -1,0 +1,13 @@
+<dependencies>
+    <dependency>
+        <groupId>com.ibm.db2</groupId>
+        <artifactId>jcc</artifactId>
+        <version>11.5.7.0</version>
+    </dependency>
+
+    <dependency>
+        <groupId>com.ibm.informix</groupId>
+        <artifactId>jdbc</artifactId>
+        <version>4.50.8</version>
+    </dependency>
+</dependencies>
