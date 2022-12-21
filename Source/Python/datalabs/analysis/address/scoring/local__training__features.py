@@ -23,7 +23,15 @@ DATA_DATE = '2022-12-06'  # the date of the input files -- current/latest snapsh
 
 # list of survey dates -- referencing training datasets to process.
 # Each should correspond to a .txt file inside TRAINING_FOLDER
-DATES_TO_RUN = ['2021-12-01', '2022-01-01', '2022-02-01', '2022-03-01', '2022-04-01', '2022-05-01', '2022-06-01']
+DATES_TO_RUN = [
+    '2021-12-01',
+    '2022-01-01',
+    '2022-02-01',
+    '2022-03-01',
+    '2022-04-01',
+    '2022-05-01',
+    '2022-06-01'
+]
 
 
 for AS_OF_DATE in DATES_TO_RUN:
