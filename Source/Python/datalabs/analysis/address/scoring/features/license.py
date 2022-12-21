@@ -26,6 +26,17 @@ warnings.filterwarnings('ignore', '.*SettingWithCopyWarning*')
 warnings.filterwarnings('ignore', '.*FutureWarning*')
 
 
+def add_state_cd(base_data, post_addr):
+    base_data['COMM_ID'] = base_data['COMM_ID'].fillna('').astype(str).apply(str.strip)
+    post_addr['COMM_ID'] = post_addr['COMM_ID'].fillna('').astype(str).apply(str.strip)
+    post_addr['STATE_CD'] = post_addr['STATE_CD'].fillna('').astype(str).apply(str.strip)
+    state_data = post_addr[['COMM_ID', 'STATE_CD']].fillna('').drop_duplicates()
+    ### base_data['STATE_CD'] = base_data['COMM_ID'].astype(str).map(state_data)
+
+    base_data = base_data.merge(state_data, on='COMM_ID', how='inner')
+    return base_data
+
+
 def add_license_features(
         base_data: pd.DataFrame,
         data_or_path_to_license_file,
@@ -40,6 +51,10 @@ def add_license_features(
 
     log_info('LOADING POST_ADDR DATA', data_or_path_to_post_addr_file)
     post_addr_data = load_processed_data(data_or_path_to_post_addr_file, as_of_date)
+
+    if 'STATE_CD' not in base_data.columns.values:
+        base_data = add_state_cd(base_data=base_data, post_addr=post_addr_data)
+
     log_info('ADDING ADDRESS DATA TO LICENSE DATA')
     license_data = merge_license_address_data(license_data, post_addr_data)
     del post_addr_data
