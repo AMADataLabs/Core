@@ -48,7 +48,7 @@ transformer = DatabaseTableCleanupTransformerTask(
         'convert_to_int_columns': 'entity_id,comm_id'
     }
 )
-lic_clean.run()
+transformer.run()
 
 load = LocalFileLoaderTask(
     parameters={
