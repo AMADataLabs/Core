@@ -33,7 +33,7 @@ AS_OF_DATE = '2022-12-06'
 
 extractor = LocalFileExtractorTask(
     parameters={
-        'base_path': 'data/{AS_OF_DATE}',
+        'base_path': f'data/{AS_OF_DATE}',
         'files': 'license_lt.csv'
     }
 )
@@ -53,7 +53,7 @@ lic_clean.run()
 load = LocalFileLoaderTask(
     parameters={
         'data': transformer.data,
-        'base_path': 'data/{AS_OF_DATE}',
+        'base_path': f'data/{AS_OF_DATE}',
         'files': 'license_lt_clean.txt'
     }
 )
@@ -64,7 +64,7 @@ load.run()
 
 extractor = LocalFileExtractorTask(
     parameters={
-        'base_path': 'data/{AS_OF_DATE}',
+        'base_path': f'data/{AS_OF_DATE}',
         'files': 'post_addr.csv'
     }
 )
@@ -83,7 +83,7 @@ transformer.run()
 load = LocalFileLoaderTask(
     parameters={
         'data': transformer.data,
-        'base_path': 'data/{AS_OF_DATE}',
+        'base_path': f'data/{AS_OF_DATE}',
         'files': 'post_addr_at_clean.txt'
     }
 )
