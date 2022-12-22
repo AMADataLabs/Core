@@ -73,11 +73,15 @@ class LocalProjectBundler(ProjectBundler):
         else:
             LOGGER.debug('Copying file %s to %s', os.path.join(self._build_path, 'Master', 'pom.xml.jinja'), os.path.join(target_path, 'pom.xml.jinja'))
             shutil.copy(os.path.join(self._build_path, 'Master', 'pom.xml.jinja'), os.path.join(target_path, 'pom.xml.jinja'))
+            shutil.copy(os.path.join(self._build_path, project, 'requirements.xml'), os.path.join(target_path, 'requirements.xml'))
 
     def _render_project_object_model_file(self, project, package, version, target_path):
         template_path = os.path.join(target_path, 'pom.xml.jinja')
         result_path = os.path.join(target_path, 'pom.xml')
+        dependencies_path = os.path.join(target_path, 'requirements.xml')
         namespace = 'org.ama-assn.datalabs'
+
+        dependencies = self._extract_extra_dependencies(dependencies_path)
 
         if ':' in package:
             namespace, package = package.split(':')
@@ -91,7 +95,8 @@ class LocalProjectBundler(ProjectBundler):
                 project=project,
                 namespace=namespace,
                 package=package,
-                version=version
+                version=version,
+                dependencies=dependencies
             )
             file_generator.generate()
 
@@ -122,6 +127,18 @@ class LocalProjectBundler(ProjectBundler):
         subprocess.run(["mvn", "package"])
 
         os.chdir(cwd)
+
+    @classmethod
+    def _extract_extra_dependencies(cls, path):
+        xml_lines = None
+
+        with open(path) as file:
+            xml_lines = file.readlines()
+
+        xml_lines.insert(0, "        <!-- Project Dependencies -->\n")
+        xml_lines.append("        <!-- END Project Dependencies -->\n")
+
+        return ''.join([line for line in xml_lines if "dependencies>" not in line])
 
     def _supplement_build_with_dependencies(cls):
         process = subprocess.run(["mvn", "dependency:list"], stdout=subprocess.PIPE)
