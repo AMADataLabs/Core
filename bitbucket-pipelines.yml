@@ -2259,7 +2259,7 @@ pipelines:
                     --project VeriCre/DataSteward
                     --bundle VeriCre/DataSteward.zip
                     --use-package
-       - parallel:
+        - parallel:
             - step:
                 name: Reload Sandbox Lambda Functions
                 script:
