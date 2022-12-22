@@ -2206,6 +2206,18 @@ pipelines:
             - bash Deploy/Master/deploy-package --project VeriCre/DataSteward
         - parallel:
             - step:
+                name: Update Sandbox Bundle
+                caches:
+                - environment-master
+                script:
+                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+                - >-
+                    bash Deploy/Master/deploy-lambda-function
+                    --environment sbx
+                    --project VeriCre/DataSteward
+                    --bundle VeriCre/DataSteward.zip
+                    --use-package
+            - step:
                 name: Update Development Bundle
                 caches:
                     - environment-dev
@@ -2248,6 +2260,15 @@ pipelines:
                     --bundle VeriCre/DataSteward.zip
                     --use-package
 #        - parallel:
+            # - step:
+            #     name: Reload Sandbox Lambda Functions
+            #     script:
+            #     - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
+            #     - >-
+            #         bash Deploy/Master/update-functions -e sbx -s DataLake
+            #         Scheduler=Scheduler.zip
+            #         DAGProcessor=Scheduler.zip
+            #         TaskProcessor=Scheduler.zip
 #            - step:
 #                name: Update Development Lambda Functions
 #                script:
