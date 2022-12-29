@@ -5,5 +5,5 @@ ARTICLE_COLUMNS = {
 }
 
 ORGANIZATION_COLUMNS = {
-    'licensee': 'name'
+    'Organization': 'name'
 }

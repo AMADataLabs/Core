@@ -6,6 +6,7 @@ SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 CLUSTER=
 TASK=
 TASK_ARN=
+NO_VERIFY_SSL=
 
 
 main() {
@@ -51,6 +52,10 @@ process_arguments() {
         print_usage
         exit 1
     fi
+
+    if [[ $AWS_NO_VERIFY_SSL == "True" ]]; then
+        NO_VERIFY_SSL=--no-verify-ssl
+    fi
 }
 
 
@@ -60,7 +65,7 @@ get_task_arn() {
 
 
 stop_task() {
-    aws ecs stop-task --cluster $CLUSTER --task $TASK_ARN
+    aws $NO_VERIFY_SSL ecs stop-task --cluster $CLUSTER --task $TASK_ARN
 }
 
 

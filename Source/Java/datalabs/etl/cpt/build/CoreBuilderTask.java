@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
@@ -195,8 +196,11 @@ public class CoreBuilderTask extends Task {
 
     ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
         ArrayList<byte[]> outputFiles = new ArrayList<>();
+        File[] files = outputDirectory.listFiles();
 
-        for (File file: outputDirectory.listFiles()){
+        Arrays.sort(files);
+
+        for (File file: files) {
             if (file.isDirectory()) {
                 ArrayList<byte[]> output = loadOutputFiles(file);
 

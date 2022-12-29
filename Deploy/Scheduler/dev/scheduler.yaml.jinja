@@ -1,7 +1,6 @@
 # Render as follows:
 #
-# Script/render-template -t Deploy/Scheduler/scheduler.yaml.jinja -f Deploy/Scheduler/scheduler.yaml \
-# -V "lambda=DataLake-Scheduler-${ENVIRONMENT},dag_state_table=DataLake-dag-state-${ENVIRONMENT},state_lock_table=DataLake-scheduler-locks-${ENVIRONMENT},dag_topic_arn=arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-DAG-Processor-${ENVIRONMENT},task_topic_arn=arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-Task-Processor-${ENVIRONMENT},scheduler_bucket=ama-${ENVIRONMENT}-datalake-scheduler-data-us-east-1"
+# update-dag-config -e dev -p Scheduler -t scheduler
 ---
 data:
     #######################################################################

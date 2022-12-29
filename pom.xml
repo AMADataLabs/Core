@@ -26,11 +26,11 @@
         </repository>
     </repositories>
     <!--
-    aws codeartifact get-authorization-token \
+    export CODEARTIFACT_AUTH_TOKEN=$(aws codeartifact get-authorization-token \
     - -domain datalabs \
     - -domain-owner 644454719059 \
     - -query authorizationToken \
-    - -output text
+    - -output text)
     -->
 
     <!--
@@ -317,8 +317,6 @@
             <artifactId>antlr</artifactId>
             <version>3.5.2</version>
         </dependency>
-
-
 
     </dependencies>
 

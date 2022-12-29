@@ -59,7 +59,8 @@ def public_flag_update(data):
             'MD Retired Limited Volunteer',
             'MD Special Permit License',
             'MD Special Volunteer',
-            'MD Volunteer Limited']
+            'MD Volunteer Limited',
+            'MD Special Purpose License']
     for lic_type in data.License_Type.unique():
         split_type = lic_type.split(' ')
         if len(split_type)>1 and split_type[0] in ['MD','DO']:
