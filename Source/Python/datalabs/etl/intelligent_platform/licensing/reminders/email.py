@@ -19,7 +19,7 @@ class ReminderEmailTask(Task):
     PARAMETER_CLASS = ReminderEmailParameters
 
     def run(self):
-        report_csv_data = self._data[0]
+        email_addresses = self._data[0]
         email_body_content = """<p>
                                 Dear CPT® Development Licensee,                                
                                 It has been 11 months into your 12 month license term. To maintain your access to the CPT code set for development purposes, you must complete a relicensing application. 
@@ -36,7 +36,7 @@ class ReminderEmailTask(Task):
                                 <b>NOTE: This message is being sent from a "Do Not Reply" address. Replies are NOT monitored.</b>                            </p> 
                             """
 
-        for email_id in report_csv_data:
+        for email_id in email_addresses:
             send_email(
                 to=email_id,
                 subject=f'Reminder: Your CPT Development License is expiring - Sign in to extend your access',
