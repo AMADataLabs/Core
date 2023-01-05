@@ -529,18 +529,6 @@ pipelines:
             - bash Deploy/Master/deploy-package --project CPT/API/ETL
         - parallel:
             - step:
-                name: Update Sandbox Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project CPT/API/ETL
-                    --bundle CPT/API/ETL.zip
-                    --use-package
-            - step:
                 name: Update Development Bundle
                 caches:
                     - environment-dev
@@ -598,11 +586,6 @@ pipelines:
                     --use-package
 
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API ETL=ETL.zip
             - step:
                 name: Update Development Lambda Functions
                 script:
@@ -650,18 +633,6 @@ pipelines:
             - bash Deploy/Master/deploy-package --project CPT/API/Endpoint
         - parallel:
             - step:
-                name: Update sandbox Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project CPT/API/Endpoint
-                    --bundle CPT/API/Endpoint.zip
-                    --use-package
-            - step:
                 name: Update Development Bundle
                 caches:
                     - environment-dev
@@ -718,16 +689,6 @@ pipelines:
                     --bundle CPT/API/Endpoint.zip
                     --use-package
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/API
-                    Authorizer=Endpoint.zip
-                    Endpoint=Endpoint.zip
-                    BulkAuthorizer=Endpoint.zip
-                    BulkEndpoint=Endpoint.zip
             - step:
                 name: Update Development Lambda Functions
                 script:
@@ -789,18 +750,6 @@ pipelines:
             - bash Deploy/Master/deploy-package --project CPT/Files/Ingest
         - parallel:
             - step:
-                name: Update Sandbox Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project CPT/Files/Ingest
-                    --bundle CPT/Files/Ingest.zip
-                    --use-package
-            - step:
                 name: Update Development Bundle
                 caches:
                     - environment-dev
@@ -857,11 +806,6 @@ pipelines:
                     --bundle CPT/Files/Ingest.zip
                     --use-package
         - parallel:
-            - step:
-                name: Update Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Files IngestionDAG=Ingest.zip
             - step:
                 name: Update Development Lambda Functions
                 script:
@@ -1070,19 +1014,6 @@ pipelines:
             - bash Deploy/Master/deploy-package --project LicenseMovement/Extract
         - parallel:
             - step:
-                name: Update Sandbox Lambda Bundle
-                caches:
-                - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project LicenseMovement/Extract
-                    --bundle Masterfile/LicenseMovement-Extract.zip
-                    --jdbc-driver Informix
-                    --use-package
-            - step:
                 name: Update Development Lambda Bundle
                 caches:
                     - environment-dev
@@ -1129,11 +1060,6 @@ pipelines:
                     --use-package
         - parallel:
             - step:
-                name: Reload Sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s OneView -p Masterfile LicenseMovement-Extract=LicenseMovement-Extract.zip
-            - step:
                 name: Reload Development Lambda Functions
                 script:
                 - >-
@@ -1171,18 +1097,6 @@ pipelines:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-package --project CPT/Files/Watermark
         - parallel:
-            - step:
-                name: Update sandbox Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project CPT/Files/Watermark
-                    --bundle CPT/Files/Watermark.zip
-                    --use-package
             - step:
                 name: Update development Bundle
                 caches:
@@ -1241,11 +1155,6 @@ pipelines:
                     --use-package
         - parallel:
             - step:
-                name: Update sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s CPT-API -p CPT/Files WatermarkDAG=Watermark.zip
-            - step:
                 name: Update development Lambda Functions
                 script:
                 - >-
@@ -1282,18 +1191,6 @@ pipelines:
             - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
             - bash Deploy/Master/deploy-package --project DBL
         - parallel:
-            - step:
-                name: Update sandbox Bundle
-                caches:
-                    - environment-master
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - >-
-                    bash Deploy/Master/deploy-lambda-function
-                    --environment sbx
-                    --project DBL
-                    --bundle Masterfile/DBLReport.zip
-                    --use-package
             - step:
                 name: Update development Bundle
                 caches:
@@ -1337,11 +1234,6 @@ pipelines:
                     --bundle Masterfile/DBLReport.zip
                     --use-package
         - parallel:
-            - step:
-                name: Update sandbox Lambda Functions
-                script:
-                - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s OneView -p  Masterfile DBLReport=DBLReport.zip
             - step:
                 name: Update development Lambda Functions
                 script:
@@ -2215,7 +2107,7 @@ pipelines:
                     bash Deploy/Master/deploy-lambda-function
                     --environment sbx
                     --project VeriCre/DataSteward
-                    --bundle VeriCre/DataSteward.zip
+                    --bundle VeriCre/DataStewardDAG.zip
                     --use-package
             - step:
                 name: Update Development Bundle
@@ -2229,7 +2121,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment dev
                     --project VeriCre/DataSteward
-                    --bundle VeriCre/DataSteward.zip
+                    --bundle VeriCre/DataStewardDAG.zip
                     --use-package
             - step:
                 name: Update test Bundle
@@ -2243,7 +2135,7 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment tst
                     --project VeriCre/DataSteward
-                    --bundle VeriCre/DataSteward.zip
+                    --bundle VeriCre/DataStewardDAG.zip
                     --use-package
             - step:
                 name: Update Production Bundle
@@ -2257,14 +2149,14 @@ pipelines:
                     bash --rcfile assume_role.rc -i Deploy/Master/deploy-lambda-function
                     --environment prd
                     --project VeriCre/DataSteward
-                    --bundle VeriCre/DataSteward.zip
+                    --bundle VeriCre/DataStewardDAG.zip
                     --use-package
         - parallel:
             - step:
-                name: Update Sandbox Lambda Function
+                name: Reload Sandbox Lambda Functions
                 script:
                 - bash Deploy/Master/setup-aws-cli -e sbx -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
-                - bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre/DataSteward DataStewardDAG=DataSteward.zip
+                - bash Deploy/Master/update-functions -e sbx -s VeriCre -p VeriCre DataStewardDAG=DataStewardDAG.zip
 #            - step:
 #                name: Update Development Lambda Functions
 #                script:
@@ -2272,8 +2164,8 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e dev -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre/DataSteward
-#                    DataStewardDAG=DataSteward.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e dev -s VeriCre -p VeriCre
+#                    DataStewardDAG=DataStewardDAG.zip
 #            - step:
 #                name: Update test Lambda Functions
 #                script:
@@ -2281,7 +2173,7 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e tst -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre/DataSteward DataStewardDAG=DataSteward.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e tst -s VeriCre -p VeriCre DataStewardDAG=DataStewardDAG.zip
 #            - step:
 #                name: Update production Lambda Functions
 #                script:
@@ -2289,7 +2181,7 @@ pipelines:
 #                    bash Deploy/Master/setup-aws-cli -e prd -i $AWS_ACCESS_KEY_ID_SANDBOX -s $AWS_SECRET_ACCESS_KEY_SANDBOX
 #                    -I $AWS_ACCESS_KEY_ID_APIGW -S $AWS_SECRET_ACCESS_KEY_APIGW
 #                - >-
-#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s VeriCre -p VeriCre/DataSteward DataStewardDAG=DataSteward.zip
+#                    bash --rcfile assume_role.rc -i Deploy/Master/update-functions -e prd -s VeriCre -p VeriCre DataStewardDAG=DataStewardDAG.zip
 
 definitions:
   caches:

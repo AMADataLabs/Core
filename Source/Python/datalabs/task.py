@@ -35,11 +35,6 @@ class Task(ParameterValidatorMixin, ABC, metaclass=TaskMeta):
     def run(self) -> "list<bytes>":
         pass
 
-    # @classmethod
-    # def name(cls):
-    #     return f"{cls.__module__}.{cls.__name__}"
-
-
     @classmethod
     def _log_parameters(cls, parameters):
         if hasattr(parameters, "__dataclass_fields__"):
