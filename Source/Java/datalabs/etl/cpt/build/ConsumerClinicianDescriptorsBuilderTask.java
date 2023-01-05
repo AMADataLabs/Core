@@ -44,7 +44,7 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
     public ConsumerClinicianDescriptorsBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException
     {
-        super(parameters, null, ConsumerClinicianDescriptorsParameters.class);
+        super(parameters, data, ConsumerClinicianDescriptorsParameters.class);
     }
 
     public ArrayList<byte[]> run() throws TaskException{
@@ -53,12 +53,12 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         try {
             ConsumerClinicianDescriptorsParameters parameters = (ConsumerClinicianDescriptorsParameters) this.parameters;
 
-            //stageInputFiles();
+            stageInputFiles();
             loadSettings();
 
-            Path corePath = Paths.get(
+            Path linkBuilderOutputPath = Paths.get(
                     settings.getProperty("input.directory"),
-                    settings.getProperty("core.directory")
+                    settings.getProperty("link.builder.output.directory")
             );
             Path currentLinkPath = Paths.get(
                     settings.getProperty("input.directory"),
@@ -69,10 +69,10 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
             Files.createDirectories(Paths.get(outputDirectory));
 
             DtkAccess current_link = ConsumerClinicianDescriptorsBuilderTask.loadLink(currentLinkPath.toString());
-            DtkAccess core = ConsumerClinicianDescriptorsBuilderTask.loadLink(corePath.toString());
-            List<DtkConcept> concepts = new Legacy(core).getConceptsSorted(false, false);
+            DtkAccess linkBuilderOutput = ConsumerClinicianDescriptorsBuilderTask.loadLink(linkBuilderOutputPath.toString());
+            List<DtkConcept> concepts = new Legacy(linkBuilderOutput).getConceptsSorted(false, false);
 
-            ConsumerClinicianWorkbookBuilder descriptorBuilder = new ConsumerClinicianWorkbookBuilder(current_link, core);
+            ConsumerClinicianWorkbookBuilder descriptorBuilder = new ConsumerClinicianWorkbookBuilder(current_link, linkBuilderOutput);
             descriptorBuilder.createConsumerClinican(concepts, outputDirectory + "cdfcdterms.xlsx");
 
             File outputFilesDirectory = new File(settings.getProperty("output.directory"));
@@ -107,16 +107,16 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
     }
 
     void stageInputFiles() throws IOException {
-        Path corePath = Paths.get(
+        Path linkBuilderOutputPath = Paths.get(
                 settings.getProperty("input.directory"),
-                settings.getProperty("current.core.directory")
+                settings.getProperty("link.builder.output.directory")
         );
         Path currentLinkPath = Paths.get(
                 settings.getProperty("input.directory"),
                 settings.getProperty("current.link.directory")
         );
         
-        this.extractZipFiles(this.data.get(0), corePath.toString());
+        this.extractZipFiles(this.data.get(0), linkBuilderOutputPath.toString());
         this.extractZipFiles(this.data.get(1), currentLinkPath.toString());
 
     }
