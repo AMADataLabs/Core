@@ -80,7 +80,6 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
-
         return outputFiles;
     }
 
@@ -91,7 +90,6 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
                 directory + '/' + ExporterFiles.PropertyInternal.getFileNameExt(),
                 directory + '/' + ExporterFiles.RelationshipGroup.getFileNameExt()
         );
-
         return link;
     }
 
@@ -118,7 +116,6 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         
         this.extractZipFiles(this.data.get(0), linkBuilderOutputPath.toString());
         this.extractZipFiles(this.data.get(1), currentLinkPath.toString());
-
     }
 
     private void extractZipFiles(byte[] zip, String directory) throws IOException{
@@ -146,7 +143,6 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
             }
             fileOutputStream.close();
         }
-
     }
 
     ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
@@ -165,10 +161,7 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
                 byte[] data = Files.readAllBytes(path);
                 outputFiles.add(data);
             }
-
         }
-
         return outputFiles;
     }
-
 }
