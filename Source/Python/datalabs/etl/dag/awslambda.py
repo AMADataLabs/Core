@@ -3,6 +3,8 @@ import json
 import logging
 import re
 
+from   dateutil.parser import isoparse
+
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.etl.dag import aws
 import datalabs.etl.dag.task
@@ -38,21 +40,27 @@ class ProcessorTaskWrapper(
 
         return runtime_parameters
 
-    def _get_dag_processor_parameters(self, parameters, event_parameters):
-        return event_parameters
+    def _get_dag_task_parameters(self):
+        task_parameters = None
 
-    def _get_task_processor_parameters(self, parameters, event_parameters):
-            event_parameters["task"] = "DAG"
+        if "task" in self._runtime_parameters:
+            task_parameters = self._get_task_processor_parameters()
+        elif "dag" in self._runtime_parameters:
+            task_parameters = self._get_dag_processor_parameters()
+        else:
+            task_parameters = self._get_trigger_processor_parameters()
 
-            return event_parameters
+    def _handle_success(self) -> (int, dict):
+        return "Success"
 
-    def _get_dag_processor_parameters(self, parameters, event_parameters):
-            trigger_parameters = self._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", topic_parts["name"])
+    def _handle_exception(self, exception) -> (int, dict):
+        LOGGER.exception(
+            'An exception occured while attempting to send a run notification for task %s of DAG %s.',
+            self._get_task_id(),
+            self._get_dag_id()
+        )
 
-            return dict(
-                handler_class=trigger_parameters["HANDLER_CLASS"],
-                event=event_parameters
-            )
+        return f'Failed: {str(exception)}'
 
     @classmethod
     def _get_sns_event_topic(cls, parameters):
@@ -69,29 +77,38 @@ class ProcessorTaskWrapper(
         if event_source != 'aws:sns':
             raise ValueError(f'Invalid SNS event: {event}')
 
-        return json.loads(record["Sns"]["Message"])
+        event_parameters = json.loads(record["Sns"]["Message"])
 
-    def _get_scheduler_event_parameters(self):
-        ''' Return appropriate parameters for the DAG Processor assuming the DAG Scheduler as the DAG to execute.'''
-        return dict(
-            dag="DAG_SCHEDULER",
-            execution_time=self.execution_time.isoformat()
-        )
+        if "execution_time" not in event_parameters:
+            event_parameters["execution_time"] = cls._format_execution_time(record["Sns"]["Timestamp"])
 
-    def _handle_success(self) -> (int, dict):
-        return "Success"
+        return event_parameters
 
-    def _handle_exception(self, exception) -> (int, dict):
-        LOGGER.exception(
-            'An exception occured while attempting to send a run notification for task %s of DAG %s.',
-            self._get_task_id(),
-            self._get_dag_id()
-        )
+    def _get_dag_processor_parameters(self, parameters, event_parameters):
+        return event_parameters
 
-        return f'Failed: {str(exception)}'
+    def _get_task_processor_parameters(self, parameters, event_parameters):
+            event_parameters["task"] = "DAG"
 
-    def _get_dag_task_parameters(self):
-        ''' Get parameters for either the DAG Processor or the Task Processor. '''
+            return event_parameters
+
+    def _get_dag_processor_parameters(self, parameters, event_parameters):
+            trigger_parameters = self._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", topic_parts["name"])
+
+            return dict(
+                handler_class=trigger_parameters["HANDLER_CLASS"],
+                dag_topic_arn=trigger_parameters["DAG_TOPIC_ARN"],
+                event=event_parameters
+            )
+
+    def _get_task_processor_parameters(self):
+        task_parameters = self._get_dag_processor_parameters()
+
+        task_parameters["task"] = task
+
+        return task_parameters
+
+    def _get_dag_processor_parameters(self):
         dag = self._get_dag_id()
         dag_name = self._get_dag_name()
         task = self._get_task_id()
@@ -107,10 +124,15 @@ class ProcessorTaskWrapper(
         if "parameters" in self._runtime_parameters:
             dag_parameters["parameters"] = self._runtime_parameters["parameters"]
 
-        if task != "DAG":
-            dag_parameters["task"] = task
-
         return dag_parameters
+
+    def _get_trigger_processor_parameters(self):
+        return self._runtime_parameters
+
+    @classmethod
+    def _format_execution_time(cls, timestamp: str):
+        return isoparse(timestamp).strftime("%Y-%m-%dT%H:%M:%S")
+
 
     @classmethod
     def _override_dag_parameters(cls, dag_parameters, task_parameters):
