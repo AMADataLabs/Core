@@ -1,6 +1,7 @@
 """ Task wrapper for DAG and DAG task Lambda functions. """
 import json
 import logging
+import re
 
 from   datalabs.etl.task import ExecutionTimeMixin
 from   datalabs.etl.dag import aws
@@ -20,17 +21,38 @@ class ProcessorTaskWrapper(
         LOGGER.debug('Event: %s', parameters)
         sns_topic = self._get_sns_event_topic(parameters)
         LOGGER.debug('SNS Event Topic: %s', sns_topic)
-
+        topic_parts = re.match(r'(?P<stack>..*)-(?P<environment>[a-z]{3})-(?P<name>..*)', sns_topic)
         event_parameters = self._get_sns_event_parameters(parameters)
-        LOGGER.debug('SNS Event Parameters: %s', event_parameters)
+        runtime_parameters = None
 
-        if sns_topic.startswith('DataLake-') and sns_topic.endswith('-Scheduler'):
-            event_parameters = self._get_scheduler_event_parameters()
+        if topic_parts.group("stack") != "DataLake":
+            raise ValueError(f"Unrecognized SNS topic: {sns_topic}")
 
-        if "task" not in event_parameters:
+        if topic_parts.group("name") == "DAGProcessor":
+            runtime_parameters = self._get_dag_processor_parameters(parameters)
+        elif topic_parts.group("name") == "TaskProcessor":
+            runtime_parameters = self._get_task_processor_parameters(parameters)
+        else:
+            runtime_parameters = self._get_trigger_processor_parameters(event_parameters)
+        LOGGER.debug('Runtime Parameters: %s', event_parameters)
+
+        return runtime_parameters
+
+    def _get_dag_processor_parameters(self, parameters, event_parameters):
+        return event_parameters
+
+    def _get_task_processor_parameters(self, parameters, event_parameters):
             event_parameters["task"] = "DAG"
 
-        return event_parameters
+            return event_parameters
+
+    def _get_dag_processor_parameters(self, parameters, event_parameters):
+            trigger_parameters = self._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", topic_parts["name"])
+
+            return dict(
+                handler_class=trigger_parameters["HANDLER_CLASS"],
+                event=event_parameters
+            )
 
     @classmethod
     def _get_sns_event_topic(cls, parameters):
