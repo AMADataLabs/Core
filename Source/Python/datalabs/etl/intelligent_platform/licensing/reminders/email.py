@@ -19,7 +19,7 @@ class ReminderEmailTask(Task):
     PARAMETER_CLASS = ReminderEmailParameters
 
     def run(self):
-        email_addresses = self._data[0]
+        email_addresses = self._csv_to_dataframe(self._data[0])[['email_id']].drop_duplicates()
         email_body_content = """<p>
                                 Dear CPT® Development Licensee,                                
                                 It has been 11 months into your 12 month license term. To maintain your access to the CPT code set for development purposes, you must complete a relicensing application. 
@@ -36,12 +36,13 @@ class ReminderEmailTask(Task):
                                 <b>NOTE: This message is being sent from a "Do Not Reply" address. Replies are NOT monitored.</b>                            </p> 
                             """
 
-        for email_id in email_addresses:
+        for email_id in email_addresses['email_id']:
             send_email(
                 to=email_id,
                 subject=f'Reminder: Your CPT Development License is expiring - Sign in to extend your access',
                 body=email_body_content,
-                from_account='datalabs@ama-assn.org'
+                from_account='datalabs@ama-assn.org',
+                html_content=True
             )
 
 
