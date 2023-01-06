@@ -59,7 +59,7 @@ def test_dag_event_yields_correct_task_parameters(environment, dag_event, trigge
 
         wrapper._runtime_parameters = wrapper._get_runtime_parameters(dag_event)
 
-        parameters = wrapper._get_dag_task_parameters()
+        parameters = wrapper._get_task_parameters()
 
     assert len(parameters) == 4
     assert "dag" in parameters
@@ -77,7 +77,7 @@ def test_task_event_yields_correct_task_parameters(environment, task_event, trig
 
         wrapper._runtime_parameters = wrapper._get_runtime_parameters(task_event)
 
-        parameters = wrapper._get_dag_task_parameters()
+        parameters = wrapper._get_task_parameters()
 
     assert len(parameters) == 5
     assert "dag" in parameters
@@ -96,7 +96,7 @@ def test_scheduler_event_yields_correct_task_parameters(environment, scheduler_e
 
         wrapper._runtime_parameters = wrapper._get_runtime_parameters(scheduler_event)
 
-        parameters = wrapper._get_dag_task_parameters()
+        parameters = wrapper._get_task_parameters()
 
     assert parameters == wrapper._runtime_parameters
 

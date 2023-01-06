@@ -17,7 +17,7 @@ LOGGER.setLevel(logging.DEBUG)
 class ProcessorTaskWrapper(
     ExecutionTimeMixin,
     aws.DynamoDBTaskParameterGetterMixin,
-    datalabs.etl.dag.task.DAGTaskWrapper
+    datalabs.etl.task.TaskWrapper
 ):
     def _get_runtime_parameters(self, parameters):
         LOGGER.debug('Event: %s', parameters)
@@ -40,7 +40,7 @@ class ProcessorTaskWrapper(
 
         return runtime_parameters
 
-    def _get_dag_task_parameters(self):
+    def _get_task_parameters(self):
         task_parameters = None
 
         if "task" in self._runtime_parameters:
@@ -136,6 +136,20 @@ class ProcessorTaskWrapper(
     def _get_trigger_processor_parameters(self):
         return self._runtime_parameters
 
+    def _get_dag_id(self):
+        return self._runtime_parameters["dag"].upper()
+
+    def _get_dag_name(self):
+        base_name, _ = self._parse_dag_id(self._get_dag_id())
+
+        return base_name
+
+    def _get_task_id(self):
+        return self._runtime_parameters["task"].upper()
+
+    def _get_execution_time(self):
+        return self._runtime_parameters["execution_time"].upper()
+
     @classmethod
     def _format_execution_time(cls, timestamp: str):
         return isoparse(timestamp).strftime("%Y-%m-%dT%H:%M:%S")
@@ -149,6 +163,18 @@ class ProcessorTaskWrapper(
                 dag_parameters[key] = task_parameters[key]
 
         return dag_parameters
+
+    @classmethod
+    def _parse_dag_id(cls, dag):
+        base_name = dag
+        iteration = None
+        components = dag.split(':')
+
+        if len(components) == 2:
+            base_name, iteration = components
+
+        return base_name, iteration
+
 
 class DAGTaskWrapper(aws.DAGTaskWrapper):
     def _get_runtime_parameters(self, parameters):
