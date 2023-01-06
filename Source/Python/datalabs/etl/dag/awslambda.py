@@ -50,6 +50,8 @@ class ProcessorTaskWrapper(
         else:
             task_parameters = self._get_trigger_processor_parameters()
 
+        return task_parameters
+
     def _handle_success(self) -> (int, dict):
         return "Success"
 
@@ -103,24 +105,25 @@ class ProcessorTaskWrapper(
             )
 
     def _get_task_processor_parameters(self):
-        task_parameters = self._get_dag_processor_parameters()
+        dag_parameters = self._get_dag_processor_parameters()
+        dag_name = self._get_dag_name()
+        task = self._get_task_id()
+        task_parameters = self._get_dag_task_parameters_from_dynamodb(dag_name, task)
 
-        task_parameters["task"] = task
+        dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
 
-        return task_parameters
+        dag_parameters["task"] = task
+
+        return dag_parameters
 
     def _get_dag_processor_parameters(self):
         dag = self._get_dag_id()
         dag_name = self._get_dag_name()
-        task = self._get_task_id()
         dag_parameters = dict(
             dag=dag,
             execution_time=self._get_execution_time(),
         )
         dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag_name, "DAG"))
-        task_parameters = self._get_dag_task_parameters_from_dynamodb(dag_name, task)
-
-        dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
 
         if "parameters" in self._runtime_parameters:
             dag_parameters["parameters"] = self._runtime_parameters["parameters"]

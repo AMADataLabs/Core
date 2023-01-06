@@ -1,5 +1,6 @@
 ''' Source: datalabs.etl.dag.awslambda '''
 import os
+import mock
 
 import pytest
 
@@ -42,12 +43,62 @@ def test_process_wrapper_scheduler_event_parsed_correctly(environment, scheduler
         parameters = wrapper._get_runtime_parameters(scheduler_event)
 
     assert len(parameters) == 3
+    assert "handler_class" in parameters
+    assert parameters["handler_class"] == "datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask"
+    assert "dag_topic_arn" in parameters
+    assert parameters["dag_topic_arn"] == "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGPRocessor"
+    assert "event" in parameters
+    assert hasattr(parameters["event"], "items")
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_dag_event_yields_correct_task_parameters(environment, dag_event, trigger_config):
+    wrapper = ProcessorTaskWrapper()
+    with mock.patch("boto3.client") as client:
+        client.return_value.get_item.return_value = trigger_config
+
+        wrapper._runtime_parameters = wrapper._get_runtime_parameters(dag_event)
+
+        parameters = wrapper._get_dag_task_parameters()
+
+    assert len(parameters) == 4
     assert "dag" in parameters
     assert parameters["dag"] == "DAG_SCHEDULER"
     assert "execution_time" in parameters
-    assert hasattr(parameters["execution_time"], "upper")
+    assert parameters["execution_time"] == "2021-07-13T16:18:54.663464"
+    assert "task" not in parameters
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_task_event_yields_correct_task_parameters(environment, task_event, trigger_config):
+    wrapper = ProcessorTaskWrapper()
+    with mock.patch("boto3.client") as client:
+        client.return_value.get_item.return_value = trigger_config
+
+        wrapper._runtime_parameters = wrapper._get_runtime_parameters(task_event)
+
+        parameters = wrapper._get_dag_task_parameters()
+
+    assert len(parameters) == 5
+    assert "dag" in parameters
+    assert parameters["dag"] == "DAG_SCHEDULER"
+    assert "execution_time" in parameters
+    assert parameters["execution_time"] == "2021-07-13T16:18:54.663464"
     assert "task" in parameters
-    assert parameters["task"] == "DAG"
+    assert parameters["task"] == "EXTRACT_SCHEDULE"
+
+
+# pylint: disable=redefined-outer-name, protected-access
+def test_task_event_yields_correct_task_parameters(environment, scheduler_event, trigger_config):
+    wrapper = ProcessorTaskWrapper()
+    with mock.patch("boto3.client") as client:
+        client.return_value.get_item.return_value = trigger_config
+
+        wrapper._runtime_parameters = wrapper._get_runtime_parameters(scheduler_event)
+
+        parameters = wrapper._get_dag_task_parameters()
+
+    assert parameters == wrapper._runtime_parameters
 
 
 @pytest.mark.skipif(
@@ -76,6 +127,19 @@ def test_task_processor_runs(environment, dag_event):
     wrapper = ProcessorTaskWrapper(dag_event)
 
     wrapper.run()
+
+
+@pytest.fixture
+def environment():
+    current_env = os.environ.copy()
+
+    os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.dag.awslambda.ProcessorTaskWrapper'
+    os.environ['DYNAMODB_CONFIG_TABLE'] = 'DataLake-configuration-sbx'
+
+    yield os.environ
+
+    os.environ.clear()
+    os.environ.update(current_env)
 
 
 @pytest.fixture
@@ -169,13 +233,15 @@ def scheduler_event():
 
 
 @pytest.fixture
-def environment():
-    current_env = os.environ.copy()
-
-    os.environ['TASK_WRAPPER_CLASS'] = 'datalabs.etl.dag.awslambda.ProcessorTaskWrapper'
-    os.environ['DYNAMODB_CONFIG_TABLE'] = 'DataLake-configuration-sbx'
-
-    yield os.environ
-
-    os.environ.clear()
-    os.environ.update(current_env)
+def trigger_config():
+    return dict(
+        Item=dict(
+            Variables=dict(
+                S='''{
+                    "HANDLER_CLASS": "datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask",
+                    "DAG_TOPIC_ARN": "arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGPRocessor"
+                }
+                '''
+            )
+        )
+    )
