@@ -19,7 +19,7 @@ class TriggerHandlerTask(Task, ABC):
     PARAMETER_CLASS = TriggerHandlerParameters
 
     def run(self) -> "list<bytes>":
-        notifier = SNSDAGNotifier(self._parameters["dag_topic_arn"])
+        notifier = SNSDAGNotifier(self._parameters.dag_topic_arn)
 
         dag_parameters = self._get_dag_parameters(self._parameters.event)
 
