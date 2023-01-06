@@ -5,6 +5,8 @@ from datalabs.messaging.email_message import send_email
 from datalabs.parameter import add_schema
 from datalabs.task import Task
 
+from Source.Python.datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+
 
 @add_schema
 @dataclass
@@ -15,7 +17,7 @@ class ReminderEmailParameters:
     execution_time: str = None
 
 
-class ReminderEmailTask(Task):
+class ReminderEmailTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ReminderEmailParameters
 
     def run(self):
@@ -41,9 +43,6 @@ class ReminderEmailTask(Task):
                 to=email_id,
                 subject=f'Reminder: Your CPT Development License is expiring - Sign in to extend your access',
                 body=email_body_content,
-                from_account='datalabs@ama-assn.org',
+                from_account=f'datalabs@ama-assn.org',
                 html_content=True
             )
-
-
-m
