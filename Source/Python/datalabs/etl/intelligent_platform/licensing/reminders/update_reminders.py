@@ -21,9 +21,12 @@ class UpdateRemindersParameters:
 
 
 class UpdateRemindersTask(CSVReaderMixin, CSVWriterMixin, Task):
+
     PARAMETER_CLASS = UpdateRemindersParameters
 
     def run(self):
+
         group_info = self._csv_to_dataframe(self._data[0])[['id', 'renewal_reminders']].drop_duplicates()
         group_info.loc[0:group_info.shape[0], ['renewal_reminders']] += 1
+
         return [self._dataframe_to_csv(group_info)]
