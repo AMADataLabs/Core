@@ -56,8 +56,6 @@ class ProcessorTaskWrapper(
         return "Success"
 
     def _handle_exception(self, exception) -> (int, dict):
-        processor = None
-
         LOGGER.exception('An exception occured while running the processor.')
 
         return f'Failed: {str(exception)}'
