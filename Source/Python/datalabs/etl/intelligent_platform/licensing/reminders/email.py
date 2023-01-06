@@ -41,8 +41,8 @@ class ReminderEmailTask(CSVReaderMixin, CSVWriterMixin, Task):
         for email_id in email_addresses['email_id']:
             send_email(
                 to=email_id,
-                subject=f'Reminder: Your CPT Development License is expiring - Sign in to extend your access',
+                subject='Reminder: Your CPT Development License is expiring - Sign in to extend your access',
                 body=email_body_content,
-                from_account=f'datalabs@ama-assn.org',
+                from_account='datalabs@ama-assn.org',
                 html_content=True
             )
