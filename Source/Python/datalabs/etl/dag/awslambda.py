@@ -56,11 +56,9 @@ class ProcessorTaskWrapper(
         return "Success"
 
     def _handle_exception(self, exception) -> (int, dict):
-        LOGGER.exception(
-            'An exception occured while attempting to send a run notification for task %s of DAG %s.',
-            self._get_task_id(),
-            self._get_dag_id()
-        )
+        processor = None
+
+        LOGGER.exception('An exception occured while running the processor.')
 
         return f'Failed: {str(exception)}'
 
