@@ -31,11 +31,11 @@ class ProcessorTaskWrapper(
             raise ValueError(f"Unrecognized SNS topic: {sns_topic}")
 
         if topic_parts.group("name") == "DAGProcessor":
-            runtime_parameters = self._get_dag_processor_parameters(parameters)
+            runtime_parameters = self._get_dag_processor_runtime_parameters(event_parameters)
         elif topic_parts.group("name") == "TaskProcessor":
-            runtime_parameters = self._get_task_processor_parameters(parameters)
+            runtime_parameters = self._get_task_processor_runtime_parameters(event_parameters)
         else:
-            runtime_parameters = self._get_trigger_processor_parameters(event_parameters)
+            runtime_parameters = self._get_trigger_processor_runtime_parameters(event_parameters, topic_parts["name"])
         LOGGER.debug('Runtime Parameters: %s', event_parameters)
 
         return runtime_parameters
@@ -84,17 +84,17 @@ class ProcessorTaskWrapper(
 
         return event_parameters
 
-    def _get_dag_processor_parameters(self, parameters, event_parameters):
+    def _get_dag_processor_runtime_parameters(self, event_parameters):
         return event_parameters
 
-    def _get_task_processor_parameters(self, parameters, event_parameters):
+    def _get_task_processor_runtime_parameters(self, event_parameters):
             event_parameters["task"] = "DAG"
 
             return event_parameters
 
-    def _get_dag_processor_parameters(self, parameters, event_parameters):
+    def _get_trigger_processor_runtime_parameters(self, event_parameters, topic_name):
             handler_parameters = self._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", "HANDLER")
-            trigger_parameters = self._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", topic_parts["name"])
+            trigger_parameters = self._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", topic_name)
 
             return dict(
                 handler_class=trigger_parameters["HANDLER_CLASS"],
