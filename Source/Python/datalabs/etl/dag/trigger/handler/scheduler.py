@@ -1,3 +1,4 @@
+""" DAG Scheduler trigger handler. """
 from   datalabs.etl.dag.trigger.handler import task
 
 class TriggerHandlerTask(task.TriggerHandlerTask):

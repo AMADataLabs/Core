@@ -60,7 +60,8 @@ class ConfigMapLoader:
     def _expand_macros(cls, parameters):
         parameters = cls._expand_task_parameters(parameters)
 
-        parameters = cls._add_task_classes(parameters)
+        if "DAG" in parameters:
+            parameters = cls._add_task_classes(parameters)
 
         return parameters
 

@@ -86,23 +86,26 @@ class ProcessorTaskWrapper(
 
         return event_parameters
 
-    def _get_dag_processor_runtime_parameters(self, event_parameters):
+    @classmethod
+    def _get_dag_processor_runtime_parameters(cls, event_parameters):
         return event_parameters
 
-    def _get_task_processor_runtime_parameters(self, event_parameters):
-            event_parameters["task"] = "DAG"
+    @classmethod
+    def _get_task_processor_runtime_parameters(cls, event_parameters):
+        event_parameters["task"] = "DAG"
 
-            return event_parameters
+        return event_parameters
 
-    def _get_trigger_processor_runtime_parameters(self, event_parameters, topic_name):
-            handler_parameters = self._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", "HANDLER")
-            trigger_parameters = self._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", topic_name)
+    @classmethod
+    def _get_trigger_processor_runtime_parameters(cls, event_parameters, topic_name):
+        handler_parameters = cls._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", "HANDLER")
+        trigger_parameters = cls._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", topic_name)
 
-            return dict(
-                handler_class=trigger_parameters["HANDLER_CLASS"],
-                dag_topic_arn=handler_parameters["DAG_TOPIC_ARN"],
-                event=event_parameters
-            )
+        return dict(
+            handler_class=trigger_parameters["HANDLER_CLASS"],
+            dag_topic_arn=handler_parameters["DAG_TOPIC_ARN"],
+            event=event_parameters
+        )
 
     def _get_task_processor_parameters(self):
         dag_parameters = self._get_dag_processor_parameters()

@@ -34,7 +34,7 @@ def test_process_wrapper_task_event_parsed_correctly(task_event):
     assert parameters["execution_time"] == "2021-07-13T16:18:54.663464"
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_process_wrapper_scheduler_event_parsed_correctly(environment, scheduler_event, trigger_config):
     wrapper = ProcessorTaskWrapper()
     with mock.patch("boto3.client") as client:
@@ -51,7 +51,7 @@ def test_process_wrapper_scheduler_event_parsed_correctly(environment, scheduler
     assert hasattr(parameters["event"], "items")
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_dag_event_yields_correct_task_parameters(environment, dag_event, trigger_config):
     wrapper = ProcessorTaskWrapper()
     with mock.patch("boto3.client") as client:
@@ -69,7 +69,7 @@ def test_dag_event_yields_correct_task_parameters(environment, dag_event, trigge
     assert "task" not in parameters
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
 def test_task_event_yields_correct_task_parameters(environment, task_event, trigger_config):
     wrapper = ProcessorTaskWrapper()
     with mock.patch("boto3.client") as client:
@@ -88,8 +88,8 @@ def test_task_event_yields_correct_task_parameters(environment, task_event, trig
     assert parameters["task"] == "EXTRACT_SCHEDULE"
 
 
-# pylint: disable=redefined-outer-name, protected-access
-def test_task_event_yields_correct_task_parameters(environment, scheduler_event, trigger_config):
+# pylint: disable=redefined-outer-name, protected-access, unused-argument
+def test_scheduler_event_yields_correct_task_parameters(environment, scheduler_event, trigger_config):
     wrapper = ProcessorTaskWrapper()
     with mock.patch("boto3.client") as client:
         client.return_value.get_item.return_value = trigger_config

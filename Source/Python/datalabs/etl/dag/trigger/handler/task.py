@@ -1,13 +1,16 @@
-from   abc import ABCMeta, ABC, abstractmethod
+""" Base trigger handler task class. """
+from   abc import ABC, abstractmethod
+from   dataclasses import dataclass
 
 from   datalabs.etl.dag.notify.sns import SNSDAGNotifier
+from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
 
 @add_schema(unknowns=True)
 @dataclass
 class TriggerHandlerParameters:
-    dag_topi_arn: str
+    dag_topic_arn: str
     event: dict
     unknowns: dict=None
 
@@ -30,4 +33,4 @@ class TriggerHandlerTask(Task, ABC):
     def _notify_dag_processor(self, notifier: SNSDAGNotifier, dag: str, dynamic_parameters: dict):
         execution_time = self._parameters.event["execution_time"]
 
-        notifier.notify(self._get_dag_id(), execution_time, dynamic_parameters)
+        notifier.notify(dag, execution_time, dynamic_parameters)
