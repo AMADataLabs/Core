@@ -2043,6 +2043,7 @@ pipelines:
                     Scheduler=Scheduler.zip
                     DAGProcessor=Scheduler.zip
                     TaskProcessor=Scheduler.zip
+                    TriggerProcessor=Scheduler.zip
             - step:
                 name: Reload Development Lambda Functions
                 script:
@@ -2054,6 +2055,7 @@ pipelines:
                     Scheduler=Scheduler.zip
                     DAGProcessor=Scheduler.zip
                     TaskProcessor=Scheduler.zip
+                    TriggerProcessor=Scheduler.zip
             - step:
                 name: Reload Test Lambda Functions
                 script:
