@@ -38,3 +38,18 @@ class TrafficCounts(Base):
     individual_users_under_26_flagged = sa.Column(sa.Integer, nullable=False)
     other_flagged_applications = sa.Column(sa.Integer, nullable=False)
     data_collection_date = sa.Column(sa.String, nullable=False)
+
+
+class Groups(Base):
+    __tablename__ = 'Groups'
+
+    id = sa.Column(sa.Integer, primary_key=True)
+    name = sa.Column(sa.String, nullable=False)
+    organization_id = sa.Column(sa.Integer, nullable=False)
+    client_id = sa.Column(sa.String, nullable=False)
+    secret = sa.Column(sa.String, nullable=False)
+    environment_id = sa.Column(sa.Integer, nullable=False)
+    resource_id = sa.Column(sa.Integer, nullable=False)
+    valid_from = sa.Column(sa.String, nullable=False)
+    valid_to = sa.Column(sa.String, nullable=False)
+    renewal_reminders = sa.Column(sa.Integer, nullable=False)
