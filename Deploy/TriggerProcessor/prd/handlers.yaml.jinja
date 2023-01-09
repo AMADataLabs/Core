@@ -1,0 +1,22 @@
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "TRIGGER_PROCESSOR"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: prd
+    ACCOUNT: '285887636563'
+
+
+    #######################################################################
+    # Handler Variables - {"DAG": {"S": "TRIGGER_PROCESSOR"}, "Task": {"S": "HANDLER"}}
+    #######################################################################
+
+    TRIGGER_PROCESSOR__HANDLER__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+
+
+    #######################################################################
+    # Trigger Variables - ({"DAG": {"S": "TRIGGER_PROCESSOR"}, "Task": {"S": <Topic>}})
+    #######################################################################
+
+    TRIGGER_PROCESSOR__Scheduler__HANDLER_CLASS: datalabs.etl.dag.trigger.handler.scheduler.TriggerHandlerTask
