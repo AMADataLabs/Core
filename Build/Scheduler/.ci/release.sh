@@ -11,7 +11,7 @@ main() {
         [dev]=dev
         [tst]=2.0.0
         [itg]=2.0.0
-        [prd]=1.4.1
+        [prd]=2.0.0
     )
 
     if [[ "$ENVIRONMENT" != "" ]]; then

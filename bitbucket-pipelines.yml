@@ -2091,7 +2091,7 @@ pipelines:
                     Scheduler=Scheduler.zip
                     DAGProcessor=Scheduler.zip
                     TaskProcessor=Scheduler.zip
-                    # TriggerProcessor=Scheduler.zip
+                    TriggerProcessor=Scheduler.zip
 
         VeriCre-DataSteward:
         - step:
