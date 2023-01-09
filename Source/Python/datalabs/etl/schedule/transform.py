@@ -108,3 +108,15 @@ class DAGSchedulerTask(ExecutionTimeMixin, Task):
         plugin = import_plugin(parameters.pop("DAG_STATE_CLASS"))
 
         return plugin(parameters)
+
+
+class ScheduledDAGIdentifierTask(DAGSchedulerTask):
+    PARAMETER_CLASS = DAGSchedulerParameters
+
+    def _get_execution_time_bounds(self, base_time):
+        execution_times = croniter(f'*/{self._parameters.interval_minutes} * * * *', base_time)
+
+        latest_execute = execution_times.get_next(datetime)
+        duration = timedelta(minutes=int(1440))
+
+        return (latest_execute - duration, latest_execute)
