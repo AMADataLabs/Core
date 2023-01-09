@@ -117,6 +117,6 @@ class ScheduledDAGIdentifierTask(DAGSchedulerTask):
         execution_times = croniter(f'*/{self._parameters.interval_minutes} * * * *', base_time)
 
         latest_execute = execution_times.get_next(datetime)
-        duration = timedelta(minutes=int(1440))
+        duration = timedelta(hours=24)
 
         return (latest_execute - duration, latest_execute)
