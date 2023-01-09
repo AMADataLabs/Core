@@ -83,27 +83,6 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
         return outputFiles;
     }
 
-    private static DtkAccess loadLink(String directory) throws Exception {
-        DtkAccess link = new DtkAccess();
-
-        link.load(
-                directory + '/' + ExporterFiles.PropertyInternal.getFileNameExt(),
-                directory + '/' + ExporterFiles.RelationshipGroup.getFileNameExt()
-        );
-        return link;
-    }
-
-    void loadSettings(){
-        String dataDirectory = System.getProperty("data.directory", "tmp");
-
-        settings = new Properties(){{
-            put("output.directory", dataDirectory + File.separator + "output");
-            put("input.directory", dataDirectory + File.separator + "input");
-            put("core.directory", "core");
-            put("current.link.directory", "current_link");
-        }};
-    }
-
     void stageInputFiles() throws IOException {
         Path linkBuilderOutputPath = Paths.get(
                 settings.getProperty("input.directory"),
@@ -113,7 +92,7 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
                 settings.getProperty("input.directory"),
                 settings.getProperty("current.link.directory")
         );
-        
+
         this.extractZipFiles(this.data.get(0), linkBuilderOutputPath.toString());
         this.extractZipFiles(this.data.get(1), currentLinkPath.toString());
     }
@@ -143,6 +122,27 @@ public class ConsumerClinicianDescriptorsBuilderTask extends Task {
             }
             fileOutputStream.close();
         }
+    }
+
+    void loadSettings(){
+        String dataDirectory = System.getProperty("data.directory", "tmp");
+
+        settings = new Properties(){{
+            put("output.directory", dataDirectory + File.separator + "output");
+            put("input.directory", dataDirectory + File.separator + "input");
+            put("core.directory", "core");
+            put("current.link.directory", "current_link");
+        }};
+    }
+
+    private static DtkAccess loadLink(String directory) throws Exception {
+        DtkAccess link = new DtkAccess();
+
+        link.load(
+                directory + '/' + ExporterFiles.PropertyInternal.getFileNameExt(),
+                directory + '/' + ExporterFiles.RelationshipGroup.getFileNameExt()
+        );
+        return link;
     }
 
     ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
