@@ -1,9 +1,7 @@
 """ Sends an email using AMA SMTP configuration """
 import logging
 import os
-
 import smtplib
-
 from   email.message import EmailMessage # pylint: disable=no-name-in-module, import-error
 
 LOGGER = logging.getLogger(__name__)
