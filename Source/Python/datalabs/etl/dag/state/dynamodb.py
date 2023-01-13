@@ -43,6 +43,7 @@ class LockingStateMixin():
 
                 locked = True
             except botocore.exceptions.ClientError as exception:
+                LOGGER.exception('Unable to put item in lock table.')
                 if exception.response['Error']['Code'] != 'ConditionalCheckFailedException':
                     raise
 
@@ -61,6 +62,7 @@ class LockingStateMixin():
 
             unlocked = True
         except botocore.exceptions.ClientError as exception:
+            LOGGER.exception('Unable to delete item from lock table.')
             if exception.response['Error']['Code'] != 'ConditionalCheckFailedException':
                 raise
 
@@ -160,6 +162,19 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
             self._clear_items(dynamodb, execution_time, tasks)
 
+    def clear_failed_tasks(self, dag: str, execution_time: str, tasks: list=None):
+        failed_tasks = []
+
+        if tasks is None:
+            statuses = self.get_all_statuses(dag, execution_time)
+        else:
+            statuses = self.get_task_statuses(dag, execution_time, tasks)
+
+        failed_tasks = [f"{dag}__{task}" for task, status in statuses.items() if status == Status.FAILED]
+
+        with AWSClient('dynamodb', **self._connection_parameters()) as dynamodb:
+            self._clear_items(dynamodb, execution_time, [dag] + failed_tasks)
+
     def _get_status(self, dag: str, task: str, execution_time: str):
         primary_key = self._get_primary_key(dag, task)
         status = None
@@ -178,6 +193,7 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
             locked = self._lock_state(dynamodb, lock_id)
 
             if locked:
+                LOGGER.debug('Locked state table for "%s"', primary_key)
                 succeeded = self._set_status_if_later(dynamodb, primary_key, execution_time, status)
 
             self._unlock_state(dynamodb, lock_id)
@@ -211,7 +227,12 @@ class DAGState(DynamoDBClientMixin, LockingStateMixin, State):
 
             status_data = response["Responses"][collections.deque(response["Responses"].keys())[0]]
 
-            statuses.update({status["name"]["S"]:status["status"]["S"] for status in status_data})
+            for status in status_data:
+                name = status["name"]["S"]
+                if "__" in name:
+                    name = name.split("__")[1]
+
+                statuses[name] = Status(status["status"]["S"])
 
         return statuses
 

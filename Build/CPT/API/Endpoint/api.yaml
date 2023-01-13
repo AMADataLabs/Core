@@ -1,0 +1,767 @@
+openapi: 3.0.2
+info:
+  title: CPT API
+  description: CPT API Phase I
+  version: "1.0.0"
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: datalabs@ama-assn.org
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Descriptor
+    description: >-
+      CPT Code descriptor in short, medium, or long format. This corresponds to
+      entries in the cpt.short_descriptor, cpt.medium_descriptor, and
+      cpt.log_descriptor tables.
+  - name: Consumer Descriptor
+    description: >-
+      Consumer-friendly CPT descriptor. This corresponds to entries in the
+      cpt.consumer_descriptor table.
+  - name: Clinician Descriptor
+    description: >-
+      Precise CPT descriptors for clinicians. This corresponds to entries in the
+      cpt.clinician_descriptor table.
+  - name: Modifier
+    description: >-
+      Appendix A-Modifiers
+  - name: PLA
+    description: >-
+      Proprietary Laboratory Analysis Code details. Specifically, the associated test, manufacturer, and lab names.
+  - name: PDF
+    description: Returns a time-limited URL to a zip archive of the standard CPT distribution PDFs
+  - name: Releases
+    description: >-
+      All release data in descending order of date
+    externalDocs:
+      url: 'http://swagger.io'
+paths:
+  '/descriptor/{code}':
+    get:
+      tags:
+        - Descriptor
+      summary: CPT descriptor by CPT Code
+      description: Returns all descriptor lengths for a particular CPT Code.
+      operationId: getDescriptor
+      parameters:
+        - name: code
+          in: path
+          description: CPT Code
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+        - name: length
+          in: query
+          description: 'Filter by description length. Any of "short", "medium", or "long".'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Descriptor'
+        '400':
+          description: Invalid query parameter
+        '404':
+          description: No descriptor found for the given CPT Code.
+      security:
+        - gateway_authorizer: []
+  /descriptors:
+    get:
+      tags:
+        - Descriptor
+      summary: All CPT descriptor lengths
+      description: Returns the CPT Code descriptor in short, medium, and long forms for the full code set.
+      operationId: getDescriptors
+      parameters:
+        - name: length
+          in: query
+          description: 'Filter by description length. Any of "short", "medium", or "long".'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: keyword
+          in: query
+          description: Filter by keyword across the text of any of the descriptor lengths.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: since
+          in: query
+          description: >-
+            Filters new codes since a date ("YYYY-MM-DD").
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: code
+          in: query
+          description: >-
+            Filters for wildcard search across all the codes.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Descriptor'
+        '400':
+          description: Invalid query parameter
+      security:
+        - gateway_authorizer: []
+  '/consumer/descriptor/{code}':
+    get:
+      tags:
+        - Consumer Descriptor
+      summary: Consumer Friendly Descriptor by CPT Code
+      description: Returns the Consumer Friendly Descriptor by CPT Code.
+      operationId: getConsumerDescriptor
+      parameters:
+        - name: code
+          in: path
+          description: CPT Code
+          required: true
+          schema:
+            type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumerDescriptor'
+        '400':
+          description: Invalid query parameter
+        '404':
+          description: No Consumer Descriptor found for the given CPT code.
+      security:
+        - gateway_authorizer: []
+  /consumer/descriptors:
+    get:
+      tags:
+        - Consumer Descriptor
+      summary: Code set Consumer Friendly Descriptors
+      description: Returns Consumer Friendly Descriptors for the full CPT code set.
+      operationId: getConsumerDescriptors
+      parameters:
+        - name: keyword
+          in: query
+          description: Filter by keyword in the descriptor text.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: since
+          in: query
+          description: >-
+            Filters new codes since a date ("YYYY-MM-DD").
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: code
+          in: query
+          description: >-
+            Filters for wildcard search across all the codes.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConsumerDescriptor'
+        '400':
+          description: Invalid query parameter
+      security:
+        - gateway_authorizer: []
+  '/clinician/descriptors/{code}':
+    get:
+      tags:
+        - Clinician Descriptor
+      summary: All Clinician Descriptor IDs and text by CPT Code
+      description: Returns all Clinician Descriptors by CPT Code.
+      operationId: getClinicianDescriptorsByCode
+      parameters:
+        - name: code
+          in: path
+          description: CPT Code
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClinicianDescriptor'
+        '400':
+          description: Invalid query parameter
+        '404':
+          description: No Clinician Descriptors found for the given CPT code
+      security:
+        - gateway_authorizer: []
+  /clinician/descriptors:
+    get:
+      tags:
+        - Clinician Descriptor
+      summary: Code set Clinician Descriptor IDs and text
+      description: Returns Clinician Descriptors for the full CPT code set.
+      operationId: getClinicianDescriptors
+      parameters:
+        - name: keyword
+          in: query
+          description: Filter by keyword in the descriptor text.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: since
+          in: query
+          description: >-
+            Filters new codes since a date ("YYYY-MM-DD").
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: code
+          in: query
+          description: >-
+            Filters for wildcard search across all the codes.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: language
+          in: query
+          description: 'Return descriptor in specified language, English / Chinese / Spanish. Default is English'
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ClinicianDescriptor'
+        '400':
+          description: Invalid query parameter
+      security:
+        - gateway_authorizer: []
+  '/pla/details/{code}':
+    get:
+      tags:
+        - PLA
+      summary: PLA Code details
+      description: Returns the full details by PLA Code (code, test, lab, and manufacturer).
+      operationId: getPLADetails
+      parameters:
+        - name: code
+          in: path
+          description: PLA code
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PLA'
+        '400':
+          description: Invalid query parameter
+        '404':
+          description: No PLA details found for the given PLA code
+      security:
+        - gateway_authorizer: []
+  /pla/details:
+    get:
+      tags:
+        - PLA
+      summary: All PLA Code details
+      description: Returns full PLA details for all PLA Codes (code, test, lab, and manufacturer).
+      operationId: getAllPLADetails
+      parameters:
+        - name: keyword
+          in: query
+          description: >-
+            Filter by keyword across the text of any of the name fields.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: since
+          in: query
+          description: >-
+            Filters new codes since a date ("YYYY-MM-DD")
+            ("quarterly").
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+        - name: code
+          in: query
+          description: >-
+            Filters for wildcard search across all the codes.
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PLA'
+        '400':
+          description: Invalid query parameter
+      security:
+        - gateway_authorizer: []
+  '/modifier/{code}':
+    get:
+      tags:
+        - Modifier
+      summary: Modifier code details
+      description: Returns code details and type by specific code
+      operationId: getModifierByCode
+      parameters:
+        - name: code
+          in: path
+          description: Modifier description by code.
+          required: true
+          content:
+            application/json:
+              schema:
+                type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Modifier'
+        '404':
+          description: No data exists for the given modifier.
+      security:
+        - gateway_authorizer: []
+  /modifiers:
+    get:
+      tags:
+        - Modifier
+      summary: All Modifier codes and types
+      description: Returns all modifier codes with their descriptors and types
+      operationId: viewALLmodifiers
+      parameters:
+        - name: type
+          in: query
+          description: Filter by modifier type
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Modifier'
+        '400':
+          description: Invalid query parameter
+      security:
+        - gateway_authorizer: []
+  /pdfs:
+    get:
+      tags:
+        - PDF
+      summary: Zip archive of PDFs from the most recent release
+      description: >-
+          Provides a time-limited URL to a zip archive of the PDFs from the most recent release. In particular,
+              CPT Link Release Notes YYYYMMDD.pdf,
+              standard/AnesthesiaGuidelines.pdf,
+              standard/AppendixB.pdf,standard/AppendixN.pdf,
+              standard/AppendixO.pdf,
+              standard/CategoryIIGuidelines.pdf,
+              standard/CategoryIIIGuidelines.pdf,
+              standard/CPT YYYY README.pdf,
+              standard/EvalManagementGuidelines.pdf,
+              standard/MedicineGuidelines.pdf,
+              standard/PathLabGuidelines.pdf,
+              standard/RadiologyGuidelines.pdf,
+              standard/Clinician Descriptors/YYYY Clinician Descriptors README.pdf,
+              standard/Consumer Friendly Descriptors/YYYY Consumer Friendly Descriptors README.pdf, and
+              standard/SurgeryGuidelines.pdf.
+      operationId: getPDFLink
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '303':
+          description: successful creation of a time-limited download URL
+          headers:
+            Location:
+              schema:
+                type: "string"
+      security:
+        - gateway_authorizer: []
+  /releases:
+    get:
+      tags:
+        - Releases
+      summary: Release data in descending order of date
+      description: Allows user to query for updates to expose release data in descending order of date
+      operationId: getReleaseDate
+      parameters:
+        - name: results
+          in: query
+          description: Number of results to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws_proxy"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Release'
+        '400':
+          description: Invalid query parameter
+      security:
+        - gateway_authorizer: []
+  /{proxy+}:
+    get:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        uri: "arn:aws:apigateway:${region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${region}:${account_id}:function:${project}-Endpoint/invocations"
+        responses:
+          default:
+            statusCode: 200
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        cacheNamespace: "www3v9"
+        cacheKeyParameters:
+          - "method.request.path.proxy"
+        type: "aws_proxy"
+      responses:
+        '404':
+          description: Invalid resource.
+      security:
+        - gateway_authorizer: []
+components:
+  schemas:
+    Descriptor:
+      type: object
+      required:
+        - code
+        - language
+      properties:
+        code:
+          type: string
+        short_descriptor:
+          type: string
+        medium_descriptor:
+          type: string
+        long_descriptor:
+          type: string
+        language:
+          type: string
+    ConsumerDescriptor:
+      type: object
+      required:
+        - code
+        - descriptor
+        - language
+      properties:
+        code:
+          type: string
+        descriptor:
+          type: string
+        language:
+          type: string
+    ClinicianDescriptor:
+      type: object
+      required:
+        - id
+        - code
+        - descriptor
+        - language
+      properties:
+        id:
+          type: integer
+          format: int64
+        code:
+          type: string
+        descriptor:
+          type: string
+        language:
+          type: string
+    PLA:
+      type: object
+      required:
+        - code
+        - test
+        - manufacturer
+        - lab
+      properties:
+        code:
+          type: string
+        test:
+          type: string
+        manufacturer:
+          type: string
+        lab:
+          type: string
+    Modifier:
+      type: object
+      required:
+        - code
+        - descriptor
+        - type
+      properties:
+        code:
+          type: string
+        descriptor:
+          type: string
+        type:
+          type: string
+        general_use:
+          type: boolean
+        ambulatory_service_center:
+          type: boolean
+    Release:
+      type: object
+      required:
+        - id
+        - type
+        - effective_date
+        - publish_date
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+        effective_date:
+          type: string
+        publish_date:
+          type: string
+  securitySchemes:
+    gateway_authorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: "custom"
+      x-amazon-apigateway-authorizer:
+          type: token
+          authorizerUri: ${authorizer_uri}
+externalDocs:
+  description: Find out more about Swagger
+  url: 'http://swagger.io'
+servers:
+  - url: 'https://virtserver.swaggerhub.com/PeterGwinLane/CPT/1.0.0'

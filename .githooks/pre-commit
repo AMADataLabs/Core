@@ -1,0 +1,31 @@
+#!/bin/sh
+
+set -eu
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+COMMIT_HASH=$(git rev-parse HEAD)
+STAGED_FILES=$(git diff --name-only --cached)
+
+
+assert_max_file_size() {
+    if [ -e $1 ]; then
+        size=$(stat -f %z "$REPO_ROOT/$1")
+
+        if [ "$size" -gt 10000000 ]; then
+            cat <<EOF
+Error: Attempting to commit a file larger than 10MB: $1
+
+Commiting large files slows builds, clones, and other operations.
+EOF
+            exit 1
+        fi
+    fi
+}
+
+
+exec >&2
+
+
+while IFS= read -r file; do assert_max_file_size "$file"; done <<< "$STAGED_FILES"
+
+echo "*** Pre-commit checks passed. ***"

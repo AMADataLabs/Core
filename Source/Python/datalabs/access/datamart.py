@@ -1,7 +1,7 @@
 """ Database object for HSG DataMart """
 from   enum import Enum
 import logging
-from   datalabs.access.odbc import ODBCDatabase
+from   datalabs.access.odbc import Database
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -11,7 +11,7 @@ class ProductType(Enum):
     INITIAL = 4915513
     REAPPOINTMENT = 4915514
 
-class DataMart(ODBCDatabase):
+class DataMart(Database):
     def get_customers(self):
         data = self.read(
             """
@@ -29,7 +29,7 @@ class DataMart(ODBCDatabase):
         data.CUSTOMER_KEY = data.CUSTOMER_KEY.astype(str)
         return data
 
-    def get_orders(self, years=(2019, 2020, 2021), product=None):
+    def get_orders(self, years=(2019, 2020, 2021, 2022), product=None):
         if not product:
             products = (ProductType.INITIAL.value, ProductType.REAPPOINTMENT.value)
         elif product == 'app':

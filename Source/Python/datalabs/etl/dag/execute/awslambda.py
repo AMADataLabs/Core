@@ -18,6 +18,7 @@ class LambdaDAGExecutorParameters:
     dag: str
     lambda_function: str
     execution_time: str
+    parameters: dict=None
     unknowns: dict=None
 
 
@@ -31,6 +32,11 @@ class LambdaDAGExecutorTask(Task):
                 type="DAG",
                 execution_time=self._parameters.execution_time
             )
+
+            if self._parameters.parameters:
+                payload["parameters"] = self._parameters.parameters
+
+            LOGGER.info('Executing DAG via Lambda %s. Payload: %s', self._parameters.lambda_function, payload)
 
             awslambda.invoke(
                 FunctionName=self._parameters.lambda_function,
@@ -46,6 +52,7 @@ class LambdaTaskExecutorParameters:
     task: str
     lambda_function: str
     execution_time: str
+    parameters: dict=None
     unknowns: dict=None
 
 
@@ -60,7 +67,11 @@ class LambdaTaskExecutorTask(Task):
                 task=self._parameters.task,
                 execution_time=self._parameters.execution_time
             )
-            LOGGER.debug('TaskProcessor event payload: %s', payload)
+
+            if self._parameters.parameters:
+                payload["parameters"] = self._parameters.parameters
+
+            LOGGER.info('Executing Task via Lambda %s. Payload: %s', self._parameters.lambda_function, payload)
 
             awslambda.invoke(
                 FunctionName=self._parameters.lambda_function,

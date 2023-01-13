@@ -1,18 +1,29 @@
 package datalabs.etl.cpt.build;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
 
 import org.ama.dtk.Delimiter;
 import org.ama.dtk.DtkAccess;
 import org.ama.dtk.Exporter;
 import org.ama.dtk.ExporterFiles;
 import org.ama.dtk.core.BuildCore;
+import org.ama.dtk.core.CoreDb;
+import org.ama.dtk.core.CoreResourceDb;
+import org.ama.dtk.core.DbParameters;
 import org.ama.dtk.core.ConceptIdFactory;
 import org.ama.dtk.model.DtkConcept;
 import org.ama.dtk.model.PropertyType;
@@ -26,42 +37,70 @@ import datalabs.task.TaskException;
 
 public class CoreBuilderTask extends Task {
     private static final Logger LOGGER = LoggerFactory.getLogger(CoreBuilderTask.class);
+    Properties settings = null;
 
-    public CoreBuilderTask(Map<String, String> parameters)
+    public CoreBuilderTask(Map<String, String> parameters, ArrayList<byte[]> data)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException {
-        super(parameters);
+        super(parameters, data, CoreBuilderParameters.class);
     }
 
-    public void run() throws TaskException {
+    public ArrayList<byte[]> run() throws TaskException {
+        ArrayList<byte[]> outputFiles;
+
         try {
             CoreBuilderParameters parameters = (CoreBuilderParameters) this.parameters;
-            DtkAccess priorLink = CoreBuilderTask.loadLink(parameters.priorLinkVersion);
-            DtkAccess priorCore = CoreBuilderTask.loadLink(parameters.currentLinkVersion);
 
-            CoreBuilderTask.updateConcepts(priorLink, priorCore);
+            DbParameters dbParameters = new DbParameters(
+                    parameters.host,
+                    parameters.username,
+                    parameters.password,
+                    Integer.parseInt(parameters.port)
+            );
 
-            DtkAccess core = CoreBuilderTask.buildCore(priorLink, parameters.releaseDate);
+            loadSettings();
+            stageInputFiles();
 
-            CoreBuilderTask.exportConcepts(core, parameters.outputDirectory);
+            Path priorLinkPath = Paths.get(
+                    settings.getProperty("input.directory"),
+                    settings.getProperty("prior.link.directory")
+            );
+            Path currentLinkPath = Paths.get(
+                    settings.getProperty("input.directory"),
+                    settings.getProperty("current.link.directory")
+            );
+
+            DtkAccess priorLink = CoreBuilderTask.loadLink(priorLinkPath.toString());
+            DtkAccess currentLink = CoreBuilderTask.loadLink(currentLinkPath.toString());
+
+            CoreBuilderTask.updateConcepts(priorLink, currentLink);
+
+            DtkAccess core = CoreBuilderTask.buildCore(currentLink, parameters.releaseDate, dbParameters);
+
+            CoreBuilderTask.exportConcepts(core, this.settings.getProperty("output.directory"));
+
+            File outputFilesDirectory = new File(settings.getProperty("output.directory"));
+            outputFiles = loadOutputFiles(outputFilesDirectory);
+
         } catch (Exception exception) {  // CPT Link code throws Exception, so we have no choice but to catch it
             throw new TaskException(exception);
         }
+
+        return outputFiles;
     }
 
-	private static DtkAccess loadLink(String linkVersion) throws Exception {
-        String directory = "dtk-versions/" + linkVersion + "/";
-		DtkAccess link = new DtkAccess();
+    private static DtkAccess loadLink(String directory) throws Exception {
+        DtkAccess link = new DtkAccess();
 
         link.load(
-            directory + ExporterFiles.PropertyInternal.getFileNameExt(),
-            directory + ExporterFiles.RelationshipGroup.getFileNameExt()
+            directory + "/" + ExporterFiles.PropertyInternal.getFileNameExt(),
+            directory + "/" + ExporterFiles.RelationshipGroup.getFileNameExt()
         );
 
         return link;
 	}
 
-    private static void updateConcepts(DtkAccess priorLink, DtkAccess priorCore) throws IOException {
-        for (DtkConcept concept : priorCore.getConcepts()) {
+    private static void updateConcepts(DtkAccess priorLink, DtkAccess currentLink) throws IOException {
+        for (DtkConcept concept : currentLink.getConcepts()) {
             if (concept.getProperty(PropertyType.CORE_ID) != null) {
                 DtkConcept priorConcept = priorLink.getConcept(concept.getConceptId());
 
@@ -74,10 +113,11 @@ public class CoreBuilderTask extends Task {
         }
     }
 
-    private static DtkAccess buildCore(DtkAccess priorLink, String releaseDate) throws Exception {
-        ConceptIdFactory.init(priorLink);
+    private static DtkAccess buildCore(DtkAccess currentLink, String releaseDate, DbParameters dbParameters)
+            throws Exception {
+        ConceptIdFactory.init(currentLink);
 
-        return new BuildCore(priorLink, releaseDate).walk();
+        return new BuildCore(currentLink, releaseDate).walk(dbParameters, dbParameters);
     }
 
     private static void exportConcepts(DtkAccess core, String outputDirectory) throws Exception {
@@ -99,4 +139,84 @@ public class CoreBuilderTask extends Task {
 
         return concepts;
     }
+
+    void loadSettings(){
+        String dataDirectory = System.getProperty("data.directory", "/tmp");
+
+        settings = new Properties(){{
+            put("output.directory", dataDirectory + File.separator + "output");
+            put("input.directory", dataDirectory + File.separator + "input");
+            put("prior.link.directory", "/prior_link");
+            put("current.link.directory", "/current_link");
+        }};
+    }
+
+    void stageInputFiles() throws IOException{
+        Path priorLinkPath = Paths.get(
+                settings.getProperty("input.directory"),
+                settings.getProperty("prior.link.directory")
+        );
+        Path currentLinkPath = Paths.get(
+                settings.getProperty("input.directory"),
+                settings.getProperty("current.link.directory")
+        );
+
+        this.extractZipFiles(this.data.get(0), priorLinkPath.toString());
+        this.extractZipFiles(this.data.get(1), currentLinkPath.toString());
+
+    }
+
+    private void extractZipFiles(byte[] zip, String directory) throws IOException{
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(zip);
+        ZipInputStream zipStream = new ZipInputStream(byteStream);
+        ZipEntry file = null;
+
+        while((file = zipStream.getNextEntry())!=null) {
+            this.writeZipEntryToFile(file, directory, zipStream);
+        }
+    }
+
+    private void writeZipEntryToFile(ZipEntry zipEntry, String directory, ZipInputStream stream) throws IOException{
+        String fileName = zipEntry.getName();
+        File file = new File(directory + File.separator + fileName);
+
+        new File(file.getParent()).mkdirs();
+
+        if (!zipEntry.isDirectory()){
+            byte[] data = new byte[1024];
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+
+            while (stream.read(data, 0, data.length) > 0) {
+                fileOutputStream.write(data, 0, data.length);
+            }
+            fileOutputStream.close();
+        }
+
+    }
+
+    ArrayList<byte[]> loadOutputFiles(File outputDirectory) throws Exception {
+        ArrayList<byte[]> outputFiles = new ArrayList<>();
+        File[] files = outputDirectory.listFiles();
+
+        Arrays.sort(files);
+
+        for (File file: files) {
+            if (file.isDirectory()) {
+                ArrayList<byte[]> output = loadOutputFiles(file);
+
+                for (byte[] outputFile: output){
+                    outputFiles.add(outputFile);
+                }
+
+            } else {
+                Path path = Paths.get(file.getPath());
+                byte[] data = Files.readAllBytes(path);
+                outputFiles.add(data);
+            }
+
+        }
+
+        return outputFiles;
+    }
+
 }

@@ -1,5 +1,5 @@
 """ Contact ID assignment transformer. """
-from bisect import bisect_left, insort_left
+from   bisect import bisect_left, insort_left
 import csv
 from   io import BytesIO
 import logging
@@ -9,17 +9,17 @@ import string
 import numpy as np
 import pandas
 
-import datalabs.etl.transform as etl
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-class ContactIDMergeTransformerTask(etl.TransformerTask):
+class ContactIDMergeTransformerTask(Task):
     MAX_ID_ATTEMPTS = 20
 
-    def _transform(self):
+    def run(self):
         sfmc_contacts, active_subscription, users, api_orders = self._to_dataframe()
 
         sfmc_contacts = self._assign_id_to_contacts(sfmc_contacts)
@@ -38,7 +38,7 @@ class ContactIDMergeTransformerTask(etl.TransformerTask):
 
         return [
             pandas.read_csv(BytesIO(data), sep=seperator, encoding = encodings, dtype = 'str', low_memory=False)
-            for data, seperator, encodings in zip(self._parameters['data'], seperators, encodings_list)
+            for data, seperator, encodings in zip(self._data, seperators, encodings_list)
         ]
 
     # pylint: disable=redefined-builtin

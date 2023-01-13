@@ -12,11 +12,11 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 
 
-# pylint: disable=redefined-outer-name, protected-access
+# pylint: disable=redefined-outer-name, protected-access, no-member
 @pytest.mark.skip(reason="Need to fix")
-def test_linking_corporate_parent_business(components):
-    transformer = CorporateParentBusinessTransformerTask(components)
-    csv_list = transformer._transform()
+def test_linking_corporate_parent_business(components, data):
+    transformer = CorporateParentBusinessTransformerTask(components, data)
+    csv_list = transformer.run()
     dataframe = pd.read_csv(io.StringIO(csv_list[0].decode()))
 
     assert len(csv_list) == 1
@@ -29,11 +29,10 @@ def test_linking_corporate_parent_business(components):
 
 # pylint: disable=redefined-outer-name
 @pytest.fixture
-def components(data):
+def components():
     return dict(
         CLASS='datalabs.etl.oneview.link.transform.CorporateParentBusinessTransformerTask',
-        thing=True,
-        data=data
+        thing=True
     )
 
 

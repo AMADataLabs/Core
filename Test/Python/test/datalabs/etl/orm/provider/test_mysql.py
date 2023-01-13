@@ -6,7 +6,7 @@ import pytest
 
 from   datalabs.etl.orm.provider.mysql import ORMLoaderProvider
 
-import test.datalabs.etl.orm.provider.common as common  # pylint: disable=wrong-import-order
+from   test.datalabs.etl.orm.provider import common  # pylint: disable=wrong-import-order
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -20,20 +20,20 @@ def test_generated_row_hashes_match_mysql_hashes(hash_data, hash_query_results):
 
 # pylint: disable=redefined-outer-name
 @pytest.mark.usefixtures("loader_parameters", "table_parameters", "expected_data")
-def test_select_new_data(loader_parameters, table_parameters, expected_data):
-    common.test_select_new_data(ORMLoaderProvider(), loader_parameters, table_parameters, expected_data)
+def test_select_new_data(loader_parameters, data, table_parameters, expected_data):
+    common.test_select_new_data(ORMLoaderProvider(), loader_parameters, data, table_parameters, expected_data)
 
 
 # pylint: disable=redefined-outer-name
 @pytest.mark.usefixtures("loader_parameters", "table_parameters", "expected_data")
-def test_select_deleted_data(loader_parameters, table_parameters, expected_data):
-    common.test_select_deleted_data(ORMLoaderProvider(), loader_parameters, table_parameters, expected_data)
+def test_select_deleted_data(loader_parameters, data, table_parameters, expected_data):
+    common.test_select_deleted_data(ORMLoaderProvider(), loader_parameters, data, table_parameters, expected_data)
 
 
 # pylint: disable=redefined-outer-name
 @pytest.mark.usefixtures("loader_parameters", "table_parameters", "expected_data")
-def test_select_updated_data(loader_parameters, table_parameters, expected_data):
-    common.test_select_updated_data(ORMLoaderProvider(), loader_parameters, table_parameters, expected_data)
+def test_select_updated_data(loader_parameters, data, table_parameters, expected_data):
+    common.test_select_updated_data(ORMLoaderProvider(), loader_parameters, data, table_parameters, expected_data)
 
 
 @pytest.fixture

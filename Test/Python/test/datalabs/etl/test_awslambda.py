@@ -15,6 +15,9 @@ LOGGER.setLevel(logging.DEBUG)
 
 # pylint: disable=redefined-outer-name, protected-access
 def test_task_wrapper_get_task_parameters(expected_parameters, event):
+    os.environ['ENABLE_FEATURE_PARAMETERS'] = "True"
+    os.environ['ENABLE_FEATURE_SECRETS'] = "True"
+
     with mock.patch('datalabs.access.parameter.aws.boto3'):
         with mock.patch('datalabs.access.secret.aws.boto3'):
             wrapper = ETLTaskWrapper(parameters=event)
@@ -44,11 +47,6 @@ def test_task_wrapper_handle_success():
             response = wrapper._handle_success()
 
     assert response == "Success"
-
-
-class MockTask(etl.ETLTask):
-    def _run(self, session):
-        pass
 
 
 @pytest.fixture
@@ -83,7 +81,7 @@ def expected_parameters():
 def event():
     current_env = os.environ.copy()
 
-    os.environ['TASK_CLASS'] = 'test.datalabs.etl.test_awslambda.MockTask'
+    os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
     os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
     os.environ['EXTRACTOR__thing'] = 'True'
     os.environ['EXTRACTOR__DATABASE_HOST'] = 'r2d2.droid.com'

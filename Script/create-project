@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 ACTIVATE=". ${SCRIPT_BASE_PATH}/../Environment/Master/bin/activate"
-GENENV="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/genenv.py"
-RENDER_TEMPLATE="python ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/render_template.py"
+GENENV="python3 ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/genenv.py"
+RENDER_TEMPLATE="python3 ${SCRIPT_BASE_PATH}/run.py python ${SCRIPT_BASE_PATH}/render_template.py"
 MASTER_BUILD_PATH=${SCRIPT_BASE_PATH}/../Build/Master
 PROJECT_NAME=
 DEPENDENCY_LIST=

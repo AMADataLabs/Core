@@ -1,4 +1,4 @@
-''' Classes for executing DAGs and DAG tasks locally '''
+''' Classes for executing DAGs and DAG tasks locally. '''
 from   collections import Counter
 from   dataclasses import dataclass
 import logging
@@ -6,7 +6,6 @@ import logging
 import paradag
 
 from   datalabs.etl.dag.state import Status
-from   datalabs.etl.dag.task import DAGTaskWrapper
 from   datalabs.parameter import add_schema
 from   datalabs.plugin import import_plugin
 from   datalabs.task import Task
@@ -19,32 +18,34 @@ LOGGER.setLevel(logging.INFO)
 @add_schema(unknowns=True)
 @dataclass
 class LocalDAGExecutorParameters:
-    dag: str
-    execution_time: str
     dag_class: str
-    dag_state_class: str
+    task_statuses: dict
     unknowns: dict=None
 
 
 class LocalDAGExecutorTask(Task):
+    """ DAG objects are defined in DAG modules where their vertexes (tasks) and edges are defined. An instance of the
+        DAG is instantiated dynamically by the provided class name.
+    """
     PARAMETER_CLASS = LocalDAGExecutorParameters
 
-    def __init__(self, parameters):
-        super().__init__(parameters)
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
 
         self._triggered_tasks = []
         self._status = Status.PENDING
-        self._parameters.dag_state_class = import_plugin(self._parameters.dag_state_class)
 
     def run(self):
         dag = import_plugin(self._parameters.dag_class)()
 
         for _, task in dag.__task_classes__.items():
+            LOGGER.debug('Initially unblocking task "%s"', task.id)
             task.unblock()
 
         tasks = paradag.dag_run(
             dag,
             processor=paradag.MultiThreadProcessor(),
+            # processor=paradag.SequentialProcessor(),
             executor=self
         )
 
@@ -60,12 +61,17 @@ class LocalDAGExecutorTask(Task):
 
     # pylint: disable=no-self-use
     def param(self, task: 'DAGTask'):
+        """ This paradag method is used by paradag to allow for a set of vertex-derived parameters to be used in
+            execution of a DAG vertex. In our case, as is often done, we just return the vertex (task) object itself and
+            operate on it directly during execution.
+        """
         return task
 
     # pylint: disable=assignment-from-no-return
     def execute(self, task):
+        """ This paradag method executes the given DAG vertex (task). """
         status = self._get_task_status(task)
-        LOGGER.info('Task "%s" of DAG "%s" is ready? %s', task.id, self._parameters.dag, task.ready)
+        LOGGER.info('Task "%s" is ready? %s', task.id, task.ready)
 
         if status == Status.UNKNOWN and task.ready:
             self._trigger_task(task)
@@ -74,13 +80,18 @@ class LocalDAGExecutorTask(Task):
 
     # pylint: disable=no-self-use
     def deliver(self, task, predecessor_result):
+        """ This paradag method is called after executing a vertex (task) and before executing the given successor
+            vertex (i.e. deliver the results of a vertex to its successor vertices). We use the method to determine
+            whether the given task is ready to run based on all its predecessor tasks' execution statuses. If any
+            predecessor task has not finished, the given task is blocked from running.
+        """
+        LOGGER.debug('Result of predecessor to task "%s": %s', task.id, predecessor_result)
+
         if predecessor_result != Status.FINISHED:
-            LOGGER.info('Blocking task "%s" of DAG "%s"', task.id, self._parameters.dag)
+            LOGGER.debug('Blocking task "%s"', task.id)
             task.block()
 
     def _set_dag_status_from_task_statuses(self, task_statuses):
-        dag_state = self._parameters.dag_state_class(self._get_state_parameters())
-        current_status = dag_state.get_dag_status(self._parameters.dag, self._parameters.execution_time)
         task_status_counts = Counter(task_statuses)
 
         if task_status_counts[Status.FINISHED] == len(task_statuses):
@@ -90,58 +101,18 @@ class LocalDAGExecutorTask(Task):
         elif (task_status_counts[Status.FAILED]) == 0:
             self._status = Status.RUNNING
 
-        if current_status != self._status:
-            dag_state.set_dag_status(self._parameters.dag, self._parameters.execution_time, self._status)
-            LOGGER.info(
-                'Setting status of dag "%s" (%s) to %s',
-                self._parameters.dag,
-                self._parameters.execution_time,
-                self._status
-            )
+        LOGGER.info('Set status of DAG to "%s"', self._status)
 
     def _get_task_status(self, task):
-        state = self._parameters.dag_state_class(self._get_state_parameters(task.id))
-        status = state.get_task_status(self._parameters.dag, task.id, self._parameters.execution_time)
+        status = self._parameters.task_statuses.get(task.id, Status.UNKNOWN)
 
         task.set_status(status)
 
-        LOGGER.info('State of task "%s" of DAG "%s": %s', task.id, self._parameters.dag, status)
+        LOGGER.info('State of task "%s": %s', task.id, status)
 
         return status
 
     def _trigger_task(self, task):
-        LOGGER.info('Triggering task "%s" of DAG "%s"', task.id, self._parameters.dag)
-        LOGGER.info(self._triggered_tasks)
+        LOGGER.info('Triggering task "%s"', task.id)
+        LOGGER.debug('Triggered tasks: %s', self._triggered_tasks)
         self._triggered_tasks.append(task.id)
-
-    def _get_state_parameters(self, task=None):
-        state_parameters = self._parameters.unknowns
-
-        state_parameters["execution_time"] = self._parameters.execution_time
-        state_parameters["dag"] = self._parameters.dag
-
-        if task:
-            state_parameters["task"] = task
-
-        return state_parameters
-
-
-@add_schema(unknowns=True)
-@dataclass
-class LocalTaskExecutorParameters:
-    dag: str
-    task: str
-    execution_time: str
-    dag_state_class: str
-    task_topic_arn: str
-    unknowns: dict=None
-
-
-class LocalTaskExecutorTask(Task):
-    PARAMETER_CLASS = LocalDAGExecutorParameters
-
-    def run(self):
-        parameters = f'{self._parameters.dag}__{self._parameters.task}__{self._parameters.execution_time}'
-        task_wrapper = DAGTaskWrapper(parameters=parameters)
-
-        task_wrapper.run()

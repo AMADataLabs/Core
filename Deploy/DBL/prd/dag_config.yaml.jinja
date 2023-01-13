@@ -1,0 +1,110 @@
+# Render as follows:
+#
+# Script/render-template -t Deploy/DBL/prd/dag_config.yaml.jinja -f Deploy/DBL/prd/dag_config.yaml \
+#   -v eft_password={{eft_password}} \
+#   -v udrive_password={{udrive_password}}
+---
+data:
+    #######################################################################
+    # Global Variables - {"DAG": {"S": "DBL"}, "Task": {"S": "GLOBAL"}}
+    #######################################################################
+
+    ENVIRONMENT: prd
+    ACCOUNT: '285887636563'
+    APPSTACK: 'OneView'
+
+    EFT_HOST: eft.ama-assn.org
+    EFT_USERNAME: datalabsprd
+    EFT_PASSWORD: '{{eft_password}}'
+
+    UDRIVE_HOST: eft.ama-assn.org
+    UDRIVE_USERNAME: datalabs
+    UDRIVE_PASSWORD: '{{udrive_password}}'
+
+    S3_INGESTED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-ingest-us-east-1
+    S3_PROCESSED_DATA_BUCKET: ama-${ENVIRONMENT}-datalake-process-us-east-1
+    S3_CACHE_CLASS: 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
+    S3_BASE_PATH: 'AMA/DBL'
+
+
+    #######################################################################
+    # DAG Variables - ({"DAG": {"S": "DBL"}, "Task": {"S": "DAG"}})
+    #######################################################################
+
+    DBL__DAG__LAMBDA_FUNCTION: '${APPSTACK}-${ENVIRONMENT}-DBLReport'
+    DBL__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.dbl_counts_report.DAG'
+    DBL__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
+    DBL__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
+    DBL__DAG__STATE_LOCK_TABLE: 'DataLake-scheduler-locks-${ENVIRONMENT}'
+    DBL__DAG__DAG_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-DAGProcessor'
+    DBL__DAG__TASK_TOPIC_ARN: 'arn:aws:sns:us-east-1:${ACCOUNT}:DataLake-${ENVIRONMENT}-TaskProcessor'
+    DBL__DAG__DAG_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaDAGExecutorTask'
+    DBL__DAG__TASK_EXECUTOR_CLASS: 'datalabs.etl.dag.execute.awslambda.LambdaTaskExecutorTask'
+    DBL__DAG__ENVIRONMENT: ${ENVIRONMENT}
+    DBL__DAG__STATUS_NOTIFICATION_EMAILS: 'datalabs@ama-assn.org'
+    DBL__DAG__STATUS_NOTIFICATION_FROM: 'datalabs@ama-assn.org'
+
+
+    ##########################################################################
+    # Task Variables - ({"DAG": {"S": "DBL"}, "Task": {"S": "<Task ID>"}})
+    ##########################################################################
+
+    # EXTRACT_DBL
+    DBL__EXTRACT_DBL__BASE_PATH: ''
+    DBL__EXTRACT_DBL__FILES: 'changefileaudit.txt,ReportByFieldFrom_SAS.txt,countofchangesbyfieldextract.txt,recordactionextract.txt,changebyrecordcount.txt,PE_counts.txt,TOP_counts.txt,topbyPEcounts.txt,PrimSpecbyMPA.txt,SecSpecbyMPA.txt'
+    DBL__EXTRACT_DBL__HOST: ${EFT_HOST}
+    DBL__EXTRACT_DBL__USERNAME: ${EFT_USERNAME}
+    DBL__EXTRACT_DBL__PASSWORD: ${EFT_PASSWORD}
+
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    DBL__EXTRACT_DBL__CACHE_OUTPUT_FILES: 'changefileaudit.csv,ReportByFieldFrom_SAS.csv,countofchangesbyfieldextract.csv,recordactionextract.csv,changebyrecordcount.csv,PE_counts.csv,TOP_counts.csv,topbyPEcounts.csv,PrimSpecbyMPA.csv,SecSpecbyMPA.csv'
+
+
+    # GET_LAST_REPORT
+    DBL__GET_LAST_REPORT__BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/archive"
+    DBL__GET_LAST_REPORT__FILES: "Weekly DBL Report - Latest.xlsx"
+    DBL__GET_LAST_REPORT__HOST: ${UDRIVE_HOST}
+    DBL__GET_LAST_REPORT__USERNAME: ${UDRIVE_USERNAME}
+    DBL__GET_LAST_REPORT__PASSWORD: ${UDRIVE_PASSWORD}
+
+    DBL__GET_LAST_REPORT__CACHE_OUTPUT_CLASS: ${S3_CACHE_CLASS}
+    DBL__GET_LAST_REPORT__CACHE_OUTPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+    DBL__GET_LAST_REPORT__CACHE_OUTPUT_BASE_PATH: ${S3_BASE_PATH}
+    DBL__GET_LAST_REPORT__CACHE_OUTPUT_FILES: "Weekly DBL Report - Latest.xlsx"
+
+
+    # CREATE_DBL_REPORT
+    DBL__CREATE_DBL_REPORT__CACHE_CLASS: ${S3_CACHE_CLASS}
+    DBL__CREATE_DBL_REPORT__CACHE_BASE_PATH: ${S3_BASE_PATH}
+    DBL__CREATE_DBL_REPORT__CACHE_INPUT_FILES: 'changefileaudit.csv,ReportByFieldFrom_SAS.csv,countofchangesbyfieldextract.csv,recordactionextract.csv,changebyrecordcount.csv,PE_counts.csv,TOP_counts.csv,topbyPEcounts.csv,PrimSpecbyMPA.csv,SecSpecbyMPA.csv,Weekly DBL Report - Latest.xlsx'
+    DBL__CREATE_DBL_REPORT__CACHE_INPUT_BUCKET: ${S3_INGESTED_DATA_BUCKET}
+
+    DBL__CREATE_DBL_REPORT__CACHE_OUTPUT_FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - %Y-%m-%d.xlsx,Weekly DBL Report - Previous.xlsx,comparison.pk"
+    DBL__CREATE_DBL_REPORT__CACHE_OUTPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+
+
+    # EMAIL_DBL_REPORT
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    DBL__EMAIL_DBL_REPORT__CACHE_INPUT_FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - Previous.xlsx,comparison.pk"
+
+    DBL__EMAIL_DBL_REPORT__TO: 'Christina.Tennant@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__CC: 'Garrett.Lappe@ama-assn.org,datalabs@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__FAIL_TO: 'Christina.Tennant@ama-assn.org'
+    DBL__EMAIL_DBL_REPORT__FAIL_CC: 'Garrett.Lappe@ama-assn.org,datalabs@ama-assn.org'
+
+
+    # LOAD_DBL_REPORT
+    DBL__LOAD_DBL_REPORT__CACHE_INPUT_CLASS: ${S3_CACHE_CLASS}
+    DBL__LOAD_DBL_REPORT__CACHE_INPUT_BUCKET: ${S3_PROCESSED_DATA_BUCKET}
+    DBL__LOAD_DBL_REPORT__CACHE_INPUT_BASE_PATH: ${S3_BASE_PATH}
+    DBL__LOAD_DBL_REPORT__CACHE_INPUT_FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - %Y-%m-%d.xlsx"
+
+    DBL__LOAD_DBL_REPORT__BASE_PATH: "/Data Analytics/Data-Science/Data/DBL/archive/"
+    DBL__LOAD_DBL_REPORT__FILES: "Weekly DBL Report - Latest.xlsx,Weekly DBL Report - %Y-%m-%d.xlsx"
+    DBL__LOAD_DBL_REPORT__HOST: ${UDRIVE_HOST}
+    DBL__LOAD_DBL_REPORT__USERNAME: ${UDRIVE_USERNAME}
+    DBL__LOAD_DBL_REPORT__PASSWORD: ${UDRIVE_PASSWORD}

@@ -4,7 +4,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import datalabs.access.environment.VariableTree;
 import datalabs.etl.dag.cache.TaskDataCache;
 import datalabs.plugin.PluginImporter;
+import datalabs.task.TaskException;
 import datalabs.task.TaskWrapper;
 
 
@@ -21,8 +22,8 @@ public class DagTaskWrapper extends TaskWrapper {
     static final Logger LOGGER = LoggerFactory.getLogger(DagTaskWrapper.class);
     protected Map<TaskDataCache.Direction, Map<String, String>> cacheParameters;
 
-    public DagTaskWrapper(Map<String, String> parameters) {
-        super(parameters);
+    public DagTaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
+        super(environment, parameters);
 
         this.cacheParameters = new HashMap<TaskDataCache.Direction, Map<String, String>>() {{
             put(TaskDataCache.Direction.INPUT, null);
@@ -31,47 +32,62 @@ public class DagTaskWrapper extends TaskWrapper {
     }
 
     @Override
-    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws IllegalArgumentException {
-        if (!parameters.containsKey("args")) {
-            throw new IllegalArgumentException("Missing \"args\" runtime parameter.");
-        }
-        String[] commandLineArguments = parameters.get("args").split(" ", 2);
+    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws TaskException {
+        HashMap<String, String> runtimeParameters = null;
 
-        if (commandLineArguments.length != 2) {
-            throw new IllegalArgumentException(
-                "Expecting two command-line arguments (<executable name>, <DAG run ID>)."
-            );
-        }
-        String[] runtimeParameterValues = commandLineArguments[1].split("__", 3);
+        try {
+            if (!parameters.containsKey("args")) {
+                throw new IllegalArgumentException("Missing \"args\" runtime parameter.");
+            }
+            String[] commandLineArguments = parameters.get("args").split(" ", 2);
 
-        return new HashMap<String, String>() {{
-            put("dag", runtimeParameterValues[0]);
-            put("task", runtimeParameterValues[1]);
-            put("execution_time", runtimeParameterValues[2].replace("T", " "));
-        }};
+            if (commandLineArguments.length != 2) {
+                throw new IllegalArgumentException(
+                    "Expecting two command-line arguments (<executable name>, <DAG run ID>)."
+                );
+            }
+            String[] runtimeParameterValues = commandLineArguments[1].split("__", 3);
+
+            runtimeParameters = new HashMap<String, String>() {{
+                put("dag", runtimeParameterValues[0]);
+                put("task", runtimeParameterValues[1]);
+                put("execution_time", runtimeParameterValues[2].replace("T", " "));
+            }};
+        } catch (Exception exception) {
+            throw new TaskException("Unable to get runtime parameters.", exception);
+        }
+
+        return runtimeParameters;
     }
 
     @Override
-    protected Map<String, String> getTaskParameters() {
-        Map<String, String> defaultParameters = this.getDefaultParameters();
-        Map<String, String> dagTaskParameters = this.getDagTaskParameters();
-        Map<String, String> taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
+    protected Map<String, String> getTaskParameters() throws TaskException {
+        Map<String, String> taskParameters = null;
 
-        taskParameters = this.extractCacheParameters(taskParameters);
-        LOGGER.debug("Task Parameters: " + dagTaskParameters);
+        try {
+            Map<String, String> defaultParameters = this.getDefaultParameters();
+            Map<String, String> dagTaskParameters = this.getDagTaskParameters();
+            taskParameters = this.mergeParameters(defaultParameters, dagTaskParameters);
+            LOGGER.debug("Raw Task Parameters: " + dagTaskParameters);
 
-        LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
-        taskParameters.forEach(
-            (key, value) -> overrideParameter(this.runtimeParameters, key, value)
-        );
-        LOGGER.debug("Runtime parameters AFTER task parameter overrides: " + this.runtimeParameters);
+            DagTaskWrapper.extractCacheParameters(taskParameters, this.cacheParameters);
+            LOGGER.debug("Cache Parameters: " + this.cacheParameters);
+
+            LOGGER.debug("Runtime parameters BEFORE task parameter overrides: " + this.runtimeParameters);
+            taskParameters.forEach(
+                (key, value) -> overrideParameter(this.runtimeParameters, key, value)
+            );
+            LOGGER.debug("Runtime parameters AFTER task parameter overrides: " + this.runtimeParameters);
+        } catch (Exception exception) {
+            throw new TaskException("Unable to get task parameters.", exception);
+        }
 
         return taskParameters;
     }
 
     @Override
-    protected Vector<byte[]> getTaskInputData(Map<String, String> parameters) {
-        Vector<byte[]> inputData = new Vector<byte[]>();
+    protected ArrayList<byte[]> getTaskInputData(Map<String, String> parameters) throws TaskException {
+        ArrayList<byte[]> inputData = new ArrayList<byte[]>();
 
         try {
             TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.INPUT);
@@ -80,31 +96,33 @@ public class DagTaskWrapper extends TaskWrapper {
                 inputData = cachePlugin.extractData();
             }
         } catch (Exception exception) {
-            LOGGER.error("Unable to extract data from the task input cache.");
+            throw new TaskException("Unable to get task input data from cache.", exception);
         }
 
         return inputData;
     }
 
     @Override
-    protected String handleException(Exception exception) {
-        LOGGER.error("Handling DAG task exception: " + exception.getMessage());
-        exception.printStackTrace();
+    protected String handleSuccess() throws TaskException {
+        TaskDataCache cachePlugin = null;
+
+        try {
+            cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
+
+            if (cachePlugin != null) {
+                cachePlugin.loadData(this.output);
+            }
+        } catch (Exception exception) {
+            throw new TaskException("Unable to load task output data to cache.", exception);
+        }
 
         return null;
     }
 
     @Override
-    protected String handleSuccess() {
-        try {
-            TaskDataCache cachePlugin = this.getCachePlugin(TaskDataCache.Direction.OUTPUT);
-
-            if (cachePlugin != null) {
-                cachePlugin.loadData(this.task.getData());
-            }
-        } catch (Exception exception) {
-            LOGGER.error("Unable to load data into the task output cache.");
-        }
+    protected String handleException(Exception exception) {
+        LOGGER.error("Handling DAG task exception: " + exception.getMessage());
+        exception.printStackTrace();
 
         return null;
     }
@@ -133,20 +151,25 @@ public class DagTaskWrapper extends TaskWrapper {
         return mergedParameters;
     }
 
-    Map<String, String> extractCacheParameters(Map<String, String> taskParameters) {
+    static void extractCacheParameters(
+        Map<String, String> taskParameters,
+        Map<TaskDataCache.Direction, Map<String, String>> cacheParameters
+    ) {
+        LOGGER.debug("Task parameters before extraction: " + taskParameters);
         final TaskDataCache.Direction INPUT = TaskDataCache.Direction.INPUT;
         final TaskDataCache.Direction OUTPUT = TaskDataCache.Direction.OUTPUT;
 
-        this.cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
-        this.cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
+        cacheParameters.put(INPUT, getCacheParameters(taskParameters, INPUT));
+        cacheParameters.put(OUTPUT, getCacheParameters(taskParameters, OUTPUT));
+        LOGGER.debug("Cache Parameters: " + cacheParameters);
 
         for (String key : taskParameters.keySet().toArray(new String[taskParameters.size()])) {
             if (key.startsWith("CACHE_")) {
+                LOGGER.debug("Removing cache parameter " + key + " from task parameters...");
                 taskParameters.remove(key);
             }
         }
-
-        return taskParameters;
+        LOGGER.debug("Task parameters after extraction: " + taskParameters);
     }
 
     void overrideParameter(Map<String, String> parameters, String key, String value) {
@@ -219,11 +242,6 @@ public class DagTaskWrapper extends TaskWrapper {
         TaskDataCache.Direction direction
     ) {
         HashMap<String, String> cacheParameters = new HashMap<String, String>();
-        TaskDataCache.Direction otherDirection = TaskDataCache.Direction.INPUT;
-
-        if (direction == TaskDataCache.Direction.INPUT) {
-            otherDirection = TaskDataCache.Direction.OUTPUT;
-        }
 
         taskParameters.forEach(
             (key, value) -> DagTaskWrapper.putIfCacheVariable(key, value, direction, cacheParameters)
@@ -252,10 +270,21 @@ public class DagTaskWrapper extends TaskWrapper {
         TaskDataCache.Direction direction,
         Map<String, String> cacheParameters
     ) {
-        Matcher matcher = Pattern.compile("CACHE_" + direction.name() + "_(?<name>..*)").matcher(name);
+        TaskDataCache.Direction otherDirection = TaskDataCache.Direction.INPUT;
 
-        if (matcher.find()) {
-            cacheParameters.put(matcher.group("name"), value);
+        if (direction == TaskDataCache.Direction.INPUT) {
+            otherDirection = TaskDataCache.Direction.OUTPUT;
+        }
+
+        if (name.startsWith("CACHE_")) {
+            Matcher matcher = Pattern.compile("CACHE_" + direction.name() + "_(?<name>..*)").matcher(name);
+            Matcher otherMatcher = Pattern.compile("CACHE_" + otherDirection.name() + "_(?<name>..*)").matcher(name);
+
+            if (matcher.find()) {
+                cacheParameters.put(matcher.group("name"), value);
+            } else if (!otherMatcher.find()) {
+                cacheParameters.put(name.substring("CACHE_".length()), value);
+            }
         }
     }
 }

@@ -3,16 +3,8 @@ from   abc import ABC, abstractmethod
 from   datetime import datetime
 import pickle
 
-from   datalabs.etl.task import ETLComponentTask, ETLException
-
-
-class ExtractorTask(ETLComponentTask, ABC):
-    def run(self):
-        self._data = self._extract()
-
-    @abstractmethod
-    def _extract(self) -> "Extracted Data":
-        pass
+from   datalabs.etl.task import ETLException
+from   datalabs.task import Task
 
 
 class IncludeNamesMixin:
@@ -28,14 +20,14 @@ class IncludeNamesMixin:
         return include_names
 
 
-class NothingExtractorTask(ExtractorTask):
-    def _extract(self) -> "Extracted Data":
+class NothingExtractorTask(Task):
+    def run(self) -> "Extracted Data":
         return []
 
 
-class FileExtractorTask(ExtractorTask, ABC):
-    def __init__(self, parameters):
-        super().__init__(parameters)
+class FileExtractorTask(Task, ABC):
+    def __init__(self, parameters, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
 
         self._client = None
         self._execution_time = self.execution_time
@@ -48,7 +40,7 @@ class FileExtractorTask(ExtractorTask, ABC):
     def execution_time(self):
         return datetime.utcnow()
 
-    def _extract(self):
+    def run(self):
         # pylint: disable=not-context-manager
         with self._get_client() as client:
             self._client = client
@@ -64,7 +56,9 @@ class FileExtractorTask(ExtractorTask, ABC):
         decoded_data = self._decode_dataset(data, resolved_files)
 
         if self.include_names:
-            decoded_data = [pickle.dumps(list(zip(resolved_files, decoded_data)))]
+            target_files = self._get_target_files(resolved_files)
+
+            decoded_data = [pickle.dumps(list(zip(target_files, decoded_data)))]
 
         return decoded_data
 
@@ -98,6 +92,11 @@ class FileExtractorTask(ExtractorTask, ABC):
                 raise ETLException(f'Unable to decode {files[index]}') from exception
 
         return decoded_dataset
+
+    # pylint: disable=no-self-use
+    def _get_target_files(self, files):
+        '''Allow extractors to modify output file paths when including names.'''
+        return files
 
     def _resolve_wildcards(self, files):
         expanded_files = []

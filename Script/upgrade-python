@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+
+
+main() {
+    os_name=$(uname -s)
+
+    if [[ $os_name == 'Linux' ]]; then
+        setup_linux_environment
+    elif [[ $os_name == 'Darwin' ]]; then
+        setup_mac_environment
+    fi
+}
+
+
+setup_linux_environment() {
+    . ${SCRIPT_BASE_PATH}/../Source/Bash/environment/linux/setup.sh
+
+    check_user
+
+    check_linux_version
+
+    remove_python3_7_tools
+
+    install_linux_tools
+
+    clean_up_linux
+}
+
+
+setup_mac_environment() {
+    . ${SCRIPT_BASE_PATH}/../Source/Bash/environment/mac/setup.sh
+
+    check_mac_version
+
+    remove_python3_7_tools
+
+    install_python_tools
+}
+
+
+check_user() {
+    user=$(whoami)
+
+    if [[ $user != 'root' ]]; then
+        echo "### This script must be run as the root user ###"
+        exit 1
+    fi
+}
+
+
+check_linux_version() {
+    . /etc/os-release
+    echo "### Running $PRETTY_NAME ###"
+
+    if [[ $NAME != 'Ubuntu' ]]; then
+        echo "### Unsupported OS $NAME ###"
+        exit 2
+    elif [[ $VERSION_ID != '18.04' ]]; then
+        echo "### Unsupported Ubuntu version $VERSION_ID"
+        exit 2
+    fi
+}
+
+
+install_drivers() {
+    install_msodbcsql17_driver
+}
+
+
+install_linux_tools() {
+    echo "### Installing core dependencies ###"
+    install_core_dependencies
+
+    echo "### Installing Python tools ###"
+    install_python_tools
+
+    # install_node
+
+    echo "### Installing AWS tools ###"
+    install_aws_tools
+}
+
+
+clean_up_linux() {
+    apt autoremove -y
+}
+
+
+check_mac_version() {
+    os_version=$(uname -r)
+    IFS='.' read -r -a os_version_parts <<< "$os_version"
+    os_major_version=${os_version_parts[0]}
+    os_minor_version=${os_version_parts[1]}
+    os_micro_version=${os_version_parts[2]}
+
+    if [[ $os_major_version != 21 ]]; then
+        echo Unsupported OS X version $os_version
+        exit 2
+    fi
+}
+
+
+main

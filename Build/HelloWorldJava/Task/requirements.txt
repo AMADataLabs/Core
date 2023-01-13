@@ -1,9 +1,0 @@
-arnparse==0.0.2
-jinja2==2.11.3
-json5==0.8.5
-pip==21.0
-pipenv==2018.5.18
-python-dateutil==2.8.1
-python-dotenv==0.12.0
-PyYAML==5.4
-setuptools==41.0.0

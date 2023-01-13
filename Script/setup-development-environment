@@ -1,22 +1,45 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 
-. ${SCRIPT_BASE_PATH}/../Source/Bash/environment/development/setup.sh
-
 
 main() {
+    os_name=$(uname -s)
+
+    if [[ $os_name == 'Linux' ]]; then
+        setup_linux_environment
+    elif [[ $os_name == 'Darwin' ]]; then
+        setup_mac_environment
+    fi
+}
+
+
+setup_linux_environment() {
+    . ${SCRIPT_BASE_PATH}/../Source/Bash/environment/linux/setup.sh
+
     check_user
 
-    check_os_version
+    check_linux_version
 
     # install_drivers
 
     install_tools
 
-    clean_up
+    clean_up_linux
 }
+
+
+setup_mac_environment() {
+    . ${SCRIPT_BASE_PATH}/../Source/Bash/environment/mac/setup.sh
+
+    check_mac_version
+
+    # install_drivers
+
+    install_tools
+}
+
 
 check_user() {
     user=$(whoami)
@@ -28,7 +51,7 @@ check_user() {
 }
 
 
-check_os_version() {
+check_linux_version() {
     . /etc/os-release
     echo Running $PRETTY_NAME
 
@@ -36,7 +59,7 @@ check_os_version() {
         echo Unsupported OS $NAME
         exit 2
     elif [[ $VERSION_ID != '18.04' ]]; then
-        echo Unsupported OS version $VERSION_ID
+        echo Unsupported Ubuntu version $VERSION_ID
         exit 2
     fi
 }
@@ -61,8 +84,22 @@ install_tools() {
 }
 
 
-clean_up() {
+clean_up_linux() {
     apt autoremove -y
+}
+
+
+check_mac_version() {
+    os_version=$(uname -r)
+    IFS='.' read -r -a os_version_parts <<< "$os_version"
+    os_major_version=${os_version_parts[0]}
+    os_minor_version=${os_version_parts[1]}
+    os_micro_version=${os_version_parts[2]}
+
+    if [[ $os_major_version != 21 ]]; then
+        echo Unsupported OS X version $os_version
+        exit 2
+    fi
 }
 
 

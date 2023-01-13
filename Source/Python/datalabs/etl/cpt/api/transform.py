@@ -9,8 +9,8 @@ import re
 import pandas
 
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
-from   datalabs.etl.transform import TransformerTask
 from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -33,19 +33,21 @@ class ReleaseTypePrefix(Enum):
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ReleasesTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ReleasesTransformerParameters
 
-    def _transform(self):
-        code_history, release_schedules = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        code_history, release_schedules, distribution_releases \
+            = [self._csv_to_dataframe(datum) for datum in self._data]
 
         release_schedules = self._convert_months_to_integers(release_schedules)
 
         releases = self._generate_release_table(code_history, release_schedules)
+
+        releases.distribution_available[releases.id.isin(distribution_releases.id)] = True
 
         return [self._dataframe_to_csv(releases)]
 
@@ -63,8 +65,9 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 
         non_pla_releases = cls._generate_releases(non_pla_effective_dates, release_schedules, ReleaseTypePrefix.NON_PLA)
         pla_releases = cls._generate_releases(pla_effective_dates, release_schedules, ReleaseTypePrefix.PLA)
+        releases = pandas.concat([non_pla_releases, pla_releases])
 
-        return non_pla_releases.append(pla_releases).sort_values("effective_date", ignore_index=True).drop_duplicates()
+        return releases.sort_values("effective_date", ignore_index=True).drop_duplicates()
 
     @classmethod
     def _get_unique_dates_from_history(cls, code_history: pandas.DataFrame):
@@ -97,7 +100,8 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
                 type=release_types,
                 publish_date=publish_dates,
                 effective_date=effective_dates,
-                id=ids
+                id=ids,
+                distribution_available=False
             )
         )
 
@@ -179,15 +183,14 @@ class ReleasesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class CodesTransformerParameters:
-    data: list
     execution_time: str
 
 
-class CodesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class CodesTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = CodesTransformerParameters
 
-    def _transform(self):
-        short_descriptors, pla = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        short_descriptors, pla = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         codes = self._generate_code_table(short_descriptors, pla, execution_date)
@@ -214,15 +217,14 @@ class CodesTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ReleaseCodeMappingTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ReleaseCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ReleaseCodeMappingTransformerParameters
 
-    def _transform(self):
-        releases, code_history, codes, pla = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        releases, code_history, codes, pla = [self._csv_to_dataframe(datum) for datum in self._data]
 
         release_code_mappings = self._generate_release_code_mapping_table(
             releases,
@@ -309,15 +311,14 @@ class DescriptorTransformerMixin:
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ShortDescriptorTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ShortDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, DescriptorTransformerMixin, TransformerTask):
+class ShortDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, DescriptorTransformerMixin, Task):
     PARAMETER_CLASS = ShortDescriptorTransformerParameters
 
-    def _transform(self):
-        short_descriptors, pla = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        short_descriptors, pla = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         short_descriptor_table = self._generate_descriptor_table(
@@ -334,15 +335,14 @@ class ShortDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, DescriptorT
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class MediumDescriptorTransformerParameters:
-    data: list
     execution_time: str
 
 
-class MediumDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, DescriptorTransformerMixin, TransformerTask):
+class MediumDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, DescriptorTransformerMixin, Task):
     PARAMETER_CLASS = MediumDescriptorTransformerParameters
 
-    def _transform(self):
-        medium_descriptors, pla = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        medium_descriptors, pla = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         medium_descriptor_table = self._generate_descriptor_table(
@@ -359,15 +359,14 @@ class MediumDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, Descriptor
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class LongDescriptorTransformerParameters:
-    data: list
     execution_time: str
 
 
-class LongDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, DescriptorTransformerMixin, TransformerTask):
+class LongDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, DescriptorTransformerMixin, Task):
     PARAMETER_CLASS = LongDescriptorTransformerParameters
 
-    def _transform(self):
-        long_descriptors, pla = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        long_descriptors, pla = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         long_descriptor_table = self._generate_descriptor_table(
@@ -384,15 +383,14 @@ class LongDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, DescriptorTr
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ModifierTypeTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ModifierTypeTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ModifierTypeTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ModifierTypeTransformerParameters
 
-    def _transform(self):
-        modifiers, = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        modifiers, = [self._csv_to_dataframe(datum) for datum in self._data]
 
         modifier_type_table = self._generate_modifier_type_table(modifiers)
 
@@ -417,15 +415,14 @@ class ModifierTypeTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTas
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ModifierTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ModifierTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ModifierTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ModifierTransformerParameters
 
-    def _transform(self):
-        modifiers, modifier_types = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        modifiers, modifier_types = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         modifier_table = self._generate_modifier_table(modifiers, modifier_types, execution_date)
@@ -467,15 +464,14 @@ class ModifierTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ConsumerDescriptorTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ConsumerDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ConsumerDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ConsumerDescriptorTransformerParameters
 
-    def _transform(self):
-        codes, consumer_descriptors = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        codes, consumer_descriptors = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         consumer_descriptor_table = self._generate_consumer_descriptor_table(
@@ -507,15 +503,14 @@ class ConsumerDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfor
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ClinicianDescriptorTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ClinicianDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ClinicianDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ClinicianDescriptorTransformerParameters
 
-    def _transform(self):
-        clinician_descriptors, = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        clinician_descriptors, = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         clinician_descriptor_table = self._generate_clinician_descriptor_table(clinician_descriptors, execution_date)
@@ -542,15 +537,14 @@ class ClinicianDescriptorTransformerTask(CSVReaderMixin, CSVWriterMixin, Transfo
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ClinicianDescriptorCodeMappingTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ClinicianDescriptorCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ClinicianDescriptorCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ClinicianDescriptorCodeMappingTransformerParameters
 
-    def _transform(self):
-        codes, clinician_descriptors = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        codes, clinician_descriptors = [self._csv_to_dataframe(datum) for datum in self._data]
 
         clinician_descriptor_code_mapping_table = self._generate_clinician_descriptor_code_mapping_table(
             codes,
@@ -578,15 +572,14 @@ class ClinicianDescriptorCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMix
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class PLADetailsTransformerParameters:
-    data: list
     execution_time: str
 
 
-class PLADetailsTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class PLADetailsTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = PLADetailsTransformerParameters
 
-    def _transform(self):
-        pla, = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        pla, = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         pla_details_table = self._generate_pla_details_table(pla, execution_date)
@@ -608,15 +601,14 @@ class PLADetailsTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask)
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ManufacturerTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ManufacturerTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ManufacturerTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ManufacturerTransformerParameters
 
-    def _transform(self):
-        pla, = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        pla, = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         manufacturer_table = self._generate_pla_manufacturer_table(pla, execution_date)
@@ -650,15 +642,14 @@ class ManufacturerTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTas
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ManufacturerCodeMappingTransformerParameters:
-    data: list
     execution_time: str
 
 
-class ManufacturerCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class ManufacturerCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = ManufacturerCodeMappingTransformerParameters
 
-    def _transform(self):
-        pla,manufacturers = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        pla,manufacturers = [self._csv_to_dataframe(datum) for datum in self._data]
 
         manufacturer_code_mapping_table = self._generate_pla_manufacturer_code_mapping_table(pla, manufacturers)
 
@@ -681,15 +672,14 @@ class ManufacturerCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Tra
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class LabTransformerParameters:
-    data: list
     execution_time: str
 
 
-class LabTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class LabTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = LabTransformerParameters
 
-    def _transform(self):
-        pla, = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        pla, = [self._csv_to_dataframe(datum) for datum in self._data]
         execution_date = self._parameters.execution_time.split(' ')[0]
 
         lab_table = self._generate_pla_lab_table(pla, execution_date)
@@ -723,15 +713,14 @@ class LabTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class LabCodeMappingTransformerParameters:
-    data: list
     execution_time: str
 
 
-class LabCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, TransformerTask):
+class LabCodeMappingTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
     PARAMETER_CLASS = LabCodeMappingTransformerParameters
 
-    def _transform(self):
-        pla, labs = [self._csv_to_dataframe(datum) for datum in self._parameters.data]
+    def run(self):
+        pla, labs = [self._csv_to_dataframe(datum) for datum in self._data]
 
         lab_code_mapping_table = self._generate_pla_lab_code_mapping_table(pla, labs)
 

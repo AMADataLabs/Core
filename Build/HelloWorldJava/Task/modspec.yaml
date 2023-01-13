@@ -8,9 +8,11 @@ modspec:
   - package: datalabs.etl.dag.notify.sns
   - package: datalabs.etl.dag.state
   - package: datalabs.etl.dag.state.dynamodb
+  - package: datalabs.etl.s3
   - package: datalabs.example.etl
     include:
       - HelloWorldTask
+      - HelloWorldParameters
   - package: datalabs.parameter
   - package: datalabs.plugin
   - package: datalabs.task

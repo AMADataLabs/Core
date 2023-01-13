@@ -24,6 +24,10 @@ def test_task_wrapper_is_not_abstract():
     GoodTaskWrapper().run()
 
 
+def test_task_class_name_property_returns_fully_qualified_class_name():
+    assert BadTask.name == "test.datalabs.test_task.BadTask"
+
+
 # pylint: disable=abstract-method
 class BadTask(Task):
     pass

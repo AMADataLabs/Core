@@ -113,6 +113,12 @@ class Physician(BASE):
     has_email = sa.Column(sa.Boolean)
     no_release = sa.Column(sa.Boolean)
 
+    primary_specialties = relationship("Specialty", foreign_keys=[primary_specialty],
+                                       backref=backref("physicians_primary", cascade="all, delete-orphan"))
+
+    secondary_specialties = relationship("Specialty", foreign_keys=[secondary_specialty],
+                                         backref=backref("physicians_secondary", cascade="all, delete-orphan"))
+
 
 class ResidencyProgram(BASE):
     __tablename__ = 'residency_program'
@@ -278,6 +284,26 @@ class ProviderAffiliation(BASE):
     rank = sa.Column(sa.String)
     group = sa.Column(sa.String, sa.ForeignKey("oneview.provider_affiliation_group.id"))
     group_description = sa.Column(sa.String)
+    best = sa.Column(sa.Boolean)
+
+
+class MedicalLicense(BASE):
+    __tablename__ = 'medical_license'
+    __table_args__ = {"schema": SCHEMA}
+
+    id = sa.Column(sa.String, primary_key=True)
+    number = sa.Column(sa.String, nullable=False)
+    medical_education_number = sa.Column(
+        sa.String, sa.ForeignKey("oneview.physician.medical_education_number"),
+        nullable=False
+    )
+    state = sa.Column(sa.String, nullable=False)
+    issue_date = sa.Column(sa.Date, nullable=True)
+    expiry_date = sa.Column(sa.Date)
+    renew_date = sa.Column(sa.Date)
+    degree_type = sa.Column(sa.String, nullable=True)
+    status = sa.Column(sa.String, nullable=False)
+    type = sa.Column(sa.String, nullable=False)
 
 
 ################################################################

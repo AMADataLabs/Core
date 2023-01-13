@@ -52,15 +52,19 @@ class DynamoDBEnvironmentLoader(ParameterValidatorMixin):
         return loader
 
     def _get_parameters_from_dynamodb(self, task):
+        key=dict(
+            DAG=dict(S=self._parameters.dag),
+            Task=dict(S=task)
+        )
         response = None
+
+        LOGGER.debug('GetItem from table: %s', self._parameters.table)
+        LOGGER.debug('GetItem key: %s', key)
 
         with AWSClient("dynamodb") as dynamodb:
             response = dynamodb.get_item(
                 TableName=self._parameters.table,
-                Key=dict(
-                    DAG=dict(S=self._parameters.dag),
-                    Task=dict(S=task)
-                )
+                Key=key
             )
 
         return self._extract_parameters(response)

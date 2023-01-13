@@ -30,12 +30,14 @@ def get_person_ethnicity():
     oneview_dir = os.environ.get('ONEVIEW_FOLDER')
     ethnicity_filename = use.get_newest(oneview_dir, 'AIMS_PERSON_ETHNICITY_ET')
     ethnicity = pd.read_csv(ethnicity_filename, sep='|')
+    ethnicity = ethnicity[(ethnicity.active_ind=='Y')&(ethnicity.preferred_ind=='Y')]
     return ethnicity
 
 def get_reference():
     oneview_dir = os.environ.get('ONEVIEW_FOLDER')
     reference_filename = use.get_newest(oneview_dir, 'AIMS_ETHNICITY_ER')
-    reference = pd.read_csv(reference_filename, sep='|')
+    reference = pd.read_csv(reference_filename)
+    reference.parent_category_desc = [x.strip() for x in reference.parent_category_desc]
     return reference
 
 def ethnicity_extract():
@@ -47,47 +49,61 @@ def ethnicity_extract():
 
 #transform
 def find_multiple_identities(ethnicity):
-    single_identity = ethnicity.drop_duplicates(['entity_id', 'ethnicity_id'], keep=False)
-    multiple_identities = ethnicity[(ethnicity.entity_id.isin(single_identity.entity_id))==False].drop_duplicates('entity_id')
+    ethnicity = ethnicity.drop_duplicates(['entity_id', 'parent_category_desc'])
+    LOGGER.info(f'Ethnicity table is {len(ethnicity)}')
+    single_identity = ethnicity.drop_duplicates('entity_id', keep=False)
+    LOGGER.info(f'Single identity is {len(single_identity)}')
+    additional = ethnicity[(~ethnicity.entity_id.isin(single_identity.entity_id))&(ethnicity.parent_category_desc!='Unknown')].drop_duplicates('entity_id', keep=False)
+    LOGGER.info(f'Additional single identity is {len(additional)}')
+    single_identity = pd.concat([single_identity, additional])
+    LOGGER.info(f'Combined single identity is {len(single_identity)}')
+    multiple_identities = ethnicity[~ethnicity.entity_id.isin(single_identity.entity_id)].drop_duplicates('entity_id')
     multiple_identities['race_ethnicity'] = 'Mixed Race/Ethnicity'
-    return single_identity, multiple_identities[['entity_id','race_ethnicity']]
+    single_identity['race_ethnicity'] = single_identity.parent_category_desc
+    single_identity = single_identity.drop_duplicates('entity_id')
+    LOGGER.info(f'Single identity is {len(single_identity)}')
+    LOGGER.info(f'Multiple identity is {len(multiple_identities)}')
+    return single_identity[['entity_id','race_ethnicity']], multiple_identities[['entity_id','race_ethnicity']]
     
-def add_reference(single_identity, reference):
-    single_reference = pd.merge(single_identity, reference, left_on='ethnicity_id', right_on='ethnicity')
-    single_reference['race_ethnicity'] = single_reference.parent_category_desc
-    return single_reference[['entity_id','race_ethnicity']]
-
-def fix_me_2(me_number):
-    me_number = me_number[1:].strip()
-    return me_number
+def add_reference(ethnicity, reference):
+    ethnicity['ethnicity'] = ethnicity.ethnicity_id.astype(str)
+    ethnicity_reference = pd.merge(ethnicity, reference, on='ethnicity')
+    return ethnicity_reference
 
 def ethnicity_transform(tables):
     me_to_entity = tables[0]
-    me_to_entity['medical_education_number'] = use.fix_me(me_to_entity.ME)
-    single_identity, multi_identity = find_multiple_identities(tables[1])
-    single_identity = add_reference(single_identity, tables[2])
-    race_ethnicity = pd.concat([single_identity, multi_identity])
-    race_ethnicity['ENTITY_ID'] = race_ethnicity.entity_id.astype(str)
-    race_ethnicity = pd.merge(race_ethnicity, me_to_entity, on='ENTITY_ID')
-    race_ethnicity['medical_education_number'] = [fix_me_2(x) for x in race_ethnicity.medical_education_number]
-    race_ethnicity = race_ethnicity[['medical_education_number','race_ethnicity']]
-    return race_ethnicity
+    LOGGER.info(f'Me Entity table is {len(me_to_entity)}')
+    me_to_entity['medical_education_number'] = [use.fix_me(x) for x in me_to_entity.ME]
+    
+    ethnicity = add_reference(tables[1], tables[2])
+    single_identity, multi_identity = find_multiple_identities(ethnicity)
+    race_ethnicity_table = pd.concat([single_identity, multi_identity])
+    race_ethnicity_table['ENTITY_ID'] = race_ethnicity_table.entity_id.astype(str)
+    race_ethnicity_table = pd.merge(race_ethnicity_table, me_to_entity, on='ENTITY_ID')
+    race_ethnicity_table = race_ethnicity_table[['medical_education_number','race_ethnicity']]
+    LOGGER.info(f'Race Ethnicity table is {len(race_ethnicity_table)}')
+    return race_ethnicity_table
+
+# def quality_check(new):
+#     oneview_dir = os.environ.get('ONEVIEW_FOLDER')
+#     old = pd.read_csv(f'{oneview_dir}PhysicianRaceEthnicity-ETL.psv', sep='|')
+#     len(new[~new.medical_education_number.isin(old.medical_education_number)])
 
 #load
-def ethnicity_load(race_ethnicity):
+def ethnicity_load(race_ethnicity_table):
     oneview_dir = os.environ.get('ONEVIEW_FOLDER')
     today = str(date.today())
-    # race_ethnicity.to_csv(f'{oneview_dir}PhysicianRaceEthnicity_{today}.csv', sep='|', index=False)
-    race_ethnicity.head(10).to_csv(f'C:/Users/vigrose/DataPhysicianRaceEthnicity_{today}.csv', sep='|', index=False)
-    race_ethnicity.head(10).to_csv(f'C:/Users/vigrose/DataPhysicianRaceEthnicity_2_{today}.csv', index=False)
+    race_ethnicity_table.to_csv(f'{oneview_dir}PhysicianRaceEthnicity-ETL.psv', sep='|', index=False)
+    race_ethnicity_table.to_csv(f'C:/Users/vigrose/Data/MasterfileCore/PhysicianRaceEthnicity_{today}.psv', sep='|', index=False)
+    race_ethnicity_table.to_csv(f'C:/Users/vigrose/Data/MasterfileCore/PhysicianRaceEthnicity_2_{today}.csv', index=False)
 
 def race_ethnicity_etl():
     LOGGER.info('Extract...')
     tables = ethnicity_extract()
     LOGGER.info('Transform...')
-    race_ethnicity = ethnicity_transform(tables)
+    race_ethnicity_table = ethnicity_transform(tables)
     LOGGER.info('Load...')
-    ethnicity_load(race_ethnicity)
+    ethnicity_load(race_ethnicity_table)
 
 if __name__ == "__main__":
     race_ethnicity_etl()

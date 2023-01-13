@@ -1,11 +1,12 @@
 """ Task wrapper for DAG and DAG task Lambda functions. """
 import json
 import logging
-import urllib.parse
+import re
+
 from   dateutil.parser import isoparse
 
 from   datalabs.etl.task import ExecutionTimeMixin
-import datalabs.etl.dag.aws as aws
+from   datalabs.etl.dag import aws
 import datalabs.etl.dag.task
 
 logging.basicConfig()
@@ -16,29 +17,52 @@ LOGGER.setLevel(logging.DEBUG)
 class ProcessorTaskWrapper(
     ExecutionTimeMixin,
     aws.DynamoDBTaskParameterGetterMixin,
-    datalabs.etl.dag.task.DAGTaskWrapper
+    datalabs.etl.task.TaskWrapper
 ):
     def _get_runtime_parameters(self, parameters):
         LOGGER.debug('Event: %s', parameters)
-        event_parameters = None
-
-        if not hasattr(parameters, "items"):
-            raise ValueError(f'Invalid Lambda event: {parameters}')
-
+        sns_topic = self._get_sns_event_topic(parameters)
+        LOGGER.debug('SNS Event Topic: %s', sns_topic)
+        topic_parts = re.match(r'(?P<stack>..*)-(?P<environment>[a-z]{3})-(?P<name>..*)', sns_topic)
         event_parameters = self._get_sns_event_parameters(parameters)
-        LOGGER.debug('SNS Event Parameters: %s', event_parameters)
+        runtime_parameters = None
 
-        if len(event_parameters) == 1 and 'Records' in event_parameters:
-            LOGGER.info('Processing S3 Event Trigger...')
-            event_parameters = self._get_s3_event_parameters(event_parameters)
-        elif "source" in event_parameters:
-            LOGGER.info('Processing CloudWatch Event Trigger...')
-            event_parameters = self._get_cloudwatch_event_parameters(event_parameters)
+        if topic_parts.group("stack") != "DataLake":
+            raise ValueError(f"Unrecognized SNS topic: {sns_topic}")
 
-        if "task" not in event_parameters:
-            event_parameters["task"] = "DAG"
+        if topic_parts.group("name") == "DAGProcessor":
+            runtime_parameters = self._get_dag_processor_runtime_parameters(event_parameters)
+        elif topic_parts.group("name") == "TaskProcessor":
+            runtime_parameters = self._get_task_processor_runtime_parameters(event_parameters)
+        else:
+            runtime_parameters = self._get_trigger_processor_runtime_parameters(event_parameters, topic_parts["name"])
+        LOGGER.debug('Runtime Parameters: %s', event_parameters)
 
-        return event_parameters
+        return runtime_parameters
+
+    def _get_task_parameters(self):
+        task_parameters = None
+
+        if "task" in self._runtime_parameters:
+            task_parameters = self._get_task_processor_parameters()
+        elif "dag" in self._runtime_parameters:
+            task_parameters = self._get_dag_processor_parameters()
+        else:
+            task_parameters = self._get_trigger_processor_parameters()
+
+        return task_parameters
+
+    def _handle_success(self) -> (int, dict):
+        return "Success"
+
+    def _handle_exception(self, exception) -> (int, dict):
+        LOGGER.exception('An exception occured while running the processor.')
+
+        return f'Failed: {str(exception)}'
+
+    @classmethod
+    def _get_sns_event_topic(cls, parameters):
+        return parameters["Records"][0]["Sns"]["TopicArn"].rsplit(':', 1)[1]
 
     @classmethod
     def _get_sns_event_parameters(cls, event):
@@ -51,105 +75,102 @@ class ProcessorTaskWrapper(
         if event_source != 'aws:sns':
             raise ValueError(f'Invalid SNS event: {event}')
 
-        return json.loads(record["Sns"]["Message"])
+        event_parameters = json.loads(record["Sns"]["Message"])
 
-    def _get_s3_event_parameters(self, event):
-        ''' An S3 notification implies that the DAG Scheduler should be run.'''
-        record = event.get("Records", [{}])[0]
-        event_source = record.get("EventSource", record.get("eventSource"))
-        parameters = None
+        if "execution_time" not in event_parameters:
+            event_parameters["execution_time"] = cls._format_execution_time(record["Sns"]["Timestamp"])
 
-        if event_source != 'aws:s3':
-            raise ValueError(f'Invalid S3 notification event: {event}')
-
-        s3_object_key = record["s3"]["object"]["key"]
-        LOGGER.debug('S3 Event Object: %s', s3_object_key)
-
-        if s3_object_key == "schedule.csv":
-            LOGGER.info('Processing schedule file update trigger...')
-            parameters = self._get_scheduler_event_parameters()
-        elif not '__' in s3_object_key:
-            raise ValueError(
-                f'Invalid S3 object name: {s3_object_key}. The name must either be equal to "schedule.csv" '
-                f'or conform to the format "<DAG_ID>__<ISO-8601_EXECUTION_TIME>" format.')
-        else:
-            LOGGER.info('Processing backfill file trigger...')
-            parameters = self._get_backfill_parameters(s3_object_key)
-
-        return parameters
-
-    def _get_cloudwatch_event_parameters(self, event):
-        ''' A CloudWatch Event notification implies that the DAG Scheduler should be run.'''
-        event_source = event["source"]
-
-        if event_source != 'aws.events':
-            raise ValueError(f'Invalid CloudWatch event: {event}')
-
-        return self._get_scheduler_event_parameters()
-
-    def _get_scheduler_event_parameters(self):
-        ''' Return appropriate parameters for the DAG Processor assuming the DAG Scheduler as the DAG to execute.'''
-        return dict(
-            dag="DAG_SCHEDULER",
-            execution_time=self.execution_time.isoformat()
-        )
+        return event_parameters
 
     @classmethod
-    def _get_backfill_parameters(cls, s3_object_key):
-        dag_id, escaped_execution_time = s3_object_key.rsplit("__", 1)
-        execution_time = urllib.parse.unquote(escaped_execution_time).replace('T', ' ')
+    def _get_dag_processor_runtime_parameters(cls, event_parameters):
+        return event_parameters
 
-        try:
-            isoparse(execution_time)  # Check if execution_time is ISO-8601
-        except ValueError as error:
-            raise ValueError(
-                f'Backfill execution time is not a valid ISO-8601 timestamp: {execution_time}. ' \
-                f'The backfill S3 object name must conform to the format "<DAG_ID>__<ISO-8601_EXECUTION_TIME>".'
-            ) from error
+    @classmethod
+    def _get_task_processor_runtime_parameters(cls, event_parameters):
+        event_parameters["task"] = "DAG"
 
+        return event_parameters
+
+    @classmethod
+    def _get_trigger_processor_runtime_parameters(cls, event_parameters, topic_name):
+        handler_parameters = cls._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", "HANDLER")
+        trigger_parameters = cls._get_dag_task_parameters_from_dynamodb("TRIGGER_PROCESSOR", topic_name)
 
         return dict(
-            dag=dag_id,
-            execution_time=execution_time
+            handler_class=trigger_parameters["HANDLER_CLASS"],
+            dag_topic_arn=handler_parameters["DAG_TOPIC_ARN"],
+            event=event_parameters
         )
 
-    def _handle_success(self) -> (int, dict):
-        return "Success"
-
-    def _handle_exception(self, exception) -> (int, dict):
-        LOGGER.exception(
-            'An exception occured while attempting to send a run notification for task %s of DAG %s.',
-            self._get_task_id(),
-            self._get_dag_id()
-        )
-
-        return f'Failed: {str(exception)}'
-
-    def _get_dag_task_parameters(self):
-        ''' Get parameters for either the DAG Processor or the Task Processor. '''
-        dag = self._get_dag_id()
+    def _get_task_processor_parameters(self):
+        dag_parameters = self._get_dag_processor_parameters()
+        dag_name = self._get_dag_name()
         task = self._get_task_id()
+        task_parameters = self._get_dag_task_parameters_from_dynamodb(dag_name, task)
+
+        dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
+
+        dag_parameters["task"] = task
+
+        return dag_parameters
+
+    def _get_dag_processor_parameters(self):
+        dag = self._get_dag_id()
+        dag_name = self._get_dag_name()
         dag_parameters = dict(
             dag=dag,
             execution_time=self._get_execution_time(),
         )
-        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag, "DAG"))
-        task_parameters = self._get_dag_task_parameters_from_dynamodb(dag, task)
+        dag_parameters.update(self._get_dag_task_parameters_from_dynamodb(dag_name, "DAG"))
 
-        dag_parameters = self._override_dag_parameters(dag_parameters, task_parameters)
-
-        if task != "DAG":
-            dag_parameters["task"] = task
+        if "parameters" in self._runtime_parameters:
+            dag_parameters["parameters"] = self._runtime_parameters["parameters"]
 
         return dag_parameters
+
+    def _get_trigger_processor_parameters(self):
+        return self._runtime_parameters
+
+    def _get_dag_id(self):
+        return self._runtime_parameters["dag"].upper()
+
+    def _get_dag_name(self):
+        base_name, _ = self._parse_dag_id(self._get_dag_id())
+
+        return base_name
+
+    def _get_task_id(self):
+        return self._runtime_parameters["task"].upper()
+
+    def _get_execution_time(self):
+        return self._runtime_parameters["execution_time"].upper()
+
+    @classmethod
+    def _format_execution_time(cls, timestamp: str):
+        return isoparse(timestamp).strftime("%Y-%m-%dT%H:%M:%S")
+
 
     @classmethod
     def _override_dag_parameters(cls, dag_parameters, task_parameters):
         for key, _ in task_parameters.items():
             if key in dag_parameters:
+                LOGGER.info("Overriding DAG parameter %s: %s -> %s", key, dag_parameters[key], task_parameters[key])
                 dag_parameters[key] = task_parameters[key]
 
         return dag_parameters
+
+    @classmethod
+    def _parse_dag_id(cls, dag):
+        base_name = dag
+        iteration = None
+        components = dag.split(':')
+
+        if len(components) == 2:
+            base_name, iteration = components
+
+        return base_name, iteration
+
 
 class DAGTaskWrapper(aws.DAGTaskWrapper):
     def _get_runtime_parameters(self, parameters):

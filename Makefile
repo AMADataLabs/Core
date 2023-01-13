@@ -1,6 +1,6 @@
 CWD=$(shell realpath .)
 VIRTUAL_ENV=${CWD}/Environment/Master
-RUN=env PATH="${VIRTUAL_ENV}/bin:${PATH}" python ${CWD}/Script/run.py
+RUN=env PATH="${VIRTUAL_ENV}/bin:${PATH}" python3 ${CWD}/Script/run.py
 #RUN=env VIRTUAL_ENV="${CWD}/Environment/Master" python ${CWD}/Script/run.py
 TEMPLATE_FILES=${CWD}/Build/Master/requirements_template.txt ${CWD}/Build/Master/Pipfile_template.txt ${CWD}/Build/Master/conda_requirements_template.txt
 
@@ -35,7 +35,7 @@ clean-test:
 	rm -f ${CWD}/Test/Python/test/datalabs/environment/*_template.txt
 
 lint:
-	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy $(shell find ${CWD}/Source/Python/datalabs -name "*.py"  | grep -v ${CWD}/Source/Python/datalabs/airflow | tr '\n' ' ') $(shell find ${CWD}/Test/Python/test/datalabs -name "*.py" | tr '\n' ' ')
+	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy,math $(shell find ${CWD}/Source/Python/datalabs -name "*.py"  | grep -v ${CWD}/Source/Python/datalabs/airflow | tr '\n' ' ') $(shell find ${CWD}/Test/Python/test/datalabs -name "*.py" | tr '\n' ' ')
 
 lint-old:
 	${RUN} pylint --extension-pkg-whitelist=pyodbc,numpy --ignore=airflow ${CWD}/Source/Python/datalabs/* ${CWD}/Test/Python/test/datalabs/*
@@ -56,3 +56,6 @@ coverage-report:
 
 pythonpath:
 	${RUN} printenv PYTHONPATH
+
+hooks:
+	git config core.hooksPath .githooks

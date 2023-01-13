@@ -1,0 +1,24 @@
+---
+modspec:
+  - package: datalabs
+    include:
+      - awslambda
+      - feature
+      - parameter
+      - plugin
+      - sqlalchemy
+      - task
+  - package: datalabs.access
+    include:
+      - aws
+      - credentials
+      - database
+      - datastore
+      - environment
+      - orm
+  - package: datalabs.access.api
+  - package: datalabs.access.authorize
+  - package: datalabs.access.cpt.api
+  - package: datalabs.access.parameter
+  - package: datalabs.access.secret
+  - package: datalabs.model.cpt

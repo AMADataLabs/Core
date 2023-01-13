@@ -5,11 +5,8 @@ import logging
 
 import pandas
 
-import datalabs.etl.oneview.reference.column as col
-
+from   datalabs.etl.oneview.reference import static, column
 from   datalabs.etl.oneview.transform import TransformerTask
-
-import datalabs.etl.oneview.reference.static as static
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -18,17 +15,20 @@ LOGGER.setLevel(logging.DEBUG)
 
 class MajorProfessionalActivityTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [col.MPA_COLUMNS]
+        return [column.MPA_COLUMNS]
 
 
 class TypeOfPracticeTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        type_of_practice = data[0]
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        type_of_practice = dataset[0]
 
         type_of_practice = type_of_practice.append(
             pandas.DataFrame(
-                data={'TOP_CD': ['000'],
-                      'DESC': ['Student']}
+                data={
+                    'TOP_CD': ['000'],
+                    'DESC': ['Student']
+                }
             )
         )
 
@@ -37,17 +37,17 @@ class TypeOfPracticeTransformerTask(TransformerTask):
         return [type_of_practice]
 
     def _get_columns(self):
-        return [col.TOP_COLUMNS]
+        return [column.TOP_COLUMNS]
 
 
 class PresentEmploymentTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [col.PE_COLUMNS]
+        return [column.PE_COLUMNS]
 
 
 class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
     @classmethod
-    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
+    def _csv_to_dataframe(cls, data, **kwargs):
         cbsa = pandas.read_excel(BytesIO(data))
 
         codes = cbsa.iloc[2:-4, 0]
@@ -59,12 +59,13 @@ class CoreBasedStatisticalAreaTransformerTask(TransformerTask):
         return table
 
     def _get_columns(self):
-        return [col.CBSA_COLUMNS]
+        return [column.CBSA_COLUMNS]
 
 
 class SpecialtyMergeTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
-        specialties, physicians = data
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        specialties, physicians = dataset
 
         specialties.SPEC_CD = specialties.SPEC_CD = specialties.SPEC_CD.str.strip()
 
@@ -76,19 +77,21 @@ class SpecialtyMergeTransformerTask(TransformerTask):
         return [filtered_specialty_data]
 
     def _get_columns(self):
-        return [col.SPECIALTY_MERGED_COLUMNS]
+        return [column.SPECIALTY_MERGED_COLUMNS]
 
 
 class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask):
     # pylint: disable=unused-argument
     @classmethod
-    def _csv_to_dataframe(cls, data, on_disk, **kwargs):
+    def _csv_to_dataframe(cls, data, **kwargs):
         page_tables = pandas.read_html(data, converters={'FIPS': str}, **kwargs)
 
         return page_tables[1]
 
-    def _preprocess_data(self, data):
-        fips = data[0]
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
+        fips = dataset[0]
+
         fips['state'] = fips.FIPS.str[:2]
         fips['county'] = fips.FIPS.str[2:]
         fips['description'] = fips[['County or equivalent', 'State or equivalent']].apply(
@@ -100,54 +103,59 @@ class FederalInformationProcessingStandardCountyTransformerTask(TransformerTask)
         return [fips]
 
     def _get_columns(self):
-        return [col.FIPSC_COLUMNS]
+        return [column.FIPSC_COLUMNS]
 
 
 class StaticReferenceTablesTransformerTask(TransformerTask):
-    def _transform(self):
-        on_disk = bool(self._parameters.get("on_disk") and self._parameters["on_disk"].upper() == 'TRUE')
+    def run(self):
         table_data = [pandas.DataFrame.from_dict(table) for table in static.tables]
 
-        preprocessed_data = self._preprocess_data(table_data)
+        preprocessed_data = self._preprocess(table_data)
         selected_data = self._select_columns(preprocessed_data)
         renamed_data = self._rename_columns(selected_data)
-        postprocessed_data = self._postprocess_data(renamed_data)
+        postprocessed_data = self._postprocess(renamed_data)
 
-        return [self._dataframe_to_csv(data, on_disk, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
+        return [self._dataframe_to_csv(data, quoting=csv.QUOTE_NONNUMERIC) for data in postprocessed_data]
 
     def _get_columns(self):
-        return [col.PROVIDER_AFFILIATION_GROUP, col.PROVIDER_AFFILIATION_TYPE, col.PROFIT_STATUS, col.OWNER_STATUS]
+        return [
+            column.PROVIDER_AFFILIATION_GROUP,
+            column.PROVIDER_AFFILIATION_TYPE,
+            column.PROFIT_STATUS,
+            column.OWNER_STATUS
+        ]
 
 
 class ClassOfTradeTransformerTask(TransformerTask):
-    @classmethod
-    def _preprocess_data(cls, data):
-        classification_data = cls._add_classification_defaults(data[0][['CLASSIFICATION_ID', 'CLASSIFICATION']])
+    def _preprocess(self, dataset):
+        class_of_trade = dataset[0]
 
-        facility_data = cls._add_facility_defaults(data[0][['FACILITY_TYPE_ID', 'FACILITY_TYPE']])
+        specialties = self._add_specialty_defaults(class_of_trade[['SPECIALTY_ID', 'SPECIALTY']])
 
-        specialty_data = cls._add_specialty_defaults(data[0][['SPECIALTY_ID', 'SPECIALTY']])
+        facilities = self._add_facility_defaults(class_of_trade[['FACILITY_TYPE_ID', 'FACILITY_TYPE']])
 
-        return [specialty_data, facility_data, classification_data]
+        classifications = self._add_classification_defaults(class_of_trade[['CLASSIFICATION_ID', 'CLASSIFICATION']])
 
-    def _postprocess_data(self, data):
-        return [dataframe.drop_duplicates() for dataframe in data]
+        return [specialties, facilities, classifications]
+
+    def _postprocess(self, dataset):
+        return [dataframe.drop_duplicates() for dataframe in dataset]
 
     def _get_columns(self):
-        return [col.COT_SPECIALTY, col.COT_FACILITY, col.COT_CLASSIFICATION]
+        return [column.COT_SPECIALTY, column.COT_FACILITY, column.COT_CLASSIFICATION]
 
     @classmethod
-    def _add_classification_defaults(cls, classification_data):
-        classification_data = classification_data.append(
+    def _add_classification_defaults(cls, classifications):
+        classifications = classifications.append(
             pandas.DataFrame(
                 data={'CLASSIFICATION_ID': ['-1', '24'], 'CLASSIFICATION': ['Unknown/Not Specified', 'Other']})
         )
 
-        return classification_data
+        return classifications
 
     @classmethod
-    def _add_facility_defaults(cls, facility_data):
-        facility_data = facility_data.append(
+    def _add_facility_defaults(cls, facilities):
+        facilities = facilities.append(
             pandas.DataFrame(
                 data={'FACILITY_TYPE_ID': ['52', '53', '54', '59', '63', '69', '70', '75', '76', '78'],
                       'FACILITY_TYPE': ['Other Supply', 'Warehouse', 'Wholesaler', 'Other Government', 'Other Pharmacy',
@@ -155,36 +163,38 @@ class ClassOfTradeTransformerTask(TransformerTask):
                                         'Internet', 'Non-Retail Pharmacy', 'Support Services']}
             )
         )
-        facility_data = facility_data.append(
+
+        facilities = facilities.append(
             pandas.DataFrame(
                 data={'FACILITY_TYPE_ID': ['-1'], 'FACILITY_TYPE': ['Unknown/Not Specified']})
         )
 
-        return facility_data
+        return facilities
 
     @classmethod
-    def _add_specialty_defaults(cls, specialty_data):
-        specialty_data.SPECIALTY[specialty_data.SPECIALTY_ID == '-1'] = 'Unknown/Not Specified'
+    def _add_specialty_defaults(cls, specialties):
+        specialties.SPECIALTY[specialties.SPECIALTY_ID == '-1'] = 'Unknown/Not Specified'
 
-        specialty_data = specialty_data.append(
+        specialties = specialties.append(
             pandas.DataFrame(
                 data={'SPECIALTY_ID': ['129', '219', '224', '229', '231'],
                       'SPECIALTY': ['Hemophilia Treatment Center', 'Other', 'Epilepsy', 'Chain', 'Mail Service']}
             )
         )
 
-        return specialty_data
+        return specialties
 
 
 class StateTransformerTask(TransformerTask):
     def _get_columns(self):
-        return [col.STATE]
+        return [column.STATE]
 
 
 class MedicalSchoolTransformerTask(TransformerTask):
-    def _preprocess_data(self, data):
+    # pylint: disable=no-self-use
+    def _preprocess(self, dataset):
         """ TEMPORARY DATA CLEANUP (remove when data source is fixed) """
-        medical_schools = data[0]
+        medical_schools = dataset[0]
 
         cleaned_medical_schools = medical_schools[
             ~(
@@ -196,4 +206,4 @@ class MedicalSchoolTransformerTask(TransformerTask):
         return [cleaned_medical_schools]
 
     def _get_columns(self):
-        return [col.MEDICAL_SCHOOL]
+        return [column.MEDICAL_SCHOOL]

@@ -10,6 +10,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import datalabs.access.parameter.ReferenceEnvironmentLoader;
 import datalabs.plugin.PluginImporter;
 import datalabs.task.TaskWrapper;
 
@@ -20,16 +21,16 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
      public String handleRequest(Map<String,String> event, Context context) {
         String taskWrapperClassName = System.getenv("TASK_WRAPPER_CLASS");
         TaskWrapper taskWrapper;
-        String response;
+        String response = null;
 
-        LOGGER.info("Executing TaskWrapper " + taskWrapperClassName);
+        LOGGER.info("TaskWrapper: " + taskWrapperClassName);
 
         try {
             taskWrapper = this.createTaskWrapper(taskWrapperClassName, event);
 
             response = taskWrapper.run();
         } catch (Exception exception) {
-            response = exception.getMessage();
+            LOGGER.error("Task failed.", exception);
         }
 
         LOGGER.info("TaskWrapper Response: " + response);
@@ -40,9 +41,10 @@ public class LambdaFunction implements RequestHandler<Map<String,String>, String
      TaskWrapper createTaskWrapper(String taskWrapperClassName, Map<String,String> event)
             throws IllegalAccessException, InstantiationException, InvocationTargetException, NoSuchMethodException,
                    ClassNotFoundException {
+         ReferenceEnvironmentLoader environmentLoader = ReferenceEnvironmentLoader.fromSystem();
          Class taskWrapperClass = PluginImporter.importPlugin(taskWrapperClassName);
-         Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class});
+         Constructor taskWrapperConstructor = taskWrapperClass.getConstructor(new Class[] {Map.class, Map.class});
 
-         return (TaskWrapper) taskWrapperConstructor.newInstance(event);
+         return (TaskWrapper) taskWrapperConstructor.newInstance(environmentLoader.load(), event);
      }
- }
+}

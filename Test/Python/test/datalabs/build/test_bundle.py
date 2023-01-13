@@ -34,7 +34,7 @@ def test_generate_python_files_list(python_modspec_path, base_path):
     source_files = PythonSourceBundle.from_file(python_modspec_path).files(base_path)
 
     LOGGER.debug(source_files)
-    assert len(source_files) == 8
+    assert len(source_files) == 11
 
 
 # pylint: disable=redefined-outer-name
@@ -45,7 +45,7 @@ def test_copy_python_files(python_modspec_path, base_path, app_path):
     for _, _, files in os.walk(app_path):
         file_count += len(files)
 
-    assert file_count == 8
+    assert file_count == 11
 
 
 @pytest.fixture
@@ -62,9 +62,10 @@ modspec:
   - package: datalabs.analysis
     include:
       - exception
+  - package: datalabs.access.cpt.api
 '''
     with tempfile.NamedTemporaryFile() as temp_file:
-        with open(temp_file.name, 'w') as modspec_out:
+        with open(temp_file.name, 'w', encoding="utf-8") as modspec_out:
             modspec_out.write(modspec)
 
         yield temp_file.name
@@ -88,6 +89,16 @@ def base_path():
             ['__init__.py', 'exception.py', 'wslive.py']
         )
 
+        populate_directory(
+            os.path.join(temp_dir, 'datalabs/access/cpt'),
+            ['__init__.py']
+        )
+
+        populate_directory(
+            os.path.join(temp_dir, 'datalabs/access/cpt/api'),
+            ['__init__.py', 'default.py']
+        )
+
         yield temp_dir
 
 
@@ -101,7 +112,8 @@ def populate_directory(directory, files):
     os.makedirs(directory)
 
     for file in files:
-        open(os.path.join(directory, file), 'w').close()
+        with open(os.path.join(directory, file), 'w', encoding="utf-8"):
+            pass
 
 def get_files_in_directory(path):
     _, _, all_files = next(os.walk(path))

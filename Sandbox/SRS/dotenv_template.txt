@@ -4,8 +4,8 @@ DATALABS_PYTHONPATH='{{ pythonpath }}'
 
 # Database Settings
 DATABASE_AIMS_NAME='prd1srvxnet/aims_prod'       # Test: etstods
-CREDENTIALS_AIMS_USERNAME='vigrose'
-CREDENTIALS_AIMS_PASSWORD='DQA8K@T7pXEqEt'
+CREDENTIALS_AIMS_USERNAME=
+CREDENTIALS_AIMS_PASSWORD=
 DATABASE_AIMS_HOST='rdbp1627'
 DATABASE_AIMS_PORT='22093'
 
@@ -32,16 +32,19 @@ PASSWORD = 'Agr8actr1!@'
 URL = 'https://apps.aamc.org/account/#/login?gotoUrl=https:%2F%2Fservices.aamc.org%2Fdsportal2%2Findex.cfm%3Ffuseaction%3Dlogin.login%26thread%3Djump.SRS'
 
 #Download Folder
-DOWNLOAD_FOLDER = 'C:/Users/vigrose/Downloads
+DOWNLOAD_FOLDER = 
 
 #Out Directory
 OUT_DIR = 'C:/Users/vigrose/Data/SRS/'
 
 #Executable path
-DRIVER_PATH = 'C:/Users/vigrose/Jupyter Notebooks/chromedriver.exe'
+DRIVER_PATH = 
 
 #Queries
 STUDENT_QUERY = "SELECT P.ENTITY_ID, P.GENDER, P.BIRTH_DT, P.BIRTH_STATE_CD, P.ETHNICITY, P.BIRTH_CITY_CD, N.FIRST_NM, N.MIDDLE_NM, N.LAST_NM, S.STUD_ID, S.SCHOOL_ID, S.EDU_STS, S.GRAD_YR, S.EDU_PREF_CD, S.DEGREE_CD FROM informix.PERSON_NAME_ET N, informix.PERSON_ET P, informix.SCHOOL_ATT_ST S WHERE P.ENTITY_ID = N.ENTITY_ID AND P.CURR_PERSON_TYPE = 'S' AND N.END_DT IS NULL AND N.NAME_TYPE='LN' AND P.ENTITY_ID = S.STUD_ID"
+ME_ENTITY_QUERY = "SELECT key_type_val as me, entity_id FROM entity_key_et WHERE key_type='ME'"
+AAMC_QUERY = "SELECT E.KEY_TYPE_VAL AS AAMC_ID, E.ENTITY_ID FROM informix.ENTITY_KEY_ET E WHERE E.KEY_TYPE = 'AMC'"
+STU_AFFIL_QUERY = "SELECT entity_id, category_code FROM entity_cat_ct WHERE end_dt is null AND category_code='STU_AFFIL'"
 
 #Files
 SCHOOL_CROSSWALK = 'C:/Users/vigrose/Data/SRS/US_Schools_Crosswalk_AMA_AAMC.xlsx'

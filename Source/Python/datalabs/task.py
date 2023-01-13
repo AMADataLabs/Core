@@ -1,11 +1,12 @@
 """ Abstract task base class for use with AWS Lambda and other task-based systems. """
-from abc import ABC, abstractmethod
+from abc import ABCMeta, ABC, abstractmethod
 import logging
 import os
 
-from   datalabs.access.parameter.etcd import EtcdEnvironmentLoader
+from   marshmallow.exceptions import ValidationError
+
 from   datalabs.access.parameter.system import ReferenceEnvironmentLoader
-from   datalabs.parameter import ParameterValidatorMixin
+from   datalabs.parameter import ParameterValidatorMixin, ValidationException
 from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
@@ -13,37 +14,62 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class Task(ParameterValidatorMixin, ABC):
+class TaskMeta(ABCMeta):
+    @property
+    def name(cls):
+        return f"{cls.__module__}.{cls.__name__}"
+
+
+class Task(ParameterValidatorMixin, ABC, metaclass=TaskMeta):
     PARAMETER_CLASS = None
 
-    def __init__(self, parameters: dict):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
         self._parameters = parameters
+        self._data = data
         self._log_parameters(parameters)
 
         if self.PARAMETER_CLASS:
             self._parameters = self._get_validated_parameters(parameters)
 
     @abstractmethod
-    def run(self):
+    def run(self) -> "list<bytes>":
         pass
 
     @classmethod
     def _log_parameters(cls, parameters):
-        if hasattr(parameters, "copy"):
-            partial_parameters = parameters.copy()
-            data = None
+        if hasattr(parameters, "__dataclass_fields__"):
+            parameters = {key:getattr(parameters, key) for key in parameters.__dataclass_fields__.keys()}
 
-            if "data" in partial_parameters:
-                data = partial_parameters.pop("data")
-            LOGGER.info('%s parameters (no data): %s', cls.__name__, partial_parameters)
-            LOGGER.debug('%s data parameter: %s', cls.__name__, data)
-        elif hasattr(parameters, "__dataclass_fields__") and hasattr(parameters, "data"):
-            fields = [field for field in parameters.__dataclass_fields__.keys() if field != "data"]
-            partial_parameters = {key:getattr(parameters, key) for key in fields}
-            LOGGER.info('%s parameters (no data): %s', cls.__name__, partial_parameters)
-            LOGGER.debug('%s data parameter: %s', cls.__name__, getattr(parameters, "data"))
-        else:
-            LOGGER.info('%s parameters: %s', cls.__name__, parameters)
+        LOGGER.info('%s parameters: %s', cls.__name__, parameters)
+
+
+class TaskFactory:
+    @classmethod
+    def create_task(cls, task_class: str, parameters: dict, data: bytes=None):
+        task_class = import_plugin(task_class)
+
+        if hasattr(task_class, "PARAMETER_CLASS"):
+            parameters = cls._get_validated_parameters(task_class.PARAMETER_CLASS, parameters)
+
+        if data is not None:
+            parameters.data = data
+
+        return task_class(parameters)
+
+    @classmethod
+    def _get_validated_parameters(cls, parameter_class, parameter_map: dict):
+        parameter_map = {key.lower():value for key, value in parameter_map.items()}
+        schema = parameter_class.SCHEMA  # pylint: disable=no-member
+        parameters = None
+
+        try:
+            parameters = schema.load(parameter_map)
+        except (ValidationException, ValidationError) as error:
+            raise ValidationException(
+                f'Parameter validation failed for {parameter_class.__name__} instance'
+            ) from error
+
+        return parameters
 
 
 class TaskException(Exception):
@@ -59,6 +85,8 @@ class TaskWrapper(ABC):
         self._parameters = parameters or {}
         self._runtime_parameters = None
         self._task_parameters = None
+        self._inputs = None
+        self._outputs = None
 
         LOGGER.info('%s parameters: %s', self.__class__.__name__, self._parameters)
 
@@ -72,26 +100,25 @@ class TaskWrapper(ABC):
 
             self._task_parameters = self._get_task_parameters()
 
+            self._inputs = self._get_task_data()
+
             self.task_class = self._get_task_class()
 
-            self.task = self.task_class(self._task_parameters)
+            self.task = self.task_class(self._task_parameters, self._inputs)
 
             self._pre_run()
 
-            self.task.run()
+            self._outputs = self.task.run()
 
             response = self._handle_success()
         except Exception as exception:  # pylint: disable=broad-except
+            LOGGER.exception('Unable to run task.')
             response = self._handle_exception(exception)
 
         return response
 
     # pylint: disable=no-self-use
     def _setup_environment(self):
-        etcd_loader = EtcdEnvironmentLoader.from_environ()
-        if etcd_loader is not None:
-            etcd_loader.load()
-
         secrets_loader = ReferenceEnvironmentLoader.from_environ()
         secrets_loader.load()
 
@@ -114,6 +141,9 @@ class TaskWrapper(ABC):
 
     def _get_task_parameters(self):
         return self._parameters
+
+    def _get_task_data(self):
+        return []
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):
@@ -141,14 +171,22 @@ class TaskWrapper(ABC):
 class TaskResolver(ABC):
     @classmethod
     @abstractmethod
-    def get_task_class(cls, parameters):
+    def get_task_class(cls, runtime_parameters):
         pass
 
 
 class EnvironmentTaskResolver(TaskResolver):
     # pylint: disable=unused-argument
     @classmethod
-    def get_task_class(cls, parameters):
-        task_class_name = os.environ['TASK_CLASS']
+    def get_task_class(cls, runtime_parameters):
+        task_class_name = os.environ["TASK_CLASS"]
+
+        return import_plugin(task_class_name)
+
+
+class RuntimeTaskResolver(TaskResolver):
+    @classmethod
+    def get_task_class(cls, runtime_parameters):
+        task_class_name = runtime_parameters["TASK_CLASS"]
 
         return import_plugin(task_class_name)

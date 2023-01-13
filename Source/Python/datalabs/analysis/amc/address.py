@@ -64,7 +64,7 @@ class AMCAddressFlagger:
         address_data = None
 
         if feature.enabled("WINDOWS"):
-            with AIMS() as aims:
+            with AIMS.from_environment("AIMS") as aims:
                 data = aims.read(sql=AMC_QUERY, coerce_float=False)
 
             address_data = self._clean_str_data(data)
@@ -257,7 +257,7 @@ class AMCAddressFlagger:
             return True
 
         tokens = address_string.split()
-        tokens = list()
+        tokens = []
         if 'stop' in tokens or 'mailstop' in tokens:
             index = tokens.index('stop')
 

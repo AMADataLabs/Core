@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -x
 
@@ -137,7 +137,13 @@ function trigger_build {
             "type": "pipeline_ref_target",
             "ref_name": "$BITBUCKET_BRANCH",
             "ref_type": "branch"
-        }
+        },
+        "variables": [
+            {
+                "key": "BITBUCKET_BRANCH",
+                "value": "$BITBUCKET_BRANCH"
+            }
+        ]
     }
 EOM
     )"

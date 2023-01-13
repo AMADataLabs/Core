@@ -1,2 +1,9 @@
-name,schedule
-ONEVIEW,0 10 * * 1-5
+dag,schedule
+ADDRESS_FLAGGING_REPORT,0 12 * * wed
+ADDRESS_LOAD_COMPILER,0 13 * * wed
+CERNER_REPORT,0 10 * * mon-fri
+DBL,0 20 * * sun
+DEVELOPER_EMAILS,0 15 * * thu
+LICENSING_SYNC,0 12 * * *
+LICENSING_TRAFFIC,0 0 * * mon
+ONEVIEW,0 10 * * *

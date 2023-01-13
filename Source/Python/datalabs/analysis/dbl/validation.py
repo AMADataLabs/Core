@@ -1,51 +1,58 @@
 """ New DBL Report Validation - Sanity Checks / Comparisons to Previous Report """
-# pylint: disable=too-many-locals,invalid-name
 from datetime import datetime
 import pandas as pd
 
 
-def get_percent_change(val1, val2):
-    if val1 == val2 == 0:
-        return 0
-    dif = 1.0 * abs(val1 - val2)
-    return (100.0 * dif) / val1
-
-
-class Validation:
-
+class Validater:
     def __init__(self, new_report, old_report):
-        self.new = new_report
-        self.old = old_report
+        self._new = new_report
+        self._old = old_report
 
-        self.supplement_number = None
-        self.current_dls_file_read = None
+        self._supplement_number = None
+        self._current_dls_file_read = None
 
-        self.tab_validations = {}
-        self.log = ""
+        self._tab_validations = {}
+        self._log = ""
 
-        self.validate_tab1()
-        self.validate_tab2()
-        self.validate_tab3()
-        self.validate_tab4()
-        self.validate_tab5()
-        self.validate_tab6()
-        self.validate_tab7()
-        self.validate_tab8()
-        self.validate_tab9()
-        self.validate_tab10()
+        self._passing = False
 
-        self.make_result_log_string()
+    def validate(self):
+        if self._old is not None:
+            self._validate_tab1()
+            self._validate_tab2()
+            self._validate_tab3()
+            self._validate_tab4()
+            self._validate_tab5()
+            self._validate_tab6()
+            self._validate_tab7()
+            self._validate_tab8()
+            self._validate_tab9()
+            self._validate_tab10()
 
-        self.passing = self._is_passing()
+        self._make_result_log_string()
 
-    def validate_tab1(self):
+        self._passing = self._is_passing()
+
+    @property
+    def passing(self):
+        return self._passing
+
+    @property
+    def log(self):
+        return self._log
+
+    @property
+    def tab_validations(self):
+        return self._tab_validations
+
+    def _validate_tab1(self):
         """ChangeFileAudit"""
         tab_name = 'ChangeFileAudit'
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).dropna().T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0).dropna().T
+        data = pd.read_excel(self._new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').dropna().T
+        prev = pd.read_excel(self._old, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').dropna().T
 
-        self.current_dls_file_read = data['CURRENT DLS FILE READ'].values[0]
+        self._current_dls_file_read = data['CURRENT DLS FILE READ'].values[0]
 
         errors = []
 
@@ -61,23 +68,23 @@ class Validation:
         if prev_supplement + 1 != supplement:
             errors.append("SUPPLEMENT NUMBER HAS NOT CORRECTLY INCREMENTED FROM PREVIOUS REPORT")
 
-        self.supplement_number = supplement
+        self._supplement_number = supplement
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations[tab_name]['status'] = 'PASSING'
+            self._tab_validations[tab_name]['status'] = 'PASSING'
         else:
-            self.tab_validations[tab_name]['status'] = 'FAILING'
-            self.tab_validations[tab_name]['errors'] = errors
+            self._tab_validations[tab_name]['status'] = 'FAILING'
+            self._tab_validations[tab_name]['errors'] = errors
 
-    def validate_tab2(self):
+    def _validate_tab2(self):
         """ReportByFieldFrom SAS"""
         tab_name = 'ReportByFieldFrom SAS'
         change_threshold = 10
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0).T
+        data = pd.read_excel(self._new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
+        prev = pd.read_excel(self._old, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
 
         errors = []
 
@@ -89,231 +96,194 @@ class Validation:
         for field in data.columns.values[1:-2]:
             val1 = prev[field].values[1]
             val2 = data[field].values[1]
-            change = get_percent_change(val1, val2)
+            change = self._percent_change(val1, val2)
             if change >= change_threshold:
                 errors.append(f'FIELD - "{field}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
 
         obs_count = data['OBSERVATION COUNT'].values[0]
-        if obs_count != self.current_dls_file_read:
+        if obs_count != self._current_dls_file_read:
             errors.append('OBSERVATION COUNT DOES NOT MATCH DLS FILE READ COUNT')
         supplement = data['SUPPLEMENT NUMBER'].values[0]
-        if supplement != self.supplement_number:
+        if supplement != self._supplement_number:
             errors.append('SUPPLEMENT NUMBER DOES NOT MATCH')
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations['ReportByFieldFrom SAS']['status'] = 'PASSING'
+            self._tab_validations['ReportByFieldFrom SAS']['status'] = 'PASSING'
         else:
-            self.tab_validations['ReportByFieldFrom SAS']['status'] = 'FAILING'
-            self.tab_validations['ReportByFieldFrom SAS']['errors'] = errors
+            self._tab_validations['ReportByFieldFrom SAS']['status'] = 'FAILING'
+            self._tab_validations['ReportByFieldFrom SAS']['errors'] = errors
 
-    def validate_tab3(self):
+    def _validate_tab3(self):
         """ChangeByFieldCount"""
         tab_name = 'ChangeByFieldCount'
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).T
-        # prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0).T
+        data = pd.read_excel(self._new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
+        # prev = pd.read_excel(self._old, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
 
         errors = []
 
         supplement = data['SUPPLEMENT NUMBER'].values[0]
-        if supplement != self.supplement_number:
+        if supplement != self._supplement_number:
             errors.append('SUPPLEMENT NUMBER DOES NOT MATCH')
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations['ChangeByFieldCount']['status'] = 'PASSING'
+            self._tab_validations['ChangeByFieldCount']['status'] = 'PASSING'
         else:
-            self.tab_validations['ChangeByFieldCount']['status'] = 'FAILING'
-            self.tab_validations['ChangeByFieldCount']['errors'] = errors
+            self._tab_validations['ChangeByFieldCount']['status'] = 'FAILING'
+            self._tab_validations['ChangeByFieldCount']['errors'] = errors
 
-    def validate_tab4(self):
+    def _validate_tab4(self):
         """RecordActionExtract"""
         tab_name = 'RecordActionExtract'
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).T
-        # prev = pd.read_excel(self.old, sheet_name=3, header=None, index_col=0).T
+        data = pd.read_excel(self._new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
+        # prev = pd.read_excel(self._old, sheet_name=3, header=None, index_col=0, engine='openpyxl').T
 
         errors = []
 
-        for me in data.columns.values:
-            if len(me) != 11 and me not in ['ME NUMBER', 'SUPPLEMENT NUMBER']:
-                errors.append(f'ME # "{me}" IS NOT 11 CHARACTERS')
+        for me_number in data.columns.values:
+            if len(me_number) != 11 and me_number not in ['ME NUMBER', 'SUPPLEMENT NUMBER']:
+                errors.append(f'ME # "{me_number}" IS NOT 11 CHARACTERS')
         add_deletes = set(data.T.reset_index().drop(0)[1].values[:-1])  # gets the set of values, should be ('A', 'D')
         for value in add_deletes:
             if value not in 'AD':
                 errors.append(f'ERRONEOUS ADD/DELETE VALUE FOUND - "{value}"')
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations[tab_name]['status'] = 'PASSING'
+            self._tab_validations[tab_name]['status'] = 'PASSING'
         else:
-            self.tab_validations[tab_name]['status'] = 'FAILING'
-            self.tab_validations[tab_name]['errors'] = errors
+            self._tab_validations[tab_name]['status'] = 'FAILING'
+            self._tab_validations[tab_name]['errors'] = errors
 
-    def validate_tab5(self):
+    def _validate_tab5(self):
         """ChangeByRecordCount"""
         tab_name = 'ChangeByRecordCount'
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=None, index_col=0).T
-        # prev = pd.read_excel(self.old, sheet_name=tab_name, header=None, index_col=0).T
+        data = pd.read_excel(self._new, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
+        # prev = pd.read_excel(self._old, sheet_name=tab_name, header=None, index_col=0, engine='openpyxl').T
 
         errors = []
 
         supplement = data['SUPPLEMENT NUMBER'].values[0]
-        if supplement != self.supplement_number:
+        if supplement != self._supplement_number:
             errors.append('SUPPLEMENT NUMBER DOES NOT MATCH')
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations[tab_name]['status'] = 'PASSING'
+            self._tab_validations[tab_name]['status'] = 'PASSING'
         else:
-            self.tab_validations[tab_name]['status'] = 'FAILING'
-            self.tab_validations[tab_name]['errors'] = errors
+            self._tab_validations[tab_name]['status'] = 'FAILING'
+            self._tab_validations[tab_name]['errors'] = errors
 
-    def validate_tab6(self):
-        """PE Counts"""
+    def _validate_tab6(self):
+        """Present Employment Counts"""
         tab_name = 'PE Counts'
         change_threshold = 5
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
+        data = pd.read_excel(self._new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        prev = pd.read_excel(self._old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
 
         errors = []
 
-        for pe in data.columns.values[:-1]:  # [:-1] to exclude Supplement Number (last value in series)
-            val1 = prev[pe].values[1]
-            val2 = data[pe].values[1]
-            change = get_percent_change(val1, val2)
+        for present_employment in data.columns.values[:-1]:  # [:-1] to exclude Supplement Number (last value in series)
+            val1 = prev[present_employment].values[1]
+            val2 = data[present_employment].values[1]
+            change = self._percent_change(val1, val2)
             if change >= change_threshold:
-                errors.append(f'PE - "{pe}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
+                errors.append(
+                    f'PE - "{present_employment}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD'
+                )
 
         total = data['Grand Total'].values[1]
-        if total != self.current_dls_file_read:
+        if total != self._current_dls_file_read:
             errors.append('GRAND TOTAL != DLS FILE READ COUNT')
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations[tab_name]['status'] = 'PASSING'
+            self._tab_validations[tab_name]['status'] = 'PASSING'
         else:
-            self.tab_validations[tab_name]['status'] = 'FAILING'
-            self.tab_validations[tab_name]['errors'] = errors
+            self._tab_validations[tab_name]['status'] = 'FAILING'
+            self._tab_validations[tab_name]['errors'] = errors
 
-    def validate_tab7(self):
+    def _validate_tab7(self):
         """TOP Counts"""
         tab_name = 'TOP Counts'
         change_threshold = 5
 
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
+        data = pd.read_excel(self._new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        prev = pd.read_excel(self._old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
 
         errors = []
 
         for top in data.columns.values[:-1]:  # exclude Supplement Number
             val1 = prev[top].values[1]
             val2 = data[top].values[1]
-            change = get_percent_change(val1, val2)
+            change = self._percent_change(val1, val2)
             if change >= change_threshold:
                 errors.append(f'TOP - "{top}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
 
         total = data['Grand Total'].values[1]
-        if total != self.current_dls_file_read:
+        if total != self._current_dls_file_read:
             errors.append('GRAND TOTAL != DLS FILE READ COUNT')
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations[tab_name]['status'] = 'PASSING'
+            self._tab_validations[tab_name]['status'] = 'PASSING'
         else:
-            self.tab_validations[tab_name]['status'] = 'FAILING'
-            self.tab_validations[tab_name]['errors'] = errors
+            self._tab_validations[tab_name]['status'] = 'FAILING'
+            self._tab_validations[tab_name]['errors'] = errors
 
-    def validate_tab8(self):
+    def _validate_tab8(self):
         """TOP by PE"""
         tab_name = 'TOP by PE'
         change_threshold = 5
-
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
-
         errors = []
 
-        # get previous values
-        previous = {}
-        for i, row in prev.iterrows():
-            if i == 3:
-                previous[i] = row['Grand Total']
+        previous_data = pd.read_excel(self._old, sheet_name=tab_name, header=0, index_col=0, engine='openpyxl').T
+        current_data = pd.read_excel(self._new, sheet_name=tab_name, header=0, index_col=0, engine='openpyxl').T
 
-        # get current values
-        current = {}
-        for i, row in data.iterrows():
-            if i == 0:
-                current[i] = row['Grand Total']
+        errors = self._generate_grand_total_percent_change_errors(previous_data, current_data, change_threshold)
 
-        # compare
-        for val in current:
-            if val in previous:
-                val1 = previous[val]
-                val2 = current[val]
-                change = get_percent_change(val1, val2)
-                if change >= change_threshold:
-                    errors.append(f'PE - "{val}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
-
-        total = data['Grand Total'].values[-1]
-        if total != self.current_dls_file_read:
+        total = current_data['Grand Total'].values[-1]
+        if total != self._current_dls_file_read:
             errors.append('GRAND TOTAL != DLS FILE READ COUNT')
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations[tab_name]['status'] = 'PASSING'
+            self._tab_validations[tab_name]['status'] = 'PASSING'
         else:
-            self.tab_validations[tab_name]['status'] = 'FAILING'
-            self.tab_validations[tab_name]['errors'] = errors
+            self._tab_validations[tab_name]['status'] = 'FAILING'
+            self._tab_validations[tab_name]['errors'] = errors
 
-    def validate_tab9(self):
+    def _validate_tab9(self):
         """PrimSpecbyMPA"""
         tab_name = 'PrimSpecbyMPA'
         change_threshold = 5
-
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
-
         errors = []
 
-        # get previous values
-        previous = {}
-        for i, row in prev.iterrows():
-            if i not in ['Grand Total', 'Description']:
-                previous[i] = row['Grand Total']
+        previous_data = pd.read_excel(self._old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        current_data = pd.read_excel(self._new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
 
-        # get current values
-        current = {}
-        for i, row in data.iterrows():
-            if i not in ['Grand Total', 'Description']:
-                current[i] = row['Grand Total']
-
-        # compare
-        for val in current:
-            if val in previous:
-                val1 = previous[val]
-                val2 = current[val]
-                change = get_percent_change(val1, val2)
-                if change >= change_threshold:
-                    errors.append(f'Spec - "{val}" - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
+        errors = self._generate_grand_total_percent_change_errors(previous_data, current_data, change_threshold)
 
         # "unspecified counts must be LOWER than the unspecified counts in the 10th tab (SecSpecbyMPA)"
-        unspecified = data.reset_index()[['index', 'US']]
+        unspecified = current_data.reset_index()[['index', 'US']]
 
         unspecified10 = pd.read_excel(
-            self.new,
+            self._new,
             sheet_name='PrimSpecbyMPA',
             header=1,
-            index_col=0
+            index_col=0,
+            engine='openpyxl'
         ).T.reset_index()[
             ['index', 'US']
         ].rename(columns={'US': 'US-SEC'})
@@ -326,76 +296,98 @@ class Validation:
             for code in failing_codes:
                 errors.append(f'UNSPECIFIED PRIMARY COUNTS > UNSPECIFIED SECONDARY COUNTS - {code}')
 
-        total = data['Grand Total'].values[-1]
-        if total != self.current_dls_file_read:
+        total = current_data['Grand Total'].values[-1]
+        if total != self._current_dls_file_read:
             errors.append('GRAND TOTAL != DLS FILE READ COUNT')
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations[tab_name]['status'] = 'PASSING'
+            self._tab_validations[tab_name]['status'] = 'PASSING'
         else:
-            self.tab_validations[tab_name]['status'] = 'FAILING'
-            self.tab_validations[tab_name]['errors'] = errors
+            self._tab_validations[tab_name]['status'] = 'FAILING'
+            self._tab_validations[tab_name]['errors'] = errors
 
-    def validate_tab10(self):
+    def _validate_tab10(self):
         """SecSpecbyMPA"""
         tab_name = 'SecSpecbyMPA'
         change_threshold = 5
-
-        data = pd.read_excel(self.new, sheet_name=tab_name, header=1, index_col=0).T
-        prev = pd.read_excel(self.old, sheet_name=tab_name, header=1, index_col=0).T
-
         errors = []
 
-        # get previous values
-        previous = {}
-        for i, row in prev.iterrows():
-            if i not in ['Grand Total', 'Description']:
-                previous[i] = row['Grand Total']
+        previous_data = pd.read_excel(self._old, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
+        current_data = pd.read_excel(self._new, sheet_name=tab_name, header=1, index_col=0, engine='openpyxl').T
 
-        # get current values
-        current = {}
-        for i, row in data.iterrows():
-            if i not in ['Grand Total', 'Description']:
-                current[i] = row['Grand Total']
+        errors = self._generate_grand_total_percent_change_errors(previous_data, current_data, change_threshold)
 
-        # compare
-        for val in current:
-            if val in previous:
-                val1 = previous[val]
-                val2 = current[val]
-                change = get_percent_change(val1, val2)
-                if change >= change_threshold:
-                    errors.append(f'Spec - {val} - CHANGED BY {change}% - {val1} TO {val2} - EXCEEDS THRESHOLD')
-
-        total = data['Grand Total'].values[-1]
-        if total != self.current_dls_file_read:
+        total = current_data['Grand Total'].values[-1]
+        if total != self._current_dls_file_read:
             errors.append('GRAND TOTAL != DLS FILE READ COUNT')
 
-        self.tab_validations[tab_name] = {}
+        self._tab_validations[tab_name] = {}
 
         if len(errors) == 0:
-            self.tab_validations[tab_name]['status'] = 'PASSING'
+            self._tab_validations[tab_name]['status'] = 'PASSING'
         else:
-            self.tab_validations[tab_name]['status'] = 'FAILING'
-            self.tab_validations[tab_name]['errors'] = errors
+            self._tab_validations[tab_name]['status'] = 'FAILING'
+            self._tab_validations[tab_name]['errors'] = errors
 
-    def make_result_log_string(self):
+    def _make_result_log_string(self):
         report_lines = [
             'AUTOMATED DBL REPORT REVIEW\n\n',
             f'PERFORMED {str(datetime.now().date())}',
             '\n\n'
         ]
 
-        for tab in self.tab_validations:
+        for tab, valdiation in self._tab_validations.items():
             report_lines.append(tab.ljust(22))
-            report_lines.append(str(self.tab_validations[tab]) + '\n')
+            report_lines.append(str(valdiation) + '\n')
 
-        self.log = '\n'.join(report_lines)
+        self._log = '\n'.join(report_lines)
 
     def _is_passing(self):
-        for tab in self.tab_validations:
-            if self.tab_validations[tab]['status'] == 'FAILING':
-                return False
-        return True
+        passing = True
+
+        for validation in self._tab_validations.values():
+            if validation['status'] == 'FAILING':
+                passing = False
+
+        return passing
+
+    @classmethod
+    def _generate_grand_total_percent_change_errors(cls, previous_data, current_data, change_threshold):
+        previous_values = {}
+        current_values = {}
+        errors = []
+
+        # get previous values
+        for index, row in previous_data.iterrows():
+            if index not in ['Grand Total', 'Description']:
+                previous_values[index] = row['Grand Total']
+
+        # get current values
+        for index, row in current_data.iterrows():
+            if index not in ['Grand Total', 'Description']:
+                current_values[index] = row['Grand Total']
+
+        # compare
+        for name, current_value in current_values.items():
+            if name in previous_values:
+                previous_value = previous_values[name]
+                change = cls._percent_change(previous_value, current_value)
+
+                if change >= change_threshold:
+                    info = f'Spec - "{name}" - CHANGED BY {round(change, 2)}% - {previous_value} TO {current_value} ' \
+                            f'- EXCEEDS THRESHOLD of {change_threshold}%'
+                    errors.append(info)
+
+        return errors
+
+    @classmethod
+    def _percent_change(cls, val1, val2):
+        percent_change = 0
+
+        if val1 not in (val2, 0):
+            difference = abs(val1 - val2)
+            percent_change = (100.0 * difference) / val1
+
+        return percent_change

@@ -88,14 +88,18 @@ public class DynamoDbEnvironmentLoader {
         Map<String, AttributeValue> item = dynamoDb.getItem(request).item();
         LOGGER.debug("Item: " + item);
 
-        if (item != null) {
-            Map<String, String> variables = parseJson(item.get("Variables").s());
-            LOGGER.debug("Variables: " + variables);
-
-            variables.forEach(
-                (column, value) -> parameters.put(column, value.toString())
+        if (!item.containsKey("Variables")) {
+            throw new IllegalArgumentException(
+                "No variables for task " + key.get("Task").s() + " of DAG " + key.get("DAG").s()
             );
         }
+
+        Map<String, String> variables = parseJson(item.get("Variables").s());
+        LOGGER.debug("Variables: " + variables);
+
+        variables.forEach(
+            (column, value) -> parameters.put(column, value.toString())
+        );
 
         return parameters;
     }

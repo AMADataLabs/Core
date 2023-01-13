@@ -12,7 +12,6 @@ from   datalabs.parameter import add_schema
 # pylint: disable=too-many-instance-attributes
 class LocalFileLoaderParameters:
     base_path: str
-    data: list
     files: str = None
     includes_names: str = None
     execution_time: str = None

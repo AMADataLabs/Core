@@ -70,7 +70,7 @@ class ReleasesEndpointTask(APIEndpointTask):
 
     @classmethod
     def _query_for_releases(cls, database):
-        return database.query(Release).order_by(Release.effective_date.desc())
+        return database.query(Release).order_by(Release.date.desc())
 
     def _filter_for_max_results(self, query):
         max_results = self._parameters.query.get('results')
@@ -85,9 +85,7 @@ class ReleasesEndpointTask(APIEndpointTask):
         return [
             dict(
                 id=row.id,
-                publish_date=str(row.publish_date),
-                effective_date=str(row.effective_date),
-                type=row.type
+                date=str(row.date),
             )
             for row in rows
         ]

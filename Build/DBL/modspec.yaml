@@ -1,13 +1,12 @@
 modspec:
   - package: datalabs
     include:
-      - feature
       - awslambda
-      - plugin
       - etl
-      - sqlalchemy
-      - task
+      - feature
       - parameter
+      - plugin
+      - task
   - package: datalabs.access
     include:
       - sftp
@@ -15,28 +14,31 @@ modspec:
       - database
       - datastore
       - environment
-      - etcd
       - aws
-      - orm
   - package: datalabs.access.secret
   - package: datalabs.access.parameter
     include:
       - system
-      - etcd
+      - dynamodb
+  - package: datalabs.analysis
   - package: datalabs.analysis.dbl
   - package: datalabs.etl
-    include:
-      - task
-      - extract
-      - transform
-      - load
   - package: datalabs.etl.s3
   - package: datalabs.etl.dag
   - package: datalabs.etl.dag.cache
+  - package: datalabs.etl.dag.execute
+    include:
+    - awslambda
+    - local
+  - package: datalabs.etl.dag.masterfile
+    include:
+      - dbl_counts_report
+  - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
+    include:
+    - base
+    - dynamodb
   - package: datalabs.etl.sftp
-  - package: datalabs.etl.orm
-  - package: datalabs.etl.http
   - package: datalabs.messaging
     include:
       - email_message

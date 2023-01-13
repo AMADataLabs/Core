@@ -1,14 +1,14 @@
 """ API endpoint task classes. """
 import logging
 
-import datalabs.task as task
+from   datalabs.task import Task, TaskException, TaskWrapper
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
-class APIEndpointException(task.TaskException):
+class APIEndpointException(TaskException):
     def __init__(self, message, status_code=None):
         super().__init__(message)
 
@@ -33,12 +33,12 @@ class InternalServerError(APIEndpointException):
         super().__init__(message, 500)
 
 
-class APIEndpointTask(task.Task):
-    def __init__(self, parameters: dict):
-        super().__init__(parameters)
+class APIEndpointTask(Task):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
         self._status_code = 200
-        self._response_body = dict()
-        self._headers = dict()
+        self._response_body = {}
+        self._headers = {}
 
     @property
     def status_code(self):
@@ -53,7 +53,7 @@ class APIEndpointTask(task.Task):
         return self._headers
 
 
-class APIEndpointTaskWrapper(task.TaskWrapper):
+class APIEndpointTaskWrapper(TaskWrapper):
     # pylint: disable=abstract-method
     def _handle_success(self) -> (int, dict):
         return self.task.status_code, self.task.headers, self.task.response_body
@@ -63,7 +63,7 @@ class APIEndpointTaskWrapper(task.TaskWrapper):
         status_code = exception.status_code
         body = dict(message=exception.message)
 
-        return status_code, dict(), body
+        return status_code, {}, body
 
     @classmethod
     def _merge_parameters(cls, parameters, new_parameters):

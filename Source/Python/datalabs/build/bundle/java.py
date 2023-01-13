@@ -15,13 +15,15 @@ class JavaSourceBundle(SourceBundle):
     def _generate_module_paths(cls, modspec, base_path):
         module_paths = super()._generate_module_paths(modspec, base_path)
         task_package_path = os.path.join('datalabs', 'task')
-        lambda_function_path = os.path.join(task_package_path, 'LambdaFunction.java')
-        local_process_path = os.path.join(task_package_path, 'LocalProcess.java')
 
-        if lambda_function_path not in module_paths:
-            module_paths.append(lambda_function_path)
+        if base_path.endswith("Java"):
+            lambda_function_path = os.path.join(task_package_path, 'LambdaFunction.java')
+            local_process_path = os.path.join(task_package_path, 'LocalProcess.java')
 
-        if local_process_path not in module_paths:
-            module_paths.append(local_process_path)
+            if lambda_function_path not in module_paths:
+                module_paths.append(lambda_function_path)
+
+            if local_process_path not in module_paths:
+                module_paths.append(local_process_path)
 
         return module_paths

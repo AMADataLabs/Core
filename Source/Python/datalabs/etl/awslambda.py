@@ -3,8 +3,8 @@ import json
 import logging
 import os
 
-import datalabs.awslambda as awslambda
-import datalabs.etl.task as task
+from   datalabs import awslambda
+from   datalabs.etl import task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)

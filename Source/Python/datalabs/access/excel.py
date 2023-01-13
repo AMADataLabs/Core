@@ -1,7 +1,7 @@
 """ Windows-specific Excel functions. save_formatted_output should be able to be used on any platform (no win32com) """
 import pandas as pd
 
-import datalabs.feature as feature
+from   datalabs import feature
 
 if feature.enabled('WINDOWS'):
     import win32com  # pylint: disable=import-error

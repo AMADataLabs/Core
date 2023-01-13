@@ -1,10 +1,8 @@
 """ DAG task wrapper and runner classes. """
 import logging
-import re
 
 from   datalabs.access.environment import VariableTree
-from   datalabs.etl.dag.cache import CacheDirection, TaskDataCache
-from   datalabs.plugin import import_plugin
+from   datalabs.etl.dag.cache import CacheDirection, TaskDataCacheParameters, TaskDataCacheFactory
 from   datalabs.task import TaskWrapper
 
 logging.basicConfig()
@@ -28,24 +26,27 @@ class DAGTaskWrapper(TaskWrapper):
 
         task_parameters = self._merge_parameters(default_parameters, self._get_dag_task_parameters())
 
-        task_parameters = self._extract_cache_parameters(task_parameters)
+        task_parameters, self._cache_parameters = TaskDataCacheParameters.extract(task_parameters)
         LOGGER.debug('Task Parameters: %s', task_parameters)
 
-        cache_plugin = self._get_cache_plugin(CacheDirection.INPUT)
-        if cache_plugin:
-            input_data = cache_plugin.extract_data()
-
-            task_parameters['data'] = input_data
-
         return task_parameters
+
+    def _get_task_data(self):
+        data = []
+        cache = TaskDataCacheFactory.create_cache(CacheDirection.INPUT, self._cache_parameters)
+
+        if cache:
+            data = cache.extract_data()
+
+        return data
 
     def _handle_exception(self, exception):
         LOGGER.exception('Handling DAG task exception: %s', exception)
 
     def _handle_success(self):
-        cache_plugin = self._get_cache_plugin(CacheDirection.OUTPUT)  # pylint: disable=no-member
-        if cache_plugin:
-            cache_plugin.load_data(self.task.data)
+        cache = TaskDataCacheFactory.create_cache(CacheDirection.OUTPUT, self._cache_parameters)
+        if cache:
+            cache.load_data(self._outputs)
 
         LOGGER.info('DAG task has finished')
 
@@ -71,40 +72,18 @@ class DAGTaskWrapper(TaskWrapper):
     def _get_dag_task_parameters(self):
         return self._get_task_parameters_from_environment(self._get_dag_id(), self._get_task_id())
 
-    def _extract_cache_parameters(self, task_parameters):
-        self._cache_parameters[CacheDirection.INPUT] = self._get_cache_parameters(
-            task_parameters,
-            CacheDirection.INPUT
-        )
-        self._cache_parameters[CacheDirection.OUTPUT] = self._get_cache_parameters(
-            task_parameters,
-            CacheDirection.OUTPUT
-        )
-        cache_keys = [key for key in task_parameters if key.startswith('CACHE_')]
-
-        for key in cache_keys:
-            task_parameters.pop(key)
-
-        return task_parameters
-
-    def _get_cache_plugin(self, direction: CacheDirection) -> TaskDataCache:
-        cache_parameters = self._cache_parameters[direction]
-        plugin = None
-
-        if len(cache_parameters) > 1:
-            plugin_name = 'datalabs.etl.dag.cache.s3.S3TaskDataCache'
-
-            if 'CLASS' in cache_parameters:
-                plugin_name = cache_parameters.pop('CLASS')
-
-            TaskDataCachePlugin = import_plugin(plugin_name)  # pylint: disable=invalid-name
-
-            plugin = TaskDataCachePlugin(cache_parameters)
-
-        return plugin
-
     def _get_dag_id(self):
         return self._runtime_parameters["dag"].upper()
+
+    def _get_dag_name(self):
+        base_name, _ = self._parse_dag_id(self._get_dag_id())
+
+        return base_name
+
+    def _get_dag_index(self):
+        _, index = self._parse_dag_id(self._get_dag_id())
+
+        return index
 
     def _get_task_id(self):
         return self._runtime_parameters["task"].upper()
@@ -135,17 +114,15 @@ class DAGTaskWrapper(TaskWrapper):
         return parameters
 
     @classmethod
-    def _get_cache_parameters(cls, task_parameters: dict, direction: CacheDirection) -> dict:
-        cache_parameters = {}
-        other_direction = [d[1] for d in CacheDirection.__members__.items() if d[1] != direction][0]  # pylint: disable=no-member
+    def _parse_dag_id(cls, dag):
+        base_name = dag
+        iteration = None
+        components = dag.split(':')
 
-        for key, value in task_parameters.items():
-            match = re.match(f'CACHE_({direction.value}_)?(..*)', key)
+        if len(components) == 2:
+            base_name, iteration = components
 
-            if match and not match.group(2).startswith(other_direction.value+'_'):
-                cache_parameters[match.group(2)] = value
-
-        return cache_parameters
+        return base_name, iteration
 
     @classmethod
     def _get_parameters(cls, branch):

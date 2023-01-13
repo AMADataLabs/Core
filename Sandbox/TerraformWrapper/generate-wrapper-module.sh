@@ -1,6 +1,9 @@
 #!/bin/bash
 
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
 
+MODULE=$1
 VARIABLES=
 
 
@@ -12,18 +15,19 @@ main() {
     generate_variables
 
     generate_outputs
+
+    copy_locals
 }
 
 
 extract_variables() {
-    VARIABLES=(`cat terraform-aws-lambda/variables.tf | grep 'variable "' | sed -e 's/variable "//' -e 's/" {//'`)
+    VARIABLES=(`cat ${MODULE}/variables.tf | grep 'variable "' | sed -e 's/variable "//' -e 's/" {//'`)
 }
 
 
 generate_main() {
     echo 'module "this" {' > main.tf
-    echo "  source = \"app.terraform.io/AMA/cloudwatch-group/aws\"" >> main.tf
-    echo "  version = \"3.1.0\"" >> main.tf
+    echo "  source = \"./${MODULE}\"" >> main.tf
 
     for variable in "${VARIABLES[@]}" ; do
         if [[ "$variable" != "tags" ]]; then
@@ -40,16 +44,20 @@ generate_main() {
 
 
 generate_variables() {
-    cat terraform-aws-lambda/variables.tf tags.txt > variables.tf
+    cat ${MODULE}/variables.tf ${SCRIPT_BASE_PATH}/tags.txt > variables.tf
 
     terraform fmt variables.tf
 }
 
 
 generate_outputs() {
-    awk -f generate_outputs.awk terraform-aws-lambda/outputs.tf > outputs.tf
+    awk -f ${SCRIPT_BASE_PATH}/generate_outputs.awk ${MODULE}/outputs.tf > outputs.tf
 
     terraform fmt outputs.tf
+}
+
+copy_locals() {
+    cp ${SCRIPT_BASE_PATH}/locals.tf ./
 }
 
 

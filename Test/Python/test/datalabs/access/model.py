@@ -14,7 +14,7 @@ class Foo(Base):
     that = sa.Column(sa.String, nullable=False)
 
     def __repr__(self):
-        return "<Foo(this='{}', that='{}')>".format(self.this, self.that)
+        return f"<Foo(this='{self.this}', that='{self.that}')>"
 
 
 class Bar(Base):
@@ -24,7 +24,7 @@ class Bar(Base):
     two = sa.Column(sa.String, nullable=False)
 
     def __repr__(self):
-        return "<Bar(one={}, two='{}')>".format(self.one, self.two)
+        return f"<Bar(one={self.one}, two='{self.two}')>"
 
 
 class Poof(Base):
@@ -34,4 +34,4 @@ class Poof(Base):
     b = sa.Column(sa.Boolean, nullable=False)
 
     def __repr__(self):
-        return "<Poof(a={}, b={})>".format(self.a, self.b)
+        return f"<Poof(a={self.a}, b={self.b})>"

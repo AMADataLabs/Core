@@ -1,5 +1,4 @@
 """Authorize Task"""
-from   abc import ABC
 from   dataclasses import dataclass
 import json
 import requests
@@ -14,10 +13,11 @@ class AuthorizerParameters:
     endpoint: str
 
 
-class AuthorizerTask(Task, ABC):
-    def __init__(self, parameters: AuthorizerParameters):
-        super().__init__(parameters)
-        self._authorization = dict()
+class AuthorizerTask(Task):
+    def __init__(self, parameters: AuthorizerParameters, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
+
+        self._authorization = {}
         self._session = requests.Session()
 
     @property
@@ -34,7 +34,7 @@ class AuthorizerTask(Task, ABC):
             headers={'Authorization': 'Bearer ' + self._parameters.token}
         )
 
-        if response.status_code == 200 or response.status_code == 401:
+        if response.status_code in (200, 401):
             entitlements = json.loads(response.text)
             self._authorization = self._authorize(entitlements)
         else:

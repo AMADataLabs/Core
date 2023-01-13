@@ -1,4 +1,5 @@
 """ ETL Task base classes. """
+from   collections import namedtuple
 from   dataclasses import dataclass
 from   datetime import datetime
 import logging
@@ -6,12 +7,15 @@ import logging
 from   dateutil.parser import isoparse
 
 from   datalabs.access.environment import VariableTree
-import datalabs.task as task
-import datalabs.plugin as plugin
+from   datalabs.task import Task, TaskException, TaskWrapper
+from   datalabs.plugin import import_plugin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+
+ETLAggregate = namedtuple("ETLAggregate", "extractor transformer loader")  # pylint: disable=too-many-function-args
 
 
 @dataclass
@@ -21,53 +25,57 @@ class ETLParameters:
     loader: dict
 
 
-class ETLTask(task.Task):
-    def __init__(self, parameters):
-        super().__init__(parameters)
+class ETLTask(Task):
+    def __init__(self, parameters: dict, data: "list<bytes>"=None):
+        super().__init__(parameters, data)
 
-        self._extractor = None
-        self._transformer = None
-        self._loader = None
+        self._subtasks = None
+        self._output = None
 
     def run(self):
         try:
-            self._extractor = self._instantiate_component(self._parameters.extractor)
+            extractor = self._instantiate_component(self._parameters.extractor)
         except Exception as exception:
             LOGGER.exception('Unable to instantiate ETL extractor sub-task')
             raise ETLException(f'Unable to instantiate ETL extractor sub-task: {exception}') from exception
 
         LOGGER.info('Extracting...')
         try:
-            self._extractor.run()
+            extractor_output = extractor.run()
         except Exception as exception:
             LOGGER.exception('Unable to run ETL extractor sub-task')
             raise ETLException(f'Unable to run ETL extractor sub-task: {exception}') from exception
 
         try:
-            self._transformer = self._instantiate_component(self._parameters.transformer, self._extractor.data)
+            transformer = self._instantiate_component(self._parameters.transformer, extractor_output)
         except Exception as exception:
             LOGGER.exception('Unable to instantiate ETL transformer sub-task')
             raise ETLException(f'Unable to instantiate ETL transformer sub-task: {exception}') from exception
 
         LOGGER.info('Transforming...')
         try:
-            self._transformer.run()
+            transformer_output = transformer.run()
         except Exception as exception:
             LOGGER.exception('Unable to run ETL transformer sub-task')
             raise ETLException(f'Unable to run ETL transformer sub-task: {exception}') from exception
 
         try:
-            self._loader = self._instantiate_component(self._parameters.loader, self._transformer.data)
+            loader = self._instantiate_component(self._parameters.loader, transformer_output)
         except Exception as exception:
             LOGGER.exception('Unable to instantiate ETL loader sub-task')
             raise ETLException(f'Unable to instantiate ETL loader sub-task: {exception}') from exception
 
         LOGGER.info('Loading...')
         try:
-            self._loader.run()
+            loader_output = loader.run()
         except Exception as exception:
             LOGGER.exception('Unable to run ETL loader sub-task')
             raise ETLException(f'Unable to run ETL loader sub-task: {exception}') from exception
+
+        self._subtasks = ETLAggregate(extractor, transformer, loader)
+        self._output = ETLAggregate(extractor_output, transformer_output, loader_output)
+
+        return []
 
     @classmethod
     def _instantiate_component(cls, parameters, data=None):
@@ -76,38 +84,22 @@ class ETLTask(task.Task):
         if task_class is None:
             raise ETLException(f'...__TASK_CLASS parameter not specified in {parameters}')
 
-        TaskPlugin = plugin.import_plugin(task_class)  # pylint: disable=invalid-name
+        TaskPlugin = import_plugin(task_class)  # pylint: disable=invalid-name
 
-        if not hasattr(TaskPlugin, "PARAMETER_CLASS") or \
-           (hasattr(TaskPlugin, "PARAMETER_CLASS") and TaskPlugin.PARAMETER_CLASS is None) or \
-           (hasattr(TaskPlugin, "PARAMETER_CLASS") and "data" in TaskPlugin.PARAMETER_CLASS.__annotations__):
-            parameters['data'] = data or {}
-
-        return TaskPlugin(parameters)
+        return TaskPlugin(parameters, data)
 
 
-class ETLException(task.TaskException):
+class ETLException(TaskException):
     pass
 
 
-# pylint: disable=abstract-method
-class ETLComponentTask(task.Task):
-    def __init__(self, parameters):
-        super().__init__(parameters)
-
-        self._data = None
-
-    @property
-    def data(self):
-        return self._data
-
-
-class DummyTask(ETLComponentTask):
+class DummyTask(Task):
     def run(self):
+        LOGGER.info("I'm a dummy!")
         return []
 
 
-class ETLTaskParametersGetterMixin(task.TaskWrapper):
+class ETLTaskParametersGetterMixin(TaskWrapper):
     def _get_task_parameters(self):
         var_tree = VariableTree.from_environment()
 
@@ -126,7 +118,7 @@ class ETLTaskParametersGetterMixin(task.TaskWrapper):
         return component_parameters
 
 
-class ETLTaskWrapper(ETLTaskParametersGetterMixin, task.TaskWrapper):
+class ETLTaskWrapper(ETLTaskParametersGetterMixin, TaskWrapper):
     def _get_task_parameters(self):
         task_parameters = super()._get_task_parameters()
 

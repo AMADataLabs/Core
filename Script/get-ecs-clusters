@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+CLUSTER_NAMES=
+NO_VERIFY_SSL=
+
+
+main() {
+    process_arguments "$@"
+
+    get_cluster_arns
+
+    print_cluster_names
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        *)
+            echo "Unexpected positional argument $1"
+            print_usage
+            exit 1
+            ;;
+      esac
+    done
+
+    if [[ $AWS_NO_VERIFY_SSL == "True" ]]; then
+        NO_VERIFY_SSL=--no-verify-ssl
+    fi
+}
+
+
+get_cluster_arns() {
+    readarray -t CLUSTER_NAMES <<<$(aws $NO_VERIFY_SSL ecs list-clusters | jq '.clusterArns[]' | sed 's/..*\///' | sed 's/",*//')
+}
+
+
+print_cluster_names() {
+    for cluster_name in "${CLUSTER_NAMES[@]}"
+    do
+        echo $cluster_name
+    done
+}
+
+
+print_usage() {
+    echo "Usage: get-ecs-clusters [OPTION]..."
+    echo "List ECS cluster names."
+    echo
+    echo "Options:"
+    echo "  -h|--help                  Print usage."
+}
+
+
+main "$@"

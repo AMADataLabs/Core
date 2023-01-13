@@ -34,13 +34,14 @@ from   dataclasses import dataclass
 import itertools
 import logging
 import tempfile
+from   urllib.parse import quote
 
 from   dateutil.parser import isoparse
 
 from   datalabs.access.aws import AWSClient
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
-import datalabs.feature as feature
+from   datalabs import feature
 from   datalabs.parameter import add_schema
 
 if feature.enabled("PROFILE"):
@@ -57,17 +58,17 @@ LOGGER.setLevel(logging.INFO)
 class S3FileExtractorParameters:
     bucket: str
     base_path: str
-    files: str
-    endpoint_url: str = None
-    access_key: str = None
-    secret_key: str = None
-    region_name: str = None
+    files: str = None
+    ignore_files_header: str = None
     include_names: str = None
     include_datestamp: str = None
     execution_time: str = None
     on_disk: str = False
+    endpoint_url: str = None
+    access_key: str = None
+    secret_key: str = None
+    region_name: str = None
     assume_role: str = None
-    data: object = None
 
 
 # pylint: disable=too-many-ancestors
@@ -86,7 +87,20 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
     def _get_files(self):
         base_path = self._get_latest_path()
-        files = self._parameters.files.split(',')
+        ignore_header = False
+        files = []
+
+        if self._parameters.ignore_files_header and self._parameters.ignore_files_header.upper() == "TRUE":
+            ignore_header = True
+
+        if self._parameters.files is not None:
+            files = self._parameters.files.split(',')
+        elif self._data is not None and len(self._data) > 0:
+            files = list(itertools.chain.from_iterable(self._parse_file_lists(self._data, ignore_header)))
+        else:
+            raise ValueError('Either the "files" or "data" parameter must contain the list of files to extract.')
+
+        files = [file.replace('"', '') for file in files]
 
         if base_path:
             files = ['/'.join((base_path, file.strip())) for file in files]
@@ -108,13 +122,14 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
         LOGGER.debug(f'Extracting file {file} from bucket {self._parameters.bucket}...')
+        quoted_file = quote(file).replace('%2B', '+').replace('%22', '')
         data = None
 
         if feature.enabled("PROFILE"):
             LOGGER.info(f'Pre extraction memory {(hpy().heap())}')
 
         try:
-            response = self._client.get_object(Bucket=self._parameters.bucket, Key=file)
+            response = self._client.get_object(Bucket=self._parameters.bucket, Key=quoted_file)
         except Exception as exception:
             raise ETLException(
                 f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
@@ -137,7 +152,23 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
         if self._parameters.include_datestamp is None or self._parameters.include_datestamp.lower() == 'true':
             path = '/'.join((self._parameters.base_path, release_folder))
 
+        if path.startswith('/'):
+            path = path[1:]
+
         return path
+
+    @classmethod
+    def _parse_file_lists(cls, data, ignore_header=False):
+        for raw_file_list in data:
+            file_list = [file.decode().strip() for file in raw_file_list.split(b'\n')]
+
+            if '' in file_list:
+                file_list.remove('')
+
+            if ignore_header:
+                file_list = file_list[1:]
+
+            yield file_list
 
     @classmethod
     def _cache_data_to_disk(cls, body):
@@ -153,10 +184,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         if release_folder is None:
             release_folders = sorted(
-                self._listdir(
-                    self._parameters.bucket,
-                    self._parameters.base_path
-                )
+                self._list_files(self._parameters.base_path)
             )
             release_folder = release_folders[-1]
 
@@ -180,12 +208,12 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
 
         return execution_date
 
-    def _listdir(self, bucket, base_path):
-        response = self._client.list_objects_v2(Bucket=bucket, Prefix=base_path)
+    def _list_files(self, path):
+        response = self._client.list_objects_v2(Bucket=self._parameters.bucket, Prefix=path)
 
         objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
 
-        if  '' in objects:
+        if '' in objects:
             objects.remove('')
 
         return objects
@@ -201,34 +229,51 @@ class S3WindowsTextFileExtractorTask(S3FileExtractorTask):
 @add_schema
 @dataclass
 # pylint: disable=too-many-instance-attributes
-class S3FileListExtractorParameters:
+class S3DirectoryListingExtractorParameters:
     bucket: str
     base_path: str
+    directories: str
+    execution_time: str = None
     endpoint_url: str = None
     access_key: str = None
     secret_key: str = None
     region_name: str = None
-    include_names: str = None
-    include_datestamp: str = None
-    execution_time: str = None
-    on_disk: str = False
     assume_role: str = None
-    data: object = None
 
 
-class S3FileListExtractorTask(S3FileExtractorTask):
-    PARAMETER_CLASS = S3FileListExtractorParameters
+# pylint: disable=too-many-ancestors
+class S3DirectoryListingExtractorTask(ExecutionTimeMixin, FileExtractorTask):
+    PARAMETER_CLASS = S3FileExtractorParameters
+
+    def _get_client(self):
+        return AWSClient(
+            's3',
+            endpoint_url=self._parameters.endpoint_url,
+            aws_access_key_id=self._parameters.access_key,
+            aws_secret_access_key=self._parameters.secret_key,
+            region_name=self._parameters.region_name,
+            assume_role=self._parameters.assume_role
+        )
 
     def _get_files(self):
-        files = list(itertools.chain.from_iterable(self._parse_file_lists(self._parameters.data)))
-        base_path = self._get_latest_path()
+        base_path = self._parameters.base_path
+        directories = self._parameters.directories.split(',')
 
         if base_path:
-            files = ['/'.join((base_path, file.strip())) for file in files]
+            directories = ['/'.join((base_path, directory.strip())) for directory in directories]
 
-        return files
+        return list(itertools.chain.from_iterable(self._list_files_for_each(directories)))
 
-    @classmethod
-    def _parse_file_lists(cls, data):
-        for file_list in data:
-            yield [file.decode().strip() for file in file_list.split(b'\n')]
+    def _list_files_for_each(self, paths):
+        for path in paths:
+            yield self._list_files(path)
+
+    def _list_files(self, path):
+        response = self._client.list_objects_v2(Bucket=self._parameters.bucket, Prefix=path)
+
+        objects = {x['Key'].split('/', 3)[2] for x in response['Contents']}
+
+        if  '' in objects:
+            objects.remove('')
+
+        return objects

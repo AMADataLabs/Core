@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+CLUSTER=
+TASK_IDS=
+TASK_ARN_MAP=
+NO_VERIFY_SSL=
+
+
+main() {
+    process_arguments "$@"
+
+    get_task_ids
+
+    print_task_arns
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -c|--cluster)
+            CLUSTER=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected positional argument $1"
+            print_usage
+            exit 1
+            ;;
+      esac
+    done
+
+    if [[ "$CLUSTER" == "" ]]; then
+        echo "Error: The name of the cluster was not specified."
+        print_usage
+        exit 1
+    fi
+
+    if [[ $AWS_NO_VERIFY_SSL == "True" ]]; then
+        NO_VERIFY_SSL=--no-verify-ssl
+    fi
+}
+
+
+get_task_ids() {
+    task_ids=$(aws $NO_VERIFY_SSL ecs list-tasks --cluster $CLUSTER | jq '.taskArns[]' | sed 's/..*\///' | sed 's/"//')
+
+    readarray -t TASK_IDS <<<"$task_ids"
+}
+
+
+print_task_arns() {
+    task_ids=""
+
+    for task_id in "${TASK_IDS[@]}"
+    do
+    	task_ids="$task_ids $task_id"
+    done
+
+    tasks_json=$(aws $NO_VERIFY_SSL ecs describe-tasks --cluster $CLUSTER --tasks $task_ids)
+
+    echo "$tasks_json" | jq '.tasks | map({(.containers[0].name): .taskArn}) | add'
+}
+
+
+print_usage() {
+    echo "Usage: get-ecs-tasks [OPTION]..."
+    echo "Get tasks associated with an ECS cluster."
+    echo
+    echo "Options:"
+    echo "  -h|--help                  Print usage."
+    echo "  -c|--cluster <cluster>     Name of the cluster for which to find tasks."
+}
+
+
+main "$@"

@@ -25,7 +25,7 @@ class Path(Enum):
     GOV_TEXT = 'DAC_NationalDownloadableFile'
 
 def wait(browser):
-    return WebDriverWait(browser, 30)
+    return WebDriverWait(browser, 60)
 
 def append_me(new_download):
     LOGGER.info('Appending ME numbers')
@@ -36,13 +36,13 @@ def append_me(new_download):
     with_mes.drop(columns = ['NPI_NBR'])
     return with_mes
 
-def get_newest(path):
+def get_newest(path, text):
     files = os.listdir(path)
-    paths = [os.path.join(path, basename) for basename in files if Path.GOV_TEXT.value in basename]
+    paths = [os.path.join(path, basename) for basename in files if text in basename]
     return max(paths, key=os.path.getctime)
 
 def get_previous_release_date():
-    previous_file = get_newest(Path.DATAGOV.value)
+    previous_file = get_newest(Path.DATAGOV.value, Path.GOV_TEXT.value)
     previous_release = previous_file.split(Path.GOV_TEXT.value)[1].replace('_','').split('.')[0]
     previous_release_date = datetime.strptime(previous_release, '%y%m%d')
     return previous_release_date
@@ -60,19 +60,20 @@ def is_updated(current_release_date):
     return updated
     
 def read_and_clean(new_download):
-    new_file = pd.read_csv(new_download, encoding='latin')
+    new_file = pd.read_csv(new_download, encoding='latin', sep=',', error_bad_lines=False)
     new_file.columns = [c.strip() for c in new_file.columns.values]
     new_file = append_me(new_file)
     return new_file
 
 def download_file(driver, current_release_date):
-    driver.find_element_by_xpath('//*[@id="dataset-download"]/div/a').click()
+    dataset_download = wait(driver).until(presence_of_element_located((By.XPATH, '//*[@id="dataset-download"]/div/a')))
+    dataset_download.click()
     LOGGER.info(f'Downloading...')
     time.sleep(180)
-    latest_download = get_newest(Path.DOWNLOADS.value)
+    latest_download = get_newest(Path.DOWNLOADS.value, Path.GOV_TEXT.value)
     latest_data = read_and_clean(latest_download)
     formatted_date = current_release_date.strftime('%y%m%d')
-    latest_filename = f'{Path.DATAGOV.value}_{Path.GOV_TEXT.value}_{formatted_date}.csv'
+    latest_filename = f'{Path.DATAGOV.value}{Path.GOV_TEXT.value}_{formatted_date}.csv'
     latest_data.to_csv(latest_filename, index=False)
     return latest_filename
 
@@ -88,7 +89,7 @@ def get_datagov():
         
     else:
         LOGGER.info('Data has not been updated since previous release.')
-        latest_filename = get_newest(Path.DATAGOV.value)
+        latest_filename = get_newest(Path.DATAGOV.value, Path.GOV_TEXT.value)
     driver.close()
     return latest_filename
 

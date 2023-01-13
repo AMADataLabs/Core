@@ -5,7 +5,7 @@ import os
 import mock
 import pytest
 
-import datalabs.etl.task as task
+from   datalabs.etl import task
 from   datalabs.parameter import add_schema
 
 
@@ -15,9 +15,9 @@ def test_etl_task(parameters):
 
     etl.run()
 
-    assert etl._extractor.data
-    assert etl._transformer.data == 'True'
-    assert etl._loader.data is None
+    assert etl._output.extractor == [b'True']
+    assert etl._output.transformer == [b'True']
+    assert etl._output.loader == [b'True']
 
 
 # pylint: disable=redefined-outer-name, protected-access, unused-argument
@@ -27,9 +27,9 @@ def test_etl_task_wrapper(environment_variables):
 
         wrapper.run()
 
-    assert wrapper.task._extractor.data == 'True'
-    assert wrapper.task._transformer.data == 'True'
-    assert wrapper.task._loader.data is None
+    assert wrapper.task._output.extractor == [b'True']
+    assert wrapper.task._output.transformer == [b'True']
+    assert wrapper.task._output.loader == [b'True']
 
 
 def test_get_validated_parameters_returns_proper_object(parameters):
@@ -47,12 +47,10 @@ def test_get_validated_parameters_returns_proper_object(parameters):
 
 def test_get_validated_parameters_preserves_input_data(parameters):
     parameters.transformer.pop('TASK_CLASS')
-    parameters.transformer['data'] = ['East', 'Coast', 'Family']
-    task = DummyTask(parameters.transformer)
+    task = DummyTask(parameters.transformer, ['East', 'Coast', 'Family'])
 
     assert isinstance(task._parameters, TaskParameters)
-    assert hasattr(task._parameters, 'data')
-    assert task._parameters.data == ['East', 'Coast', 'Family']
+    assert task._data == ['East', 'Coast', 'Family']
 
 
 @add_schema
@@ -62,30 +60,36 @@ class TaskParameters:
     cooley: str
     high: str
     harmony: str
-    data: object = None
 
 
-class DummyTask(task.ETLComponentTask):
+class DummyTask(task.Task):
     PARAMETER_CLASS = TaskParameters
 
     def run(self):
-        self._data = self._parameters['data']
+        return [b'True']
 
 
 @pytest.fixture
 def parameters():
     return task.ETLParameters(
         extractor=dict(
-            TASK_CLASS='test.datalabs.etl.test_extract.Extractor',
-            thing=True
-        ),
-        transformer=dict(
-            TASK_CLASS='test.datalabs.etl.test_transform.Transformer',
+            TASK_CLASS='test.datalabs.etl.test_task.DummyTask',
             COOLEY='Boyz',
             HIGH='II',
             HARMONY='Men'
         ),
-        loader=dict(TASK_CLASS='test.datalabs.etl.test_load.Loader')
+        transformer=dict(
+            TASK_CLASS='test.datalabs.etl.test_task.DummyTask',
+            COOLEY='Boyz',
+            HIGH='II',
+            HARMONY='Men'
+        ),
+        loader=dict(
+            TASK_CLASS='test.datalabs.etl.test_task.DummyTask',
+            COOLEY='Boyz',
+            HIGH='II',
+            HARMONY='Men'
+        )
     )
 
 
@@ -95,16 +99,20 @@ def environment_variables():
 
     os.environ['TASK_CLASS'] = 'datalabs.etl.task.ETLTask'
 
-    os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.test_extract.Extractor'
-    os.environ['EXTRACTOR__thing'] = 'True'
+    os.environ['EXTRACTOR__TASK_CLASS'] = 'test.datalabs.etl.test_task.DummyTask'
+    os.environ['EXTRACTOR__COOLEY'] = 'Boyz'
+    os.environ['EXTRACTOR__HIGH'] = 'II'
+    os.environ['EXTRACTOR__HARMONY'] = 'Men'
 
-    os.environ['TRANSFORMER__TASK_CLASS'] = 'test.datalabs.etl.test_transform.Transformer'
+    os.environ['TRANSFORMER__TASK_CLASS'] = 'test.datalabs.etl.test_task.DummyTask'
     os.environ['TRANSFORMER__COOLEY'] = 'Boyz'
     os.environ['TRANSFORMER__HIGH'] = 'II'
     os.environ['TRANSFORMER__HARMONY'] = 'Men'
 
-    os.environ['LOADER__TASK_CLASS'] = 'test.datalabs.etl.test_load.Loader'
-    os.environ['EXTRACTOR__DATABASE_HOST'] = 'ping.pong.com'
+    os.environ['LOADER__TASK_CLASS'] = 'test.datalabs.etl.test_task.DummyTask'
+    os.environ['LOADER__COOLEY'] = 'Boyz'
+    os.environ['LOADER__HIGH'] = 'II'
+    os.environ['LOADER__HARMONY'] = 'Men'
 
     yield os.environ
 

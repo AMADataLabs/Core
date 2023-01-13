@@ -3,7 +3,7 @@ package datalabs.etl.dag.aws;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,55 +16,74 @@ import datalabs.etl.dag.state.DagState;
 import datalabs.etl.dag.state.Status;
 import datalabs.plugin.PluginImporter;
 import datalabs.task.Task;
+import datalabs.task.TaskException;
 
 
 public class AwsDagTaskWrapper extends DagTaskWrapper {
     static final Logger LOGGER = LoggerFactory.getLogger(AwsDagTaskWrapper.class);
     Map<String, String> taskParameters;
 
-    public AwsDagTaskWrapper(Map<String, String> parameters) {
-        super(parameters);
+    public AwsDagTaskWrapper(Map<String, String> environment, Map<String, String> parameters) {
+        super(environment, parameters);
 
-        if (System.getenv("DYNAMODB_CONFIG_TABLE") == null) {
+        if (this.environment.get("DYNAMODB_CONFIG_TABLE") == null) {
             throw new IllegalArgumentException("DYNAMODB_CONFIG_TABLE environment variable is not set.");
         }
     }
 
-    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) {
-        Map<String, String> commandLineParameters = super.getRuntimeParameters(parameters);
+    protected Map<String, String> getRuntimeParameters(Map<String, String> parameters) throws TaskException {
+        HashMap<String, String> runtimeParameters = null;
 
-        HashMap<String, String> runtimeParameters = new HashMap<String, String>() {{
-            putAll(getDagParameters(commandLineParameters.get("dag")));
-            putAll(commandLineParameters);
-        }};
+        try {
+            Map<String, String> commandLineParameters = super.getRuntimeParameters(parameters);
+
+            runtimeParameters = new HashMap<String, String>() {{
+                putAll(getDagParameters(commandLineParameters.get("dag")));
+                putAll(commandLineParameters);
+            }};
+        } catch (Exception exception) {
+            throw new TaskException("Unable to get runtime parameters.", exception);
+        }
 
         return runtimeParameters;
     }
 
-    protected void preRun() {
-        setTaskStatus(Status.RUNNING);
+    protected void preRun() throws TaskException {
+        try {
+            setTaskStatus(Status.RUNNING);
+        } catch (Exception exception) {
+            throw new TaskException("Task finished, but unable to complete final DAG coordination.", exception);
+        }
     }
 
-    protected String handleSuccess() {
+    protected String handleSuccess() throws TaskException {
         super.handleSuccess();
-        Map<String, String> pluginParameters = null;
 
-        setTaskStatus(Status.FINISHED);
+        try {
+            Map<String, String> pluginParameters = null;
 
-        notifyDagProcessor();
+            setTaskStatus(Status.FINISHED);
+
+            notifyDagProcessor();
+        } catch (Exception exception) {
+            throw new TaskException("Task finished, but unable to complete final DAG coordination.", exception);
+        }
 
         return "Success";
     }
 
     protected String handleException(Exception exception) {
-        super.handleException(exception);
-        Map<String, String> pluginParameters = null;
+        try {
+            super.handleException(exception);
 
-        setTaskStatus(Status.FAILED);
+            Map<String, String> pluginParameters = null;
 
-        notifyDagProcessor();
+            setTaskStatus(Status.FAILED);
 
-        exception.printStackTrace();
+            notifyDagProcessor();
+        } catch (Exception secondaryException) {
+            LOGGER.error("An exception occurred while handling an exception from a task.", secondaryException);
+        }
 
         return "Failed: " + exception.getMessage();
     }
@@ -87,26 +106,12 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
         return dagParameters;
     }
 
-    void setTaskStatus(Status status) {
-        try {
-            DagState state = getDagStatePlugin();
+    void setTaskStatus(Status status)
+            throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException,
+                   InvocationTargetException {
+        DagState state = getDagStatePlugin();
 
-            state.setTaskStatus(getDagId(), getTaskId(), getExecutionTime(), status);
-        } catch (
-            ClassNotFoundException |
-            NoSuchMethodException |
-            InstantiationException |
-            IllegalAccessException |
-            InvocationTargetException exception
-        ) {
-            LOGGER.error(
-                "Unable to set the status of " + getDagId() +
-                " DAG task " + getTaskId() +
-                " to Running."
-            );
-
-            exception.printStackTrace();
-        }
+        state.setTaskStatus(getDagId(), getTaskId(), getExecutionTime(), status);
     }
 
     void notifyTaskProcessor(Task task) {
@@ -124,11 +129,13 @@ public class AwsDagTaskWrapper extends DagTaskWrapper {
     }
 
     protected Map<String, String> getDagTaskParametersFromDynamoDb(String dag, String task) {
+        String[] dagIdParts = dag.split(":");
+        String dagName = dagIdParts[0];
         HashMap<String, String> parameters = new HashMap<String, String>();
 
         DynamoDbEnvironmentLoader loader = new DynamoDbEnvironmentLoader(
             this.environment.get("DYNAMODB_CONFIG_TABLE"),
-            dag,
+            dagName,
             task
         );
 

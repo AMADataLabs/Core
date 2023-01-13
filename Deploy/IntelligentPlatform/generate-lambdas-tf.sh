@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 declare -a RAW_NAMES
 declare -a TIMEOUTS
@@ -11,14 +11,18 @@ LAMBDA_DATA=(
     "addUsers:30"
     "bulkEditUsers:18"
     "checkOrganizationExists:5"
+    "checkOrganizationExistsFL:5"
     "checkProductExists:5"
+    "checkProductExistsFL:5"
     "checkSubmittedQuote:5"
     "createAgreementDetail:28"
+    "createAgreementDetailFL:28"
     "createNewQuote:20"
     "clearTokens:45"
     "contactBackDetail:28"
     "deleteTaxExemptCertificate:5"
     "getAgreementDetail:5"
+    "getAgreementDetailFL:5"
     "getAPILicenseTypes:5"
     "getAPIRateLimits:5"
     "getCategories:5"
@@ -49,6 +53,7 @@ LAMBDA_DATA=(
     "saveFeedback:45"
     "saveTabContent:20"
     "submitQuote:28"
+    "submitQuoteFL:28"
     "updateOrg:18"
     "updateTaxExemptCertificates:5"
     "updateUserDetails:30"
@@ -113,7 +118,7 @@ EOF
 
 initialize_update_lambdas_sh() {
     cat > update_lambdas.sh << EOF
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -ex
 

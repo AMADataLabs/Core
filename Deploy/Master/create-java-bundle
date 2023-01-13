@@ -1,27 +1,182 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -ex
 
 PROJECT=
-EXTRA_FILES=
-
-echo "# args: $#"
-
-while (( "$#" )); do
-  if [[ "${PROJECT}" == "" ]]; then
-      PROJECT=$1
-      echo "Set project to ${PROJECT}"
-  else
-      EXTRA_FILES+="-f $1 "
-      echo "Added extra file ${1}"
-  fi
-
-  shift
-done
+EXTRA_FILES=()
+PACKAGE=
+VERSION=
 
 
-export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
-export PATH="$VIRTUAL_ENV/bin:$PATH"
-export PYTHONPATH=${PWD}/Source/Python
 
-python Script/bundle_java_project.py --use-pom --directory Bundle/ ${EXTRA_FILES} ${PROJECT}
+main() {
+    process_arguments "$@"
+
+    create_server_config
+
+    download_package_jar
+
+    download_dependency_jars
+
+    copy_extra_files
+
+    create_zip
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -f|--file)
+            EXTRA_FILES+=($2)
+            shift
+            shift
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        -P|--package)
+            PACKAGE=$2
+            shift
+            shift
+            ;;
+        -V|--version)
+            VERSION=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+
+    if  [[ "$PROJECT" == "" ]]; then
+        echo "Missing project argument."
+        exit 1
+    fi
+}
+
+
+create_server_config() {
+    if [ -e ~/.m2/settings.xml ]; then
+        echo "The file ~/.m2/settings.xml already exists. Aborting..."
+
+        exit 1
+    fi
+    export CODEARTIFACT_AUTH_TOKEN=$(
+        aws --profile default codeartifact get-authorization-token --domain datalabs\
+        --query authorizationToken --output text
+    )
+
+    mkdir -p ~/.m2
+
+    cat > ~/.m2/settings.xml <<EOF
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    <profiles>
+        <profile>
+            <id>default</id>
+            <repositories>
+                <repository>
+                    <id>codeartifact</id>
+                    <url>https://datalabs-644454719059.d.codeartifact.us-east-1.amazonaws.com/maven/datalabs-sbx/</url>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
+
+    <activeProfiles>
+        <activeProfile>default</activeProfile>
+    </activeProfiles>
+
+    <servers>
+        <server>
+            <id>codeartifact</id>
+            <username>aws</username>
+            <password>\${env.CODEARTIFACT_AUTH_TOKEN}</password>
+        </server>
+    </servers>
+</settings>
+EOF
+}
+
+
+download_package_jar() {
+    mvn --version
+    mvn dependency:get -Dartifact=org.ama-assn.datalabs:$PACKAGE:$VERSION
+
+    mkdir -p Bundle
+
+    cd Bundle
+
+    jar xf ~/.m2/repository/org/ama-assn/datalabs/${PACKAGE}/${VERSION}/${PACKAGE}-${VERSION}.jar
+
+    cd ..
+}
+
+
+download_dependency_jars() {
+    mkdir -p Bundle/lib
+
+    while IFS="" read -r dependency || [ -n "$dependency" ]
+    do
+        download_and_copy_jar $dependency
+    done < Bundle/dependencies.txt
+}
+
+
+copy_extra_files() {
+    for extra_file in "${EXTRA_FILES[@]}"
+    do
+        cp $extra_file Bundle/
+    done
+}
+
+
+create_zip() {
+    cd Bundle
+
+    zip -r ../Bundle.zip ./
+
+    cd ..
+}
+
+
+print_usage() {
+    echo "Usage: create-java-package [OPTIONS]..."
+    echo "Bundle and upload a code bundle for a Java runtime Lambda function."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
+    echo "  -f, --file <file>                     include <file> in the bundle"
+    echo "  -p, --project <project>               project path relative to Build/"
+}
+
+
+download_and_copy_jar() {
+    local dependency=$1
+    local dependency_parts
+
+    IFS=':' read -r -a dependency_parts <<< "$dependency"
+    local group_id=${dependency_parts[0]}
+    local artifact_id=${dependency_parts[1]}
+    local version=${dependency_parts[2]}
+
+    mvn dependency:get -Dartifact=$dependency
+
+    cp ~/.m2/repository/${group_id//./\/}/$artifact_id/$version/${artifact_id}-${version}.jar Bundle/lib/
+}
+
+
+main "$@"

@@ -20,7 +20,8 @@
               "dynamodb:DeleteItem",
               "dynamodb:UpdateItem",
               "dynamodb:Query",
-              "dynamodb:Scan"
+              "dynamodb:Scan",
+              "dynamodb:BatchGetItem"
             ],
             "Resource": "*"
         },

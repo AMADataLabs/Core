@@ -7,7 +7,7 @@ import os
 from   pandas import Series
 from   paramiko.sftp import SFTPError
 
-import datalabs.access.sftp as sftp
+from   datalabs.access import sftp
 from   datalabs.etl.extract import FileExtractorTask, IncludeNamesMixin
 from   datalabs.etl.task import ETLException, ExecutionTimeMixin
 from   datalabs.parameter import add_schema
@@ -28,7 +28,6 @@ class SFTPFileExtractorParameters:
     password: str
     execution_time: str = None
     include_names: str = None
-    data: object = None
 
 
 # pylint: disable=too-many-ancestors
@@ -36,15 +35,13 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
     PARAMETER_CLASS = SFTPFileExtractorParameters
 
     def _get_client(self):
-        config = sftp.Configuration(
-            host=self._parameters.host
-        )
-        credentials = sftp.Credentials(
+        sftp_parameters = dict(
+            host=self._parameters.host,
             username=self._parameters.username,
             password=self._parameters.password
         )
 
-        return sftp.SFTP(config, credentials)
+        return sftp.SFTP(sftp_parameters)
 
     def _get_files(self):
         base_path = self._parameters.base_path
@@ -60,9 +57,6 @@ class SFTPFileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractor
             unresolved_file = f'{os.path.basename(file_parts[0])}*{file_parts[1]}'
             matched_files = self._client.list(base_path, filter=unresolved_file)
             resolved_files = [os.path.join(base_path, file) for file in matched_files]
-
-            if len(resolved_files) == 0:
-                raise FileNotFoundError(f"Unable to find file '{file}'")
 
         return resolved_files
 

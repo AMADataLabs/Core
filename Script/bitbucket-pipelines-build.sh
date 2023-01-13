@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ##
 # Main entry for monorepository build.
@@ -10,7 +10,7 @@
 # Adapted from https://github.com/zladovan/monorepo/blob/master/tools/ci/core/build.sh
 ##
 
-echo $(python3.7 --version)
+echo $(python3 --version)
 
 Script/setup-virtual-environment Master/BitBucketPipelines
 export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
@@ -52,8 +52,11 @@ fi
 
 # Run tests
 echo "Running tests..."
-if [[ $BITBUCKET_BRANCH != 'master' ]]; then
-    CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
+CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh Test
+
+if [[ $? != 0 ]]; then
+    echo "Tests failed. Aborting build..."
+    exit 1
 fi
 
 # Collect all modified projects
@@ -70,5 +73,5 @@ echo -e "$PROJECTS_TO_BUILD"
 
 # Build all modified projects
 echo -e "$PROJECTS_TO_BUILD" | while read PROJECTS; do
-    CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh ${PROJECTS}
+    CI_PLUGIN=${CI_PLUGIN} $DIR/build-projects.sh ${PROJECTS_TO_BUILD}
 done;

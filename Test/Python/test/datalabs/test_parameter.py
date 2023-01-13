@@ -38,7 +38,7 @@ def test_deserializing_dataclass_with_none_default_is_ok():
         foozie: str = None
         barnacle: str = 'Bar'
 
-    model = Model.SCHEMA.load(dict())  # pylint: disable=no-member
+    model = Model.SCHEMA.load({})  # pylint: disable=no-member
 
     assert model.foozie is None
 
@@ -113,7 +113,7 @@ def test_missing_parameter_validation_failure(model_dataclass):
             self._parameters = self._get_validated_parameters(parameters)
 
     with pytest.raises(ValidationException) as exception:
-        ParameterizedThing(dict())
+        ParameterizedThing({})
 
     assert "ParameterizedThing" in str(exception.value)
     assert "Model" in str(exception.value.__cause__)

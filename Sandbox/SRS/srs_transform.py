@@ -20,18 +20,17 @@ def aims_connect():
     informix = pyodbc.connect(s)
     return informix
 
-def get_addresses():
-    informix = org_manager_connect()
-    query = os.environ.get('')
-    org_addresses = pd.read_sql(con=SSO, sql=query)
-
 #scraped old
 def get_old_scrape(): 
     srs_folder = os.environ.get('OUT_DIR')
-    srs_old_file = use.get_newest(srs_folder, 'SRS_Scrape')
+    srs_old_file = use.get_newest(srs_folder, 'SRS_Scrape_Backup')
     LOGGER.info(f"Retrieving {srs_old_file}...")
-    srs_old = pd.read_csv(srs_old_file)
+    srs_old = pd.read_csv(srs_old_file, low_memory=False)
     return srs_old
+
+def remove_dental(scraped):
+    no_dental = scraped[scraped['Curr Status']!='Adv-Std From Dental']
+    return no_dental, scraped
 
 #scraped new
 def find_updates(srs_old, srs_new):
@@ -146,7 +145,7 @@ def process(grad_year, status_update):
     manual = stats[(stats['PROCESS?']=='N')&(stats['NEW EDU_STS/ACTION']=='Flag for Manual Review')]
     auto = stats[(stats['PROCESS?']=='Y')][['aamc_id','NEW EDU_STS/ACTION','NEW STS REASON','NEW CATEGORY CODE','Curr Status Date','Curr Exp Grad Date']]
     other_sts = status_update[status_update.aamc_id.isin(stats.aamc_id)==False]
-    manual = pd.concat([manual, other_sts])
+    manual = pd.concat([manual, other_sts], sort=True)
     unprocessed = stats[(stats['PROCESS?']=='N')&(stats['NEW EDU_STS/ACTION']!='Flag for Manual Review')]
     return manual, auto, unprocessed
 
@@ -306,39 +305,71 @@ def fix_me(me_number):
         num = '000' + num
     return num
 
+def create_it_file(grad_year):
+    columns = ['AAMC_ID','STUD_ID', 'SCHOOL_ID','RECENT_AMA_EDU_STS','CURRENT_AAMC_STATUS_CD','CURRENT_AAMC_STATUS',
+    'AAMC_CURRENT_STATUS_DATE','AAMC_CURRENT_EXP_GRAD_DATE','AMA_GRAD_YEAR','AAMC_CURRENT_GRAD_YEAR',
+    'AAMC_CURRENT_CLASS_LEVEL']
+
+    col_rename = {'aamc_id':'AAMC_ID',
+              'stud_id':'STUD_ID',
+              'school_id':'SCHOOL_ID',
+              'edu_sts' : 'RECENT_AMA_EDU_STS',
+              'Curr Status':'CURRENT_AAMC_STATUS',
+              'STATUS_CD':'CURRENT_AAMC_STATUS_CD',
+              'Curr Status Date':'AAMC_CURRENT_STATUS_DATE',
+              'Curr Exp Grad Date':'AAMC_CURRENT_EXP_GRAD_DATE',
+              'grad_yr':'AMA_GRAD_YEAR',
+              'CURRENT_GRAD_YEAR':'AAMC_CURRENT_GRAD_YEAR', 
+              'Curr Class Level':'AAMC_CURRENT_CLASS_LEVEL'
+    }
+    grad_test = grad_year.rename(columns = col_rename)[columns]
+    grad_test['CURRENT_AAMC_STATUS_CD'] = [str(x).split('.')[0] for x in grad_test['CURRENT_AAMC_STATUS_CD']]
+    grad_test['AAMC_ID'] = [str(x).split('.')[0] for x in grad_test['AAMC_ID']]
+    grad_test.AAMC_CURRENT_EXP_GRAD_DATE = pd.to_datetime(grad_test.AAMC_CURRENT_EXP_GRAD_DATE, errors='coerce')
+    grad_test = grad_test.fillna('')
+    grad_test = grad_test.replace('None','')
+    grad_test = grad_test.replace('nan','')
+    grad_test.AAMC_CURRENT_EXP_GRAD_DATE = [x.date() if x != '' else x for x in grad_test.AAMC_CURRENT_EXP_GRAD_DATE]
+    return grad_test
+
+
 def whole_shebang():
+    pd.set_option("mode.chained_assignment", None)
     today = str(date.today())
     out = os.environ.get('OUT_DIR')
     srs_old = get_old_scrape()
-    srs_old = pd.read_csv(f'{out}/SRS_Scrape_2021-03-19.csv')
+    # srs_old = pd.read_csv(f'{out}/SRS_Scrape_2021-08-24.csv', low_memory = False)
     LOGGER.info("Scraping...")
     srs_new = scrape_srs()
-    srs_new = pd.read_csv(f'{out}/SRS_Scrape_2021-07-27.csv')
+    srs_new.to_csv(f'{out}/SRS_Scrape_Backup_{today}.csv', index=False)
+    srs_new.to_excel(f'{out}/SRS_Scrape_{today}.xlsx', index=False)
+    # srs_new = pd.read_csv(f'{out}/SRS_Scrape_2021-09-27.csv', low_memory = False)
+    srs_new, with_dental = remove_dental(srs_new)
+    LOGGER.info(f'{"{:,}".format(len(with_dental) - len(srs_new))} dental student records in AAMC-SRS scrape')
     LOGGER.info(f'{"{:,}".format(len(srs_new))} student records in AAMC-SRS scrape')
     updates = find_updates(srs_old, srs_new)
     LOGGER.info(f'{"{:,}".format(len(updates))} record updates since last scrape')
     LOGGER.info("Finding in masterfile...")
     aamc_found, missing = match_aamc(updates)
+    # aamc_found = pd.read_csv(f'{out}/aamc_found_{today}.csv', low_memory = False )
+    # missing = pd.read_csv(f'{out}/missing_{today}.csv', low_memory = False)
     aamc_found_all, missing_all = match_aamc(srs_new)
-
-    # aamc_found = pd.read_csv(f'{out}/SRS_AAMC_{today}.csv')
-    # missing = pd.read_csv(f'{out}/SRS_AAMC_Missing_{today}.csv') 
-
     LOGGER.info(f'{"{:,}".format(len(aamc_found))} ({round(len(aamc_found)/len(updates)*100, 2)}%) records matched to AIMS on aamc_id')
     aamc_found, stu_affil = get_stu_affil(aamc_found)
+    # stu_affil = pd.read_excel(f'{out}/SRS_Student_Affiliates_{today}.xlsx')
     LOGGER.info(f'{"{:,}".format(len(stu_affil))} ({round(len(stu_affil)/len(aamc_found)*100, 2)}%) records are student affiliates')
     LOGGER.info("Getting all student data...")
     all_students = get_all_students()
-    # all_students = pd.read_csv(f'{out}/all_students_{today}.csv')
+    # all_students = pd.read_csv(f'{out}/All_Students_{today}.csv', low_memory = False)
     LOGGER.info("Matching...")
     matched = match_missing_ids(missing, all_students)
-    # matched = pd.read_csv(f'{out}/matched_{today}.csv')
     matched = pd.merge(matched, missing, on='AAMC ID')
     matched = pd.merge(matched, all_students, on='entity_id')
+    matched = matched.rename(columns = {'birth_state_cd_x':'birth_state_cd','last_nm_x':'last_nm','gender_x':'gender'})
+    # matched = pd.read_csv(f'{out}/matchy_{today}.csv')
     me_entity = get_me_entity_map()
     # me_entity = pd.read_csv(f'{out}/me_entity_{today}.csv')
     matched = pd.merge(matched, me_entity, on='entity_id', how='left')
-    
     still_missing = missing[missing['AAMC ID'].isin(matched['AAMC ID'])==False]
     LOGGER.info(f'{"{:,}".format(len(matched))} ({round(len(matched)/len(missing)*100, 2)}%) records found via matching process')
     LOGGER.info(f'{"{:,}".format(len(still_missing))} ({round(len(still_missing)/len(missing)*100, 2)}%) scraped records missing from our database')
@@ -346,6 +377,7 @@ def whole_shebang():
     found_students = add_details(aamc_found, all_students, me_entity)
     LOGGER.info('Processing discrepancies...')
     grad_mismatch = clean(find_grad_year_updates(found_students), 'GRAD_YEAR')
+    it_file = create_it_file(grad_mismatch)
     LOGGER.info(f'{"{:,}".format(len(grad_mismatch))} ({round(len(grad_mismatch)/len(found_students)*100, 2)}%) records have graduation year discrepancies')
     status_update = clean(find_status_updates(found_students, grad_mismatch), 'STATUS_UPDATE')
     LOGGER.info(f'{"{:,}".format(len(status_update))} ({round(len(status_update)/len(found_students)*100, 2)}%) records have status discrepancies, but correct graduation year')
@@ -353,17 +385,18 @@ def whole_shebang():
     LOGGER.info(f'{"{:,}".format(len(manual))} status discrepancies flagged for manual review')
     LOGGER.info(f'{"{:,}".format(len(auto))} status discrepancies automatically processed')
     LOGGER.info(f'{"{:,}".format(len(unprocessed))} status discrepancies not processed')
-    updates.to_csv(f'{out}/SRS_Scraped_New_{today}.csv', index=False)
-    found_students.to_csv(f'{out}/SRS_AAMC_{today}.csv', index=False)
-    aamc_found_all.to_csv(f'{out}/SRS_AAMC_All_{today}.csv', index=False)
-    clean(matched, 'MATCHED').to_csv(f'{out}/SRS_Matched_{today}.csv', index=False)
-    clean(still_missing, 'MISSING').to_csv(f'{out}/SRS_Missing_{today}.csv', index=False)
-    grad_mismatch.to_csv(f'{out}/SRS_Graduation_Year_Discrepancy_{today}.csv', index=False)
-    status_update.to_csv(f'{out}/SRS_Status_Discrepancy_{today}.csv', index=False)
-    stu_affil.to_csv(f'{out}/SRS_Student_Affiliates_{today}.csv', index=False)
-    auto.to_csv(f'{out}/Automatic_Updates_{today}.csv', index=False)
-    manual.to_csv(f'{out}/SRS_Manual_Updates_{today}.csv', index=False)
-    unprocessed.to_csv(f'{out}/SRS_Unprocessed_{today}.csv', index=False)
+    updates.to_excel(f'{out}/SRS_Scraped_New_{today}.xlsx', index=False)
+    found_students.to_excel(f'{out}/SRS_AAMC_{today}.xlsx', index=False)
+    aamc_found_all.to_excel(f'{out}/SRS_AAMC_All_{today}.xlsx', index=False)
+    clean(matched, 'MATCHED').to_excel(f'{out}/SRS_Matched_{today}.xlsx', index=False)
+    clean(still_missing, 'MISSING').to_excel(f'{out}/SRS_Missing_{today}.xlsx', index=False)
+    grad_mismatch.to_excel(f'{out}/SRS_Graduation_Year_Discrepancy_{today}.xlsx', index=False)
+    status_update.to_excel(f'{out}/SRS_Status_Discrepancy_{today}.xlsx', index=False)
+    stu_affil.to_excel(f'{out}/SRS_Student_Affiliates_{today}.xlsx', index=False)
+    auto.to_excel(f'{out}/Automatic_Updates_{today}.xlsx', index=False)
+    manual.to_excel(f'{out}/SRS_Manual_Updates_{today}.xlsx', index=False)
+    unprocessed.to_excel(f'{out}/SRS_Unprocessed_{today}.xlsx', index=False)
+    it_file.to_csv(f'{out}/SRS_Graduation_Year_Discrepancy_Update_{today}.txt', sep='|', index=False)
 
 if __name__ == "__main__":
     whole_shebang()

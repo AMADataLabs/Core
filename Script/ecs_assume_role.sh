@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 environment=${1:-dev}
 profile=${2:-shared}
-filename=".ecstoken_$(date +%Y%m%d%H%M%S)"
+filename=".ecs_token_${environment}_$(date +%Y%m%d%H%M%S)"
 no_verify_ssl=
 
 if [[ "$AWS_NO_VERIFY_SSL" == "True" ]]; then

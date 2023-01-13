@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 SCRIPT_PATH=`realpath $0`
 SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
@@ -11,6 +11,7 @@ PASSWORD=
 TARGET_VERSION="head"
 COMMAND=
 PROJECT_NAME=
+BACKEND='postgresql+psycopg2'
 
 
 main() {
@@ -68,6 +69,11 @@ process_arguments() {
             shift
             shift
             ;;
+        -b|--backend)
+            BACKEND=$2
+            shift
+            shift
+            ;;
         -v|--version)
             TARGET_VERSION=$2
             shift
@@ -112,10 +118,10 @@ process_arguments() {
 setup_environment() {
     export DATABASE_ORM_HOST=$HOST
     export DATABASE_ORM_PORT=$PORT
-    export DATABASE_ORM_BACKEND='postgresql+psycopg2'
+    export DATABASE_ORM_BACKEND=$BACKEND
     export DATABASE_ORM_NAME=$NAME
-    export CREDENTIALS_ORM_USERNAME=$USERNAME
-    export CREDENTIALS_ORM_PASSWORD=$PASSWORD
+    export DATABASE_ORM_USERNAME=$USERNAME
+    export DATABASE_ORM_PASSWORD=$PASSWORD
 
     cd ${SCRIPT_BASE_PATH}/../Build/${PROJECT_NAME}
 }

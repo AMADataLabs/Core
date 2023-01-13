@@ -1,9 +1,14 @@
 """ Common classes for doing project setup tasks. """
+import logging
 
 from   abc import ABC, abstractmethod
 from   dataclasses import dataclass
 
 import jinja2
+
+logging.basicConfig()
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 @dataclass
@@ -27,9 +32,9 @@ class TemplatedFileGenerator(ABC):
         self._write_output(output)
 
     def _read_template(self) -> jinja2.Template:
-        environment = jinja2.Environment(undefined=jinja2.DebugUndefined)
+        environment = jinja2.Environment(undefined=jinja2.make_logging_undefined(logger=LOGGER, base=jinja2.Undefined))
 
-        with open(self._filenames.template) as file:
+        with open(self._filenames.template, encoding="utf-8") as file:
             template = environment.from_string(file.read())
 
         return template
@@ -43,7 +48,7 @@ class TemplatedFileGenerator(ABC):
         return template.render(**template_paratameters)
 
     def _write_output(self, output):
-        with open(self._filenames.output, 'w') as file:
+        with open(self._filenames.output, 'w', encoding="utf-8") as file:
             file.write(output)
             file.flush()
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 
 for FUNCTION_NAME in CPTStressGetDescriptor CPTStressGetDescriptors CPTStressGetConsumerDescriptor CPTStressGetConsumerDescriptors CPTStressGetClinicianDescriptors CPTStressGetAllClinicianDescriptors CPTStressGetModifier CPTStressGetModifiers CPTStressGetPLADetails CPTStressGetAllPLADetails CPTStressGetLatestPDFs CPTStressGetReleases CPTStressDefault CPTStressConvert CPTStressLoad; do

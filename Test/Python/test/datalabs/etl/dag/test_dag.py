@@ -1,7 +1,8 @@
 """ Source: datalabs.etl.dag.dag """
 import pytest
 
-from   datalabs.etl.dag import DAG, Repeat
+from   datalabs.etl.dag import DAG, Repeat, PythonTask, JavaTask
+from   datalabs.task import Task
 
 
 # pylint: disable=redefined-outer-name
@@ -15,11 +16,32 @@ def test_dag_task_attributes_are_created(dag_class):
     assert dag_class.POUR_CHAMPAIGN_INTO_GLASS.task_class == TestTask2
 
 
+def test_dag_tasks_property_returns_task_names(dag_class):
+    assert len(dag_class.tasks) == 10
+
+    tasks = [
+        "CURE_BOVINE_SPONGIFORM_ENCEPHALOPATHY",
+        "POUR_CHAMPAIGN_INTO_GLASS",
+        "WAX_ON_WITH_KARATE_0",
+        "WAX_ON_WITH_KARATE_1",
+        "WAX_ON_WITH_KARATE_2",
+        "WAX_OFF_WITH_KARATE_0",
+        "WAX_OFF_WITH_KARATE_1",
+        "WAX_OFF_WITH_KARATE_2",
+        "CELEBRATE_GOOD_TIMES",
+        "COME_ON",
+    ]
+
+    for task in tasks:
+        assert task in dag_class.tasks
+
+
+
 # pylint: disable=redefined-outer-name
 def test_dag_vertices_are_created(dag_class):
     dag = dag_class()
 
-    assert dag.vertex_size() == 8
+    assert dag.vertex_size() == 10
     assert dag.edge_size() == 0
 
 
@@ -31,6 +53,19 @@ def test_dag_edges_are_created(dag_class):
     dag = dag_class()
 
     assert dag.edge_size() == 1
+
+
+#pylint: disable=redefined-outer-name
+def test_python_task_annotation_yields_class(dag_class):
+    assert hasattr(dag_class, 'CELEBRATE_GOOD_TIMES')
+    assert dag_class.CELEBRATE_GOOD_TIMES.task_class == TestTask1
+    assert dag_class.CELEBRATE_GOOD_TIMES.task_class.name == "test.datalabs.etl.dag.test_dag.TestTask1"
+
+
+#pylint: disable=redefined-outer-name
+def test_java_task_annotation_yields_string(dag_class):
+    assert hasattr(dag_class, 'COME_ON')
+    assert dag_class.COME_ON.task_class == "datalabs.etl.bogus.BeezelbubsBreakfastBiscuit"
 
 
 # pylint: disable=redefined-outer-name
@@ -146,12 +181,14 @@ def test_downstream_tasks(dag_class):
         assert task in successors
 
 
-class TestTask1:
-    pass
+class TestTask1(Task):
+    def run(self):
+        pass
 
 
-class TestTask2:
-    pass
+class TestTask2(Task):
+    def run(self):
+        pass
 
 
 @pytest.fixture
@@ -161,5 +198,7 @@ def dag_class():
         POUR_CHAMPAIGN_INTO_GLASS: TestTask2
         WAX_ON_WITH_KARATE: Repeat(TestTask2, 3)
         WAX_OFF_WITH_KARATE: Repeat(TestTask2, 3)
+        CELEBRATE_GOOD_TIMES: PythonTask("test.datalabs.etl.dag.test_dag.TestTask1")
+        COME_ON: JavaTask("datalabs.etl.bogus.BeezelbubsBreakfastBiscuit")
 
     return TestDAG

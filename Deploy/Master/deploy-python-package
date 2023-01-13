@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+
+set -eux
+
+SCRIPT_PATH=`realpath $0`
+SCRIPT_BASE_PATH=`dirname $SCRIPT_PATH`
+RUN="${SCRIPT_BASE_PATH}/run.py python"
+
+AWS_DEFAULT_REGION=us-east-1
+ENVIRONMENT=sbx
+
+PROJECT=
+VERSION=
+
+
+main() {
+    process_arguments "$@"
+
+    setup_virtual_environment
+
+    determine_package_info
+
+    build_package
+
+    upload_package
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        -v|--version)
+            VERSION=$2
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+
+    if  [[ "$PROJECT" == "" ]]; then
+        echo "Missing project argument."
+        exit 1
+    fi
+}
+
+
+setup_virtual_environment() {
+    ${PWD}/Script/setup-virtual-environment Master/BitBucketPipelines
+    export VIRTUAL_ENV=${PWD}/Environment/Master/BitBucketPipelines
+    export PATH="${VIRTUAL_ENV}/bin:$PATH"
+}
+
+
+determine_package_info() {
+    source Build/${PROJECT}/.ci/release.sh ${ENVIRONMENT}
+
+    unset RELEASE_VERSION
+
+    if [[ "$VERSION" == "" ]]; then
+        generate_dev_version
+    fi
+    echo "Version: $VERSION"
+}
+
+
+build_package() {
+    Script/release-python-component --name $RELEASE_NAME --version $VERSION \
+        --description "$RELEASE_DESCRIPTION" ${PROJECT}
+}
+
+
+upload_package() {
+    aws --profile default codeartifact login --tool twine --domain datalabs --repository datalabs-sbx
+
+    twine upload --repository codeartifact Release/dist/*.whl
+}
+
+
+print_usage() {
+    echo "Usage: deploy-python-package [OPTIONS]..."
+    echo "Build and upload a Python package for a component."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -e, --environment                     deployment environment (dev, tst, itg, prd)"
+    echo "  -p, --project                         project path relative to Build/"
+}
+
+
+generate_dev_version() {
+    current_version=$(
+        aws --profile default codeartifact list-package-versions \
+            --domain datalabs --repository datalabs-sbx --package $RELEASE_NAME \
+            --format pypi --sort-by PUBLISHED_TIME | jq -r '.versions[0].version'
+    )
+
+    if [[ "$current_version" == "" ]]; then
+        current_version="0.1.0"
+    fi
+
+    base_version=$(echo $current_version | sed 's/\.dev.*//')
+    dev_version=$(echo $current_version | sed 's/..*dev//')
+
+    if [[ "$dev_version" == "$current_version" ]]; then
+        VERSION="${current_version}.dev0"
+    else
+        VERSION="${base_version}.dev$(expr $dev_version + 1)"
+    fi
+}
+
+
+main "$@"

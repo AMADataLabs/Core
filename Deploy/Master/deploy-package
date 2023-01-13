@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+set -eux
+
+PROJECT=
+VERSION=
+
+
+main() {
+    process_arguments "$@"
+
+    get_release_info
+
+    if [[ "$RELEASE_TYPE" == "Python" ]]; then
+        Deploy/Master/deploy-python-package --project ${PROJECT} ${VERSION}
+    elif [[ "$RELEASE_TYPE" == "Java" ]]; then
+        Deploy/Master/deploy-java-package --project ${PROJECT} ${VERSION}
+    else
+        echo "Error: Unknown release type \"$RELEASE_TYPE\""
+        exit 2
+    fi
+}
+
+
+process_arguments() {
+    while (( "$#" )); do
+      case "$1" in
+        -h|--help)
+            print_usage
+            exit 0
+            ;;
+        -p|--project)
+            PROJECT=$2
+            shift
+            shift
+            ;;
+        -v|--version)
+            VERSION="--version $2"
+            shift
+            shift
+            ;;
+        *)
+            echo "Unexpected argument $1"
+            print_usage
+            exit 0
+            ;;
+      esac
+    done
+
+    if  [[ "$PROJECT" == "" ]]; then
+        echo "Missing project argument."
+        exit 1
+    fi
+}
+
+
+get_release_info() {
+    source Build/${PROJECT}/.ci/release.sh
+}
+
+
+print_usage() {
+    echo "Usage: deploy-package [OPTIONS]..."
+    echo "Build and upload a package for a component."
+    echo
+    echo "OPTIONS"
+    echo "  -h, --help                            print this usage text"
+    echo "  -p, --project                         project path relative to Build/"
+    echo "  -v, --version                         release version"
+}
+
+
+main "$@"
