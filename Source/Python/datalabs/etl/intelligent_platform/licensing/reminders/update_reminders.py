@@ -1,11 +1,11 @@
 """ Task classes for updating the group reminders. """
 import logging
-from dataclasses import dataclass
+from   dataclasses import dataclass
 
-from datalabs.parameter import add_schema
-from datalabs.task import Task
+from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
-from Source.Python.datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   Source.Python.datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
