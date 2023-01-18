@@ -5,4 +5,5 @@ DBL,13 0 * * tue-sat
 DEVELOPER_EMAILS,0 0 * * sun-thu
 LICENSING_SYNC,0 0 * * sun-thu
 LICENSING_TRAFFIC,0 0 * * sun-thu
+LICENSING_REMINDERS,0 0 * * mon-fri
 ONEVIEW,0 0 * * tue-sat

@@ -18,9 +18,6 @@ modspec:
   - package: datalabs.etl.dag.execute
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
-  - package: datalabs.model.intelligent_platform
-    include:
-      - licensing
   - package: datalabs.etl.orm
   - package: datalabs.etl.orm.provider
     include:
@@ -29,9 +26,13 @@ modspec:
   - package: datalabs.etl.smtp
   - package: datalabs.etl.sql
   - package: datalabs.etl.sql.sqlalchemy
+  - package: datalabs.etl.intelligent_platform.licensing.reminders
   - package: datalabs.etl.intelligent_platform.licensing.sync
   - package: datalabs.etl.intelligent_platform.licensing.traffic
   - package: datalabs.etl.s3
   - package: datalabs.messaging
     include:
       - email_message
+  - package: datalabs.model.intelligent_platform
+    include:
+      - licensing

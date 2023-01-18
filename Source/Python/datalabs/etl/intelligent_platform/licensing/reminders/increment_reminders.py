@@ -15,15 +15,16 @@ LOGGER.setLevel(logging.DEBUG)
 # pylint: disable=too-many-instance-attributes
 @add_schema
 @dataclass
-class UpdateRemindersParameters:
+class IncrementRemindersParameters:
     execution_time: str = None
 
 
-class UpdateRemindersTask(CSVReaderMixin, CSVWriterMixin, Task):
-    PARAMETER_CLASS = UpdateRemindersParameters
+class IncrementRemindersTask(CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = IncrementRemindersParameters
 
     def run(self):
         group_info = self._csv_to_dataframe(self._data[0])[['id', 'renewal_reminders']].drop_duplicates()
+        group_info.renewal_reminders = group_info.renewal_reminders.astype(int)
         group_info.loc[0:group_info.shape[0], ['renewal_reminders']] += 1
 
         return [self._dataframe_to_csv(group_info)]
