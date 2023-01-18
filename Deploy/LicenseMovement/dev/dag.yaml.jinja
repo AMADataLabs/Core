@@ -38,7 +38,7 @@ data:
   #  # DAG Variables - ({"DAG": {"S": "LICENSE_MOVEMENT"}, "Task": {"S": "DAG"}})
   #######################################################################
 
-    LICENSE_MOVEMENT__DAG__LAMBDA_FUNCTION: 'LicenseMovement-${ENVIRONMENT}-LicenseMovementDAG'
+    LICENSE_MOVEMENT__DAG__LAMBDA_FUNCTION: 'OneView-${ENVIRONMENT}-LicenseMovementDAG'
     LICENSE_MOVEMENT__DAG__DAG_CLASS: 'datalabs.etl.dag.masterfile.license_movement.DAG'
     LICENSE_MOVEMENT__DAG__DAG_STATE_CLASS: 'datalabs.etl.dag.state.dynamodb.DAGState'
     LICENSE_MOVEMENT__DAG__DAG_STATE_TABLE: 'DataLake-dag-state-${ENVIRONMENT}'
