@@ -2,9 +2,9 @@
 from datalabs.etl.dag import dag
 from datalabs.etl.sql.sqlalchemy.extract import SQLAlchemyExtractorTask
 
-from Source.Python.datalabs.etl.dag import PythonTask
-from Source.Python.datalabs.etl.intelligent_platform.licensing.reminders.email import ReminderEmailTask
-from Source.Python.datalabs.etl.intelligent_platform.licensing.reminders.update_reminders import UpdateRemindersTask
+from datalabs.etl.dag import PythonTask
+from datalabs.etl.intelligent_platform.licensing.reminders.email import ReminderEmailTask
+from datalabs.etl.intelligent_platform.licensing.reminders.update_reminders import UpdateRemindersTask
 
 
 @dag.register(name="LICENSING_TRAFFIC")
