@@ -12,8 +12,6 @@ from datalabs.etl.csv import CSVReaderMixin
 @dataclass
 # pylint: disable=too-many-instance-attributes
 class ReminderEmailParameters:
-    to: str  # pylint: disable=invalid-name
-    cc: str = None  # pylint: disable=invalid-name
     execution_time: str = None
 
 
@@ -48,7 +46,6 @@ class ReminderEmailTask(CSVReaderMixin, Task):
             send_email(
                 to=email_id,
                 subject='Reminder: Your CPT Development License is expiring - Sign in to extend your access',
-                body=email_body_content,
                 from_account='datalabs@ama-assn.org',
-                html_content=True
+                html_content=email_body_content
             )

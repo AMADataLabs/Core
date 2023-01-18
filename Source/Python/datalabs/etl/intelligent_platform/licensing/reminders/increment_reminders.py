@@ -24,6 +24,7 @@ class IncrementRemindersTask(CSVReaderMixin, CSVWriterMixin, Task):
 
     def run(self):
         group_info = self._csv_to_dataframe(self._data[0])[['id', 'renewal_reminders']].drop_duplicates()
+        group_info.renewal_reminders = group_info.renewal_reminders.astype(int)
         group_info.loc[0:group_info.shape[0], ['renewal_reminders']] += 1
 
         return [self._dataframe_to_csv(group_info)]
