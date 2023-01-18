@@ -88,8 +88,6 @@ class ProcessorTaskWrapper(
 
     @classmethod
     def _get_task_processor_runtime_parameters(cls, event_parameters):
-        event_parameters["task"] = "DAG"
-
         return event_parameters
 
     @classmethod

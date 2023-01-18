@@ -190,7 +190,7 @@ def task_event():
           'Sns': {
             'Type': 'Notification',
             'MessageId': '807e8cdb-71aa-5bd5-a96c-d5835a102fb4',
-            'TopicArn': 'arn:aws:sns:us-east-1:644454719059:DataLake-sbx-DAGProcessor',
+            'TopicArn': 'arn:aws:sns:us-east-1:644454719059:DataLake-sbx-TaskProcessor',
             'Subject': None,
             'Message': '{"dag": "DAG_SCHEDULER", "task": "EXTRACT_SCHEDULE", "execution_time": "2021-07-13T16:18:54.663464"}',
             'Timestamp': '2021-07-01T20:45:46.090Z',
