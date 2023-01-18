@@ -40,6 +40,7 @@ paradag==1.2.0
 pika==1.2.0
 pip==22.0.4
 pipenv==2018.5.18
+pgeocode==0.3.0
 psycopg2-binary==2.9.3
 pydeps==1.10.18
 pygments==2.8.1
