@@ -5,7 +5,7 @@ from   dataclasses import dataclass
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
 
-from   Source.Python.datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
