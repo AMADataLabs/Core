@@ -61,12 +61,15 @@ class ORMLoaderProvider(datalabs.etl.orm.provider.base.ORMLoaderProvider):
     @classmethod
     def generate_row_hashes(cls, data, primary_key, columns):
         csv_data = data[columns].to_csv(header=None, index=False, quoting=csv.QUOTE_NONE, escapechar='$')
-        row_strings = re.sub(r'([^$]),', r'\1', csv_data).strip('\n').replace('$,', ',').split('\n')
+        row_strings = re.sub(r'([^$]),', r'\1', csv_data).strip('\n').replace('$,', ',')
+        incoming_hashes = pandas.DataFrame(columns=[primary_key, 'md5'])
 
-        hashes = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings]
-        primary_keys = data[primary_key].tolist()
+        if row_strings:
+            hashes = [hashlib.md5(row_string.encode('utf-8')).hexdigest() for row_string in row_strings.split('\n')]
+            primary_keys = data[primary_key].tolist()
 
-        incoming_hashes = pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
+            incoming_hashes = pandas.DataFrame({primary_key: primary_keys, 'md5': hashes})
+
         LOGGER.debug('Incoming Row Hashes: %s', incoming_hashes)
 
         return incoming_hashes
