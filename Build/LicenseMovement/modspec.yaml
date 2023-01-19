@@ -34,7 +34,7 @@ modspec:
       - sftp
       - aims
       - odbc
-      - parameter  
+  - package: datalabs.access.parameter
   - package: datalabs.analysis.ppma.license_movement
     include:
       - finder
