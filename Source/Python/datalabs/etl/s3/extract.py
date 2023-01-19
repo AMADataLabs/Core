@@ -243,7 +243,7 @@ class S3DirectoryListingExtractorParameters:
 
 
 # pylint: disable=too-many-ancestors
-class S3DirectoryListingExtractorTask(ExecutionTimeMixin, FileExtractorTask):
+class S3DirectoryListingExtractorTask(TargetOffsetMixin, FileExtractorTask):
     PARAMETER_CLASS = S3FileExtractorParameters
 
     def _get_client(self):
