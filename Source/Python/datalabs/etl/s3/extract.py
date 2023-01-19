@@ -122,7 +122,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
     # pylint: disable=arguments-differ
     def _extract_file(self, file):
         LOGGER.debug(f'Extracting file {file} from bucket {self._parameters.bucket}...')
-        quoted_file = quote(file).replace('%2B', '+').replace('%22', '')
+        quoted_file = quote(file).replace('%2B', '+').replace('%22', '').replace('%20', ' ')
         data = None
 
         if feature.enabled("PROFILE"):
@@ -132,7 +132,7 @@ class S3FileExtractorTask(IncludeNamesMixin, ExecutionTimeMixin, FileExtractorTa
             response = self._client.get_object(Bucket=self._parameters.bucket, Key=quoted_file)
         except Exception as exception:
             raise ETLException(
-                f"Unable to get file '{file}' from S3 bucket '{self._parameters.bucket}'"
+                f"Unable to get file '{quoted_file}' from S3 bucket '{self._parameters.bucket}'"
             ) from exception
 
         if self._parameters.on_disk and self._parameters.on_disk.upper() == 'TRUE':
