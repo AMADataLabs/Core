@@ -1,4 +1,19 @@
 modspec:
+  - package: datalabs
+      include:
+        - feature
+        - parameter
+        - plugin
+        - task
+        - awslambda
+  - package: datalabs.access
+      include:
+        - aws
+        - credentials
+        - database
+        - datastore
+        - environment
+        - sftp
   - package: datalabs.access
   - package: datalabs.access.cpt
   - package: datalabs.access.parameter
@@ -9,11 +24,7 @@ modspec:
   - package: datalabs.etl.dag.cache
   - package: datalabs.etl.dag.notify
   - package: datalabs.etl.dag.state
-  - package: datalabs.etl.dag.state.dynamodb
   - package: datalabs.etl.s3
   - package: datalabs.etl.sql
-  - package: datalabs.parameter
-  - package: datalabs.plugin
-  - package: datalabs.string
-  - package: datalabs.task
-  - package: datalabs.tool
+  - package: datalabs.etl.sql.jdbc
+  - package: datalabs.etl.sftp
