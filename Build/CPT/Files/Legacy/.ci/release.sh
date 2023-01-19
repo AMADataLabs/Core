@@ -17,7 +17,7 @@ main() {
         export RELEASE_VERSION="${VERSIONS[$ENVIRONMENT]}"
     fi
 
-    export RELEASE_TYPE="Jva"
+    export RELEASE_TYPE="Java"
     export RELEASE_NAME="datalabs-cpt-files-legacy"
     export RELEASE_DESCRIPTION="CPT Files Builder legacy Java app wrapper tasks"
 }
