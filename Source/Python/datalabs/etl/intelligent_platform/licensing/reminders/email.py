@@ -24,21 +24,21 @@ class ReminderEmailTask(CSVReaderMixin, Task):
             """<p>
                 Dear CPT® Development Licensee,
                 It has been 11 months into your 12 month license term. To maintain your access to the CPT code set for
-                development purposes, you must complete a relicensing application.
+                development purposes, you must complete a relicensing application.</p>
 
-                To extend your license, Sign in and complete the application
-                <a href="https://compliance.ama-assn.org/hc/en-us/requests/new?ticket_form_id=1500000429302">here</a>
+                <p>To extend your license, Sign in and complete the application
+                <a href="https://compliance.ama-assn.org/hc/en-us/requests/new?ticket_form_id=1500000429302">here</a></p>
 
-                Do not reply to this e-mail address. If you have questions, please contact us through the appropriate
-                channel <a href="https://compliance.ama-assn.org/hc/en-us/articles/4411542991255">here</a>.
+                <p>Do not reply to this e-mail address. If you have questions, please contact us through the appropriate
+                channel <a href="https://compliance.ama-assn.org/hc/en-us/articles/4411542991255">here</a>.</p>
 
-                We hope that you will continue to use the CPT resources and will take this opportunity to provide us
-                your <a href="https://platform.ama-assn.org/ama/#/feedback">feedback</a> on the CPT Developer Program.
+                <p>We hope that you will continue to use the CPT resources and will take this opportunity to provide us
+                your <a href="https://platform.ama-assn.org/ama/#/feedback">feedback</a> on the CPT Developer Program.</p>
 
-                Regards,
+                <p>Regards,</p>
 
-                AMA Staff
-                <b>NOTE: This message is being sent from a "Do Not Reply" address. Replies are NOT monitored.</b>
+                <p>AMA Staff</p>
+                <p><b>NOTE: This message is being sent from a "Do Not Reply" address. Replies are NOT monitored.</b>
                 </p>
             """
 
