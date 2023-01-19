@@ -41,3 +41,4 @@ modspec:
       - finder
       - sql_statements
       - transform
+  - package: datalabs.messaging
