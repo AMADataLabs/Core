@@ -32,11 +32,16 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
         super().__init__(parameters, data)
 
         self._client = None
+        self._execution_time = self.execution_time
         self._target_datetime = None
 
     @property
     def include_names(self):
         return False
+
+    @property
+    def execution_time(self):
+        return datetime.utcnow()
 
     def run(self):
         # pylint: disable=not-context-manager
@@ -126,12 +131,17 @@ class FileExtractorTask(ExecutionTimeMixin, Task, ABC):
 
 
 class TargetOffsetMixin:
+    def __init__(self, parameters):
+        self.execution_time = datetime.utcnow()
+        self._parameters = parameters
+
     def _get_target_datetime(self):
+        run_datetime = None
+
         try:
             execution_offset = json.loads(self._parameters.get("EXECUTION_OFFSET"))
             run_datetime = self.execution_time - timedelta(**execution_offset)
-
-            return run_datetime
-
         except Exception as exception:
             raise ETLException(f'Unable to return delta execution time: {exception}') from exception
+
+        return run_datetime.replace(second=0, microsecond=0)

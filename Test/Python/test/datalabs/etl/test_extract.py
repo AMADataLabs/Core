@@ -1,24 +1,31 @@
 """ source: datalabs.etl.extract """
 import pytest
 
-from   dateutil.parser import isoparse
+from   datetime import datetime, timedelta
 
-from datalabs.etl.extract import FileExtractorTask
+from   datalabs.etl.extract import FileExtractorTask, TargetOffsetMixin
 
 
-def test_default_get_target_datetime(file_extractor, parameters):
+def test_default_get_target_datetime(file_extractor):
     date = file_extractor._get_target_datetime()
 
-    assert date == isoparse(parameters['EXECUTION_TIME'])
+    assert date.replace(second=0, microsecond=0) == datetime.utcnow().replace(second=0, microsecond=0)
 
 
-def test_resolve_timestamps(file_extractor, parameters):
+def test_resolve_timestamps(file_extractor):
     file_names = ["testfile1 - %Y-%m-%d.xlsx", "testfile2 - %Y-%m-%d.xlsx", "testfile3 - %Y-%m-%d.xlsx"]
 
-    file_extractor._target_datetime = isoparse(parameters['EXECUTION_TIME'])
+    file_extractor._target_datetime = datetime(2023, 1, 18, 3, 55)
     files = file_extractor._resolve_timestamps(file_names)
 
-    assert files == ["testfile1 - 1900-01-01.xlsx", "testfile2 - 1900-01-01.xlsx", "testfile3 - 1900-01-01.xlsx"]
+    assert files == ["testfile1 - 2023-01-18.xlsx", "testfile2 - 2023-01-18.xlsx", "testfile3 - 2023-01-18.xlsx"]
+
+
+def test_target_offset_mixin(parameters):
+    task = TargetOffsetMixin(parameters)
+    date = task._get_target_datetime()
+
+    assert date == (datetime.utcnow().replace(second=0, microsecond=0) - timedelta(weeks=1))
 
 
 @pytest.fixture
@@ -42,5 +49,5 @@ class FileExtractor(FileExtractorTask):
 @pytest.fixture
 def parameters():
     return dict(
-        EXECUTION_TIME='19000101'
+        EXECUTION_OFFSET='{"weeks": 1}'
     )

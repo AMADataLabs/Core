@@ -72,6 +72,7 @@ class SFTPFileExtractorTask(TargetOffsetMixin, IncludeNamesMixin, FileExtractorT
 
         return bytes(buffer.getbuffer())
 
+
 # pylint: disable=too-many-ancestors
 class SFTPWindowsTextFileExtractorTask(SFTPFileExtractorTask):
     @classmethod
