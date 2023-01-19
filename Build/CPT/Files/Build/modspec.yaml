@@ -1,19 +1,5 @@
 modspec:
   - package: datalabs
-      include:
-        - feature
-        - parameter
-        - plugin
-        - task
-        - awslambda
-  - package: datalabs.access
-      include:
-        - aws
-        - credentials
-        - database
-        - datastore
-        - environment
-        - sftp
   - package: datalabs.access
   - package: datalabs.access.cpt
   - package: datalabs.access.parameter
