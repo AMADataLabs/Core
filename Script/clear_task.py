@@ -12,6 +12,7 @@ import datalabs.etl.dag.cpt.files.ingest
 import datalabs.etl.dag.cpt.files.link
 import datalabs.etl.dag.cpt.files.watermark
 import datalabs.etl.dag.intelligent_platform.developer.email
+import datalabs.etl.dag.intelligent_platform.licensing.reminders
 import datalabs.etl.dag.intelligent_platform.licensing.sync
 import datalabs.etl.dag.intelligent_platform.licensing.traffic
 import datalabs.etl.dag.masterfile.address_flagging_report
