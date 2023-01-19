@@ -22,8 +22,8 @@ class ReminderEmailTask(CSVReaderMixin, Task):
         email_addresses = self._csv_to_dataframe(self._data[0])[['email_id']].drop_duplicates()
         email_body_content = \
             """<p>
-                Dear CPT® Development Licensee,
-                It has been 11 months into your 12 month license term. To maintain your access to the CPT code set for
+                Dear CPT® Development Licensee,</p>
+                <p>It has been 11 months into your 12 month license term. To maintain your access to the CPT code set for
                 development purposes, you must complete a relicensing application.</p>
 
                 <p>To extend your license, Sign in and complete the application
