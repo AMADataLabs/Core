@@ -1,16 +1,16 @@
 """ Class for taking Address Model scores, applying functions from filtering.py, creating an address load file """
 from datetime import datetime
 from glob import glob
+from io import BytesIO
 import logging
 import os
-from io import BytesIO
-import pandas as pd
 import pickle as pk
-# pylint: disable=import-error, unused-import
+
+import pandas as pd
+
 from datalabs.analysis.address.scoring.bolo import filtering
-from datalabs.etl.transform import TransformerTask
-# from datalabs.analysis.address.batchload.aggregator import is_valid_component_file_structure
 from datalabs.etl.fs.extract import LocalFileExtractorTask
+from datalabs.etl.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -53,10 +53,10 @@ def format_address_load_data(data: pd.DataFrame, post_addr_at_data: pd.DataFrame
 
 class BOLOPOLOPhoneAppendFileGenerator(TransformerTask):
     def _transform(self) -> 'Transformed Data':
-        scores      = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|', dtype=str, error_bad_lines=False).fillna('')
-        ppd         = pd.read_csv(BytesIO(self._parameters['data'][1]), sep=',', dtype=str).fillna('')
+        scores = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|', dtype=str, error_bad_lines=False).fillna('')
+        ppd = pd.read_csv(BytesIO(self._parameters['data'][1]), sep=',', dtype=str).fillna('')
         wslive_data = pd.read_sas(BytesIO(self._parameters['data'][2]), format='sas7bdat', encoding='latin').fillna('')
-        post_addr   = pd.read_csv(BytesIO(self._parameters['data'][3]), sep='|', dtype=str)
+        post_addr = pd.read_csv(BytesIO(self._parameters['data'][3]), sep='|', dtype=str)
 
         # wslive_path = "U:/Source Files/Data Analytics/Derek/SAS_DATA/SURVEY/wslive_results.sas7bdat"
 
@@ -101,20 +101,25 @@ class BOLOAddressLoadFileGenerator:
 
     """
     def __init__(self, scored_data: pd.DataFrame=None):
-        e = os.environ.get('ADDRESS_MODEL_OUTPUT_DIR', r'C:\Users\Garrett\PycharmProjects\AMA\hs-datalabs\Source\Python\datalabs\analysis\address\scoring\output')
-        self.model_output_dir = e + '/' if e is not None else ''
-        e = os.environ.get("ADDRESS_MODEL_ADDRESS_LOAD_DIR")
-        self.load_dir = e + '/' if e is not None else ''
-        if self.load_dir is None:
-            self.load_dir = ''
-        if self.model_output_dir is None:
-            self.model_output_dir = ''
-        self.data = scored_data
-        if self.data is None:
-            # self.model_output_dir = os.environ.get('ADDRESS_MODEL_OUTPUT_DIR')  # required if loading data automatically
-            self.data = self._get_latest_address_scoring_output()
-        self.date = str(datetime.now().date())
-        self.save_path = self.load_dir + f"BOLO_Address_{self.date}.txt"
+        model_output_dir = os.environ.get('ADDRESS_MODEL_OUTPUT_DIR')
+        load_dir = os.environ.get("ADDRESS_MODEL_ADDRESS_LOAD_DIR")
+        self._model_output_dir = model_output_dir + '/' if model_output_dir is not None else ''
+        self._load_dir = load_dir + '/' if load_dir is not None else ''
+        self._data = scored_data
+        self._date = str(datetime.now().date())
+
+        if self._load_dir is None:
+            self._load_dir = ''
+
+        if self._model_output_dir is None:
+            self._model_output_dir = ''
+
+        self.save_path = self._load_dir + f"BOLO_Address_{self._date}.txt"
+
+        if self._data is None:
+            # required if loading data automatically
+            # self._model_output_dir = os.environ.get('ADDRESS_MODEL_OUTPUT_DIR')
+            self._data = self._get_latest_address_scoring_output()
 
     def run(self):
         LOGGER.info("LOADING FILTERED ADDRESS DATA")
@@ -141,7 +146,7 @@ class BOLOAddressLoadFileGenerator:
         LOGGER.info("COMPLETE")
 
     def _get_latest_address_scoring_output(self):
-        files = glob(self.model_output_dir + 'ADDRESS_SCORING_*.csv')
+        files = glob(self._model_output_dir + 'ADDRESS_SCORING_*.csv')
         for file in files:
             LOGGER.info(f'FOUND SCORING FILE {file}')
         latest = sorted(files, reverse=True)[0]
@@ -150,12 +155,12 @@ class BOLOAddressLoadFileGenerator:
 
     def _get_filtered_data(self):
         LOGGER.info('GETTING BOLO DATA')
-        bolo_data = filtering.get_bolo_addresses(self.data)
+        bolo_data = filtering.get_bolo_addresses(self._data)
         LOGGER.info('GETTING POLO DATA')
-        polo_data = filtering.get_polo_address_scores(self.data)
+        polo_data = filtering.get_polo_address_scores(self._data)
         df = filtering.get_bolo_vs_polo_data(bolo_data=bolo_data, polo_data=polo_data)
         LOGGER.info('SAVING BOLO_POLO_DATA')
-        # df.to_csv(f'ADRESS_SCORING_BOLO_POLO_{self.date}.csv', index=False)
+        # df.to_csv(f'ADRESS_SCORING_BOLO_POLO_{self._date}.csv', index=False)
         df = filtering.filter_on_score_difference(
             bolo_polo_data=df,
             difference_threshold=MINIMUM_SCORE_DIFFERENCE
@@ -176,7 +181,8 @@ if __name__ == '__main__':
     #gen = BOLOAddressLoadFileGenerator()
     #gen.run()
     ep = {
-        'base_path': rf'C:\Users\Garrett\PycharmProjects\AMA\hs-datalabs\Source\Python\datalabs\analysis\address\scoring\data\{AS_OF_DATE}',
+        'base_path': rf'C:\Users\Garrett\PycharmProjects\AMA'
+                     rf'\hs-datalabs\Source\Python\datalabs\analysis\address\scoring\data\{AS_OF_DATE}',
         'files': rf'output\scores_{AS_OF_DATE}.txt,ppd_analysis_file.csv,wslive_results.sas7bdat'
     }
     e = LocalFileExtractorTask(parameters=ep)

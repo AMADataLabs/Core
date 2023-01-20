@@ -67,10 +67,11 @@ def get_recent_verified_me_address_keys(within_days=365, from_date=datetime.now(
 
     data['verified'] = [
         is_verified_address(c, v) for c, v in zip(
-            data['COMMENTS'].apply(str.strip), data['OFFICE_ADDRESS_VERIFIED_UPDATED'].fillna('').astype(str).apply(str.strip)
+            data['COMMENTS'].apply(str.strip),
+            data['OFFICE_ADDRESS_VERIFIED_UPDATED'].fillna('').astype(str).apply(str.strip)
         )
     ]
-    data = data[data['verified'] == True]
+    data = data[data['verified']]
     del data['verified']
 
     # make key
@@ -80,7 +81,7 @@ def get_recent_verified_me_address_keys(within_days=365, from_date=datetime.now(
                              data['OFFICE_ADDRESS_ZIP']
 
     verified_me_address_keys = data['me_address_key'].drop_duplicates()
-    LOGGER.info(f'VERIFIED ADDRESSES: {len(verified_me_address_keys)}')
+    LOGGER.info('VERIFIED ADDRESSES: %s', len(verified_me_address_keys))
     return verified_me_address_keys
 
 
@@ -171,12 +172,12 @@ def filter_on_score_difference(bolo_polo_data: pd.DataFrame, difference_threshol
 
     returns: data for which the best office address is rated AT LEAST <difference_threshold> higher than POLO
     """
-    LOGGER.info(f'FILTERING TO SCORE DIFFERENCE THRESHOLD OF {difference_threshold}')
-    LOGGER.info(f'PRE-FILTER: {len(bolo_polo_data)}')
+    LOGGER.info('FILTERING TO SCORE DIFFERENCE THRESHOLD OF %s', difference_threshold)
+    LOGGER.info('PRE-FILTER: %s', len(bolo_polo_data))
     data = bolo_polo_data[
         bolo_polo_data['score'].astype(float) - bolo_polo_data['polo_score'].astype(float) >= difference_threshold
     ]
-    LOGGER.info(f'POST-FILTER: {len(data)}')
+    LOGGER.info('POST-FILTER: %s', len(data))
     return data
 
 def filter_recent_verified_addresses(
@@ -192,7 +193,8 @@ def filter_recent_verified_addresses(
 
     # make key from me + address_key or me + addr_line2 + zip if necessary
     if 'address_key' in bolo_polo_data.columns.values:
-        bolo_polo_data['me_polo_address_key'] = bolo_polo_data['me'].astype(str) + '_' + bolo_polo_data['address_key'].fillna('')
+        bolo_polo_data['me_polo_address_key'] \
+            = bolo_polo_data['me'].astype(str) + '_' + bolo_polo_data['address_key'].fillna('')
     else:
         bolo_polo_data['me_polo_address_key'] = \
             bolo_polo_data['me'] + '_' + \
@@ -203,7 +205,7 @@ def filter_recent_verified_addresses(
     #print(bolo_polo_data['me_polo_address_key'].values[:10])
     #print(verified_addresses[:10])
 
-    LOGGER.info(f'PRE-FILTER: {len(bolo_polo_data)}')
+    LOGGER.info('PRE-FILTER: %s', len(bolo_polo_data))
     unverified = bolo_polo_data[~bolo_polo_data['me_polo_address_key'].isin(verified_addresses)]
-    LOGGER.info(f'POST-FILTER: {len(unverified)}')
+    LOGGER.info('POST-FILTER: %s', len(unverified))
     return unverified
