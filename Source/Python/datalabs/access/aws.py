@@ -39,7 +39,7 @@ class AWSClient:
         )
 
     @classmethod
-    def _get_credential_kwargs(self, credentials):
+    def _get_credential_kwargs(cls, credentials):
         return dict(
             aws_session_token=credentials["SessionToken"],
             aws_secret_access_key=credentials["SecretAccessKey"],
