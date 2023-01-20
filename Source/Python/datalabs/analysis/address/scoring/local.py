@@ -449,7 +449,6 @@ for date in dates:
     )
     transformed_data = transformer.run()
 
-    from datalabs.etl.fs.load import LocalFileLoaderTask
     loader = LocalFileLoaderTask(
         parameters={
             'data': transformed_data,
@@ -479,7 +478,7 @@ loader = LocalFileLoaderTask(
     parameters={
         'data': transformed_data,
         'base_path': f'data/{AS_OF_DATE}/output/',
-        'files': f'scores.txt'
+        'files': 'scores.txt'
     }
 )
 loader.run()

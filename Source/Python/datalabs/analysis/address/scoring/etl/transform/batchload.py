@@ -1,19 +1,41 @@
 """ Transformer task for address scores batch load file """
 from datetime import datetime
-from io import BytesIO, StringIO
+
 import pandas as pd
-from datalabs.etl.transform import TransformerTask
+
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 
-class AddressScoreBatchFileTransformerTask(TransformerTask):
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class ODSDataProcessorTransformerParameters:
+    street_address_column: str
+    zip_column: str
+    execution_time: str = None
+
+
+class AddressScoreBatchFileTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = ODSDataProcessorTransformerParameters
+
+    def run(self) -> 'list<bytes>':
+        """
+            Expected data:
+                has score_data: me|entity_id|comm_id|address_key|state_cd|score
+                has party_id_2_me_data: PARTY_ID|ME
+                has post_cd_2_comm_id_data: POST_CD_ID|SRC_POST_KEY
+        """
+        score_data, party_id_2_me_data, post_cd_2_comm_id_data = [
+            self._csv_to_dataframe(d, sep='|', dtype=str) for d in self._data
+        ]
+
+        transformed_data = self._transform(data, me_data)
+
+        return [self._dataframe_to_csv(transformed_data, sep='|')]
+
     def _transform(self) -> 'Transformed Data':
-        # has columns: me|entity_id|comm_id|address_key|state_cd|score
-        score_data = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|', dtype=str)
-        # has columns: PARTY_ID|ME
-        party_id_2_me_data = pd.read_csv(BytesIO(self._parameters['data'][1]), sep='|', dtype=str)
-        # has columns: POST_CD_ID|SRC_POST_KEY
-        post_cd_2_comm_id_data = pd.read_csv(BytesIO(self._parameters['data'][2]), sep='|', dtype=str)
-
         party_id_2_me_data.columns = ['PARTY_ID', 'me']
         post_cd_2_comm_id_data.columns = ['POST_CD_ID', 'comm_id']
 
@@ -48,15 +70,8 @@ class AddressScoreBatchFileTransformerTask(TransformerTask):
         ).groupby(['PARTY_ID', 'POST_CD_ID']).first().reset_index()
 
         # reorder columns
-        tmp = pd.DataFrame()
-        for col in batchload_columns:
-            tmp[col] = batchload_data[col]
-        batchload_data = tmp
-        del tmp
+        reordered_data = pd.DataFrame()
+        for column in batchload_columns:
+            reordered_data[column] = batchload_data[col]
 
-        print(batchload_data.shape)
-
-        output = BytesIO()
-        batchload_data.to_csv(output, sep='|', index=False)
-        output.seek(0)
-        return [output.getvalue()]
+        return reordered_data

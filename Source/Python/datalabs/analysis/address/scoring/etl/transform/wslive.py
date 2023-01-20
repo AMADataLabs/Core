@@ -1,34 +1,33 @@
 """ Transform Derek's WSLIVE_RESULTS SAS data """
 # pylint: disable=import-error
-import pickle as pk
-from io import BytesIO, StringIO
+from   dataclasses import dataclass
+
 import pandas as pd
-from datalabs.etl.transform import TransformerTask
+
+from   datalabs.etl.csv import CSVWriterMixin
+from   datalabs.etl.sas import SASReaderMixin
+from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 
-def get_sample_date(source_file_dt):
-    day = int(source_file_dt[-2:])
-    month = int(source_file_dt[5:7])
-    year = int(source_file_dt[:4])
-
-    if day >= 20:
-        month = month + 1
-        if month > 12:
-            month = 1
-            year = year + 1
-    return f'{year}-{month}-01'
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class WSLiveResultTransformerParameters:
+    execution_time: str = None
 
 
-class WSLiveResultTransformerTask(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
+class WSLiveResultTransformerTask(SASReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = WSLiveResultTransformerParameters
 
-        wslive_results = BytesIO()
+    def run(self) -> 'list<bytes>':
+        data = self._sas_to_dataframe(self._data[0], encoding='latin', format='sas7bdat')
 
-        wslive_results.write(self._parameters['data'][0])
-        wslive_results.seek(0)
+        transformed_data = self._transform(data)
 
-        data = pd.read_sas(wslive_results, encoding='latin', format='sas7bdat')
+        return self._dataframe_to_csv(transformed_data, sep='|')
 
+    def _transform(self, data) -> 'Transformed Data':
         for col in data.columns.values:
             data[col] = data[col].fillna('').astype(str).apply(str.strip).apply(lambda x: ' '.join(x.split()))
 
@@ -45,16 +44,25 @@ class WSLiveResultTransformerTask(TransformerTask):
 
         processed_data = pd.DataFrame()
         processed_data['me'] = data['PHYSICIAN_ME_NUMBER']
-        processed_data['address_key'] = data['OFFICE_ADDRESS_LINE_2'].apply(str.upper) + '_' + data['OFFICE_ADDRESS_ZIP']
-        processed_data['survey_data'] = data['SOURCE_FILE_DT'].apply(get_sample_date)
+        processed_data['address_key'] \
+            = data['OFFICE_ADDRESS_LINE_2'].apply(str.upper) + '_' + data['OFFICE_ADDRESS_ZIP']
+        processed_data['survey_data'] = data['SOURCE_FILE_DT'].apply(self._get_sample_date)
         processed_data['comments'] = data['COMMENTS']
         processed_data['office_address_verified_update'] = data['OFFICE_ADDRESS_VERIFIED_UPDATED']
         processed_data['party_id'] = ''
         processed_data['entity_id'] = ''
 
-        output = StringIO()
+        return processed_data
 
-        processed_data.to_csv(output, sep='|', index=False)
-        output.seek(0)
+    @classmethod
+    def _get_sample_date(cls, source_file_dt):
+        day = int(source_file_dt[-2:])
+        month = int(source_file_dt[5:7])
+        year = int(source_file_dt[:4])
 
-        return [output.getvalue()]
+        if day >= 20:
+            month = month + 1
+            if month > 12:
+                month = 1
+                year = year + 1
+        return f'{year}-{month}-01'

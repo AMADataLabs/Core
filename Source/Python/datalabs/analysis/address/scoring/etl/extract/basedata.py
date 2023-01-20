@@ -1,6 +1,5 @@
 """ Get POLO-Eligible address data for given population of entity_ids """
-from   io import BytesIO, StringIO
-import pickle as pk
+from   io import StringIO
 
 import pandas as pd
 

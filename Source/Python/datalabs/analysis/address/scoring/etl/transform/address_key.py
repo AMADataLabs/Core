@@ -1,11 +1,9 @@
 """ Adds a new column, 'address_key', to input data by combining street address and zip code column values """
-
-# pylint: disable=import-error
 from   dataclasses import dataclass
 
 import pandas as pd
 
-from   datalabs.analysis.address.scoring.etl.transform.cleanup import clean_data, get_list_parameter
+from   datalabs.analysis.address.scoring.etl.transform.cleanup import DataCleanerMixin
 from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
 from   datalabs.parameter import add_schema
 from   datalabs.task import Task
@@ -21,33 +19,28 @@ class AddressKeyTransformerParameters:
     execution_time: str = None
 
 
-class AddressKeyTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
+class AddressKeyTransformerTask(CSVReaderMixin, CSVWriterMixin, DataCleanerMixin, Task):
     PARAMETER_CLASS = AddressKeyTransformerParameters
 
     def run(self) -> 'list<bytes>':
-        data = _csv_to_dataframe(self._data[0], sep='|', dtype=str)
+        data = self._csv_to_dataframe(self._data[0], sep='|', dtype=str)
 
         cleaned_data = self._clean_data(data)
 
         transformed_data = self._transform(cleaned_data)
 
-        return _dataframe_to_csv(transformed_data, sep='|')
-
-    def _clean_data(self, data):
-        return clean_data(data)
+        return self._dataframe_to_csv(transformed_data, sep='|')
 
     def _transform(self, data):
-        col_street = self._parameters.street_address_column]
-        col_zip = self._parameters.zip_column]
-        result_data = pd.DataFrame()
-
+        col_street = self._parameters.street_address_column
+        col_zip = self._parameters.zip_column
         data.columns = [col.lower().strip() for col in data.columns.values]
         found_columns = data.columns.values
+        keep_columns = found_columns
+        result_data = pd.DataFrame()
 
-        if not self._parameters.keep_columns or self._parameters.keep_columns.upper() in ['NONE', '']:
-            keep_columns = found_columns
-        else:
-            keep_columns = get_list_parameter(self._parameters.keep_columns)
+        if str(self._parameters.keep_columns).upper() not in ['NONE', '']:
+            keep_columns = self._parameters.keep_columns.split(',')
 
         for col in keep_columns:
             result_data[col] = data[col]
@@ -80,8 +73,9 @@ class AddressKeyTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
         return result_data
 
 class SymphonyTransformerTask(AddressKeyTransformerTask):
-    def _clean_data(self, data):
-        data = clean_data(data)
+    @classmethod
+    def _clean_data(cls, data):
+        data = super()._clean_data(data)
 
         data['SYM_TELEPHONE_NUMBER'] = data['SYM_TELEPHONE_ORIG'].apply(
             lambda x: x.replace('(','').replace(')','').replace(' ', '').replace('-', '') if x is not  None else x
