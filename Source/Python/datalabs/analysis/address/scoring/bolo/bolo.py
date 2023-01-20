@@ -17,6 +17,7 @@ LOGGER.setLevel(logging.INFO)
 
 MINIMUM_SCORE_DIFFERENCE = 0.2
 VERIFICATION_OVERWRITE_BLACKLIST_WINDOW_DAYS = 5*365  # will not overwrite addresses verified within this amount of time
+AS_OF_DATE = '2022-12-06'
 
 
 def format_address_load_data(data: pd.DataFrame, post_addr_at_data: pd.DataFrame=None):
@@ -182,7 +183,6 @@ class BOLOAddressLoadFileGenerator:
 
 
 if __name__ == '__main__':
-    AS_OF_DATE = "UNKNOWN"  # set to avoid a pylint error due to its use below
     #gen = BOLOAddressLoadFileGenerator()
     #gen.run()
     ep = {
