@@ -1,35 +1,56 @@
 """ Adds a new column, 'address_key', to input data by combining street address and zip code column values """
 
 # pylint: disable=import-error
-from dataclasses import dataclass
-from io import BytesIO, StringIO
+from   dataclasses import dataclass
+
 import pandas as pd
-from datalabs.etl.transform import TransformerTask
-from datalabs.analysis.address.scoring.etl.transform.cleanup import get_list_parameter
+
+from   datalabs.analysis.address.scoring.etl.transform.cleanup import clean_data, get_list_parameter
+from   datalabs.etl.csv import CSVReaderMixin, CSVWriterMixin
+from   datalabs.parameter import add_schema
+from   datalabs.task import Task
 
 
-class AddressKeyTransformerTask(TransformerTask):
-    # PARAMETER_CLASS = AddressKeyTransformerParameters
+@add_schema
+@dataclass
+# pylint: disable=too-many-instance-attributes
+class AddressKeyTransformerParameters:
+    street_address_column: str
+    zip_column: str
+    keep_columns: str = None
+    execution_time: str = None
 
-    def _transform(self) -> 'Transformed Data':
-        data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep='|', dtype=str)
-        if data.columns == 1:  # wrong delim, try comma
-            data = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep=',', dtype=str)
+
+class AddressKeyTransformerTask(CSVReaderMixin, CSVWriterMixin, Task):
+    PARAMETER_CLASS = AddressKeyTransformerParameters
+
+    def run(self) -> 'list<bytes>':
+        data = _csv_to_dataframe(self._data[0], sep='|', dtype=str)
+
+        cleaned_data = self._clean_data(data)
+
+        transformed_data = self._transform(cleaned_data)
+
+        return _dataframe_to_csv(transformed_data, sep='|')
+
+    def _clean_data(self, data):
+        return clean_data(data)
+
+    def _transform(self, data):
+        col_street = self._parameters.street_address_column]
+        col_zip = self._parameters.zip_column]
+        result_data = pd.DataFrame()
+
         data.columns = [col.lower().strip() for col in data.columns.values]
         found_columns = data.columns.values
 
-        result_data = pd.DataFrame()
-
-        if 'keep_columns' not in self._parameters or str(self._parameters['keep_columns']).upper() in ['NONE', '']:
+        if not self._parameters.keep_columns or self._parameters.keep_columns.upper() in ['NONE', '']:
             keep_columns = found_columns
         else:
-            keep_columns = get_list_parameter(self._parameters['keep_columns'])
+            keep_columns = get_list_parameter(self._parameters.keep_columns)
 
         for col in keep_columns:
             result_data[col] = data[col]
-
-        col_street = self._parameters['street_address_column']
-        col_zip = self._parameters['zip_column']
 
         if col_street not in found_columns:
             raise KeyError(
@@ -56,10 +77,21 @@ class AddressKeyTransformerTask(TransformerTask):
             result_data['me'] = result_data['sym_me']
             result_data = result_data[['me', 'address_key']].drop_duplicates()
 
-        results = BytesIO()
-        result_data.to_csv(results, sep='|', index=False)
-        results.seek(0)
-        return [results.getvalue()]
+        return result_data
+
+class SymphonyTransformerTask(AddressKeyTransformerTask):
+    def _clean_data(self, data):
+        data = clean_data(data)
+
+        data['SYM_TELEPHONE_NUMBER'] = data['SYM_TELEPHONE_ORIG'].apply(
+            lambda x: x.replace('(','').replace(')','').replace(' ', '').replace('-', '') if x is not  None else x
+        )
+        data['SYM_FAX_NUMBER'] = data['SYM_FAX_ORIG'].apply(
+            lambda x: x.replace('(','').replace(')', '').replace(' ', '').replace('-', '') if x is not None else x
+        )
+        data = data.str.strip()
+
+        return data
 
 
 def add_address_key(data: pd.DataFrame, street_column, zip_column):
@@ -69,4 +101,5 @@ def add_address_key(data: pd.DataFrame, street_column, zip_column):
         zip_column
     ].fillna('').astype(str).apply(str.strip)
     data['address_key'] = data['address_key'].apply(str.upper)
+
     return data

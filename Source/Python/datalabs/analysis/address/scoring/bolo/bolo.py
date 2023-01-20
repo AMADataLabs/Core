@@ -1,15 +1,15 @@
 """ Class for taking Address Model scores, applying functions from filtering.py, creating an address load file """
-from datetime import datetime
-from glob import glob
-from io import BytesIO
+from   datetime import datetime
+from   glob import glob
+from   io import BytesIO
 import logging
 import os
 
 import pandas as pd
 
-from datalabs.analysis.address.scoring.bolo import filtering
-from datalabs.etl.fs.extract import LocalFileExtractorTask
-from datalabs.etl.task import Task
+from   datalabs.analysis.address.scoring.bolo import filtering
+from   datalabs.etl.fs.extract import LocalFileExtractorTask
+from   datalabs.task import Task
 
 logging.basicConfig()
 LOGGER = logging.getLogger(__name__)
@@ -56,12 +56,12 @@ def format_address_load_data(data: pd.DataFrame, post_addr_at_data: pd.DataFrame
     return formatted_data
 
 
-class BOLOPOLOPhoneAppendFileGenerator(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        scores = pd.read_csv(BytesIO(self._parameters['data'][0]), sep='|', dtype=str, error_bad_lines=False).fillna('')
-        ppd = pd.read_csv(BytesIO(self._parameters['data'][1]), sep=',', dtype=str).fillna('')
-        wslive_data = pd.read_sas(BytesIO(self._parameters['data'][2]), format='sas7bdat', encoding='latin').fillna('')
-        post_addr = pd.read_csv(BytesIO(self._parameters['data'][3]), sep='|', dtype=str)
+class BOLOPOLOPhoneAppendFileGenerator(Task):
+    def run(self) -> 'list<bytes>':
+        scores = pd.read_csv(BytesIO(self._data[0]), sep='|', dtype=str, error_bad_lines=False).fillna('')
+        ppd = pd.read_csv(BytesIO(self._data[1]), sep=',', dtype=str).fillna('')
+        wslive_data = pd.read_sas(BytesIO(self._data[2]), format='sas7bdat', encoding='latin').fillna('')
+        post_addr = pd.read_csv(BytesIO(self._data[3]), sep='|', dtype=str)
 
         # wslive_path = "U:/Source Files/Data Analytics/Derek/SAS_DATA/SURVEY/wslive_results.sas7bdat"
 

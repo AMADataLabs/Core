@@ -1,8 +1,10 @@
 """ Get POLO-Eligible address data for given population of entity_ids """
-from io import BytesIO, StringIO
+from   io import BytesIO, StringIO
 import pickle as pk
+
 import pandas as pd
-from datalabs.etl.transform import TransformerTask
+
+from   datalabs.task import Task
 
 POLO_ELIGIBLE_TYPES = ['OF', 'HO', 'GROUP']
 POLO_ELIGIBLE_SOURCES = [
@@ -73,13 +75,13 @@ POLO_ELIGIBLE_SOURCES = [
 ]
 
 
-class PoloEligibleDataTransformerTask(TransformerTask):
-    def _transform(self) -> 'Transformed Data':
-        ppd = pd.read_csv(StringIO(self._parameters['data'][0].decode()), sep=',', dtype=str)
+class PoloEligibleDataTransformerTask(Task):
+    def run(self) -> 'list<bytes>':
+        ppd = pd.read_csv(StringIO(self._data[0].decode()), sep=',', dtype=str)
         ppd.columns = [col.lower() for col in ppd.columns]
 
-        entity_comm = pd.read_csv(StringIO(self._parameters['data'][1].decode()), sep='|', dtype=str)
-        post_addr = pd.read_csv(StringIO(self._parameters['data'][2].decode()), sep='|', dtype=str)
+        entity_comm = pd.read_csv(StringIO(self._data[1].decode()), sep='|', dtype=str)
+        post_addr = pd.read_csv(StringIO(self._data[2].decode()), sep='|', dtype=str)
         print(post_addr.columns.values)
 
         if 'top_cd' in ppd.columns:
