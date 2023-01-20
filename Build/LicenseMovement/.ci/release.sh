@@ -7,6 +7,8 @@ ENVIRONMENT=${1:-""}
 
 main() {
     declare -A VERSIONS=(
+        [sbx]=dev
+        [dev]=dev
         [tst]=dev
         [prd]=1.0.0
     )
